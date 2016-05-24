@@ -8,6 +8,8 @@ environment:
   sdk: '>=1.8.0 <2.0.0'
 
 dependencies:
+  charcode: "^1.1.0"
+  source_span: "^1.0.0"
   string_scanner: "^0.1.4"
 
 dev_dependencies:

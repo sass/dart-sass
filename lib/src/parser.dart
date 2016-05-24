@@ -2,13 +2,23 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
+
+import 'ast/node.dart';
+import 'ast/comment.dart';
+import 'ast/expression.dart';
+import 'ast/expression/identifier.dart';
+import 'ast/expression/interpolation.dart';
+import 'ast/expression/list.dart';
+import 'ast/stylesheet.dart';
+import 'ast/variable_declaration.dart';
 
 class Parser {
   final SpanScanner _scanner;
 
   Parser(String contents, {url})
-      : _scanner = new SpanScanner(contents, url: url);
+      : _scanner = new SpanScanner(contents, sourceUrl: url);
 
   // Conventions:
   //
@@ -22,7 +32,7 @@ class Parser {
 
   StylesheetNode parse() {
     var start = _scanner.state;
-    var children = <Node>[];
+    var children = <AstNode>[];
     do {
       children.addAll(_comments());
       var child = _tryVariableDeclaration() ??
@@ -39,7 +49,7 @@ class Parser {
     if (!_scanChar($dollar)) return null;
 
     var start = _scanner.state;
-    var name = _rawIdentifier();
+    var name = _identifier();
     _ignoreComments();
     _expectChar($colon);
     _ignoreComments();
@@ -50,7 +60,7 @@ class Parser {
     var global = false;
     while (_scanChar($exclamation)) {
       var flagStart = _scanner.position - 1;
-      var flag = _rawIdentifier();
+      var flag = _identifier();
       if (flag == 'default') {
         guarded = true;
       } else if (flag == 'global') {
@@ -68,9 +78,13 @@ class Parser {
         guarded: guarded, global: global, span: _scanner.spanFrom(start));
   }
 
+  AstNode _tryAtRule() => throw new UnimplementedError();
+
+  AstNode _tryDeclaration() => throw new UnimplementedError();
+
   /// Consumes whitespace if available and returns any comments it contained.
-  List<Node> _comments() {
-    var nodes = [];
+  List<CommentNode> _comments() {
+    var nodes = <CommentNode>[];
     while (true) {
       _whitespace();
 
@@ -80,9 +94,9 @@ class Parser {
         continue;
       }
 
-      var silent = _tryLoudComment();
-      if (silent != null) {
-        nodes.add(silent);
+      var loud = _tryLoudComment();
+      if (loud != null) {
+        nodes.add(loud);
         continue;
       }
 
@@ -92,7 +106,7 @@ class Parser {
 
   // ## Expressions
 
-  Expressions _expression() {
+  Expression _expression() {
     var expression = _tryExpression();
     if (expression == null) _scanner.error("Expected expression.");
     return expression;
@@ -100,7 +114,7 @@ class Parser {
 
   Expression _tryExpression() {
     var hadComma = false;
-    var commaStart = _scanner.state;
+    var start = _scanner.state;
     var commaExpressions = <Expression>[];
     while (true) {
       var spaceExpressions = <Expression>[];
@@ -156,7 +170,7 @@ class Parser {
         var next = _scanner.peekChar(1);
         if (_isDigit(next) || next == $dot) return _number();
 
-        if (_isNameStart(next) || next == $hyphen || next == $backslash) {
+        if (_isNameStart(next) || next == $dash || next == $backslash) {
           return _identifierLike();
         }
 
@@ -171,9 +185,67 @@ class Parser {
     }
   }
 
+  Expression _parentheses() => throw new UnimplementedError();
+  Expression _unaryOperator() => throw new UnimplementedError();
+  Expression _number() => throw new UnimplementedError();
+  Expression _bracketList() => throw new UnimplementedError();
+  Expression _string() => throw new UnimplementedError();
+  Expression _hexColor() => throw new UnimplementedError();
+
   Expression _identifierLike() {
     // TODO: url(), functions
-    return new IdentifierExpression(_identifier());
+    return new IdentifierExpression(_interpolatedIdentifier());
+  }
+
+  InterpolationExpression _interpolatedIdentifier() {
+    var start = _scanner.state;
+    var contents = [];
+    var text = new StringBuffer();
+
+    while (_scanChar($dash)) {
+      text.writeCharCode($dash);
+    }
+
+    var first = _scanner.peekChar();
+    if (first == null) {
+      _scanner.error("Expected identifier.");
+    } else if (_isNameStart(first)) {
+      text.writeCharCode(_scanner.readChar());
+    } else if (first == $backslash) {
+      text.writeCharCode(_escape());
+    } else if (first == $hash) {
+      if (!text.isEmpty) contents.add(text.toString());
+      text.clear();
+      contents.add(_singleInterpolation());
+    }
+
+    while (true) {
+      var next = _scanner.peekChar();
+      if (next == null) {
+        break;
+      } else if (next == $underscore || next == $dash ||
+          _isAlphabetic(next) || _isDigit(next) || next >= 0x0080) {
+        text.writeCharCode(_scanner.readChar());
+      } else if (next == $backslash) {
+        text.writeCharCode(_escape());
+      } else if (next == $hash) {
+        if (!text.isEmpty) contents.add(text.toString());
+        text.clear();
+        contents.add(_singleInterpolation());
+      } else {
+        break;
+      }
+    }
+
+    return new InterpolationExpression(
+        contents, span: _scanner.spanFrom(start));
+  }
+
+  Expression _singleInterpolation() {
+    _scanner.expect('#{');
+    var expression = _expression();
+    _expectChar($rbrace);
+    return expression;
   }
 
   // ## Tokens
@@ -184,11 +256,11 @@ class Parser {
     } while (_trySilentComment() != null || _tryLoudComment() != null);
   }
 
-  Node _trySilentComment() {
+  CommentNode _trySilentComment() {
     var start = _scanner.state;
     while (_scanner.scan("//")) {
       while (!_scanner.isDone && !_isNewline(_scanner.readChar())) {}
-      if (_scanner.isDone) return node;
+      if (_scanner.isDone) break;
       _whitespace();
     }
 
@@ -199,7 +271,7 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
-  Node _tryLoudComment() {
+  CommentNode _tryLoudComment() {
     var start = _scanner.state;
     while (_scanner.scan("/*")) {
       do {
@@ -220,54 +292,10 @@ class Parser {
     }
   }
 
-  InterpolationExpression _identifier() {
-    var start = _scanner.start;
-    var contents = [];
+  String _identifier() {
     var text = new StringBuffer();
-
-    while (_scanChar($hyphen)) {
-      text.writeCharCode($hyphen);
-    }
-
-    var first = _scanner.peekChar();
-    if (first == null) {
-      _scanner.error("Expected identifier.");
-    } else if (_isNameStart(first)) {
-      text.writeCharCode(_scanner.readChar());
-    } else if (first == $backslash) {
-      text.writeCharCode(_escape());
-    } else if (first == $hash) {
-      if (!text.isEmpty) contents.add(text.toString());
-      text.clear();
-      contents.add(_interpolation());
-    }
-
-    while (true) {
-      var next = _scanner.peekChar();
-      if (next == null) {
-        break;
-      } else if (next == $_ || next == $- || _isAlphabetic(next) ||
-          _isDigit(next) || next >= 0x0080) {
-        text.writeCharCode(_scanner.readChar());
-      } else if (next == $backslash) {
-        text.writeCharCode(_escape());
-      } else if (next == $hash) {
-        if (!text.isEmpty) contents.add(text.toString());
-        text.clear();
-        contents.add(_interpolation());
-      } else {
-        break;
-      }
-    }
-
-    return new InterpolationExpression(
-        contents, span: _scanner.spanFrom(start));
-  }
-
-  String _rawIdentifier() {
-    var text = new StringBuffer();
-    while (_scanChar($hyphen)) {
-      text.writeCharCode($hyphen);
+    while (_scanChar($dash)) {
+      text.writeCharCode($dash);
     }
 
     var first = _scanner.peekChar();
@@ -285,8 +313,8 @@ class Parser {
       var next = _scanner.peekChar();
       if (next == null) {
         break;
-      } else if (next == $_ || next == $- || _isAlphabetic(next) ||
-          _isDigit(next) || next >= 0x0080) {
+      } else if (next == $underscore || next == $dash ||
+          _isAlphabetic(next) || _isDigit(next) || next >= 0x0080) {
         text.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         text.writeCharCode(_escape());
@@ -321,9 +349,9 @@ class Parser {
       (character >= $A && character <= $F);
 
   int _asHex(int character) {
-    if (char <= $9) return char - $0;
-    if (char <= $F) return 10 + char - $A;
-    return 10 + char - $A;
+    if (character <= $9) return character - $0;
+    if (character <= $F) return 10 + character - $A;
+    return 10 + character - $A;
   }
 
   int _escape() {
@@ -333,8 +361,9 @@ class Parser {
     var first = _scanner.peekChar();
     if (first == null) {
       return 0xFFFD;
-    } else if (first == $newline) {
+    } else if (first == $lf) {
       _scanner.error("Expected escape sequence.");
+      return 0;
     } else if (_isHex(first)) {
       var value = 0;
       for (var i = 0; i < 6; i++) {
@@ -356,11 +385,12 @@ class Parser {
 
   bool _scanChar(int character) {
     if (_scanner.peekChar() != character) return false;
-    return _scanner.readChar();
+    _scanner.readChar();
+    return true;
   }
 
   void _expectChar(int character) {
     if (_scanChar(character)) return;
-    _sanner.expect(new String.fromCharCode(character));
+    _scanner.expect(new String.fromCharCode(character));
   }
 }
