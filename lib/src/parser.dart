@@ -36,8 +36,9 @@ class Parser {
   Stylesheet parse() {
     var start = _scanner.state;
     var children = <Statement>[];
-    do {
+    while (true) {
       children.addAll(_comments());
+      if (_scanner.isDone) break;
       switch (_scanner.peekChar()) {
         case $dollar:
           children.add(_variableDeclaration());
@@ -47,13 +48,15 @@ class Parser {
           children.add(_atRule());
           break;
 
-        case $semicolon: break;
+        case $semicolon:
+          _scanner.readChar();
+          break;
 
         default:
           children.add(_styleRule());
           break;
       }
-    } while (_scanChar($semicolon));
+    }
 
     _scanner.expectDone();
     return new Stylesheet(children, span: _scanner.spanFrom(start));

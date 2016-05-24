@@ -14,7 +14,9 @@ class Environment {
       _variables[_variableIndices[name] ?? 0][name];
 
   void setVariable(String name, Value value, {bool global}) {
-    var index = global ? 0 : _variableIndices[name] ?? _variables.length - 1;
+    var index = global || _variables.length == 1
+        ? 0
+        : _variableIndices.putIfAbsent(name, () => _variables.length - 1);
     _variables[index][name] = value;
   }
 
@@ -24,7 +26,9 @@ class Environment {
     try {
       return callback();
     } finally {
-      _variables.removeLast();
+      for (var name in _variables.removeLast().keys) {
+        _variableIndices.remove(name);
+      }
     }
   }
 }
