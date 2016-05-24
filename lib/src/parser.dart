@@ -100,19 +100,10 @@ class Parser {
     while (true) {
       _whitespace();
 
-      var silent = _trySilentComment();
-      if (silent != null) {
-        nodes.add(silent);
-        continue;
-      }
+      var comment = _tryComment();
+      if (comment == null) return nodes;
 
-      var loud = _tryLoudComment();
-      if (loud != null) {
-        nodes.add(loud);
-        continue;
-      }
-
-      return nodes;
+      nodes.add(comment);
     }
   }
 
@@ -262,33 +253,39 @@ class Parser {
   void _ignoreComments() {
     do {
       _whitespace();
-    } while (_trySilentComment() != null || _tryLoudComment() != null);
+    } while (_tryComment() != null);
   }
 
-  CommentNode _trySilentComment() {
+  CommentNode _tryComment() {
+    if (_scanner.peekChar() != $slash) return null;
+    switch (_scanner.peekChar(1)) {
+      case $slash: return _silentComment();
+      case $asterisk: return _loudComment();
+      default: return null;
+    }
+  }
+
+  CommentNode _silentComment() {
     var start = _scanner.state;
-    while (_scanner.scan("//")) {
+    _scanner.expect("//");
+
+    do {
       while (!_scanner.isDone && !_isNewline(_scanner.readChar())) {}
       if (_scanner.isDone) break;
       _whitespace();
-    }
-
-    if (_scanner.position == start.position) return null;
+    } while (_scanner.scan("//"));
 
     return new CommentNode(_scanner.substring(start.position),
         silent: true,
         span: _scanner.spanFrom(start));
   }
 
-  CommentNode _tryLoudComment() {
+  CommentNode _loudComment() {
     var start = _scanner.state;
-    while (_scanner.scan("/*")) {
-      do {
-        while (_scanner.readChar() != $asterisk) {}
-      } while (_scanner.readChar() != $slash);
-    }
-
-    if (_scanner.position == start.position) return null;
+    _scanner.expect("/*");
+    do {
+      while (_scanner.readChar() != $asterisk) {}
+    } while (_scanner.readChar() != $slash);
 
     return new CommentNode(_scanner.substring(start.position),
         silent: false,
