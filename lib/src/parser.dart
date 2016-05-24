@@ -12,6 +12,7 @@ import 'ast/sass/expression/identifier.dart';
 import 'ast/sass/expression/interpolation.dart';
 import 'ast/sass/expression/list.dart';
 import 'ast/sass/expression/string.dart';
+import 'ast/sass/expression/variable.dart';
 import 'ast/sass/statement.dart';
 import 'ast/sass/style_rule.dart';
 import 'ast/sass/stylesheet.dart';
@@ -317,6 +318,7 @@ class Parser {
       case $slash: return _unaryOperator();
       case $dot: return _number();
       case $lbracket: return _bracketList();
+      case $dollar: return _variable();
 
       case $single_quote:
       case $double_quote:
@@ -352,10 +354,19 @@ class Parser {
     }
   }
 
+
   Expression _parentheses() => throw new UnimplementedError();
   Expression _unaryOperator() => throw new UnimplementedError();
   Expression _number() => throw new UnimplementedError();
   Expression _bracketList() => throw new UnimplementedError();
+
+  VariableExpression _variable() {
+    var start = _scanner.state;
+    _expectChar($dollar);
+    var name = _identifier();
+    return new VariableExpression(name, span: _scanner.spanFrom(start));
+  }
+
   StringExpression _string() => throw new UnimplementedError();
   Expression _hexColor() => throw new UnimplementedError();
 
@@ -585,7 +596,7 @@ class Parser {
       character == $lparen || character == $slash || character == $dot ||
       character == $lbracket || character == $single_quote ||
       character == $double_quote || character == $hash || character == $plus ||
-      character == $minus || character == $backslash ||
+      character == $minus || character == $backslash || character == $dollar ||
       _isNameStart(character) || _isDigit(character);
 
   int _asHex(int character) {

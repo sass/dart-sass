@@ -18,18 +18,26 @@ import '../../ast/sass/statement.dart';
 import '../../ast/sass/style_rule.dart';
 import '../../ast/sass/stylesheet.dart';
 import '../../ast/sass/variable_declaration.dart';
+import '../../environment.dart';
 import '../../utils.dart';
 import '../../value.dart';
 import '../expression/perform.dart';
 import '../statement.dart';
 
 class PerformVisitor extends StatementVisitor {
-  final _expressionVisitor = new PerformExpressionVisitor();
+  final Environment _environment;
+  final PerformExpressionVisitor _expressionVisitor;
   final _styleRules = <CssStyleRule>[];
 
   /// These are linked lists so that we can efficiently insert the style rules
   /// before their nested children.
   final _children = [new LinkedList<LinkedListValue<CssNode>>()];
+
+  PerformVisitor() : this._(new Environment());
+
+  PerformVisitor._(Environment environment)
+      : _environment = environment,
+        _expressionVisitor = new PerformExpressionVisitor(environment);
 
   void visit(Statement node) => node.visit(this);
 
@@ -76,7 +84,11 @@ class PerformVisitor extends StatementVisitor {
     }
   }
 
-  void visitVariableDeclaration(VariableDeclaration node) {}
+  void visitVariableDeclaration(VariableDeclaration node) {
+    _environment.setVariable(
+        node.name, node.expression.visit(_expressionVisitor),
+        global: node.isGlobal);
+  }
 
   CssValue<String> _performInterpolation(
       InterpolationExpression interpolation) {
@@ -91,9 +103,10 @@ class PerformVisitor extends StatementVisitor {
     _children.last.add(new LinkedListValue(node));
   }
 
+  /// Implicitly adds an environment scope.
   Iterable<CssNode> _collectChildren(void callback()) {
     _children.add(new LinkedList<LinkedListValue<CssNode>>());
-    callback();
+    _environment.scope(callback);
     return _children.removeLast().map((entry) => entry.value);
   }
 }
