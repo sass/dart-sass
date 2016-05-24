@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
+import '../node.dart';
 
-abstract class CssNode {
-  SourceSpan get span;
-}
+abstract class CssNode extends AstNode {}

@@ -5,7 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import 'node.dart';
-import '../value.dart';
+import '../../value.dart';
 
 class CssValue<T extends Value> implements CssNode {
   final T value;
