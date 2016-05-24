@@ -348,7 +348,22 @@ class Parser {
   }
 
 
-  Expression _parentheses() => throw new UnimplementedError();
+  Expression _parentheses() {
+    var start = _scanner.state;
+    _expectChar($lparen);
+    _ignoreComments();
+    if (!_isExpressionStart(_scanner.peekChar())) {
+      _expectChar($rparen);
+      return new ListExpression([], ListSeparator.none,
+          span: _scanner.spanFrom(state));
+    }
+
+    // TODO: support maps
+    var result = _expression();
+    _expectChar($rparen);
+    return result;
+  }
+
   Expression _unaryOperator() => throw new UnimplementedError();
   Expression _number() => throw new UnimplementedError();
   Expression _bracketList() => throw new UnimplementedError();

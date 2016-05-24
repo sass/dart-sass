@@ -20,6 +20,7 @@ class SassList extends Value {
 class ListSeparator {
   static const space = const ListSeparator._("space");
   static const comma = const ListSeparator._("comma");
+  static const none = const ListSeparator._("none");
 
   final String name;
 
