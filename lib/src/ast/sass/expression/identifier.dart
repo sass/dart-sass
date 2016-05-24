@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/expression.dart';
+import '../../../visitor/expression.dart';
 import '../expression.dart';
 import 'interpolation.dart';
 

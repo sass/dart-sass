@@ -5,19 +5,19 @@
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import 'ast/comment.dart';
-import 'ast/declaration.dart';
-import 'ast/expression.dart';
-import 'ast/expression/identifier.dart';
-import 'ast/expression/interpolation.dart';
-import 'ast/expression/list.dart';
-import 'ast/expression/string.dart';
-import 'ast/node.dart';
-import 'ast/statement.dart';
-import 'ast/style_rule.dart';
-import 'ast/stylesheet.dart';
-import 'ast/variable_declaration.dart';
+import 'ast/sass/comment.dart';
+import 'ast/sass/declaration.dart';
+import 'ast/sass/expression.dart';
+import 'ast/sass/expression/identifier.dart';
+import 'ast/sass/expression/interpolation.dart';
+import 'ast/sass/expression/list.dart';
+import 'ast/sass/expression/string.dart';
+import 'ast/sass/statement.dart';
+import 'ast/sass/style_rule.dart';
+import 'ast/sass/stylesheet.dart';
+import 'ast/sass/variable_declaration.dart';
 import 'interpolation_buffer.dart';
+import 'value/list.dart';
 
 class Parser {
   final SpanScanner _scanner;
@@ -32,7 +32,7 @@ class Parser {
 
   // ## Statements
 
-  StylesheetNode parse() {
+  Stylesheet parse() {
     var start = _scanner.state;
     var children = <Statement>[];
     do {
@@ -55,10 +55,10 @@ class Parser {
     } while (_scanChar($semicolon));
 
     _scanner.expectDone();
-    return new StylesheetNode(children, span: _scanner.spanFrom(start));
+    return new Stylesheet(children, span: _scanner.spanFrom(start));
   }
 
-  VariableDeclarationNode _variableDeclaration() {
+  VariableDeclaration _variableDeclaration() {
     if (!_scanChar($dollar)) return null;
 
     var start = _scanner.state;
@@ -87,17 +87,17 @@ class Parser {
       _ignoreComments();
     }
 
-    return new VariableDeclarationNode(name, expression,
+    return new VariableDeclaration(name, expression,
         guarded: guarded, global: global, span: _scanner.spanFrom(start));
   }
 
-  AstNode _atRule() => throw new UnimplementedError();
+  Statement _atRule() => throw new UnimplementedError();
 
-  StyleRuleNode _styleRule() {
+  StyleRule _styleRule() {
     var start = _scanner.state;
     var selector = _almostAnyValue();
     var children = _styleRuleChildren();
-    return new StyleRuleNode(selector, children,
+    return new StyleRule(selector, children,
         span: _scanner.spanFrom(start));
   }
 
@@ -140,10 +140,10 @@ class Parser {
     return _expression();
   }
 
-  AstNode _customPropertyDeclaration(InterpolationExpression name) =>
+  Statement _customPropertyDeclaration(InterpolationExpression name) =>
       throw new UnimplementedError();
 
-  /// Parses a [DeclarationNode] or a [StyleRuleNode].
+  /// Parses a [Declaration] or a [StyleRule].
   ///
   /// When parsing the contents of a style rule, it can be difficult to tell
   /// declarations apart from nested style rules. Since we don't thoroughly
@@ -169,16 +169,16 @@ class Parser {
   ///   and parse it as a selector anyway. This ensures that ".foo:bar {" is
   ///   always parsed as a selector and never as a property with nested
   ///   properties beneath it.
-  AstNode _declarationOrStyleRule() {
+  Statement _declarationOrStyleRule() {
     var start = _scanner.state;
     var declarationOrBuffer = _declarationOrBuffer();
 
-    if (declarationOrBuffer is DeclarationNode) return declarationOrBuffer;
+    if (declarationOrBuffer is Declaration) return declarationOrBuffer;
     var buffer = declarationOrBuffer as InterpolationBuffer;
     buffer.addInterpolation(_almostAnyValue());
 
     var children = _styleRuleChildren();
-    return new StyleRuleNode(
+    return new StyleRule(
         buffer.interpolation(_scanner.spanFrom(start)), children,
         span: _scanner.spanFrom(start));
   }
@@ -188,7 +188,7 @@ class Parser {
   ///
   /// This can return either an [InterpolationBuffer], indicating that it
   /// couldn't consume a declaration and that selector parsing should be
-  /// attempted; or it can return a [DeclarationNode], indicating that it
+  /// attempted; or it can return a [Declaration], indicating that it
   /// successfully consumed a declaration.
   dynamic _declarationOrBuffer() {
     var nameStart = _scanner.state;
@@ -255,12 +255,12 @@ class Parser {
 
     _ignoreComments();
     // TODO: nested properties
-    return new DeclarationNode(name, value);
+    return new Declaration(name, value);
   }
 
   /// Consumes whitespace if available and returns any comments it contained.
-  List<CommentNode> _comments() {
-    var nodes = <CommentNode>[];
+  List<Comment> _comments() {
+    var nodes = <Comment>[];
     while (true) {
       _whitespace();
 
@@ -480,7 +480,7 @@ class Parser {
     } while (_tryComment() != null);
   }
 
-  CommentNode _tryComment() {
+  Comment _tryComment() {
     if (_scanner.peekChar() != $slash) return null;
     switch (_scanner.peekChar(1)) {
       case $slash: return _silentComment();
@@ -489,7 +489,7 @@ class Parser {
     }
   }
 
-  CommentNode _silentComment() {
+  Comment _silentComment() {
     var start = _scanner.state;
     _scanner.expect("//");
 
@@ -499,19 +499,19 @@ class Parser {
       _whitespace();
     } while (_scanner.scan("//"));
 
-    return new CommentNode(_scanner.substring(start.position),
+    return new Comment(_scanner.substring(start.position),
         silent: true,
         span: _scanner.spanFrom(start));
   }
 
-  CommentNode _loudComment() {
+  Comment _loudComment() {
     var start = _scanner.state;
     _scanner.expect("/*");
     do {
       while (_scanner.readChar() != $asterisk) {}
     } while (_scanner.readChar() != $slash);
 
-    return new CommentNode(_scanner.substring(start.position),
+    return new Comment(_scanner.substring(start.position),
         silent: false,
         span: _scanner.spanFrom(start));
   }

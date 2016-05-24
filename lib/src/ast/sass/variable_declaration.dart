@@ -4,11 +4,11 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../visitor/statement.dart';
+import '../../visitor/statement.dart';
 import 'expression.dart';
 import 'statement.dart';
 
-class VariableDeclarationNode implements Statement {
+class VariableDeclaration implements Statement {
   final String name;
 
   final Expression expression;
@@ -19,7 +19,7 @@ class VariableDeclarationNode implements Statement {
 
   final SourceSpan span;
 
-  VariableDeclarationNode(this.name, this.expression, {bool guarded,
+  VariableDeclaration(this.name, this.expression, {bool guarded,
           bool global, this.span})
       : isGuarded = guarded,
         isGlobal = global;

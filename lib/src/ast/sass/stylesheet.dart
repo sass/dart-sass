@@ -4,22 +4,19 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../visitor/statement.dart';
+import '../../visitor/statement.dart';
 import 'statement.dart';
 
-class CommentNode implements Statement {
-  final String text;
-
-  final bool isSilent;
+class Stylesheet implements Statement {
+  final List<Statement> children;
 
   final SourceSpan span;
 
-  // TODO: Reformat text.
-  CommentNode(this.text, {bool silent, this.span})
-      : isSilent = silent;
+  Stylesheet(Iterable<Statement> children, {this.span})
+      : children = new List.unmodifiable(children);
 
   /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitComment(this);
+      visitor.visitStylesheet(this);
 
-  String toString() => text;
+  String toString() => children.join(" ");
 }

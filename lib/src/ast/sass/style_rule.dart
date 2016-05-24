@@ -4,11 +4,11 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../visitor/statement.dart';
+import '../../visitor/statement.dart';
 import 'expression/interpolation.dart';
 import 'statement.dart';
 
-class StyleRuleNode implements Statement {
+class StyleRule implements Statement {
   final InterpolationExpression selector;
 
   final List<Statement> children;
@@ -17,7 +17,7 @@ class StyleRuleNode implements Statement {
 
   // TODO: validate that children only contains variable, at-rule, declaration,
   // or style nodes?
-  StyleRuleNode(this.selector, Iterable<Statement> children, {this.span})
+  StyleRule(this.selector, Iterable<Statement> children, {this.span})
       : children = new List.unmodifiable(children);
 
   /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>

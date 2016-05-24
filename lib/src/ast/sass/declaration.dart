@@ -4,19 +4,20 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../visitor/statement.dart';
+import '../../utils.dart';
+import '../../visitor/statement.dart';
 import 'expression.dart';
 import 'expression/interpolation.dart';
 import 'statement.dart';
 
-class DeclarationNode implements Statement {
+class Declaration implements Statement {
   final InterpolationExpression name;
 
   final Expression value;
 
   SourceSpan get span => spanForList([name, value]);
 
-  DeclarationNode(this.name, this.value);
+  Declaration(this.name, this.value);
 
   /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitDeclaration(this);

@@ -2,11 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../ast/expression.dart';
-import '../ast/expression/identifier.dart';
-import '../ast/expression/interpolation.dart';
-import '../ast/expression/list.dart';
-import '../ast/expression/string.dart';
+import '../ast/sass/expression.dart';
+import '../ast/sass/expression/identifier.dart';
+import '../ast/sass/expression/interpolation.dart';
+import '../ast/sass/expression/list.dart';
+import '../ast/sass/expression/string.dart';
 
 class ExpressionVisitor<T> {
   T visit(Expression expression) => expression.visit(this);
