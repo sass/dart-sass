@@ -17,6 +17,9 @@ class InterpolationExpression implements Expression {
   String get asPlain =>
       contents.length == 1 && contents.first is String ? contents.first : null;
 
+  /// Returns the plain text before the interpolation, or the empty string.
+  String get initialPlain => contents.first is String ? contents.first : '';
+
   InterpolationExpression(Iterable/*(String|Expression)*/ contents, {this.span})
       : contents = new List.unmodifiable(contents) {
     for (var i = 0; i < this.contents.length; i++) {

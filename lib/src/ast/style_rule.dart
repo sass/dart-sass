@@ -19,5 +19,5 @@ class StyleRuleNode implements AstNode {
   StyleRuleNode(this.selector, Iterable<AstNode> children, {this.span})
       : children = new List.unmodifiable(children);
 
-  String toString() => "$selector {${children.join("; ")}}";
+  String toString() => "$selector {${children.join(" ")}}";
 }

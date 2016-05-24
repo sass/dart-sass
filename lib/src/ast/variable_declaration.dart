@@ -23,5 +23,5 @@ class VariableDeclarationNode implements AstNode {
       : isGuarded = guarded,
         isGlobal = global;
 
-  String toString() => "\$$name: $expression";
+  String toString() => "\$$name: $expression;";
 }

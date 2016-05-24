@@ -4,15 +4,18 @@
 
 import 'package:source_span/source_span.dart';
 
+import 'expression.dart';
+import 'expression/interpolation.dart';
 import 'node.dart';
 
-class StylesheetNode implements AstNode {
-  final List<AstNode> children;
+class DeclarationNode implements AstNode {
+  final InterpolationExpression name;
+
+  final Expression value;
 
   final SourceSpan span;
 
-  StylesheetNode(Iterable<AstNode> children, {this.span})
-      : children = new List.unmodifiable(children);
+  DeclarationNode(this.name, this.value, {this.span});
 
-  String toString() => children.map((child) => "$child").join(" ");
+  String toString() => "$name: $value;";
 }

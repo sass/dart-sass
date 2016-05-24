@@ -7,6 +7,7 @@ import 'package:string_scanner/string_scanner.dart';
 
 import 'ast/node.dart';
 import 'ast/comment.dart';
+import 'ast/declaration.dart';
 import 'ast/expression.dart';
 import 'ast/expression/identifier.dart';
 import 'ast/expression/interpolation.dart';
@@ -97,8 +98,13 @@ class Parser {
   StyleRuleNode _styleRule() {
     var start = _scanner.state;
     var selector = _almostAnyValue();
-    _expectChar($lbrace);
+    var children = _styleRuleChildren();
+    return new StyleRuleNode(selector, children,
+        span: _scanner.spanFrom(start));
+  }
 
+  List<AstNode> _styleRuleChildren() {
+    _expectChar($lbrace);
     var children = <AstNode>[];
     do {
       children.addAll(_comments());
@@ -121,12 +127,131 @@ class Parser {
       }
     } while (_scanChar($semicolon));
 
+    children.addAll(_comments());
     _expectChar($rbrace);
-    return new StyleRuleNode(selector, children,
+    return children;
+  }
+
+  AstNode _customPropertyDeclaration(InterpolationExpression name) =>
+      throw new UnimplementedError();
+
+  Expression _declarationValue() => throw new UnimplementedError();
+
+  /// Parses a [DeclarationNode] or a [StyleRuleNode].
+  ///
+  /// When parsing the contents of a style rule, it can be difficult to tell
+  /// declarations apart from nested style rules. Since we don't thoroughly
+  /// parse selectors until after resolving interpolation, we can share a bunch
+  /// of the parsing of the two, but we need to disambiguate them first. We use
+  /// the following criteria:
+  ///
+  /// * If the entity doesn't start with an identifier followed by a colon,
+  ///   it's a selector. There are some additional mostly-unimportant cases
+  ///   here to support various declaration hacks.
+  ///
+  /// * If the colon is followed by another colon, it's a selector.
+  ///
+  /// * Otherwise, if the colon is followed by anything other than
+  ///   interpolation or a character that's valid as the beginning of an
+  ///   identifier, it's a declaration.
+  ///
+  /// * If the colon is followed by interpolation or a valid identifier, try
+  ///   parsing it as a declaration value. If this fails, backtrack and parse
+  ///   it as a selector.
+  ///
+  /// * If the declaration value value valid but is followed by "{", backtrack
+  ///   and parse it as a selector anyway. This ensures that ".foo:bar {" is
+  ///   always parsed as a selector and never as a property with nested
+  ///   properties beneath it.
+  AstNode _declarationOrStyleRule() {
+    var start = _scanner.state;
+    var declarationOrBuffer = _declarationOrBuffer();
+
+    if (declarationOrBuffer is DeclarationNode) return declarationOrBuffer;
+    var buffer = declarationOrBuffer as InterpolationBuffer;
+    buffer.addInterpolation(_almostAnyValue());
+
+    var children = _styleRuleChildren();
+    return new StyleRuleNode(
+        buffer.interpolation(_scanner.spanFrom(start)), children,
         span: _scanner.spanFrom(start));
   }
 
-  AstNode _declarationOrStyleRule() => throw new UnimplementedError();
+  
+  /// Tries to parse a declaration, and returns the value parsed so far if it
+  /// fails.
+  ///
+  /// This can return either an [InterpolationBuffer], indicating that it
+  /// couldn't consume a declaration and that selector parsing should be
+  /// attempted; or it can return a [DeclarationNode], indicating that it
+  /// successfully consumed a declaration.
+  dynamic _declarationOrBuffer() {
+    var nameStart = _scanner.state;
+    var nameBuffer = new InterpolationBuffer();
+    
+    // Allow the "*prop: val", ":prop: val", "#prop: val", and ".prop: val"
+    // hacks.
+    var first = _scanner.peekChar();
+    if (first == $colon || first == $asterisk || first == $dot ||
+        (first == $hash && _scanner.peekChar(1) != $lbrace)) {
+      nameBuffer.writeCharCode(_scanner.readChar());
+      nameBuffer.write(_commentText());
+    }
+
+    if (!_lookingAtInterpolatedIdentifier()) return nameBuffer;
+    nameBuffer.addInterpolation(_interpolatedIdentifier());
+    nameBuffer.write(_rawText(_tryComment));
+
+    var midBuffer = new StringBuffer();
+    midBuffer.write(_commentText());
+    if (!_scanChar($colon)) return nameBuffer;
+    midBuffer.writeCharCode($colon);
+
+    // Parse custom properties as declarations no matter what.
+    var name = nameBuffer.interpolation(_scanner.spanFrom(nameStart));
+    if (name.initialPlain.startsWith('--')) {
+      return _customPropertyDeclaration(name);
+    }
+
+    if (_scanChar($colon)) {
+      return nameBuffer..write(midBuffer)..writeCharCode($colon);
+    }
+
+    var postColonWhitespace = _commentText();
+    midBuffer.write(postColonWhitespace);
+    var couldBeSelector =
+        postColonWhitespace.isEmpty && _lookingAtInterpolatedIdentifier();
+
+    Expression value;
+    try {
+      value = _declarationValue();
+      var next = _scanner.peekChar();
+      if (next == $lbrace) {
+        // Properties that are ambiguous with selectors can't have additional
+        // properties nested beneath them, so we force an error.
+        if (couldBeSelector) _expectChar($semicolon);
+      } else if (next != $semicolon && next != $rbrace) {
+        // Force an exception if there isn't a valid end-of-property character
+        // but don't consume that character.
+        _expectChar($semicolon);
+      }
+    } on FormatException catch (_) {
+      if (!couldBeSelector) rethrow;
+
+      // If the value would be followed by a semicolon, it's definitely supposed
+      // to be a property, not a selector.
+      var additional = _almostAnyValue();
+      if (_scanner.peekChar() == $semicolon) rethrow;
+
+      nameBuffer.write(midBuffer);
+      nameBuffer.addInterpolation(additional);
+      return nameBuffer;
+    }
+
+    _ignoreComments();
+    // TODO: nested properties
+    return new DeclarationNode(name, value);
+  }
 
   /// Consumes whitespace if available and returns any comments it contained.
   List<CommentNode> _comments() {
@@ -256,7 +381,7 @@ class Parser {
 
         case $double_quote:
         case $single_quote:
-          buffer.addAll(_string().asInterpolation);
+          buffer.addInterpolation(_string().asInterpolation);
           break;
 
         case $slash:
@@ -347,6 +472,8 @@ class Parser {
   }
 
   // ## Tokens
+
+  String _commentText() => _rawText(_ignoreComments);
 
   void _ignoreComments() {
     do {
@@ -499,6 +626,24 @@ class Parser {
   }
 
   // ## Utilities
+
+  /// Based on [the CSS algorithm][], but also considers interpolation to be
+  /// valid in an identifier.
+  ///
+  /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
+  bool _lookingAtInterpolatedIdentifier() {
+    var first = _scanner.peekChar();
+    if (_isNameStart(first)) return true;
+    if (first == $backslash) return !_isNewline(_scanner.peekChar(1));
+    if (first == $hash) return _scanner.peekChar(1) == $lbrace;
+
+    if (first != $dash) return false;
+
+    var second = _scanner.peekChar();
+    if (_isNameStart(second)) return true;
+    if (second == $hash) return _scanner.peekChar(2) == $lbrace;
+    return second == $backslash && !_isNewline(_scanner.peekChar(2));
+  }
 
   String _rawText(void consumer()) {
     var start = _scanner.position;
