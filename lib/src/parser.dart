@@ -22,8 +22,8 @@ class Parser {
 
   // Conventions:
   //
-  // * All statement and expression functions consume through following
-  //   whitespace, including comments.
+  // * All statement functions consume through following whitespace, including
+  //   comments. No other functions do so unless explicitly specified.
   //
   // * A function will return `null` if it fails to match iff it begins with
   //   "try".
@@ -78,9 +78,9 @@ class Parser {
         guarded: guarded, global: global, span: _scanner.spanFrom(start));
   }
 
-  AstNode _tryAtRule() => throw new UnimplementedError();
+  AstNode _tryAtRule() => null;
 
-  AstNode _tryDeclaration() => throw new UnimplementedError();
+  AstNode _tryDeclaration() => null;
 
   /// Consumes whitespace if available and returns any comments it contained.
   List<CommentNode> _comments() {
@@ -122,6 +122,7 @@ class Parser {
         var next = _trySingleExpression();
         if (next == null) break;
         spaceExpressions.add(next);
+        _ignoreComments();
       }
 
       if (spaceExpressions.isEmpty) {
@@ -177,6 +178,8 @@ class Parser {
         return _unaryOperator();
 
       default:
+        if (first == null) return null;
+
         if (_isNameStart(first) || first == $backslash) {
           return _identifierLike();
         }
@@ -237,6 +240,7 @@ class Parser {
       }
     }
 
+    if (!text.isEmpty) contents.add(text.toString());
     return new InterpolationExpression(
         contents, span: _scanner.spanFrom(start));
   }

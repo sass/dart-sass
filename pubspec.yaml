@@ -9,6 +9,7 @@ environment:
 
 dependencies:
   charcode: "^1.1.0"
+  path: "^1.0.0"
   source_span: "^1.0.0"
   string_scanner: "^0.1.4"
 
