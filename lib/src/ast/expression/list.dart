@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
+import '../../value/list.dart';
 import '../../visitor/expression.dart';
 import '../expression.dart';
 
@@ -27,18 +28,6 @@ class ListExpression implements Expression {
       visitor.visitListExpression(this);
 
   // TODO: parenthesize nested lists if necessary
-  String toString() => contents.map((value) => value.toString())
-      .join(separator == ListSeparator.comma ? ", " : " ");
-}
-
-// TODO: move to list value file?
-class ListSeparator {
-  static const space = const ListSeparator._("space");
-  static const comma = const ListSeparator._("comma");
-
-  final String name;
-
-  const ListSeparator._(this.name);
-
-  String toString() => name;
+  String toString() =>
+      contents.join(separator == ListSeparator.comma ? ", " : " ");
 }
