@@ -11,6 +11,7 @@ import 'ast/expression.dart';
 import 'ast/expression/identifier.dart';
 import 'ast/expression/interpolation.dart';
 import 'ast/expression/list.dart';
+import 'ast/expression/string.dart';
 import 'ast/stylesheet.dart';
 import 'ast/variable_declaration.dart';
 import 'interpolation_buffer.dart';
@@ -195,12 +196,76 @@ class Parser {
   Expression _unaryOperator() => throw new UnimplementedError();
   Expression _number() => throw new UnimplementedError();
   Expression _bracketList() => throw new UnimplementedError();
-  Expression _string() => throw new UnimplementedError();
+  StringExpression _string() => throw new UnimplementedError();
   Expression _hexColor() => throw new UnimplementedError();
 
   Expression _identifierLike() {
     // TODO: url(), functions
     return new IdentifierExpression(_interpolatedIdentifier());
+  }
+
+  /// Consumes tokens up to "{", "}", ";", or "!".
+  ///
+  /// This respects string boundaries and supports interpolation. Once this
+  /// interpolation is evaluated, it's expected to be re-parsed.
+  InterpolationExpression _almostAnyValue() {
+    var start = _scanner.state;
+    var buffer = new InterpolationBuffer();
+
+    loop: while (true) {
+      var next = _scanner.peekChar();
+      switch (next) {
+        case $backslash:
+          // Write a literal backslash because this text will be re-parsed.
+          buffer.writeCharCode(_scanner.readChar());
+          buffer.writeCharCode(_scanner.readChar());
+          break;
+
+        case $double_quote:
+        case $single_quote:
+          buffer.addAll(_string().asInterpolation);
+          break;
+
+        case $slash:
+          switch (_scanner.peekChar(1)) {
+            case $slash:
+              buffer.write(_rawText(() => _silentComment()));
+              break;
+
+            case $asterisk:
+              buffer.write(_rawText(() => _loudComment()));
+              break;
+
+            default:
+              buffer.writeCharCode(_scanner.readChar());
+              break;
+          }
+          break;
+
+        case $hash:
+          if (_scanner.peekChar(1) == $lbrace) {
+            buffer.add(_singleInterpolation());
+          } else {
+            buffer.writeCharCode(_scanner.readChar());
+          }
+          break;
+
+        case $exclamation:
+        case $semicolon:
+        case $lbrace:
+        case $rbrace:
+          break loop;
+
+        default:
+          if (next == null) break loop;
+
+          // TODO: support url()
+          buffer.writeCharCode(_scanner.readChar());
+          break;
+      }
+    }
+
+    return buffer.interpolation(_scanner.spanFrom(start));
   }
 
   InterpolationExpression _interpolatedIdentifier() {
@@ -218,7 +283,7 @@ class Parser {
       buffer.writeCharCode(_scanner.readChar());
     } else if (first == $backslash) {
       buffer.writeCharCode(_escape());
-    } else if (first == $hash) {
+    } else if (first == $hash && _scanner.peekChar(1) == $lbrace) {
       buffer.add(_singleInterpolation());
     }
 
@@ -231,7 +296,7 @@ class Parser {
         buffer.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         buffer.writeCharCode(_escape());
-      } else if (next == $hash) {
+      } else if (next == $hash && _scanner.peekChar(1) == $lbrace) {
         buffer.add(_singleInterpolation());
       } else {
         break;
@@ -398,5 +463,13 @@ class Parser {
   void _expectChar(int character) {
     if (_scanChar(character)) return;
     _scanner.expect(new String.fromCharCode(character));
+  }
+
+  // ## Utilities
+
+  String _rawText(void consumer()) {
+    var start = _scanner.position;
+    consumer();
+    return _scanner.substring(start);
   }
 }

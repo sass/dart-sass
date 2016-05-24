@@ -26,11 +26,28 @@ class InterpolationBuffer implements StringSink {
   void writeln([Object obj = '']) => _text.writeln(obj);
 
   void add(Expression expression) {
-    if (_text.isNotEmpty) {
-      _contents.add(_text.toString());
-      _text.clear();
-    }
+    _flushText();
     _contents.add(expression);
+  }
+
+  void addAll(InterpolationExpression expression) {
+    Iterable toAdd;
+    var first = expression.contents.first;
+    if (first is String) {
+      _text.write(first);
+      toAdd = expression.contents.skip(1);
+    } else {
+      toAdd = expression.contents;
+    }
+
+    _flushText();
+    _contents.addAll(toAdd);
+  }
+
+  void _flushText() {
+    if (_text.isEmpty) return;
+    _contents.add(_text.toString());
+    _text.clear();
   }
 
   InterpolationExpression interpolation([SourceSpan span]) {
