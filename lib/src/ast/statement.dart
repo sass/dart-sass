@@ -2,9 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../visitor/expression.dart';
+import '../visitor/statement.dart';
 import 'node.dart';
 
-abstract class Expression implements AstNode {
-  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor);
+abstract class Statement implements AstNode {
+  /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor);
 }

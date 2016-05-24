@@ -4,10 +4,6 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../visitor.dart';
-
 abstract class AstNode {
   SourceSpan get span;
-
-  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor);
 }

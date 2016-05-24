@@ -4,18 +4,18 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../visitor.dart';
-import 'node.dart';
+import '../visitor/statement.dart';
+import 'statement.dart';
 
-class StylesheetNode implements AstNode {
-  final List<AstNode> children;
+class StylesheetNode implements Statement {
+  final List<Statement> children;
 
   final SourceSpan span;
 
-  StylesheetNode(Iterable<AstNode> children, {this.span})
+  StylesheetNode(Iterable<Statement> children, {this.span})
       : children = new List.unmodifiable(children);
 
-  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+  /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);
 
   String toString() => children.map((child) => "$child").join(" ");

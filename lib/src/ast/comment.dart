@@ -4,10 +4,10 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../visitor.dart';
-import 'node.dart';
+import '../visitor/statement.dart';
+import 'statement.dart';
 
-class CommentNode implements AstNode {
+class CommentNode implements Statement {
   final String text;
 
   final bool isSilent;
@@ -18,7 +18,7 @@ class CommentNode implements AstNode {
   CommentNode(this.text, {bool silent, this.span})
       : isSilent = silent;
 
-  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+  /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitComment(this);
 
   String toString() => text;

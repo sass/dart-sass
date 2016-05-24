@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor.dart';
+import '../../visitor/expression.dart';
 import '../expression.dart';
 
 class InterpolationExpression implements Expression {
@@ -40,7 +40,7 @@ class InterpolationExpression implements Expression {
     }
   }
 
-  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitInterpolationExpression(this);
 
   String toString() =>

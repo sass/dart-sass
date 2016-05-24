@@ -5,7 +5,6 @@
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import 'ast/node.dart';
 import 'ast/comment.dart';
 import 'ast/declaration.dart';
 import 'ast/expression.dart';
@@ -13,6 +12,8 @@ import 'ast/expression/identifier.dart';
 import 'ast/expression/interpolation.dart';
 import 'ast/expression/list.dart';
 import 'ast/expression/string.dart';
+import 'ast/node.dart';
+import 'ast/statement.dart';
 import 'ast/style_rule.dart';
 import 'ast/stylesheet.dart';
 import 'ast/variable_declaration.dart';
@@ -36,7 +37,7 @@ class Parser {
 
   StylesheetNode parse() {
     var start = _scanner.state;
-    var children = <AstNode>[];
+    var children = <Statement>[];
     do {
       children.addAll(_comments());
       switch (_scanner.peekChar()) {
@@ -103,9 +104,9 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
-  List<AstNode> _styleRuleChildren() {
+  List<Statement> _styleRuleChildren() {
     _expectChar($lbrace);
-    var children = <AstNode>[];
+    var children = <Statement>[];
     do {
       children.addAll(_comments());
       switch (_scanner.peekChar()) {

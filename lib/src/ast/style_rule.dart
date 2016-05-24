@@ -4,23 +4,23 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../visitor.dart';
+import '../visitor/statement.dart';
 import 'expression/interpolation.dart';
-import 'node.dart';
+import 'statement.dart';
 
-class StyleRuleNode implements AstNode {
+class StyleRuleNode implements Statement {
   final InterpolationExpression selector;
 
-  final List<AstNode> children;
+  final List<Statement> children;
 
   final SourceSpan span;
 
   // TODO: validate that children only contains variable, at-rule, declaration,
   // or style nodes?
-  StyleRuleNode(this.selector, Iterable<AstNode> children, {this.span})
+  StyleRuleNode(this.selector, Iterable<Statement> children, {this.span})
       : children = new List.unmodifiable(children);
 
-  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+  /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitStyleRule(this);
 
   String toString() => "$selector {${children.join(" ")}}";

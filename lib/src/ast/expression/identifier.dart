@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor.dart';
+import '../../visitor/expression.dart';
 import '../expression.dart';
 import 'interpolation.dart';
 
@@ -15,7 +15,7 @@ class IdentifierExpression implements Expression {
 
   IdentifierExpression(this.text);
 
-  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitIdentifierExpression(this);
 
   String toString() => text.toString();
