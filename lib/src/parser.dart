@@ -13,6 +13,7 @@ import 'ast/expression/interpolation.dart';
 import 'ast/expression/list.dart';
 import 'ast/stylesheet.dart';
 import 'ast/variable_declaration.dart';
+import 'interpolation_buffer.dart';
 
 class Parser {
   final SpanScanner _scanner;
@@ -213,24 +214,21 @@ class Parser {
 
   InterpolationExpression _interpolatedIdentifier() {
     var start = _scanner.state;
-    var contents = [];
-    var text = new StringBuffer();
+    var buffer = new InterpolationBuffer();
 
     while (_scanChar($dash)) {
-      text.writeCharCode($dash);
+      buffer.writeCharCode($dash);
     }
 
     var first = _scanner.peekChar();
     if (first == null) {
       _scanner.error("Expected identifier.");
     } else if (_isNameStart(first)) {
-      text.writeCharCode(_scanner.readChar());
+      buffer.writeCharCode(_scanner.readChar());
     } else if (first == $backslash) {
-      text.writeCharCode(_escape());
+      buffer.writeCharCode(_escape());
     } else if (first == $hash) {
-      if (!text.isEmpty) contents.add(text.toString());
-      text.clear();
-      contents.add(_singleInterpolation());
+      buffer.add(_singleInterpolation());
     }
 
     while (true) {
@@ -239,21 +237,17 @@ class Parser {
         break;
       } else if (next == $underscore || next == $dash ||
           _isAlphabetic(next) || _isDigit(next) || next >= 0x0080) {
-        text.writeCharCode(_scanner.readChar());
+        buffer.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
-        text.writeCharCode(_escape());
+        buffer.writeCharCode(_escape());
       } else if (next == $hash) {
-        if (!text.isEmpty) contents.add(text.toString());
-        text.clear();
-        contents.add(_singleInterpolation());
+        buffer.add(_singleInterpolation());
       } else {
         break;
       }
     }
 
-    if (!text.isEmpty) contents.add(text.toString());
-    return new InterpolationExpression(
-        contents, span: _scanner.spanFrom(start));
+    return buffer.interpolation(_scanner.spanFrom(start));
   }
 
   Expression _singleInterpolation() {
