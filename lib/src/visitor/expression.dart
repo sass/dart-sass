@@ -3,11 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import '../ast/sass/expression.dart';
-import '../ast/sass/expression/identifier.dart';
-import '../ast/sass/expression/interpolation.dart';
-import '../ast/sass/expression/list.dart';
-import '../ast/sass/expression/string.dart';
-import '../ast/sass/expression/variable.dart';
 
 class ExpressionVisitor<T> {
   T visit(Expression expression) => expression.visit(this);

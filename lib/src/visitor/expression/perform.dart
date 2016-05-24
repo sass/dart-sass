@@ -3,16 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../ast/sass/expression.dart';
-import '../../ast/sass/expression/identifier.dart';
-import '../../ast/sass/expression/interpolation.dart';
-import '../../ast/sass/expression/list.dart';
-import '../../ast/sass/expression/string.dart';
-import '../../ast/sass/expression/variable.dart';
 import '../../environment.dart';
 import '../../value.dart';
-import '../../value/identifier.dart';
-import '../../value/list.dart';
-import '../../value/string.dart';
 import '../expression.dart';
 
 class PerformExpressionVisitor extends ExpressionVisitor<Value> {

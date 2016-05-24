@@ -4,20 +4,9 @@
 
 import 'dart:collection';
 
-import '../../ast/css/comment.dart';
-import '../../ast/css/declaration.dart';
 import '../../ast/css/node.dart';
-import '../../ast/css/style_rule.dart';
-import '../../ast/css/stylesheet.dart';
-import '../../ast/css/value.dart';
-import '../../ast/sass/comment.dart';
-import '../../ast/sass/declaration.dart';
 import '../../ast/sass/expression.dart';
-import '../../ast/sass/expression/interpolation.dart';
 import '../../ast/sass/statement.dart';
-import '../../ast/sass/style_rule.dart';
-import '../../ast/sass/stylesheet.dart';
-import '../../ast/sass/variable_declaration.dart';
 import '../../environment.dart';
 import '../../utils.dart';
 import '../../value.dart';

@@ -5,18 +5,8 @@
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import 'ast/sass/comment.dart';
-import 'ast/sass/declaration.dart';
 import 'ast/sass/expression.dart';
-import 'ast/sass/expression/identifier.dart';
-import 'ast/sass/expression/interpolation.dart';
-import 'ast/sass/expression/list.dart';
-import 'ast/sass/expression/string.dart';
-import 'ast/sass/expression/variable.dart';
 import 'ast/sass/statement.dart';
-import 'ast/sass/style_rule.dart';
-import 'ast/sass/stylesheet.dart';
-import 'ast/sass/variable_declaration.dart';
 import 'interpolation_buffer.dart';
 import 'value/list.dart';
 

@@ -2,4 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+export 'value/identifier.dart';
+export 'value/list.dart';
+export 'value/string.dart';
+
 class Value {}

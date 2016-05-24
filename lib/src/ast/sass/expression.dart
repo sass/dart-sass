@@ -5,6 +5,12 @@
 import '../../visitor/expression.dart';
 import 'node.dart';
 
+export 'expression/identifier.dart';
+export 'expression/interpolation.dart';
+export 'expression/list.dart';
+export 'expression/string.dart';
+export 'expression/variable.dart';
+
 abstract class Expression implements SassNode {
   /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor);
 }
