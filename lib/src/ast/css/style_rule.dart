@@ -9,7 +9,7 @@ import 'node.dart';
 import 'value.dart';
 
 class CssStyleRule implements CssNode {
-  final CssValue<Identifier> selector;
+  final CssValue<String> selector;
 
   final List<CssNode> children;
 

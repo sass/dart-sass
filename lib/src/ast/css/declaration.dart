@@ -9,9 +9,9 @@ import 'node.dart';
 import 'value.dart';
 
 class CssDeclaration implements CssNode {
-  final CssValue<Identifier> name;
+  final CssValue<String> name;
 
-  final CssValue value;
+  final CssValue<Value> value;
 
   final SourceSpan span;
 
