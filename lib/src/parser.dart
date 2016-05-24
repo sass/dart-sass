@@ -276,21 +276,14 @@ class Parser {
   // ## Expressions
 
   Expression _expression() {
-    var expression = _tryExpression();
-    if (expression == null) _scanner.error("Expected expression.");
-    return expression;
-  }
-
-  Expression _tryExpression() {
     var hadComma = false;
     var start = _scanner.state;
     var commaExpressions = <Expression>[];
     while (true) {
       var spaceExpressions = <Expression>[];
       while (true) {
-        var next = _trySingleExpression();
-        if (next == null) break;
-        spaceExpressions.add(next);
+        if (!_isExpressionStart(_scanner.peekChar())) break;
+        spaceExpressions.add(_singleExpression());
         _ignoreComments();
       }
 
@@ -308,15 +301,17 @@ class Parser {
       _ignoreComments();
     }
 
-    if (commaExpressions.isEmpty) return null;
+    if (commaExpressions.isEmpty) _scanner.error("Expected expression.");
     if (!hadComma) return commaExpressions.single;
     return new ListExpression(commaExpressions, ListSeparator.comma,
         span: _scanner.spanFrom(start));
   }
 
-  Expression _trySingleExpression() {
+  Expression _singleExpression() {
     var first = _scanner.peekChar();
     switch (first) {
+      // Note: when adding a new case, make sure it's reflected in
+      // [_isExpressionStart].
       case $lparen: return _parentheses();
       case $slash: return _unaryOperator();
       case $dot: return _number();
@@ -339,21 +334,20 @@ class Parser {
       case $minus:
         var next = _scanner.peekChar(1);
         if (_isDigit(next) || next == $dot) return _number();
-
-        if (_isNameStart(next) || next == $dash || next == $backslash) {
-          return _identifierLike();
-        }
+        if (_lookingAtInterpolatedIdentifier()) return _identifierLike();
 
         return _unaryOperator();
 
       default:
-        if (first == null) return null;
+        if (first == null) _scanner.error("Expected expression.");
 
         if (_isNameStart(first) || first == $backslash) {
           return _identifierLike();
         }
         if (_isDigit(first)) return _number();
-        return null;
+
+        _scanner.error("Expected expression");
+        throw "Unreachable";
     }
   }
 
@@ -586,6 +580,13 @@ class Parser {
       (character >= $a && character <= $f) ||
       (character >= $A && character <= $F);
 
+  bool _isExpressionStart(int character) =>
+      character == $lparen || character == $slash || character == $dot ||
+      character == $lbracket || character == $single_quote ||
+      character == $double_quote || character == $hash || character == $plus ||
+      character == $minus || character == $backslash ||
+      _isNameStart(character) || _isDigit(character);
+
   int _asHex(int character) {
     if (character <= $9) return character - $0;
     if (character <= $F) return 10 + character - $A;
@@ -634,22 +635,19 @@ class Parser {
 
   // ## Utilities
 
-  /// Based on [the CSS algorithm][], but also considers interpolation to be
-  /// valid in an identifier.
+  /// This is based on [the CSS algorithm][], but it assumes all backslashes
+  /// start escapes and it considers interpolation to be valid in an identifier.
   ///
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
   bool _lookingAtInterpolatedIdentifier() {
     var first = _scanner.peekChar();
-    if (_isNameStart(first)) return true;
-    if (first == $backslash) return !_isNewline(_scanner.peekChar(1));
+    if (_isNameStart(first) || first == $backslash) return true;
     if (first == $hash) return _scanner.peekChar(1) == $lbrace;
 
     if (first != $dash) return false;
-
     var second = _scanner.peekChar();
-    if (_isNameStart(second)) return true;
-    if (second == $hash) return _scanner.peekChar(2) == $lbrace;
-    return second == $backslash && !_isNewline(_scanner.peekChar(2));
+    if (_isNameStart(second) || second == $backslash) return true;
+    return second == $hash && _scanner.peekChar(2) == $lbrace;
   }
 
   String _rawText(void consumer()) {
