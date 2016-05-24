@@ -132,10 +132,17 @@ class Parser {
     return children;
   }
 
+  Expression _declarationValue() {
+    if (_scanner.peekChar() == $lbrace) {
+      return new StringExpression([], span: _scanner.emptySpan);
+    }
+
+    // TODO: parse static values specially?
+    return _expression();
+  }
+
   AstNode _customPropertyDeclaration(InterpolationExpression name) =>
       throw new UnimplementedError();
-
-  Expression _declarationValue() => throw new UnimplementedError();
 
   /// Parses a [DeclarationNode] or a [StyleRuleNode].
   ///

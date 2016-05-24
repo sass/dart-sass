@@ -14,8 +14,11 @@ class InterpolationExpression implements Expression {
   /// If this contains no interpolation, returns the plain text it contains.
   ///
   /// Otherwise, returns `null`.
-  String get asPlain =>
-      contents.length == 1 && contents.first is String ? contents.first : null;
+  String get asPlain {
+    if (contents.isEmpty) return '';
+    if (contents.length == 1 && contents.first is String) return contents.first;
+    return null;
+  }
 
   /// Returns the plain text before the interpolation, or the empty string.
   String get initialPlain => contents.first is String ? contents.first : '';
