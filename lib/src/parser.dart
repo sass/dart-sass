@@ -184,7 +184,6 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
-  
   /// Tries to parse a declaration, and returns the value parsed so far if it
   /// fails.
   ///
