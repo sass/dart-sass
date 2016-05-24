@@ -29,9 +29,6 @@ class Parser {
   //
   // * All statement functions consume through following whitespace, including
   //   comments. No other functions do so unless explicitly specified.
-  //
-  // * A function will return `null` if it fails to match iff it begins with
-  //   "try".
 
   // ## Statements
 
