@@ -6,9 +6,10 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:sass/src/parser.dart';
+import 'package:sass/src/visitor/statement/perform.dart';
 
 void main(List<String> args) {
   var parser = new Parser(new File(args.first).readAsStringSync(),
       url: p.toUri(args.first));
-  print(parser.parse());
+  print(new PerformVisitor().visitStylesheet(parser.parse()));
 }

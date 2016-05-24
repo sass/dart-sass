@@ -4,7 +4,6 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../value/identifier.dart';
 import 'node.dart';
 import 'value.dart';
 
