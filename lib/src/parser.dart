@@ -12,6 +12,7 @@ import 'ast/expression/identifier.dart';
 import 'ast/expression/interpolation.dart';
 import 'ast/expression/list.dart';
 import 'ast/expression/string.dart';
+import 'ast/style_rule.dart';
 import 'ast/stylesheet.dart';
 import 'ast/variable_declaration.dart';
 import 'interpolation_buffer.dart';
@@ -49,10 +50,10 @@ class Parser {
         case $semicolon: break;
 
         default:
-          children.add(_declaration());
+          children.add(_styleRule());
           break;
       }
-    } while (_scanner.scan(';'));
+    } while (_scanChar($semicolon));
 
     _scanner.expectDone();
     return new StylesheetNode(children, span: _scanner.spanFrom(start));
@@ -93,7 +94,39 @@ class Parser {
 
   AstNode _atRule() => throw new UnimplementedError();
 
-  AstNode _declaration() => throw new UnimplementedError();
+  StyleRuleNode _styleRule() {
+    var start = _scanner.state;
+    var selector = _almostAnyValue();
+    _expectChar($lbrace);
+
+    var children = <AstNode>[];
+    do {
+      children.addAll(_comments());
+      switch (_scanner.peekChar()) {
+        case $dollar:
+          children.add(_variableDeclaration());
+          break;
+
+        case $at:
+          children.add(_atRule());
+          break;
+
+        case $semicolon:
+        case $rbrace:
+          break;
+
+        default:
+          children.add(_declarationOrStyleRule());
+          break;
+      }
+    } while (_scanChar($semicolon));
+
+    _expectChar($rbrace);
+    return new StyleRuleNode(selector, children,
+        span: _scanner.spanFrom(start));
+  }
+
+  AstNode _declarationOrStyleRule() => throw new UnimplementedError();
 
   /// Consumes whitespace if available and returns any comments it contained.
   List<CommentNode> _comments() {
