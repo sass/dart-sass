@@ -35,17 +35,28 @@ class Parser {
     var children = <AstNode>[];
     do {
       children.addAll(_comments());
-      var child = _tryVariableDeclaration() ??
-          _tryAtRule() ??
-          _tryDeclaration();
-      if (child != null) children.add(child);
+      switch (_scanner.peekChar()) {
+        case $dollar:
+          children.add(_variableDeclaration());
+          break;
+
+        case $at:
+          children.add(_atRule());
+          break;
+
+        case $semicolon: break;
+
+        default:
+          children.add(_declaration());
+          break;
+      }
     } while (_scanner.scan(';'));
 
     _scanner.expectDone();
     return new StylesheetNode(children, span: _scanner.spanFrom(start));
   }
 
-  VariableDeclarationNode _tryVariableDeclaration() {
+  VariableDeclarationNode _variableDeclaration() {
     if (!_scanChar($dollar)) return null;
 
     var start = _scanner.state;
@@ -78,9 +89,9 @@ class Parser {
         guarded: guarded, global: global, span: _scanner.spanFrom(start));
   }
 
-  AstNode _tryAtRule() => null;
+  AstNode _atRule() => throw new UnimplementedError();
 
-  AstNode _tryDeclaration() => null;
+  AstNode _declaration() => throw new UnimplementedError();
 
   /// Consumes whitespace if available and returns any comments it contained.
   List<CommentNode> _comments() {
