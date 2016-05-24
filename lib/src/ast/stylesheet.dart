@@ -18,5 +18,5 @@ class StylesheetNode implements Statement {
   /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);
 
-  String toString() => children.map((child) => "$child").join(" ");
+  String toString() => children.join(" ");
 }

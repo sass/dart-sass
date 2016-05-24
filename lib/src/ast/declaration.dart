@@ -14,9 +14,9 @@ class DeclarationNode implements Statement {
 
   final Expression value;
 
-  final SourceSpan span;
+  SourceSpan get span => spanForList([name, value]);
 
-  DeclarationNode(this.name, this.value, {this.span});
+  DeclarationNode(this.name, this.value);
 
   /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitDeclaration(this);
