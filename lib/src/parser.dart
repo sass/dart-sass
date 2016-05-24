@@ -104,7 +104,7 @@ class Parser {
   List<Statement> _styleRuleChildren() {
     _expectChar($lbrace);
     var children = <Statement>[];
-    do {
+    loop: while (true) {
       children.addAll(_comments());
       switch (_scanner.peekChar()) {
         case $dollar:
@@ -116,14 +116,17 @@ class Parser {
           break;
 
         case $semicolon:
-        case $rbrace:
+          _scanner.readChar();
           break;
+
+        case $rbrace:
+          break loop;
 
         default:
           children.add(_declarationOrStyleRule());
           break;
       }
-    } while (_scanChar($semicolon));
+    }
 
     children.addAll(_comments());
     _expectChar($rbrace);
