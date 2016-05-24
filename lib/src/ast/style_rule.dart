@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../visitor.dart';
 import 'expression/interpolation.dart';
 import 'node.dart';
 
@@ -18,6 +19,9 @@ class StyleRuleNode implements AstNode {
   // or style nodes?
   StyleRuleNode(this.selector, Iterable<AstNode> children, {this.span})
       : children = new List.unmodifiable(children);
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitStyleRule(this);
 
   String toString() => "$selector {${children.join(" ")}}";
 }

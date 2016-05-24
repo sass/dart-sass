@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../visitor.dart';
 import 'expression.dart';
 import 'node.dart';
 
@@ -22,6 +23,9 @@ class VariableDeclarationNode implements AstNode {
           bool global, this.span})
       : isGuarded = guarded,
         isGlobal = global;
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitVariableDeclaration(this);
 
   String toString() => "\$$name: $expression;";
 }

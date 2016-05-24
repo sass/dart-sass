@@ -4,8 +4,9 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../expression.dart';
 import '../../utils.dart';
+import '../../visitor.dart';
+import '../expression.dart';
 
 class ListExpression implements Expression {
   final List<Expression> contents;
@@ -21,6 +22,9 @@ class ListExpression implements Expression {
   ListExpression._(List<Expression> contents, this.separator, SourceSpan span)
       : contents = contents,
         span = span ?? spanForList(contents);
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitListExpression(this);
 
   // TODO: parenthesize nested lists if necessary
   String toString() => contents.map((value) => value.toString())

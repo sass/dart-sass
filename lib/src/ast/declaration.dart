@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../visitor.dart';
 import 'expression.dart';
 import 'expression/interpolation.dart';
 import 'node.dart';
@@ -16,6 +17,9 @@ class DeclarationNode implements AstNode {
   final SourceSpan span;
 
   DeclarationNode(this.name, this.value, {this.span});
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitDeclaration(this);
 
   String toString() => "$name: $value;";
 }

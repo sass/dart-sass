@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../visitor.dart';
 import '../expression.dart';
 
 class InterpolationExpression implements Expression {
@@ -38,6 +39,9 @@ class InterpolationExpression implements Expression {
       }
     }
   }
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitInterpolationExpression(this);
 
   String toString() =>
       contents.map((value) => value is String ? value : "#{$value}").join();

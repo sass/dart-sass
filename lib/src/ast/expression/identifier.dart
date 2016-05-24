@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../visitor.dart';
 import '../expression.dart';
 import 'interpolation.dart';
 
@@ -13,6 +14,9 @@ class IdentifierExpression implements Expression {
   SourceSpan get span => text.span;
 
   IdentifierExpression(this.text);
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitIdentifierExpression(this);
 
   String toString() => text.toString();
 }

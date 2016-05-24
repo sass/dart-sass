@@ -134,7 +134,8 @@ class Parser {
 
   Expression _declarationValue() {
     if (_scanner.peekChar() == $lbrace) {
-      return new StringExpression([], span: _scanner.emptySpan);
+      return new StringExpression(
+          new InterpolationExpression([], span: _scanner.emptySpan));
     }
 
     // TODO: parse static values specially?

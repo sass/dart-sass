@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../visitor.dart';
 import '../expression.dart';
 import 'interpolation.dart';
 
@@ -21,6 +22,9 @@ class StringExpression implements Expression {
   ///
   /// Unlike [text], his doesn't resolve escapes and does include quotes.
   InterpolationExpression get asInterpolation => throw new UnimplementedError();
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitStringExpression(this);
 
   StringExpression(this.text);
 }

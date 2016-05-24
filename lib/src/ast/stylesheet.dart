@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../visitor.dart';
 import 'node.dart';
 
 class StylesheetNode implements AstNode {
@@ -13,6 +14,9 @@ class StylesheetNode implements AstNode {
 
   StylesheetNode(Iterable<AstNode> children, {this.span})
       : children = new List.unmodifiable(children);
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitStylesheet(this);
 
   String toString() => children.map((child) => "$child").join(" ");
 }

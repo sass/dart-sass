@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../visitor.dart';
 import 'node.dart';
 
 class CommentNode implements AstNode {
@@ -16,6 +17,9 @@ class CommentNode implements AstNode {
   // TODO: Reformat text.
   CommentNode(this.text, {bool silent, this.span})
       : isSilent = silent;
+
+  /*=T*/ visit/*<T>*/(AstVisitor/*<T>*/ visitor) =>
+      visitor.visitComment(this);
 
   String toString() => text;
 }
