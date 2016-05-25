@@ -20,13 +20,19 @@ class UnaryOperatorExpression implements Expression {
   /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitUnaryOperatorExpression(this);
 
-  String toString() => "${operator.operator}${operand}";
+  String toString() {
+    var buffer = new StringBuffer(operator.operator);
+    if (operator == UnaryOperator.not) buffer.writeCharCode($space);
+    buffer.write(operand);
+    return buffer.toString();
+  }
 }
 
 class UnaryOperator {
   static const plus = const UnaryOperator._("plus", "+");
   static const minus = const UnaryOperator._("minus", "-");
   static const divide = const UnaryOperator._("divide", "/");
+  static const not = const UnaryOperator._("not", "not");
 
   final String name;
 

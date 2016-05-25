@@ -23,10 +23,12 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
   }
 
   Value visitUnaryOperatorExpression(UnaryOperatorExpression node) {
+    var operand = node.operand.visit(this);
     switch (node.operator) {
-      case UnaryOperator.plus: return node.unaryPlus();
-      case UnaryOperator.minus: return node.unaryMinus();
-      case UnaryOperator.divide: return node.unaryDivide();
+      case UnaryOperator.plus: return operand.unaryPlus();
+      case UnaryOperator.minus: return operand.unaryMinus();
+      case UnaryOperator.divide: return operand.unaryDivide();
+      case UnaryOperator.not: return operand.unaryNot();
       default: throw new StateError("Unknown unary operator ${node.operator}.");
     }
   }

@@ -392,7 +392,14 @@ class Parser {
 
   Expression _identifierLike() {
     // TODO: url(), functions
-    return new IdentifierExpression(_interpolatedIdentifier());
+    var identifier = _interpolatedIdentifier();
+    if (identifier.asPlain == "not") {
+      _ignoreComments();
+      return new UnaryOperatorExpression(
+          UnaryOperator.not, _singleExpression());
+    } else {
+      return new IdentifierExpression(identifier);
+    }
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".
