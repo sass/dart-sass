@@ -36,6 +36,9 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
   Identifier visitIdentifierExpression(IdentifierExpression node) =>
       new Identifier(visitInterpolationExpression(node.text).text);
 
+  Boolean visitBooleanExpression(BooleanExpression node) =>
+      new Boolean(node.value);
+
   SassString visitInterpolationExpression(InterpolationExpression node) {
     return new SassString(node.contents.map((value) {
       if (value is String) return value;

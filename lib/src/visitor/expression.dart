@@ -8,6 +8,7 @@ class ExpressionVisitor<T> {
   T visit(Expression expression) => expression.visit(this);
 
   T visitVariableExpression(VariableExpression node) => null;
+  T visitBooleanExpression(BooleanExpression node) => null;
 
   T visitUnaryOperatorExpression(UnaryOperatorExpression node) {
     node.operand.visit(this);
@@ -16,13 +17,6 @@ class ExpressionVisitor<T> {
 
   T visitIdentifierExpression(IdentifierExpression node) {
     visitInterpolationExpression(node.text);
-    return null;
-  }
-
-  T visitInterpolationExpression(InterpolationExpression node) {
-    for (var value in node.contents) {
-      if (value is Expression) value.visit(this);
-    }
     return null;
   }
 
@@ -35,6 +29,13 @@ class ExpressionVisitor<T> {
 
   T visitStringExpression(StringExpression node) {
     visitInterpolationExpression(node.text);
+    return null;
+  }
+
+  T visitInterpolationExpression(InterpolationExpression node) {
+    for (var value in node.contents) {
+      if (value is Expression) value.visit(this);
+    }
     return null;
   }
 }

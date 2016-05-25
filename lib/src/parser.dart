@@ -394,12 +394,17 @@ class Parser {
   Expression _identifierLike() {
     // TODO: url(), functions
     var identifier = _interpolatedIdentifier();
-    if (identifier.asPlain == "not") {
-      _ignoreComments();
-      return new UnaryOperatorExpression(
-          UnaryOperator.not, _singleExpression());
-    } else {
-      return new IdentifierExpression(identifier);
+    switch (identifier.asPlain) {
+      case "not":
+        _ignoreComments();
+        return new UnaryOperatorExpression(
+            UnaryOperator.not, _singleExpression(), span: identifier.span);
+
+      case "true": return new BooleanExpression(true, span: identifier.span);
+      case "false": return new BooleanExpression(false, span: identifier.span);
+
+      default:
+        return new IdentifierExpression(identifier);
     }
   }
 
