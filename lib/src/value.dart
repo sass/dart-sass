@@ -8,6 +8,7 @@ import 'value/identifier.dart';
 export 'value/boolean.dart';
 export 'value/identifier.dart';
 export 'value/list.dart';
+export 'value/number.dart';
 export 'value/string.dart';
 
 abstract class Value {

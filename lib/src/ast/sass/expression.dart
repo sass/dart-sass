@@ -9,6 +9,7 @@ export 'expression/boolean.dart';
 export 'expression/identifier.dart';
 export 'expression/interpolation.dart';
 export 'expression/list.dart';
+export 'expression/number.dart';
 export 'expression/string.dart';
 export 'expression/unary_operator.dart';
 export 'expression/variable.dart';

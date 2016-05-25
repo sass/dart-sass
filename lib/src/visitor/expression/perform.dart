@@ -39,6 +39,9 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
   Boolean visitBooleanExpression(BooleanExpression node) =>
       new Boolean(node.value);
 
+  Number visitNumberExpression(NumberExpression node) =>
+      new Number(node.value);
+
   SassString visitInterpolationExpression(InterpolationExpression node) {
     return new SassString(node.contents.map((value) {
       if (value is String) return value;

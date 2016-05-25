@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -378,7 +380,49 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
-  Expression _number() => throw new UnimplementedError();
+  NumberExpression _number() {
+    var start = _scanner.state;
+    var first = _scanner.peekChar();
+    var sign = first == $dash ? -1 : 1;
+    if (first == $plus || first == $minus) _scanner.readChar();
+
+    num number = 0;
+    while (_isDigit(_scanner.peekChar())) {
+      number *= 10;
+      number += _scanner.readChar() - $0;
+    }
+
+    if (_scanner.peekChar() == $dot) {
+      _scanner.readChar();
+      if (!_isDigit(_scanner.peekChar())) _scanner.error("Expected digit.");
+
+      var decimal = 0.1;
+      while (_isDigit(_scanner.peekChar())) {
+        number += (_scanner.readChar() - $0) * decimal;
+        decimal /= 10;
+      }
+    }
+
+    var next = _scanner.peekChar();
+    if (next == $e || next == $E) {
+      _scanner.readChar();
+      next = _scanner.peekChar();
+      var exponentSign = next == $dash ? -1 : 1;
+      if (next == $plus || next == $minus) _scanner.readChar();
+      if (!_isDigit(_scanner.peekChar())) _scanner.error("Expected digit.");
+
+      var exponent = 0.0;
+      while (_isDigit(_scanner.peekChar())) {
+        exponent *= 10;
+        exponent += _scanner.readChar() - $0;
+      }
+
+      number = number * math.pow(10, exponentSign * exponent);
+    }
+
+    return new NumberExpression(sign * number, span: _scanner.spanFrom(start));
+  }
+
   Expression _bracketList() => throw new UnimplementedError();
 
   VariableExpression _variable() {
