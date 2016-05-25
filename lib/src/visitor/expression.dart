@@ -9,6 +9,11 @@ class ExpressionVisitor<T> {
 
   T visitVariableExpression(VariableExpression node) => null;
 
+  T visitUnaryOperatorExpression(UnaryOperatorExpression node) {
+    node.operand.visit(this);
+    return null;
+  }
+
   T visitIdentifierExpression(IdentifierExpression node) {
     visitInterpolationExpression(node.text);
     return null;

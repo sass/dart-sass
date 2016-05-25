@@ -9,6 +9,7 @@ export 'expression/identifier.dart';
 export 'expression/interpolation.dart';
 export 'expression/list.dart';
 export 'expression/string.dart';
+export 'expression/unary_operator.dart';
 export 'expression/variable.dart';
 
 abstract class Expression implements SassNode {

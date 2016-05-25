@@ -22,6 +22,15 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
     throw node.span.message("undefined variable");
   }
 
+  Value visitUnaryOperatorExpression(UnaryOperatorExpression node) {
+    switch (node.operator) {
+      case UnaryOperator.plus: return node.unaryPlus();
+      case UnaryOperator.minus: return node.unaryMinus();
+      case UnaryOperator.divide: return node.unaryDivide();
+      default: throw new StateError("Unknown unary operator ${node.operator}.");
+    }
+  }
+
   Identifier visitIdentifierExpression(IdentifierExpression node) =>
       new Identifier(visitInterpolationExpression(node.text).text);
 

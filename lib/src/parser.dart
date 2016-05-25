@@ -355,7 +355,7 @@ class Parser {
     if (!_isExpressionStart(_scanner.peekChar())) {
       _expectChar($rparen);
       return new ListExpression([], ListSeparator.none,
-          span: _scanner.spanFrom(state));
+          span: _scanner.spanFrom(start));
     }
 
     // TODO: support maps
@@ -364,7 +364,19 @@ class Parser {
     return result;
   }
 
-  Expression _unaryOperator() => throw new UnimplementedError();
+  UnaryOperatorExpression _unaryOperator() {
+    var start = _scanner.state;
+    var operator = _unaryOperatorFor(_scanner.readChar());
+    if (operator == null) {
+      _scanner.error("Expected unary operator",
+          position: _scanner.position - 1);
+    }
+
+    var operand = _singleExpression();
+    return new UnaryOperatorExpression(operator, operand,
+        span: _scanner.spanFrom(start));
+  }
+
   Expression _number() => throw new UnimplementedError();
   Expression _bracketList() => throw new UnimplementedError();
 
@@ -611,6 +623,15 @@ class Parser {
     if (character <= $9) return character - $0;
     if (character <= $F) return 10 + character - $A;
     return 10 + character - $A;
+  }
+
+  UnaryOperator _unaryOperatorFor(int character) {
+    switch (character) {
+      case $plus: return UnaryOperator.plus;
+      case $minus: return UnaryOperator.minus;
+      case $slash: return UnaryOperator.divide;
+      default: return null;
+    }
   }
 
   int _escape() {
