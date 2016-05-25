@@ -372,6 +372,7 @@ class Parser {
           position: _scanner.position - 1);
     }
 
+    _ignoreComments();
     var operand = _singleExpression();
     return new UnaryOperatorExpression(operator, operand,
         span: _scanner.spanFrom(start));
