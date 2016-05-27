@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../ast/sass/statement.dart';
+import '../../ast/sass/statement.dart';
 
 class StatementVisitor<T> {
   T visitComment(Comment node) => null;

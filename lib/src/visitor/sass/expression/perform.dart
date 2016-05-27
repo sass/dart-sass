@@ -2,9 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../../ast/sass/expression.dart';
-import '../../environment.dart';
-import '../../value.dart';
+import '../../../ast/sass/expression.dart';
+import '../../../environment.dart';
+import '../../../value.dart';
 import '../expression.dart';
 
 class PerformExpressionVisitor extends ExpressionVisitor<Value> {

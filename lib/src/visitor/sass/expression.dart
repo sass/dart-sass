@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../ast/sass/expression.dart';
+import '../../ast/sass/expression.dart';
 
 class ExpressionVisitor<T> {
   T visitVariableExpression(VariableExpression node) => null;

@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/statement.dart';
+import '../../visitor/sass/statement.dart';
 import 'expression.dart';
 import 'statement.dart';
 

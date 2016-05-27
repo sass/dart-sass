@@ -5,7 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
-import '../../visitor/statement.dart';
+import '../../visitor/sass/statement.dart';
 import 'expression.dart';
 import 'expression/interpolation.dart';
 import 'statement.dart';

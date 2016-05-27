@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../../visitor/statement.dart';
+import '../../visitor/sass/statement.dart';
 import 'node.dart';
 
 export 'comment.dart';

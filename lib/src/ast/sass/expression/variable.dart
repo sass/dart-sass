@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/expression.dart';
+import '../../../visitor/sass/expression.dart';
 import '../expression.dart';
 
 class VariableExpression implements Expression {

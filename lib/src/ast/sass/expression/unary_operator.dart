@@ -5,7 +5,7 @@
 import 'package:source_span/source_span.dart';
 import 'package:charcode/charcode.dart';
 
-import '../../../visitor/expression.dart';
+import '../../../visitor/sass/expression.dart';
 import '../expression.dart';
 
 class UnaryOperatorExpression implements Expression {

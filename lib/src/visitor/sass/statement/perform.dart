@@ -4,12 +4,12 @@
 
 import 'dart:collection';
 
-import '../../ast/css/node.dart';
-import '../../ast/sass/expression.dart';
-import '../../ast/sass/statement.dart';
-import '../../environment.dart';
-import '../../utils.dart';
-import '../../value.dart';
+import '../../../ast/css/node.dart';
+import '../../../ast/sass/expression.dart';
+import '../../../ast/sass/statement.dart';
+import '../../../environment.dart';
+import '../../../utils.dart';
+import '../../../value.dart';
 import '../expression/perform.dart';
 import '../statement.dart';
 
