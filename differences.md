@@ -49,3 +49,7 @@ Dart Sass for developers familiar with Ruby Sass.
    productions. The Dart Sass parser instead checks the first character (or
    several characters if necessary) and chooses which production to consume
    based on those.
+
+7. The environment uses an array of maps to track variable (and eventually
+   function and mixin) definitions. This requires fewer allocations and produces
+   more cache locality.
