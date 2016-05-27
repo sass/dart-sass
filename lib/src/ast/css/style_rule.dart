@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../visitor/css.dart';
 import 'node.dart';
 import 'value.dart';
 
@@ -17,6 +18,9 @@ class CssStyleRule implements CssNode {
   // TODO: validate that children only at-rule and declaration nodes?
   CssStyleRule(this.selector, Iterable<CssNode> children, {this.span})
       : children = new List.unmodifiable(children);
+
+  /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
+      visitor.visitStyleRule(this);
 
   String toString() => "$selector {${children.join(" ")}}";
 }

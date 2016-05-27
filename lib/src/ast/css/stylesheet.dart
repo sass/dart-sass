@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../visitor/css.dart';
 import 'node.dart';
 
 class CssStylesheet implements CssNode {
@@ -13,6 +14,9 @@ class CssStylesheet implements CssNode {
 
   CssStylesheet(Iterable<CssNode> children, {this.span})
       : children = new List.unmodifiable(children);
+
+  /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
+      visitor.visitStylesheet(this);
 
   String toString() => children.join(" ");
 }

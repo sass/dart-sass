@@ -5,8 +5,6 @@
 import '../ast/sass/expression.dart';
 
 class ExpressionVisitor<T> {
-  T visit(Expression expression) => expression.accept(this);
-
   T visitVariableExpression(VariableExpression node) => null;
   T visitBooleanExpression(BooleanExpression node) => null;
   T visitNumberExpression(NumberExpression node) => null;

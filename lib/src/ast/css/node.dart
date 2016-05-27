@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/css.dart';
 import '../node.dart';
 
 export '../../ast/css/comment.dart';
@@ -10,4 +11,6 @@ export '../../ast/css/style_rule.dart';
 export '../../ast/css/stylesheet.dart';
 export '../../ast/css/value.dart';
 
-abstract class CssNode extends AstNode {}
+abstract class CssNode extends AstNode {
+  /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor);
+}

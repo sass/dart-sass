@@ -2,12 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../visitor/value.dart';
 import '../value.dart';
 
 class Number extends Value {
   final num value;
 
   Number(this.value);
+
+  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
+      visitor.visitNumber(this);
 
   Value unaryPlus() => this;
 

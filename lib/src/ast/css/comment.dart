@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../visitor/css.dart';
 import 'node.dart';
 
 class CssComment implements CssNode {
@@ -12,6 +13,9 @@ class CssComment implements CssNode {
   final SourceSpan span;
 
   CssComment(this.text, {this.span});
+
+  /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
+      visitor.visitComment(this);
 
   String toString() => text;
 }

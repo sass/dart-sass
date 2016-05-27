@@ -4,6 +4,7 @@
 
 import 'value/boolean.dart';
 import 'value/identifier.dart';
+import 'visitor/value.dart';
 
 export 'value/boolean.dart';
 export 'value/identifier.dart';
@@ -13,6 +14,8 @@ export 'value/string.dart';
 
 abstract class Value {
   const Value();
+
+  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
 
   // TODO: call the proper stringifying method
   Value unaryPlus() => new Identifier("+$this");

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../visitor/value.dart';
 import '../value.dart';
 
 class Boolean extends Value {
@@ -13,6 +14,9 @@ class Boolean extends Value {
   factory Boolean(bool value) => value ? Boolean.sassTrue : Boolean.sassFalse;
 
   const Boolean._(this.value);
+
+  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
+      visitor.visitBoolean(this);
 
   Value unaryNot() => value ? sassFalse : sassTrue;
 

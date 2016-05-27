@@ -5,8 +5,6 @@
 import '../ast/sass/statement.dart';
 
 class StatementVisitor<T> {
-  T visit(Statement node) => node.accept(this);
-
   T visitComment(Comment node) => null;
   T visitDeclaration(Declaration node) => null;
   T visitVariableDeclaration(VariableDeclaration node) => null;

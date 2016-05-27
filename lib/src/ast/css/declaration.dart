@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../value.dart';
+import '../../visitor/css.dart';
 import 'node.dart';
 import 'value.dart';
 
@@ -16,6 +17,9 @@ class CssDeclaration implements CssNode {
   final SourceSpan span;
 
   CssDeclaration(this.name, this.value, {this.span});
+
+  /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
+      visitor.visitDeclaration(this);
 
   String toString() => "$name: $value;";
 }
