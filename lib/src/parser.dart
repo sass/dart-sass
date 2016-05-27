@@ -279,7 +279,7 @@ class Parser {
     while (true) {
       var spaceExpressions = <Expression>[];
       while (true) {
-        if (!_isExpressionStart(_scanner.peekChar())) break;
+        if (_scanner.isDone || !_isExpressionStart(_scanner.peekChar())) break;
         spaceExpressions.add(_singleExpression());
         _ignoreComments();
       }
