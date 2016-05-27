@@ -18,7 +18,7 @@ class Comment implements Statement {
   Comment(this.text, {bool silent, this.span})
       : isSilent = silent;
 
-  /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitComment(this);
 
   String toString() => text;

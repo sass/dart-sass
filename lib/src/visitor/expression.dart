@@ -5,14 +5,14 @@
 import '../ast/sass/expression.dart';
 
 class ExpressionVisitor<T> {
-  T visit(Expression expression) => expression.visit(this);
+  T visit(Expression expression) => expression.accept(this);
 
   T visitVariableExpression(VariableExpression node) => null;
   T visitBooleanExpression(BooleanExpression node) => null;
   T visitNumberExpression(NumberExpression node) => null;
 
   T visitUnaryOperatorExpression(UnaryOperatorExpression node) {
-    node.operand.visit(this);
+    node.operand.accept(this);
     return null;
   }
 
@@ -23,7 +23,7 @@ class ExpressionVisitor<T> {
 
   T visitListExpression(ListExpression node) {
     for (var expression in node.contents) {
-      expression.visit(this);
+      expression.accept(this);
     }
     return null;
   }
@@ -35,7 +35,7 @@ class ExpressionVisitor<T> {
 
   T visitInterpolationExpression(InterpolationExpression node) {
     for (var value in node.contents) {
-      if (value is Expression) value.visit(this);
+      if (value is Expression) value.accept(this);
     }
     return null;
   }

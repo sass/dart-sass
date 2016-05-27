@@ -40,7 +40,7 @@ class InterpolationExpression implements Expression {
     }
   }
 
-  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitInterpolationExpression(this);
 
   String toString() =>

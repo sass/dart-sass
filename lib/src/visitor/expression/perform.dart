@@ -12,7 +12,7 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
 
   PerformExpressionVisitor(this._environment);
 
-  Value visit(Expression expression) => expression.visit(this);
+  Value visit(Expression expression) => expression.accept(this);
 
   Value visitVariableExpression(VariableExpression node) {
     var result = _environment.getVariable(node.name);
@@ -23,7 +23,7 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
   }
 
   Value visitUnaryOperatorExpression(UnaryOperatorExpression node) {
-    var operand = node.operand.visit(this);
+    var operand = node.operand.accept(this);
     switch (node.operator) {
       case UnaryOperator.plus: return operand.unaryPlus();
       case UnaryOperator.minus: return operand.unaryMinus();
@@ -45,12 +45,12 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
   SassString visitInterpolationExpression(InterpolationExpression node) {
     return new SassString(node.contents.map((value) {
       if (value is String) return value;
-      return (value as Expression).visit(this);
+      return (value as Expression).accept(this);
     }).join());
   }
 
   SassList visitListExpression(ListExpression node) => new SassList(
-      node.contents.map((expression) => expression.visit(this)),
+      node.contents.map((expression) => expression.accept(this)),
       node.separator);
 
   SassString visitStringExpression(StringExpression node) =>

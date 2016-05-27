@@ -24,7 +24,7 @@ class ListExpression implements Expression {
       : contents = contents,
         span = span ?? spanForList(contents);
 
-  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitListExpression(this);
 
   // TODO: parenthesize nested lists if necessary

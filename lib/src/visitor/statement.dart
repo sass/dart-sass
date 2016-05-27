@@ -5,7 +5,7 @@
 import '../ast/sass/statement.dart';
 
 class StatementVisitor<T> {
-  T visit(Statement node) => node.visit(this);
+  T visit(Statement node) => node.accept(this);
 
   T visitComment(Comment node) => null;
   T visitDeclaration(Declaration node) => null;
@@ -13,14 +13,14 @@ class StatementVisitor<T> {
 
   T visitStyleRule(StyleRule node) {
     for (var child in node.children) {
-      child.visit(this);
+      child.accept(this);
     }
     return null;
   }
 
   T visitStylesheet(Stylesheet node) {
     for (var child in node.children) {
-      child.visit(this);
+      child.accept(this);
     }
     return null;
   }

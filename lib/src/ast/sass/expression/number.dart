@@ -14,7 +14,7 @@ class NumberExpression implements Expression {
 
   NumberExpression(this.value, {this.span});
 
-  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitNumberExpression(this);
 
   String toString() => value.toString();

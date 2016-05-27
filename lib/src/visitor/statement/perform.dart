@@ -28,7 +28,7 @@ class PerformVisitor extends StatementVisitor {
       : _environment = environment,
         _expressionVisitor = new PerformExpressionVisitor(environment);
 
-  void visit(Statement node) => node.visit(this);
+  void visit(Statement node) => node.accept(this);
 
   CssStylesheet visitStylesheet(Stylesheet node) {
     super.visitStylesheet(node);
@@ -75,7 +75,7 @@ class PerformVisitor extends StatementVisitor {
 
   void visitVariableDeclaration(VariableDeclaration node) {
     _environment.setVariable(
-        node.name, node.expression.visit(_expressionVisitor),
+        node.name, node.expression.accept(_expressionVisitor),
         global: node.isGlobal);
   }
 
@@ -86,7 +86,7 @@ class PerformVisitor extends StatementVisitor {
   }
 
   CssValue<Value> _performExpression(Expression expression) =>
-      new CssValue(expression.visit(_expressionVisitor));
+      new CssValue(expression.accept(_expressionVisitor));
 
   void _addChild(CssNode node) {
     _children.last.add(new LinkedListValue(node));

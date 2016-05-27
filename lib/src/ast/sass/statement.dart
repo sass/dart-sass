@@ -12,5 +12,5 @@ export 'stylesheet.dart';
 export 'variable_declaration.dart';
 
 abstract class Statement implements SassNode {
-  /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor);
+  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor);
 }

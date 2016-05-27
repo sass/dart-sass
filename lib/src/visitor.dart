@@ -11,8 +11,8 @@ import 'visitor/statement.dart';
 class AstVisitor<T> extends ExpressionVisitor<T>
     implements StatementVisitor<T> {
   T visit(SassNode node) {
-    if (node is Statement) return node.visit(this);
-    if (node is Expression) return node.visit(this);
+    if (node is Statement) return node.accept(this);
+    if (node is Expression) return node.accept(this);
     throw new ArgumentError("Unknown node type $node.");
   }
 
@@ -20,27 +20,27 @@ class AstVisitor<T> extends ExpressionVisitor<T>
 
   T visitDeclaration(DeclarationNode node) {
     visitInterpolationExpression(node.name);
-    node.value.visit(this);
+    node.value.accept(this);
     return null;
   }
 
   T visitStyleRule(StyleRuleNode node) {
     visitInterpolationExpression(node.selector);
     for (var child in node.children) {
-      child.visit(this);
+      child.accept(this);
     }
     return null;
   }
 
   T visitStylesheet(StylesheetNode node) {
     for (var child in node.children) {
-      child.visit(this);
+      child.accept(this);
     }
     return null;
   }
 
   T visitVariableDeclaration(VariableDeclarationNode node) {
-    node.expression.visit(this);
+    node.expression.accept(this);
     return null;
   }
 }

@@ -19,7 +19,7 @@ class Declaration implements Statement {
 
   Declaration(this.name, this.value);
 
-  /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitDeclaration(this);
 
   String toString() => "$name: $value;";

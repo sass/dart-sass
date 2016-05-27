@@ -15,5 +15,5 @@ export 'expression/unary_operator.dart';
 export 'expression/variable.dart';
 
 abstract class Expression implements SassNode {
-  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor);
+  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor);
 }

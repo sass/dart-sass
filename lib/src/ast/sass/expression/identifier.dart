@@ -15,7 +15,7 @@ class IdentifierExpression implements Expression {
 
   IdentifierExpression(this.text);
 
-  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitIdentifierExpression(this);
 
   String toString() => text.toString();

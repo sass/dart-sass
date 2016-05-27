@@ -17,7 +17,7 @@ class UnaryOperatorExpression implements Expression {
 
   UnaryOperatorExpression(this.operator, this.operand, {this.span});
 
-  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitUnaryOperatorExpression(this);
 
   String toString() {

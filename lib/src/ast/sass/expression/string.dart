@@ -23,7 +23,7 @@ class StringExpression implements Expression {
   /// Unlike [text], his doesn't resolve escapes and does include quotes.
   InterpolationExpression get asInterpolation => throw new UnimplementedError();
 
-  /*=T*/ visit/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitStringExpression(this);
 
   StringExpression(this.text);

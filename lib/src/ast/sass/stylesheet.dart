@@ -15,7 +15,7 @@ class Stylesheet implements Statement {
   Stylesheet(Iterable<Statement> children, {this.span})
       : children = new List.unmodifiable(children);
 
-  /*=T*/ visit/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
+  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);
 
   String toString() => children.join(" ");
