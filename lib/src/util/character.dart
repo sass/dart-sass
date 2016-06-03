@@ -34,5 +34,10 @@ bool isExpressionStart(int character) =>
 int asHex(int character) {
   if (character <= $9) return character - $0;
   if (character <= $F) return 10 + character - $A;
-  return 10 + character - $A;
+  return 10 + character - $a;
+}
+
+int hexCharFor(int character) {
+  assert(character < 0x10);
+  return character < 0xA ? $0 + character : $a - 0xA + character;
 }

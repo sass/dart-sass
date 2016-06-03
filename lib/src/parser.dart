@@ -350,7 +350,6 @@ class Parser {
     }
   }
 
-
   Expression _parentheses() {
     var start = _scanner.state;
     _expectChar($lparen);
@@ -388,6 +387,9 @@ class Parser {
     if (first == $plus || first == $minus) _scanner.readChar();
 
     num number = 0;
+    var first = _scanner.peekChar();
+    if (!isDigit(first) && first != $dot) _scanner.error("Expected number.");
+
     while (isDigit(_scanner.peekChar())) {
       number *= 10;
       number += _scanner.readChar() - $0;
@@ -433,7 +435,43 @@ class Parser {
     return new VariableExpression(name, span: _scanner.spanFrom(start));
   }
 
-  StringExpression _string() => throw new UnimplementedError();
+  StringExpression _string() {
+    var start = _scanner.state;
+    var quote = _scanner.readChar();
+
+    if (quote != $single_quote && quote != $double_quote) {
+      _scanner.error("Expected string.", position: start.position);
+    }
+
+    var buffer = new InterpolationBuffer();
+    while (true) {
+      var next = _scanner.peekChar();
+      if (next == quote) {
+        _scanner.readChar();
+        break;
+      } else if (next == null || isNewline(next)) {
+        _scanner.error("Expected ${new String.fromCharCode(quote)}.");
+      } else if (next == $backslash) {
+        if (isNewline(_scanner.peekChar(1))) {
+          _scanner.readChar();
+          _scanner.readChar();
+        } else {
+          buffer.writeCharCode(_escape());
+        }
+      } else if (next == $hash) {
+        if (_scanner.peekChar(1) == $lbrace) {
+          buffer.add(_singleInterpolation());
+        } else {
+          buffer.writeCharCode(_scanner.readChar());
+        }
+      } else {
+        buffer.writeCharCode(_scanner.readChar());
+      }
+    }
+
+    return buffer.interpolation(_scanner.spanFrom(start));
+  }
+
   Expression _hexColor() => throw new UnimplementedError();
 
   Expression _identifierLike() {
@@ -666,7 +704,7 @@ class Parser {
     var first = _scanner.peekChar();
     if (first == null) {
       return 0xFFFD;
-    } else if (first == $lf) {
+    } else if (isNewline(first)) {
       _scanner.error("Expected escape sequence.");
       return 0;
     } else if (isHex(first)) {

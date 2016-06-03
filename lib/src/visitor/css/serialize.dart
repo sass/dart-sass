@@ -90,7 +90,8 @@ class _SerializeCssVisitor extends CssVisitor {
     _buffer.write(value.value.toString());
   }
 
-  void visitString(String string) => _buffer.write(_visitString(string));
+  void visitString(SassString string) =>
+      _buffer.write(_visitString(string.text));
 
   String _visitString(String string, {bool forceDoubleQuote: false}) {
     var includesSingleQuote = false;
@@ -122,11 +123,15 @@ class _SerializeCssVisitor extends CssVisitor {
           }
           break;
 
-        case $newline:
+        case $cr:
+        case $lf:
+        case $ff:
           buffer.writeCharCode($backslash);
-          buffer.writeCharCode($a);
-          var next = string.length == i + 1 ? null : string.codeUnitAt(i + 1);
-          if (_isHex(next) || next == $space || next == $tab) {
+          buffer.writeCharCode(hexCharFor(char));
+          if (string.length == i + 1) break;
+
+          var next = string.codeUnitAt(i + 1);
+          if (isHex(next) || next == $space || next == $tab) {
             buffer.writeCharCode($space);
           }
           break;
