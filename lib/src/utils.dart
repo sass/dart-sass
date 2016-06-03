@@ -7,6 +7,9 @@ import 'dart:collection';
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
+import 'value/number.dart';
+
+const _epsilon = 1 / (10 * Number.precision);
 
 SourceSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
@@ -21,3 +24,6 @@ class LinkedListValue<T> extends LinkedListEntry<LinkedListValue<T>> {
 
   LinkedListValue(this.value);
 }
+
+bool almostEquals(num number1, num number2) =>
+    (number1 - number2).abs() < _epsilon;

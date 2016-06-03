@@ -6,6 +6,8 @@ import '../visitor/value.dart';
 import '../value.dart';
 
 class Number extends Value {
+  static const precision = 5;
+
   final num value;
 
   Number(this.value);

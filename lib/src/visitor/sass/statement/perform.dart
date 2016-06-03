@@ -42,14 +42,21 @@ class PerformVisitor extends StatementVisitor {
   }
 
   void visitDeclaration(Declaration node) {
-    _addChild(new CssDeclaration(
-        _performInterpolation(node.name),
-        _performExpression(node.value),
-        span: node.span));
+    var name = _performInterpolation(node.name);
+    var value = _performExpression(node.value);
+
+    // Don't abort for an empty list because converting it to CSS will throw an
+    // error that we want to user to see.
+    if (value.value.isBlank &&
+        !(value.value is SassList && value.value.contents.isEmpty)) {
+      return;
+    }
+
+    _addChild(new CssDeclaration(name, value, span: node.span));
   }
 
   void visitStyleRule(StyleRule node) {
-    var selector = _performInterpolation(node.selector);
+    var selector = _performInterpolation(node.selector, trim: true);
     if (_styleRules.isNotEmpty) {
       selector = new CssValue(
           "${_styleRules.last.selector.value} ${selector.value}",
@@ -80,9 +87,10 @@ class PerformVisitor extends StatementVisitor {
   }
 
   CssValue<String> _performInterpolation(
-      InterpolationExpression interpolation) {
-    return new CssValue(
-        _expressionVisitor.visitInterpolationExpression(interpolation).text);
+      InterpolationExpression interpolation, {bool trim: false}) {
+    var result = _expressionVisitor.visitInterpolationExpression(interpolation)
+        .text;
+    return new CssValue(trim ? result.trim() : result);
   }
 
   CssValue<Value> _performExpression(Expression expression) =>

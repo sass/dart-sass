@@ -10,6 +10,8 @@ class SassList extends Value {
 
   final ListSeparator separator;
 
+  bool get isBlank => contents.every((element) => element.isBlank);
+
   SassList(Iterable<Value> contents, this.separator)
       : contents = new List.unmodifiable(contents);
 
@@ -24,7 +26,7 @@ class SassList extends Value {
 class ListSeparator {
   static const space = const ListSeparator._("space");
   static const comma = const ListSeparator._("comma");
-  static const none = const ListSeparator._("none");
+  static const undecided = const ListSeparator._("undecided");
 
   final String name;
 

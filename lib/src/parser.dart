@@ -10,6 +10,7 @@ import 'package:string_scanner/string_scanner.dart';
 import 'ast/sass/expression.dart';
 import 'ast/sass/statement.dart';
 import 'interpolation_buffer.dart';
+import 'util/character.dart';
 import 'value/list.dart';
 
 class Parser {
@@ -279,7 +280,7 @@ class Parser {
     while (true) {
       var spaceExpressions = <Expression>[];
       while (true) {
-        if (_scanner.isDone || !_isExpressionStart(_scanner.peekChar())) break;
+        if (_scanner.isDone || !isExpressionStart(_scanner.peekChar())) break;
         spaceExpressions.add(_singleExpression());
         _ignoreComments();
       }
@@ -308,7 +309,7 @@ class Parser {
     var first = _scanner.peekChar();
     switch (first) {
       // Note: when adding a new case, make sure it's reflected in
-      // [_isExpressionStart].
+      // [isExpressionStart].
       case $lparen: return _parentheses();
       case $slash: return _unaryOperator();
       case $dot: return _number();
@@ -325,13 +326,13 @@ class Parser {
 
       case $plus:
         var next = _scanner.peekChar(1);
-        if (_isDigit(next) || next == $dot) return _number();
+        if (isDigit(next) || next == $dot) return _number();
 
         return _unaryOperator();
 
       case $minus:
         var next = _scanner.peekChar(1);
-        if (_isDigit(next) || next == $dot) return _number();
+        if (isDigit(next) || next == $dot) return _number();
         if (_lookingAtInterpolatedIdentifier()) return _identifierLike();
 
         return _unaryOperator();
@@ -339,10 +340,10 @@ class Parser {
       default:
         if (first == null) _scanner.error("Expected expression.");
 
-        if (_isNameStart(first) || first == $backslash) {
+        if (isNameStart(first) || first == $backslash) {
           return _identifierLike();
         }
-        if (_isDigit(first)) return _number();
+        if (isDigit(first)) return _number();
 
         _scanner.error("Expected expression");
         throw "Unreachable";
@@ -354,9 +355,9 @@ class Parser {
     var start = _scanner.state;
     _expectChar($lparen);
     _ignoreComments();
-    if (!_isExpressionStart(_scanner.peekChar())) {
+    if (!isExpressionStart(_scanner.peekChar())) {
       _expectChar($rparen);
-      return new ListExpression([], ListSeparator.none,
+      return new ListExpression([], ListSeparator.undecided,
           span: _scanner.spanFrom(start));
     }
 
@@ -387,17 +388,17 @@ class Parser {
     if (first == $plus || first == $minus) _scanner.readChar();
 
     num number = 0;
-    while (_isDigit(_scanner.peekChar())) {
+    while (isDigit(_scanner.peekChar())) {
       number *= 10;
       number += _scanner.readChar() - $0;
     }
 
     if (_scanner.peekChar() == $dot) {
       _scanner.readChar();
-      if (!_isDigit(_scanner.peekChar())) _scanner.error("Expected digit.");
+      if (!isDigit(_scanner.peekChar())) _scanner.error("Expected digit.");
 
       var decimal = 0.1;
-      while (_isDigit(_scanner.peekChar())) {
+      while (isDigit(_scanner.peekChar())) {
         number += (_scanner.readChar() - $0) * decimal;
         decimal /= 10;
       }
@@ -409,10 +410,10 @@ class Parser {
       next = _scanner.peekChar();
       var exponentSign = next == $dash ? -1 : 1;
       if (next == $plus || next == $minus) _scanner.readChar();
-      if (!_isDigit(_scanner.peekChar())) _scanner.error("Expected digit.");
+      if (!isDigit(_scanner.peekChar())) _scanner.error("Expected digit.");
 
       var exponent = 0.0;
-      while (_isDigit(_scanner.peekChar())) {
+      while (isDigit(_scanner.peekChar())) {
         exponent *= 10;
         exponent += _scanner.readChar() - $0;
       }
@@ -527,7 +528,7 @@ class Parser {
     var first = _scanner.peekChar();
     if (first == null) {
       _scanner.error("Expected identifier.");
-    } else if (_isNameStart(first)) {
+    } else if (isNameStart(first)) {
       buffer.writeCharCode(_scanner.readChar());
     } else if (first == $backslash) {
       buffer.writeCharCode(_escape());
@@ -540,7 +541,7 @@ class Parser {
       if (next == null) {
         break;
       } else if (next == $underscore || next == $dash ||
-          _isAlphabetic(next) || _isDigit(next) || next >= 0x0080) {
+          isAlphabetic(next) || isDigit(next) || next >= 0x0080) {
         buffer.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         buffer.writeCharCode(_escape());
@@ -585,7 +586,7 @@ class Parser {
     _scanner.expect("//");
 
     do {
-      while (!_scanner.isDone && !_isNewline(_scanner.readChar())) {}
+      while (!_scanner.isDone && !isNewline(_scanner.readChar())) {}
       if (_scanner.isDone) break;
       _whitespace();
     } while (_scanner.scan("//"));
@@ -608,7 +609,7 @@ class Parser {
   }
 
   void _whitespace() {
-    while (!_scanner.isDone && _isWhitespace(_scanner.peekChar())) {
+    while (!_scanner.isDone && isWhitespace(_scanner.peekChar())) {
       _scanner.readChar();
     }
   }
@@ -622,7 +623,7 @@ class Parser {
     var first = _scanner.peekChar();
     if (first == null) {
       _scanner.error("Expected identifier.");
-    } else if (_isNameStart(first)) {
+    } else if (isNameStart(first)) {
       text.writeCharCode(_scanner.readChar());
     } else if (first == $backslash) {
       text.writeCharCode(_escape());
@@ -635,7 +636,7 @@ class Parser {
       if (next == null) {
         break;
       } else if (next == $underscore || next == $dash ||
-          _isAlphabetic(next) || _isDigit(next) || next >= 0x0080) {
+          isAlphabetic(next) || isDigit(next) || next >= 0x0080) {
         text.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         text.writeCharCode(_escape());
@@ -648,39 +649,6 @@ class Parser {
   }
 
   // ## Characters
-
-  bool _isWhitespace(int character) =>
-      character == $space || character == $tab || _isNewline(character);
-
-  bool _isNewline(int character) =>
-      character == $lf || character == $cr || character == $ff;
-
-  bool _isAlphabetic(int character) =>
-      (character >= $a && character <= $z) ||
-      (character >= $A && character <= $Z);
-
-  bool _isDigit(int character) => character >= $0 && character <= $9;
-
-  bool _isNameStart(int character) =>
-      character == $_ || _isAlphabetic(character) || character >= 0x0080;
-
-  bool _isHex(int character) =>
-      _isDigit(character) ||
-      (character >= $a && character <= $f) ||
-      (character >= $A && character <= $F);
-
-  bool _isExpressionStart(int character) =>
-      character == $lparen || character == $slash || character == $dot ||
-      character == $lbracket || character == $single_quote ||
-      character == $double_quote || character == $hash || character == $plus ||
-      character == $minus || character == $backslash || character == $dollar ||
-      _isNameStart(character) || _isDigit(character);
-
-  int _asHex(int character) {
-    if (character <= $9) return character - $0;
-    if (character <= $F) return 10 + character - $A;
-    return 10 + character - $A;
-  }
 
   UnaryOperator _unaryOperatorFor(int character) {
     switch (character) {
@@ -701,13 +669,13 @@ class Parser {
     } else if (first == $lf) {
       _scanner.error("Expected escape sequence.");
       return 0;
-    } else if (_isHex(first)) {
+    } else if (isHex(first)) {
       var value = 0;
       for (var i = 0; i < 6; i++) {
-        if (!_isHex(_scanner.peekChar())) break;
-        value = (value << 4) + _asHex(_scanner.readChar());
+        if (!isHex(_scanner.peekChar())) break;
+        value = (value << 4) + asHex(_scanner.readChar());
       }
-      if (_isWhitespace(_scanner.peekChar())) _scanner.readChar();
+      if (isWhitespace(_scanner.peekChar())) _scanner.readChar();
 
       if (value == 0 || (value >= 0xD800 && value <= 0xDFFF) ||
           value >= 0x10FFFF) {
@@ -739,12 +707,12 @@ class Parser {
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
   bool _lookingAtInterpolatedIdentifier() {
     var first = _scanner.peekChar();
-    if (_isNameStart(first) || first == $backslash) return true;
+    if (isNameStart(first) || first == $backslash) return true;
     if (first == $hash) return _scanner.peekChar(1) == $lbrace;
 
     if (first != $dash) return false;
     var second = _scanner.peekChar();
-    if (_isNameStart(second) || second == $backslash) return true;
+    if (isNameStart(second) || second == $backslash) return true;
     return second == $hash && _scanner.peekChar(2) == $lbrace;
   }
 

@@ -13,6 +13,9 @@ export 'value/number.dart';
 export 'value/string.dart';
 
 abstract class Value {
+  /// Whether the value will be represented in CSS as the empty string.
+  bool get isBlank => false;
+
   const Value();
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
