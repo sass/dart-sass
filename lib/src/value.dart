@@ -21,11 +21,11 @@ abstract class Value {
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
 
   // TODO: call the proper stringifying method
-  Value unaryPlus() => new Identifier("+$this");
+  Value unaryPlus() => new SassIdentifier("+$this");
 
-  Value unaryMinus() => new Identifier("-$this");
+  Value unaryMinus() => new SassIdentifier("-$this");
 
-  Value unaryDivide() => new Identifier("/$this");
+  Value unaryDivide() => new SassIdentifier("/$this");
 
-  Value unaryNot() => Boolean.sassFalse;
+  Value unaryNot() => sassFalse;
 }

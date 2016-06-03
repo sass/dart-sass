@@ -9,7 +9,7 @@ import 'package:source_span/source_span.dart';
 import 'ast/node.dart';
 import 'value/number.dart';
 
-const _epsilon = 1 / (10 * Number.precision);
+const _epsilon = 1 / (10 * SassNumber.precision);
 
 SourceSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;

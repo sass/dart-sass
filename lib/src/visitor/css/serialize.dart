@@ -68,9 +68,10 @@ class _SerializeCssVisitor extends CssVisitor {
     _buffer.writeCharCode($semicolon);
   }
 
-  void visitBoolean(Boolean value) => value.value.toString();
+  void visitBoolean(SassBoolean value) => value.value.toString();
 
-  void visitIdentifier(Identifier value) => value.text.replaceAll("\n", " ");
+  void visitIdentifier(SassIdentifier value) =>
+      value.text.replaceAll("\n", " ");
 
   void visitList(SassList value) {
     if (value.contents.isEmpty) throw "() isn't a valid CSS value";
@@ -86,7 +87,7 @@ class _SerializeCssVisitor extends CssVisitor {
   }
 
   // TODO(nweiz): Support precision and don't support exponent notation.
-  void visitNumber(Number value) {
+  void visitNumber(SassNumber value) {
     _buffer.write(value.value.toString());
   }
 
@@ -154,7 +155,8 @@ class _SerializeCssVisitor extends CssVisitor {
   num _round(num number) {
     if (number is double && (number.isInfinite || number.isNaN)) return number;
     if (almostEquals(number % 1, 0.0)) return number.round();
-    return (number * 10 * Number.precision).round() / (10 * Number.precision);
+    return (number * 10 * SassNumber.precision).round() /
+        (10 * SassNumber.precision);
   }
 
   void _writeIndentation() {

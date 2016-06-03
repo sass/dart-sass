@@ -33,14 +33,14 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
     }
   }
 
-  Identifier visitIdentifierExpression(IdentifierExpression node) =>
-      new Identifier(visitInterpolationExpression(node.text).text);
+  SassIdentifier visitIdentifierExpression(IdentifierExpression node) =>
+      new SassIdentifier(visitInterpolationExpression(node.text).text);
 
-  Boolean visitBooleanExpression(BooleanExpression node) =>
-      new Boolean(node.value);
+  SassBoolean visitBooleanExpression(BooleanExpression node) =>
+      new SassBoolean(node.value);
 
-  Number visitNumberExpression(NumberExpression node) =>
-      new Number(node.value);
+  SassNumber visitNumberExpression(NumberExpression node) =>
+      new SassNumber(node.value);
 
   SassString visitInterpolationExpression(InterpolationExpression node) {
     return new SassString(node.contents.map((value) {

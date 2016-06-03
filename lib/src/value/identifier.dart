@@ -5,12 +5,12 @@
 import '../visitor/value.dart';
 import '../value.dart';
 
-class Identifier extends Value {
+class SassIdentifier extends Value {
   final String text;
 
   bool get isBlank => text.isEmpty;
 
-  Identifier(this.text);
+  SassIdentifier(this.text);
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitIdentifier(this);

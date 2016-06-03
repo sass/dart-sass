@@ -5,19 +5,19 @@
 import '../visitor/value.dart';
 import '../value.dart';
 
-class Number extends Value {
+class SassNumber extends Value {
   static const precision = 5;
 
   final num value;
 
-  Number(this.value);
+  SassNumber(this.value);
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitNumber(this);
 
   Value unaryPlus() => this;
 
-  Value unaryMinus() => new Number(-value);
+  Value unaryMinus() => new SassNumber(-value);
 
   String toString() => value.toString();
 }
