@@ -43,16 +43,17 @@ class PerformVisitor extends StatementVisitor {
 
   void visitDeclaration(Declaration node) {
     var name = _performInterpolation(node.name);
-    var value = _performExpression(node.value);
+    var cssValue = _performExpression(node.value);
+    var value = cssValue.value;
 
     // Don't abort for an empty list because converting it to CSS will throw an
     // error that we want to user to see.
-    if (value.value.isBlank &&
-        !(value.value is SassList && value.value.contents.isEmpty)) {
+    if (value.isBlank &&
+        !(value is SassList && value.contents.isEmpty)) {
       return;
     }
 
-    _addChild(new CssDeclaration(name, value, span: node.span));
+    _addChild(new CssDeclaration(name, cssValue, span: node.span));
   }
 
   void visitStyleRule(StyleRule node) {

@@ -387,8 +387,8 @@ class Parser {
     if (first == $plus || first == $minus) _scanner.readChar();
 
     num number = 0;
-    var first = _scanner.peekChar();
-    if (!isDigit(first) && first != $dot) _scanner.error("Expected number.");
+    var second = _scanner.peekChar();
+    if (!isDigit(second) && second != $dot) _scanner.error("Expected number.");
 
     while (isDigit(_scanner.peekChar())) {
       number *= 10;
@@ -469,7 +469,7 @@ class Parser {
       }
     }
 
-    return buffer.interpolation(_scanner.spanFrom(start));
+    return new StringExpression(buffer.interpolation(_scanner.spanFrom(start)));
   }
 
   Expression _hexColor() => throw new UnimplementedError();

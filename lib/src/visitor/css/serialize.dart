@@ -6,11 +6,10 @@ import 'package:charcode/charcode.dart';
 
 import '../../ast/css/node.dart';
 import '../../util/character.dart';
-import '../../utils.dart';
 import '../../value.dart';
 import '../css.dart';
 
-String toCss(AstNode node) {
+String toCss(CssNode node) {
   var visitor = new _SerializeCssVisitor();
   node.accept(visitor);
   var result = visitor._buffer.toString();
@@ -68,10 +67,11 @@ class _SerializeCssVisitor extends CssVisitor {
     _buffer.writeCharCode($semicolon);
   }
 
-  void visitBoolean(SassBoolean value) => value.value.toString();
+  void visitBoolean(SassBoolean value) =>
+      _buffer.write(value.value.toString());
 
   void visitIdentifier(SassIdentifier value) =>
-      value.text.replaceAll("\n", " ");
+      _buffer.write(value.text.replaceAll("\n", " "));
 
   void visitList(SassList value) {
     if (value.contents.isEmpty) throw "() isn't a valid CSS value";
@@ -150,13 +150,6 @@ class _SerializeCssVisitor extends CssVisitor {
 
     var doubleQuote = forceDoubleQuote || !includesDoubleQuote;
     return doubleQuote ? '"$buffer"' : "'$buffer'";
-  }
-
-  num _round(num number) {
-    if (number is double && (number.isInfinite || number.isNaN)) return number;
-    if (almostEquals(number % 1, 0.0)) return number.round();
-    return (number * 10 * SassNumber.precision).round() /
-        (10 * SassNumber.precision);
   }
 
   void _writeIndentation() {
