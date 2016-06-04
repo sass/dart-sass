@@ -42,6 +42,8 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
   SassNumber visitNumberExpression(NumberExpression node) =>
       new SassNumber(node.value);
 
+  SassColor visitColorExpression(ColorExpression node) => node.value;
+
   SassString visitInterpolationExpression(InterpolationExpression node) {
     return new SassString(node.contents.map((value) {
       if (value is String) return value;

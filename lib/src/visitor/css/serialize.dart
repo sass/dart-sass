@@ -70,6 +70,9 @@ class _SerializeCssVisitor extends CssVisitor {
   void visitBoolean(SassBoolean value) =>
       _buffer.write(value.value.toString());
 
+  // TODO(nweiz): Use color names for named colors.
+  void visitColor(SassColor value) => _buffer.write(value.toString());
+
   void visitIdentifier(SassIdentifier value) =>
       _buffer.write(value.text.replaceAll("\n", " "));
 

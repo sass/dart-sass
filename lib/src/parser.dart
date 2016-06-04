@@ -11,7 +11,7 @@ import 'ast/sass/expression.dart';
 import 'ast/sass/statement.dart';
 import 'interpolation_buffer.dart';
 import 'util/character.dart';
-import 'value/list.dart';
+import 'value.dart';
 
 class Parser {
   final SpanScanner _scanner;
@@ -322,7 +322,7 @@ class Parser {
 
       case $hash:
         if (_scanner.peekChar(1) == $lbrace) return _identifierLike();
-        return _hexColor();
+        return _hexColorOrID();
 
       case $plus:
         var next = _scanner.peekChar(1);
@@ -472,7 +472,56 @@ class Parser {
     return new StringExpression(buffer.interpolation(_scanner.spanFrom(start)));
   }
 
-  Expression _hexColor() => throw new UnimplementedError();
+  Expression _hexColorOrID() {
+    var start = _scanner.state;
+    _expectChar($hash);
+
+    var first = _scanner.peekChar();
+    if (first != null && isDigit(first)) {
+      return new ColorExpression(_hexColorContents(),
+          span: _scanner.spanFrom(start));
+    }
+
+    var afterHash = _scanner.state;
+    var identifier = _interpolatedIdentifier();
+    if (_isHexColor(identifier)) {
+      _scanner.state = afterHash;
+      return new ColorExpression(_hexColorContents(),
+          span: _scanner.spanFrom(start));
+    }
+
+    var buffer = new InterpolationBuffer();
+    buffer.writeCharCode($hash);
+    buffer.addInterpolation(identifier);
+    return new IdentifierExpression(
+        buffer.interpolation(_scanner.spanFrom(start)));
+  }
+
+  SassColor _hexColorContents() {
+    var red = _hexDigit();
+    var green = _hexDigit();
+    var blue = _hexDigit();
+
+    var next = _scanner.peekChar();
+    if (next != null && isHex(next)) {
+      red = (red << 4) + green;
+      green = (blue << 4) + _hexDigit();
+      blue = (_hexDigit() << 4) + _hexDigit();
+    } else {
+      red = (red << 4) + red;
+      green = (green << 4) + green;
+      blue = (blue << 4) + blue;
+    }
+
+    return new SassColor.rgb(red, green, blue);
+  }
+
+  bool _isHexColor(InterpolationExpression interpolation) {
+    var plain = interpolation.asPlain;
+    if (plain == null) return false;
+    if (plain.length != 3 && plain.length != 6) return false;
+    return plain.codeUnits.every(isHex);
+  }
 
   Expression _identifierLike() {
     // TODO: url(), functions
@@ -710,7 +759,8 @@ class Parser {
     } else if (isHex(first)) {
       var value = 0;
       for (var i = 0; i < 6; i++) {
-        if (!isHex(_scanner.peekChar())) break;
+        var next = _scanner.peekChar();
+        if (next == null || !isHex(next)) break;
         value = (value << 4) + asHex(_scanner.readChar());
       }
       if (isWhitespace(_scanner.peekChar())) _scanner.readChar();
@@ -724,6 +774,12 @@ class Parser {
     } else {
       return _scanner.readChar();
     }
+  }
+
+  int _hexDigit() {
+    var char = _scanner.peekChar();
+    if (char == null || !isHex(char)) _scanner.error("Expected hex digit.");
+    return asHex(_scanner.readChar());
   }
 
   bool _scanChar(int character) {

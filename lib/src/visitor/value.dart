@@ -9,6 +9,7 @@ abstract class ValueVisitor<T> {
   T visitIdentifier(SassIdentifier value) => null;
   T visitNumber(SassNumber value) => null;
   T visitString(SassString value) => null;
+  T visitColor(SassColor value) => null;
 
   T visitList(SassList value) {
     for (var element in value.contents) {

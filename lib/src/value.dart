@@ -7,6 +7,7 @@ import 'value/identifier.dart';
 import 'visitor/value.dart';
 
 export 'value/boolean.dart';
+export 'value/color.dart';
 export 'value/identifier.dart';
 export 'value/list.dart';
 export 'value/number.dart';

@@ -8,6 +8,7 @@ class ExpressionVisitor<T> {
   T visitVariableExpression(VariableExpression node) => null;
   T visitBooleanExpression(BooleanExpression node) => null;
   T visitNumberExpression(NumberExpression node) => null;
+  T visitColorExpression(ColorExpression node) => null;
 
   T visitUnaryOperatorExpression(UnaryOperatorExpression node) {
     node.operand.accept(this);
