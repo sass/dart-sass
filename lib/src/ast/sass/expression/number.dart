@@ -10,7 +10,7 @@ import '../expression.dart';
 class NumberExpression implements Expression {
   final num value;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   NumberExpression(this.value, {this.span});
 

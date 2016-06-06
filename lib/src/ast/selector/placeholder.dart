@@ -9,7 +9,7 @@ import '../selector.dart';
 class PlaceholderSelector extends SimpleSelector {
   final String name;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   PlaceholderSelector(this.name, {this.span});
 

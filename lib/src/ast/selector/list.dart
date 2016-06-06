@@ -13,7 +13,7 @@ class SelectorList extends Selector {
   // Indices of [components] that are followed by line breaks.
   final List<int> lineBreaks;
 
-  SourceSpan get span => spanForList(components);
+  FileSpan get span => spanForList(components);
 
   SelectorList(Iterable<ComplexSelector> components, {Iterable<int> lineBreaks})
       : components = new List.unmodifiable(components),

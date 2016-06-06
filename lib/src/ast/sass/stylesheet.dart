@@ -10,7 +10,7 @@ import 'statement.dart';
 class Stylesheet implements Statement {
   final List<Statement> children;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   Stylesheet(Iterable<Statement> children, {this.span})
       : children = new List.unmodifiable(children);

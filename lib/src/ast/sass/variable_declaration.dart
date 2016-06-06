@@ -17,7 +17,7 @@ class VariableDeclaration implements Statement {
 
   final bool isGlobal;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   VariableDeclaration(this.name, this.expression, {bool guarded,
           bool global, this.span})

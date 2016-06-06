@@ -16,7 +16,7 @@ class PseudoSelector extends SimpleSelector {
 
   final SelectorList selector; 
 
-  final SourceSpan span;
+  final FileSpan span;
 
   PseudoSelector(this.name, this.type, {this.argument, this.selector,
       this.span});

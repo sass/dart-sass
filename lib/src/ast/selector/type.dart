@@ -9,7 +9,7 @@ import '../selector.dart';
 class TypeSelector extends SimpleSelector {
   final NamespacedIdentifier name;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   TypeSelector(this.name, {this.span});
 

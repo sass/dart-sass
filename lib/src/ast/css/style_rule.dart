@@ -13,7 +13,7 @@ class CssStyleRule implements CssNode {
 
   final List<CssNode> children;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   // TODO: validate that children only at-rule and declaration nodes?
   CssStyleRule(this.selector, Iterable<CssNode> children, {this.span})

@@ -14,13 +14,13 @@ class ListExpression implements Expression {
 
   final ListSeparator separator;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   ListExpression(Iterable<Expression> contents, ListSeparator separator,
-          {SourceSpan span})
+          {FileSpan span})
       : this._(new List.unmodifiable(contents), separator, span);
 
-  ListExpression._(List<Expression> contents, this.separator, SourceSpan span)
+  ListExpression._(List<Expression> contents, this.separator, FileSpan span)
       : contents = contents,
         span = span ?? spanForList(contents);
 

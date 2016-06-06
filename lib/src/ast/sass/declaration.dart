@@ -15,7 +15,7 @@ class Declaration implements Statement {
 
   final Expression value;
 
-  SourceSpan get span => spanForList([name, value]);
+  FileSpan get span => spanForList([name, value]);
 
   Declaration(this.name, this.value);
 

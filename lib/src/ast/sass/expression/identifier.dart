@@ -11,7 +11,7 @@ import 'interpolation.dart';
 class IdentifierExpression implements Expression {
   final InterpolationExpression text;
 
-  SourceSpan get span => text.span;
+  FileSpan get span => text.span;
 
   IdentifierExpression(this.text);
 

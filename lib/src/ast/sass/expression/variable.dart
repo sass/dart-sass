@@ -10,7 +10,7 @@ import '../expression.dart';
 class VariableExpression implements Expression {
   final String name;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   VariableExpression(this.name, {this.span});
 

@@ -13,7 +13,7 @@ class UnaryOperatorExpression implements Expression {
 
   final Expression operand;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   UnaryOperatorExpression(this.operator, this.operand, {this.span});
 

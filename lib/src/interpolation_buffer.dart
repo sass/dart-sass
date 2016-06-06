@@ -51,7 +51,7 @@ class InterpolationBuffer implements StringSink {
     _text.clear();
   }
 
-  InterpolationExpression interpolation([SourceSpan span]) {
+  InterpolationExpression interpolation([FileSpan span]) {
     var contents = _contents.toList();
     if (_text.isNotEmpty) contents.add(_text.toString());
     return new InterpolationExpression(contents, span: span);

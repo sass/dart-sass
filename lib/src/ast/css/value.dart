@@ -10,7 +10,7 @@ import 'node.dart';
 class CssValue<T> implements CssNode {
   final T value;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   CssValue(this.value, {this.span});
 

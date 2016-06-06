@@ -16,7 +16,7 @@ class StringExpression implements Expression {
   /// included.
   final InterpolationExpression text;
 
-  SourceSpan get span => text.span;
+  FileSpan get span => text.span;
 
   /// Interpolation that, when evaluated, produces the syntax of the string.
   ///

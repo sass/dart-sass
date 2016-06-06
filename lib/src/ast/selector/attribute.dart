@@ -13,7 +13,7 @@ class AttributeSelector extends SimpleSelector {
 
   final String value;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   AttributeSelector(this.name, {this.span})
       : op = null,

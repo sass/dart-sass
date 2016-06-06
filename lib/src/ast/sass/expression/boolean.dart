@@ -10,7 +10,7 @@ import '../expression.dart';
 class BooleanExpression implements Expression {
   final bool value;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   BooleanExpression(this.value, {this.span});
 

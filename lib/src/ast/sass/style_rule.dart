@@ -13,7 +13,7 @@ class StyleRule implements Statement {
 
   final List<Statement> children;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   // TODO: validate that children only contains variable, at-rule, declaration,
   // or style nodes?

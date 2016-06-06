@@ -12,7 +12,7 @@ class Comment implements Statement {
 
   final bool isSilent;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   // TODO: Reformat text.
   Comment(this.text, {bool silent, this.span})

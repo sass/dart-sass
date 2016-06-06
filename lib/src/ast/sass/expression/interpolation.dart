@@ -10,7 +10,7 @@ import '../expression.dart';
 class InterpolationExpression implements Expression {
   final List contents;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   /// If this contains no interpolation, returns the plain text it contains.
   ///

@@ -10,7 +10,7 @@ import 'node.dart';
 class CssStylesheet implements CssNode {
   final List<CssNode> children;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   CssStylesheet(Iterable<CssNode> children, {this.span})
       : children = new List.unmodifiable(children);

@@ -10,7 +10,7 @@ import 'node.dart';
 class CssComment implements CssNode {
   final String text;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   CssComment(this.text, {this.span});
 

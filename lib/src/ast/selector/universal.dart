@@ -9,7 +9,7 @@ import '../selector.dart';
 class UniversalSelector extends SimpleSelector {
   final String namespace;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   UniversalSelector({this.namespace, this.span});
 

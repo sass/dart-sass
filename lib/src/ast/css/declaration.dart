@@ -14,7 +14,7 @@ class CssDeclaration implements CssNode {
 
   final CssValue<Value> value;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   CssDeclaration(this.name, this.value, {this.span});
 

@@ -12,7 +12,7 @@ class ComplexSelector extends Selector {
   // Indices of [components] that are followed by line breaks.
   final List<int> lineBreaks;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
       {Iterable<int> lineBreaks, this.span})

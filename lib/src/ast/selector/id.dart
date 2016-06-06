@@ -9,7 +9,7 @@ import '../selector.dart';
 class IDSelector extends SimpleSelector {
   final String name;
 
-  final SourceSpan span;
+  final FileSpan span;
 
   IDSelector(this.name, {this.span});
 

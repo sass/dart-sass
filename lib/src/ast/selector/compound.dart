@@ -10,7 +10,7 @@ import '../../utils.dart';
 class CompoundSelector extends Selector implements ComplexSelectorComponent {
   final List<SimpleSelector> components;
 
-  SourceSpan get span => spanForList(components);
+  FileSpan get span => spanForList(components);
 
   CompoundSelector(Iterable<SimpleSelector> components)
       : components = new List.unmodifiable(components);

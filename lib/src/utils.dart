@@ -12,12 +12,9 @@ import 'value/number.dart';
 
 const _epsilon = 1 / (10 * SassNumber.precision);
 
-SourceSpan spanForList(List<AstNode> nodes) {
+FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
-
-  var first = nodes.first.span;
-  var last = nodes.last.span;
-  return first is FileSpan && last is FileSpan ? first.expand(last) : null;
+  return nodes.first.span.expand(nodes.last.span);
 }
 
 String unvendor(String name) {
