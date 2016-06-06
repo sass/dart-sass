@@ -2,16 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
-
 import '../selector.dart';
 
 class UniversalSelector extends SimpleSelector {
   final String namespace;
 
-  final FileSpan span;
-
-  UniversalSelector({this.namespace, this.span});
+  UniversalSelector({this.namespace});
 
   String toString() => namespace == null ? "*" : "$namespace|*";
 }

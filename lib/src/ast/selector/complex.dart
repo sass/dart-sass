@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
-
 import '../selector.dart';
 
 class ComplexSelector extends Selector {
@@ -12,10 +10,8 @@ class ComplexSelector extends Selector {
   // Indices of [components] that are followed by line breaks.
   final List<int> lineBreaks;
 
-  final FileSpan span;
-
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
-      {Iterable<int> lineBreaks, this.span})
+      {Iterable<int> lineBreaks})
       : components = new List.unmodifiable(components),
         lineBreaks = new List.unmodifiable(lineBreaks);
 

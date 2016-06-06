@@ -2,16 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
-
 import '../selector.dart';
 
 class PlaceholderSelector extends SimpleSelector {
   final String name;
 
-  final FileSpan span;
-
-  PlaceholderSelector(this.name, {this.span});
+  PlaceholderSelector(this.name);
 
   String toString() => "%$name";
 }

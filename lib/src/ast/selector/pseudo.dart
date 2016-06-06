@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
-import 'package:source_span/source_span.dart';
 
 import '../selector.dart';
 
@@ -16,10 +15,7 @@ class PseudoSelector extends SimpleSelector {
 
   final SelectorList selector; 
 
-  final FileSpan span;
-
-  PseudoSelector(this.name, this.type, {this.argument, this.selector,
-      this.span});
+  PseudoSelector(this.name, this.type, {this.argument, this.selector});
 
   String toString() {
     var buffer = new StringBuffer("$type$name");

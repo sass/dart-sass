@@ -688,7 +688,6 @@ class Parser {
   }
 
   ComplexSelector _complexSelector() {
-    var start = _scanner.state;
     var components = <ComplexSelectorComponent>[];
     var lineBreaks = <int>[];
 
@@ -726,8 +725,7 @@ class Parser {
       components.add(component);
     }
 
-    return new ComplexSelector(components,
-        lineBreaks: lineBreaks, span: _scanner.spanFrom(start));
+    return new ComplexSelector(components, lineBreaks: lineBreaks);
   }
 
   CompoundSelector _compoundSelector() {
@@ -753,7 +751,6 @@ class Parser {
   }
 
   AttributeSelector _attributeSelector() {
-    var start = _scanner.state;
     _expectChar($lbracket);
     _ignoreComments();
 
@@ -761,7 +758,7 @@ class Parser {
     _ignoreComments();
     if (_scanChar($rbracket)) {
       _scanner.readChar();
-      return new AttributeSelector(name, span: _scanner.spanFrom(start));
+      return new AttributeSelector(name);
     }
 
     var operator = _attributeOperator();
@@ -774,8 +771,7 @@ class Parser {
     _ignoreComments();
 
     _expectChar($rbracket);
-    return new AttributeSelector.withOperator(name, operator, value,
-        span: _scanner.spanFrom(start));
+    return new AttributeSelector.withOperator(name, operator, value);
   }
 
   NamespacedIdentifier _attributeName() {
@@ -825,34 +821,30 @@ class Parser {
   }
 
   ClassSelector _classSelector() {
-    var start = _scanner.state;
     _expectChar($dot);
     var name = _identifier();
-    return new ClassSelector(name, span: _scanner.spanFrom(start));
+    return new ClassSelector(name);
   }
 
   IDSelector _idSelector() {
-    var start = _scanner.state;
     _expectChar($hash);
     var name = _identifier();
-    return new IDSelector(name, span: _scanner.spanFrom(start));
+    return new IDSelector(name);
   }
 
   PlaceholderSelector _placeholderSelector() {
-    var start = _scanner.state;
     _expectChar($percent);
     var name = _identifier();
-    return new PlaceholderSelector(name, span: _scanner.spanFrom(start));
+    return new PlaceholderSelector(name);
   }
 
   PseudoSelector _pseudoSelector() {
-    var start = _scanner.state;
     _expectChar($colon);
     var type = _scanChar($colon) ? PseudoType.element : PseudoType.klass;
     var name = _identifier();
 
     if (!_scanChar($lparen)) {
-      return new PseudoSelector(name, type, span: _scanner.spanFrom(start));
+      return new PseudoSelector(name, type);
     }
     _ignoreComments();
 
@@ -878,7 +870,7 @@ class Parser {
     _expectChar($rparen);
 
     return new PseudoSelector(name, type,
-        argument: argument, selector: selector, span: _scanner.spanFrom(start));
+        argument: argument, selector: selector);
   }
 
   // TODO: this should probably be a declaration value, but we don't have that
@@ -928,43 +920,26 @@ class Parser {
   }
 
   SimpleSelector _typeOrUniversalSelector() {
-    var start = _scanner.state;
-
     var first = _scanner.peekChar();
     if (first == $asterisk) {
-      if (!_scanChar($pipe)) {
-        return new UniversalSelector(span: _scanner.spanFrom(start));
-      }
+      if (!_scanChar($pipe)) return new UniversalSelector();
+      if (_scanChar($asterisk)) return new UniversalSelector(namespace: "*");
 
-      if (_scanChar($asterisk)) {
-        return new UniversalSelector(
-            namespace: "*", span: _scanner.spanFrom(start));
-      } else {
-        return new TypeSelector(
-            new NamespacedIdentifier(_identifier(), namespace: "*"),
-            span: _scanner.spanFrom(start));
-      }
+      return new TypeSelector(
+          new NamespacedIdentifier(_identifier(), namespace: "*"));
     } else if (first == $pipe) {
-      if (_scanChar($asterisk)) {
-        return new UniversalSelector(
-            namespace: "", span: _scanner.spanFrom(start));
-      } else {
-        return new TypeSelector(
-            new NamespacedIdentifier(_identifier(), namespace: ""),
-            span: _scanner.spanFrom(start));
-      }
+      if (_scanChar($asterisk)) return new UniversalSelector( namespace: "");
+      return new TypeSelector(
+          new NamespacedIdentifier(_identifier(), namespace: ""));
     }
 
     var nameOrNamespace = _identifier();
     if (!_scanChar($pipe)) {
-      return new TypeSelector(
-          new NamespacedIdentifier(nameOrNamespace),
-          span: _scanner.spanFrom(start));
+      return new TypeSelector(new NamespacedIdentifier(nameOrNamespace));
     }
 
     return new TypeSelector(
-        new NamespacedIdentifier(_identifier(), namespace: nameOrNamespace),
-        span: _scanner.spanFrom(start));
+        new NamespacedIdentifier(_identifier(), namespace: nameOrNamespace));
   }
 
   // ## Tokens

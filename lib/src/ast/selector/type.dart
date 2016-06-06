@@ -2,16 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
-
 import '../selector.dart';
 
 class TypeSelector extends SimpleSelector {
   final NamespacedIdentifier name;
 
-  final FileSpan span;
-
-  TypeSelector(this.name, {this.span});
+  TypeSelector(this.name);
 
   String toString() => "$name";
 }

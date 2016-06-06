@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
-
 import '../selector.dart';
 
 class AttributeSelector extends SimpleSelector {
@@ -13,13 +11,11 @@ class AttributeSelector extends SimpleSelector {
 
   final String value;
 
-  final FileSpan span;
-
-  AttributeSelector(this.name, {this.span})
+  AttributeSelector(this.name)
       : op = null,
         value = null;
 
-  AttributeSelector.withOperator(this.name, this.op, this.value, {this.span});
+  AttributeSelector.withOperator(this.name, this.op, this.value);
 
   String toString() {
     if (op == null) return name.toString();
