@@ -9,9 +9,17 @@ import 'package:string_scanner/string_scanner.dart';
 
 import 'ast/sass/expression.dart';
 import 'ast/sass/statement.dart';
+import 'ast/selector.dart';
 import 'interpolation_buffer.dart';
 import 'util/character.dart';
+import 'utils.dart';
 import 'value.dart';
+
+final _selectorPseudoClasses =
+    new Set.from(["not" "matches" "current" "any" "has" "host" "host-context"]);
+
+final _prefixedSelectorPseudoClasses =
+    new Set.from(["nth-child" "nth-last-child"]);
 
 class Parser {
   final SpanScanner _scanner;
@@ -53,6 +61,12 @@ class Parser {
 
     _scanner.expectDone();
     return new Stylesheet(children, span: _scanner.spanFrom(start));
+  }
+
+  Selector parseSelector() {
+    var selector = _selectorList();
+    _scanner.expectDone();
+    return selector;
   }
 
   VariableDeclaration _variableDeclaration() {
@@ -649,9 +663,321 @@ class Parser {
     return expression;
   }
 
+  // ## Selectors
+
+  SelectorList _selectorList() {
+    var components = <ComplexSelector>[];
+    var lineBreaks = <int>[];
+
+    _ignoreComments();
+    var previousLine = _scanner.line;
+    do {
+      _ignoreComments();
+      var next = _scanner.peekChar();
+      if (next == $comma) continue;
+      if (next == $lbrace) break;
+
+      if (_scanner.line != previousLine) {
+        lineBreaks.add(components.length);
+        previousLine = _scanner.line;
+      }
+      components.add(_complexSelector());
+    } while (_scanChar($comma));
+
+    return new SelectorList(components, lineBreaks: lineBreaks);
+  }
+
+  ComplexSelector _complexSelector() {
+    var start = _scanner.state;
+    var components = <ComplexSelectorComponent>[];
+    var lineBreaks = <int>[];
+
+    var previousLine = _scanner.line;
+    loop: while (true) {
+      _ignoreComments();
+
+      ComplexSelectorComponent component;
+      switch (_scanner.peekChar()) {
+        case $plus:
+          component = Combinator.nextSibling;
+          break;
+
+        case $gt:
+          component = Combinator.child;
+          break;
+
+        case $tilde:
+          component = Combinator.followingSibling;
+          break;
+
+        case $lbrace:
+        case $comma:
+          break loop;
+
+        default:
+          component = _compoundSelector();
+          break;
+      }
+
+      if (_scanner.line != previousLine) {
+        lineBreaks.add(components.length);
+        previousLine = _scanner.line;
+      }
+      components.add(component);
+    }
+
+    return new ComplexSelector(components,
+        lineBreaks: lineBreaks, span: _scanner.spanFrom(start));
+  }
+
+  CompoundSelector _compoundSelector() {
+    var components = <SimpleSelector>[_simpleSelector()];
+
+    while (isSimpleSelectorStart(_scanner.peekChar())) {
+      components.add(_simpleSelector());
+    }
+
+    // TODO: support "*E".
+    return new CompoundSelector(components);
+  }
+
+  SimpleSelector _simpleSelector() {
+    switch (_scanner.peekChar()) {
+      case $lbracket: return _attributeSelector();
+      case $dot: return _classSelector();
+      case $hash: return _idSelector();
+      case $percent: return _placeholderSelector();
+      case $colon: return _pseudoSelector();
+      default: return _typeOrUniversalSelector();
+    }
+  }
+
+  AttributeSelector _attributeSelector() {
+    var start = _scanner.state;
+    _expectChar($lbracket);
+    _ignoreComments();
+
+    var name = _attributeName();
+    _ignoreComments();
+    if (_scanChar($rbracket)) {
+      _scanner.readChar();
+      return new AttributeSelector(name, span: _scanner.spanFrom(start));
+    }
+
+    var operator = _attributeOperator();
+    _ignoreComments();
+
+    var next = _scanner.peekChar();
+    var value = next == $single_quote || next == $double_quote
+        ? _staticString()
+        : _identifier();
+    _ignoreComments();
+
+    _expectChar($rbracket);
+    return new AttributeSelector.withOperator(name, operator, value,
+        span: _scanner.spanFrom(start));
+  }
+
+  NamespacedIdentifier _attributeName() {
+    if (_scanChar($asterisk)) {
+      _expectChar($pipe);
+      return new NamespacedIdentifier(_identifier(), namespace: "*");
+    }
+
+    var nameOrNamespace = _identifier();
+    if (_scanner.peekChar() != $pipe || _scanner.peekChar(1) == $equal) {
+      return new NamespacedIdentifier(nameOrNamespace);
+    }
+
+    _scanner.readChar();
+    return new NamespacedIdentifier(_identifier(), namespace: nameOrNamespace);
+  }
+
+  AttributeOperator _attributeOperator() {
+    var start = _scanner.state;
+    switch (_scanner.readChar()) {
+      case $equal: return AttributeOperator.equal;
+
+      case $tilde:
+        _expectChar($equal);
+        return AttributeOperator.include;
+
+      case $pipe:
+        _expectChar($equal);
+        return AttributeOperator.dash;
+
+      case $caret:
+        _expectChar($equal);
+        return AttributeOperator.prefix;
+
+      case $dollar:
+        _expectChar($equal);
+        return AttributeOperator.suffix;
+
+      case $asterisk:
+        _expectChar($equal);
+        return AttributeOperator.substring;
+
+      default: 
+        _scanner.error('Expected "]".', position: start.position);
+        throw "Unreachable";
+    }
+  }
+
+  ClassSelector _classSelector() {
+    var start = _scanner.state;
+    _expectChar($dot);
+    var name = _identifier();
+    return new ClassSelector(name, span: _scanner.spanFrom(start));
+  }
+
+  IDSelector _idSelector() {
+    var start = _scanner.state;
+    _expectChar($hash);
+    var name = _identifier();
+    return new IDSelector(name, span: _scanner.spanFrom(start));
+  }
+
+  PlaceholderSelector _placeholderSelector() {
+    var start = _scanner.state;
+    _expectChar($percent);
+    var name = _identifier();
+    return new PlaceholderSelector(name, span: _scanner.spanFrom(start));
+  }
+
+  PseudoSelector _pseudoSelector() {
+    var start = _scanner.state;
+    _expectChar($colon);
+    var type = _scanChar($colon) ? PseudoType.element : PseudoType.klass;
+    var name = _identifier();
+
+    if (!_scanChar($lparen)) {
+      return new PseudoSelector(name, type, span: _scanner.spanFrom(start));
+    }
+    _ignoreComments();
+
+    var unvendored = unvendor(name);
+    String argument;
+    SelectorList selector;
+    if (type == PseudoType.element) {
+      argument = _rawText(_pseudoArgument);
+    } else if (_selectorPseudoClasses.contains(unvendored)) {
+      selector = _selectorList();
+    } else if (_prefixedSelectorPseudoClasses.contains(unvendored)) {
+      argument = _rawText(_aNPlusB);
+      if (_scanWhitespace()) {
+        _expectCaseInsensitive("of");
+        argument += " of";
+        _ignoreComments();
+
+        selector = _selectorList();
+      }
+    } else {
+      argument = _rawText(_pseudoArgument);
+    }
+    _expectChar($rparen);
+
+    return new PseudoSelector(name, type,
+        argument: argument, selector: selector, span: _scanner.spanFrom(start));
+  }
+
+  // TODO: this should probably be a declaration value, but we don't have that
+  // defined in Dart yet and that's not what it is in Ruby (yet).
+  void _pseudoArgument() => throw new UnimplementedError();
+
+  void _aNPlusB() {
+    switch (_scanner.peekChar()) {
+      case $e:
+      case $E:
+        _expectCaseInsensitive("even");
+        return;
+
+      case $o:
+      case $O:
+        _expectCaseInsensitive("odd");
+        return;
+
+      case $plus:
+      case $minus:
+        _scanner.readChar();
+        break;
+    }
+
+    var first = _scanner.peekChar();
+    if (first != null && isDigit(first)) {
+      while (isDigit(_scanner.peekChar())) {
+        _scanner.readChar();
+      }
+      _ignoreComments();
+      if (!_scanCharCaseInsensitive($n)) return;
+    } else {
+      _expectCharCaseInsensitive($n);
+    }
+    _ignoreComments();
+
+    var next = _scanner.peekChar();
+    if (next != $plus && next != $minus) return;
+    _scanner.readChar();
+    _ignoreComments();
+
+    var last = _scanner.peekChar();
+    if (last == null || !isDigit(last)) _scanner.error("Expected a number.");
+    while (isDigit(_scanner.peekChar())) {
+      _scanner.readChar();
+    }
+  }
+
+  SimpleSelector _typeOrUniversalSelector() {
+    var start = _scanner.state;
+
+    var first = _scanner.peekChar();
+    if (first == $asterisk) {
+      if (!_scanChar($pipe)) {
+        return new UniversalSelector(span: _scanner.spanFrom(start));
+      }
+
+      if (_scanChar($asterisk)) {
+        return new UniversalSelector(
+            namespace: "*", span: _scanner.spanFrom(start));
+      } else {
+        return new TypeSelector(
+            new NamespacedIdentifier(_identifier(), namespace: "*"),
+            span: _scanner.spanFrom(start));
+      }
+    } else if (first == $pipe) {
+      if (_scanChar($asterisk)) {
+        return new UniversalSelector(
+            namespace: "", span: _scanner.spanFrom(start));
+      } else {
+        return new TypeSelector(
+            new NamespacedIdentifier(_identifier(), namespace: ""),
+            span: _scanner.spanFrom(start));
+      }
+    }
+
+    var nameOrNamespace = _identifier();
+    if (!_scanChar($pipe)) {
+      return new TypeSelector(
+          new NamespacedIdentifier(nameOrNamespace),
+          span: _scanner.spanFrom(start));
+    }
+
+    return new TypeSelector(
+        new NamespacedIdentifier(_identifier(), namespace: nameOrNamespace),
+        span: _scanner.spanFrom(start));
+  }
+
   // ## Tokens
 
+  String _staticString() => throw new UnimplementedError();
+
   String _commentText() => _rawText(_ignoreComments);
+
+  bool _scanWhitespace() {
+    var start = _scanner.position;
+    _ignoreComments();
+    return _scanner.position != start;
+  }
 
   void _ignoreComments() {
     do {
@@ -790,7 +1116,30 @@ class Parser {
 
   void _expectChar(int character) {
     if (_scanChar(character)) return;
-    _scanner.expect(new String.fromCharCode(character));
+    _scanner.error('Expected "${new String.fromCharCode(character)}".');
+  }
+
+  bool _scanCharCaseInsensitive(int character) {
+    assert(character >= $a && character <= $z);
+    var actual = _scanner.readChar();
+    return actual == character || actual == character + $A - $a;
+  }
+
+  void _expectCharCaseInsensitive(int character) {
+    assert(character >= $a && character <= $z);
+    var actual = _scanner.readChar();
+    if (actual == character || actual == character + $A - $a) return;
+
+    _scanner.error('Expected "${new String.fromCharCode(character)}".',
+        position: actual == null ? _scanner.position : _scanner.position - 1);
+  }
+
+  void _expectCaseInsensitive(String expected) {
+    var start = _scanner.position;
+    for (var i = 0; i < expected.length; i++) {
+      if (_scanCharCaseInsensitive(expected.codeUnitAt(i))) continue;
+      _scanner.error('Expected "$expected".', position: start, length: i);
+    }
   }
 
   // ## Utilities

@@ -31,6 +31,11 @@ bool isExpressionStart(int character) =>
     character == $minus || character == $backslash || character == $dollar ||
     isNameStart(character) || isDigit(character);
 
+// Does not include type selectors
+bool isSimpleSelectorStart(int character) =>
+    character == $asterisk || character == $lbracket || character == $dot ||
+    character == $hash || character == $colon;
+
 int asHex(int character) {
   if (character <= $9) return character - $0;
   if (character <= $F) return 10 + character - $A;

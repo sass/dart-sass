@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
@@ -17,6 +18,16 @@ SourceSpan spanForList(List<AstNode> nodes) {
   var first = nodes.first.span;
   var last = nodes.last.span;
   return first is FileSpan && last is FileSpan ? first.expand(last) : null;
+}
+
+String unvendor(String name) {
+  assert(!name.isEmpty);
+  if (name.codeUnitAt(0) == $dash) return name;
+
+  for (var i = 1; i < name.length; i++) {
+    if (name.codeUnitAt(0) == $dash) return name.substring(i + 1);
+  }
+  return name;
 }
 
 class LinkedListValue<T> extends LinkedListEntry<LinkedListValue<T>> {
