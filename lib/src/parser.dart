@@ -696,7 +696,8 @@ class Parser {
       _ignoreComments();
 
       ComplexSelectorComponent component;
-      switch (_scanner.peekChar()) {
+      var next = _scanner.peekChar();
+      switch (next) {
         case $plus:
           component = Combinator.nextSibling;
           break;
@@ -714,6 +715,7 @@ class Parser {
           break loop;
 
         default:
+          if (next == null) break loop;
           component = _compoundSelector();
           break;
       }
