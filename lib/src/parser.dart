@@ -63,7 +63,7 @@ class Parser {
     return new Stylesheet(children, span: _scanner.spanFrom(start));
   }
 
-  Selector parseSelector() {
+  SelectorList parseSelector() {
     var selector = _selectorList();
     _scanner.expectDone();
     return selector;

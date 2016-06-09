@@ -5,11 +5,12 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/css.dart';
+import '../selector.dart';
 import 'node.dart';
 import 'value.dart';
 
 class CssStyleRule implements CssNode {
-  final CssValue<String> selector;
+  final CssValue<SelectorList> selector;
 
   final List<CssNode> children;
 

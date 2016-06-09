@@ -7,7 +7,9 @@ import 'dart:collection';
 import '../../../ast/css/node.dart';
 import '../../../ast/sass/expression.dart';
 import '../../../ast/sass/statement.dart';
+import '../../../ast/selector.dart';
 import '../../../environment.dart';
+import '../../../parser.dart';
 import '../../../utils.dart';
 import '../../../value.dart';
 import '../expression/perform.dart';
@@ -57,12 +59,19 @@ class PerformVisitor extends StatementVisitor {
   }
 
   void visitStyleRule(StyleRule node) {
-    var selector = _performInterpolation(node.selector, trim: true);
+    var selectorText = _performInterpolation(node.selector, trim: true);
     if (_styleRules.isNotEmpty) {
-      selector = new CssValue(
-          "${_styleRules.last.selector.value} ${selector.value}",
+      // TODO: semantically resolve parent references.
+      selectorText = new CssValue(
+          "${_styleRules.last.selector.value} ${selectorText.value}",
           span: node.selector.span);
     }
+
+    // TODO: catch errors and re-contextualize them relative to
+    // [node.selector.span.start].
+    var selector = new CssValue<SelectorList>(
+        new Parser(selectorText.value).parseSelector(),
+        span: node.selector.span);
 
     // This allows us to follow Ruby Sass's behavior of always putting the style
     // rule before any of its children.
