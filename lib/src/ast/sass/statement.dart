@@ -5,6 +5,7 @@
 import '../../visitor/sass/statement.dart';
 import 'node.dart';
 
+export 'at_rule.dart';
 export 'comment.dart';
 export 'declaration.dart';
 export 'style_rule.dart';

@@ -5,6 +5,7 @@
 import '../../visitor/css.dart';
 import '../node.dart';
 
+export '../../ast/css/at_rule.dart';
 export '../../ast/css/comment.dart';
 export '../../ast/css/declaration.dart';
 export '../../ast/css/style_rule.dart';

@@ -18,11 +18,11 @@ import '../statement.dart';
 class PerformVisitor extends StatementVisitor {
   final Environment _environment;
   final PerformExpressionVisitor _expressionVisitor;
-  final _styleRules = <CssStyleRule>[];
+  var _styleRules = <CssStyleRule>[];
 
   /// These are linked lists so that we can efficiently insert the style rules
   /// before their nested children.
-  final _children = [new LinkedList<LinkedListValue<CssNode>>()];
+  var _children = [new LinkedList<LinkedListValue<CssNode>>()];
 
   PerformVisitor() : this._(new Environment());
 
@@ -56,6 +56,20 @@ class PerformVisitor extends StatementVisitor {
     }
 
     _addChild(new CssDeclaration(name, cssValue, span: node.span));
+  }
+
+  void visitAtRule(AtRule node) {
+    var value = node.value == null
+        ? null
+        : _performInterpolation(node.value, trim: true);
+
+    var children = node.children == null
+        ? null
+        : _resetStyleRules(() =>
+            _collectChildren(() => super.visitAtRule(node)));
+
+    _addChild(new CssAtRule(node.name,
+        value: value, children: children, span: node.span));
   }
 
   void visitStyleRule(StyleRule node) {
@@ -108,6 +122,17 @@ class PerformVisitor extends StatementVisitor {
 
   void _addChild(CssNode node) {
     _children.last.add(new LinkedListValue(node));
+  }
+
+  /*=T*/ _resetStyleRules/*<T>*/(/*=T*/ callback()) {
+    var oldStyleRules = _styleRules;
+    var oldChildren = _children;
+    _styleRules = [];
+    _children = [];
+    var result = callback();
+    _styleRules = oldStyleRules;
+    _children = oldChildren;
+    return result;
   }
 
   /// Implicitly adds an environment scope.

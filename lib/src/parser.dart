@@ -102,17 +102,34 @@ class Parser {
         guarded: guarded, global: global, span: _scanner.spanFrom(start));
   }
 
-  Statement _atRule() => throw new UnimplementedError();
+  Statement _atRule() {
+    var start = _scanner.state;
+    _scanner.expectChar($at);
+    var name = _identifier();
+    _ignoreComments();
+
+    InterpolationExpression value;
+    var next = _scanner.peekChar();
+    if (next != $exclamation && next != $semicolon && next != $lbrace &&
+        next != $rbrace && next != null) {
+      value = _almostAnyValue();
+    }
+
+    return new AtRule(name,
+        value: value,
+        children: _scanner.peekChar() == $lbrace ? _ruleChildren() : null,
+        span: _scanner.spanFrom(start));
+  }
 
   StyleRule _styleRule() {
     var start = _scanner.state;
     var selector = _almostAnyValue();
-    var children = _styleRuleChildren();
+    var children = _ruleChildren();
     return new StyleRule(selector, children,
         span: _scanner.spanFrom(start));
   }
 
-  List<Statement> _styleRuleChildren() {
+  List<Statement> _ruleChildren() {
     _scanner.expectChar($lbrace);
     var children = <Statement>[];
     loop: while (true) {
@@ -191,7 +208,7 @@ class Parser {
     var buffer = declarationOrBuffer as InterpolationBuffer;
     buffer.addInterpolation(_almostAnyValue());
 
-    var children = _styleRuleChildren();
+    var children = _ruleChildren();
     return new StyleRule(
         buffer.interpolation(_scanner.spanFrom(start)), children,
         span: _scanner.spanFrom(start));

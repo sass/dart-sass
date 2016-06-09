@@ -32,17 +32,16 @@ class InterpolationBuffer implements StringSink {
   void addInterpolation(InterpolationExpression expression) {
     if (expression.contents.isEmpty) return;
 
-    Iterable toAdd;
+    var toAdd = expression.contents;
     var first = expression.contents.first;
     if (first is String) {
       _text.write(first);
       toAdd = expression.contents.skip(1);
-    } else {
-      toAdd = expression.contents;
     }
 
     _flushText();
     _contents.addAll(toAdd);
+    if (_contents.last is String) _text.write(_contents.removeLast());
   }
 
   void _flushText() {

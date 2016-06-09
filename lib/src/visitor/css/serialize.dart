@@ -39,20 +39,29 @@ class _SerializeCssVisitor extends CssVisitor {
     _buffer.writeln(node.text);
   }
 
+  void visitAtRule(CssAtRule node) {
+    _writeIndentation();
+    _buffer.writeCharCode($at);
+    _buffer.write(node.name);
+
+    if (node.value != null) {
+      _buffer.writeCharCode($space);
+      _buffer.write(node.value.value);
+    }
+
+    if (node.children == null) {
+      _buffer.writeCharCode($semicolon);
+    } else {
+      _buffer.writeCharCode($space);
+      _visitChildren(node.children);
+    }
+  }
+
   void visitStyleRule(CssStyleRule node) {
     _writeIndentation();
     _buffer.write(node.selector.value);
     _buffer.writeCharCode($space);
-    _buffer.writeCharCode($lbrace);
-    _buffer.writeln();
-    _indent(() {
-      for (var child in node.children) {
-        child.accept(this);
-        _buffer.writeln();
-      }
-    });
-    _writeIndentation();
-    _buffer.writeCharCode($rbrace);
+    _visitChildren(node.children);
 
     // TODO: only add an extra newline if this is a group end
     _buffer.writeln();
@@ -153,6 +162,19 @@ class _SerializeCssVisitor extends CssVisitor {
 
     var doubleQuote = forceDoubleQuote || !includesDoubleQuote;
     return doubleQuote ? '"$buffer"' : "'$buffer'";
+  }
+
+  void _visitChildren(Iterable<CssNode> children) {
+    _buffer.writeCharCode($lbrace);
+    _buffer.writeln();
+    _indent(() {
+      for (var child in children) {
+        child.accept(this);
+        _buffer.writeln();
+      }
+    });
+    _writeIndentation();
+    _buffer.writeCharCode($rbrace);
   }
 
   void _writeIndentation() {

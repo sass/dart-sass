@@ -9,6 +9,14 @@ class StatementVisitor<T> {
   T visitDeclaration(Declaration node) => null;
   T visitVariableDeclaration(VariableDeclaration node) => null;
 
+  T visitAtRule(AtRule node) {
+    if (node.children == null) return null;
+    for (var child in node.children) {
+      child.accept(this);
+    }
+    return null;
+  }
+
   T visitStyleRule(StyleRule node) {
     for (var child in node.children) {
       child.accept(this);
