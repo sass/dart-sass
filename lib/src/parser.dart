@@ -70,19 +70,19 @@ class Parser {
   }
 
   VariableDeclaration _variableDeclaration() {
-    if (!_scanChar($dollar)) return null;
+    if (!_scanner.scanChar($dollar)) return null;
 
     var start = _scanner.state;
     var name = _identifier();
     _ignoreComments();
-    _expectChar($colon);
+    _scanner.expectChar($colon);
     _ignoreComments();
 
     var expression = _expression();
 
     var guarded = false;
     var global = false;
-    while (_scanChar($exclamation)) {
+    while (_scanner.scanChar($exclamation)) {
       var flagStart = _scanner.position - 1;
       var flag = _identifier();
       if (flag == 'default') {
@@ -113,7 +113,7 @@ class Parser {
   }
 
   List<Statement> _styleRuleChildren() {
-    _expectChar($lbrace);
+    _scanner.expectChar($lbrace);
     var children = <Statement>[];
     loop: while (true) {
       children.addAll(_comments());
@@ -140,7 +140,7 @@ class Parser {
     }
 
     children.addAll(_comments());
-    _expectChar($rbrace);
+    _scanner.expectChar($rbrace);
     return children;
   }
 
@@ -223,7 +223,7 @@ class Parser {
 
     var midBuffer = new StringBuffer();
     midBuffer.write(_commentText());
-    if (!_scanChar($colon)) return nameBuffer;
+    if (!_scanner.scanChar($colon)) return nameBuffer;
     midBuffer.writeCharCode($colon);
 
     // Parse custom properties as declarations no matter what.
@@ -232,7 +232,7 @@ class Parser {
       return _customPropertyDeclaration(name);
     }
 
-    if (_scanChar($colon)) {
+    if (_scanner.scanChar($colon)) {
       return nameBuffer..write(midBuffer)..writeCharCode($colon);
     }
 
@@ -248,11 +248,11 @@ class Parser {
       if (next == $lbrace) {
         // Properties that are ambiguous with selectors can't have additional
         // properties nested beneath them, so we force an error.
-        if (couldBeSelector) _expectChar($semicolon);
+        if (couldBeSelector) _scanner.expectChar($semicolon);
       } else if (next != $semicolon && next != $rbrace) {
         // Force an exception if there isn't a valid end-of-property character
         // but don't consume that character.
-        _expectChar($semicolon);
+        _scanner.expectChar($semicolon);
       }
     } on FormatException catch (_) {
       if (!couldBeSelector) rethrow;
@@ -308,7 +308,7 @@ class Parser {
             new ListExpression(spaceExpressions, ListSeparator.space));
       }
 
-      if (!_scanChar($comma)) break;
+      if (!_scanner.scanChar($comma)) break;
       hadComma = true;
       _ignoreComments();
     }
@@ -366,17 +366,17 @@ class Parser {
 
   Expression _parentheses() {
     var start = _scanner.state;
-    _expectChar($lparen);
+    _scanner.expectChar($lparen);
     _ignoreComments();
     if (!isExpressionStart(_scanner.peekChar())) {
-      _expectChar($rparen);
+      _scanner.expectChar($rparen);
       return new ListExpression([], ListSeparator.undecided,
           span: _scanner.spanFrom(start));
     }
 
     // TODO: support maps
     var result = _expression();
-    _expectChar($rparen);
+    _scanner.expectChar($rparen);
     return result;
   }
 
@@ -444,7 +444,7 @@ class Parser {
 
   VariableExpression _variable() {
     var start = _scanner.state;
-    _expectChar($dollar);
+    _scanner.expectChar($dollar);
     var name = _identifier();
     return new VariableExpression(name, span: _scanner.spanFrom(start));
   }
@@ -488,7 +488,7 @@ class Parser {
 
   Expression _hexColorOrID() {
     var start = _scanner.state;
-    _expectChar($hash);
+    _scanner.expectChar($hash);
 
     var first = _scanner.peekChar();
     if (first != null && isDigit(first)) {
@@ -622,7 +622,7 @@ class Parser {
     var start = _scanner.state;
     var buffer = new InterpolationBuffer();
 
-    while (_scanChar($dash)) {
+    while (_scanner.scanChar($dash)) {
       buffer.writeCharCode($dash);
     }
 
@@ -659,7 +659,7 @@ class Parser {
   Expression _singleInterpolation() {
     _scanner.expect('#{');
     var expression = _expression();
-    _expectChar($rbrace);
+    _scanner.expectChar($rbrace);
     return expression;
   }
 
@@ -682,7 +682,7 @@ class Parser {
         previousLine = _scanner.line;
       }
       components.add(_complexSelector());
-    } while (_scanChar($comma));
+    } while (_scanner.scanChar($comma));
 
     return new SelectorList(components, lineBreaks: lineBreaks);
   }
@@ -753,12 +753,12 @@ class Parser {
   }
 
   AttributeSelector _attributeSelector() {
-    _expectChar($lbracket);
+    _scanner.expectChar($lbracket);
     _ignoreComments();
 
     var name = _attributeName();
     _ignoreComments();
-    if (_scanChar($rbracket)) {
+    if (_scanner.scanChar($rbracket)) {
       _scanner.readChar();
       return new AttributeSelector(name);
     }
@@ -772,13 +772,13 @@ class Parser {
         : _identifier();
     _ignoreComments();
 
-    _expectChar($rbracket);
+    _scanner.expectChar($rbracket);
     return new AttributeSelector.withOperator(name, operator, value);
   }
 
   NamespacedIdentifier _attributeName() {
-    if (_scanChar($asterisk)) {
-      _expectChar($pipe);
+    if (_scanner.scanChar($asterisk)) {
+      _scanner.expectChar($pipe);
       return new NamespacedIdentifier(_identifier(), namespace: "*");
     }
 
@@ -797,23 +797,23 @@ class Parser {
       case $equal: return AttributeOperator.equal;
 
       case $tilde:
-        _expectChar($equal);
+        _scanner.expectChar($equal);
         return AttributeOperator.include;
 
       case $pipe:
-        _expectChar($equal);
+        _scanner.expectChar($equal);
         return AttributeOperator.dash;
 
       case $caret:
-        _expectChar($equal);
+        _scanner.expectChar($equal);
         return AttributeOperator.prefix;
 
       case $dollar:
-        _expectChar($equal);
+        _scanner.expectChar($equal);
         return AttributeOperator.suffix;
 
       case $asterisk:
-        _expectChar($equal);
+        _scanner.expectChar($equal);
         return AttributeOperator.substring;
 
       default: 
@@ -823,29 +823,30 @@ class Parser {
   }
 
   ClassSelector _classSelector() {
-    _expectChar($dot);
+    _scanner.expectChar($dot);
     var name = _identifier();
     return new ClassSelector(name);
   }
 
   IDSelector _idSelector() {
-    _expectChar($hash);
+    _scanner.expectChar($hash);
     var name = _identifier();
     return new IDSelector(name);
   }
 
   PlaceholderSelector _placeholderSelector() {
-    _expectChar($percent);
+    _scanner.expectChar($percent);
     var name = _identifier();
     return new PlaceholderSelector(name);
   }
 
   PseudoSelector _pseudoSelector() {
-    _expectChar($colon);
-    var type = _scanChar($colon) ? PseudoType.element : PseudoType.klass;
+    _scanner.expectChar($colon);
+    var type =
+        _scanner.scanChar($colon) ? PseudoType.element : PseudoType.klass;
     var name = _identifier();
 
-    if (!_scanChar($lparen)) {
+    if (!_scanner.scanChar($lparen)) {
       return new PseudoSelector(name, type);
     }
     _ignoreComments();
@@ -869,7 +870,7 @@ class Parser {
     } else {
       argument = _rawText(_pseudoArgument);
     }
-    _expectChar($rparen);
+    _scanner.expectChar($rparen);
 
     return new PseudoSelector(name, type,
         argument: argument, selector: selector);
@@ -924,19 +925,24 @@ class Parser {
   SimpleSelector _typeOrUniversalSelector() {
     var first = _scanner.peekChar();
     if (first == $asterisk) {
-      if (!_scanChar($pipe)) return new UniversalSelector();
-      if (_scanChar($asterisk)) return new UniversalSelector(namespace: "*");
-
-      return new TypeSelector(
-          new NamespacedIdentifier(_identifier(), namespace: "*"));
+      if (!_scanner.scanChar($pipe)) return new UniversalSelector();
+      if (_scanner.scanChar($asterisk)) {
+        return new UniversalSelector(namespace: "*");
+      } else {
+        return new TypeSelector(
+            new NamespacedIdentifier(_identifier(), namespace: "*"));
+      }
     } else if (first == $pipe) {
-      if (_scanChar($asterisk)) return new UniversalSelector( namespace: "");
-      return new TypeSelector(
-          new NamespacedIdentifier(_identifier(), namespace: ""));
+      if (_scanner.scanChar($asterisk)) {
+        return new UniversalSelector( namespace: "");
+      } else {
+        return new TypeSelector(
+            new NamespacedIdentifier(_identifier(), namespace: ""));
+      }
     }
 
     var nameOrNamespace = _identifier();
-    if (!_scanChar($pipe)) {
+    if (!_scanner.scanChar($pipe)) {
       return new TypeSelector(new NamespacedIdentifier(nameOrNamespace));
     }
 
@@ -1006,7 +1012,7 @@ class Parser {
 
   String _identifier() {
     var text = new StringBuffer();
-    while (_scanChar($dash)) {
+    while (_scanner.scanChar($dash)) {
       text.writeCharCode($dash);
     }
 
@@ -1052,7 +1058,7 @@ class Parser {
   int _escape() {
     // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
-    _expectChar($backslash);
+    _scanner.expectChar($backslash);
     var first = _scanner.peekChar();
     if (first == null) {
       return 0xFFFD;
@@ -1083,17 +1089,6 @@ class Parser {
     var char = _scanner.peekChar();
     if (char == null || !isHex(char)) _scanner.error("Expected hex digit.");
     return asHex(_scanner.readChar());
-  }
-
-  bool _scanChar(int character) {
-    if (_scanner.peekChar() != character) return false;
-    _scanner.readChar();
-    return true;
-  }
-
-  void _expectChar(int character) {
-    if (_scanChar(character)) return;
-    _scanner.error('Expected "${new String.fromCharCode(character)}".');
   }
 
   bool _scanCharCaseInsensitive(int character) {
