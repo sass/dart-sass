@@ -967,6 +967,98 @@ class Parser {
         new NamespacedIdentifier(_identifier(), namespace: nameOrNamespace));
   }
 
+  // ## Media Queries
+
+  MediaQueryList _mediaQueryList() {
+    var start = _scanner.state;
+    var queries = <MediaQuery>[];
+    do {
+      _ignoreComments();
+      queries.add(_mediaQuery());
+    } while (_scanner.scanChar($comma));
+    return new MediaQueryList(queries, span: _scanner.spanFrom(start));
+  }
+
+  MediaQuery _mediaQuery() {
+    var start = _scanner.state;
+
+    InterpolationExpression modifier;
+    InterpolationExpression type;
+    if (_scanner.peekChar() != $lparen) {
+      var identifier1 = _interpolatedIdentifier();
+      _ignoreComments();
+
+      if (!_lookingAtInterpolatedIdentifier()) {
+        // For example, "@media screen {"
+        return new MediaQuery(identifier1, span: _scanner.spanFrom(start));
+      }
+
+      var identifier2 = _interpolatedIdentifier();
+      _ignoreComments();
+
+      if (equalsIgnoreCase(identifier2.asPlain, "and")) {
+        // For example, "@media screen and ..."
+        type = identifier1;
+      } else {
+        modifier = identifier1;
+        type = identifier2;
+        if (_scanCaseInsensitive("and")) {
+          // For example, "@media only screen and ..."
+          _ignoreComments();
+        } else {
+          // For example, "@media only screen {"
+          return new MediaQuery(type,
+              modifier: modifier, span: _scanner.spanFrom(start));
+        }
+      }
+    }
+
+    // We've consumed either `IDENTIFIER "and"` or
+    // `IDENTIFIER IDENTIFIER "and"`.
+
+    var expressions = <InterpolationExpression>[];
+    do {
+      _ignoreComments();
+      expressions.add(_mediaExpression());
+    } while (_scanCaseInsensitive("and"));
+
+    if (type == null) {
+      return new MediaQuery.expressions(expressions,
+          span: _scanner.spanFrom(start));
+    } else {
+      return new MediaQuery(type, modifier: modifier, expressions: expressions,
+          span: _scanner.spanFrom(start));
+    }
+  }
+
+  InterpolationExpression _mediaExpression() {
+    if (_scanner.peekChar() == $hash) {
+      var interpolation = _singleInterpolation();
+      return new InterpolationExpression([interpolation],
+          span: interpolation.span);
+    }
+
+    var start = _scanner.state;
+    var buffer = new InterpolationBuffer();
+    _scanner.expectChar($lparen);
+    buffer.writeCharCode($lparen);
+    _ignoreComments();
+
+    buffer.add(_expression());
+    if (_scanner.scanChar($colon)) {
+      _ignoreComments();
+      buffer.writeCharCode($colon);
+      buffer.writeCharCode($space);
+      buffer.add(_expression());
+    }
+
+    _scanner.expectChar($rparen);
+    _ignoreComments();
+    buffer.writeCharCode($rparen);
+
+    return buffer.interpolation(_scanner.spanFrom(start));
+  }
+
   // ## Tokens
 
   String _staticString() => throw new UnimplementedError();
@@ -1121,6 +1213,16 @@ class Parser {
 
     _scanner.error('Expected "${new String.fromCharCode(character)}".',
         position: actual == null ? _scanner.position : _scanner.position - 1);
+  }
+
+  bool _scanCaseInsensitive(String expected) {
+    var start = _scanner.position;
+    for (var i = 0; i < expected.length; i++) {
+      if (_scanCharCaseInsensitive(expected.codeUnitAt(i))) continue;
+      _scanner.position = start;
+      return false;
+    }
+    return true;
   }
 
   void _expectCaseInsensitive(String expected) {

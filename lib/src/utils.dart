@@ -12,6 +12,12 @@ import 'value/number.dart';
 
 const _epsilon = 1 / (10 * SassNumber.precision);
 
+class LinkedListValue<T> extends LinkedListEntry<LinkedListValue<T>> {
+  final T value;
+
+  LinkedListValue(this.value);
+}
+
 FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
   return nodes.first.span.expand(nodes.last.span);
@@ -27,11 +33,14 @@ String unvendor(String name) {
   return name;
 }
 
-class LinkedListValue<T> extends LinkedListEntry<LinkedListValue<T>> {
-  final T value;
-
-  LinkedListValue(this.value);
+bool equalsIgnoreCase(String string1, String string2) {
+  if (string1 == null) return string2 == null;
+  if (string2 == null) return false;
+  if (string1.length != string2.length) return false;
+  return string1.toUpperCase() == string2.toUpperCase();
 }
 
 bool almostEquals(num number1, num number2) =>
     (number1 - number2).abs() < _epsilon;
+
+
