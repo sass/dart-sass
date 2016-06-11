@@ -466,7 +466,7 @@ class Parser {
     return new VariableExpression(name, span: _scanner.spanFrom(start));
   }
 
-  StringExpression _string() {
+  StringExpression _string({bool static: false}) {
     var start = _scanner.state;
     var quote = _scanner.readChar();
 
@@ -489,7 +489,7 @@ class Parser {
         } else {
           buffer.writeCharCode(_escape());
         }
-      } else if (next == $hash) {
+      } else if (next == $hash && !static) {
         if (_scanner.peekChar(1) == $lbrace) {
           buffer.add(_singleInterpolation());
         } else {
@@ -785,7 +785,7 @@ class Parser {
 
     var next = _scanner.peekChar();
     var value = next == $single_quote || next == $double_quote
-        ? _staticString()
+        ? _string(static: true)
         : _identifier();
     _ignoreComments();
 
@@ -1060,8 +1060,6 @@ class Parser {
   }
 
   // ## Tokens
-
-  String _staticString() => throw new UnimplementedError();
 
   String _commentText() => _rawText(_ignoreComments);
 
