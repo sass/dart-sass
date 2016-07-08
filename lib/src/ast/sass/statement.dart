@@ -8,6 +8,8 @@ import 'node.dart';
 export 'at_rule.dart';
 export 'comment.dart';
 export 'declaration.dart';
+export 'media_query.dart';
+export 'media_rule.dart';
 export 'style_rule.dart';
 export 'stylesheet.dart';
 export 'variable_declaration.dart';

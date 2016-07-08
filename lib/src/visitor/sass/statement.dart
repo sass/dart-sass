@@ -17,6 +17,13 @@ class StatementVisitor<T> {
     return null;
   }
 
+  T visitMediaRule(MediaRule node) {
+    for (var child in node.children) {
+      child.accept(this);
+    }
+    return null;
+  }
+
   T visitStyleRule(StyleRule node) {
     for (var child in node.children) {
       child.accept(this);

@@ -108,6 +108,11 @@ class Parser {
     var name = _identifier();
     _ignoreComments();
 
+    if (name == "media") {
+      return new MediaRule(_mediaQueryList(), _ruleChildren(),
+          span: _scanner.spanFrom(start));
+    }
+
     InterpolationExpression value;
     var next = _scanner.peekChar();
     if (next != $exclamation && next != $semicolon && next != $lbrace &&
@@ -969,19 +974,16 @@ class Parser {
 
   // ## Media Queries
 
-  MediaQueryList _mediaQueryList() {
-    var start = _scanner.state;
+  List<MediaQuery> _mediaQueryList() {
     var queries = <MediaQuery>[];
     do {
       _ignoreComments();
       queries.add(_mediaQuery());
     } while (_scanner.scanChar($comma));
-    return new MediaQueryList(queries, span: _scanner.spanFrom(start));
+    return queries;
   }
 
   MediaQuery _mediaQuery() {
-    var start = _scanner.state;
-
     InterpolationExpression modifier;
     InterpolationExpression type;
     if (_scanner.peekChar() != $lparen) {
@@ -990,7 +992,7 @@ class Parser {
 
       if (!_lookingAtInterpolatedIdentifier()) {
         // For example, "@media screen {"
-        return new MediaQuery(identifier1, span: _scanner.spanFrom(start));
+        return new MediaQuery(identifier1);
       }
 
       var identifier2 = _interpolatedIdentifier();
@@ -1007,8 +1009,7 @@ class Parser {
           _ignoreComments();
         } else {
           // For example, "@media only screen {"
-          return new MediaQuery(type,
-              modifier: modifier, span: _scanner.spanFrom(start));
+          return new MediaQuery(type, modifier: modifier);
         }
       }
     }
@@ -1016,18 +1017,16 @@ class Parser {
     // We've consumed either `IDENTIFIER "and"` or
     // `IDENTIFIER IDENTIFIER "and"`.
 
-    var expressions = <InterpolationExpression>[];
+    var features = <InterpolationExpression>[];
     do {
       _ignoreComments();
-      expressions.add(_mediaExpression());
+      features.add(_mediaExpression());
     } while (_scanCaseInsensitive("and"));
 
     if (type == null) {
-      return new MediaQuery.expressions(expressions,
-          span: _scanner.spanFrom(start));
+      return new MediaQuery.condition(features);
     } else {
-      return new MediaQuery(type, modifier: modifier, expressions: expressions,
-          span: _scanner.spanFrom(start));
+      return new MediaQuery(type, modifier: modifier, features: features);
     }
   }
 
