@@ -18,6 +18,13 @@ abstract class CssVisitor<T> extends ValueVisitor<T> {
     return null;
   }
 
+  T visitMediaRule(CssMediaRule node) {
+    for (var child in node.children) {
+      child.accept(this);
+    }
+    return null;
+  }
+
   T visitStyleRule(CssStyleRule node) {
     for (var child in node.children) {
       child.accept(this);

@@ -72,6 +72,31 @@ class PerformVisitor extends StatementVisitor {
         value: value, children: children, span: node.span));
   }
 
+  void visitMediaRule(MediaRule node) {
+    // TODO: bubble
+    _addChild(new CssMediaRule(
+        node.queries.map(_visitMediaQuery),
+        _resetStyleRules(() => _collectChildren(() =>
+            super.visitMediaRule(node))),
+        span: node.span));
+  }
+
+  CssMediaQuery _visitMediaQuery(MediaQuery query) {
+    var modifier = query.modifier == null
+        ? null
+        : _performInterpolation(query.modifier);
+
+    var type = query.type == null
+        ? null
+        : _performInterpolation(query.type);
+
+    var features = query.features
+        .map((feature) => _performInterpolation(feature));
+
+    if (type == null) return new CssMediaQuery.condition(features);
+    return new CssMediaQuery(type, modifier: modifier, features: features);
+  }
+
   void visitStyleRule(StyleRule node) {
     var selectorText = _performInterpolation(node.selector, trim: true);
     if (_styleRules.isNotEmpty) {

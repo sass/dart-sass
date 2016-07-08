@@ -57,6 +57,32 @@ class _SerializeCssVisitor extends CssVisitor {
     }
   }
 
+  void visitMediaRule(CssMediaRule node) {
+    _writeIndentation();
+    _buffer.write("@media ");
+
+    for (var query in node.queries) {
+      visitMediaQuery(query);
+    }
+
+    _buffer.writeCharCode($space);
+    _visitChildren(node.children);
+  }
+
+  void visitMediaQuery(CssMediaQuery query) {
+    if (query.modifier != null) {
+      _buffer.write(query.modifier.value);
+      _buffer.writeCharCode($space);
+    }
+
+    if (query.type != null) {
+      _buffer.write(query.type.value);
+      if (query.features.isNotEmpty) _buffer.write(" and ");
+    }
+
+    _writeBetween(query.features, " and ", _buffer.write);
+  }
+
   void visitStyleRule(CssStyleRule node) {
     _writeIndentation();
     _buffer.write(node.selector.value);
@@ -88,14 +114,10 @@ class _SerializeCssVisitor extends CssVisitor {
   void visitList(SassList value) {
     if (value.contents.isEmpty) throw "() isn't a valid CSS value";
 
-    var separator = value.separator == ListSeparator.space ? " " : ", ";
-    var first = true;
-    for (var element in value.contents) {
-      if (element.isBlank) continue;
-      if (!first) _buffer.write(separator);
-      first = false;
-      element.accept(this);
-    }
+    _writeBetween(
+        value.contents.where((element) => !element.isBlank),
+        value.separator == ListSeparator.space ? " " : ", ",
+        (element) => element.accept(this));
   }
 
   // TODO(nweiz): Support precision and don't support exponent notation.
@@ -181,6 +203,19 @@ class _SerializeCssVisitor extends CssVisitor {
     for (var i = 0; i < _indentation; i++) {
       _buffer.writeCharCode($space);
       _buffer.writeCharCode($space);
+    }
+  }
+
+  void _writeBetween/*<T>*/(Iterable/*<T>*/ iterable, String text,
+      void callback(/*=T*/ value)) {
+    var first = true;
+    for (var value in iterable) {
+      if (first) {
+        first = false;
+      } else {
+        _buffer.write(text);
+      }
+      callback(value);
     }
   }
 

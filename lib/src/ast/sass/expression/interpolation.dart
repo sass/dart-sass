@@ -27,7 +27,7 @@ class InterpolationExpression implements Expression {
   InterpolationExpression(Iterable/*(String|Expression)*/ contents, {this.span})
       : contents = new List.unmodifiable(contents) {
     for (var i = 0; i < this.contents.length; i++) {
-      if (this.contents[i] is! String && this.contents[i] != Expression) {
+      if (this.contents[i] is! String && this.contents[i] is! Expression) {
         throw new ArgumentError.value(this.contents, "contents",
             "May only contains Strings or Expressions.");
       }
