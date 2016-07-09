@@ -18,23 +18,43 @@ import '../statement.dart';
 class PerformVisitor extends StatementVisitor {
   final Environment _environment;
   final PerformExpressionVisitor _expressionVisitor;
+
+  /// Style rules containing the currently visited node, from outermost to
+  /// innermost.
   var _styleRules = <CssStyleRule>[];
 
-  /// These are linked lists so that we can efficiently insert the style rules
-  /// before their nested children.
-  var _children = [new LinkedList<LinkedListValue<CssNode>>()];
+  /// The children of the root stylesheet node.
+  ///
+  /// This is a linked list so that we can efficiently insert style rules before
+  /// their nested children.
+  final _rootChildren = new LinkedList<LinkedListValue<CssNode>>();
 
+  /// The list of children to which style rules should be added.
+  ///
+  /// This is usually the same as [_rootChildren], but it may also be the
+  /// children of an at-rule.
+  LinkedList<LinkedListValue<CssNode>> _outerChildren;
+
+  /// The list of children of the innermost AST node.
+  ///
+  /// This may be the same as [_outerChildren] if the innermost AST node is an
+  /// at-rule or the root stylesheet.
+  LinkedList<LinkedListValue<CssNode>> _innerChildren;
+  
   PerformVisitor() : this._(new Environment());
 
   PerformVisitor._(Environment environment)
       : _environment = environment,
-        _expressionVisitor = new PerformExpressionVisitor(environment);
+        _expressionVisitor = new PerformExpressionVisitor(environment) {
+    _outerChildren = _rootChildren;
+    _innerChildren = _outerChildren;
+  }
 
   void visit(Statement node) => node.accept(this);
 
   CssStylesheet visitStylesheet(Stylesheet node) {
     super.visitStylesheet(node);
-    return new CssStylesheet(_children.single.map((entry) => entry.value),
+    return new CssStylesheet(_rootChildren.map((entry) => entry.value),
         span: node.span);
   }
 
@@ -65,20 +85,21 @@ class PerformVisitor extends StatementVisitor {
 
     var children = node.children == null
         ? null
-        : _resetStyleRules(() =>
-            _collectChildren(() => super.visitAtRule(node)));
+        : _atRuleChildren(() => super.visitAtRule(node));
 
-    _addChild(new CssAtRule(node.name,
-        value: value, children: children, span: node.span));
+    _addChild(
+        new CssAtRule(node.name,
+            value: value, children: children, span: node.span),
+        outer: node.children != null);
   }
 
   void visitMediaRule(MediaRule node) {
-    // TODO: bubble
-    _addChild(new CssMediaRule(
-        node.queries.map(_visitMediaQuery),
-        _resetStyleRules(() => _collectChildren(() =>
-            super.visitMediaRule(node))),
-        span: node.span));
+    _addChild(
+        new CssMediaRule(
+            node.queries.map(_visitMediaQuery),
+            _atRuleChildren(() => super.visitMediaRule(node)),
+            span: node.span),
+        outer: true);
   }
 
   CssMediaQuery _visitMediaQuery(MediaQuery query) {
@@ -114,7 +135,7 @@ class PerformVisitor extends StatementVisitor {
 
     // This allows us to follow Ruby Sass's behavior of always putting the style
     // rule before any of its children.
-    var insertionPoint = _children.first.isEmpty ? null : _children.first.last;
+    var insertionPoint = _outerChildren.isEmpty ? null : _outerChildren.last;
 
     _styleRules.add(new CssStyleRule(selector, [], span: node.span));
     var children = _collectChildren(() => super.visitStyleRule(node));
@@ -123,7 +144,7 @@ class PerformVisitor extends StatementVisitor {
 
     var rule = new CssStyleRule(selector, children, span: node.span);
     if (insertionPoint == null) {
-      _children.first.addFirst(new LinkedListValue(rule));
+      _outerChildren.addFirst(new LinkedListValue(rule));
     } else {
       insertionPoint.insertAfter(new LinkedListValue(rule));
     }
@@ -145,25 +166,59 @@ class PerformVisitor extends StatementVisitor {
   CssValue<Value> _performExpression(Expression expression) =>
       new CssValue(expression.accept(_expressionVisitor));
 
-  void _addChild(CssNode node) {
-    _children.last.add(new LinkedListValue(node));
+  void _addChild(CssNode node, {bool outer: false}) {
+    var list = outer ? _outerChildren : _innerChildren;
+    list.add(new LinkedListValue(node));
   }
 
   /*=T*/ _resetStyleRules/*<T>*/(/*=T*/ callback()) {
     var oldStyleRules = _styleRules;
-    var oldChildren = _children;
     _styleRules = [];
-    _children = [];
     var result = callback();
     _styleRules = oldStyleRules;
-    _children = oldChildren;
     return result;
   }
 
-  /// Implicitly adds an environment scope.
+  /// Like [_collectChildren], but handles bubbling.
+  Iterable<CssNode> _atRuleChildren(void callback()) {
+    if (_styleRules.isEmpty) return _collectChildren(callback);
+
+    return _scope(() {
+      _outerChildren = new LinkedList();
+      _innerChildren = new LinkedList();
+
+      callback();
+
+      if (_innerChildren.isNotEmpty) {
+        _outerChildren.addFirst(new LinkedListValue(new CssStyleRule(
+            _styleRules.last.selector,
+            _innerChildren.map((node) => node.value),
+            span: _styleRules.last.span)));
+      }
+
+      return _outerChildren.map((node) => node.value);
+    });
+  }
+
   Iterable<CssNode> _collectChildren(void callback()) {
-    _children.add(new LinkedList<LinkedListValue<CssNode>>());
-    _environment.scope(callback);
-    return _children.removeLast().map((entry) => entry.value);
+    return _scope(() {
+      _innerChildren = new LinkedList();
+      callback();
+      return _innerChildren.map((node) => node.value);
+    });
+  }
+
+  /// Runs [callback] within a nested scope.
+  ///
+  /// This creates an environment scope. When [callback] is done running, it
+  /// restores [_innerChildren] and [_outerChildren] to the values they had
+  /// when this was called.
+  /*=T*/ _scope/*<T>*/(/*=T*/ callback()) {
+    var oldOuter = _outerChildren;
+    var oldInner = _innerChildren;
+    var result = _environment.scope(callback);
+    _outerChildren = oldOuter;
+    _innerChildren = oldInner;
+    return result;
   }
 }
