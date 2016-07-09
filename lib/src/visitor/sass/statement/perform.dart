@@ -19,9 +19,8 @@ class PerformVisitor extends StatementVisitor {
   final Environment _environment;
   final PerformExpressionVisitor _expressionVisitor;
 
-  /// Style rules containing the currently visited node, from outermost to
-  /// innermost.
-  var _styleRules = <CssStyleRule>[];
+  /// The innermost containing style rule, if one exists.
+  CssStyleRule _styleRule;
 
   /// The children of the root stylesheet node.
   ///
@@ -120,10 +119,10 @@ class PerformVisitor extends StatementVisitor {
 
   void visitStyleRule(StyleRule node) {
     var selectorText = _performInterpolation(node.selector, trim: true);
-    if (_styleRules.isNotEmpty) {
+    if (_styleRule != null) {
       // TODO: semantically resolve parent references.
       selectorText = new CssValue(
-          "${_styleRules.last.selector.value} ${selectorText.value}",
+          "${_styleRule.selector.value} ${selectorText.value}",
           span: node.selector.span);
     }
 
@@ -137,9 +136,9 @@ class PerformVisitor extends StatementVisitor {
     // rule before any of its children.
     var insertionPoint = _outerChildren.isEmpty ? null : _outerChildren.last;
 
-    _styleRules.add(new CssStyleRule(selector, [], span: node.span));
-    var children = _collectChildren(() => super.visitStyleRule(node));
-    _styleRules.removeLast();
+    var children = _withStyleRule(
+        new CssStyleRule(selector, [], span: node.span),
+        () => _collectChildren(() => super.visitStyleRule(node)));
     if (children.isEmpty) return;
 
     var rule = new CssStyleRule(selector, children, span: node.span);
@@ -171,17 +170,17 @@ class PerformVisitor extends StatementVisitor {
     list.add(new LinkedListValue(node));
   }
 
-  /*=T*/ _resetStyleRules/*<T>*/(/*=T*/ callback()) {
-    var oldStyleRules = _styleRules;
-    _styleRules = [];
+  /*=T*/ _withStyleRule/*<T>*/(CssStyleRule rule, /*=T*/ callback()) {
+    var oldStyleRule = _styleRule;
+    _styleRule = rule;
     var result = callback();
-    _styleRules = oldStyleRules;
+    _styleRule = oldStyleRule;
     return result;
   }
 
   /// Like [_collectChildren], but handles bubbling.
   Iterable<CssNode> _atRuleChildren(void callback()) {
-    if (_styleRules.isEmpty) return _collectChildren(callback);
+    if (_styleRule == null) return _collectChildren(callback);
 
     return _scope(() {
       _outerChildren = new LinkedList();
@@ -191,9 +190,9 @@ class PerformVisitor extends StatementVisitor {
 
       if (_innerChildren.isNotEmpty) {
         _outerChildren.addFirst(new LinkedListValue(new CssStyleRule(
-            _styleRules.last.selector,
+            _styleRule.selector,
             _innerChildren.map((node) => node.value),
-            span: _styleRules.last.span)));
+            span: _styleRule.span)));
       }
 
       return _outerChildren.map((node) => node.value);
