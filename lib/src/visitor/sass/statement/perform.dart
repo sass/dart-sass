@@ -20,7 +20,14 @@ class PerformVisitor extends StatementVisitor {
   final PerformExpressionVisitor _expressionVisitor;
 
   /// The innermost containing style rule, if one exists.
+  ///
+  /// This will always have an empty list of children.
   CssStyleRule _styleRule;
+
+  /// The innermost containing media rule, if one exists.
+  ///
+  /// This will always have an empty list of children.
+  CssMediaRule _mediaRule;
 
   /// The children of the root stylesheet node.
   ///
@@ -82,23 +89,39 @@ class PerformVisitor extends StatementVisitor {
         ? null
         : _performInterpolation(node.value, trim: true);
 
-    var children = node.children == null
-        ? null
-        : _atRuleChildren(() => super.visitAtRule(node));
+    if (node.children == null) {
+      _addChild(new CssAtRule(node.name, value: value, span: node.span));
+    }
 
-    _addChild(
-        new CssAtRule(node.name,
-            value: value, children: children, span: node.span),
-        outer: node.children != null);
+    _insertChild(() {
+      var children = _atRuleChildren(() => super.visitAtRule(node));
+      return new CssAtRule(node.name,
+          value: value, children: children, span: node.span);
+    });
   }
 
   void visitMediaRule(MediaRule node) {
-    _addChild(
-        new CssMediaRule(
-            node.queries.map(_visitMediaQuery),
-            _atRuleChildren(() => super.visitMediaRule(node)),
-            span: node.span),
-        outer: true);
+    var queries = node.queries.map(_visitMediaQuery);
+    if (_mediaRule != null) {
+      queries = _mergeMediaQueryLists(_mediaRule.queries, queries);
+    }
+    if (queries.isEmpty) return;
+
+    _insertChild(() {
+      var children = _withMediaRule(
+          new CssMediaRule(queries, [], span: node.span),
+          () => _atRuleChildren(() => super.visitMediaRule(node)));
+      if (children.isEmpty) return null;
+
+      return new CssMediaRule(queries, children, span: node.span);
+    });
+  }
+
+  List<QueryList> _mergeMediaQueryLists(
+      Iterable<MediaQuery> queries1, Iterable<MediaQuery> queries2) {
+    return queries1.expand((query1) {
+      return queries2.map((query2) => query1.merge(query2));
+    }).where((query) => query != null).toList();
   }
 
   CssMediaQuery _visitMediaQuery(MediaQuery query) {
@@ -132,21 +155,14 @@ class PerformVisitor extends StatementVisitor {
         new Parser(selectorText.value).parseSelector(),
         span: node.selector.span);
 
-    // This allows us to follow Ruby Sass's behavior of always putting the style
-    // rule before any of its children.
-    var insertionPoint = _outerChildren.isEmpty ? null : _outerChildren.last;
+    _insertChild(() {
+      var children = _withStyleRule(
+          new CssStyleRule(selector, [], span: node.span),
+          () => _collectChildren(() => super.visitStyleRule(node)));
+      if (children.isEmpty) return null;
 
-    var children = _withStyleRule(
-        new CssStyleRule(selector, [], span: node.span),
-        () => _collectChildren(() => super.visitStyleRule(node)));
-    if (children.isEmpty) return;
-
-    var rule = new CssStyleRule(selector, children, span: node.span);
-    if (insertionPoint == null) {
-      _outerChildren.addFirst(new LinkedListValue(rule));
-    } else {
-      insertionPoint.insertAfter(new LinkedListValue(rule));
-    }
+      return new CssStyleRule(selector, children, span: node.span);
+    });
   }
 
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -170,11 +186,34 @@ class PerformVisitor extends StatementVisitor {
     list.add(new LinkedListValue(node));
   }
 
+  void _insertChild(CssNode callback()) {
+    // This allows us to follow Ruby Sass's behavior of always putting the style
+    // rule before any of its children.
+    var insertionPoint = _outerChildren.isEmpty ? null : _outerChildren.last;
+
+    var rule = callback();
+    if (rule == null) return;
+
+    if (insertionPoint == null) {
+      _outerChildren.addFirst(new LinkedListValue(rule));
+    } else {
+      insertionPoint.insertAfter(new LinkedListValue(rule));
+    }
+  }
+
   /*=T*/ _withStyleRule/*<T>*/(CssStyleRule rule, /*=T*/ callback()) {
     var oldStyleRule = _styleRule;
     _styleRule = rule;
     var result = callback();
     _styleRule = oldStyleRule;
+    return result;
+  }
+
+  /*=T*/ _withMediaRule/*<T>*/(CssMediaRule rule, /*=T*/ callback()) {
+    var oldMediaRule = _mediaRule;
+    _mediaRule = rule;
+    var result = callback();
+    _mediaRule = oldMediaRule;
     return result;
   }
 
