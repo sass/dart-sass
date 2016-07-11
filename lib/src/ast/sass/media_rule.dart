@@ -5,9 +5,10 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/sass/statement.dart';
+import '../parent.dart';
 import 'statement.dart';
 
-class MediaRule implements Statement {
+class MediaRule implements Statement, Parent<Statement, MediaRule> {
   final List<MediaQuery> queries;
 
   final List<Statement> children;
@@ -21,6 +22,9 @@ class MediaRule implements Statement {
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitMediaRule(this);
+
+  MediaRule withChildren(Iterable<Statement> children) =>
+      new MediaRule(queries, children, span: span);
 
   String toString() => "@media ${queries.join(", ")} {${children.join(" ")}}";
 }

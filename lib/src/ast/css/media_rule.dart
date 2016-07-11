@@ -5,9 +5,10 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/css.dart';
+import '../parent.dart';
 import 'node.dart';
 
-class CssMediaRule implements CssNode {
+class CssMediaRule implements CssNode, Parent<CssNode> {
   final List<CssMediaQuery> queries;
 
   final List<CssNode> children;
@@ -22,6 +23,9 @@ class CssMediaRule implements CssNode {
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitMediaRule(this);
+
+  CssMediaRule withChildren(Iterable<CssNode> children) =>
+      new CssMediaRule(queries, children, span: span);
 
   String toString() => "@media ${queries.join(", ")} {${children.join(" ")}}";
 }

@@ -5,10 +5,11 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/css.dart';
+import '../parent.dart';
 import 'node.dart';
 import 'value.dart';
 
-class CssAtRule implements CssNode {
+class CssAtRule implements CssNode, Parent<CssNode, CssAtRule> {
   final String name;
 
   final CssValue<String> value;
@@ -23,6 +24,9 @@ class CssAtRule implements CssNode {
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitAtRule(this);
+
+  CssAtRule withChildren(Iterable<CssNode> children) =>
+      new CssAtRule(name, value: value, children: children, span: span);
 
   String toString() {
     var buffer = new StringBuffer("@$name");

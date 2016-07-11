@@ -5,11 +5,12 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/css.dart';
+import '../parent.dart';
 import '../selector.dart';
 import 'node.dart';
 import 'value.dart';
 
-class CssStyleRule implements CssNode {
+class CssStyleRule implements CssNode, Parent<CssNode, CssStyleRule> {
   final CssValue<SelectorList> selector;
 
   final List<CssNode> children;
@@ -22,6 +23,9 @@ class CssStyleRule implements CssNode {
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitStyleRule(this);
+
+  CssStyleRule withChildren(Iterable<CssNode> children) =>
+      new CssStyleRule(selector, children, span: span);
 
   String toString() => "$selector {${children.join(" ")}}";
 }

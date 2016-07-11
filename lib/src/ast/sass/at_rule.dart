@@ -5,10 +5,11 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/sass/statement.dart';
+import '../parent.dart';
 import 'expression/interpolation.dart';
 import 'statement.dart';
 
-class AtRule implements Statement {
+class AtRule implements Statement, Parent<Statement, AtRule> {
   final String name;
 
   final InterpolationExpression value;
@@ -24,6 +25,9 @@ class AtRule implements Statement {
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitAtRule(this);
+
+  AtRule withChildren(Iterable<Statement> children) =>
+      new AtRule(name, value: value, children: children, span: span);
 
   String toString() {
     var buffer = new StringBuffer("@$name");
