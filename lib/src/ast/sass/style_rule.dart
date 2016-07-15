@@ -5,11 +5,10 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/sass/statement.dart';
-import '../parent.dart';
 import 'expression/interpolation.dart';
 import 'statement.dart';
 
-class StyleRule implements Statement, Parent<Statement, StyleRule> {
+class StyleRule implements Statement {
   final InterpolationExpression selector;
 
   final List<Statement> children;
@@ -23,9 +22,6 @@ class StyleRule implements Statement, Parent<Statement, StyleRule> {
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitStyleRule(this);
-
-  StyleRule withChildren(Iterable<Statement> children) =>
-      new StyleRule(selector, children, span: span);
 
   String toString() => "$selector {${children.join(" ")}}";
 }

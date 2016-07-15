@@ -5,28 +5,20 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/css.dart';
-import '../parent.dart';
 import 'node.dart';
 import 'value.dart';
 
-class CssAtRule implements CssNode, Parent<CssNode, CssAtRule> {
+class CssAtRule extends CssParentNode {
   final String name;
 
   final CssValue<String> value;
 
-  final List<CssNode> children;
-
   final FileSpan span;
 
-  // TODO: validate that children contains only at-rule and declaration nodes?
-  CssAtRule(this.name, {this.value, Iterable<CssNode> children, this.span})
-      : children = children == null ? null : new List.unmodifiable(children);
+  CssAtRule(this.name, {this.value, this.span});
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitAtRule(this);
-
-  CssAtRule withChildren(Iterable<CssNode> children) =>
-      new CssAtRule(name, value: value, children: children, span: span);
 
   String toString() {
     var buffer = new StringBuffer("@$name");

@@ -8,6 +8,7 @@ import '../../ast/css/node.dart';
 import '../../util/character.dart';
 import '../../value.dart';
 import '../css.dart';
+import '../../parser.dart';
 
 String toCss(CssNode node) {
   var visitor = new _SerializeCssVisitor();

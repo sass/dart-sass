@@ -7,7 +7,6 @@ import '../../../ast/sass/expression.dart';
 import '../../../ast/sass/statement.dart';
 import '../../../ast/selector.dart';
 import '../../../environment.dart';
-import '../../../mutable_node.dart';
 import '../../../parser.dart';
 import '../../../value.dart';
 import '../expression/perform.dart';
@@ -27,11 +26,11 @@ class PerformVisitor extends StatementVisitor {
   /// This will always have an empty list of children.
   CssMediaRule _mediaRule;
 
-  /// A mutable view of the root stylesheet node.
-  MutableNode<CssNode, CssStylesheet> _root;
+  /// The root stylesheet node.
+  CssStylesheet _root;
 
-  /// A mutable view of the current parent node in the output CSS tree.
-  MutableNode<CssNode, CssNode> _parent;
+  /// The current parent node in the output CSS tree.
+  CssParentNode _parent;
   
   PerformVisitor() : this._(new Environment());
 
@@ -42,16 +41,15 @@ class PerformVisitor extends StatementVisitor {
   void visit(Statement node) => node.accept(this);
 
   CssStylesheet visitStylesheet(Stylesheet node) {
-    _root = new MutableNode<CssNode, CssStylesheet>.root(
-        new CssStylesheet(const [], span: node.span));
+    _root = new CssStylesheet(span: node.span);
     _parent = _root;
     super.visitStylesheet(node);
-    return _root.build();
+    return _root;
   }
 
   void visitComment(Comment node) {
     if (node.isSilent) return;
-    _parent.add(new CssComment(node.text, span: node.span));
+    _addChild(new CssComment(node.text, span: node.span));
   }
 
   void visitDeclaration(Declaration node) {
@@ -66,7 +64,7 @@ class PerformVisitor extends StatementVisitor {
       return;
     }
 
-    _parent.add(new CssDeclaration(name, cssValue, span: node.span));
+    _addChild(new CssDeclaration(name, cssValue, span: node.span));
   }
 
   void visitAtRule(AtRule node) {
@@ -75,7 +73,7 @@ class PerformVisitor extends StatementVisitor {
         : _performInterpolation(node.value, trim: true);
 
     if (node.children == null) {
-      _parent.add(new CssAtRule(node.name, value: value, span: node.span));
+      _addChild(new CssAtRule(node.name, value: value, span: node.span));
     }
 
     _withParent(
@@ -85,24 +83,25 @@ class PerformVisitor extends StatementVisitor {
   }
 
   void visitMediaRule(MediaRule node) {
-    var queries = node.queries.map(_visitMediaQuery);
-    if (_mediaRule != null) {
-      queries = _mergeMediaQueries(_mediaRule.queries, queries);
-    }
+    var queryIterable = node.queries.map(_visitMediaQuery);
+    var queries = _mediaRule == null
+        ? new List<CssMediaQuery>.unmodifiable(queryIterable)
+        : _mergeMediaQueries(_mediaRule.queries, queryIterable);
     if (queries.isEmpty) return;
 
-    var rule = new CssMediaRule(queries, const [], span: node.span);
-    _withParent(rule, () {
-      _withMediaRule(rule, () => super.visitMediaRule(node));
-      if (_parent.children.isEmpty) _parent.remove();
-    }, through: (node) => node is CssStyleRule || node is CssMediaRule);
+    var rule = new CssMediaRule(queries, span: node.span);
+    _withParent(
+        rule,
+        () => _withMediaRule(rule, () => super.visitMediaRule(node)),
+        through: (node) => node is CssStyleRule || node is CssMediaRule,
+        removeIfEmpty: true);
   }
 
   List<CssMediaQuery> _mergeMediaQueries(
       Iterable<CssMediaQuery> queries1, Iterable<CssMediaQuery> queries2) {
-    return queries1.expand/*<CssMediaQuery>*/((query1) {
+    return new List.unmodifiable(queries1.expand/*<CssMediaQuery>*/((query1) {
       return queries2.map((query2) => query1.merge(query2));
-    }).where((query) => query != null).toList();
+    }).where((query) => query != null));
   }
 
   CssMediaQuery _visitMediaQuery(MediaQuery query) {
@@ -136,11 +135,12 @@ class PerformVisitor extends StatementVisitor {
         new Parser(selectorText.value).parseSelector(),
         span: node.selector.span);
 
-    var rule = new CssStyleRule(selector, const [], span: node.span);
-    _withParent(rule, () {
-      _withStyleRule(rule, () => super.visitStyleRule(node));
-      if (_parent.children.isEmpty) _parent.remove();
-    }, through: (node) => node is CssStyleRule);
+    var rule = new CssStyleRule(selector, span: node.span);
+    _withParent(
+        rule,
+        () => _withStyleRule(rule, () => super.visitStyleRule(node)),
+        through: (node) => node is CssStyleRule,
+        removeIfEmpty: true);
   }
 
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -159,20 +159,27 @@ class PerformVisitor extends StatementVisitor {
   CssValue<Value> _performExpression(Expression expression) =>
       new CssValue(expression.accept(_expressionVisitor));
 
-  /*=T*/ _withParent/*<S extends CssNode, T>*/(CssNode/*=S*/ node,
-      /*=T*/ callback(), {bool through(CssNode node)}) {
+  void _addChild(CssNode node) {
+    _parent.addChild(node);
+  }
+
+  /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
+      /*=S*/ node, /*=T*/ callback(),
+      {bool through(CssNode node), bool removeIfEmpty: false}) {
     var oldParent = _parent;
 
     // Go up through parents that match [through].
     var parent = _parent;
     if (through != null) {
-      while (through(parent.node)) {
+      while (through(parent)) {
         parent = parent.parent;
       }
     }
 
-    _parent = parent.add(node);
+    parent.addChild(node);
+    _parent = node;
     var result = _environment.scope(callback);
+    if (removeIfEmpty && node.children.isEmpty) node.remove();
     _parent = oldParent;
 
     return result;

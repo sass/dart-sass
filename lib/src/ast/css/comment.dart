@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 import '../../visitor/css.dart';
 import 'node.dart';
 
-class CssComment implements CssNode {
+class CssComment extends CssNode {
   final String text;
 
   final FileSpan span;

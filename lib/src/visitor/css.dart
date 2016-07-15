@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import '../ast/css/node.dart';
-import '../value.dart';
 import 'value.dart';
 
 abstract class CssVisitor<T> extends ValueVisitor<T> {
@@ -38,6 +37,4 @@ abstract class CssVisitor<T> extends ValueVisitor<T> {
     }
     return null;
   }
-
-  T visitValue(CssValue node) => node is Value ? node.accept(this) : null;
 }

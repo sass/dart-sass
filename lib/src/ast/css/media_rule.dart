@@ -5,27 +5,18 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/css.dart';
-import '../parent.dart';
 import 'node.dart';
 
-class CssMediaRule implements CssNode, Parent<CssNode, CssMediaRule> {
+class CssMediaRule extends CssParentNode {
   final List<CssMediaQuery> queries;
-
-  final List<CssNode> children;
 
   final FileSpan span;
 
   // TODO: validate that children contains only at-rule and style rule nodes?
-  CssMediaRule(Iterable<CssMediaQuery> queries, Iterable<CssNode> children,
-      {this.span})
-      : queries = new List.unmodifiable(queries),
-        children = new List.unmodifiable(children);
+  CssMediaRule(this.queries, {this.span});
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitMediaRule(this);
-
-  CssMediaRule withChildren(Iterable<CssNode> children) =>
-      new CssMediaRule(queries, children, span: span);
 
   String toString() => "@media ${queries.join(", ")} {${children.join(" ")}}";
 }

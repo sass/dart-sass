@@ -9,7 +9,7 @@ import '../../visitor/css.dart';
 import 'node.dart';
 import 'value.dart';
 
-class CssDeclaration implements CssNode {
+class CssDeclaration extends CssNode {
   final CssValue<String> name;
 
   final CssValue<Value> value;

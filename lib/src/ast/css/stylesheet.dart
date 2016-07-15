@@ -5,22 +5,15 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/css.dart';
-import '../parent.dart';
 import 'node.dart';
 
-class CssStylesheet implements CssNode, Parent<CssNode, CssStylesheet> {
-  final List<CssNode> children;
-
+class CssStylesheet extends CssParentNode {
   final FileSpan span;
 
-  CssStylesheet(Iterable<CssNode> children, {this.span})
-      : children = new List.unmodifiable(children);
+  CssStylesheet({this.span});
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);
-
-  CssStylesheet withChildren(Iterable<CssNode> children) =>
-      new CssStylesheet(children, span: span);
 
   String toString() => children.join(" ");
 }

@@ -5,10 +5,9 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/sass/statement.dart';
-import '../parent.dart';
 import 'statement.dart';
 
-class Stylesheet implements Statement, Parent<Statement, Stylesheet> {
+class Stylesheet implements Statement {
   final List<Statement> children;
 
   final FileSpan span;
@@ -18,9 +17,6 @@ class Stylesheet implements Statement, Parent<Statement, Stylesheet> {
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);
-
-  Stylesheet withChildren(Iterable<Statement> children) =>
-      new Stylesheet(children, span: span);
 
   String toString() => children.join(" ");
 }

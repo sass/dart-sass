@@ -5,27 +5,19 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/css.dart';
-import '../parent.dart';
 import '../selector.dart';
 import 'node.dart';
 import 'value.dart';
 
-class CssStyleRule implements CssNode, Parent<CssNode, CssStyleRule> {
+class CssStyleRule extends CssParentNode {
   final CssValue<SelectorList> selector;
-
-  final List<CssNode> children;
 
   final FileSpan span;
 
-  // TODO: validate that children contains only at-rule and declaration nodes?
-  CssStyleRule(this.selector, Iterable<CssNode> children, {this.span})
-      : children = new List.unmodifiable(children);
+  CssStyleRule(this.selector, {this.span});
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitStyleRule(this);
-
-  CssStyleRule withChildren(Iterable<CssNode> children) =>
-      new CssStyleRule(selector, children, span: span);
 
   String toString() => "$selector {${children.join(" ")}}";
 }

@@ -4,17 +4,14 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/css.dart';
-import 'node.dart';
+import '../node.dart';
 
-class CssValue<T> implements CssNode {
+class CssValue<T> implements AstNode {
   final T value;
 
   final FileSpan span;
 
   CssValue(this.value, {this.span});
-
-  /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) => visitor.visitValue(this);
 
   String toString() => value.toString();
 }
