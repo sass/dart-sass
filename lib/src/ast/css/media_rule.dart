@@ -8,7 +8,7 @@ import '../../visitor/css.dart';
 import '../parent.dart';
 import 'node.dart';
 
-class CssMediaRule implements CssNode, Parent<CssNode> {
+class CssMediaRule implements CssNode, Parent<CssNode, CssMediaRule> {
   final List<CssMediaQuery> queries;
 
   final List<CssNode> children;

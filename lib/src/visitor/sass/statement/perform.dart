@@ -103,7 +103,7 @@ class PerformVisitor extends StatementVisitor {
   void visitMediaRule(MediaRule node) {
     var queries = node.queries.map(_visitMediaQuery);
     if (_mediaRule != null) {
-      queries = _mergeMediaQueryLists(_mediaRule.queries, queries);
+      queries = _mergeMediaQueries(_mediaRule.queries, queries);
     }
     if (queries.isEmpty) return;
 
@@ -117,9 +117,9 @@ class PerformVisitor extends StatementVisitor {
     });
   }
 
-  List<QueryList> _mergeMediaQueryLists(
-      Iterable<MediaQuery> queries1, Iterable<MediaQuery> queries2) {
-    return queries1.expand((query1) {
+  List<CssMediaQuery> _mergeMediaQueries(
+      Iterable<CssMediaQuery> queries1, Iterable<CssMediaQuery> queries2) {
+    return queries1.expand/*<CssMediaQuery>*/((query1) {
       return queries2.map((query2) => query1.merge(query2));
     }).where((query) => query != null).toList();
   }
@@ -222,8 +222,8 @@ class PerformVisitor extends StatementVisitor {
     if (_styleRule == null) return _collectChildren(callback);
 
     return _scope(() {
-      _outerChildren = new LinkedList();
-      _innerChildren = new LinkedList();
+      _outerChildren = new LinkedList<LinkedListValue<CssNode>>();
+      _innerChildren = new LinkedList<LinkedListValue<CssNode>>();
 
       callback();
 
@@ -240,7 +240,7 @@ class PerformVisitor extends StatementVisitor {
 
   Iterable<CssNode> _collectChildren(void callback()) {
     return _scope(() {
-      _innerChildren = new LinkedList();
+      _innerChildren = new LinkedList<LinkedListValue<CssNode>>();
       callback();
       return _innerChildren.map((node) => node.value);
     });

@@ -8,7 +8,7 @@ import '../../visitor/sass/statement.dart';
 import '../parent.dart';
 import 'statement.dart';
 
-class Stylesheet implements Statement, Parnet<Statement> {
+class Stylesheet implements Statement, Parent<Statement, Stylesheet> {
   final List<Statement> children;
 
   final FileSpan span;

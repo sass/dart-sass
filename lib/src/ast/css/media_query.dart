@@ -4,11 +4,11 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/css.dart';
 import '../../utils.dart';
+import '../node.dart';
 import 'node.dart';
 
-class CssMediaQuery implements CssNode {
+class CssMediaQuery implements AstNode {
   final CssValue<String> modifier;
 
   final CssValue<String> type;
@@ -24,12 +24,12 @@ class CssMediaQuery implements CssNode {
   }
 
   CssMediaQuery(this.type, {this.modifier,
-      Iterable<InterpolationExpression> features})
+      Iterable<CssValue<String>> features})
       : features = features == null
             ? const []
             : new List.unmodifiable(features);
 
-  CssMediaQuery.condition(Iterable<InterpolationExpression> features)
+  CssMediaQuery.condition(Iterable<CssValue<String>> features)
       : modifier = null,
         type = null,
         features = new List.unmodifiable(features);
