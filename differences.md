@@ -13,7 +13,7 @@ Dart Sass for developers familiar with Ruby Sass.
 
    The parse phase and the CSS serialization phase both still exist and do more
    or less the same thing as in Ruby Sass. However, the perform, cssize, and
-   extend phases are now a single perform phase. This phase executed SassScript
+   extend phases are now a single perform phase. This phase executes SassScript
    and builds the final CSS syntax tree from the resulting information. Extends
    and bubbling are applied as the tree is being created.
 
@@ -28,10 +28,17 @@ Dart Sass for developers familiar with Ruby Sass.
    often has SassScript in places where the output needs to rely on plain CSS
    for proper formatting.
 
-3. The abstract syntax trees are all immutable. This is enabled in part by #2,
+3. The Sass abstract syntax tree is immutable. This is enabled in part by #2,
    since there's no need to set resolved data on a node that was not previously
-   resolved. Immutability makes code dealing with the ASTs much easier to reason
+   resolved. Immutability makes code dealing with the AST much easier to reason
    about and consequently to refactor.
+
+   The CSS AST, however, is mutable. This is necessary to avoid duplicating all
+   the data in the tree when converting it to an immutable form. This is
+   especially important because bubbling behavior requires that nodes either be
+   inserted or removed from between existing children. We may still use
+   interfaces to expose only an immutable view of the CSS AST after
+   construction, though.
 
 4. There's no distinction between the statement-level parser and the
    expression-level parser. This distinction in Ruby Sass was an artifact of the
