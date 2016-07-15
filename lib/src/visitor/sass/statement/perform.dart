@@ -16,15 +16,11 @@ class PerformVisitor extends StatementVisitor {
   final Environment _environment;
   final PerformExpressionVisitor _expressionVisitor;
 
-  /// The innermost containing style rule, if one exists.
-  ///
-  /// This will always have an empty list of children.
-  CssStyleRule _styleRule;
+  /// The current selector, if any.
+  CssValue<SelectorList> _selector;
 
-  /// The innermost containing media rule, if one exists.
-  ///
-  /// This will always have an empty list of children.
-  CssMediaRule _mediaRule;
+  /// The current media queries, if any.
+  List<CssMediaQuery> _mediaQueries;
 
   /// The root stylesheet node.
   CssStylesheet _root;
@@ -84,15 +80,14 @@ class PerformVisitor extends StatementVisitor {
 
   void visitMediaRule(MediaRule node) {
     var queryIterable = node.queries.map(_visitMediaQuery);
-    var queries = _mediaRule == null
+    var queries = _mediaQueries == null
         ? new List<CssMediaQuery>.unmodifiable(queryIterable)
-        : _mergeMediaQueries(_mediaRule.queries, queryIterable);
+        : _mergeMediaQueries(_mediaQueries, queryIterable);
     if (queries.isEmpty) return;
 
-    var rule = new CssMediaRule(queries, span: node.span);
     _withParent(
-        rule,
-        () => _withMediaRule(rule, () => super.visitMediaRule(node)),
+        new CssMediaRule(queries, span: node.span),
+        () => _withMediaQueries(queries, () => super.visitMediaRule(node)),
         through: (node) => node is CssStyleRule || node is CssMediaRule,
         removeIfEmpty: true);
   }
@@ -122,10 +117,10 @@ class PerformVisitor extends StatementVisitor {
 
   void visitStyleRule(StyleRule node) {
     var selectorText = _performInterpolation(node.selector, trim: true);
-    if (_styleRule != null) {
+    if (_selector != null) {
       // TODO: semantically resolve parent references.
       selectorText = new CssValue(
-          "${_styleRule.selector.value} ${selectorText.value}",
+          "${_selector.value} ${selectorText.value}",
           span: node.selector.span);
     }
 
@@ -135,10 +130,9 @@ class PerformVisitor extends StatementVisitor {
         new Parser(selectorText.value).parseSelector(),
         span: node.selector.span);
 
-    var rule = new CssStyleRule(selector, span: node.span);
     _withParent(
-        rule,
-        () => _withStyleRule(rule, () => super.visitStyleRule(node)),
+        new CssStyleRule(selector, span: node.span),
+        () => _withSelector(selector, () => super.visitStyleRule(node)),
         through: (node) => node is CssStyleRule,
         removeIfEmpty: true);
   }
@@ -185,19 +179,21 @@ class PerformVisitor extends StatementVisitor {
     return result;
   }
 
-  /*=T*/ _withStyleRule/*<T>*/(CssStyleRule rule, /*=T*/ callback()) {
-    var oldStyleRule = _styleRule;
-    _styleRule = rule;
+  /*=T*/ _withSelector/*<T>*/(CssValue<SelectorList> selector,
+      /*=T*/ callback()) {
+    var oldSelector = _selector;
+    _selector = selector;
     var result = callback();
-    _styleRule = oldStyleRule;
+    _selector = oldSelector;
     return result;
   }
 
-  /*=T*/ _withMediaRule/*<T>*/(CssMediaRule rule, /*=T*/ callback()) {
-    var oldMediaRule = _mediaRule;
-    _mediaRule = rule;
+  /*=T*/ _withMediaQueries/*<T>*/(List<CssMediaQuery> queries,
+      /*=T*/ callback()) {
+    var oldMediaQueries = _mediaQueries;
+    _mediaQueries = queries;
     var result = callback();
-    _mediaRule = oldMediaRule;
+    _mediaQueries = oldMediaQueries;
     return result;
   }
 }
