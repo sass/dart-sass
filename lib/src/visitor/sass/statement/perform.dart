@@ -72,9 +72,20 @@ class PerformVisitor extends StatementVisitor {
       _addChild(new CssAtRule(node.name, value: value, span: node.span));
     }
 
-    _withParent(
-        new CssAtRule(node.name, value: value, span: node.span),
-        () => super.visitAtRule(node),
+    _withParent(new CssAtRule(node.name, value: value, span: node.span), () {
+      if (_selector == null) {
+        super.visitAtRule(node);
+      } else {
+        // If we're in a style rule, copy it into the at-rule so that
+        // declarations immediately inside it have somewhere to go.
+        //
+        // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
+        _withParent(
+            new CssStyleRule(_selector),
+            () => super.visitAtRule(node),
+            removeIfEmpty: true);
+      }
+    },
         through: (node) => node is CssStyleRule);
   }
 
@@ -85,9 +96,23 @@ class PerformVisitor extends StatementVisitor {
         : _mergeMediaQueries(_mediaQueries, queryIterable);
     if (queries.isEmpty) return;
 
-    _withParent(
-        new CssMediaRule(queries, span: node.span),
-        () => _withMediaQueries(queries, () => super.visitMediaRule(node)),
+    _withParent(new CssMediaRule(queries, span: node.span), () {
+      _withMediaQueries(queries, () {
+        if (_selector == null) {
+          super.visitMediaRule(node);
+        } else {
+          // If we're in a style rule, copy it into the media query so that
+          // declarations immediately inside @media have somewhere to go.
+          //
+          // For example, "a {@media screen {b: c}}" should produce
+          // "@media screen {a {b: c}}".
+          _withParent(
+              new CssStyleRule(_selector),
+              () => super.visitMediaRule(node),
+              removeIfEmpty: true);
+        }
+      });
+    },
         through: (node) => node is CssStyleRule || node is CssMediaRule,
         removeIfEmpty: true);
   }
