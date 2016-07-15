@@ -2,15 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:collection';
-
 import '../../../ast/css/node.dart';
 import '../../../ast/sass/expression.dart';
 import '../../../ast/sass/statement.dart';
 import '../../../ast/selector.dart';
 import '../../../environment.dart';
+import '../../../mutable_node.dart';
 import '../../../parser.dart';
-import '../../../utils.dart';
 import '../../../value.dart';
 import '../expression/perform.dart';
 import '../statement.dart';
@@ -29,44 +27,31 @@ class PerformVisitor extends StatementVisitor {
   /// This will always have an empty list of children.
   CssMediaRule _mediaRule;
 
-  /// The children of the root stylesheet node.
-  ///
-  /// This is a linked list so that we can efficiently insert style rules before
-  /// their nested children.
-  final _rootChildren = new LinkedList<LinkedListValue<CssNode>>();
+  /// A mutable view of the root stylesheet node.
+  MutableNode<CssNode, CssStylesheet> _root;
 
-  /// The list of children to which style rules should be added.
-  ///
-  /// This is usually the same as [_rootChildren], but it may also be the
-  /// children of an at-rule.
-  LinkedList<LinkedListValue<CssNode>> _outerChildren;
-
-  /// The list of children of the innermost AST node.
-  ///
-  /// This may be the same as [_outerChildren] if the innermost AST node is an
-  /// at-rule or the root stylesheet.
-  LinkedList<LinkedListValue<CssNode>> _innerChildren;
+  /// A mutable view of the current parent node in the output CSS tree.
+  MutableNode<CssNode, CssNode> _parent;
   
   PerformVisitor() : this._(new Environment());
 
   PerformVisitor._(Environment environment)
       : _environment = environment,
-        _expressionVisitor = new PerformExpressionVisitor(environment) {
-    _outerChildren = _rootChildren;
-    _innerChildren = _outerChildren;
-  }
+        _expressionVisitor = new PerformExpressionVisitor(environment);
 
   void visit(Statement node) => node.accept(this);
 
   CssStylesheet visitStylesheet(Stylesheet node) {
+    _root = new MutableNode<CssNode, CssStylesheet>.root(
+        new CssStylesheet(const [], span: node.span));
+    _parent = _root;
     super.visitStylesheet(node);
-    return new CssStylesheet(_rootChildren.map((entry) => entry.value),
-        span: node.span);
+    return _root.build();
   }
 
   void visitComment(Comment node) {
     if (node.isSilent) return;
-    _addChild(new CssComment(node.text, span: node.span));
+    _parent.add(new CssComment(node.text, span: node.span));
   }
 
   void visitDeclaration(Declaration node) {
@@ -81,7 +66,7 @@ class PerformVisitor extends StatementVisitor {
       return;
     }
 
-    _addChild(new CssDeclaration(name, cssValue, span: node.span));
+    _parent.add(new CssDeclaration(name, cssValue, span: node.span));
   }
 
   void visitAtRule(AtRule node) {
@@ -90,14 +75,13 @@ class PerformVisitor extends StatementVisitor {
         : _performInterpolation(node.value, trim: true);
 
     if (node.children == null) {
-      _addChild(new CssAtRule(node.name, value: value, span: node.span));
+      _parent.add(new CssAtRule(node.name, value: value, span: node.span));
     }
 
-    _insertChild(() {
-      var children = _atRuleChildren(() => super.visitAtRule(node));
-      return new CssAtRule(node.name,
-          value: value, children: children, span: node.span);
-    });
+    _withParent(
+        new CssAtRule(node.name, value: value, span: node.span),
+        () => super.visitAtRule(node),
+        through: (node) => node is CssStyleRule);
   }
 
   void visitMediaRule(MediaRule node) {
@@ -107,14 +91,11 @@ class PerformVisitor extends StatementVisitor {
     }
     if (queries.isEmpty) return;
 
-    _insertChild(() {
-      var children = _withMediaRule(
-          new CssMediaRule(queries, [], span: node.span),
-          () => _atRuleChildren(() => super.visitMediaRule(node)));
-      if (children.isEmpty) return null;
-
-      return new CssMediaRule(queries, children, span: node.span);
-    });
+    var rule = new CssMediaRule(queries, const [], span: node.span);
+    _withParent(rule, () {
+      _withMediaRule(rule, () => super.visitMediaRule(node));
+      if (_parent.children.isEmpty) _parent.remove();
+    }, through: (node) => node is CssStyleRule || node is CssMediaRule);
   }
 
   List<CssMediaQuery> _mergeMediaQueries(
@@ -155,14 +136,11 @@ class PerformVisitor extends StatementVisitor {
         new Parser(selectorText.value).parseSelector(),
         span: node.selector.span);
 
-    _insertChild(() {
-      var children = _withStyleRule(
-          new CssStyleRule(selector, [], span: node.span),
-          () => _collectChildren(() => super.visitStyleRule(node)));
-      if (children.isEmpty) return null;
-
-      return new CssStyleRule(selector, children, span: node.span);
-    });
+    var rule = new CssStyleRule(selector, const [], span: node.span);
+    _withParent(rule, () {
+      _withStyleRule(rule, () => super.visitStyleRule(node));
+      if (_parent.children.isEmpty) _parent.remove();
+    }, through: (node) => node is CssStyleRule);
   }
 
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -181,24 +159,23 @@ class PerformVisitor extends StatementVisitor {
   CssValue<Value> _performExpression(Expression expression) =>
       new CssValue(expression.accept(_expressionVisitor));
 
-  void _addChild(CssNode node, {bool outer: false}) {
-    var list = outer ? _outerChildren : _innerChildren;
-    list.add(new LinkedListValue(node));
-  }
+  /*=T*/ _withParent/*<S extends CssNode, T>*/(CssNode/*=S*/ node,
+      /*=T*/ callback(), {bool through(CssNode node)}) {
+    var oldParent = _parent;
 
-  void _insertChild(CssNode callback()) {
-    // This allows us to follow Ruby Sass's behavior of always putting the style
-    // rule before any of its children.
-    var insertionPoint = _outerChildren.isEmpty ? null : _outerChildren.last;
-
-    var rule = callback();
-    if (rule == null) return;
-
-    if (insertionPoint == null) {
-      _outerChildren.addFirst(new LinkedListValue(rule));
-    } else {
-      insertionPoint.insertAfter(new LinkedListValue(rule));
+    // Go up through parents that match [through].
+    var parent = _parent;
+    if (through != null) {
+      while (through(parent.node)) {
+        parent = parent.parent;
+      }
     }
+
+    _parent = parent.add(node);
+    var result = _environment.scope(callback);
+    _parent = oldParent;
+
+    return result;
   }
 
   /*=T*/ _withStyleRule/*<T>*/(CssStyleRule rule, /*=T*/ callback()) {
@@ -214,49 +191,6 @@ class PerformVisitor extends StatementVisitor {
     _mediaRule = rule;
     var result = callback();
     _mediaRule = oldMediaRule;
-    return result;
-  }
-
-  /// Like [_collectChildren], but handles bubbling.
-  Iterable<CssNode> _atRuleChildren(void callback()) {
-    if (_styleRule == null) return _collectChildren(callback);
-
-    return _scope(() {
-      _outerChildren = new LinkedList<LinkedListValue<CssNode>>();
-      _innerChildren = new LinkedList<LinkedListValue<CssNode>>();
-
-      callback();
-
-      if (_innerChildren.isNotEmpty) {
-        _outerChildren.addFirst(new LinkedListValue(new CssStyleRule(
-            _styleRule.selector,
-            _innerChildren.map((node) => node.value),
-            span: _styleRule.span)));
-      }
-
-      return _outerChildren.map((node) => node.value);
-    });
-  }
-
-  Iterable<CssNode> _collectChildren(void callback()) {
-    return _scope(() {
-      _innerChildren = new LinkedList<LinkedListValue<CssNode>>();
-      callback();
-      return _innerChildren.map((node) => node.value);
-    });
-  }
-
-  /// Runs [callback] within a nested scope.
-  ///
-  /// This creates an environment scope. When [callback] is done running, it
-  /// restores [_innerChildren] and [_outerChildren] to the values they had
-  /// when this was called.
-  /*=T*/ _scope/*<T>*/(/*=T*/ callback()) {
-    var oldOuter = _outerChildren;
-    var oldInner = _innerChildren;
-    var result = _environment.scope(callback);
-    _outerChildren = oldOuter;
-    _innerChildren = oldInner;
     return result;
   }
 }
