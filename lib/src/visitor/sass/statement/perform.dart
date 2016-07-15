@@ -45,7 +45,7 @@ class PerformVisitor extends StatementVisitor {
 
   void visitComment(Comment node) {
     if (node.isSilent) return;
-    _addChild(new CssComment(node.text, span: node.span));
+    _parent.addChild(new CssComment(node.text, span: node.span));
   }
 
   void visitDeclaration(Declaration node) {
@@ -60,7 +60,7 @@ class PerformVisitor extends StatementVisitor {
       return;
     }
 
-    _addChild(new CssDeclaration(name, cssValue, span: node.span));
+    _parent.addChild(new CssDeclaration(name, cssValue, span: node.span));
   }
 
   void visitAtRule(AtRule node) {
@@ -69,7 +69,7 @@ class PerformVisitor extends StatementVisitor {
         : _performInterpolation(node.value, trim: true);
 
     if (node.children == null) {
-      _addChild(new CssAtRule(node.name, value: value, span: node.span));
+      _parent.addChild(new CssAtRule(node.name, value: value, span: node.span));
     }
 
     _withParent(new CssAtRule(node.name, value: value, span: node.span), () {
@@ -177,10 +177,6 @@ class PerformVisitor extends StatementVisitor {
 
   CssValue<Value> _performExpression(Expression expression) =>
       new CssValue(expression.accept(_expressionVisitor));
-
-  void _addChild(CssNode node) {
-    _parent.addChild(node);
-  }
 
   /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
       /*=S*/ node, /*=T*/ callback(),
