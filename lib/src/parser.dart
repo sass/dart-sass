@@ -108,9 +108,13 @@ class Parser {
     var name = _identifier();
     _ignoreComments();
 
-    if (name == "media") {
-      return new MediaRule(_mediaQueryList(), _ruleChildren(),
-          span: _scanner.spanFrom(start));
+    switch (name) {
+      case "media":
+        return new MediaRule(_mediaQueryList(), _ruleChildren(),
+            span: _scanner.spanFrom(start));
+      case "extend":
+        return new ExtendRule(_almostAnyValue(),
+            span: _scanner.spanFrom(start));
     }
 
     InterpolationExpression value;

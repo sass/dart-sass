@@ -60,3 +60,28 @@ Dart Sass for developers familiar with Ruby Sass.
 7. The environment uses an array of maps to track variable (and eventually
    function and mixin) definitions. This requires fewer allocations and produces
    more cache locality.
+
+8. Because extension is done during the creation of the CSS AST, it works
+   differently than the Ruby implementation. Ruby builds a collection of all
+   `@extend` directives, and then iterates over the tree applying them to each
+   selector as applicable. The perform visitor has similar behavior when
+   extending selectors that appear after the `@extend`, but it also needs to
+   handle selectors that appear before. To do so, it builds a map of simple
+   selectors to the rules that contain them. When an `@extend` is encountered,
+   it indexes into this map to determine if anything needs to be extended, and
+   applies the extend as needed.
+
+There are also some intentional behavioral differences. These are generally
+places where Ruby Sass has an undesired behavior, and it's substantially easier
+to implement the correct behavior than it would be to implement compatible
+behavior. These should all have tracking bugs against Ruby Sass to update the
+official behavior.
+
+1. `@extend .a.b` has the same semantics as `@extend .a; @extend .b`. See
+   [issue 1599][].
+
+2. Subject selectors are not supported. See [issue 1126][].
+
+[issue 1599]: https://github.com/sass/sass/issues/1599
+[issue 1126]: https://github.com/sass/sass/issues/1126
+

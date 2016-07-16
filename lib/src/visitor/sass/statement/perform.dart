@@ -7,6 +7,7 @@ import '../../../ast/sass/expression.dart';
 import '../../../ast/sass/statement.dart';
 import '../../../ast/selector.dart';
 import '../../../environment.dart';
+import '../../../extender.dart';
 import '../../../parser.dart';
 import '../../../value.dart';
 import '../expression/perform.dart';
@@ -27,7 +28,9 @@ class PerformVisitor extends StatementVisitor {
 
   /// The current parent node in the output CSS tree.
   CssParentNode _parent;
-  
+
+  final _extender = new Extender();
+
   PerformVisitor() : this._(new Environment());
 
   PerformVisitor._(Environment environment)
@@ -156,7 +159,7 @@ class PerformVisitor extends StatementVisitor {
         span: node.selector.span);
 
     _withParent(
-        new CssStyleRule(selector, span: node.span),
+        _extender.addSelector(selector, span: node.span),
         () => _withSelector(selector, () => super.visitStyleRule(node)),
         through: (node) => node is CssStyleRule,
         removeIfEmpty: true);
