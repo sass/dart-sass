@@ -9,5 +9,9 @@ class PlaceholderSelector extends SimpleSelector {
 
   PlaceholderSelector(this.name);
 
+  bool operator==(other) => other is PlaceholderSelector && other.name == name;
+
+  int get hashCode => name.hashCode;
+
   String toString() => "%$name";
 }

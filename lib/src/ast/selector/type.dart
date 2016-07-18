@@ -9,5 +9,9 @@ class TypeSelector extends SimpleSelector {
 
   TypeSelector(this.name);
 
+  bool operator==(other) => other is TypeSelector && other.name == name;
+
+  int get hashCode => name.hashCode;
+
   String toString() => "$name";
 }

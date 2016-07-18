@@ -9,5 +9,9 @@ class IDSelector extends SimpleSelector {
 
   IDSelector(this.name);
 
+  bool operator==(other) => other is ClassSelector && other.name == name;
+
+  int get hashCode => name.hashCode;
+
   String toString() => "#$name";
 }

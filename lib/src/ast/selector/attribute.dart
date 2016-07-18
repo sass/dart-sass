@@ -17,6 +17,11 @@ class AttributeSelector extends SimpleSelector {
 
   AttributeSelector.withOperator(this.name, this.op, this.value);
 
+  bool operator==(other) => other is AttributeSelector &&
+      other.name == name && other.op == op && other.value == value;
+
+  int get hashCode => name.hashCode ^ op.hashCode ^ value.hashCode;
+
   String toString() {
     if (op == null) return name.toString();
     // TODO: if [value] isn't an identifier, quote it.

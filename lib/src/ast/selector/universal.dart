@@ -9,5 +9,10 @@ class UniversalSelector extends SimpleSelector {
 
   UniversalSelector({this.namespace});
 
+  bool operator==(other) => other is UniversalSelector &&
+      other.namespace == namespace;
+
+  int get hashCode => namespace.hashCode;
+
   String toString() => namespace == null ? "*" : "$namespace|*";
 }
