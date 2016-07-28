@@ -81,7 +81,9 @@ class Extender {
     if (!changed) return null;
 
     // TODO: preserve line breaks
-    var weaves = paths(extendedNotExpanded).map((path) => _weave(path));
+    var weaves = paths(extendedNotExpanded)
+        .map((path) => _weave(path))
+        .toList();
     return _trim(weaves).map((components) => new ComplexSelector(components));
   }
 
@@ -352,6 +354,168 @@ class Extender {
     }
   }
 
-  <List<ComplexSelectorComponent>> _groupSelectors(
-      Queue<ComplexSelectorComponent> selectors);
+  List<List/*<T>*/> _chunks/*<T>*/(Queue<List/*<T>*/> queue1,
+      Queue<List/*<T>*/> queue2, bool done(Queue<List/*<T>*/> queue)) {
+    var chunk1 = /*<T>*/[];
+    while (!done(queue1)) {
+      chunk1.add(queue1.removeFirst());
+    }
+
+    var chunk2 = /*<T>*/[];
+    while (!done(queue2)) {
+      chunk2.add(queue2.removeFirst());
+    }
+
+    if (chunk1.isEmpty && chunk2.isEmpty) return [];
+    if (chunk1.isEmpty) return [chunk2];
+    if (chunk2.isEmpty) return [chunk1];
+    return [chunk1.toList()..addAll(chunk2), chunk2.addAll(chunk1)];
+  }
+
+  Queue<List<ComplexSelectorComponent>> _groupSelectors(
+      Iterable<ComplexSelectorComponent> selectors) {
+    var groups = new Queue<List<ComplexSelectorComponent>>();
+    var iterator = selectors.iterator;
+    while (iterator.moveNext()) {
+      var group = <ComplexSelectorComponent>[];
+      do {
+        group.add(iterator.current);
+      } while ((iterator.current is Combinator || group.last is Combinator) &&
+          iterator.moveNext());
+      groups.add(group);
+    }
+    return groups;
+  }
+
+  bool _isParentSuperselector(List<ComplexSelectorComponent> selectors1,
+      List<ComplexSelectorComponent> selectors2) {
+    // Try some simple heuristics to see if we can avoid allocations.
+    if (selectors1.first is Combinator) return false;
+    if (selectors2.first is Combinator) return false;
+    if (selectors1.length > selectors2.length) return false;
+
+    // TODO(nweiz): There's got to be a way to do this without a bunch of extra
+    // allocations...
+    var base = new CompoundSelector([new PlaceholderSelector('<temp>')]);
+    return _isSuperselector(
+        selectors1..toList().add(base), selectors2..toList().add(base));
+  }
+
+  bool _isParentSuperselector(List<ComplexSelectorComponent> selectors1,
+      List<ComplexSelectorComponent> selectors2) {
+    // Selectors with trailing operators are neither superselectors nor
+    // subselectors.
+    if (selectors1.last is Combinator) return false;
+    if (selectors2.last is Combinator) return false;
+
+    var i1 = 0;
+    var i2 = 0;
+    while (true) {
+      var remaining1 = selectors1.length - i1;
+      var remaining2 = selectors2.length - i2;
+      if (remaining1 == 0 || remaining2 == 0) return false;
+
+      // More complex selectors are never superselectors of less complex ones.
+      if (remaining1 > remaining2) return false;
+
+      // Selectors with leading operators are neither superselectors nor
+      // subselectors.
+      if (selectors1[i1] is Combinator) return false;
+      if (selectors2[i2] is Combinator) return false;
+
+      if (remaining1 == 1) {
+        var selector = selectors1[i1] as CompoundSelector;
+        return selector.isSuperselectorOfComplex(selectors2.sublist(i2));
+      }
+
+      // Find the first index where `selectors2.sublist(i2, afterSuperselector)`
+      // is a subselector of `selectors1[i1]`. We stop before the superselector
+      // would encompass all of [selectors2] because we know [selectors1] has
+      // more than one element, and consuming all of [selectors2] wouldn't leave
+      // anything for the rest of [selectors1] to match.
+      var afterSuperselector = i2 + 1;
+      for (; afterSuperselector <= selectors2.length; afterSuperselector++) {
+        if (selectors2[afterSuperselector - 1] is Combinator) continue;
+
+        if (selectors1[i1].isSuperselectorOfComplex(
+            selectors2.sublist(i2, afterSuperselector))) {
+          break;
+        }
+      }
+      if (afterSuperselector == selectors2.length) return false;
+
+      var combinator1 = selectors1[i1 + 1];
+      var combinator2 = selectors1[afterSuperselector];
+      if (combinator1 is Combinator) {
+        if (combinator2 is! Combinator) return false;
+
+        // `.foo ~ .bar` is a superselector of `.foo + .bar`, but otherwise the
+        // combinators must match.
+        if (combinator1 == Combinator.followingSibling) {
+          if (combinator2 == Combinator.child) return false;
+        } else if (combinator2 != combinator1) {
+          return false;
+        }
+
+        // `.foo > .baz` is not a superselector of `.foo > .bar > .baz` or
+        // `.foo > .bar .baz`, despite the fact that `.baz` is a superselector of
+        // `.bar > .baz` and `.bar .baz`. Same goes for `+` and `~`.
+        if (remaining1 == 3 && remaining2 > 3) return false;
+
+        i1 += 2;
+        i2 = afterSuperselector + 1;
+      } else if (combinator2 is Combinator) {
+        if (combinator2 != Combinator2.child) return false;
+        i1++;
+        i2 = afterSuperselector + 1;
+      } else {
+        i1++;
+        i2 = afterSuperselector;
+      }
+    }
+  }
+
+  List<List<ComplexSelectorComponent>> _trim(
+      List<List<List<ComplexSelectorComponent>>> weaves) {
+    // Avoid truly horrific quadratic behavior.
+    //
+    // TODO(nweiz): I think there may be a way to get perfect trimming without
+    // going quadratic by building some sort of trie-like data structure that
+    // can be used to look up superselectors.
+    if (path.length > 100) return weave.expand((selectors) => selectors);
+
+    // This is n² on the sequences, but only comparing between separate
+    // sequences should limit the quadratic behavior.
+    var result = <List<ComplexSelectorComponent>>[];
+    for (var i = 0; i < weaves.length; i++) {
+      for (var selector1 in weaves[1]) {
+        // The maximum specificity of the sources that caused [selector1] to be
+        // generated. In order for [selector1] to be removed, there must be another
+        // selector that's a superselector of it *and* that has specificity
+        // greater or equal to this.
+        var maxSpecificity =
+            maxBy(_sources(selector1), (source) => source.maxSpecificity) ?? 0;
+
+        // Look in [result] rather than [weaves] for selectors before [i]. This
+        // ensures that we aren't comparing against a selector that's already
+        // been trimmed, and thus that if there are two identical selectors only
+        // one is trimmed.
+        if (result.any((selector2) =>
+            selector2.minSpecificity >= maxSpecificity &&
+            _isSuperselector(selector2, selector1))) {
+          return false;
+        }
+
+        if (weaves.skip(i + 1).any((selector2) =>
+            selector2.minSpecificity >= maxSpecificity &&
+            _isSuperselector(selector2, selector1))) {
+          return false;
+        }
+
+        result.add(selector1);
+      }
+    }
+
+    return result;
+  }
 }

@@ -10,5 +10,10 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   CompoundSelector(Iterable<SimpleSelector> components)
       : components = new List.unmodifiable(components);
 
+  // Like superselector?(selectors.last, selectors[0...-1]) in Ruby
+  bool isSuperselectorOfComplex(List<ComplexSelectorComponent> selectors);
+
+  bool isSuperselector(CompoundSelector selector);
+
   String toString() => components.join("");
 }
