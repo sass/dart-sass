@@ -186,8 +186,8 @@ class Extender {
 
       var unified = _unifyComplex(group1, group2);
       if (unified == null) return null;
-      if (unified.members.length > 1) return null;
-      return unified.members.first.members;
+      if (unified.length > 1) return null;
+      return unified.first;
     });
 
     var choices = [[initialCombinator]];
@@ -517,6 +517,24 @@ class Extender {
     }
 
     return result;
+  }
+
+  List<List<ComplexSelectorComponent> _unifyComplex(
+      List<SimpleSelector> complex1, List<SimpleSelector> complex2) {
+    var base1 = complex1.members.last;
+    var base2 = complex2.members.last;
+    if (base1 is CompoundSelector && base2 is CompoundSelector) {
+      var unified = _unifyCompound(base2.components, base1.components);
+      if (unified == null) return null;
+
+      return weave([
+        base1.components.take(base1.components.length - 1).toList(),
+        base2.components.take(base2.components.length - 1).toList()
+          ..add(unified)
+      ]);
+    } else {
+      return null;
+    }
   }
 
   CompoundSelector _unifyCompound(List<SimpleSelector> compound1,
