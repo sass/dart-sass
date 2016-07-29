@@ -4,4 +4,22 @@
 
 import '../selector.dart';
 
-abstract class SimpleSelector extends Selector {}
+abstract class SimpleSelector extends Selector {
+  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+    if (compound.contains(this)) return compound;
+
+    var result = <SimpleSelector>[];
+    var addedThis = false;
+    for (var simple in compound) {
+      // Make sure pseudo selectors always come last.
+      if (!addedThis && simple is PseudoSelector) {
+        result.add(this);
+        addedThis = true;
+      }
+      result.add(simple);
+    }
+    if (!addedThis) result.add(this);
+
+    return result;
+  }
+}

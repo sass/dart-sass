@@ -9,6 +9,15 @@ class TypeSelector extends SimpleSelector {
 
   TypeSelector(this.name);
 
+  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+    if (compound.first is UniversalSelector || compound.first is TypeSelector) {
+      var unified = unifyUniversalAndElement(this, compound.first);
+      return [unified]..addAll(compound.skip(1));
+    } else {
+      return [this].addAll(compound);
+    }
+  }
+
   bool operator==(other) => other is TypeSelector && other.name == name;
 
   int get hashCode => name.hashCode;

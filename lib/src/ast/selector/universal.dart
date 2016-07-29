@@ -2,12 +2,24 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../utils.dart';
 import '../selector.dart';
 
 class UniversalSelector extends SimpleSelector {
   final String namespace;
 
   UniversalSelector({this.namespace});
+
+  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+    if (compound.first is UniversalSelector || compound.first is TypeSelector) {
+      var unified = unifyUniversalAndElement(this, compound.first);
+      return [unified]..addAll(compound.skip(1));
+    }
+
+    if (namespace != null && namespace != "*") return [this].addAll(compound);
+    if (compound.isNotEmpty) return compound;
+    return [this];
+  }
 
   bool operator==(other) => other is UniversalSelector &&
       other.namespace == namespace;

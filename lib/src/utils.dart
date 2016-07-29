@@ -8,6 +8,7 @@ import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
+import 'ast/selector.dart';
 import 'value/number.dart';
 
 const _epsilon = 1 / (10 * SassNumber.precision);
@@ -43,4 +44,56 @@ bool equalsIgnoreCase(String string1, String string2) {
 bool almostEquals(num number1, num number2) =>
     (number1 - number2).abs() < _epsilon;
 
+SimpleSelector unifyUniversalAndElement(SimpleSelector selector1,
+    SimpleSelector selector2) {
+  String namespace1;
+  String name1;
+  if (selector1 is UniversalSelector) {
+    namespace1 = selector1.namespace;
+  } else if (selector1 is TypeSelector) {
+    namespace1 = selector1.name.namespace;
+    name1 = selector1.name.name;
+  } else {
+    throw new ArgumentError.value(
+        selector1,
+        'selector1',
+        'must be a UniversalSelector or a TypeSelector');
+  }
 
+  String namespace2;
+  String name2;
+  if (selector2 is UniversalSelector) {
+    namespace2 = selector2.namespace;
+  } else if (selector2 is TypeSelector) {
+    namespace2 = selector2.name.namespace;
+    name2 = selector2.name.name;
+  } else {
+    throw new ArgumentError.value(
+        selector2,
+        'selector2',
+        'must be a UniversalSelector or a TypeSelector');
+  }
+
+  String namespace;
+  if (namespace1 == namespace2 || namespace2 == null || namespace2 == '*') {
+    namespace = namespace1;
+  } else if (namespace1 == null || namespace1 == '*') {
+    namespace = namespace2;
+  } else {
+    return null;
+  }
+
+  String namespace;
+  if (name1 == name2 || name2 == null) {
+    namespace = name1;
+  } else if (name1 == null || name1 == '*') {
+    namespace = name2;
+  } else {
+    return null;
+  }
+
+  return name == null
+      ? new UniversalSelector(namespace: namespace)
+      : new TypeSelector(
+                new NamespacedIdentifier(name, namespace: namespace));
+}

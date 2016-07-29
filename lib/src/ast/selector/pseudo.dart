@@ -17,6 +17,29 @@ class PseudoSelector extends SimpleSelector {
 
   PseudoSelector(this.name, this.type, {this.argument, this.selector});
 
+  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+    if (compound.contains(this)) return compound;
+
+    var result = <SimpleSelector>[];
+    var addedThis = false;
+    for (var simple in compound) {
+      if (simple is Pseudo && simple.type == PseudoType.element) {
+        // A given compound selector may only contain one pseudo element. If
+        // [compound] has a different one than [this], unification fails.
+        if (this.type == PseudoType.element) return null;
+
+        // Otherwise, this is a pseudo selector and should come before pseduo
+        // elements.
+        result.add(this);
+        addedThis = true;
+      }
+
+      result.add(simple);
+    }
+
+    return result;
+  }
+
   // This intentionally uses identity for the selector list, if one is available.
   bool operator==(other) =>
       other is PseudoSelector &&

@@ -518,4 +518,15 @@ class Extender {
 
     return result;
   }
+
+  CompoundSelector _unifyCompound(List<SimpleSelector> compound1,
+      List<SimpleSelector> compound2) {
+    var result = compound2;
+    for (var simple in compound1) {
+      result = simple.unify(result);
+      if (result == null) return null;
+    }
+
+    return new CompoundSelector(result);
+  }
 }

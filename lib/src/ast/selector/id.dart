@@ -9,6 +9,15 @@ class IDSelector extends SimpleSelector {
 
   IDSelector(this.name);
 
+  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+    // A given compound selector may only contain one ID.
+    if (compound.any((simple) => simple is IDSelector && simple != this)) {
+      return null;
+    }
+
+    return super.unify(compound);
+  }
+
   bool operator==(other) => other is ClassSelector && other.name == name;
 
   int get hashCode => name.hashCode;
