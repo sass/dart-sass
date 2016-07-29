@@ -20,9 +20,9 @@ class Extender {
     var rule = new CssStyleRule(selector, span: span);
 
     for (var complex in selector.components) {
-      for (var maybeCompound in complex.components) {
-        if (maybeCompound is CompoundSelector) {
-          for (var simple in maybeCompound.components) {
+      for (var component in complex.components) {
+        if (component is CompoundSelector) {
+          for (var simple in component.components) {
             _selectors.putIfAbsent(simple, () => new Set()).add(rule);
           }
         }
@@ -32,35 +32,35 @@ class Extender {
     return rule;
   }
 
-  SelectorList _extendList(SelectorList selector) {
+  SelectorList _extendList(SelectorList list) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
-    List<ComplexSelector> newComponents;
-    for (var i = 0; i < selector.components.length; i++) {
-      var complex = selector.components[i];
+    List<ComplexSelector> newList;
+    for (var i = 0; i < list.components.length; i++) {
+      var complex = list.components[i];
       var extended = _extendComplex(complex);
       if (extended == null) {
-        if (changed) newComponents.add(complex);
+        if (changed) newList.add(complex);
       } else {
-        if (!changed) newComponents = selector.components.take(i).toList();
+        if (!changed) newList = list.components.take(i).toList();
         changed = true;
-        newComponents.addAll(extended);
+        newList.addAll(extended);
       }
     }
-    if (!changed) return selector;
+    if (!changed) return list;
 
     // TODO: compute new line breaks
-    return new SelectorList(newComponents.where((complex) => complex != null));
+    return new SelectorList(newList.where((complex) => complex != null));
   }
 
-  List<ComplexSelector> _extendComplex(ComplexSelector selector) {
+  List<ComplexSelector> _extendComplex(ComplexSelector complex) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
     List<List<List<ComplexSelectorComponent>>> extendedNotExpanded;
-    for (var i = 0; i < selector.components.length; i++) {
-      var component = selector.components[i];
+    for (var i = 0; i < complex.components.length; i++) {
+      var component = complex.components[i];
       if (component is CompoundSelector) {
         var extended = _extendCompound(component);
         // TODO: follow the first law of extend (https://github.com/sass/sass/blob/7774aa3/lib/sass/selector/sequence.rb#L114-L118)
@@ -69,7 +69,7 @@ class Extender {
         } else {
           if (!changed) {
             extendedNotExpanded =
-                selector.components.take(i).map((component) => [[component]]);
+                complex.components.take(i).map((component) => [[component]]);
           }
           changed = true;
           extendedNotExpanded.add(extended);
@@ -84,15 +84,15 @@ class Extender {
     var weaves = paths(extendedNotExpanded)
         .map((path) => _weave(path))
         .toList();
-    return _trim(weaves).map((components) => new ComplexSelector(components));
+    return _trim(weaves).map((complex) => new ComplexSelector(complex));
   }
 
   List<List<ComplexSelectorComponent>> _extendCompound(
-      CompoundSelector selector) {
+      CompoundSelector compound) {
     var changed = false;
     List<List<ComplexSelectorComponent>> extended;
-    for (var i = 0; i < selector.components.length; i++) {
-      var simple = selector.components[i];
+    for (var i = 0; i < compound.components.length; i++) {
+      var simple = compound.components[i];
 
       // TODO: handle extending into pseudo selectors, tracking sources, extend
       // failures
@@ -100,19 +100,19 @@ class Extender {
       var extenders = _extensions[simple];
       if (extenders == null) continue;
 
-      var componentsWithoutSimple =
-          selector.components.toList()..removeAt(i);
+      var compoundWithoutSimple =
+          compound.components.toList()..removeAt(i);
       for (var list in extenders) {
         for (var complex in list.components) {
-          var compound = complex.members.last as CompoundSelector;
+          var extenderBase = complex.members.last as CompoundSelector;
           var unified = _unifyCompound(
-              compound.components, componentsWithoutSimple);
+              extenderBase.components, componentsWithoutSimple);
           if (unified == null) continue;
 
-          if (!changed) extended = [[selector]];
+          if (!changed) extended = [[compound]];
           changed = true;
-          extended.add(compound.members
-              .take(compound.members.length - 1)
+          extended.add(extenderBase.members
+              .take(extenderBase.members.length - 1)
               .toList()
               ..add(unified));
         }
@@ -123,20 +123,20 @@ class Extender {
   }
 
   List<List<ComplexSelectorComponent>> _weave(
-      List<List<ComplexSelectorComponent>> path) {
-    var prefixes = [path.first];
+      List<List<ComplexSelectorComponent>> complexes) {
+    var prefixes = [complexes.first];
 
-    for (var components in path.skip(1)) {
-      if (components.isEmpty) continue;
+    for (var complex in complexes.skip(1)) {
+      if (complex.isEmpty) continue;
 
-      var target = components.last;
-      if (components.length == 1) {
+      var target = complex.last;
+      if (complex.length == 1) {
         for (var prefix in prefixes) {
           prefix.add(target);
         }
       }
 
-      var parents = components.take(components.length - 1).toList();
+      var parents = complex.take(complex.length - 1).toList();
       prefixes = prefixes.expand((prefix) {
         var parentPrefixes = _weaveParents(prefix, parents);
         if (parentPrefixes == null) return const [];
@@ -373,9 +373,9 @@ class Extender {
   }
 
   Queue<List<ComplexSelectorComponent>> _groupSelectors(
-      Iterable<ComplexSelectorComponent> selectors) {
+      Iterable<ComplexSelectorComponent> complex) {
     var groups = new Queue<List<ComplexSelectorComponent>>();
-    var iterator = selectors.iterator;
+    var iterator = complex.iterator;
     while (iterator.moveNext()) {
       var group = <ComplexSelectorComponent>[];
       do {
@@ -387,32 +387,32 @@ class Extender {
     return groups;
   }
 
-  bool _isParentSuperselector(List<ComplexSelectorComponent> selectors1,
-      List<ComplexSelectorComponent> selectors2) {
+  bool _isParentSuperselector(List<ComplexSelectorComponent> complex1,
+      List<ComplexSelectorComponent> complex2) {
     // Try some simple heuristics to see if we can avoid allocations.
-    if (selectors1.first is Combinator) return false;
-    if (selectors2.first is Combinator) return false;
-    if (selectors1.length > selectors2.length) return false;
+    if (complex1.first is Combinator) return false;
+    if (complex2.first is Combinator) return false;
+    if (complex1.length > complex2.length) return false;
 
     // TODO(nweiz): There's got to be a way to do this without a bunch of extra
     // allocations...
     var base = new CompoundSelector([new PlaceholderSelector('<temp>')]);
     return _isSuperselector(
-        selectors1..toList().add(base), selectors2..toList().add(base));
+        complex1..toList().add(base), complex2..toList().add(base));
   }
 
-  bool _isParentSuperselector(List<ComplexSelectorComponent> selectors1,
-      List<ComplexSelectorComponent> selectors2) {
+  bool _isParentSuperselector(List<ComplexSelectorComponent> complex1,
+      List<ComplexSelectorComponent> complex2) {
     // Selectors with trailing operators are neither superselectors nor
     // subselectors.
-    if (selectors1.last is Combinator) return false;
-    if (selectors2.last is Combinator) return false;
+    if (complex1.last is Combinator) return false;
+    if (complex2.last is Combinator) return false;
 
     var i1 = 0;
     var i2 = 0;
     while (true) {
-      var remaining1 = selectors1.length - i1;
-      var remaining2 = selectors2.length - i2;
+      var remaining1 = complex1.length - i1;
+      var remaining2 = complex2.length - i2;
       if (remaining1 == 0 || remaining2 == 0) return false;
 
       // More complex selectors are never superselectors of less complex ones.
@@ -420,32 +420,32 @@ class Extender {
 
       // Selectors with leading operators are neither superselectors nor
       // subselectors.
-      if (selectors1[i1] is Combinator) return false;
-      if (selectors2[i2] is Combinator) return false;
+      if (complex1[i1] is Combinator) return false;
+      if (complex2[i2] is Combinator) return false;
 
       if (remaining1 == 1) {
-        var selector = selectors1[i1] as CompoundSelector;
-        return selector.isSuperselectorOfComplex(selectors2.sublist(i2));
+        var selector = complex1[i1] as CompoundSelector;
+        return selector.isSuperselectorOfComplex(complex2.sublist(i2));
       }
 
-      // Find the first index where `selectors2.sublist(i2, afterSuperselector)`
-      // is a subselector of `selectors1[i1]`. We stop before the superselector
-      // would encompass all of [selectors2] because we know [selectors1] has
-      // more than one element, and consuming all of [selectors2] wouldn't leave
-      // anything for the rest of [selectors1] to match.
+      // Find the first index where `complex2.sublist(i2, afterSuperselector)`
+      // is a subselector of `complex1[i1]`. We stop before the superselector
+      // would encompass all of [complex2] because we know [complex1] has
+      // more than one element, and consuming all of [complex2] wouldn't leave
+      // anything for the rest of [complex1] to match.
       var afterSuperselector = i2 + 1;
-      for (; afterSuperselector <= selectors2.length; afterSuperselector++) {
-        if (selectors2[afterSuperselector - 1] is Combinator) continue;
+      for (; afterSuperselector <= complex2.length; afterSuperselector++) {
+        if (complex2[afterSuperselector - 1] is Combinator) continue;
 
-        if (selectors1[i1].isSuperselectorOfComplex(
-            selectors2.sublist(i2, afterSuperselector))) {
+        if (complex1[i1].isSuperselectorOfComplex(
+            complex2.sublist(i2, afterSuperselector))) {
           break;
         }
       }
-      if (afterSuperselector == selectors2.length) return false;
+      if (afterSuperselector == complex2.length) return false;
 
-      var combinator1 = selectors1[i1 + 1];
-      var combinator2 = selectors1[afterSuperselector];
+      var combinator1 = complex1[i1 + 1];
+      var combinator2 = complex1[afterSuperselector];
       if (combinator1 is Combinator) {
         if (combinator2 is! Combinator) return false;
 
@@ -476,7 +476,7 @@ class Extender {
   }
 
   List<List<ComplexSelectorComponent>> _trim(
-      List<List<List<ComplexSelectorComponent>>> weaves) {
+      List<List<List<ComplexSelectorComponent>>> lists) {
     // Avoid truly horrific quadratic behavior.
     //
     // TODO(nweiz): I think there may be a way to get perfect trimming without
@@ -487,32 +487,32 @@ class Extender {
     // This is n² on the sequences, but only comparing between separate
     // sequences should limit the quadratic behavior.
     var result = <List<ComplexSelectorComponent>>[];
-    for (var i = 0; i < weaves.length; i++) {
-      for (var selector1 in weaves[1]) {
-        // The maximum specificity of the sources that caused [selector1] to be
-        // generated. In order for [selector1] to be removed, there must be another
+    for (var i = 0; i < lists.length; i++) {
+      for (var complex1 in lists[i]) {
+        // The maximum specificity of the sources that caused [complex1] to be
+        // generated. In order for [complex1] to be removed, there must be another
         // selector that's a superselector of it *and* that has specificity
         // greater or equal to this.
         var maxSpecificity =
-            maxBy(_sources(selector1), (source) => source.maxSpecificity) ?? 0;
+            maxBy(_sources(complex1), (source) => source.maxSpecificity) ?? 0;
 
-        // Look in [result] rather than [weaves] for selectors before [i]. This
+        // Look in [result] rather than [lists] for selectors before [i]. This
         // ensures that we aren't comparing against a selector that's already
         // been trimmed, and thus that if there are two identical selectors only
         // one is trimmed.
-        if (result.any((selector2) =>
-            selector2.minSpecificity >= maxSpecificity &&
-            _isSuperselector(selector2, selector1))) {
+        if (result.any((complex2) =>
+            complex2.minSpecificity >= maxSpecificity &&
+            _isSuperselector(complex2, complex1))) {
           return false;
         }
 
-        if (weaves.skip(i + 1).any((selector2) =>
-            selector2.minSpecificity >= maxSpecificity &&
-            _isSuperselector(selector2, selector1))) {
+        if (lists.skip(i + 1).any((complex2) =>
+            complex2.minSpecificity >= maxSpecificity &&
+            _isSuperselector(complex2, complex1))) {
           return false;
         }
 
-        result.add(selector1);
+        result.add(complex1);
       }
     }
 
