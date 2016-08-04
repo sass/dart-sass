@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+
 import 'package:charcode/charcode.dart';
 
 import '../selector.dart';
@@ -14,6 +16,18 @@ class PseudoSelector extends SimpleSelector {
   final String argument;
 
   final SelectorList selector; 
+
+  int get minSpecificity {
+    if (_minSpecificity == null) _computeSpecificity();
+    return _minSpecificity;
+  }
+  int _minSpecificity;
+
+  int get maxSpecificity {
+    if (_maxSpecificity == null) _computeSpecificity();
+    return _maxSpecificity;
+  }
+  int _maxSpecificity;
 
   PseudoSelector(this.name, this.type, {this.argument, this.selector});
 
@@ -38,6 +52,36 @@ class PseudoSelector extends SimpleSelector {
     }
 
     return result;
+  }
+
+  void _computeSpecificity() {
+    if (type == PseudoType.element) {
+      _minSpecificity = 1;
+      _maxSpecificity = 1;
+      return;
+    }
+
+    if (selector == null) {
+      _minSpecificity = super.minSpecificity;
+      _maxSpecificity = super.maxSpecificity;
+    }
+
+    if (name == 'not') {
+      _minSpecificity = 0;
+      _maxSpecificity = 0;
+      for (var complex in selector.members) {
+        _minSpecificity = math.max(_minSpecificity, complex.minSpecificity);
+        _maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
+      }
+    } else {
+      // This is higher than any selector's specificity can actually be.
+      _minSpecificity = math.pow(super.minSpecificity, 3);
+      _maxSpecificity = 0;
+      for (var complex in selector.members) {
+        _minSpecificity = math.min(_minSpecificity, complex.minSpecificity);
+        _maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
+      }
+    }
   }
 
   // This intentionally uses identity for the selector list, if one is available.

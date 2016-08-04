@@ -8,6 +8,8 @@ import '../selector.dart';
 class UniversalSelector extends SimpleSelector {
   final String namespace;
 
+  int get minSpecificity => 0;
+
   UniversalSelector({this.namespace});
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {

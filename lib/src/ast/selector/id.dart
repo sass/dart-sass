@@ -2,10 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+
 import '../selector.dart';
 
 class IDSelector extends SimpleSelector {
   final String name;
+
+  int get minSpecificity => math.pow(super.minSpecificity, 2);
 
   IDSelector(this.name);
 

@@ -7,6 +7,18 @@ import '../selector.dart';
 class CompoundSelector extends Selector implements ComplexSelectorComponent {
   final List<SimpleSelector> components;
 
+  int get minSpecificity {
+    if (_minSpecificity == null) _computeSpecificity();
+    return _minSpecificity;
+  }
+  int _minSpecificity;
+
+  int get maxSpecificity {
+    if (_maxSpecificity == null) _computeSpecificity();
+    return _maxSpecificity;
+  }
+  int _maxSpecificity;
+
   CompoundSelector(Iterable<SimpleSelector> components)
       : components = new List.unmodifiable(components);
 
@@ -14,6 +26,15 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   bool isSuperselectorOfComplex(List<ComplexSelectorComponent> selectors);
 
   bool isSuperselector(CompoundSelector selector);
+
+  void _computeSpecificity() {
+    _minSpecificity = 0;
+    _maxSpecificity = 0;
+    for (var simple in components) {
+      _minSpecificity += simple.minSpecificity;
+      _maxSpecificity += simple.maxSpecificity;
+    }
+  }
 
   String toString() => components.join("");
 }

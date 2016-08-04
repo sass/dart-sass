@@ -7,6 +7,8 @@ import '../selector.dart';
 class TypeSelector extends SimpleSelector {
   final NamespacedIdentifier name;
 
+  int get minSpecificity => 1;
+
   TypeSelector(this.name);
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {

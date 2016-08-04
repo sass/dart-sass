@@ -5,6 +5,13 @@
 import '../selector.dart';
 
 abstract class SimpleSelector extends Selector {
+  // 1000 is the base used for calculating selector specificity.
+  //
+  // The spec says this should be "sufficiently high"; it's extremely unlikely
+  // that any single selector sequence will contain 1,000 simple selectors.
+  int get minSpecificity => 1000;
+  int get maxSpecificity => minSpecificity;
+
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.contains(this)) return compound;
 
