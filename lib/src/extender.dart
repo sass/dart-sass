@@ -13,7 +13,7 @@ class Extender {
 
   final _extensions = <SimpleSelector, Set<SelectorList>>{};
 
-  Set<PseudoSelector> _seen;
+  final _sources = new Expando<ComplexSelector>();
 
   CssStyleRule addSelector(SelectorList selector, {FileSpan span}) {
     if (_extensions.isNotEmpty) selector = _extendList(selector);
@@ -23,6 +23,7 @@ class Extender {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
+            _sources[simple] = complex;
             _selectors.putIfAbsent(simple, () => new Set()).add(rule);
           }
         }
@@ -94,8 +95,7 @@ class Extender {
     for (var i = 0; i < compound.components.length; i++) {
       var simple = compound.components[i];
 
-      // TODO: handle extending into pseudo selectors, tracking sources, extend
-      // failures
+      // TODO: handle extending into pseudo selectors, extend failures
 
       var extenders = _extensions[simple];
       if (extenders == null) continue;
@@ -490,11 +490,19 @@ class Extender {
     for (var i = 0; i < lists.length; i++) {
       for (var complex1 in lists[i]) {
         // The maximum specificity of the sources that caused [complex1] to be
-        // generated. In order for [complex1] to be removed, there must be another
-        // selector that's a superselector of it *and* that has specificity
-        // greater or equal to this.
-        var maxSpecificity =
-            maxBy(_sources(complex1), (source) => source.maxSpecificity) ?? 0;
+        // generated. In order for [complex1] to be removed, there must be
+        // another selector that's a superselector of it *and* that has
+        // specificity greater or equal to this.
+        var maxSpecificity = 0;
+        for (var component in complex1.components) {
+          if (component is CompoundSelector) {
+            for (var simple in component.components) {
+              var source = _sources[simple];
+              if (source == null) continue;
+              maxSpecificity = math.max(maxSpecificity, source.maxSpecificity);
+            }
+          }
+        }
 
         // Look in [result] rather than [lists] for selectors before [i]. This
         // ensures that we aren't comparing against a selector that's already
