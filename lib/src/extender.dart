@@ -16,14 +16,23 @@ class Extender {
   final _sources = new Expando<ComplexSelector>();
 
   CssStyleRule addSelector(SelectorList selector, {FileSpan span}) {
-    if (_extensions.isNotEmpty) selector = _extendList(selector);
+    for (var complex in selector.components) {
+      for (var component in complex.components) {
+        if (component is CompoundSelector) {
+          for (var simple in component.components) {
+            _sources[simple] = selector;
+          }
+        }
+      }
+    }
+
+    if (_extensions.isNotEmpty) selector = _extendList(selector, _extensions);
     var rule = new CssStyleRule(selector, span: span);
 
     for (var complex in selector.components) {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
-            _sources[simple] = complex;
             _selectors.putIfAbsent(simple, () => new Set()).add(rule);
           }
         }
@@ -33,14 +42,28 @@ class Extender {
     return rule;
   }
 
-  SelectorList _extendList(SelectorList list) {
+  void addExtension(SelectorList extender, SimpleSelector target) {
+    _extensions.putIfAbsent(target, () => new Set()).add(extender);
+
+    var rules = _selectors[target];
+    if (rules == null) return;
+
+    var extensions = {target: new Set([extender])};
+    for (var rule in rules) {
+      var list = rule.selector.value;
+      rule.selector = _extendList(list, extensions);
+    }
+  }
+
+  SelectorList _extendList(SelectorList list,
+      Map<SimpleSelector, Set<SelectorList>> extensions) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
     List<ComplexSelector> newList;
     for (var i = 0; i < list.components.length; i++) {
       var complex = list.components[i];
-      var extended = _extendComplex(complex);
+      var extended = _extendComplex(complex, extensions);
       if (extended == null) {
         if (changed) newList.add(complex);
       } else {
@@ -55,7 +78,8 @@ class Extender {
     return new SelectorList(newList.where((complex) => complex != null));
   }
 
-  List<ComplexSelector> _extendComplex(ComplexSelector complex) {
+  List<ComplexSelector> _extendComplex(ComplexSelector complex,
+      Map<SimpleSelector, Set<SelectorList>> extensions) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
@@ -63,7 +87,7 @@ class Extender {
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
       if (component is CompoundSelector) {
-        var extended = _extendCompound(component);
+        var extended = _extendCompound(component, extensions);
         // TODO: follow the first law of extend (https://github.com/sass/sass/blob/7774aa3/lib/sass/selector/sequence.rb#L114-L118)
         if (extended == null) {
           if (changed) extendedNotExpanded.add([[component]]);
@@ -89,7 +113,8 @@ class Extender {
   }
 
   List<List<ComplexSelectorComponent>> _extendCompound(
-      CompoundSelector compound) {
+      CompoundSelector compound,
+      Map<SimpleSelector, Set<SelectorList>> extensions) {
     var changed = false;
     List<List<ComplexSelectorComponent>> extended;
     for (var i = 0; i < compound.components.length; i++) {
@@ -97,7 +122,7 @@ class Extender {
 
       // TODO: handle extending into pseudo selectors, extend failures
 
-      var extenders = _extensions[simple];
+      var extenders = extensions[simple];
       if (extenders == null) continue;
 
       var compoundWithoutSimple =
