@@ -7,7 +7,7 @@ import '../../../ast/sass/expression.dart';
 import '../../../ast/sass/statement.dart';
 import '../../../ast/selector.dart';
 import '../../../environment.dart';
-import '../../../extender.dart';
+import '../../../extend/extender.dart';
 import '../../../parser.dart';
 import '../../../value.dart';
 import '../expression/perform.dart';

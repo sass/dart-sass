@@ -2,7 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'ast/selector.dart';
+import '../ast/sass/expression.dart';
+import '../ast/selector.dart';
+import '../utils.dart';
+import 'functions.dart';
 
 class Extender {
   /// A map from all simple selectors in the stylesheet to the rules that
@@ -293,9 +296,9 @@ class Extender {
 
       if (combinator1 == Combinator.followingSibling &&
           combinator2 == Combinator.followingSibling) {
-        if (compound1.isSuperselectorOf(compound2)) {
+        if (compound1.isSuperselector(compound2)) {
           result.addFirst([[compound2, Combinator.followingSibling]]);
-        } else if (compound2.isSuperselectorOf(compound1)) {
+        } else if (compound2.isSuperselector(compound1)) {
           result.addFirst([[compound1, Combinator.followingSibling]]);
         } else {
           var choices = [
@@ -326,7 +329,7 @@ class Extender {
         var nextSiblingSelector =
             combinator1 == Combinator.followingSibling ? compound2 : compound1;
 
-        if (followingSiblingSelector.isSuperselectorOf(nextSiblingSelector)) {
+        if (followingSiblingSelector.isSuperselector(nextSiblingSelector)) {
           result.addFirst([[nextSiblingSelector, Combinator.nextSibling]]);
         } else {
           var choices = [
@@ -362,7 +365,7 @@ class Extender {
     } else if (combinator1 != null) {
       if (combinator1 == Combinator.child &&
           components2.isNotEmpty &&
-          components2.last.isSuperselectorOf(components1.last)) {
+          components2.last.isSuperselector(components1.last)) {
         components2.removeLast();
       }
       result.addFirst([[components1.removeLast(), combinator1]]);
@@ -371,7 +374,7 @@ class Extender {
       assert(combinator1 != null);
       if (combinator2 == Combinator.child &&
           components1.isNotEmpty &&
-          components1.last.isSuperselectorOf(components2.last)) {
+          components1.last.isSuperselector(components2.last)) {
         components1.removeLast();
       }
       result.addFirst([[components2.removeLast(), combinator2]]);
@@ -412,94 +415,6 @@ class Extender {
     return groups;
   }
 
-  bool _isParentSuperselector(List<ComplexSelectorComponent> complex1,
-      List<ComplexSelectorComponent> complex2) {
-    // Try some simple heuristics to see if we can avoid allocations.
-    if (complex1.first is Combinator) return false;
-    if (complex2.first is Combinator) return false;
-    if (complex1.length > complex2.length) return false;
-
-    // TODO(nweiz): There's got to be a way to do this without a bunch of extra
-    // allocations...
-    var base = new CompoundSelector([new PlaceholderSelector('<temp>')]);
-    return _isSuperselector(
-        complex1..toList().add(base), complex2..toList().add(base));
-  }
-
-  bool _isParentSuperselector(List<ComplexSelectorComponent> complex1,
-      List<ComplexSelectorComponent> complex2) {
-    // Selectors with trailing operators are neither superselectors nor
-    // subselectors.
-    if (complex1.last is Combinator) return false;
-    if (complex2.last is Combinator) return false;
-
-    var i1 = 0;
-    var i2 = 0;
-    while (true) {
-      var remaining1 = complex1.length - i1;
-      var remaining2 = complex2.length - i2;
-      if (remaining1 == 0 || remaining2 == 0) return false;
-
-      // More complex selectors are never superselectors of less complex ones.
-      if (remaining1 > remaining2) return false;
-
-      // Selectors with leading operators are neither superselectors nor
-      // subselectors.
-      if (complex1[i1] is Combinator) return false;
-      if (complex2[i2] is Combinator) return false;
-
-      if (remaining1 == 1) {
-        var selector = complex1[i1] as CompoundSelector;
-        return selector.isSuperselectorOfComplex(complex2.sublist(i2));
-      }
-
-      // Find the first index where `complex2.sublist(i2, afterSuperselector)`
-      // is a subselector of `complex1[i1]`. We stop before the superselector
-      // would encompass all of [complex2] because we know [complex1] has
-      // more than one element, and consuming all of [complex2] wouldn't leave
-      // anything for the rest of [complex1] to match.
-      var afterSuperselector = i2 + 1;
-      for (; afterSuperselector <= complex2.length; afterSuperselector++) {
-        if (complex2[afterSuperselector - 1] is Combinator) continue;
-
-        if (complex1[i1].isSuperselectorOfComplex(
-            complex2.sublist(i2, afterSuperselector))) {
-          break;
-        }
-      }
-      if (afterSuperselector == complex2.length) return false;
-
-      var combinator1 = complex1[i1 + 1];
-      var combinator2 = complex1[afterSuperselector];
-      if (combinator1 is Combinator) {
-        if (combinator2 is! Combinator) return false;
-
-        // `.foo ~ .bar` is a superselector of `.foo + .bar`, but otherwise the
-        // combinators must match.
-        if (combinator1 == Combinator.followingSibling) {
-          if (combinator2 == Combinator.child) return false;
-        } else if (combinator2 != combinator1) {
-          return false;
-        }
-
-        // `.foo > .baz` is not a superselector of `.foo > .bar > .baz` or
-        // `.foo > .bar .baz`, despite the fact that `.baz` is a superselector of
-        // `.bar > .baz` and `.bar .baz`. Same goes for `+` and `~`.
-        if (remaining1 == 3 && remaining2 > 3) return false;
-
-        i1 += 2;
-        i2 = afterSuperselector + 1;
-      } else if (combinator2 is Combinator) {
-        if (combinator2 != Combinator2.child) return false;
-        i1++;
-        i2 = afterSuperselector + 1;
-      } else {
-        i1++;
-        i2 = afterSuperselector;
-      }
-    }
-  }
-
   List<List<ComplexSelectorComponent>> _trim(
       List<List<List<ComplexSelectorComponent>>> lists) {
     // Avoid truly horrific quadratic behavior.
@@ -535,13 +450,13 @@ class Extender {
         // one is trimmed.
         if (result.any((complex2) =>
             complex2.minSpecificity >= maxSpecificity &&
-            _isSuperselector(complex2, complex1))) {
+            complexIsSuperselector(complex2, complex1))) {
           return false;
         }
 
         if (lists.skip(i + 1).any((complex2) =>
             complex2.minSpecificity >= maxSpecificity &&
-            _isSuperselector(complex2, complex1))) {
+            complexIsSuperselector(complex2, complex1))) {
           return false;
         }
 

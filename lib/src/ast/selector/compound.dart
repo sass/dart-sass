@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../extend/functions.dart';
 import '../selector.dart';
 
 class CompoundSelector extends Selector implements ComplexSelectorComponent {
@@ -22,10 +23,8 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   CompoundSelector(Iterable<SimpleSelector> components)
       : components = new List.unmodifiable(components);
 
-  // Like superselector?(selectors.last, selectors[0...-1]) in Ruby
-  bool isSuperselectorOfComplex(List<ComplexSelectorComponent> selectors);
-
-  bool isSuperselector(CompoundSelector selector);
+  bool isSuperselector(CompoundSelector other) =>
+      compoundIsSuperselector(this, other);
 
   void _computeSpecificity() {
     _minSpecificity = 0;
