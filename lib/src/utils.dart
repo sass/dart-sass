@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';

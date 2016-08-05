@@ -11,7 +11,7 @@ export 'selector/list.dart';
 export 'selector/namespaced_identifier.dart';
 export 'selector/placeholder.dart';
 export 'selector/pseudo.dart';
-export 'selector/simple.dart' hide baseSpecificity;
+export 'selector/simple.dart';
 export 'selector/type.dart';
 export 'selector/universal.dart';
 

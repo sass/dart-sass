@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../ast/selector.dart';
+
 final _subselectorPseudos =
     new Set.from(['matches', 'any', 'nth-child', 'nth-last-child']);
 
@@ -44,11 +46,11 @@ SimpleSelector unifyUniversalAndElement(SimpleSelector selector1,
     return null;
   }
 
-  String namespace;
+  String name;
   if (name1 == name2 || name2 == null) {
-    namespace = name1;
+    name = name1;
   } else if (name1 == null || name1 == '*') {
-    namespace = name2;
+    name = name2;
   } else {
     return null;
   }
@@ -140,7 +142,7 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
       i1 += 2;
       i2 = afterSuperselector + 1;
     } else if (combinator2 is Combinator) {
-      if (combinator2 != Combinator2.child) return false;
+      if (combinator2 != Combinator.child) return false;
       i1++;
       i2 = afterSuperselector + 1;
     } else {
@@ -155,7 +157,7 @@ bool compoundIsSuperselector(CompoundSelector compound1,
   // Every selector in [compound1.components] must have a matching selector in
   // [compound2.components].
   for (var simple1 in compound1.components) {
-    if (simple1 is PseudoSelector && simple2.selector != null) {
+    if (simple1 is PseudoSelector && simple1.selector != null) {
       if (!_selectorPseudoIsSuperselector(
           simple1, compound2, parents: parents)) {
         return false;
@@ -184,7 +186,7 @@ bool _simpleIsSuperselectorOfCompound(SimpleSelector simple,
     if (simple == theirSimple) return true;
 
     // Some selector pseudoclasses can match normal selectors.
-    if (theirSimple is Pseudo && theirSimple.selector != null &&
+    if (theirSimple is PseudoSelector && theirSimple.selector != null &&
         _subselectorPseudos.contains(theirSimple.name)) {
       return theirSimple.selector.components.any((complex) {
         if (complex.components.length != 1) return false;

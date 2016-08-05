@@ -37,7 +37,7 @@ class PseudoSelector extends SimpleSelector {
     var result = <SimpleSelector>[];
     var addedThis = false;
     for (var simple in compound) {
-      if (simple is Pseudo && simple.type == PseudoType.element) {
+      if (simple is PseudoSelector && simple.type == PseudoType.element) {
         // A given compound selector may only contain one pseudo element. If
         // [compound] has a different one than [this], unification fails.
         if (this.type == PseudoType.element) return null;
@@ -69,7 +69,7 @@ class PseudoSelector extends SimpleSelector {
     if (name == 'not') {
       _minSpecificity = 0;
       _maxSpecificity = 0;
-      for (var complex in selector.members) {
+      for (var complex in selector.components) {
         _minSpecificity = math.max(_minSpecificity, complex.minSpecificity);
         _maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
       }
@@ -77,7 +77,7 @@ class PseudoSelector extends SimpleSelector {
       // This is higher than any selector's specificity can actually be.
       _minSpecificity = math.pow(super.minSpecificity, 3);
       _maxSpecificity = 0;
-      for (var complex in selector.members) {
+      for (var complex in selector.components) {
         _minSpecificity = math.min(_minSpecificity, complex.minSpecificity);
         _maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
       }

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../extend/functions.dart';
 import '../selector.dart';
 
 class TypeSelector extends SimpleSelector {
@@ -16,7 +17,7 @@ class TypeSelector extends SimpleSelector {
       var unified = unifyUniversalAndElement(this, compound.first);
       return [unified]..addAll(compound.skip(1));
     } else {
-      return [this].addAll(compound);
+      return [this]..addAll(compound);
     }
   }
 

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../extend/functions.dart';
 import '../../utils.dart';
 import '../selector.dart';
 
@@ -18,7 +19,9 @@ class UniversalSelector extends SimpleSelector {
       return [unified]..addAll(compound.skip(1));
     }
 
-    if (namespace != null && namespace != "*") return [this].addAll(compound);
+    if (namespace != null && namespace != "*") {
+      return <SimpleSelector>[this]..addAll(compound);
+    }
     if (compound.isNotEmpty) return compound;
     return [this];
   }

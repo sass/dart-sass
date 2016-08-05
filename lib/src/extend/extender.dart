@@ -2,6 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
+
+import 'package:source_span/source_span.dart';
+
+import '../ast/css/node.dart';
 import '../ast/sass/expression.dart';
 import '../ast/selector.dart';
 import '../utils.dart';
@@ -18,19 +23,22 @@ class Extender {
 
   final _sources = new Expando<ComplexSelector>();
 
-  CssStyleRule addSelector(SelectorList selector, {FileSpan span}) {
+  CssStyleRule addSelector(SelectorList selector, {FileSpan selectorSpan,
+      FileSpan ruleSpan}) {
     for (var complex in selector.components) {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
-            _sources[simple] = selector;
+            _sources[simple] = complex;
           }
         }
       }
     }
 
     if (_extensions.isNotEmpty) selector = _extendList(selector, _extensions);
-    var rule = new CssStyleRule(selector, span: span);
+    var rule = new CssStyleRule(
+        new CssValue(selector, span: selectorSpan),
+        span: ruleSpan);
 
     for (var complex in selector.components) {
       for (var component in complex.components) {
@@ -51,10 +59,10 @@ class Extender {
     var rules = _selectors[target];
     if (rules == null) return;
 
-    var extensions = {target: new Set([extender])};
+    var extensions = {target: new Set.from([extender])};
     for (var rule in rules) {
       var list = rule.selector.value;
-      rule.selector = _extendList(list, extensions);
+      rule.selector.value = _extendList(list, extensions);
     }
   }
 
@@ -132,15 +140,15 @@ class Extender {
           compound.components.toList()..removeAt(i);
       for (var list in extenders) {
         for (var complex in list.components) {
-          var extenderBase = complex.members.last as CompoundSelector;
+          var extenderBase = complex.components.last as CompoundSelector;
           var unified = _unifyCompound(
-              extenderBase.components, componentsWithoutSimple);
+              extenderBase.components, compoundWithoutSimple);
           if (unified == null) continue;
 
           if (!changed) extended = [[compound]];
           changed = true;
-          extended.add(extenderBase.members
-              .take(extenderBase.members.length - 1)
+          extended.add(complex.components
+              .take(complex.components.length - 1)
               .toList()
               ..add(unified));
         }
@@ -312,7 +320,8 @@ class Extender {
             ]
           ];
 
-          var unified = _unifyCompound(compound1.members, compound2.members);
+          var unified = _unifyCompound(
+              compound1.components, compound2.components);
           if (unified != null) {
             choices.add([unified, Combinator.followingSibling]);
           }
@@ -339,7 +348,8 @@ class Extender {
             ]
           ];
 
-          var unified = _unifyCompound(compound1.members, compound2.members);
+          var unified = _unifyCompound(
+              compound1.components, compound2.components);
           if (unified != null) choices.add([unified, Combinator.nextSibling]);
           result.addFirst(choices);
         }
@@ -354,7 +364,8 @@ class Extender {
         result.addFirst([[compound2, combinator2]]);
         components1..add(compound1)..add(Combinator.child);
       } else if (combinator1 == combinator2) {
-        var unified = _unifyCompound(compound1.members, compound2.members);
+        var unified = _unifyCompound(
+            compound1.components, compound2.components);
         if (unified == null) return null;
         result.addFirst([[merged, combinator1]]);
       } else {
@@ -469,8 +480,8 @@ class Extender {
 
   List<List<ComplexSelectorComponent> _unifyComplex(
       List<SimpleSelector> complex1, List<SimpleSelector> complex2) {
-    var base1 = complex1.members.last;
-    var base2 = complex2.members.last;
+    var base1 = complex1.components.last;
+    var base2 = complex2.components.last;
     if (base1 is CompoundSelector && base2 is CompoundSelector) {
       var unified = _unifyCompound(base2.components, base1.components);
       if (unified == null) return null;
