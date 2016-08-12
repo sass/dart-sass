@@ -187,7 +187,7 @@ bool _simpleIsSuperselectorOfCompound(SimpleSelector simple,
 
     // Some selector pseudoclasses can match normal selectors.
     if (theirSimple is PseudoSelector && theirSimple.selector != null &&
-        _subselectorPseudos.contains(theirSimple.name)) {
+        _subselectorPseudos.contains(theirSimple.normalizedName)) {
       return theirSimple.selector.components.any((complex) {
         if (complex.components.length != 1) return false;
         var compound = complex.components.single as CompoundSelector;

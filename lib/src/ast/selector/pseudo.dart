@@ -8,8 +8,12 @@ import 'package:charcode/charcode.dart';
 
 import '../selector.dart';
 
+final _vendorPrefix = new Regex(r'^-[a-zA-Z0-9]+-');
+
 class PseudoSelector extends SimpleSelector {
   final String name;
+
+  final String normalizedName;
 
   final PseudoType type;
 
@@ -29,7 +33,9 @@ class PseudoSelector extends SimpleSelector {
   }
   int _maxSpecificity;
 
-  PseudoSelector(this.name, this.type, {this.argument, this.selector});
+  PseudoSelector(String name, this.type, {this.argument, this.selector})
+      : name = name,
+        normalizedName = name.replaceFirst(_vendorPrefix, '');
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.contains(this)) return compound;
