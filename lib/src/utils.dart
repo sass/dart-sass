@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
+import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
@@ -19,6 +20,9 @@ class LinkedListValue<T> extends LinkedListEntry<LinkedListValue<T>> {
 
   LinkedListValue(this.value);
 }
+
+bool listEquals/*<T>*/(List/*<T>*/ list1, List/*<T>*/ list2) =>
+    const ListEquality().equals(list1, list2);
 
 FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
