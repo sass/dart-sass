@@ -23,6 +23,8 @@ class LinkedListValue<T> extends LinkedListEntry<LinkedListValue<T>> {
 bool listEquals/*<T>*/(List/*<T>*/ list1, List/*<T>*/ list2) =>
     const ListEquality().equals(list1, list2);
 
+int listHash(List list) => const ListEquality().hash(list);
+
 FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
   return nodes.first.span.expand(nodes.last.span);

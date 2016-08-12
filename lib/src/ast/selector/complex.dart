@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../extend/functions.dart';
+import '../../utils.dart';
 import '../selector.dart';
 
 class ComplexSelector extends Selector {
@@ -27,6 +29,9 @@ class ComplexSelector extends Selector {
       : components = new List.unmodifiable(components),
         lineBreaks = new List.unmodifiable(lineBreaks);
 
+  bool isSuperselector(ComplexSelector other) =>
+      complexIsSuperselector(components, other.components);
+
   void _computeSpecificity() {
     _minSpecificity = 0;
     _maxSpecificity = 0;
@@ -37,6 +42,11 @@ class ComplexSelector extends Selector {
       }
     }
   }
+
+  int get hashCode => listHash(components);
+
+  bool operator ==(other) =>
+      other is ComplexSelector && listEquals(components, other.components);
 
   String toString() => components.join(" ");
 }

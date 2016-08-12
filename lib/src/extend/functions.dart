@@ -61,6 +61,11 @@ SimpleSelector unifyUniversalAndElement(SimpleSelector selector1,
                 new NamespacedIdentifier(name, namespace: namespace));
 }
 
+bool listIsSuperslector(List<ComplexSelector> list1,
+        List<ComplexSelector> list2) =>
+    list2.every((complex1) =>
+        list1.any((complex2) => complex2.isSuperselector(complex1)));
+
 bool complexIsParentSuperselector(List<ComplexSelectorComponent> complex1,
     List<ComplexSelectorComponent> complex2) {
   // Try some simple heuristics to see if we can avoid allocations.
@@ -198,3 +203,70 @@ bool _simpleIsSuperselectorOfCompound(SimpleSelector simple,
     }
   });
 }
+
+bool _selectorPseudoIsSuperselector(PseudoSelector pseudo1,
+    CompoundSelector compound2, {Iterable<ComplexSelectorComponent> parents}) {
+  switch (pseudo1.normalizedName) {
+    case 'matches':
+    case 'any':
+      var pseudos = _selectorPseudosNamed(compound2, pseudo1.normalizedName);
+      return pseudos.any((pseudo2) {
+        return pseudo1.selector.isSuperselector(pseudo2.selector);
+      }) || pseudo1.selector.components.any((complex1) {
+        var complex2 = (parents?.toList() ?? [])..add(compound2);
+        return complexIsSuperselector(complex1.components, complex2);
+      });
+
+    case 'has':
+    case 'host':
+    case 'host-context':
+      return _selectorPseudosNamed(compound2, pseudo1.normalizedName)
+          .any((pseudo2) => pseudo1.selector.isSuperselector(pseudo2.selector));
+
+    case 'not':
+      return pseudo1.selector.components.every((complex) {
+        return compound2.components.every((simple2) {
+          if (simple2 is TypeSelector) {
+            var compound1 = complex.components.last;
+            return compound1 is CompoundSelector &&
+                compound1.components.any((simple1) =>
+                    simple1 is TypeSelector && simple1 != simple2);
+          } else if (simple2 is IDSelector) {
+            var compound1 = complex.components.last;
+            return compound1 is CompoundSelector &&
+                compound1.components.any((simple1) =>
+                    simple1 is IDSelector && simple1 != simple2);
+          } else if (simple2 is PseudoSelector &&
+              simple2.name == pseudo1.name &&
+              simple2.selector != null) {
+            return listIsSuperslector(simple2.selector.components, [complex]);
+          } else {
+            return false;
+          }
+        });
+      });
+
+    case 'current':
+      return _selectorPseudosNamed(compound2, 'current')
+          .any((pseudo2) => pseudo1.selector == pseudo2.selector);
+
+    case 'nth-child':
+    case 'nth-last-child':
+      return compound2.components.any((pseudo2) =>
+          pseudo2 is PseudoSelector &&
+          pseudo2.name == pseudo1.name &&
+          pseudo2.argument == pseudo1.argument &&
+          pseudo1.selector.isSuperselector(pseudo2.selector));
+
+    default:
+      throw "unreachable";
+  }
+}
+
+Iterable<PseudoSelector> _selectorPseudosNamed(CompoundSelector compound,
+    String name) =>
+        compound.components.where((simple) =>
+            simple is PseudoSelector &&
+            simple.type == PseudoType.klass &&
+            simple.selector != null &&
+            simple.name == name);

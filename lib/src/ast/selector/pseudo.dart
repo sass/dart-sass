@@ -8,7 +8,7 @@ import 'package:charcode/charcode.dart';
 
 import '../selector.dart';
 
-final _vendorPrefix = new Regex(r'^-[a-zA-Z0-9]+-');
+final _vendorPrefix = new RegExp(r'^-[a-zA-Z0-9]+-');
 
 class PseudoSelector extends SimpleSelector {
   final String name;

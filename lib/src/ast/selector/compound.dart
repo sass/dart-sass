@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../extend/functions.dart';
+import '../../utils.dart';
 import '../selector.dart';
 
 class CompoundSelector extends Selector implements ComplexSelectorComponent {
@@ -34,6 +35,11 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
       _maxSpecificity += simple.maxSpecificity;
     }
   }
+
+  int get hashCode => listHash(components);
+
+  bool operator ==(other) =>
+      other is ComplexSelector && listEquals(components, other.components);
 
   String toString() => components.join("");
 }
