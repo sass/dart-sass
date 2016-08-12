@@ -50,6 +50,7 @@ class PseudoSelector extends SimpleSelector {
 
       result.add(simple);
     }
+    if (!addedThis) result.add(this);
 
     return result;
   }

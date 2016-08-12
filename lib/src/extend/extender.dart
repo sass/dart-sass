@@ -9,7 +9,6 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import '../ast/css/node.dart';
-import '../ast/sass/expression.dart';
 import '../ast/selector.dart';
 import '../utils.dart';
 import 'functions.dart';
@@ -28,7 +27,7 @@ class Extender {
   CssStyleRule addSelector(CssValue<SelectorList> selectorValue,
       {FileSpan span}) {
     var selector = selectorValue.value;
-    for (var complex in selector.value.components) {
+    for (var complex in selector.components) {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {

@@ -10,7 +10,6 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
-import 'ast/selector.dart';
 import 'value/number.dart';
 
 const _epsilon = 1 / (10 * SassNumber.precision);

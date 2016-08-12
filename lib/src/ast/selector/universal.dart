@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../extend/functions.dart';
-import '../../utils.dart';
 import '../selector.dart';
 
 class UniversalSelector extends SimpleSelector {
