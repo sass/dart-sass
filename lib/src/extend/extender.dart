@@ -396,6 +396,26 @@ class Extender {
     }
   }
 
+  bool _mustUnify(List<ComplexSelectorComponent> complex1,
+      List<ComplexSelectorComponent> complex2) {
+    var uniqueSelectors = new Set<SimpleSelector>();
+    for (var component in complex1) {
+      if (component is CompoundSelector) {
+        uniqueSelectors.addAll(component.components.where(_isUnique));
+      }
+    }
+    if (uniqueSelectors.isEmpty) return false;
+
+    return complex2.any((component) =>
+        component is CompoundSelector &&
+        component.components.any((simple) =>
+            _isUnique(simple) && uniqueSelectors.contains(simple)));
+  }
+
+  bool _isUnique(SimpleSelector simple) =>
+      simple is IDSelector ||
+      (simple is PseudoSelector && simple.type == PseudoType.element);
+
   List<List/*<T>*/> _chunks/*<T>*/(Queue/*<T>*/ queue1,
       Queue/*<T>*/ queue2, bool done(Queue/*<T>*/ queue)) {
     var chunk1 = /*<T>*/[];
