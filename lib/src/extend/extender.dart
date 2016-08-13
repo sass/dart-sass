@@ -217,8 +217,8 @@ class Extender {
           group2.first is! CompoundSelector) {
         return null;
       }
-      if (_isParentSuperselector(group1, group2)) return group2;
-      if (_isParentSuperselector(group2, group1)) return group1;
+      if (complexIsParentSuperselector(group1, group2)) return group2;
+      if (complexIsParentSuperselector(group2, group1)) return group1;
       if (!_mustUnify(group1, group2)) return null;
 
       var unified = _unifyComplex(group1, group2);
@@ -230,7 +230,7 @@ class Extender {
     var choices = [<List<ComplexSelectorComponent>>[initialCombinator]];
     for (var group in lcs) {
       choices.add(_chunks(groups1, groups2,
-              (sequence) => _isParentSuperselector(sequence.first, group))
+              (sequence) => complexIsParentSuperselector(sequence.first, group))
           .map((chunk) => chunk.expand((group) => group)));
       choices.add(group);
       groups1.removeFirst();
