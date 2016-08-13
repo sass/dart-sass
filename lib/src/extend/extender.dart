@@ -170,14 +170,20 @@ class Extender {
         for (var prefix in prefixes) {
           prefix.add(target);
         }
+        continue;
       }
 
       var parents = complex.take(complex.length - 1).toList();
-      prefixes = prefixes.expand((prefix) {
+      var newPrefixes = <List<ComplexSelectorComponent>>[];
+      for (var prefix in prefixes) {
         var parentPrefixes = _weaveParents(prefix, parents);
-        if (parentPrefixes == null) return const [];
-        return parentPrefixes.map((parentPrefix) => parentPrefix.add(target));
-      }).toList();
+        if (parentPrefixes == null) continue;
+
+        for (var parentPrefix in parentPrefixes) {
+          newPrefixes.add(parentPrefix..add(target));
+        }
+      }
+      prefixes = newPrefixes;
     }
 
     return prefixes;
@@ -186,8 +192,8 @@ class Extender {
   List<List<ComplexSelectorComponent>> _weaveParents(
       List<ComplexSelectorComponent> parents1,
       List<ComplexSelectorComponent> parents2) {
-    var queue1 = new Queue.from(parents1);
-    var queue2 = new Queue.from(parents2);
+    var queue1 = new Queue<ComplexSelectorComponent>.from(parents1);
+    var queue2 = new Queue<ComplexSelectorComponent>.from(parents2);
 
     var initialCombinator = _mergeInitialCombinators(queue1, queue2);
     if (initialCombinator == null) return null;
@@ -195,10 +201,10 @@ class Extender {
     if (finalCombinator == null) return null;
 
     // Make sure there's at most one `:root` in the output.
-    var root1 = _hasRoot(queue1.first) ? queue1.removeFirst() : null;
-    var root2 = _hasRoot(queue2.first) ? queue2.removeFirst() : null;
+    var root1 = _firstIfRoot(queue1);
+    var root2 = _firstIfRoot(queue2);
     if (root1 != null && root2 != null) {
-      var root = root1.unify(root2);
+      var root = _unifyCompound(root1.components, root2.components);
       if (root == null) return null;
       queue1.addFirst(root);
       queue2.addFirst(root);
@@ -210,8 +216,8 @@ class Extender {
 
     var groups1 = _groupSelectors(queue1);
     var groups2 = _groupSelectors(queue2);
-    var lcs = longestCommonSubsequence(groups1, groups2,
-        select: (group1, group2) {
+    var lcs = longestCommonSubsequence/*<List<ComplexSelectorComponent>>*/(
+        groups1, groups2, select: (group1, group2) {
       if (listEquals(group1, group2)) return group1;
       if (group1.first is! CompoundSelector ||
           group2.first is! CompoundSelector) {
@@ -229,10 +235,10 @@ class Extender {
 
     var choices = [<List<ComplexSelectorComponent>>[initialCombinator]];
     for (var group in lcs) {
-      choices.add(_chunks(groups1, groups2,
+      choices.add(_chunks/*<List<ComplexSelectorComponent>>*/(groups1, groups2,
               (sequence) => complexIsParentSuperselector(sequence.first, group))
           .map((chunk) => chunk.expand((group) => group)));
-      choices.add(group);
+      choices.add([group]);
       groups1.removeFirst();
       groups2.removeFirst();
     }
@@ -242,6 +248,14 @@ class Extender {
 
     return _paths(choices.where((choice) => choice.isNotEmpty))
         .map((path) => path.expand((group) => group));
+  }
+
+  CompoundSelector _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
+    var first = queue.first as CompoundSelector;
+    if (!_hasRoot(first)) return null;
+
+    queue.removeFirst();
+    return first;
   }
 
   List<Combinator> _mergeInitialCombinators(
@@ -435,9 +449,9 @@ class Extender {
   }
 
   List<List/*<T>*/> _paths/*<T>*/(List<List/*<T>*/> choices) =>
-      choices.fold([[]], (paths, choice) =>
-          choice.expand((option) =>
-              paths.map((path) => path.toList()..add(option))));
+      choices.fold([[]], (paths, choice) => choice
+          .expand((option) => paths.map((path) => path.toList()..add(option)))
+          .toList());
 
   QueueList<List<ComplexSelectorComponent>> _groupSelectors(
       Iterable<ComplexSelectorComponent> complex) {
