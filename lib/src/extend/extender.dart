@@ -89,7 +89,7 @@ class Extender {
     return new SelectorList(newList.where((complex) => complex != null));
   }
 
-  List<ComplexSelector> _extendComplex(ComplexSelector complex,
+  Iterable<ComplexSelector> _extendComplex(ComplexSelector complex,
       Map<SimpleSelector, Set<SelectorList>> extensions) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
@@ -104,8 +104,10 @@ class Extender {
           if (changed) extendedNotExpanded.add([[component]]);
         } else {
           if (!changed) {
-            extendedNotExpanded =
-                complex.components.take(i).map((component) => [[component]]);
+            extendedNotExpanded = complex.components
+                .take(i)
+                .map((component) => [[component]])
+                .toList();
           }
           changed = true;
           extendedNotExpanded.add(extended);

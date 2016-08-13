@@ -66,6 +66,14 @@ class PerformVisitor extends StatementVisitor {
     _parent.addChild(new CssDeclaration(name, cssValue, span: node.span));
   }
 
+  void visitExtendRule(ExtendRule node) {
+    var targetText = _performInterpolation(node.selector);
+
+    // TODO: recontextualize parse errors.
+    var simple = new Parser(targetText.value).parseSimpleSelector();
+    _extender.addExtension(_selector.value, simple);
+  }
+
   void visitAtRule(AtRule node) {
     var value = node.value == null
         ? null

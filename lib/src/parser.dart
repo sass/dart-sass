@@ -69,6 +69,12 @@ class Parser {
     return selector;
   }
 
+  SimpleSelector parseSimpleSelector() {
+    var simple = _simpleSelector();
+    _scanner.expectDone();
+    return simple;
+  }
+
   VariableDeclaration _variableDeclaration() {
     if (!_scanner.scanChar($dollar)) return null;
 
