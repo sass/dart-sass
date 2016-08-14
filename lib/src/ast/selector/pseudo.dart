@@ -71,6 +71,7 @@ class PseudoSelector extends SimpleSelector {
     if (selector == null) {
       _minSpecificity = super.minSpecificity;
       _maxSpecificity = super.maxSpecificity;
+      return;
     }
 
     if (name == 'not') {
