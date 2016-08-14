@@ -176,7 +176,7 @@ class Parser {
     return children;
   }
 
-  Expression _declarationValue() {
+  Expression _declarationExpression() {
     if (_scanner.peekChar() == $lbrace) {
       return new StringExpression(
           new InterpolationExpression([], span: _scanner.emptySpan));
@@ -275,7 +275,7 @@ class Parser {
 
     Expression value;
     try {
-      value = _declarationValue();
+      value = _declarationExpression();
       var next = _scanner.peekChar();
       if (next == $lbrace) {
         // Properties that are ambiguous with selectors can't have additional
