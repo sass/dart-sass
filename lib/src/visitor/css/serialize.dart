@@ -112,12 +112,18 @@ class _SerializeCssVisitor extends CssVisitor {
       _buffer.write(value.text.replaceAll("\n", " "));
 
   void visitList(SassList value) {
-    if (value.contents.isEmpty) throw "() isn't a valid CSS value";
+    if (value.isBracketed) {
+      _buffer.writeCharCode($lbracket);
+    } else if (value.contents.isEmpty) {
+      throw "() isn't a valid CSS value";
+    }
 
     _writeBetween(
         value.contents.where((element) => !element.isBlank),
         value.separator == ListSeparator.space ? " " : ", ",
         (element) => element.accept(this));
+
+    if (value.isBracketed) _buffer.writeCharCode($rbracket);
   }
 
   // TODO(nweiz): Support precision and don't support exponent notation.

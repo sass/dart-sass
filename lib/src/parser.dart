@@ -319,17 +319,43 @@ class Parser {
 
   // ## Expressions
 
-  Expression _expression() {
-    var hadComma = false;
+  Expression _expression() => _list();
+
+  ListExpression _list({bool bracketed: false}) {
     var start = _scanner.state;
-    var commaExpressions = <Expression>[];
+    if (bracketed) _scanner.expectChar($lbracket);
+
+    var spaceStart = _scanner.state;
+    var spaceExpressions = _spaceList();
+
+    if (spaceExpressions.isEmpty &&
+        (!bracketed || _scanner.peekChar() == $comma)) {
+      // A bracketed list starting with a comma is invalid, and an unbracketed
+      // list that doesn't start with an expression is invalid.
+      _scanner.error("Expected expression.");
+    }
+
+    if (!_scanner.scanChar($comma)) {
+      if (bracketed) _scanner.expectChar($rbracket);
+      return new ListExpression(
+          spaceExpressions,
+          spaceExpressions.length < 2
+              ? ListSeparator.undecided
+              : ListSeparator.space,
+          bracketed: bracketed,
+          span: _scanner.spanFrom(start));
+    }
+
+    var commaExpressions = [
+      spaceExpressions.length == 1
+          ? spaceExpressions.single
+          : new ListExpression(spaceExpressions, ListSeparator.space,
+                span: _scanner.spanFrom(spaceStart))
+    ];
+    _ignoreComments();
     while (true) {
-      var spaceExpressions = <Expression>[];
-      while (true) {
-        if (_scanner.isDone || !isExpressionStart(_scanner.peekChar())) break;
-        spaceExpressions.add(_singleExpression());
-        _ignoreComments();
-      }
+      spaceStart = _scanner.state;
+      spaceExpressions = _spaceList();
 
       if (spaceExpressions.isEmpty) {
         break;
@@ -337,18 +363,27 @@ class Parser {
         commaExpressions.add(spaceExpressions.single);
       } else {
         commaExpressions.add(
-            new ListExpression(spaceExpressions, ListSeparator.space));
+            new ListExpression(spaceExpressions, ListSeparator.space,
+                span: _scanner.spanFrom(spaceStart)));
       }
 
       if (!_scanner.scanChar($comma)) break;
-      hadComma = true;
       _ignoreComments();
     }
 
-    if (commaExpressions.isEmpty) _scanner.error("Expected expression.");
-    if (!hadComma) return commaExpressions.single;
+    if (bracketed) _scanner.expectChar($rbracket);
     return new ListExpression(commaExpressions, ListSeparator.comma,
+        bracketed: bracketed,
         span: _scanner.spanFrom(start));
+  }
+
+  List<Expression> _spaceList() {
+    var spaceExpressions = <Expression>[];
+    while (!_scanner.isDone && isExpressionStart(_scanner.peekChar())) {
+      spaceExpressions.add(_singleExpression());
+      _ignoreComments();
+    }
+    return spaceExpressions;
   }
 
   Expression _singleExpression() {
@@ -359,7 +394,7 @@ class Parser {
       case $lparen: return _parentheses();
       case $slash: return _unaryOperator();
       case $dot: return _number();
-      case $lbracket: return _bracketList();
+      case $lbracket: return _list(bracketed: true);
       case $dollar: return _variable();
 
       case $single_quote:
@@ -471,8 +506,6 @@ class Parser {
 
     return new NumberExpression(sign * number, span: _scanner.spanFrom(start));
   }
-
-  Expression _bracketList() => throw new UnimplementedError();
 
   VariableExpression _variable() {
     var start = _scanner.state;

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../utils.dart';
@@ -14,13 +15,16 @@ class ListExpression implements Expression {
 
   final ListSeparator separator;
 
+  final bool isBracketed;
+
   final FileSpan span;
 
   ListExpression(Iterable<Expression> contents, ListSeparator separator,
-          {FileSpan span})
-      : this._(new List.unmodifiable(contents), separator, span);
+          {bool bracketed, FileSpan span})
+      : this._(new List.unmodifiable(contents), separator, bracketed, span);
 
-  ListExpression._(List<Expression> contents, this.separator, FileSpan span)
+  ListExpression._(List<Expression> contents, this.separator, this.isBracketed,
+      FileSpan span)
       : contents = contents,
         span = span ?? spanForList(contents);
 
@@ -28,6 +32,11 @@ class ListExpression implements Expression {
       visitor.visitListExpression(this);
 
   // TODO: parenthesize nested lists if necessary
-  String toString() =>
-      contents.join(separator == ListSeparator.comma ? ", " : " ");
+  String toString() {
+    var buffer = new StringBuffer();
+    if (isBracketed) buffer.writeCharCode($lbracket);
+    buffer.write(contents.join(separator == ListSeparator.comma ? ", " : " "));
+    if (isBracketed) buffer.writeCharCode($rbracket);
+    return buffer.toString();
+  }
 }

@@ -53,7 +53,8 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
 
   SassList visitListExpression(ListExpression node) => new SassList(
       node.contents.map((expression) => expression.accept(this)),
-      node.separator);
+      node.separator,
+      bracketed: node.isBracketed);
 
   SassString visitStringExpression(StringExpression node) =>
       visitInterpolationExpression(node.text);
