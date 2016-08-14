@@ -14,7 +14,8 @@ class SelectorList extends Selector {
 
   SelectorList(Iterable<ComplexSelector> components, {Iterable<int> lineBreaks})
       : components = new List.unmodifiable(components),
-        lineBreaks = new List.unmodifiable(lineBreaks);
+        lineBreaks =
+            lineBreaks == null ? const [] : new List.unmodifiable(lineBreaks);
 
   bool isSuperselector(SelectorList other) =>
       listIsSuperslector(components, other.components);

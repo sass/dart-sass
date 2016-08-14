@@ -143,8 +143,9 @@ class Extender {
       for (var list in extenders) {
         for (var complex in list.components) {
           var extenderBase = complex.components.last as CompoundSelector;
-          var unified = _unifyCompound(
-              extenderBase.components, compoundWithoutSimple);
+          var unified = compoundWithoutSimple.isEmpty
+              ? extenderBase
+              : _unifyCompound(extenderBase.components, compoundWithoutSimple);
           if (unified == null) continue;
 
           if (!changed) extended = [[compound]];

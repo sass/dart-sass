@@ -27,7 +27,9 @@ class ComplexSelector extends Selector {
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
       {Iterable<int> lineBreaks})
       : components = new List.unmodifiable(components),
-        lineBreaks = new List.unmodifiable(lineBreaks);
+        lineBreaks = lineBreaks == null
+            ? const []
+            : new List.unmodifiable(lineBreaks);
 
   bool isSuperselector(ComplexSelector other) =>
       complexIsSuperselector(components, other.components);
