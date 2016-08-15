@@ -31,12 +31,34 @@ class ListExpression implements Expression {
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitListExpression(this);
 
-  // TODO: parenthesize nested lists if necessary
   String toString() {
     var buffer = new StringBuffer();
     if (isBracketed) buffer.writeCharCode($lbracket);
-    buffer.write(contents.join(separator == ListSeparator.comma ? ", " : " "));
+    buffer.write(contents
+        .map((element) =>
+            _elementNeedsParens(element) ? "($element)" : element.toString())
+        .join(separator == ListSeparator.comma ? ", " : " "));
     if (isBracketed) buffer.writeCharCode($rbracket);
     return buffer.toString();
+  }
+
+  bool _elementNeedsParens(Expression expression) {
+    if (expression is ListExpression) {
+      if (expression.contents.length < 2) return false;
+      if (expression.isBracketed) return false;
+      return separator == ListSeparator.comma
+          ? separator == ListSeparator.comma
+          : separator != ListSeparator.unknown;
+    }
+
+    if (separator != ListSeparator.space) return false;
+
+    if (element is UnaryOperatorExpression) {
+      return element.operator == UnaryOperator.plus ||
+          element.operator == UnaryOperator.minus;
+    }
+
+    // TODO: handle binary operations.
+    return false;
   }
 }

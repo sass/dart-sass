@@ -32,13 +32,26 @@ class SassList extends Value {
 
   int get hashCode => listHash(contents);
 
-  // TODO: parenthesize nested lists if necessary
   String toString() {
     var buffer = new StringBuffer();
     if (isBracketed) buffer.writeCharCode($lbracket);
-    buffer.write(contents.join(separator == ListSeparator.comma ? ", " : " "));
+    buffer.write(contents
+        .map((element) =>
+            _elementNeedsParens(element) ? "($element)" : element.toString())
+        .join(separator == ListSeparator.comma ? ", " : " "));
     if (isBracketed) buffer.writeCharCode($rbracket);
     return buffer.toString();
+  }
+
+  bool _elementNeedsParens(Value value) {
+    if (value is SassList) {
+      if (expression.contents.length < 2) return false;
+      if (expression.isBracketed) return false;
+      return separator == ListSeparator.comma
+          ? separator == ListSeparator.comma
+          : separator != ListSeparator.unknown;
+    }
+    return false;
   }
 }
 
