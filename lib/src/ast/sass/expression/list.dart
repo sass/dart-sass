@@ -48,14 +48,14 @@ class ListExpression implements Expression {
       if (expression.isBracketed) return false;
       return separator == ListSeparator.comma
           ? separator == ListSeparator.comma
-          : separator != ListSeparator.unknown;
+          : separator != ListSeparator.undecided;
     }
 
     if (separator != ListSeparator.space) return false;
 
-    if (element is UnaryOperatorExpression) {
-      return element.operator == UnaryOperator.plus ||
-          element.operator == UnaryOperator.minus;
+    if (expression is UnaryOperatorExpression) {
+      return expression.operator == UnaryOperator.plus ||
+          expression.operator == UnaryOperator.minus;
     }
 
     // TODO: handle binary operations.

@@ -45,11 +45,11 @@ class SassList extends Value {
 
   bool _elementNeedsParens(Value value) {
     if (value is SassList) {
-      if (expression.contents.length < 2) return false;
-      if (expression.isBracketed) return false;
+      if (value.contents.length < 2) return false;
+      if (value.isBracketed) return false;
       return separator == ListSeparator.comma
           ? separator == ListSeparator.comma
-          : separator != ListSeparator.unknown;
+          : separator != ListSeparator.undecided;
     }
     return false;
   }

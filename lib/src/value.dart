@@ -4,6 +4,7 @@
 
 import 'value/boolean.dart';
 import 'value/identifier.dart';
+import 'visitor/css/serialize.dart';
 import 'visitor/value.dart';
 
 export 'value/boolean.dart';
