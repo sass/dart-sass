@@ -23,7 +23,6 @@ abstract class Value {
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
 
-  // TODO: call the proper stringifying method
   Value unaryPlus() => new SassIdentifier("+${valueToCss(this)}");
 
   Value unaryMinus() => new SassIdentifier("-${valueToCss(this)}");
