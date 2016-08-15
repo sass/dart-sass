@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../extend/functions.dart';
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class TypeSelector extends SimpleSelector {
@@ -11,6 +12,9 @@ class TypeSelector extends SimpleSelector {
   int get minSpecificity => 1;
 
   TypeSelector(this.name);
+
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitTypeSelector(this);
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
@@ -24,6 +28,4 @@ class TypeSelector extends SimpleSelector {
   bool operator==(other) => other is TypeSelector && other.name == name;
 
   int get hashCode => name.hashCode;
-
-  String toString() => "$name";
 }

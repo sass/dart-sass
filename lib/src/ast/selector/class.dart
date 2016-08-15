@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class ClassSelector extends SimpleSelector {
@@ -11,7 +12,8 @@ class ClassSelector extends SimpleSelector {
 
   bool operator==(other) => other is ClassSelector && other.name == name;
 
-  int get hashCode => name.hashCode;
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitClassSelector(this);
 
-  String toString() => ".$name";
+  int get hashCode => name.hashCode;
 }

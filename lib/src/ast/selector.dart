@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../visitor/interface/selector.dart';
+import '../visitor/serialize.dart';
+
 export 'selector/attribute.dart';
 export 'selector/class.dart';
 export 'selector/complex.dart';
@@ -15,4 +18,8 @@ export 'selector/simple.dart';
 export 'selector/type.dart';
 export 'selector/universal.dart';
 
-abstract class Selector {}
+abstract class Selector {
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor);
+
+  String toString() => selectorToCss(this);
+}

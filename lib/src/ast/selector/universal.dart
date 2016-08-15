@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../extend/functions.dart';
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class UniversalSelector extends SimpleSelector {
@@ -11,6 +12,9 @@ class UniversalSelector extends SimpleSelector {
   int get minSpecificity => 0;
 
   UniversalSelector({this.namespace});
+
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitUniversalSelector(this);
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
@@ -29,6 +33,4 @@ class UniversalSelector extends SimpleSelector {
       other.namespace == namespace;
 
   int get hashCode => namespace.hashCode;
-
-  String toString() => namespace == null ? "*" : "$namespace|*";
 }

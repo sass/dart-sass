@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class IDSelector extends SimpleSelector {
@@ -12,6 +13,9 @@ class IDSelector extends SimpleSelector {
   int get minSpecificity => math.pow(super.minSpecificity, 2);
 
   IDSelector(this.name);
+
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitIDSelector(this);
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     // A given compound selector may only contain one ID.

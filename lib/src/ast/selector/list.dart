@@ -4,6 +4,7 @@
 
 import '../../extend/functions.dart';
 import '../../utils.dart';
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class SelectorList extends Selector {
@@ -16,6 +17,9 @@ class SelectorList extends Selector {
       : components = new List.unmodifiable(components),
         lineBreaks =
             lineBreaks == null ? const [] : new List.unmodifiable(lineBreaks);
+
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitSelectorList(this);
 
   bool isSuperselector(SelectorList other) =>
       listIsSuperslector(components, other.components);

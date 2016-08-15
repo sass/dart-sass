@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class AttributeSelector extends SimpleSelector {
@@ -17,16 +18,13 @@ class AttributeSelector extends SimpleSelector {
 
   AttributeSelector.withOperator(this.name, this.op, this.value);
 
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitAttributeSelector(this);
+
   bool operator==(other) => other is AttributeSelector &&
       other.name == name && other.op == op && other.value == value;
 
   int get hashCode => name.hashCode ^ op.hashCode ^ value.hashCode;
-
-  String toString() {
-    if (op == null) return name.toString();
-    // TODO: if [value] isn't an identifier, quote it.
-    return "[$name$op$value]";
-  }
 }
 
 class AttributeOperator {

@@ -4,8 +4,7 @@
 
 import 'dart:math' as math;
 
-import 'package:charcode/charcode.dart';
-
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 final _vendorPrefix = new RegExp(r'^-[a-zA-Z0-9]+-');
@@ -92,6 +91,9 @@ class PseudoSelector extends SimpleSelector {
     }
   }
 
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitPseudoSelector(this);
+
   // This intentionally uses identity for the selector list, if one is available.
   bool operator==(other) =>
       other is PseudoSelector &&
@@ -102,18 +104,6 @@ class PseudoSelector extends SimpleSelector {
 
   int get hashCode =>
       name.hashCode ^ type.hashCode ^ argument.hashCode ^ selector.hashCode;
-
-  String toString() {
-    var buffer = new StringBuffer("$type$name");
-    if (argument == null && selector == null) return buffer.toString();
-
-    buffer.writeCharCode($lparen);
-    if (argument != null) buffer.write(argument);
-    if (argument != null && selector != null) buffer.writeCharCode($space);
-    if (selector != null) buffer.write(selector);
-    buffer.writeCharCode($rparen);
-    return buffer.toString();
-  }
 }
 
 class PseudoType {

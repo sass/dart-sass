@@ -4,6 +4,7 @@
 
 import '../../extend/functions.dart';
 import '../../utils.dart';
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class CompoundSelector extends Selector implements ComplexSelectorComponent {
@@ -24,6 +25,9 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   CompoundSelector(Iterable<SimpleSelector> components)
       : components = new List.unmodifiable(components);
 
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitCompoundSelector(this);
+
   bool isSuperselector(CompoundSelector other) =>
       compoundIsSuperselector(this, other);
 
@@ -40,6 +44,4 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
 
   bool operator ==(other) =>
       other is ComplexSelector && listEquals(components, other.components);
-
-  String toString() => components.join("");
 }

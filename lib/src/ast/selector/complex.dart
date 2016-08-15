@@ -4,6 +4,7 @@
 
 import '../../extend/functions.dart';
 import '../../utils.dart';
+import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class ComplexSelector extends Selector {
@@ -31,6 +32,9 @@ class ComplexSelector extends Selector {
             ? const []
             : new List.unmodifiable(lineBreaks);
 
+  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+      visitor.visitComplexSelector(this);
+
   bool isSuperselector(ComplexSelector other) =>
       complexIsSuperselector(components, other.components);
 
@@ -49,8 +53,6 @@ class ComplexSelector extends Selector {
 
   bool operator ==(other) =>
       other is ComplexSelector && listEquals(components, other.components);
-
-  String toString() => components.join(" ");
 }
 
 abstract class ComplexSelectorComponent {}

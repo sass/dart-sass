@@ -8,6 +8,7 @@ import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/css/node.dart';
+import '../ast/selector.dart';
 import '../util/character.dart';
 import '../value.dart';
 import 'interface/css.dart';
@@ -28,6 +29,12 @@ String toCss(CssNode node) {
 String valueToCss(Value value) {
   var visitor = new _SerializeCssVisitor();
   value.accept(visitor);
+  return visitor._buffer.toString();
+}
+
+String selectorToCss(Selector selector) {
+  var visitor = new _SerializeCssVisitor();
+  selector.accept(visitor);
   return visitor._buffer.toString();
 }
 
@@ -174,6 +181,8 @@ class _SerializeCssVisitor extends CssVisitor {
     }
   }
 
+  // Expressions
+
   void visitBoolean(SassBoolean value) =>
       _buffer.write(value.value.toString());
 
@@ -267,6 +276,73 @@ class _SerializeCssVisitor extends CssVisitor {
     var doubleQuote = forceDoubleQuote || !includesDoubleQuote;
     return doubleQuote ? '"$buffer"' : "'$buffer'";
   }
+
+  // Selectors
+
+  void visitAttributeSelector(AttributeSelector attribute) {
+    _buffer.writeCharCode($lbracket);
+    _buffer.write(attribute.name);
+    if (attribute.op == null) {
+      _buffer.write(attribute.op);
+      // TODO: quote the value if it's not an identifier
+      _buffer.write(attribute.value);
+    }
+    _buffer.writeCharCode($rbracket);
+  }
+
+  void visitClassSelector(ClassSelector klass) {
+    _buffer.writeCharCode($dot);
+    _buffer.write(klass.name);
+  }
+
+  void visitComplexSelector(ComplexSelector complex) {
+    _writeBetween(complex.components, " ", (component) {
+      if (component is CompoundSelector) {
+        visitCompoundSelector(component);
+      } else {
+        _buffer.write(component);
+      }
+    });
+  }
+
+  void visitIDSelector(IDSelector id) {
+    _buffer.writeCharCode($hash);
+    _buffer.write(id.name);
+  }
+
+  void visitSelectorList(SelectorList list) {
+    _writeBetween(list.components, ", ",
+        (complex) => visitComplexSelector(complex));
+  }
+
+  void visitPseudoSelector(PseudoSelector pseudo) {
+    _buffer.write($colon);
+    if (pseudo.type == PseudoType.element) _buffer.write($colon);
+    _buffer.write(pseudo.name);
+    if (pseudo.argument == null && pseudo.selector == null) return;
+
+    _buffer.writeCharCode($lparen);
+    if (pseudo.argument != null) {
+      _buffer.write(pseudo.argument);
+      if (pseudo.selector != null) _buffer.writeCharCode($space);
+    }
+    if (pseudo.selector != null) _buffer.write(pseudo.selector);
+    _buffer.writeCharCode($rparen);
+  }
+
+  void visitTypeSelector(TypeSelector type) {
+    _buffer.write(type.name);
+  }
+
+  void visitUniversalSelector(UniversalSelector universal) {
+    if (universal.namespace != null) {
+      _buffer.write(universal.namespace);
+      _buffer.writeCharCode($pipe);
+    }
+    _buffer.writeCharCode($asterisk);
+  }
+
+  // Utilities
 
   void _visitChildren(Iterable<CssNode> children) {
     _buffer.writeCharCode($lbrace);

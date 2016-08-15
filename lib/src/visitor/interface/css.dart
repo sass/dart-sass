@@ -3,9 +3,11 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../ast/css/node.dart';
+import 'selector.dart';
 import 'value.dart';
 
-abstract class CssVisitor<T> extends ValueVisitor<T> {
+abstract class CssVisitor<T> extends SelectorVisitor<T>
+    implements ValueVisitor<T> {
   T visitComment(CssComment node) => null;
   T visitDeclaration(CssDeclaration node) => null;
 
