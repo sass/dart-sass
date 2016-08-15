@@ -14,7 +14,6 @@ class Comment implements Statement {
 
   final FileSpan span;
 
-  // TODO: Reformat text.
   Comment(this.text, {bool silent, this.span})
       : isSilent = silent;
 

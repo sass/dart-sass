@@ -38,8 +38,18 @@ class _SerializeCssVisitor extends CssVisitor {
   }
 
   void visitComment(CssComment node) {
-    // TODO: format this at all
-    _buffer.writeln(node.text);
+    var minimumIndentation = _minimumIndentation(node.text);
+    if (minimumIndentation == null) {
+      _buffer.writeln(node.text);
+      return;
+    }
+
+    if (node.span != null) {
+      minimumIndentation = math.min(minimumIndentation, node.span.start.column);
+    }
+
+    _writeIndentation();
+    _writeWithIndent(node.text, minimumIndentation);
   }
 
   void visitAtRule(CssAtRule node) {
@@ -123,20 +133,7 @@ class _SerializeCssVisitor extends CssVisitor {
           math.min(minimumIndentation, node.name.span.start.column);
     }
 
-    var scanner = new LineScanner(value);
-    while (!scanner.isDone && scanner.peekChar() != $lf) {
-      _buffer.writeCharCode(scanner.readChar());
-    }
-    if (scanner.isDone) return;
-
-    while (!scanner.isDone) {
-      _buffer.writeCharCode(scanner.readChar());
-      for (var i = 0; i < minimumIndentation; i++) scanner.readChar();
-      _writeIndentation();
-      while (!scanner.isDone && scanner.peekChar() != $lf) {
-        _buffer.writeCharCode(scanner.readChar());
-      }
-    }
+    _writeWithIndent(value, minimumIndentation);
   }
 
   int _minimumIndentation(String text) {
@@ -153,6 +150,22 @@ class _SerializeCssVisitor extends CssVisitor {
     }
 
     return min;
+  }
+
+  void _writeWithIndent(String text, int minimumIndentation) {
+    var scanner = new LineScanner(text);
+    while (!scanner.isDone && scanner.peekChar() != $lf) {
+      _buffer.writeCharCode(scanner.readChar());
+    }
+
+    while (!scanner.isDone) {
+      _buffer.writeCharCode(scanner.readChar());
+      for (var i = 0; i < minimumIndentation; i++) scanner.readChar();
+      _writeIndentation();
+      while (!scanner.isDone && scanner.peekChar() != $lf) {
+        _buffer.writeCharCode(scanner.readChar());
+      }
+    }
   }
 
   void visitBoolean(SassBoolean value) =>
