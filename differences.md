@@ -82,6 +82,10 @@ official behavior.
 
 2. Subject selectors are not supported. See [issue 1126][].
 
+3. Pseudo selector arguments are parsed as `<declaration-value>`s rather than
+   having a more limited custom parsing. See [issue 2120][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
+[issue 2120]: https://github.com/sass/sass/issues/2120
 

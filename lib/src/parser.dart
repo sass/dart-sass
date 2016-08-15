@@ -685,7 +685,7 @@ class Parser {
     return buffer.interpolation(_scanner.spanFrom(start));
   }
 
-  IdentifierExpression _declarationValue() {
+  IdentifierExpression _declarationValue({bool static: false}) {
     var start = _scanner.state;
     var buffer = new InterpolationBuffer();
 
@@ -701,7 +701,7 @@ class Parser {
 
         case $double_quote:
         case $single_quote:
-          buffer.addInterpolation(_string().asInterpolation);
+          buffer.addInterpolation(_string(static: static).asInterpolation);
           wroteNewline = false;
           break;
 
@@ -723,7 +723,7 @@ class Parser {
           break;
 
         case $hash:
-          if (_scanner.peekChar(1) == $lbrace) {
+          if (!static && _scanner.peekChar(1) == $lbrace) {
             buffer.add(_singleInterpolation());
           } else {
             buffer.writeCharCode(_scanner.readChar());
@@ -758,7 +758,7 @@ class Parser {
         case $rparen:
         case $rbrace:
         case $rbracket:
-          if (brackets.isEmpty) _scanner.error("Unbalanced bracket.");
+          if (brackets.isEmpty) break loop;
           buffer.writeCharCode(next);
           _scanner.expectChar(brackets.removeLast());
           wroteNewline = false;
@@ -766,7 +766,6 @@ class Parser {
 
         case $exclamation:
         case $semicolon:
-          if (brackets.isNotEmpty) _scanner.expectChar(brackets.last);
           break loop;
 
         default:
@@ -779,6 +778,7 @@ class Parser {
       }
     }
 
+    if (brackets.isNotEmpty) _scanner.expectChar(brackets.last);
     return new IdentifierExpression(
         buffer.interpolation(_scanner.spanFrom(start)));
   }
@@ -933,7 +933,7 @@ class Parser {
 
     var next = _scanner.peekChar();
     var value = next == $single_quote || next == $double_quote
-        ? _string(static: true)
+        ? _string(static: true).text.asPlain
         : _identifier();
     _ignoreComments();
 
@@ -1020,7 +1020,7 @@ class Parser {
     String argument;
     SelectorList selector;
     if (type == PseudoType.element) {
-      argument = _rawText(_pseudoArgument);
+      argument = _pseudoArgument();
     } else if (_selectorPseudoClasses.contains(unvendored)) {
       selector = _selectorList();
     } else if (_prefixedSelectorPseudoClasses.contains(unvendored)) {
@@ -1033,7 +1033,7 @@ class Parser {
         selector = _selectorList();
       }
     } else {
-      argument = _rawText(_pseudoArgument);
+      argument = _pseudoArgument();
     }
     _scanner.expectChar($rparen);
 
@@ -1041,9 +1041,7 @@ class Parser {
         argument: argument, selector: selector);
   }
 
-  // TODO: this should probably be a declaration value, but we don't have that
-  // defined in Dart yet and that's not what it is in Ruby (yet).
-  void _pseudoArgument() => throw new UnimplementedError();
+  String _pseudoArgument() => _declarationValue(static: true).text.asPlain;
 
   void _aNPlusB() {
     switch (_scanner.peekChar()) {
