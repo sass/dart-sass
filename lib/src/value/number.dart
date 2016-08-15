@@ -18,6 +18,4 @@ class SassNumber extends Value {
   Value unaryPlus() => this;
 
   Value unaryMinus() => new SassNumber(-value);
-
-  String toString() => value.toString();
 }

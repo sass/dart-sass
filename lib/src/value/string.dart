@@ -12,6 +12,4 @@ class SassString extends Value {
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitString(this);
-
-  String toString() => '"$text"';
 }

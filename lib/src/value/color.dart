@@ -24,9 +24,4 @@ class SassColor extends Value {
       other.blue == blue;
 
   int get hashCode => red.hashCode ^ green.hashCode ^ blue.hashCode;
-
-  String toString() =>
-      "#${_hexComponent(red)}${_hexComponent(green)}${_hexComponent(blue)}";
-  
-  String _hexComponent(int color) => color.toRadixString(16).padLeft(2, '0');
 }

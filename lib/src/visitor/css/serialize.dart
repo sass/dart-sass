@@ -25,6 +25,12 @@ String toCss(CssNode node) {
   return result.trim();
 }
 
+String valueToCss(Value value) {
+  var visitor = new _SerializeCssVisitor();
+  value.accept(visitor);
+  return visitor._buffer.toString();
+}
+
 class _SerializeCssVisitor extends CssVisitor {
   final _buffer = new StringBuffer();
 

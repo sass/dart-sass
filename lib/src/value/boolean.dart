@@ -19,6 +19,4 @@ class SassBoolean extends Value {
       visitor.visitBoolean(this);
 
   Value unaryNot() => value ? sassFalse : sassTrue;
-
-  String toString() => value.toString();
 }

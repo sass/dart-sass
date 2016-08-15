@@ -18,6 +18,4 @@ class SassIdentifier extends Value {
   bool operator ==(other) => other is SassIdentifier && other.text == text;
 
   int get hashCode => text.hashCode;
-
-  String toString() => text;
 }
