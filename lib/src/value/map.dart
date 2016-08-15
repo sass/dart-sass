@@ -4,7 +4,7 @@
 
 import 'package:collection/collection.dart';
 
-import '../visitor/value.dart';
+import '../visitor/interface/value.dart';
 import '../value.dart';
 
 class SassMap extends Value {

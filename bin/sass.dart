@@ -6,9 +6,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:sass/src/parser.dart';
-import 'package:sass/src/visitor/css.dart';
-import 'package:sass/src/visitor/sass/statement/perform.dart';
-import 'package:sass/src/visitor/css/serialize.dart';
+import 'package:sass/src/visitor/perform_statement.dart';
+import 'package:sass/src/visitor/serialize.dart';
 
 void main(List<String> args) {
   var parser = new Parser(new File(args.first).readAsStringSync(),

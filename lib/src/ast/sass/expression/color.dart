@@ -5,7 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../value.dart';
-import '../../../visitor/sass/expression.dart';
+import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
 class ColorExpression implements Expression {

@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../../interpolation_buffer.dart';
 import '../../../util/character.dart';
-import '../../../visitor/sass/expression.dart';
+import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import 'interpolation.dart';
 

@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import '../../visitor/css.dart';
+import '../../visitor/interface/css.dart';
 import '../node.dart';
 
 export 'at_rule.dart';

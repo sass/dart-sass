@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../ast/css/node.dart';
+import '../../ast/css/node.dart';
 import 'value.dart';
 
 abstract class CssVisitor<T> extends ValueVisitor<T> {

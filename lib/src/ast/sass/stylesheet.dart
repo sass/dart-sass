@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/sass/statement.dart';
+import '../../visitor/interface/statement.dart';
 import 'statement.dart';
 
 class Stylesheet implements Statement {

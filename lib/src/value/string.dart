@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../visitor/value.dart';
+import '../visitor/interface/value.dart';
 import '../value.dart';
 
 class SassString extends Value {

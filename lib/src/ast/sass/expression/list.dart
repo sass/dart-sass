@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../../utils.dart';
 import '../../../value/list.dart';
-import '../../../visitor/sass/expression.dart';
+import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
 class ListExpression implements Expression {

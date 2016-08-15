@@ -2,16 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../../../ast/css/node.dart';
-import '../../../ast/sass/expression.dart';
-import '../../../ast/sass/statement.dart';
-import '../../../ast/selector.dart';
-import '../../../environment.dart';
-import '../../../extend/extender.dart';
-import '../../../parser.dart';
-import '../../../value.dart';
-import '../expression/perform.dart';
-import '../statement.dart';
+import '../ast/css/node.dart';
+import '../ast/sass/expression.dart';
+import '../ast/sass/statement.dart';
+import '../ast/selector.dart';
+import '../environment.dart';
+import '../extend/extender.dart';
+import '../parser.dart';
+import '../value.dart';
+import 'interface/statement.dart';
+import 'perform_expression.dart';
 
 class PerformVisitor extends StatementVisitor {
   final Environment _environment;

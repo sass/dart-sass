@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../../visitor/sass/expression.dart';
+import '../../visitor/interface/expression.dart';
 import 'node.dart';
 
 export 'expression/boolean.dart';

@@ -7,10 +7,10 @@ import 'dart:math' as math;
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import '../../ast/css/node.dart';
-import '../../util/character.dart';
-import '../../value.dart';
-import '../css.dart';
+import '../ast/css/node.dart';
+import '../util/character.dart';
+import '../value.dart';
+import 'interface/css.dart';
 
 String toCss(CssNode node) {
   var visitor = new _SerializeCssVisitor();

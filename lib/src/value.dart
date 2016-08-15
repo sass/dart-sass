@@ -4,8 +4,8 @@
 
 import 'value/boolean.dart';
 import 'value/identifier.dart';
-import 'visitor/css/serialize.dart';
-import 'visitor/value.dart';
+import 'visitor/interface/value.dart';
+import 'visitor/serialize.dart';
 
 export 'value/boolean.dart';
 export 'value/color.dart';

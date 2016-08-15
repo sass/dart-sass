@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../value.dart';
+import '../../value.dart';
 
 abstract class ValueVisitor<T> {
   T visitBoolean(SassBoolean value) => null;

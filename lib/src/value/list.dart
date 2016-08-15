@@ -5,7 +5,7 @@
 import 'package:charcode/charcode.dart';
 
 import '../utils.dart';
-import '../visitor/value.dart';
+import '../visitor/interface/value.dart';
 import '../value.dart';
 
 class SassList extends Value {

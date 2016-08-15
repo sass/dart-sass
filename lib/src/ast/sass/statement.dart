@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../../visitor/sass/statement.dart';
+import '../../visitor/interface/statement.dart';
 import 'node.dart';
 
 export 'at_rule.dart';

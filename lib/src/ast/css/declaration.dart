@@ -5,7 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../value.dart';
-import '../../visitor/css.dart';
+import '../../visitor/interface/css.dart';
 import 'node.dart';
 import 'value.dart';
 

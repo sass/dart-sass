@@ -4,7 +4,7 @@
 
 import '../../ast/sass/expression.dart';
 
-class ExpressionVisitor<T> {
+abstract class ExpressionVisitor<T> {
   T visitVariableExpression(VariableExpression node) => null;
   T visitBooleanExpression(BooleanExpression node) => null;
   T visitNumberExpression(NumberExpression node) => null;
