@@ -17,6 +17,14 @@ class SassColor extends Value {
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitColor(this);
 
+  bool operator ==(other) =>
+      other is SassColor &&
+      other.red == red &&
+      other.green == green &&
+      other.blue == blue;
+
+  int get hashCode => red.hashCode ^ green.hashCode ^ blue.hashCode;
+
   String toString() =>
       "#${_hexComponent(red)}${_hexComponent(green)}${_hexComponent(blue)}";
   

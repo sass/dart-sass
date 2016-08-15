@@ -355,20 +355,11 @@ class Parser {
                 span: _scanner.spanFrom(spaceStart))
     ];
     _ignoreComments();
+
     while (true) {
       spaceStart = _scanner.state;
-      spaceExpressions = _spaceList();
-
-      if (spaceExpressions.isEmpty) {
-        break;
-      } else if (spaceExpressions.length == 1) {
-        commaExpressions.add(spaceExpressions.single);
-      } else {
-        commaExpressions.add(
-            new ListExpression(spaceExpressions, ListSeparator.space,
-                span: _scanner.spanFrom(spaceStart)));
-      }
-
+      if (_lookingAtExpression()) break;
+      commaExpressions.add(_spaceListOrValue());
       if (!_scanner.scanChar($comma)) break;
       _ignoreComments();
     }
@@ -379,9 +370,23 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
+  Expression _spaceListOrValue() {
+    var first = _singleExpression();
+    _ignoreComments();
+    if (!_lookingAtExpression()) return first;
+
+    var spaceExpressions = [first];
+    do {
+      spaceExpressions.add(_singleExpression());
+      _ignoreComments();
+    } while (_lookingAtExpression());
+
+    return new ListExpression(spaceExpressions, ListSeparator.space);
+  }
+
   List<Expression> _spaceList() {
     var spaceExpressions = <Expression>[];
-    while (!_scanner.isDone && isExpressionStart(_scanner.peekChar())) {
+    while (_lookingAtExpression()) {
       spaceExpressions.add(_singleExpression());
       _ignoreComments();
     }
@@ -437,16 +442,52 @@ class Parser {
     var start = _scanner.state;
     _scanner.expectChar($lparen);
     _ignoreComments();
-    if (!isExpressionStart(_scanner.peekChar())) {
+    if (!_lookingAtExpression()) {
       _scanner.expectChar($rparen);
       return new ListExpression([], ListSeparator.undecided,
           span: _scanner.spanFrom(start));
     }
 
-    // TODO: support maps
-    var result = _expression();
+    var first = _spaceListOrValue();
+    if (_scanner.scanChar($colon)) {
+      _ignoreComments();
+      return _map(first, start);
+    }
+
+    if (_scanner.peekChar() != $comma) {
+      _scanner.expectChar($rparen);
+      return first;
+    }
+
+    var expressions = [first];
+    while (true) {
+      if (_lookingAtExpression()) break;
+      expressions.add(_spaceListOrValue());
+      if (!_scanner.scanChar($comma)) break;
+      _ignoreComments();
+    }
+
+    _scanner.expectChar($lparen);
+    return new ListExpression(expressions, ListSeparator.comma,
+        span: _scanner.spanFrom(start));
+  }
+
+  MapExpression _map(Expression first, LineScannerState start) {
+    var pairs = [new Pair(first, _spaceListOrValue())];
+
+    while (_scanner.scanChar($comma)) {
+      _ignoreComments();
+      if (!_lookingAtExpression()) break;
+
+      var key = _spaceListOrValue();
+      _scanner.expectChar($colon);
+      _ignoreComments();
+      var value = _spaceListOrValue();
+      pairs.add(new Pair(key, value));
+    }
+
     _scanner.expectChar($rparen);
-    return result;
+    return new MapExpression(pairs, span: _scanner.spanFrom(start));
   }
 
   UnaryOperatorExpression _unaryOperator() {
@@ -1391,6 +1432,9 @@ class Parser {
     }
     return second == $hash && _scanner.peekChar(2) == $lbrace;
   }
+
+  bool _lookingAtExpression() =>
+      !_scanner.isDone && isExpressionStart(_scanner.peekChar());
 
   String _rawText(void consumer()) {
     var start = _scanner.position;

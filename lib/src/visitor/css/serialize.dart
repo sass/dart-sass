@@ -179,6 +179,10 @@ class _SerializeCssVisitor extends CssVisitor {
     if (value.isBracketed) _buffer.writeCharCode($rbracket);
   }
 
+  void visitMap(SassMap map) {
+    throw "$map isn't a valid CSS value.";
+  }
+
   // TODO(nweiz): Support precision and don't support exponent notation.
   void visitNumber(SassNumber value) {
     _buffer.write(value.value.toString());

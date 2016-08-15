@@ -4,6 +4,7 @@
 
 import 'package:charcode/charcode.dart';
 
+import '../utils.dart';
 import '../visitor/value.dart';
 import '../value.dart';
 
@@ -22,6 +23,14 @@ class SassList extends Value {
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitList(this);
+
+  bool operator ==(other) =>
+      other is SassList &&
+      other.separator == separator &&
+      other.isBracketed == isBracketed &&
+      listEquals(other.contents, contents);
+
+  int get hashCode => listHash(contents);
 
   // TODO: parenthesize nested lists if necessary
   String toString() {

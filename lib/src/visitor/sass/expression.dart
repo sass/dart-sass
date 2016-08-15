@@ -27,6 +27,14 @@ class ExpressionVisitor<T> {
     return null;
   }
 
+  T visitMapExpression(MapExpression node) {
+    for (var pair in node.pairs) {
+      pair.first.accept(this);
+      pair.last.accept(this);
+    }
+    return null;
+  }
+
   T visitStringExpression(StringExpression node) {
     visitInterpolationExpression(node.text);
     return null;

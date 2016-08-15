@@ -56,6 +56,19 @@ class PerformExpressionVisitor extends ExpressionVisitor<Value> {
       node.separator,
       bracketed: node.isBracketed);
 
+  SassMap visitMapExpression(MapExpression node) {
+    var map = <Value, Value>{};
+    for (var pair in node.pairs) {
+      var keyValue = pair.first.accept(this);
+      var valueValue = pair.last.accept(this);
+      if (map.containsKey(keyValue)) {
+        throw pair.first.span.message('Duplicate key.');
+      }
+      map[keyValue] = valueValue;
+    }
+    return new SassMap(map);
+  }
+
   SassString visitStringExpression(StringExpression node) =>
       visitInterpolationExpression(node.text);
 }

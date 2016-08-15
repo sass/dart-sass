@@ -17,5 +17,12 @@ abstract class ValueVisitor<T> {
     }
     return null;
   }
-  
+
+  T visitMap(SassMap value) {
+    value.contents.forEach((key, value) {
+      key.accept(this);
+      value.accept(this);
+    });
+    return null;
+  }
 }
