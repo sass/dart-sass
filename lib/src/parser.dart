@@ -186,9 +186,6 @@ class Parser {
     return _expression();
   }
 
-  Statement _customPropertyDeclaration(InterpolationExpression name) =>
-      throw new UnimplementedError();
-
   /// Parses a [Declaration] or a [StyleRule].
   ///
   /// When parsing the contents of a style rule, it can be difficult to tell
@@ -261,7 +258,12 @@ class Parser {
     // Parse custom properties as declarations no matter what.
     var name = nameBuffer.interpolation(_scanner.spanFrom(nameStart));
     if (name.initialPlain.startsWith('--')) {
-      return _customPropertyDeclaration(name);
+      var value = _declarationValue();
+      var next = _scanner.peekChar();
+      if (next != $semicolon && next != $rbrace) {
+        _scanner.expectChar($semicolon);
+      }
+      return new Declaration(name, value);
     }
 
     if (_scanner.scanChar($colon)) {
@@ -681,6 +683,104 @@ class Parser {
     }
 
     return buffer.interpolation(_scanner.spanFrom(start));
+  }
+
+  IdentifierExpression _declarationValue() {
+    var start = _scanner.state;
+    var buffer = new InterpolationBuffer();
+
+    var brackets = <int>[];
+    var wroteNewline = false;
+    loop: while (true) {
+      var next = _scanner.peekChar();
+      switch (next) {
+        case $backslash:
+          buffer.writeCharCode(_escape());
+          wroteNewline = false;
+          break;
+
+        case $double_quote:
+        case $single_quote:
+          buffer.addInterpolation(_string().asInterpolation);
+          wroteNewline = false;
+          break;
+
+        case $slash:
+          switch (_scanner.peekChar(1)) {
+            case $slash:
+              buffer.write(_rawText(() => _silentComment()));
+              break;
+
+            case $asterisk:
+              buffer.write(_rawText(() => _loudComment()));
+              break;
+
+            default:
+              buffer.writeCharCode(_scanner.readChar());
+              break;
+          }
+          wroteNewline = false;
+          break;
+
+        case $hash:
+          if (_scanner.peekChar(1) == $lbrace) {
+            buffer.add(_singleInterpolation());
+          } else {
+            buffer.writeCharCode(_scanner.readChar());
+          }
+          wroteNewline = false;
+          break;
+
+        case $space:
+        case $tab:
+          if (wroteNewline || !isWhitespace(_scanner.peekChar(1))) {
+            buffer.writeCharCode($space);
+          }
+          _scanner.readChar();
+          break;
+
+        case $lf:
+        case $cr:
+        case $ff:
+          if (!isNewline(_scanner.peekChar(-1))) buffer.writeln();
+          _scanner.readChar();
+          wroteNewline = true;
+          break;
+
+        case $lparen:
+        case $lbrace:
+        case $lbracket:
+          buffer.writeCharCode(next);
+          brackets.add(opposite(_scanner.readChar()));
+          wroteNewline = false;
+          break;
+
+        case $rparen:
+        case $rbrace:
+        case $rbracket:
+          if (brackets.isEmpty) _scanner.error("Unbalanced bracket.");
+          buffer.writeCharCode(next);
+          _scanner.expectChar(brackets.removeLast());
+          wroteNewline = false;
+          break;
+
+        case $exclamation:
+        case $semicolon:
+          if (brackets.isNotEmpty) _scanner.expectChar(brackets.last);
+          break loop;
+
+        default:
+          if (next == null) break loop;
+
+          // TODO: support url()
+          buffer.writeCharCode(_scanner.readChar());
+          wroteNewline = false;
+          break;
+      }
+    }
+
+    return new IdentifierExpression(
+        buffer.interpolation(_scanner.spanFrom(start)));
   }
 
   InterpolationExpression _interpolatedIdentifier() {
@@ -1286,7 +1386,9 @@ class Parser {
 
     if (first != $dash) return false;
     var second = _scanner.peekChar();
-    if (isNameStart(second) || second == $backslash) return true;
+    if (isNameStart(second) || second == $dash || second == $backslash) {
+      return true;
+    }
     return second == $hash && _scanner.peekChar(2) == $lbrace;
   }
 

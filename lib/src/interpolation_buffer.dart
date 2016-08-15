@@ -55,4 +55,6 @@ class InterpolationBuffer implements StringSink {
     if (_text.isNotEmpty) contents.add(_text.toString());
     return new InterpolationExpression(contents, span: span);
   }
+
+  String toString() => "${_contents.join('')}$_text";
 }

@@ -46,3 +46,12 @@ int hexCharFor(int character) {
   assert(character < 0x10);
   return character < 0xA ? $0 + character : $a - 0xA + character;
 }
+
+int opposite(int character) {
+  switch (character) {
+    case $lparen: return $rparen;
+    case $lbrace: return $rbrace;
+    case $lbracket: return $rbracket;
+    default: return null;
+  }
+}

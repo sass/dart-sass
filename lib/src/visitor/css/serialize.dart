@@ -2,7 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+
 import 'package:charcode/charcode.dart';
+import 'package:string_scanner/string_scanner.dart';
 
 import '../../ast/css/node.dart';
 import '../../util/character.dart';
@@ -97,9 +100,59 @@ class _SerializeCssVisitor extends CssVisitor {
     _writeIndentation();
     _buffer.write(node.name.value);
     _buffer.writeCharCode($colon);
-    _buffer.writeCharCode($space);
-    node.value.value.accept(this);
+    if (node.isCustomProperty) {
+      _writeCustomPropertyValue(node);
+    } else {
+      _buffer.writeCharCode($space);
+      node.value.value.accept(this);
+    }
     _buffer.writeCharCode($semicolon);
+  }
+
+  void _writeCustomPropertyValue(CssDeclaration node) {
+    var value = (node.value.value as SassIdentifier).text;
+
+    var minimumIndentation = _minimumIndentation(value);
+    if (minimumIndentation == null) {
+      _buffer.write(value);
+      return;
+    }
+
+    if (node.value.span != null) {
+      minimumIndentation =
+          math.min(minimumIndentation, node.name.span.start.column);
+    }
+
+    var scanner = new LineScanner(value);
+    while (!scanner.isDone && scanner.peekChar() != $lf) {
+      _buffer.writeCharCode(scanner.readChar());
+    }
+    if (scanner.isDone) return;
+
+    while (!scanner.isDone) {
+      _buffer.writeCharCode(scanner.readChar());
+      for (var i = 0; i < minimumIndentation; i++) scanner.readChar();
+      _writeIndentation();
+      while (!scanner.isDone && scanner.peekChar() != $lf) {
+        _buffer.writeCharCode(scanner.readChar());
+      }
+    }
+  }
+
+  int _minimumIndentation(String text) {
+    var scanner = new LineScanner(text);
+    while (!scanner.isDone && scanner.readChar() != $lf) {}
+    if (scanner.isDone) return null;
+
+    var min = null;
+    while (!scanner.isDone) {
+      while (!scanner.isDone && scanner.scanChar($space)) {}
+      if (scanner.isDone || scanner.scanChar($lf)) continue;
+      min = min == null ? scanner.column : math.min(min, scanner.column);
+      while (!scanner.isDone && scanner.readChar() != $lf) {}
+    }
+
+    return min;
   }
 
   void visitBoolean(SassBoolean value) =>

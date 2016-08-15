@@ -16,6 +16,8 @@ class CssDeclaration extends CssNode {
 
   final FileSpan span;
 
+  bool get isCustomProperty => name.value.startsWith("--");
+
   CssDeclaration(this.name, this.value, {this.span});
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>

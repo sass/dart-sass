@@ -183,11 +183,13 @@ class PerformVisitor extends StatementVisitor {
       InterpolationExpression interpolation, {bool trim: false}) {
     var result = _expressionVisitor.visitInterpolationExpression(interpolation)
         .text;
-    return new CssValue(trim ? result.trim() : result);
+    return new CssValue(trim ? result.trim() : result,
+        span: interpolation.span);
   }
 
   CssValue<Value> _performExpression(Expression expression) =>
-      new CssValue(expression.accept(_expressionVisitor));
+      new CssValue(expression.accept(_expressionVisitor),
+          span: expression.span);
 
   /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
       /*=S*/ node, /*=T*/ callback(),
