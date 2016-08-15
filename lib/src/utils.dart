@@ -58,7 +58,7 @@ List/*<T>*/ longestCommonSubsequence/*<T>*/(List/*<T>*/ list1,
       list1.length + 1, (_) => new List.filled(list2.length + 1, 0),
       growable: false);
 
-  var selections = new List.generate(
+  var selections = new List<List/*<T>*/>.generate(
       list1.length, (_) => new List/*<T>*/(list2.length),
       growable: false);
 

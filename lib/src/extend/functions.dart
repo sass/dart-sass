@@ -213,7 +213,8 @@ bool _selectorPseudoIsSuperselector(PseudoSelector pseudo1,
       return pseudos.any((pseudo2) {
         return pseudo1.selector.isSuperselector(pseudo2.selector);
       }) || pseudo1.selector.components.any((complex1) {
-        var complex2 = (parents?.toList() ?? [])..add(compound2);
+        var complex2 = (parents?.toList() ?? <ComplexSelectorComponent>[])
+            ..add(compound2);
         return complexIsSuperselector(complex1.components, complex2);
       });
 
