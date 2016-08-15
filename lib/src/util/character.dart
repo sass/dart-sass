@@ -10,6 +10,9 @@ bool isWhitespace(int character) =>
 bool isNewline(int character) =>
     character == $lf || character == $cr || character == $ff;
 
+bool isAlphanumeric(int character) =>
+    isAlphabetic(character) || isDigit(character);
+
 bool isAlphabetic(int character) =>
     (character >= $a && character <= $z) ||
     (character >= $A && character <= $Z);

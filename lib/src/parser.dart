@@ -640,7 +640,7 @@ class Parser {
 
         case $double_quote:
         case $single_quote:
-          buffer.addInterpolation(_string().asInterpolation);
+          buffer.addInterpolation(_string().asInterpolation());
           break;
 
         case $slash:
@@ -701,7 +701,9 @@ class Parser {
 
         case $double_quote:
         case $single_quote:
-          buffer.addInterpolation(_string(static: static).asInterpolation);
+          buffer.addInterpolation(
+              _string(static: static)
+                  .asInterpolation(static: static, quote: next));
           wroteNewline = false;
           break;
 
@@ -807,7 +809,7 @@ class Parser {
       if (next == null) {
         break;
       } else if (next == $underscore || next == $dash ||
-          isAlphabetic(next) || isDigit(next) || next >= 0x0080) {
+          isAlphanumeric(next) || next >= 0x0080) {
         buffer.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         buffer.writeCharCode(_escape());
@@ -1279,7 +1281,7 @@ class Parser {
       if (next == null) {
         break;
       } else if (next == $underscore || next == $dash ||
-          isAlphabetic(next) || isDigit(next) || next >= 0x0080) {
+          isAlphanumeric(next) || next >= 0x0080) {
         text.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         text.writeCharCode(_escape());

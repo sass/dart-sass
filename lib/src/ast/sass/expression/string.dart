@@ -2,8 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../interpolation_buffer.dart';
+import '../../../util/character.dart';
 import '../../../visitor/sass/expression.dart';
 import '../expression.dart';
 import 'interpolation.dart';
@@ -18,13 +21,57 @@ class StringExpression implements Expression {
 
   FileSpan get span => text.span;
 
-  /// Interpolation that, when evaluated, produces the syntax of the string.
-  ///
-  /// Unlike [text], his doesn't resolve escapes and does include quotes.
-  InterpolationExpression get asInterpolation => throw new UnimplementedError();
+  StringExpression(this.text);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitStringExpression(this);
 
-  StringExpression(this.text);
+  /// Interpolation that, when evaluated, produces the syntax of the string.
+  ///
+  /// Unlike [text], his doesn't resolve escapes and does include quotes.
+  InterpolationExpression asInterpolation({bool static: false, int quote}) {
+    quote ??= _bestQuote();
+    var buffer = new InterpolationBuffer()..writeCharCode(quote);
+    for (var value in text.contents) {
+      if (value is InterpolationExpression) {
+        buffer.addInterpolation(value);
+      } else if (value is String) {
+        for (var i = 0; i < value.length; i++) {
+          var codeUnit = value.codeUnitAt(i);
+
+          if (isNewline(codeUnit)) {
+            buffer.writeCharCode($backslash);
+            buffer.writeCharCode($a);
+            var next = i == value.length - 1 ? null : value.codeUnitAt(i + 1);
+            if (isWhitespace(next) || isHex(next)) buffer.writeCharCode($space);
+          } else {
+            if (codeUnit == quote ||
+                codeUnit == $backslash ||
+                (static &&
+                    codeUnit == $hash &&
+                    i < value.length - 1 &&
+                    value.codeUnitAt(i + 1) == $lbrace)) {
+              buffer.writeCharCode($backslash);
+            }
+            buffer.writeCharCode(codeUnit);
+          }
+        }
+      }
+    }
+    buffer.writeCharCode(quote);
+
+    return buffer.interpolation(text.span);
+  }
+
+  int _bestQuote() {
+    var containsDoubleQuote = false;
+    for (var value in text.contents) {
+      for (var i = 0; i < value.length; i++) {
+        var codeUnit = value.codeUnitAt(i);
+        if (codeUnit == $single_quote) return $double_quote;
+        if (codeUnit == $double_quote) containsDoubleQuote = true;
+      }
+    }
+    return containsDoubleQuote ? $single_quote : $double_quote;
+  }
 }
