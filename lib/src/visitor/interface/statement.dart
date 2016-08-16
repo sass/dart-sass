@@ -6,9 +6,16 @@ import '../../ast/sass/statement.dart';
 
 abstract class StatementVisitor<T> {
   T visitComment(Comment node) => null;
-  T visitDeclaration(Declaration node) => null;
   T visitExtendRule(ExtendRule node) => null;
   T visitVariableDeclaration(VariableDeclaration node) => null;
+
+  T visitDeclaration(Declaration node) {
+    if (node.children == null) return null;
+    for (var child in node.children) {
+      child.accept(this);
+    }
+    return null;
+  }
 
   T visitAtRule(AtRule node) {
     if (node.children == null) return null;

@@ -4,7 +4,6 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../utils.dart';
 import '../../visitor/interface/statement.dart';
 import 'expression.dart';
 import 'expression/interpolation.dart';
@@ -15,9 +14,12 @@ class Declaration implements Statement {
 
   final Expression value;
 
-  FileSpan get span => spanForList([name, value]);
+  final List<Statement> children;
 
-  Declaration(this.name, this.value);
+  final FileSpan span;
+
+  Declaration(this.name, {this.value, Iterable<Statement> children, this.span})
+      : children = children == null ? null : new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitDeclaration(this);

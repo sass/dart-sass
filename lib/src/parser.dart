@@ -182,7 +182,6 @@ class Parser {
           new InterpolationExpression([], span: _scanner.emptySpan));
     }
 
-    // TODO: parse static values specially?
     return _expression();
   }
 
@@ -234,7 +233,7 @@ class Parser {
   /// attempted; or it can return a [Declaration], indicating that it
   /// successfully consumed a declaration.
   dynamic _declarationOrBuffer() {
-    var nameStart = _scanner.state;
+    var start = _scanner.state;
     var nameBuffer = new InterpolationBuffer();
     
     // Allow the "*prop: val", ":prop: val", "#prop: val", and ".prop: val"
@@ -256,14 +255,14 @@ class Parser {
     midBuffer.writeCharCode($colon);
 
     // Parse custom properties as declarations no matter what.
-    var name = nameBuffer.interpolation(_scanner.spanFrom(nameStart));
+    var name = nameBuffer.interpolation(_scanner.spanFrom(start));
     if (name.initialPlain.startsWith('--')) {
       var value = _declarationValue();
       var next = _scanner.peekChar();
       if (next != $semicolon && next != $rbrace) {
         _scanner.expectChar($semicolon);
       }
-      return new Declaration(name, value);
+      return new Declaration(name, value: value);
     }
 
     if (_scanner.scanChar($colon)) {
@@ -271,6 +270,12 @@ class Parser {
     }
 
     var postColonWhitespace = _commentText();
+    if (_scanner.peekChar() == $lbrace) {
+      return new Declaration(name,
+          children: _declarationChildren(),
+          span: _scanner.spanFrom(start));
+    }
+
     midBuffer.write(postColonWhitespace);
     var couldBeSelector =
         postColonWhitespace.isEmpty && _lookingAtInterpolatedIdentifier();
@@ -283,7 +288,7 @@ class Parser {
         // Properties that are ambiguous with selectors can't have additional
         // properties nested beneath them, so we force an error.
         if (couldBeSelector) _scanner.expectChar($semicolon);
-      } else if (next != $semicolon && next != $rbrace) {
+      } else if (next != $semicolon && next != $lbrace && next != $rbrace) {
         // Force an exception if there isn't a valid end-of-property character
         // but don't consume that character.
         _scanner.expectChar($semicolon);
@@ -301,9 +306,68 @@ class Parser {
       return nameBuffer;
     }
 
+    return new Declaration(
+        name,
+        value: value,
+        children: _scanner.peekChar() == $lbrace
+             ? _declarationChildren()
+             : null,
+        span: _scanner.spanFrom(start));
+  }
+
+  List<Statement> _declarationChildren() {
+    _scanner.expectChar($lbrace);
+    var children = <Statement>[];
+    loop: while (true) {
+      children.addAll(_comments());
+      switch (_scanner.peekChar()) {
+        case $dollar:
+          children.add(_variableDeclaration());
+          break;
+
+        case $at:
+          children.add(_atRule());
+          break;
+
+        case $semicolon:
+          _scanner.readChar();
+          break;
+
+        case $rbrace:
+          break loop;
+
+        default:
+          children.add(_declaration());
+          break;
+      }
+    }
+
+    children.addAll(_comments());
+    _scanner.expectChar($rbrace);
+    return children;
+  }
+
+  Declaration _declaration() {
+    var start = _scanner.state;
+    var name = _interpolatedIdentifier();
     _ignoreComments();
-    // TODO: nested properties
-    return new Declaration(name, value);
+    _scanner.expectChar($colon);
+    _ignoreComments();
+
+    if (_scanner.peekChar() == $lbrace) {
+      return new Declaration(name,
+          children: _declarationChildren(),
+          span: _scanner.spanFrom(start));
+    }
+
+    var value = _declarationExpression();
+    return new Declaration(
+        name,
+        value: value,
+        children: _scanner.peekChar() == $lbrace
+             ? _declarationChildren()
+             : null,
+        span: _scanner.spanFrom(start));
   }
 
   /// Consumes whitespace if available and returns any comments it contained.

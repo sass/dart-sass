@@ -29,6 +29,9 @@ class PerformVisitor extends StatementVisitor {
   /// The current parent node in the output CSS tree.
   CssParentNode _parent;
 
+  /// The name of the current declaration parent.
+  String _declarationName;
+
   final _extender = new Extender();
 
   PerformVisitor() : this._(new Environment());
@@ -53,17 +56,24 @@ class PerformVisitor extends StatementVisitor {
 
   void visitDeclaration(Declaration node) {
     var name = _performInterpolation(node.name);
-    var cssValue = _performExpression(node.value);
-    var value = cssValue.value;
+    if (_declarationName != null) {
+      name = new CssValue("$_declarationName-${name.value}", span: name.span);
+    }
+    var cssValue = node.value == null ? null : _performExpression(node.value);
 
-    // Don't abort for an empty list because converting it to CSS will throw an
-    // error that we want to user to see.
-    if (value.isBlank &&
-        !(value is SassList && value.contents.isEmpty)) {
-      return;
+    // If the value is an empty list, preserve it, because converting it to CSS
+    // will throw an error that we want the user to see.
+    if (cssValue != null &&
+        (!cssValue.value.isBlank || cssValue.value is SassList)) {
+      _parent.addChild(new CssDeclaration(name, cssValue, span: node.span));
     }
 
-    _parent.addChild(new CssDeclaration(name, cssValue, span: node.span));
+    if (node.children != null) {
+      var oldDeclarationName = _declarationName;
+      _declarationName = name.value;
+      super.visitDeclaration(node);
+      _declarationName = oldDeclarationName;
+    }
   }
 
   void visitExtendRule(ExtendRule node) {
