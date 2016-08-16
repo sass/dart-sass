@@ -80,6 +80,7 @@ class PerformVisitor extends StatementVisitor {
     var targetText = _performInterpolation(node.selector);
 
     // TODO: recontextualize parse errors.
+    // TODO: disallow parent selectors.
     var simple = new Parser(targetText.value).parseSimpleSelector();
     _extender.addExtension(_selector.value, simple);
   }
@@ -163,17 +164,14 @@ class PerformVisitor extends StatementVisitor {
 
   void visitStyleRule(StyleRule node) {
     var selectorText = _performInterpolation(node.selector, trim: true);
-    if (_selector != null) {
-      // TODO: semantically resolve parent references.
-      selectorText = new CssValue(
-          "${_selector.value} ${selectorText.value}",
-          span: node.selector.span);
-    }
+    var parsedSelector = new Parser(selectorText.value).parseSelector();
+
+    // TOOD: catch errors and point them to node.selector
+    parsedSelector = parsedSelector.resolveParentSelectors(_selector?.value);
 
     // TODO: catch errors and re-contextualize them relative to
     // [node.selector.span.start].
-    var selector = new CssValue<SelectorList>(
-        new Parser(selectorText.value).parseSelector(),
+    var selector = new CssValue<SelectorList>(parsedSelector,
         span: node.selector.span);
 
     _withParent(

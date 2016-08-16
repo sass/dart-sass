@@ -16,6 +16,9 @@ class TypeSelector extends SimpleSelector {
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
       visitor.visitTypeSelector(this);
 
+  TypeSelector addSuffix(String suffix) => new TypeSelector(
+      new NamespacedIdentifier(name.name + suffix, namespace: name.namespace));
+
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
       var unified = unifyUniversalAndElement(this, compound.first);

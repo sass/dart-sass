@@ -1006,20 +1006,24 @@ class Parser {
     var components = <SimpleSelector>[_simpleSelector()];
 
     while (isSimpleSelectorStart(_scanner.peekChar())) {
-      components.add(_simpleSelector());
+      components.add(_simpleSelector(allowParent: false));
     }
 
     // TODO: support "*E".
     return new CompoundSelector(components);
   }
 
-  SimpleSelector _simpleSelector() {
+  SimpleSelector _simpleSelector({bool allowParent: true}) {
     switch (_scanner.peekChar()) {
       case $lbracket: return _attributeSelector();
       case $dot: return _classSelector();
       case $hash: return _idSelector();
       case $percent: return _placeholderSelector();
       case $colon: return _pseudoSelector();
+      case $ampersand:
+        if (!allowParent) return _typeOrUniversalSelector();
+        return _parentSelector();
+
       default: return _typeOrUniversalSelector();
     }
   }
@@ -1110,6 +1114,13 @@ class Parser {
     _scanner.expectChar($percent);
     var name = _identifier();
     return new PlaceholderSelector(name);
+  }
+
+  ParentSelector _parentSelector() {
+    _scanner.expectChar($ampersand);
+    var next = _scanner.peekChar();
+    var suffix = isName(next) || next == $backslash ? _identifier() : null;
+    return new ParentSelector(suffix: suffix);
   }
 
   PseudoSelector _pseudoSelector() {

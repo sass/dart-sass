@@ -12,6 +12,7 @@ export 'selector/compound.dart';
 export 'selector/id.dart';
 export 'selector/list.dart';
 export 'selector/namespaced_identifier.dart';
+export 'selector/parent.dart';
 export 'selector/placeholder.dart';
 export 'selector/pseudo.dart';
 export 'selector/simple.dart';

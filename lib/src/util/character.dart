@@ -22,6 +22,9 @@ bool isDigit(int character) => character >= $0 && character <= $9;
 bool isNameStart(int character) =>
     character == $_ || isAlphabetic(character) || character >= 0x0080;
 
+bool isName(int character) =>
+    isNameStart(character) || isDigit(character) || character == $minus;
+
 bool isHex(int character) =>
     isDigit(character) ||
     (character >= $a && character <= $f) ||

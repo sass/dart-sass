@@ -12,6 +12,10 @@ abstract class SimpleSelector extends Selector {
   int get minSpecificity => 1000;
   int get maxSpecificity => minSpecificity;
 
+  SimpleSelector addSuffix(String suffix) {
+    throw 'Invalid parent selector "$this"';
+  }
+
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.contains(this)) return compound;
 

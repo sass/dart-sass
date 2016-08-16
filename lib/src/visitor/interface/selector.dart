@@ -8,6 +8,7 @@ abstract class SelectorVisitor<T> {
   T visitAttributeSelector(AttributeSelector attribute) => null;
   T visitClassSelector(ClassSelector klass) => null;
   T visitIDSelector(IDSelector id) => null;
+  T visitParentSelector(ParentSelector placeholder) => null;
   T visitPlaceholderSelector(PlaceholderSelector placeholder) => null;
   T visitTypeSelector(TypeSelector type) => null;
   T visitUniversalSelector(UniversalSelector universal) => null;

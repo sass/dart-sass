@@ -36,6 +36,14 @@ class PseudoSelector extends SimpleSelector {
       : name = name,
         normalizedName = name.replaceFirst(_vendorPrefix, '');
 
+  PseudoSelector withSelector(SelectorList selector) =>
+      new PseudoSelector(name, type, argument: argument, selector: selector);
+
+  PseudoSelector addSuffix(String suffix) {
+    if (argument != null || selector != null) super.addSuffix(suffix);
+    return new PseudoSelector(name + suffix, type);
+  }
+
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.contains(this)) return compound;
 
