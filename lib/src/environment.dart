@@ -3,12 +3,13 @@
 // https://opensource.org/licenses/MIT.
 
 import 'value.dart';
+import 'utils.dart';
 
 class Environment {
   /// Base is global scope.
-  final _variables = [<String, Value>{}];
+  final _variables = [separatorIndependentMap/*<Value>*/()];
 
-  final _variableIndices = <String, int>{};
+  final _variableIndices = separatorIndependentMap/*<int>*/();
 
   Value getVariable(String name) =>
       _variables[_variableIndices[name] ?? 0][name];

@@ -58,12 +58,48 @@ String unvendor(String name) {
   return name;
 }
 
+bool equalsIgnoreSeparator(String string1, String string2) {
+  print("eis: $string1 $string2");
+  if (identical(string1, string2)) return true;
+  if (string1 == null || string2 == null) return false;
+  if (string1.length != string2.length) return false;
+  for (var i = 0; i < string1.length; i++) {
+    var codeUnit1 = string1.codeUnitAt(i);
+    var codeUnit2 = string2.codeUnitAt(i);
+    if (codeUnit1 == codeUnit2) continue;
+    if (codeUnit1 == $dash) {
+      if (codeUnit2 != $underscore) return false;
+    } else if (codeUnit1 == $underscore) {
+      if (codeUnit2 != $dash) return false;
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+
+int hashCodeIgnoreSeparator(String string) {
+  var hash = 4603;
+  for (var i = 0; i < string.length; i++) {
+    var codeUnit = string.codeUnitAt(i);
+    if (codeUnit == $underscore) codeUnit = $dash;
+    hash &= 0x3FFFFFF;
+    hash *= 33;
+    hash ^= codeUnit;
+  }
+  return hash;
+}
+
 bool equalsIgnoreCase(String string1, String string2) {
-  if (string1 == null) return string2 == null;
-  if (string2 == null) return false;
+  if (identical(string1, string2)) return true;
+  if (string1 == null || string2 == null) return false;
   if (string1.length != string2.length) return false;
   return string1.toUpperCase() == string2.toUpperCase();
 }
+
+Map/*<V>*/ separatorIndependentMap/*<V>*/() =>
+    new LinkedHashMap(
+        equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
 
 bool almostEquals(num number1, num number2) =>
     (number1 - number2).abs() < _epsilon;
