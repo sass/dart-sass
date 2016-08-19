@@ -451,7 +451,7 @@ class Extender {
     return [chunk1.toList()..addAll(chunk2), chunk2..addAll(chunk1)];
   }
 
-  List<List/*<T>*/> _paths/*<T>*/(List<List/*<T>*/> choices) =>
+  List<List/*<T>*/> _paths/*<T>*/(Iterable<List/*<T>*/> choices) =>
       choices.fold([[]], (paths, choice) => choice
           .expand((option) => paths.map((path) => path.toList()..add(option)))
           .toList());
