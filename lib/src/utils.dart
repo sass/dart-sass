@@ -48,11 +48,12 @@ FileSpan spanForList(List<AstNode> nodes) {
 }
 
 String unvendor(String name) {
-  assert(!name.isEmpty);
-  if (name.codeUnitAt(0) == $dash) return name;
+  if (name.length < 2) return name;
+  if (name.codeUnitAt(0) != $dash) return name;
+  if (name.codeUnitAt(1) == $dash) return name;
 
-  for (var i = 1; i < name.length; i++) {
-    if (name.codeUnitAt(0) == $dash) return name.substring(i + 1);
+  for (var i = 2; i < name.length; i++) {
+    if (name.codeUnitAt(i) == $dash) return name.substring(i + 1);
   }
   return name;
 }

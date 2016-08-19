@@ -4,10 +4,9 @@
 
 import 'dart:math' as math;
 
+import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
-
-final _vendorPrefix = new RegExp(r'^-[a-zA-Z0-9]+-');
 
 class PseudoSelector extends SimpleSelector {
   final String name;
@@ -34,7 +33,7 @@ class PseudoSelector extends SimpleSelector {
 
   PseudoSelector(String name, this.type, {this.argument, this.selector})
       : name = name,
-        normalizedName = name.replaceFirst(_vendorPrefix, '');
+        normalizedName = unvendor(name);
 
   PseudoSelector withSelector(SelectorList selector) =>
       new PseudoSelector(name, type, argument: argument, selector: selector);
