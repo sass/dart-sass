@@ -15,11 +15,11 @@ import 'util/character.dart';
 import 'utils.dart';
 import 'value.dart';
 
-final _selectorPseudoClasses =
-    new Set.from(["not" "matches" "current" "any" "has" "host" "host-context"]);
+final _selectorPseudoClasses = new Set.from(
+    ["not", "matches", "current", "any", "has", "host", "host-context"]);
 
 final _prefixedSelectorPseudoClasses =
-    new Set.from(["nth-child" "nth-last-child"]);
+    new Set.from(["nth-child", "nth-last-child"]);
 
 class Parser {
   final SpanScanner _scanner;
@@ -984,12 +984,19 @@ class Parser {
           component = Combinator.followingSibling;
           break;
 
-        case $lbrace:
-        case $comma:
-          break loop;
+        case $lbracket:
+        case $dot:
+        case $hash:
+        case $percent:
+        case $colon:
+        case $ampersand:
+        case $asterisk:
+        case $pipe:
+          component = _compoundSelector();
+          break;
 
         default:
-          if (next == null) break loop;
+          if (next == null || !_lookingAtInterpolatedIdentifier()) break loop;
           component = _compoundSelector();
           break;
       }
