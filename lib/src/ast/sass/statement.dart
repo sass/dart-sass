@@ -6,11 +6,16 @@ import '../../visitor/interface/statement.dart';
 import 'node.dart';
 
 export 'at_rule.dart';
+export 'argument_declaration.dart';
+export 'argument_invocation.dart';
+export 'argument.dart';
 export 'comment.dart';
 export 'declaration.dart';
 export 'extend_rule.dart';
+export 'function_declaration.dart';
 export 'media_query.dart';
 export 'media_rule.dart';
+export 'return.dart';
 export 'style_rule.dart';
 export 'stylesheet.dart';
 export 'variable_declaration.dart';

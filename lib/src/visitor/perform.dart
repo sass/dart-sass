@@ -2,20 +2,24 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:source_span/source_span.dart';
+
 import '../ast/css/node.dart';
 import '../ast/sass/expression.dart';
 import '../ast/sass/statement.dart';
 import '../ast/selector.dart';
+import '../callable.dart';
 import '../environment.dart';
 import '../extend/extender.dart';
 import '../parser.dart';
+import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
 
 class PerformVisitor extends StatementVisitor
     implements ExpressionVisitor<Value> {
-  final Environment _environment;
+  Environment _environment;
 
   /// The current selector, if any.
   CssValue<SelectorList> _selector;
@@ -117,6 +121,12 @@ class PerformVisitor extends StatementVisitor
         through: (node) => node is CssStyleRule);
   }
 
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    _environment.setFunction(node.name, new Callable(
+        node.name, node.arguments, node.children, _environment.closure(),
+        span: node.span));
+  }
+
   void visitMediaRule(MediaRule node) {
     var queryIterable = node.queries.map(_visitMediaQuery);
     var queries = _mediaQueries == null
@@ -167,6 +177,8 @@ class PerformVisitor extends StatementVisitor
     if (type == null) return new CssMediaQuery.condition(features);
     return new CssMediaQuery(type, modifier: modifier, features: features);
   }
+
+  Value visitReturn(Return node) => node.expression.accept(this);
 
   void visitStyleRule(StyleRule node) {
     var selectorText = _performInterpolation(node.selector, trim: true);
@@ -250,10 +262,136 @@ class PerformVisitor extends StatementVisitor
     return new SassMap(map);
   }
 
+  Value visitFunctionExpression(FunctionExpression node) {
+    var plainName = node.name.asPlain;
+    if (plainName != null) {
+      var function = _environment.getFunction(plainName);
+      if (function != null) {
+        return _runCallable(node.arguments, function, node.span);
+      }
+    }
+
+    if (node.arguments.named.isNotEmpty || node.arguments.keywordRest != null) {
+      throw node.span.message(
+          "Plain CSS functions don't support keyword arguments.");
+    }
+
+    var name = node.name.accept(this);
+    var arguments = node.arguments.positional
+        .map((expression) => expression.accept(this)).toList();
+    // TODO: if rest is an arglist that has keywords, error out.
+    var rest = node.arguments.rest?.accept(this);
+    if (rest != null) arguments.add(rest);
+    return new SassIdentifier("$name(${arguments.join(', ')})");
+  }
+
+  Value _runCallable(ArgumentInvocation arguments, Callable callable,
+      FileSpan span) {
+    return _withEnvironment(callable.environment, () => _environment.scope(() {
+      var positional = arguments.positional
+          .map((expression) => expression.accept(this)).toList();
+      var named = separatorIndependentMapMap/*<String, Expression, Value>*/(
+          arguments.named,
+          value: (_, expression) => expression.accept(this));
+
+      if (arguments.rest != null) {
+        var value = arguments.rest.accept(this);
+        if (value is SassMap) {
+          _addRestMap(named, value, span);
+        } else if (value is SassList) {
+          positional.addAll(value.asList());
+        } else {
+          positional.add(value);
+        }
+      }
+
+      if (arguments.keywordRest != null) {
+        var value = arguments.keywordRest.accept(this);
+        if (value is SassMap) {
+          _addRestMap(named, value, span);
+        } else {
+          span.message(
+              "Variable keyword arguments must be a map (was $value).");
+        }
+      }
+
+      var callableArguments = callable.arguments.arguments;
+      var i = 0;
+      for (; i < positional.length && i < callableArguments.length; i++) {
+        var name = callableArguments[i].name;
+        if (named.containsKey(name)) {
+          throw span.message(
+              "Argument \$$name was passed both by position and by name.");
+        }
+
+        _environment.setVariable(name, positional[i]);
+      }
+
+      for (; i < callableArguments.length; i++) {
+        var argument = callableArguments[i];
+        var value = named.remove(argument.name) ??
+            argument.defaultValue?.accept(this);
+
+        if (value == null) {
+          throw span.message("Missing argument \$${argument.name}.");
+        } else {
+          _environment.setVariable(argument.name, value);
+        }
+      }
+
+      if (callable.arguments.restArgument != null) {
+        // TODO: use a full ArgList object
+        var rest =
+            i < positional.length ? positional.sublist(i) : const <Value>[];
+        _environment.setVariable(callable.arguments.restArgument,
+            new SassList(rest, ListSeparator.comma));
+      } else if (i < positional.length) {
+        throw span.message(
+            "Function takes ${callableArguments.length} arguments but "
+              "${positional.length} were passed.");
+      } else if (named.isNotEmpty) {
+        throw span.message(
+            "Function doesn't have an argument named \$${named.keys.first}.");
+      }
+
+      // TODO: if we get here and there are no rest params involved, mark them
+      // as fast-path and don't do error checking or extra allocations for
+      // future calls.
+      for (var statement in callable.children) {
+        var returnValue = statement.accept(this);
+        if (returnValue is Value) return returnValue;
+      }
+
+      throw callable.span.message("Function finished without @return.");
+    }));
+  }
+
+  void _addRestMap(Map<String, Value> values, SassMap map, FileSpan span) {
+    map.contents.forEach((key, value) {
+      if (key is SassIdentifier) {
+        values[key.text] = value;
+      } else if (key is SassString) {
+        values[key.text] = value;
+      } else {
+        throw span.message(
+            "Variable keyword argument map must have string keys.\n"
+            "$key is not a string in $value.");
+      }
+    });
+  }
+
   SassString visitStringExpression(StringExpression node) =>
       visitInterpolationExpression(node.text);
 
   // ## Utilities
+
+  /*=T*/ _withEnvironment/*<T>*/(Environment environment, /*=T*/ callback()) {
+    var oldEnvironment = _environment;
+    _environment = environment;
+    var result = callback();
+    _environment = oldEnvironment;
+    return result;
+  }
 
   CssValue<String> _performInterpolation(
       InterpolationExpression interpolation, {bool trim: false}) {

@@ -35,6 +35,18 @@ abstract class ExpressionVisitor<T> {
     return null;
   }
 
+  T visitFunctionExpression(FunctionExpression node) {
+    for (var expression in node.arguments.positional) {
+      expression.accept(this);
+    }
+    for (var expression in node.arguments.named.values) {
+      expression.accept(this);
+    }
+    node.arguments.rest?.accept(this);
+    node.arguments.keywordRest?.accept(this);
+    return null;
+  }
+
   T visitStringExpression(StringExpression node) {
     visitInterpolationExpression(node.text);
     return null;

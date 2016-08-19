@@ -30,13 +30,6 @@ bool isHex(int character) =>
     (character >= $a && character <= $f) ||
     (character >= $A && character <= $F);
 
-bool isExpressionStart(int character) =>
-    character == $lparen || character == $slash || character == $dot ||
-    character == $lbracket || character == $single_quote ||
-    character == $double_quote || character == $hash || character == $plus ||
-    character == $minus || character == $backslash || character == $dollar ||
-    isNameStart(character) || isDigit(character);
-
 // Does not include type selectors
 bool isSimpleSelectorStart(int character) =>
     character == $asterisk || character == $lbracket || character == $dot ||

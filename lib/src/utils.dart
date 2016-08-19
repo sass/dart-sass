@@ -100,6 +100,20 @@ Map/*<V>*/ separatorIndependentMap/*<V>*/() =>
     new LinkedHashMap(
         equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
 
+Map/*<String, V2>*/ separatorIndependentMapMap/*<K, V1, V2>*/(
+    Map/*<K, V1>*/ map,
+    {String key(/*=K*/ key, /*=V1*/ value),
+    /*=V2*/ value(/*=K*/ key, /*=V1*/ value)}) {
+  key ??= (mapKey, _) => mapKey as String;
+  value ??= (_, mapValue) => mapValue as dynamic/*=V2*/;
+
+  var result = separatorIndependentMap/*<V2>*/();
+  map.forEach((mapKey, mapValue) {
+    result[key(mapKey, mapValue)] = value(mapKey, mapValue);
+  });
+  return result;
+}
+
 bool almostEquals(num number1, num number2) =>
     (number1 - number2).abs() < _epsilon;
 

@@ -121,6 +121,15 @@ class Parser {
       case "extend":
         return new ExtendRule(_almostAnyValue(),
             span: _scanner.spanFrom(start));
+      case "function":
+        var name = _identifier();
+        _ignoreComments();
+        var arguments = _argumentDeclaration();
+        _ignoreComments();
+        var children = _children(_functionAtRule);
+        // TODO: ensure there aren't duplicate argument names.
+        return new FunctionDeclaration(name, arguments, children,
+            span: _scanner.spanFrom(start));
     }
 
     InterpolationExpression value;
@@ -136,6 +145,58 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
+  Statement _functionAtRule() {
+    var start = _scanner.state;
+    _scanner.expectChar($at);
+    var name = _identifier();
+    _ignoreComments();
+
+    switch (name) {
+      case "return":
+        _ignoreComments();
+        return new Return(_expression(), span: _scanner.spanFrom(start));
+    }
+
+    _scanner.error(
+        "Functions can only contain variable declarations and control "
+          "directives.",
+        position: start.position,
+        length: name.length + 1);
+    return null;
+  }
+
+  ArgumentDeclaration _argumentDeclaration() {
+    var start = _scanner.state;
+    _scanner.expectChar($lparen);
+    _ignoreComments();
+    var arguments = <Argument>[];
+    String restArgument;
+    while (_scanner.peekChar() == $dollar) {
+      var variableStart = _scanner.state;
+      var name = _variableName();
+      _ignoreComments();
+
+      Expression defaultValue;
+      if (_scanner.scanChar($colon)) {
+        _ignoreComments();
+        defaultValue = _spaceListOrValue();
+      } else if (_scanner.scanChar($dot)) {
+        _scanner.expectChar($dot);
+        _scanner.expectChar($dot);
+        restArgument = name;
+        break;
+      }
+
+      arguments.add(new Argument(name,
+          defaultValue: defaultValue, span: _scanner.spanFrom(variableStart)));
+      if (!_scanner.scanChar($comma)) break;
+      _ignoreComments();
+    }
+    _scanner.expectChar($rparen);
+    return new ArgumentDeclaration(arguments,
+        restArgument: restArgument, span: _scanner.spanFrom(start));
+  }
+
   StyleRule _styleRule() {
     var start = _scanner.state;
     var selector = _almostAnyValue();
@@ -144,37 +205,10 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
-  List<Statement> _ruleChildren() {
-    _scanner.expectChar($lbrace);
-    var children = <Statement>[];
-    loop: while (true) {
-      children.addAll(_comments());
-      switch (_scanner.peekChar()) {
-        case $dollar:
-          children.add(_variableDeclaration());
-          break;
-
-        case $at:
-          children.add(_atRule());
-          break;
-
-        case $semicolon:
-          _scanner.readChar();
-          break;
-
-        case $rbrace:
-          break loop;
-
-        default:
-          children.add(_declarationOrStyleRule());
-          break;
-      }
-    }
-
-    children.addAll(_comments());
-    _scanner.expectChar($rbrace);
-    return children;
-  }
+  List<Statement> _ruleChildren() => _children(() {
+    if (_scanner.peekChar() == $at) return _atRule();
+    return _declarationOrStyleRule();
+  });
 
   Expression _declarationExpression() {
     if (_scanner.peekChar() == $lbrace) {
@@ -387,6 +421,48 @@ class Parser {
 
   // ## Expressions
 
+  ArgumentInvocation _argumentInvocation() {
+    var start = _scanner.state;
+    _scanner.expectChar($lparen);
+    _ignoreComments();
+
+    var positional = <Expression>[];
+    var named = <String, Expression>{};
+    Expression rest;
+    Expression keywordRest;
+    while (_lookingAtExpression()) {
+      var expression = _spaceListOrValue();
+      _ignoreComments();
+
+      if (expression is VariableExpression && _scanner.scanChar($colon)) {
+        _ignoreComments();
+        named[expression.name] = _spaceListOrValue();
+      } else if (_scanner.scanChar($dot)) {
+        _scanner.expectChar($dot);
+        _scanner.expectChar($dot);
+        if (rest == null) {
+          rest = expression;
+        } else {
+          keywordRest = expression;
+          _ignoreComments();
+          break;
+        }
+      } else if (named.isNotEmpty) {
+        _scanner.expect("...");
+      } else {
+        positional.add(expression);
+      }
+
+      _ignoreComments();
+      if (!_scanner.scanChar($comma)) break;
+      _ignoreComments();
+    }
+    _scanner.expectChar($rparen);
+
+    return new ArgumentInvocation(positional, named,
+        rest: rest, keywordRest: keywordRest, span: _scanner.spanFrom(start));
+  }
+
   Expression _expression() {
     var first = _singleExpression();
     _ignoreComments();
@@ -446,7 +522,7 @@ class Parser {
     var first = _scanner.peekChar();
     switch (first) {
       // Note: when adding a new case, make sure it's reflected in
-      // [isExpressionStart].
+      // [lookingAtExpression].
       case $lparen: return _parentheses();
       case $slash: return _unaryOperator();
       case $dot: return _number();
@@ -601,9 +677,8 @@ class Parser {
 
   VariableExpression _variable() {
     var start = _scanner.state;
-    _scanner.expectChar($dollar);
-    var name = _identifier();
-    return new VariableExpression(name, span: _scanner.spanFrom(start));
+    return new VariableExpression(_variableName(),
+        span: _scanner.spanFrom(start));
   }
 
   StringExpression _string({bool static: false}) {
@@ -695,7 +770,7 @@ class Parser {
   }
 
   Expression _identifierLike() {
-    // TODO: url(), functions
+    // TODO: url()
     var identifier = _interpolatedIdentifier();
     switch (identifier.asPlain) {
       case "not":
@@ -705,10 +780,11 @@ class Parser {
 
       case "true": return new BooleanExpression(true, span: identifier.span);
       case "false": return new BooleanExpression(false, span: identifier.span);
-
-      default:
-        return new IdentifierExpression(identifier);
     }
+
+    return _scanner.peekChar() == $lparen
+        ? new FunctionExpression(identifier, _argumentInvocation())
+        : new IdentifierExpression(identifier);
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".
@@ -915,6 +991,7 @@ class Parser {
 
   Expression _singleInterpolation() {
     _scanner.expect('#{');
+    _ignoreComments();
     var expression = _expression();
     _scanner.expectChar($rbrace);
     return expression;
@@ -1401,6 +1478,11 @@ class Parser {
     return text.toString();
   }
 
+  String _variableName() {
+    _scanner.expectChar($dollar);
+    return _identifier();
+  }
+
   // ## Characters
 
   UnaryOperator _unaryOperatorFor(int character) {
@@ -1500,8 +1582,41 @@ class Parser {
     return second == $hash && _scanner.peekChar(2) == $lbrace;
   }
 
-  bool _lookingAtExpression() =>
-      !_scanner.isDone && isExpressionStart(_scanner.peekChar());
+  bool _lookingAtExpression() {
+    var character = _scanner.peekChar();
+    if (character == null) return false;
+    if (character == $dot) return _scanner.peekChar(1) != $dot;
+
+    return character == $lparen || character == $slash ||
+        character == $lbracket || character == $single_quote ||
+        character == $double_quote || character == $hash ||
+        character == $plus || character == $minus || character == $backslash ||
+        character == $dollar || isNameStart(character) || isDigit(character);
+  }
+
+  List<Statement> _children(Statement consumeChild()) {
+    _scanner.expectChar($lbrace);
+    var children = <Statement>[];
+    loop: while (true) {
+      children.addAll(_comments());
+      switch (_scanner.peekChar()) {
+        case $dollar:
+          children.add(_variableDeclaration());
+          break;
+
+        case $semicolon:
+          _scanner.readChar();
+          continue loop;
+
+        case $rbrace:
+          break loop;
+      }
+
+      children.add(consumeChild());
+    }
+    _scanner.expectChar($rbrace);
+    return children;
+  }
 
   String _rawText(void consumer()) {
     var start = _scanner.position;

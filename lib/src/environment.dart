@@ -2,14 +2,35 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'callable.dart';
 import 'value.dart';
 import 'utils.dart';
 
+// Lexical environment only
 class Environment {
   /// Base is global scope.
-  final _variables = [separatorIndependentMap/*<Value>*/()];
+  final List<Map<String, Value>> _variables;
 
-  final _variableIndices = separatorIndependentMap/*<int>*/();
+  final Map<String, int> _variableIndices;
+
+  final List<Map<String, Callable>> _functions;
+
+  final Map<String, int> _functionIndices;
+
+  Environment()
+      : _variables = [separatorIndependentMap()],
+        _variableIndices = separatorIndependentMap(),
+        _functions = [separatorIndependentMap()],
+        _functionIndices = separatorIndependentMap();
+
+  Environment._(this._variables, this._variableIndices, this._functions,
+      this._functionIndices);
+
+  Environment closure() => new Environment._(
+      _variables.toList(),
+      new Map.from(_variableIndices),
+      _functions.toList(),
+      new Map.from(_functionIndices));
 
   Value getVariable(String name) =>
       _variables[_variableIndices[name] ?? 0][name];
@@ -19,6 +40,16 @@ class Environment {
         ? 0
         : _variableIndices.putIfAbsent(name, () => _variables.length - 1);
     _variables[index][name] = value;
+  }
+
+  Callable getFunction(String name) =>
+      _functions[_functionIndices[name] ?? 0][name];
+
+  void setFunction(String name, Callable callable) {
+    var index = _variables.length == 1
+        ? 0
+        : _variableIndices.putIfAbsent(name, () => _variables.length - 1);
+    _functions[index][name] = callable;
   }
 
   /*=T*/ scope/*<T>*/(/*=T*/ callback()) {
