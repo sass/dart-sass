@@ -15,6 +15,4 @@ class ParentSelector extends SimpleSelector {
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) =>
       throw new UnsupportedError("& doesn't support unification.");
-
-  String toString() => "&${suffix ?? ''}";
 }

@@ -315,8 +315,10 @@ class _SerializeCssVisitor extends CssVisitor {
         (complex) => visitComplexSelector(complex));
   }
 
-  void visitParentSelector(ParentSelector parent) =>
-      throw new UnsupportedError("$parent cannot be converted to CSS.");
+  void visitParentSelector(ParentSelector parent) {
+    _buffer.writeCharCode($and);
+    if (parent.suffix != null) _buffer.write(parent.suffix);
+  }
 
   void visitPseudoSelector(PseudoSelector pseudo) {
     _buffer.writeCharCode($colon);
