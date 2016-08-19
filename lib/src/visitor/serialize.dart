@@ -181,7 +181,7 @@ class _SerializeCssVisitor extends CssVisitor {
     }
   }
 
-  // Expressions
+  // ## Expressions
 
   void visitBoolean(SassBoolean value) =>
       _buffer.write(value.value.toString());
@@ -277,7 +277,7 @@ class _SerializeCssVisitor extends CssVisitor {
     return doubleQuote ? '"$buffer"' : "'$buffer'";
   }
 
-  // Selectors
+  // ## Selectors
 
   void visitAttributeSelector(AttributeSelector attribute) {
     _buffer.writeCharCode($lbracket);
@@ -347,7 +347,7 @@ class _SerializeCssVisitor extends CssVisitor {
     _buffer.writeCharCode($asterisk);
   }
 
-  // Utilities
+  // ## Utilities
 
   void _visitChildren(Iterable<CssNode> children) {
     _buffer.writeCharCode($lbrace);
