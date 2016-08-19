@@ -319,8 +319,8 @@ class _SerializeCssVisitor extends CssVisitor {
       throw new UnsupportedError("$parent cannot be converted to CSS.");
 
   void visitPseudoSelector(PseudoSelector pseudo) {
-    _buffer.write($colon);
-    if (pseudo.type == PseudoType.element) _buffer.write($colon);
+    _buffer.writeCharCode($colon);
+    if (pseudo.type == PseudoType.element) _buffer.writeCharCode($colon);
     _buffer.write(pseudo.name);
     if (pseudo.argument == null && pseudo.selector == null) return;
 

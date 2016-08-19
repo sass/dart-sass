@@ -280,6 +280,7 @@ class Parser {
     var couldBeSelector =
         postColonWhitespace.isEmpty && _lookingAtInterpolatedIdentifier();
 
+    var beforeDeclaration = _scanner.state;
     Expression value;
     try {
       value = _declarationExpression();
@@ -298,6 +299,7 @@ class Parser {
 
       // If the value would be followed by a semicolon, it's definitely supposed
       // to be a property, not a selector.
+      _scanner.state = beforeDeclaration;
       var additional = _almostAnyValue();
       if (_scanner.peekChar() == $semicolon) rethrow;
 
