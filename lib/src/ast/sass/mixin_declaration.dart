@@ -8,18 +8,10 @@ import '../../visitor/interface/statement.dart';
 import 'argument_declaration.dart';
 import 'statement.dart';
 
-class MixinDeclaration implements Statement {
-  final String name;
-
-  final ArgumentDeclaration arguments;
-
-  final List<Statement> children;
-
-  final FileSpan span;
-
-  MixinDeclaration(this.name, this.arguments, Iterable<Statement> children,
-      {this.span})
-      : children = new List.unmodifiable(children);
+class MixinDeclaration extends CallableDeclaration {
+  MixinDeclaration(String name, ArgumentDeclaration arguments,
+      Iterable<Statement> children, {FileSpan span})
+      : super(name, arguments, children, span: span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitMixinDeclaration(this);

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'callable.dart';
+import 'functions.dart';
 import 'value.dart';
 import 'utils.dart';
 
@@ -27,7 +28,9 @@ class Environment {
         _functions = [normalizedMap()],
         _functionIndices = normalizedMap(),
         _mixins = [normalizedMap()],
-        _mixinIndices = normalizedMap();
+        _mixinIndices = normalizedMap() {
+    defineCoreFunctions(this);
+  }
 
   Environment._(this._variables, this._variableIndices, this._functions,
       this._functionIndices, this._mixins, this._mixinIndices);

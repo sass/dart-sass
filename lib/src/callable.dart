@@ -2,23 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
-
 import 'ast/sass/statement.dart';
-import 'environment.dart';
 
-class Callable {
-  final String name;
+export 'callable/built_in.dart';
+export 'callable/user_defined.dart';
 
-  final ArgumentDeclaration arguments;
+abstract class Callable {
+  String get name;
 
-  final List<Statement> children;
-
-  final Environment environment;
-
-  final FileSpan span;
-
-  Callable(this.name, this.arguments, Iterable<Statement> children,
-      this.environment, {this.span})
-      : children = new List.unmodifiable(children);
+  ArgumentDeclaration get arguments;
 }

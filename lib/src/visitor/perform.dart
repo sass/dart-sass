@@ -40,9 +40,8 @@ class PerformVisitor extends StatementVisitor
 
   final _extender = new Extender();
 
-  PerformVisitor() : this._(new Environment());
-
-  PerformVisitor._(this._environment);
+  PerformVisitor([Environment environment])
+      : _environment = environment ?? new Environment();
 
   void visit(node) {
     if (node is Statement) {
@@ -126,29 +125,27 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _environment.setFunction(new Callable(
-        node.name, node.arguments, node.children, _environment.closure(),
-        span: node.span));
+    _environment.setFunction(
+        new UserDefinedCallable(node, _environment.closure()));
   }
 
   void visitInclude(Include node) {
-    var mixin = _environment.getMixin(node.name);
+    var mixin = _environment.getMixin(node.name) as UserDefinedCallable;
     if (mixin == null) throw node.span.message("Undefined mixin.");
     if (node.children != null) {
       throw node.span.message("Mixin doesn't accept a content block.");
     }
 
-    _runCallable(node.arguments, mixin, node.span, () {
-      for (var statement in mixin.children) {
+    _runUserDefinedCallable(node.arguments, mixin, node.span, () {
+      for (var statement in mixin.declaration.children) {
         statement.accept(this);
       }
     });
   }
 
   void visitMixinDeclaration(MixinDeclaration node) {
-    _environment.setMixin(new Callable(
-        node.name, node.arguments, node.children, _environment.closure(),
-        span: node.span));
+    _environment.setMixin(
+        new UserDefinedCallable(node, _environment.closure()));
   }
 
   void visitMediaRule(MediaRule node) {
@@ -284,14 +281,22 @@ class PerformVisitor extends StatementVisitor
     if (plainName != null) {
       var function = _environment.getFunction(plainName);
       if (function != null) {
-        return _runCallable(node.arguments, function, node.span, () {
-          for (var statement in function.children) {
-            var returnValue = statement.accept(this);
-            if (returnValue is Value) return returnValue;
-          }
+        if (function is BuiltInCallable) {
+          return _runBuiltInCallable(node.arguments, function, node.span);
+        } else if (function is UserDefinedCallable) {
+          return _runUserDefinedCallable(node.arguments, function, node.span,
+              () {
+            for (var statement in function.declaration.children) {
+              var returnValue = statement.accept(this);
+              if (returnValue is Value) return returnValue;
+            }
 
-          throw function.span.message("Function finished without @return.");
-        });
+            throw function.declaration.span.message(
+                "Function finished without @return.");
+          });
+        } else {
+          return null;
+        }
       }
     }
 
@@ -309,8 +314,8 @@ class PerformVisitor extends StatementVisitor
     return new SassIdentifier("$name(${arguments.join(', ')})");
   }
 
-  /*=T*/ _runCallable/*<T>*/(ArgumentInvocation arguments, Callable callable,
-      FileSpan span, /*=T*/ run()) {
+  /*=T*/ _runUserDefinedCallable/*<T>*/(ArgumentInvocation arguments,
+      UserDefinedCallable callable, FileSpan span, /*=T*/ run()) {
     return _withEnvironment(callable.environment, () => _environment.scope(() {
       var pair = _evaluateArguments(arguments, span);
       var positional = pair.first;
@@ -330,7 +335,8 @@ class PerformVisitor extends StatementVisitor
       for (var i = positional.length; i < declaredArguments.length; i++) {
         var argument = declaredArguments[i];
         _environment.setVariable(argument.name,
-            named.remove(argument.name) ?? argument.defaultValue?.accept(this));
+            named.remove(argument.name) ??
+                argument.defaultValue?.accept(this));
       }
 
       // TODO: use a full ArgList object
@@ -347,6 +353,32 @@ class PerformVisitor extends StatementVisitor
       // for future calls.
       return run();
     }));
+  }
+
+  Value _runBuiltInCallable(ArgumentInvocation arguments,
+      BuiltInCallable callable, FileSpan span) {
+    var pair = _evaluateArguments(arguments, span);
+    var positional = pair.first;
+    var named = pair.last;
+
+    _verifyArguments(positional, named, callable.arguments, span);
+
+    var declaredArguments = callable.arguments.arguments;
+    for (var i = positional.length; i < declaredArguments.length; i++) {
+      var argument = declaredArguments[i];
+      positional.add(named.remove(argument.name) ??
+          argument.defaultValue?.accept(this));
+    }
+
+    // TODO: use a full ArgList object
+    if (callable.arguments.restArgument != null) {
+      var rest = positional.length > declaredArguments.length
+          ? positional.sublist(declaredArguments.length)
+          : const <Value>[];
+      positional.add(new SassList(rest, ListSeparator.comma));
+    }
+
+    return callable.callback(positional);
   }
 
   Pair<List<Value>, Map<String, Value>> _evaluateArguments(
