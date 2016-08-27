@@ -46,9 +46,9 @@ class Environment {
       _functions[_functionIndices[name] ?? 0][name];
 
   void setFunction(String name, Callable callable) {
-    var index = _variables.length == 1
+    var index = _functions.length == 1
         ? 0
-        : _variableIndices.putIfAbsent(name, () => _variables.length - 1);
+        : _functionIndices.putIfAbsent(name, () => _functions.length - 1);
     _functions[index][name] = callable;
   }
 
