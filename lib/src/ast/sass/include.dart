@@ -8,7 +8,7 @@ import '../../visitor/interface/statement.dart';
 import 'argument_invocation.dart';
 import 'statement.dart';
 
-class Include implements Statement {
+class Include implements Statement, CallableInvocation {
   final String name;
 
   final ArgumentInvocation arguments;

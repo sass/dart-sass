@@ -10,6 +10,7 @@ export 'argument_declaration.dart';
 export 'argument_invocation.dart';
 export 'argument.dart';
 export 'callable_declaration.dart';
+export 'callable_invocation.dart';
 export 'comment.dart';
 export 'declaration.dart';
 export 'extend_rule.dart';

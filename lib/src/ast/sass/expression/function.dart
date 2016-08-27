@@ -9,7 +9,7 @@ import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import '../statement.dart';
 
-class FunctionExpression implements Expression {
+class FunctionExpression implements Expression, CallableInvocation {
   final Interpolation name;
 
   final ArgumentInvocation arguments;

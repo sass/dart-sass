@@ -136,7 +136,7 @@ class PerformVisitor extends StatementVisitor
       throw node.span.message("Mixin doesn't accept a content block.");
     }
 
-    _runUserDefinedCallable(node.arguments, mixin, node.span, () {
+    _runUserDefinedCallable(node, mixin, () {
       for (var statement in mixin.declaration.children) {
         statement.accept(this);
       }
@@ -282,10 +282,9 @@ class PerformVisitor extends StatementVisitor
       var function = _environment.getFunction(plainName);
       if (function != null) {
         if (function is BuiltInCallable) {
-          return _runBuiltInCallable(node.arguments, function, node.span);
+          return _runBuiltInCallable(node, function);
         } else if (function is UserDefinedCallable) {
-          return _runUserDefinedCallable(node.arguments, function, node.span,
-              () {
+          return _runUserDefinedCallable(node, function, () {
             for (var statement in function.declaration.children) {
               var returnValue = statement.accept(this);
               if (returnValue is Value) return returnValue;
@@ -314,14 +313,14 @@ class PerformVisitor extends StatementVisitor
     return new SassIdentifier("$name(${arguments.join(', ')})");
   }
 
-  /*=T*/ _runUserDefinedCallable/*<T>*/(ArgumentInvocation arguments,
-      UserDefinedCallable callable, FileSpan span, /*=T*/ run()) {
+  /*=T*/ _runUserDefinedCallable/*<T>*/(CallableInvocation invocation,
+      UserDefinedCallable callable, /*=T*/ run()) {
     return _withEnvironment(callable.environment, () => _environment.scope(() {
-      var pair = _evaluateArguments(arguments, span);
+      var pair = _evaluateArguments(invocation);
       var positional = pair.first;
       var named = pair.last;
 
-      _verifyArguments(positional, named, callable.arguments, span);
+      _verifyArguments(positional, named, callable.arguments, invocation.span);
 
       // TODO: if we get here and there are no rest params involved, mark the
       // callable as fast-path and don't do error checking or extra allocations
@@ -355,13 +354,13 @@ class PerformVisitor extends StatementVisitor
     }));
   }
 
-  Value _runBuiltInCallable(ArgumentInvocation arguments,
-      BuiltInCallable callable, FileSpan span) {
-    var pair = _evaluateArguments(arguments, span);
+  Value _runBuiltInCallable(CallableInvocation invocation,
+      BuiltInCallable callable) {
+    var pair = _evaluateArguments(invocation);
     var positional = pair.first;
     var named = pair.last;
 
-    _verifyArguments(positional, named, callable.arguments, span);
+    _verifyArguments(positional, named, callable.arguments, invocation.span);
 
     var declaredArguments = callable.arguments.arguments;
     for (var i = positional.length; i < declaredArguments.length; i++) {
@@ -382,32 +381,34 @@ class PerformVisitor extends StatementVisitor
   }
 
   Pair<List<Value>, Map<String, Value>> _evaluateArguments(
-      ArgumentInvocation arguments, FileSpan span) {
-    var positional = arguments.positional
+      CallableInvocation invocation) {
+    var positional = invocation.arguments.positional
         .map((expression) => expression.accept(this)).toList();
     var named = normalizedMapMap/*<String, Expression, Value>*/(
-        arguments.named,
+        invocation.arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    if (arguments.rest == null) return new Pair(positional, named);
+    if (invocation.arguments.rest == null) return new Pair(positional, named);
 
-    var rest = arguments.rest.accept(this);
+    var rest = invocation.arguments.rest.accept(this);
     if (rest is SassMap) {
-      _addRestMap(named, rest, span);
+      _addRestMap(named, rest, invocation.span);
     } else if (rest is SassList) {
       positional.addAll(rest.asList());
     } else {
       positional.add(rest);
     }
 
-    if (arguments.keywordRest == null) return new Pair(positional, named);
+    if (invocation.arguments.keywordRest == null) {
+      return new Pair(positional, named);
+    }
 
-    var keywordRest = arguments.keywordRest.accept(this);
+    var keywordRest = invocation.arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, span);
+      _addRestMap(named, keywordRest, invocation.span);
       return new Pair(positional, named);
     } else {
-      throw span.message(
+      throw invocation.span.message(
           "Variable keyword arguments must be a map (was $keywordRest).");
     }
   }
