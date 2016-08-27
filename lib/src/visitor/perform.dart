@@ -11,11 +11,11 @@ import '../extend/extender.dart';
 import '../parser.dart';
 import '../value.dart';
 import 'interface/statement.dart';
-import 'perform_expression.dart';
+import 'interface/expression.dart';
 
-class PerformVisitor extends StatementVisitor {
+class PerformVisitor extends StatementVisitor
+    implements ExpressionVisitor<Value> {
   final Environment _environment;
-  final PerformExpressionVisitor _expressionVisitor;
 
   /// The current selector, if any.
   CssValue<SelectorList> _selector;
@@ -36,11 +36,17 @@ class PerformVisitor extends StatementVisitor {
 
   PerformVisitor() : this._(new Environment());
 
-  PerformVisitor._(Environment environment)
-      : _environment = environment,
-        _expressionVisitor = new PerformExpressionVisitor(environment);
+  PerformVisitor._(this._environment);
 
-  void visit(Statement node) => node.accept(this);
+  void visit(node) {
+    if (node is Statement) {
+      node.accept(this);
+    } else {
+      (node as Expression).accept(this);
+    }
+  }
+
+  // ## Statements
 
   CssStylesheet visitStylesheet(Stylesheet node) {
     _root = new CssStylesheet(span: node.span);
@@ -183,21 +189,81 @@ class PerformVisitor extends StatementVisitor {
 
   void visitVariableDeclaration(VariableDeclaration node) {
     _environment.setVariable(
-        node.name, node.expression.accept(_expressionVisitor),
+        node.name, node.expression.accept(this),
         global: node.isGlobal);
   }
 
+  // ## Expressions
+
+  Value visitVariableExpression(VariableExpression node) {
+    var result = _environment.getVariable(node.name);
+    if (result != null) return result;
+
+    // TODO: real exception
+    throw node.span.message("undefined variable");
+  }
+
+  Value visitUnaryOperatorExpression(UnaryOperatorExpression node) {
+    var operand = node.operand.accept(this);
+    switch (node.operator) {
+      case UnaryOperator.plus: return operand.unaryPlus();
+      case UnaryOperator.minus: return operand.unaryMinus();
+      case UnaryOperator.divide: return operand.unaryDivide();
+      case UnaryOperator.not: return operand.unaryNot();
+      default: throw new StateError("Unknown unary operator ${node.operator}.");
+    }
+  }
+
+  SassIdentifier visitIdentifierExpression(IdentifierExpression node) =>
+      new SassIdentifier(visitInterpolationExpression(node.text).text);
+
+  SassBoolean visitBooleanExpression(BooleanExpression node) =>
+      new SassBoolean(node.value);
+
+  SassNumber visitNumberExpression(NumberExpression node) =>
+      new SassNumber(node.value);
+
+  SassColor visitColorExpression(ColorExpression node) => node.value;
+
+  SassString visitInterpolationExpression(InterpolationExpression node) {
+    return new SassString(node.contents.map((value) {
+      if (value is String) return value;
+      return (value as Expression).accept(this);
+    }).join());
+  }
+
+  SassList visitListExpression(ListExpression node) => new SassList(
+      node.contents.map((expression) => expression.accept(this)),
+      node.separator,
+      bracketed: node.isBracketed);
+
+  SassMap visitMapExpression(MapExpression node) {
+    var map = <Value, Value>{};
+    for (var pair in node.pairs) {
+      var keyValue = pair.first.accept(this);
+      var valueValue = pair.last.accept(this);
+      if (map.containsKey(keyValue)) {
+        throw pair.first.span.message('Duplicate key.');
+      }
+      map[keyValue] = valueValue;
+    }
+    return new SassMap(map);
+  }
+
+  SassString visitStringExpression(StringExpression node) =>
+      visitInterpolationExpression(node.text);
+
+  // ## Utilities
+
   CssValue<String> _performInterpolation(
       InterpolationExpression interpolation, {bool trim: false}) {
-    var result = _expressionVisitor.visitInterpolationExpression(interpolation)
-        .text;
+    var result = visitInterpolationExpression(interpolation).text;
     return new CssValue(trim ? result.trim() : result,
         span: interpolation.span);
   }
 
   CssValue<Value> _performExpression(Expression expression) =>
-      new CssValue(expression.accept(_expressionVisitor),
-          span: expression.span);
+      new CssValue(expression.accept(this), span: expression.span);
 
   /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
       /*=S*/ node, /*=T*/ callback(),
