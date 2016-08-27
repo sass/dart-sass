@@ -75,7 +75,7 @@ class _SerializeCssVisitor extends CssVisitor {
       _buffer.write(node.value.value);
     }
 
-    if (node.children == null) {
+    if (node.isChildless) {
       _buffer.writeCharCode($semicolon);
     } else {
       _buffer.writeCharCode($space);

@@ -101,7 +101,9 @@ class PerformVisitor extends StatementVisitor
         : _interpolationToValue(node.value, trim: true);
 
     if (node.children == null) {
-      _parent.addChild(new CssAtRule(node.name, value: value, span: node.span));
+      _parent.addChild(new CssAtRule(node.name,
+          childless: true, value: value, span: node.span));
+      return;
     }
 
     _withParent(new CssAtRule(node.name, value: value, span: node.span), () {

@@ -13,12 +13,20 @@ class CssAtRule extends CssParentNode {
 
   final CssValue<String> value;
 
+  final bool isChildless;
+
   final FileSpan span;
 
-  CssAtRule(this.name, {this.value, this.span});
+  CssAtRule(this.name, {bool childless: false, this.value, this.span})
+      : isChildless = childless;
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitAtRule(this);
+
+  void addChild(CssNode child) {
+    assert(!isChildless);
+    super.addChild(child);
+  }
 
   String toString() {
     var buffer = new StringBuffer("@$name");
