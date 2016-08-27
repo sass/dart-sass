@@ -59,7 +59,6 @@ String unvendor(String name) {
 }
 
 bool equalsIgnoreSeparator(String string1, String string2) {
-  print("eis: $string1 $string2");
   if (identical(string1, string2)) return true;
   if (string1 == null || string2 == null) return false;
   if (string1.length != string2.length) return false;
