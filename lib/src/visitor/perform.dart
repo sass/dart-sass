@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+
 import 'package:source_span/source_span.dart';
 
 import '../ast/css/node.dart';
@@ -310,69 +312,34 @@ class PerformVisitor extends StatementVisitor
   /*=T*/ _runCallable/*<T>*/(ArgumentInvocation arguments, Callable callable,
       FileSpan span, /*=T*/ run()) {
     return _withEnvironment(callable.environment, () => _environment.scope(() {
-      var positional = arguments.positional
-          .map((expression) => expression.accept(this)).toList();
-      var named = normalizedMapMap/*<String, Expression, Value>*/(
-          arguments.named,
-          value: (_, expression) => expression.accept(this));
+      var pair = _evaluateArguments(arguments, span);
+      var positional = pair.first;
+      var named = pair.last;
 
-      if (arguments.rest != null) {
-        var value = arguments.rest.accept(this);
-        if (value is SassMap) {
-          _addRestMap(named, value, span);
-        } else if (value is SassList) {
-          positional.addAll(value.asList());
-        } else {
-          positional.add(value);
-        }
+      _verifyArguments(positional, named, callable.arguments, span);
+
+      // TODO: if we get here and there are no rest params involved, mark the
+      // callable as fast-path and don't do error checking or extra allocations
+      // for future calls.
+      var declaredArguments = callable.arguments.arguments;
+      var minLength = math.min(positional.length, declaredArguments.length);
+      for (var i = 0; i < minLength; i++) {
+        _environment.setVariable(declaredArguments[i].name, positional[i]);
       }
 
-      if (arguments.keywordRest != null) {
-        var value = arguments.keywordRest.accept(this);
-        if (value is SassMap) {
-          _addRestMap(named, value, span);
-        } else {
-          span.message(
-              "Variable keyword arguments must be a map (was $value).");
-        }
+      for (var i = positional.length; i < declaredArguments.length; i++) {
+        var argument = declaredArguments[i];
+        _environment.setVariable(argument.name,
+            named.remove(argument.name) ?? argument.defaultValue?.accept(this));
       }
 
-      var callableArguments = callable.arguments.arguments;
-      var i = 0;
-      for (; i < positional.length && i < callableArguments.length; i++) {
-        var name = callableArguments[i].name;
-        if (named.containsKey(name)) {
-          throw span.message(
-              "Argument \$$name was passed both by position and by name.");
-        }
-
-        _environment.setVariable(name, positional[i]);
-      }
-
-      for (; i < callableArguments.length; i++) {
-        var argument = callableArguments[i];
-        var value = named.remove(argument.name) ??
-            argument.defaultValue?.accept(this);
-
-        if (value == null) {
-          throw span.message("Missing argument \$${argument.name}.");
-        } else {
-          _environment.setVariable(argument.name, value);
-        }
-      }
-
+      // TODO: use a full ArgList object
       if (callable.arguments.restArgument != null) {
-        // TODO: use a full ArgList object
-        var rest =
-            i < positional.length ? positional.sublist(i) : const <Value>[];
+        var rest = positional.length > declaredArguments.length
+            ? positional.sublist(declaredArguments.length)
+            : const <Value>[];
         _environment.setVariable(callable.arguments.restArgument,
             new SassList(rest, ListSeparator.comma));
-      } else if (i < positional.length) {
-        throw span.message(
-            "Only ${callableArguments.length} arguments are allowed, but "
-              "${positional.length} were passed.");
-      } else if (named.isNotEmpty) {
-        throw span.message("No argument named \$${named.keys.first}.");
       }
 
       // TODO: if we get here and there are no rest params involved, mark the
@@ -380,6 +347,37 @@ class PerformVisitor extends StatementVisitor
       // for future calls.
       return run();
     }));
+  }
+
+  Pair<List<Value>, Map<String, Value>> _evaluateArguments(
+      ArgumentInvocation arguments, FileSpan span) {
+    var positional = arguments.positional
+        .map((expression) => expression.accept(this)).toList();
+    var named = normalizedMapMap/*<String, Expression, Value>*/(
+        arguments.named,
+        value: (_, expression) => expression.accept(this));
+
+    if (arguments.rest == null) return new Pair(positional, named);
+
+    var rest = arguments.rest.accept(this);
+    if (rest is SassMap) {
+      _addRestMap(named, rest, span);
+    } else if (rest is SassList) {
+      positional.addAll(rest.asList());
+    } else {
+      positional.add(rest);
+    }
+
+    if (arguments.keywordRest == null) return new Pair(positional, named);
+
+    var keywordRest = arguments.keywordRest.accept(this);
+    if (keywordRest is SassMap) {
+      _addRestMap(named, keywordRest, span);
+      return new Pair(positional, named);
+    } else {
+      throw span.message(
+          "Variable keyword arguments must be a map (was $keywordRest).");
+    }
   }
 
   void _addRestMap(Map<String, Value> values, SassMap map, FileSpan span) {
@@ -394,6 +392,42 @@ class PerformVisitor extends StatementVisitor
             "$key is not a string in $value.");
       }
     });
+  }
+
+  void _verifyArguments(List<Value> positional, Map<String, Value> named,
+      ArgumentDeclaration arguments, FileSpan span) {
+    for (var i = 0; i < arguments.arguments.length; i++) {
+      var argument = arguments.arguments[i];
+      if (i < positional.length) {
+        if (named.containsKey(argument.name)) {
+          throw span.message(
+              "Argument \$${argument.name} was passed both by position and by "
+                "name.");
+        }
+      } else if (argument.defaultValue == null &&
+          !named.containsKey(argument.name)) {
+        throw span.message("Missing argument \$${argument.name}.");
+      }
+    }
+
+    if (arguments.restArgument != null) return;
+
+    if (positional.length > arguments.arguments.length) {
+      throw span.message(
+          "Only ${arguments.arguments.length} "
+            "${pluralize('argument', arguments.arguments.length)} allowed, "
+            "but ${positional.length} "
+            "${pluralize('was', positional.length, plural: 'were')} passed.");
+    }
+
+    if (arguments.arguments.length - positional.length < named.length) {
+      var unknownNames = normalizedSet()
+          ..addAll(named.keys)
+          ..removeAll(arguments.arguments.map((argument) => argument.name));
+      throw span.message(
+          "No ${pluralize('argument', unknownNames.length)} named "
+          "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.");
+    }
   }
 
   SassString visitStringExpression(StringExpression node) =>

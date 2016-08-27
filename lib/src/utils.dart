@@ -37,6 +37,22 @@ class Pair<E, F> {
   int get hashCode => first.hashCode ^ last.hashCode;
 }
 
+String toSentence(Iterable iter, [String conjunction]) {
+  conjunction ??= "and";
+  if (iter.length == 1) return iter.first.toString();
+  return iter.take(iter.length - 1).join(", ") + " $conjunction ${iter.last}";
+}
+
+/// Returns [name] if [number] is 1, or the plural of [name] otherwise.
+///
+/// By default, this just adds "s" to the end of [name] to get the plural. If
+/// [plural] is passed, that's used instead.
+String pluralize(String name, int number, {String plural}) {
+  if (number == 1) return name;
+  if (plural != null) return plural;
+  return '${name}s';
+}
+
 bool listEquals/*<T>*/(List/*<T>*/ list1, List/*<T>*/ list2) =>
     const ListEquality().equals(list1, list2);
 
@@ -96,9 +112,11 @@ bool equalsIgnoreCase(String string1, String string2) {
   return string1.toUpperCase() == string2.toUpperCase();
 }
 
-Map/*<String, V>*/ normalizedMap/*<V>*/() =>
-    new LinkedHashMap(
-        equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+Map/*<String, V>*/ normalizedMap/*<V>*/() => new LinkedHashMap(
+    equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+
+Set<String> normalizedSet() => new LinkedHashSet(
+    equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
 
 Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(
     Map/*<K, V1>*/ map,
