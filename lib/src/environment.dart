@@ -14,7 +14,7 @@ class Environment {
   Value getVariable(String name) =>
       _variables[_variableIndices[name] ?? 0][name];
 
-  void setVariable(String name, Value value, {bool global}) {
+  void setVariable(String name, Value value, {bool global: false}) {
     var index = global || _variables.length == 1
         ? 0
         : _variableIndices.putIfAbsent(name, () => _variables.length - 1);

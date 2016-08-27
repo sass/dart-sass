@@ -17,7 +17,7 @@ class SassList extends Value {
 
   bool get isBlank => contents.every((element) => element.isBlank);
 
-  SassList(Iterable<Value> contents, this.separator, {bool bracketed})
+  SassList(Iterable<Value> contents, this.separator, {bool bracketed: false})
       : contents = new List.unmodifiable(contents),
         isBracketed = bracketed;
 

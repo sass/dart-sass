@@ -20,7 +20,7 @@ class ListExpression implements Expression {
   final FileSpan span;
 
   ListExpression(Iterable<Expression> contents, ListSeparator separator,
-          {bool bracketed, FileSpan span})
+          {bool bracketed: false, FileSpan span})
       : this._(new List.unmodifiable(contents), separator, bracketed, span);
 
   ListExpression._(List<Expression> contents, this.separator, this.isBracketed,

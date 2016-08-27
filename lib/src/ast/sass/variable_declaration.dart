@@ -19,8 +19,8 @@ class VariableDeclaration implements Statement {
 
   final FileSpan span;
 
-  VariableDeclaration(this.name, this.expression, {bool guarded,
-          bool global, this.span})
+  VariableDeclaration(this.name, this.expression, {bool guarded: false,
+          bool global: false, this.span})
       : isGuarded = guarded,
         isGlobal = global;
 
