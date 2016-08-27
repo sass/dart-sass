@@ -5,11 +5,10 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/statement.dart';
-import 'expression/interpolation.dart';
 import 'statement.dart';
 
 class StyleRule implements Statement {
-  final InterpolationExpression selector;
+  final Interpolation selector;
 
   final List<Statement> children;
 

@@ -65,7 +65,7 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitDeclaration(Declaration node) {
-    var name = _performInterpolation(node.name);
+    var name = _interpolationToValue(node.name);
     if (_declarationName != null) {
       name = new CssValue("$_declarationName-${name.value}", span: name.span);
     }
@@ -87,7 +87,7 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitExtendRule(ExtendRule node) {
-    var targetText = _performInterpolation(node.selector);
+    var targetText = _interpolationToValue(node.selector);
 
     // TODO: recontextualize parse errors.
     // TODO: disallow parent selectors.
@@ -98,7 +98,7 @@ class PerformVisitor extends StatementVisitor
   void visitAtRule(AtRule node) {
     var value = node.value == null
         ? null
-        : _performInterpolation(node.value, trim: true);
+        : _interpolationToValue(node.value, trim: true);
 
     if (node.children == null) {
       _parent.addChild(new CssAtRule(node.name, value: value, span: node.span));
@@ -165,14 +165,14 @@ class PerformVisitor extends StatementVisitor
   CssMediaQuery _visitMediaQuery(MediaQuery query) {
     var modifier = query.modifier == null
         ? null
-        : _performInterpolation(query.modifier);
+        : _interpolationToValue(query.modifier);
 
     var type = query.type == null
         ? null
-        : _performInterpolation(query.type);
+        : _interpolationToValue(query.type);
 
     var features = query.features
-        .map((feature) => _performInterpolation(feature));
+        .map((feature) => _interpolationToValue(feature));
 
     if (type == null) return new CssMediaQuery.condition(features);
     return new CssMediaQuery(type, modifier: modifier, features: features);
@@ -181,7 +181,7 @@ class PerformVisitor extends StatementVisitor
   Value visitReturn(Return node) => node.expression.accept(this);
 
   void visitStyleRule(StyleRule node) {
-    var selectorText = _performInterpolation(node.selector, trim: true);
+    var selectorText = _interpolationToValue(node.selector, trim: true);
     var parsedSelector = new Parser(selectorText.value).parseSelector();
 
     // TOOD: catch errors and point them to node.selector
@@ -227,7 +227,7 @@ class PerformVisitor extends StatementVisitor
   }
 
   SassIdentifier visitIdentifierExpression(IdentifierExpression node) =>
-      new SassIdentifier(visitInterpolationExpression(node.text).text);
+      new SassIdentifier(_performInterpolation(node.text));
 
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
       new SassBoolean(node.value);
@@ -236,13 +236,6 @@ class PerformVisitor extends StatementVisitor
       new SassNumber(node.value);
 
   SassColor visitColorExpression(ColorExpression node) => node.value;
-
-  SassString visitInterpolationExpression(InterpolationExpression node) {
-    return new SassString(node.contents.map((value) {
-      if (value is String) return value;
-      return (value as Expression).accept(this);
-    }).join());
-  }
 
   SassList visitListExpression(ListExpression node) => new SassList(
       node.contents.map((expression) => expression.accept(this)),
@@ -276,7 +269,7 @@ class PerformVisitor extends StatementVisitor
           "Plain CSS functions don't support keyword arguments.");
     }
 
-    var name = node.name.accept(this);
+    var name = _performInterpolation(node.name);
     var arguments = node.arguments.positional
         .map((expression) => expression.accept(this)).toList();
     // TODO: if rest is an arglist that has keywords, error out.
@@ -381,7 +374,7 @@ class PerformVisitor extends StatementVisitor
   }
 
   SassString visitStringExpression(StringExpression node) =>
-      visitInterpolationExpression(node.text);
+      new SassString(_performInterpolation(node.text));
 
   // ## Utilities
 
@@ -393,11 +386,18 @@ class PerformVisitor extends StatementVisitor
     return result;
   }
 
-  CssValue<String> _performInterpolation(
-      InterpolationExpression interpolation, {bool trim: false}) {
-    var result = visitInterpolationExpression(interpolation).text;
+  CssValue<String> _interpolationToValue(
+      Interpolation interpolation, {bool trim: false}) {
+    var result = _performInterpolation(interpolation);
     return new CssValue(trim ? result.trim() : result,
         span: interpolation.span);
+  }
+
+  String _performInterpolation(Interpolation interpolation) {
+    return interpolation.contents.map((value) {
+      if (value is String) return value;
+      return (value as Expression).accept(this);
+    }).join();
   }
 
   CssValue<Value> _performExpression(Expression expression) =>

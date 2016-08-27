@@ -10,7 +10,7 @@ import '../expression.dart';
 import '../statement.dart';
 
 class FunctionExpression implements Expression {
-  final InterpolationExpression name;
+  final Interpolation name;
 
   final ArgumentInvocation arguments;
 

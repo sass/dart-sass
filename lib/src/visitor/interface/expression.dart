@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../ast/sass/expression.dart';
+import '../../ast/sass/statement.dart';
 
 abstract class ExpressionVisitor<T> {
   T visitVariableExpression(VariableExpression node) => null;
@@ -16,7 +17,7 @@ abstract class ExpressionVisitor<T> {
   }
 
   T visitIdentifierExpression(IdentifierExpression node) {
-    visitInterpolationExpression(node.text);
+    _visitInterpolation(node.text);
     return null;
   }
 
@@ -48,14 +49,13 @@ abstract class ExpressionVisitor<T> {
   }
 
   T visitStringExpression(StringExpression node) {
-    visitInterpolationExpression(node.text);
+    _visitInterpolation(node.text);
     return null;
   }
 
-  T visitInterpolationExpression(InterpolationExpression node) {
+  void _visitInterpolation(Interpolation node) {
     for (var value in node.contents) {
       if (value is Expression) value.accept(this);
     }
-    return null;
   }
 }

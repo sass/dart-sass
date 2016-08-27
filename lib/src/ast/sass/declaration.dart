@@ -6,11 +6,10 @@ import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/statement.dart';
 import 'expression.dart';
-import 'expression/interpolation.dart';
 import 'statement.dart';
 
 class Declaration implements Statement {
-  final InterpolationExpression name;
+  final Interpolation name;
 
   final Expression value;
 

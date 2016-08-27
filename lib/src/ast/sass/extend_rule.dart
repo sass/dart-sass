@@ -5,11 +5,10 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/statement.dart';
-import 'expression.dart';
 import 'statement.dart';
 
 class ExtendRule implements Statement {
-  final InterpolationExpression selector;
+  final Interpolation selector;
 
   final FileSpan span;
 

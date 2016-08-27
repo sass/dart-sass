@@ -6,15 +6,15 @@ import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
 import '../node.dart';
-import 'expression.dart';
 import 'node.dart';
+import 'statement.dart';
 
 class MediaQuery implements SassNode {
-  final InterpolationExpression modifier;
+  final Interpolation modifier;
 
-  final InterpolationExpression type;
+  final Interpolation type;
 
-  final List<InterpolationExpression> features;
+  final List<Interpolation> features;
 
   FileSpan get span {
     var components = <AstNode>[];
@@ -25,12 +25,12 @@ class MediaQuery implements SassNode {
   }
 
   MediaQuery(this.type, {this.modifier,
-      Iterable<InterpolationExpression> features})
+      Iterable<Interpolation> features})
       : features = features == null
             ? const []
             : new List.unmodifiable(features);
 
-  MediaQuery.condition(Iterable<InterpolationExpression> features,
+  MediaQuery.condition(Iterable<Interpolation> features,
       {this.modifier, this.type})
       : features = new List.unmodifiable(features);
 

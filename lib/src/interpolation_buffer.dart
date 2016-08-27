@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import 'ast/sass/expression.dart';
+import 'ast/sass/statement.dart';
 
 class InterpolationBuffer implements StringSink {
   final _text = new StringBuffer();
@@ -29,7 +30,7 @@ class InterpolationBuffer implements StringSink {
     _contents.add(expression);
   }
 
-  void addInterpolation(InterpolationExpression expression) {
+  void addInterpolation(Interpolation expression) {
     if (expression.contents.isEmpty) return;
 
     var toAdd = expression.contents;
@@ -50,10 +51,10 @@ class InterpolationBuffer implements StringSink {
     _text.clear();
   }
 
-  InterpolationExpression interpolation([FileSpan span]) {
+  Interpolation interpolation([FileSpan span]) {
     var contents = _contents.toList();
     if (_text.isNotEmpty) contents.add(_text.toString());
-    return new InterpolationExpression(contents, span: span);
+    return new Interpolation(contents, span: span);
   }
 
   String toString() => "${_contents.join('')}$_text";

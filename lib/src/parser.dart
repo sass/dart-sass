@@ -132,7 +132,7 @@ class Parser {
             span: _scanner.spanFrom(start));
     }
 
-    InterpolationExpression value;
+    Interpolation value;
     var next = _scanner.peekChar();
     if (next != $exclamation && next != $semicolon && next != $lbrace &&
         next != $rbrace && next != null) {
@@ -213,7 +213,7 @@ class Parser {
   Expression _declarationExpression() {
     if (_scanner.peekChar() == $lbrace) {
       return new StringExpression(
-          new InterpolationExpression([], span: _scanner.emptySpan));
+          new Interpolation([], span: _scanner.emptySpan));
     }
 
     return _expression();
@@ -762,7 +762,7 @@ class Parser {
     return new SassColor.rgb(red, green, blue);
   }
 
-  bool _isHexColor(InterpolationExpression interpolation) {
+  bool _isHexColor(Interpolation interpolation) {
     var plain = interpolation.asPlain;
     if (plain == null) return false;
     if (plain.length != 3 && plain.length != 6) return false;
@@ -791,7 +791,7 @@ class Parser {
   ///
   /// This respects string boundaries and supports interpolation. Once this
   /// interpolation is evaluated, it's expected to be re-parsed.
-  InterpolationExpression _almostAnyValue() {
+  Interpolation _almostAnyValue() {
     var start = _scanner.state;
     var buffer = new InterpolationBuffer();
 
@@ -951,7 +951,7 @@ class Parser {
         buffer.interpolation(_scanner.spanFrom(start)));
   }
 
-  InterpolationExpression _interpolatedIdentifier() {
+  Interpolation _interpolatedIdentifier() {
     var start = _scanner.state;
     var buffer = new InterpolationBuffer();
 
@@ -1312,8 +1312,8 @@ class Parser {
   }
 
   MediaQuery _mediaQuery() {
-    InterpolationExpression modifier;
-    InterpolationExpression type;
+    Interpolation modifier;
+    Interpolation type;
     if (_scanner.peekChar() != $lparen) {
       var identifier1 = _interpolatedIdentifier();
       _ignoreComments();
@@ -1345,7 +1345,7 @@ class Parser {
     // We've consumed either `IDENTIFIER "and"` or
     // `IDENTIFIER IDENTIFIER "and"`.
 
-    var features = <InterpolationExpression>[];
+    var features = <Interpolation>[];
     do {
       _ignoreComments();
       features.add(_mediaExpression());
@@ -1358,10 +1358,10 @@ class Parser {
     }
   }
 
-  InterpolationExpression _mediaExpression() {
+  Interpolation _mediaExpression() {
     if (_scanner.peekChar() == $hash) {
       var interpolation = _singleInterpolation();
-      return new InterpolationExpression([interpolation],
+      return new Interpolation([interpolation],
           span: interpolation.span);
     }
 

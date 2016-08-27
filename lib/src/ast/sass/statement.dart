@@ -13,6 +13,7 @@ export 'comment.dart';
 export 'declaration.dart';
 export 'extend_rule.dart';
 export 'function_declaration.dart';
+export 'interpolation.dart';
 export 'media_query.dart';
 export 'media_rule.dart';
 export 'return.dart';

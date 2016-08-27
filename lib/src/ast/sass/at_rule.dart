@@ -5,13 +5,12 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/statement.dart';
-import 'expression/interpolation.dart';
 import 'statement.dart';
 
 class AtRule implements Statement {
   final String name;
 
-  final InterpolationExpression value;
+  final Interpolation value;
 
   final List<Statement> children;
 

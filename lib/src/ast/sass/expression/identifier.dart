@@ -6,10 +6,10 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
-import 'interpolation.dart';
+import '../statement.dart';
 
 class IdentifierExpression implements Expression {
-  final InterpolationExpression text;
+  final Interpolation text;
 
   FileSpan get span => text.span;
 

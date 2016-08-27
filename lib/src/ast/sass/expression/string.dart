@@ -9,7 +9,7 @@ import '../../../interpolation_buffer.dart';
 import '../../../util/character.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
-import 'interpolation.dart';
+import '../statement.dart';
 
 class StringExpression implements Expression {
   /// Interpolation that, when evaluated, produces the semantic content of the
@@ -17,7 +17,7 @@ class StringExpression implements Expression {
   ///
   /// Unlike [asInterpolation], escapes are resolved and quotes are not
   /// included.
-  final InterpolationExpression text;
+  final Interpolation text;
 
   FileSpan get span => text.span;
 
@@ -29,11 +29,11 @@ class StringExpression implements Expression {
   /// Interpolation that, when evaluated, produces the syntax of the string.
   ///
   /// Unlike [text], his doesn't resolve escapes and does include quotes.
-  InterpolationExpression asInterpolation({bool static: false, int quote}) {
+  Interpolation asInterpolation({bool static: false, int quote}) {
     quote ??= _bestQuote();
     var buffer = new InterpolationBuffer()..writeCharCode(quote);
     for (var value in text.contents) {
-      if (value is InterpolationExpression) {
+      if (value is Interpolation) {
         buffer.addInterpolation(value);
       } else if (value is String) {
         for (var i = 0; i < value.length; i++) {
