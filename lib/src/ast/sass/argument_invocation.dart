@@ -25,6 +25,12 @@ class ArgumentInvocation implements SassNode {
     assert(rest != null || keywordRest == null);
   }
 
+  ArgumentInvocation.empty({this.span})
+    : positional = const [],
+      named = const {},
+      rest = null,
+      keywordRest = null;
+
   String toString() {
     var components = new List<Object>.from(positional)
       ..addAll(named.keys.map((name) => "$name: ${named[name]}"));

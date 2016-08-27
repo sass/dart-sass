@@ -17,20 +17,28 @@ class Environment {
 
   final Map<String, int> _functionIndices;
 
+  final List<Map<String, Callable>> _mixins;
+
+  final Map<String, int> _mixinIndices;
+
   Environment()
       : _variables = [normalizedMap()],
         _variableIndices = normalizedMap(),
         _functions = [normalizedMap()],
-        _functionIndices = normalizedMap();
+        _functionIndices = normalizedMap(),
+        _mixins = [normalizedMap()],
+        _mixinIndices = normalizedMap();
 
   Environment._(this._variables, this._variableIndices, this._functions,
-      this._functionIndices);
+      this._functionIndices, this._mixins, this._mixinIndices);
 
   Environment closure() => new Environment._(
       _variables.toList(),
       new Map.from(_variableIndices),
       _functions.toList(),
-      new Map.from(_functionIndices));
+      new Map.from(_functionIndices),
+      _mixins.toList(),
+      new Map.from(_mixinIndices));
 
   Value getVariable(String name) =>
       _variables[_variableIndices[name] ?? 0][name];
@@ -50,6 +58,16 @@ class Environment {
         ? 0
         : _functionIndices.putIfAbsent(name, () => _functions.length - 1);
     _functions[index][name] = callable;
+  }
+
+  Callable getMixin(String name) =>
+      _mixins[_mixinIndices[name] ?? 0][name];
+
+  void setMixin(String name, Callable callable) {
+    var index = _mixins.length == 1
+        ? 0
+        : _mixinIndices.putIfAbsent(name, () => _mixins.length - 1);
+    _mixins[index][name] = callable;
   }
 
   /*=T*/ scope/*<T>*/(/*=T*/ callback()) {

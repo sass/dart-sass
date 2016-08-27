@@ -24,6 +24,8 @@ final _prefixedSelectorPseudoClasses =
 class Parser {
   final SpanScanner _scanner;
 
+  bool _inMixin = false;
+
   Parser(String contents, {url})
       : _scanner = new SpanScanner(contents, sourceUrl: url);
 
@@ -115,21 +117,15 @@ class Parser {
     _ignoreComments();
 
     switch (name) {
-      case "media":
-        return new MediaRule(_mediaQueryList(), _ruleChildren(),
-            span: _scanner.spanFrom(start));
       case "extend":
         return new ExtendRule(_almostAnyValue(),
             span: _scanner.spanFrom(start));
-      case "function":
-        var name = _identifier();
-        _ignoreComments();
-        var arguments = _argumentDeclaration();
-        _ignoreComments();
-        var children = _children(_functionAtRule);
-        // TODO: ensure there aren't duplicate argument names.
-        return new FunctionDeclaration(name, arguments, children,
+      case "function": return _functionDeclaration(start);
+      case "include": return _include(start);
+      case "media":
+        return new MediaRule(_mediaQueryList(), _ruleChildren(),
             span: _scanner.spanFrom(start));
+      case "mixin": return _mixinDeclaration(start);
     }
 
     Interpolation value;
@@ -142,6 +138,66 @@ class Parser {
     return new AtRule(name,
         value: value,
         children: _scanner.peekChar() == $lbrace ? _ruleChildren() : null,
+        span: _scanner.spanFrom(start));
+  }
+
+  Include _include(LineScannerState start) {
+    var name = _identifier();
+    _ignoreComments();
+    var arguments = _scanner.peekChar() == $lparen
+        ? _argumentInvocation()
+        : new ArgumentInvocation.empty(span: _scanner.emptySpan);
+    _ignoreComments();
+
+    List<Statement> children;
+    if (_scanner.peekChar() == $lbrace) {
+      _inMixin = true;
+      children = _ruleChildren();
+      _inMixin = false;
+    }
+
+    return new Include(name, arguments,
+        children: children, span: _scanner.spanFrom(start));
+  }
+
+  MixinDeclaration _mixinDeclaration(LineScannerState start) {
+    var name = _identifier();
+    _ignoreComments();
+    var arguments = _scanner.peekChar() == $lparen
+        ? _argumentDeclaration()
+        : new ArgumentDeclaration.empty(span: _scanner.emptySpan);
+
+    if (_inMixin) {
+      throw new StringScannerException(
+          "Mixins may not contain mixin declarations.",
+          _scanner.spanFrom(start), _scanner.string);
+    }
+
+    _ignoreComments();
+    _inMixin = true;
+    var children = _ruleChildren();
+    _inMixin = false;
+
+    return new MixinDeclaration(name, arguments, children,
+        span: _scanner.spanFrom(start));
+  }
+
+  FunctionDeclaration _functionDeclaration(LineScannerState start) {
+    var name = _identifier();
+    _ignoreComments();
+    var arguments = _argumentDeclaration();
+
+    if (_inMixin) {
+      throw new StringScannerException(
+          "Mixins may not contain function declarations.",
+          _scanner.spanFrom(start), _scanner.string);
+    }
+
+    _ignoreComments();
+    var children = _children(_functionAtRule);
+
+    // TODO: ensure there aren't duplicate argument names.
+    return new FunctionDeclaration(name, arguments, children,
         span: _scanner.spanFrom(start));
   }
 

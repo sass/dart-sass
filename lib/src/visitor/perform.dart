@@ -129,6 +129,26 @@ class PerformVisitor extends StatementVisitor
         span: node.span));
   }
 
+  void visitInclude(Include node) {
+    var mixin = _environment.getMixin(node.name);
+    if (mixin == null) throw node.span.message("Undefined mixin.");
+    if (node.children != null) {
+      throw node.span.message("Mixin doesn't accept a content block.");
+    }
+
+    _runCallable(node.arguments, mixin, node.span, () {
+      for (var statement in mixin.children) {
+        statement.accept(this);
+      }
+    });
+  }
+
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _environment.setMixin(node.name, new Callable(
+        node.name, node.arguments, node.children, _environment.closure(),
+        span: node.span));
+  }
+
   void visitMediaRule(MediaRule node) {
     var queryIterable = node.queries.map(_visitMediaQuery);
     var queries = _mediaQueries == null
@@ -262,7 +282,14 @@ class PerformVisitor extends StatementVisitor
     if (plainName != null) {
       var function = _environment.getFunction(plainName);
       if (function != null) {
-        return _runCallable(node.arguments, function, node.span);
+        return _runCallable(node.arguments, function, node.span, () {
+          for (var statement in function.children) {
+            var returnValue = statement.accept(this);
+            if (returnValue is Value) return returnValue;
+          }
+
+          throw function.span.message("Function finished without @return.");
+        });
       }
     }
 
@@ -280,8 +307,8 @@ class PerformVisitor extends StatementVisitor
     return new SassIdentifier("$name(${arguments.join(', ')})");
   }
 
-  Value _runCallable(ArgumentInvocation arguments, Callable callable,
-      FileSpan span) {
+  /*=T*/ _runCallable/*<T>*/(ArgumentInvocation arguments, Callable callable,
+      FileSpan span, /*=T*/ run()) {
     return _withEnvironment(callable.environment, () => _environment.scope(() {
       var positional = arguments.positional
           .map((expression) => expression.accept(this)).toList();
@@ -342,22 +369,16 @@ class PerformVisitor extends StatementVisitor
             new SassList(rest, ListSeparator.comma));
       } else if (i < positional.length) {
         throw span.message(
-            "Function takes ${callableArguments.length} arguments but "
+            "Only ${callableArguments.length} arguments are allowed, but "
               "${positional.length} were passed.");
       } else if (named.isNotEmpty) {
-        throw span.message(
-            "Function doesn't have an argument named \$${named.keys.first}.");
+        throw span.message("No argument named \$${named.keys.first}.");
       }
 
-      // TODO: if we get here and there are no rest params involved, mark them
-      // as fast-path and don't do error checking or extra allocations for
-      // future calls.
-      for (var statement in callable.children) {
-        var returnValue = statement.accept(this);
-        if (returnValue is Value) return returnValue;
-      }
-
-      throw callable.span.message("Function finished without @return.");
+      // TODO: if we get here and there are no rest params involved, mark the
+      // callable as fast-path and don't do error checking or extra allocations
+      // for future calls.
+      return run();
     }));
   }
 

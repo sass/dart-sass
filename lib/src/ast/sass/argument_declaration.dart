@@ -18,6 +18,10 @@ class ArgumentDeclaration implements SassNode {
       {this.restArgument, this.span})
       : arguments = new List.unmodifiable(arguments);
 
+  ArgumentDeclaration.empty({this.span})
+      : arguments = const [],
+        restArgument = null;
+
   String toString() => arguments.join(', ') +
       (restArgument == null ? '' : ", $restArgument...");
 }
