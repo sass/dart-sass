@@ -6,9 +6,8 @@ import 'dart:math' as math;
 
 import 'package:source_span/source_span.dart';
 
-import '../ast/css/node.dart';
-import '../ast/sass/expression.dart';
-import '../ast/sass/statement.dart';
+import '../ast/css.dart';
+import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../callable.dart';
 import '../environment.dart';

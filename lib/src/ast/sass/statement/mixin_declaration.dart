@@ -4,9 +4,10 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/interface/statement.dart';
-import 'argument_declaration.dart';
-import 'statement.dart';
+import '../../../visitor/interface/statement.dart';
+import '../callable_declaration.dart';
+import '../argument_declaration.dart';
+import '../statement.dart';
 
 class MixinDeclaration extends CallableDeclaration {
   MixinDeclaration(String name, ArgumentDeclaration arguments,

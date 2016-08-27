@@ -7,8 +7,7 @@ import 'dart:math' as math;
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import 'ast/sass/expression.dart';
-import 'ast/sass/statement.dart';
+import 'ast/sass.dart';
 import 'ast/selector.dart';
 import 'interpolation_buffer.dart';
 import 'util/character.dart';

@@ -9,7 +9,7 @@ import '../../../interpolation_buffer.dart';
 import '../../../util/character.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
-import '../statement.dart';
+import '../interpolation.dart';
 
 class StringExpression implements Expression {
   /// Interpolation that, when evaluated, produces the semantic content of the

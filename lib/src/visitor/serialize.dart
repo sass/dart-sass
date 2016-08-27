@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import '../ast/css/node.dart';
+import '../ast/css.dart';
 import '../ast/selector.dart';
 import '../util/character.dart';
 import '../value.dart';

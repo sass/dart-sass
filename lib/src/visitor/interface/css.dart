@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../../ast/css/node.dart';
+import '../../ast/css.dart';
 import 'selector.dart';
 import 'value.dart';
 

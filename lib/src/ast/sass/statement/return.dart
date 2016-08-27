@@ -4,18 +4,19 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/interface/statement.dart';
-import 'statement.dart';
+import '../../../visitor/interface/statement.dart';
+import '../expression.dart';
+import '../statement.dart';
 
-class ExtendRule implements Statement {
-  final Interpolation selector;
+class Return implements Statement {
+  final Expression expression;
 
   final FileSpan span;
 
-  ExtendRule(this.selector, {this.span});
+  Return(this.expression, {this.span});
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitExtendRule(this);
+      visitor.visitReturn(this);
 
-  String toString() => "@extend $selector";
+  String toString() => "@return $expression;";
 }

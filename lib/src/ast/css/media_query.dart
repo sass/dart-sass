@@ -6,7 +6,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
 import '../node.dart';
-import 'node.dart';
+import 'value.dart';
 
 class CssMediaQuery implements AstNode {
   final CssValue<String> modifier;

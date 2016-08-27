@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/css.dart';
+import 'media_query.dart';
 import 'node.dart';
 
 class CssMediaRule extends CssParentNode {

@@ -4,8 +4,9 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/interface/statement.dart';
-import 'statement.dart';
+import '../../../visitor/interface/statement.dart';
+import '../media_query.dart';
+import '../statement.dart';
 
 class MediaRule implements Statement {
   final List<MediaQuery> queries;

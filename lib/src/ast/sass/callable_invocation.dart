@@ -4,7 +4,6 @@
 
 import 'argument_invocation.dart';
 import 'node.dart';
-import 'statement.dart';
 
 abstract class CallableInvocation implements SassNode {
   ArgumentInvocation get arguments;

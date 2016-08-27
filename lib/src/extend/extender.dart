@@ -8,7 +8,7 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
-import '../ast/css/node.dart';
+import '../ast/css.dart';
 import '../ast/selector.dart';
 import '../utils.dart';
 import 'functions.dart';

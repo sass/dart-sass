@@ -4,9 +4,10 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/interface/statement.dart';
-import 'expression.dart';
-import 'statement.dart';
+import '../../../visitor/interface/statement.dart';
+import '../expression.dart';
+import '../interpolation.dart';
+import '../statement.dart';
 
 class Declaration implements Statement {
   final Interpolation name;

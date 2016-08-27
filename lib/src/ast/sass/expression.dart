@@ -5,17 +5,6 @@
 import '../../visitor/interface/expression.dart';
 import 'node.dart';
 
-export 'expression/boolean.dart';
-export 'expression/color.dart';
-export 'expression/function.dart';
-export 'expression/identifier.dart';
-export 'expression/list.dart';
-export 'expression/map.dart';
-export 'expression/number.dart';
-export 'expression/string.dart';
-export 'expression/unary_operator.dart';
-export 'expression/variable.dart';
-
 abstract class Expression implements SassNode {
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor);
 }

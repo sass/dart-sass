@@ -6,8 +6,8 @@ import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
 import '../node.dart';
+import 'interpolation.dart';
 import 'node.dart';
-import 'statement.dart';
 
 class MediaQuery implements SassNode {
   final Interpolation modifier;

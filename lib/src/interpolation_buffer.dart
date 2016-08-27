@@ -4,8 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import 'ast/sass/expression.dart';
-import 'ast/sass/statement.dart';
+import 'ast/sass.dart';
 
 class InterpolationBuffer implements StringSink {
   final _text = new StringBuffer();

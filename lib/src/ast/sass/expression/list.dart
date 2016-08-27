@@ -6,9 +6,10 @@ import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../utils.dart';
-import '../../../value/list.dart';
+import '../../../value.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
+import 'unary_operator.dart';
 
 class ListExpression implements Expression {
   final List<Expression> contents;

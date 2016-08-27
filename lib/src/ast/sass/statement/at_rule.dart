@@ -4,8 +4,9 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../visitor/interface/statement.dart';
-import 'statement.dart';
+import '../../../visitor/interface/statement.dart';
+import '../interpolation.dart';
+import '../statement.dart';
 
 class AtRule implements Statement {
   final String name;

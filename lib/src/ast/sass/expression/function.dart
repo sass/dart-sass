@@ -7,7 +7,9 @@ import 'package:source_span/source_span.dart';
 import '../../../utils.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
-import '../statement.dart';
+import '../argument_invocation.dart';
+import '../callable_invocation.dart';
+import '../interpolation.dart';
 
 class FunctionExpression implements Expression, CallableInvocation {
   final Interpolation name;

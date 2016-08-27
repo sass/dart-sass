@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'ast/sass/statement.dart';
+import 'ast/sass.dart';
 
 export 'callable/built_in.dart';
 export 'callable/user_defined.dart';
