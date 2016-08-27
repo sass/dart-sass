@@ -53,21 +53,22 @@ class Environment {
   Callable getFunction(String name) =>
       _functions[_functionIndices[name] ?? 0][name];
 
-  void setFunction(String name, Callable callable) {
+  void setFunction(Callable callable) {
     var index = _functions.length == 1
         ? 0
-        : _functionIndices.putIfAbsent(name, () => _functions.length - 1);
-    _functions[index][name] = callable;
+        : _functionIndices.putIfAbsent(
+              callable.name, () => _functions.length - 1);
+    _functions[index][callable.name] = callable;
   }
 
   Callable getMixin(String name) =>
       _mixins[_mixinIndices[name] ?? 0][name];
 
-  void setMixin(String name, Callable callable) {
+  void setMixin(Callable callable) {
     var index = _mixins.length == 1
         ? 0
-        : _mixinIndices.putIfAbsent(name, () => _mixins.length - 1);
-    _mixins[index][name] = callable;
+        : _mixinIndices.putIfAbsent(callable.name, () => _mixins.length - 1);
+    _mixins[index][callable.name] = callable;
   }
 
   /*=T*/ scope/*<T>*/(/*=T*/ callback()) {

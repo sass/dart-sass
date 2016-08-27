@@ -124,7 +124,7 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _environment.setFunction(node.name, new Callable(
+    _environment.setFunction(new Callable(
         node.name, node.arguments, node.children, _environment.closure(),
         span: node.span));
   }
@@ -144,7 +144,7 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitMixinDeclaration(MixinDeclaration node) {
-    _environment.setMixin(node.name, new Callable(
+    _environment.setMixin(new Callable(
         node.name, node.arguments, node.children, _environment.closure(),
         span: node.span));
   }
