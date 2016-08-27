@@ -290,7 +290,7 @@ class PerformVisitor extends StatementVisitor
     return _withEnvironment(callable.environment, () => _environment.scope(() {
       var positional = arguments.positional
           .map((expression) => expression.accept(this)).toList();
-      var named = separatorIndependentMapMap/*<String, Expression, Value>*/(
+      var named = normalizedMapMap/*<String, Expression, Value>*/(
           arguments.named,
           value: (_, expression) => expression.accept(this));
 

@@ -18,10 +18,10 @@ class Environment {
   final Map<String, int> _functionIndices;
 
   Environment()
-      : _variables = [separatorIndependentMap()],
-        _variableIndices = separatorIndependentMap(),
-        _functions = [separatorIndependentMap()],
-        _functionIndices = separatorIndependentMap();
+      : _variables = [normalizedMap()],
+        _variableIndices = normalizedMap(),
+        _functions = [normalizedMap()],
+        _functionIndices = normalizedMap();
 
   Environment._(this._variables, this._variableIndices, this._functions,
       this._functionIndices);
