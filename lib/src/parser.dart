@@ -113,165 +113,6 @@ class Parser {
         guarded: guarded, global: global, span: _scanner.spanFrom(start));
   }
 
-  Statement _atRule() {
-    var start = _scanner.state;
-    _scanner.expectChar($at);
-    var name = _identifier();
-    _ignoreComments();
-
-    switch (name) {
-      case "content": return _content(start);
-      case "extend":
-        return new ExtendRule(_almostAnyValue(),
-            span: _scanner.spanFrom(start));
-      case "function": return _functionDeclaration(start);
-      case "include": return _include(start);
-      case "media":
-        return new MediaRule(_mediaQueryList(), _ruleChildren(),
-            span: _scanner.spanFrom(start));
-      case "mixin": return _mixinDeclaration(start);
-    }
-
-    Interpolation value;
-    var next = _scanner.peekChar();
-    if (next != $exclamation && next != $semicolon && next != $lbrace &&
-        next != $rbrace && next != null) {
-      value = _almostAnyValue();
-    }
-
-    return new AtRule(name,
-        value: value,
-        children: _scanner.peekChar() == $lbrace ? _ruleChildren() : null,
-        span: _scanner.spanFrom(start));
-  }
-
-  Content _content(LineScannerState start) {
-    if (_inMixin) {
-      _mixinHasContent = true;
-      return new Content(span: _scanner.spanFrom(start));
-    }
-
-    _scanner.error(
-        "@content is only allowed within mixin declarations.",
-        position: start.position,
-        length: "@content".length);
-    return null;
-  }
-
-  Include _include(LineScannerState start) {
-    var name = _identifier();
-    _ignoreComments();
-    var arguments = _scanner.peekChar() == $lparen
-        ? _argumentInvocation()
-        : new ArgumentInvocation.empty(span: _scanner.emptySpan);
-    _ignoreComments();
-
-    List<Statement> children;
-    if (_scanner.peekChar() == $lbrace) {
-      _inContentBlock = true;
-      children = _ruleChildren();
-      _inContentBlock = false;
-    }
-
-    return new Include(name, arguments,
-        children: children, span: _scanner.spanFrom(start));
-  }
-
-  MixinDeclaration _mixinDeclaration(LineScannerState start) {
-    var name = _identifier();
-    _ignoreComments();
-    var arguments = _scanner.peekChar() == $lparen
-        ? _argumentDeclaration()
-        : new ArgumentDeclaration.empty(span: _scanner.emptySpan);
-
-    if (_inMixin || _inContentBlock) {
-      throw new StringScannerException(
-          "Mixins may not contain mixin declarations.",
-          _scanner.spanFrom(start), _scanner.string);
-    }
-
-    _ignoreComments();
-    _inMixin = true;
-    _mixinHasContent = false;
-    var children = _ruleChildren();
-    _inMixin = false;
-
-    return new MixinDeclaration(name, arguments, children,
-        hasContent: _mixinHasContent,
-        span: _scanner.spanFrom(start));
-  }
-
-  FunctionDeclaration _functionDeclaration(LineScannerState start) {
-    var name = _identifier();
-    _ignoreComments();
-    var arguments = _argumentDeclaration();
-
-    if (_inMixin || _inContentBlock) {
-      throw new StringScannerException(
-          "Mixins may not contain function declarations.",
-          _scanner.spanFrom(start), _scanner.string);
-    }
-
-    _ignoreComments();
-    var children = _children(_functionAtRule);
-
-    // TODO: ensure there aren't duplicate argument names.
-    return new FunctionDeclaration(name, arguments, children,
-        span: _scanner.spanFrom(start));
-  }
-
-  Statement _functionAtRule() {
-    var start = _scanner.state;
-    _scanner.expectChar($at);
-    var name = _identifier();
-    _ignoreComments();
-
-    switch (name) {
-      case "return":
-        _ignoreComments();
-        return new Return(_expression(), span: _scanner.spanFrom(start));
-    }
-
-    _scanner.error(
-        "Functions can only contain variable declarations and control "
-          "directives.",
-        position: start.position,
-        length: name.length + 1);
-    return null;
-  }
-
-  ArgumentDeclaration _argumentDeclaration() {
-    var start = _scanner.state;
-    _scanner.expectChar($lparen);
-    _ignoreComments();
-    var arguments = <Argument>[];
-    String restArgument;
-    while (_scanner.peekChar() == $dollar) {
-      var variableStart = _scanner.state;
-      var name = _variableName();
-      _ignoreComments();
-
-      Expression defaultValue;
-      if (_scanner.scanChar($colon)) {
-        _ignoreComments();
-        defaultValue = _spaceListOrValue();
-      } else if (_scanner.scanChar($dot)) {
-        _scanner.expectChar($dot);
-        _scanner.expectChar($dot);
-        restArgument = name;
-        break;
-      }
-
-      arguments.add(new Argument(name,
-          defaultValue: defaultValue, span: _scanner.spanFrom(variableStart)));
-      if (!_scanner.scanChar($comma)) break;
-      _ignoreComments();
-    }
-    _scanner.expectChar($rparen);
-    return new ArgumentDeclaration(arguments,
-        restArgument: restArgument, span: _scanner.spanFrom(start));
-  }
-
   StyleRule _styleRule() {
     var start = _scanner.state;
     var selector = _almostAnyValue();
@@ -426,38 +267,6 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
-  List<Statement> _declarationChildren() {
-    _scanner.expectChar($lbrace);
-    var children = <Statement>[];
-    loop: while (true) {
-      children.addAll(_comments());
-      switch (_scanner.peekChar()) {
-        case $dollar:
-          children.add(_variableDeclaration());
-          break;
-
-        case $at:
-          children.add(_atRule());
-          break;
-
-        case $semicolon:
-          _scanner.readChar();
-          break;
-
-        case $rbrace:
-          break loop;
-
-        default:
-          children.add(_declaration());
-          break;
-      }
-    }
-
-    children.addAll(_comments());
-    _scanner.expectChar($rbrace);
-    return children;
-  }
-
   Declaration _declaration() {
     var start = _scanner.state;
     var name = _interpolatedIdentifier();
@@ -481,6 +290,11 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
+  List<Statement> _declarationChildren() => _children(() {
+    if (_scanner.peekChar() == $at) return _declarationAtRule();
+    return _declaration();
+  });
+
   /// Consumes whitespace if available and returns any comments it contained.
   List<Comment> _comments() {
     var nodes = <Comment>[];
@@ -492,6 +306,191 @@ class Parser {
 
       nodes.add(comment);
     }
+  }
+
+  // # At Rules
+
+  Statement _atRule() {
+    var start = _scanner.state;
+    var name = _atRuleName();
+
+    switch (name) {
+      case "content": return _content(start);
+      case "extend": return _extend(start);
+      case "function": return _functionDeclaration(start);
+      case "include": return _include(start);
+      case "media": return _mediaRule(start);
+      case "mixin": return _mixinDeclaration(start);
+      default: return _unknownAtRule(start, name);
+    }
+  }
+
+  Statement _declarationAtRule() {
+    var start = _scanner.state;
+    var name = _atRuleName();
+
+    switch (name) {
+      case "content": return _content(start);
+      case "include": return _include(start);
+      default: return _disallowedAtRule(start);
+    }
+  }
+
+  Statement _functionAtRule() {
+    var start = _scanner.state;
+    switch (_atRuleName()) {
+      case "return": return _return(start);
+      default: return _disallowedAtRule(start);
+    }
+  }
+
+  String _atRuleName() {
+    _scanner.expectChar($at);
+    var name = _identifier();
+    _ignoreComments();
+    return name;
+  }
+
+  Content _content(LineScannerState start) {
+    if (_inMixin) {
+      _mixinHasContent = true;
+      return new Content(span: _scanner.spanFrom(start));
+    }
+
+    _scanner.error(
+        "@content is only allowed within mixin declarations.",
+        position: start.position,
+        length: "@content".length);
+    return null;
+  }
+
+  ExtendRule _extend(LineScannerState start) =>
+      new ExtendRule(_almostAnyValue(), span: _scanner.spanFrom(start));
+
+  FunctionDeclaration _functionDeclaration(LineScannerState start) {
+    var name = _identifier();
+    _ignoreComments();
+    var arguments = _argumentDeclaration();
+
+    if (_inMixin || _inContentBlock) {
+      throw new StringScannerException(
+          "Mixins may not contain function declarations.",
+          _scanner.spanFrom(start), _scanner.string);
+    }
+
+    _ignoreComments();
+    var children = _children(_functionAtRule);
+
+    // TODO: ensure there aren't duplicate argument names.
+    return new FunctionDeclaration(name, arguments, children,
+        span: _scanner.spanFrom(start));
+  }
+
+  Include _include(LineScannerState start) {
+    var name = _identifier();
+    _ignoreComments();
+    var arguments = _scanner.peekChar() == $lparen
+        ? _argumentInvocation()
+        : new ArgumentInvocation.empty(span: _scanner.emptySpan);
+    _ignoreComments();
+
+    List<Statement> children;
+    if (_scanner.peekChar() == $lbrace) {
+      _inContentBlock = true;
+      children = _ruleChildren();
+      _inContentBlock = false;
+    }
+
+    return new Include(name, arguments,
+        children: children, span: _scanner.spanFrom(start));
+  }
+
+  MediaRule _mediaRule(LineScannerState start) =>
+      new MediaRule(_mediaQueryList(), _ruleChildren(),
+          span: _scanner.spanFrom(start));
+
+  MixinDeclaration _mixinDeclaration(LineScannerState start) {
+    var name = _identifier();
+    _ignoreComments();
+    var arguments = _scanner.peekChar() == $lparen
+        ? _argumentDeclaration()
+        : new ArgumentDeclaration.empty(span: _scanner.emptySpan);
+
+    if (_inMixin || _inContentBlock) {
+      throw new StringScannerException(
+          "Mixins may not contain mixin declarations.",
+          _scanner.spanFrom(start), _scanner.string);
+    }
+
+    _ignoreComments();
+    _inMixin = true;
+    _mixinHasContent = false;
+    var children = _ruleChildren();
+    _inMixin = false;
+
+    return new MixinDeclaration(name, arguments, children,
+        hasContent: _mixinHasContent,
+        span: _scanner.spanFrom(start));
+  }
+
+  Return _return(LineScannerState start) {
+    _ignoreComments();
+    return new Return(_expression(), span: _scanner.spanFrom(start));
+  }
+
+  AtRule _unknownAtRule(LineScannerState start, String name) {
+    Interpolation value;
+    var next = _scanner.peekChar();
+    if (next != $exclamation && next != $semicolon && next != $lbrace &&
+        next != $rbrace && next != null) {
+      value = _almostAnyValue();
+    }
+
+    return new AtRule(name,
+        value: value,
+        children: _scanner.peekChar() == $lbrace ? _ruleChildren() : null,
+        span: _scanner.spanFrom(start));
+  }
+
+  // This returns [Statement] so that it can be returned within case statements.
+  Statement _disallowedAtRule(LineScannerState start) {
+    _almostAnyValue();
+    _scanner.error("This at-rule is not allowed here.",
+        position: start.position,
+        length: _scanner.state.position - start.position);
+    return null;
+  }
+
+  ArgumentDeclaration _argumentDeclaration() {
+    var start = _scanner.state;
+    _scanner.expectChar($lparen);
+    _ignoreComments();
+    var arguments = <Argument>[];
+    String restArgument;
+    while (_scanner.peekChar() == $dollar) {
+      var variableStart = _scanner.state;
+      var name = _variableName();
+      _ignoreComments();
+
+      Expression defaultValue;
+      if (_scanner.scanChar($colon)) {
+        _ignoreComments();
+        defaultValue = _spaceListOrValue();
+      } else if (_scanner.scanChar($dot)) {
+        _scanner.expectChar($dot);
+        _scanner.expectChar($dot);
+        restArgument = name;
+        break;
+      }
+
+      arguments.add(new Argument(name,
+          defaultValue: defaultValue, span: _scanner.spanFrom(variableStart)));
+      if (!_scanner.scanChar($comma)) break;
+      _ignoreComments();
+    }
+    _scanner.expectChar($rparen);
+    return new ArgumentDeclaration(arguments,
+        restArgument: restArgument, span: _scanner.spanFrom(start));
   }
 
   // ## Expressions
