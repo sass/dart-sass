@@ -16,10 +16,12 @@ class Environment {
 
   final List<Map<String, Callable>> _functions;
 
+  // Note: this is not necessarily complete
   final Map<String, int> _functionIndices;
 
   final List<Map<String, Callable>> _mixins;
 
+  // Note: this is not necessarily complete
   final Map<String, int> _mixinIndices;
 
   Environment()
@@ -53,25 +55,48 @@ class Environment {
     _variables[index][name] = value;
   }
 
-  Callable getFunction(String name) =>
-      _functions[_functionIndices[name] ?? 0][name];
+  Callable getFunction(String name) {
+    var index = _functionIndices[name];
+    if (index != null) _functions[index][name];
 
-  void setFunction(Callable callable) {
-    var index = _functions.length == 1
-        ? 0
-        : _functionIndices.putIfAbsent(
-              callable.name, () => _functions.length - 1);
-    _functions[index][callable.name] = callable;
+    index = _functionIndex(name);
+    if (index == null) return null;
+
+    _functionIndices[name] = index;
+    return _functions[index][name];
   }
 
-  Callable getMixin(String name) =>
-      _mixins[_mixinIndices[name] ?? 0][name];
+  int _functionIndex(String name) {
+    for (var i = _functions.length - 1; i >= 0; i--) {
+      if (_functions[i].containsKey(name)) return i;
+    }
+    return null;
+  }
+
+  void setFunction(Callable callable) {
+    _functions[_functions.length - 1][callable.name] = callable;
+  }
+
+  Callable getMixin(String name) {
+    var index = _mixinIndices[name];
+    if (index != null) _mixins[index][name];
+
+    index = _mixinIndex(name);
+    if (index == null) return null;
+
+    _mixinIndices[name] = index;
+    return _mixins[index][name];
+  }
+
+  int _mixinIndex(String name) {
+    for (var i = _mixins.length - 1; i >= 0; i--) {
+      if (_mixins[i].containsKey(name)) return i;
+    }
+    return null;
+  }
 
   void setMixin(Callable callable) {
-    var index = _mixins.length == 1
-        ? 0
-        : _mixinIndices.putIfAbsent(callable.name, () => _mixins.length - 1);
-    _mixins[index][callable.name] = callable;
+    _mixins[_mixins.length - 1][callable.name] = callable;
   }
 
   /*=T*/ scope/*<T>*/(/*=T*/ callback()) {
