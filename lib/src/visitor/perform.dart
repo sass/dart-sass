@@ -139,6 +139,7 @@ class PerformVisitor extends StatementVisitor
       for (var statement in mixin.declaration.children) {
         statement.accept(this);
       }
+      return null;
     });
   }
 
@@ -312,13 +313,13 @@ class PerformVisitor extends StatementVisitor
     return new SassIdentifier("$name(${arguments.join(', ')})");
   }
 
-  /*=T*/ _runUserDefinedCallable/*<T>*/(CallableInvocation invocation,
-      UserDefinedCallable callable, /*=T*/ run()) {
-    return _withEnvironment(callable.environment, () => _environment.scope(() {
-      var pair = _evaluateArguments(invocation);
-      var positional = pair.first;
-      var named = pair.last;
+  Value _runUserDefinedCallable(CallableInvocation invocation,
+      UserDefinedCallable callable, Value run()) {
+    var pair = _evaluateArguments(invocation);
+    var positional = pair.first;
+    var named = pair.last;
 
+    return _withEnvironment(callable.environment, () => _environment.scope(() {
       _verifyArguments(positional, named, callable.arguments, invocation.span);
 
       // TODO: if we get here and there are no rest params involved, mark the
@@ -346,9 +347,6 @@ class PerformVisitor extends StatementVisitor
             new SassList(rest, ListSeparator.comma));
       }
 
-      // TODO: if we get here and there are no rest params involved, mark the
-      // callable as fast-path and don't do error checking or extra allocations
-      // for future calls.
       return run();
     }));
   }
