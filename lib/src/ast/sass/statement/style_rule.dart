@@ -15,7 +15,7 @@ class StyleRule implements Statement {
 
   final FileSpan span;
 
-  StyleRule(this.selector, Iterable<Statement> children, {this.span})
+  StyleRule(this.selector, Iterable<Statement> children, this.span)
       : children = new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>

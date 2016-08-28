@@ -19,13 +19,13 @@ class ArgumentInvocation implements SassNode {
   final FileSpan span;
 
   ArgumentInvocation(Iterable<Expression> positional,
-      Map<String, Expression> named, {this.rest, this.keywordRest, this.span})
+      Map<String, Expression> named, this.span, {this.rest, this.keywordRest})
       : positional = new List.unmodifiable(positional),
         named = new Map.unmodifiable(named) {
     assert(rest != null || keywordRest == null);
   }
 
-  ArgumentInvocation.empty({this.span})
+  ArgumentInvocation.empty(this.span)
     : positional = const [],
       named = const {},
       rest = null,

@@ -15,7 +15,7 @@ class UnaryOperatorExpression implements Expression {
 
   final FileSpan span;
 
-  UnaryOperatorExpression(this.operator, this.operand, {this.span});
+  UnaryOperatorExpression(this.operator, this.operand, this.span);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitUnaryOperatorExpression(this);

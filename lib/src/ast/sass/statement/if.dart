@@ -15,7 +15,7 @@ class If implements Statement {
 
   final FileSpan span;
 
-  If(this.expression, Iterable<Statement> children, {this.span})
+  If(this.expression, Iterable<Statement> children, this.span)
       : children = new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>

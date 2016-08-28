@@ -24,7 +24,7 @@ class Interpolation implements SassNode {
   /// Returns the plain text before the interpolation, or the empty string.
   String get initialPlain => contents.first is String ? contents.first : '';
 
-  Interpolation(Iterable/*(String|Expression)*/ contents, {this.span})
+  Interpolation(Iterable/*(String|Expression)*/ contents, this.span)
       : contents = new List.unmodifiable(contents) {
     for (var i = 0; i < this.contents.length; i++) {
       if (this.contents[i] is! String && this.contents[i] is! Expression) {

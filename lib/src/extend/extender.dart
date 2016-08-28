@@ -25,7 +25,7 @@ class Extender {
   final _sources = new Expando<ComplexSelector>();
 
   CssStyleRule addSelector(CssValue<SelectorList> selectorValue,
-      {FileSpan span}) {
+      FileSpan span) {
     var selector = selectorValue.value;
     for (var complex in selector.components) {
       for (var component in complex.components) {
@@ -38,7 +38,7 @@ class Extender {
     }
 
     if (_extensions.isNotEmpty) selector = _extendList(selector, _extensions);
-    var rule = new CssStyleRule(selectorValue, span: span);
+    var rule = new CssStyleRule(selectorValue, span);
 
     for (var complex in selector.components) {
       for (var component in complex.components) {

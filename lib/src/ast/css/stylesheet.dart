@@ -10,7 +10,7 @@ import 'node.dart';
 class CssStylesheet extends CssParentNode {
   final FileSpan span;
 
-  CssStylesheet({this.span});
+  CssStylesheet(this.span);
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);

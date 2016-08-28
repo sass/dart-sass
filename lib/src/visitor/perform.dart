@@ -53,7 +53,7 @@ class PerformVisitor extends StatementVisitor
   // ## Statements
 
   CssStylesheet visitStylesheet(Stylesheet node) {
-    _root = new CssStylesheet(span: node.span);
+    _root = new CssStylesheet(node.span);
     _parent = _root;
     super.visitStylesheet(node);
     return _root;
@@ -61,7 +61,7 @@ class PerformVisitor extends StatementVisitor
 
   void visitComment(Comment node) {
     if (node.isSilent) return;
-    _parent.addChild(new CssComment(node.text, span: node.span));
+    _parent.addChild(new CssComment(node.text, node.span));
   }
 
   void visitContent(Content node) {
@@ -78,7 +78,7 @@ class PerformVisitor extends StatementVisitor
   void visitDeclaration(Declaration node) {
     var name = _interpolationToValue(node.name);
     if (_declarationName != null) {
-      name = new CssValue("$_declarationName-${name.value}", span: name.span);
+      name = new CssValue("$_declarationName-${name.value}", name.span);
     }
     var cssValue = node.value == null ? null : _performExpression(node.value);
 
@@ -86,7 +86,7 @@ class PerformVisitor extends StatementVisitor
     // will throw an error that we want the user to see.
     if (cssValue != null &&
         (!cssValue.value.isBlank || cssValue.value is SassList)) {
-      _parent.addChild(new CssDeclaration(name, cssValue, span: node.span));
+      _parent.addChild(new CssDeclaration(name, cssValue, node.span));
     }
 
     if (node.children != null) {
@@ -121,12 +121,12 @@ class PerformVisitor extends StatementVisitor
         : _interpolationToValue(node.value, trim: true);
 
     if (node.children == null) {
-      _parent.addChild(new CssAtRule(node.name,
-          childless: true, value: value, span: node.span));
+      _parent.addChild(new CssAtRule(node.name, node.span,
+          childless: true, value: value));
       return;
     }
 
-    _withParent(new CssAtRule(node.name, value: value, span: node.span), () {
+    _withParent(new CssAtRule(node.name, node.span, value: value), () {
       if (_selector == null) {
         super.visitAtRule(node);
       } else {
@@ -135,7 +135,7 @@ class PerformVisitor extends StatementVisitor
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
         _withParent(
-            new CssStyleRule(_selector),
+            new CssStyleRule(_selector, _selector.span),
             () => super.visitAtRule(node),
             removeIfEmpty: true);
       }
@@ -197,7 +197,7 @@ class PerformVisitor extends StatementVisitor
         : _mergeMediaQueries(_mediaQueries, queryIterable);
     if (queries.isEmpty) return;
 
-    _withParent(new CssMediaRule(queries, span: node.span), () {
+    _withParent(new CssMediaRule(queries, node.span), () {
       _withMediaQueries(queries, () {
         if (_selector == null) {
           super.visitMediaRule(node);
@@ -208,7 +208,7 @@ class PerformVisitor extends StatementVisitor
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
           _withParent(
-              new CssStyleRule(_selector),
+              new CssStyleRule(_selector, _selector.span),
               () => super.visitMediaRule(node),
               removeIfEmpty: true);
         }
@@ -257,11 +257,11 @@ class PerformVisitor extends StatementVisitor
 
     // TODO: catch errors and re-contextualize them relative to
     // [node.selector.span.start].
-    var selector = new CssValue<SelectorList>(parsedSelector,
-        span: node.selector.span);
+    var selector = new CssValue<SelectorList>(
+        parsedSelector, node.selector.span);
 
     _withParent(
-        _extender.addSelector(selector, span: node.span),
+        _extender.addSelector(selector, node.span),
         () => _withSelector(selector, () => super.visitStyleRule(node)),
         through: (node) => node is CssStyleRule,
         removeIfEmpty: true);
@@ -523,8 +523,7 @@ class PerformVisitor extends StatementVisitor
   CssValue<String> _interpolationToValue(
       Interpolation interpolation, {bool trim: false}) {
     var result = _performInterpolation(interpolation);
-    return new CssValue(trim ? result.trim() : result,
-        span: interpolation.span);
+    return new CssValue(trim ? result.trim() : result, interpolation.span);
   }
 
   String _performInterpolation(Interpolation interpolation) {
@@ -535,7 +534,7 @@ class PerformVisitor extends StatementVisitor
   }
 
   CssValue<Value> _performExpression(Expression expression) =>
-      new CssValue(expression.accept(this), span: expression.span);
+      new CssValue(expression.accept(this), expression.span);
 
   /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
       /*=S*/ node, /*=T*/ callback(),

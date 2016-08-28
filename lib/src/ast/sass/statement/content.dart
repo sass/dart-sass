@@ -10,7 +10,7 @@ import '../statement.dart';
 class Content implements Statement {
   final FileSpan span;
 
-  Content({this.span});
+  Content(this.span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitContent(this);

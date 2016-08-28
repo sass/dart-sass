@@ -18,7 +18,7 @@ class CssDeclaration extends CssNode {
 
   bool get isCustomProperty => name.value.startsWith("--");
 
-  CssDeclaration(this.name, this.value, {this.span});
+  CssDeclaration(this.name, this.value, this.span);
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitDeclaration(this);

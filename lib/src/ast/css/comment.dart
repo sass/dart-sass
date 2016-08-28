@@ -12,7 +12,7 @@ class CssComment extends CssNode {
 
   final FileSpan span;
 
-  CssComment(this.text, {this.span});
+  CssComment(this.text, this.span);
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitComment(this);

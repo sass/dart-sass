@@ -16,7 +16,7 @@ class MediaRule implements Statement {
   final FileSpan span;
 
   MediaRule(Iterable<MediaQuery> queries, Iterable<Statement> children,
-      {this.span})
+      this.span)
       : queries = new List.unmodifiable(queries),
         children = new List.unmodifiable(children);
 

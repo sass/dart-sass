@@ -17,7 +17,7 @@ class CssAtRule extends CssParentNode {
 
   final FileSpan span;
 
-  CssAtRule(this.name, {bool childless: false, this.value, this.span})
+  CssAtRule(this.name, this.span, {bool childless: false, this.value})
       : isChildless = childless;
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>

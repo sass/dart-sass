@@ -14,7 +14,7 @@ class Comment implements Statement {
 
   final FileSpan span;
 
-  Comment(this.text, {bool silent: false, this.span})
+  Comment(this.text, this.span, {bool silent: false})
       : isSilent = silent;
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>

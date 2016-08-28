@@ -12,7 +12,7 @@ class NumberExpression implements Expression {
 
   final FileSpan span;
 
-  NumberExpression(this.value, {this.span});
+  NumberExpression(this.value, this.span);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitNumberExpression(this);

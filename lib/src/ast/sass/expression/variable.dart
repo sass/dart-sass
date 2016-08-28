@@ -12,7 +12,7 @@ class VariableExpression implements Expression {
 
   final FileSpan span;
 
-  VariableExpression(this.name, {this.span});
+  VariableExpression(this.name, this.span);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitVariableExpression(this);

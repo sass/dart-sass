@@ -11,7 +11,7 @@ class CssValue<T> implements AstNode {
 
   final FileSpan span;
 
-  CssValue(this.value, {this.span});
+  CssValue(this.value, this.span);
 
   String toString() => value.toString();
 }

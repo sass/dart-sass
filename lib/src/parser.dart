@@ -43,7 +43,7 @@ class Parser {
     var start = _scanner.state;
     var statements = _statements(_topLevelStatement);
     _scanner.expectDone();
-    return new Stylesheet(statements, span: _scanner.spanFrom(start));
+    return new Stylesheet(statements, _scanner.spanFrom(start));
   }
 
   Statement _topLevelStatement() {
@@ -92,16 +92,15 @@ class Parser {
       _ignoreComments();
     }
 
-    return new VariableDeclaration(name, expression,
-        guarded: guarded, global: global, span: _scanner.spanFrom(start));
+    return new VariableDeclaration(name, expression, _scanner.spanFrom(start),
+        guarded: guarded, global: global);
   }
 
   StyleRule _styleRule() {
     var start = _scanner.state;
     var selector = _almostAnyValue();
     var children = _children(_ruleChild);
-    return new StyleRule(selector, children,
-        span: _scanner.spanFrom(start));
+    return new StyleRule(selector, children, _scanner.spanFrom(start));
   }
 
   Statement _ruleChild() {
@@ -111,8 +110,7 @@ class Parser {
 
   Expression _declarationExpression() {
     if (_scanner.peekChar() == $lbrace) {
-      return new StringExpression(
-          new Interpolation([], span: _scanner.emptySpan));
+      return new StringExpression(new Interpolation([], _scanner.emptySpan));
     }
 
     return _expression();
@@ -155,7 +153,7 @@ class Parser {
     var children = _children(_ruleChild);
     return new StyleRule(
         buffer.interpolation(_scanner.spanFrom(start)), children,
-        span: _scanner.spanFrom(start));
+        _scanner.spanFrom(start));
   }
 
   /// Tries to parse a declaration, and returns the value parsed so far if it
@@ -195,7 +193,7 @@ class Parser {
       if (next != $semicolon && next != $rbrace) {
         _scanner.expectChar($semicolon);
       }
-      return new Declaration(name, value: value);
+      return new Declaration(name, _scanner.spanFrom(start), value: value);
     }
 
     if (_scanner.scanChar($colon)) {
@@ -204,9 +202,8 @@ class Parser {
 
     var postColonWhitespace = _commentText();
     if (_scanner.peekChar() == $lbrace) {
-      return new Declaration(name,
-          children: _children(_declarationChild),
-          span: _scanner.spanFrom(start));
+      return new Declaration(name, _scanner.spanFrom(start),
+          children: _children(_declarationChild));
     }
 
     midBuffer.write(postColonWhitespace);
@@ -241,13 +238,11 @@ class Parser {
       return nameBuffer;
     }
 
-    return new Declaration(
-        name,
+    return new Declaration(name, _scanner.spanFrom(start),
         value: value,
         children: _scanner.peekChar() == $lbrace
              ? _children(_declarationChild)
-             : null,
-        span: _scanner.spanFrom(start));
+             : null);
   }
 
   Declaration _declaration() {
@@ -258,19 +253,16 @@ class Parser {
     _ignoreComments();
 
     if (_scanner.peekChar() == $lbrace) {
-      return new Declaration(name,
-          children: _children(_declarationChild),
-          span: _scanner.spanFrom(start));
+      return new Declaration(name, _scanner.spanFrom(start),
+          children: _children(_declarationChild));
     }
 
     var value = _declarationExpression();
-    return new Declaration(
-        name,
+    return new Declaration(name, _scanner.spanFrom(start),
         value: value,
         children: _scanner.peekChar() == $lbrace
              ? _children(_declarationChild)
-             : null,
-        span: _scanner.spanFrom(start));
+             : null);
   }
 
   Statement _declarationChild() {
@@ -340,7 +332,7 @@ class Parser {
   Content _content(LineScannerState start) {
     if (_inMixin) {
       _mixinHasContent = true;
-      return new Content(span: _scanner.spanFrom(start));
+      return new Content(_scanner.spanFrom(start));
     }
 
     _scanner.error(
@@ -351,7 +343,7 @@ class Parser {
   }
 
   ExtendRule _extend(LineScannerState start) =>
-      new ExtendRule(_almostAnyValue(), span: _scanner.spanFrom(start));
+      new ExtendRule(_almostAnyValue(), _scanner.spanFrom(start));
 
   FunctionDeclaration _functionDeclaration(LineScannerState start) {
     var name = _identifier();
@@ -368,19 +360,19 @@ class Parser {
     var children = _children(_functionAtRule);
 
     // TODO: ensure there aren't duplicate argument names.
-    return new FunctionDeclaration(name, arguments, children,
-        span: _scanner.spanFrom(start));
+    return new FunctionDeclaration(
+        name, arguments, children, _scanner.spanFrom(start));
   }
 
   If _if(LineScannerState start, Statement child()) =>
-      new If(_expression(), _children(child), span: _scanner.spanFrom(start));
+      new If(_expression(), _children(child), _scanner.spanFrom(start));
 
   Include _include(LineScannerState start) {
     var name = _identifier();
     _ignoreComments();
     var arguments = _scanner.peekChar() == $lparen
         ? _argumentInvocation()
-        : new ArgumentInvocation.empty(span: _scanner.emptySpan);
+        : new ArgumentInvocation.empty(_scanner.emptySpan);
     _ignoreComments();
 
     List<Statement> children;
@@ -390,13 +382,12 @@ class Parser {
       _inContentBlock = false;
     }
 
-    return new Include(name, arguments,
-        children: children, span: _scanner.spanFrom(start));
+    return new Include(name, arguments, _scanner.spanFrom(start),
+        children: children);
   }
 
-  MediaRule _mediaRule(LineScannerState start) =>
-      new MediaRule(_mediaQueryList(), _children(_ruleChild),
-          span: _scanner.spanFrom(start));
+  MediaRule _mediaRule(LineScannerState start) => new MediaRule(
+      _mediaQueryList(), _children(_ruleChild), _scanner.spanFrom(start));
 
   MixinDeclaration _mixinDeclaration(LineScannerState start) {
     var name = _identifier();
@@ -417,14 +408,14 @@ class Parser {
     var children = _children(_ruleChild);
     _inMixin = false;
 
-    return new MixinDeclaration(name, arguments, children,
-        hasContent: _mixinHasContent,
-        span: _scanner.spanFrom(start));
+    return new MixinDeclaration(
+        name, arguments, children, _scanner.spanFrom(start),
+        hasContent: _mixinHasContent);
   }
 
   Return _return(LineScannerState start) {
     _ignoreComments();
-    return new Return(_expression(), span: _scanner.spanFrom(start));
+    return new Return(_expression(), _scanner.spanFrom(start));
   }
 
   AtRule _unknownAtRule(LineScannerState start, String name) {
@@ -435,10 +426,9 @@ class Parser {
       value = _almostAnyValue();
     }
 
-    return new AtRule(name,
+    return new AtRule(name, _scanner.spanFrom(start),
         value: value,
-        children: _scanner.peekChar() == $lbrace ? _children(_ruleChild) : null,
-        span: _scanner.spanFrom(start));
+        children: _scanner.peekChar() == $lbrace ? _children(_ruleChild) : null);
   }
 
   // This returns [Statement] so that it can be returned within case statements.
@@ -472,14 +462,15 @@ class Parser {
         break;
       }
 
-      arguments.add(new Argument(name,
-          defaultValue: defaultValue, span: _scanner.spanFrom(variableStart)));
+      arguments.add(new Argument(name, span: _scanner.spanFrom(variableStart),
+          defaultValue: defaultValue));
       if (!_scanner.scanChar($comma)) break;
       _ignoreComments();
     }
     _scanner.expectChar($rparen);
     return new ArgumentDeclaration(arguments,
-        restArgument: restArgument, span: _scanner.spanFrom(start));
+        restArgument: restArgument,
+        span: _scanner.spanFrom(start));
   }
 
   // ## Expressions
@@ -522,8 +513,8 @@ class Parser {
     }
     _scanner.expectChar($rparen);
 
-    return new ArgumentInvocation(positional, named,
-        rest: rest, keywordRest: keywordRest, span: _scanner.spanFrom(start));
+    return new ArgumentInvocation(positional, named, _scanner.spanFrom(start),
+        rest: rest, keywordRest: keywordRest);
   }
 
   Expression _expression() {
@@ -562,9 +553,9 @@ class Parser {
       if (!_scanner.scanChar($comma)) break;
     }
 
-    return new ListExpression(expressions, ListSeparator.comma,
-        bracketed: true,
-        span: _scanner.spanFrom(start));
+    return new ListExpression(
+        expressions, ListSeparator.comma,
+        bracketed: true, span: _scanner.spanFrom(start));
   }
 
   Expression _spaceListOrValue() {
@@ -632,8 +623,8 @@ class Parser {
     _ignoreComments();
     if (!_lookingAtExpression()) {
       _scanner.expectChar($rparen);
-      return new ListExpression([], ListSeparator.undecided,
-          span: _scanner.spanFrom(start));
+      return new ListExpression(
+          [], ListSeparator.undecided, span: _scanner.spanFrom(start));
     }
 
     var first = _spaceListOrValue();
@@ -656,8 +647,8 @@ class Parser {
     }
 
     _scanner.expectChar($lparen);
-    return new ListExpression(expressions, ListSeparator.comma,
-        span: _scanner.spanFrom(start));
+    return new ListExpression(
+        expressions, ListSeparator.comma, span: _scanner.spanFrom(start));
   }
 
   MapExpression _map(Expression first, LineScannerState start) {
@@ -675,7 +666,7 @@ class Parser {
     }
 
     _scanner.expectChar($rparen);
-    return new MapExpression(pairs, span: _scanner.spanFrom(start));
+    return new MapExpression(pairs, _scanner.spanFrom(start));
   }
 
   UnaryOperatorExpression _unaryOperator() {
@@ -688,8 +679,8 @@ class Parser {
 
     _ignoreComments();
     var operand = _singleExpression();
-    return new UnaryOperatorExpression(operator, operand,
-        span: _scanner.spanFrom(start));
+    return new UnaryOperatorExpression(
+        operator, operand, _scanner.spanFrom(start));
   }
 
   NumberExpression _number() {
@@ -735,13 +726,12 @@ class Parser {
       number = number * math.pow(10, exponentSign * exponent);
     }
 
-    return new NumberExpression(sign * number, span: _scanner.spanFrom(start));
+    return new NumberExpression(sign * number, _scanner.spanFrom(start));
   }
 
   VariableExpression _variable() {
     var start = _scanner.state;
-    return new VariableExpression(_variableName(),
-        span: _scanner.spanFrom(start));
+    return new VariableExpression(_variableName(), _scanner.spanFrom(start));
   }
 
   StringExpression _string({bool static: false}) {
@@ -787,16 +777,14 @@ class Parser {
 
     var first = _scanner.peekChar();
     if (first != null && isDigit(first)) {
-      return new ColorExpression(_hexColorContents(),
-          span: _scanner.spanFrom(start));
+      return new ColorExpression(_hexColorContents(), _scanner.spanFrom(start));
     }
 
     var afterHash = _scanner.state;
     var identifier = _interpolatedIdentifier();
     if (_isHexColor(identifier)) {
       _scanner.state = afterHash;
-      return new ColorExpression(_hexColorContents(),
-          span: _scanner.spanFrom(start));
+      return new ColorExpression(_hexColorContents(), _scanner.spanFrom(start));
     }
 
     var buffer = new InterpolationBuffer();
@@ -839,10 +827,10 @@ class Parser {
       case "not":
         _ignoreComments();
         return new UnaryOperatorExpression(
-            UnaryOperator.not, _singleExpression(), span: identifier.span);
+            UnaryOperator.not, _singleExpression(), identifier.span);
 
-      case "true": return new BooleanExpression(true, span: identifier.span);
-      case "false": return new BooleanExpression(false, span: identifier.span);
+      case "true": return new BooleanExpression(true, identifier.span);
+      case "false": return new BooleanExpression(false, identifier.span);
     }
 
     return _scanner.peekChar() == $lparen
@@ -1424,8 +1412,7 @@ class Parser {
   Interpolation _mediaExpression() {
     if (_scanner.peekChar() == $hash) {
       var interpolation = _singleInterpolation();
-      return new Interpolation([interpolation],
-          span: interpolation.span);
+      return new Interpolation([interpolation], interpolation.span);
     }
 
     var start = _scanner.state;
@@ -1484,9 +1471,9 @@ class Parser {
       _whitespace();
     } while (_scanner.scan("//"));
 
-    return new Comment(_scanner.substring(start.position),
-        silent: true,
-        span: _scanner.spanFrom(start));
+    return new Comment(
+        _scanner.substring(start.position), _scanner.spanFrom(start),
+        silent: true);
   }
 
   Comment _loudComment() {
@@ -1496,9 +1483,9 @@ class Parser {
       while (_scanner.readChar() != $asterisk) {}
     } while (_scanner.readChar() != $slash);
 
-    return new Comment(_scanner.substring(start.position),
-        silent: false,
-        span: _scanner.spanFrom(start));
+    return new Comment(
+        _scanner.substring(start.position), _scanner.spanFrom(start),
+        silent: false);
   }
 
   void _whitespace() {

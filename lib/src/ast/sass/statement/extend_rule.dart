@@ -13,7 +13,7 @@ class ExtendRule implements Statement {
 
   final FileSpan span;
 
-  ExtendRule(this.selector, {this.span});
+  ExtendRule(this.selector, this.span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitExtendRule(this);

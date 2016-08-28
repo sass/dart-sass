@@ -13,7 +13,7 @@ class MapExpression implements Expression {
 
   final FileSpan span;
 
-  MapExpression(Iterable<Pair<Expression, Expression>> pairs, {this.span})
+  MapExpression(Iterable<Pair<Expression, Expression>> pairs, this.span)
       : pairs = new List.unmodifiable(pairs);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>

@@ -12,7 +12,7 @@ class Stylesheet implements Statement {
 
   final FileSpan span;
 
-  Stylesheet(Iterable<Statement> children, {this.span})
+  Stylesheet(Iterable<Statement> children, this.span)
       : children = new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>

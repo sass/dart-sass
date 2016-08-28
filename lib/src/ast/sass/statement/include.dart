@@ -18,8 +18,7 @@ class Include implements Statement, CallableInvocation {
 
   final FileSpan span;
 
-  Include(this.name, this.arguments, {Iterable<Statement> children,
-      this.span})
+  Include(this.name, this.arguments, this.span, {Iterable<Statement> children})
       : children = children == null ? null : new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>

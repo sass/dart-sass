@@ -13,7 +13,7 @@ class Return implements Statement {
 
   final FileSpan span;
 
-  Return(this.expression, {this.span});
+  Return(this.expression, this.span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitReturn(this);

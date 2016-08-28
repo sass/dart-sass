@@ -14,7 +14,7 @@ class CssStyleRule extends CssParentNode {
 
   final FileSpan span;
 
-  CssStyleRule(this.selector, {this.span});
+  CssStyleRule(this.selector, this.span);
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitStyleRule(this);

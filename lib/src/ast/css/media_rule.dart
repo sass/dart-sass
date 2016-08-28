@@ -13,7 +13,7 @@ class CssMediaRule extends CssParentNode {
 
   final FileSpan span;
 
-  CssMediaRule(this.queries, {this.span});
+  CssMediaRule(this.queries, this.span);
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitMediaRule(this);

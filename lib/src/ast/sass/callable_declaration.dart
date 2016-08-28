@@ -17,6 +17,6 @@ abstract class CallableDeclaration implements Statement {
   final FileSpan span;
 
   CallableDeclaration(this.name, this.arguments, Iterable<Statement> children,
-      {this.span})
+      this.span)
       : children = new List.unmodifiable(children);
 }

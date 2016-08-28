@@ -11,8 +11,8 @@ import '../statement.dart';
 
 class FunctionDeclaration extends CallableDeclaration {
   FunctionDeclaration(String name, ArgumentDeclaration arguments,
-      Iterable<Statement> children, {FileSpan span})
-      : super(name, arguments, children, span: span);
+      Iterable<Statement> children, FileSpan span)
+      : super(name, arguments, children, span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitFunctionDeclaration(this);

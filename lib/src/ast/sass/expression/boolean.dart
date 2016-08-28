@@ -12,7 +12,7 @@ class BooleanExpression implements Expression {
 
   final FileSpan span;
 
-  BooleanExpression(this.value, {this.span});
+  BooleanExpression(this.value, this.span);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitBooleanExpression(this);
