@@ -19,6 +19,8 @@ abstract class Value {
   /// Whether the value will be represented in CSS as the empty string.
   bool get isBlank => false;
 
+  bool get isTruthy => true;
+
   const Value();
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);

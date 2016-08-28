@@ -11,6 +11,8 @@ const sassFalse = const SassBoolean._(false);
 class SassBoolean extends Value {
   final bool value;
 
+  bool get isTruthy => value;
+
   factory SassBoolean(bool value) => value ? sassTrue : sassFalse;
 
   const SassBoolean._(this.value);

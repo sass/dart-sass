@@ -41,31 +41,14 @@ class Parser {
 
   Stylesheet parse() {
     var start = _scanner.state;
-    var children = <Statement>[];
-    while (true) {
-      children.addAll(_comments());
-      if (_scanner.isDone) break;
-      switch (_scanner.peekChar()) {
-        case $dollar:
-          children.add(_variableDeclaration());
-          break;
-
-        case $at:
-          children.add(_atRule());
-          break;
-
-        case $semicolon:
-          _scanner.readChar();
-          break;
-
-        default:
-          children.add(_styleRule());
-          break;
-      }
-    }
-
+    var statements = _statements(_topLevelStatement);
     _scanner.expectDone();
-    return new Stylesheet(children, span: _scanner.spanFrom(start));
+    return new Stylesheet(statements, span: _scanner.spanFrom(start));
+  }
+
+  Statement _topLevelStatement() {
+    if (_scanner.peekChar() == $at) return _atRule(_topLevelStatement);
+    return _styleRule();
   }
 
   SelectorList parseSelector() {
@@ -116,15 +99,15 @@ class Parser {
   StyleRule _styleRule() {
     var start = _scanner.state;
     var selector = _almostAnyValue();
-    var children = _ruleChildren();
+    var children = _children(_ruleChild);
     return new StyleRule(selector, children,
         span: _scanner.spanFrom(start));
   }
 
-  List<Statement> _ruleChildren() => _children(() {
-    if (_scanner.peekChar() == $at) return _atRule();
+  Statement _ruleChild() {
+    if (_scanner.peekChar() == $at) return _atRule(_ruleChild);
     return _declarationOrStyleRule();
-  });
+  }
 
   Expression _declarationExpression() {
     if (_scanner.peekChar() == $lbrace) {
@@ -169,7 +152,7 @@ class Parser {
     var buffer = declarationOrBuffer as InterpolationBuffer;
     buffer.addInterpolation(_almostAnyValue());
 
-    var children = _ruleChildren();
+    var children = _children(_ruleChild);
     return new StyleRule(
         buffer.interpolation(_scanner.spanFrom(start)), children,
         span: _scanner.spanFrom(start));
@@ -222,7 +205,7 @@ class Parser {
     var postColonWhitespace = _commentText();
     if (_scanner.peekChar() == $lbrace) {
       return new Declaration(name,
-          children: _declarationChildren(),
+          children: _children(_declarationChild),
           span: _scanner.spanFrom(start));
     }
 
@@ -262,7 +245,7 @@ class Parser {
         name,
         value: value,
         children: _scanner.peekChar() == $lbrace
-             ? _declarationChildren()
+             ? _children(_declarationChild)
              : null,
         span: _scanner.spanFrom(start));
   }
@@ -276,7 +259,7 @@ class Parser {
 
     if (_scanner.peekChar() == $lbrace) {
       return new Declaration(name,
-          children: _declarationChildren(),
+          children: _children(_declarationChild),
           span: _scanner.spanFrom(start));
     }
 
@@ -285,15 +268,15 @@ class Parser {
         name,
         value: value,
         children: _scanner.peekChar() == $lbrace
-             ? _declarationChildren()
+             ? _children(_declarationChild)
              : null,
         span: _scanner.spanFrom(start));
   }
 
-  List<Statement> _declarationChildren() => _children(() {
+  Statement _declarationChild() {
     if (_scanner.peekChar() == $at) return _declarationAtRule();
     return _declaration();
-  });
+  }
 
   /// Consumes whitespace if available and returns any comments it contained.
   List<Comment> _comments() {
@@ -310,7 +293,7 @@ class Parser {
 
   // # At Rules
 
-  Statement _atRule() {
+  Statement _atRule(Statement child()) {
     var start = _scanner.state;
     var name = _atRuleName();
 
@@ -318,6 +301,7 @@ class Parser {
       case "content": return _content(start);
       case "extend": return _extend(start);
       case "function": return _functionDeclaration(start);
+      case "if": return _if(start, child);
       case "include": return _include(start);
       case "media": return _mediaRule(start);
       case "mixin": return _mixinDeclaration(start);
@@ -331,6 +315,7 @@ class Parser {
 
     switch (name) {
       case "content": return _content(start);
+      case "if": return _if(start, _declarationChild);
       case "include": return _include(start);
       default: return _disallowedAtRule(start);
     }
@@ -339,6 +324,7 @@ class Parser {
   Statement _functionAtRule() {
     var start = _scanner.state;
     switch (_atRuleName()) {
+      case "if": return _if(start, _functionAtRule);
       case "return": return _return(start);
       default: return _disallowedAtRule(start);
     }
@@ -386,6 +372,9 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
+  If _if(LineScannerState start, Statement child()) =>
+      new If(_expression(), _children(child), span: _scanner.spanFrom(start));
+
   Include _include(LineScannerState start) {
     var name = _identifier();
     _ignoreComments();
@@ -397,7 +386,7 @@ class Parser {
     List<Statement> children;
     if (_scanner.peekChar() == $lbrace) {
       _inContentBlock = true;
-      children = _ruleChildren();
+      children = _children(_ruleChild);
       _inContentBlock = false;
     }
 
@@ -406,7 +395,7 @@ class Parser {
   }
 
   MediaRule _mediaRule(LineScannerState start) =>
-      new MediaRule(_mediaQueryList(), _ruleChildren(),
+      new MediaRule(_mediaQueryList(), _children(_ruleChild),
           span: _scanner.spanFrom(start));
 
   MixinDeclaration _mixinDeclaration(LineScannerState start) {
@@ -425,7 +414,7 @@ class Parser {
     _ignoreComments();
     _inMixin = true;
     _mixinHasContent = false;
-    var children = _ruleChildren();
+    var children = _children(_ruleChild);
     _inMixin = false;
 
     return new MixinDeclaration(name, arguments, children,
@@ -448,7 +437,7 @@ class Parser {
 
     return new AtRule(name,
         value: value,
-        children: _scanner.peekChar() == $lbrace ? _ruleChildren() : null,
+        children: _scanner.peekChar() == $lbrace ? _children(_ruleChild) : null,
         span: _scanner.spanFrom(start));
   }
 
@@ -1668,28 +1657,50 @@ class Parser {
         character == $dollar || isNameStart(character) || isDigit(character);
   }
 
-  List<Statement> _children(Statement consumeChild()) {
+  List<Statement> _children(Statement child()) {
     _scanner.expectChar($lbrace);
     var children = <Statement>[];
-    loop: while (true) {
+    while (true) {
       children.addAll(_comments());
       switch (_scanner.peekChar()) {
         case $dollar:
           children.add(_variableDeclaration());
-          continue loop;
+          break;
 
         case $semicolon:
           _scanner.readChar();
-          continue loop;
+          break;
 
         case $rbrace:
-          break loop;
-      }
+          _scanner.expectChar($rbrace);
+          return children;
 
-      children.add(consumeChild());
+        default:
+          children.add(child());
+          break;
+      }
     }
-    _scanner.expectChar($rbrace);
-    return children;
+  }
+
+  List<Statement> _statements(Statement statement()) {
+    var statements = <Statement>[];
+    while (!_scanner.isDone) {
+      switch (_scanner.peekChar()) {
+        case $dollar:
+          statements.add(_variableDeclaration());
+          break;
+
+        case $semicolon:
+          _scanner.readChar();
+          break;
+
+        default:
+          statements.add(statement());
+          break;
+      }
+      statements.addAll(_comments());
+    }
+    return statements;
   }
 
   String _rawText(void consumer()) {

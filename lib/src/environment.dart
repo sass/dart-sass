@@ -33,6 +33,8 @@ class Environment {
   Environment get contentEnvironment => _contentEnvironment;
   Environment _contentEnvironment;
 
+  var _inSemiGlobalScope = false;
+
   Environment()
       : _variables = [normalizedMap()],
         _variableIndices = normalizedMap(),
@@ -63,7 +65,8 @@ class Environment {
   void setVariable(String name, Value value, {bool global: false}) {
     var index = global || _variables.length == 1
         ? 0
-        : _variableIndices.putIfAbsent(name, () => _variables.length - 1);
+        : _variableIndices.putIfAbsent(name,
+              () => _inSemiGlobalScope ? 0 : _variables.length - 1);
     _variables[index][name] = value;
   }
 
@@ -122,14 +125,19 @@ class Environment {
     _contentEnvironment = oldEnvironment;
   }
 
-  /*=T*/ scope/*<T>*/(/*=T*/ callback()) {
+  /*=T*/ scope/*<T>*/(/*=T*/ callback(), {bool semiGlobal: false}) {
+    assert(!semiGlobal || _inSemiGlobalScope || _variables.length == 1);
+
     // TODO: avoid creating a new scope if no variables are declared.
+    var wasInSemiGlobalScope = _inSemiGlobalScope;
+    _inSemiGlobalScope = semiGlobal;
     _variables.add(normalizedMap());
     _functions.add(normalizedMap());
     _mixins.add(normalizedMap());
     try {
       return callback();
     } finally {
+      _inSemiGlobalScope = wasInSemiGlobalScope;
       for (var name in _variables.removeLast().keys) {
         _variableIndices.remove(name);
       }

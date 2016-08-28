@@ -148,6 +148,12 @@ class PerformVisitor extends StatementVisitor
         new UserDefinedCallable(node, _environment.closure()));
   }
 
+  void visitIf(If node) {
+    var condition = node.expression.accept(this);
+    if (!condition.isTruthy) return;
+    _environment.scope(() => super.visitIf(node), semiGlobal: true);
+  }
+
   void visitInclude(Include node) {
     var mixin = _environment.getMixin(node.name) as UserDefinedCallable;
     if (mixin == null) throw node.span.message("Undefined mixin.");

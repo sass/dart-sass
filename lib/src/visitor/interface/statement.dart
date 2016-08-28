@@ -34,6 +34,13 @@ abstract class StatementVisitor<T> {
     return null;
   }
 
+  T visitIf(If node) {
+    for (var child in node.children) {
+      child.accept(this);
+    }
+    return null;
+  }
+
   T visitInclude(Include node) {
     if (node.children == null) return null;
     for (var child in node.children) {
