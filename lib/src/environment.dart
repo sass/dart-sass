@@ -76,12 +76,20 @@ class Environment {
 
   /*=T*/ scope/*<T>*/(/*=T*/ callback()) {
     // TODO: avoid creating a new scope if no variables are declared.
-    _variables.add({});
+    _variables.add(normalizedMap());
+    _functions.add(normalizedMap());
+    _mixins.add(normalizedMap());
     try {
       return callback();
     } finally {
       for (var name in _variables.removeLast().keys) {
         _variableIndices.remove(name);
+      }
+      for (var name in _functions.removeLast().keys) {
+        _functionIndices.remove(name);
+      }
+      for (var name in _mixins.removeLast().keys) {
+        _mixinIndices.remove(name);
       }
     }
   }
