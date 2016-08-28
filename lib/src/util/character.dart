@@ -32,8 +32,11 @@ bool isHex(int character) =>
 
 // Does not include type selectors
 bool isSimpleSelectorStart(int character) =>
-    character == $asterisk || character == $lbracket || character == $dot ||
-    character == $hash || character == $colon;
+    character == $asterisk ||
+    character == $lbracket ||
+    character == $dot ||
+    character == $hash ||
+    character == $colon;
 
 int asHex(int character) {
   if (character <= $9) return character - $0;
@@ -48,9 +51,13 @@ int hexCharFor(int character) {
 
 int opposite(int character) {
   switch (character) {
-    case $lparen: return $rparen;
-    case $lbrace: return $rbrace;
-    case $lbracket: return $rbracket;
-    default: return null;
+    case $lparen:
+      return $rparen;
+    case $lbrace:
+      return $rbrace;
+    case $lbracket:
+      return $rbracket;
+    default:
+      return null;
   }
 }

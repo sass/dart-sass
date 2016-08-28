@@ -14,7 +14,7 @@ class BuiltInCallable implements Callable {
   final String name;
   final ArgumentDeclaration arguments;
 
-  BuiltInCallable(this.name, this.arguments,
-      Value callback(List<Value> arguments))
+  BuiltInCallable(
+      this.name, this.arguments, Value callback(List<Value> arguments))
       : callback = callback;
 }

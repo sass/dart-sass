@@ -21,8 +21,7 @@ class SassList extends Value {
       : contents = new List.unmodifiable(contents),
         isBracketed = bracketed;
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
-      visitor.visitList(this);
+  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitList(this);
 
   bool operator ==(other) =>
       other is SassList &&

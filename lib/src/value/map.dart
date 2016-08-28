@@ -21,8 +21,10 @@ class SassMap extends Value {
   int get hashCode => const MapEquality().hash(contents);
 
   String toString() {
-    return '(' + contents.keys.map((key) {
-      return '$key: ${contents[key]}';
-    }).join(', ') + ')';
+    return '(' +
+        contents.keys.map((key) {
+          return '$key: ${contents[key]}';
+        }).join(', ') +
+        ')';
   }
 }

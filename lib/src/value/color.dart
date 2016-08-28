@@ -14,8 +14,7 @@ class SassColor extends Value {
 
   SassColor.rgb(this.red, this.green, this.blue);
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
-      visitor.visitColor(this);
+  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitColor(this);
 
   bool operator ==(other) =>
       other is SassColor &&

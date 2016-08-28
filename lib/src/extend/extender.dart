@@ -24,8 +24,8 @@ class Extender {
 
   final _sources = new Expando<ComplexSelector>();
 
-  CssStyleRule addSelector(CssValue<SelectorList> selectorValue,
-      FileSpan span) {
+  CssStyleRule addSelector(
+      CssValue<SelectorList> selectorValue, FileSpan span) {
     var selector = selectorValue.value;
     for (var complex in selector.components) {
       for (var component in complex.components) {
@@ -59,15 +59,17 @@ class Extender {
     var rules = _selectors[target];
     if (rules == null) return;
 
-    var extensions = {target: new Set.from([extender])};
+    var extensions = {
+      target: new Set.from([extender])
+    };
     for (var rule in rules) {
       var list = rule.selector.value;
       rule.selector.value = _extendList(list, extensions);
     }
   }
 
-  SelectorList _extendList(SelectorList list,
-      Map<SimpleSelector, Set<SelectorList>> extensions) {
+  SelectorList _extendList(
+      SelectorList list, Map<SimpleSelector, Set<SelectorList>> extensions) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
@@ -101,27 +103,34 @@ class Extender {
         var extended = _extendCompound(component, extensions);
         // TODO: follow the first law of extend (https://github.com/sass/sass/blob/7774aa3/lib/sass/selector/sequence.rb#L114-L118)
         if (extended == null) {
-          if (changed) extendedNotExpanded.add([[component]]);
+          if (changed)
+            extendedNotExpanded.add([
+              [component]
+            ]);
         } else {
           if (!changed) {
             extendedNotExpanded = complex.components
                 .take(i)
-                .map((component) => [[component]])
+                .map((component) => [
+                      [component]
+                    ])
                 .toList();
           }
           changed = true;
           extendedNotExpanded.add(extended);
         }
       } else {
-        if (changed) extendedNotExpanded.add([[component]]);
+        if (changed)
+          extendedNotExpanded.add([
+            [component]
+          ]);
       }
     }
     if (!changed) return null;
 
     // TODO: preserve line breaks
-    var weaves = _paths(extendedNotExpanded)
-        .map((path) => _weave(path))
-        .toList();
+    var weaves =
+        _paths(extendedNotExpanded).map((path) => _weave(path)).toList();
     return _trim(weaves).map((complex) => new ComplexSelector(complex));
   }
 
@@ -138,8 +147,7 @@ class Extender {
       var extenders = extensions[simple];
       if (extenders == null) continue;
 
-      var compoundWithoutSimple =
-          compound.components.toList()..removeAt(i);
+      var compoundWithoutSimple = compound.components.toList()..removeAt(i);
       for (var list in extenders) {
         for (var complex in list.components) {
           var extenderBase = complex.components.last as CompoundSelector;
@@ -148,12 +156,14 @@ class Extender {
               : _unifyCompound(extenderBase.components, compoundWithoutSimple);
           if (unified == null) continue;
 
-          if (!changed) extended = [[compound]];
+          if (!changed)
+            extended = [
+              [compound]
+            ];
           changed = true;
           extended.add(complex.components
               .take(complex.components.length - 1)
-              .toList()
-              ..add(unified));
+              .toList()..add(unified));
         }
       }
     }
@@ -236,7 +246,9 @@ class Extender {
       return unified.first;
     });
 
-    var choices = [<List<ComplexSelectorComponent>>[initialCombinator]];
+    var choices = [
+      <List<ComplexSelectorComponent>>[initialCombinator]
+    ];
     for (var group in lcs) {
       choices.add(_chunks/*<List<ComplexSelectorComponent>>*/(groups1, groups2,
               (sequence) => complexIsParentSuperselector(sequence.first, group))
@@ -325,69 +337,86 @@ class Extender {
       if (combinator1 == Combinator.followingSibling &&
           combinator2 == Combinator.followingSibling) {
         if (compound1.isSuperselector(compound2)) {
-          result.addFirst([[compound2, Combinator.followingSibling]]);
+          result.addFirst([
+            [compound2, Combinator.followingSibling]
+          ]);
         } else if (compound2.isSuperselector(compound1)) {
-          result.addFirst([[compound1, Combinator.followingSibling]]);
+          result.addFirst([
+            [compound1, Combinator.followingSibling]
+          ]);
         } else {
           var choices = [
             [
-              compound1, Combinator.followingSibling,
-              compound2, Combinator.followingSibling
+              compound1,
+              Combinator.followingSibling,
+              compound2,
+              Combinator.followingSibling
             ],
             [
-              compound2, Combinator.followingSibling,
-              compound1, Combinator.followingSibling
+              compound2,
+              Combinator.followingSibling,
+              compound1,
+              Combinator.followingSibling
             ]
           ];
 
-          var unified = _unifyCompound(
-              compound1.components, compound2.components);
+          var unified =
+              _unifyCompound(compound1.components, compound2.components);
           if (unified != null) {
             choices.add([unified, Combinator.followingSibling]);
           }
 
           result.addFirst(choices);
         }
-      } else if (
-          (combinator1 == Combinator.followingSibling &&
-           combinator2 == Combinator.nextSibling) ||
+      } else if ((combinator1 == Combinator.followingSibling &&
+              combinator2 == Combinator.nextSibling) ||
           (combinator1 == Combinator.nextSibling &&
-           combinator2 == Combinator.followingSibling)) {
+              combinator2 == Combinator.followingSibling)) {
         var followingSiblingSelector =
             combinator1 == Combinator.followingSibling ? compound1 : compound2;
         var nextSiblingSelector =
             combinator1 == Combinator.followingSibling ? compound2 : compound1;
 
         if (followingSiblingSelector.isSuperselector(nextSiblingSelector)) {
-          result.addFirst([[nextSiblingSelector, Combinator.nextSibling]]);
+          result.addFirst([
+            [nextSiblingSelector, Combinator.nextSibling]
+          ]);
         } else {
           var choices = [
             [
-              followingSiblingSelector, Combinator.followingSibling,
-              nextSiblingSelector, Combinator.nextSibling
+              followingSiblingSelector,
+              Combinator.followingSibling,
+              nextSiblingSelector,
+              Combinator.nextSibling
             ]
           ];
 
-          var unified = _unifyCompound(
-              compound1.components, compound2.components);
+          var unified =
+              _unifyCompound(compound1.components, compound2.components);
           if (unified != null) choices.add([unified, Combinator.nextSibling]);
           result.addFirst(choices);
         }
       } else if (combinator1 == Combinator.child &&
           (combinator2 == Combinator.nextSibling ||
-           combinator2 == Combinator.followingSibling)) {
-        result.addFirst([[compound2, combinator2]]);
+              combinator2 == Combinator.followingSibling)) {
+        result.addFirst([
+          [compound2, combinator2]
+        ]);
         components1..add(compound1)..add(Combinator.child);
       } else if (combinator2 == Combinator.child &&
           (combinator1 == Combinator.nextSibling ||
-           combinator1 == Combinator.followingSibling)) {
-        result.addFirst([[compound2, combinator2]]);
+              combinator1 == Combinator.followingSibling)) {
+        result.addFirst([
+          [compound2, combinator2]
+        ]);
         components1..add(compound1)..add(Combinator.child);
       } else if (combinator1 == combinator2) {
-        var unified = _unifyCompound(
-            compound1.components, compound2.components);
+        var unified =
+            _unifyCompound(compound1.components, compound2.components);
         if (unified == null) return null;
-        result.addFirst([[unified, combinator1]]);
+        result.addFirst([
+          [unified, combinator1]
+        ]);
       } else {
         return null;
       }
@@ -396,19 +425,25 @@ class Extender {
     } else if (combinator1 != null) {
       if (combinator1 == Combinator.child &&
           components2.isNotEmpty &&
-          (components2.last as CompoundSelector).isSuperselector(components1.last)) {
+          (components2.last as CompoundSelector)
+              .isSuperselector(components1.last)) {
         components2.removeLast();
       }
-      result.addFirst([[components1.removeLast(), combinator1]]);
+      result.addFirst([
+        [components1.removeLast(), combinator1]
+      ]);
       return _mergeFinalCombinators(components1, components2, result);
     } else {
       assert(combinator1 != null);
       if (combinator2 == Combinator.child &&
           components1.isNotEmpty &&
-          (components1.last as CompoundSelector).isSuperselector(components2.last)) {
+          (components1.last as CompoundSelector)
+              .isSuperselector(components2.last)) {
         components1.removeLast();
       }
-      result.addFirst([[components2.removeLast(), combinator2]]);
+      result.addFirst([
+        [components2.removeLast(), combinator2]
+      ]);
       return _mergeFinalCombinators(components1, components2, result);
     }
   }
@@ -425,22 +460,22 @@ class Extender {
 
     return complex2.any((component) =>
         component is CompoundSelector &&
-        component.components.any((simple) =>
-            _isUnique(simple) && uniqueSelectors.contains(simple)));
+        component.components.any(
+            (simple) => _isUnique(simple) && uniqueSelectors.contains(simple)));
   }
 
   bool _isUnique(SimpleSelector simple) =>
       simple is IDSelector ||
       (simple is PseudoSelector && simple.type == PseudoType.element);
 
-  List<List/*<T>*/> _chunks/*<T>*/(Queue/*<T>*/ queue1,
-      Queue/*<T>*/ queue2, bool done(Queue/*<T>*/ queue)) {
-    var chunk1 = /*<T>*/[];
+  List<List/*<T>*/ > _chunks/*<T>*/(
+      Queue/*<T>*/ queue1, Queue/*<T>*/ queue2, bool done(Queue/*<T>*/ queue)) {
+    var chunk1 = /*<T>*/ [];
     while (!done(queue1)) {
       chunk1.add(queue1.removeFirst());
     }
 
-    var chunk2 = /*<T>*/[];
+    var chunk2 = /*<T>*/ [];
     while (!done(queue2)) {
       chunk2.add(queue2.removeFirst());
     }
@@ -451,10 +486,13 @@ class Extender {
     return [chunk1.toList()..addAll(chunk2), chunk2..addAll(chunk1)];
   }
 
-  List<List/*<T>*/> _paths/*<T>*/(Iterable<List/*<T>*/> choices) =>
-      choices.fold([[]], (paths, choice) => choice
-          .expand((option) => paths.map((path) => path.toList()..add(option)))
-          .toList());
+  List<List/*<T>*/ > _paths/*<T>*/(Iterable<List/*<T>*/ > choices) =>
+      choices.fold(
+          [[]],
+          (paths, choice) => choice
+              .expand(
+                  (option) => paths.map((path) => path.toList()..add(option)))
+              .toList());
 
   QueueList<List<ComplexSelectorComponent>> _groupSelectors(
       Iterable<ComplexSelectorComponent> complex) {
@@ -559,8 +597,8 @@ class Extender {
     }
   }
 
-  CompoundSelector _unifyCompound(List<SimpleSelector> compound1,
-      List<SimpleSelector> compound2) {
+  CompoundSelector _unifyCompound(
+      List<SimpleSelector> compound1, List<SimpleSelector> compound2) {
     var result = compound2;
     for (var simple in compound1) {
       result = simple.unify(result);

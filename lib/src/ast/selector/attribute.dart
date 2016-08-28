@@ -21,8 +21,11 @@ class AttributeSelector extends SimpleSelector {
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
       visitor.visitAttributeSelector(this);
 
-  bool operator==(other) => other is AttributeSelector &&
-      other.name == name && other.op == op && other.value == value;
+  bool operator ==(other) =>
+      other is AttributeSelector &&
+      other.name == name &&
+      other.op == op &&
+      other.value == value;
 
   int get hashCode => name.hashCode ^ op.hashCode ^ value.hashCode;
 }

@@ -22,6 +22,6 @@ class ArgumentDeclaration implements SassNode {
       : arguments = const [],
         restArgument = null;
 
-  String toString() => arguments.join(', ') +
-      (restArgument == null ? '' : ", $restArgument...");
+  String toString() =>
+      arguments.join(', ') + (restArgument == null ? '' : ", $restArgument...");
 }

@@ -29,8 +29,8 @@ class UniversalSelector extends SimpleSelector {
     return [this];
   }
 
-  bool operator==(other) => other is UniversalSelector &&
-      other.namespace == namespace;
+  bool operator ==(other) =>
+      other is UniversalSelector && other.namespace == namespace;
 
   int get hashCode => namespace.hashCode;
 }

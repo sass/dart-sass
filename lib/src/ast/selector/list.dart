@@ -19,7 +19,8 @@ class SelectorList extends Selector {
         if (component is CompoundSelector) {
           return component.components.any((simple) =>
               simple is ParentSelector ||
-              (simple is PseudoSelector && simple.selector != null &&
+              (simple is PseudoSelector &&
+                  simple.selector != null &&
                   simple.selector._containsParentSelector));
         }
       });
@@ -43,9 +44,8 @@ class SelectorList extends Selector {
 
     if (!_containsParentSelector) {
       return new SelectorList(components.expand((complex) {
-        return parent.components.map((newComplex) =>
-            new ComplexSelector(newComplex.components.toList()
-              ..addAll(complex.components)));
+        return parent.components.map((newComplex) => new ComplexSelector(
+            newComplex.components.toList()..addAll(complex.components)));
       }));
     }
 
@@ -102,12 +102,13 @@ class SelectorList extends Selector {
 
     var parentSelector = compound.components.first;
     if (parentSelector is ParentSelector) {
-      if (compound.components.length == 1 &&
-          parentSelector.suffix == null) {
+      if (compound.components.length == 1 && parentSelector.suffix == null) {
         return parent.components.map((complex) => complex.components);
       }
     } else {
-      return [[new CompoundSelector(resolvedMembers)]];
+      return [
+        [new CompoundSelector(resolvedMembers)]
+      ];
     }
 
     return parent.components.map((complex) {
@@ -142,8 +143,10 @@ class SelectorList extends Selector {
       return new PlaceholderSelector(simple.name + suffix);
     } else if (simple is TypeSelector) {
       return new TypeSelector(new NamespacedIdentifier(
-          simple.name.name + suffix, namespace: simple.name.namespace));
-    } else if (simple is PseudoSelector && simple.argument == null &&
+          simple.name.name + suffix,
+          namespace: simple.name.namespace));
+    } else if (simple is PseudoSelector &&
+        simple.argument == null &&
         simple.selector == null) {
       return new PseudoSelector(simple.name + suffix, simple.type);
     }

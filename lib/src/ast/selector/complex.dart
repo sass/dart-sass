@@ -17,20 +17,21 @@ class ComplexSelector extends Selector {
     if (_minSpecificity == null) _computeSpecificity();
     return _minSpecificity;
   }
+
   int _minSpecificity;
 
   int get maxSpecificity {
     if (_maxSpecificity == null) _computeSpecificity();
     return _maxSpecificity;
   }
+
   int _maxSpecificity;
 
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
       {Iterable<int> lineBreaks})
       : components = new List.unmodifiable(components),
-        lineBreaks = lineBreaks == null
-            ? const []
-            : new List.unmodifiable(lineBreaks);
+        lineBreaks =
+            lineBreaks == null ? const [] : new List.unmodifiable(lineBreaks);
 
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
       visitor.visitComplexSelector(this);
@@ -68,5 +69,3 @@ class Combinator implements ComplexSelectorComponent {
 
   String toString() => combinator;
 }
-
-

@@ -14,12 +14,14 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
     if (_minSpecificity == null) _computeSpecificity();
     return _minSpecificity;
   }
+
   int _minSpecificity;
 
   int get maxSpecificity {
     if (_maxSpecificity == null) _computeSpecificity();
     return _maxSpecificity;
   }
+
   int _maxSpecificity;
 
   CompoundSelector(Iterable<SimpleSelector> components)

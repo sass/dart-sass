@@ -8,7 +8,8 @@ import 'environment.dart';
 import 'value.dart';
 
 void defineCoreFunctions(Environment environment) {
-  environment.setFunction(new BuiltInCallable("inspect",
+  environment.setFunction(new BuiltInCallable(
+      "inspect",
       new ArgumentDeclaration([new Argument("value")]),
       (arguments) => new SassIdentifier(arguments.single.toString())));
 }

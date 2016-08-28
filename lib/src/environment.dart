@@ -45,9 +45,15 @@ class Environment {
     defineCoreFunctions(this);
   }
 
-  Environment._(this._variables, this._variableIndices, this._functions,
-      this._functionIndices, this._mixins, this._mixinIndices,
-      this._contentBlock, this._contentEnvironment);
+  Environment._(
+      this._variables,
+      this._variableIndices,
+      this._functions,
+      this._functionIndices,
+      this._mixins,
+      this._mixinIndices,
+      this._contentBlock,
+      this._contentEnvironment);
 
   Environment closure() => new Environment._(
       _variables.toList(),
@@ -65,8 +71,8 @@ class Environment {
   void setVariable(String name, Value value, {bool global: false}) {
     var index = global || _variables.length == 1
         ? 0
-        : _variableIndices.putIfAbsent(name,
-              () => _inSemiGlobalScope ? 0 : _variables.length - 1);
+        : _variableIndices.putIfAbsent(
+            name, () => _inSemiGlobalScope ? 0 : _variables.length - 1);
     _variables[index][name] = value;
   }
 
@@ -114,8 +120,8 @@ class Environment {
     _mixins[_mixins.length - 1][callable.name] = callable;
   }
 
-  void withContent(List<Statement> block, Environment environment,
-      void callback()) {
+  void withContent(
+      List<Statement> block, Environment environment, void callback()) {
     var oldBlock = _contentBlock;
     var oldEnvironment = _contentEnvironment;
     _contentBlock = block;

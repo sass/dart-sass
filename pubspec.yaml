@@ -16,3 +16,5 @@ dependencies:
 
 dev_dependencies:
   test: "^0.12.0"
+  grinder: "^0.8.0"
+  dart_style: "^0.2.9"

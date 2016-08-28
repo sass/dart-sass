@@ -112,8 +112,8 @@ class PerformVisitor extends StatementVisitor
 
   void visitAtRule(AtRule node) {
     if (_declarationName != null) {
-      throw node.span.message(
-          "At-rules may not be used within nested declarations.");
+      throw node.span
+          .message("At-rules may not be used within nested declarations.");
     }
 
     var value = node.value == null
@@ -121,8 +121,8 @@ class PerformVisitor extends StatementVisitor
         : _interpolationToValue(node.value, trim: true);
 
     if (node.children == null) {
-      _parent.addChild(new CssAtRule(node.name, node.span,
-          childless: true, value: value));
+      _parent.addChild(
+          new CssAtRule(node.name, node.span, childless: true, value: value));
       return;
     }
 
@@ -134,18 +134,16 @@ class PerformVisitor extends StatementVisitor
         // declarations immediately inside it have somewhere to go.
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
-        _withParent(
-            new CssStyleRule(_selector, _selector.span),
+        _withParent(new CssStyleRule(_selector, _selector.span),
             () => super.visitAtRule(node),
             removeIfEmpty: true);
       }
-    },
-        through: (node) => node is CssStyleRule);
+    }, through: (node) => node is CssStyleRule);
   }
 
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _environment.setFunction(
-        new UserDefinedCallable(node, _environment.closure()));
+    _environment
+        .setFunction(new UserDefinedCallable(node, _environment.closure()));
   }
 
   void visitIf(If node) {
@@ -181,14 +179,14 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitMixinDeclaration(MixinDeclaration node) {
-    _environment.setMixin(
-        new UserDefinedCallable(node, _environment.closure()));
+    _environment
+        .setMixin(new UserDefinedCallable(node, _environment.closure()));
   }
 
   void visitMediaRule(MediaRule node) {
     if (_declarationName != null) {
-      throw node.span.message(
-          "Media rules may not be used within nested declarations.");
+      throw node.span
+          .message("Media rules may not be used within nested declarations.");
     }
 
     var queryIterable = node.queries.map(_visitMediaQuery);
@@ -207,8 +205,7 @@ class PerformVisitor extends StatementVisitor
           //
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
-          _withParent(
-              new CssStyleRule(_selector, _selector.span),
+          _withParent(new CssStyleRule(_selector, _selector.span),
               () => super.visitMediaRule(node),
               removeIfEmpty: true);
         }
@@ -226,16 +223,13 @@ class PerformVisitor extends StatementVisitor
   }
 
   CssMediaQuery _visitMediaQuery(MediaQuery query) {
-    var modifier = query.modifier == null
-        ? null
-        : _interpolationToValue(query.modifier);
+    var modifier =
+        query.modifier == null ? null : _interpolationToValue(query.modifier);
 
-    var type = query.type == null
-        ? null
-        : _interpolationToValue(query.type);
+    var type = query.type == null ? null : _interpolationToValue(query.type);
 
-    var features = query.features
-        .map((feature) => _interpolationToValue(feature));
+    var features =
+        query.features.map((feature) => _interpolationToValue(feature));
 
     if (type == null) return new CssMediaQuery.condition(features);
     return new CssMediaQuery(type, modifier: modifier, features: features);
@@ -245,8 +239,8 @@ class PerformVisitor extends StatementVisitor
 
   void visitStyleRule(StyleRule node) {
     if (_declarationName != null) {
-      throw node.span.message(
-          "Style rules may not be used within nested declarations.");
+      throw node.span
+          .message("Style rules may not be used within nested declarations.");
     }
 
     var selectorText = _interpolationToValue(node.selector, trim: true);
@@ -257,19 +251,16 @@ class PerformVisitor extends StatementVisitor
 
     // TODO: catch errors and re-contextualize them relative to
     // [node.selector.span.start].
-    var selector = new CssValue<SelectorList>(
-        parsedSelector, node.selector.span);
+    var selector =
+        new CssValue<SelectorList>(parsedSelector, node.selector.span);
 
-    _withParent(
-        _extender.addSelector(selector, node.span),
+    _withParent(_extender.addSelector(selector, node.span),
         () => _withSelector(selector, () => super.visitStyleRule(node)),
-        through: (node) => node is CssStyleRule,
-        removeIfEmpty: true);
+        through: (node) => node is CssStyleRule, removeIfEmpty: true);
   }
 
   void visitVariableDeclaration(VariableDeclaration node) {
-    _environment.setVariable(
-        node.name, node.expression.accept(this),
+    _environment.setVariable(node.name, node.expression.accept(this),
         global: node.isGlobal);
   }
 
@@ -286,11 +277,16 @@ class PerformVisitor extends StatementVisitor
   Value visitUnaryOperatorExpression(UnaryOperatorExpression node) {
     var operand = node.operand.accept(this);
     switch (node.operator) {
-      case UnaryOperator.plus: return operand.unaryPlus();
-      case UnaryOperator.minus: return operand.unaryMinus();
-      case UnaryOperator.divide: return operand.unaryDivide();
-      case UnaryOperator.not: return operand.unaryNot();
-      default: throw new StateError("Unknown unary operator ${node.operator}.");
+      case UnaryOperator.plus:
+        return operand.unaryPlus();
+      case UnaryOperator.minus:
+        return operand.unaryMinus();
+      case UnaryOperator.divide:
+        return operand.unaryDivide();
+      case UnaryOperator.not:
+        return operand.unaryNot();
+      default:
+        throw new StateError("Unknown unary operator ${node.operator}.");
     }
   }
 
@@ -337,8 +333,8 @@ class PerformVisitor extends StatementVisitor
               if (returnValue is Value) return returnValue;
             }
 
-            throw function.declaration.span.message(
-                "Function finished without @return.");
+            throw function.declaration.span
+                .message("Function finished without @return.");
           });
         } else {
           return null;
@@ -347,13 +343,14 @@ class PerformVisitor extends StatementVisitor
     }
 
     if (node.arguments.named.isNotEmpty || node.arguments.keywordRest != null) {
-      throw node.span.message(
-          "Plain CSS functions don't support keyword arguments.");
+      throw node.span
+          .message("Plain CSS functions don't support keyword arguments.");
     }
 
     var name = _performInterpolation(node.name);
     var arguments = node.arguments.positional
-        .map((expression) => expression.accept(this)).toList();
+        .map((expression) => expression.accept(this))
+        .toList();
     // TODO: if rest is an arglist that has keywords, error out.
     var rest = node.arguments.rest?.accept(this);
     if (rest != null) arguments.add(rest);
@@ -366,40 +363,48 @@ class PerformVisitor extends StatementVisitor
     var positional = pair.first;
     var named = pair.last;
 
-    return _withEnvironment(callable.environment, () => _environment.scope(() {
-      _verifyArguments(positional, named, callable.arguments, invocation.span);
+    return _withEnvironment(
+        callable.environment,
+        () => _environment.scope(() {
+              _verifyArguments(
+                  positional, named, callable.arguments, invocation.span);
 
-      // TODO: if we get here and there are no rest params involved, mark the
-      // callable as fast-path and don't do error checking or extra allocations
-      // for future calls.
-      var declaredArguments = callable.arguments.arguments;
-      var minLength = math.min(positional.length, declaredArguments.length);
-      for (var i = 0; i < minLength; i++) {
-        _environment.setVariable(declaredArguments[i].name, positional[i]);
-      }
+              // TODO: if we get here and there are no rest params involved, mark the
+              // callable as fast-path and don't do error checking or extra allocations
+              // for future calls.
+              var declaredArguments = callable.arguments.arguments;
+              var minLength =
+                  math.min(positional.length, declaredArguments.length);
+              for (var i = 0; i < minLength; i++) {
+                _environment.setVariable(
+                    declaredArguments[i].name, positional[i]);
+              }
 
-      for (var i = positional.length; i < declaredArguments.length; i++) {
-        var argument = declaredArguments[i];
-        _environment.setVariable(argument.name,
-            named.remove(argument.name) ??
-                argument.defaultValue?.accept(this));
-      }
+              for (var i = positional.length;
+                  i < declaredArguments.length;
+                  i++) {
+                var argument = declaredArguments[i];
+                _environment.setVariable(
+                    argument.name,
+                    named.remove(argument.name) ??
+                        argument.defaultValue?.accept(this));
+              }
 
-      // TODO: use a full ArgList object
-      if (callable.arguments.restArgument != null) {
-        var rest = positional.length > declaredArguments.length
-            ? positional.sublist(declaredArguments.length)
-            : const <Value>[];
-        _environment.setVariable(callable.arguments.restArgument,
-            new SassList(rest, ListSeparator.comma));
-      }
+              // TODO: use a full ArgList object
+              if (callable.arguments.restArgument != null) {
+                var rest = positional.length > declaredArguments.length
+                    ? positional.sublist(declaredArguments.length)
+                    : const <Value>[];
+                _environment.setVariable(callable.arguments.restArgument,
+                    new SassList(rest, ListSeparator.comma));
+              }
 
-      return run();
-    }));
+              return run();
+            }));
   }
 
-  Value _runBuiltInCallable(CallableInvocation invocation,
-      BuiltInCallable callable) {
+  Value _runBuiltInCallable(
+      CallableInvocation invocation, BuiltInCallable callable) {
     var pair = _evaluateArguments(invocation);
     var positional = pair.first;
     var named = pair.last;
@@ -409,8 +414,8 @@ class PerformVisitor extends StatementVisitor
     var declaredArguments = callable.arguments.arguments;
     for (var i = positional.length; i < declaredArguments.length; i++) {
       var argument = declaredArguments[i];
-      positional.add(named.remove(argument.name) ??
-          argument.defaultValue?.accept(this));
+      positional.add(
+          named.remove(argument.name) ?? argument.defaultValue?.accept(this));
     }
 
     // TODO: use a full ArgList object
@@ -427,7 +432,8 @@ class PerformVisitor extends StatementVisitor
   Pair<List<Value>, Map<String, Value>> _evaluateArguments(
       CallableInvocation invocation) {
     var positional = invocation.arguments.positional
-        .map((expression) => expression.accept(this)).toList();
+        .map((expression) => expression.accept(this))
+        .toList();
     var named = normalizedMapMap/*<String, Expression, Value>*/(
         invocation.arguments.named,
         value: (_, expression) => expression.accept(this));
@@ -464,9 +470,9 @@ class PerformVisitor extends StatementVisitor
       } else if (key is SassString) {
         values[key.text] = value;
       } else {
-        throw span.message(
-            "Variable keyword argument map must have string keys.\n"
-            "$key is not a string in $value.");
+        throw span
+            .message("Variable keyword argument map must have string keys.\n"
+                "$key is not a string in $value.");
       }
     });
   }
@@ -479,7 +485,7 @@ class PerformVisitor extends StatementVisitor
         if (named.containsKey(argument.name)) {
           throw span.message(
               "Argument \$${argument.name} was passed both by position and by "
-                "name.");
+              "name.");
         }
       } else if (argument.defaultValue == null &&
           !named.containsKey(argument.name)) {
@@ -490,20 +496,19 @@ class PerformVisitor extends StatementVisitor
     if (arguments.restArgument != null) return;
 
     if (positional.length > arguments.arguments.length) {
-      throw span.message(
-          "Only ${arguments.arguments.length} "
-            "${pluralize('argument', arguments.arguments.length)} allowed, "
-            "but ${positional.length} "
-            "${pluralize('was', positional.length, plural: 'were')} passed.");
+      throw span.message("Only ${arguments.arguments.length} "
+          "${pluralize('argument', arguments.arguments.length)} allowed, "
+          "but ${positional.length} "
+          "${pluralize('was', positional.length, plural: 'were')} passed.");
     }
 
     if (arguments.arguments.length - positional.length < named.length) {
       var unknownNames = normalizedSet()
-          ..addAll(named.keys)
-          ..removeAll(arguments.arguments.map((argument) => argument.name));
-      throw span.message(
-          "No ${pluralize('argument', unknownNames.length)} named "
-          "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.");
+        ..addAll(named.keys)
+        ..removeAll(arguments.arguments.map((argument) => argument.name));
+      throw span
+          .message("No ${pluralize('argument', unknownNames.length)} named "
+              "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.");
     }
   }
 
@@ -520,8 +525,8 @@ class PerformVisitor extends StatementVisitor
     return result;
   }
 
-  CssValue<String> _interpolationToValue(
-      Interpolation interpolation, {bool trim: false}) {
+  CssValue<String> _interpolationToValue(Interpolation interpolation,
+      {bool trim: false}) {
     var result = _performInterpolation(interpolation);
     return new CssValue(trim ? result.trim() : result, interpolation.span);
   }
@@ -537,8 +542,10 @@ class PerformVisitor extends StatementVisitor
       new CssValue(expression.accept(this), expression.span);
 
   /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
-      /*=S*/ node, /*=T*/ callback(),
-      {bool through(CssNode node), bool removeIfEmpty: false}) {
+      /*=S*/ node,
+      /*=T*/ callback(),
+      {bool through(CssNode node),
+      bool removeIfEmpty: false}) {
     var oldParent = _parent;
 
     // Go up through parents that match [through].
@@ -558,7 +565,8 @@ class PerformVisitor extends StatementVisitor
     return result;
   }
 
-  /*=T*/ _withSelector/*<T>*/(CssValue<SelectorList> selector,
+  /*=T*/ _withSelector/*<T>*/(
+      CssValue<SelectorList> selector,
       /*=T*/ callback()) {
     var oldSelector = _selector;
     _selector = selector;
@@ -567,7 +575,8 @@ class PerformVisitor extends StatementVisitor
     return result;
   }
 
-  /*=T*/ _withMediaQueries/*<T>*/(List<CssMediaQuery> queries,
+  /*=T*/ _withMediaQueries/*<T>*/(
+      List<CssMediaQuery> queries,
       /*=T*/ callback()) {
     var oldMediaQueries = _mediaQueries;
     _mediaQueries = queries;

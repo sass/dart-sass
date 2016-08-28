@@ -183,8 +183,7 @@ class _SerializeCssVisitor extends CssVisitor {
 
   // ## Expressions
 
-  void visitBoolean(SassBoolean value) =>
-      _buffer.write(value.value.toString());
+  void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 
   // TODO(nweiz): Use color names for named colors.
   void visitColor(SassColor value) => _buffer.write(value.toString());
@@ -311,8 +310,8 @@ class _SerializeCssVisitor extends CssVisitor {
   }
 
   void visitSelectorList(SelectorList list) {
-    _writeBetween(list.components, ", ",
-        (complex) => visitComplexSelector(complex));
+    _writeBetween(
+        list.components, ", ", (complex) => visitComplexSelector(complex));
   }
 
   void visitParentSelector(ParentSelector parent) {
@@ -369,8 +368,8 @@ class _SerializeCssVisitor extends CssVisitor {
     }
   }
 
-  void _writeBetween/*<T>*/(Iterable/*<T>*/ iterable, String text,
-      void callback(/*=T*/ value)) {
+  void _writeBetween/*<T>*/(
+      Iterable/*<T>*/ iterable, String text, void callback(/*=T*/ value)) {
     var first = true;
     for (var value in iterable) {
       if (first) {

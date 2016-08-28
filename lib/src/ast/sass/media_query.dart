@@ -24,11 +24,9 @@ class MediaQuery implements SassNode {
     return spanForList(components);
   }
 
-  MediaQuery(this.type, {this.modifier,
-      Iterable<Interpolation> features})
-      : features = features == null
-            ? const []
-            : new List.unmodifiable(features);
+  MediaQuery(this.type, {this.modifier, Iterable<Interpolation> features})
+      : features =
+            features == null ? const [] : new List.unmodifiable(features);
 
   MediaQuery.condition(Iterable<Interpolation> features,
       {this.modifier, this.type})

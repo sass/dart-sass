@@ -13,7 +13,8 @@ class MixinDeclaration extends CallableDeclaration {
   final bool hasContent;
 
   MixinDeclaration(String name, ArgumentDeclaration arguments,
-      Iterable<Statement> children, FileSpan span, {this.hasContent: false})
+      Iterable<Statement> children, FileSpan span,
+      {this.hasContent: false})
       : super(name, arguments, children, span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>

@@ -29,7 +29,7 @@ class Pair<E, F> {
 
   String toString() => '($first, $last)';
 
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is! Pair) return false;
     return other.first == first && other.last == last;
   }
@@ -118,8 +118,7 @@ Map/*<String, V>*/ normalizedMap/*<V>*/() => new LinkedHashMap(
 Set<String> normalizedSet() => new LinkedHashSet(
     equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
 
-Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(
-    Map/*<K, V1>*/ map,
+Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(Map/*<K, V1>*/ map,
     {String key(/*=K*/ key, /*=V1*/ value),
     /*=V2*/ value(/*=K*/ key, /*=V1*/ value)}) {
   key ??= (mapKey, _) => mapKey as String;
@@ -135,15 +134,16 @@ Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(
 bool almostEquals(num number1, num number2) =>
     (number1 - number2).abs() < _epsilon;
 
-List/*<T>*/ longestCommonSubsequence/*<T>*/(List/*<T>*/ list1,
-    List/*<T>*/ list2, {/*=T*/ select(/*=T*/ element1, /*=T*/ element2)}) {
+List/*<T>*/ longestCommonSubsequence/*<T>*/(
+    List/*<T>*/ list1, List/*<T>*/ list2,
+    {/*=T*/ select(/*=T*/ element1, /*=T*/ element2)}) {
   select ??= (element1, element2) => element1 == element2 ? element1 : null;
 
   var lengths = new List.generate(
       list1.length + 1, (_) => new List.filled(list2.length + 1, 0),
       growable: false);
 
-  var selections = new List<List/*<T>*/>.generate(
+  var selections = new List<List/*<T>*/ >.generate(
       list1.length, (_) => new List/*<T>*/(list2.length),
       growable: false);
 

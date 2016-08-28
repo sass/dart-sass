@@ -17,18 +17,20 @@ class PseudoSelector extends SimpleSelector {
 
   final String argument;
 
-  final SelectorList selector; 
+  final SelectorList selector;
 
   int get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
     return _minSpecificity;
   }
+
   int _minSpecificity;
 
   int get maxSpecificity {
     if (_maxSpecificity == null) _computeSpecificity();
     return _maxSpecificity;
   }
+
   int _maxSpecificity;
 
   PseudoSelector(String name, this.type, {this.argument, this.selector})
@@ -102,7 +104,7 @@ class PseudoSelector extends SimpleSelector {
       visitor.visitPseudoSelector(this);
 
   // This intentionally uses identity for the selector list, if one is available.
-  bool operator==(other) =>
+  bool operator ==(other) =>
       other is PseudoSelector &&
       other.name == name &&
       other.type == type &&

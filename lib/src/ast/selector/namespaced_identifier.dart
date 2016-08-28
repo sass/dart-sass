@@ -9,8 +9,10 @@ class NamespacedIdentifier {
 
   NamespacedIdentifier(this.name, {this.namespace});
 
-  bool operator==(other) => other is NamespacedIdentifier &&
-      other.name == name && other.namespace == namespace;
+  bool operator ==(other) =>
+      other is NamespacedIdentifier &&
+      other.name == name &&
+      other.namespace == namespace;
 
   int get hashCode => name.hashCode ^ namespace.hashCode;
 

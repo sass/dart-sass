@@ -19,7 +19,7 @@ class PlaceholderSelector extends SimpleSelector {
   List<SimpleSelector> unify(List<SimpleSelector> compound) =>
       throw new UnsupportedError("Placeholders don't support unification.");
 
-  bool operator==(other) => other is PlaceholderSelector && other.name == name;
+  bool operator ==(other) => other is PlaceholderSelector && other.name == name;
 
   int get hashCode => name.hashCode;
 

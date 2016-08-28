@@ -24,6 +24,7 @@ class Include implements Statement, CallableInvocation {
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitInclude(this);
 
-  String toString() => "@include $name($arguments)" +
+  String toString() =>
+      "@include $name($arguments)" +
       (children == null ? ";" : " {${children.join(' ')}}");
 }

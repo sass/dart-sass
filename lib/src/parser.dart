@@ -85,8 +85,7 @@ class Parser {
         global = true;
       } else {
         _scanner.error("Invalid flag name.",
-            position: flagStart,
-            length: _scanner.position - flagStart);
+            position: flagStart, length: _scanner.position - flagStart);
       }
 
       _ignoreComments();
@@ -151,9 +150,8 @@ class Parser {
     buffer.addInterpolation(_almostAnyValue());
 
     var children = _children(_ruleChild);
-    return new StyleRule(
-        buffer.interpolation(_scanner.spanFrom(start)), children,
-        _scanner.spanFrom(start));
+    return new StyleRule(buffer.interpolation(_scanner.spanFrom(start)),
+        children, _scanner.spanFrom(start));
   }
 
   /// Tries to parse a declaration, and returns the value parsed so far if it
@@ -166,11 +164,13 @@ class Parser {
   dynamic _declarationOrBuffer() {
     var start = _scanner.state;
     var nameBuffer = new InterpolationBuffer();
-    
+
     // Allow the "*prop: val", ":prop: val", "#prop: val", and ".prop: val"
     // hacks.
     var first = _scanner.peekChar();
-    if (first == $colon || first == $asterisk || first == $dot ||
+    if (first == $colon ||
+        first == $asterisk ||
+        first == $dot ||
         (first == $hash && _scanner.peekChar(1) != $lbrace)) {
       nameBuffer.writeCharCode(_scanner.readChar());
       nameBuffer.write(_commentText());
@@ -197,7 +197,9 @@ class Parser {
     }
 
     if (_scanner.scanChar($colon)) {
-      return nameBuffer..write(midBuffer)..writeCharCode($colon);
+      return nameBuffer
+        ..write(midBuffer)
+        ..writeCharCode($colon);
     }
 
     var postColonWhitespace = _commentText();
@@ -241,8 +243,8 @@ class Parser {
     return new Declaration(name, _scanner.spanFrom(start),
         value: value,
         children: _scanner.peekChar() == $lbrace
-             ? _children(_declarationChild)
-             : null);
+            ? _children(_declarationChild)
+            : null);
   }
 
   Declaration _declaration() {
@@ -261,8 +263,8 @@ class Parser {
     return new Declaration(name, _scanner.spanFrom(start),
         value: value,
         children: _scanner.peekChar() == $lbrace
-             ? _children(_declarationChild)
-             : null);
+            ? _children(_declarationChild)
+            : null);
   }
 
   Statement _declarationChild() {
@@ -290,14 +292,22 @@ class Parser {
     var name = _atRuleName();
 
     switch (name) {
-      case "content": return _content(start);
-      case "extend": return _extend(start);
-      case "function": return _functionDeclaration(start);
-      case "if": return _if(start, child);
-      case "include": return _include(start);
-      case "media": return _mediaRule(start);
-      case "mixin": return _mixinDeclaration(start);
-      default: return _unknownAtRule(start, name);
+      case "content":
+        return _content(start);
+      case "extend":
+        return _extend(start);
+      case "function":
+        return _functionDeclaration(start);
+      case "if":
+        return _if(start, child);
+      case "include":
+        return _include(start);
+      case "media":
+        return _mediaRule(start);
+      case "mixin":
+        return _mixinDeclaration(start);
+      default:
+        return _unknownAtRule(start, name);
     }
   }
 
@@ -306,19 +316,26 @@ class Parser {
     var name = _atRuleName();
 
     switch (name) {
-      case "content": return _content(start);
-      case "if": return _if(start, _declarationChild);
-      case "include": return _include(start);
-      default: return _disallowedAtRule(start);
+      case "content":
+        return _content(start);
+      case "if":
+        return _if(start, _declarationChild);
+      case "include":
+        return _include(start);
+      default:
+        return _disallowedAtRule(start);
     }
   }
 
   Statement _functionAtRule() {
     var start = _scanner.state;
     switch (_atRuleName()) {
-      case "if": return _if(start, _functionAtRule);
-      case "return": return _return(start);
-      default: return _disallowedAtRule(start);
+      case "if":
+        return _if(start, _functionAtRule);
+      case "return":
+        return _return(start);
+      default:
+        return _disallowedAtRule(start);
     }
   }
 
@@ -335,10 +352,8 @@ class Parser {
       return new Content(_scanner.spanFrom(start));
     }
 
-    _scanner.error(
-        "@content is only allowed within mixin declarations.",
-        position: start.position,
-        length: "@content".length);
+    _scanner.error("@content is only allowed within mixin declarations.",
+        position: start.position, length: "@content".length);
     return null;
   }
 
@@ -353,7 +368,8 @@ class Parser {
     if (_inMixin || _inContentBlock) {
       throw new StringScannerException(
           "Mixins may not contain function declarations.",
-          _scanner.spanFrom(start), _scanner.string);
+          _scanner.spanFrom(start),
+          _scanner.string);
     }
 
     _ignoreComments();
@@ -399,7 +415,8 @@ class Parser {
     if (_inMixin || _inContentBlock) {
       throw new StringScannerException(
           "Mixins may not contain mixin declarations.",
-          _scanner.spanFrom(start), _scanner.string);
+          _scanner.spanFrom(start),
+          _scanner.string);
     }
 
     _ignoreComments();
@@ -421,14 +438,18 @@ class Parser {
   AtRule _unknownAtRule(LineScannerState start, String name) {
     Interpolation value;
     var next = _scanner.peekChar();
-    if (next != $exclamation && next != $semicolon && next != $lbrace &&
-        next != $rbrace && next != null) {
+    if (next != $exclamation &&
+        next != $semicolon &&
+        next != $lbrace &&
+        next != $rbrace &&
+        next != null) {
       value = _almostAnyValue();
     }
 
     return new AtRule(name, _scanner.spanFrom(start),
         value: value,
-        children: _scanner.peekChar() == $lbrace ? _children(_ruleChild) : null);
+        children:
+            _scanner.peekChar() == $lbrace ? _children(_ruleChild) : null);
   }
 
   // This returns [Statement] so that it can be returned within case statements.
@@ -462,15 +483,14 @@ class Parser {
         break;
       }
 
-      arguments.add(new Argument(name, span: _scanner.spanFrom(variableStart),
-          defaultValue: defaultValue));
+      arguments.add(new Argument(name,
+          span: _scanner.spanFrom(variableStart), defaultValue: defaultValue));
       if (!_scanner.scanChar($comma)) break;
       _ignoreComments();
     }
     _scanner.expectChar($rparen);
     return new ArgumentDeclaration(arguments,
-        restArgument: restArgument,
-        span: _scanner.spanFrom(start));
+        restArgument: restArgument, span: _scanner.spanFrom(start));
   }
 
   // ## Expressions
@@ -553,8 +573,7 @@ class Parser {
       if (!_scanner.scanChar($comma)) break;
     }
 
-    return new ListExpression(
-        expressions, ListSeparator.comma,
+    return new ListExpression(expressions, ListSeparator.comma,
         bracketed: true, span: _scanner.spanFrom(start));
   }
 
@@ -577,11 +596,16 @@ class Parser {
     switch (first) {
       // Note: when adding a new case, make sure it's reflected in
       // [lookingAtExpression].
-      case $lparen: return _parentheses();
-      case $slash: return _unaryOperator();
-      case $dot: return _number();
-      case $lbracket: return _bracketedList();
-      case $dollar: return _variable();
+      case $lparen:
+        return _parentheses();
+      case $slash:
+        return _unaryOperator();
+      case $dot:
+        return _number();
+      case $lbracket:
+        return _bracketedList();
+      case $dollar:
+        return _variable();
 
       case $single_quote:
       case $double_quote:
@@ -623,8 +647,8 @@ class Parser {
     _ignoreComments();
     if (!_lookingAtExpression()) {
       _scanner.expectChar($rparen);
-      return new ListExpression(
-          [], ListSeparator.undecided, span: _scanner.spanFrom(start));
+      return new ListExpression([], ListSeparator.undecided,
+          span: _scanner.spanFrom(start));
     }
 
     var first = _spaceListOrValue();
@@ -647,8 +671,8 @@ class Parser {
     }
 
     _scanner.expectChar($lparen);
-    return new ListExpression(
-        expressions, ListSeparator.comma, span: _scanner.spanFrom(start));
+    return new ListExpression(expressions, ListSeparator.comma,
+        span: _scanner.spanFrom(start));
   }
 
   MapExpression _map(Expression first, LineScannerState start) {
@@ -829,8 +853,10 @@ class Parser {
         return new UnaryOperatorExpression(
             UnaryOperator.not, _singleExpression(), identifier.span);
 
-      case "true": return new BooleanExpression(true, identifier.span);
-      case "false": return new BooleanExpression(false, identifier.span);
+      case "true":
+        return new BooleanExpression(true, identifier.span);
+      case "false":
+        return new BooleanExpression(false, identifier.span);
     }
 
     return _scanner.peekChar() == $lparen
@@ -846,7 +872,8 @@ class Parser {
     var start = _scanner.state;
     var buffer = new InterpolationBuffer();
 
-    loop: while (true) {
+    loop:
+    while (true) {
       var next = _scanner.peekChar();
       switch (next) {
         case $backslash:
@@ -908,7 +935,8 @@ class Parser {
 
     var brackets = <int>[];
     var wroteNewline = false;
-    loop: while (true) {
+    loop:
+    while (true) {
       var next = _scanner.peekChar();
       switch (next) {
         case $backslash:
@@ -918,9 +946,8 @@ class Parser {
 
         case $double_quote:
         case $single_quote:
-          buffer.addInterpolation(
-              _string(static: static)
-                  .asInterpolation(static: static, quote: next));
+          buffer.addInterpolation(_string(static: static)
+              .asInterpolation(static: static, quote: next));
           wroteNewline = false;
           break;
 
@@ -1025,8 +1052,10 @@ class Parser {
       var next = _scanner.peekChar();
       if (next == null) {
         break;
-      } else if (next == $underscore || next == $dash ||
-          isAlphanumeric(next) || next >= 0x0080) {
+      } else if (next == $underscore ||
+          next == $dash ||
+          isAlphanumeric(next) ||
+          next >= 0x0080) {
         buffer.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         buffer.writeCharCode(_escape());
@@ -1077,7 +1106,8 @@ class Parser {
     var lineBreaks = <int>[];
 
     var previousLine = _scanner.line;
-    loop: while (true) {
+    loop:
+    while (true) {
       _ignoreComments();
 
       ComplexSelectorComponent component;
@@ -1135,16 +1165,22 @@ class Parser {
 
   SimpleSelector _simpleSelector({bool allowParent: true}) {
     switch (_scanner.peekChar()) {
-      case $lbracket: return _attributeSelector();
-      case $dot: return _classSelector();
-      case $hash: return _idSelector();
-      case $percent: return _placeholderSelector();
-      case $colon: return _pseudoSelector();
+      case $lbracket:
+        return _attributeSelector();
+      case $dot:
+        return _classSelector();
+      case $hash:
+        return _idSelector();
+      case $percent:
+        return _placeholderSelector();
+      case $colon:
+        return _pseudoSelector();
       case $ampersand:
         if (!allowParent) return _typeOrUniversalSelector();
         return _parentSelector();
 
-      default: return _typeOrUniversalSelector();
+      default:
+        return _typeOrUniversalSelector();
     }
   }
 
@@ -1190,7 +1226,8 @@ class Parser {
   AttributeOperator _attributeOperator() {
     var start = _scanner.state;
     switch (_scanner.readChar()) {
-      case $equal: return AttributeOperator.equal;
+      case $equal:
+        return AttributeOperator.equal;
 
       case $tilde:
         _scanner.expectChar($equal);
@@ -1212,7 +1249,7 @@ class Parser {
         _scanner.expectChar($equal);
         return AttributeOperator.substring;
 
-      default: 
+      default:
         _scanner.error('Expected "]".', position: start.position);
         throw "Unreachable";
     }
@@ -1335,7 +1372,7 @@ class Parser {
       }
     } else if (first == $pipe) {
       if (_scanner.scanChar($asterisk)) {
-        return new UniversalSelector( namespace: "");
+        return new UniversalSelector(namespace: "");
       } else {
         return new TypeSelector(
             new NamespacedIdentifier(_identifier(), namespace: ""));
@@ -1455,9 +1492,12 @@ class Parser {
   Comment _tryComment() {
     if (_scanner.peekChar() != $slash) return null;
     switch (_scanner.peekChar(1)) {
-      case $slash: return _silentComment();
-      case $asterisk: return _loudComment();
-      default: return null;
+      case $slash:
+        return _silentComment();
+      case $asterisk:
+        return _loudComment();
+      default:
+        return null;
     }
   }
 
@@ -1515,8 +1555,10 @@ class Parser {
       var next = _scanner.peekChar();
       if (next == null) {
         break;
-      } else if (next == $underscore || next == $dash ||
-          isAlphanumeric(next) || next >= 0x0080) {
+      } else if (next == $underscore ||
+          next == $dash ||
+          isAlphanumeric(next) ||
+          next >= 0x0080) {
         text.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         text.writeCharCode(_escape());
@@ -1537,10 +1579,14 @@ class Parser {
 
   UnaryOperator _unaryOperatorFor(int character) {
     switch (character) {
-      case $plus: return UnaryOperator.plus;
-      case $minus: return UnaryOperator.minus;
-      case $slash: return UnaryOperator.divide;
-      default: return null;
+      case $plus:
+        return UnaryOperator.plus;
+      case $minus:
+        return UnaryOperator.minus;
+      case $slash:
+        return UnaryOperator.divide;
+      default:
+        return null;
     }
   }
 
@@ -1563,7 +1609,8 @@ class Parser {
       }
       if (isWhitespace(_scanner.peekChar())) _scanner.readChar();
 
-      if (value == 0 || (value >= 0xD800 && value <= 0xDFFF) ||
+      if (value == 0 ||
+          (value >= 0xD800 && value <= 0xDFFF) ||
           value >= 0x10FFFF) {
         return 0xFFFD;
       } else {
@@ -1637,11 +1684,18 @@ class Parser {
     if (character == null) return false;
     if (character == $dot) return _scanner.peekChar(1) != $dot;
 
-    return character == $lparen || character == $slash ||
-        character == $lbracket || character == $single_quote ||
-        character == $double_quote || character == $hash ||
-        character == $plus || character == $minus || character == $backslash ||
-        character == $dollar || isNameStart(character) || isDigit(character);
+    return character == $lparen ||
+        character == $slash ||
+        character == $lbracket ||
+        character == $single_quote ||
+        character == $double_quote ||
+        character == $hash ||
+        character == $plus ||
+        character == $minus ||
+        character == $backslash ||
+        character == $dollar ||
+        isNameStart(character) ||
+        isDigit(character);
   }
 
   List<Statement> _children(Statement child()) {

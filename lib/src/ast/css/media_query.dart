@@ -23,11 +23,9 @@ class CssMediaQuery implements AstNode {
     return spanForList(components);
   }
 
-  CssMediaQuery(this.type, {this.modifier,
-      Iterable<CssValue<String>> features})
-      : features = features == null
-            ? const []
-            : new List.unmodifiable(features);
+  CssMediaQuery(this.type, {this.modifier, Iterable<CssValue<String>> features})
+      : features =
+            features == null ? const [] : new List.unmodifiable(features);
 
   CssMediaQuery.condition(Iterable<CssValue<String>> features)
       : modifier = null,
@@ -70,8 +68,7 @@ class CssMediaQuery implements AstNode {
       type = ourType;
     }
 
-    return new CssMediaQuery(
-        type == ourType ? this.type : other.type,
+    return new CssMediaQuery(type == ourType ? this.type : other.type,
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
         features: features.toList()..addAll(other.features));
   }
