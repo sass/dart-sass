@@ -38,7 +38,6 @@ abstract class CssParentNode extends CssNode {
         children = new UnmodifiableListView<CssNode>(children);
 
   void addChild(CssNode child) {
-    // TODO: validate that children are valid?
     child._parent = this;
     child._indexInParent = _children.length;
     _children.add(child);

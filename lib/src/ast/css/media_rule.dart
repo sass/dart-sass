@@ -13,7 +13,6 @@ class CssMediaRule extends CssParentNode {
 
   final FileSpan span;
 
-  // TODO: validate that children contains only at-rule and style rule nodes?
   CssMediaRule(this.queries, {this.span});
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>

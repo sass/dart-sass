@@ -17,8 +17,6 @@ class AtRule implements Statement {
 
   final FileSpan span;
 
-  // TODO: validate that children only contains variable, at-rule, declaration,
-  // or style nodes?
   AtRule(this.name, {this.value, Iterable<Statement> children, this.span})
       : children = children == null ? null : new List.unmodifiable(children);
 

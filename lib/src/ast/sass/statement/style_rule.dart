@@ -15,8 +15,6 @@ class StyleRule implements Statement {
 
   final FileSpan span;
 
-  // TODO: validate that children only contains variable, at-rule, declaration,
-  // or style nodes?
   StyleRule(this.selector, Iterable<Statement> children, {this.span})
       : children = new List.unmodifiable(children);
 

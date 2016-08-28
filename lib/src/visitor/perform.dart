@@ -98,6 +98,10 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitExtendRule(ExtendRule node) {
+    if (_selector == null || _declarationName != null) {
+      throw node.span.message("@extend may only be used within style rules.");
+    }
+
     var targetText = _interpolationToValue(node.selector);
 
     // TODO: recontextualize parse errors.
@@ -107,6 +111,11 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitAtRule(AtRule node) {
+    if (_declarationName != null) {
+      throw node.span.message(
+          "At-rules may not be used within nested declarations.");
+    }
+
     var value = node.value == null
         ? null
         : _interpolationToValue(node.value, trim: true);
@@ -171,6 +180,11 @@ class PerformVisitor extends StatementVisitor
   }
 
   void visitMediaRule(MediaRule node) {
+    if (_declarationName != null) {
+      throw node.span.message(
+          "Media rules may not be used within nested declarations.");
+    }
+
     var queryIterable = node.queries.map(_visitMediaQuery);
     var queries = _mediaQueries == null
         ? new List<CssMediaQuery>.unmodifiable(queryIterable)
@@ -224,6 +238,11 @@ class PerformVisitor extends StatementVisitor
   Value visitReturn(Return node) => node.expression.accept(this);
 
   void visitStyleRule(StyleRule node) {
+    if (_declarationName != null) {
+      throw node.span.message(
+          "Style rules may not be used within nested declarations.");
+    }
+
     var selectorText = _interpolationToValue(node.selector, trim: true);
     var parsedSelector = new Parser(selectorText.value).parseSelector();
 
