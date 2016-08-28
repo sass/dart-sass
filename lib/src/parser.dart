@@ -1657,7 +1657,7 @@ class Parser {
       switch (_scanner.peekChar()) {
         case $dollar:
           children.add(_variableDeclaration());
-          break;
+          continue loop;
 
         case $semicolon:
           _scanner.readChar();
