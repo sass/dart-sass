@@ -2,8 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
@@ -20,6 +22,8 @@ import 'interface/expression.dart';
 
 class PerformVisitor extends StatementVisitor
     implements ExpressionVisitor<Value> {
+  final List<String> _loadPaths;
+
   Environment _environment;
 
   /// The current selector, if any.
@@ -37,10 +41,15 @@ class PerformVisitor extends StatementVisitor
   /// The name of the current declaration parent.
   String _declarationName;
 
+  final _importPaths = <Import, String>{};
+
+  final _importedFiles = <String, Stylesheet>{};
+
   final _extender = new Extender();
 
-  PerformVisitor([Environment environment])
-      : _environment = environment ?? new Environment();
+  PerformVisitor({Iterable<String> loadPaths, Environment environment})
+      : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
+        _environment = environment ?? new Environment();
 
   void visit(node) {
     if (node is Statement) {
@@ -150,6 +159,53 @@ class PerformVisitor extends StatementVisitor
     var condition = node.expression.accept(this);
     if (!condition.isTruthy) return;
     _environment.scope(() => super.visitIf(node), semiGlobal: true);
+  }
+
+  void visitImport(Import node) {
+    var stylesheet = _loadImport(node);
+    _withEnvironment(_environment.global(), () {
+      for (var statement in stylesheet.children) {
+        statement.accept(this);
+      }
+    });
+  }
+
+  Stylesheet _loadImport(Import node) {
+    var path = _importPaths.putIfAbsent(node, () {
+      var path = p.fromUri(node.url);
+      var extension = p.extension(path);
+      var tryPath = extension == '.sass' || extension == '.scss'
+          ? _tryImportPath
+          : _tryImportPathWithExtensions;
+
+      var base = p.dirname(p.fromUri(node.span.file.url));
+      var resolved = tryPath(p.join(base, path));
+      if (resolved != null) return resolved;
+
+      for (var loadPath in _loadPaths) {
+        var resolved = tryPath(p.join(loadPath, path));
+        if (resolved != null) return resolved;
+      }
+    });
+
+    if (path == null) {
+      throw node.span.message("Can't find file to import.");
+    }
+
+    return _importedFiles.putIfAbsent(
+        path,
+        () => new Parser(new File(path).readAsStringSync(), url: p.toUri(path))
+            .parse());
+  }
+
+  String _tryImportPathWithExtensions(String path) =>
+      _tryImportPath(path + '.sass') ?? _tryImportPath(path + '.scss');
+
+  String _tryImportPath(String path) {
+    var partial = p.join(p.dirname(path), "_${p.basename(path)}");
+    if (new File(partial).existsSync()) return partial;
+    if (new File(path).existsSync()) return path;
+    return null;
   }
 
   void visitInclude(Include node) {

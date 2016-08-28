@@ -65,6 +65,9 @@ class Environment {
       _contentBlock,
       _contentEnvironment);
 
+  Environment global() => new Environment._([_variables.first], {},
+      [_functions.first], {}, [_mixins.first], {}, null, null);
+
   Value getVariable(String name) =>
       _variables[_variableIndices[name] ?? 0][name];
 

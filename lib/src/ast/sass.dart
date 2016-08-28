@@ -29,6 +29,7 @@ export 'sass/statement/declaration.dart';
 export 'sass/statement/extend_rule.dart';
 export 'sass/statement/function_declaration.dart';
 export 'sass/statement/if.dart';
+export 'sass/statement/import.dart';
 export 'sass/statement/include.dart';
 export 'sass/statement/media_rule.dart';
 export 'sass/statement/mixin_declaration.dart';

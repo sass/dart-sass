@@ -21,6 +21,11 @@ class StringExpression implements Expression {
 
   FileSpan get span => text.span;
 
+  static String quoteText(String text) =>
+      new StringExpression(new Interpolation([text], null))
+          .asInterpolation(static: true)
+          .asPlain;
+
   StringExpression(this.text);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>

@@ -27,6 +27,8 @@ class Parser {
 
   var _inContentBlock = false;
 
+  var _inControlDirective = false;
+
   bool _mixinHasContent;
 
   Parser(String contents, {url})
@@ -300,12 +302,16 @@ class Parser {
         return _functionDeclaration(start);
       case "if":
         return _if(start, child);
+      case "import":
+        return _import(start);
       case "include":
         return _include(start);
       case "media":
         return _mediaRule(start);
       case "mixin":
         return _mixinDeclaration(start);
+      case "return":
+        return _disallowedAtRule(start);
       default:
         return _unknownAtRule(start, name);
     }
@@ -380,8 +386,25 @@ class Parser {
         name, arguments, children, _scanner.spanFrom(start));
   }
 
-  If _if(LineScannerState start, Statement child()) =>
-      new If(_expression(), _children(child), _scanner.spanFrom(start));
+  If _if(LineScannerState start, Statement child()) {
+    var wasInControlDirective = _inControlDirective;
+    _inControlDirective = true;
+    var expression = _expression();
+    var children = _children(child);
+    _inControlDirective = wasInControlDirective;
+    return new If(expression, children, _scanner.spanFrom(start));
+  }
+
+  Import _import(LineScannerState start) {
+    if (_inControlDirective) {
+      _disallowedAtRule(start);
+      return null;
+    } else {
+      // TODO: wrap error with a span
+      var url = Uri.parse(_string(static: true).text.asPlain);
+      return new Import(url, _scanner.spanFrom(start));
+    }
+  }
 
   Include _include(LineScannerState start) {
     var name = _identifier();

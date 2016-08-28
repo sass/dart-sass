@@ -8,6 +8,7 @@ abstract class StatementVisitor<T> {
   T visitComment(Comment node) => null;
   T visitContent(Content node) => null;
   T visitExtendRule(ExtendRule node) => null;
+  T visitImport(Import node) => null;
   T visitReturn(Return node) => null;
   T visitVariableDeclaration(VariableDeclaration node) => null;
 
