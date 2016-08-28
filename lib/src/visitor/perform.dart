@@ -64,6 +64,17 @@ class PerformVisitor extends StatementVisitor
     _parent.addChild(new CssComment(node.text, span: node.span));
   }
 
+  void visitContent(Content node) {
+    var block = _environment.contentBlock;
+    if (block == null) return;
+
+    _withEnvironment(_environment.contentEnvironment, () {
+      for (var statement in block) {
+        statement.accept(this);
+      }
+    });
+  }
+
   void visitDeclaration(Declaration node) {
     var name = _interpolationToValue(node.name);
     if (_declarationName != null) {
@@ -131,16 +142,27 @@ class PerformVisitor extends StatementVisitor
   void visitInclude(Include node) {
     var mixin = _environment.getMixin(node.name) as UserDefinedCallable;
     if (mixin == null) throw node.span.message("Undefined mixin.");
-    if (node.children != null) {
+
+    if (node.children != null &&
+        !(mixin.declaration as MixinDeclaration).hasContent) {
       throw node.span.message("Mixin doesn't accept a content block.");
     }
 
-    _runUserDefinedCallable(node, mixin, () {
+    Value callback() {
       for (var statement in mixin.declaration.children) {
         statement.accept(this);
       }
       return null;
-    });
+    }
+
+    if (node.children == null) {
+      _runUserDefinedCallable(node, mixin, callback);
+    } else {
+      var environment = _environment.closure();
+      _runUserDefinedCallable(node, mixin, () {
+        _environment.withContent(node.children, environment, callback);
+      });
+    }
   }
 
   void visitMixinDeclaration(MixinDeclaration node) {

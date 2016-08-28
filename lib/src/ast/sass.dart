@@ -24,6 +24,7 @@ export 'sass/node.dart';
 export 'sass/statement.dart';
 export 'sass/statement/at_rule.dart';
 export 'sass/statement/comment.dart';
+export 'sass/statement/content.dart';
 export 'sass/statement/declaration.dart';
 export 'sass/statement/extend_rule.dart';
 export 'sass/statement/function_declaration.dart';

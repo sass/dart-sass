@@ -10,8 +10,10 @@ import '../argument_declaration.dart';
 import '../statement.dart';
 
 class MixinDeclaration extends CallableDeclaration {
+  final bool hasContent;
+
   MixinDeclaration(String name, ArgumentDeclaration arguments,
-      Iterable<Statement> children, {FileSpan span})
+      Iterable<Statement> children, {this.hasContent: false, FileSpan span})
       : super(name, arguments, children, span: span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>

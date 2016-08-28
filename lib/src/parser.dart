@@ -23,7 +23,11 @@ final _prefixedSelectorPseudoClasses =
 class Parser {
   final SpanScanner _scanner;
 
-  bool _inMixin = false;
+  var _inMixin = false;
+
+  var _inContentBlock = false;
+
+  bool _mixinHasContent;
 
   Parser(String contents, {url})
       : _scanner = new SpanScanner(contents, sourceUrl: url);
@@ -116,6 +120,7 @@ class Parser {
     _ignoreComments();
 
     switch (name) {
+      case "content": return _content(start);
       case "extend":
         return new ExtendRule(_almostAnyValue(),
             span: _scanner.spanFrom(start));
@@ -140,6 +145,19 @@ class Parser {
         span: _scanner.spanFrom(start));
   }
 
+  Content _content(LineScannerState start) {
+    if (_inMixin) {
+      _mixinHasContent = true;
+      return new Content(span: _scanner.spanFrom(start));
+    }
+
+    _scanner.error(
+        "@content is only allowed within mixin declarations.",
+        position: start.position,
+        length: "@content".length);
+    return null;
+  }
+
   Include _include(LineScannerState start) {
     var name = _identifier();
     _ignoreComments();
@@ -150,9 +168,9 @@ class Parser {
 
     List<Statement> children;
     if (_scanner.peekChar() == $lbrace) {
-      _inMixin = true;
+      _inContentBlock = true;
       children = _ruleChildren();
-      _inMixin = false;
+      _inContentBlock = false;
     }
 
     return new Include(name, arguments,
@@ -166,7 +184,7 @@ class Parser {
         ? _argumentDeclaration()
         : new ArgumentDeclaration.empty(span: _scanner.emptySpan);
 
-    if (_inMixin) {
+    if (_inMixin || _inContentBlock) {
       throw new StringScannerException(
           "Mixins may not contain mixin declarations.",
           _scanner.spanFrom(start), _scanner.string);
@@ -174,10 +192,12 @@ class Parser {
 
     _ignoreComments();
     _inMixin = true;
+    _mixinHasContent = false;
     var children = _ruleChildren();
     _inMixin = false;
 
     return new MixinDeclaration(name, arguments, children,
+        hasContent: _mixinHasContent,
         span: _scanner.spanFrom(start));
   }
 
@@ -186,7 +206,7 @@ class Parser {
     _ignoreComments();
     var arguments = _argumentDeclaration();
 
-    if (_inMixin) {
+    if (_inMixin || _inContentBlock) {
       throw new StringScannerException(
           "Mixins may not contain function declarations.",
           _scanner.spanFrom(start), _scanner.string);

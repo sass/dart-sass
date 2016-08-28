@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'ast/sass.dart';
 import 'callable.dart';
 import 'functions.dart';
 import 'value.dart';
@@ -24,6 +25,14 @@ class Environment {
   // Note: this is not necessarily complete
   final Map<String, int> _mixinIndices;
 
+  /// The content block passed to the lexically-current mixin, if any.
+  List<Statement> get contentBlock => _contentBlock;
+  List<Statement> _contentBlock;
+
+  /// The environment for [_contentBlock].
+  Environment get contentEnvironment => _contentEnvironment;
+  Environment _contentEnvironment;
+
   Environment()
       : _variables = [normalizedMap()],
         _variableIndices = normalizedMap(),
@@ -35,7 +44,8 @@ class Environment {
   }
 
   Environment._(this._variables, this._variableIndices, this._functions,
-      this._functionIndices, this._mixins, this._mixinIndices);
+      this._functionIndices, this._mixins, this._mixinIndices,
+      this._contentBlock, this._contentEnvironment);
 
   Environment closure() => new Environment._(
       _variables.toList(),
@@ -43,7 +53,9 @@ class Environment {
       _functions.toList(),
       new Map.from(_functionIndices),
       _mixins.toList(),
-      new Map.from(_mixinIndices));
+      new Map.from(_mixinIndices),
+      _contentBlock,
+      _contentEnvironment);
 
   Value getVariable(String name) =>
       _variables[_variableIndices[name] ?? 0][name];
@@ -97,6 +109,17 @@ class Environment {
 
   void setMixin(Callable callable) {
     _mixins[_mixins.length - 1][callable.name] = callable;
+  }
+
+  void withContent(List<Statement> block, Environment environment,
+      void callback()) {
+    var oldBlock = _contentBlock;
+    var oldEnvironment = _contentEnvironment;
+    _contentBlock = block;
+    _contentEnvironment = environment;
+    callback();
+    _contentBlock = oldBlock;
+    _contentEnvironment = oldEnvironment;
   }
 
   /*=T*/ scope/*<T>*/(/*=T*/ callback()) {
