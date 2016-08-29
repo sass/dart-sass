@@ -85,7 +85,10 @@ official behavior.
 3. Pseudo selector arguments are parsed as `<declaration-value>`s rather than
    having a more limited custom parsing. See [issue 2120][].
 
+4. The numeric precision is set to 10. See [issue 1122][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
+[issue 1122]: https://github.com/sass/sass/issues/1122
 

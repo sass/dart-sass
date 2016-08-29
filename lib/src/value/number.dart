@@ -6,7 +6,7 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 class SassNumber extends Value {
-  static const precision = 5;
+  static const precision = 10;
 
   final num value;
 
