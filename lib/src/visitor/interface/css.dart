@@ -10,6 +10,7 @@ abstract class CssVisitor<T> extends SelectorVisitor<T>
     implements ValueVisitor<T> {
   T visitComment(CssComment node) => null;
   T visitDeclaration(CssDeclaration node) => null;
+  T visitImport(CssImport node) => null;
 
   T visitAtRule(CssAtRule node) {
     if (node.children == null) return null;

@@ -95,6 +95,13 @@ class _SerializeCssVisitor extends CssVisitor {
     _visitChildren(node.children);
   }
 
+  void visitImport(CssImport node) {
+    _writeIndentation();
+    _buffer.write("@import ");
+    _visitString(node.url.toString());
+    _buffer.writeCharCode($semicolon);
+  }
+
   void visitMediaQuery(CssMediaQuery query) {
     if (query.modifier != null) {
       _buffer.write(query.modifier.value);

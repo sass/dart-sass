@@ -9,6 +9,7 @@ abstract class StatementVisitor<T> {
   T visitContent(Content node) => null;
   T visitExtendRule(ExtendRule node) => null;
   T visitImport(Import node) => null;
+  T visitPlainImport(PlainImport node) => null;
   T visitReturn(Return node) => null;
   T visitVariableDeclaration(VariableDeclaration node) => null;
 

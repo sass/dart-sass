@@ -291,6 +291,9 @@ class PerformVisitor extends StatementVisitor
     return new CssMediaQuery(type, modifier: modifier, features: features);
   }
 
+  CssImport visitPlainImport(PlainImport node) =>
+      new CssImport(node.url, node.span);
+
   Value visitReturn(Return node) => node.expression.accept(this);
 
   void visitStyleRule(StyleRule node) {

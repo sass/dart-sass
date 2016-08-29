@@ -395,15 +395,30 @@ class Parser {
     return new If(expression, children, _scanner.spanFrom(start));
   }
 
-  Import _import(LineScannerState start) {
+  Statement _import(LineScannerState start) {
     if (_inControlDirective) {
       _disallowedAtRule(start);
       return null;
+    }
+
+    // TODO: wrap error with a span
+    // TODO: parse supports clauses, url(), and query lists
+    var urlString = _string(static: true).text.asPlain;
+    var url = Uri.parse(urlString);
+    if (_isPlainImportUrl(urlString)) {
+      return new PlainImport(url, _scanner.spanFrom(start));
     } else {
-      // TODO: wrap error with a span
-      var url = Uri.parse(_string(static: true).text.asPlain);
       return new Import(url, _scanner.spanFrom(start));
     }
+  }
+
+  bool _isPlainImportUrl(String url) {
+    if (url.length < "//".length) return false;
+
+    var first = url.codeUnitAt(0);
+    if (first == $slash) return url.codeUnitAt(1) == $slash;
+    if (first != $h) return false;
+    return url.startsWith("http://") || url.startsWith("https://");
   }
 
   Include _include(LineScannerState start) {

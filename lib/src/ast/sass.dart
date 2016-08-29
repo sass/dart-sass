@@ -33,6 +33,7 @@ export 'sass/statement/import.dart';
 export 'sass/statement/include.dart';
 export 'sass/statement/media_rule.dart';
 export 'sass/statement/mixin_declaration.dart';
+export 'sass/statement/plain_import.dart';
 export 'sass/statement/return.dart';
 export 'sass/statement/style_rule.dart';
 export 'sass/statement/stylesheet.dart';
