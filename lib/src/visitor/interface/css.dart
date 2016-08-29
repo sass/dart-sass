@@ -3,41 +3,13 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../ast/css.dart';
-import 'selector.dart';
-import 'value.dart';
 
-abstract class CssVisitor<T> extends SelectorVisitor<T>
-    implements ValueVisitor<T> {
-  T visitComment(CssComment node) => null;
-  T visitDeclaration(CssDeclaration node) => null;
-  T visitImport(CssImport node) => null;
-
-  T visitAtRule(CssAtRule node) {
-    if (node.children == null) return null;
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitMediaRule(CssMediaRule node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitStyleRule(CssStyleRule node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitStylesheet(CssStylesheet node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
+abstract class CssVisitor<T> {
+  T visitAtRule(CssAtRule node);
+  T visitComment(CssComment node);
+  T visitDeclaration(CssDeclaration node);
+  T visitImport(CssImport node);
+  T visitMediaRule(CssMediaRule node);
+  T visitStyleRule(CssStyleRule node);
+  T visitStylesheet(CssStylesheet node);
 }

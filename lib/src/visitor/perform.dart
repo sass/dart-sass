@@ -20,8 +20,7 @@ import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
 
-class PerformVisitor extends StatementVisitor
-    implements ExpressionVisitor<Value> {
+class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   final List<String> _loadPaths;
 
   Environment _environment;
@@ -64,7 +63,9 @@ class PerformVisitor extends StatementVisitor
   CssStylesheet visitStylesheet(Stylesheet node) {
     _root = new CssStylesheet(node.span);
     _parent = _root;
-    super.visitStylesheet(node);
+    for (var child in node.children) {
+      child.accept(this);
+    }
     return _root;
   }
 
@@ -101,7 +102,9 @@ class PerformVisitor extends StatementVisitor
     if (node.children != null) {
       var oldDeclarationName = _declarationName;
       _declarationName = name.value;
-      super.visitDeclaration(node);
+      for (var child in node.children) {
+        child.accept(this);
+      }
       _declarationName = oldDeclarationName;
     }
   }
@@ -137,15 +140,19 @@ class PerformVisitor extends StatementVisitor
 
     _withParent(new CssAtRule(node.name, node.span, value: value), () {
       if (_selector == null) {
-        super.visitAtRule(node);
+        for (var child in node.children) {
+          child.accept(this);
+        }
       } else {
         // If we're in a style rule, copy it into the at-rule so that
         // declarations immediately inside it have somewhere to go.
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
-        _withParent(new CssStyleRule(_selector, _selector.span),
-            () => super.visitAtRule(node),
-            removeIfEmpty: true);
+        _withParent(new CssStyleRule(_selector, _selector.span), () {
+          for (var child in node.children) {
+            child.accept(this);
+          }
+        }, removeIfEmpty: true);
       }
     }, through: (node) => node is CssStyleRule);
   }
@@ -158,7 +165,11 @@ class PerformVisitor extends StatementVisitor
   void visitIf(If node) {
     var condition = node.expression.accept(this);
     if (!condition.isTruthy) return;
-    _environment.scope(() => super.visitIf(node), semiGlobal: true);
+    _environment.scope(() {
+      for (var child in node.children) {
+        child.accept(this);
+      }
+    }, semiGlobal: true);
   }
 
   void visitImport(Import node) {
@@ -254,16 +265,20 @@ class PerformVisitor extends StatementVisitor
     _withParent(new CssMediaRule(queries, node.span), () {
       _withMediaQueries(queries, () {
         if (_selector == null) {
-          super.visitMediaRule(node);
+          for (var child in node.children) {
+            child.accept(this);
+          }
         } else {
           // If we're in a style rule, copy it into the media query so that
           // declarations immediately inside @media have somewhere to go.
           //
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
-          _withParent(new CssStyleRule(_selector, _selector.span),
-              () => super.visitMediaRule(node),
-              removeIfEmpty: true);
+          _withParent(new CssStyleRule(_selector, _selector.span), () {
+            for (var child in node.children) {
+              child.accept(this);
+            }
+          }, removeIfEmpty: true);
         }
       });
     },
@@ -313,9 +328,13 @@ class PerformVisitor extends StatementVisitor
     var selector =
         new CssValue<SelectorList>(parsedSelector, node.selector.span);
 
-    _withParent(_extender.addSelector(selector, node.span),
-        () => _withSelector(selector, () => super.visitStyleRule(node)),
-        through: (node) => node is CssStyleRule, removeIfEmpty: true);
+    _withParent(_extender.addSelector(selector, node.span), () {
+      _withSelector(selector, () {
+        for (var child in node.children) {
+          child.accept(this);
+        }
+      });
+    }, through: (node) => node is CssStyleRule, removeIfEmpty: true);
   }
 
   void visitVariableDeclaration(VariableDeclaration node) {

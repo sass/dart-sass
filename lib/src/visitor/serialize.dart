@@ -12,6 +12,8 @@ import '../ast/selector.dart';
 import '../util/character.dart';
 import '../value.dart';
 import 'interface/css.dart';
+import 'interface/selector.dart';
+import 'interface/value.dart';
 
 String toCss(CssNode node) {
   var visitor = new _SerializeCssVisitor();
@@ -38,7 +40,8 @@ String selectorToCss(Selector selector) {
   return visitor._buffer.toString();
 }
 
-class _SerializeCssVisitor extends CssVisitor {
+class _SerializeCssVisitor
+    implements CssVisitor, ValueVisitor, SelectorVisitor {
   final _buffer = new StringBuffer();
 
   var _indentation = 0;
@@ -311,6 +314,12 @@ class _SerializeCssVisitor extends CssVisitor {
     });
   }
 
+  void visitCompoundSelector(CompoundSelector compound) {
+    for (var simple in compound.components) {
+      simple.accept(this);
+    }
+  }
+
   void visitIDSelector(IDSelector id) {
     _buffer.writeCharCode($hash);
     _buffer.write(id.name);
@@ -324,6 +333,11 @@ class _SerializeCssVisitor extends CssVisitor {
   void visitParentSelector(ParentSelector parent) {
     _buffer.writeCharCode($and);
     if (parent.suffix != null) _buffer.write(parent.suffix);
+  }
+
+  void visitPlaceholderSelector(PlaceholderSelector placeholder) {
+    _buffer.writeCharCode($percent);
+    _buffer.write(placeholder.name);
   }
 
   void visitPseudoSelector(PseudoSelector pseudo) {

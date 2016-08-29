@@ -5,37 +5,15 @@
 import '../../ast/selector.dart';
 
 abstract class SelectorVisitor<T> {
-  T visitAttributeSelector(AttributeSelector attribute) => null;
-  T visitClassSelector(ClassSelector klass) => null;
-  T visitIDSelector(IDSelector id) => null;
-  T visitParentSelector(ParentSelector placeholder) => null;
-  T visitPlaceholderSelector(PlaceholderSelector placeholder) => null;
-  T visitTypeSelector(TypeSelector type) => null;
-  T visitUniversalSelector(UniversalSelector universal) => null;
-
-  T visitComplexSelector(ComplexSelector complex) {
-    for (var component in complex.components) {
-      if (component is CompoundSelector) component.accept(this);
-    }
-    return null;
-  }
-
-  T visitCompoundSelector(CompoundSelector compound) {
-    for (var simple in compound.components) {
-      simple.accept(this);
-    }
-    return null;
-  }
-
-  T visitSelectorList(SelectorList list) {
-    for (var complex in list.components) {
-      complex.accept(this);
-    }
-    return null;
-  }
-
-  T visitPseudoSelector(PseudoSelector pseudo) {
-    if (pseudo.selector != null) visitSelectorList(pseudo.selector);
-    return null;
-  }
+  T visitAttributeSelector(AttributeSelector attribute);
+  T visitClassSelector(ClassSelector klass);
+  T visitComplexSelector(ComplexSelector complex);
+  T visitCompoundSelector(CompoundSelector compound);
+  T visitIDSelector(IDSelector id);
+  T visitParentSelector(ParentSelector placeholder);
+  T visitPlaceholderSelector(PlaceholderSelector placeholder);
+  T visitPseudoSelector(PseudoSelector pseudo);
+  T visitSelectorList(SelectorList list);
+  T visitTypeSelector(TypeSelector type);
+  T visitUniversalSelector(UniversalSelector universal);
 }

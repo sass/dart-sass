@@ -5,77 +5,20 @@
 import '../../ast/sass.dart';
 
 abstract class StatementVisitor<T> {
-  T visitComment(Comment node) => null;
-  T visitContent(Content node) => null;
-  T visitExtendRule(ExtendRule node) => null;
-  T visitImport(Import node) => null;
-  T visitPlainImport(PlainImport node) => null;
-  T visitReturn(Return node) => null;
-  T visitVariableDeclaration(VariableDeclaration node) => null;
-
-  T visitDeclaration(Declaration node) {
-    if (node.children == null) return null;
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitAtRule(AtRule node) {
-    if (node.children == null) return null;
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitFunctionDeclaration(FunctionDeclaration node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitIf(If node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitInclude(Include node) {
-    if (node.children == null) return null;
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitMixinDeclaration(MixinDeclaration node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitMediaRule(MediaRule node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitStyleRule(StyleRule node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
-
-  T visitStylesheet(Stylesheet node) {
-    for (var child in node.children) {
-      child.accept(this);
-    }
-    return null;
-  }
+  T visitAtRule(AtRule node);
+  T visitComment(Comment node);
+  T visitContent(Content node);
+  T visitDeclaration(Declaration node);
+  T visitExtendRule(ExtendRule node);
+  T visitFunctionDeclaration(FunctionDeclaration node);
+  T visitIf(If node);
+  T visitImport(Import node);
+  T visitInclude(Include node);
+  T visitMediaRule(MediaRule node);
+  T visitMixinDeclaration(MixinDeclaration node);
+  T visitPlainImport(PlainImport node);
+  T visitReturn(Return node);
+  T visitStyleRule(StyleRule node);
+  T visitStylesheet(Stylesheet node);
+  T visitVariableDeclaration(VariableDeclaration node);
 }
