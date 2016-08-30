@@ -1401,6 +1401,7 @@ class Parser {
   SimpleSelector _typeOrUniversalSelector() {
     var first = _scanner.peekChar();
     if (first == $asterisk) {
+      _scanner.readChar();
       if (!_scanner.scanChar($pipe)) return new UniversalSelector();
       if (_scanner.scanChar($asterisk)) {
         return new UniversalSelector(namespace: "*");
@@ -1409,6 +1410,7 @@ class Parser {
             new NamespacedIdentifier(_identifier(), namespace: "*"));
       }
     } else if (first == $pipe) {
+      _scanner.readChar();
       if (_scanner.scanChar($asterisk)) {
         return new UniversalSelector(namespace: "");
       } else {
