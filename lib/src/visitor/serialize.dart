@@ -376,6 +376,11 @@ class _SerializeCssVisitor
 
   void _visitChildren(Iterable<CssNode> children) {
     _buffer.writeCharCode($lbrace);
+    if (children.isEmpty) {
+      _buffer.writeCharCode($rbrace);
+      return;
+    }
+
     _buffer.writeln();
     _indent(() {
       for (var child in children) {
