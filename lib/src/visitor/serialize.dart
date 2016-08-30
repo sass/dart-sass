@@ -15,8 +15,8 @@ import 'interface/css.dart';
 import 'interface/selector.dart';
 import 'interface/value.dart';
 
-String toCss(CssNode node) {
-  var visitor = new _SerializeCssVisitor();
+String toCss(CssNode node, {OutputStyle style}) {
+  var visitor = new _SerializeCssVisitor(style: style);
   node.accept(visitor);
   var result = visitor._buffer.toString();
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
@@ -42,9 +42,14 @@ String selectorToCss(Selector selector) {
 
 class _SerializeCssVisitor
     implements CssVisitor, ValueVisitor, SelectorVisitor {
+  final OutputStyle _style;
+
   final _buffer = new StringBuffer();
 
   var _indentation = 0;
+
+  _SerializeCssVisitor({OutputStyle style})
+      : _style = style ?? OutputStyle.expanded;
 
   void visitStylesheet(CssStylesheet node) {
     for (var child in node.children) {
@@ -407,4 +412,15 @@ class _SerializeCssVisitor
     callback();
     _indentation--;
   }
+}
+
+class OutputStyle {
+  static const expanded = const OutputStyle._("expanded");
+  static const nested = const OutputStyle._("nested");
+
+  final String _name;
+
+  const OutputStyle._(this._name);
+
+  String toString() => _name;
 }
