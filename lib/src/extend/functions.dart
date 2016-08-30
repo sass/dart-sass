@@ -109,7 +109,7 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     // element, and consuming all of [complex2] wouldn't leave anything for the
     // rest of [complex1] to match.
     var afterSuperselector = i2 + 1;
-    for (; afterSuperselector <= complex2.length; afterSuperselector++) {
+    for (; afterSuperselector < complex2.length; afterSuperselector++) {
       if (complex2[afterSuperselector - 1] is Combinator) continue;
 
       if (compoundIsSuperselector(complex1[i1], complex2[i2],
@@ -120,7 +120,7 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     if (afterSuperselector == complex2.length) return false;
 
     var combinator1 = complex1[i1 + 1];
-    var combinator2 = complex1[afterSuperselector];
+    var combinator2 = complex2[afterSuperselector];
     if (combinator1 is Combinator) {
       if (combinator2 is! Combinator) return false;
 
