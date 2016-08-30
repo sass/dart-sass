@@ -1762,7 +1762,7 @@ class Parser {
   }
 
   List<Statement> _statements(Statement statement()) {
-    var statements = <Statement>[];
+    var statements = <Statement>[]..addAll(_comments());
     while (!_scanner.isDone) {
       switch (_scanner.peekChar()) {
         case $dollar:
