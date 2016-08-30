@@ -200,8 +200,18 @@ class _SerializeCssVisitor
 
   void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 
-  // TODO(nweiz): Use color names for named colors.
-  void visitColor(SassColor value) => _buffer.write(value.toString());
+  void visitColor(SassColor value) {
+    // TODO(nweiz): Use color names for named colors.
+    _buffer.writeCharCode($hash);
+    _writeHexComponent(value.red);
+    _writeHexComponent(value.green);
+    _writeHexComponent(value.blue);
+  }
+
+  void _writeHexComponent(int color) {
+    _buffer.writeCharCode(hexCharFor(color >> 4));
+    _buffer.writeCharCode(hexCharFor(color & 0xF));
+  }
 
   void visitIdentifier(SassIdentifier value) =>
       _buffer.write(value.text.replaceAll("\n", " "));
