@@ -20,5 +20,6 @@ abstract class StatementVisitor<T> {
   T visitReturn(Return node);
   T visitStyleRule(StyleRule node);
   T visitStylesheet(Stylesheet node);
+  T visitSupportsRule(SupportsRule node);
   T visitVariableDeclaration(VariableDeclaration node);
 }

@@ -312,6 +312,8 @@ class Parser {
         return _mixinDeclaration(start);
       case "return":
         return _disallowedAtRule(start);
+      case "supports":
+        return _supportsRule(start);
       default:
         return _unknownAtRule(start, name);
     }
@@ -468,9 +470,14 @@ class Parser {
         hasContent: _mixinHasContent);
   }
 
-  Return _return(LineScannerState start) {
+  Return _return(LineScannerState start) =>
+      new Return(_expression(), _scanner.spanFrom(start));
+
+  SupportsRule _supportsRule(LineScannerState start) {
+    var condition = _supportsCondition();
     _ignoreComments();
-    return new Return(_expression(), _scanner.spanFrom(start));
+    return new SupportsRule(
+        condition, _children(_ruleChild), _scanner.spanFrom(start));
   }
 
   AtRule _unknownAtRule(LineScannerState start, String name) {
@@ -1511,6 +1518,87 @@ class Parser {
     buffer.writeCharCode($rparen);
 
     return buffer.interpolation(_scanner.spanFrom(start));
+  }
+
+  // ## Supports Conditions
+
+  SupportsCondition _supportsCondition() {
+    var start = _scanner.state;
+    var first = _scanner.peekChar();
+    if (first != $lparen && first != $hash) {
+      var start = _scanner.state;
+      _expectCaseInsensitive("not");
+      _ignoreComments();
+      return new SupportsNegation(
+          _supportsConditionInParens(), _scanner.spanFrom(start));
+    }
+
+    var condition = _supportsConditionInParens();
+    _ignoreComments();
+    while (_lookingAtInterpolatedIdentifier()) {
+      String operator;
+      if (_scanCaseInsensitive("or")) {
+        operator = "or";
+      } else {
+        _expectCaseInsensitive("and");
+        operator = "and";
+      }
+
+      _ignoreComments();
+      var right = _supportsConditionInParens();
+      condition = new SupportsOperation(
+          condition, right, operator, _scanner.spanFrom(start));
+      _ignoreComments();
+    }
+    return condition;
+  }
+
+  SupportsCondition _supportsConditionInParens() {
+    var start = _scanner.state;
+    if (_scanner.peekChar() == $hash) {
+      return new SupportsInterpolation(
+          _singleInterpolation(), _scanner.spanFrom(start));
+    }
+
+    _scanner.expectChar($lparen);
+    _ignoreComments();
+    var next = _scanner.peekChar();
+    if (next == $lparen || next == $hash) {
+      var condition = _supportsCondition();
+      _ignoreComments();
+      _scanner.expectChar($rparen);
+      return condition;
+    }
+
+    if (next == $n || next == $N) {
+      var negation = _trySupportsNegation();
+      if (negation != null) return negation;
+    }
+
+    var name = _expression();
+    _scanner.expectChar($colon);
+    _ignoreComments();
+    var value = _expression();
+    _scanner.expectChar($rparen);
+    return new SupportsDeclaration(name, value, _scanner.spanFrom(start));
+  }
+
+  // If this fails, it puts the cursor back at the beginning.
+  SupportsNegation _trySupportsNegation() {
+    var start = _scanner.state;
+    if (!_scanCaseInsensitive("not") || _scanner.isDone) {
+      _scanner.state = start;
+      return null;
+    }
+
+    var next = _scanner.peekChar();
+    if (!isWhitespace(next) && next != $lparen) {
+      _scanner.state = start;
+      return null;
+    }
+
+    return new SupportsNegation(
+        _supportsConditionInParens(), _scanner.spanFrom(start));
   }
 
   // ## Tokens

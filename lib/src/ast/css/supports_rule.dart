@@ -5,16 +5,16 @@
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/css.dart';
-import 'media_query.dart';
 import 'node.dart';
+import 'value.dart';
 
-class CssMediaRule extends CssParentNode {
-  final List<CssMediaQuery> queries;
+class CssSupportsRule extends CssParentNode {
+  final CssValue<String> condition;
 
   final FileSpan span;
 
-  CssMediaRule(this.queries, this.span);
+  CssSupportsRule(this.condition, this.span);
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
-      visitor.visitMediaRule(this);
+      visitor.visitSupportsRule(this);
 }

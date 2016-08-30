@@ -337,6 +337,60 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }, through: (node) => node is CssStyleRule, removeIfEmpty: true);
   }
 
+  void visitSupportsRule(SupportsRule node) {
+    if (_declarationName != null) {
+      throw node.span.message(
+          "Supports rules may not be used within nested declarations.");
+    }
+
+    var condition = new CssValue(
+        _visitSupportsCondition(node.condition), node.condition.span);
+    _withParent(new CssSupportsRule(condition, node.span), () {
+      if (_selector == null) {
+        for (var child in node.children) {
+          child.accept(this);
+        }
+      } else {
+        // If we're in a style rule, copy it into the supports rule so that
+        // declarations immediately inside @supports have somewhere to go.
+        //
+        // For example, "a {@supports (a: b) {b: c}}" should produce "@supports
+        // (a: b) {a {b: c}}".
+        _withParent(new CssStyleRule(_selector, _selector.span), () {
+          for (var child in node.children) {
+            child.accept(this);
+          }
+        }, removeIfEmpty: true);
+      }
+    }, through: (node) => node is CssStyleRule);
+  }
+
+  String _visitSupportsCondition(SupportsCondition condition) {
+    if (condition is SupportsOperation) {
+      return "${_parenthesize(condition.left, condition.operator)} "
+          "${condition.operator} "
+          "${_parenthesize(condition.right, condition.operator)}";
+    } else if (condition is SupportsNegation) {
+      return "not ${_parenthesize(condition.condition)}";
+    } else if (condition is SupportsInterpolation) {
+      return condition.expression.accept(this);
+    } else if (condition is SupportsDeclaration) {
+      return "(${condition.name.accept(this)}: ${condition.value.accept(this)})";
+    } else {
+      return null;
+    }
+  }
+
+  String _parenthesize(SupportsCondition condition, [String operator]) {
+    if ((condition is SupportsNegation) ||
+        (condition is SupportsOperation &&
+            (operator == null || operator != condition.operator))) {
+      return "(${_visitSupportsCondition(condition)})";
+    } else {
+      return _visitSupportsCondition(condition);
+    }
+  }
+
   void visitVariableDeclaration(VariableDeclaration node) {
     _environment.setVariable(node.name, node.expression.accept(this),
         global: node.isGlobal);

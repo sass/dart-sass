@@ -12,4 +12,5 @@ abstract class CssVisitor<T> {
   T visitMediaRule(CssMediaRule node);
   T visitStyleRule(CssStyleRule node);
   T visitStylesheet(CssStylesheet node);
+  T visitSupportsRule(CssSupportsRule node);
 }

@@ -42,14 +42,11 @@ String selectorToCss(Selector selector) {
 
 class _SerializeCssVisitor
     implements CssVisitor, ValueVisitor, SelectorVisitor {
-  final OutputStyle _style;
-
   final _buffer = new StringBuffer();
 
   var _indentation = 0;
 
-  _SerializeCssVisitor({OutputStyle style})
-      : _style = style ?? OutputStyle.expanded;
+  _SerializeCssVisitor({OutputStyle style});
 
   void visitStylesheet(CssStylesheet node) {
     for (var child in node.children) {
@@ -127,6 +124,17 @@ class _SerializeCssVisitor
   void visitStyleRule(CssStyleRule node) {
     _writeIndentation();
     _buffer.write(node.selector.value);
+    _buffer.writeCharCode($space);
+    _visitChildren(node.children);
+
+    // TODO: only add an extra newline if this is a group end
+    _buffer.writeln();
+  }
+
+  void visitSupportsRule(CssSupportsRule node) {
+    _writeIndentation();
+    _buffer.write("@supports ");
+    _buffer.write(node.condition.value);
     _buffer.writeCharCode($space);
     _visitChildren(node.children);
 

@@ -11,4 +11,5 @@ export 'css/media_rule.dart';
 export 'css/node.dart';
 export 'css/style_rule.dart';
 export 'css/stylesheet.dart';
+export 'css/supports_rule.dart';
 export 'css/value.dart';
