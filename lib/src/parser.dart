@@ -65,6 +65,24 @@ class Parser {
     return simple;
   }
 
+  AtRootQuery parseAtRootQuery() {
+    _scanner.expectChar($lparen);
+    _ignoreComments();
+    _expectCaseInsensitive("with");
+    var include = !_scanCaseInsensitive("out");
+    _ignoreComments();
+    _scanner.expectChar($colon);
+    _ignoreComments();
+
+    var atRules = new Set<String>();
+    do {
+      atRules.add(_identifier().toLowerCase());
+      _ignoreComments();
+    } while (_lookingAtIdentifier());
+
+    return new AtRootQuery(include, atRules);
+  }
+
   VariableDeclaration _variableDeclaration() {
     if (!_scanner.scanChar($dollar)) return null;
 
@@ -294,6 +312,8 @@ class Parser {
     var name = _atRuleName();
 
     switch (name) {
+      case "at-root":
+        return _atRoot(start);
       case "content":
         return _content(start);
       case "extend":
@@ -352,6 +372,14 @@ class Parser {
     var name = _identifier();
     _ignoreComments();
     return name;
+  }
+
+  AtRoot _atRoot(LineScannerState start) {
+    var next = _scanner.peekChar();
+    var query = next == $hash || next == $lparen ? _queryExpression() : null;
+    _ignoreComments();
+    return new AtRoot(_children(_topLevelStatement), _scanner.spanFrom(start),
+        query: query);
   }
 
   Content _content(LineScannerState start) {
@@ -1122,6 +1150,34 @@ class Parser {
     return expression;
   }
 
+  /// A query expression of the form `(foo: bar)`.
+  Interpolation _queryExpression() {
+    if (_scanner.peekChar() == $hash) {
+      var interpolation = _singleInterpolation();
+      return new Interpolation([interpolation], interpolation.span);
+    }
+
+    var start = _scanner.state;
+    var buffer = new InterpolationBuffer();
+    _scanner.expectChar($lparen);
+    buffer.writeCharCode($lparen);
+    _ignoreComments();
+
+    buffer.add(_expression());
+    if (_scanner.scanChar($colon)) {
+      _ignoreComments();
+      buffer.writeCharCode($colon);
+      buffer.writeCharCode($space);
+      buffer.add(_expression());
+    }
+
+    _scanner.expectChar($rparen);
+    _ignoreComments();
+    buffer.writeCharCode($rparen);
+
+    return buffer.interpolation(_scanner.spanFrom(start));
+  }
+
   // ## Selectors
 
   SelectorList _selectorList() {
@@ -1483,7 +1539,7 @@ class Parser {
     var features = <Interpolation>[];
     do {
       _ignoreComments();
-      features.add(_mediaExpression());
+      features.add(_queryExpression());
       _ignoreComments();
     } while (_scanCaseInsensitive("and"));
 
@@ -1492,33 +1548,6 @@ class Parser {
     } else {
       return new MediaQuery(type, modifier: modifier, features: features);
     }
-  }
-
-  Interpolation _mediaExpression() {
-    if (_scanner.peekChar() == $hash) {
-      var interpolation = _singleInterpolation();
-      return new Interpolation([interpolation], interpolation.span);
-    }
-
-    var start = _scanner.state;
-    var buffer = new InterpolationBuffer();
-    _scanner.expectChar($lparen);
-    buffer.writeCharCode($lparen);
-    _ignoreComments();
-
-    buffer.add(_expression());
-    if (_scanner.scanChar($colon)) {
-      _ignoreComments();
-      buffer.writeCharCode($colon);
-      buffer.writeCharCode($space);
-      buffer.add(_expression());
-    }
-
-    _scanner.expectChar($rparen);
-    _ignoreComments();
-    buffer.writeCharCode($rparen);
-
-    return buffer.interpolation(_scanner.spanFrom(start));
   }
 
   // ## Supports Conditions
@@ -1536,7 +1565,7 @@ class Parser {
 
     var condition = _supportsConditionInParens();
     _ignoreComments();
-    while (_lookingAtInterpolatedIdentifier()) {
+    while (_lookingAtIdentifier()) {
       String operator;
       if (_scanCaseInsensitive("or")) {
         operator = "or";
@@ -1801,11 +1830,20 @@ class Parser {
     if (first == $hash) return _scanner.peekChar(1) == $lbrace;
 
     if (first != $dash) return false;
-    var second = _scanner.peekChar();
+    var second = _scanner.peekChar(1);
     if (isNameStart(second) || second == $dash || second == $backslash) {
       return true;
     }
     return second == $hash && _scanner.peekChar(2) == $lbrace;
+  }
+
+  bool _lookingAtIdentifier() {
+    var first = _scanner.peekChar();
+    if (isNameStart(first) || first == $backslash) return true;
+
+    if (first != $dash) return false;
+    var second = _scanner.peekChar(1);
+    return isNameStart(second) || second == $dash || second == $backslash;
   }
 
   bool _lookingAtExpression() {

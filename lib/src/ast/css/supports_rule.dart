@@ -17,4 +17,6 @@ class CssSupportsRule extends CssParentNode {
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitSupportsRule(this);
+
+  CssSupportsRule copyWithoutChildren() => new CssSupportsRule(condition, span);
 }

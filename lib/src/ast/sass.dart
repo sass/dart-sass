@@ -22,6 +22,7 @@ export 'sass/interpolation.dart';
 export 'sass/media_query.dart';
 export 'sass/node.dart';
 export 'sass/statement.dart';
+export 'sass/statement/at_root.dart';
 export 'sass/statement/at_rule.dart';
 export 'sass/statement/comment.dart';
 export 'sass/statement/content.dart';

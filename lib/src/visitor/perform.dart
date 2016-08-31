@@ -20,6 +20,8 @@ import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
 
+typedef _ScopeCallback(callback());
+
 class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   final List<String> _loadPaths;
 
@@ -69,6 +71,92 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return _root;
   }
 
+  void visitAtRoot(AtRoot node) {
+    var query = node.query == null
+        ? AtRootQuery.defaultQuery
+        : new Parser(_performInterpolation(node.query)).parseAtRootQuery();
+
+    var parent = _parent;
+    var included = <CssParentNode>[];
+    while (parent is! CssStylesheet) {
+      if (!query.excludes(parent)) included.add(parent);
+      parent = parent.parent;
+    }
+    var root = _trimIncluded(included);
+
+    // If we didn't exclude any rules, we don't need to use the copies we might
+    // have created.
+    if (root == _parent) {
+      for (var child in node.children) {
+        child.accept(this);
+      }
+      return;
+    }
+
+    var innerCopy =
+        included.isEmpty ? null : included.first.copyWithoutChildren();
+    var outerCopy = innerCopy;
+    for (var node in included.skip(1)) {
+      var copy = node.copyWithoutChildren();
+      copy.addChild(outerCopy);
+      outerCopy = copy;
+    }
+
+    if (outerCopy != null) root.addChild(outerCopy);
+    _scopeForAtRule(innerCopy ?? root, query)(() {
+      for (var child in node.children) {
+        child.accept(this);
+      }
+    });
+
+    if (innerCopy == null) return;
+    while (innerCopy != root && innerCopy.children.isEmpty) {
+      innerCopy.remove();
+      innerCopy = innerCopy.parent;
+    }
+  }
+
+  CssParentNode _trimIncluded(List<CssParentNode> nodes) {
+    var parent = _parent;
+    int innermostContiguous;
+    var i = 0;
+    for (; i < nodes.length; i++) {
+      while (parent != nodes[i]) {
+        innermostContiguous = null;
+        parent = parent.parent;
+      }
+      innermostContiguous ??= i;
+      parent = parent.parent;
+    }
+
+    if (parent != _root) return _root;
+    var root = nodes[innermostContiguous];
+    nodes.removeRange(innermostContiguous, nodes.length);
+    return root;
+  }
+
+  _ScopeCallback _scopeForAtRule(CssNode newParent, AtRootQuery query) {
+    var scope = (callback()) {
+      // We can't use [_withParent] here because it'll add the node to the tree
+      // in the wrong place.
+      var oldParent = _parent;
+      _parent = newParent;
+      _environment.scope(callback);
+      _parent = oldParent;
+    };
+
+    if (query.excludesMedia) {
+      var innerScope = scope;
+      scope = (callback) => _withMediaQueries(null, () => innerScope(callback));
+    }
+    if (query.excludesRule) {
+      var innerScope = scope;
+      scope = (callback) => _withSelector(null, () => innerScope(callback));
+    }
+
+    return scope;
+  }
+
   void visitComment(Comment node) {
     if (node.isSilent) return;
     _parent.addChild(new CssComment(node.text, node.span));
@@ -86,6 +174,11 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   void visitDeclaration(Declaration node) {
+    if (_selector == null) {
+      throw node.span
+          .message("Declarations may only be used within style rules.");
+    }
+
     var name = _interpolationToValue(node.name);
     if (_declarationName != null) {
       name = new CssValue("$_declarationName-${name.value}", name.span);

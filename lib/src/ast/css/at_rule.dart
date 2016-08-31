@@ -22,6 +22,9 @@ class CssAtRule extends CssParentNode {
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) => visitor.visitAtRule(this);
 
+  CssAtRule copyWithoutChildren() =>
+      new CssAtRule(name, span, childless: isChildless, value: value);
+
   void addChild(CssNode child) {
     assert(!isChildless);
     super.addChild(child);

@@ -17,4 +17,6 @@ class CssMediaRule extends CssParentNode {
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitMediaRule(this);
+
+  CssMediaRule copyWithoutChildren() => new CssMediaRule(queries, span);
 }

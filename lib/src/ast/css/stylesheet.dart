@@ -15,5 +15,7 @@ class CssStylesheet extends CssParentNode {
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);
 
+  CssStylesheet copyWithoutChildren() => new CssStylesheet(span);
+
   String toString() => children.join(" ");
 }

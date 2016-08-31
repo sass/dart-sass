@@ -27,6 +27,7 @@ abstract class CssNode extends AstNode {
   }
 }
 
+// New at-rule implementations should add themselves to at-root's exclude logic.
 abstract class CssParentNode extends CssNode {
   final List<CssNode> children;
   final List<CssNode> _children;
@@ -36,6 +37,8 @@ abstract class CssParentNode extends CssNode {
   CssParentNode._(List<CssNode> children)
       : _children = children,
         children = new UnmodifiableListView<CssNode>(children);
+
+  CssParentNode copyWithoutChildren();
 
   void addChild(CssNode child) {
     child._parent = this;

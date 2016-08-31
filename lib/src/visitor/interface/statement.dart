@@ -5,6 +5,7 @@
 import '../../ast/sass.dart';
 
 abstract class StatementVisitor<T> {
+  T visitAtRoot(AtRoot node);
   T visitAtRule(AtRule node);
   T visitComment(Comment node);
   T visitContent(Content node);
