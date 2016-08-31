@@ -666,7 +666,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   String _performInterpolation(Interpolation interpolation) {
     return interpolation.contents.map((value) {
       if (value is String) return value;
-      return (value as Expression).accept(this);
+      var result = (value as Expression).accept(this);
+      return result is SassString ? result.text : result;
     }).join();
   }
 
