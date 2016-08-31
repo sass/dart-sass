@@ -1484,6 +1484,7 @@ class Parser {
     do {
       _ignoreComments();
       features.add(_mediaExpression());
+      _ignoreComments();
     } while (_scanCaseInsensitive("and"));
 
     if (type == null) {
