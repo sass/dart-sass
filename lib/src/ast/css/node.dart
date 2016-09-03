@@ -14,6 +14,8 @@ abstract class CssNode extends AstNode {
 
   int _indexInParent;
 
+  bool get isInvisible => false;
+
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor);
 
   void remove() {
@@ -34,6 +36,15 @@ abstract class CssNode extends AstNode {
 abstract class CssParentNode extends CssNode {
   final List<CssNode> children;
   final List<CssNode> _children;
+
+  bool get isInvisible {
+    if (_isInvisible == null) {
+      _isInvisible = children.every((child) => child.isInvisible);
+    }
+    return _isInvisible;
+  }
+
+  bool _isInvisible;
 
   CssParentNode() : this._([]);
 

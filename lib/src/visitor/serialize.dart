@@ -50,6 +50,7 @@ class _SerializeCssVisitor
 
   void visitStylesheet(CssStylesheet node) {
     for (var child in node.children) {
+      if (child.isInvisible) continue;
       child.accept(this);
       _buffer.writeln();
     }
@@ -394,7 +395,7 @@ class _SerializeCssVisitor
 
   void _visitChildren(Iterable<CssNode> children) {
     _buffer.writeCharCode($lbrace);
-    if (children.isEmpty) {
+    if (children.every((child) => child.isInvisible)) {
       _buffer.writeCharCode($rbrace);
       return;
     }
@@ -402,6 +403,7 @@ class _SerializeCssVisitor
     _buffer.writeln();
     _indent(() {
       for (var child in children) {
+        if (child.isInvisible) continue;
         child.accept(this);
         _buffer.writeln();
       }

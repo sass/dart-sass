@@ -108,12 +108,6 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         child.accept(this);
       }
     });
-
-    if (innerCopy == null) return;
-    while (innerCopy != root && innerCopy.children.isEmpty) {
-      innerCopy.remove();
-      innerCopy = innerCopy.parent;
-    }
   }
 
   CssParentNode _trimIncluded(List<CssParentNode> nodes) {
@@ -245,7 +239,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
           for (var child in node.children) {
             child.accept(this);
           }
-        }, removeIfEmpty: true);
+        });
       }
     }, through: (node) => node is CssStyleRule);
   }
@@ -371,12 +365,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
             for (var child in node.children) {
               child.accept(this);
             }
-          }, removeIfEmpty: true);
+          });
         }
       });
-    },
-        through: (node) => node is CssStyleRule || node is CssMediaRule,
-        removeIfEmpty: true);
+    }, through: (node) => node is CssStyleRule || node is CssMediaRule);
   }
 
   List<CssMediaQuery> _mergeMediaQueries(
@@ -427,7 +419,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
           child.accept(this);
         }
       });
-    }, through: (node) => node is CssStyleRule, removeIfEmpty: true);
+    }, through: (node) => node is CssStyleRule);
   }
 
   void visitSupportsRule(SupportsRule node) {
@@ -453,7 +445,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
           for (var child in node.children) {
             child.accept(this);
           }
-        }, removeIfEmpty: true);
+        });
       }
     }, through: (node) => node is CssStyleRule);
   }
@@ -770,8 +762,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
       /*=S*/ node,
       /*=T*/ callback(),
-      {bool through(CssNode node),
-      bool removeIfEmpty: false}) {
+      {bool through(CssNode node)}) {
     var oldParent = _parent;
 
     // Go up through parents that match [through].
@@ -785,7 +776,6 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     parent.addChild(node);
     _parent = node;
     var result = _environment.scope(callback);
-    if (removeIfEmpty && node.children.isEmpty) node.remove();
     _parent = oldParent;
 
     return result;

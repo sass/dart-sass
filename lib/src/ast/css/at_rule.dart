@@ -17,6 +17,8 @@ class CssAtRule extends CssParentNode {
 
   final FileSpan span;
 
+  bool get isInvisible => false;
+
   CssAtRule(this.name, this.span, {bool childless: false, this.value})
       : isChildless = childless;
 
