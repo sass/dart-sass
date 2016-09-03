@@ -409,8 +409,11 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var selectorText = _interpolationToValue(node.selector, trim: true);
     var parsedSelector = new Parser(selectorText.value).parseSelector();
 
-    // TOOD: catch errors and point them to node.selector
-    parsedSelector = parsedSelector.resolveParentSelectors(_selector?.value);
+    try {
+      parsedSelector = parsedSelector.resolveParentSelectors(_selector?.value);
+    } on InternalException catch (error) {
+      throw new SassException(error.message, node.selector.span);
+    }
 
     // TODO: catch errors and re-contextualize them relative to
     // [node.selector.span.start].
@@ -534,7 +537,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var keyValue = pair.first.accept(this);
       var valueValue = pair.last.accept(this);
       if (map.containsKey(keyValue)) {
-        throw new SassException('Duplicate key.', pair.first);
+        throw new SassException('Duplicate key.', pair.first.span);
       }
       map[keyValue] = valueValue;
     }

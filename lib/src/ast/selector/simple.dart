@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../exception.dart';
 import '../selector.dart';
 
 abstract class SimpleSelector extends Selector {
@@ -12,9 +13,8 @@ abstract class SimpleSelector extends Selector {
   int get minSpecificity => 1000;
   int get maxSpecificity => minSpecificity;
 
-  SimpleSelector addSuffix(String suffix) {
-    throw 'Invalid parent selector "$this"';
-  }
+  SimpleSelector addSuffix(String suffix) =>
+      throw new InternalException('Invalid parent selector "$this"');
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.contains(this)) return compound;

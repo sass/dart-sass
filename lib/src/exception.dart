@@ -18,3 +18,11 @@ class SassFormatException extends SourceSpanFormatException
 
   SassFormatException(String message, FileSpan span) : super(message, span);
 }
+
+class InternalException {
+  final String message;
+
+  InternalException(this.message);
+
+  String toString() => "$message\n\nBUG: This should include a source span!";
+}

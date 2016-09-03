@@ -178,10 +178,11 @@ class Parser {
     if (declarationOrBuffer is Declaration) return declarationOrBuffer;
     var buffer = declarationOrBuffer as InterpolationBuffer;
     buffer.addInterpolation(_almostAnyValue());
+    var selectorSpan = _scanner.spanFrom(start);
 
     var children = _children(_ruleChild);
-    return new StyleRule(buffer.interpolation(_scanner.spanFrom(start)),
-        children, _scanner.spanFrom(start));
+    return new StyleRule(
+        buffer.interpolation(selectorSpan), children, _scanner.spanFrom(start));
   }
 
   /// Tries to parse a declaration, and returns the value parsed so far if it

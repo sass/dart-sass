@@ -4,6 +4,7 @@
 
 import '../../extend/functions.dart';
 import '../../utils.dart';
+import '../../exception.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -39,7 +40,8 @@ class SelectorList extends Selector {
       {bool implicitParent: true}) {
     if (parent == null) {
       if (!_containsParentSelector) return this;
-      throw 'Top-level selectors may not contain the parent selector "&".';
+      throw new InternalException(
+          'Top-level selectors may not contain the parent selector "&".');
     }
 
     if (!_containsParentSelector) {
@@ -114,7 +116,8 @@ class SelectorList extends Selector {
     return parent.components.map((complex) {
       var lastComponent = complex.components.last;
       if (lastComponent is! CompoundSelector) {
-        throw 'Parent "$complex" is incompatible with this selector.';
+        throw new InternalException(
+            'Parent "$complex" is incompatible with this selector.');
       }
 
       var last = lastComponent as CompoundSelector;
@@ -151,7 +154,8 @@ class SelectorList extends Selector {
       return new PseudoSelector(simple.name + suffix, simple.type);
     }
 
-    throw 'Parent "$simple" is incompatible with this selector.';
+    throw new InternalException(
+        'Parent "$simple" is incompatible with this selector.');
   }
 
   bool isSuperselector(SelectorList other) =>

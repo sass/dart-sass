@@ -9,6 +9,7 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/css.dart';
 import '../ast/selector.dart';
+import '../exception.dart';
 import '../util/character.dart';
 import '../value.dart';
 import 'interface/css.dart';
@@ -154,7 +155,7 @@ class _SerializeCssVisitor
       _writeCustomPropertyValue(node);
     } else {
       _buffer.writeCharCode($space);
-      node.value.value.accept(this);
+      _visitValue(node.value);
     }
     _buffer.writeCharCode($semicolon);
   }
@@ -208,7 +209,15 @@ class _SerializeCssVisitor
     }
   }
 
-  // ## Expressions
+  // ## Values
+
+  void _visitValue(CssValue<Value> value) {
+    try {
+      value.value.accept(this);
+    } on InternalException catch (error) {
+      throw new SassException(error.message, value.span);
+    }
+  }
 
   void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 
@@ -232,7 +241,7 @@ class _SerializeCssVisitor
     if (value.isBracketed) {
       _buffer.writeCharCode($lbracket);
     } else if (value.contents.isEmpty) {
-      throw "() isn't a valid CSS value";
+      throw new InternalException("() isn't a valid CSS value");
     }
 
     _writeBetween(
@@ -243,9 +252,8 @@ class _SerializeCssVisitor
     if (value.isBracketed) _buffer.writeCharCode($rbracket);
   }
 
-  void visitMap(SassMap map) {
-    throw "$map isn't a valid CSS value.";
-  }
+  void visitMap(SassMap map) =>
+      throw new InternalException("$map isn't a valid CSS value.");
 
   // TODO(nweiz): Support precision and don't support exponent notation.
   void visitNumber(SassNumber value) {
