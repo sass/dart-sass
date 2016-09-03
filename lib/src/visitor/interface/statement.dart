@@ -10,7 +10,7 @@ abstract class StatementVisitor<T> {
   T visitComment(Comment node);
   T visitContent(Content node);
   T visitDeclaration(Declaration node);
-  T visitExtendRule(ExtendRule node);
+  T visitExtend(Extend node);
   T visitFunctionDeclaration(FunctionDeclaration node);
   T visitIf(If node);
   T visitImport(Import node);

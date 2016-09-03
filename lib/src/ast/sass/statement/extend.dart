@@ -8,15 +8,15 @@ import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
 import '../statement.dart';
 
-class ExtendRule implements Statement {
+class Extend implements Statement {
   final Interpolation selector;
 
   final FileSpan span;
 
-  ExtendRule(this.selector, this.span);
+  Extend(this.selector, this.span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitExtendRule(this);
+      visitor.visitExtend(this);
 
   String toString() => "@extend $selector";
 }

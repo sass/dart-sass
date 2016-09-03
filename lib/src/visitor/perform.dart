@@ -197,7 +197,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  void visitExtendRule(ExtendRule node) {
+  void visitExtend(Extend node) {
     if (_selector == null || _declarationName != null) {
       throw node.span.message("@extend may only be used within style rules.");
     }

@@ -393,8 +393,8 @@ class Parser {
     return null;
   }
 
-  ExtendRule _extend(LineScannerState start) =>
-      new ExtendRule(_almostAnyValue(), _scanner.spanFrom(start));
+  Extend _extend(LineScannerState start) =>
+      new Extend(_almostAnyValue(), _scanner.spanFrom(start));
 
   FunctionDeclaration _functionDeclaration(LineScannerState start) {
     var name = _identifier();
