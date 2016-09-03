@@ -20,6 +20,4 @@ class CssStyleRule extends CssParentNode {
       visitor.visitStyleRule(this);
 
   CssStyleRule copyWithoutChildren() => new CssStyleRule(selector, span);
-
-  String toString() => "$selector {${children.join(" ")}}";
 }

@@ -22,6 +22,4 @@ class CssDeclaration extends CssNode {
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
       visitor.visitDeclaration(this);
-
-  String toString() => "$name: $value;";
 }

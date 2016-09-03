@@ -72,16 +72,4 @@ class CssMediaQuery implements AstNode {
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
         features: features.toList()..addAll(other.features));
   }
-
-  String toString() {
-    var buffer = new StringBuffer();
-    if (modifier != null) buffer.write("$modifier ");
-    if (type != null) {
-      buffer.write(type);
-      if (features.isNotEmpty) buffer.write(" and ");
-    }
-
-    buffer.write(features.join(" and "));
-    return buffer.toString();
-  }
 }

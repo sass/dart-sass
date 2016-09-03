@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import '../../visitor/interface/css.dart';
+import '../../visitor/serialize.dart';
 import '../node.dart';
 
 abstract class CssNode extends AstNode {
@@ -25,6 +26,8 @@ abstract class CssNode extends AstNode {
       _parent._children[i]._indexInParent--;
     }
   }
+
+  String toString() => toCss(this);
 }
 
 // New at-rule implementations should add themselves to at-root's exclude logic.

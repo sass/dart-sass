@@ -15,6 +15,4 @@ class CssComment extends CssNode {
   CssComment(this.text, this.span);
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) => visitor.visitComment(this);
-
-  String toString() => text;
 }
