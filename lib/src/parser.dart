@@ -393,8 +393,12 @@ class Parser {
     return null;
   }
 
-  Extend _extend(LineScannerState start) =>
-      new Extend(_almostAnyValue(), _scanner.spanFrom(start));
+  Extend _extend(LineScannerState start) {
+    var value = _almostAnyValue();
+    var optional = _scanner.scanChar($exclamation);
+    if (optional) _expectCaseInsensitive("optional");
+    return new Extend(value, _scanner.spanFrom(start), optional: optional);
+  }
 
   FunctionDeclaration _functionDeclaration(LineScannerState start) {
     var name = _identifier();

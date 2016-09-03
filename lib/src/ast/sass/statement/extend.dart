@@ -11,9 +11,12 @@ import '../statement.dart';
 class Extend implements Statement {
   final Interpolation selector;
 
+  final bool isOptional;
+
   final FileSpan span;
 
-  Extend(this.selector, this.span);
+  Extend(this.selector, this.span, {bool optional: false})
+      : isOptional = optional;
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitExtend(this);

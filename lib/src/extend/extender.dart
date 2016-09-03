@@ -10,6 +10,7 @@ import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
 import '../ast/selector.dart';
+import '../ast/sass.dart';
 import '../utils.dart';
 import 'source.dart';
 import 'functions.dart';
@@ -55,8 +56,9 @@ class Extender {
   }
 
   void addExtension(
-      SelectorList sourceList, SimpleSelector target, FileSpan span) {
-    var source = new ExtendSource(sourceList, span);
+      SelectorList sourceList, SimpleSelector target, Extend extend) {
+    var source = new ExtendSource(sourceList, extend.span);
+    source.isUsed = extend.isOptional;
     _extensions.putIfAbsent(target, () => new Set()).add(source);
 
     var rules = _selectors[target];
