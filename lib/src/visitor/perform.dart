@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import '../ast/css.dart';
 import '../ast/sass.dart';
@@ -43,11 +44,15 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   /// The name of the current declaration parent.
   String _declarationName;
 
+  var _member = "root stylesheet";
+
   final _importPaths = <Import, String>{};
 
   final _importedFiles = <String, Stylesheet>{};
 
   final _extender = new Extender();
+
+  final _stack = <Frame>[];
 
   PerformVisitor({Iterable<String> loadPaths, Environment environment})
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
@@ -162,16 +167,18 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var block = _environment.contentBlock;
     if (block == null) return;
 
-    _withEnvironment(_environment.contentEnvironment, () {
-      for (var statement in block) {
-        statement.accept(this);
-      }
+    _withStackFrame("@content", node.span, () {
+      _withEnvironment(_environment.contentEnvironment, () {
+        for (var statement in block) {
+          statement.accept(this);
+        }
+      });
     });
   }
 
   void visitDeclaration(Declaration node) {
     if (_selector == null) {
-      throw new SassException(
+      throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
 
@@ -200,7 +207,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitExtend(Extend node) {
     if (_selector == null || _declarationName != null) {
-      throw new SassException(
+      throw _exception(
           "@extend may only be used within style rules.", node.span);
     }
 
@@ -214,7 +221,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitAtRule(AtRule node) {
     if (_declarationName != null) {
-      throw new SassException(
+      throw _exception(
           "At-rules may not be used within nested declarations.", node.span);
     }
 
@@ -264,10 +271,12 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitImport(Import node) {
     var stylesheet = _loadImport(node);
-    _withEnvironment(_environment.global(), () {
-      for (var statement in stylesheet.children) {
-        statement.accept(this);
-      }
+    _withStackFrame("@import", node.span, () {
+      _withEnvironment(_environment.global(), () {
+        for (var statement in stylesheet.children) {
+          statement.accept(this);
+        }
+      });
     });
   }
 
@@ -290,7 +299,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
 
     if (path == null) {
-      throw new SassException("Can't find file to import.", node.span);
+      throw _exception("Can't find file to import.", node.span);
     }
 
     return _importedFiles.putIfAbsent(
@@ -311,12 +320,13 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitInclude(Include node) {
     var mixin = _environment.getMixin(node.name) as UserDefinedCallable;
-    if (mixin == null) throw new SassException("Undefined mixin.", node.span);
+    if (mixin == null) {
+      throw _exception("Undefined mixin.", node.span);
+    }
 
     if (node.children != null &&
         !(mixin.declaration as MixinDeclaration).hasContent) {
-      throw new SassException(
-          "Mixin doesn't accept a content block.", node.span);
+      throw _exception("Mixin doesn't accept a content block.", node.span);
     }
 
     Value callback() {
@@ -343,7 +353,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitMediaRule(MediaRule node) {
     if (_declarationName != null) {
-      throw new SassException(
+      throw _exception(
           "Media rules may not be used within nested declarations.", node.span);
     }
 
@@ -402,7 +412,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitStyleRule(StyleRule node) {
     if (_declarationName != null) {
-      throw new SassException(
+      throw _exception(
           "Style rules may not be used within nested declarations.", node.span);
     }
 
@@ -412,7 +422,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     try {
       parsedSelector = parsedSelector.resolveParentSelectors(_selector?.value);
     } on InternalException catch (error) {
-      throw new SassException(error.message, node.selector.span);
+      throw _exception(error.message, node.selector.span);
     }
 
     // TODO: catch errors and re-contextualize them relative to
@@ -431,7 +441,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitSupportsRule(SupportsRule node) {
     if (_declarationName != null) {
-      throw new SassException(
+      throw _exception(
           "Supports rules may not be used within nested declarations.",
           node.span);
     }
@@ -496,7 +506,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     if (result != null) return result;
 
     // TODO: real exception
-    throw new SassException("Undefined variable.", node.span);
+    throw _exception("Undefined variable.", node.span);
   }
 
   Value visitUnaryOperatorExpression(UnaryOperatorExpression node) {
@@ -537,7 +547,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var keyValue = pair.first.accept(this);
       var valueValue = pair.last.accept(this);
       if (map.containsKey(keyValue)) {
-        throw new SassException('Duplicate key.', pair.first.span);
+        throw _exception('Duplicate key.', pair.first.span);
       }
       map[keyValue] = valueValue;
     }
@@ -558,7 +568,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
               if (returnValue is Value) return returnValue;
             }
 
-            throw new SassException("Function finished without @return.",
+            throw _exception("Function finished without @return.",
                 function.declaration.span);
           });
         } else {
@@ -568,7 +578,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     if (node.arguments.named.isNotEmpty || node.arguments.keywordRest != null) {
-      throw new SassException(
+      throw _exception(
           "Plain CSS functions don't support keyword arguments.", node.span);
     }
 
@@ -588,44 +598,42 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var positional = pair.first;
     var named = pair.last;
 
-    return _withEnvironment(
-        callable.environment,
-        () => _environment.scope(() {
-              _verifyArguments(
-                  positional, named, callable.arguments, invocation.span);
+    return _withStackFrame(callable.name + "()", invocation.span, () {
+      return _withEnvironment(callable.environment, () {
+        return _environment.scope(() {
+          _verifyArguments(
+              positional, named, callable.arguments, invocation.span);
 
-              // TODO: if we get here and there are no rest params involved, mark the
-              // callable as fast-path and don't do error checking or extra allocations
-              // for future calls.
-              var declaredArguments = callable.arguments.arguments;
-              var minLength =
-                  math.min(positional.length, declaredArguments.length);
-              for (var i = 0; i < minLength; i++) {
-                _environment.setVariable(
-                    declaredArguments[i].name, positional[i]);
-              }
+          // TODO: if we get here and there are no rest params involved, mark
+          // the callable as fast-path and don't do error checking or extra
+          // allocations for future calls.
+          var declaredArguments = callable.arguments.arguments;
+          var minLength = math.min(positional.length, declaredArguments.length);
+          for (var i = 0; i < minLength; i++) {
+            _environment.setVariable(declaredArguments[i].name, positional[i]);
+          }
 
-              for (var i = positional.length;
-                  i < declaredArguments.length;
-                  i++) {
-                var argument = declaredArguments[i];
-                _environment.setVariable(
-                    argument.name,
-                    named.remove(argument.name) ??
-                        argument.defaultValue?.accept(this));
-              }
+          for (var i = positional.length; i < declaredArguments.length; i++) {
+            var argument = declaredArguments[i];
+            _environment.setVariable(
+                argument.name,
+                named.remove(argument.name) ??
+                    argument.defaultValue?.accept(this));
+          }
 
-              // TODO: use a full ArgList object
-              if (callable.arguments.restArgument != null) {
-                var rest = positional.length > declaredArguments.length
-                    ? positional.sublist(declaredArguments.length)
-                    : const <Value>[];
-                _environment.setVariable(callable.arguments.restArgument,
-                    new SassList(rest, ListSeparator.comma));
-              }
+          // TODO: use a full ArgList object
+          if (callable.arguments.restArgument != null) {
+            var rest = positional.length > declaredArguments.length
+                ? positional.sublist(declaredArguments.length)
+                : const <Value>[];
+            _environment.setVariable(callable.arguments.restArgument,
+                new SassList(rest, ListSeparator.comma));
+          }
 
-              return run();
-            }));
+          return run();
+        });
+      });
+    });
   }
 
   Value _runBuiltInCallable(
@@ -683,7 +691,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       _addRestMap(named, keywordRest, invocation.span);
       return new Pair(positional, named);
     } else {
-      throw new SassException(
+      throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",
           invocation.span);
     }
@@ -696,7 +704,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       } else if (key is SassString) {
         values[key.text] = value;
       } else {
-        throw new SassException(
+        throw _exception(
             "Variable keyword argument map must have string keys.\n"
             "$key is not a string in $value.",
             span);
@@ -710,21 +718,21 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var argument = arguments.arguments[i];
       if (i < positional.length) {
         if (named.containsKey(argument.name)) {
-          throw new SassException(
+          throw _exception(
               "Argument \$${argument.name} was passed both by position and by "
               "name.",
               span);
         }
       } else if (argument.defaultValue == null &&
           !named.containsKey(argument.name)) {
-        throw new SassException("Missing argument \$${argument.name}.", span);
+        throw _exception("Missing argument \$${argument.name}.", span);
       }
     }
 
     if (arguments.restArgument != null) return;
 
     if (positional.length > arguments.arguments.length) {
-      throw new SassException(
+      throw _exception(
           "Only ${arguments.arguments.length} "
           "${pluralize('argument', arguments.arguments.length)} allowed, "
           "but ${positional.length} "
@@ -736,7 +744,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var unknownNames = normalizedSet()
         ..addAll(named.keys)
         ..removeAll(arguments.arguments.map((argument) => argument.name));
-      throw new SassException(
+      throw _exception(
           "No ${pluralize('argument', unknownNames.length)} named "
           "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
           span);
@@ -814,4 +822,26 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     _mediaQueries = oldMediaQueries;
     return result;
   }
+
+  /*=T*/ _withStackFrame/*<T>*/(
+      String member, FileSpan span, /*=T*/ callback()) {
+    _stack.add(_stackFrame(span));
+    var oldMember = _member;
+    _member = member;
+    var result = callback();
+    _member = oldMember;
+    _stack.removeLast();
+    return result;
+  }
+
+  Frame _stackFrame(FileSpan span) => new Frame(
+      span.sourceUrl, span.start.line + 1, span.start.column + 1, _member);
+
+  Trace _stackTrace(FileSpan span) {
+    var frames = _stack.toList()..add(_stackFrame(span));
+    return new Trace(frames.reversed);
+  }
+
+  SassRuntimeException _exception(String message, FileSpan span) =>
+      new SassRuntimeException(message, span, _stackTrace(span));
 }

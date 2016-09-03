@@ -3,11 +3,29 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:source_span/source_span.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 class SassException extends SourceSpanException {
   FileSpan get span => super.span as FileSpan;
 
   SassException(String message, FileSpan span) : super(message, span);
+}
+
+class SassRuntimeException extends SassException {
+  final Trace trace;
+
+  SassRuntimeException(String message, FileSpan span, this.trace)
+      : super(message, span);
+
+  String toString({color}) {
+    var buffer = new StringBuffer(super.toString(color: color));
+    for (var frame in trace.toString().split("\n")) {
+      if (frame.isEmpty) continue;
+      buffer.writeln();
+      buffer.write("  $frame");
+    }
+    return buffer.toString();
+  }
 }
 
 class SassFormatException extends SourceSpanFormatException
