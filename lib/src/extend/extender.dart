@@ -11,6 +11,7 @@ import 'package:source_span/source_span.dart';
 import '../ast/css.dart';
 import '../ast/selector.dart';
 import '../utils.dart';
+import 'source.dart';
 import 'functions.dart';
 
 class Extender {
@@ -20,7 +21,7 @@ class Extender {
   /// This is used to find which rules an `@extend` applies to.
   final _selectors = <SimpleSelector, Set<CssStyleRule>>{};
 
-  final _extensions = <SimpleSelector, Set<SelectorList>>{};
+  final _extensions = <SimpleSelector, Set<ExtendSource>>{};
 
   final _sources = new Expando<ComplexSelector>();
 
@@ -53,23 +54,33 @@ class Extender {
     return rule;
   }
 
-  void addExtension(SelectorList extender, SimpleSelector target) {
-    _extensions.putIfAbsent(target, () => new Set()).add(extender);
+  void addExtension(
+      SelectorList sourceList, SimpleSelector target, FileSpan span) {
+    var source = new ExtendSource(sourceList, span);
+    _extensions.putIfAbsent(target, () => new Set()).add(source);
 
     var rules = _selectors[target];
     if (rules == null) return;
 
-    var extensions = {
-      target: new Set.from([extender])
-    };
+    var extensions = {target: new Set()..add(source)};
     for (var rule in rules) {
       var list = rule.selector.value;
       rule.selector.value = _extendList(list, extensions);
     }
   }
 
+  void finalize() {
+    for (var sources in _extensions.values) {
+      for (var source in sources) {
+        if (source.isUsed) continue;
+        throw source.span.message('The target selector was not found.\n'
+            'Use "@extend %foo !optional" to avoid this error.');
+      }
+    }
+  }
+
   SelectorList _extendList(
-      SelectorList list, Map<SimpleSelector, Set<SelectorList>> extensions) {
+      SelectorList list, Map<SimpleSelector, Set<ExtendSource>> extensions) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
@@ -92,7 +103,7 @@ class Extender {
   }
 
   Iterable<ComplexSelector> _extendComplex(ComplexSelector complex,
-      Map<SimpleSelector, Set<SelectorList>> extensions) {
+      Map<SimpleSelector, Set<ExtendSource>> extensions) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
@@ -136,7 +147,7 @@ class Extender {
 
   List<List<ComplexSelectorComponent>> _extendCompound(
       CompoundSelector compound,
-      Map<SimpleSelector, Set<SelectorList>> extensions) {
+      Map<SimpleSelector, Set<ExtendSource>> extensions) {
     var changed = false;
     List<List<ComplexSelectorComponent>> extended;
     for (var i = 0; i < compound.components.length; i++) {
@@ -144,26 +155,28 @@ class Extender {
 
       // TODO: handle extending into pseudo selectors, extend failures
 
-      var extenders = extensions[simple];
-      if (extenders == null) continue;
+      var sources = extensions[simple];
+      if (sources == null) continue;
 
       var compoundWithoutSimple = compound.components.toList()..removeAt(i);
-      for (var list in extenders) {
-        for (var complex in list.components) {
+      for (var source in sources) {
+        for (var complex in source.extender.components) {
           var extenderBase = complex.components.last as CompoundSelector;
           var unified = compoundWithoutSimple.isEmpty
               ? extenderBase
               : _unifyCompound(extenderBase.components, compoundWithoutSimple);
           if (unified == null) continue;
 
-          if (!changed)
+          if (!changed) {
             extended = [
               [compound]
             ];
+          }
           changed = true;
           extended.add(complex.components
               .take(complex.components.length - 1)
               .toList()..add(unified));
+          source.isUsed = true;
         }
       }
     }

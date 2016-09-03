@@ -68,6 +68,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     for (var child in node.children) {
       child.accept(this);
     }
+    _extender.finalize();
     return _root;
   }
 
@@ -206,7 +207,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     // TODO: recontextualize parse errors.
     // TODO: disallow parent selectors.
     var simple = new Parser(targetText.value).parseSimpleSelector();
-    _extender.addExtension(_selector.value, simple);
+    _extender.addExtension(_selector.value, simple, node.span);
   }
 
   void visitAtRule(AtRule node) {
