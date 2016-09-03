@@ -11,6 +11,7 @@ import 'package:source_span/source_span.dart';
 import '../ast/css.dart';
 import '../ast/selector.dart';
 import '../ast/sass.dart';
+import '../exception.dart';
 import '../utils.dart';
 import 'source.dart';
 import 'functions.dart';
@@ -75,8 +76,10 @@ class Extender {
     for (var sources in _extensions.values) {
       for (var source in sources) {
         if (source.isUsed) continue;
-        throw source.span.message('The target selector was not found.\n'
-            'Use "@extend %foo !optional" to avoid this error.');
+        throw new SassException(
+            'The target selector was not found.\n'
+            'Use "@extend %foo !optional" to avoid this error.',
+            source.span);
       }
     }
   }

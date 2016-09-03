@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
+import 'package:sass/src/exception.dart';
 import 'package:sass/src/parser.dart';
 import 'package:sass/src/visitor/perform.dart';
 import 'package:sass/src/visitor/serialize.dart';
@@ -29,10 +30,15 @@ void main(List<String> args) {
     exit(64);
   }
 
-  var file = options.rest.first;
-  var parser =
-      new Parser(new File(file).readAsStringSync(), url: p.toUri(file));
-  var cssTree = new PerformVisitor().visitStylesheet(parser.parse());
-  var css = toCss(cssTree);
-  if (css.isNotEmpty) print(css);
+  try {
+    var file = options.rest.first;
+    var parser =
+        new Parser(new File(file).readAsStringSync(), url: p.toUri(file));
+    var cssTree = new PerformVisitor().visitStylesheet(parser.parse());
+    var css = toCss(cssTree);
+    if (css.isNotEmpty) print(css);
+  } on SassException catch (error) {
+    print(error.toString(color: true));
+    exit(1);
+  }
 }

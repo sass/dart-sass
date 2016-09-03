@@ -5,10 +5,12 @@
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
+import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import 'ast/sass.dart';
 import 'ast/selector.dart';
+import 'exception.dart';
 import 'interpolation_buffer.dart';
 import 'util/character.dart';
 import 'utils.dart';
@@ -42,45 +44,53 @@ class Parser {
   // ## Statements
 
   Stylesheet parse() {
-    var start = _scanner.state;
-    var statements = _statements(_topLevelStatement);
-    _scanner.expectDone();
-    return new Stylesheet(statements, _scanner.spanFrom(start));
+    return _wrapFormatException(() {
+      var start = _scanner.state;
+      var statements = _statements(_topLevelStatement);
+      _scanner.expectDone();
+      return new Stylesheet(statements, _scanner.spanFrom(start));
+    });
+  }
+
+  SelectorList parseSelector() {
+    return _wrapFormatException(() {
+      var selector = _selectorList();
+      _scanner.expectDone();
+      return selector;
+    });
+  }
+
+  SimpleSelector parseSimpleSelector() {
+    return _wrapFormatException(() {
+      var simple = _simpleSelector();
+      _scanner.expectDone();
+      return simple;
+    });
+  }
+
+  AtRootQuery parseAtRootQuery() {
+    return _wrapFormatException(() {
+      _scanner.expectChar($lparen);
+      _ignoreComments();
+      _expectCaseInsensitive("with");
+      var include = !_scanCaseInsensitive("out");
+      _ignoreComments();
+      _scanner.expectChar($colon);
+      _ignoreComments();
+
+      var atRules = new Set<String>();
+      do {
+        atRules.add(_identifier().toLowerCase());
+        _ignoreComments();
+      } while (_lookingAtIdentifier());
+
+      return new AtRootQuery(include, atRules);
+    });
   }
 
   Statement _topLevelStatement() {
     if (_scanner.peekChar() == $at) return _atRule(_topLevelStatement);
     return _styleRule();
-  }
-
-  SelectorList parseSelector() {
-    var selector = _selectorList();
-    _scanner.expectDone();
-    return selector;
-  }
-
-  SimpleSelector parseSimpleSelector() {
-    var simple = _simpleSelector();
-    _scanner.expectDone();
-    return simple;
-  }
-
-  AtRootQuery parseAtRootQuery() {
-    _scanner.expectChar($lparen);
-    _ignoreComments();
-    _expectCaseInsensitive("with");
-    var include = !_scanCaseInsensitive("out");
-    _ignoreComments();
-    _scanner.expectChar($colon);
-    _ignoreComments();
-
-    var atRules = new Set<String>();
-    do {
-      atRules.add(_identifier().toLowerCase());
-      _ignoreComments();
-    } while (_lookingAtIdentifier());
-
-    return new AtRootQuery(include, atRules);
   }
 
   VariableDeclaration _variableDeclaration() {
@@ -1919,5 +1929,13 @@ class Parser {
     var start = _scanner.position;
     consumer();
     return _scanner.substring(start);
+  }
+
+  /*=T*/ _wrapFormatException/*<T>*/(/*=T*/ callback()) {
+    try {
+      return callback();
+    } on StringScannerException catch (error) {
+      throw new SassException(error.message, error.span as FileSpan);
+    }
   }
 }

@@ -13,6 +13,7 @@ import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../callable.dart';
 import '../environment.dart';
+import '../exception.dart';
 import '../extend/extender.dart';
 import '../parser.dart';
 import '../utils.dart';
@@ -170,8 +171,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitDeclaration(Declaration node) {
     if (_selector == null) {
-      throw node.span
-          .message("Declarations may only be used within style rules.");
+      throw new SassException(
+          "Declarations may only be used within style rules.", node.span);
     }
 
     var name = _interpolationToValue(node.name);
@@ -199,7 +200,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitExtend(Extend node) {
     if (_selector == null || _declarationName != null) {
-      throw node.span.message("@extend may only be used within style rules.");
+      throw new SassException(
+          "@extend may only be used within style rules.", node.span);
     }
 
     var targetText = _interpolationToValue(node.selector);
@@ -212,8 +214,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitAtRule(AtRule node) {
     if (_declarationName != null) {
-      throw node.span
-          .message("At-rules may not be used within nested declarations.");
+      throw new SassException(
+          "At-rules may not be used within nested declarations.", node.span);
     }
 
     var value = node.value == null
@@ -288,7 +290,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
 
     if (path == null) {
-      throw node.span.message("Can't find file to import.");
+      throw new SassException("Can't find file to import.", node.span);
     }
 
     return _importedFiles.putIfAbsent(
@@ -309,11 +311,12 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitInclude(Include node) {
     var mixin = _environment.getMixin(node.name) as UserDefinedCallable;
-    if (mixin == null) throw node.span.message("Undefined mixin.");
+    if (mixin == null) throw new SassException("Undefined mixin.", node.span);
 
     if (node.children != null &&
         !(mixin.declaration as MixinDeclaration).hasContent) {
-      throw node.span.message("Mixin doesn't accept a content block.");
+      throw new SassException(
+          "Mixin doesn't accept a content block.", node.span);
     }
 
     Value callback() {
@@ -340,8 +343,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitMediaRule(MediaRule node) {
     if (_declarationName != null) {
-      throw node.span
-          .message("Media rules may not be used within nested declarations.");
+      throw new SassException(
+          "Media rules may not be used within nested declarations.", node.span);
     }
 
     var queryIterable = node.queries.map(_visitMediaQuery);
@@ -399,8 +402,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitStyleRule(StyleRule node) {
     if (_declarationName != null) {
-      throw node.span
-          .message("Style rules may not be used within nested declarations.");
+      throw new SassException(
+          "Style rules may not be used within nested declarations.", node.span);
     }
 
     var selectorText = _interpolationToValue(node.selector, trim: true);
@@ -425,8 +428,9 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitSupportsRule(SupportsRule node) {
     if (_declarationName != null) {
-      throw node.span.message(
-          "Supports rules may not be used within nested declarations.");
+      throw new SassException(
+          "Supports rules may not be used within nested declarations.",
+          node.span);
     }
 
     var condition = new CssValue(
@@ -489,7 +493,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     if (result != null) return result;
 
     // TODO: real exception
-    throw node.span.message("undefined variable");
+    throw new SassException("Undefined variable.", node.span);
   }
 
   Value visitUnaryOperatorExpression(UnaryOperatorExpression node) {
@@ -530,7 +534,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var keyValue = pair.first.accept(this);
       var valueValue = pair.last.accept(this);
       if (map.containsKey(keyValue)) {
-        throw pair.first.span.message('Duplicate key.');
+        throw new SassException('Duplicate key.', pair.first);
       }
       map[keyValue] = valueValue;
     }
@@ -551,8 +555,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
               if (returnValue is Value) return returnValue;
             }
 
-            throw function.declaration.span
-                .message("Function finished without @return.");
+            throw new SassException("Function finished without @return.",
+                function.declaration.span);
           });
         } else {
           return null;
@@ -561,8 +565,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     if (node.arguments.named.isNotEmpty || node.arguments.keywordRest != null) {
-      throw node.span
-          .message("Plain CSS functions don't support keyword arguments.");
+      throw new SassException(
+          "Plain CSS functions don't support keyword arguments.", node.span);
     }
 
     var name = _performInterpolation(node.name);
@@ -676,8 +680,9 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       _addRestMap(named, keywordRest, invocation.span);
       return new Pair(positional, named);
     } else {
-      throw invocation.span.message(
-          "Variable keyword arguments must be a map (was $keywordRest).");
+      throw new SassException(
+          "Variable keyword arguments must be a map (was $keywordRest).",
+          invocation.span);
     }
   }
 
@@ -688,9 +693,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       } else if (key is SassString) {
         values[key.text] = value;
       } else {
-        throw span
-            .message("Variable keyword argument map must have string keys.\n"
-                "$key is not a string in $value.");
+        throw new SassException(
+            "Variable keyword argument map must have string keys.\n"
+            "$key is not a string in $value.",
+            span);
       }
     });
   }
@@ -701,32 +707,36 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var argument = arguments.arguments[i];
       if (i < positional.length) {
         if (named.containsKey(argument.name)) {
-          throw span.message(
+          throw new SassException(
               "Argument \$${argument.name} was passed both by position and by "
-              "name.");
+              "name.",
+              span);
         }
       } else if (argument.defaultValue == null &&
           !named.containsKey(argument.name)) {
-        throw span.message("Missing argument \$${argument.name}.");
+        throw new SassException("Missing argument \$${argument.name}.", span);
       }
     }
 
     if (arguments.restArgument != null) return;
 
     if (positional.length > arguments.arguments.length) {
-      throw span.message("Only ${arguments.arguments.length} "
+      throw new SassException(
+          "Only ${arguments.arguments.length} "
           "${pluralize('argument', arguments.arguments.length)} allowed, "
           "but ${positional.length} "
-          "${pluralize('was', positional.length, plural: 'were')} passed.");
+          "${pluralize('was', positional.length, plural: 'were')} passed.",
+          span);
     }
 
     if (arguments.arguments.length - positional.length < named.length) {
       var unknownNames = normalizedSet()
         ..addAll(named.keys)
         ..removeAll(arguments.arguments.map((argument) => argument.name));
-      throw span
-          .message("No ${pluralize('argument', unknownNames.length)} named "
-              "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.");
+      throw new SassException(
+          "No ${pluralize('argument', unknownNames.length)} named "
+          "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
+          span);
     }
   }
 
