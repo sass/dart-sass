@@ -327,6 +327,8 @@ class Parser {
         return _atRoot(start);
       case "content":
         return _content(start);
+      case "debug":
+        return _debug(start);
       case "extend":
         return _extend(start);
       case "function":
@@ -357,6 +359,8 @@ class Parser {
     switch (name) {
       case "content":
         return _content(start);
+      case "debug":
+        return _debug(start);
       case "if":
         return _if(start, _declarationChild);
       case "include":
@@ -369,6 +373,8 @@ class Parser {
   Statement _functionAtRule() {
     var start = _scanner.state;
     switch (_atRuleName()) {
+      case "debug":
+        return _debug(start);
       case "if":
         return _if(start, _functionAtRule);
       case "return":
@@ -403,6 +409,9 @@ class Parser {
         position: start.position, length: "@content".length);
     return null;
   }
+
+  Debug _debug(LineScannerState start) =>
+      new Debug(_expression(), _scanner.spanFrom(start));
 
   Extend _extend(LineScannerState start) {
     var value = _almostAnyValue();

@@ -176,6 +176,11 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
+  void visitDebug(Debug node) {
+    stderr.writeln("Line ${node.span.start.line + 1} DEBUG: "
+        "${node.expression.accept(this)}");
+  }
+
   void visitDeclaration(Declaration node) {
     if (_selector == null) {
       throw _exception(
