@@ -15,8 +15,8 @@ import 'interface/css.dart';
 import 'interface/selector.dart';
 import 'interface/value.dart';
 
-String toCss(CssNode node, {OutputStyle style}) {
-  var visitor = new _SerializeCssVisitor(style: style);
+String toCss(CssNode node, {OutputStyle style, bool inspect: false}) {
+  var visitor = new _SerializeCssVisitor(style: style, inspect: inspect);
   node.accept(visitor);
   var result = visitor._buffer.toString();
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
@@ -28,14 +28,14 @@ String toCss(CssNode node, {OutputStyle style}) {
   return result.trim();
 }
 
-String valueToCss(Value value) {
-  var visitor = new _SerializeCssVisitor();
+String valueToCss(Value value, {bool inspect: false}) {
+  var visitor = new _SerializeCssVisitor(inspect: inspect);
   value.accept(visitor);
   return visitor._buffer.toString();
 }
 
-String selectorToCss(Selector selector) {
-  var visitor = new _SerializeCssVisitor();
+String selectorToCss(Selector selector, {bool inspect: false}) {
+  var visitor = new _SerializeCssVisitor(inspect: inspect);
   selector.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -46,11 +46,14 @@ class _SerializeCssVisitor
 
   var _indentation = 0;
 
-  _SerializeCssVisitor({OutputStyle style});
+  final bool _inspect;
+
+  _SerializeCssVisitor({OutputStyle style, bool inspect: false})
+      : _inspect = inspect;
 
   void visitStylesheet(CssStylesheet node) {
     for (var child in node.children) {
-      if (child.isInvisible) continue;
+      if (_isInvisible(child)) continue;
       child.accept(this);
       _buffer.writeln();
     }
@@ -124,7 +127,7 @@ class _SerializeCssVisitor
 
   void visitStyleRule(CssStyleRule node) {
     _writeIndentation();
-    _buffer.write(node.selector.value);
+    node.selector.value.accept(this);
     _buffer.writeCharCode($space);
     _visitChildren(node.children);
 
@@ -350,8 +353,10 @@ class _SerializeCssVisitor
   }
 
   void visitSelectorList(SelectorList list) {
-    _writeBetween(
-        list.components, ", ", (complex) => visitComplexSelector(complex));
+    var complexes = _inspect
+        ? list.components
+        : list.components.where((complex) => !complex.containsPlaceholder);
+    _writeBetween(complexes, ", ", (complex) => visitComplexSelector(complex));
   }
 
   void visitParentSelector(ParentSelector parent) {
@@ -395,7 +400,7 @@ class _SerializeCssVisitor
 
   void _visitChildren(Iterable<CssNode> children) {
     _buffer.writeCharCode($lbrace);
-    if (children.every((child) => child.isInvisible)) {
+    if (children.every(_isInvisible)) {
       _buffer.writeCharCode($rbrace);
       return;
     }
@@ -403,7 +408,7 @@ class _SerializeCssVisitor
     _buffer.writeln();
     _indent(() {
       for (var child in children) {
-        if (child.isInvisible) continue;
+        if (_isInvisible(child)) continue;
         child.accept(this);
         _buffer.writeln();
       }
@@ -437,6 +442,8 @@ class _SerializeCssVisitor
     callback();
     _indentation--;
   }
+
+  bool _isInvisible(CssNode node) => !_inspect && node.isInvisible;
 }
 
 class OutputStyle {

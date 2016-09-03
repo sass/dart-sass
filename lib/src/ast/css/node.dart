@@ -29,7 +29,7 @@ abstract class CssNode extends AstNode {
     }
   }
 
-  String toString() => toCss(this);
+  String toString() => toCss(this, inspect: true);
 }
 
 // New at-rule implementations should add themselves to at-root's exclude logic.

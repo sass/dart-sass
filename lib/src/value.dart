@@ -35,5 +35,5 @@ abstract class Value {
 
   Value unaryNot() => sassFalse;
 
-  String toString() => valueToCss(this);
+  String toString() => valueToCss(this, inspect: true);
 }

@@ -22,5 +22,5 @@ export 'selector/universal.dart';
 abstract class Selector {
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor);
 
-  String toString() => selectorToCss(this);
+  String toString() => selectorToCss(this, inspect: true);
 }

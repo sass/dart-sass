@@ -27,6 +27,16 @@ class ComplexSelector extends Selector {
 
   int _maxSpecificity;
 
+  bool get containsPlaceholder {
+    if (_containsPlaceholder != null) return _containsPlaceholder;
+    _containsPlaceholder = components.any((component) =>
+        component is CompoundSelector &&
+        component.components.any((simple) => simple is PlaceholderSelector));
+    return _containsPlaceholder;
+  }
+
+  bool _containsPlaceholder;
+
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
       {Iterable<int> lineBreaks})
       : components = new List.unmodifiable(components),

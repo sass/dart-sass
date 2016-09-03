@@ -14,6 +14,12 @@ class CssStyleRule extends CssParentNode {
 
   final FileSpan span;
 
+  bool get isInvisible {
+    if (super.isInvisible) return true;
+    return selector.value.components
+        .every((complex) => complex.containsPlaceholder);
+  }
+
   CssStyleRule(this.selector, this.span);
 
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
