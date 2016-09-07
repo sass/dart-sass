@@ -13,6 +13,7 @@ export 'value/color.dart';
 export 'value/identifier.dart';
 export 'value/list.dart';
 export 'value/map.dart';
+export 'value/null.dart';
 export 'value/number.dart';
 export 'value/string.dart';
 

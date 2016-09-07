@@ -10,6 +10,7 @@ abstract class ValueVisitor<T> {
   T visitIdentifier(SassIdentifier value);
   T visitList(SassList value);
   T visitMap(SassMap value);
+  T visitNull(SassNull value);
   T visitNumber(SassNumber value);
   T visitString(SassString value);
 }

@@ -1066,6 +1066,8 @@ class Parser {
         return new UnaryOperatorExpression(
             UnaryOperator.not, _singleExpression(), identifier.span);
 
+      case "null":
+        return new NullExpression(identifier.span);
       case "true":
         return new BooleanExpression(true, identifier.span);
       case "false":

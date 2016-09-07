@@ -275,6 +275,10 @@ class _SerializeCssVisitor
   void visitMap(SassMap map) =>
       throw new InternalException("$map isn't a valid CSS value.");
 
+  void visitNull(SassNull value) {
+    _buffer.write("null");
+  }
+
   // TODO(nweiz): Support precision and don't support exponent notation.
   void visitNumber(SassNumber value) {
     _buffer.write(value.value.toString());

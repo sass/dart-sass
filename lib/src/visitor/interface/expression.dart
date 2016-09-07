@@ -11,6 +11,7 @@ abstract class ExpressionVisitor<T> {
   T visitIdentifierExpression(IdentifierExpression node);
   T visitListExpression(ListExpression node);
   T visitMapExpression(MapExpression node);
+  T visitNullExpression(NullExpression node);
   T visitNumberExpression(NumberExpression node);
   T visitStringExpression(StringExpression node);
   T visitUnaryOperatorExpression(UnaryOperatorExpression node);

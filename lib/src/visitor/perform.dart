@@ -233,8 +233,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       _environment.setLocalVariable(variables[i], list[i]);
     }
     for (var i = minLength; i < variables.length; i++) {
-      // TODO: Sass null
-      _environment.setLocalVariable(variables[i], null);
+      _environment.setLocalVariable(variables[i], sassNull);
     }
   }
 
@@ -600,6 +599,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
       new SassBoolean(node.value);
+
+  SassNull visitNullExpression(NullExpression node) => sassNull;
 
   SassNumber visitNumberExpression(NumberExpression node) =>
       new SassNumber(node.value);
