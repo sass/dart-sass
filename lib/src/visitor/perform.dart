@@ -211,6 +211,33 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
+  void visitEachRule(EachRule node) {
+    var list = node.list.accept(this);
+    var setVariables = node.variables.length == 1
+        ? (value) => _environment.setLocalVariable(node.variables.first, value)
+        : (value) => _setMultipleVariables(node.variables, value);
+    _environment.scope(() {
+      for (var element in list.asList) {
+        setVariables(element);
+        for (var child in node.children) {
+          child.accept(this);
+        }
+      }
+    }, semiGlobal: true);
+  }
+
+  void _setMultipleVariables(List<String> variables, Value value) {
+    var list = value.asList;
+    var minLength = math.min(variables.length, list.length);
+    for (var i = 0; i < minLength; i++) {
+      _environment.setLocalVariable(variables[i], list[i]);
+    }
+    for (var i = minLength; i < variables.length; i++) {
+      // TODO: Sass null
+      _environment.setLocalVariable(variables[i], null);
+    }
+  }
+
   void visitErrorRule(ErrorRule node) {
     throw _exception(node.expression.accept(this).toString(), node.span);
   }
@@ -720,7 +747,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     if (rest is SassMap) {
       _addRestMap(named, rest, invocation.span);
     } else if (rest is SassList) {
-      positional.addAll(rest.asList());
+      positional.addAll(rest.asList);
     } else {
       positional.add(rest);
     }

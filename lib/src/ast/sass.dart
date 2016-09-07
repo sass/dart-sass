@@ -28,6 +28,7 @@ export 'sass/statement/comment.dart';
 export 'sass/statement/content_rule.dart';
 export 'sass/statement/debug_rule.dart';
 export 'sass/statement/declaration.dart';
+export 'sass/statement/each_rule.dart';
 export 'sass/statement/error_rule.dart';
 export 'sass/statement/extend_rule.dart';
 export 'sass/statement/for_rule.dart';

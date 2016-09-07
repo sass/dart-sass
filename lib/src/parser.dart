@@ -327,6 +327,8 @@ class Parser {
         return _contentRule(start);
       case "debug":
         return _debugRule(start);
+      case "each":
+        return _eachRule(start, child);
       case "error":
         return _errorRule(start);
       case "extend":
@@ -367,6 +369,8 @@ class Parser {
         return _contentRule(start);
       case "debug":
         return _debugRule(start);
+      case "each":
+        return _eachRule(start, _declarationChild);
       case "error":
         return _errorRule(start);
       case "for":
@@ -389,6 +393,8 @@ class Parser {
     switch (_atRuleName()) {
       case "debug":
         return _debugRule(start);
+      case "each":
+        return _eachRule(start, _functionAtRule);
       case "error":
         return _errorRule(start);
       case "for":
@@ -435,6 +441,28 @@ class Parser {
 
   DebugRule _debugRule(LineScannerState start) =>
       new DebugRule(_expression(), _scanner.spanFrom(start));
+
+  EachRule _eachRule(LineScannerState start, Statement child()) {
+    var wasInControlDirective = _inControlDirective;
+    _inControlDirective = true;
+
+    var variables = [_variableName()];
+    _ignoreComments();
+    while (_scanner.scanChar($comma)) {
+      _ignoreComments();
+      variables.add(_variableName());
+      _ignoreComments();
+    }
+
+    _scanner.expect("in");
+    _ignoreComments();
+
+    var list = _expression();
+    var children = _children(child);
+    _inControlDirective = wasInControlDirective;
+
+    return new EachRule(variables, list, children, _scanner.spanFrom(start));
+  }
 
   ErrorRule _errorRule(LineScannerState start) =>
       new ErrorRule(_expression(), _scanner.spanFrom(start));
@@ -1938,6 +1966,7 @@ class Parser {
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
   bool _lookingAtInterpolatedIdentifier() {
     var first = _scanner.peekChar();
+    if (first == null) return false;
     if (isNameStart(first) || first == $backslash) return true;
     if (first == $hash) return _scanner.peekChar(1) == $lbrace;
 

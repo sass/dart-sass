@@ -24,11 +24,11 @@ abstract class Value {
 
   int get asInt => throw new InternalException("$this is not an int.");
 
+  List<Value> get asList => [this];
+
   const Value();
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
-
-  List<Value> asList() => [this];
 
   Value unaryPlus() => new SassIdentifier("+${valueToCss(this)}");
 

@@ -10,6 +10,14 @@ import '../value.dart';
 class SassMap extends Value {
   final Map<Value, Value> contents;
 
+  List<SassList> get asList {
+    var result = <SassList>[];
+    contents.forEach((key, value) {
+      result.add(new SassList([key, value], ListSeparator.space));
+    });
+    return result;
+  }
+
   SassMap(Map<Value, Value> contents)
       : contents = new Map.unmodifiable(contents);
 
