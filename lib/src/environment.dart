@@ -13,6 +13,7 @@ class Environment {
   /// Base is global scope.
   final List<Map<String, Value>> _variables;
 
+  // Note: this is not necessarily complete
   final Map<String, int> _variableIndices;
 
   final List<Map<String, Callable>> _functions;
@@ -68,14 +69,35 @@ class Environment {
   Environment global() => new Environment._([_variables.first], {},
       [_functions.first], {}, [_mixins.first], {}, null, null);
 
-  Value getVariable(String name) =>
-      _variables[_variableIndices[name] ?? 0][name];
+  Value getVariable(String name) {
+    var index = _variableIndices[name];
+    if (index != null) _variables[index][name];
+
+    index = _variableIndex(name);
+    if (index == null) return null;
+
+    _variableIndices[name] = index;
+    return _variables[index][name];
+  }
+
+  int _variableIndex(String name) {
+    for (var i = _variables.length - 1; i >= 0; i--) {
+      if (_variables[i].containsKey(name)) return i;
+    }
+    return null;
+  }
 
   void setVariable(String name, Value value, {bool global: false}) {
     var index = global || _variables.length == 1
         ? 0
         : _variableIndices.putIfAbsent(
             name, () => _inSemiGlobalScope ? 0 : _variables.length - 1);
+    _variables[index][name] = value;
+  }
+
+  void setLocalVariable(String name, Value value) {
+    var index = _variables.length - 1;
+    _variableIndices[name] = index;
     _variables[index][name] = value;
   }
 
@@ -135,7 +157,7 @@ class Environment {
   }
 
   /*=T*/ scope/*<T>*/(/*=T*/ callback(), {bool semiGlobal: false}) {
-    assert(!semiGlobal || _inSemiGlobalScope || _variables.length == 1);
+    semiGlobal = semiGlobal && (_inSemiGlobalScope || _variables.length == 1);
 
     // TODO: avoid creating a new scope if no variables are declared.
     var wasInSemiGlobalScope = _inSemiGlobalScope;

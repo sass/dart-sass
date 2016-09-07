@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'exception.dart';
 import 'value/boolean.dart';
 import 'value/identifier.dart';
 import 'visitor/interface/value.dart';
@@ -20,6 +21,8 @@ abstract class Value {
   bool get isBlank => false;
 
   bool get isTruthy => true;
+
+  int get asInt => throw new InternalException("$this is not an int.");
 
   const Value();
 

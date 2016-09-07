@@ -264,6 +264,26 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }, through: (node) => node is CssStyleRule);
   }
 
+  void visitForRule(ForRule node) {
+    var from =
+        _addExceptionSpan(() => node.from.accept(this).asInt, node.from.span);
+    var to = _addExceptionSpan(() => node.to.accept(this).asInt, node.to.span);
+
+    // TODO: coerce units
+    var direction = from > to ? -1 : 1;
+    if (!node.isExclusive) to += direction;
+    if (from == to) return;
+
+    _environment.scope(() {
+      for (var i = from; i != to; i += direction) {
+        _environment.setLocalVariable(node.variable, new SassNumber(i));
+        for (var child in node.children) {
+          child.accept(this);
+        }
+      }
+    }, semiGlobal: true);
+  }
+
   void visitFunctionRule(FunctionRule node) {
     _environment
         .setFunction(new UserDefinedCallable(node, _environment.closure()));
@@ -427,12 +447,9 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
     var selectorText = _interpolationToValue(node.selector, trim: true);
     var parsedSelector = new Parser(selectorText.value).parseSelector();
-
-    try {
-      parsedSelector = parsedSelector.resolveParentSelectors(_selector?.value);
-    } on InternalException catch (error) {
-      throw _exception(error.message, node.selector.span);
-    }
+    parsedSelector = _addExceptionSpan(
+        () => parsedSelector.resolveParentSelectors(_selector?.value),
+        node.selector.span);
 
     // TODO: catch errors and re-contextualize them relative to
     // [node.selector.span.start].
@@ -860,4 +877,12 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   SassRuntimeException _exception(String message, FileSpan span) =>
       new SassRuntimeException(message, span, _stackTrace(span));
+
+  /*=T*/ _addExceptionSpan/*<T>*/(/*=T*/ callback(), FileSpan span) {
+    try {
+      return callback();
+    } on InternalException catch (error) {
+      throw _exception(error.message, span);
+    }
+  }
 }

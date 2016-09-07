@@ -94,10 +94,8 @@ class Parser {
   }
 
   VariableDeclaration _variableDeclaration() {
-    if (!_scanner.scanChar($dollar)) return null;
-
     var start = _scanner.state;
-    var name = _identifier();
+    var name = _variableName();
     _ignoreComments();
     _scanner.expectChar($colon);
     _ignoreComments();
@@ -333,6 +331,8 @@ class Parser {
         return _errorRule(start);
       case "extend":
         return _extendRule(start);
+      case "for":
+        return _forRule(start, child);
       case "function":
         return _functionRule(start);
       case "if":
@@ -367,6 +367,8 @@ class Parser {
         return _debugRule(start);
       case "error":
         return _errorRule(start);
+      case "for":
+        return _forRule(start, _declarationAtRule);
       case "if":
         return _ifRule(start, _declarationChild);
       case "include":
@@ -385,6 +387,8 @@ class Parser {
         return _debugRule(start);
       case "error":
         return _errorRule(start);
+      case "for":
+        return _forRule(start, _functionAtRule);
       case "if":
         return _ifRule(start, _functionAtRule);
       case "return":
@@ -454,6 +458,32 @@ class Parser {
     // TODO: ensure there aren't duplicate argument names.
     return new FunctionRule(
         name, arguments, children, _scanner.spanFrom(start));
+  }
+
+  ForRule _forRule(LineScannerState start, Statement child()) {
+    var wasInControlDirective = _inControlDirective;
+    _inControlDirective = true;
+    var variable = _variableName();
+    _ignoreComments();
+
+    _scanner.expect("from");
+    _ignoreComments();
+    var from = _expressionUntil(() {
+      if (!_scanner.matches("to") && !_scanner.matches("through")) return false;
+      var after = _scanner.peekChar(_scanner.lastMatch[0].length);
+      return after == null || isWhitespace(after);
+    });
+
+    var exclusive = _scanner.scan("to");
+    if (!exclusive) _scanner.expect("through", name: '"to" or "through"');
+    _ignoreComments();
+    var to = _expression();
+
+    var children = _children(child);
+    _inControlDirective = wasInControlDirective;
+
+    return new ForRule(variable, from, to, children, _scanner.spanFrom(start),
+        exclusive: exclusive);
   }
 
   IfRule _ifRule(LineScannerState start, Statement child()) {
@@ -670,6 +700,31 @@ class Parser {
     do {
       _ignoreComments();
       if (!_lookingAtExpression()) break;
+      commaExpressions.add(_spaceListOrValue());
+    } while (_scanner.scanChar($comma));
+
+    return new ListExpression(commaExpressions, ListSeparator.comma);
+  }
+
+  Expression _expressionUntil(bool isDone()) {
+    if (isDone()) _scanner.error("Expected expression.");
+    var first = _singleExpression();
+    _ignoreComments();
+    if (!isDone() && _lookingAtExpression()) {
+      var spaceExpressions = [first];
+      do {
+        spaceExpressions.add(_singleExpression());
+        _ignoreComments();
+      } while (!isDone() && _lookingAtExpression());
+      first = new ListExpression(spaceExpressions, ListSeparator.space);
+    }
+
+    if (!_scanner.scanChar($comma)) return first;
+
+    var commaExpressions = [first];
+    do {
+      _ignoreComments();
+      if (isDone() || !_lookingAtExpression()) break;
       commaExpressions.add(_spaceListOrValue());
     } while (_scanner.scanChar($comma));
 

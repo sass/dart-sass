@@ -30,6 +30,7 @@ export 'sass/statement/debug_rule.dart';
 export 'sass/statement/declaration.dart';
 export 'sass/statement/error_rule.dart';
 export 'sass/statement/extend_rule.dart';
+export 'sass/statement/for_rule.dart';
 export 'sass/statement/function_rule.dart';
 export 'sass/statement/if_rule.dart';
 export 'sass/statement/import_rule.dart';

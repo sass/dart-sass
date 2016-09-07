@@ -13,6 +13,7 @@ abstract class StatementVisitor<T> {
   T visitDeclaration(Declaration node);
   T visitErrorRule(ErrorRule node);
   T visitExtendRule(ExtendRule node);
+  T visitForRule(ForRule node);
   T visitFunctionRule(FunctionRule node);
   T visitIfRule(IfRule node);
   T visitImportRule(ImportRule node);
