@@ -351,6 +351,8 @@ class Parser {
         return _supportsRule(start);
       case "warn":
         return _warnRule(start);
+      case "while":
+        return _whileRule(start, child);
       default:
         return _unknownAtRule(start, name);
     }
@@ -375,6 +377,8 @@ class Parser {
         return _includeRule(start);
       case "warn":
         return _warnRule(start);
+      case "while":
+        return _whileRule(start, _declarationChild);
       default:
         return _disallowedAtRule(start);
     }
@@ -395,6 +399,8 @@ class Parser {
         return _returnRule(start);
       case "warn":
         return _warnRule(start);
+      case "while":
+        return _whileRule(start, _functionAtRule);
       default:
         return _disallowedAtRule(start);
     }
@@ -579,6 +585,15 @@ class Parser {
 
   WarnRule _warnRule(LineScannerState start) =>
       new WarnRule(_expression(), _scanner.spanFrom(start));
+
+  WhileRule _whileRule(LineScannerState start, Statement child()) {
+    var wasInControlDirective = _inControlDirective;
+    _inControlDirective = true;
+    var expression = _expression();
+    var children = _children(child);
+    _inControlDirective = wasInControlDirective;
+    return new WhileRule(expression, children, _scanner.spanFrom(start));
+  }
 
   AtRule _unknownAtRule(LineScannerState start, String name) {
     Interpolation value;

@@ -532,6 +532,16 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
+  void visitWhileRule(WhileRule node) {
+    _environment.scope(() {
+      while (node.condition.accept(this).isTruthy) {
+        for (var child in node.children) {
+          child.accept(this);
+        }
+      }
+    }, semiGlobal: true);
+  }
+
   // ## Expressions
 
   Value visitVariableExpression(VariableExpression node) {

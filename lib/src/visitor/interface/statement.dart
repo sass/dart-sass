@@ -27,4 +27,5 @@ abstract class StatementVisitor<T> {
   T visitSupportsRule(SupportsRule node);
   T visitVariableDeclaration(VariableDeclaration node);
   T visitWarnRule(WarnRule node);
+  T visitWhileRule(WhileRule node);
 }
