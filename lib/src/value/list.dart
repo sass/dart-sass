@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:charcode/charcode.dart';
-
 import '../utils.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
@@ -30,28 +28,6 @@ class SassList extends Value {
       listEquals(other.contents, contents);
 
   int get hashCode => listHash(contents);
-
-  String toString() {
-    var buffer = new StringBuffer();
-    if (isBracketed) buffer.writeCharCode($lbracket);
-    buffer.write(contents
-        .map((element) =>
-            _elementNeedsParens(element) ? "($element)" : element.toString())
-        .join(separator == ListSeparator.comma ? ", " : " "));
-    if (isBracketed) buffer.writeCharCode($rbracket);
-    return buffer.toString();
-  }
-
-  bool _elementNeedsParens(Value value) {
-    if (value is SassList) {
-      if (value.contents.length < 2) return false;
-      if (value.isBracketed) return false;
-      return separator == ListSeparator.comma
-          ? separator == ListSeparator.comma
-          : separator != ListSeparator.undecided;
-    }
-    return false;
-  }
 }
 
 class ListSeparator {

@@ -241,15 +241,35 @@ class _SerializeCssVisitor
     if (value.isBracketed) {
       _buffer.writeCharCode($lbracket);
     } else if (value.contents.isEmpty) {
-      throw new InternalException("() isn't a valid CSS value");
+      if (!_inspect) throw new InternalException("() isn't a valid CSS value");
+      _buffer.write("()");
+      return;
     }
 
     _writeBetween(
         value.contents.where((element) => !element.isBlank),
         value.separator == ListSeparator.space ? " " : ", ",
-        (element) => element.accept(this));
+        _inspect
+            ? (element) {
+                var needsParens = _elementNeedsParens(value.separator, element);
+                if (needsParens) _buffer.writeCharCode($lparen);
+                element.accept(this);
+                if (needsParens) _buffer.writeCharCode($rparen);
+              }
+            : (element) => element.accept(this));
 
     if (value.isBracketed) _buffer.writeCharCode($rbracket);
+  }
+
+  bool _elementNeedsParens(ListSeparator separator, Value value) {
+    if (value is SassList) {
+      if (value.contents.length < 2) return false;
+      if (value.isBracketed) return false;
+      return separator == ListSeparator.comma
+          ? separator == ListSeparator.comma
+          : separator != ListSeparator.undecided;
+    }
+    return false;
   }
 
   void visitMap(SassMap map) =>
