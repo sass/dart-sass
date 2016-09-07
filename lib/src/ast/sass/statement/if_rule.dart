@@ -5,18 +5,21 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
-import '../expression/string.dart';
+import '../expression.dart';
 import '../statement.dart';
 
-class Import implements Statement {
-  final Uri url;
+class IfRule implements Statement {
+  final Expression expression;
+
+  final List<Statement> children;
 
   final FileSpan span;
 
-  Import(this.url, this.span);
+  IfRule(this.expression, Iterable<Statement> children, this.span)
+      : children = new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitImport(this);
+      visitor.visitIfRule(this);
 
-  String toString() => "@import ${StringExpression.quoteText(url.toString())};";
+  String toString() => "@if $expression {${children.join(" ")}}";
 }

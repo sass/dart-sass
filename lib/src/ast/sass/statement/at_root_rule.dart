@@ -10,18 +10,18 @@ import '../../css.dart';
 import '../interpolation.dart';
 import '../statement.dart';
 
-class AtRoot implements Statement {
+class AtRootRule implements Statement {
   final Interpolation query;
 
   final List<Statement> children;
 
   final FileSpan span;
 
-  AtRoot(Iterable<Statement> children, this.span, {this.query})
+  AtRootRule(Iterable<Statement> children, this.span, {this.query})
       : children = new List.from(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitAtRoot(this);
+      visitor.visitAtRootRule(this);
 
   String toString() {
     var buffer = new StringBuffer("@at-root ");

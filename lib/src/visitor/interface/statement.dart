@@ -5,25 +5,25 @@
 import '../../ast/sass.dart';
 
 abstract class StatementVisitor<T> {
-  T visitAtRoot(AtRoot node);
+  T visitAtRootRule(AtRootRule node);
   T visitAtRule(AtRule node);
   T visitComment(Comment node);
-  T visitContent(Content node);
-  T visitDebug(Debug node);
+  T visitContentRule(ContentRule node);
+  T visitDebugRule(DebugRule node);
   T visitDeclaration(Declaration node);
   T visitErrorRule(ErrorRule node);
-  T visitExtend(Extend node);
-  T visitFunctionDeclaration(FunctionDeclaration node);
-  T visitIf(If node);
-  T visitImport(Import node);
-  T visitInclude(Include node);
+  T visitExtendRule(ExtendRule node);
+  T visitFunctionRule(FunctionRule node);
+  T visitIfRule(IfRule node);
+  T visitImportRule(ImportRule node);
+  T visitIncludeRule(IncludeRule node);
   T visitMediaRule(MediaRule node);
-  T visitMixinDeclaration(MixinDeclaration node);
-  T visitPlainImport(PlainImport node);
-  T visitReturn(Return node);
+  T visitMixinRule(MixinRule node);
+  T visitPlainImportRule(PlainImportRule node);
+  T visitReturnRule(ReturnRule node);
   T visitStyleRule(StyleRule node);
   T visitStylesheet(Stylesheet node);
   T visitSupportsRule(SupportsRule node);
   T visitVariableDeclaration(VariableDeclaration node);
-  T visitWarn(Warn node);
+  T visitWarnRule(WarnRule node);
 }

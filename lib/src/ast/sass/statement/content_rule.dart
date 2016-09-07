@@ -5,21 +5,15 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
-import '../interpolation.dart';
 import '../statement.dart';
 
-class Extend implements Statement {
-  final Interpolation selector;
-
-  final bool isOptional;
-
+class ContentRule implements Statement {
   final FileSpan span;
 
-  Extend(this.selector, this.span, {bool optional: false})
-      : isOptional = optional;
+  ContentRule(this.span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitExtend(this);
+      visitor.visitContentRule(this);
 
-  String toString() => "@extend $selector";
+  String toString() => "@content;";
 }

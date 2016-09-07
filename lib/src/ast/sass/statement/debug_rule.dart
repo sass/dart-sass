@@ -5,18 +5,18 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
-import '../expression/string.dart';
+import '../expression.dart';
 import '../statement.dart';
 
-class PlainImport implements Statement {
-  final Uri url;
+class DebugRule implements Statement {
+  final Expression expression;
 
   final FileSpan span;
 
-  PlainImport(this.url, this.span);
+  DebugRule(this.expression, this.span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitPlainImport(this);
+      visitor.visitDebugRule(this);
 
-  String toString() => "@import ${StringExpression.quoteText(url.toString())};";
+  String toString() => "@debug $expression;";
 }

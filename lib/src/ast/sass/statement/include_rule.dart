@@ -9,7 +9,7 @@ import '../argument_invocation.dart';
 import '../callable_invocation.dart';
 import '../statement.dart';
 
-class Include implements Statement, CallableInvocation {
+class IncludeRule implements Statement, CallableInvocation {
   final String name;
 
   final ArgumentInvocation arguments;
@@ -18,11 +18,12 @@ class Include implements Statement, CallableInvocation {
 
   final FileSpan span;
 
-  Include(this.name, this.arguments, this.span, {Iterable<Statement> children})
+  IncludeRule(this.name, this.arguments, this.span,
+      {Iterable<Statement> children})
       : children = children == null ? null : new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitInclude(this);
+      visitor.visitIncludeRule(this);
 
   String toString() =>
       "@include $name($arguments)" +

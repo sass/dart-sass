@@ -324,33 +324,33 @@ class Parser {
 
     switch (name) {
       case "at-root":
-        return _atRoot(start);
+        return _atRootRule(start);
       case "content":
-        return _content(start);
+        return _contentRule(start);
       case "debug":
-        return _debug(start);
+        return _debugRule(start);
       case "error":
         return _errorRule(start);
       case "extend":
-        return _extend(start);
+        return _extendRule(start);
       case "function":
-        return _functionDeclaration(start);
+        return _functionRule(start);
       case "if":
-        return _if(start, child);
+        return _ifRule(start, child);
       case "import":
-        return _import(start);
+        return _importRule(start);
       case "include":
-        return _include(start);
+        return _includeRule(start);
       case "media":
         return _mediaRule(start);
       case "mixin":
-        return _mixinDeclaration(start);
+        return _mixinRule(start);
       case "return":
         return _disallowedAtRule(start);
       case "supports":
         return _supportsRule(start);
       case "warn":
-        return _warn(start);
+        return _warnRule(start);
       default:
         return _unknownAtRule(start, name);
     }
@@ -362,17 +362,17 @@ class Parser {
 
     switch (name) {
       case "content":
-        return _content(start);
+        return _contentRule(start);
       case "debug":
-        return _debug(start);
+        return _debugRule(start);
       case "error":
         return _errorRule(start);
       case "if":
-        return _if(start, _declarationChild);
+        return _ifRule(start, _declarationChild);
       case "include":
-        return _include(start);
+        return _includeRule(start);
       case "warn":
-        return _warn(start);
+        return _warnRule(start);
       default:
         return _disallowedAtRule(start);
     }
@@ -382,15 +382,15 @@ class Parser {
     var start = _scanner.state;
     switch (_atRuleName()) {
       case "debug":
-        return _debug(start);
+        return _debugRule(start);
       case "error":
         return _errorRule(start);
       case "if":
-        return _if(start, _functionAtRule);
+        return _ifRule(start, _functionAtRule);
       case "return":
-        return _return(start);
+        return _returnRule(start);
       case "warn":
-        return _warn(start);
+        return _warnRule(start);
       default:
         return _disallowedAtRule(start);
     }
@@ -403,18 +403,19 @@ class Parser {
     return name;
   }
 
-  AtRoot _atRoot(LineScannerState start) {
+  AtRootRule _atRootRule(LineScannerState start) {
     var next = _scanner.peekChar();
     var query = next == $hash || next == $lparen ? _queryExpression() : null;
     _ignoreComments();
-    return new AtRoot(_children(_topLevelStatement), _scanner.spanFrom(start),
+    return new AtRootRule(
+        _children(_topLevelStatement), _scanner.spanFrom(start),
         query: query);
   }
 
-  Content _content(LineScannerState start) {
+  ContentRule _contentRule(LineScannerState start) {
     if (_inMixin) {
       _mixinHasContent = true;
-      return new Content(_scanner.spanFrom(start));
+      return new ContentRule(_scanner.spanFrom(start));
     }
 
     _scanner.error("@content is only allowed within mixin declarations.",
@@ -422,20 +423,20 @@ class Parser {
     return null;
   }
 
-  Debug _debug(LineScannerState start) =>
-      new Debug(_expression(), _scanner.spanFrom(start));
+  DebugRule _debugRule(LineScannerState start) =>
+      new DebugRule(_expression(), _scanner.spanFrom(start));
 
   ErrorRule _errorRule(LineScannerState start) =>
       new ErrorRule(_expression(), _scanner.spanFrom(start));
 
-  Extend _extend(LineScannerState start) {
+  ExtendRule _extendRule(LineScannerState start) {
     var value = _almostAnyValue();
     var optional = _scanner.scanChar($exclamation);
     if (optional) _expectCaseInsensitive("optional");
-    return new Extend(value, _scanner.spanFrom(start), optional: optional);
+    return new ExtendRule(value, _scanner.spanFrom(start), optional: optional);
   }
 
-  FunctionDeclaration _functionDeclaration(LineScannerState start) {
+  FunctionRule _functionRule(LineScannerState start) {
     var name = _identifier();
     _ignoreComments();
     var arguments = _argumentDeclaration();
@@ -451,20 +452,20 @@ class Parser {
     var children = _children(_functionAtRule);
 
     // TODO: ensure there aren't duplicate argument names.
-    return new FunctionDeclaration(
+    return new FunctionRule(
         name, arguments, children, _scanner.spanFrom(start));
   }
 
-  If _if(LineScannerState start, Statement child()) {
+  IfRule _ifRule(LineScannerState start, Statement child()) {
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var expression = _expression();
     var children = _children(child);
     _inControlDirective = wasInControlDirective;
-    return new If(expression, children, _scanner.spanFrom(start));
+    return new IfRule(expression, children, _scanner.spanFrom(start));
   }
 
-  Statement _import(LineScannerState start) {
+  Statement _importRule(LineScannerState start) {
     if (_inControlDirective) {
       _disallowedAtRule(start);
       return null;
@@ -475,9 +476,9 @@ class Parser {
     var urlString = _string(static: true).text.asPlain;
     var url = Uri.parse(urlString);
     if (_isPlainImportUrl(urlString)) {
-      return new PlainImport(url, _scanner.spanFrom(start));
+      return new PlainImportRule(url, _scanner.spanFrom(start));
     } else {
-      return new Import(url, _scanner.spanFrom(start));
+      return new ImportRule(url, _scanner.spanFrom(start));
     }
   }
 
@@ -490,7 +491,7 @@ class Parser {
     return url.startsWith("http://") || url.startsWith("https://");
   }
 
-  Include _include(LineScannerState start) {
+  IncludeRule _includeRule(LineScannerState start) {
     var name = _identifier();
     _ignoreComments();
     var arguments = _scanner.peekChar() == $lparen
@@ -505,14 +506,14 @@ class Parser {
       _inContentBlock = false;
     }
 
-    return new Include(name, arguments, _scanner.spanFrom(start),
+    return new IncludeRule(name, arguments, _scanner.spanFrom(start),
         children: children);
   }
 
   MediaRule _mediaRule(LineScannerState start) => new MediaRule(
       _mediaQueryList(), _children(_ruleChild), _scanner.spanFrom(start));
 
-  MixinDeclaration _mixinDeclaration(LineScannerState start) {
+  MixinRule _mixinRule(LineScannerState start) {
     var name = _identifier();
     _ignoreComments();
     var arguments = _scanner.peekChar() == $lparen
@@ -532,13 +533,12 @@ class Parser {
     var children = _children(_ruleChild);
     _inMixin = false;
 
-    return new MixinDeclaration(
-        name, arguments, children, _scanner.spanFrom(start),
+    return new MixinRule(name, arguments, children, _scanner.spanFrom(start),
         hasContent: _mixinHasContent);
   }
 
-  Return _return(LineScannerState start) =>
-      new Return(_expression(), _scanner.spanFrom(start));
+  ReturnRule _returnRule(LineScannerState start) =>
+      new ReturnRule(_expression(), _scanner.spanFrom(start));
 
   SupportsRule _supportsRule(LineScannerState start) {
     var condition = _supportsCondition();
@@ -547,8 +547,8 @@ class Parser {
         condition, _children(_ruleChild), _scanner.spanFrom(start));
   }
 
-  Warn _warn(LineScannerState start) =>
-      new Warn(_expression(), _scanner.spanFrom(start));
+  WarnRule _warnRule(LineScannerState start) =>
+      new WarnRule(_expression(), _scanner.spanFrom(start));
 
   AtRule _unknownAtRule(LineScannerState start, String name) {
     Interpolation value;

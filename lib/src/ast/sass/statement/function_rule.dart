@@ -9,13 +9,13 @@ import '../argument_declaration.dart';
 import '../callable_declaration.dart';
 import '../statement.dart';
 
-class FunctionDeclaration extends CallableDeclaration {
-  FunctionDeclaration(String name, ArgumentDeclaration arguments,
+class FunctionRule extends CallableDeclaration {
+  FunctionRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span)
       : super(name, arguments, children, span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitFunctionDeclaration(this);
+      visitor.visitFunctionRule(this);
 
   String toString() => "@function $name($arguments) {${children.join(' ')}}";
 }

@@ -9,16 +9,16 @@ import '../callable_declaration.dart';
 import '../argument_declaration.dart';
 import '../statement.dart';
 
-class MixinDeclaration extends CallableDeclaration {
+class MixinRule extends CallableDeclaration {
   final bool hasContent;
 
-  MixinDeclaration(String name, ArgumentDeclaration arguments,
+  MixinRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,
       {this.hasContent: false})
       : super(name, arguments, children, span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitMixinDeclaration(this);
+      visitor.visitMixinRule(this);
 
   String toString() => "@mixin $name($arguments) {${children.join(' ')}}";
 }

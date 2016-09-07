@@ -8,15 +8,15 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
-class Debug implements Statement {
+class WarnRule implements Statement {
   final Expression expression;
 
   final FileSpan span;
 
-  Debug(this.expression, this.span);
+  WarnRule(this.expression, this.span);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitDebug(this);
+      visitor.visitWarnRule(this);
 
-  String toString() => "@debug $expression;";
+  String toString() => "@warn $expression;";
 }

@@ -47,7 +47,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   var _member = "root stylesheet";
 
-  final _importPaths = <Import, String>{};
+  final _importPaths = <ImportRule, String>{};
 
   final _importedFiles = <String, Stylesheet>{};
 
@@ -79,7 +79,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return _root;
   }
 
-  void visitAtRoot(AtRoot node) {
+  void visitAtRootRule(AtRootRule node) {
     var query = node.query == null
         ? AtRootQuery.defaultQuery
         : new Parser(_performInterpolation(node.query)).parseAtRootQuery();
@@ -164,7 +164,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     _parent.addChild(new CssComment(node.text, node.span));
   }
 
-  void visitContent(Content node) {
+  void visitContentRule(ContentRule node) {
     var block = _environment.contentBlock;
     if (block == null) return;
 
@@ -177,7 +177,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
-  void visitDebug(Debug node) {
+  void visitDebugRule(DebugRule node) {
     stderr.writeln("Line ${node.span.start.line + 1} DEBUG: "
         "${node.expression.accept(this)}");
   }
@@ -215,7 +215,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     throw _exception(node.expression.accept(this).toString(), node.span);
   }
 
-  void visitExtend(Extend node) {
+  void visitExtendRule(ExtendRule node) {
     if (_selector == null || _declarationName != null) {
       throw _exception(
           "@extend may only be used within style rules.", node.span);
@@ -264,12 +264,12 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }, through: (node) => node is CssStyleRule);
   }
 
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionRule(FunctionRule node) {
     _environment
         .setFunction(new UserDefinedCallable(node, _environment.closure()));
   }
 
-  void visitIf(If node) {
+  void visitIfRule(IfRule node) {
     var condition = node.expression.accept(this);
     if (!condition.isTruthy) return;
     _environment.scope(() {
@@ -279,7 +279,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }, semiGlobal: true);
   }
 
-  void visitImport(Import node) {
+  void visitImportRule(ImportRule node) {
     var stylesheet = _loadImport(node);
     _withStackFrame("@import", node.span, () {
       _withEnvironment(_environment.global(), () {
@@ -290,7 +290,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
-  Stylesheet _loadImport(Import node) {
+  Stylesheet _loadImport(ImportRule node) {
     var path = _importPaths.putIfAbsent(node, () {
       var path = p.fromUri(node.url);
       var extension = p.extension(path);
@@ -328,14 +328,13 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return null;
   }
 
-  void visitInclude(Include node) {
+  void visitIncludeRule(IncludeRule node) {
     var mixin = _environment.getMixin(node.name) as UserDefinedCallable;
     if (mixin == null) {
       throw _exception("Undefined mixin.", node.span);
     }
 
-    if (node.children != null &&
-        !(mixin.declaration as MixinDeclaration).hasContent) {
+    if (node.children != null && !(mixin.declaration as MixinRule).hasContent) {
       throw _exception("Mixin doesn't accept a content block.", node.span);
     }
 
@@ -356,7 +355,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinRule(MixinRule node) {
     _environment
         .setMixin(new UserDefinedCallable(node, _environment.closure()));
   }
@@ -415,10 +414,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return new CssMediaQuery(type, modifier: modifier, features: features);
   }
 
-  CssImport visitPlainImport(PlainImport node) =>
+  CssImport visitPlainImportRule(PlainImportRule node) =>
       new CssImport(node.url, node.span);
 
-  Value visitReturn(Return node) => node.expression.accept(this);
+  Value visitReturnRule(ReturnRule node) => node.expression.accept(this);
 
   void visitStyleRule(StyleRule node) {
     if (_declarationName != null) {
@@ -509,7 +508,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         global: node.isGlobal);
   }
 
-  void visitWarn(Warn node) {
+  void visitWarnRule(WarnRule node) {
     stderr.writeln("WARNING: ${valueToCss(node.expression.accept(this))}");
     for (var line in _stackTrace(node.span).toString().split("\n")) {
       stderr.writeln("         $line");
