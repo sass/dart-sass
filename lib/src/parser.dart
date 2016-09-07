@@ -870,20 +870,21 @@ class Parser {
       return _map(first, start);
     }
 
-    if (_scanner.peekChar() != $comma) {
+    if (!_scanner.scanChar($comma)) {
       _scanner.expectChar($rparen);
       return first;
     }
+    _ignoreComments();
 
     var expressions = [first];
     while (true) {
-      if (_lookingAtExpression()) break;
+      if (!_lookingAtExpression()) break;
       expressions.add(_spaceListOrValue());
       if (!_scanner.scanChar($comma)) break;
       _ignoreComments();
     }
 
-    _scanner.expectChar($lparen);
+    _scanner.expectChar($rparen);
     return new ListExpression(expressions, ListSeparator.comma,
         span: _scanner.spanFrom(start));
   }
