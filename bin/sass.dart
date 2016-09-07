@@ -5,20 +5,23 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'package:path/path.dart' as p;
+
 import 'package:sass/src/exception.dart';
 import 'package:sass/src/parser.dart';
 import 'package:sass/src/visitor/perform.dart';
 import 'package:sass/src/visitor/serialize.dart';
 
 void main(List<String> args) {
-  var argParser = new ArgParser()
+  var argParser = new ArgParser(allowTrailingOptions: true)
     ..addOption('precision', hide: true)
     ..addOption('style',
         abbr: 's',
         help: 'Output style.',
         allowed: ['expanded'],
         defaultsTo: 'expanded')
+    ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
     ..addFlag('help',
         abbr: 'h', help: 'Print this usage information.', negatable: false);
   var options = argParser.parse(args);
@@ -37,8 +40,15 @@ void main(List<String> args) {
     var cssTree = new PerformVisitor().visitStylesheet(parser.parse());
     var css = toCss(cssTree);
     if (css.isNotEmpty) print(css);
-  } on SassException catch (error) {
-    print(error.toString(color: true));
+  } on SassException catch (error, stackTrace) {
+    stderr.writeln(error.toString(color: true));
+
+    if (options['trace']) {
+      stderr.writeln();
+      stderr.write(new Trace.from(stackTrace));
+      stderr.flush();
+    }
+
     exit(1);
   }
 }
