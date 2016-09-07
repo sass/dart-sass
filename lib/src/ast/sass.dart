@@ -41,6 +41,7 @@ export 'sass/statement/style_rule.dart';
 export 'sass/statement/stylesheet.dart';
 export 'sass/statement/supports_rule.dart';
 export 'sass/statement/variable_declaration.dart';
+export 'sass/statement/warn.dart';
 export 'sass/supports_condition.dart';
 export 'sass/supports_condition/declaration.dart';
 export 'sass/supports_condition/interpolation.dart';

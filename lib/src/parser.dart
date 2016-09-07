@@ -347,6 +347,8 @@ class Parser {
         return _disallowedAtRule(start);
       case "supports":
         return _supportsRule(start);
+      case "warn":
+        return _warn(start);
       default:
         return _unknownAtRule(start, name);
     }
@@ -365,6 +367,8 @@ class Parser {
         return _if(start, _declarationChild);
       case "include":
         return _include(start);
+      case "warn":
+        return _warn(start);
       default:
         return _disallowedAtRule(start);
     }
@@ -379,6 +383,8 @@ class Parser {
         return _if(start, _functionAtRule);
       case "return":
         return _return(start);
+      case "warn":
+        return _warn(start);
       default:
         return _disallowedAtRule(start);
     }
@@ -531,6 +537,9 @@ class Parser {
     return new SupportsRule(
         condition, _children(_ruleChild), _scanner.spanFrom(start));
   }
+
+  Warn _warn(LineScannerState start) =>
+      new Warn(_expression(), _scanner.spanFrom(start));
 
   AtRule _unknownAtRule(LineScannerState start, String name) {
     Interpolation value;

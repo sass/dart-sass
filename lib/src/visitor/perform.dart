@@ -21,6 +21,7 @@ import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
+import 'serialize.dart';
 
 typedef _ScopeCallback(callback());
 
@@ -502,6 +503,13 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   void visitVariableDeclaration(VariableDeclaration node) {
     _environment.setVariable(node.name, node.expression.accept(this),
         global: node.isGlobal);
+  }
+
+  void visitWarn(Warn node) {
+    stderr.writeln("WARNING: ${valueToCss(node.expression.accept(this))}");
+    for (var line in _stackTrace(node.span).toString().split("\n")) {
+      stderr.writeln("         $line");
+    }
   }
 
   // ## Expressions
