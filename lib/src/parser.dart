@@ -329,6 +329,8 @@ class Parser {
         return _content(start);
       case "debug":
         return _debug(start);
+      case "error":
+        return _errorRule(start);
       case "extend":
         return _extend(start);
       case "function":
@@ -363,6 +365,8 @@ class Parser {
         return _content(start);
       case "debug":
         return _debug(start);
+      case "error":
+        return _errorRule(start);
       case "if":
         return _if(start, _declarationChild);
       case "include":
@@ -379,6 +383,8 @@ class Parser {
     switch (_atRuleName()) {
       case "debug":
         return _debug(start);
+      case "error":
+        return _errorRule(start);
       case "if":
         return _if(start, _functionAtRule);
       case "return":
@@ -418,6 +424,9 @@ class Parser {
 
   Debug _debug(LineScannerState start) =>
       new Debug(_expression(), _scanner.spanFrom(start));
+
+  ErrorRule _errorRule(LineScannerState start) =>
+      new ErrorRule(_expression(), _scanner.spanFrom(start));
 
   Extend _extend(LineScannerState start) {
     var value = _almostAnyValue();

@@ -211,6 +211,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
+  void visitErrorRule(ErrorRule node) {
+    throw _exception(node.expression.accept(this).toString(), node.span);
+  }
+
   void visitExtend(Extend node) {
     if (_selector == null || _declarationName != null) {
       throw _exception(

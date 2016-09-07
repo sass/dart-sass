@@ -11,6 +11,7 @@ abstract class StatementVisitor<T> {
   T visitContent(Content node);
   T visitDebug(Debug node);
   T visitDeclaration(Declaration node);
+  T visitErrorRule(ErrorRule node);
   T visitExtend(Extend node);
   T visitFunctionDeclaration(FunctionDeclaration node);
   T visitIf(If node);
