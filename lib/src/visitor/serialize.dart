@@ -272,8 +272,25 @@ class _SerializeCssVisitor
     return false;
   }
 
-  void visitMap(SassMap map) =>
-      throw new InternalException("$map isn't a valid CSS value.");
+  void visitMap(SassMap map) {
+    if (!_inspect) throw new InternalException("$map isn't a valid CSS value.");
+    _buffer.writeCharCode($lparen);
+    _writeBetween(map.contents.keys, ", ", (key) {
+      _writeMapElement(key);
+      _buffer.write(": ");
+      _writeMapElement(map.contents[key]);
+    });
+    _buffer.writeCharCode($rparen);
+  }
+
+  void _writeMapElement(Value value) {
+    var needsParens = value is SassList &&
+        value.separator == ListSeparator.comma &&
+        !value.isBracketed;
+    if (needsParens) _buffer.writeCharCode($lparen);
+    value.accept(this);
+    if (needsParens) _buffer.writeCharCode($rparen);
+  }
 
   void visitNull(SassNull value) {
     _buffer.write("null");
