@@ -266,8 +266,8 @@ class _SerializeCssVisitor
       if (value.contents.length < 2) return false;
       if (value.isBracketed) return false;
       return separator == ListSeparator.comma
-          ? separator == ListSeparator.comma
-          : separator != ListSeparator.undecided;
+          ? value.separator == ListSeparator.comma
+          : value.separator != ListSeparator.undecided;
     }
     return false;
   }
