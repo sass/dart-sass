@@ -16,15 +16,13 @@ class SelectorList extends Selector {
 
   bool get _containsParentSelector {
     return components.any((complex) {
-      return complex.components.any((component) {
-        if (component is CompoundSelector) {
-          return component.components.any((simple) =>
+      return complex.components.any((component) =>
+          component is CompoundSelector &&
+          component.components.any((simple) =>
               simple is ParentSelector ||
               (simple is PseudoSelector &&
                   simple.selector != null &&
-                  simple.selector._containsParentSelector));
-        }
-      });
+                  simple.selector._containsParentSelector)));
     });
   }
 

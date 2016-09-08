@@ -1358,14 +1358,17 @@ class Parser {
       var next = _scanner.peekChar();
       switch (next) {
         case $plus:
+          _scanner.readChar();
           component = Combinator.nextSibling;
           break;
 
         case $gt:
+          _scanner.readChar();
           component = Combinator.child;
           break;
 
         case $tilde:
+          _scanner.readChar();
           component = Combinator.followingSibling;
           break;
 
