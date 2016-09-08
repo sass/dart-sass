@@ -158,7 +158,7 @@ class Extender {
     for (var i = 0; i < compound.components.length; i++) {
       var simple = compound.components[i];
 
-      // TODO: handle extending into pseudo selectors, extend failures
+      // TODO: handle extending into pseudo selectors
 
       var sources = extensions[simple];
       if (sources == null) continue;

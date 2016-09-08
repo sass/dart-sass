@@ -573,8 +573,6 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   Value visitVariableExpression(VariableExpression node) {
     var result = _environment.getVariable(node.name);
     if (result != null) return result;
-
-    // TODO: real exception
     throw _exception("Undefined variable.", node.span);
   }
 
