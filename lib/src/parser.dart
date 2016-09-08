@@ -819,6 +819,8 @@ class Parser {
         return _bracketedList();
       case $dollar:
         return _variable();
+      case $ampersand:
+        return _selector();
 
       case $single_quote:
       case $double_quote:
@@ -970,6 +972,12 @@ class Parser {
   VariableExpression _variable() {
     var start = _scanner.state;
     return new VariableExpression(_variableName(), _scanner.spanFrom(start));
+  }
+
+  SelectorExpression _selector() {
+    var start = _scanner.state;
+    _scanner.expectChar($ampersand);
+    return new SelectorExpression(_scanner.spanFrom(start));
   }
 
   StringExpression _string({bool static: false}) {
@@ -2008,6 +2016,7 @@ class Parser {
         character == $minus ||
         character == $backslash ||
         character == $dollar ||
+        character == $ampersand ||
         isNameStart(character) ||
         isDigit(character);
   }

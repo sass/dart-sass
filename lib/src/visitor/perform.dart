@@ -822,6 +822,11 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
+  Value visitSelectorExpression(SelectorExpression node) {
+    if (_selector == null) return sassNull;
+    return _selector.value.asSassList;
+  }
+
   SassString visitStringExpression(StringExpression node) =>
       new SassString(_performInterpolation(node.text));
 

@@ -16,6 +16,7 @@ export 'sass/expression/list.dart';
 export 'sass/expression/map.dart';
 export 'sass/expression/null.dart';
 export 'sass/expression/number.dart';
+export 'sass/expression/selector.dart';
 export 'sass/expression/string.dart';
 export 'sass/expression/unary_operator.dart';
 export 'sass/expression/variable.dart';

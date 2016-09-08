@@ -13,6 +13,7 @@ abstract class ExpressionVisitor<T> {
   T visitMapExpression(MapExpression node);
   T visitNullExpression(NullExpression node);
   T visitNumberExpression(NumberExpression node);
+  T visitSelectorExpression(SelectorExpression node);
   T visitStringExpression(StringExpression node);
   T visitUnaryOperatorExpression(UnaryOperatorExpression node);
   T visitVariableExpression(VariableExpression node);

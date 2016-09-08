@@ -5,6 +5,7 @@
 import '../../extend/functions.dart';
 import '../../utils.dart';
 import '../../exception.dart';
+import '../../value.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -24,6 +25,15 @@ class SelectorList extends Selector {
                   simple.selector != null &&
                   simple.selector._containsParentSelector)));
     });
+  }
+
+  SassList get asSassList {
+    return new SassList(components.map((complex) {
+      return new SassList(
+          complex.components
+              .map((component) => new SassIdentifier(component.toString())),
+          ListSeparator.space);
+    }), ListSeparator.comma);
   }
 
   SelectorList(Iterable<ComplexSelector> components, {Iterable<int> lineBreaks})
