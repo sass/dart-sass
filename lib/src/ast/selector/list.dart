@@ -165,6 +165,4 @@ class SelectorList extends Selector {
 
   bool operator ==(other) =>
       other is ComplexSelector && listEquals(components, other.components);
-
-  String toString() => components.join(", ");
 }

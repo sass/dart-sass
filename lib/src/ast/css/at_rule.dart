@@ -31,10 +31,4 @@ class CssAtRule extends CssParentNode {
     assert(!isChildless);
     super.addChild(child);
   }
-
-  String toString() {
-    var buffer = new StringBuffer("@$name");
-    if (value != null) buffer.write(" $value");
-    return children == null ? "$buffer;" : "$buffer {${children.join(" ")}}";
-  }
 }
