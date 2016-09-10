@@ -16,7 +16,7 @@ import '../callable.dart';
 import '../environment.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
-import '../parser.dart';
+import '../parse.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
@@ -82,7 +82,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   void visitAtRootRule(AtRootRule node) {
     var query = node.query == null
         ? AtRootQuery.defaultQuery
-        : new Parser(_performInterpolation(node.query)).parseAtRootQuery();
+        : parseAtRootQuery(_performInterpolation(node.query));
 
     var parent = _parent;
     var included = <CssParentNode>[];
@@ -251,7 +251,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
     // TODO: recontextualize parse errors.
     // TODO: disallow parent selectors.
-    var target = new Parser(targetText.value.trim()).parseSimpleSelector();
+    var target = parseSimpleSelector(targetText.value.trim());
     _extender.addExtension(_selector.value, target, node);
   }
 
@@ -358,10 +358,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       throw _exception("Can't find file to import.", node.span);
     }
 
-    return _importedFiles.putIfAbsent(
-        path,
-        () => new Parser(new File(path).readAsStringSync(), url: p.toUri(path))
-            .parse());
+    return _importedFiles.putIfAbsent(path,
+        () => parseScss(new File(path).readAsStringSync(), url: p.toUri(path)));
   }
 
   String _tryImportPathWithExtensions(String path) =>
@@ -472,7 +470,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     var selectorText = _interpolationToValue(node.selector, trim: true);
-    var parsedSelector = new Parser(selectorText.value).parseSelector();
+    var parsedSelector = parseSelector(selectorText.value);
     parsedSelector = _addExceptionSpan(
         () => parsedSelector.resolveParentSelectors(_selector?.value),
         node.selector.span);
