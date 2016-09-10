@@ -13,17 +13,17 @@ class AtRootQueryParser extends Parser {
   AtRootQuery parse() {
     return wrapFormatException(() {
       scanner.expectChar($lparen);
-      ignoreComments();
+      whitespace();
       expectIdentifier("with", ignoreCase: true);
       var include = !scanIdentifier("out", ignoreCase: true);
-      ignoreComments();
+      whitespace();
       scanner.expectChar($colon);
-      ignoreComments();
+      whitespace();
 
       var atRules = new Set<String>();
       do {
         atRules.add(identifier().toLowerCase());
-        ignoreComments();
+        whitespace();
       } while (lookingAtIdentifier());
 
       return new AtRootQuery(include, atRules);

@@ -19,17 +19,17 @@ abstract class Parser {
 
   bool scanWhitespace() {
     var start = scanner.position;
-    ignoreComments();
+    whitespace();
     return scanner.position != start;
   }
 
-  void ignoreComments() {
+  void whitespace() {
     do {
-      whitespace();
+      whitespaceWithoutComments();
     } while (comment());
   }
 
-  void whitespace() {
+  void whitespaceWithoutComments() {
     while (!scanner.isDone && isWhitespace(scanner.peekChar())) {
       scanner.readChar();
     }

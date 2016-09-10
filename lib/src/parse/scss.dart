@@ -49,9 +49,9 @@ class ScssParser extends Parser {
   VariableDeclaration _variableDeclaration() {
     var start = scanner.state;
     var name = variableName();
-    ignoreComments();
+    whitespace();
     scanner.expectChar($colon);
-    ignoreComments();
+    whitespace();
 
     var expression = _expression();
 
@@ -69,7 +69,7 @@ class ScssParser extends Parser {
             position: flagStart, length: scanner.position - flagStart);
       }
 
-      ignoreComments();
+      whitespace();
     }
 
     return new VariableDeclaration(name, expression, scanner.spanFrom(start),
@@ -155,7 +155,7 @@ class ScssParser extends Parser {
         first == $dot ||
         (first == $hash && scanner.peekChar(1) != $lbrace)) {
       nameBuffer.writeCharCode(scanner.readChar());
-      nameBuffer.write(rawText(ignoreComments));
+      nameBuffer.write(rawText(whitespace));
     }
 
     if (!_lookingAtInterpolatedIdentifier()) return nameBuffer;
@@ -163,7 +163,7 @@ class ScssParser extends Parser {
     if (scanner.matches("/*")) nameBuffer.write(rawText(loudComment));
 
     var midBuffer = new StringBuffer();
-    midBuffer.write(rawText(ignoreComments));
+    midBuffer.write(rawText(whitespace));
     if (!scanner.scanChar($colon)) return nameBuffer;
     midBuffer.writeCharCode($colon);
 
@@ -184,7 +184,7 @@ class ScssParser extends Parser {
         ..writeCharCode($colon);
     }
 
-    var postColonWhitespace = rawText(ignoreComments);
+    var postColonWhitespace = rawText(whitespace);
     if (scanner.peekChar() == $lbrace) {
       return new Declaration(name, scanner.spanFrom(start),
           children: _children(_declarationChild));
@@ -232,9 +232,9 @@ class ScssParser extends Parser {
   Declaration _declaration() {
     var start = scanner.state;
     var name = _interpolatedIdentifier();
-    ignoreComments();
+    whitespace();
     scanner.expectChar($colon);
-    ignoreComments();
+    whitespace();
 
     if (scanner.peekChar() == $lbrace) {
       return new Declaration(name, scanner.spanFrom(start),
@@ -261,7 +261,7 @@ class ScssParser extends Parser {
     do {
       while (!scanner.isDone && !isNewline(scanner.readChar())) {}
       if (scanner.isDone) break;
-      whitespace();
+      whitespaceWithoutComments();
     } while (scanner.scan("//"));
 
     return new Comment(
@@ -382,14 +382,14 @@ class ScssParser extends Parser {
   String _atRuleName() {
     scanner.expectChar($at);
     var name = identifier();
-    ignoreComments();
+    whitespace();
     return name;
   }
 
   AtRootRule _atRootRule(LineScannerState start) {
     var next = scanner.peekChar();
     var query = next == $hash || next == $lparen ? _queryExpression() : null;
-    ignoreComments();
+    whitespace();
     return new AtRootRule(
         _children(_topLevelStatement), scanner.spanFrom(start),
         query: query);
@@ -414,15 +414,15 @@ class ScssParser extends Parser {
     _inControlDirective = true;
 
     var variables = [variableName()];
-    ignoreComments();
+    whitespace();
     while (scanner.scanChar($comma)) {
-      ignoreComments();
+      whitespace();
       variables.add(variableName());
-      ignoreComments();
+      whitespace();
     }
 
     expectIdentifier("in");
-    ignoreComments();
+    whitespace();
 
     var list = _expression();
     var children = _children(child);
@@ -443,7 +443,7 @@ class ScssParser extends Parser {
 
   FunctionRule _functionRule(LineScannerState start) {
     var name = identifier();
-    ignoreComments();
+    whitespace();
     var arguments = _argumentDeclaration();
 
     if (_inMixin || _inContentBlock) {
@@ -453,7 +453,7 @@ class ScssParser extends Parser {
           scanner.string);
     }
 
-    ignoreComments();
+    whitespace();
     var children = _children(_functionAtRule);
 
     // TODO: ensure there aren't duplicate argument names.
@@ -464,10 +464,10 @@ class ScssParser extends Parser {
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var variable = variableName();
-    ignoreComments();
+    whitespace();
 
     expectIdentifier("from");
-    ignoreComments();
+    whitespace();
     bool exclusive;
     var from = _expressionUntil(() {
       if (!lookingAtIdentifier()) return false;
@@ -482,7 +482,7 @@ class ScssParser extends Parser {
       }
     }, '"to" or "through"');
 
-    ignoreComments();
+    whitespace();
     var to = _expression();
 
     var children = _children(child);
@@ -529,11 +529,11 @@ class ScssParser extends Parser {
 
   IncludeRule _includeRule(LineScannerState start) {
     var name = identifier();
-    ignoreComments();
+    whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentInvocation()
         : new ArgumentInvocation.empty(scanner.emptySpan);
-    ignoreComments();
+    whitespace();
 
     List<Statement> children;
     if (scanner.peekChar() == $lbrace) {
@@ -551,7 +551,7 @@ class ScssParser extends Parser {
 
   MixinRule _mixinRule(LineScannerState start) {
     var name = identifier();
-    ignoreComments();
+    whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentDeclaration()
         : new ArgumentDeclaration.empty(span: scanner.emptySpan);
@@ -563,7 +563,7 @@ class ScssParser extends Parser {
           scanner.string);
     }
 
-    ignoreComments();
+    whitespace();
     _inMixin = true;
     _mixinHasContent = false;
     var children = _children(_ruleChild);
@@ -578,7 +578,7 @@ class ScssParser extends Parser {
 
   SupportsRule _supportsRule(LineScannerState start) {
     var condition = _supportsCondition();
-    ignoreComments();
+    whitespace();
     return new SupportsRule(
         condition, _children(_ruleChild), scanner.spanFrom(start));
   }
@@ -623,17 +623,17 @@ class ScssParser extends Parser {
   ArgumentDeclaration _argumentDeclaration() {
     var start = scanner.state;
     scanner.expectChar($lparen);
-    ignoreComments();
+    whitespace();
     var arguments = <Argument>[];
     String restArgument;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
       var name = variableName();
-      ignoreComments();
+      whitespace();
 
       Expression defaultValue;
       if (scanner.scanChar($colon)) {
-        ignoreComments();
+        whitespace();
         defaultValue = _spaceListOrValue();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
@@ -645,7 +645,7 @@ class ScssParser extends Parser {
       arguments.add(new Argument(name,
           span: scanner.spanFrom(variableStart), defaultValue: defaultValue));
       if (!scanner.scanChar($comma)) break;
-      ignoreComments();
+      whitespace();
     }
     scanner.expectChar($rparen);
     return new ArgumentDeclaration(arguments,
@@ -657,7 +657,7 @@ class ScssParser extends Parser {
   ArgumentInvocation _argumentInvocation() {
     var start = scanner.state;
     scanner.expectChar($lparen);
-    ignoreComments();
+    whitespace();
 
     var positional = <Expression>[];
     var named = <String, Expression>{};
@@ -665,10 +665,10 @@ class ScssParser extends Parser {
     Expression keywordRest;
     while (_lookingAtExpression()) {
       var expression = _spaceListOrValue();
-      ignoreComments();
+      whitespace();
 
       if (expression is VariableExpression && scanner.scanChar($colon)) {
-        ignoreComments();
+        whitespace();
         named[expression.name] = _spaceListOrValue();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
@@ -677,7 +677,7 @@ class ScssParser extends Parser {
           rest = expression;
         } else {
           keywordRest = expression;
-          ignoreComments();
+          whitespace();
           break;
         }
       } else if (named.isNotEmpty) {
@@ -686,9 +686,9 @@ class ScssParser extends Parser {
         positional.add(expression);
       }
 
-      ignoreComments();
+      whitespace();
       if (!scanner.scanChar($comma)) break;
-      ignoreComments();
+      whitespace();
     }
     scanner.expectChar($rparen);
 
@@ -698,12 +698,12 @@ class ScssParser extends Parser {
 
   Expression _expression() {
     var first = _singleExpression();
-    ignoreComments();
+    whitespace();
     if (_lookingAtExpression()) {
       var spaceExpressions = [first];
       do {
         spaceExpressions.add(_singleExpression());
-        ignoreComments();
+        whitespace();
       } while (_lookingAtExpression());
       first = new ListExpression(spaceExpressions, ListSeparator.space);
     }
@@ -712,7 +712,7 @@ class ScssParser extends Parser {
 
     var commaExpressions = [first];
     do {
-      ignoreComments();
+      whitespace();
       if (!_lookingAtExpression()) break;
       commaExpressions.add(_spaceListOrValue());
     } while (scanner.scanChar($comma));
@@ -726,14 +726,14 @@ class ScssParser extends Parser {
   Expression _expressionUntil(bool isDone(), String name) {
     if (isDone()) scanner.error("Expected expression.");
     var first = _singleExpression();
-    ignoreComments();
+    whitespace();
     if (isDone()) return first;
 
     if (_lookingAtExpression()) {
       var spaceExpressions = [first];
       do {
         spaceExpressions.add(_singleExpression());
-        ignoreComments();
+        whitespace();
 
         if (isDone()) {
           return new ListExpression(spaceExpressions, ListSeparator.space);
@@ -746,7 +746,7 @@ class ScssParser extends Parser {
 
     var commaExpressions = [first];
     do {
-      ignoreComments();
+      whitespace();
       if (isDone()) {
         return new ListExpression(commaExpressions, ListSeparator.comma);
       }
@@ -762,12 +762,12 @@ class ScssParser extends Parser {
   ListExpression _bracketedList() {
     var start = scanner.state;
     scanner.expectChar($lbracket);
-    ignoreComments();
+    whitespace();
 
     var expressions = <Expression>[];
     while (!scanner.scanChar($lbracket)) {
       expressions.add(_spaceListOrValue());
-      ignoreComments();
+      whitespace();
       if (!scanner.scanChar($comma)) break;
     }
 
@@ -777,13 +777,13 @@ class ScssParser extends Parser {
 
   Expression _spaceListOrValue() {
     var first = _singleExpression();
-    ignoreComments();
+    whitespace();
     if (!_lookingAtExpression()) return first;
 
     var spaceExpressions = [first];
     do {
       spaceExpressions.add(_singleExpression());
-      ignoreComments();
+      whitespace();
     } while (_lookingAtExpression());
 
     return new ListExpression(spaceExpressions, ListSeparator.space);
@@ -844,7 +844,7 @@ class ScssParser extends Parser {
   Expression _parentheses() {
     var start = scanner.state;
     scanner.expectChar($lparen);
-    ignoreComments();
+    whitespace();
     if (!_lookingAtExpression()) {
       scanner.expectChar($rparen);
       return new ListExpression([], ListSeparator.undecided,
@@ -853,7 +853,7 @@ class ScssParser extends Parser {
 
     var first = _spaceListOrValue();
     if (scanner.scanChar($colon)) {
-      ignoreComments();
+      whitespace();
       return _map(first, start);
     }
 
@@ -861,14 +861,14 @@ class ScssParser extends Parser {
       scanner.expectChar($rparen);
       return first;
     }
-    ignoreComments();
+    whitespace();
 
     var expressions = [first];
     while (true) {
       if (!_lookingAtExpression()) break;
       expressions.add(_spaceListOrValue());
       if (!scanner.scanChar($comma)) break;
-      ignoreComments();
+      whitespace();
     }
 
     scanner.expectChar($rparen);
@@ -880,12 +880,12 @@ class ScssParser extends Parser {
     var pairs = [new Pair(first, _spaceListOrValue())];
 
     while (scanner.scanChar($comma)) {
-      ignoreComments();
+      whitespace();
       if (!_lookingAtExpression()) break;
 
       var key = _spaceListOrValue();
       scanner.expectChar($colon);
-      ignoreComments();
+      whitespace();
       var value = _spaceListOrValue();
       pairs.add(new Pair(key, value));
     }
@@ -901,7 +901,7 @@ class ScssParser extends Parser {
       scanner.error("Expected unary operator", position: scanner.position - 1);
     }
 
-    ignoreComments();
+    whitespace();
     var operand = _singleExpression();
     return new UnaryOperatorExpression(
         operator, operand, scanner.spanFrom(start));
@@ -1077,7 +1077,7 @@ class ScssParser extends Parser {
     var identifier = _interpolatedIdentifier();
     switch (identifier.asPlain) {
       case "not":
-        ignoreComments();
+        whitespace();
         return new UnaryOperatorExpression(
             UnaryOperator.not, _singleExpression(), identifier.span);
 
@@ -1299,7 +1299,7 @@ class ScssParser extends Parser {
 
   Expression _singleInterpolation() {
     scanner.expect('#{');
-    ignoreComments();
+    whitespace();
     var expression = _expression();
     scanner.expectChar($rbrace);
     return expression;
@@ -1316,18 +1316,18 @@ class ScssParser extends Parser {
     var buffer = new InterpolationBuffer();
     scanner.expectChar($lparen);
     buffer.writeCharCode($lparen);
-    ignoreComments();
+    whitespace();
 
     buffer.add(_expression());
     if (scanner.scanChar($colon)) {
-      ignoreComments();
+      whitespace();
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
       buffer.add(_expression());
     }
 
     scanner.expectChar($rparen);
-    ignoreComments();
+    whitespace();
     buffer.writeCharCode($rparen);
 
     return buffer.interpolation(scanner.spanFrom(start));
@@ -1338,7 +1338,7 @@ class ScssParser extends Parser {
   List<MediaQuery> _mediaQueryList() {
     var queries = <MediaQuery>[];
     do {
-      ignoreComments();
+      whitespace();
       queries.add(_mediaQuery());
     } while (scanner.scanChar($comma));
     return queries;
@@ -1349,7 +1349,7 @@ class ScssParser extends Parser {
     Interpolation type;
     if (scanner.peekChar() != $lparen) {
       var identifier1 = _interpolatedIdentifier();
-      ignoreComments();
+      whitespace();
 
       if (!_lookingAtInterpolatedIdentifier()) {
         // For example, "@media screen {"
@@ -1357,7 +1357,7 @@ class ScssParser extends Parser {
       }
 
       var identifier2 = _interpolatedIdentifier();
-      ignoreComments();
+      whitespace();
 
       if (equalsIgnoreCase(identifier2.asPlain, "and")) {
         // For example, "@media screen and ..."
@@ -1367,7 +1367,7 @@ class ScssParser extends Parser {
         type = identifier2;
         if (scanIdentifier("and", ignoreCase: true)) {
           // For example, "@media only screen and ..."
-          ignoreComments();
+          whitespace();
         } else {
           // For example, "@media only screen {"
           return new MediaQuery(type, modifier: modifier);
@@ -1380,9 +1380,9 @@ class ScssParser extends Parser {
 
     var features = <Interpolation>[];
     do {
-      ignoreComments();
+      whitespace();
       features.add(_queryExpression());
-      ignoreComments();
+      whitespace();
     } while (scanIdentifier("and", ignoreCase: true));
 
     if (type == null) {
@@ -1400,13 +1400,13 @@ class ScssParser extends Parser {
     if (first != $lparen && first != $hash) {
       var start = scanner.state;
       expectIdentifier("not", ignoreCase: true);
-      ignoreComments();
+      whitespace();
       return new SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
     }
 
     var condition = _supportsConditionInParens();
-    ignoreComments();
+    whitespace();
     while (lookingAtIdentifier()) {
       String operator;
       if (scanIdentifier("or", ignoreCase: true)) {
@@ -1416,11 +1416,11 @@ class ScssParser extends Parser {
         operator = "and";
       }
 
-      ignoreComments();
+      whitespace();
       var right = _supportsConditionInParens();
       condition = new SupportsOperation(
           condition, right, operator, scanner.spanFrom(start));
-      ignoreComments();
+      whitespace();
     }
     return condition;
   }
@@ -1433,11 +1433,11 @@ class ScssParser extends Parser {
     }
 
     scanner.expectChar($lparen);
-    ignoreComments();
+    whitespace();
     var next = scanner.peekChar();
     if (next == $lparen || next == $hash) {
       var condition = _supportsCondition();
-      ignoreComments();
+      whitespace();
       scanner.expectChar($rparen);
       return condition;
     }
@@ -1449,7 +1449,7 @@ class ScssParser extends Parser {
 
     var name = _expression();
     scanner.expectChar($colon);
-    ignoreComments();
+    whitespace();
     var value = _expression();
     scanner.expectChar($rparen);
     return new SupportsDeclaration(name, value, scanner.spanFrom(start));
@@ -1519,7 +1519,7 @@ class ScssParser extends Parser {
 
   List<Statement> _children(Statement child()) {
     scanner.expectChar($lbrace);
-    whitespace();
+    whitespaceWithoutComments();
     var children = <Statement>[];
     while (true) {
       switch (scanner.peekChar()) {
@@ -1543,12 +1543,12 @@ class ScssParser extends Parser {
 
         case $semicolon:
           scanner.readChar();
-          whitespace();
+          whitespaceWithoutComments();
           break;
 
         case $rbrace:
           scanner.expectChar($rbrace);
-          whitespace();
+          whitespaceWithoutComments();
           return children;
 
         default:
@@ -1560,7 +1560,7 @@ class ScssParser extends Parser {
 
   List<Statement> _statements(Statement statement()) {
     var statements = <Statement>[];
-    whitespace();
+    whitespaceWithoutComments();
     while (!scanner.isDone) {
       switch (scanner.peekChar()) {
         case $dollar:
@@ -1583,7 +1583,7 @@ class ScssParser extends Parser {
 
         case $semicolon:
           scanner.readChar();
-          whitespace();
+          whitespaceWithoutComments();
           break;
 
         default:

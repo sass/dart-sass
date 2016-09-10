@@ -38,10 +38,10 @@ class SelectorParser extends Parser {
     var components = <ComplexSelector>[];
     var lineBreaks = <int>[];
 
-    ignoreComments();
+    whitespace();
     var previousLine = scanner.line;
     do {
-      ignoreComments();
+      whitespace();
       var next = scanner.peekChar();
       if (next == $comma) continue;
       if (next == $lbrace) break;
@@ -63,7 +63,7 @@ class SelectorParser extends Parser {
     var previousLine = scanner.line;
     loop:
     while (true) {
-      ignoreComments();
+      whitespace();
 
       ComplexSelectorComponent component;
       var next = scanner.peekChar();
@@ -144,23 +144,23 @@ class SelectorParser extends Parser {
 
   AttributeSelector _attributeSelector() {
     scanner.expectChar($lbracket);
-    ignoreComments();
+    whitespace();
 
     var name = _attributeName();
-    ignoreComments();
+    whitespace();
     if (scanner.scanChar($rbracket)) {
       scanner.readChar();
       return new AttributeSelector(name);
     }
 
     var operator = _attributeOperator();
-    ignoreComments();
+    whitespace();
 
     var next = scanner.peekChar();
     var value = next == $single_quote || next == $double_quote
         ? string()
         : identifier();
-    ignoreComments();
+    whitespace();
 
     scanner.expectChar($rbracket);
     return new AttributeSelector.withOperator(name, operator, value);
@@ -246,7 +246,7 @@ class SelectorParser extends Parser {
     if (!scanner.scanChar($lparen)) {
       return new PseudoSelector(name, type);
     }
-    ignoreComments();
+    whitespace();
 
     var unvendored = unvendor(name);
     String argument;
@@ -260,7 +260,7 @@ class SelectorParser extends Parser {
       if (scanWhitespace()) {
         expectIdentifier("of", ignoreCase: true);
         argument += " of";
-        ignoreComments();
+        whitespace();
 
         selector = _selectorList();
       }
@@ -296,17 +296,17 @@ class SelectorParser extends Parser {
       while (isDigit(scanner.peekChar())) {
         scanner.readChar();
       }
-      ignoreComments();
+      whitespace();
       if (!scanCharIgnoreCase($n)) return;
     } else {
       expectCharIgnoreCase($n);
     }
-    ignoreComments();
+    whitespace();
 
     var next = scanner.peekChar();
     if (next != $plus && next != $minus) return;
     scanner.readChar();
-    ignoreComments();
+    whitespace();
 
     var last = scanner.peekChar();
     if (last == null || !isDigit(last)) scanner.error("Expected a number.");
