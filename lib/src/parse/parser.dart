@@ -17,8 +17,6 @@ abstract class Parser {
 
   // ## Tokens
 
-  String commentText() => rawText(ignoreComments);
-
   bool scanWhitespace() {
     var start = scanner.position;
     ignoreComments();

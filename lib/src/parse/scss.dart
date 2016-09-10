@@ -155,15 +155,15 @@ class ScssParser extends Parser {
         first == $dot ||
         (first == $hash && scanner.peekChar(1) != $lbrace)) {
       nameBuffer.writeCharCode(scanner.readChar());
-      nameBuffer.write(commentText());
+      nameBuffer.write(rawText(ignoreComments));
     }
 
     if (!_lookingAtInterpolatedIdentifier()) return nameBuffer;
     nameBuffer.addInterpolation(_interpolatedIdentifier());
-    nameBuffer.write(rawText(_tryComment));
+    if (scanner.matches("/*")) nameBuffer.write(rawText(loudComment));
 
     var midBuffer = new StringBuffer();
-    midBuffer.write(commentText());
+    midBuffer.write(rawText(ignoreComments));
     if (!scanner.scanChar($colon)) return nameBuffer;
     midBuffer.writeCharCode($colon);
 
@@ -184,7 +184,7 @@ class ScssParser extends Parser {
         ..writeCharCode($colon);
     }
 
-    var postColonWhitespace = commentText();
+    var postColonWhitespace = rawText(ignoreComments);
     if (scanner.peekChar() == $lbrace) {
       return new Declaration(name, scanner.spanFrom(start),
           children: _children(_declarationChild));
@@ -252,31 +252,6 @@ class ScssParser extends Parser {
   Statement _declarationChild() {
     if (scanner.peekChar() == $at) return _declarationAtRule();
     return _declaration();
-  }
-
-  /// Consumes whitespace if available and returns any comments it contained.
-  List<Comment> _comments() {
-    var nodes = <Comment>[];
-    while (true) {
-      whitespace();
-
-      var comment = _tryComment();
-      if (comment == null) return nodes;
-
-      nodes.add(comment);
-    }
-  }
-
-  Comment _tryComment() {
-    if (scanner.peekChar() != $slash) return null;
-    switch (scanner.peekChar(1)) {
-      case $slash:
-        return _silentComment();
-      case $asterisk:
-        return _loudComment();
-      default:
-        return null;
-    }
   }
 
   Comment _silentComment() {
@@ -1544,20 +1519,36 @@ class ScssParser extends Parser {
 
   List<Statement> _children(Statement child()) {
     scanner.expectChar($lbrace);
+    whitespace();
     var children = <Statement>[];
     while (true) {
-      children.addAll(_comments());
       switch (scanner.peekChar()) {
         case $dollar:
           children.add(_variableDeclaration());
           break;
 
+        case $slash:
+          switch (scanner.peekChar(1)) {
+            case $slash:
+              children.add(_silentComment());
+              break;
+            case $asterisk:
+              children.add(_loudComment());
+              break;
+            default:
+              children.add(child());
+              break;
+          }
+          break;
+
         case $semicolon:
           scanner.readChar();
+          whitespace();
           break;
 
         case $rbrace:
           scanner.expectChar($rbrace);
+          whitespace();
           return children;
 
         default:
@@ -1568,22 +1559,37 @@ class ScssParser extends Parser {
   }
 
   List<Statement> _statements(Statement statement()) {
-    var statements = <Statement>[]..addAll(_comments());
+    var statements = <Statement>[];
+    whitespace();
     while (!scanner.isDone) {
       switch (scanner.peekChar()) {
         case $dollar:
           statements.add(_variableDeclaration());
           break;
 
+        case $slash:
+          switch (scanner.peekChar(1)) {
+            case $slash:
+              statements.add(_silentComment());
+              break;
+            case $asterisk:
+              statements.add(_loudComment());
+              break;
+            default:
+              statements.add(statement());
+              break;
+          }
+          break;
+
         case $semicolon:
           scanner.readChar();
+          whitespace();
           break;
 
         default:
           statements.add(statement());
           break;
       }
-      statements.addAll(_comments());
     }
     return statements;
   }
