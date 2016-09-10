@@ -72,8 +72,8 @@ class Parser {
     return _wrapFormatException(() {
       _scanner.expectChar($lparen);
       _ignoreComments();
-      _expectCaseInsensitive("with");
-      var include = !_scanCaseInsensitive("out");
+      _expectIdentifier("with", ignoreCase: true);
+      var include = !_scanIdentifier("out", ignoreCase: true);
       _ignoreComments();
       _scanner.expectChar($colon);
       _ignoreComments();
@@ -454,7 +454,7 @@ class Parser {
       _ignoreComments();
     }
 
-    _scanner.expect("in");
+    _expectIdentifier("in");
     _ignoreComments();
 
     var list = _expression();
@@ -470,7 +470,7 @@ class Parser {
   ExtendRule _extendRule(LineScannerState start) {
     var value = _almostAnyValue();
     var optional = _scanner.scanChar($exclamation);
-    if (optional) _expectCaseInsensitive("optional");
+    if (optional) _expectIdentifier("optional");
     return new ExtendRule(value, _scanner.spanFrom(start), optional: optional);
   }
 
@@ -500,16 +500,22 @@ class Parser {
     var variable = _variableName();
     _ignoreComments();
 
-    _scanner.expect("from");
+    _expectIdentifier("from");
     _ignoreComments();
+    bool exclusive;
     var from = _expressionUntil(() {
-      if (!_scanner.matches("to") && !_scanner.matches("through")) return false;
-      var after = _scanner.peekChar(_scanner.lastMatch[0].length);
-      return after == null || isWhitespace(after);
-    });
+      if (!_lookingAtIdentifier()) return false;
+      if (_scanIdentifier("to")) {
+        exclusive = true;
+        return true;
+      } else if (_scanIdentifier("through")) {
+        exclusive = false;
+        return true;
+      } else {
+        return false;
+      }
+    }, '"to" or "through"');
 
-    var exclusive = _scanner.scan("to");
-    if (!exclusive) _scanner.expect("through", name: '"to" or "through"');
     _ignoreComments();
     var to = _expression();
 
@@ -749,29 +755,43 @@ class Parser {
     return new ListExpression(commaExpressions, ListSeparator.comma);
   }
 
-  Expression _expressionUntil(bool isDone()) {
+  // [isDone] is called at valid end-of-expression positions, after whitespace.
+  // This will return immediately after [isDone] returns true, and will fail if
+  // it can't consume an expression and [isDone] returns false.
+  Expression _expressionUntil(bool isDone(), String name) {
     if (isDone()) _scanner.error("Expected expression.");
     var first = _singleExpression();
     _ignoreComments();
-    if (!isDone() && _lookingAtExpression()) {
+    if (isDone()) return first;
+
+    if (_lookingAtExpression()) {
       var spaceExpressions = [first];
       do {
         spaceExpressions.add(_singleExpression());
         _ignoreComments();
-      } while (!isDone() && _lookingAtExpression());
+
+        if (isDone()) {
+          return new ListExpression(spaceExpressions, ListSeparator.space);
+        }
+      } while (_lookingAtExpression());
       first = new ListExpression(spaceExpressions, ListSeparator.space);
     }
 
-    if (!_scanner.scanChar($comma)) return first;
+    if (!_scanner.scanChar($comma)) _scanner.error("Expected $name.");
 
     var commaExpressions = [first];
     do {
       _ignoreComments();
-      if (isDone() || !_lookingAtExpression()) break;
+      if (isDone()) {
+        return new ListExpression(commaExpressions, ListSeparator.comma);
+      }
+
+      if (!_lookingAtExpression()) break;
       commaExpressions.add(_spaceListOrValue());
     } while (_scanner.scanChar($comma));
 
-    return new ListExpression(commaExpressions, ListSeparator.comma);
+    _scanner.error("Expected $name.");
+    return null;
   }
 
   ListExpression _bracketedList() {
@@ -1556,7 +1576,7 @@ class Parser {
     } else if (_prefixedSelectorPseudoClasses.contains(unvendored)) {
       argument = _rawText(_aNPlusB);
       if (_scanWhitespace()) {
-        _expectCaseInsensitive("of");
+        _expectIdentifier("of", ignoreCase: true);
         argument += " of";
         _ignoreComments();
 
@@ -1577,12 +1597,12 @@ class Parser {
     switch (_scanner.peekChar()) {
       case $e:
       case $E:
-        _expectCaseInsensitive("even");
+        _expectIdentifier("even", ignoreCase: true);
         return;
 
       case $o:
       case $O:
-        _expectCaseInsensitive("odd");
+        _expectIdentifier("odd", ignoreCase: true);
         return;
 
       case $plus:
@@ -1597,9 +1617,9 @@ class Parser {
         _scanner.readChar();
       }
       _ignoreComments();
-      if (!_scanCharCaseInsensitive($n)) return;
+      if (!_scanCharIgnoreCase($n)) return;
     } else {
-      _expectCharCaseInsensitive($n);
+      _expectCharIgnoreCase($n);
     }
     _ignoreComments();
 
@@ -1677,7 +1697,7 @@ class Parser {
       } else {
         modifier = identifier1;
         type = identifier2;
-        if (_scanCaseInsensitive("and")) {
+        if (_scanIdentifier("and", ignoreCase: true)) {
           // For example, "@media only screen and ..."
           _ignoreComments();
         } else {
@@ -1695,7 +1715,7 @@ class Parser {
       _ignoreComments();
       features.add(_queryExpression());
       _ignoreComments();
-    } while (_scanCaseInsensitive("and"));
+    } while (_scanIdentifier("and", ignoreCase: true));
 
     if (type == null) {
       return new MediaQuery.condition(features);
@@ -1711,7 +1731,7 @@ class Parser {
     var first = _scanner.peekChar();
     if (first != $lparen && first != $hash) {
       var start = _scanner.state;
-      _expectCaseInsensitive("not");
+      _expectIdentifier("not", ignoreCase: true);
       _ignoreComments();
       return new SupportsNegation(
           _supportsConditionInParens(), _scanner.spanFrom(start));
@@ -1721,10 +1741,10 @@ class Parser {
     _ignoreComments();
     while (_lookingAtIdentifier()) {
       String operator;
-      if (_scanCaseInsensitive("or")) {
+      if (_scanIdentifier("or", ignoreCase: true)) {
         operator = "or";
       } else {
-        _expectCaseInsensitive("and");
+        _expectIdentifier("and", ignoreCase: true);
         operator = "and";
       }
 
@@ -1770,7 +1790,7 @@ class Parser {
   // If this fails, it puts the cursor back at the beginning.
   SupportsNegation _trySupportsNegation() {
     var start = _scanner.state;
-    if (!_scanCaseInsensitive("not") || _scanner.isDone) {
+    if (!_scanIdentifier("not", ignoreCase: true) || _scanner.isDone) {
       _scanner.state = start;
       return null;
     }
@@ -1867,10 +1887,7 @@ class Parser {
       var next = _scanner.peekChar();
       if (next == null) {
         break;
-      } else if (next == $underscore ||
-          next == $dash ||
-          isAlphanumeric(next) ||
-          next >= 0x0080) {
+      } else if (isName(next)) {
         text.writeCharCode(_scanner.readChar());
       } else if (next == $backslash) {
         text.writeCharCode(_escape());
@@ -1939,37 +1956,66 @@ class Parser {
     return asHex(_scanner.readChar());
   }
 
-  bool _scanCharCaseInsensitive(int character) {
-    assert(character >= $a && character <= $z);
-    var actual = _scanner.readChar();
-    return actual == character || actual == character + $A - $a;
-  }
+  bool _scanIdentifier(String text, {bool ignoreCase: false}) {
+    if (!_lookingAtIdentifier()) return false;
 
-  void _expectCharCaseInsensitive(int character) {
-    assert(character >= $a && character <= $z);
-    var actual = _scanner.readChar();
-    if (actual == character || actual == character + $A - $a) return;
-
-    _scanner.error('Expected "${new String.fromCharCode(character)}".',
-        position: actual == null ? _scanner.position : _scanner.position - 1);
-  }
-
-  bool _scanCaseInsensitive(String expected) {
-    var start = _scanner.position;
-    for (var i = 0; i < expected.length; i++) {
-      if (_scanCharCaseInsensitive(expected.codeUnitAt(i))) continue;
-      _scanner.position = start;
+    var start = _scanner.state;
+    for (var i = 0; i < text.length; i++) {
+      var next = text.codeUnitAt(i);
+      if (_scanCharOrEscape(next, ignoreCase: ignoreCase)) continue;
+      _scanner.state = start;
       return false;
     }
+
+    var next = _scanner.peekChar();
+    if (next == null) return true;
+    if (!isName(next) && next != $backslash) return true;
+    _scanner.state = start;
+    return false;
+  }
+
+  void _expectIdentifier(String text, {String name, bool ignoreCase: false}) {
+    name ??= '"$text"';
+
+    var start = _scanner.position;
+    for (var i = 0; i < text.length; i++) {
+      var next = text.codeUnitAt(i);
+      if (_scanCharOrEscape(next, ignoreCase: ignoreCase)) continue;
+      _scanner.error("Expected $name.", position: start);
+    }
+
+    var next = _scanner.peekChar();
+    if (next == null) return;
+    if (!isName(next) && next != $backslash) return;
+    _scanner.error("Expected $name", position: start);
+  }
+
+  int _readCharOrEscape() {
+    var next = _scanner.readChar();
+    return next == $backslash ? _escape() : next;
+  }
+
+  bool _scanCharOrEscape(int expected, {bool ignoreCase: false}) {
+    // TODO(nweiz): Test if it's faster to split this into separate methods for
+    // case-sensitivity rather than checking the boolean each time.
+    var actual = _readCharOrEscape();
+    return ignoreCase
+        ? characterEqualsIgnoreCase(actual, expected)
+        : actual == expected;
+  }
+
+  bool _scanCharIgnoreCase(int letter) {
+    if (!equalsLetterIgnoreCase(letter, _scanner.peekChar())) return false;
+    _scanner.readChar();
     return true;
   }
 
-  void _expectCaseInsensitive(String expected) {
-    var start = _scanner.position;
-    for (var i = 0; i < expected.length; i++) {
-      if (_scanCharCaseInsensitive(expected.codeUnitAt(i))) continue;
-      _scanner.error('Expected "$expected".', position: start, length: i);
-    }
+  void _expectCharIgnoreCase(int letter) {
+    var actual = _scanner.readChar();
+    if (equalsLetterIgnoreCase(letter, actual)) return;
+
+    _scanner.error('Expected "${new String.fromCharCode(letter)}".',
+        position: actual == null ? _scanner.position : _scanner.position - 1);
   }
 
   // ## Utilities

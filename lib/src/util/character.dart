@@ -4,6 +4,10 @@
 
 import 'package:charcode/charcode.dart';
 
+// `0b100000` can be bitwise-ORed with lowercase ASCII letters to get their
+// uppercase equivalents.
+const _asciiCaseBit = 0x20;
+
 bool isWhitespace(int character) =>
     character == $space || character == $tab || isNewline(character);
 
@@ -60,4 +64,23 @@ int opposite(int character) {
     default:
       return null;
   }
+}
+
+bool characterEqualsIgnoreCase(int character1, int character2) {
+  if (character1 == character2) return true;
+
+  // If this check fails, the characters are definitely different. If it
+  // succeeds *and* either character is an ASCII letter, they're equivalent.
+  if (character1 ^ character2 != _asciiCaseBit) return false;
+
+  // Now we just need to verify that one of the characters is an ASCII letter.
+  var upperCase1 = character1 | _asciiCaseBit;
+  return upperCase1 >= $A && upperCase1 <= $Z;
+}
+
+/// Like [characterEqualsIgnoreCase], but optimized for the fact that [letter]
+/// is known to be a lowercase ASCII letter.
+bool equalsLetterIgnoreCase(int letter, int actual) {
+  assert(letter >= $a && letter <= $z);
+  return (actual & ~_asciiCaseBit) == letter;
 }
