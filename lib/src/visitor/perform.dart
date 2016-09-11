@@ -576,7 +576,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     throw _exception("Undefined variable.", node.span);
   }
 
-  Value visitUnaryOperatorExpression(UnaryOperatorExpression node) {
+  Value visitUnaryOperationExpression(UnaryOperationExpression node) {
     var operand = node.operand.accept(this);
     switch (node.operator) {
       case UnaryOperator.plus:

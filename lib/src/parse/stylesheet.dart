@@ -773,7 +773,7 @@ abstract class StylesheetParser extends Parser {
       case $lparen:
         return _parentheses();
       case $slash:
-        return _unaryOperator();
+        return _unaryOperation();
       case $dot:
         return _number();
       case $lbracket:
@@ -795,14 +795,14 @@ abstract class StylesheetParser extends Parser {
         var next = scanner.peekChar(1);
         if (isDigit(next) || next == $dot) return _number();
 
-        return _unaryOperator();
+        return _unaryOperation();
 
       case $minus:
         var next = scanner.peekChar(1);
         if (isDigit(next) || next == $dot) return _number();
         if (_lookingAtInterpolatedIdentifier()) return _identifierLike();
 
-        return _unaryOperator();
+        return _unaryOperation();
 
       default:
         if (first == null) scanner.error("Expected expression.");
@@ -870,7 +870,7 @@ abstract class StylesheetParser extends Parser {
     return new MapExpression(pairs, scanner.spanFrom(start));
   }
 
-  UnaryOperatorExpression _unaryOperator() {
+  UnaryOperationExpression _unaryOperation() {
     var start = scanner.state;
     var operator = _unaryOperatorFor(scanner.readChar());
     if (operator == null) {
@@ -879,7 +879,7 @@ abstract class StylesheetParser extends Parser {
 
     whitespace();
     var operand = _singleExpression();
-    return new UnaryOperatorExpression(
+    return new UnaryOperationExpression(
         operator, operand, scanner.spanFrom(start));
   }
 
@@ -1054,7 +1054,7 @@ abstract class StylesheetParser extends Parser {
     switch (identifier.asPlain) {
       case "not":
         whitespace();
-        return new UnaryOperatorExpression(
+        return new UnaryOperationExpression(
             UnaryOperator.not, _singleExpression(), identifier.span);
 
       case "null":

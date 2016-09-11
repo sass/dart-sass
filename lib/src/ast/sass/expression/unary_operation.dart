@@ -8,17 +8,17 @@ import 'package:charcode/charcode.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
-class UnaryOperatorExpression implements Expression {
+class UnaryOperationExpression implements Expression {
   final UnaryOperator operator;
 
   final Expression operand;
 
   final FileSpan span;
 
-  UnaryOperatorExpression(this.operator, this.operand, this.span);
+  UnaryOperationExpression(this.operator, this.operand, this.span);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
-      visitor.visitUnaryOperatorExpression(this);
+      visitor.visitUnaryOperationExpression(this);
 
   String toString() {
     var buffer = new StringBuffer(operator.operator);

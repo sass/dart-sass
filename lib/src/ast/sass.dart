@@ -18,7 +18,7 @@ export 'sass/expression/null.dart';
 export 'sass/expression/number.dart';
 export 'sass/expression/selector.dart';
 export 'sass/expression/string.dart';
-export 'sass/expression/unary_operator.dart';
+export 'sass/expression/unary_operation.dart';
 export 'sass/expression/variable.dart';
 export 'sass/interpolation.dart';
 export 'sass/media_query.dart';

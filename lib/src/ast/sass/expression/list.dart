@@ -9,7 +9,7 @@ import '../../../utils.dart';
 import '../../../value.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
-import 'unary_operator.dart';
+import 'unary_operation.dart';
 
 class ListExpression implements Expression {
   final List<Expression> contents;
@@ -54,7 +54,7 @@ class ListExpression implements Expression {
 
     if (separator != ListSeparator.space) return false;
 
-    if (expression is UnaryOperatorExpression) {
+    if (expression is UnaryOperationExpression) {
       return expression.operator == UnaryOperator.plus ||
           expression.operator == UnaryOperator.minus;
     }
