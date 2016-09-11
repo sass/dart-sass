@@ -610,7 +610,7 @@ abstract class StylesheetParser extends Parser {
       Expression defaultValue;
       if (scanner.scanChar($colon)) {
         whitespace();
-        defaultValue = _spaceListOrValue();
+        defaultValue = _spaceListOrExpression();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -640,12 +640,12 @@ abstract class StylesheetParser extends Parser {
     Expression rest;
     Expression keywordRest;
     while (_lookingAtExpression()) {
-      var expression = _spaceListOrValue();
+      var expression = _spaceListOrExpression();
       whitespace();
 
       if (expression is VariableExpression && scanner.scanChar($colon)) {
         whitespace();
-        named[expression.name] = _spaceListOrValue();
+        named[expression.name] = _spaceListOrExpression();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -690,7 +690,7 @@ abstract class StylesheetParser extends Parser {
     do {
       whitespace();
       if (!_lookingAtExpression()) break;
-      commaExpressions.add(_spaceListOrValue());
+      commaExpressions.add(_spaceListOrExpression());
     } while (scanner.scanChar($comma));
 
     return new ListExpression(commaExpressions, ListSeparator.comma);
@@ -728,7 +728,7 @@ abstract class StylesheetParser extends Parser {
       }
 
       if (!_lookingAtExpression()) break;
-      commaExpressions.add(_spaceListOrValue());
+      commaExpressions.add(_spaceListOrExpression());
     } while (scanner.scanChar($comma));
 
     scanner.error("Expected $name.");
@@ -742,7 +742,7 @@ abstract class StylesheetParser extends Parser {
 
     var expressions = <Expression>[];
     while (!scanner.scanChar($lbracket)) {
-      expressions.add(_spaceListOrValue());
+      expressions.add(_spaceListOrExpression());
       whitespace();
       if (!scanner.scanChar($comma)) break;
     }
@@ -751,7 +751,7 @@ abstract class StylesheetParser extends Parser {
         bracketed: true, span: scanner.spanFrom(start));
   }
 
-  Expression _spaceListOrValue() {
+  Expression _spaceListOrExpression() {
     var first = _singleExpression();
     whitespace();
     if (!_lookingAtExpression()) return first;
@@ -827,7 +827,7 @@ abstract class StylesheetParser extends Parser {
           span: scanner.spanFrom(start));
     }
 
-    var first = _spaceListOrValue();
+    var first = _spaceListOrExpression();
     if (scanner.scanChar($colon)) {
       whitespace();
       return _map(first, start);
@@ -842,7 +842,7 @@ abstract class StylesheetParser extends Parser {
     var expressions = [first];
     while (true) {
       if (!_lookingAtExpression()) break;
-      expressions.add(_spaceListOrValue());
+      expressions.add(_spaceListOrExpression());
       if (!scanner.scanChar($comma)) break;
       whitespace();
     }
@@ -853,16 +853,16 @@ abstract class StylesheetParser extends Parser {
   }
 
   MapExpression _map(Expression first, LineScannerState start) {
-    var pairs = [new Pair(first, _spaceListOrValue())];
+    var pairs = [new Pair(first, _spaceListOrExpression())];
 
     while (scanner.scanChar($comma)) {
       whitespace();
       if (!_lookingAtExpression()) break;
 
-      var key = _spaceListOrValue();
+      var key = _spaceListOrExpression();
       scanner.expectChar($colon);
       whitespace();
-      var value = _spaceListOrValue();
+      var value = _spaceListOrExpression();
       pairs.add(new Pair(key, value));
     }
 
