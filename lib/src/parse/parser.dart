@@ -52,7 +52,9 @@ abstract class Parser {
 
   void silentComment() {
     scanner.expect("//");
-    while (!scanner.isDone && !isNewline(scanner.readChar())) {}
+    while (!scanner.isDone && !isNewline(scanner.peekChar())) {
+      scanner.readChar();
+    }
   }
 
   void loudComment() {
@@ -261,6 +263,13 @@ abstract class Parser {
     return ignoreCase
         ? characterEqualsIgnoreCase(actual, expected)
         : actual == expected;
+  }
+
+  bool scanCharIf(bool condition(int character)) {
+    var next = scanner.peekChar();
+    if (!condition(next)) return false;
+    scanner.readChar();
+    return true;
   }
 
   bool scanCharIgnoreCase(int letter) {

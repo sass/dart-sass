@@ -358,8 +358,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       throw _exception("Can't find file to import.", node.span);
     }
 
-    return _importedFiles.putIfAbsent(path,
-        () => parseScss(new File(path).readAsStringSync(), url: p.toUri(path)));
+    return _importedFiles.putIfAbsent(path, () {
+      var parse = p.extension(path) == '.sass' ? parseSass : parseScss;
+      return parse(new File(path).readAsStringSync(), url: p.toUri(path));
+    });
   }
 
   String _tryImportPathWithExtensions(String path) =>

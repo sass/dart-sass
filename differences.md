@@ -57,11 +57,16 @@ Dart Sass for developers familiar with Ruby Sass.
    several characters if necessary) and chooses which production to consume
    based on those.
 
-7. The environment uses an array of maps to track variable (and eventually
+7. The indented syntax parser and the SCSS parser are subclasses of the same
+   superclass. This substantially reduces the amount of duplicated code between
+   the two, and makes it easier to give the indented parser good error messaging
+   and source span tracking.
+
+8. The environment uses an array of maps to track variable (and eventually
    function and mixin) definitions. This requires fewer allocations and produces
    more cache locality.
 
-8. Because extension is done during the creation of the CSS AST, it works
+9. Because extension is done during the creation of the CSS AST, it works
    differently than the Ruby implementation. Ruby builds a collection of all
    `@extend` directives, and then iterates over the tree applying them to each
    selector as applicable. The perform visitor has similar behavior when
@@ -86,6 +91,10 @@ official behavior.
    having a more limited custom parsing. See [issue 2120][].
 
 4. The numeric precision is set to 10. See [issue 1122][].
+
+5. The indented syntax parser is more flexible: it doesn't require consistent
+   indentation across the whole document. This doesn't have an issue yet; I need
+   to talk to Chris to determine if it's actually the right way forward.
 
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126

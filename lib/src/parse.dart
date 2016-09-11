@@ -5,8 +5,12 @@
 import 'ast/sass.dart';
 import 'ast/selector.dart';
 import 'parse/at_root_query.dart';
+import 'parse/sass.dart';
 import 'parse/scss.dart';
 import 'parse/selector.dart';
+
+Stylesheet parseSass(String contents, {url}) =>
+    new SassParser(contents, url: url).parse();
 
 Stylesheet parseScss(String contents, {url}) =>
     new ScssParser(contents, url: url).parse();

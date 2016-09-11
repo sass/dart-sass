@@ -35,8 +35,8 @@ void main(List<String> args) {
 
   try {
     var file = options.rest.first;
-    var sassTree =
-        parseScss(new File(file).readAsStringSync(), url: p.toUri(file));
+    var parse = p.extension(file) == '.sass' ? parseSass : parseScss;
+    var sassTree = parse(new File(file).readAsStringSync(), url: p.toUri(file));
     var cssTree = new PerformVisitor().visitStylesheet(sassTree);
     var css = toCss(cssTree);
     if (css.isNotEmpty) print(css);
