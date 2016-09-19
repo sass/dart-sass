@@ -14,5 +14,9 @@ class SassNull extends Value {
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitNull(this);
 
+  Value or(Value other) => other;
+
+  Value and(Value other) => this;
+
   Value unaryNot() => sassTrue;
 }

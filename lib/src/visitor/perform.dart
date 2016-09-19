@@ -570,6 +570,43 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   // ## Expressions
 
+  Value visitBinaryOperationExpression(BinaryOperationExpression node) {
+    return _addExceptionSpan(() {
+      var left = node.left.accept(this);
+      var right = node.right.accept(this);
+      switch (node.operator) {
+        case BinaryOperator.or:
+          return left.or(right);
+        case BinaryOperator.and:
+          return left.and(right);
+        case BinaryOperator.equals:
+          return new SassBoolean(left == right);
+        case BinaryOperator.notEquals:
+          return new SassBoolean(left != right);
+        case BinaryOperator.greaterThan:
+          return left.greaterThan(right);
+        case BinaryOperator.greaterThanOrEquals:
+          return left.greaterThanOrEquals(right);
+        case BinaryOperator.lessThan:
+          return left.lessThan(right);
+        case BinaryOperator.lessThanOrEquals:
+          return left.lessThanOrEquals(right);
+        case BinaryOperator.plus:
+          return left.plus(right);
+        case BinaryOperator.minus:
+          return left.minus(right);
+        case BinaryOperator.times:
+          return left.times(right);
+        case BinaryOperator.dividedBy:
+          return left.dividedBy(right);
+        case BinaryOperator.modulo:
+          return left.modulo(right);
+        default:
+          return null;
+      }
+    }, node.span);
+  }
+
   Value visitVariableExpression(VariableExpression node) {
     var result = _environment.getVariable(node.name);
     if (result != null) return result;

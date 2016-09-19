@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../exception.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
@@ -15,6 +16,26 @@ class SassColor extends Value {
   SassColor.rgb(this.red, this.green, this.blue);
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitColor(this);
+
+  Value plus(Value other) {
+    if (other is! SassNumber && other is! SassColor) return super.plus(other);
+    throw new InternalException('Undefined operation "$this + $other".');
+  }
+
+  Value minus(Value other) {
+    if (other is! SassNumber && other is! SassColor) return super.minus(other);
+    throw new InternalException('Undefined operation "$this - $other".');
+  }
+
+  Value dividedBy(Value other) {
+    if (other is! SassNumber && other is! SassColor) {
+      return super.dividedBy(other);
+    }
+    throw new InternalException('Undefined operation "$this / $other".');
+  }
+
+  Value modulo(Value other) =>
+      throw new InternalException('Undefined operation "$this % $other".');
 
   bool operator ==(other) =>
       other is SassColor &&

@@ -8,6 +8,7 @@ export 'sass/argument_invocation.dart';
 export 'sass/callable_declaration.dart';
 export 'sass/callable_invocation.dart';
 export 'sass/expression.dart';
+export 'sass/expression/binary_operation.dart';
 export 'sass/expression/boolean.dart';
 export 'sass/expression/color.dart';
 export 'sass/expression/function.dart';

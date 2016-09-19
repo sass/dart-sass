@@ -5,6 +5,7 @@
 import '../../ast/sass.dart';
 
 abstract class ExpressionVisitor<T> {
+  T visitBinaryOperationExpression(BinaryOperationExpression node);
   T visitBooleanExpression(BooleanExpression node);
   T visitColorExpression(ColorExpression node);
   T visitFunctionExpression(FunctionExpression node);

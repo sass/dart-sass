@@ -679,14 +679,61 @@ abstract class StylesheetParser extends Parser {
 
     List<Expression> commaExpressions;
     List<Expression> spaceExpressions;
+
+    // Operators whose right-hand operands are not fully parsed yet, in order of
+    // appearance in the document. Because a low-precedence operator will cause
+    // parsing to finish for all preceding higher-precedence operators, this is
+    // naturally ordered from lowest to highest precedence.
+    List<BinaryOperator> operators;
+
+    // The left-hand sides of [operators]. `operands[n]` is the left-hand side
+    // of `operators[n]`.
+    List<Expression> operands;
     var singleExpression = _singleExpression();
+
+    resolveOneOperation() {
+      assert(singleExpression != null);
+      singleExpression = new BinaryOperationExpression(
+          operators.removeLast(), operands.removeLast(), singleExpression);
+    }
+
+    resolveOperations() {
+      if (operators == null) return;
+      while (!operators.isEmpty) {
+        resolveOneOperation();
+      }
+    }
 
     addSingleExpression(Expression expression) {
       if (singleExpression != null) {
         spaceExpressions ??= [];
+        resolveOperations();
         spaceExpressions.add(singleExpression);
       }
       singleExpression = expression;
+    }
+
+    addOperator(BinaryOperator operator) {
+      operators ??= [];
+      operands ??= [];
+      while (operators.isNotEmpty &&
+          operators.last.precedence >= operator.precedence) {
+        resolveOneOperation();
+      }
+      operators.add(operator);
+
+      assert(singleExpression != null);
+      operands.add(singleExpression);
+      singleExpression = null;
+    }
+
+    resolveSpaceExpressions() {
+      if (singleExpression != null) resolveOperations();
+      if (spaceExpressions == null) return;
+      if (singleExpression != null) spaceExpressions.add(singleExpression);
+      singleExpression =
+          new ListExpression(spaceExpressions, ListSeparator.space);
+      spaceExpressions = null;
     }
 
     loop:
@@ -698,10 +745,6 @@ abstract class StylesheetParser extends Parser {
       switch (first) {
         case $lparen:
           addSingleExpression(_parentheses());
-          break;
-
-        case $slash:
-          addSingleExpression(_unaryOperation());
           break;
 
         case $lbracket:
@@ -725,12 +768,61 @@ abstract class StylesheetParser extends Parser {
           addSingleExpression(_hashExpression());
           break;
 
+        case $equal:
+          scanner.readChar();
+          scanner.expectChar($equal);
+          addOperator(BinaryOperator.equals);
+          break;
+
+        case $exclamation:
+          scanner.readChar();
+          scanner.expectChar($equal);
+          addOperator(BinaryOperator.notEquals);
+          break;
+
+        case $langle:
+          scanner.readChar();
+          addOperator(scanner.scanChar($equal)
+              ? BinaryOperator.lessThanOrEquals
+              : BinaryOperator.lessThan);
+          break;
+
+        case $rangle:
+          scanner.readChar();
+          addOperator(scanner.scanChar($equal)
+              ? BinaryOperator.greaterThanOrEquals
+              : BinaryOperator.greaterThan);
+          break;
+
+        case $asterisk:
+          scanner.readChar();
+          addOperator(BinaryOperator.times);
+          break;
+
         case $plus:
-          addSingleExpression(_plusExpression());
+          scanner.readChar();
+          addOperator(BinaryOperator.plus);
           break;
 
         case $minus:
-          addSingleExpression(_minusExpression());
+          var next = scanner.peekChar(1);
+          if (isDigit(next) || next == $dot) {
+            addSingleExpression(_number());
+          } else if (_lookingAtInterpolatedIdentifier()) {
+            addSingleExpression(_identifierLike());
+          } else {
+            addOperator(BinaryOperator.minus);
+          }
+          break;
+
+        case $slash:
+          scanner.readChar();
+          addOperator(BinaryOperator.dividedBy);
+          break;
+
+        case $percent:
+          scanner.readChar();
+          addOperator(BinaryOperator.modulo);
           break;
 
         case $0:
@@ -748,6 +840,21 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $a:
+          if (scanIdentifier("and")) {
+            addOperator(BinaryOperator.and);
+          } else {
+            addSingleExpression(_identifierLike());
+          }
+          break;
+
+        case $o:
+          if (scanIdentifier("or")) {
+            addOperator(BinaryOperator.and);
+          } else {
+            addSingleExpression(_identifierLike());
+          }
+          break;
+
         case $b:
         case $c:
         case $d:
@@ -761,7 +868,6 @@ abstract class StylesheetParser extends Parser {
         case $l:
         case $m:
         case $n:
-        case $o:
         case $p:
         case $q:
         case $r:
@@ -806,19 +912,12 @@ abstract class StylesheetParser extends Parser {
 
         case $comma:
           commaExpressions ??= [];
-          if (spaceExpressions != null) {
-            spaceExpressions.add(singleExpression);
-            commaExpressions
-                .add(new ListExpression(spaceExpressions, ListSeparator.space));
-            spaceExpressions = null;
-            singleExpression = null;
-          } else if (singleExpression != null) {
-            commaExpressions.add(singleExpression);
-            singleExpression = null;
-          } else {
-            scanner.error("Expected expression.");
-          }
+          if (singleExpression == null) scanner.error("Expected expression.");
+
+          resolveSpaceExpressions();
+          commaExpressions.add(singleExpression);
           scanner.readChar();
+          singleExpression = null;
           break;
 
         default:
@@ -835,16 +934,12 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    if (spaceExpressions != null) {
-      if (singleExpression != null) spaceExpressions.add(singleExpression);
-      singleExpression =
-          new ListExpression(spaceExpressions, ListSeparator.space);
-    }
-
+    resolveSpaceExpressions();
     if (commaExpressions != null) {
       if (singleExpression != null) commaExpressions.add(singleExpression);
       return new ListExpression(commaExpressions, ListSeparator.comma);
     } else {
+      assert(singleExpression != null);
       return singleExpression;
     }
   }

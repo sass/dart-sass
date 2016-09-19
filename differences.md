@@ -96,8 +96,10 @@ official behavior.
    indentation across the whole document. This doesn't have an issue yet; I need
    to talk to Chris to determine if it's actually the right way forward.
 
+6. Colors do not support channel-by-channel arithmetic. See [issue 2144][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
 [issue 1122]: https://github.com/sass/sass/issues/1122
-
+[issue 2144]: https://github.com/sass/sass/issues/2144

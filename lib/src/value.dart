@@ -5,6 +5,7 @@
 import 'exception.dart';
 import 'value/boolean.dart';
 import 'value/identifier.dart';
+import 'value/string.dart';
 import 'visitor/interface/value.dart';
 import 'visitor/serialize.dart';
 
@@ -30,6 +31,42 @@ abstract class Value {
   const Value();
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
+
+  Value or(Value other) => this;
+
+  Value and(Value other) => other;
+
+  SassBoolean greaterThan(Value other) =>
+      throw new InternalException('Undefined operation "$this > $other".');
+
+  SassBoolean greaterThanOrEquals(Value other) =>
+      throw new InternalException('Undefined operation "$this >= $other".');
+
+  SassBoolean lessThan(Value other) =>
+      throw new InternalException('Undefined operation "$this < $other".');
+
+  SassBoolean lessThanOrEquals(Value other) =>
+      throw new InternalException('Undefined operation "$this <= $other".');
+
+  Value times(Value other) =>
+      throw new InternalException('Undefined operation "$this * $other".');
+
+  Value modulo(Value other) =>
+      throw new InternalException('Undefined operation "$this % $other".');
+
+  Value plus(Value other) {
+    if (other is SassString) {
+      return new SassString(valueToCss(this) + other.text);
+    } else {
+      return new SassIdentifier(valueToCss(this) + valueToCss(other));
+    }
+  }
+
+  Value minus(Value other) =>
+      new SassIdentifier("${valueToCss(this)}-${valueToCss(other)}");
+
+  Value dividedBy(Value other) =>
+      new SassIdentifier("${valueToCss(this)}/${valueToCss(other)}");
 
   Value unaryPlus() => new SassIdentifier("+${valueToCss(this)}");
 

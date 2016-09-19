@@ -15,7 +15,11 @@ class SassIdentifier extends Value {
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitIdentifier(this);
 
-  bool operator ==(other) => other is SassIdentifier && other.text == text;
+  bool operator ==(other) {
+    if (other is SassString) return text == other.text;
+    if (other is SassIdentifier) return text == other.text;
+    return false;
+  }
 
   int get hashCode => text.hashCode;
 }

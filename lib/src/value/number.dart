@@ -24,6 +24,54 @@ class SassNumber extends Value {
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitNumber(this);
 
+  SassBoolean greaterThan(Value other) {
+    if (other is SassNumber) return new SassBoolean(value > other.value);
+    throw new InternalException('Undefined operation "$this > $other".');
+  }
+
+  SassBoolean greaterThanOrEquals(Value other) {
+    if (other is SassNumber) return new SassBoolean(value >= other.value);
+    throw new InternalException('Undefined operation "$this >= $other".');
+  }
+
+  SassBoolean lessThan(Value other) {
+    if (other is SassNumber) return new SassBoolean(value < other.value);
+    throw new InternalException('Undefined operation "$this < $other".');
+  }
+
+  SassBoolean lessThanOrEquals(Value other) {
+    if (other is SassNumber) return new SassBoolean(value <= other.value);
+    throw new InternalException('Undefined operation "$this <= $other".');
+  }
+
+  Value times(Value other) {
+    if (other is SassNumber) return new SassNumber(value * other.value);
+    throw new InternalException('Undefined operation "$this * $other".');
+  }
+
+  Value modulo(Value other) {
+    if (other is SassNumber) return new SassNumber(value % other.value);
+    throw new InternalException('Undefined operation "$this % $other".');
+  }
+
+  Value plus(Value other) {
+    if (other is SassNumber) return new SassNumber(value + other.value);
+    if (other is! SassColor) return super.plus(other);
+    throw new InternalException('Undefined operation "$this + $other".');
+  }
+
+  Value minus(Value other) {
+    if (other is SassNumber) return new SassNumber(value - other.value);
+    if (other is! SassColor) return super.minus(other);
+    throw new InternalException('Undefined operation "$this - $other".');
+  }
+
+  Value dividedBy(Value other) {
+    if (other is SassNumber) return new SassNumber(value / other.value);
+    if (other is! SassColor) super.dividedBy(other);
+    throw new InternalException('Undefined operation "$this / $other".');
+  }
+
   Value unaryPlus() => this;
 
   Value unaryMinus() => new SassNumber(-value);
