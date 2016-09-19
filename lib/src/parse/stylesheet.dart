@@ -451,18 +451,20 @@ abstract class StylesheetParser extends Parser {
     expectIdentifier("from");
     whitespace();
     bool exclusive;
-    var from = _expressionUntil(() {
-      if (!lookingAtIdentifier()) return false;
-      if (scanIdentifier("to")) {
-        exclusive = true;
-        return true;
-      } else if (scanIdentifier("through")) {
-        exclusive = false;
-        return true;
-      } else {
-        return false;
-      }
-    }, '"to" or "through"');
+    var from = _expression(
+        until: () {
+          if (!lookingAtIdentifier()) return false;
+          if (scanIdentifier("to")) {
+            exclusive = true;
+            return true;
+          } else if (scanIdentifier("through")) {
+            exclusive = false;
+            return true;
+          } else {
+            return false;
+          }
+        },
+        untilName: '"to" or "through"');
 
     whitespace();
     var to = _expression();
@@ -610,7 +612,7 @@ abstract class StylesheetParser extends Parser {
       Expression defaultValue;
       if (scanner.scanChar($colon)) {
         whitespace();
-        defaultValue = _spaceListOrExpression();
+        defaultValue = _expressionUntilComma();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -640,12 +642,12 @@ abstract class StylesheetParser extends Parser {
     Expression rest;
     Expression keywordRest;
     while (_lookingAtExpression()) {
-      var expression = _spaceListOrExpression();
+      var expression = _expressionUntilComma();
       whitespace();
 
       if (expression is VariableExpression && scanner.scanChar($colon)) {
         whitespace();
-        named[expression.name] = _spaceListOrExpression();
+        named[expression.name] = _expressionUntilComma();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -672,104 +674,190 @@ abstract class StylesheetParser extends Parser {
         rest: rest, keywordRest: keywordRest);
   }
 
-  Expression _expression() {
-    var first = _singleExpression();
-    whitespace();
-    if (_lookingAtExpression()) {
-      var spaceExpressions = [first];
-      do {
-        spaceExpressions.add(_singleExpression());
-        whitespace();
-      } while (_lookingAtExpression());
-      first = new ListExpression(spaceExpressions, ListSeparator.space);
-    }
+  Expression _expression({bool until(), String untilName}) {
+    if (until != null && until()) scanner.error("Expected expression.");
 
-    if (!scanner.scanChar($comma)) return first;
+    List<Expression> commaExpressions;
+    List<Expression> spaceExpressions;
+    var singleExpression = _singleExpression();
 
-    var commaExpressions = [first];
-    do {
-      whitespace();
-      if (!_lookingAtExpression()) break;
-      commaExpressions.add(_spaceListOrExpression());
-    } while (scanner.scanChar($comma));
-
-    return new ListExpression(commaExpressions, ListSeparator.comma);
-  }
-
-  // [isDone] is called at valid end-of-expression positions, after whitespace.
-  // This will return immediately after [isDone] returns true, and will fail if
-  // it can't consume an expression and [isDone] returns false.
-  Expression _expressionUntil(bool isDone(), String name) {
-    if (isDone()) scanner.error("Expected expression.");
-    var first = _singleExpression();
-    whitespace();
-    if (isDone()) return first;
-
-    if (_lookingAtExpression()) {
-      var spaceExpressions = [first];
-      do {
-        spaceExpressions.add(_singleExpression());
-        whitespace();
-
-        if (isDone()) {
-          return new ListExpression(spaceExpressions, ListSeparator.space);
-        }
-      } while (_lookingAtExpression());
-      first = new ListExpression(spaceExpressions, ListSeparator.space);
-    }
-
-    if (!scanner.scanChar($comma)) scanner.error("Expected $name.");
-
-    var commaExpressions = [first];
-    do {
-      whitespace();
-      if (isDone()) {
-        return new ListExpression(commaExpressions, ListSeparator.comma);
+    addSingleExpression(Expression expression) {
+      if (singleExpression != null) {
+        spaceExpressions ??= [];
+        spaceExpressions.add(singleExpression);
       }
-
-      if (!_lookingAtExpression()) break;
-      commaExpressions.add(_spaceListOrExpression());
-    } while (scanner.scanChar($comma));
-
-    scanner.error("Expected $name.");
-    return null;
-  }
-
-  ListExpression _bracketedList() {
-    var start = scanner.state;
-    scanner.expectChar($lbracket);
-    whitespace();
-
-    var expressions = <Expression>[];
-    while (!scanner.scanChar($lbracket)) {
-      expressions.add(_spaceListOrExpression());
-      whitespace();
-      if (!scanner.scanChar($comma)) break;
+      singleExpression = expression;
     }
 
-    return new ListExpression(expressions, ListSeparator.comma,
-        bracketed: true, span: scanner.spanFrom(start));
-  }
-
-  Expression _spaceListOrExpression() {
-    var first = _singleExpression();
-    whitespace();
-    if (!_lookingAtExpression()) return first;
-
-    var spaceExpressions = [first];
-    do {
-      spaceExpressions.add(_singleExpression());
+    loop:
+    while (true) {
       whitespace();
-    } while (_lookingAtExpression());
+      if (until != null && until()) break;
 
-    return new ListExpression(spaceExpressions, ListSeparator.space);
+      var first = scanner.peekChar();
+      switch (first) {
+        case $lparen:
+          addSingleExpression(_parentheses());
+          break;
+
+        case $slash:
+          addSingleExpression(_unaryOperation());
+          break;
+
+        case $lbracket:
+          addSingleExpression(_bracketedList());
+          break;
+
+        case $dollar:
+          addSingleExpression(_variable());
+          break;
+
+        case $ampersand:
+          addSingleExpression(_selector());
+          break;
+
+        case $single_quote:
+        case $double_quote:
+          addSingleExpression(interpolatedString());
+          break;
+
+        case $hash:
+          addSingleExpression(_hashExpression());
+          break;
+
+        case $plus:
+          addSingleExpression(_plusExpression());
+          break;
+
+        case $minus:
+          addSingleExpression(_minusExpression());
+          break;
+
+        case $0:
+        case $1:
+        case $2:
+        case $3:
+        case $4:
+        case $5:
+        case $6:
+        case $7:
+        case $8:
+        case $9:
+        case $dot:
+          addSingleExpression(_number());
+          break;
+
+        case $a:
+        case $b:
+        case $c:
+        case $d:
+        case $e:
+        case $f:
+        case $g:
+        case $h:
+        case $i:
+        case $j:
+        case $k:
+        case $l:
+        case $m:
+        case $n:
+        case $o:
+        case $p:
+        case $q:
+        case $r:
+        case $s:
+        case $t:
+        case $u:
+        case $v:
+        case $w:
+        case $x:
+        case $y:
+        case $z:
+        case $A:
+        case $B:
+        case $C:
+        case $D:
+        case $E:
+        case $F:
+        case $G:
+        case $H:
+        case $I:
+        case $J:
+        case $K:
+        case $L:
+        case $M:
+        case $N:
+        case $O:
+        case $P:
+        case $Q:
+        case $R:
+        case $S:
+        case $T:
+        case $U:
+        case $V:
+        case $W:
+        case $X:
+        case $Y:
+        case $Z:
+        case $_:
+        case $backslash:
+          addSingleExpression(_identifierLike());
+          break;
+
+        case $comma:
+          commaExpressions ??= [];
+          if (spaceExpressions != null) {
+            spaceExpressions.add(singleExpression);
+            commaExpressions
+                .add(new ListExpression(spaceExpressions, ListSeparator.space));
+            spaceExpressions = null;
+            singleExpression = null;
+          } else if (singleExpression != null) {
+            commaExpressions.add(singleExpression);
+            singleExpression = null;
+          } else {
+            scanner.error("Expected expression.");
+          }
+          scanner.readChar();
+          break;
+
+        default:
+          if (first != null && first >= 0x80) {
+            addSingleExpression(_identifierLike());
+            break;
+          } else if (until != null) {
+            assert(untilName != null);
+            scanner.error("Expected $untilName.");
+            break;
+          } else {
+            break loop;
+          }
+      }
+    }
+
+    if (spaceExpressions != null) {
+      if (singleExpression != null) spaceExpressions.add(singleExpression);
+      singleExpression =
+          new ListExpression(spaceExpressions, ListSeparator.space);
+    }
+
+    if (commaExpressions != null) {
+      if (singleExpression != null) commaExpressions.add(singleExpression);
+      return new ListExpression(commaExpressions, ListSeparator.comma);
+    } else {
+      return singleExpression;
+    }
   }
 
+  Expression _expressionUntilComma() =>
+      _expression(until: () => scanner.peekChar() == $comma, untilName: '","');
+
+  // non-list expression
   Expression _singleExpression() {
     var first = scanner.peekChar();
     switch (first) {
       // Note: when adding a new case, make sure it's reflected in
-      // [_lookingAtExpression].
+      // [_lookingAtExpression] and [_expression].
       case $lparen:
         return _parentheses();
       case $slash:
@@ -788,33 +876,106 @@ abstract class StylesheetParser extends Parser {
         return interpolatedString();
 
       case $hash:
-        if (scanner.peekChar(1) == $lbrace) return _identifierLike();
-        return _hexColorOrID();
+        return _hashExpression();
 
       case $plus:
-        var next = scanner.peekChar(1);
-        if (isDigit(next) || next == $dot) return _number();
-
-        return _unaryOperation();
+        return _plusExpression();
 
       case $minus:
-        var next = scanner.peekChar(1);
-        if (isDigit(next) || next == $dot) return _number();
-        if (_lookingAtInterpolatedIdentifier()) return _identifierLike();
+        return _minusExpression();
 
-        return _unaryOperation();
+      case $0:
+      case $1:
+      case $2:
+      case $3:
+      case $4:
+      case $5:
+      case $6:
+      case $7:
+      case $8:
+      case $9:
+      case $dot:
+        return _number();
+        break;
+
+      case $a:
+      case $b:
+      case $c:
+      case $d:
+      case $e:
+      case $f:
+      case $g:
+      case $h:
+      case $i:
+      case $j:
+      case $k:
+      case $l:
+      case $m:
+      case $n:
+      case $o:
+      case $p:
+      case $q:
+      case $r:
+      case $s:
+      case $t:
+      case $u:
+      case $v:
+      case $w:
+      case $x:
+      case $y:
+      case $z:
+      case $A:
+      case $B:
+      case $C:
+      case $D:
+      case $E:
+      case $F:
+      case $G:
+      case $H:
+      case $I:
+      case $J:
+      case $K:
+      case $L:
+      case $M:
+      case $N:
+      case $O:
+      case $P:
+      case $Q:
+      case $R:
+      case $S:
+      case $T:
+      case $U:
+      case $V:
+      case $W:
+      case $X:
+      case $Y:
+      case $Z:
+      case $_:
+      case $backslash:
+        return _identifierLike();
+        break;
 
       default:
-        if (first == null) scanner.error("Expected expression.");
-
-        if (isNameStart(first) || first == $backslash) {
-          return _identifierLike();
-        }
-        if (isDigit(first)) return _number();
-
-        scanner.error("Expected expression");
-        throw "Unreachable";
+        if (first != null && first >= 0x80) return _identifierLike();
+        scanner.error("Expected expression.");
+        return null;
     }
+  }
+
+  ListExpression _bracketedList() {
+    var start = scanner.state;
+    scanner.expectChar($lbracket);
+    whitespace();
+
+    var expressions = <Expression>[];
+    while (!scanner.scanChar($lbracket)) {
+      expressions.add(_expressionUntilComma());
+      whitespace();
+      if (!scanner.scanChar($comma)) break;
+    }
+
+    return new ListExpression(expressions, ListSeparator.comma,
+        bracketed: true, span: scanner.spanFrom(start));
   }
 
   Expression _parentheses() {
@@ -827,7 +988,7 @@ abstract class StylesheetParser extends Parser {
           span: scanner.spanFrom(start));
     }
 
-    var first = _spaceListOrExpression();
+    var first = _expressionUntilComma();
     if (scanner.scanChar($colon)) {
       whitespace();
       return _map(first, start);
@@ -842,7 +1003,7 @@ abstract class StylesheetParser extends Parser {
     var expressions = [first];
     while (true) {
       if (!_lookingAtExpression()) break;
-      expressions.add(_spaceListOrExpression());
+      expressions.add(_expressionUntilComma());
       if (!scanner.scanChar($comma)) break;
       whitespace();
     }
@@ -853,21 +1014,40 @@ abstract class StylesheetParser extends Parser {
   }
 
   MapExpression _map(Expression first, LineScannerState start) {
-    var pairs = [new Pair(first, _spaceListOrExpression())];
+    var pairs = [new Pair(first, _expressionUntilComma())];
 
     while (scanner.scanChar($comma)) {
       whitespace();
       if (!_lookingAtExpression()) break;
 
-      var key = _spaceListOrExpression();
+      var key = _expressionUntilComma();
       scanner.expectChar($colon);
       whitespace();
-      var value = _spaceListOrExpression();
+      var value = _expressionUntilComma();
       pairs.add(new Pair(key, value));
     }
 
     scanner.expectChar($rparen);
     return new MapExpression(pairs, scanner.spanFrom(start));
+  }
+
+  Expression _hashExpression() {
+    assert(scanner.peekChar() == $hash);
+    return scanner.peekChar(1) == $lbrace ? _identifierLike() : _hexColorOrID();
+  }
+
+  Expression _plusExpression() {
+    assert(scanner.peekChar() == $plus);
+    var next = scanner.peekChar(1);
+    return isDigit(next) || next == $dot ? _number() : _unaryOperation();
+  }
+
+  Expression _minusExpression() {
+    assert(scanner.peekChar() == $minus);
+    var next = scanner.peekChar(1);
+    if (isDigit(next) || next == $dot) return _number();
+    if (_lookingAtInterpolatedIdentifier()) return _identifierLike();
+    return _unaryOperation();
   }
 
   UnaryOperationExpression _unaryOperation() {
