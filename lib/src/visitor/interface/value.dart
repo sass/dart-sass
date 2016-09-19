@@ -7,7 +7,6 @@ import '../../value.dart';
 abstract class ValueVisitor<T> {
   T visitBoolean(SassBoolean value);
   T visitColor(SassColor value);
-  T visitIdentifier(SassIdentifier value);
   T visitList(SassList value);
   T visitMap(SassMap value);
   T visitNull(SassNull value);

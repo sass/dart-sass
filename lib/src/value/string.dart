@@ -9,19 +9,23 @@ import '../value.dart';
 class SassString extends Value {
   final String text;
 
-  SassString(this.text);
+  final bool hasQuotes;
+
+  SassString(this.text, {bool quotes: false}) : hasQuotes = quotes;
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitString(this);
 
-  Value plus(Value other) => new SassString(
-      text + (other is SassString ? other.text : valueToCss(other)));
-
-  bool operator ==(other) {
-    if (other is SassString) return text == other.text;
-    if (other is SassIdentifier) return text == other.text;
-    return false;
+  Value plus(Value other) {
+    if (other is SassString) {
+      return new SassString(text + other.text,
+          quotes: hasQuotes || other.hasQuotes);
+    } else {
+      return new SassString(text + valueToCss(other), quotes: hasQuotes);
+    }
   }
+
+  bool operator ==(other) => other is SassString && text == other.text;
 
   int get hashCode => text.hashCode;
 }

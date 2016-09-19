@@ -11,5 +11,5 @@ void defineCoreFunctions(Environment environment) {
   environment.setFunction(new BuiltInCallable(
       "inspect",
       new ArgumentDeclaration([new Argument("value")]),
-      (arguments) => new SassIdentifier(arguments.single.toString())));
+      (arguments) => new SassString(arguments.single.toString())));
 }

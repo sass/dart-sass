@@ -19,24 +19,28 @@ class StringExpression implements Expression {
   /// included.
   final Interpolation text;
 
+  final bool hasQuotes;
+
   FileSpan get span => text.span;
 
   static String quoteText(String text) =>
-      new StringExpression(new Interpolation([text], null))
+      new StringExpression(new Interpolation([text], null), quotes: true)
           .asInterpolation(static: true)
           .asPlain;
 
-  StringExpression(this.text);
+  StringExpression(this.text, {bool quotes}) : hasQuotes = quotes;
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitStringExpression(this);
 
   /// Interpolation that, when evaluated, produces the syntax of the string.
   ///
-  /// Unlike [text], his doesn't resolve escapes and does include quotes.
+  /// Unlike [text], his doesn't resolve escapes and does include quotes for
+  /// quoted strings.
   Interpolation asInterpolation({bool static: false, int quote}) {
-    quote ??= _bestQuote();
-    var buffer = new InterpolationBuffer()..writeCharCode(quote);
+    quote ??= hasQuotes ? null : _bestQuote();
+    var buffer = new InterpolationBuffer();
+    if (quote != null) buffer.writeCharCode(quote);
     for (var value in text.contents) {
       if (value is Interpolation) {
         buffer.addInterpolation(value);
@@ -63,7 +67,7 @@ class StringExpression implements Expression {
         }
       }
     }
-    buffer.writeCharCode(quote);
+    if (quote != null) buffer.writeCharCode(quote);
 
     return buffer.interpolation(text.span);
   }

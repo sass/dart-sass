@@ -629,9 +629,6 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  SassIdentifier visitIdentifierExpression(IdentifierExpression node) =>
-      new SassIdentifier(_performInterpolation(node.text));
-
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
       new SassBoolean(node.value);
 
@@ -695,7 +692,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     // TODO: if rest is an arglist that has keywords, error out.
     var rest = node.arguments.rest?.accept(this);
     if (rest != null) arguments.add(rest);
-    return new SassIdentifier("$name(${arguments.join(', ')})");
+    return new SassString("$name(${arguments.join(', ')})");
   }
 
   Value _runUserDefinedCallable(CallableInvocation invocation,
@@ -805,9 +802,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void _addRestMap(Map<String, Value> values, SassMap map, FileSpan span) {
     map.contents.forEach((key, value) {
-      if (key is SassIdentifier) {
-        values[key.text] = value;
-      } else if (key is SassString) {
+      if (key is SassString) {
         values[key.text] = value;
       } else {
         throw _exception(
@@ -863,7 +858,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   SassString visitStringExpression(StringExpression node) =>
-      new SassString(_performInterpolation(node.text));
+      new SassString(_performInterpolation(node.text), quotes: node.hasQuotes);
 
   // ## Utilities
 

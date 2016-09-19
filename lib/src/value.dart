@@ -4,14 +4,12 @@
 
 import 'exception.dart';
 import 'value/boolean.dart';
-import 'value/identifier.dart';
 import 'value/string.dart';
 import 'visitor/interface/value.dart';
 import 'visitor/serialize.dart';
 
 export 'value/boolean.dart';
 export 'value/color.dart';
-export 'value/identifier.dart';
 export 'value/list.dart';
 export 'value/map.dart';
 export 'value/null.dart';
@@ -56,23 +54,24 @@ abstract class Value {
 
   Value plus(Value other) {
     if (other is SassString) {
-      return new SassString(valueToCss(this) + other.text);
+      return new SassString(valueToCss(this) + other.text,
+          quotes: other.hasQuotes);
     } else {
-      return new SassIdentifier(valueToCss(this) + valueToCss(other));
+      return new SassString(valueToCss(this) + valueToCss(other));
     }
   }
 
   Value minus(Value other) =>
-      new SassIdentifier("${valueToCss(this)}-${valueToCss(other)}");
+      new SassString("${valueToCss(this)}-${valueToCss(other)}");
 
   Value dividedBy(Value other) =>
-      new SassIdentifier("${valueToCss(this)}/${valueToCss(other)}");
+      new SassString("${valueToCss(this)}/${valueToCss(other)}");
 
-  Value unaryPlus() => new SassIdentifier("+${valueToCss(this)}");
+  Value unaryPlus() => new SassString("+${valueToCss(this)}");
 
-  Value unaryMinus() => new SassIdentifier("-${valueToCss(this)}");
+  Value unaryMinus() => new SassString("-${valueToCss(this)}");
 
-  Value unaryDivide() => new SassIdentifier("/${valueToCss(this)}");
+  Value unaryDivide() => new SassString("/${valueToCss(this)}");
 
   Value unaryNot() => sassFalse;
 

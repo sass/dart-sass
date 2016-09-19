@@ -161,7 +161,7 @@ class _SerializeCssVisitor
   }
 
   void _writeCustomPropertyValue(CssDeclaration node) {
-    var value = (node.value.value as SassIdentifier).text;
+    var value = (node.value.value as SassString).text;
 
     var minimumIndentation = _minimumIndentation(value);
     if (minimumIndentation == null) {
@@ -234,9 +234,6 @@ class _SerializeCssVisitor
     _buffer.writeCharCode(hexCharFor(color & 0xF));
   }
 
-  void visitIdentifier(SassIdentifier value) =>
-      _buffer.write(value.text.replaceAll("\n", " "));
-
   void visitList(SassList value) {
     if (value.isBracketed) {
       _buffer.writeCharCode($lbracket);
@@ -301,8 +298,11 @@ class _SerializeCssVisitor
     _buffer.write(value.value.toString());
   }
 
-  void visitString(SassString string) =>
-      _buffer.write(_visitString(string.text));
+  void visitString(SassString string) {
+    _buffer.write(string.hasQuotes
+        ? _visitString(string.text)
+        : string.text.replaceAll("\n", " "));
+  }
 
   String _visitString(String string, {bool forceDoubleQuote: false}) {
     var includesSingleQuote = false;

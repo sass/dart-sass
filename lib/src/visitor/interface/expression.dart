@@ -9,7 +9,6 @@ abstract class ExpressionVisitor<T> {
   T visitBooleanExpression(BooleanExpression node);
   T visitColorExpression(ColorExpression node);
   T visitFunctionExpression(FunctionExpression node);
-  T visitIdentifierExpression(IdentifierExpression node);
   T visitListExpression(ListExpression node);
   T visitMapExpression(MapExpression node);
   T visitNullExpression(NullExpression node);

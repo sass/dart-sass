@@ -101,7 +101,8 @@ abstract class StylesheetParser extends Parser {
 
   Expression _declarationExpression() {
     if (lookingAtChildren()) {
-      return new StringExpression(new Interpolation([], scanner.emptySpan));
+      return new StringExpression(new Interpolation([], scanner.emptySpan),
+          quotes: true);
     }
 
     return _expression();
@@ -1265,7 +1266,8 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
+    return new StringExpression(buffer.interpolation(scanner.spanFrom(start)),
+        quotes: true);
   }
 
   Expression _hexColorOrID() {
@@ -1287,8 +1289,7 @@ abstract class StylesheetParser extends Parser {
     var buffer = new InterpolationBuffer();
     buffer.writeCharCode($hash);
     buffer.addInterpolation(identifier);
-    return new IdentifierExpression(
-        buffer.interpolation(scanner.spanFrom(start)));
+    return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
   }
 
   SassColor _hexColorContents() {
@@ -1342,7 +1343,7 @@ abstract class StylesheetParser extends Parser {
 
     return scanner.peekChar() == $lparen
         ? new FunctionExpression(identifier, _argumentInvocation())
-        : new IdentifierExpression(identifier);
+        : new StringExpression(identifier);
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".
@@ -1420,7 +1421,7 @@ abstract class StylesheetParser extends Parser {
     return buffer.interpolation(scanner.spanFrom(start));
   }
 
-  IdentifierExpression _interpolatedDeclarationValue() {
+  StringExpression _interpolatedDeclarationValue() {
     // NOTE: this logic is largely duplicated in Parser.declarationValue. Most
     // changes here should be mirrored there.
 
@@ -1511,8 +1512,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     if (brackets.isNotEmpty) scanner.expectChar(brackets.last);
-    return new IdentifierExpression(
-        buffer.interpolation(scanner.spanFrom(start)));
+    return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
   }
 
   Interpolation _interpolatedIdentifier() {

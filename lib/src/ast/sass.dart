@@ -12,7 +12,6 @@ export 'sass/expression/binary_operation.dart';
 export 'sass/expression/boolean.dart';
 export 'sass/expression/color.dart';
 export 'sass/expression/function.dart';
-export 'sass/expression/identifier.dart';
 export 'sass/expression/list.dart';
 export 'sass/expression/map.dart';
 export 'sass/expression/null.dart';
