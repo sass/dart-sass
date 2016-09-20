@@ -450,21 +450,21 @@ abstract class StylesheetParser extends Parser {
 
     expectIdentifier("from");
     whitespace();
+
     bool exclusive;
-    var from = _expression(
-        until: () {
-          if (!lookingAtIdentifier()) return false;
-          if (scanIdentifier("to")) {
-            exclusive = true;
-            return true;
-          } else if (scanIdentifier("through")) {
-            exclusive = false;
-            return true;
-          } else {
-            return false;
-          }
-        },
-        untilName: '"to" or "through"');
+    var from = _expression(until: () {
+      if (!lookingAtIdentifier()) return false;
+      if (scanIdentifier("to")) {
+        exclusive = true;
+        return true;
+      } else if (scanIdentifier("through")) {
+        exclusive = false;
+        return true;
+      } else {
+        return false;
+      }
+    });
+    if (exclusive == null) scanner.error('Expected "to" or "through".');
 
     whitespace();
     var to = _expression();
@@ -674,7 +674,7 @@ abstract class StylesheetParser extends Parser {
         rest: rest, keywordRest: keywordRest);
   }
 
-  Expression _expression({bool until(), String untilName}) {
+  Expression _expression({bool until()}) {
     if (until != null && until()) scanner.error("Expected expression.");
 
     List<Expression> commaExpressions;
@@ -835,7 +835,11 @@ abstract class StylesheetParser extends Parser {
         case $7:
         case $8:
         case $9:
+          addSingleExpression(_number());
+          break;
+
         case $dot:
+          if (scanner.peekChar(1) == $dot) break loop;
           addSingleExpression(_number());
           break;
 
@@ -924,10 +928,6 @@ abstract class StylesheetParser extends Parser {
           if (first != null && first >= 0x80) {
             addSingleExpression(_identifierLike());
             break;
-          } else if (until != null) {
-            assert(untilName != null);
-            scanner.error("Expected $untilName.");
-            break;
           } else {
             break loop;
           }
@@ -945,7 +945,7 @@ abstract class StylesheetParser extends Parser {
   }
 
   Expression _expressionUntilComma() =>
-      _expression(until: () => scanner.peekChar() == $comma, untilName: '","');
+      _expression(until: () => scanner.peekChar() == $comma);
 
   // non-list expression
   Expression _singleExpression() {
@@ -989,7 +989,6 @@ abstract class StylesheetParser extends Parser {
       case $7:
       case $8:
       case $9:
-      case $dot:
         return _number();
         break;
 
