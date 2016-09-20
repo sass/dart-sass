@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
 import '../ast/sass.dart';
@@ -651,10 +652,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   SassMap visitMapExpression(MapExpression node) {
     var map = <Value, Value>{};
     for (var pair in node.pairs) {
-      var keyValue = pair.first.accept(this);
-      var valueValue = pair.last.accept(this);
+      var keyValue = pair.item1.accept(this);
+      var valueValue = pair.item2.accept(this);
       if (map.containsKey(keyValue)) {
-        throw _exception('Duplicate key.', pair.first.span);
+        throw _exception('Duplicate key.', pair.item1.span);
       }
       map[keyValue] = valueValue;
     }
@@ -702,8 +703,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   Value _runUserDefinedCallable(CallableInvocation invocation,
       UserDefinedCallable callable, Value run()) {
     var pair = _evaluateArguments(invocation);
-    var positional = pair.first;
-    var named = pair.last;
+    var positional = pair.item1;
+    var named = pair.item2;
 
     return _withStackFrame(callable.name + "()", invocation.span, () {
       return _withEnvironment(callable.environment, () {
@@ -746,8 +747,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   Value _runBuiltInCallable(
       CallableInvocation invocation, BuiltInCallable callable) {
     var pair = _evaluateArguments(invocation);
-    var positional = pair.first;
-    var named = pair.last;
+    var positional = pair.item1;
+    var named = pair.item2;
 
     _verifyArguments(positional, named, callable.arguments, invocation.span);
 
@@ -769,7 +770,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return callable.callback(positional);
   }
 
-  Pair<List<Value>, Map<String, Value>> _evaluateArguments(
+  Tuple2<List<Value>, Map<String, Value>> _evaluateArguments(
       CallableInvocation invocation) {
     var positional = invocation.arguments.positional
         .map((expression) => expression.accept(this))
@@ -778,7 +779,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         invocation.arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    if (invocation.arguments.rest == null) return new Pair(positional, named);
+    if (invocation.arguments.rest == null) return new Tuple2(positional, named);
 
     var rest = invocation.arguments.rest.accept(this);
     if (rest is SassMap) {
@@ -790,13 +791,13 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     if (invocation.arguments.keywordRest == null) {
-      return new Pair(positional, named);
+      return new Tuple2(positional, named);
     }
 
     var keywordRest = invocation.arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
       _addRestMap(named, keywordRest, invocation.span);
-      return new Pair(positional, named);
+      return new Tuple2(positional, named);
     } else {
       throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",

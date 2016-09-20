@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
+import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
 import '../interpolation_buffer.dart';
@@ -1108,7 +1109,7 @@ abstract class StylesheetParser extends Parser {
   }
 
   MapExpression _map(Expression first, LineScannerState start) {
-    var pairs = [new Pair(first, _expressionUntilComma())];
+    var pairs = [new Tuple2(first, _expressionUntilComma())];
 
     while (scanner.scanChar($comma)) {
       whitespace();
@@ -1118,7 +1119,7 @@ abstract class StylesheetParser extends Parser {
       scanner.expectChar($colon);
       whitespace();
       var value = _expressionUntilComma();
-      pairs.add(new Pair(key, value));
+      pairs.add(new Tuple2(key, value));
     }
 
     scanner.expectChar($rparen);
