@@ -16,6 +16,8 @@ class SassString extends Value {
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitString(this);
 
+  SassString assertString([String name]) => this;
+
   Value plus(Value other) {
     if (other is SassString) {
       return new SassString(text + other.text,

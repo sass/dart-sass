@@ -17,6 +17,8 @@ class SassColor extends Value {
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitColor(this);
 
+  SassColor assertColor([String name]) => this;
+
   Value plus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.plus(other);
     throw new InternalException('Undefined operation "$this + $other".');

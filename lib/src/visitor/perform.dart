@@ -789,7 +789,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       positional.add(argumentList);
     }
 
-    var result = callable.callback(positional);
+    var result =
+        _addExceptionSpan(() => callable.callback(positional), invocation.span);
 
     if (argumentList == null) return result;
     if (named.isEmpty) return result;

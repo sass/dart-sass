@@ -145,7 +145,7 @@ class SassNumber extends Value {
 
   final List<String> denominatorUnits;
 
-  bool get hasUnits => numeratorUnits.isEmpty && denominatorUnits.isEmpty;
+  bool get hasUnits => numeratorUnits.isNotEmpty || denominatorUnits.isNotEmpty;
 
   bool get isInt => value is int || almostEquals(value % 1, 0.0);
 
@@ -170,6 +170,14 @@ class SassNumber extends Value {
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitNumber(this);
+
+  SassNumber assertNumber([String name]) => this;
+
+  /// Returns whether [this] has [unit] as its only unit (and as a numerator).
+  bool hasUnit(String unit) =>
+      numeratorUnits.length == 1 &&
+      denominatorUnits.isEmpty &&
+      numeratorUnits.first == unit;
 
   num valueInUnits(List<String> newNumerators, List<String> newDenominators) {
     if ((newNumerators.isEmpty && newDenominators.isEmpty) ||

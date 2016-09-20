@@ -20,6 +20,8 @@ class SassBoolean extends Value {
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitBoolean(this);
 
+  SassBoolean assertBoolean([String name]) => this;
+
   Value or(Value other) => value ? this : other;
 
   Value and(Value other) => value ? other : this;

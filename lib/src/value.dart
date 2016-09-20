@@ -4,6 +4,9 @@
 
 import 'exception.dart';
 import 'value/boolean.dart';
+import 'value/color.dart';
+import 'value/map.dart';
+import 'value/number.dart';
 import 'value/string.dart';
 import 'visitor/interface/value.dart';
 import 'visitor/serialize.dart';
@@ -30,6 +33,31 @@ abstract class Value {
   const Value();
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
+
+  SassBoolean assertBoolean([String name]) {
+    if (name == null) throw new InternalException("$this is not a boolean.");
+    throw new InternalException("\$$name: $this is not a boolean.");
+  }
+
+  SassColor assertColor([String name]) {
+    if (name == null) throw new InternalException("$this is not a color.");
+    throw new InternalException("\$$name: $this is not a color.");
+  }
+
+  SassMap assertMap([String name]) {
+    if (name == null) throw new InternalException("$this is not a map.");
+    throw new InternalException("\$$name: $this is not a map.");
+  }
+
+  SassNumber assertNumber([String name]) {
+    if (name == null) throw new InternalException("$this is not a number.");
+    throw new InternalException("\$$name: $this is not a number.");
+  }
+
+  SassString assertString([String name]) {
+    if (name == null) throw new InternalException("$this is not a string.");
+    throw new InternalException("\$$name: $this is not a string.");
+  }
 
   Value or(Value other) => this;
 
