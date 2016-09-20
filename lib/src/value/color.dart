@@ -12,12 +12,18 @@ class SassColor extends Value {
   final int red;
   final int green;
   final int blue;
+  final double alpha;
 
-  SassColor.rgb(this.red, this.green, this.blue);
+  SassColor.rgb(this.red, this.green, this.blue, [double alpha])
+      : alpha = alpha ?? 1.0;
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitColor(this);
 
   SassColor assertColor([String name]) => this;
+
+  SassColor change({int red, int green, int blue, double alpha}) =>
+      new SassColor.rgb(red ?? this.red, green ?? this.green, blue ?? this.blue,
+          alpha ?? this.alpha);
 
   Value plus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.plus(other);

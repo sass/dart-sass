@@ -19,10 +19,40 @@ void defineCoreFunctions(Environment environment) {
     var blue = arguments[2].assertNumber("blue");
 
     return new SassColor.rgb(
-        _percentageOrUnitless(red, 255, "red"),
-        _percentageOrUnitless(green, 255, "green"),
-        _percentageOrUnitless(blue, 255, "blue"));
+        _percentageOrUnitless(red, 255, "red").round(),
+        _percentageOrUnitless(green, 255, "green").round(),
+        _percentageOrUnitless(blue, 255, "blue").round());
   }));
+
+  environment.setFunction(new BuiltInCallable.overloaded("rgba", [
+    new ArgumentDeclaration([
+      new Argument("red"),
+      new Argument("green"),
+      new Argument("blue"),
+      new Argument("alpha")
+    ]),
+    new ArgumentDeclaration([new Argument("color"), new Argument("alpha")]),
+  ], [
+    (arguments) {
+      // TODO: support calc strings
+      var red = arguments[0].assertNumber("red");
+      var green = arguments[1].assertNumber("green");
+      var blue = arguments[2].assertNumber("blue");
+      var alpha = arguments[3].assertNumber("alpha");
+
+      return new SassColor.rgb(
+          _percentageOrUnitless(red, 255, "red").round(),
+          _percentageOrUnitless(green, 255, "green").round(),
+          _percentageOrUnitless(blue, 255, "blue").round(),
+          _percentageOrUnitless(alpha, 1, "alpha"));
+    },
+    (arguments) {
+      var color = arguments[0].assertColor("color");
+      var alpha = arguments[0].assertNumber("alpha");
+
+      return color.change(alpha: _percentageOrUnitless(alpha, 1, "alpha"));
+    }
+  ]));
 
   environment.setFunction(new BuiltInCallable(
       "inspect",
@@ -30,7 +60,7 @@ void defineCoreFunctions(Environment environment) {
       (arguments) => new SassString(arguments.single.toString())));
 }
 
-int _percentageOrUnitless(SassNumber number, int max, String name) {
+num _percentageOrUnitless(SassNumber number, num max, String name) {
   num value;
   if (!number.hasUnits) {
     value = number.value;
@@ -41,5 +71,5 @@ int _percentageOrUnitless(SassNumber number, int max, String name) {
         '\$$name: Expected $number to have no units or "%".');
   }
 
-  return value.clamp(0, max).round();
+  return value.clamp(0, max);
 }

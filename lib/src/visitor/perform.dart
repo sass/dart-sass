@@ -766,9 +766,26 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var named = triple.item2;
     var separator = triple.item3;
 
-    _verifyArguments(positional, named, callable.arguments, invocation.span);
+    int overloadIndex;
+    for (var i = 0; i < callable.overloads.length - 1; i++) {
+      try {
+        _verifyArguments(
+            positional, named, callable.overloads[i], invocation.span);
+        overloadIndex = i;
+        break;
+      } on SassRuntimeException catch (_) {
+        continue;
+      }
+    }
+    if (overloadIndex == null) {
+      _verifyArguments(
+          positional, named, callable.overloads.last, invocation.span);
+      overloadIndex = callable.overloads.length - 1;
+    }
 
-    var declaredArguments = callable.arguments.arguments;
+    var overload = callable.overloads[overloadIndex];
+    var callback = callable.callbacks[overloadIndex];
+    var declaredArguments = overload.arguments;
     for (var i = positional.length; i < declaredArguments.length; i++) {
       var argument = declaredArguments[i];
       positional.add(
@@ -776,7 +793,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     SassArgumentList argumentList;
-    if (callable.arguments.restArgument != null) {
+    if (overload.restArgument != null) {
       var rest = positional.length > declaredArguments.length
           ? positional.sublist(declaredArguments.length)
           : const <Value>[];
@@ -789,8 +806,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       positional.add(argumentList);
     }
 
-    var result =
-        _addExceptionSpan(() => callable.callback(positional), invocation.span);
+    var result = _addExceptionSpan(() => callback(positional), invocation.span);
 
     if (argumentList == null) return result;
     if (named.isEmpty) return result;

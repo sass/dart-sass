@@ -9,12 +9,16 @@ import '../value.dart';
 typedef Value _Callback(List<Value> arguments);
 
 class BuiltInCallable implements Callable {
-  final _Callback callback;
-
   final String name;
-  final ArgumentDeclaration arguments;
+  final List<ArgumentDeclaration> overloads;
+  final List<_Callback> callbacks;
 
-  BuiltInCallable(
-      this.name, this.arguments, Value callback(List<Value> arguments))
-      : callback = callback;
+  BuiltInCallable(String name, ArgumentDeclaration arguments,
+      Value callback(List<Value> arguments))
+      : this.overloaded(name, [arguments], [callback]);
+
+  BuiltInCallable.overloaded(this.name, Iterable<ArgumentDeclaration> arguments,
+      Iterable<_Callback> callbacks)
+      : overloads = new List.unmodifiable(arguments),
+        callbacks = new List.unmodifiable(callbacks);
 }

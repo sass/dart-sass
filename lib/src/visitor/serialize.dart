@@ -225,10 +225,17 @@ class _SerializeCssVisitor
 
   void visitColor(SassColor value) {
     // TODO(nweiz): Use color names for named colors.
-    _buffer.writeCharCode($hash);
-    _writeHexComponent(value.red);
-    _writeHexComponent(value.green);
-    _writeHexComponent(value.blue);
+    if (value.alpha == 1) {
+      _buffer.writeCharCode($hash);
+      _writeHexComponent(value.red);
+      _writeHexComponent(value.green);
+      _writeHexComponent(value.blue);
+    } else {
+      // TODO: support precision in alpha, make sure we don't write exponential
+      // notation.
+      _buffer.write(
+          "rgb(${value.red}, ${value.green}, ${value.blue}, ${value.alpha})");
+    }
   }
 
   void _writeHexComponent(int color) {
