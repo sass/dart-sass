@@ -10,12 +10,14 @@ import '../expression.dart';
 class NumberExpression implements Expression {
   final num value;
 
+  final String unit;
+
   final FileSpan span;
 
-  NumberExpression(this.value, this.span);
+  NumberExpression(this.value, this.span, {this.unit});
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitNumberExpression(this);
 
-  String toString() => value.toString();
+  String toString() => "${value}${unit ?? ''}";
 }

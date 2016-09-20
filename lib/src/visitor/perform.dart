@@ -552,7 +552,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   void visitWarnRule(WarnRule node) {
-    stderr.writeln("WARNING: ${valueToCss(node.expression.accept(this))}");
+    _addExceptionSpan(
+        () => stderr
+            .writeln("WARNING: ${valueToCss(node.expression.accept(this))}"),
+        node.span);
     for (var line in _stackTrace(node.span).toString().split("\n")) {
       stderr.writeln("         $line");
     }
@@ -635,7 +638,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   SassNull visitNullExpression(NullExpression node) => sassNull;
 
   SassNumber visitNumberExpression(NumberExpression node) =>
-      new SassNumber(node.value);
+      new SassNumber(node.value,
+          numeratorUnits: node.unit == null ? null : [node.unit]);
 
   SassColor visitColorExpression(ColorExpression node) => node.value;
 

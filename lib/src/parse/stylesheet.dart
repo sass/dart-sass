@@ -209,9 +209,7 @@ abstract class StylesheetParser extends Parser {
     var beforeDeclaration = scanner.state;
     Expression value;
     try {
-      print(scanner.emptySpan.message("here"));
       value = _declarationExpression();
-      print(scanner.emptySpan.message("there: $value"));
       if (lookingAtChildren()) {
         // Properties that are ambiguous with selectors can't have additional
         // properties nested beneath them, so we force an error. This will be
@@ -1215,7 +1213,15 @@ abstract class StylesheetParser extends Parser {
       number = number * math.pow(10, exponentSign * exponent);
     }
 
-    return new NumberExpression(sign * number, scanner.spanFrom(start));
+    String unit;
+    if (scanner.scanChar($percent)) {
+      unit = "%";
+    } else if (lookingAtIdentifier()) {
+      unit = identifier();
+    }
+
+    return new NumberExpression(sign * number, scanner.spanFrom(start),
+        unit: unit);
   }
 
   VariableExpression _variable() {

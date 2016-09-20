@@ -29,12 +29,14 @@ String toCss(CssNode node, {OutputStyle style, bool inspect: false}) {
   return result.trim();
 }
 
+// Note: this may throw an [InternalException] if [inspect] is `false`.
 String valueToCss(Value value, {bool inspect: false}) {
   var visitor = new _SerializeCssVisitor(inspect: inspect);
   value.accept(visitor);
   return visitor._buffer.toString();
 }
 
+// Note: this may throw an [InternalException] if [inspect] is `false`.
 String selectorToCss(Selector selector, {bool inspect: false}) {
   var visitor = new _SerializeCssVisitor(inspect: inspect);
   selector.accept(visitor);
@@ -295,7 +297,20 @@ class _SerializeCssVisitor
 
   // TODO(nweiz): Support precision and don't support exponent notation.
   void visitNumber(SassNumber value) {
-    _buffer.write(value.value.toString());
+    _buffer.write(value.value);
+
+    if (!_inspect) {
+      if (value.numeratorUnits.length > 1 ||
+          value.denominatorUnits.isNotEmpty) {
+        throw new InternalException("$value isn't a valid CSS value.");
+      }
+
+      if (value.numeratorUnits.isNotEmpty) {
+        _buffer.write(value.numeratorUnits.first);
+      }
+    } else {
+      _buffer.write(value.unitString);
+    }
   }
 
   void visitString(SassString string) {

@@ -171,3 +171,21 @@ List/*<T>*/ longestCommonSubsequence/*<T>*/(
 
   return backtrack(list1.length - 1, list2.length - 1);
 }
+
+/*=T*/ removeFirstWhere/*<T>*/(List/*<T>*/ list, bool test(/*=T*/ value),
+    {/*=T*/ orElse()}) {
+  var/*=T*/ toRemove;
+  for (var element in list) {
+    if (!test(element)) continue;
+    toRemove = element;
+    break;
+  }
+
+  if (toRemove == null) {
+    if (orElse != null) return orElse();
+    throw new StateError("No such element.");
+  } else {
+    list.remove(toRemove);
+    return toRemove;
+  }
+}
