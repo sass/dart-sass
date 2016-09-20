@@ -8,6 +8,7 @@ import 'value/string.dart';
 import 'visitor/interface/value.dart';
 import 'visitor/serialize.dart';
 
+export 'value/argument_list.dart';
 export 'value/boolean.dart';
 export 'value/color.dart';
 export 'value/list.dart';

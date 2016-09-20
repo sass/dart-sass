@@ -702,9 +702,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   Value _runUserDefinedCallable(CallableInvocation invocation,
       UserDefinedCallable callable, Value run()) {
-    var pair = _evaluateArguments(invocation);
-    var positional = pair.item1;
-    var named = pair.item2;
+    var triple = _evaluateArguments(invocation);
+    var positional = triple.item1;
+    var named = triple.item2;
+    var separator = triple.item3;
 
     return _withStackFrame(callable.name + "()", invocation.span, () {
       return _withEnvironment(callable.environment, () {
@@ -729,16 +730,30 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
                     argument.defaultValue?.accept(this));
           }
 
-          // TODO: use a full ArgList object
+          SassArgumentList argumentList;
           if (callable.arguments.restArgument != null) {
             var rest = positional.length > declaredArguments.length
                 ? positional.sublist(declaredArguments.length)
                 : const <Value>[];
-            _environment.setVariable(callable.arguments.restArgument,
-                new SassList(rest, ListSeparator.comma));
+            argumentList = new SassArgumentList(
+                rest,
+                named,
+                separator == ListSeparator.undecided
+                    ? ListSeparator.comma
+                    : separator);
+            _environment.setVariable(
+                callable.arguments.restArgument, argumentList);
           }
 
-          return run();
+          var result = run();
+
+          if (argumentList == null) return result;
+          if (named.isEmpty) return result;
+          if (argumentList.wereKeywordsAccessed) return result;
+          throw _exception(
+              "No ${pluralize('argument', named.keys.length)} named "
+              "${toSentence(named.keys.map((name) => "\$$name"), 'or')}.",
+              invocation.span);
         });
       });
     });
@@ -746,9 +761,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   Value _runBuiltInCallable(
       CallableInvocation invocation, BuiltInCallable callable) {
-    var pair = _evaluateArguments(invocation);
-    var positional = pair.item1;
-    var named = pair.item2;
+    var triple = _evaluateArguments(invocation);
+    var positional = triple.item1;
+    var named = triple.item2;
+    var separator = triple.item3;
 
     _verifyArguments(positional, named, callable.arguments, invocation.span);
 
@@ -759,18 +775,32 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
           named.remove(argument.name) ?? argument.defaultValue?.accept(this));
     }
 
-    // TODO: use a full ArgList object
+    SassArgumentList argumentList;
     if (callable.arguments.restArgument != null) {
       var rest = positional.length > declaredArguments.length
           ? positional.sublist(declaredArguments.length)
           : const <Value>[];
-      positional.add(new SassList(rest, ListSeparator.comma));
+      argumentList = new SassArgumentList(
+          rest,
+          named,
+          separator == ListSeparator.undecided
+              ? ListSeparator.comma
+              : separator);
+      positional.add(argumentList);
     }
 
-    return callable.callback(positional);
+    var result = callable.callback(positional);
+
+    if (argumentList == null) return result;
+    if (named.isEmpty) return result;
+    if (argumentList.wereKeywordsAccessed) return result;
+    throw _exception(
+        "No ${pluralize('argument', named.keys.length)} named "
+        "${toSentence(named.keys.map((name) => "\$$name"), 'or')}.",
+        invocation.span);
   }
 
-  Tuple2<List<Value>, Map<String, Value>> _evaluateArguments(
+  Tuple3<List<Value>, Map<String, Value>, ListSeparator> _evaluateArguments(
       CallableInvocation invocation) {
     var positional = invocation.arguments.positional
         .map((expression) => expression.accept(this))
@@ -779,25 +809,34 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         invocation.arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    if (invocation.arguments.rest == null) return new Tuple2(positional, named);
+    if (invocation.arguments.rest == null) {
+      return new Tuple3(positional, named, ListSeparator.undecided);
+    }
 
     var rest = invocation.arguments.rest.accept(this);
+    var separator = ListSeparator.undecided;
     if (rest is SassMap) {
       _addRestMap(named, rest, invocation.span);
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
+      separator = rest.separator;
+      if (rest is SassArgumentList) {
+        rest.keywords.forEach((key, value) {
+          named[key] = value;
+        });
+      }
     } else {
       positional.add(rest);
     }
 
     if (invocation.arguments.keywordRest == null) {
-      return new Tuple2(positional, named);
+      return new Tuple3(positional, named, separator);
     }
 
     var keywordRest = invocation.arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
       _addRestMap(named, keywordRest, invocation.span);
-      return new Tuple2(positional, named);
+      return new Tuple3(positional, named, separator);
     } else {
       throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",
@@ -812,7 +851,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       } else {
         throw _exception(
             "Variable keyword argument map must have string keys.\n"
-            "$key is not a string in $value.",
+            "$key is not a string in $map.",
             span);
       }
     });

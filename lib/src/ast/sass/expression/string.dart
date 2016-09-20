@@ -28,7 +28,7 @@ class StringExpression implements Expression {
           .asInterpolation(static: true)
           .asPlain;
 
-  StringExpression(this.text, {bool quotes}) : hasQuotes = quotes;
+  StringExpression(this.text, {bool quotes: false}) : hasQuotes = quotes;
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitStringExpression(this);
