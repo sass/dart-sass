@@ -43,8 +43,7 @@ void defineCoreFunctions(Environment environment) {
     (arguments) {
       var color = arguments[0].assertColor("color");
       var alpha = arguments[0].assertNumber("alpha");
-
-      return color.change(alpha: _percentageOrUnitless(alpha, 1, "alpha"));
+      return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
     }
   ]));
 
@@ -140,6 +139,13 @@ void defineCoreFunctions(Environment environment) {
   environment
       .setFunction(new BuiltInCallable("lightness", r"$color", (arguments) {
     return new SassNumber(arguments.first.assertColor("color").lightness, "%");
+  }));
+
+  environment.setFunction(
+      new BuiltInCallable("adjust-hue", r"$color, $degrees", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var degrees = arguments[1].assertNumber("degrees");
+    return color.changeHsl(hue: color.hue + degrees.value);
   }));
 
   // ## Introspection

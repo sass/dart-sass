@@ -69,13 +69,23 @@ class SassColor extends Value {
         _lightness = fuzzyAssertRange(lightness, 0, 100, "lightness"),
         alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha");
 
+  SassColor._(this._red, this._green, this._blue, this._hue, this._saturation,
+      this._lightness, this.alpha);
+
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitColor(this);
 
   SassColor assertColor([String name]) => this;
 
-  SassColor change({int red, int green, int blue, double alpha}) =>
+  SassColor changeRgb({int red, int green, int blue, double alpha}) =>
       new SassColor.rgb(red ?? this.red, green ?? this.green, blue ?? this.blue,
           alpha ?? this.alpha);
+
+  SassColor changeHsl({int hue, int saturation, int lightness, double alpha}) =>
+      new SassColor.hsl(hue ?? this.hue, saturation ?? this.saturation,
+          lightness ?? this.lightness, alpha ?? this.alpha);
+
+  SassColor changeAlpha(double alpha) => new SassColor._(
+      _red, _green, _blue, _hue, _saturation, _lightness, alpha);
 
   Value plus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.plus(other);
