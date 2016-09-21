@@ -36,6 +36,15 @@ String pluralize(String name, int number, {String plural}) {
   return '${name}s';
 }
 
+int codepointIndexToCodeUnitIndex(String string, int codepointIndex) {
+  var codeUnitIndex = 0;
+  for (var i = 0; i < codepointIndex; i++) {
+    var codeUnit = string.codeUnitAt(codeUnitIndex++);
+    if (codeUnit >= 0xD800 && codeUnit <= 0xDBFF) codeUnitIndex++;
+  }
+  return codeUnitIndex;
+}
+
 bool listEquals/*<T>*/(List/*<T>*/ list1, List/*<T>*/ list2) =>
     const ListEquality().equals(list1, list2);
 

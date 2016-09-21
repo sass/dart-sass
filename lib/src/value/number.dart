@@ -149,11 +149,6 @@ class SassNumber extends Value {
 
   bool get isInt => value is int || fuzzyEquals(value % 1, 0.0);
 
-  int get asInt {
-    if (!isInt) throw new InternalException("$this is not an int.");
-    return value.round();
-  }
-
   String get unitString {
     if (numeratorUnits.isEmpty && denominatorUnits.isEmpty) return '';
     return _unitString(numeratorUnits, denominatorUnits);
@@ -176,6 +171,13 @@ class SassNumber extends Value {
 
   SassNumber assertNumber([String name]) => this;
 
+  int assertInt([String name]) {
+    if (isInt) return value.round();
+    var message = "$this is not an int.";
+    if (name != null) message = "\$$name: $message";
+    throw new InternalException(message);
+  }
+
   num valueInRange(num min, num max, [String name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
@@ -193,6 +195,13 @@ class SassNumber extends Value {
   void assertUnit(String unit, [String name]) {
     if (hasUnit(unit)) return;
     var message = 'Expected $this to have unit "$unit".';
+    if (name != null) message = "\$$name: $message";
+    throw new InternalException(message);
+  }
+
+  void assertNoUnits([String name]) {
+    if (!hasUnits) return;
+    var message = 'Expected $this to have no units.';
     if (name != null) message = "\$$name: $message";
     throw new InternalException(message);
   }

@@ -292,9 +292,11 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   void visitForRule(ForRule node) {
-    var from =
-        _addExceptionSpan(() => node.from.accept(this).asInt, node.from.span);
-    var to = _addExceptionSpan(() => node.to.accept(this).asInt, node.to.span);
+    var from = _addExceptionSpan(
+        () => node.from.accept(this).assertNumber().assertInt(),
+        node.from.span);
+    var to = _addExceptionSpan(
+        () => node.to.accept(this).assertNumber().assertInt(), node.to.span);
 
     // TODO: coerce units
     var direction = from > to ? -1 : 1;

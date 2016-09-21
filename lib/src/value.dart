@@ -26,8 +26,6 @@ abstract class Value {
 
   bool get isTruthy => true;
 
-  int get asInt => throw new InternalException("$this is not an int.");
-
   List<Value> get asList => [this];
 
   const Value();

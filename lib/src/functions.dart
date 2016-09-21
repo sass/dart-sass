@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+
 import 'callable.dart';
 import 'environment.dart';
 import 'exception.dart';
@@ -418,6 +420,23 @@ void defineCoreFunctions(Environment environment) {
       .setFunction(new BuiltInCallable("str-length", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     return new SassNumber(string.text.runes.length);
+  }));
+
+  environment.setFunction(new BuiltInCallable(
+      "str-insert", r"$string, $insert, $index", (arguments) {
+    var string = arguments[0].assertString("string");
+    var insert = arguments[1].assertString("insert");
+    var index = arguments[2].assertNumber("index");
+    index.assertNoUnits("index");
+
+    var lengthInRunes = string.text.runes.length;
+    var indexInt = index.assertInt("index");
+    if (indexInt < 0) indexInt = lengthInRunes + indexInt + 2;
+    var insertionPoint = codepointIndexToCodeUnitIndex(
+        string.text, math.max(math.min(indexInt - 1, lengthInRunes), 0));
+    return new SassString(
+        string.text.replaceRange(insertionPoint, insertionPoint, insert.text),
+        quotes: string.hasQuotes);
   }));
 
   // ## Introspection
