@@ -493,6 +493,28 @@ void defineCoreFunctions(Environment environment) {
   environment.setFunction(_numberFunction("floor", (value) => value.floor()));
   environment.setFunction(_numberFunction("abs", (value) => value.abs()));
 
+  environment
+      .setFunction(new BuiltInCallable("max", r"$numbers...", (arguments) {
+    SassNumber max;
+    for (var value in arguments[0].asList) {
+      var number = value.assertNumber();
+      if (max == null || max.lessThan(number).isTruthy) max = number;
+    }
+    if (max != null) return max;
+    throw new InternalException("At least one argument must be passed.");
+  }));
+
+  environment
+      .setFunction(new BuiltInCallable("min", r"$numbers...", (arguments) {
+    SassNumber min;
+    for (var value in arguments[0].asList) {
+      var number = value.assertNumber();
+      if (min == null || min.greaterThan(number).isTruthy) min = number;
+    }
+    if (min != null) return min;
+    throw new InternalException("At least one argument must be passed.");
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
