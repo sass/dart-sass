@@ -5,6 +5,7 @@
 import 'callable.dart';
 import 'environment.dart';
 import 'exception.dart';
+import 'utils.dart';
 import 'value.dart';
 
 final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
@@ -228,6 +229,60 @@ void defineCoreFunctions(Environment environment) {
       new BuiltInCallable("transparentize", r"$color", _transparentize));
   environment
       .setFunction(new BuiltInCallable("fade-out", r"$color", _transparentize));
+
+  // ## Miscellaneous Color
+
+  environment.setFunction(
+      new BuiltInCallable("adjust-color", r"$color, $kwargs...", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var argumentList = arguments[1] as SassArgumentList;
+    if (argumentList.contents.isNotEmpty) {
+      throw new InternalException(
+          "Only only positional argument is allowed. All other arguments must "
+          "be passed by name.");
+    }
+
+    var keywords = normalizedMap/*<Value>*/()..addAll(argumentList.keywords);
+    getInRange(String name, num min, num max) =>
+        keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
+
+    var red = getInRange("red", -255, 255);
+    var green = getInRange("green", -255, 255);
+    var blue = getInRange("blue", -255, 255);
+    var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
+    var saturation = getInRange("saturation", -100, 100);
+    var lightness = getInRange("lightness", -100, 100);
+    var alpha = getInRange("alpha", 0, 1);
+
+    if (keywords.isNotEmpty) {
+      throw new InternalException(
+          "No ${pluralize('argument', keywords.length)} named "
+          "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
+    }
+
+    var hasRgb = red != null || green != null || blue != null;
+    var hasHsl = hue != null || saturation != null || lightness != null;
+    if (hasRgb) {
+      if (hasHsl) {
+        throw new InternalException(
+            "RGB parameters may not be passed along with HSL parameters.");
+      }
+
+      return color.changeRgb(
+          red: color.red + (red ?? 0),
+          green: color.green + (green ?? 0),
+          blue: color.blue + (blue ?? 0),
+          alpha: color.alpha + (alpha ?? 0));
+    } else if (hasHsl) {
+      return color.changeHsl(
+          hue: color.hue + (hue ?? 0),
+          saturation: color.saturation + (saturation ?? 0),
+          lightness: color.lightness + (lightness ?? 0),
+          alpha: color.alpha + (alpha ?? 0));
+    } else {
+      return color.changeAlpha(color.alpha + (alpha ?? 0));
+    }
+  }));
 
   // ## Introspection
 

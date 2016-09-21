@@ -56,14 +56,14 @@ class SassColor extends Value {
 
   final num alpha;
 
-  SassColor.rgb(this._red, this._green, this._blue, [double alpha])
+  SassColor.rgb(this._red, this._green, this._blue, [num alpha])
       : alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
     RangeError.checkValueInInterval(red, 0, 255, "red");
     RangeError.checkValueInInterval(green, 0, 255, "green");
     RangeError.checkValueInInterval(blue, 0, 255, "blue");
   }
 
-  SassColor.hsl(num hue, num saturation, num lightness, [double alpha])
+  SassColor.hsl(num hue, num saturation, num lightness, [num alpha])
       : _hue = hue % 360,
         _saturation = fuzzyAssertRange(saturation, 0, 100, "saturation"),
         _lightness = fuzzyAssertRange(lightness, 0, 100, "lightness"),
@@ -76,15 +76,15 @@ class SassColor extends Value {
 
   SassColor assertColor([String name]) => this;
 
-  SassColor changeRgb({int red, int green, int blue, double alpha}) =>
+  SassColor changeRgb({int red, int green, int blue, num alpha}) =>
       new SassColor.rgb(red ?? this.red, green ?? this.green, blue ?? this.blue,
           alpha ?? this.alpha);
 
-  SassColor changeHsl({int hue, int saturation, int lightness, double alpha}) =>
+  SassColor changeHsl({num hue, num saturation, num lightness, num alpha}) =>
       new SassColor.hsl(hue ?? this.hue, saturation ?? this.saturation,
           lightness ?? this.lightness, alpha ?? this.alpha);
 
-  SassColor changeAlpha(double alpha) => new SassColor._(
+  SassColor changeAlpha(num alpha) => new SassColor._(
       _red, _green, _blue, _hue, _saturation, _lightness, alpha);
 
   Value plus(Value other) {
