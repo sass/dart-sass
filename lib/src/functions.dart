@@ -12,6 +12,8 @@ import 'value.dart';
 
 final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
 
+final _random = new math.Random();
+
 void defineCoreFunctions(Environment environment) {
   // ## RGB
 
@@ -453,8 +455,8 @@ void defineCoreFunctions(Environment environment) {
     var string = arguments[0].assertString("string");
     var start = arguments[1].assertNumber("start-at");
     var end = arguments[2].assertNumber("end-at");
-    start.assertNoUnits();
-    end.assertNoUnits();
+    start.assertNoUnits("start");
+    end.assertNoUnits("end");
 
     var lengthInCodepoints = string.text.runes.length;
     var startCodepoint =
@@ -484,7 +486,7 @@ void defineCoreFunctions(Environment environment) {
   environment
       .setFunction(new BuiltInCallable("percentage", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
-    number.assertNoUnits();
+    number.assertNoUnits("number");
     return new SassNumber(number.value * 100, '%');
   }));
 
@@ -513,6 +515,17 @@ void defineCoreFunctions(Environment environment) {
     }
     if (min != null) return min;
     throw new InternalException("At least one argument must be passed.");
+  }));
+
+  environment
+      .setFunction(new BuiltInCallable("random", r"$limit: null", (arguments) {
+    if (arguments[0] == sassNull) return new SassNumber(_random.nextDouble());
+    var limit = arguments[0].assertNumber("limit").assertInt("limit");
+    if (limit < 1) {
+      throw new InternalException(
+          "\$limit: Must be greater than 0, was $limit.");
+    }
+    return new SassNumber(_random.nextInt(limit + 1) + 1);
   }));
 
   // ## Introspection
