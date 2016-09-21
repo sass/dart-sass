@@ -57,6 +57,23 @@ void defineCoreFunctions(Environment environment) {
   ]));
 
   environment.setFunction(new BuiltInCallable(
+      "red",
+      new ArgumentDeclaration([new Argument("color")]),
+      (arguments) => new SassNumber(arguments.first.assertColor("color").red)));
+
+  environment.setFunction(new BuiltInCallable(
+      "green",
+      new ArgumentDeclaration([new Argument("color")]),
+      (arguments) =>
+          new SassNumber(arguments.first.assertColor("color").green)));
+
+  environment.setFunction(new BuiltInCallable(
+      "blue",
+      new ArgumentDeclaration([new Argument("color")]),
+      (arguments) =>
+          new SassNumber(arguments.first.assertColor("color").blue)));
+
+  environment.setFunction(new BuiltInCallable(
       "mix",
       new ArgumentDeclaration([
         new Argument("color1"),
