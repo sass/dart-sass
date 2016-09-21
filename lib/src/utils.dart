@@ -114,8 +114,21 @@ Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(Map/*<K, V1>*/ map,
   return result;
 }
 
-bool almostEquals(num number1, num number2) =>
+bool fuzzyEquals(num number1, num number2) =>
     (number1 - number2).abs() < _epsilon;
+
+num fuzzyCheckRange(num number, num min, num max) {
+  if (fuzzyEquals(number, min)) return min;
+  if (fuzzyEquals(number, max)) return max;
+  if (number > min && number < max) return number;
+  return null;
+}
+
+num fuzzyAssertRange(num number, num min, num max, [String name]) {
+  var result = fuzzyCheckRange(number, min, max);
+  if (result != null) return result;
+  throw new RangeError.value(number, name, "must be between $min and $max.");
+}
 
 List/*<T>*/ longestCommonSubsequence/*<T>*/(
     List/*<T>*/ list1, List/*<T>*/ list2,

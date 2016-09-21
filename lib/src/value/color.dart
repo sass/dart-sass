@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../exception.dart';
+import '../utils.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
@@ -12,10 +13,14 @@ class SassColor extends Value {
   final int red;
   final int green;
   final int blue;
-  final double alpha;
+  final num alpha;
 
   SassColor.rgb(this.red, this.green, this.blue, [double alpha])
-      : alpha = alpha ?? 1.0;
+      : alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
+    RangeError.checkValueInInterval(red, 0, 255, "red");
+    RangeError.checkValueInInterval(green, 0, 255, "green");
+    RangeError.checkValueInInterval(blue, 0, 255, "blue");
+  }
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitColor(this);
 

@@ -639,8 +639,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   SassNull visitNullExpression(NullExpression node) => sassNull;
 
   SassNumber visitNumberExpression(NumberExpression node) =>
-      new SassNumber(node.value,
-          numeratorUnits: node.unit == null ? null : [node.unit]);
+      new SassNumber(node.value, node.unit);
 
   SassColor visitColorExpression(ColorExpression node) => node.value;
 

@@ -147,7 +147,7 @@ class SassNumber extends Value {
 
   bool get hasUnits => numeratorUnits.isNotEmpty || denominatorUnits.isNotEmpty;
 
-  bool get isInt => value is int || almostEquals(value % 1, 0.0);
+  bool get isInt => value is int || fuzzyEquals(value % 1, 0.0);
 
   int get asInt {
     if (!isInt) throw new InternalException("$this is not an int.");
@@ -159,7 +159,10 @@ class SassNumber extends Value {
     return _unitString(numeratorUnits, denominatorUnits);
   }
 
-  SassNumber(this.value,
+  SassNumber(num value, [String unit])
+      : this.withUnits(value, numeratorUnits: unit == null ? null : [unit]);
+
+  SassNumber.withUnits(this.value,
       {Iterable<String> numeratorUnits, Iterable<String> denominatorUnits})
       : numeratorUnits = numeratorUnits == null
             ? const []
@@ -172,6 +175,14 @@ class SassNumber extends Value {
       visitor.visitNumber(this);
 
   SassNumber assertNumber([String name]) => this;
+
+  num valueInRange(num min, num max, [String name]) {
+    var result = fuzzyCheckRange(value, min, max);
+    if (result != null) return result;
+    var message =
+        "Expected $this to be within $min$unitString and $max$unitString.";
+    throw new InternalException(name == null ? message : "\$$name: $message");
+  }
 
   /// Returns whether [this] has [unit] as its only unit (and as a numerator).
   bool hasUnit(String unit) =>
@@ -315,18 +326,18 @@ class SassNumber extends Value {
     // Short-circuit without allocating any new unit lists if possible.
     if (numerators1.isEmpty) {
       if (denominators1.isEmpty) {
-        return new SassNumber(value,
+        return new SassNumber.withUnits(value,
             numeratorUnits: numerators2, denominatorUnits: denominators2);
       } else if (denominators2.isEmpty) {
-        return new SassNumber(value,
+        return new SassNumber.withUnits(value,
             numeratorUnits: numerators2, denominatorUnits: denominators1);
       }
     } else if (numerators2.isEmpty) {
       if (denominators1.isEmpty) {
-        return new SassNumber(value,
+        return new SassNumber.withUnits(value,
             numeratorUnits: numerators1, denominatorUnits: denominators2);
       } else if (denominators2.isEmpty) {
-        return new SassNumber(value,
+        return new SassNumber.withUnits(value,
             numeratorUnits: numerators1, denominatorUnits: denominators2);
       }
     }
@@ -364,7 +375,7 @@ class SassNumber extends Value {
       });
     }
 
-    return new SassNumber(value,
+    return new SassNumber.withUnits(value,
         numeratorUnits: newNumerators,
         denominatorUnits: mutableDenominators1..addAll(mutableDenominators2));
   }
