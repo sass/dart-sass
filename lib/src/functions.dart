@@ -429,13 +429,10 @@ void defineCoreFunctions(Environment environment) {
     var index = arguments[2].assertNumber("index");
     index.assertNoUnits("index");
 
-    var lengthInRunes = string.text.runes.length;
-    var indexInt = index.assertInt("index");
-    if (indexInt < 0) indexInt = lengthInRunes + indexInt + 2;
-    var insertionPoint = codepointIndexToCodeUnitIndex(
-        string.text, math.max(math.min(indexInt - 1, lengthInRunes), 0));
+    var codeUnitIndex = codepointIndexToCodeUnitIndex(string.text,
+        _codepointForIndex(index.assertInt("index"), string.text.runes.length));
     return new SassString(
-        string.text.replaceRange(insertionPoint, insertionPoint, insert.text),
+        string.text.replaceRange(codeUnitIndex, codeUnitIndex, insert.text),
         quotes: string.hasQuotes);
   }));
 
@@ -449,6 +446,25 @@ void defineCoreFunctions(Environment environment) {
     var codePointIndex =
         codeUnitIndexToCodepointIndex(string.text, codeUnitIndex);
     return new SassNumber(codePointIndex + 1);
+  }));
+
+  environment.setFunction(new BuiltInCallable(
+      "str-slice", r"$string, $start-at, $end-at: -1", (arguments) {
+    var string = arguments[0].assertString("string");
+    var start = arguments[1].assertNumber("start-at");
+    var end = arguments[2].assertNumber("end-at");
+    start.assertNoUnits();
+    end.assertNoUnits();
+
+    var lengthInCodepoints = string.text.runes.length;
+    var startCodepoint =
+        _codepointForIndex(start.assertInt(), lengthInCodepoints);
+    var endCodepoint = _codepointForIndex(end.assertInt(), lengthInCodepoints);
+    return new SassString(
+        string.text.substring(
+            codepointIndexToCodeUnitIndex(string.text, startCodepoint),
+            codepointIndexToCodeUnitIndex(string.text, endCodepoint) + 1),
+        quotes: string.hasQuotes);
   }));
 
   // ## Introspection
@@ -522,4 +538,10 @@ SassColor _transparentize(List<Value> arguments) {
   var amount = arguments[1].assertNumber("amount");
 
   return color.changeAlpha(color.alpha - amount.valueInRange(0, 1, "amount"));
+}
+
+int _codepointForIndex(int index, int lengthInCodepoints) {
+  if (index == 0) return 0;
+  if (index > 0) return math.min(index - 1, lengthInCodepoints);
+  return math.max(lengthInCodepoints + index, 0);
 }
