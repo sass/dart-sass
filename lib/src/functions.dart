@@ -116,6 +116,32 @@ void defineCoreFunctions(Environment environment) {
     return new SassColor.hsl(hue.value, saturation.value, lightness.value);
   }));
 
+  environment.setFunction(new BuiltInCallable(
+      "hsla", r"$hue, $saturation, $lightness, $alpha", (arguments) {
+    // TODO: support calc strings
+    var hue = arguments[0].assertNumber("hue");
+    var saturation = arguments[1].assertNumber("saturation");
+    var lightness = arguments[2].assertNumber("lightness");
+    var alpha = arguments[3].assertNumber("alpha");
+
+    return new SassColor.hsl(hue.value, saturation.value, lightness.value,
+        _percentageOrUnitless(alpha, 1, "alpha"));
+  }));
+
+  environment.setFunction(new BuiltInCallable("hue", r"$color", (arguments) {
+    return new SassNumber(arguments.first.assertColor("color").hue, "deg");
+  }));
+
+  environment
+      .setFunction(new BuiltInCallable("saturation", r"$color", (arguments) {
+    return new SassNumber(arguments.first.assertColor("color").saturation, "%");
+  }));
+
+  environment
+      .setFunction(new BuiltInCallable("lightness", r"$color", (arguments) {
+    return new SassNumber(arguments.first.assertColor("color").lightness, "%");
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
