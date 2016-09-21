@@ -21,9 +21,9 @@ void defineCoreFunctions(Environment environment) {
     var blue = arguments[2].assertNumber("blue");
 
     return new SassColor.rgb(
-        _percentageOrUnitless(red, 255, "red").round(),
-        _percentageOrUnitless(green, 255, "green").round(),
-        _percentageOrUnitless(blue, 255, "blue").round());
+        fuzzyRound(_percentageOrUnitless(red, 255, "red")),
+        fuzzyRound(_percentageOrUnitless(green, 255, "green")),
+        fuzzyRound(_percentageOrUnitless(blue, 255, "blue")));
   }));
 
   environment.setFunction(new BuiltInCallable.overloaded("rgba", [

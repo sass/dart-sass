@@ -179,6 +179,6 @@ class SassColor extends Value {
       result = m1;
     }
 
-    return (result * 255).round();
+    return fuzzyRound(result * 255);
   }
 }

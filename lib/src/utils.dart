@@ -131,6 +131,13 @@ bool fuzzyGreaterThan(num number1, num number2) =>
 bool fuzzyGreaterThanOrEquals(num number1, num number2) =>
     number1 > number2 || fuzzyEquals(number1, number2);
 
+int fuzzyRound(num number) {
+  // If the number is within epsilon of X.5, round up (or down for negative
+  // numbers).
+  if (fuzzyLessThan(number % 1, 0.5)) return number.round();
+  return number > 0 ? number.ceil() : number.floor();
+}
+
 num fuzzyCheckRange(num number, num min, num max) {
   if (fuzzyEquals(number, min)) return min;
   if (fuzzyEquals(number, max)) return max;
