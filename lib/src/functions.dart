@@ -212,6 +212,16 @@ void defineCoreFunctions(Environment environment) {
     }
   ]));
 
+  environment
+      .setFunction(new BuiltInCallable("opacity", r"$color", (arguments) {
+    if (arguments[0] is SassNumber) {
+      return new SassString("opacity(${arguments[0]})");
+    }
+
+    var color = arguments[0].assertColor("color");
+    return new SassNumber(color.alpha);
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
