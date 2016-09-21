@@ -284,6 +284,66 @@ void defineCoreFunctions(Environment environment) {
     }
   }));
 
+  environment.setFunction(
+      new BuiltInCallable("scale-color", r"$color, $kwargs...", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var argumentList = arguments[1] as SassArgumentList;
+    if (argumentList.contents.isNotEmpty) {
+      throw new InternalException(
+          "Only only positional argument is allowed. All other arguments must "
+          "be passed by name.");
+    }
+
+    var keywords = normalizedMap/*<Value>*/()..addAll(argumentList.keywords);
+    getScale(String name) {
+      var value = keywords.remove(name);
+      if (value == null) return null;
+      var number = value.assertNumber(name);
+      number.assertUnit("%", name);
+      return number.valueInRange(-100, 100, name) / 100;
+    }
+
+    scaleValue(num current, num scale, num max) {
+      if (scale == null) return current;
+      return current + (scale > 0 ? max - current : current) * scale;
+    }
+
+    var red = getScale("red");
+    var green = getScale("green");
+    var blue = getScale("blue");
+    var saturation = getScale("saturation");
+    var lightness = getScale("lightness");
+    var alpha = getScale("alpha");
+
+    if (keywords.isNotEmpty) {
+      throw new InternalException(
+          "No ${pluralize('argument', keywords.length)} named "
+          "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
+    }
+
+    var hasRgb = red != null || green != null || blue != null;
+    var hasHsl = saturation != null || lightness != null;
+    if (hasRgb) {
+      if (hasHsl) {
+        throw new InternalException(
+            "RGB parameters may not be passed along with HSL parameters.");
+      }
+
+      return color.changeRgb(
+          red: scaleValue(color.red, red, 255),
+          green: scaleValue(color.green, green, 255),
+          blue: scaleValue(color.blue, blue, 255),
+          alpha: scaleValue(color.alpha, alpha, 1));
+    } else if (hasHsl) {
+      return color.changeHsl(
+          saturation: scaleValue(color.saturation, saturation, 100),
+          lightness: scaleValue(color.lightness, lightness, 100),
+          alpha: scaleValue(color.alpha, alpha, 1));
+    } else {
+      return color.changeAlpha(scaleValue(color.alpha, alpha, 1));
+    }
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",

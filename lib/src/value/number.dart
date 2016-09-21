@@ -190,6 +190,13 @@ class SassNumber extends Value {
       denominatorUnits.isEmpty &&
       numeratorUnits.first == unit;
 
+  void assertUnit(String unit, [String name]) {
+    if (hasUnit(unit)) return;
+    var message = 'Expected $this to have unit "$unit".';
+    if (name != null) message = "\$$name: $message";
+    throw new InternalException(message);
+  }
+
   num valueInUnits(List<String> newNumerators, List<String> newDenominators) {
     if ((newNumerators.isEmpty && newDenominators.isEmpty) ||
         (numeratorUnits.isEmpty && denominatorUnits.isEmpty) ||
