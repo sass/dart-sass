@@ -34,6 +34,9 @@ bool isHex(int character) =>
     (character >= $a && character <= $f) ||
     (character >= $A && character <= $F);
 
+bool isHighSurrogate(int character) =>
+    character >= 0xD800 && character <= 0xDBFF;
+
 // Does not include type selectors
 bool isSimpleSelectorStart(int character) =>
     character == $asterisk ||

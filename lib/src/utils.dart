@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
+import 'util/character.dart';
 import 'value.dart';
 
 const _epsilon = 1 / (10 * SassNumber.precision);
@@ -39,10 +40,18 @@ String pluralize(String name, int number, {String plural}) {
 int codepointIndexToCodeUnitIndex(String string, int codepointIndex) {
   var codeUnitIndex = 0;
   for (var i = 0; i < codepointIndex; i++) {
-    var codeUnit = string.codeUnitAt(codeUnitIndex++);
-    if (codeUnit >= 0xD800 && codeUnit <= 0xDBFF) codeUnitIndex++;
+    if (isHighSurrogate(string.codeUnitAt(codeUnitIndex++))) codeUnitIndex++;
   }
   return codeUnitIndex;
+}
+
+int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
+  var codepointIndex = 0;
+  for (var i = 0; i < codeUnitIndex; i++) {
+    codepointIndex++;
+    if (isHighSurrogate(string.codeUnitAt(i++))) i++;
+  }
+  return codepointIndex;
 }
 
 bool listEquals/*<T>*/(List/*<T>*/ list1, List/*<T>*/ list2) =>

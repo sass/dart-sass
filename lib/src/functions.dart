@@ -439,6 +439,18 @@ void defineCoreFunctions(Environment environment) {
         quotes: string.hasQuotes);
   }));
 
+  environment.setFunction(
+      new BuiltInCallable("str-index", r"$string, $substring", (arguments) {
+    var string = arguments[0].assertString("string");
+    var substring = arguments[1].assertString("substring");
+
+    var codeUnitIndex = string.text.indexOf(substring.text);
+    if (codeUnitIndex == -1) return sassNull;
+    var codePointIndex =
+        codeUnitIndexToCodepointIndex(string.text, codeUnitIndex);
+    return new SassNumber(codePointIndex + 1);
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
