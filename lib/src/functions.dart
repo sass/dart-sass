@@ -389,6 +389,16 @@ void defineCoreFunctions(Environment environment) {
     }
   }));
 
+  environment
+      .setFunction(new BuiltInCallable("ie-hex-str", r"$color", (arguments) {
+    var color = arguments[0].assertColor("color");
+    hexString(int component) =>
+        component.toRadixString(16).padLeft(2, '0').toUpperCase();
+    return new SassString(
+        "#${hexString(fuzzyRound(color.alpha * 255))}${hexString(color.red)}"
+        "${hexString(color.green)}${hexString(color.blue)}");
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
