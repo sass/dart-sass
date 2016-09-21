@@ -414,6 +414,12 @@ void defineCoreFunctions(Environment environment) {
     return new SassString(string.text, quotes: true);
   }));
 
+  environment
+      .setFunction(new BuiltInCallable("str-length", r"$string", (arguments) {
+    var string = arguments[0].assertString("string");
+    return new SassNumber(string.text.runes.length);
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
