@@ -252,7 +252,7 @@ void defineCoreFunctions(Environment environment) {
     var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
     var saturation = getInRange("saturation", -100, 100);
     var lightness = getInRange("lightness", -100, 100);
-    var alpha = getInRange("alpha", 0, 1);
+    var alpha = getInRange("alpha", -1, 1);
 
     if (keywords.isNotEmpty) {
       throw new InternalException(
@@ -341,6 +341,51 @@ void defineCoreFunctions(Environment environment) {
           alpha: scaleValue(color.alpha, alpha, 1));
     } else {
       return color.changeAlpha(scaleValue(color.alpha, alpha, 1));
+    }
+  }));
+
+  environment.setFunction(
+      new BuiltInCallable("change-color", r"$color, $kwargs...", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var argumentList = arguments[1] as SassArgumentList;
+    if (argumentList.contents.isNotEmpty) {
+      throw new InternalException(
+          "Only only positional argument is allowed. All other arguments must "
+          "be passed by name.");
+    }
+
+    var keywords = normalizedMap/*<Value>*/()..addAll(argumentList.keywords);
+    getInRange(String name, num min, num max) =>
+        keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
+
+    var red = getInRange("red", 0, 255);
+    var green = getInRange("green", 0, 255);
+    var blue = getInRange("blue", 0, 255);
+    var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
+    var saturation = getInRange("saturation", 0, 100);
+    var lightness = getInRange("lightness", 0, 100);
+    var alpha = getInRange("alpha", 0, 1);
+
+    if (keywords.isNotEmpty) {
+      throw new InternalException(
+          "No ${pluralize('argument', keywords.length)} named "
+          "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
+    }
+
+    var hasRgb = red != null || green != null || blue != null;
+    var hasHsl = saturation != null || lightness != null;
+    if (hasRgb) {
+      if (hasHsl) {
+        throw new InternalException(
+            "RGB parameters may not be passed along with HSL parameters.");
+      }
+
+      return color.changeRgb(red: red, green: green, blue: blue, alpha: alpha);
+    } else if (hasHsl) {
+      return color.changeHsl(
+          hue: hue, saturation: saturation, lightness: lightness, alpha: alpha);
+    } else {
+      return color.changeAlpha(alpha);
     }
   }));
 
