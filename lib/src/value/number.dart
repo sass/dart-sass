@@ -232,28 +232,30 @@ class SassNumber extends Value {
 
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => num1 > num2);
+      return _coerceUnits(other, (num1, num2) => fuzzyGreaterThan(num1, num2));
     }
     throw new InternalException('Undefined operation "$this > $other".');
   }
 
   SassBoolean greaterThanOrEquals(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => num1 >= num2);
+      return _coerceUnits(
+          other, (num1, num2) => fuzzyGreaterThanOrEquals(num1, num2));
     }
     throw new InternalException('Undefined operation "$this >= $other".');
   }
 
   SassBoolean lessThan(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => num1 < num2);
+      return _coerceUnits(other, (num1, num2) => fuzzyLessThan(num1, num2));
     }
     throw new InternalException('Undefined operation "$this < $other".');
   }
 
   SassBoolean lessThanOrEquals(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => num1 <= num2);
+      return _coerceUnits(
+          other, (num1, num2) => fuzzyLessThanOrEquals(num1, num2));
     }
     throw new InternalException('Undefined operation "$this <= $other".');
   }
@@ -400,4 +402,9 @@ class SassNumber extends Value {
 
     return "${numerators.join("*")}/${denominators.join("*")}";
   }
+
+  bool operator ==(other) =>
+      other is SassNumber && fuzzyEquals(value, other.value);
+
+  int get hashCode => fuzzyHashCode(value);
 }

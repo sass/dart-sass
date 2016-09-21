@@ -117,6 +117,20 @@ Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(Map/*<K, V1>*/ map,
 bool fuzzyEquals(num number1, num number2) =>
     (number1 - number2).abs() < _epsilon;
 
+int fuzzyHashCode(num number) => number % _epsilon;
+
+bool fuzzyLessThan(num number1, num number2) =>
+    number1 < number2 && !fuzzyEquals(number1, number2);
+
+bool fuzzyLessThanOrEquals(num number1, num number2) =>
+    number1 < number2 || fuzzyEquals(number1, number2);
+
+bool fuzzyGreaterThan(num number1, num number2) =>
+    number1 > number2 && !fuzzyEquals(number1, number2);
+
+bool fuzzyGreaterThanOrEquals(num number1, num number2) =>
+    number1 > number2 || fuzzyEquals(number1, number2);
+
 num fuzzyCheckRange(num number, num min, num max) {
   if (fuzzyEquals(number, min)) return min;
   if (fuzzyEquals(number, max)) return max;
