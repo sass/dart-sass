@@ -53,6 +53,14 @@ abstract class StylesheetParser extends Parser {
     });
   }
 
+  ArgumentDeclaration parseArgumentDeclaration() {
+    return wrapFormatException(() {
+      var declaration = _argumentDeclaration();
+      scanner.expectDone();
+      return declaration;
+    });
+  }
+
   Statement _topLevelStatement() {
     if (scanner.peekChar() == $at) return _atRule(_topLevelStatement);
     return _styleRule();

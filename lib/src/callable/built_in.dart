@@ -4,6 +4,7 @@
 
 import '../ast/sass.dart';
 import '../callable.dart';
+import '../parse.dart';
 import '../value.dart';
 
 typedef Value _Callback(List<Value> arguments);
@@ -13,12 +14,13 @@ class BuiltInCallable implements Callable {
   final List<ArgumentDeclaration> overloads;
   final List<_Callback> callbacks;
 
-  BuiltInCallable(String name, ArgumentDeclaration arguments,
-      Value callback(List<Value> arguments))
+  BuiltInCallable(
+      String name, String arguments, Value callback(List<Value> arguments))
       : this.overloaded(name, [arguments], [callback]);
 
-  BuiltInCallable.overloaded(this.name, Iterable<ArgumentDeclaration> arguments,
-      Iterable<_Callback> callbacks)
-      : overloads = new List.unmodifiable(arguments),
+  BuiltInCallable.overloaded(
+      this.name, Iterable<String> overloads, Iterable<_Callback> callbacks)
+      : overloads = new List.unmodifiable(overloads
+            .map((overload) => parseArgumentDeclaration("($overload)"))),
         callbacks = new List.unmodifiable(callbacks);
 }

@@ -2,20 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'ast/sass.dart';
 import 'callable.dart';
 import 'environment.dart';
 import 'exception.dart';
 import 'value.dart';
 
 void defineCoreFunctions(Environment environment) {
-  // ## RGB Functions
+  // ## RGB
 
-  environment.setFunction(new BuiltInCallable(
-      "rgb",
-      new ArgumentDeclaration(
-          [new Argument("red"), new Argument("green"), new Argument("blue")]),
-      (arguments) {
+  environment.setFunction(
+      new BuiltInCallable("rgb", r"$red, $green, $blue", (arguments) {
     var red = arguments[0].assertNumber("red");
     var green = arguments[1].assertNumber("green");
     var blue = arguments[2].assertNumber("blue");
@@ -27,13 +23,8 @@ void defineCoreFunctions(Environment environment) {
   }));
 
   environment.setFunction(new BuiltInCallable.overloaded("rgba", [
-    new ArgumentDeclaration([
-      new Argument("red"),
-      new Argument("green"),
-      new Argument("blue"),
-      new Argument("alpha")
-    ]),
-    new ArgumentDeclaration([new Argument("color"), new Argument("alpha")]),
+    r"$red, $green, $blue, $alpha",
+    r"$color, $alpha",
   ], [
     (arguments) {
       // TODO: support calc strings
@@ -56,33 +47,20 @@ void defineCoreFunctions(Environment environment) {
     }
   ]));
 
-  environment.setFunction(new BuiltInCallable(
-      "red",
-      new ArgumentDeclaration([new Argument("color")]),
-      (arguments) => new SassNumber(arguments.first.assertColor("color").red)));
+  environment.setFunction(new BuiltInCallable("red", r"$color", (arguments) {
+    return new SassNumber(arguments.first.assertColor("color").red);
+  }));
+
+  environment.setFunction(new BuiltInCallable("green", r"$color", (arguments) {
+    return new SassNumber(arguments.first.assertColor("color").green);
+  }));
+
+  environment.setFunction(new BuiltInCallable("blue", r"$color", (arguments) {
+    return new SassNumber(arguments.first.assertColor("color").blue);
+  }));
 
   environment.setFunction(new BuiltInCallable(
-      "green",
-      new ArgumentDeclaration([new Argument("color")]),
-      (arguments) =>
-          new SassNumber(arguments.first.assertColor("color").green)));
-
-  environment.setFunction(new BuiltInCallable(
-      "blue",
-      new ArgumentDeclaration([new Argument("color")]),
-      (arguments) =>
-          new SassNumber(arguments.first.assertColor("color").blue)));
-
-  environment.setFunction(new BuiltInCallable(
-      "mix",
-      new ArgumentDeclaration([
-        new Argument("color1"),
-        new Argument("color2"),
-        new Argument("weight",
-            // TODO(nweiz): Find a better way to declare arguments so we don't
-            // have to pass `null` explicitly.
-            defaultValue: new NumberExpression(50, null, unit: "%"))
-      ]), (arguments) {
+      "mix", r"$color1, $color2, $weight: 50%", (arguments) {
     var color1 = arguments[0].assertColor("color1");
     var color2 = arguments[1].assertColor("color2");
     var weight = arguments[2].assertNumber("weight");
@@ -125,11 +103,9 @@ void defineCoreFunctions(Environment environment) {
         color1.alpha * weightScale + color2.alpha * (1 - weightScale));
   }));
 
-  // ## Introspection Functions
+  // ## Introspection
 
-  environment.setFunction(new BuiltInCallable(
-      "inspect",
-      new ArgumentDeclaration([new Argument("value")]),
+  environment.setFunction(new BuiltInCallable("inspect", r"$value",
       (arguments) => new SassString(arguments.first.toString())));
 }
 

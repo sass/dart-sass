@@ -15,6 +15,9 @@ Stylesheet parseSass(String contents, {url}) =>
 Stylesheet parseScss(String contents, {url}) =>
     new ScssParser(contents, url: url).parse();
 
+ArgumentDeclaration parseArgumentDeclaration(String contents, {url}) =>
+    new ScssParser(contents, url: url).parseArgumentDeclaration();
+
 SelectorList parseSelector(String contents, {url}) =>
     new SelectorParser(contents, url: url).parse();
 
