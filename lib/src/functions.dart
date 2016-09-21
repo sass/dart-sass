@@ -222,6 +222,13 @@ void defineCoreFunctions(Environment environment) {
     return new SassNumber(color.alpha);
   }));
 
+  environment.setFunction(new BuiltInCallable("opacify", r"$color", _opacify));
+  environment.setFunction(new BuiltInCallable("fade-in", r"$color", _opacify));
+  environment.setFunction(
+      new BuiltInCallable("transparentize", r"$color", _transparentize));
+  environment
+      .setFunction(new BuiltInCallable("fade-out", r"$color", _transparentize));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
@@ -279,4 +286,18 @@ SassColor _mix(SassColor color1, SassColor color2, SassNumber weight) {
       (color1.green * weight1 + color2.green * weight2).round(),
       (color1.blue * weight1 + color2.blue * weight2).round(),
       color1.alpha * weightScale + color2.alpha * (1 - weightScale));
+}
+
+SassColor _opacify(List<Value> arguments) {
+  var color = arguments[0].assertColor("color");
+  var amount = arguments[1].assertNumber("amount");
+
+  return color.changeAlpha(color.alpha + amount.valueInRange(0, 1, "amount"));
+}
+
+SassColor _transparentize(List<Value> arguments) {
+  var color = arguments[0].assertColor("color");
+  var amount = arguments[1].assertNumber("amount");
+
+  return color.changeAlpha(color.alpha - amount.valueInRange(0, 1, "amount"));
 }
