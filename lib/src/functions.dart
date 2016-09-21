@@ -399,6 +399,21 @@ void defineCoreFunctions(Environment environment) {
         "${hexString(color.green)}${hexString(color.blue)}");
   }));
 
+  // ## String
+
+  environment
+      .setFunction(new BuiltInCallable("unquote", r"$string", (arguments) {
+    var string = arguments[0].assertString("string");
+    if (!string.hasQuotes) return string;
+    return new SassString(string.text);
+  }));
+
+  environment.setFunction(new BuiltInCallable("quote", r"$string", (arguments) {
+    var string = arguments[0].assertString("string");
+    if (string.hasQuotes) return string;
+    return new SassString(string.text, quotes: true);
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
