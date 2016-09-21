@@ -467,6 +467,18 @@ void defineCoreFunctions(Environment environment) {
         quotes: string.hasQuotes);
   }));
 
+  environment.setFunction(
+      new BuiltInCallable("to-upper-case", r"$string", (arguments) {
+    var string = arguments[0].assertString("string");
+    return new SassString(string.text.toUpperCase(), quotes: string.hasQuotes);
+  }));
+
+  environment.setFunction(
+      new BuiltInCallable("to-lower-case", r"$string", (arguments) {
+    var string = arguments[0].assertString("string");
+    return new SassString(string.text.toLowerCase(), quotes: string.hasQuotes);
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
