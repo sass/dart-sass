@@ -148,6 +148,38 @@ void defineCoreFunctions(Environment environment) {
     return color.changeHsl(hue: color.hue + degrees.value);
   }));
 
+  environment.setFunction(
+      new BuiltInCallable("lighten", r"$color, $amount", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var amount = arguments[1].assertNumber("amount");
+    return color.changeHsl(
+        lightness: color.lightness + amount.valueInRange(0, 100, "amount"));
+  }));
+
+  environment.setFunction(
+      new BuiltInCallable("darken", r"$color, $amount", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var amount = arguments[1].assertNumber("amount");
+    return color.changeHsl(
+        lightness: color.lightness - amount.valueInRange(0, 100, "amount"));
+  }));
+
+  environment.setFunction(
+      new BuiltInCallable("saturate", r"$color, $amount", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var amount = arguments[1].assertNumber("amount");
+    return color.changeHsl(
+        saturation: color.saturation + amount.valueInRange(0, 100, "amount"));
+  }));
+
+  environment.setFunction(
+      new BuiltInCallable("desaturate", r"$color, $amount", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var amount = arguments[1].assertNumber("amount");
+    return color.changeHsl(
+        saturation: color.saturation - amount.valueInRange(0, 100, "amount"));
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
