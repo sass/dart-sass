@@ -12,6 +12,7 @@ void defineCoreFunctions(Environment environment) {
 
   environment.setFunction(
       new BuiltInCallable("rgb", r"$red, $green, $blue", (arguments) {
+    // TODO: support calc strings
     var red = arguments[0].assertNumber("red");
     var green = arguments[1].assertNumber("green");
     var blue = arguments[2].assertNumber("blue");
@@ -101,6 +102,18 @@ void defineCoreFunctions(Environment environment) {
         (color1.green * weight1 + color2.green * weight2).round(),
         (color1.blue * weight1 + color2.blue * weight2).round(),
         color1.alpha * weightScale + color2.alpha * (1 - weightScale));
+  }));
+
+  // ## HSL
+
+  environment.setFunction(
+      new BuiltInCallable("hsl", r"$hue, $saturation, $lightness", (arguments) {
+    // TODO: support calc strings
+    var hue = arguments[0].assertNumber("hue");
+    var saturation = arguments[1].assertNumber("saturation");
+    var lightness = arguments[2].assertNumber("lightness");
+
+    return new SassColor.hsl(hue.value, saturation.value, lightness.value);
   }));
 
   // ## Introspection
