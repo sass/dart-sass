@@ -488,6 +488,11 @@ void defineCoreFunctions(Environment environment) {
     return new SassNumber(number.value * 100, '%');
   }));
 
+  environment.setFunction(_numberFunction("round", fuzzyRound));
+  environment.setFunction(_numberFunction("ceil", (value) => value.ceil()));
+  environment.setFunction(_numberFunction("floor", (value) => value.floor()));
+  environment.setFunction(_numberFunction("abs", (value) => value.abs()));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
@@ -565,4 +570,13 @@ int _codepointForIndex(int index, int lengthInCodepoints) {
   if (index == 0) return 0;
   if (index > 0) return math.min(index - 1, lengthInCodepoints);
   return math.max(lengthInCodepoints + index, 0);
+}
+
+BuiltInCallable _numberFunction(String name, num transform(num value)) {
+  return new BuiltInCallable(name, r"$number", (arguments) {
+    var number = arguments[0].assertNumber("number");
+    return new SassNumber.withUnits(transform(number.value),
+        numeratorUnits: number.numeratorUnits,
+        denominatorUnits: number.denominatorUnits);
+  });
 }
