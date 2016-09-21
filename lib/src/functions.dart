@@ -7,6 +7,8 @@ import 'environment.dart';
 import 'exception.dart';
 import 'value.dart';
 
+final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
+
 void defineCoreFunctions(Environment environment) {
   // ## RGB
 
@@ -163,6 +165,8 @@ void defineCoreFunctions(Environment environment) {
   environment.setFunction(
       new BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
     if (arguments[0] is SassNumber) {
+      // TODO: find some way of ensuring this is stringified using the right
+      // options. We may need to resort to zones.
       return new SassString("invert(${arguments[0]})");
     }
 
@@ -174,6 +178,39 @@ void defineCoreFunctions(Environment environment) {
 
     return _mix(color, inverse, weight);
   }));
+
+  // ## Opacity
+
+  environment.setFunction(new BuiltInCallable.overloaded("alpha", [
+    r"$color",
+    r"$args..."
+  ], [
+    (arguments) {
+      var argument = arguments[0];
+      if (argument is SassString &&
+          !argument.hasQuotes &&
+          argument.text.contains(_microsoftFilterStart)) {
+        // Suport the proprietary Microsoft alpha() function.
+        return new SassString("alpha($argument)");
+      }
+
+      var color = argument.assertColor("color");
+      return new SassNumber(color.alpha);
+    },
+    (arguments) {
+      if (arguments.every((argument) =>
+          argument is SassString &&
+          !argument.hasQuotes &&
+          argument.text.contains(_microsoftFilterStart))) {
+        // Suport the proprietary Microsoft alpha() function.
+        return new SassString("alpha(${arguments.join(', ')})");
+      }
+
+      assert(arguments.length != 1);
+      throw new InternalException(
+          "Only 1 argument allowed, but ${arguments.length} were passed.");
+    }
+  ]));
 
   // ## Introspection
 
