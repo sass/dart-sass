@@ -479,6 +479,15 @@ void defineCoreFunctions(Environment environment) {
     return new SassString(string.text.toLowerCase(), quotes: string.hasQuotes);
   }));
 
+  // ## Number
+
+  environment
+      .setFunction(new BuiltInCallable("percentage", r"$number", (arguments) {
+    var number = arguments[0].assertNumber("number");
+    number.assertNoUnits();
+    return new SassNumber(number.value * 100, '%');
+  }));
+
   // ## Introspection
 
   environment.setFunction(new BuiltInCallable("inspect", r"$value",
