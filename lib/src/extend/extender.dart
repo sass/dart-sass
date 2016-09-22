@@ -27,6 +27,11 @@ class Extender {
 
   final _sources = new Expando<ComplexSelector>();
 
+  static SelectorList extend(
+          SelectorList selector, SelectorList source, SimpleSelector target) =>
+      new Extender()._extendList(
+          selector, {target: new Set()..add(new ExtendSource(source, null))});
+
   CssStyleRule addSelector(
       CssValue<SelectorList> selectorValue, FileSpan span) {
     var selector = selectorValue.value;

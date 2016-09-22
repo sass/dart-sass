@@ -10,6 +10,7 @@ import 'ast/selector.dart';
 import 'callable.dart';
 import 'environment.dart';
 import 'exception.dart';
+import 'extend/extender.dart';
 import 'utils.dart';
 import 'value.dart';
 
@@ -718,6 +719,15 @@ void defineCoreFunctions(Environment environment) {
         }
       })).resolveParentSelectors(parent);
     }).asSassList;
+  });
+
+  environment.defineFunction(
+      "selector-extend", r"$selector, $extendee, $extender", (arguments) {
+    var selector = arguments[0].assertSelector(name: "selector");
+    var target = arguments[1].assertSimpleSelector(name: "extendee");
+    var source = arguments[2].assertSelector(name: "extender");
+
+    return Extender.extend(selector, source, target).asSassList;
   });
 
   // ## Introspection

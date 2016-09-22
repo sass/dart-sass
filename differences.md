@@ -82,8 +82,8 @@ to implement the correct behavior than it would be to implement compatible
 behavior. These should all have tracking bugs against Ruby Sass to update the
 official behavior.
 
-1. `@extend .a.b` has the same semantics as `@extend .a; @extend .b`. See
-   [issue 1599][].
+1. `@extend` only accepts simple selectors, as does the second argument of
+   `selector-extend()`. See [issue 1599][].
 
 2. Subject selectors are not supported. See [issue 1126][].
 
