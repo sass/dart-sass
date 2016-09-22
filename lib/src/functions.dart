@@ -635,6 +635,16 @@ void defineCoreFunctions(Environment environment) {
     return new SassMap(new Map.from(map1.contents)..addAll(map2.contents));
   });
 
+  environment.defineFunction("map-remove", r"$map, $keys...", (arguments) {
+    var map = arguments[0].assertMap("map");
+    var keys = arguments[1] as SassArgumentList;
+    var mutableMap = new Map<Value, Value>.from(map.contents);
+    for (var key in keys.contents) {
+      mutableMap.remove(key);
+    }
+    return new SassMap(mutableMap);
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
