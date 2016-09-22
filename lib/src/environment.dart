@@ -123,6 +123,8 @@ class Environment {
     return null;
   }
 
+  bool functionExists(String name) => getFunction(name) != null;
+
   void setFunction(Callable callable) {
     _functions[_functions.length - 1][callable.name] = callable;
   }
@@ -148,6 +150,8 @@ class Environment {
     }
     return null;
   }
+
+  bool mixinExists(String name) => getFunction(name) != null;
 
   void setMixin(Callable callable) {
     _mixins[_mixins.length - 1][callable.name] = callable;

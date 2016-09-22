@@ -791,6 +791,16 @@ void defineCoreFunctions(Environment environment) {
     return new SassBoolean(environment.globalVariableExists(variable.text));
   });
 
+  environment.defineFunction("function-exists", r"$name", (arguments) {
+    var variable = arguments[0].assertString("name");
+    return new SassBoolean(environment.functionExists(variable.text));
+  });
+
+  environment.defineFunction("mixin-exists", r"$name", (arguments) {
+    var variable = arguments[0].assertString("name");
+    return new SassBoolean(environment.mixinExists(variable.text));
+  });
+
   environment.defineFunction("inspect", r"$value",
       (arguments) => new SassString(arguments.first.toString()));
 }
