@@ -123,6 +123,10 @@ class Environment {
     _functions[_functions.length - 1][callable.name] = callable;
   }
 
+  void defineFunction(String name, String arguments,
+          Value callback(List<Value> arguments)) =>
+      setFunction(new BuiltInCallable(name, arguments, callback));
+
   Callable getMixin(String name) {
     var index = _mixinIndices[name];
     if (index != null) _mixins[index][name];
