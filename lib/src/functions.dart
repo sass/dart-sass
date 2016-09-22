@@ -603,6 +603,24 @@ void defineCoreFunctions(Environment environment) {
     return new SassList(results, ListSeparator.comma);
   });
 
+  environment.defineFunction("index", r"$list, $value", (arguments) {
+    var list = arguments[0].asList;
+    var value = arguments[1];
+
+    var index = list.indexOf(value);
+    return index == -1 ? sassNull : new SassNumber(index + 1);
+  });
+
+  environment.defineFunction(
+      "list-separator",
+      r"$list",
+      (arguments) => arguments[0].separator == ListSeparator.comma
+          ? new SassString("comma")
+          : new SassString("space"));
+
+  environment.defineFunction("is-bracketed", r"$list",
+      (arguments) => new SassBoolean(arguments[0].hasBrackets));
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
