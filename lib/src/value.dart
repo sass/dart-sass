@@ -62,6 +62,7 @@ abstract class Value {
     throw new InternalException("\$$name: $this is not a string.");
   }
 
+  // Note that if [contents] has length > 1, [separator] may not be undecided.
   SassList changeListContents(Iterable<Value> contents,
       {ListSeparator separator, bool brackets}) {
     return new SassList(contents, separator ?? this.separator,

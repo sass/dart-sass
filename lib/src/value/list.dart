@@ -24,7 +24,12 @@ class SassList extends Value {
 
   SassList(Iterable<Value> contents, this.separator, {bool brackets: false})
       : contents = new List.unmodifiable(contents),
-        hasBrackets = brackets;
+        hasBrackets = brackets {
+    if (separator == ListSeparator.undecided && contents.length > 1) {
+      throw new ArgumentError(
+          "A list with more than one element must have an explicit separator.");
+    }
+  }
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitList(this);
 

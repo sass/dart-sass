@@ -564,6 +564,30 @@ void defineCoreFunctions(Environment environment) {
     return new SassList(newList, separator, brackets: bracketed);
   });
 
+  environment.defineFunction("append", r"$list, $val, $separator: auto",
+      (arguments) {
+    var list = arguments[0];
+    var value = arguments[1];
+    var separatorParam = arguments[2].assertString("separator");
+
+    ListSeparator separator;
+    if (separatorParam.text == "auto") {
+      separator = list.separator == ListSeparator.undecided
+          ? ListSeparator.space
+          : list.separator;
+    } else if (separatorParam.text == "space") {
+      separator = ListSeparator.space;
+    } else if (separatorParam.text == "comma") {
+      separator = ListSeparator.comma;
+    } else {
+      throw new InternalException(
+          '\$$separator: Must be "space", "comma", or "auto".');
+    }
+
+    var newList = list.asList.toList()..add(value);
+    return list.changeListContents(newList, separator: separator);
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
