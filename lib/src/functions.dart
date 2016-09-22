@@ -16,6 +16,14 @@ import 'value.dart';
 
 final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
 
+final _features = new Set.from([
+  "global-variable-shadowing",
+  "extend-selector-pseudoclass",
+  "units-level-3",
+  "at-error",
+  "custom-property"
+]);
+
 final _random = new math.Random();
 
 void defineCoreFunctions(Environment environment) {
@@ -767,6 +775,11 @@ void defineCoreFunctions(Environment environment) {
       (arguments) => arguments[0].assertSelector(name: "selector").asSassList);
 
   // ## Introspection
+
+  environment.defineFunction("feature-exists", r"$feature", (arguments) {
+    var feature = arguments[0].assertString("feature");
+    return new SassBoolean(_features.contains(feature));
+  });
 
   environment.defineFunction("inspect", r"$value",
       (arguments) => new SassString(arguments.first.toString()));
