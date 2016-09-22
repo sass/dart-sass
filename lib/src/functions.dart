@@ -514,6 +514,12 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("length", r"$list",
       (arguments) => new SassNumber(arguments[0].asList.length));
 
+  environment.defineFunction("nth", r"$list, $n", (arguments) {
+    var list = arguments[0].asList;
+    var index = arguments[1].assertNumber("n");
+    return list[index.assertIndexFor(list, "n")];
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",

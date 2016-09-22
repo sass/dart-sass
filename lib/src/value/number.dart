@@ -173,17 +173,25 @@ class SassNumber extends Value {
 
   int assertInt([String name]) {
     if (isInt) return value.round();
-    var message = "$this is not an int.";
-    if (name != null) message = "\$$name: $message";
-    throw new InternalException(message);
+    throw _exception("$this is not an int.", name);
+  }
+
+  int assertIndexFor(List list, [String name]) {
+    var sassIndex = assertInt(name);
+    if (sassIndex == 0) throw _exception("List index may not be 0.");
+    if (sassIndex.abs() > list.length) {
+      throw _exception(
+          "Invalid index $this for a list with ${list.length} elements.");
+    }
+
+    return sassIndex < 0 ? list.length + sassIndex : sassIndex - 1;
   }
 
   num valueInRange(num min, num max, [String name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
-    var message =
-        "Expected $this to be within $min$unitString and $max$unitString.";
-    throw new InternalException(name == null ? message : "\$$name: $message");
+    throw _exception(
+        "Expected $this to be within $min$unitString and $max$unitString.");
   }
 
   /// Returns whether [this] has [unit] as its only unit (and as a numerator).
@@ -194,16 +202,12 @@ class SassNumber extends Value {
 
   void assertUnit(String unit, [String name]) {
     if (hasUnit(unit)) return;
-    var message = 'Expected $this to have unit "$unit".';
-    if (name != null) message = "\$$name: $message";
-    throw new InternalException(message);
+    throw _exception('Expected $this to have unit "$unit".');
   }
 
   void assertNoUnits([String name]) {
     if (!hasUnits) return;
-    var message = 'Expected $this to have no units.';
-    if (name != null) message = "\$$name: $message";
-    throw new InternalException(message);
+    throw _exception('Expected $this to have no units.');
   }
 
   num valueInUnits(List<String> newNumerators, List<String> newDenominators) {
@@ -423,4 +427,7 @@ class SassNumber extends Value {
       other is SassNumber && fuzzyEquals(value, other.value);
 
   int get hashCode => fuzzyHashCode(value);
+
+  InternalException _exception(String message, [String name]) =>
+      new InternalException(name == null ? message : "\$$name: $message");
 }
