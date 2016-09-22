@@ -7,6 +7,11 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 class SassList extends Value {
+  // TODO(nweiz): Use persistent data structures rather than copying here. An
+  // RRB vector should fit our use-cases well.
+  //
+  // We may also want to fall back to a plain unmodifiable List for small lists
+  // (<32 items?).
   final List<Value> contents;
 
   final ListSeparator separator;

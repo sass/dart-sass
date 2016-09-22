@@ -8,6 +8,12 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 class SassMap extends Value {
+  // TODO(nweiz): Use persistent data structures rather than copying here. We
+  // need to preserve the order, which can be done by tracking an RRB vector of
+  // keys along with the hash-mapped array trie representing the map.
+  //
+  // We may also want to fall back to a plain unmodifiable Map for small maps
+  // (<32 items?).
   final Map<Value, Value> contents;
 
   List<SassList> get asList {
