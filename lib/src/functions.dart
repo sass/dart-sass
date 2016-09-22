@@ -781,6 +781,16 @@ void defineCoreFunctions(Environment environment) {
     return new SassBoolean(_features.contains(feature));
   });
 
+  environment.defineFunction("variable-exists", r"$name", (arguments) {
+    var variable = arguments[0].assertString("name");
+    return new SassBoolean(environment.variableExists(variable.text));
+  });
+
+  environment.defineFunction("global-variable-exists", r"$name", (arguments) {
+    var variable = arguments[0].assertString("name");
+    return new SassBoolean(environment.globalVariableExists(variable.text));
+  });
+
   environment.defineFunction("inspect", r"$value",
       (arguments) => new SassString(arguments.first.toString()));
 }

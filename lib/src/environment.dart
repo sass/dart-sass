@@ -80,6 +80,10 @@ class Environment {
     return _variables[index][name];
   }
 
+  bool variableExists(String name) => getVariable(name) != null;
+
+  bool globalVariableExists(String name) => _variables.first.containsKey(name);
+
   int _variableIndex(String name) {
     for (var i = _variables.length - 1; i >= 0; i--) {
       if (_variables[i].containsKey(name)) return i;
