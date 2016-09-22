@@ -17,7 +17,8 @@ final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
 final _random = new math.Random();
 
 void defineCoreFunctions(Environment environment) {
-  // ## RGB
+  // ## Colors
+  // ### RGB
 
   environment.defineFunction("rgb", r"$red, $green, $blue", (arguments) {
     // TODO: support calc strings
@@ -75,7 +76,7 @@ void defineCoreFunctions(Environment environment) {
     return _mix(color1, color2, weight);
   });
 
-  // ## HSL
+  // ### HSL
 
   environment.defineFunction("hsl", r"$hue, $saturation, $lightness",
       (arguments) {
@@ -181,7 +182,7 @@ void defineCoreFunctions(Environment environment) {
     return _mix(color, inverse, weight);
   });
 
-  // ## Opacity
+  // ### Opacity
 
   environment.setFunction(new BuiltInCallable.overloaded("alpha", [
     r"$color",
@@ -228,7 +229,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("transparentize", r"$color", _transparentize);
   environment.defineFunction("fade-out", r"$color", _transparentize);
 
-  // ## Miscellaneous Color
+  // ### Miscellaneous
 
   environment.defineFunction("adjust-color", r"$color, $kwargs...",
       (arguments) {
@@ -395,7 +396,7 @@ void defineCoreFunctions(Environment environment) {
         "${hexString(color.green)}${hexString(color.blue)}");
   });
 
-  // ## String
+  // ## Strings
 
   environment.defineFunction("unquote", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
@@ -468,7 +469,7 @@ void defineCoreFunctions(Environment environment) {
     return new SassString(string.text.toLowerCase(), quotes: string.hasQuotes);
   });
 
-  // ## Number
+  // ## Numbers
 
   environment.defineFunction("percentage", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
@@ -511,7 +512,7 @@ void defineCoreFunctions(Environment environment) {
     return new SassNumber(_random.nextInt(limit + 1) + 1);
   });
 
-  // ## List
+  // ## Lists
 
   environment.defineFunction("length", r"$list",
       (arguments) => new SassNumber(arguments[0].asList.length));
@@ -623,7 +624,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("is-bracketed", r"$list",
       (arguments) => new SassBoolean(arguments[0].hasBrackets));
 
-  // ## Map
+  // ## Maps
 
   environment.defineFunction("map-get", r"$map, $key", (arguments) {
     var map = arguments[0].assertMap("map");
