@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 
+import 'ast/selector.dart';
 import 'callable.dart';
 import 'environment.dart';
 import 'exception.dart';
@@ -692,6 +693,33 @@ void defineCoreFunctions(Environment environment) {
         .asSassList;
   });
 
+  environment.defineFunction("selector-append", r"$selectors...", (arguments) {
+    var selectors = (arguments[0] as SassArgumentList).contents;
+    if (selectors.isEmpty) {
+      throw new InternalException(
+          "\$selectors: At least one selector must be passed.");
+    }
+
+    return selectors
+        .map((selector) => selector.assertSelector())
+        .reduce((parent, child) {
+      return new SelectorList(child.components.map((complex) {
+        var compound = complex.components.first;
+        if (compound is CompoundSelector) {
+          var newCompound = _prependParent(compound);
+          if (newCompound == null) {
+            throw new InternalException("Can't append $complex to $parent.");
+          }
+
+          return new ComplexSelector(
+              [newCompound]..addAll(complex.components.skip(1)));
+        } else {
+          throw new InternalException("Can't append $complex to $parent.");
+        }
+      })).resolveParentSelectors(parent);
+    }).asSassList;
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
@@ -778,4 +806,17 @@ BuiltInCallable _numberFunction(String name, num transform(num value)) {
         numeratorUnits: number.numeratorUnits,
         denominatorUnits: number.denominatorUnits);
   });
+}
+
+CompoundSelector _prependParent(CompoundSelector compound) {
+  var first = compound.components.first;
+  if (first is UniversalSelector) return null;
+  if (first is TypeSelector) {
+    if (first.name.namespace != null) return null;
+    return new CompoundSelector([new ParentSelector(suffix: first.name.name)]
+      ..addAll(compound.components.skip(1)));
+  } else {
+    return new CompoundSelector(
+        [new ParentSelector()]..addAll(compound.components));
+  }
 }
