@@ -18,11 +18,13 @@ Stylesheet parseScss(String contents, {url}) =>
 ArgumentDeclaration parseArgumentDeclaration(String contents, {url}) =>
     new ScssParser(contents, url: url).parseArgumentDeclaration();
 
-SelectorList parseSelector(String contents, {url}) =>
-    new SelectorParser(contents, url: url).parse();
+SelectorList parseSelector(String contents, {url, bool allowParent: true}) =>
+    new SelectorParser(contents, url: url, allowParent: allowParent).parse();
 
-SimpleSelector parseSimpleSelector(String contents, {url}) =>
-    new SelectorParser(contents, url: url).parseSimpleSelector();
+SimpleSelector parseSimpleSelector(String contents,
+        {url, bool allowParent: true}) =>
+    new SelectorParser(contents, url: url, allowParent: allowParent)
+        .parseSimpleSelector();
 
 AtRootQuery parseAtRootQuery(String contents, {url}) =>
     new AtRootQueryParser(contents, url: url).parse();

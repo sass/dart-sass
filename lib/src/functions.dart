@@ -677,6 +677,21 @@ void defineCoreFunctions(Environment environment) {
     }
   });
 
+  // ## Selectors
+
+  environment.defineFunction("selector-nest", r"$selectors...", (arguments) {
+    var selectors = (arguments[0] as SassArgumentList).contents;
+    if (selectors.isEmpty) {
+      throw new InternalException(
+          "\$selectors: At least one selector must be passed.");
+    }
+
+    return selectors
+        .map((selector) => selector.assertSelector(allowParent: true))
+        .reduce((parent, child) => child.resolveParentSelectors(parent))
+        .asSassList;
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",

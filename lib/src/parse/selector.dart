@@ -16,7 +16,11 @@ final _prefixedSelectorPseudoClasses =
     new Set.from(["nth-child", "nth-last-child"]);
 
 class SelectorParser extends Parser {
-  SelectorParser(String contents, {url}) : super(contents, url: url);
+  final bool _allowParent;
+
+  SelectorParser(String contents, {url, bool allowParent: true})
+      : _allowParent = allowParent,
+        super(contents, url: url);
 
   SelectorList parse() {
     return wrapFormatException(() {
@@ -121,7 +125,8 @@ class SelectorParser extends Parser {
     return new CompoundSelector(components);
   }
 
-  SimpleSelector _simpleSelector({bool allowParent: true}) {
+  SimpleSelector _simpleSelector({bool allowParent}) {
+    allowParent ??= _allowParent;
     switch (scanner.peekChar()) {
       case $lbracket:
         return _attributeSelector();

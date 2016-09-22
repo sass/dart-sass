@@ -2,7 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'ast/selector.dart';
 import 'exception.dart';
+import 'parse.dart';
 import 'value/boolean.dart';
 import 'value/color.dart';
 import 'value/list.dart';
@@ -37,29 +39,72 @@ abstract class Value {
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
 
-  SassBoolean assertBoolean([String name]) {
-    if (name == null) throw new InternalException("$this is not a boolean.");
-    throw new InternalException("\$$name: $this is not a boolean.");
+  SassBoolean assertBoolean([String name]) =>
+      throw _exception("$this is not a boolean.", name);
+
+  SassColor assertColor([String name]) =>
+      throw _exception("$this is not a color.", name);
+
+  SassMap assertMap([String name]) =>
+      throw _exception("$this is not a map.", name);
+
+  SassNumber assertNumber([String name]) =>
+      throw _exception("$this is not a number.", name);
+
+  SassString assertString([String name]) =>
+      throw _exception("$this is not a string.", name);
+
+  SelectorList assertSelector({String name, bool allowParent: false}) {
+    var string = _selectorString(name);
+    try {
+      return parseSelector(string, allowParent: allowParent);
+    } on SassFormatException catch (error) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throw _exception(error.toString());
+    }
   }
 
-  SassColor assertColor([String name]) {
-    if (name == null) throw new InternalException("$this is not a color.");
-    throw new InternalException("\$$name: $this is not a color.");
+  String _selectorString([String name]) {
+    var string = _selectorStringOrNull();
+    if (string != null) return string;
+
+    throw _exception(
+        "$this is not a valid selector: it must be a string,\n"
+        "a list of strings, or a list of lists of strings.",
+        name);
   }
 
-  SassMap assertMap([String name]) {
-    if (name == null) throw new InternalException("$this is not a map.");
-    throw new InternalException("\$$name: $this is not a map.");
-  }
+  String _selectorStringOrNull() {
+    if (this is SassString) return (this as SassString).text;
+    if (this is! SassList) return null;
+    var list = this as SassList;
+    if (list.contents.isEmpty) return null;
 
-  SassNumber assertNumber([String name]) {
-    if (name == null) throw new InternalException("$this is not a number.");
-    throw new InternalException("\$$name: $this is not a number.");
-  }
-
-  SassString assertString([String name]) {
-    if (name == null) throw new InternalException("$this is not a string.");
-    throw new InternalException("\$$name: $this is not a string.");
+    var result = <String>[];
+    if (list.separator == ListSeparator.comma) {
+      for (var complex in list.contents) {
+        if (complex is SassString) {
+          result.add(complex.text);
+        } else if (complex is SassList &&
+            complex.separator == ListSeparator.space) {
+          var string = complex._selectorString();
+          if (string == null) return null;
+          result.add(string);
+        } else {
+          return null;
+        }
+      }
+    } else {
+      for (var compound in list.contents) {
+        if (compound is SassString) {
+          result.add(compound.text);
+        } else {
+          return null;
+        }
+      }
+    }
+    return result.join(', ');
   }
 
   // Note that if [contents] has length > 1, [separator] may not be undecided.
@@ -115,4 +160,7 @@ abstract class Value {
   Value unaryNot() => sassFalse;
 
   String toString() => valueToCss(this, inspect: true);
+
+  InternalException _exception(String message, [String name]) =>
+      new InternalException(name == null ? message : "\$$name: $message");
 }
