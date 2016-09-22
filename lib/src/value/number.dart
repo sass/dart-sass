@@ -219,10 +219,10 @@ class SassNumber extends Value {
     }
 
     var value = this.value;
-    var mutableDenominators = denominatorUnits.toList();
-    for (var numerator in newNumerators) {
-      removeFirstWhere(mutableDenominators, (denominator) {
-        var factor = _conversionFactor(numerator, denominator);
+    var oldNumerators = numeratorUnits.toList();
+    for (var newNumerator in newNumerators) {
+      removeFirstWhere(oldNumerators, (oldNumerator) {
+        var factor = _conversionFactor(newNumerator, oldNumerator);
         if (factor == null) return false;
         value *= factor;
         return true;
@@ -233,10 +233,10 @@ class SassNumber extends Value {
       });
     }
 
-    var mutableNumerators = numeratorUnits.toList();
-    for (var denominator in newDenominators) {
-      removeFirstWhere(mutableNumerators, (numerator) {
-        var factor = _conversionFactor(denominator, numerator);
+    var oldDenominators = denominatorUnits.toList();
+    for (var newDenominator in newDenominators) {
+      removeFirstWhere(oldDenominators, (oldDenominator) {
+        var factor = _conversionFactor(newDenominator, oldDenominator);
         if (factor == null) return false;
         value *= factor;
         return true;
@@ -245,6 +245,12 @@ class SassNumber extends Value {
             "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
             "${_unitString(newNumerators, newDenominators)}.");
       });
+    }
+
+    if (oldNumerators.isNotEmpty || oldDenominators.isNotEmpty) {
+      throw new InternalException("Incompatible units "
+          "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
+          "${_unitString(newNumerators, newDenominators)}.");
     }
 
     return value;
@@ -252,44 +258,46 @@ class SassNumber extends Value {
 
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => fuzzyGreaterThan(num1, num2));
+      return new SassBoolean(
+          _coerceUnits(other, (num1, num2) => fuzzyGreaterThan(num1, num2)));
     }
     throw new InternalException('Undefined operation "$this > $other".');
   }
 
   SassBoolean greaterThanOrEquals(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(
-          other, (num1, num2) => fuzzyGreaterThanOrEquals(num1, num2));
+      return new SassBoolean(_coerceUnits(
+          other, (num1, num2) => fuzzyGreaterThanOrEquals(num1, num2)));
     }
     throw new InternalException('Undefined operation "$this >= $other".');
   }
 
   SassBoolean lessThan(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => fuzzyLessThan(num1, num2));
+      return new SassBoolean(
+          _coerceUnits(other, (num1, num2) => fuzzyLessThan(num1, num2)));
     }
     throw new InternalException('Undefined operation "$this < $other".');
   }
 
   SassBoolean lessThanOrEquals(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(
-          other, (num1, num2) => fuzzyLessThanOrEquals(num1, num2));
+      return new SassBoolean(_coerceUnits(
+          other, (num1, num2) => fuzzyLessThanOrEquals(num1, num2)));
     }
     throw new InternalException('Undefined operation "$this <= $other".');
   }
 
   Value modulo(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => num1 % num2);
+      return new SassNumber(_coerceUnits(other, (num1, num2) => num1 % num2));
     }
     throw new InternalException('Undefined operation "$this % $other".');
   }
 
   Value plus(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => num1 + num2);
+      return new SassNumber(_coerceUnits(other, (num1, num2) => num1 + num2));
     }
     if (other is! SassColor) return super.plus(other);
     throw new InternalException('Undefined operation "$this + $other".');
@@ -297,7 +305,7 @@ class SassNumber extends Value {
 
   Value minus(Value other) {
     if (other is SassNumber) {
-      return _coerceUnits(other, (num1, num2) => num1 - num2);
+      return new SassNumber(_coerceUnits(other, (num1, num2) => num1 - num2));
     }
     if (other is! SassColor) return super.minus(other);
     throw new InternalException('Undefined operation "$this - $other".');
@@ -405,7 +413,8 @@ class SassNumber extends Value {
   bool _isConvertable(String unit) => _conversions.containsKey(unit);
 
   // Returns [unit1]s per [unit2].
-  int _conversionFactor(String unit1, String unit2) {
+  num _conversionFactor(String unit1, String unit2) {
+    if (unit1 == unit2) return 1;
     var innerMap = _conversions[unit1];
     if (innerMap == null) return null;
     return innerMap[unit2];
