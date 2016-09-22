@@ -29,7 +29,7 @@ abstract class Value {
 
   ListSeparator get separator => ListSeparator.undecided;
 
-  bool get isBracketed => false;
+  bool get hasBrackets => false;
 
   List<Value> get asList => [this];
 
@@ -63,9 +63,9 @@ abstract class Value {
   }
 
   SassList changeListContents(Iterable<Value> contents,
-      {ListSeparator separator, bool bracketed}) {
+      {ListSeparator separator, bool brackets}) {
     return new SassList(contents, separator ?? this.separator,
-        bracketed: bracketed ?? this.isBracketed);
+        brackets: brackets ?? this.hasBrackets);
   }
 
   Value or(Value other) => this;

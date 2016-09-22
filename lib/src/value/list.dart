@@ -16,22 +16,22 @@ class SassList extends Value {
 
   final ListSeparator separator;
 
-  final bool isBracketed;
+  final bool hasBrackets;
 
   bool get isBlank => contents.every((element) => element.isBlank);
 
   List<Value> get asList => contents;
 
-  SassList(Iterable<Value> contents, this.separator, {bool bracketed: false})
+  SassList(Iterable<Value> contents, this.separator, {bool brackets: false})
       : contents = new List.unmodifiable(contents),
-        isBracketed = bracketed;
+        hasBrackets = brackets;
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitList(this);
 
   bool operator ==(other) =>
       other is SassList &&
       other.separator == separator &&
-      other.isBracketed == isBracketed &&
+      other.hasBrackets == hasBrackets &&
       listEquals(other.contents, contents);
 
   int get hashCode => listHash(contents);

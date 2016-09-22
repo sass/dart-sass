@@ -1077,7 +1077,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     return new ListExpression(expressions, ListSeparator.comma,
-        bracketed: true, span: scanner.spanFrom(start));
+        brackets: true, span: scanner.spanFrom(start));
   }
 
   Expression _parentheses() {

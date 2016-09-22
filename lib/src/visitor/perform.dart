@@ -648,7 +648,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   SassList visitListExpression(ListExpression node) => new SassList(
       node.contents.map((expression) => expression.accept(this)),
       node.separator,
-      bracketed: node.isBracketed);
+      brackets: node.hasBrackets);
 
   SassMap visitMapExpression(MapExpression node) {
     var map = <Value, Value>{};

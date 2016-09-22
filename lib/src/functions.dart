@@ -557,11 +557,11 @@ void defineCoreFunctions(Environment environment) {
 
     var bracketed =
         bracketedParam is SassString && bracketedParam.text == 'auto'
-            ? list1.isBracketed
+            ? list1.hasBrackets
             : bracketedParam.isTruthy;
 
     var newList = list1.asList.toList()..addAll(list2.asList);
-    return new SassList(newList, separator, bracketed: bracketed);
+    return new SassList(newList, separator, brackets: bracketed);
   });
 
   // ## Introspection

@@ -244,7 +244,7 @@ class _SerializeCssVisitor
   }
 
   void visitList(SassList value) {
-    if (value.isBracketed) {
+    if (value.hasBrackets) {
       _buffer.writeCharCode($lbracket);
     } else if (value.contents.isEmpty) {
       if (!_inspect) throw new InternalException("() isn't a valid CSS value");
@@ -264,13 +264,13 @@ class _SerializeCssVisitor
               }
             : (element) => element.accept(this));
 
-    if (value.isBracketed) _buffer.writeCharCode($rbracket);
+    if (value.hasBrackets) _buffer.writeCharCode($rbracket);
   }
 
   bool _elementNeedsParens(ListSeparator separator, Value value) {
     if (value is SassList) {
       if (value.contents.length < 2) return false;
-      if (value.isBracketed) return false;
+      if (value.hasBrackets) return false;
       return separator == ListSeparator.comma
           ? value.separator == ListSeparator.comma
           : value.separator != ListSeparator.undecided;
@@ -292,7 +292,7 @@ class _SerializeCssVisitor
   void _writeMapElement(Value value) {
     var needsParens = value is SassList &&
         value.separator == ListSeparator.comma &&
-        !value.isBracketed;
+        !value.hasBrackets;
     if (needsParens) _buffer.writeCharCode($lparen);
     value.accept(this);
     if (needsParens) _buffer.writeCharCode($rparen);

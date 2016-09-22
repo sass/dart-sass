@@ -16,15 +16,15 @@ class ListExpression implements Expression {
 
   final ListSeparator separator;
 
-  final bool isBracketed;
+  final bool hasBrackets;
 
   final FileSpan span;
 
   ListExpression(Iterable<Expression> contents, ListSeparator separator,
-      {bool bracketed: false, FileSpan span})
-      : this._(new List.unmodifiable(contents), separator, bracketed, span);
+      {bool brackets: false, FileSpan span})
+      : this._(new List.unmodifiable(contents), separator, brackets, span);
 
-  ListExpression._(List<Expression> contents, this.separator, this.isBracketed,
+  ListExpression._(List<Expression> contents, this.separator, this.hasBrackets,
       FileSpan span)
       : contents = contents,
         span = span ?? spanForList(contents);
@@ -34,19 +34,19 @@ class ListExpression implements Expression {
 
   String toString() {
     var buffer = new StringBuffer();
-    if (isBracketed) buffer.writeCharCode($lbracket);
+    if (hasBrackets) buffer.writeCharCode($lbracket);
     buffer.write(contents
         .map((element) =>
             _elementNeedsParens(element) ? "($element)" : element.toString())
         .join(separator == ListSeparator.comma ? ", " : " "));
-    if (isBracketed) buffer.writeCharCode($rbracket);
+    if (hasBrackets) buffer.writeCharCode($rbracket);
     return buffer.toString();
   }
 
   bool _elementNeedsParens(Expression expression) {
     if (expression is ListExpression) {
       if (expression.contents.length < 2) return false;
-      if (expression.isBracketed) return false;
+      if (expression.hasBrackets) return false;
       return separator == ListSeparator.comma
           ? separator == ListSeparator.comma
           : separator != ListSeparator.undecided;
