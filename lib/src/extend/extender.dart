@@ -127,10 +127,11 @@ class Extender {
         var extended = _extendCompound(component, extensions);
         // TODO: follow the first law of extend (https://github.com/sass/sass/blob/7774aa3/lib/sass/selector/sequence.rb#L114-L118)
         if (extended == null) {
-          if (changed)
+          if (changed) {
             extendedNotExpanded.add([
               [component]
             ]);
+          }
         } else {
           if (!changed) {
             extendedNotExpanded = complex.components
@@ -144,10 +145,11 @@ class Extender {
           extendedNotExpanded.add(extended);
         }
       } else {
-        if (changed)
+        if (changed) {
           extendedNotExpanded.add([
             [component]
           ]);
+        }
       }
     }
     if (!changed) return null;
