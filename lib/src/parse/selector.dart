@@ -30,6 +30,14 @@ class SelectorParser extends Parser {
     });
   }
 
+  CompoundSelector parseCompoundSelector() {
+    return wrapFormatException(() {
+      var compound = _compoundSelector();
+      scanner.expectDone();
+      return compound;
+    });
+  }
+
   SimpleSelector parseSimpleSelector() {
     return wrapFormatException(() {
       var simple = _simpleSelector();

@@ -21,6 +21,11 @@ ArgumentDeclaration parseArgumentDeclaration(String contents, {url}) =>
 SelectorList parseSelector(String contents, {url, bool allowParent: true}) =>
     new SelectorParser(contents, url: url, allowParent: allowParent).parse();
 
+CompoundSelector parseCompoundSelector(String contents,
+        {url, bool allowParent: true}) =>
+    new SelectorParser(contents, url: url, allowParent: allowParent)
+        .parseCompoundSelector();
+
 SimpleSelector parseSimpleSelector(String contents,
         {url, bool allowParent: true}) =>
     new SelectorParser(contents, url: url, allowParent: allowParent)

@@ -755,6 +755,14 @@ void defineCoreFunctions(Environment environment) {
     return new SassBoolean(selector1.isSuperselector(selector2));
   });
 
+  environment.defineFunction("simple-selectors", r"$selector", (arguments) {
+    var selector = arguments[0].assertCompoundSelector(name: "selector");
+
+    return new SassList(
+        selector.components.map((simple) => new SassString(simple.toString())),
+        ListSeparator.comma);
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",

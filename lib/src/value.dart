@@ -76,6 +76,18 @@ abstract class Value {
     }
   }
 
+  CompoundSelector assertCompoundSelector(
+      {String name, bool allowParent: false}) {
+    var string = _selectorString(name);
+    try {
+      return parseCompoundSelector(string, allowParent: allowParent);
+    } on SassFormatException catch (error) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throw _exception(error.toString());
+    }
+  }
+
   String _selectorString([String name]) {
     var string = _selectorStringOrNull();
     if (string != null) return string;
