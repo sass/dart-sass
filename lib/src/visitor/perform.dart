@@ -795,9 +795,12 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
     SassArgumentList argumentList;
     if (overload.restArgument != null) {
-      var rest = positional.length > declaredArguments.length
-          ? positional.sublist(declaredArguments.length)
-          : const <Value>[];
+      var rest = const <Value>[];
+      if (positional.length > declaredArguments.length) {
+        rest = positional.sublist(declaredArguments.length);
+        positional.removeRange(declaredArguments.length, positional.length);
+      }
+
       argumentList = new SassArgumentList(
           rest,
           named,

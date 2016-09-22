@@ -588,6 +588,21 @@ void defineCoreFunctions(Environment environment) {
     return list.changeListContents(newList, separator: separator);
   });
 
+  environment.defineFunction("zip", r"$lists...", (arguments) {
+    var lists = (arguments[0] as SassArgumentList)
+        .contents
+        .map((list) => list.asList)
+        .toList();
+    var i = 0;
+    var results = <SassList>[];
+    while (lists.every((list) => i != list.length)) {
+      results
+          .add(new SassList(lists.map((list) => list[i]), ListSeparator.space));
+      i++;
+    }
+    return new SassList(results, ListSeparator.comma);
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
