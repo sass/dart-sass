@@ -730,6 +730,15 @@ void defineCoreFunctions(Environment environment) {
     return Extender.extend(selector, source, target).asSassList;
   });
 
+  environment.defineFunction(
+      "selector-replace", r"$selector, $original, $replacement", (arguments) {
+    var selector = arguments[0].assertSelector(name: "selector");
+    var target = arguments[1].assertSimpleSelector(name: "original");
+    var source = arguments[2].assertSelector(name: "replacement");
+
+    return Extender.replace(selector, source, target).asSassList;
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",

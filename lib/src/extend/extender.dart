@@ -32,6 +32,12 @@ class Extender {
       new Extender()._extendList(
           selector, {target: new Set()..add(new ExtendSource(source, null))});
 
+  static SelectorList replace(
+          SelectorList selector, SelectorList source, SimpleSelector target) =>
+      new Extender()._extendList(
+          selector, {target: new Set()..add(new ExtendSource(source, null))},
+          replace: true);
+
   CssStyleRule addSelector(
       CssValue<SelectorList> selectorValue, FileSpan span) {
     var selector = selectorValue.value;
@@ -93,14 +99,15 @@ class Extender {
   }
 
   SelectorList _extendList(
-      SelectorList list, Map<SimpleSelector, Set<ExtendSource>> extensions) {
+      SelectorList list, Map<SimpleSelector, Set<ExtendSource>> extensions,
+      {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
     List<ComplexSelector> newList;
     for (var i = 0; i < list.components.length; i++) {
       var complex = list.components[i];
-      var extended = _extendComplex(complex, extensions);
+      var extended = _extendComplex(complex, extensions, replace: replace);
       if (extended == null) {
         if (changed) newList.add(complex);
       } else {
@@ -116,7 +123,8 @@ class Extender {
   }
 
   Iterable<ComplexSelector> _extendComplex(ComplexSelector complex,
-      Map<SimpleSelector, Set<ExtendSource>> extensions) {
+      Map<SimpleSelector, Set<ExtendSource>> extensions,
+      {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
@@ -124,7 +132,7 @@ class Extender {
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
       if (component is CompoundSelector) {
-        var extended = _extendCompound(component, extensions);
+        var extended = _extendCompound(component, extensions, replace: replace);
         // TODO: follow the first law of extend (https://github.com/sass/sass/blob/7774aa3/lib/sass/selector/sequence.rb#L114-L118)
         if (extended == null) {
           if (changed) {
@@ -162,7 +170,8 @@ class Extender {
 
   List<List<ComplexSelectorComponent>> _extendCompound(
       CompoundSelector compound,
-      Map<SimpleSelector, Set<ExtendSource>> extensions) {
+      Map<SimpleSelector, Set<ExtendSource>> extensions,
+      {bool replace: false}) {
     var changed = false;
     List<List<ComplexSelectorComponent>> extended;
     for (var i = 0; i < compound.components.length; i++) {
@@ -183,9 +192,11 @@ class Extender {
           if (unified == null) continue;
 
           if (!changed) {
-            extended = [
-              [compound]
-            ];
+            extended = replace
+                ? []
+                : [
+                    [compound]
+                  ];
           }
           changed = true;
           extended.add(complex.components
