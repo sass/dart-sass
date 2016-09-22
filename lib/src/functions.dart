@@ -529,6 +529,41 @@ void defineCoreFunctions(Environment environment) {
     return arguments[0].changeListContents(newList);
   });
 
+  environment.defineFunction(
+      "join", r"$list1, $list2, $separator: auto, $bracketed: auto",
+      (arguments) {
+    var list1 = arguments[0];
+    var list2 = arguments[1];
+    var separatorParam = arguments[2].assertString("separator");
+    var bracketedParam = arguments[3];
+
+    ListSeparator separator;
+    if (separatorParam.text == "auto") {
+      if (list1.separator != ListSeparator.undecided) {
+        separator = list1.separator;
+      } else if (list2.separator != ListSeparator.undecided) {
+        separator = list2.separator;
+      } else {
+        separator = ListSeparator.space;
+      }
+    } else if (separatorParam.text == "space") {
+      separator = ListSeparator.space;
+    } else if (separatorParam.text == "comma") {
+      separator = ListSeparator.comma;
+    } else {
+      throw new InternalException(
+          '\$$separator: Must be "space", "comma", or "auto".');
+    }
+
+    var bracketed =
+        bracketedParam is SassString && bracketedParam.text == 'auto'
+            ? list1.isBracketed
+            : bracketedParam.isTruthy;
+
+    var newList = list1.asList.toList()..addAll(list2.asList);
+    return new SassList(newList, separator, bracketed: bracketed);
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
