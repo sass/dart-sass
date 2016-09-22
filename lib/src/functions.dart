@@ -748,6 +748,13 @@ void defineCoreFunctions(Environment environment) {
     return result == null ? sassNull : result.asSassList;
   });
 
+  environment.defineFunction("is-superselector", r"$super, $sub", (arguments) {
+    var selector1 = arguments[0].assertSelector(name: "super");
+    var selector2 = arguments[1].assertSelector(name: "sub");
+
+    return new SassBoolean(selector1.isSuperselector(selector2));
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
