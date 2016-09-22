@@ -520,6 +520,15 @@ void defineCoreFunctions(Environment environment) {
     return list[index.assertIndexFor(list, "n")];
   });
 
+  environment.defineFunction("set-nth", r"$list, $n, $value", (arguments) {
+    var list = arguments[0].asList;
+    var index = arguments[1].assertNumber("n");
+    var value = arguments[2];
+    var newList = list.toList();
+    newList[index.assertIndexFor(list, "n")] = value;
+    return arguments[0].changeListContents(newList);
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",

@@ -5,6 +5,7 @@
 import 'exception.dart';
 import 'value/boolean.dart';
 import 'value/color.dart';
+import 'value/list.dart';
 import 'value/map.dart';
 import 'value/number.dart';
 import 'value/string.dart';
@@ -25,6 +26,10 @@ abstract class Value {
   bool get isBlank => false;
 
   bool get isTruthy => true;
+
+  ListSeparator get separator => ListSeparator.undecided;
+
+  bool get isBracketed => false;
 
   List<Value> get asList => [this];
 
@@ -55,6 +60,12 @@ abstract class Value {
   SassString assertString([String name]) {
     if (name == null) throw new InternalException("$this is not a string.");
     throw new InternalException("\$$name: $this is not a string.");
+  }
+
+  SassList changeListContents(Iterable<Value> contents,
+      {ListSeparator separator, bool bracketed}) {
+    return new SassList(contents, separator ?? this.separator,
+        bracketed: bracketed ?? this.isBracketed);
   }
 
   Value or(Value other) => this;
