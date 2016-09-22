@@ -61,6 +61,9 @@ int listHash(List list) => const ListEquality().hash(list);
 
 FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
+  // Spans may be null for dynamically-constructed ASTs.
+  if (nodes.first.span == null) return null;
+  if (nodes.last.span == null) return null;
   return nodes.first.span.expand(nodes.last.span);
 }
 

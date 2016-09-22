@@ -58,7 +58,18 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   PerformVisitor({Iterable<String> loadPaths, Environment environment})
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
-        _environment = environment ?? new Environment();
+        _environment = environment ?? new Environment() {
+    _environment.defineFunction("call", r"$name, $args...", (arguments) {
+      var name = arguments[0].assertString("name");
+      var args = arguments[1] as SassArgumentList;
+
+      var expression = new FunctionExpression(
+          new Interpolation([name.text], null),
+          new ArgumentInvocation([], {}, null,
+              rest: new ValueExpression(args)));
+      return expression.accept(this);
+    });
+  }
 
   void visit(node) {
     if (node is Statement) {
@@ -612,6 +623,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       }
     }, node.span);
   }
+
+  Value visitValueExpression(ValueExpression node) => node.value;
 
   Value visitVariableExpression(VariableExpression node) {
     var result = _environment.getVariable(node.name);

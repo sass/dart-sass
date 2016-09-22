@@ -832,6 +832,8 @@ void defineCoreFunctions(Environment environment) {
     var number2 = arguments[1].assertNumber("number2");
     return new SassBoolean(number1.isComparableTo(number2));
   });
+
+  // call() is defined in PerformVisitor to provide it access to private APIs.
 }
 
 num _percentageOrUnitless(SassNumber number, num max, String name) {
