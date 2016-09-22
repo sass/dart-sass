@@ -763,6 +763,9 @@ void defineCoreFunctions(Environment environment) {
         ListSeparator.comma);
   });
 
+  environment.defineFunction("selector-parse", r"$selector",
+      (arguments) => arguments[0].assertSelector(name: "selector").asSassList);
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
