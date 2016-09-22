@@ -16,6 +16,8 @@ class SassMap extends Value {
   // (<32 items?).
   final Map<Value, Value> contents;
 
+  ListSeparator get separator => ListSeparator.comma;
+
   List<SassList> get asList {
     var result = <SassList>[];
     contents.forEach((key, value) {
@@ -23,6 +25,8 @@ class SassMap extends Value {
     });
     return result;
   }
+
+  const SassMap.empty() : contents = const {};
 
   SassMap(Map<Value, Value> contents)
       : contents = new Map.unmodifiable(contents);
@@ -32,7 +36,11 @@ class SassMap extends Value {
   SassMap assertMap([String name]) => this;
 
   bool operator ==(other) =>
-      other is SassMap && const MapEquality().equals(other.contents, contents);
+      (other is SassMap &&
+          const MapEquality().equals(other.contents, contents)) ||
+      (contents.isEmpty && other is SassList && other.contents.isEmpty);
 
-  int get hashCode => const MapEquality().hash(contents);
+  int get hashCode => contents.isEmpty
+      ? const SassList.empty().hashCode
+      : const MapEquality().hash(contents);
 }

@@ -22,6 +22,11 @@ class SassList extends Value {
 
   List<Value> get asList => contents;
 
+  const SassList.empty({ListSeparator separator, bool brackets: false})
+      : contents = const [],
+        separator = separator ?? ListSeparator.undecided,
+        hasBrackets = brackets;
+
   SassList(Iterable<Value> contents, this.separator, {bool brackets: false})
       : contents = new List.unmodifiable(contents),
         hasBrackets = brackets {
@@ -33,11 +38,15 @@ class SassList extends Value {
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitList(this);
 
+  SassMap assertMap([String name]) =>
+      contents.isEmpty ? const SassMap.empty() : super.assertMap(name);
+
   bool operator ==(other) =>
-      other is SassList &&
-      other.separator == separator &&
-      other.hasBrackets == hasBrackets &&
-      listEquals(other.contents, contents);
+      (other is SassList &&
+          other.separator == separator &&
+          other.hasBrackets == hasBrackets &&
+          listEquals(other.contents, contents)) ||
+      (contents.isEmpty && other is SassMap && other.contents.isEmpty);
 
   int get hashCode => listHash(contents);
 }
