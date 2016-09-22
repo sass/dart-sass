@@ -196,7 +196,7 @@ class Extender {
 
   List<List<ComplexSelectorComponent>> _weave(
       List<List<ComplexSelectorComponent>> complexes) {
-    var prefixes = [complexes.first];
+    var prefixes = [complexes.first.toList()];
 
     for (var complex in complexes.skip(1)) {
       if (complex.isEmpty) continue;
