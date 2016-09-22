@@ -509,6 +509,11 @@ void defineCoreFunctions(Environment environment) {
     return new SassNumber(_random.nextInt(limit + 1) + 1);
   });
 
+  // ## List
+
+  environment.defineFunction("length", r"$list",
+      (arguments) => new SassNumber(arguments[0].asList.length));
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
