@@ -826,6 +826,12 @@ void defineCoreFunctions(Environment environment) {
     var number = arguments[0].assertNumber("number");
     return new SassBoolean(!number.hasUnits);
   });
+
+  environment.defineFunction("comparable", r"$number1, $number2", (arguments) {
+    var number1 = arguments[0].assertNumber("number1");
+    var number2 = arguments[1].assertNumber("number2");
+    return new SassBoolean(number1.isComparableTo(number2));
+  });
 }
 
 num _percentageOrUnitless(SassNumber number, num max, String name) {

@@ -256,6 +256,17 @@ class SassNumber extends Value {
     return value;
   }
 
+  bool isComparableTo(SassNumber other) {
+    if (!hasUnits || !other.hasUnits) return true;
+    try {
+      greaterThan(other);
+      return true;
+    } on InternalException catch (error) {
+      print(error);
+      return false;
+    }
+  }
+
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
       return new SassBoolean(
