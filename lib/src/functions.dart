@@ -621,6 +621,20 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("is-bracketed", r"$list",
       (arguments) => new SassBoolean(arguments[0].hasBrackets));
 
+  // ## Map
+
+  environment.defineFunction("map-get", r"$map, $key", (arguments) {
+    var map = arguments[0].assertMap("map");
+    var key = arguments[1];
+    return map.contents[key] ?? sassNull;
+  });
+
+  environment.defineFunction("map-merge", r"$map1, $map2", (arguments) {
+    var map1 = arguments[0].assertMap("map1");
+    var map2 = arguments[1].assertMap("map2");
+    return new SassMap(new Map.from(map1.contents)..addAll(map2.contents));
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
