@@ -816,6 +816,16 @@ void defineCoreFunctions(Environment environment) {
     assert(value is SassString);
     return new SassString("string");
   });
+
+  environment.defineFunction("unit", r"$number", (arguments) {
+    var number = arguments[0].assertNumber("number");
+    return new SassString(number.unitString, quotes: true);
+  });
+
+  environment.defineFunction("unitless", r"$number", (arguments) {
+    var number = arguments[0].assertNumber("number");
+    return new SassBoolean(!number.hasUnits);
+  });
 }
 
 num _percentageOrUnitless(SassNumber number, num max, String name) {
