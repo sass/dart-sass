@@ -44,6 +44,18 @@ class SelectorList extends Selector {
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
       visitor.visitSelectorList(this);
 
+  SelectorList unify(SelectorList other) {
+    var contents = components.expand((complex1) {
+      return other.components.expand((complex2) {
+        var unified = unifyComplex(complex1.components, complex2.components);
+        if (unified == null) return const <ComplexSelector>[];
+        return unified.map((complex) => new ComplexSelector(complex));
+      });
+    }).toList();
+
+    return contents.isEmpty ? null : new SelectorList(contents);
+  }
+
   SelectorList resolveParentSelectors(SelectorList parent,
       {bool implicitParent: true}) {
     if (parent == null) {

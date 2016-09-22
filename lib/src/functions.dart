@@ -739,6 +739,15 @@ void defineCoreFunctions(Environment environment) {
     return Extender.replace(selector, source, target).asSassList;
   });
 
+  environment.defineFunction("selector-unify", r"$selector1, $selector2",
+      (arguments) {
+    var selector1 = arguments[0].assertSelector(name: "selector1");
+    var selector2 = arguments[1].assertSelector(name: "selector2");
+
+    var result = selector1.unify(selector2);
+    return result == null ? sassNull : result.asSassList;
+  });
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
