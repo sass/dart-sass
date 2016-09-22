@@ -645,6 +645,18 @@ void defineCoreFunctions(Environment environment) {
     return new SassMap(mutableMap);
   });
 
+  environment.defineFunction(
+      "map-keys",
+      r"$map",
+      (arguments) => new SassList(
+          arguments[0].assertMap("map").contents.keys, ListSeparator.comma));
+
+  environment.defineFunction(
+      "map-values",
+      r"$map",
+      (arguments) => new SassList(
+          arguments[0].assertMap("map").contents.values, ListSeparator.comma));
+
   // ## Introspection
 
   environment.defineFunction("inspect", r"$value",
