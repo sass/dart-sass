@@ -26,6 +26,9 @@ final _features = new Set.from([
 
 final _random = new math.Random();
 
+// We use base-36 so we can use the (26-character) alphabet and all digits.
+var _uniqueID = _random.nextInt(math.pow(36, 6));
+
 void defineCoreFunctions(Environment environment) {
   // ## Colors
   // ### RGB
@@ -834,6 +837,16 @@ void defineCoreFunctions(Environment environment) {
   });
 
   // call() is defined in PerformVisitor to provide it access to private APIs.
+
+  // ## Miscellaneous
+
+  environment.defineFunction("unique-id", "", (arguments) {
+    // Make it difficult to guess the next ID by randomizing the increase.
+    _uniqueID += _random.nextInt(36);
+    if (_uniqueID > math.pow(36, 6)) _uniqueID %= math.pow(36, 6);
+    // The leading "u" ensures that the result is a valid identifier.
+    return new SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}");
+  });
 }
 
 num _percentageOrUnitless(SassNumber number, num max, String name) {
