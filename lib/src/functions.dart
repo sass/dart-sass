@@ -803,6 +803,19 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("inspect", r"$value",
       (arguments) => new SassString(arguments.first.toString()));
+
+  environment.defineFunction("type-of", r"$value", (arguments) {
+    var value = arguments[0];
+    if (value is SassArgumentList) return new SassString("arglist");
+    if (value is SassBoolean) return new SassString("bool");
+    if (value is SassColor) return new SassString("color");
+    if (value is SassList) return new SassString("list");
+    if (value is SassMap) return new SassString("map");
+    if (value is SassNull) return new SassString("null");
+    if (value is SassNumber) return new SassString("number");
+    assert(value is SassString);
+    return new SassString("string");
+  });
 }
 
 num _percentageOrUnitless(SassNumber number, num max, String name) {
