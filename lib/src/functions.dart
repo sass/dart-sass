@@ -4,6 +4,8 @@
 
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
+
 import 'callable.dart';
 import 'environment.dart';
 import 'exception.dart';
@@ -656,6 +658,23 @@ void defineCoreFunctions(Environment environment) {
       r"$map",
       (arguments) => new SassList(
           arguments[0].assertMap("map").contents.values, ListSeparator.comma));
+
+  environment.defineFunction("map-has-key", r"$map, $key", (arguments) {
+    var map = arguments[0].assertMap("map");
+    var key = arguments[1];
+    return new SassBoolean(map.contents.containsKey(key));
+  });
+
+  environment.defineFunction("keywords", r"$args", (arguments) {
+    var argumentList = arguments[0];
+    if (argumentList is SassArgumentList) {
+      return new SassMap(
+          mapMap(argumentList.keywords, key: (key, _) => new SassString(key)));
+    } else {
+      throw new InternalException(
+          "\$args: $argumentList is not an argument list.");
+    }
+  });
 
   // ## Introspection
 
