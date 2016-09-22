@@ -45,7 +45,10 @@ class Extender {
       }
     }
 
-    if (_extensions.isNotEmpty) selector = _extendList(selector, _extensions);
+    if (_extensions.isNotEmpty) {
+      selector = _extendList(selector, _extensions);
+      selectorValue = new CssValue(selector, selectorValue.span);
+    }
     var rule = new CssStyleRule(selectorValue, span);
 
     for (var complex in selector.components) {
