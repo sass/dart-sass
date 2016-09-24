@@ -1417,6 +1417,7 @@ abstract class StylesheetParser extends Parser {
         case $lf:
         case $ff:
           if (indented) break loop;
+          buffer.writeCharCode(scanner.readChar());
           break;
 
         case $exclamation:
