@@ -37,6 +37,20 @@ String pluralize(String name, int number, {String plural}) {
   return '${name}s';
 }
 
+List/*<T>*/ flattenVertically/*<T>*/(Iterable<Iterable/*<T>*/ > iterable) {
+  var queues = iterable.map((inner) => new QueueList.from(inner)).toList();
+  if (queues.length == 1) return queues.first;
+
+  var result = /*<T>*/ [];
+  while (queues.isNotEmpty) {
+    queues.removeWhere((queue) {
+      result.add(queue.removeFirst());
+      return queue.isEmpty;
+    });
+  }
+  return result;
+}
+
 int codepointIndexToCodeUnitIndex(String string, int codepointIndex) {
   var codeUnitIndex = 0;
   for (var i = 0; i < codepointIndex; i++) {

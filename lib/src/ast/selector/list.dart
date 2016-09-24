@@ -69,14 +69,15 @@ class SelectorList extends Selector {
     }
 
     if (!_containsParentSelector) {
-      return new SelectorList(components.expand((complex) {
-        return parent.components.map((newComplex) => new ComplexSelector(
-            newComplex.components.toList()..addAll(complex.components)));
+      return new SelectorList(parent.components.expand((parentComplex) {
+        return components.map((childComplex) => new ComplexSelector(
+            parentComplex.components.toList()
+              ..addAll(childComplex.components)));
       }));
     }
 
     // TODO: handle line breaks
-    return new SelectorList(components.expand((complex) {
+    return new SelectorList(flattenVertically(components.map((complex) {
       var newComplexes = [<ComplexSelectorComponent>[]];
       for (var component in complex.components) {
         if (component is CompoundSelector) {
@@ -99,7 +100,7 @@ class SelectorList extends Selector {
         }
       }
       return newComplexes.map((newComplex) => new ComplexSelector(newComplex));
-    }));
+    })));
   }
 
   Iterable<Iterable<ComplexSelectorComponent>> _resolveParentSelectorsCompound(
