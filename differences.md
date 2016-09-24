@@ -76,6 +76,15 @@ Dart Sass for developers familiar with Ruby Sass.
    it indexes into this map to determine if anything needs to be extended, and
    applies the extend as needed.
 
+9. Newlines in selectors are tracked using a `ComplexSelector.lineBreak` rather
+   than being included in the complex selector's components directly. The
+   presence of this flag indicates that a newline should be written *before* the
+   selector. This ensures that the components contain only
+   semantically-meaningful objects, rather than a mix of semantics and style
+   that must be parsed out. In addition, newlines are *never* preserved within
+   complex selectors; in general, selectors should be short enough that this
+   isn't an issue.
+
 There are also some intentional behavioral differences. These are generally
 places where Ruby Sass has an undesired behavior, and it's substantially easier
 to implement the correct behavior than it would be to implement compatible

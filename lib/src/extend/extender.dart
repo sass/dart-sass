@@ -115,7 +115,6 @@ class Extender {
     }
     if (!changed) return list;
 
-    // TODO: compute new line breaks
     return new SelectorList(newList.where((complex) => complex != null));
   }
 
@@ -125,7 +124,7 @@ class Extender {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     var changed = false;
-    List<List<List<ComplexSelectorComponent>>> extendedNotExpanded;
+    List<List<ComplexSelector>> extendedNotExpanded;
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
       if (component is CompoundSelector) {
@@ -134,7 +133,7 @@ class Extender {
         if (extended == null) {
           if (changed) {
             extendedNotExpanded.add([
-              [component]
+              new ComplexSelector([component])
             ]);
           }
         } else {
@@ -142,7 +141,8 @@ class Extender {
             extendedNotExpanded = complex.components
                 .take(i)
                 .map((component) => [
-                      [component]
+                      new ComplexSelector([component],
+                          lineBreak: complex.lineBreak)
                     ])
                 .toList();
           }
@@ -152,24 +152,28 @@ class Extender {
       } else {
         if (changed) {
           extendedNotExpanded.add([
-            [component]
+            new ComplexSelector([component])
           ]);
         }
       }
     }
     if (!changed) return null;
 
-    // TODO: preserve line breaks
-    var weaves = paths(extendedNotExpanded).map((path) => weave(path)).toList();
-    return _trim(weaves).map((complex) => new ComplexSelector(complex));
+    return _trim(paths(extendedNotExpanded).map((path) {
+      return weave(path.map((complex) => complex.components).toList())
+          .map((outputComplex) {
+        return new ComplexSelector(outputComplex,
+            lineBreak: complex.lineBreak ||
+                path.any((inputComplex) => inputComplex.lineBreak));
+      });
+    }).toList());
   }
 
-  List<List<ComplexSelectorComponent>> _extendCompound(
-      CompoundSelector compound,
+  List<ComplexSelector> _extendCompound(CompoundSelector compound,
       Map<SimpleSelector, Set<ExtendSource>> extensions,
       {bool replace: false}) {
     var changed = false;
-    List<List<ComplexSelectorComponent>> extended;
+    List<ComplexSelector> extended;
     for (var i = 0; i < compound.components.length; i++) {
       var simple = compound.components[i];
 
@@ -191,13 +195,14 @@ class Extender {
             extended = replace
                 ? []
                 : [
-                    [compound]
+                    new ComplexSelector([compound])
                   ];
           }
           changed = true;
-          extended.add(complex.components
-              .take(complex.components.length - 1)
-              .toList()..add(unified));
+          extended.add(new ComplexSelector(
+              complex.components.take(complex.components.length - 1).toList()
+                ..add(unified),
+              lineBreak: complex.lineBreak));
           source.isUsed = true;
         }
       }
@@ -206,8 +211,7 @@ class Extender {
     return extended;
   }
 
-  List<List<ComplexSelectorComponent>> _trim(
-      List<List<List<ComplexSelectorComponent>>> lists) {
+  List<ComplexSelector> _trim(List<List<ComplexSelector>> lists) {
     // Avoid truly horrific quadratic behavior.
     //
     // TODO(nweiz): I think there may be a way to get perfect trimming without
@@ -217,7 +221,7 @@ class Extender {
 
     // This is n² on the sequences, but only comparing between separate
     // sequences should limit the quadratic behavior.
-    var result = <List<ComplexSelectorComponent>>[];
+    var result = <ComplexSelector>[];
     for (var i = 0; i < lists.length; i++) {
       for (var complex1 in lists[i]) {
         // The maximum specificity of the sources that caused [complex1] to be
@@ -225,7 +229,7 @@ class Extender {
         // another selector that's a superselector of it *and* that has
         // specificity greater or equal to this.
         var maxSpecificity = 0;
-        for (var component in complex1) {
+        for (var component in complex1.components) {
           if (component is CompoundSelector) {
             for (var simple in component.components) {
               var source = _sources[simple];
@@ -240,16 +244,16 @@ class Extender {
         // been trimmed, and thus that if there are two identical selectors only
         // one is trimmed.
         if (result.any((complex2) =>
-            _complexMinSpecificity(complex2) >= maxSpecificity &&
-            complexIsSuperselector(complex2, complex1))) {
+            complex2.minSpecificity >= maxSpecificity &&
+            complex2.isSuperselector(complex1))) {
           continue;
         }
 
         // We intentionally don't compare [complex1] against other selectors in
         // `lists[i]`, since they come from the same source.
         if (lists.skip(i + 1).any((list) => list.any((complex2) =>
-            _complexMinSpecificity(complex2) >= maxSpecificity &&
-            complexIsSuperselector(complex2, complex1)))) {
+            complex2.minSpecificity >= maxSpecificity &&
+            complex2.isSuperselector(complex1)))) {
           continue;
         }
 
@@ -257,16 +261,6 @@ class Extender {
       }
     }
 
-    return result;
-  }
-
-  int _complexMinSpecificity(Iterable<ComplexSelectorComponent> complex) {
-    var result = 0;
-    for (var component in complex) {
-      if (component is CompoundSelector) {
-        result += component.minSpecificity;
-      }
-    }
     return result;
   }
 }
