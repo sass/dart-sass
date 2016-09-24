@@ -1204,10 +1204,9 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    var next = scanner.peekChar();
-    if (next == $e || next == $E) {
+    if (scanIdentifier("e", ignoreCase: true)) {
       scanner.readChar();
-      next = scanner.peekChar();
+      var next = scanner.peekChar();
       var exponentSign = next == $dash ? -1 : 1;
       if (next == $plus || next == $minus) scanner.readChar();
       if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
