@@ -427,7 +427,17 @@ class _SerializeCssVisitor
     var complexes = _inspect
         ? list.components
         : list.components.where((complex) => !complex.containsPlaceholder);
-    _writeBetween(complexes, ", ", (complex) => visitComplexSelector(complex));
+
+    var first = true;
+    for (var complex in complexes) {
+      if (first) {
+        first = false;
+      } else {
+        _buffer.writeCharCode($comma);
+        _buffer.writeCharCode(complex.lineBreak ? $lf : $space);
+      }
+      visitComplexSelector(complex);
+    }
   }
 
   void visitParentSelector(ParentSelector parent) {

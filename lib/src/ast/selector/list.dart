@@ -13,9 +13,6 @@ import '../selector.dart';
 class SelectorList extends Selector {
   final List<ComplexSelector> components;
 
-  // Indices of [components] that are followed by line breaks.
-  final List<int> lineBreaks;
-
   bool get _containsParentSelector {
     return components.any((complex) {
       return complex.components.any((component) =>
@@ -37,10 +34,8 @@ class SelectorList extends Selector {
     }), ListSeparator.comma);
   }
 
-  SelectorList(Iterable<ComplexSelector> components, {Iterable<int> lineBreaks})
-      : components = new List.unmodifiable(components),
-        lineBreaks =
-            lineBreaks == null ? const [] : new List.unmodifiable(lineBreaks);
+  SelectorList(Iterable<ComplexSelector> components)
+      : components = new List.unmodifiable(components);
 
   factory SelectorList.parse(String contents, {url, bool allowParent: true}) =>
       new SelectorParser(contents, url: url, allowParent: allowParent).parse();
@@ -71,39 +66,51 @@ class SelectorList extends Selector {
     if (!_containsParentSelector) {
       return new SelectorList(parent.components.expand((parentComplex) {
         return components.map((childComplex) => new ComplexSelector(
-            parentComplex.components.toList()
-              ..addAll(childComplex.components)));
+            parentComplex.components.toList()..addAll(childComplex.components),
+            lineBreak: childComplex.lineBreak || parentComplex.lineBreak));
       }));
     }
 
-    // TODO: handle line breaks
     return new SelectorList(flattenVertically(components.map((complex) {
       var newComplexes = [<ComplexSelectorComponent>[]];
+      var lineBreaks = <bool>[false];
       for (var component in complex.components) {
         if (component is CompoundSelector) {
-          var resultList = _resolveParentSelectorsCompound(component, parent);
-          if (resultList == null) {
+          var resolved = _resolveParentSelectorsCompound(component, parent);
+          if (resolved == null) {
             for (var newComplex in newComplexes) {
               newComplex.add(component);
             }
             continue;
           }
 
-          newComplexes = newComplexes
-              .expand((newComplex) => resultList.map((resultComplex) =>
-                  newComplex.toList()..addAll(resultComplex)))
-              .toList();
+          var previousComplexes = newComplexes;
+          var previousLineBreaks = lineBreaks;
+          newComplexes = <List<ComplexSelectorComponent>>[];
+          lineBreaks = <bool>[];
+          var i = 0;
+          for (var newComplex in previousComplexes) {
+            var lineBreak = previousLineBreaks[i++];
+            for (var resolvedComplex in resolved) {
+              newComplexes
+                  .add(newComplex.toList()..addAll(resolvedComplex.components));
+              lineBreaks.add(lineBreak || resolvedComplex.lineBreak);
+            }
+          }
         } else {
           for (var newComplex in newComplexes) {
             newComplex.add(component);
           }
         }
       }
-      return newComplexes.map((newComplex) => new ComplexSelector(newComplex));
+
+      var i = 0;
+      return newComplexes.map((newComplex) =>
+          new ComplexSelector(newComplex, lineBreak: lineBreaks[i++]));
     })));
   }
 
-  Iterable<Iterable<ComplexSelectorComponent>> _resolveParentSelectorsCompound(
+  Iterable<ComplexSelector> _resolveParentSelectorsCompound(
       CompoundSelector compound, SelectorList parent) {
     var containsSelectorPseudo = compound.components.any((simple) =>
         simple is PseudoSelector &&
@@ -130,11 +137,11 @@ class SelectorList extends Selector {
     var parentSelector = compound.components.first;
     if (parentSelector is ParentSelector) {
       if (compound.components.length == 1 && parentSelector.suffix == null) {
-        return parent.components.map((complex) => complex.components);
+        return parent.components;
       }
     } else {
       return [
-        [new CompoundSelector(resolvedMembers)]
+        new ComplexSelector([new CompoundSelector(resolvedMembers)])
       ];
     }
 
@@ -157,8 +164,10 @@ class SelectorList extends Selector {
             last.components.toList()..addAll(resolvedMembers.skip(1)));
       }
 
-      return complex.components.take(complex.components.length - 1).toList()
-        ..add(last);
+      return new ComplexSelector(
+          complex.components.take(complex.components.length - 1).toList()
+            ..add(last),
+          lineBreak: complex.lineBreak);
     });
   }
 

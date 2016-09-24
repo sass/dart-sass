@@ -10,8 +10,8 @@ import '../selector.dart';
 class ComplexSelector extends Selector {
   final List<ComplexSelectorComponent> components;
 
-  // Indices of [components] that are followed by line breaks.
-  final List<int> lineBreaks;
+  // There's a line break *before* this selector.
+  final bool lineBreak;
 
   int get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
@@ -38,10 +38,8 @@ class ComplexSelector extends Selector {
   bool _containsPlaceholder;
 
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
-      {Iterable<int> lineBreaks})
-      : components = new List.unmodifiable(components),
-        lineBreaks =
-            lineBreaks == null ? const [] : new List.unmodifiable(lineBreaks);
+      {this.lineBreak: false})
+      : components = new List.unmodifiable(components);
 
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
       visitor.visitComplexSelector(this);

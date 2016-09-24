@@ -48,7 +48,6 @@ class SelectorParser extends Parser {
 
   SelectorList _selectorList() {
     var components = <ComplexSelector>[];
-    var lineBreaks = <int>[];
 
     whitespace();
     var previousLine = scanner.line;
@@ -58,21 +57,17 @@ class SelectorParser extends Parser {
       if (next == $comma) continue;
       if (next == $lbrace) break;
 
-      if (scanner.line != previousLine) {
-        lineBreaks.add(components.length);
-        previousLine = scanner.line;
-      }
-      components.add(_complexSelector());
+      var lineBreak = scanner.line != previousLine;
+      if (lineBreak) previousLine = scanner.line;
+      components.add(_complexSelector(lineBreak: lineBreak));
     } while (scanner.scanChar($comma));
 
-    return new SelectorList(components, lineBreaks: lineBreaks);
+    return new SelectorList(components);
   }
 
-  ComplexSelector _complexSelector() {
+  ComplexSelector _complexSelector({bool lineBreak: false}) {
     var components = <ComplexSelectorComponent>[];
-    var lineBreaks = <int>[];
 
-    var previousLine = scanner.line;
     loop:
     while (true) {
       whitespace();
@@ -112,14 +107,10 @@ class SelectorParser extends Parser {
           break;
       }
 
-      if (scanner.line != previousLine) {
-        lineBreaks.add(components.length);
-        previousLine = scanner.line;
-      }
       components.add(component);
     }
 
-    return new ComplexSelector(components, lineBreaks: lineBreaks);
+    return new ComplexSelector(components, lineBreak: lineBreak);
   }
 
   CompoundSelector _compoundSelector() {
@@ -247,7 +238,9 @@ class SelectorParser extends Parser {
   ParentSelector _parentSelector() {
     scanner.expectChar($ampersand);
     var next = scanner.peekChar();
-    var suffix = isName(next) || next == $backslash ? identifier() : null;
+    var suffix = next != null && (isName(next) || next == $backslash)
+        ? identifier()
+        : null;
     return new ParentSelector(suffix: suffix);
   }
 
