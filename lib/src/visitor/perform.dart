@@ -651,6 +651,21 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
       new SassBoolean(node.value);
 
+  Value visitIfExpression(IfExpression node) {
+    var pair = _evaluateMacroArguments(node);
+    var positional = pair.item1;
+    var named = pair.item2;
+
+    _verifyArguments(
+        positional.length, named, IfExpression.declaration, node.span);
+
+    var condition = positional.length > 0 ? positional[0] : named["condition"];
+    var ifTrue = positional.length > 1 ? positional[1] : named["if-true"];
+    var ifFalse = positional.length > 2 ? positional[2] : named["if-false"];
+
+    return (condition.accept(this).isTruthy ? ifTrue : ifFalse).accept(this);
+  }
+
   SassNull visitNullExpression(NullExpression node) => sassNull;
 
   SassNumber visitNumberExpression(NumberExpression node) =>
@@ -725,7 +740,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       return _withEnvironment(callable.environment, () {
         return _environment.scope(() {
           _verifyArguments(
-              positional, named, callable.arguments, invocation.span);
+              positional.length, named, callable.arguments, invocation.span);
 
           // TODO: if we get here and there are no rest params involved, mark
           // the callable as fast-path and don't do error checking or extra
@@ -778,13 +793,14 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var triple = _evaluateArguments(invocation);
     var positional = triple.item1;
     var named = triple.item2;
+    var namedSet = named;
     var separator = triple.item3;
 
     int overloadIndex;
     for (var i = 0; i < callable.overloads.length - 1; i++) {
       try {
-        _verifyArguments(
-            positional, named, callable.overloads[i], invocation.span);
+        _verifyArguments(positional.length, namedSet, callable.overloads[i],
+            invocation.span);
         overloadIndex = i;
         break;
       } on SassRuntimeException catch (_) {
@@ -792,8 +808,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       }
     }
     if (overloadIndex == null) {
-      _verifyArguments(
-          positional, named, callable.overloads.last, invocation.span);
+      _verifyArguments(positional.length, namedSet, callable.overloads.last,
+          invocation.span);
       overloadIndex = callable.overloads.length - 1;
     }
 
@@ -878,10 +894,54 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  void _addRestMap(Map<String, Value> values, SassMap map, FileSpan span) {
+  Tuple2<List<Expression>, Map<String, Expression>> _evaluateMacroArguments(
+      CallableInvocation invocation) {
+    if (invocation.arguments.rest == null) {
+      return new Tuple2(
+          invocation.arguments.positional, invocation.arguments.named);
+    }
+
+    var positional = invocation.arguments.positional.toList();
+    var named = normalizedMap/*<Expression>*/()
+      ..addAll(invocation.arguments.named);
+    var rest = invocation.arguments.rest.accept(this);
+    if (rest is SassMap) {
+      _addRestMap(
+          named, rest, invocation.span, (value) => new ValueExpression(value));
+    } else if (rest is SassList) {
+      positional.addAll(rest.asList.map((value) => new ValueExpression(value)));
+      if (rest is SassArgumentList) {
+        rest.keywords.forEach((key, value) {
+          named[key] = new ValueExpression(value);
+        });
+      }
+    } else {
+      positional.add(new ValueExpression(rest));
+    }
+
+    if (invocation.arguments.keywordRest == null) {
+      return new Tuple2(positional, named);
+    }
+
+    var keywordRest = invocation.arguments.keywordRest.accept(this);
+    if (keywordRest is SassMap) {
+      _addRestMap(named, keywordRest, invocation.span,
+          (value) => new ValueExpression(value));
+      return new Tuple2(positional, named);
+    } else {
+      throw _exception(
+          "Variable keyword arguments must be a map (was $keywordRest).",
+          invocation.span);
+    }
+  }
+
+  void _addRestMap/*<T>*/(
+      Map<String, Object/*=T*/ > values, SassMap map, FileSpan span,
+      [/*=T*/ convert(Value value)]) {
+    convert ??= (value) => value as Object/*=T*/;
     map.contents.forEach((key, value) {
       if (key is SassString) {
-        values[key.text] = value;
+        values[key.text] = convert(value);
       } else {
         throw _exception(
             "Variable keyword argument map must have string keys.\n"
@@ -891,11 +951,11 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
-  void _verifyArguments(List<Value> positional, Map<String, Value> named,
+  void _verifyArguments(int positional, Map<String, dynamic> named,
       ArgumentDeclaration arguments, FileSpan span) {
     for (var i = 0; i < arguments.arguments.length; i++) {
       var argument = arguments.arguments[i];
-      if (i < positional.length) {
+      if (i < positional) {
         if (named.containsKey(argument.name)) {
           throw _exception(
               "Argument \$${argument.name} was passed both by position and by "
@@ -910,16 +970,16 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
     if (arguments.restArgument != null) return;
 
-    if (positional.length > arguments.arguments.length) {
+    if (positional > arguments.arguments.length) {
       throw _exception(
           "Only ${arguments.arguments.length} "
-          "${pluralize('argument', arguments.arguments.length)} allowed, "
-          "but ${positional.length} "
-          "${pluralize('was', positional.length, plural: 'were')} passed.",
+          "${pluralize('argument', arguments.arguments.length)} allowed, but "
+          "${positional} ${pluralize('was', positional, plural: 'were')} "
+          "passed.",
           span);
     }
 
-    if (arguments.arguments.length - positional.length < named.length) {
+    if (arguments.arguments.length - positional < named.length) {
       var unknownNames = normalizedSet()
         ..addAll(named.keys)
         ..removeAll(arguments.arguments.map((argument) => argument.name));

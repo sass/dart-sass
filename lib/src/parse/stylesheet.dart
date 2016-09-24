@@ -1342,17 +1342,20 @@ abstract class StylesheetParser extends Parser {
     // TODO: url()
     var identifier = _interpolatedIdentifier();
     switch (identifier.asPlain) {
+      case "false":
+        return new BooleanExpression(false, identifier.span);
+      case "if":
+        var invocation = _argumentInvocation();
+        return new IfExpression(
+            invocation, spanForList([identifier, invocation]));
       case "not":
         whitespace();
         return new UnaryOperationExpression(
             UnaryOperator.not, _singleExpression(), identifier.span);
-
       case "null":
         return new NullExpression(identifier.span);
       case "true":
         return new BooleanExpression(true, identifier.span);
-      case "false":
-        return new BooleanExpression(false, identifier.span);
     }
 
     return scanner.peekChar() == $lparen

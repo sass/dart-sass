@@ -840,6 +840,11 @@ void defineCoreFunctions(Environment environment) {
 
   // ## Miscellaneous
 
+  // This is only invoked using `call()`. Hand-authored `if()`s are parsed as
+  // [IfExpression]s.
+  environment.defineFunction("if", r"$condition, $if-true, $if-false",
+      (arguments) => arguments[0].isTruthy ? arguments[1] : arguments[2]);
+
   environment.defineFunction("unique-id", "", (arguments) {
     // Make it difficult to guess the next ID by randomizing the increase.
     _uniqueID += _random.nextInt(36);
