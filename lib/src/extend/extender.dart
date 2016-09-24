@@ -129,7 +129,6 @@ class Extender {
       var component = complex.components[i];
       if (component is CompoundSelector) {
         var extended = _extendCompound(component, extensions, replace: replace);
-        // TODO: follow the first law of extend (https://github.com/sass/sass/blob/7774aa3/lib/sass/selector/sequence.rb#L114-L118)
         if (extended == null) {
           if (changed) {
             extendedNotExpanded.add([
