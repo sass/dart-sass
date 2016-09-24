@@ -59,7 +59,6 @@ class ListExpression implements Expression {
           expression.operator == UnaryOperator.minus;
     }
 
-    // TODO: handle binary operations.
     return false;
   }
 }
