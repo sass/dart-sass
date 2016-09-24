@@ -17,7 +17,6 @@ import '../callable.dart';
 import '../environment.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
-import '../parse.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
@@ -94,7 +93,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   void visitAtRootRule(AtRootRule node) {
     var query = node.query == null
         ? AtRootQuery.defaultQuery
-        : parseAtRootQuery(_performInterpolation(node.query));
+        : new AtRootQuery.parse(_performInterpolation(node.query));
 
     var parent = _parent;
     var included = <CssParentNode>[];
@@ -263,7 +262,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
     // TODO: recontextualize parse errors.
     // TODO: disallow parent selectors.
-    var target = parseSimpleSelector(targetText.value.trim());
+    var target = new SimpleSelector.parse(targetText.value.trim());
     _extender.addExtension(_selector.value, target, node);
   }
 
@@ -373,8 +372,11 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     return _importedFiles.putIfAbsent(path, () {
-      var parse = p.extension(path) == '.sass' ? parseSass : parseScss;
-      return parse(new File(path).readAsStringSync(), url: p.toUri(path));
+      var contents = new File(path).readAsStringSync();
+      var url = p.toUri(path);
+      return p.extension(path) == '.sass'
+          ? new Stylesheet.parseSass(contents, url: url)
+          : new Stylesheet.parseScss(contents, url: url);
     });
   }
 
@@ -486,7 +488,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     var selectorText = _interpolationToValue(node.selector, trim: true);
-    var parsedSelector = parseSelector(selectorText.value);
+    var parsedSelector = new SelectorList.parse(selectorText.value);
     parsedSelector = _addExceptionSpan(
         () => parsedSelector.resolveParentSelectors(_selector?.value),
         node.selector.span);

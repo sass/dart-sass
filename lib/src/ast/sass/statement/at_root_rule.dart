@@ -5,6 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../parse/at_root_query.dart';
 import '../../../visitor/interface/statement.dart';
 import '../../css.dart';
 import '../interpolation.dart';
@@ -55,6 +56,9 @@ class AtRootQuery {
         names = const UnmodifiableSetView.empty(),
         _all = false,
         _rule = true;
+
+  factory AtRootQuery.parse(String contents, {url}) =>
+      new AtRootQueryParser(contents, url: url).parse();
 
   bool excludes(CssParentNode node) {
     if (_all) return !include;

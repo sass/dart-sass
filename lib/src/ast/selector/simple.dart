@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../exception.dart';
+import '../../parse/selector.dart';
 import '../selector.dart';
 
 abstract class SimpleSelector extends Selector {
@@ -12,6 +13,13 @@ abstract class SimpleSelector extends Selector {
   // that any single selector sequence will contain 1,000 simple selectors.
   int get minSpecificity => 1000;
   int get maxSpecificity => minSpecificity;
+
+  SimpleSelector();
+
+  factory SimpleSelector.parse(String contents,
+          {url, bool allowParent: true}) =>
+      new SelectorParser(contents, url: url, allowParent: allowParent)
+          .parseSimpleSelector();
 
   SimpleSelector addSuffix(String suffix) =>
       throw new InternalException('Invalid parent selector "$this"');

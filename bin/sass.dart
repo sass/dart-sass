@@ -8,8 +8,8 @@ import 'package:args/args.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:sass/src/ast/sass.dart';
 import 'package:sass/src/exception.dart';
-import 'package:sass/src/parse.dart';
 import 'package:sass/src/visitor/perform.dart';
 import 'package:sass/src/visitor/serialize.dart';
 
@@ -35,8 +35,11 @@ void main(List<String> args) {
 
   try {
     var file = options.rest.first;
-    var parse = p.extension(file) == '.sass' ? parseSass : parseScss;
-    var sassTree = parse(new File(file).readAsStringSync(), url: p.toUri(file));
+    var contents = new File(file).readAsStringSync();
+    var url = p.toUri(file);
+    var sassTree = p.extension(file) == '.sass'
+        ? new Stylesheet.parseSass(contents, url: url)
+        : new Stylesheet.parseScss(contents, url: url);
     var cssTree = new PerformVisitor().visitStylesheet(sassTree);
     var css = toCss(cssTree);
     if (css.isNotEmpty) print(css);

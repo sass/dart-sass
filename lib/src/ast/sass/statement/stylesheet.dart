@@ -5,6 +5,8 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
+import '../../../parse/sass.dart';
+import '../../../parse/scss.dart';
 import '../statement.dart';
 
 class Stylesheet implements Statement {
@@ -14,6 +16,12 @@ class Stylesheet implements Statement {
 
   Stylesheet(Iterable<Statement> children, this.span)
       : children = new List.unmodifiable(children);
+
+  factory Stylesheet.parseSass(String contents, {url}) =>
+      new SassParser(contents, url: url).parse();
+
+  factory Stylesheet.parseScss(String contents, {url}) =>
+      new ScssParser(contents, url: url).parse();
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);

@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../parse.dart';
+import '../../../ast/sass.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import '../argument_invocation.dart';
@@ -12,7 +12,7 @@ import '../callable_invocation.dart';
 
 class IfExpression implements Expression, CallableInvocation {
   static final declaration =
-      parseArgumentDeclaration(r"($condition, $if-true, $if-false)");
+      new ArgumentDeclaration.parse(r"$condition, $if-true, $if-false");
 
   final ArgumentInvocation arguments;
 

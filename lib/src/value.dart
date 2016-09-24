@@ -4,7 +4,6 @@
 
 import 'ast/selector.dart';
 import 'exception.dart';
-import 'parse.dart';
 import 'value/boolean.dart';
 import 'value/color.dart';
 import 'value/list.dart';
@@ -57,7 +56,7 @@ abstract class Value {
   SelectorList assertSelector({String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
-      return parseSelector(string, allowParent: allowParent);
+      return new SelectorList.parse(string, allowParent: allowParent);
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -68,7 +67,7 @@ abstract class Value {
   SimpleSelector assertSimpleSelector({String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
-      return parseSimpleSelector(string, allowParent: allowParent);
+      return new SimpleSelector.parse(string, allowParent: allowParent);
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -80,7 +79,7 @@ abstract class Value {
       {String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
-      return parseCompoundSelector(string, allowParent: allowParent);
+      return new CompoundSelector.parse(string, allowParent: allowParent);
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../extend/functions.dart';
+import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -26,6 +27,11 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
 
   CompoundSelector(Iterable<SimpleSelector> components)
       : components = new List.unmodifiable(components);
+
+  factory CompoundSelector.parse(String contents,
+          {url, bool allowParent: true}) =>
+      new SelectorParser(contents, url: url, allowParent: allowParent)
+          .parseCompoundSelector();
 
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
       visitor.visitCompoundSelector(this);

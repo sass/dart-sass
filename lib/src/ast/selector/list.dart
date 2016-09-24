@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../extend/functions.dart';
+import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../exception.dart';
 import '../../value.dart';
@@ -40,6 +41,9 @@ class SelectorList extends Selector {
       : components = new List.unmodifiable(components),
         lineBreaks =
             lineBreaks == null ? const [] : new List.unmodifiable(lineBreaks);
+
+  factory SelectorList.parse(String contents, {url, bool allowParent: true}) =>
+      new SelectorParser(contents, url: url, allowParent: allowParent).parse();
 
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
       visitor.visitSelectorList(this);
