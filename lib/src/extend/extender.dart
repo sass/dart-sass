@@ -26,13 +26,19 @@ class Extender {
 
   static SelectorList extend(
           SelectorList selector, SelectorList source, SimpleSelector target) =>
-      new Extender()._extendList(
-          selector, {target: new Set()..add(new ExtendSource(source, null))});
+      new Extender()._extendList(selector, {
+        target: new Set()
+          ..add(new ExtendSource(new CssValue(source, null), null))
+      });
 
   static SelectorList replace(
           SelectorList selector, SelectorList source, SimpleSelector target) =>
       new Extender()._extendList(
-          selector, {target: new Set()..add(new ExtendSource(source, null))},
+          selector,
+          {
+            target: new Set()
+              ..add(new ExtendSource(new CssValue(source, null), null))
+          },
           replace: true);
 
   CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span) {
@@ -72,19 +78,18 @@ class Extender {
     }
   }
 
-  void addExtension(
-      SelectorList sourceList, SimpleSelector target, ExtendRule extend) {
-    var source = new ExtendSource(sourceList, extend.span);
+  void addExtension(CssValue<SelectorList> extender, SimpleSelector target,
+      ExtendRule extend) {
+    var source = new ExtendSource(extender, extend.span);
     source.isUsed = extend.isOptional;
     _extensions.putIfAbsent(target, () => new Set()).add(source);
 
     var rules = _selectors[target];
     if (rules == null) return;
-
     var extensions = {target: new Set()..add(source)};
-    for (var rule in rules) {
-      var list = rule.selector.value;
-      rule.selector.value = _extendList(list, extensions);
+    for (var rule in rules.toList()) {
+      rule.selector.value = _extendList(rule.selector.value, extensions);
+      _registerSelector(rule.selector.value, rule);
     }
   }
 
@@ -163,7 +168,7 @@ class Extender {
     }
     if (!changed) return null;
 
-    return _trim(paths(extendedNotExpanded).map((path) {
+    var result = _trim(paths(extendedNotExpanded).map((path) {
       return weave(path.map((complex) => complex.components).toList())
           .map((outputComplex) {
         return new ComplexSelector(outputComplex,
@@ -171,6 +176,7 @@ class Extender {
                 path.any((inputComplex) => inputComplex.lineBreak));
       });
     }).toList());
+    return result;
   }
 
   List<ComplexSelector> _extendCompound(CompoundSelector compound,
@@ -203,9 +209,9 @@ class Extender {
           new List<SimpleSelector>(compound.components.length - 1);
       compoundWithoutSimple.setRange(0, i, compound.components);
       compoundWithoutSimple.setRange(
-          i, compound.components.length - 1, compound.components, i);
+          i, compound.components.length - 1, compound.components, i + 1);
       for (var source in sources) {
-        for (var complex in source.extender.components) {
+        for (var complex in source.extender.value.components) {
           var extenderBase = complex.components.last as CompoundSelector;
           var unified = compoundWithoutSimple.isEmpty
               ? extenderBase
@@ -246,7 +252,6 @@ class Extender {
   List<PseudoSelector> _extendPseudo(
       PseudoSelector pseudo, Map<SimpleSelector, Set<ExtendSource>> extensions,
       {bool replace: false}) {
-    // TODO: avoid recursive loops when extending.
     var extended = _extendList(pseudo.selector, extensions, replace: replace);
     if (extended == null) return null;
 

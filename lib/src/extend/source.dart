@@ -4,10 +4,11 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../ast/css.dart';
 import '../ast/selector.dart';
 
 class ExtendSource {
-  final SelectorList extender;
+  final CssValue<SelectorList> extender;
 
   final FileSpan span;
 

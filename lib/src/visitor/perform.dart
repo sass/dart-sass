@@ -263,7 +263,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     // TODO: recontextualize parse errors.
     // TODO: disallow parent selectors.
     var target = new SimpleSelector.parse(targetText.value.trim());
-    _extender.addExtension(_selector.value, target, node);
+    _extender.addExtension(_selector, target, node);
   }
 
   void visitAtRule(AtRule node) {
@@ -498,8 +498,9 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var selector =
         new CssValue<SelectorList>(parsedSelector, node.selector.span);
 
-    _withParent(_extender.addSelector(selector, node.span), () {
-      _withSelector(selector, () {
+    var rule = _extender.addSelector(selector, node.span);
+    _withParent(rule, () {
+      _withSelector(rule.selector, () {
         for (var child in node.children) {
           child.accept(this);
         }
