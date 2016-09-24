@@ -431,7 +431,7 @@ class _SerializeCssVisitor
   }
 
   void visitParentSelector(ParentSelector parent) {
-    _buffer.writeCharCode($and);
+    _buffer.writeCharCode($ampersand);
     if (parent.suffix != null) _buffer.write(parent.suffix);
   }
 
