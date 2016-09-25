@@ -13,6 +13,7 @@ import 'exception.dart';
 import 'extend/extender.dart';
 import 'utils.dart';
 import 'value.dart';
+import 'visitor/serialize.dart';
 
 final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
 
@@ -167,7 +168,7 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
-      return new SassString("grayscale(${arguments[0]})");
+      return new SassString("grayscale(${valueToCss(arguments[0])})");
     }
 
     var color = arguments[0].assertColor("color");
@@ -183,7 +184,7 @@ void defineCoreFunctions(Environment environment) {
     if (arguments[0] is SassNumber) {
       // TODO: find some way of ensuring this is stringified using the right
       // options. We may need to resort to zones.
-      return new SassString("invert(${arguments[0]})");
+      return new SassString("invert(${valueToCss(arguments[0])})");
     }
 
     var color = arguments[0].assertColor("color");
@@ -207,7 +208,7 @@ void defineCoreFunctions(Environment environment) {
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart)) {
         // Suport the proprietary Microsoft alpha() function.
-        return new SassString("alpha($argument)");
+        return new SassString("alpha(${valueToCss(argument)})");
       }
 
       var color = argument.assertColor("color");
@@ -219,7 +220,7 @@ void defineCoreFunctions(Environment environment) {
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart))) {
         // Suport the proprietary Microsoft alpha() function.
-        return new SassString("alpha(${arguments.join(', ')})");
+        return new SassString("alpha(${arguments.map(valueToCss).join(', ')})");
       }
 
       assert(arguments.length != 1);
@@ -230,7 +231,7 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
-      return new SassString("opacity(${arguments[0]})");
+      return new SassString("opacity(${valueToCss(arguments[0])})");
     }
 
     var color = arguments[0].assertColor("color");
