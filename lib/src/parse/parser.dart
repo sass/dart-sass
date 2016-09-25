@@ -347,7 +347,7 @@ abstract class Parser {
     try {
       return callback();
     } on StringScannerException catch (error) {
-      throw new SassException(error.message, error.span as FileSpan);
+      throw new SassFormatException(error.message, error.span as FileSpan);
     }
   }
 }

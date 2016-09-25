@@ -260,9 +260,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
     var targetText = _interpolationToValue(node.selector);
 
-    // TODO: recontextualize parse errors.
-    var target =
-        new SimpleSelector.parse(targetText.value.trim(), allowParent: false);
+    var target = _adjustParseError(
+        targetText.span,
+        () => new SimpleSelector.parse(targetText.value.trim(),
+            allowParent: false));
     _extender.addExtension(_selector, target, node);
   }
 
@@ -302,11 +303,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   void visitForRule(ForRule node) {
-    var from = _addExceptionSpan(
-        () => node.from.accept(this).assertNumber().assertInt(),
-        node.from.span);
+    var from = _addExceptionSpan(node.from.span,
+        () => node.from.accept(this).assertNumber().assertInt());
     var to = _addExceptionSpan(
-        () => node.to.accept(this).assertNumber().assertInt(), node.to.span);
+        node.to.span, () => node.to.accept(this).assertNumber().assertInt());
 
     // TODO: coerce units
     var direction = from > to ? -1 : 1;
@@ -488,10 +488,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     var selectorText = _interpolationToValue(node.selector, trim: true);
-    var parsedSelector = new SelectorList.parse(selectorText.value);
-    parsedSelector = _addExceptionSpan(
-        () => parsedSelector.resolveParentSelectors(_selector?.value),
-        node.selector.span);
+    var parsedSelector = _adjustParseError(
+        node.selector.span, () => new SelectorList.parse(selectorText.value));
+    parsedSelector = _addExceptionSpan(node.selector.span,
+        () => parsedSelector.resolveParentSelectors(_selector?.value));
 
     // TODO: catch errors and re-contextualize them relative to
     // [node.selector.span.start].
@@ -570,9 +570,9 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   void visitWarnRule(WarnRule node) {
     _addExceptionSpan(
+        node.span,
         () => stderr
-            .writeln("WARNING: ${valueToCss(node.expression.accept(this))}"),
-        node.span);
+            .writeln("WARNING: ${valueToCss(node.expression.accept(this))}"));
     for (var line in _stackTrace(node.span).toString().split("\n")) {
       stderr.writeln("         $line");
     }
@@ -591,7 +591,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   // ## Expressions
 
   Value visitBinaryOperationExpression(BinaryOperationExpression node) {
-    return _addExceptionSpan(() {
+    return _addExceptionSpan(node.span, () {
       var left = node.left.accept(this);
       var right = node.right.accept(this);
       switch (node.operator) {
@@ -624,7 +624,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         default:
           return null;
       }
-    }, node.span);
+    });
   }
 
   Value visitValueExpression(ValueExpression node) => node.value;
@@ -842,7 +842,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       positional.add(argumentList);
     }
 
-    var result = _addExceptionSpan(() => callback(positional), invocation.span);
+    var result = _addExceptionSpan(invocation.span, () => callback(positional));
 
     if (argumentList == null) return result;
     if (named.isEmpty) return result;
@@ -1092,7 +1092,22 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   SassRuntimeException _exception(String message, FileSpan span) =>
       new SassRuntimeException(message, span, _stackTrace(span));
 
-  /*=T*/ _addExceptionSpan/*<T>*/(/*=T*/ callback(), FileSpan span) {
+  /*=T*/ _adjustParseError/*<T>*/(FileSpan span, /*=T*/ callback()) {
+    try {
+      return callback();
+    } on SassFormatException catch (error) {
+      var errorText = error.span.file.getText(0);
+      var syntheticFile = span.file
+          .getText(0)
+          .replaceRange(span.start.offset, span.end.offset, errorText);
+      var syntheticSpan = new SourceFile(syntheticFile, url: span.file.url)
+          .span(span.start.offset + error.span.start.offset,
+              span.start.offset + error.span.end.offset);
+      throw _exception(error.message, syntheticSpan);
+    }
+  }
+
+  /*=T*/ _addExceptionSpan/*<T>*/(FileSpan span, /*=T*/ callback()) {
     try {
       return callback();
     } on InternalException catch (error) {
