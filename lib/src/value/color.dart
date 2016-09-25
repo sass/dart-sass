@@ -10,7 +10,6 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 // TODO(nweiz): track original representation.
-// TODO(nweiz): support an alpha channel.
 class SassColor extends Value {
   int get red {
     if (_red == null) _hslToRgb();
