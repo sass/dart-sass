@@ -21,6 +21,10 @@ void main(List<String> args) {
         help: 'Output style.',
         allowed: ['expanded'],
         defaultsTo: 'expanded')
+    ..addFlag('color',
+        abbr: 'c',
+        help: 'Whether to emit terminal colors.',
+        defaultsTo: stdout.hasTerminal && !Platform.isWindows)
     ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
     ..addFlag('help',
         abbr: 'h', help: 'Print this usage information.', negatable: false);
@@ -44,7 +48,7 @@ void main(List<String> args) {
     var css = toCss(cssTree);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
-    stderr.writeln(error.toString(color: true));
+    stderr.writeln(error.toString(color: options['color']));
 
     if (options['trace']) {
       stderr.writeln();
