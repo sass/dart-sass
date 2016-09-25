@@ -261,8 +261,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var targetText = _interpolationToValue(node.selector);
 
     // TODO: recontextualize parse errors.
-    // TODO: disallow parent selectors.
-    var target = new SimpleSelector.parse(targetText.value.trim());
+    var target =
+        new SimpleSelector.parse(targetText.value.trim(), allowParent: false);
     _extender.addExtension(_selector, target, node);
   }
 
