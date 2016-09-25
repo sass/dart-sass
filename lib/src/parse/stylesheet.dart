@@ -447,7 +447,6 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     var children = this.children(_functionAtRule);
 
-    // TODO: ensure there aren't duplicate argument names.
     return new FunctionRule(name, arguments, children, scanner.spanFrom(start));
   }
 
@@ -612,6 +611,7 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($lparen);
     whitespace();
     var arguments = <Argument>[];
+    var named = normalizedSet();
     String restArgument;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
@@ -631,6 +631,12 @@ abstract class StylesheetParser extends Parser {
 
       arguments.add(new Argument(name,
           span: scanner.spanFrom(variableStart), defaultValue: defaultValue));
+      if (!named.add(name)) {
+        scanner.error("Duplicate argument.",
+            position: arguments.last.span.start.offset,
+            length: arguments.last.span.length);
+      }
+
       if (!scanner.scanChar($comma)) break;
       whitespace();
     }
@@ -647,7 +653,7 @@ abstract class StylesheetParser extends Parser {
     whitespace();
 
     var positional = <Expression>[];
-    var named = <String, Expression>{};
+    var named = normalizedMap/*<Expression>*/();
     Expression rest;
     Expression keywordRest;
     while (_lookingAtExpression()) {
@@ -656,6 +662,11 @@ abstract class StylesheetParser extends Parser {
 
       if (expression is VariableExpression && scanner.scanChar($colon)) {
         whitespace();
+        if (named.containsKey(expression.name)) {
+          scanner.error("Duplicate argument.",
+              position: expression.span.start.offset,
+              length: expression.span.length);
+        }
         named[expression.name] = _expressionUntilComma();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
