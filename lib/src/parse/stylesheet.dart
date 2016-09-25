@@ -10,6 +10,7 @@ import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
+import '../color_names.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import '../utils.dart';
@@ -1371,7 +1372,11 @@ abstract class StylesheetParser extends Parser {
           return new BooleanExpression(true, identifier.span);
       }
 
-      var specialFunction = _trySpecialFunction(plain, identifier.span);
+      var lower = plain.toLowerCase();
+      var color = colorsByName[lower];
+      if (color != null) return new ColorExpression(color, identifier.span);
+
+      var specialFunction = _trySpecialFunction(lower, identifier.span);
       if (specialFunction != null) return specialFunction;
     }
 
@@ -1382,18 +1387,6 @@ abstract class StylesheetParser extends Parser {
 
   StringExpression _trySpecialFunction(String name, FileSpan nameSpan) {
     var normalized = unvendor(name);
-    var first = normalized[0];
-
-    // Short-circuit if the identifier definitely isn't a special function so we
-    // don't have to lower-case every single identifier.
-    if (first == $c ||
-        first == $C ||
-        first == $e ||
-        first == $E ||
-        first == $p ||
-        first == $P) {
-      return null;
-    }
 
     InterpolationBuffer buffer;
     switch (normalized) {
