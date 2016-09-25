@@ -35,7 +35,12 @@ void defineCoreFunctions(Environment environment) {
   // ### RGB
 
   environment.defineFunction("rgb", r"$red, $green, $blue", (arguments) {
-    // TODO: support calc strings
+    if (arguments[0].isCalc || arguments[1].isCalc || arguments[2].isCalc) {
+      return new SassString(
+          "rgb(${valueToCss(arguments[0])}, ${valueToCss(arguments[0])}, "
+          "${valueToCss(arguments[0])})");
+    }
+
     var red = arguments[0].assertNumber("red");
     var green = arguments[1].assertNumber("green");
     var blue = arguments[2].assertNumber("blue");
@@ -51,7 +56,15 @@ void defineCoreFunctions(Environment environment) {
     r"$color, $alpha",
   ], [
     (arguments) {
-      // TODO: support calc strings
+      if (arguments[0].isCalc ||
+          arguments[1].isCalc ||
+          arguments[2].isCalc ||
+          arguments[3].isCalc) {
+        return new SassString(
+            "rgba(${valueToCss(arguments[0])}, ${valueToCss(arguments[1])}, "
+            "${valueToCss(arguments[2])}, ${valueToCss(arguments[3])})");
+      }
+
       var red = arguments[0].assertNumber("red");
       var green = arguments[1].assertNumber("green");
       var blue = arguments[2].assertNumber("blue");
@@ -65,6 +78,13 @@ void defineCoreFunctions(Environment environment) {
     },
     (arguments) {
       var color = arguments[0].assertColor("color");
+
+      if (arguments[1].isCalc) {
+        return new SassString(
+            "rgba(${color.red}, ${color.green}, ${color.blue}, "
+            "${valueToCss(arguments[1])})");
+      }
+
       var alpha = arguments[0].assertNumber("alpha");
       return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
     }
@@ -94,7 +114,12 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("hsl", r"$hue, $saturation, $lightness",
       (arguments) {
-    // TODO: support calc strings
+    if (arguments[0].isCalc || arguments[1].isCalc || arguments[2].isCalc) {
+      return new SassString(
+          "rgb(${valueToCss(arguments[0])}, ${valueToCss(arguments[0])}, "
+          "${valueToCss(arguments[0])})");
+    }
+
     var hue = arguments[0].assertNumber("hue");
     var saturation = arguments[1].assertNumber("saturation");
     var lightness = arguments[2].assertNumber("lightness");
@@ -104,7 +129,15 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("hsla", r"$hue, $saturation, $lightness, $alpha",
       (arguments) {
-    // TODO: support calc strings
+    if (arguments[0].isCalc ||
+        arguments[1].isCalc ||
+        arguments[2].isCalc ||
+        arguments[3].isCalc) {
+      return new SassString(
+          "rgba(${valueToCss(arguments[0])}, ${valueToCss(arguments[1])}, "
+          "${valueToCss(arguments[2])}, ${valueToCss(arguments[3])})");
+    }
+
     var hue = arguments[0].assertNumber("hue");
     var saturation = arguments[1].assertNumber("saturation");
     var lightness = arguments[2].assertNumber("lightness");

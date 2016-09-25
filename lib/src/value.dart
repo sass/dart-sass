@@ -34,6 +34,8 @@ abstract class Value {
 
   List<Value> get asList => [this];
 
+  bool get isCalc => false;
+
   const Value();
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
