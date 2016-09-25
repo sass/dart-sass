@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
+import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
 
@@ -1340,26 +1341,77 @@ abstract class StylesheetParser extends Parser {
   Expression _identifierLike() {
     // TODO: url()
     var identifier = _interpolatedIdentifier();
-    switch (identifier.asPlain) {
-      case "false":
-        return new BooleanExpression(false, identifier.span);
-      case "if":
-        var invocation = _argumentInvocation();
-        return new IfExpression(
-            invocation, spanForList([identifier, invocation]));
-      case "not":
-        whitespace();
-        return new UnaryOperationExpression(
-            UnaryOperator.not, _singleExpression(), identifier.span);
-      case "null":
-        return new NullExpression(identifier.span);
-      case "true":
-        return new BooleanExpression(true, identifier.span);
+    var plain = identifier.asPlain;
+    if (plain != null) {
+      switch (plain) {
+        case "false":
+          return new BooleanExpression(false, identifier.span);
+        case "if":
+          var invocation = _argumentInvocation();
+          return new IfExpression(
+              invocation, spanForList([identifier, invocation]));
+        case "not":
+          whitespace();
+          return new UnaryOperationExpression(
+              UnaryOperator.not, _singleExpression(), identifier.span);
+        case "null":
+          return new NullExpression(identifier.span);
+        case "true":
+          return new BooleanExpression(true, identifier.span);
+      }
+
+      var specialFunction = _trySpecialFunction(plain, identifier.span);
+      if (specialFunction != null) return specialFunction;
     }
 
     return scanner.peekChar() == $lparen
         ? new FunctionExpression(identifier, _argumentInvocation())
         : new StringExpression(identifier);
+  }
+
+  StringExpression _trySpecialFunction(String name, FileSpan nameSpan) {
+    var normalized = unvendor(name);
+    var first = normalized[0];
+
+    // Short-circuit if the identifier definitely isn't a special function so we
+    // don't have to lower-case every single identifier.
+    if (first == $c ||
+        first == $C ||
+        first == $e ||
+        first == $E ||
+        first == $p ||
+        first == $P) {
+      return null;
+    }
+
+    InterpolationBuffer buffer;
+    switch (normalized) {
+      case "calc":
+      case "element":
+      case "expression":
+        buffer = new InterpolationBuffer()..write(name);
+        break;
+
+      case "progid":
+        if (!scanner.scanChar($colon)) return null;
+        buffer = new InterpolationBuffer()
+          ..write(name)
+          ..writeCharCode($colon);
+        buffer.write(identifier());
+        break;
+
+      default:
+        return null;
+    }
+
+    scanner.expectChar($lparen);
+    buffer.writeCharCode($lparen);
+    buffer.addInterpolation(_interpolatedDeclarationValue().text);
+    scanner.expectChar($rparen);
+    buffer.writeCharCode($rparen);
+
+    return new StringExpression(
+        buffer.interpolation(nameSpan.expand(scanner.emptySpan)));
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".

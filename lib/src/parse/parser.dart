@@ -132,8 +132,8 @@ abstract class Parser {
 
   String declarationValue() {
     // NOTE: this logic is largely duplicated in
-    // ScssParser._interpolatedDeclarationValue. Most changes here should be
-    // mirrored there.
+    // StylesheetParser._interpolatedDeclarationValue. Most changes here should
+    // be mirrored there.
 
     var buffer = new StringBuffer();
     var brackets = <int>[];
