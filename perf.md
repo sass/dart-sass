@@ -3,9 +3,11 @@ the benefit Dart Sass could provide relative to other implementations.
 
 This was tested against:
 
-* libsass 014a61b and sassc 014a61b.
-* Dart Sass c63c440 on Dart 1.19.0-dev.7.0.
-* Ruby Sass e79f5cf on Ruby 2.2.4p230.
+* libsass eee6d59 and sassc 2fcd639 compiled with g++ 4.8.4.
+* Dart Sass dfecdcd on Dart 1.19.1.
+* Ruby Sass e79f5cf on Ruby 2.2.4p230
+
+on Ubuntu x64 with Intel Xeon E5-1650 v3 @ 3.50GHz.
 
 # Measurements
 
@@ -16,63 +18,60 @@ I ran five instances of each configuration and recorded the fastest time.
 Running on a file containing 4 instances of `.foo {a: b}`:
 
 * sassc: 0.003s
-* Dart Sass from source: 2.219s
-* Dart Sass from a snapshot: 0.154s
-* Ruby Sass with `--no-cache`: 0.135s
-* Ruby Sass with a hot cache: 0.136s
+* Dart Sass from source: 0.255s
+* Dart Sass from a snapshot: 0.193s
+* Ruby Sass with a hot cache: 0.130s
 
 ## Large Plain CSS
 
 Running on a file containing 2^17 instances of `.foo {a: b}`:
 
-* sassc: 1.192s
-* Dart Sass from source: 2.705s
-* Dart Sass from a snapshot: 2.649s
-* Ruby Sass with `--no-cache`: 17.429s
-* Ruby Sass with a hot cache: 14.171s
+* sassc: 1.972s
+* Dart Sass from source: 2.597s
+* Dart Sass from a snapshot: 2.547s
+* Ruby Sass with a hot cache: 14.484s
 
 Based on these numbers, Dart Sass is approximately:
 
-* 2.2x slower than libsass
-* 6.6x faster than Ruby Sass when it has to parse as well
-* 5.4x faster than Ruby Sass with a hot cache
+* 1.3x slower than libsass
+* 5.7x faster than Ruby Sass
 
 ## Preceding Sparse `@extend`
 
 Running on a file containing `.x {@extend .y}`, 2^17 instances of `.foo {a: b}`,
 and then `.y {a: b}`:
 
-* sassc: 2.153s
-* Dart Sass from a snapshot: 2.766s
-* Ruby Sass with a hot cache: 21.843s
+* sassc: 2.202s
+* Dart Sass from a snapshot: 2.598s
+* Ruby Sass with a hot cache: 22.423s
 
 Based on these numbers, Dart Sass is approximately:
 
-* 1.3x slower than libsass
-* 7.9x faster than Ruby Sass
+* 1.2x slower than libsass
+* 8.6x faster than Ruby Sass
 
 ## Following Sparse `@extend`
 
 Running on a file containing `.y {a: b}`, 2^17 instances of `.foo {a: b}`,
 and then `.x {@extend .y}`:
 
-* sassc: 2.190s
-* Dart Sass from a snapshot: 2.722s
-* Ruby Sass with a hot cache: 21.970s
+* sassc: 2.207s
+* Dart Sass from a snapshot: 2.569s
+* Ruby Sass with a hot cache: 22.221s
 
 Based on these numbers, Dart Sass is approximately:
 
 * 1.2x slower than libsass
-* 8.1x faster than Ruby Sass
+* 8.7x faster than Ruby Sass
 
 ## Preceding Dense `@extend`
 
 Running on a file containing `.bar {@extend .foo}` followed by 2^17 instances of
 `.foo {a: b}`:
 
-* sassc: 6.542s
-* Dart Sass from a snapshot: 3.816s
-* Ruby Sass with a hot cache: 39.099s
+* sassc: 6.703s
+* Dart Sass from a snapshot: 3.922s
+* Ruby Sass with a hot cache: 40.193s
 
 Based on these numbers, Dart Sass is approximately:
 
@@ -84,14 +83,14 @@ Based on these numbers, Dart Sass is approximately:
 Running on a file containing 2^17 instances of `.foo {a: b}` followed by
 `.bar {@extend .foo}`:
 
-* sassc: 6.571s
-* Dart Sass from a snapshot: 3.586s
-* Ruby Sass with a hot cache: 40.705s
+* sassc: 6.636s
+* Dart Sass from a snapshot: 3.644s
+* Ruby Sass with a hot cache: 39.603s
 
 Based on these numbers, Dart Sass is approximately:
 
 * 1.8x faster than libsass
-* 11.4x faster than Ruby Sass
+* 10.9x faster than Ruby Sass
 
 # Conclusions
 
