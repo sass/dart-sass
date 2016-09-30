@@ -493,8 +493,6 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     parsedSelector = _addExceptionSpan(node.selector.span,
         () => parsedSelector.resolveParentSelectors(_selector?.value));
 
-    // TODO: catch errors and re-contextualize them relative to
-    // [node.selector.span.start].
     var selector =
         new CssValue<SelectorList>(parsedSelector, node.selector.span);
 
