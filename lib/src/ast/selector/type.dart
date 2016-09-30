@@ -25,7 +25,7 @@ class TypeSelector extends SimpleSelector {
       if (unified == null) return null;
       return [unified]..addAll(compound.skip(1));
     } else {
-      return [this]..addAll(compound);
+      return <SimpleSelector>[this]..addAll(compound);
     }
   }
 

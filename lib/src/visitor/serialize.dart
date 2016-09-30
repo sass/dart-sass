@@ -184,7 +184,7 @@ class _SerializeCssVisitor
     while (!scanner.isDone && scanner.readChar() != $lf) {}
     if (scanner.isDone) return null;
 
-    var min = null;
+    int min;
     while (!scanner.isDone) {
       while (!scanner.isDone && scanner.scanChar($space)) {}
       if (scanner.isDone || scanner.scanChar($lf)) continue;

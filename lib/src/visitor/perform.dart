@@ -545,7 +545,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     } else if (condition is SupportsNegation) {
       return "not ${_parenthesize(condition.condition)}";
     } else if (condition is SupportsInterpolation) {
-      return condition.expression.accept(this);
+      return condition.expression.accept(this).toString();
     } else if (condition is SupportsDeclaration) {
       return "(${condition.name.accept(this)}: ${condition.value.accept(this)})";
     } else {

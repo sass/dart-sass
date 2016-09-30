@@ -979,6 +979,6 @@ CompoundSelector _prependParent(CompoundSelector compound) {
       ..addAll(compound.components.skip(1)));
   } else {
     return new CompoundSelector(
-        [new ParentSelector()]..addAll(compound.components));
+        <SimpleSelector>[new ParentSelector()]..addAll(compound.components));
   }
 }
