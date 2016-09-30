@@ -545,9 +545,10 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     } else if (condition is SupportsNegation) {
       return "not ${_parenthesize(condition.condition)}";
     } else if (condition is SupportsInterpolation) {
-      return condition.expression.accept(this).toString();
+      return valueToCss(condition.expression.accept(this));
     } else if (condition is SupportsDeclaration) {
-      return "(${condition.name.accept(this)}: ${condition.value.accept(this)})";
+      return "(${valueToCss(condition.name.accept(this))}: "
+          "${valueToCss(condition.value.accept(this))})";
     } else {
       return null;
     }
@@ -729,7 +730,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     // TODO: if rest is an arglist that has keywords, error out.
     var rest = node.arguments.rest?.accept(this);
     if (rest != null) arguments.add(rest);
-    return new SassString("$name(${arguments.join(', ')})");
+    return new SassString("$name(${arguments.map(valueToCss).join(', ')})");
   }
 
   Value _runUserDefinedCallable(CallableInvocation invocation,
