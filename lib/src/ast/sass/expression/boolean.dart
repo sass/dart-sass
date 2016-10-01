@@ -7,7 +7,9 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A boolean literal, `true` or `false`.
 class BooleanExpression implements Expression {
+  /// The value of this expression.
   final bool value;
 
   final FileSpan span;

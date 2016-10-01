@@ -8,11 +8,19 @@ import '../../utils.dart';
 import '../node.dart';
 import 'value.dart';
 
+/// A plain CSS media query, as used in `@media` and `@import`.
 class CssMediaQuery implements AstNode {
+  /// The modifier, probably either "not" or "only".
+  ///
+  /// This may be `null` if no modifier is in use.
   final CssValue<String> modifier;
 
+  /// The media type, for example "screen" or "print".
+  ///
+  /// This may be `null`. If so, [features] will not be empty.
   final CssValue<String> type;
 
+  /// Feature queries, including parentheses.
   final List<CssValue<String>> features;
 
   FileSpan get span {
@@ -23,15 +31,19 @@ class CssMediaQuery implements AstNode {
     return spanForList(components);
   }
 
+  /// Creates a media query specifies a type and, optionally, features.
   CssMediaQuery(this.type, {this.modifier, Iterable<CssValue<String>> features})
       : features =
             features == null ? const [] : new List.unmodifiable(features);
 
+  /// Creates a media query that only specifies features.
   CssMediaQuery.condition(Iterable<CssValue<String>> features)
       : modifier = null,
         type = null,
         features = new List.unmodifiable(features);
 
+  /// Merges this with [other] to return a query that matches the intersection
+  /// of both inputs.
   CssMediaQuery merge(CssMediaQuery other) {
     var ourModifier = this.modifier?.value?.toLowerCase();
     var ourType = this.type?.value?.toLowerCase();

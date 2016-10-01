@@ -8,9 +8,12 @@ import 'package:charcode/charcode.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A unary operator, as in `+$var` or `not fn()`.
 class UnaryOperationExpression implements Expression {
+  /// The operator being invoked.
   final UnaryOperator operator;
 
+  /// The operand.
   final Expression operand;
 
   final FileSpan span;
@@ -28,14 +31,26 @@ class UnaryOperationExpression implements Expression {
   }
 }
 
+/// A unary operator constant.
 class UnaryOperator {
+  /// The numeric identity operator, `+`.
   static const plus = const UnaryOperator._("plus", "+");
+
+  /// The numeric negation operator, `-`.
   static const minus = const UnaryOperator._("minus", "-");
+
+  /// The leading slash operator, `/`.
+  ///
+  /// This is a historical artifact.
   static const divide = const UnaryOperator._("divide", "/");
+
+  /// The boolean negation operator, `not`.
   static const not = const UnaryOperator._("not", "not");
 
+  /// The English name of [this].
   final String name;
 
+  /// The Sass syntax for [this].
   final String operator;
 
   const UnaryOperator._(this.name, this.operator);

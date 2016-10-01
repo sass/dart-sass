@@ -2,18 +2,21 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../parse/at_root_query.dart';
 import '../../../visitor/interface/statement.dart';
-import '../../css.dart';
 import '../interpolation.dart';
 import '../statement.dart';
 
+/// An `@at-root` rule.
+///
+/// This moves it contents "up" the tree through parent nodes.
 class AtRootRule implements Statement {
+  /// The query specifying which statements this should move its contents
+  /// through.
   final Interpolation query;
 
+  /// The statements contained in [this].
   final List<Statement> children;
 
   final FileSpan span;
@@ -28,50 +31,5 @@ class AtRootRule implements Statement {
     var buffer = new StringBuffer("@at-root ");
     if (query != null) buffer.write("$query ");
     return "$buffer {${children.join(' ')}}";
-  }
-}
-
-class AtRootQuery {
-  static const defaultQuery = const AtRootQuery._default();
-
-  final bool include;
-
-  final Set<String> names;
-
-  bool get excludesMedia => _all ? !include : _excludesName("media");
-
-  bool get excludesRule => (_all || _rule) != include;
-
-  final bool _all;
-
-  final bool _rule;
-
-  AtRootQuery(this.include, Set<String> names)
-      : names = names,
-        _all = names.contains("all"),
-        _rule = names.contains("rule");
-
-  const AtRootQuery._default()
-      : include = false,
-        names = const UnmodifiableSetView.empty(),
-        _all = false,
-        _rule = true;
-
-  factory AtRootQuery.parse(String contents, {url}) =>
-      new AtRootQueryParser(contents, url: url).parse();
-
-  bool excludes(CssParentNode node) {
-    if (_all) return !include;
-    if (_rule && node is CssStyleRule) return !include;
-    return _excludesName(_nameFor(node));
-  }
-
-  bool _excludesName(String name) => names.contains(name) != include;
-
-  String _nameFor(CssParentNode node) {
-    if (node is CssMediaRule) return "media";
-    if (node is CssSupportsRule) return "supports";
-    if (node is CssAtRule) return node.name.toLowerCase();
-    return null;
   }
 }

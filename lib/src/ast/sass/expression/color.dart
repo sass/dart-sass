@@ -8,7 +8,9 @@ import '../../../value.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A color literal.
 class ColorExpression implements Expression {
+  /// The value of this color.
   final SassColor value;
 
   final FileSpan span;

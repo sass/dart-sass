@@ -9,11 +9,15 @@ import '../../../utils.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A binary operator, as in `1 + 2` or `$this and $other`.
 class BinaryOperationExpression implements Expression {
+  /// The operator being invoked.
   final BinaryOperator operator;
 
+  /// The left-hand operand.
   final Expression left;
 
+  /// The right-hand operand.
   final Expression right;
 
   FileSpan get span => spanForList([left, right]);
@@ -48,27 +52,58 @@ class BinaryOperationExpression implements Expression {
   }
 }
 
+/// A binary operator constant.
 class BinaryOperator {
+  /// The disjunction operator, `or`.
   static const or = const BinaryOperator._("or", "or", 0);
+
+  /// The conjunction operator, `and`.
   static const and = const BinaryOperator._("and", "and", 1);
+
+  /// The equality operator, `==`.
   static const equals = const BinaryOperator._("equals", "==", 2);
+
+  /// The inequality operator, `!=`.
   static const notEquals = const BinaryOperator._("not equals", "!=", 2);
+
+  /// The greater-than operator, `>`.
   static const greaterThan = const BinaryOperator._("greater than", ">", 3);
+
+  /// The greater-than-or-equal-to operator, `>=`.
   static const greaterThanOrEquals =
       const BinaryOperator._("greater than or equals", ">=", 3);
+
+  /// The less-than operator, `<`.
   static const lessThan = const BinaryOperator._("less than", "<", 3);
+
+  /// The less-than-or-equal-to operator, `<=`.
   static const lessThanOrEquals =
       const BinaryOperator._("less than or equals", "<=", 3);
+
+  /// The addition operator, `+`.
   static const plus = const BinaryOperator._("plus", "+", 4);
+
+  /// The subtraction operator, `+`.
   static const minus = const BinaryOperator._("minus", "-", 4);
+
+  /// The multiplication operator, `*`.
   static const times = const BinaryOperator._("times", "*", 5);
+
+  /// The division operator, `/`.
   static const dividedBy = const BinaryOperator._("divided by", "/", 5);
+
+  /// The modulo operator, `%`.
   static const modulo = const BinaryOperator._("modulo", "%", 5);
 
+  /// The English name of [this].
   final String name;
 
+  /// The Sass syntax for [this].
   final String operator;
 
+  /// The precedence of [this].
+  ///
+  /// An operator with higher precedence binds tighter.
   final int precedence;
 
   const BinaryOperator._(this.name, this.operator, this.precedence);

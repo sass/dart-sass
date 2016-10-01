@@ -11,18 +11,22 @@ import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import '../interpolation.dart';
 
+/// A string literal.
 class StringExpression implements Expression {
-  /// Interpolation that, when evaluated, produces the semantic content of the
+  /// Interpolation that, when evaluated, produces the semantic content of this
   /// string.
   ///
   /// Unlike [asInterpolation], escapes are resolved and quotes are not
   /// included.
   final Interpolation text;
 
+  /// Whether [this] has quotes.
   final bool hasQuotes;
 
   FileSpan get span => text.span;
 
+  /// Returns Sass source for a quoted string that, when evaluated, will have
+  /// [text] as its contents.
   static String quoteText(String text) =>
       new StringExpression(new Interpolation([text], null), quotes: true)
           .asInterpolation(static: true)
@@ -33,7 +37,7 @@ class StringExpression implements Expression {
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitStringExpression(this);
 
-  /// Interpolation that, when evaluated, produces the syntax of the string.
+  /// Interpolation that, when evaluated, produces the syntax of this string.
   ///
   /// Unlike [text], his doesn't resolve escapes and does include quotes for
   /// quoted strings.
@@ -72,6 +76,8 @@ class StringExpression implements Expression {
     return buffer.interpolation(text.span);
   }
 
+  /// Returns the code unit for the best quote to use when converting this
+  /// string to Sass source.
   int _bestQuote() {
     var containsDoubleQuote = false;
     for (var value in text.contents) {

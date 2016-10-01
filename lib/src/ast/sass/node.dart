@@ -4,4 +4,5 @@
 
 import '../node.dart';
 
+/// A node in the abstract syntax tree for an unevaluated Sass or SCSS file.
 abstract class SassNode extends AstNode {}

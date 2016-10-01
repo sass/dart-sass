@@ -162,7 +162,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var innerScope = scope;
       scope = (callback) => _withMediaQueries(null, () => innerScope(callback));
     }
-    if (query.excludesRule) {
+    if (query.excludesStyleRules) {
       var innerScope = scope;
       scope = (callback) => _withSelector(null, () => innerScope(callback));
     }

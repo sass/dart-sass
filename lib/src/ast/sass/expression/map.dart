@@ -8,7 +8,12 @@ import 'package:tuple/tuple.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A map literal.
 class MapExpression implements Expression {
+  /// The pairs in this map.
+  ///
+  /// This is a list of pairs rather than a map because a map may have two keys
+  /// with the same expression (e.g. `(unique-id(): 1, unique-id(): 2)`).
   final List<Tuple2<Expression, Expression>> pairs;
 
   final FileSpan span;

@@ -5,6 +5,8 @@
 import 'argument_invocation.dart';
 import 'node.dart';
 
+/// An abstract class for invoking a callable (a function or mixin).
 abstract class CallableInvocation implements SassNode {
+  /// The arguments passed to the callable.
   ArgumentInvocation get arguments;
 }

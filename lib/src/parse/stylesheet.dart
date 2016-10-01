@@ -490,6 +490,7 @@ abstract class StylesheetParser extends Parser {
     _inControlDirective = true;
     var expression = _expression();
     var children = this.children(child);
+    // TODO: @else
     _inControlDirective = wasInControlDirective;
     return new IfRule(expression, children, scanner.spanFrom(start));
   }

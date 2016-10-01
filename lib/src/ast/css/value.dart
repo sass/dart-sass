@@ -6,9 +6,15 @@ import 'package:source_span/source_span.dart';
 
 import '../node.dart';
 
+/// A value in a plain CSS tree.
+///
+/// This is used to associate a span with a value that doesn't otherwise track
+/// its span.
 class CssValue<T> implements AstNode {
+  /// The value.
   T value;
 
+  /// The span associated with the value.
   final FileSpan span;
 
   CssValue(this.value, this.span);

@@ -5,6 +5,8 @@
 import '../../visitor/interface/expression.dart';
 import 'node.dart';
 
+/// A SassScript expression in a Sass syntax tree.
 abstract class Expression implements SassNode {
+  /// Calls the appropriate visit method on [visitor].
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor);
 }

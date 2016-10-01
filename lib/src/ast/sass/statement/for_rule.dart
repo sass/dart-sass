@@ -8,15 +8,23 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
+/// A `@for` rule.
+///
+/// This iterates a set number of times.
 class ForRule implements Statement {
+  /// The name of the variable that will contain the index value.
   final String variable;
 
+  /// The expression for the start index.
   final Expression from;
 
+  /// The expression for the end index.
   final Expression to;
 
+  /// Whether [to] is exclusive.
   final bool isExclusive;
 
+  /// The child statements executed for each iteration.
   final List<Statement> children;
 
   final FileSpan span;

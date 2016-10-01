@@ -8,9 +8,14 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
+/// An `@if` rule.
+///
+/// This conditionally executes a block of code.
 class IfRule implements Statement {
+  /// The expression to evaluate when determining whether to evaluate the code.
   final Expression expression;
 
+  /// The children to evaluate if [expression] produces a truthy value.
   final List<Statement> children;
 
   final FileSpan span;

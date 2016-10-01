@@ -7,9 +7,12 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A number literal.
 class NumberExpression implements Expression {
+  /// The numeric value.
   final num value;
 
+  /// The number's unit, or `null`.
   final String unit;
 
   final FileSpan span;

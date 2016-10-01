@@ -10,10 +10,17 @@ import '../expression.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
 
+/// A ternary expression.
+///
+/// This is defined as a separate syntactic construct rather than a normal
+/// function because only one of the `$if-true` and `$if-false` arguments are
+/// evaluated.
 class IfExpression implements Expression, CallableInvocation {
+  /// The declaration of `if()`, as though it were a normal function.
   static final declaration =
       new ArgumentDeclaration.parse(r"$condition, $if-true, $if-false");
 
+  /// The arguments passed to `if()`.
   final ArgumentInvocation arguments;
 
   final FileSpan span;

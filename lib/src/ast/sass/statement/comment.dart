@@ -7,9 +7,12 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../statement.dart';
 
+/// A comment, either silent (Sass-style) or loud (CSS-style).
 class Comment implements Statement {
+  /// The text of this comment, including comment characters.
   final String text;
 
+  /// Whether this is a silent comment.
   final bool isSilent;
 
   final FileSpan span;

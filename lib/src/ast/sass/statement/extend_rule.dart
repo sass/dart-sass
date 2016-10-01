@@ -8,9 +8,17 @@ import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
 import '../statement.dart';
 
+/// An `@extend` rule.
+///
+/// This gives one selector all the styling of another.
 class ExtendRule implements Statement {
+  /// The interpolation for the selector that will be extended.
   final Interpolation selector;
 
+  /// Whether this is an optional extension.
+  ///
+  /// If an extension isn't optional, it will emit an error if it doesn't match
+  /// any selectors.
   final bool isOptional;
 
   final FileSpan span;

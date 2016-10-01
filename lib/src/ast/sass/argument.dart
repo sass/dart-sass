@@ -7,9 +7,12 @@ import 'package:source_span/source_span.dart';
 import 'expression.dart';
 import 'node.dart';
 
+/// An argument declared as part of an [ArgumentDeclaration].
 class Argument implements SassNode {
+  /// The argument name.
   final String name;
 
+  /// The default value of this argument, or `null` if none was declared.
   final Expression defaultValue;
 
   final FileSpan span;

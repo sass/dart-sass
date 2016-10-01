@@ -13,6 +13,7 @@ import '../expression.dart';
 /// This is never constructed by the parser. It's only used when ASTs are
 /// constructed dynamically, as for the `call()` function.
 class ValueExpression implements Expression {
+  /// The embedded value.
   final Value value;
 
   FileSpan get span => null;

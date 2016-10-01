@@ -5,6 +5,8 @@
 import '../../visitor/interface/statement.dart';
 import 'node.dart';
 
+/// A statement in a Sass syntax tree.
 abstract class Statement implements SassNode {
+  /// Calls the appropriate visit method on [visitor].
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor);
 }

@@ -7,7 +7,9 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A Sass variable.
 class VariableExpression implements Expression {
+  /// The name of this variable.
   final String name;
 
   final FileSpan span;

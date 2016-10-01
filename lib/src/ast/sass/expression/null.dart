@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A null literal.
 class NullExpression implements Expression {
   final FileSpan span;
 

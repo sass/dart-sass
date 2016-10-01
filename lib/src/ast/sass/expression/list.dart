@@ -11,11 +11,15 @@ import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import 'unary_operation.dart';
 
+/// A list literal.
 class ListExpression implements Expression {
+  /// The elements of this list.
   final List<Expression> contents;
 
+  /// Which separator this list uses.
   final ListSeparator separator;
 
+  /// Whether the list has square brackets or not.
   final bool hasBrackets;
 
   final FileSpan span;
@@ -43,6 +47,8 @@ class ListExpression implements Expression {
     return buffer.toString();
   }
 
+  /// Returns whether [expression], contained in [this], needs parentheses when
+  /// printed as Sass source.
   bool _elementNeedsParens(Expression expression) {
     if (expression is ListExpression) {
       if (expression.contents.length < 2) return false;

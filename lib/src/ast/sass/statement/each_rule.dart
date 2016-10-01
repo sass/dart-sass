@@ -8,11 +8,17 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
+/// An `@each` rule.
+///
+/// This iterates over values in a list or map.
 class EachRule implements Statement {
+  /// The variables assigned for each iteration.
   final List<String> variables;
 
+  /// The expression whose value this iterates through.
   final Expression list;
 
+  /// The child statements executed for each iteration.
   final List<Statement> children;
 
   final FileSpan span;

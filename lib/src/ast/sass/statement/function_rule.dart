@@ -9,6 +9,9 @@ import '../argument_declaration.dart';
 import '../callable_declaration.dart';
 import '../statement.dart';
 
+/// A `@function` rule.
+///
+/// This declares a function that's invoked using normal CSS function syntax.
 class FunctionRule extends CallableDeclaration {
   FunctionRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span)

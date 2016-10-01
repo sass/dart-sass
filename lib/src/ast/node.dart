@@ -4,6 +4,11 @@
 
 import 'package:source_span/source_span.dart';
 
+/// A node in an abstract syntax tree.
 abstract class AstNode {
+  /// The source span associated with the node.
+  ///
+  /// This indicates where in the source Sass or SCSS stylesheet the node was
+  /// defined.
   FileSpan get span;
 }

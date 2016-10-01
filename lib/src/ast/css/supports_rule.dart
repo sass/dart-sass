@@ -8,7 +8,9 @@ import '../../visitor/interface/css.dart';
 import 'node.dart';
 import 'value.dart';
 
+/// A plain CSS `@supports` rule.
 class CssSupportsRule extends CssParentNode {
+  /// The supports condition.
   final CssValue<String> condition;
 
   final FileSpan span;

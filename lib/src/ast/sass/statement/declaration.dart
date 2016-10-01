@@ -9,11 +9,17 @@ import '../expression.dart';
 import '../interpolation.dart';
 import '../statement.dart';
 
+/// A declaration (that is, a `name: value` pair).
 class Declaration implements Statement {
+  /// The name of this declaration.
   final Interpolation name;
 
+  /// The value of this declaration.
   final Expression value;
 
+  /// The children of this declaration.
+  ///
+  /// This is `null` if the declaration has no children.
   final List<Statement> children;
 
   final FileSpan span;

@@ -7,12 +7,17 @@ import 'package:source_span/source_span.dart';
 import 'expression.dart';
 import 'node.dart';
 
+/// Plain text interpolated with Sass expressions.
 class Interpolation implements SassNode {
+  /// The contents of this interpolation.
+  ///
+  /// This contains [String]s and [Expression]s. It never contains two adjacent
+  /// [String]s.
   final List contents;
 
   final FileSpan span;
 
-  /// If this contains no interpolation, returns the plain text it contains.
+  /// If this contains no interpolated expressions, returns its text contents.
   ///
   /// Otherwise, returns `null`.
   String get asPlain {

@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
+/// A parent selector reference, `&`.
 class SelectorExpression implements Expression {
   final FileSpan span;
 

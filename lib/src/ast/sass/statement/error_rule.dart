@@ -8,7 +8,11 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
+/// An `@error` rule.
+///
+/// This emits an error and stops execution.
 class ErrorRule implements Statement {
+  /// The expression to evaluate for the error message.
   final Expression expression;
 
   final FileSpan span;

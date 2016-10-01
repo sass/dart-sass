@@ -8,11 +8,18 @@ import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
 import '../statement.dart';
 
+/// An unknown at-rule.
 class AtRule implements Statement {
+  /// The name of this rule.
   final String name;
 
+  /// The value of this rule.
   final Interpolation value;
 
+  /// The children of this rule.
+  ///
+  /// If [children] is empty, [this] was declared with empty brackets. If
+  /// [children] is null, it was declared without brackets.
   final List<Statement> children;
 
   final FileSpan span;

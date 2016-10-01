@@ -7,6 +7,9 @@ import 'package:source_span/source_span.dart';
 import '../../visitor/interface/css.dart';
 import 'node.dart';
 
+/// A plain CSS stylesheet.
+///
+/// This is the root plain CSS node. It contains top-level statements.
 class CssStylesheet extends CssParentNode {
   final FileSpan span;
 

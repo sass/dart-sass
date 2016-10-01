@@ -9,11 +9,20 @@ import '../node.dart';
 import 'interpolation.dart';
 import 'node.dart';
 
+/// A media query, as used in `@media` and `@import`.
 class MediaQuery implements SassNode {
+  /// The modifier, which is expected (but not required) to evaluate to "not" or
+  /// "only".
+  ///
+  /// This may be `null` if no modifier is in use.
   final Interpolation modifier;
 
+  /// The media type.
+  ///
+  /// This may be `null`. If so, [features] will not be empty.
   final Interpolation type;
 
+  /// Feature queries.
   final List<Interpolation> features;
 
   FileSpan get span {
@@ -24,10 +33,12 @@ class MediaQuery implements SassNode {
     return spanForList(components);
   }
 
+  /// Creates a media query specifies a type and, optionally, features.
   MediaQuery(this.type, {this.modifier, Iterable<Interpolation> features})
       : features =
             features == null ? const [] : new List.unmodifiable(features);
 
+  /// Creates a media query that only specifies features.
   MediaQuery.condition(Iterable<Interpolation> features,
       {this.modifier, this.type})
       : features = new List.unmodifiable(features);

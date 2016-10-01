@@ -7,7 +7,11 @@ import 'package:source_span/source_span.dart';
 import '../../visitor/interface/css.dart';
 import 'node.dart';
 
+/// A plain CSS comment.
+///
+/// This is always a multi-line comment.
 class CssComment extends CssNode {
+  /// The contents of this comment, including `/*` and `*/`.
   final String text;
 
   final FileSpan span;
