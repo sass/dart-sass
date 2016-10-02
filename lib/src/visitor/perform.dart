@@ -329,10 +329,15 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   void visitIfRule(IfRule node) {
-    var condition = node.expression.accept(this);
-    if (!condition.isTruthy) return;
+    var clause = node.clauses
+            .firstWhere((pair) => pair.item1.accept(this).isTruthy,
+                orElse: () => null)
+            ?.item2 ??
+        node.lastClause;
+    if (clause == null) return null;
+
     _environment.scope(() {
-      for (var child in node.children) {
+      for (var child in clause) {
         child.accept(this);
       }
     }, semiGlobal: true);

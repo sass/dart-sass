@@ -10,7 +10,9 @@ import '../util/character.dart';
 import 'stylesheet.dart';
 
 class SassParser extends StylesheetParser {
+  int get currentIndentation => _currentIndentation;
   var _currentIndentation = 0;
+
   int _nextIndentation;
   LineScannerState _nextIndentationEnd;
   bool _spaces;
@@ -25,7 +27,24 @@ class SassParser extends StylesheetParser {
   }
 
   bool lookingAtChildren() =>
-      atEndOfStatement() && _peekIndentation() > _currentIndentation;
+      atEndOfStatement() && _peekIndentation() > currentIndentation;
+
+  bool scanElse(int ifIndentation) {
+    if (_peekIndentation() != ifIndentation) return false;
+    var start = scanner.state;
+    var startIndentation = currentIndentation;
+    var startNextIndentation = _nextIndentation;
+    var startNextIndentationEnd = _nextIndentationEnd;
+
+    _readIndentation();
+    if (scanner.scanChar($at) && scanIdentifier('else')) return true;
+
+    scanner.state = start;
+    _currentIndentation = startIndentation;
+    _nextIndentation = startNextIndentation;
+    _nextIndentationEnd = startNextIndentationEnd;
+    return false;
+  }
 
   List<Statement> children(Statement child()) {
     var children = <Statement>[];
@@ -82,13 +101,13 @@ class SassParser extends StylesheetParser {
     scanner.expect("//");
 
     var buffer = new StringBuffer();
-    var parentIndentation = _currentIndentation;
+    var parentIndentation = currentIndentation;
     while (true) {
       buffer.write("//");
 
       // Skip the first two indentation characters because we're already writing
       // "//".
-      for (var i = 2; i < _currentIndentation - parentIndentation; i++) {
+      for (var i = 2; i < currentIndentation - parentIndentation; i++) {
         buffer.writeCharCode($space);
       }
 
@@ -111,7 +130,7 @@ class SassParser extends StylesheetParser {
 
     var first = true;
     var buffer = new StringBuffer("/*");
-    var parentIndentation = _currentIndentation;
+    var parentIndentation = currentIndentation;
     while (true) {
       if (!first) {
         buffer.writeln();
@@ -119,7 +138,7 @@ class SassParser extends StylesheetParser {
       }
       first = false;
 
-      for (var i = 3; i < _currentIndentation - parentIndentation; i++) {
+      for (var i = 3; i < currentIndentation - parentIndentation; i++) {
         buffer.writeCharCode($space);
       }
 
@@ -151,7 +170,7 @@ class SassParser extends StylesheetParser {
   }
 
   void _whileIndentedLower(void body()) {
-    var parentIndentation = _currentIndentation;
+    var parentIndentation = currentIndentation;
     int childIndentation;
     while (_peekIndentation() > parentIndentation) {
       var indentation = _readIndentation();
@@ -173,7 +192,7 @@ class SassParser extends StylesheetParser {
     scanner.state = _nextIndentationEnd;
     _nextIndentation = null;
     _nextIndentationEnd = null;
-    return _currentIndentation;
+    return currentIndentation;
   }
 
   int _peekIndentation() {

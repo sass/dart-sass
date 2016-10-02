@@ -10,6 +10,7 @@ import 'stylesheet.dart';
 
 class ScssParser extends StylesheetParser {
   bool get indented => false;
+  int get currentIndentation => null;
 
   ScssParser(String contents, {url}) : super(contents, url: url);
 
@@ -22,6 +23,14 @@ class ScssParser extends StylesheetParser {
   }
 
   bool lookingAtChildren() => scanner.peekChar() == $lbrace;
+
+  bool scanElse(int _) {
+    var start = scanner.state;
+    whitespace();
+    if (scanner.scanChar($at) && scanIdentifier('else')) return true;
+    scanner.state = start;
+    return false;
+  }
 
   List<Statement> children(Statement child()) {
     scanner.expectChar($lbrace);

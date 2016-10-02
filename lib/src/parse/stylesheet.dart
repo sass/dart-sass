@@ -289,6 +289,8 @@ abstract class StylesheetParser extends Parser {
         return _debugRule(start);
       case "each":
         return _eachRule(start, child);
+      case "else":
+        return _disallowedAtRule(start);
       case "error":
         return _errorRule(start);
       case "extend":
@@ -331,6 +333,8 @@ abstract class StylesheetParser extends Parser {
         return _debugRule(start);
       case "each":
         return _eachRule(start, _declarationChild);
+      case "else":
+        return _disallowedAtRule(start);
       case "error":
         return _errorRule(start);
       case "for":
@@ -355,6 +359,8 @@ abstract class StylesheetParser extends Parser {
         return _debugRule(start);
       case "each":
         return _eachRule(start, _functionAtRule);
+      case "else":
+        return _disallowedAtRule(start);
       case "error":
         return _errorRule(start);
       case "for":
@@ -486,13 +492,28 @@ abstract class StylesheetParser extends Parser {
   }
 
   IfRule _ifRule(LineScannerState start, Statement child()) {
+    var ifIndentation = currentIndentation;
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var expression = _expression();
     var children = this.children(child);
-    // TODO: @else
+
+    var clauses = [new Tuple2(expression, children)];
+    List<Statement> lastClause;
+
+    while (scanElse(ifIndentation)) {
+      whitespace();
+      if (scanIdentifier("if")) {
+        whitespace();
+        clauses.add(new Tuple2(_expression(), this.children(child)));
+      } else {
+        lastClause = this.children(child);
+        break;
+      }
+    }
     _inControlDirective = wasInControlDirective;
-    return new IfRule(expression, children, scanner.spanFrom(start));
+
+    return new IfRule(clauses, scanner.spanFrom(start), lastClause: lastClause);
   }
 
   Statement _importRule(LineScannerState start) {
@@ -1851,9 +1872,13 @@ abstract class StylesheetParser extends Parser {
 
   bool get indented;
 
+  int get currentIndentation;
+
   bool atEndOfStatement();
 
   bool lookingAtChildren();
+
+  bool scanElse(int ifIndentation);
 
   List<Statement> children(Statement child());
   List<Statement> statements(Statement statement());
