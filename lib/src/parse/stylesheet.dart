@@ -5,7 +5,6 @@
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
-import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
 
@@ -1381,6 +1380,7 @@ abstract class StylesheetParser extends Parser {
   }
 
   Expression _identifierLike() {
+    var start = scanner.state;
     var identifier = _interpolatedIdentifier();
     var plain = identifier.asPlain;
     if (plain != null) {
@@ -1405,7 +1405,7 @@ abstract class StylesheetParser extends Parser {
       var color = colorsByName[lower];
       if (color != null) return new ColorExpression(color, identifier.span);
 
-      var specialFunction = _trySpecialFunction(lower, identifier.span);
+      var specialFunction = _trySpecialFunction(lower, start);
       if (specialFunction != null) return specialFunction;
     }
 
@@ -1414,7 +1414,7 @@ abstract class StylesheetParser extends Parser {
         : new StringExpression(identifier);
   }
 
-  Expression _trySpecialFunction(String name, FileSpan nameSpan) {
+  Expression _trySpecialFunction(String name, LineScannerState start) {
     var normalized = unvendor(name);
 
     InterpolationBuffer buffer;
@@ -1439,8 +1439,11 @@ abstract class StylesheetParser extends Parser {
         break;
 
       case "url":
-        if (!scanner.scanChar($lparen)) return null;
-        return _urlContents(nameSpan);
+        var contents = _tryUrlContents(start);
+        if (contents != null) return new StringExpression(contents);
+        return new FunctionExpression(
+            new Interpolation(["url"], scanner.spanFrom(start)),
+            _argumentInvocation());
 
       default:
         return null;
@@ -1450,12 +1453,12 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($rparen);
     buffer.writeCharCode($rparen);
 
-    return new StringExpression(
-        buffer.interpolation(nameSpan.expand(scanner.emptySpan)));
+    return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
   }
 
-  Expression _urlContents(FileSpan nameSpan) {
+  Interpolation _tryUrlContents(LineScannerState start) {
     var start = scanner.state;
+    if (!scanner.scanChar($lparen)) return null;
     whitespace();
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
@@ -1483,16 +1486,14 @@ abstract class StylesheetParser extends Parser {
         if (scanner.peekChar() != $rparen) break;
       } else if (next == $rparen) {
         buffer.writeCharCode(scanner.readChar());
-        return new StringExpression(
-            buffer.interpolation(nameSpan.expand(scanner.emptySpan)));
+        return buffer.interpolation(scanner.spanFrom(start));
       } else {
         break;
       }
     }
 
-    scanner.position = start.position - 1;
-    return new FunctionExpression(
-        new Interpolation(["url"], nameSpan), _argumentInvocation());
+    scanner.state = start;
+    return null;
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".
@@ -1559,11 +1560,31 @@ abstract class StylesheetParser extends Parser {
         case $rbrace:
           break loop;
 
+        case $u:
+        case $U:
+          var beforeUrl = scanner.state;
+          if (!scanIdentifier("url", ignoreCase: true)) {
+            buffer.writeCharCode(scanner.readChar());
+            break;
+          }
+
+          var contents = _tryUrlContents(beforeUrl);
+          if (contents == null) {
+            scanner.state = beforeUrl;
+            buffer.writeCharCode(scanner.readChar());
+          } else {
+            buffer.addInterpolation(contents);
+          }
+          break;
+
         default:
           if (next == null) break loop;
 
-          // TODO: support url()
-          buffer.writeCharCode(scanner.readChar());
+          if (lookingAtIdentifier()) {
+            buffer.write(identifier());
+          } else {
+            buffer.writeCharCode(scanner.readChar());
+          }
           break;
       }
     }
@@ -1651,11 +1672,33 @@ abstract class StylesheetParser extends Parser {
         case $semicolon:
           break loop;
 
+        case $u:
+        case $U:
+          var beforeUrl = scanner.state;
+          if (!scanIdentifier("url", ignoreCase: true)) {
+            buffer.writeCharCode(scanner.readChar());
+            wroteNewline = false;
+            break;
+          }
+
+          var contents = _tryUrlContents(beforeUrl);
+          if (contents == null) {
+            scanner.state = beforeUrl;
+            buffer.writeCharCode(scanner.readChar());
+          } else {
+            buffer.addInterpolation(contents);
+          }
+          wroteNewline = false;
+          break;
+
         default:
           if (next == null) break loop;
 
-          // TODO: support url()
-          buffer.writeCharCode(scanner.readChar());
+          if (lookingAtIdentifier()) {
+            buffer.write(identifier());
+          } else {
+            buffer.writeCharCode(scanner.readChar());
+          }
           wroteNewline = false;
           break;
       }
