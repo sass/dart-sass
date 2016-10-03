@@ -1457,6 +1457,9 @@ abstract class StylesheetParser extends Parser {
   }
 
   Interpolation _tryUrlContents(LineScannerState start) {
+    // NOTE: this logic is largely duplicated in ScssParser.tryUrl. Most changes
+    // here should be mirrored there.
+
     var start = scanner.state;
     if (!scanner.scanChar($lparen)) return null;
     whitespace();

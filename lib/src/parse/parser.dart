@@ -199,11 +199,25 @@ abstract class Parser {
         case $semicolon:
           break loop;
 
+        case $u:
+        case $U:
+          var url = tryUrl();
+          if (url != null) {
+            buffer.write(url);
+          } else {
+            buffer.writeCharCode(scanner.readChar());
+          }
+          wroteNewline = false;
+          break;
+
         default:
           if (next == null) break loop;
 
-          // TODO: support url()
-          buffer.writeCharCode(scanner.readChar());
+          if (lookingAtIdentifier()) {
+            buffer.write(identifier());
+          } else {
+            buffer.writeCharCode(scanner.readChar());
+          }
           wroteNewline = false;
           break;
       }
@@ -211,6 +225,50 @@ abstract class Parser {
 
     if (brackets.isNotEmpty) scanner.expectChar(brackets.last);
     return buffer.toString();
+  }
+
+  String tryUrl() {
+    // NOTE: this logic is largely duplicated in ScssParser._tryUrlContents.
+    // Most changes here should be mirrored there.
+
+    var start = scanner.state;
+    if (!scanIdentifier("url", ignoreCase: true)) return null;
+
+    if (!scanner.scanChar($lparen)) {
+      scanner.state = start;
+      return null;
+    }
+
+    whitespace();
+
+    // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
+    // backtrack and re-parse as a function expression.
+    var buffer = new StringBuffer()..write("url(");
+    while (true) {
+      var next = scanner.peekChar();
+      if (next == null) {
+        break;
+      } else if (next == $percent ||
+          next == $ampersand ||
+          next == $hash ||
+          (next >= $asterisk && next <= $tilde) ||
+          next >= 0x0080) {
+        buffer.writeCharCode(scanner.readChar());
+      } else if (next == $backslash) {
+        buffer.writeCharCode(escape());
+      } else if (isWhitespace(next)) {
+        whitespace();
+        if (scanner.peekChar() != $rparen) break;
+      } else if (next == $rparen) {
+        buffer.writeCharCode(scanner.readChar());
+        return buffer.toString();
+      } else {
+        break;
+      }
+    }
+
+    scanner.state = start;
+    return null;
   }
 
   String variableName() {
