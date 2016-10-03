@@ -1381,7 +1381,6 @@ abstract class StylesheetParser extends Parser {
   }
 
   Expression _identifierLike() {
-    // TODO: url()
     var identifier = _interpolatedIdentifier();
     var plain = identifier.asPlain;
     if (plain != null) {
@@ -1415,7 +1414,7 @@ abstract class StylesheetParser extends Parser {
         : new StringExpression(identifier);
   }
 
-  StringExpression _trySpecialFunction(String name, FileSpan nameSpan) {
+  Expression _trySpecialFunction(String name, FileSpan nameSpan) {
     var normalized = unvendor(name);
 
     InterpolationBuffer buffer;
@@ -1423,7 +1422,10 @@ abstract class StylesheetParser extends Parser {
       case "calc":
       case "element":
       case "expression":
-        buffer = new InterpolationBuffer()..write(name);
+        if (!scanner.scanChar($lparen)) return null;
+        buffer = new InterpolationBuffer()
+          ..write(name)
+          ..writeCharCode($lparen);
         break;
 
       case "progid":
@@ -1432,20 +1434,65 @@ abstract class StylesheetParser extends Parser {
           ..write(name)
           ..writeCharCode($colon);
         buffer.write(identifier());
+        scanner.expectChar($lparen);
+        buffer.writeCharCode($lparen);
         break;
+
+      case "url":
+        if (!scanner.scanChar($lparen)) return null;
+        return _urlContents(nameSpan);
 
       default:
         return null;
     }
 
-    scanner.expectChar($lparen);
-    buffer.writeCharCode($lparen);
     buffer.addInterpolation(_interpolatedDeclarationValue().text);
     scanner.expectChar($rparen);
     buffer.writeCharCode($rparen);
 
     return new StringExpression(
         buffer.interpolation(nameSpan.expand(scanner.emptySpan)));
+  }
+
+  Expression _urlContents(FileSpan nameSpan) {
+    var start = scanner.state;
+    whitespace();
+
+    // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
+    // backtrack and re-parse as a function expression.
+    var buffer = new InterpolationBuffer()..write("url(");
+    while (true) {
+      var next = scanner.peekChar();
+      if (next == null) {
+        break;
+      } else if (next == $percent ||
+          next == $ampersand ||
+          (next >= $asterisk && next <= $tilde) ||
+          next >= 0x0080) {
+        buffer.writeCharCode(scanner.readChar());
+      } else if (next == $backslash) {
+        buffer.writeCharCode(escape());
+      } else if (next == $hash) {
+        if (scanner.peekChar(1) == $lbrace) {
+          buffer.add(singleInterpolation());
+        } else {
+          buffer.writeCharCode(scanner.readChar());
+        }
+      } else if (isWhitespace(next)) {
+        whitespace();
+        if (scanner.peekChar() != $rparen) break;
+      } else if (next == $rparen) {
+        buffer.writeCharCode(scanner.readChar());
+        return new StringExpression(
+            buffer.interpolation(nameSpan.expand(scanner.emptySpan)));
+      } else {
+        break;
+      }
+    }
+
+    scanner.position = start.position - 1;
+    return new FunctionExpression(
+        new Interpolation(["url"], nameSpan), _argumentInvocation());
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".
