@@ -10,6 +10,7 @@ import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
+import '../exception.dart';
 import '../color_names.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
@@ -47,7 +48,7 @@ abstract class StylesheetParser extends Parser {
   // ## Statements
 
   Stylesheet parse() {
-    return wrapFormatException(() {
+    return wrapSpanFormatException(() {
       var start = scanner.state;
       var statements = this.statements(_topLevelStatement);
       scanner.expectDone();
@@ -56,7 +57,7 @@ abstract class StylesheetParser extends Parser {
   }
 
   ArgumentDeclaration parseArgumentDeclaration() {
-    return wrapFormatException(() {
+    return wrapSpanFormatException(() {
       var declaration = _argumentDeclaration();
       scanner.expectDone();
       return declaration;
@@ -522,10 +523,17 @@ abstract class StylesheetParser extends Parser {
       return null;
     }
 
-    // TODO: wrap error with a span
     // TODO: parse supports clauses, url(), and query lists
     var urlString = string();
-    var url = Uri.parse(urlString);
+
+    Uri url;
+    try {
+      url = Uri.parse(urlString);
+    } on FormatException catch (error) {
+      throw new SassFormatException(
+          "Invalid URL: ${error.message}", scanner.spanFrom(start));
+    }
+
     if (_isPlainImportUrl(urlString)) {
       return new PlainImportRule(url, scanner.spanFrom(start));
     } else {

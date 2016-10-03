@@ -343,10 +343,10 @@ abstract class Parser {
     return scanner.substring(start);
   }
 
-  /*=T*/ wrapFormatException/*<T>*/(/*=T*/ callback()) {
+  /*=T*/ wrapSpanFormatException/*<T>*/(/*=T*/ callback()) {
     try {
       return callback();
-    } on StringScannerException catch (error) {
+    } on SourceSpanFormatException catch (error) {
       throw new SassFormatException(error.message, error.span as FileSpan);
     }
   }

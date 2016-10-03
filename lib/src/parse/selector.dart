@@ -23,7 +23,7 @@ class SelectorParser extends Parser {
         super(contents, url: url);
 
   SelectorList parse() {
-    return wrapFormatException(() {
+    return wrapSpanFormatException(() {
       var selector = _selectorList();
       scanner.expectDone();
       return selector;
@@ -31,7 +31,7 @@ class SelectorParser extends Parser {
   }
 
   CompoundSelector parseCompoundSelector() {
-    return wrapFormatException(() {
+    return wrapSpanFormatException(() {
       var compound = _compoundSelector();
       scanner.expectDone();
       return compound;
@@ -39,7 +39,7 @@ class SelectorParser extends Parser {
   }
 
   SimpleSelector parseSimpleSelector() {
-    return wrapFormatException(() {
+    return wrapSpanFormatException(() {
       var simple = _simpleSelector();
       scanner.expectDone();
       return simple;

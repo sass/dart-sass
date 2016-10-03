@@ -11,7 +11,7 @@ class AtRootQueryParser extends Parser {
   AtRootQueryParser(String contents, {url}) : super(contents, url: url);
 
   AtRootQuery parse() {
-    return wrapFormatException(() {
+    return wrapSpanFormatException(() {
       scanner.expectChar($lparen);
       whitespace();
       expectIdentifier("with", ignoreCase: true);
