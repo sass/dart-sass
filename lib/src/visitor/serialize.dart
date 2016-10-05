@@ -321,15 +321,19 @@ class _SerializeCssVisitor
   }
 
   void visitString(SassString string) {
-    _buffer.write(string.hasQuotes
-        ? _visitString(string.text)
-        : string.text.replaceAll("\n", " "));
+    if (string.hasQuotes) {
+      _visitString(string.text);
+    } else {
+      _buffer.write(string.text.replaceAll("\n", " "));
+    }
   }
 
-  String _visitString(String string, {bool forceDoubleQuote: false}) {
+  void _visitString(String string, {bool forceDoubleQuote: false}) {
     var includesSingleQuote = false;
     var includesDoubleQuote = false;
-    var buffer = new StringBuffer();
+
+    var buffer = forceDoubleQuote ? _buffer : new StringBuffer();
+    if (forceDoubleQuote) buffer.writeCharCode($double_quote);
     for (var i = 0; i < string.length; i++) {
       var char = string.codeUnitAt(i);
       switch (char) {
@@ -337,7 +341,8 @@ class _SerializeCssVisitor
           if (forceDoubleQuote) {
             buffer.writeCharCode($single_quote);
           } else if (includesDoubleQuote) {
-            return _visitString(string, forceDoubleQuote: true);
+            _visitString(string, forceDoubleQuote: true);
+            return;
           } else {
             includesSingleQuote = true;
             buffer.writeCharCode($single_quote);
@@ -349,7 +354,8 @@ class _SerializeCssVisitor
             buffer.writeCharCode($backslash);
             buffer.writeCharCode($double_quote);
           } else if (includesSingleQuote) {
-            return _visitString(string, forceDoubleQuote: true);
+            _visitString(string, forceDoubleQuote: true);
+            return;
           } else {
             includesDoubleQuote = true;
             buffer.writeCharCode($double_quote);
@@ -380,8 +386,14 @@ class _SerializeCssVisitor
       }
     }
 
-    var doubleQuote = forceDoubleQuote || !includesDoubleQuote;
-    return doubleQuote ? '"$buffer"' : "'$buffer'";
+    if (forceDoubleQuote) {
+      buffer.writeCharCode($double_quote);
+    } else {
+      var quote = includesDoubleQuote ? $single_quote : $double_quote;
+      _buffer.writeCharCode(quote);
+      _buffer.write(buffer);
+      _buffer.writeCharCode(quote);
+    }
   }
 
   // ## Selectors
