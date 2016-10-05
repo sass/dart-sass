@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
@@ -17,6 +16,7 @@ import '../callable.dart';
 import '../environment.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
+import '../io.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
@@ -377,7 +377,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     return _importedFiles.putIfAbsent(path, () {
-      var contents = new File(path).readAsStringSync();
+      var contents = readFile(path);
       var url = p.toUri(path);
       return p.extension(path) == '.sass'
           ? new Stylesheet.parseSass(contents, url: url)
@@ -390,8 +390,8 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   String _tryImportPath(String path) {
     var partial = p.join(p.dirname(path), "_${p.basename(path)}");
-    if (new File(partial).existsSync()) return partial;
-    if (new File(path).existsSync()) return path;
+    if (fileExists(partial)) return partial;
+    if (fileExists(path)) return path;
     return null;
   }
 
