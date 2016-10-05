@@ -110,7 +110,7 @@ class _SerializeCssVisitor
   void visitImport(CssImport node) {
     _writeIndentation();
     _buffer.write("@import ");
-    _visitString(node.url.toString());
+    _buffer.write(node.url.value);
     _buffer.writeCharCode($semicolon);
   }
 

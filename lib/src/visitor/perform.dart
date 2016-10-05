@@ -481,8 +481,9 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return new CssMediaQuery(type, modifier: modifier, features: features);
   }
 
-  CssImport visitPlainImportRule(PlainImportRule node) =>
-      new CssImport(node.url, node.span);
+  void visitPlainImportRule(PlainImportRule node) {
+    _parent.addChild(new CssImport(_interpolationToValue(node.url), node.span));
+  }
 
   Value visitReturnRule(ReturnRule node) => node.expression.accept(this);
 

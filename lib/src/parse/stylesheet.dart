@@ -523,20 +523,27 @@ abstract class StylesheetParser extends Parser {
     }
 
     // TODO: parse supports clauses, url(), and query lists
-    var urlString = string();
-
-    Uri url;
-    try {
-      url = Uri.parse(urlString);
-    } on FormatException catch (error) {
-      throw new SassFormatException(
-          "Invalid URL: ${error.message}", scanner.spanFrom(start));
+    var urlStart = scanner.state;
+    var next = scanner.peekChar();
+    if (next == $u || next == $U) {
+      return new PlainImportRule(
+          new Interpolation([_dynamicUrl()], scanner.spanFrom(urlStart)),
+          scanner.spanFrom(start));
     }
 
-    if (_isPlainImportUrl(urlString)) {
-      return new PlainImportRule(url, scanner.spanFrom(start));
+    var url = string();
+    if (_isPlainImportUrl(url)) {
+      return new PlainImportRule(
+          new Interpolation([scanner.substring(urlStart.position)],
+              scanner.spanFrom(urlStart)),
+          scanner.spanFrom(start));
     } else {
-      return new ImportRule(url, scanner.spanFrom(start));
+      try {
+        return new ImportRule(Uri.parse(url), scanner.spanFrom(start));
+      } on FormatException catch (error) {
+        throw new SassFormatException(
+            "Invalid URL: ${error.message}", scanner.spanFrom(start));
+      }
     }
   }
 
@@ -1497,6 +1504,17 @@ abstract class StylesheetParser extends Parser {
 
     scanner.state = start;
     return null;
+  }
+
+  Expression _dynamicUrl() {
+    var start = scanner.state;
+    expectIdentifier("url", ignoreCase: true);
+    var contents = _tryUrlContents(start);
+    if (contents != null) return new StringExpression(contents);
+
+    return new FunctionExpression(
+        new Interpolation(["url"], scanner.spanFrom(start)),
+        _argumentInvocation());
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".

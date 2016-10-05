@@ -6,11 +6,14 @@ import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/css.dart';
 import 'node.dart';
+import 'value.dart';
 
 /// A plain CSS `@import`.
 class CssImport extends CssNode {
   /// The URL being imported.
-  final Uri url;
+  ///
+  /// This includes quotes.
+  final CssValue<String> url;
 
   final FileSpan span;
 

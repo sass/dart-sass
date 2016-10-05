@@ -5,11 +5,11 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
-import '../expression/string.dart';
+import '../interpolation.dart';
 import '../statement.dart';
 
 class PlainImportRule implements Statement {
-  final Uri url;
+  final Interpolation url;
 
   final FileSpan span;
 
@@ -18,5 +18,5 @@ class PlainImportRule implements Statement {
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitPlainImportRule(this);
 
-  String toString() => "@import ${StringExpression.quoteText(url.toString())};";
+  String toString() => "@import $url;";
 }
