@@ -27,7 +27,7 @@ void main(List<String> args) {
         abbr: 'h', help: 'Print this usage information.', negatable: false);
   var options = argParser.parse(getArguments(args));
 
-  if (options['help']) {
+  if (options['help'] || options.rest.isEmpty) {
     print("Compile Sass to CSS.\n");
     print("Usage: sass <input>\n");
     print(argParser.usage);
