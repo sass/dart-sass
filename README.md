@@ -37,4 +37,35 @@ implementation of the Sass language. It has a number of advantages:
 
 [perf]: https://github.com/sass/dart-sass/blob/master/perf.md
 
+## Behavioral Differences
+
+There are a few intentional behavioral differences between Dart Sass and Ruby
+Sass. These are generally places where Ruby Sass has an undesired behavior, and
+it's substantially easier to implement the correct behavior than it would be to
+implement compatible behavior. These should all have tracking bugs against Ruby
+Sass to update the reference behavior.
+
+1. `@extend` only accepts simple selectors, as does the second argument of
+   `selector-extend()`. See [issue 1599][].
+
+2. Subject selectors are not supported. See [issue 1126][].
+
+3. Pseudo selector arguments are parsed as `<declaration-value>`s rather than
+   having a more limited custom parsing. See [issue 2120][].
+
+4. The numeric precision is set to 10. See [issue 1122][].
+
+5. The indented syntax parser is more flexible: it doesn't require consistent
+   indentation across the whole document. This doesn't have an issue yet; I need
+   to talk to Chris to determine if it's actually the right way forward.
+
+6. Colors do not support channel-by-channel arithmetic. See [issue 2144][].
+
+[issue 1599]: https://github.com/sass/sass/issues/1599
+[issue 1126]: https://github.com/sass/sass/issues/1126
+[issue 2120]: https://github.com/sass/sass/issues/2120
+[issue 1122]: https://github.com/sass/sass/issues/1122
+[issue 2144]: https://github.com/sass/sass/issues/2144
+
+
 Disclaimer: this is not an official Google product.
