@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:grinder/grinder.dart';
 import 'package:node_preamble/preamble.dart' as preamble;
+import 'package:yaml/yaml.dart';
 
 main(args) => grind(args);
 
@@ -29,7 +30,8 @@ js() {
   _ensureBuild();
   var destination = new File('build/sass.dart.js');
   Dart2js.compile(new File('bin/sass.dart'),
-      outFile: destination, extraArgs: ['-Dnode=true']);
+      outFile: destination,
+      extraArgs: ['-Dnode=true', '-Dversion=${_loadVersion()}']);
   var text = destination.readAsStringSync();
   destination.writeAsStringSync("${preamble.getPreamble()}\n$text");
 }
@@ -38,3 +40,7 @@ js() {
 void _ensureBuild() {
   new Directory('build').createSync(recursive: true);
 }
+
+/// Loads the version number from pubspec.yaml.
+String _loadVersion() =>
+    loadYaml(new File('pubspec.yaml').readAsStringSync())['version'];
