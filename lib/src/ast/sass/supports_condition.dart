@@ -4,4 +4,5 @@
 
 import 'node.dart';
 
+/// An abstract class for defining the condition a `@supports` rule selects.
 abstract class SupportsCondition extends SassNode {}

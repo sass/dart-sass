@@ -7,7 +7,7 @@ import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 class TypeSelector extends SimpleSelector {
-  final NamespacedIdentifier name;
+  final QualifiedName name;
 
   int get minSpecificity => 1;
 
@@ -17,7 +17,7 @@ class TypeSelector extends SimpleSelector {
       visitor.visitTypeSelector(this);
 
   TypeSelector addSuffix(String suffix) => new TypeSelector(
-      new NamespacedIdentifier(name.name + suffix, namespace: name.namespace));
+      new QualifiedName(name.name + suffix, namespace: name.namespace));
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {

@@ -8,7 +8,11 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
+/// A `@return` rule.
+///
+/// This exits from the current function body with a return value.
 class ReturnRule implements Statement {
+  /// The value to return from this function.
   final Expression expression;
 
   final FileSpan span;

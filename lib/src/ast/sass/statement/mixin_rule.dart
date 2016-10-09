@@ -9,9 +9,18 @@ import '../callable_declaration.dart';
 import '../argument_declaration.dart';
 import '../statement.dart';
 
+/// A mixin declaration.
+///
+/// This declares a mixin that's invoked using `@include`.
 class MixinRule extends CallableDeclaration {
+  /// Whether the mixin contains a `@content` rule.
   final bool hasContent;
 
+  /// Creates a [MixinRule].
+  ///
+  /// It's important that the caller passes [hasContent] if the mixin
+  /// recursively contains a `@content` rule. Otherwise, invoking this mixin
+  /// won't work correctly.
   MixinRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,
       {this.hasContent: false})

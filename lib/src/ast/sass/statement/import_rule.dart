@@ -8,7 +8,11 @@ import '../../../visitor/interface/statement.dart';
 import '../expression/string.dart';
 import '../statement.dart';
 
+/// An `@import` rule that will import a Sass file at runtime.
 class ImportRule implements Statement {
+  /// The URI of the file to import.
+  ///
+  /// If this is relative, it's relative to the containing file.
   final Uri url;
 
   final FileSpan span;

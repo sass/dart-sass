@@ -7,7 +7,11 @@ import 'dart:math' as math;
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
+/// An ID selector.
+///
+/// This selects elements whose `id` attribute exactly matches the given name.
 class IDSelector extends SimpleSelector {
+  /// The ID name this selects for.
   final String name;
 
   int get minSpecificity => math.pow(super.minSpecificity, 2);

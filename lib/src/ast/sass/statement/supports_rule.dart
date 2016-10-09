@@ -8,9 +8,12 @@ import '../../../visitor/interface/statement.dart';
 import '../statement.dart';
 import '../supports_condition.dart';
 
+/// A `@supports` rule.
 class SupportsRule implements Statement {
+  /// The condition that selects what browsers this rule targets.
   final SupportsCondition condition;
 
+  /// The contents of this rule.
   final List<Statement> children;
 
   final FileSpan span;

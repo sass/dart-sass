@@ -7,7 +7,9 @@ import 'package:source_span/source_span.dart';
 import '../expression.dart';
 import '../supports_condition.dart';
 
+/// An interpolated condition.
 class SupportsInterpolation implements SupportsCondition {
+  /// The expression in the interpolation.
   final Expression expression;
 
   final FileSpan span;

@@ -8,9 +8,15 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
+/// A `@while` rule.
+///
+/// This repeatedly executes a block of code as long as a statement evaluates to
+/// `true`.
 class WhileRule implements Statement {
+  /// The condition that determines whether the block will be executed.
   final Expression condition;
 
+  /// The code to execute repeatedly.
   final List<Statement> children;
 
   final FileSpan span;

@@ -9,11 +9,16 @@ import '../argument_invocation.dart';
 import '../callable_invocation.dart';
 import '../statement.dart';
 
+/// A mixin invocation.
 class IncludeRule implements Statement, CallableInvocation {
+  /// The name of the mixin being invoked.
   final String name;
 
+  /// The arguments to pass to the mixin.
   final ArgumentInvocation arguments;
 
+  /// The content block to pass to the mixin, or `null` if there is no content
+  /// block.
   final List<Statement> children;
 
   final FileSpan span;

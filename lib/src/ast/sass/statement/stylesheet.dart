@@ -9,7 +9,11 @@ import '../../../parse/sass.dart';
 import '../../../parse/scss.dart';
 import '../statement.dart';
 
+/// A Sass stylesheet.
+///
+/// This is the root Sass node. It contains top-level statements.
 class Stylesheet implements Statement {
+  /// The top-level statements of this Sass stylesheet.
   final List<Statement> children;
 
   final FileSpan span;

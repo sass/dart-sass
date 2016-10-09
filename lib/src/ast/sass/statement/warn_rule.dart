@@ -8,7 +8,11 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
+/// A `@warn` rule.
+///
+/// This prints a Sass value—usually a string—to warn the user of something.
 class WarnRule implements Statement {
+  /// The expression to print.
   final Expression expression;
 
   final FileSpan span;

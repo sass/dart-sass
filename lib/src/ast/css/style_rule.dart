@@ -9,9 +9,9 @@ import '../selector.dart';
 import 'node.dart';
 import 'value.dart';
 
-/// A plain CSS style rule—that is, a rule with a selector that contains
-/// declarations.
+/// A plain CSS style rule.
 ///
+/// This applies style declarations to elements that match a given selector.
 /// Note that this isn't *strictly* plain CSS, since [selector] may still
 /// contain placeholder selectors.
 class CssStyleRule extends CssParentNode {

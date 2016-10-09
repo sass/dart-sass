@@ -10,9 +10,17 @@ import '../../value.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
+/// A selector list.
+///
+/// A selector list is composed of [ComplexSelector]s. It matches an element
+/// that matches any of the component selectors.
 class SelectorList extends Selector {
+  /// The components of this selector.
+  ///
+  /// This is never empty.
   final List<ComplexSelector> components;
 
+  /// Whether this contains a [ParentSelector].
   bool get _containsParentSelector {
     return components.any((complex) {
       return complex.components.any((component) =>
@@ -25,6 +33,9 @@ class SelectorList extends Selector {
     });
   }
 
+  /// Returns a SassScript list that represents this selector.
+  ///
+  /// This has the same format as a list returned by `selector-parse()`.
   SassList get asSassList {
     return new SassList(components.map((complex) {
       return new SassList(
@@ -35,14 +46,29 @@ class SelectorList extends Selector {
   }
 
   SelectorList(Iterable<ComplexSelector> components)
-      : components = new List.unmodifiable(components);
+      : components = new List.unmodifiable(components) {
+    if (this.components.isEmpty) {
+      throw new ArgumentError("components may not be empty.");
+    }
+  }
 
+  /// Parses a selector list from [contents].
+  ///
+  /// If passed, [url] is the name of the file from which [contents] comes.
+  /// [allowParent] controls whether a [ParentSelector] is allowed in this
+  /// selector.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
   factory SelectorList.parse(String contents, {url, bool allowParent: true}) =>
       new SelectorParser(contents, url: url, allowParent: allowParent).parse();
 
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
       visitor.visitSelectorList(this);
 
+  /// Returns a [SelectorList] that matches only elements that are matched by
+  /// both this and [other].
+  ///
+  /// If no such list can be produced, returns `null`.
   SelectorList unify(SelectorList other) {
     var contents = components.expand((complex1) {
       return other.components.expand((complex2) {
@@ -55,6 +81,14 @@ class SelectorList extends Selector {
     return contents.isEmpty ? null : new SelectorList(contents);
   }
 
+  /// Returns a new list with all [ParentSelector]s replaced with [parent].
+  ///
+  /// If [implicitParent] is true, this treats [ComplexSelector]s that don't
+  /// contain an explicit [ParentSelector] as though they began with one.
+  ///
+  /// The given [parent] may be `null`, indicating that this has no parents. If
+  /// so, this list is returned as-is if it doesn't contain any explicit
+  /// [ParentSelector]s. If it does, this throws an [InternalException].
   SelectorList resolveParentSelectors(SelectorList parent,
       {bool implicitParent: true}) {
     if (parent == null) {
@@ -110,6 +144,10 @@ class SelectorList extends Selector {
     })));
   }
 
+  /// Returns a new [CompoundSelector] based on [compound] with all
+  /// [ParentSelector]s replaced with [parent].
+  ///
+  /// Returns `null` if [compound] doesn't contain any [ParentSelector]s.
   Iterable<ComplexSelector> _resolveParentSelectorsCompound(
       CompoundSelector compound, SelectorList parent) {
     var containsSelectorPseudo = compound.components.any((simple) =>
@@ -171,6 +209,11 @@ class SelectorList extends Selector {
     });
   }
 
+  /// Returns a new [SimpleSelector] based on [simple], as though it had been
+  /// written with [suffix] at the end.
+  ///
+  /// Assumes [suffix] is a valid identifier suffix. If this wouldn't produce a
+  /// valid [SimpleSelector], throws an [InternalException].
   SimpleSelector _addSuffix(SimpleSelector simple, String suffix) {
     if (simple is ClassSelector) {
       return new ClassSelector(simple.name + suffix);
@@ -179,7 +222,7 @@ class SelectorList extends Selector {
     } else if (simple is PlaceholderSelector) {
       return new PlaceholderSelector(simple.name + suffix);
     } else if (simple is TypeSelector) {
-      return new TypeSelector(new NamespacedIdentifier(
+      return new TypeSelector(new QualifiedName(
           simple.name.name + suffix,
           namespace: simple.name.namespace));
     } else if (simple is PseudoSelector &&
@@ -192,6 +235,10 @@ class SelectorList extends Selector {
         'Parent "$simple" is incompatible with this selector.');
   }
 
+  /// Whether this is a superselector of [other].
+  ///
+  /// That is, whether this matches every element that [other] matches, as well
+  /// as possibly additional elements.
   bool isSuperselector(SelectorList other) =>
       listIsSuperslector(components, other.components);
 

@@ -7,7 +7,9 @@ import 'package:source_span/source_span.dart';
 import '../supports_condition.dart';
 import 'operation.dart';
 
+/// A negated condition.
 class SupportsNegation implements SupportsCondition {
+  /// The condition that's been negated.
   final SupportsCondition condition;
 
   final FileSpan span;

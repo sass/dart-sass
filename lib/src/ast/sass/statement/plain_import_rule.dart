@@ -8,7 +8,11 @@ import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
 import '../statement.dart';
 
+/// A rule that produces a plain CSS `@import` rule.
 class PlainImportRule implements Statement {
+  /// The URL for this import.
+  ///
+  /// This already contains quotes.
   final Interpolation url;
 
   final FileSpan span;

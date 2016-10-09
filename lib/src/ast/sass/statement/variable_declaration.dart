@@ -8,13 +8,24 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
 
+/// A variable declaration.
+///
+/// This defines or sets a variable.
 class VariableDeclaration implements Statement {
+  /// The name of the variable.
   final String name;
 
+  /// The value the variable is being assigned to.
   final Expression expression;
 
+  /// Whether this is a guarded assignment.
+  ///
+  /// Guarded assignments only happen if the variable is undefined or `null`.
   final bool isGuarded;
 
+  /// Whether this is a global assignment.
+  ///
+  /// Global assignments always affect only the global scope.
   final bool isGlobal;
 
   final FileSpan span;

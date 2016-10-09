@@ -11,15 +11,22 @@ export 'selector/complex.dart';
 export 'selector/compound.dart';
 export 'selector/id.dart';
 export 'selector/list.dart';
-export 'selector/namespaced_identifier.dart';
 export 'selector/parent.dart';
 export 'selector/placeholder.dart';
 export 'selector/pseudo.dart';
+export 'selector/qualified_name.dart';
 export 'selector/simple.dart';
 export 'selector/type.dart';
 export 'selector/universal.dart';
 
+/// A node in the abstract syntax tree for a selector.
+///
+/// This selector tree is mostly plain CSS, but also may contain a
+/// [ParentSelector] or a [PlaceholderSelector].
+///
+/// Selectors have structural equality semantics.
 abstract class Selector {
+  /// Calls the appropriate visit method on [visitor].
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor);
 
   String toString() => selectorToCss(this, inspect: true);

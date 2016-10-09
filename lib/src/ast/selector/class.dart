@@ -5,7 +5,12 @@
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
+/// A class selector.
+///
+/// This selects elements whose `class` attribute contains an identifier with
+/// the given name.
 class ClassSelector extends SimpleSelector {
+  /// The class name this selects for.
   final String name;
 
   ClassSelector(this.name);

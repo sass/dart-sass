@@ -87,7 +87,7 @@ SimpleSelector unifyUniversalAndElement(
 
   return name == null
       ? new UniversalSelector(namespace: namespace)
-      : new TypeSelector(new NamespacedIdentifier(name, namespace: namespace));
+      : new TypeSelector(new QualifiedName(name, namespace: namespace));
 }
 
 List<List<ComplexSelectorComponent>> weave(

@@ -170,19 +170,19 @@ class SelectorParser extends Parser {
     return new AttributeSelector.withOperator(name, operator, value);
   }
 
-  NamespacedIdentifier _attributeName() {
+  QualifiedName _attributeName() {
     if (scanner.scanChar($asterisk)) {
       scanner.expectChar($pipe);
-      return new NamespacedIdentifier(identifier(), namespace: "*");
+      return new QualifiedName(identifier(), namespace: "*");
     }
 
     var nameOrNamespace = identifier();
     if (scanner.peekChar() != $pipe || scanner.peekChar(1) == $equal) {
-      return new NamespacedIdentifier(nameOrNamespace);
+      return new QualifiedName(nameOrNamespace);
     }
 
     scanner.readChar();
-    return new NamespacedIdentifier(identifier(), namespace: nameOrNamespace);
+    return new QualifiedName(identifier(), namespace: nameOrNamespace);
   }
 
   AttributeOperator _attributeOperator() {
@@ -330,7 +330,7 @@ class SelectorParser extends Parser {
         return new UniversalSelector(namespace: "*");
       } else {
         return new TypeSelector(
-            new NamespacedIdentifier(identifier(), namespace: "*"));
+            new QualifiedName(identifier(), namespace: "*"));
       }
     } else if (first == $pipe) {
       scanner.readChar();
@@ -338,16 +338,16 @@ class SelectorParser extends Parser {
         return new UniversalSelector(namespace: "");
       } else {
         return new TypeSelector(
-            new NamespacedIdentifier(identifier(), namespace: ""));
+            new QualifiedName(identifier(), namespace: ""));
       }
     }
 
     var nameOrNamespace = identifier();
     if (!scanner.scanChar($pipe)) {
-      return new TypeSelector(new NamespacedIdentifier(nameOrNamespace));
+      return new TypeSelector(new QualifiedName(nameOrNamespace));
     }
 
     return new TypeSelector(
-        new NamespacedIdentifier(identifier(), namespace: nameOrNamespace));
+        new QualifiedName(identifier(), namespace: nameOrNamespace));
   }
 }
