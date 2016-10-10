@@ -6,13 +6,15 @@ import '../ast/sass.dart';
 import '../callable.dart';
 import '../environment.dart';
 
+/// A callback defined in the user's Sass stylesheet.
 class UserDefinedCallable implements Callable {
+  /// The declaration.
   final CallableDeclaration declaration;
 
+  /// The environment in which this callable was declared.
   final Environment environment;
 
   String get name => declaration.name;
-  ArgumentDeclaration get arguments => declaration.arguments;
 
   UserDefinedCallable(this.declaration, this.environment);
 }

@@ -25,7 +25,7 @@ class SupportsOperation implements SupportsCondition {
   SupportsOperation(this.left, this.right, this.operator, this.span) {
     var lowerOperator = operator.toLowerCase();
     if (lowerOperator != "and" && lowerOperator != "or") {
-      throw new ArgumentDeclaration(
+      throw new ArgumentError.value(
           operator, 'operator', 'may only be "and" or "or".');
     }
   }

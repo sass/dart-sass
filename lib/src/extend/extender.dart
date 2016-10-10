@@ -13,6 +13,7 @@ import '../exception.dart';
 import 'source.dart';
 import 'functions.dart';
 
+/// Tracks style rules and extensions, and applies the latter to the former.
 class Extender {
   /// A map from all simple selectors in the stylesheet to the rules that
   /// contain them.
@@ -20,10 +21,23 @@ class Extender {
   /// This is used to find which rules an `@extend` applies to.
   final _selectors = <SimpleSelector, Set<CssStyleRule>>{};
 
+  /// A map from all extended simple selectors to the sources of those
+  /// extensions.
   final _extensions = <SimpleSelector, Set<ExtendSource>>{};
 
+  /// An expando from [SimpleSelector]s to [ComplexSelector]s.
+  ///
+  /// This tracks the [ComplexSelector]s that originally contained each
+  /// [SimpleSelector]. This allows us to ensure that we don't trim any
+  /// selectors that need to exist to satisfy the [second law of extend][].
+  ///
+  /// [second law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
   final _sources = new Expando<ComplexSelector>();
 
+  /// Extends [selector] with [source] extender and [target] the extendee.
+  ///
+  /// This works as though `source {@extend target}` were written in
+  /// the stylesheet.
   static SelectorList extend(
           SelectorList selector, SelectorList source, SimpleSelector target) =>
       new Extender()._extendList(selector, {
@@ -31,6 +45,7 @@ class Extender {
           ..add(new ExtendSource(new CssValue(source, null), null))
       });
 
+  /// Returns a copy of [selector] with [source] replaced by [target].
   static SelectorList replace(
           SelectorList selector, SelectorList source, SimpleSelector target) =>
       new Extender()._extendList(
@@ -41,6 +56,11 @@ class Extender {
           },
           replace: true);
 
+  /// Adds [selector] to this extender, associated with [span].
+  ///
+  /// Extends [selector] using any registered extensions, then returns an empty
+  /// [CssStyleRule] with the resulting selector. If any more relevant
+  /// extensions are added, the returned rule is automatically updated.
   CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span) {
     for (var complex in selector.value.components) {
       for (var component in complex.components) {
@@ -62,6 +82,8 @@ class Extender {
     return rule;
   }
 
+  /// Registers the [SimpleSelector]s in [list] to point to [rule] in
+  /// [_selectors].
   void _registerSelector(SelectorList list, CssStyleRule rule) {
     for (var complex in list.components) {
       for (var component in complex.components) {
@@ -78,9 +100,14 @@ class Extender {
     }
   }
 
+  /// Adds an extension to this extender.
+  ///
+  /// The [extender] is the selector for the style rule in which the extension
+  /// is defined, and [target] is the selector passed to `@extend`. The [extend]
+  /// provides the extend span and indicates whether the extension is optional.
   void addExtension(CssValue<SelectorList> extender, SimpleSelector target,
       ExtendRule extend) {
-    var source = new ExtendSource(extender, extend.span);
+    var source = new ExtendSource(extender, target, extend.span);
     source.isUsed = extend.isOptional;
     _extensions.putIfAbsent(target, () => new Set()).add(source);
 
@@ -93,6 +120,8 @@ class Extender {
     }
   }
 
+  /// Throws a [SassException] if any (non-optional) extensions failed to match
+  /// any selectors.
   void finalize() {
     for (var sources in _extensions.values) {
       for (var source in sources) {
@@ -105,6 +134,9 @@ class Extender {
     }
   }
 
+  /// Extends [list] using [extensions].
+  ///
+  /// If [replace] is `true`, this doesn't preserve the original selectors.
   SelectorList _extendList(
       SelectorList list, Map<SimpleSelector, Set<ExtendSource>> extensions,
       {bool replace: false}) {
@@ -128,6 +160,10 @@ class Extender {
     return new SelectorList(newList.where((complex) => complex != null));
   }
 
+  /// Extends [complex] using [extensions], and returns the contents of a
+  /// [SelectorList].
+  ///
+  /// If [replace] is `true`, this doesn't preserve the original selectors.
   Iterable<ComplexSelector> _extendComplex(ComplexSelector complex,
       Map<SimpleSelector, Set<ExtendSource>> extensions,
       {bool replace: false}) {
@@ -179,6 +215,10 @@ class Extender {
     return result;
   }
 
+  /// Extends [compound] using [extensions], and returns the contents of a
+  /// [SelectorList].
+  ///
+  /// If [replace] is `true`, this doesn't preserve the original selectors.
   List<ComplexSelector> _extendCompound(CompoundSelector compound,
       Map<SimpleSelector, Set<ExtendSource>> extensions,
       {bool replace: false}) {
@@ -249,6 +289,10 @@ class Extender {
     return extended;
   }
 
+  /// Extends [pseudo] using [extensions], and returns a list of resulting
+  /// pseudo selectors.
+  ///
+  /// If [replace] is `true`, this doesn't preserve the original selectors.
   List<PseudoSelector> _extendPseudo(
       PseudoSelector pseudo, Map<SimpleSelector, Set<ExtendSource>> extensions,
       {bool replace: false}) {
@@ -330,6 +374,12 @@ class Extender {
     }
   }
 
+  // Removes redundant selectors from [lists].
+  //
+  // Each individual list in [lists] is assumed to have no redundancy within
+  // itself. A selector is only removed if it's redundant with a selector in
+  // another list. "Redundant" here means that one selector is a superselector
+  // of the other. The more specific selector is removed.
   List<ComplexSelector> _trim(List<List<ComplexSelector>> lists) {
     // Avoid truly horrific quadratic behavior.
     //

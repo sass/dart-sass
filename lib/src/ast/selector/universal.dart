@@ -6,7 +6,14 @@ import '../../extend/functions.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
+/// Matches any element in the given namespace.
 class UniversalSelector extends SimpleSelector {
+  /// The selector namespace.
+  ///
+  /// If this is `null`, this matches all elements in the default namespace. If
+  /// it's the empty string, this matches all elements that aren't in any
+  /// namespace. If it's `*`, this matches all elements in any namespace.
+  /// Otherwise, it matches all elements in the given namespace.
   final String namespace;
 
   int get minSpecificity => 0;

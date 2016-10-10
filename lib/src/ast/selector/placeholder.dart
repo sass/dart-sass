@@ -5,7 +5,13 @@
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
+/// A placeholder selector.
+///
+/// This doesn't match any elements. It's intended to be extended using
+/// `@extend`. It's not a plain CSS selector—it should be removed before
+/// emitting a CSS document.
 class PlaceholderSelector extends SimpleSelector {
+  /// The name of the placeholder.
   final String name;
 
   PlaceholderSelector(this.name);

@@ -25,7 +25,7 @@ class MediaRule implements Statement {
       : queries = new List.unmodifiable(queries),
         children = new List.unmodifiable(children) {
     if (this.queries.isEmpty) {
-      throw new ArgumentException("queries may not be empty.");
+      throw new ArgumentError("queries may not be empty.");
     }
   }
 

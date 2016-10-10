@@ -5,13 +5,16 @@
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+/// An exception thrown by Sass.
 class SassException extends SourceSpanException {
   FileSpan get span => super.span as FileSpan;
 
   SassException(String message, FileSpan span) : super(message, span);
 }
 
+/// An exception thrown by Sass while evaluating a stylesheet.
 class SassRuntimeException extends SassException {
+  /// The Sass stack trace at the point this exception was thrown.
   final Trace trace;
 
   SassRuntimeException(String message, FileSpan span, this.trace)
@@ -28,6 +31,7 @@ class SassRuntimeException extends SassException {
   }
 }
 
+/// An exception thrown when Sass parsing has failed.
 class SassFormatException extends SourceSpanFormatException
     implements SassException {
   FileSpan get span => super.span as FileSpan;
@@ -37,7 +41,13 @@ class SassFormatException extends SourceSpanFormatException
   SassFormatException(String message, FileSpan span) : super(message, span);
 }
 
+/// An exception thrown by SassScript that doesn't yet have a [FileSpan]
+/// associated with it.
+///
+/// This is caught by Sass and converted to a [SassRuntimeException] with a
+/// source span and a stack trace.
 class InternalException {
+  /// The error message.
   final String message;
 
   InternalException(this.message);

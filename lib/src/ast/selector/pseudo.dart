@@ -8,15 +8,39 @@ import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
+/// A pseudo-class or pseudo-element selector.
+///
+/// The semantics of a specific pseudo selector depends on its name. Some
+/// selectors take arguments, including other selectors. Sass manually encodes
+/// logic for each pseudo selector that takes a selector as an argument, to
+/// ensure that extension and other selector operations work properly.
 class PseudoSelector extends SimpleSelector {
+  /// The name of this selector.
   final String name;
 
+  /// Like [name], but without any vendor prefixes.
   final String normalizedName;
 
-  final PseudoType type;
+  /// Whether this is a pseudo-class selector.
+  ///
+  /// This is `true` if and only if [isElement] is `false`.
+  final bool isClass;
 
+  /// Whether this is a pseudo-element selector.
+  ///
+  /// This is `true` if and only if [isClass] is `false`.
+  bool get isElement => !isClass;
+
+  /// The non-selector argument passed to this selector.
+  ///
+  /// This is `null` if there's no argument. If [argument] and [selector] are
+  /// both non-`null`, the selector follows the argument.
   final String argument;
 
+  /// The selector argument passed to this selector.
+  ///
+  /// This is `null` if there's no selector. If [argument] and [selector] are
+  /// both non-`null`, the selector follows the argument.
   final SelectorList selector;
 
   int get minSpecificity {
@@ -33,16 +57,20 @@ class PseudoSelector extends SimpleSelector {
 
   int _maxSpecificity;
 
-  PseudoSelector(String name, this.type, {this.argument, this.selector})
-      : name = name,
+  PseudoSelector(String name,
+      {bool element: false, this.argument, this.selector})
+      : isClass = !element,
+        name = name,
         normalizedName = unvendor(name);
 
-  PseudoSelector withSelector(SelectorList selector) =>
-      new PseudoSelector(name, type, argument: argument, selector: selector);
+  /// Returns a new [PseudoSelector] based on this, but with the selector
+  /// replaced with [selector].
+  PseudoSelector withSelector(SelectorList selector) => new PseudoSelector(name,
+      element: isElement, argument: argument, selector: selector);
 
   PseudoSelector addSuffix(String suffix) {
     if (argument != null || selector != null) super.addSuffix(suffix);
-    return new PseudoSelector(name + suffix, type);
+    return new PseudoSelector(name + suffix, element: isElement);
   }
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
@@ -51,10 +79,10 @@ class PseudoSelector extends SimpleSelector {
     var result = <SimpleSelector>[];
     var addedThis = false;
     for (var simple in compound) {
-      if (simple is PseudoSelector && simple.type == PseudoType.element) {
+      if (simple is PseudoSelector && simple.isElement) {
         // A given compound selector may only contain one pseudo element. If
         // [compound] has a different one than [this], unification fails.
-        if (this.type == PseudoType.element) return null;
+        if (this.isElement) return null;
 
         // Otherwise, this is a pseudo selector and should come before pseduo
         // elements.
@@ -69,8 +97,9 @@ class PseudoSelector extends SimpleSelector {
     return result;
   }
 
+  /// Computes [_minSpecificity] and [_maxSpecificity].
   void _computeSpecificity() {
-    if (type == PseudoType.element) {
+    if (isElement) {
       _minSpecificity = 1;
       _maxSpecificity = 1;
       return;
@@ -107,21 +136,13 @@ class PseudoSelector extends SimpleSelector {
   bool operator ==(other) =>
       other is PseudoSelector &&
       other.name == name &&
-      other.type == type &&
+      other.isClass == isClass &&
       other.argument == argument &&
       other.selector == selector;
 
   int get hashCode =>
-      name.hashCode ^ type.hashCode ^ argument.hashCode ^ selector.hashCode;
-}
-
-class PseudoType {
-  static const element = const PseudoType._("::");
-  static const klass = const PseudoType._(":");
-
-  final String _text;
-
-  const PseudoType._(this._text);
-
-  String toString() => _text;
+      name.hashCode ^
+      isElement.hashCode ^
+      argument.hashCode ^
+      selector.hashCode;
 }

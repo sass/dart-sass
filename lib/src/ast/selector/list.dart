@@ -195,7 +195,7 @@ class SelectorList extends Selector {
       if (suffix != null) {
         last = new CompoundSelector(
             last.components.take(last.components.length - 1).toList()
-              ..add(_addSuffix(last.components.last, suffix))
+              ..add(last.components.last.addSuffix(suffix))
               ..addAll(resolvedMembers.skip(1)));
       } else {
         last = new CompoundSelector(
@@ -207,32 +207,6 @@ class SelectorList extends Selector {
             ..add(last),
           lineBreak: complex.lineBreak);
     });
-  }
-
-  /// Returns a new [SimpleSelector] based on [simple], as though it had been
-  /// written with [suffix] at the end.
-  ///
-  /// Assumes [suffix] is a valid identifier suffix. If this wouldn't produce a
-  /// valid [SimpleSelector], throws an [InternalException].
-  SimpleSelector _addSuffix(SimpleSelector simple, String suffix) {
-    if (simple is ClassSelector) {
-      return new ClassSelector(simple.name + suffix);
-    } else if (simple is IDSelector) {
-      return new IDSelector(simple.name + suffix);
-    } else if (simple is PlaceholderSelector) {
-      return new PlaceholderSelector(simple.name + suffix);
-    } else if (simple is TypeSelector) {
-      return new TypeSelector(new QualifiedName(
-          simple.name.name + suffix,
-          namespace: simple.name.namespace));
-    } else if (simple is PseudoSelector &&
-        simple.argument == null &&
-        simple.selector == null) {
-      return new PseudoSelector(simple.name + suffix, simple.type);
-    }
-
-    throw new InternalException(
-        'Parent "$simple" is incompatible with this selector.');
   }
 
   /// Whether this is a superselector of [other].

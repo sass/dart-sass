@@ -5,6 +5,7 @@
 import 'utils.dart';
 import 'value.dart';
 
+/// A map from (lowercase) color names to their color values.
 final colorsByName = normalizedMap()
   ..addAll({
     'aliceblue': new SassColor.rgb(0xF0, 0xF8, 0xFF),

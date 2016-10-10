@@ -246,18 +246,18 @@ class SelectorParser extends Parser {
 
   PseudoSelector _pseudoSelector() {
     scanner.expectChar($colon);
-    var type = scanner.scanChar($colon) ? PseudoType.element : PseudoType.klass;
+    var element = scanner.scanChar($colon);
     var name = identifier();
 
     if (!scanner.scanChar($lparen)) {
-      return new PseudoSelector(name, type);
+      return new PseudoSelector(name, element: element);
     }
     whitespace();
 
     var unvendored = unvendor(name);
     String argument;
     SelectorList selector;
-    if (type == PseudoType.element) {
+    if (element) {
       argument = declarationValue();
     } else if (_selectorPseudoClasses.contains(unvendored)) {
       selector = _selectorList();
@@ -275,8 +275,8 @@ class SelectorParser extends Parser {
     }
     scanner.expectChar($rparen);
 
-    return new PseudoSelector(name, type,
-        argument: argument, selector: selector);
+    return new PseudoSelector(name,
+        element: element, argument: argument, selector: selector);
   }
 
   void _aNPlusB() {
@@ -337,8 +337,7 @@ class SelectorParser extends Parser {
       if (scanner.scanChar($asterisk)) {
         return new UniversalSelector(namespace: "");
       } else {
-        return new TypeSelector(
-            new QualifiedName(identifier(), namespace: ""));
+        return new TypeSelector(new QualifiedName(identifier(), namespace: ""));
       }
     }
 

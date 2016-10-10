@@ -6,6 +6,9 @@ import '../../extend/functions.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
+/// A type selector.
+///
+/// This selects elements whose name equals the given name.
 class TypeSelector extends SimpleSelector {
   final QualifiedName name;
 

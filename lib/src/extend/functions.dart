@@ -9,6 +9,10 @@ import 'package:collection/collection.dart';
 import '../ast/selector.dart';
 import '../utils.dart';
 
+/// Names of pseudo selectors that take selectors as arguments, and that are
+/// subselectors of their arguments.
+///
+/// For example, `.foo` is a superselector of `:matches(.foo)`.
 final _subselectorPseudos =
     new Set.from(['matches', 'any', 'nth-child', 'nth-last-child']);
 
@@ -381,8 +385,7 @@ bool _mustUnify(List<ComplexSelectorComponent> complex1,
 }
 
 bool _isUnique(SimpleSelector simple) =>
-    simple is IDSelector ||
-    (simple is PseudoSelector && simple.type == PseudoType.element);
+    simple is IDSelector || (simple is PseudoSelector && simple.isElement);
 
 List<List/*<T>*/ > _chunks/*<T>*/(
     Queue/*<T>*/ queue1, Queue/*<T>*/ queue2, bool done(Queue/*<T>*/ queue)) {
@@ -425,7 +428,7 @@ QueueList<List<ComplexSelectorComponent>> _groupSelectors(
 
 bool _hasRoot(CompoundSelector compound) => compound.components.any((simple) =>
     simple is PseudoSelector &&
-    simple.type == PseudoType.klass &&
+    simple.isClass &&
     simple.normalizedName == 'root');
 
 bool listIsSuperslector(
@@ -542,7 +545,7 @@ bool compoundIsSuperselector(
   // that [compound2] doesn't share.
   for (var simple2 in compound2.components) {
     if (simple2 is PseudoSelector &&
-        simple2.type == PseudoType.element &&
+        simple2.isElement &&
         !_simpleIsSuperselectorOfCompound(simple2, compound1)) {
       return false;
     }
@@ -637,6 +640,6 @@ Iterable<PseudoSelector> _selectorPseudosNamed(
         CompoundSelector compound, String name) =>
     compound.components.where((simple) =>
         simple is PseudoSelector &&
-        simple.type == PseudoType.klass &&
+        simple.isClass &&
         simple.selector != null &&
         simple.name == name);

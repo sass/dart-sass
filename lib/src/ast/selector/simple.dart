@@ -6,24 +6,55 @@ import '../../exception.dart';
 import '../../parse/selector.dart';
 import '../selector.dart';
 
+/// An abstract superclass for simple selectors.
 abstract class SimpleSelector extends Selector {
-  // 1000 is the base used for calculating selector specificity.
-  //
-  // The spec says this should be "sufficiently high"; it's extremely unlikely
-  // that any single selector sequence will contain 1,000 simple selectors.
+  /// The minimum possible specificity that this selector can have.
+  ///
+  /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
+  /// can have a range of possible specificities.
+  ///
+  /// Specifity is represented in base 1000. The spec says this should be
+  /// "sufficiently high"; it's extremely unlikely that any single selector
+  /// sequence will contain 1000 simple selectors.
   int get minSpecificity => 1000;
+
+  /// The maximum possible specificity that this selector can have.
+  ///
+  /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
+  /// can have a range of possible specificities.
   int get maxSpecificity => minSpecificity;
 
   SimpleSelector();
 
+  /// Parses a simple selector from [contents].
+  ///
+  /// If passed, [url] is the name of the file from which [contents] comes.
+  /// [allowParent] controls whether a [ParentSelector] is allowed in this
+  /// selector.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
   factory SimpleSelector.parse(String contents,
           {url, bool allowParent: true}) =>
       new SelectorParser(contents, url: url, allowParent: allowParent)
           .parseSimpleSelector();
 
+  /// Returns a new [SimpleSelector] based on [this], as though it had been
+  /// written with [suffix] at the end.
+  ///
+  /// Assumes [suffix] is a valid identifier suffix. If this wouldn't produce a
+  /// valid [SimpleSelector], throws an [InternalException].
   SimpleSelector addSuffix(String suffix) =>
       throw new InternalException('Invalid parent selector "$this"');
 
+  /// Returns the compoments of a [CompoundSelector] that matches only elements
+  /// matched by both this and [compound].
+  ///
+  /// By default, this just returns a copy of [compound] with this selector
+  /// added to the end, or returns the original array if this selector already
+  /// exists in it.
+  ///
+  /// Returns `null` if unification is impossible—for example, if there are
+  /// multiple ID selectors.
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.contains(this)) return compound;
 

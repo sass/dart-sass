@@ -75,10 +75,12 @@ Future<String> _loadVersion() async {
   var version = const String.fromEnvironment('version');
   if (version != null) return version;
 
-  var libDir = p.fromUri(
-      await Isolate.resolvePackageUri(Uri.parse('package:sass/')));
+  var libDir =
+      p.fromUri(await Isolate.resolvePackageUri(Uri.parse('package:sass/')));
   var pubspec = readFile(p.join(libDir, '..', 'pubspec.yaml'));
-  return pubspec.split("\n")
+  return pubspec
+      .split("\n")
       .firstWhere((line) => line.startsWith('version: '))
-      .split(" ").last;
+      .split(" ")
+      .last;
 }

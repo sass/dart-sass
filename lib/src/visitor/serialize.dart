@@ -464,7 +464,7 @@ class _SerializeCssVisitor
 
   void visitPseudoSelector(PseudoSelector pseudo) {
     _buffer.writeCharCode($colon);
-    if (pseudo.type == PseudoType.element) _buffer.writeCharCode($colon);
+    if (pseudo.isElement) _buffer.writeCharCode($colon);
     _buffer.write(pseudo.name);
     if (pseudo.argument == null && pseudo.selector == null) return;
 

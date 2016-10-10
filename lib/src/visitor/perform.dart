@@ -747,13 +747,13 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return _withStackFrame(callable.name + "()", invocation.span, () {
       return _withEnvironment(callable.environment, () {
         return _environment.scope(() {
-          _verifyArguments(
-              positional.length, named, callable.arguments, invocation.span);
+          _verifyArguments(positional.length, named,
+              callable.declaration.arguments, invocation.span);
 
           // TODO: if we get here and there are no rest params involved, mark
           // the callable as fast-path and don't do error checking or extra
           // allocations for future calls.
-          var declaredArguments = callable.arguments.arguments;
+          var declaredArguments = callable.declaration.arguments.arguments;
           var minLength = math.min(positional.length, declaredArguments.length);
           for (var i = 0; i < minLength; i++) {
             _environment.setVariable(declaredArguments[i].name, positional[i]);
@@ -768,7 +768,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
           }
 
           SassArgumentList argumentList;
-          if (callable.arguments.restArgument != null) {
+          if (callable.declaration.arguments.restArgument != null) {
             var rest = positional.length > declaredArguments.length
                 ? positional.sublist(declaredArguments.length)
                 : const <Value>[];
@@ -779,7 +779,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
                     ? ListSeparator.comma
                     : separator);
             _environment.setVariable(
-                callable.arguments.restArgument, argumentList);
+                callable.declaration.arguments.restArgument, argumentList);
           }
 
           var result = run();
