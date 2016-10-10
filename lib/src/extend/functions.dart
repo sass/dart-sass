@@ -2,6 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+/// This library contains utility functions related to extending selectors.
+///
+/// These functions aren't private methods on [Extender] because they also need
+/// to be accessible from elsewhere in the codebase. In addition, they aren't
+/// instance methods on other objects because their APIs aren't a good
+/// fit—usually because they deal with raw component lists rather than selector
+/// classes, to reduce allocations.
+
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
@@ -16,6 +24,10 @@ import '../utils.dart';
 final _subselectorPseudos =
     new Set.from(['matches', 'any', 'nth-child', 'nth-last-child']);
 
+/// Returns the contents of a [SelectorList] that matches only elements that are
+/// matched by both [complex1] and [complex2].
+///
+/// If no such list can be produced, returns `null`.
 List<List<ComplexSelectorComponent>> unifyComplex(
     List<ComplexSelectorComponent> complex1,
     List<ComplexSelectorComponent> complex2) {
@@ -34,6 +46,10 @@ List<List<ComplexSelectorComponent>> unifyComplex(
   }
 }
 
+/// Returns a [CompoundSelector] that matches only elements that are matched by
+/// both [compound1] and [compound2].
+///
+/// If no such selector can be produced, returns `null`.
 CompoundSelector unifyCompound(
     List<SimpleSelector> compound1, List<SimpleSelector> compound2) {
   var result = compound2;
@@ -45,6 +61,11 @@ CompoundSelector unifyCompound(
   return new CompoundSelector(result);
 }
 
+/// Returns a [SimpleSelector] that matches only elements that are matched by
+/// both [selector1] and [selector2], which must both be either
+/// [UniversalSelector]s or [TypeSelector]s.
+///
+/// If no such selector can be produced, returns `null`.
 SimpleSelector unifyUniversalAndElement(
     SimpleSelector selector1, SimpleSelector selector2) {
   String namespace1;
@@ -94,6 +115,13 @@ SimpleSelector unifyUniversalAndElement(
       : new TypeSelector(new QualifiedName(name, namespace: namespace));
 }
 
+/// Expands "parenthesized selectors" in [complexes].
+///
+/// That is, if we have `.A .B {@extend .C}` and `.D .C {...}`, this
+/// conceptually expands into `.D .C, .D (.A .B)`, and this function translates
+/// `.D (.A .B)` into `.D .A .B, .A .D .B`. For thoroughness, `.A.D .B` would
+/// also be required, but including merged selectors results in exponential
+/// output for very little gain.
 List<List<ComplexSelectorComponent>> weave(
     List<List<ComplexSelectorComponent>> complexes) {
   var prefixes = [complexes.first.toList()];
@@ -125,6 +153,19 @@ List<List<ComplexSelectorComponent>> weave(
   return prefixes;
 }
 
+/// Interweaves [parents1] and [parents2] as parents of the same target selector.
+///
+/// Returns all possible orderings of the selectors in the inputs (including
+/// using unification) that maintain the relative ordering of the input. For
+/// example, given `.foo .bar` and `.baz .bang`, this would return `.foo .bar
+/// .baz .bang`, `.foo .bar.baz .bang`, `.foo .baz .bar .bang`, `.foo .baz
+/// .bar.bang`, `.foo .baz .bang .bar`, and so on until `.baz .bang .foo .bar`.
+///
+/// Semantically, for selectors A and B, this returns all selectors `AB_i`
+/// such that the union over all i of elements matched by `AB_i X` is
+/// identical to the intersection of all elements matched by `A X` and all
+/// elements matched by `B X`. Some `AB_i` are elided to reduce the size of
+/// the output.
 List<List<ComplexSelectorComponent>> _weaveParents(
     List<ComplexSelectorComponent> parents1,
     List<ComplexSelectorComponent> parents2) {
@@ -188,6 +229,8 @@ List<List<ComplexSelectorComponent>> _weaveParents(
       .map((path) => path.expand((group) => group));
 }
 
+/// If the first element of [queue] has a `::root` selector, removes and returns
+/// that element.
 CompoundSelector _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
   var first = queue.first as CompoundSelector;
   if (!_hasRoot(first)) return null;
@@ -196,6 +239,11 @@ CompoundSelector _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
   return first;
 }
 
+/// Extracts leading [Combinator]s from [components1] and [components2] and
+/// merges them together into a single list of combinators.
+///
+/// If there are no combinators to be merged, returns an empty list. If the
+/// combinators can't be merged, returns `null`.
 List<Combinator> _mergeInitialCombinators(
     Queue<ComplexSelectorComponent> components1,
     Queue<ComplexSelectorComponent> components2) {
@@ -217,6 +265,11 @@ List<Combinator> _mergeInitialCombinators(
   return null;
 }
 
+/// Extracts trailing [Combinator]s, and the selectors to which they apply, from
+/// [components1] and [components2] and merges them together into a single list.
+///
+/// If there are no combinators to be merged, returns an empty list. If the
+/// sequences can't be merged, returns `null`.
 List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     Queue<ComplexSelectorComponent> components1,
     Queue<ComplexSelectorComponent> components2,
@@ -368,6 +421,11 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
   }
 }
 
+/// Returns whether [complex1] and [complex2] need to be unified to produce a
+/// valid combined selector.
+///
+/// This is necessary when both selectors contain the same unique simple
+/// selector, such as an ID.
 bool _mustUnify(List<ComplexSelectorComponent> complex1,
     List<ComplexSelectorComponent> complex2) {
   var uniqueSelectors = new Set<SimpleSelector>();
@@ -384,9 +442,22 @@ bool _mustUnify(List<ComplexSelectorComponent> complex1,
           (simple) => _isUnique(simple) && uniqueSelectors.contains(simple)));
 }
 
+/// Returns whether a [CompoundSelector] may contain only one simple selector of
+/// the same type as [simple].
 bool _isUnique(SimpleSelector simple) =>
     simple is IDSelector || (simple is PseudoSelector && simple.isElement);
 
+/// Returns all orderings of initial subseqeuences of [queue1] and [queue2].
+///
+/// The [done] callback is used to determine the extent of the initial
+/// subsequences. It's called with each queue until it returns `true`.
+///
+/// This destructively removes the initial subsequences of [queue1] and
+/// [queue2].
+///
+/// For example, given `(A B C | D E)` and `(1 2 | 3 4 5)` (with `|` denoting
+/// the boundary of the initial subsequence), this would return `[(A B C 1 2),
+/// (1 2 A B C)]`. The queues would then contain `(D E)` and `(3 4 5)`.
 List<List/*<T>*/ > _chunks/*<T>*/(
     Queue/*<T>*/ queue1, Queue/*<T>*/ queue2, bool done(Queue/*<T>*/ queue)) {
   var chunk1 = /*<T>*/ [];
@@ -405,12 +476,27 @@ List<List/*<T>*/ > _chunks/*<T>*/(
   return [chunk1.toList()..addAll(chunk2), chunk2..addAll(chunk1)];
 }
 
+/// Returns a list of all possible paths through the given lists.
+///
+/// For example, given `[[1, 2], [3, 4], [5]]`, this returns:
+///
+/// ```
+/// [[1, 3, 5],
+///  [2, 3, 5],
+///  [1, 4, 5],
+///  [2, 4, 5]]
+/// ```
 List<List/*<T>*/ > paths/*<T>*/(Iterable<List/*<T>*/ > choices) => choices.fold(
     [[]],
     (paths, choice) => choice
         .expand((option) => paths.map((path) => path.toList()..add(option)))
         .toList());
 
+/// Returns [complex], grouped into sub-lists such that no sub-list contains two
+/// adjacent [ComplexSelector]s.
+///
+/// For example, `(A B > C D + E ~ > G)` is grouped into
+/// `[(A) (B > C) (D + E ~ > G)]`.
 QueueList<List<ComplexSelectorComponent>> _groupSelectors(
     Iterable<ComplexSelectorComponent> complex) {
   var groups = new QueueList<List<ComplexSelectorComponent>>();
@@ -426,16 +512,27 @@ QueueList<List<ComplexSelectorComponent>> _groupSelectors(
   return groups;
 }
 
+/// Returns whether or not [compound] contains a `::root` selector.
 bool _hasRoot(CompoundSelector compound) => compound.components.any((simple) =>
     simple is PseudoSelector &&
     simple.isClass &&
     simple.normalizedName == 'root');
 
+/// Returns whether [list1] is a superselector of [list2].
+///
+/// That is, whether [list1] matches every element that [list2] matches, as well
+/// as possibly additional elements.
 bool listIsSuperslector(
         List<ComplexSelector> list1, List<ComplexSelector> list2) =>
     list2.every((complex1) =>
         list1.any((complex2) => complex2.isSuperselector(complex1)));
 
+/// Like [complexIsSuperselector], but compares [complex1] and [complex2] as
+/// though they shared an implicit base [SimpleSelector].
+///
+/// For example, `B` is not normally a superselector of `B A`, since it doesn't
+/// match elements that match `A`. However, it *is* a parent superselector,
+/// since `B X` is a superselector of `B A X`.
 bool complexIsParentSuperselector(List<ComplexSelectorComponent> complex1,
     List<ComplexSelectorComponent> complex2) {
   // Try some simple heuristics to see if we can avoid allocations.
@@ -450,6 +547,10 @@ bool complexIsParentSuperselector(List<ComplexSelectorComponent> complex1,
       complex1..toList().add(base), complex2..toList().add(base));
 }
 
+/// Returns whether [complex1] is a superselector of [complex2].
+///
+/// That is, whether [complex1] matches every element that [complex2] matches, as well
+/// as possibly additional elements.
 bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     List<ComplexSelectorComponent> complex2) {
   // Selectors with trailing operators are neither superselectors nor
@@ -525,6 +626,14 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
   }
 }
 
+/// Returns whether [compound1] is a superselector of [compound2].
+///
+/// That is, whether [compound1] matches every element that [compound2] matches, as well
+/// as possibly additional elements.
+///
+/// If [parents] is passed, it represents the parents of [compound2]. This is
+/// relevant for pseudo selectors with selector arguments, where we may need to
+/// know if the parent selectors in the selector argument match [parents].
 bool compoundIsSuperselector(
     CompoundSelector compound1, CompoundSelector compound2,
     {Iterable<ComplexSelectorComponent> parents}) {
@@ -554,6 +663,10 @@ bool compoundIsSuperselector(
   return true;
 }
 
+/// Returns whether [simple] is a superselector of [compound].
+///
+/// That is, whether [simple] matches every element that [compound] matches, as
+/// well as possibly additional elements.
 bool _simpleIsSuperselectorOfCompound(
     SimpleSelector simple, CompoundSelector compound) {
   return compound.components.any((theirSimple) {
@@ -574,6 +687,16 @@ bool _simpleIsSuperselectorOfCompound(
   });
 }
 
+/// Returns whether [pseudo1] is a superselector of [compound2].
+///
+/// That is, whether [pseudo1] matches every element that [compound2] matches, as well
+/// as possibly additional elements.
+///
+/// This assumes that [pseudo1]'s `selector` argument is not `null`.
+///
+/// If [parents] is passed, it represents the parents of [compound2]. This is
+/// relevant for pseudo selectors with selector arguments, where we may need to
+/// know if the parent selectors in the selector argument match [parents].
 bool _selectorPseudoIsSuperselector(
     PseudoSelector pseudo1, CompoundSelector compound2,
     {Iterable<ComplexSelectorComponent> parents}) {
@@ -636,6 +759,8 @@ bool _selectorPseudoIsSuperselector(
   }
 }
 
+/// Returns all pseudo selectors in [compound] that have a selector argument,
+/// and that have the given [name].
 Iterable<PseudoSelector> _selectorPseudosNamed(
         CompoundSelector compound, String name) =>
     compound.components.where((simple) =>

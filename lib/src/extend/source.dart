@@ -7,12 +7,16 @@ import 'package:source_span/source_span.dart';
 import '../ast/css.dart';
 import '../ast/selector.dart';
 
+/// The source of an `@extend` declaration.
 class ExtendSource {
+  /// The selector for the style rule in which this `@extend` was declared.
   final CssValue<SelectorList> extender;
 
+  /// The span for the `@extend` rule that declared this extension.
   final FileSpan span;
 
-  bool isUsed = false;
+  /// Whether this extension matched a selector, or was marked optional.
+  var isUsed = false;
 
   ExtendSource(this.extender, this.span);
 

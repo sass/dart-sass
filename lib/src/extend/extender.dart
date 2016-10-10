@@ -107,7 +107,7 @@ class Extender {
   /// provides the extend span and indicates whether the extension is optional.
   void addExtension(CssValue<SelectorList> extender, SimpleSelector target,
       ExtendRule extend) {
-    var source = new ExtendSource(extender, target, extend.span);
+    var source = new ExtendSource(extender, extend.span);
     source.isUsed = extend.isOptional;
     _extensions.putIfAbsent(target, () => new Set()).add(source);
 

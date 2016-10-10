@@ -9,12 +9,29 @@ import '../ast/sass.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
 
+/// A parser for the indented syntax.
 class SassParser extends StylesheetParser {
+  /// The indentation level at the current scanner position.
   int get currentIndentation => _currentIndentation;
   var _currentIndentation = 0;
 
+  /// The indentation level of the next source line after the scanner's
+  /// position, or `null` if that hasn't been computed yet.
+  ///
+  /// A source line is any line that's not entirely whitespace.
   int _nextIndentation;
+
+  /// The beginning of the next source line after the scanner's position, or
+  /// `null` if that hasn't been computed yet.
+  ///
+  /// A source line is any line that's not entirely whitespace.
   LineScannerState _nextIndentationEnd;
+
+  /// Whether the document is indented using spaces or tabs.
+  ///
+  /// If this is `true`, the document is indented using spaces. If it's `false`,
+  /// the document is indented using tabs. If it's `null`, we haven't yet seen
+  /// the indentation character used by the document.
   bool _spaces;
 
   bool get indented => true;

@@ -7,6 +7,7 @@ import 'package:charcode/charcode.dart';
 import '../ast/sass.dart';
 import 'parser.dart';
 
+/// A parser for `@at-root` queries.
 class AtRootQueryParser extends Parser {
   AtRootQueryParser(String contents, {url}) : super(contents, url: url);
 

@@ -6,13 +6,23 @@ import 'package:source_span/source_span.dart';
 
 import 'ast/sass.dart';
 
+/// A buffer that iteratively builds up an [Interpolation].
+///
+/// Add text using [write] and related methods, and [Expression]s using [add].
+/// Once that's done, call [interpolation] to build the result.
 class InterpolationBuffer implements StringSink {
+  /// The buffer that accumulates plain text.
   final _text = new StringBuffer();
 
+  /// The contents of the [Interpolation] so far.
+  ///
+  /// This contains [String]s and [Expression]s.
   final _contents = [];
 
+  /// Returns whether this buffer has no contents.
   bool get isEmpty => _contents.isEmpty && _text.isEmpty;
 
+  /// Empties this buffer.
   void clear() {
     _contents.clear();
     _text.clear();
@@ -24,19 +34,21 @@ class InterpolationBuffer implements StringSink {
   void writeCharCode(int character) => _text.writeCharCode(character);
   void writeln([Object obj = '']) => _text.writeln(obj);
 
+  /// Adds [expression] to this buffer.
   void add(Expression expression) {
     _flushText();
     _contents.add(expression);
   }
 
-  void addInterpolation(Interpolation expression) {
-    if (expression.contents.isEmpty) return;
+  /// Adds the contents of [interpolation] to this buffer.
+  void addInterpolation(Interpolation interpolation) {
+    if (interpolation.contents.isEmpty) return;
 
-    var toAdd = expression.contents;
-    var first = expression.contents.first;
+    var toAdd = interpolation.contents;
+    var first = interpolation.contents.first;
     if (first is String) {
       _text.write(first);
-      toAdd = expression.contents.skip(1);
+      toAdd = interpolation.contents.skip(1);
     }
 
     _flushText();
@@ -44,13 +56,16 @@ class InterpolationBuffer implements StringSink {
     if (_contents.last is String) _text.write(_contents.removeLast());
   }
 
+  /// Flushes [_text] to [_contents] if necessary.
   void _flushText() {
     if (_text.isEmpty) return;
     _contents.add(_text.toString());
     _text.clear();
   }
 
-  Interpolation interpolation([FileSpan span]) {
+  /// Creates an [Interpolation] with the given [span] from the contents of this
+  /// buffer.
+  Interpolation interpolation(FileSpan span) {
     var contents = _contents.toList();
     if (_text.isNotEmpty) contents.add(_text.toString());
     return new Interpolation(contents, span);

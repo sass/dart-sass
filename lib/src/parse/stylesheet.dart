@@ -1553,7 +1553,7 @@ abstract class StylesheetParser extends Parser {
 
         case $slash:
           var commentStart = scanner.position;
-          if (comment()) {
+          if (scanComment()) {
             buffer.write(scanner.substring(commentStart));
           } else {
             buffer.write(scanner.readChar());

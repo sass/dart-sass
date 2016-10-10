@@ -15,8 +15,11 @@ import 'utils.dart';
 import 'value.dart';
 import 'visitor/serialize.dart';
 
+/// A regular expression matching the beginning of a proprietary Microsoft
+/// filter declaration.
 final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
 
+/// Feature names supported by Dart sass.
 final _features = new Set.from([
   "global-variable-shadowing",
   "extend-selector-pseudoclass",
@@ -25,11 +28,13 @@ final _features = new Set.from([
   "custom-property"
 ]);
 
+/// A random number generator.
 final _random = new math.Random();
 
 // We use base-36 so we can use the (26-character) alphabet and all digits.
 var _uniqueID = _random.nextInt(math.pow(36, 6));
 
+/// Adds all core-library function definitions to [environment].
 void defineCoreFunctions(Environment environment) {
   // ## Colors
   // ### RGB
@@ -888,6 +893,14 @@ void defineCoreFunctions(Environment environment) {
   });
 }
 
+/// Asserts that [number] is a percentage or has no units, and normalizes the
+/// value.
+///
+/// If [number] has no units, its value is clamped to be greater than `0` or
+/// less than [max] and returned. If [number] is a percentage, it's scaled to be
+/// within `0` and [max]. Otherwise, this throws an [InternalException].
+///
+/// [name] is used to identify the argument in the error message.
 num _percentageOrUnitless(SassNumber number, num max, String name) {
   num value;
   if (!number.hasUnits) {
@@ -902,6 +915,7 @@ num _percentageOrUnitless(SassNumber number, num max, String name) {
   return value.clamp(0, max);
 }
 
+/// Returns [color1] and [color2], mixed together and weighted by [weight].
 SassColor _mix(SassColor color1, SassColor color2, SassNumber weight) {
   // This algorithm factors in both the user-provided weight (w) and the
   // difference between the alpha values of the two colors (a) to decide how
@@ -941,6 +955,7 @@ SassColor _mix(SassColor color1, SassColor color2, SassNumber weight) {
       color1.alpha * weightScale + color2.alpha * (1 - weightScale));
 }
 
+/// The definition of the `opacify()` and `fade-in()` functions.
 SassColor _opacify(List<Value> arguments) {
   var color = arguments[0].assertColor("color");
   var amount = arguments[1].assertNumber("amount");
@@ -948,6 +963,7 @@ SassColor _opacify(List<Value> arguments) {
   return color.changeAlpha(color.alpha + amount.valueInRange(0, 1, "amount"));
 }
 
+/// The definition of the `transparentize()` and `fade-out()` functions.
 SassColor _transparentize(List<Value> arguments) {
   var color = arguments[0].assertColor("color");
   var amount = arguments[1].assertNumber("amount");
@@ -955,12 +971,20 @@ SassColor _transparentize(List<Value> arguments) {
   return color.changeAlpha(color.alpha - amount.valueInRange(0, 1, "amount"));
 }
 
+/// Converts a Sass string index into a codepoint index into a string whose
+/// [String.runes] has length [lengthInCodepoints].
+///
+/// A Sass string index is one-based, and uses negative numbers to refer count
+/// backwards from the end of the string. A codepoint index is an index into
+/// [String.runes].
 int _codepointForIndex(int index, int lengthInCodepoints) {
   if (index == 0) return 0;
   if (index > 0) return math.min(index - 1, lengthInCodepoints);
   return math.max(lengthInCodepoints + index, 0);
 }
 
+/// Returns a [BuiltInCallable] named [name] that transforms a number's value
+/// using [transform] and preserves its units.
 BuiltInCallable _numberFunction(String name, num transform(num value)) {
   return new BuiltInCallable(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
@@ -970,6 +994,8 @@ BuiltInCallable _numberFunction(String name, num transform(num value)) {
   });
 }
 
+/// Adds a [ParentSelector] to the beginning of [compound], or returns `null` if
+/// that wouldn't produce a valid selector.
 CompoundSelector _prependParent(CompoundSelector compound) {
   var first = compound.components.first;
   if (first is UniversalSelector) return null;
