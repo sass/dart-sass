@@ -11,7 +11,6 @@ import 'stylesheet.dart';
 
 /// A parser for the indented syntax.
 class SassParser extends StylesheetParser {
-  /// The indentation level at the current scanner position.
   int get currentIndentation => _currentIndentation;
   var _currentIndentation = 0;
 
@@ -87,6 +86,11 @@ class SassParser extends StylesheetParser {
     return statements;
   }
 
+  /// Consumes a child of the current statement.
+  ///
+  /// This consumes children that are allowed at all levels of the document; the
+  /// [child] parameter is called to consume any children that are specifically
+  /// allowed in the caller's context.
   Statement _child(Statement child()) {
     switch (scanner.peekChar()) {
       case $dollar:
@@ -113,6 +117,7 @@ class SassParser extends StylesheetParser {
     }
   }
 
+  /// Consumes an indented-style silent comment.
   Comment _silentComment() {
     var start = scanner.state;
     scanner.expect("//");
@@ -141,6 +146,7 @@ class SassParser extends StylesheetParser {
         silent: true);
   }
 
+  /// Consumes an indented-style loud context.
   Comment _loudComment() {
     var start = scanner.state;
     scanner.expect("/*");
@@ -173,8 +179,9 @@ class SassParser extends StylesheetParser {
         silent: false);
   }
 
-  // Doesn't consume newlines, doesn't support comments.
   void whitespace() {
+    // This overrides whitespace consumption so that it doesn't consume newlines
+    // or loud comments.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
       if (next != $tab && next != $space) break;
@@ -186,6 +193,8 @@ class SassParser extends StylesheetParser {
     }
   }
 
+  /// As long as the scanner's position is indented beneath the starting line,
+  /// runs [body] to consume the next statement.
   void _whileIndentedLower(void body()) {
     var parentIndentation = currentIndentation;
     int childIndentation;
@@ -203,6 +212,8 @@ class SassParser extends StylesheetParser {
     }
   }
 
+  /// Consumes indentation whitespace and returns the indentation level of the
+  /// next line.
   int _readIndentation() {
     if (_nextIndentation == null) _peekIndentation();
     _currentIndentation = _nextIndentation;
@@ -212,6 +223,7 @@ class SassParser extends StylesheetParser {
     return currentIndentation;
   }
 
+  /// Returns the indentation level of the next line.
   int _peekIndentation() {
     if (_nextIndentation != null) return _nextIndentation;
 
@@ -262,6 +274,10 @@ class SassParser extends StylesheetParser {
     return _nextIndentation;
   }
 
+  /// Ensures that the document uses consistent characters for indentation.
+  ///
+  /// The [containsTab] and [containsSpace] parameters refer to a single line of
+  /// indentation that has just been parsed.
   void _checkIndentationConsistency(bool containsTab, bool containsSpace) {
     if (containsTab) {
       if (containsSpace) {

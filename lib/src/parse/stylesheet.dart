@@ -29,20 +29,23 @@ import 'parser.dart';
 /// private, except where they have to be public for subclasses to refer to
 /// them.
 abstract class StylesheetParser extends Parser {
+  /// Whether the parser is currently parsing the contents of a mixin
+  /// declaration.
   var _inMixin = false;
 
-  var _inContentBlock = false;
-
-  var _inControlDirective = false;
-
+  /// Whether the current mixin contains at least one `@content` rule.
+  ///
+  /// This is `null` unless [_inMixin] is `true`.
   bool _mixinHasContent;
 
-  StylesheetParser(String contents, {url}) : super(contents, url: url);
+  /// Whether the parser is currently parsing a content block passed to a mixin.
+  var _inContentBlock = false;
 
-  // Conventions:
-  //
-  // * All statement functions consume through following whitespace, including
-  //   comments. No other functions do so unless explicitly specified.
+  /// Whether the parser is currently parsing a control directive such as `@if`
+  /// or `@each`.
+  var _inControlDirective = false;
+
+  StylesheetParser(String contents, {url}) : super(contents, url: url);
 
   // ## Statements
 
@@ -63,11 +66,13 @@ abstract class StylesheetParser extends Parser {
     });
   }
 
+  /// Consumes a statement that's allowed at the top level of the stylesheet.
   Statement _topLevelStatement() {
     if (scanner.peekChar() == $at) return _atRule(_topLevelStatement);
     return _styleRule();
   }
 
+  /// Consumes a variable declaration.
   VariableDeclaration variableDeclaration() {
     var start = scanner.state;
     var name = variableName();
@@ -98,6 +103,7 @@ abstract class StylesheetParser extends Parser {
         guarded: guarded, global: global);
   }
 
+  /// Consumes a style rule.
   StyleRule _styleRule() {
     var start = scanner.state;
     var selector = _almostAnyValue();
@@ -105,21 +111,13 @@ abstract class StylesheetParser extends Parser {
     return new StyleRule(selector, children, scanner.spanFrom(start));
   }
 
+  /// Consumes a statement that's allowed within a style rule.
   Statement _ruleChild() {
     if (scanner.peekChar() == $at) return _atRule(_ruleChild);
     return _declarationOrStyleRule();
   }
 
-  Expression _declarationExpression() {
-    if (lookingAtChildren()) {
-      return new StringExpression(new Interpolation([], scanner.emptySpan),
-          quotes: true);
-    }
-
-    return _expression();
-  }
-
-  /// Parses a [Declaration] or a [StyleRule].
+  /// Consumes a [Declaration] or a [StyleRule].
   ///
   /// When parsing the contents of a style rule, it can be difficult to tell
   /// declarations apart from nested style rules. Since we don't thoroughly
@@ -251,6 +249,11 @@ abstract class StylesheetParser extends Parser {
         children: lookingAtChildren() ? children(_declarationChild) : null);
   }
 
+  /// Consumes a property declaration.
+  ///
+  /// This is only used in contexts where declarations are allowed but style
+  /// rules are not, such as nested declarations. Otherwise,
+  /// [_declarationOrStyleRule] is used instead.
   Declaration _declaration() {
     var start = scanner.state;
     var name = _interpolatedIdentifier();
@@ -269,6 +272,20 @@ abstract class StylesheetParser extends Parser {
         children: lookingAtChildren() ? children(_declarationChild) : null);
   }
 
+  /// Consumes an expression after a property declaration.
+  ///
+  /// This parses an empty identifier expression if the declaration has no value
+  /// but has children.
+  Expression _declarationExpression() {
+    if (lookingAtChildren()) {
+      return new StringExpression(new Interpolation([], scanner.emptySpan),
+          quotes: true);
+    }
+
+    return _expression();
+  }
+
+  /// Consumes a statement that's allowed within a declaration.
   Statement _declarationChild() {
     if (scanner.peekChar() == $at) return _declarationAtRule();
     return _declaration();
@@ -276,6 +293,11 @@ abstract class StylesheetParser extends Parser {
 
   // ## At Rules
 
+  /// Consumes an at-rule.
+  ///
+  /// This consumes at-rules that are allowed at all levels of the document; the
+  /// [child] parameter is called to consume any at-rules that are specifically
+  /// allowed in the caller's context.
   Statement _atRule(Statement child()) {
     var start = scanner.state;
     var name = _atRuleName();
@@ -322,6 +344,7 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
+  /// Consumes an at-rule allowed within a property declaration.
   Statement _declarationAtRule() {
     var start = scanner.state;
     var name = _atRuleName();
@@ -352,6 +375,7 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
+  /// Consumes an at-rule allowed within a function.
   Statement _functionAtRule() {
     var start = scanner.state;
     switch (_atRuleName()) {
@@ -378,6 +402,7 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
+  /// Consumes an at-rule's name.
   String _atRuleName() {
     scanner.expectChar($at);
     var name = identifier();
@@ -385,6 +410,9 @@ abstract class StylesheetParser extends Parser {
     return name;
   }
 
+  /// Consumes an `@at-root` rule.
+  ///
+  /// [start] should point before the `@`.
   AtRootRule _atRootRule(LineScannerState start) {
     var next = scanner.peekChar();
     var query = next == $hash || next == $lparen ? _queryExpression() : null;
@@ -393,6 +421,9 @@ abstract class StylesheetParser extends Parser {
         query: query);
   }
 
+  /// Consumes a `@content` rule.
+  ///
+  /// [start] should point before the `@`.
   ContentRule _contentRule(LineScannerState start) {
     if (_inMixin) {
       _mixinHasContent = true;
@@ -404,9 +435,16 @@ abstract class StylesheetParser extends Parser {
     return null;
   }
 
+  /// Consumes a `@debug` rule.
+  ///
+  /// [start] should point before the `@`.
   DebugRule _debugRule(LineScannerState start) =>
       new DebugRule(_expression(), scanner.spanFrom(start));
 
+  /// Consumes an `@each` rule.
+  ///
+  /// [start] should point before the `@`. [child] is called to consume any
+  /// children that are specifically allowed in the caller's context.
   EachRule _eachRule(LineScannerState start, Statement child()) {
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
@@ -429,9 +467,15 @@ abstract class StylesheetParser extends Parser {
     return new EachRule(variables, list, children, scanner.spanFrom(start));
   }
 
+  /// Consumes an `@error` rule.
+  ///
+  /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) =>
       new ErrorRule(_expression(), scanner.spanFrom(start));
 
+  /// Consumes an `@extend` rule.
+  ///
+  /// [start] should point before the `@`.
   ExtendRule _extendRule(LineScannerState start) {
     var value = _almostAnyValue();
     var optional = scanner.scanChar($exclamation);
@@ -439,6 +483,9 @@ abstract class StylesheetParser extends Parser {
     return new ExtendRule(value, scanner.spanFrom(start), optional: optional);
   }
 
+  /// Consumes a function declaration.
+  ///
+  /// [start] should point before the `@`.
   FunctionRule _functionRule(LineScannerState start) {
     var name = identifier();
     whitespace();
@@ -457,6 +504,10 @@ abstract class StylesheetParser extends Parser {
     return new FunctionRule(name, arguments, children, scanner.spanFrom(start));
   }
 
+  /// Consumes a `@for` rule.
+  ///
+  /// [start] should point before the `@`. [child] is called to consume any
+  /// children that are specifically allowed in the caller's context.
   ForRule _forRule(LineScannerState start, Statement child()) {
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
@@ -491,6 +542,10 @@ abstract class StylesheetParser extends Parser {
         exclusive: exclusive);
   }
 
+  /// Consumes an `@if` rule.
+  ///
+  /// [start] should point before the `@`. [child] is called to consume any
+  /// children that are specifically allowed in the caller's context.
   IfRule _ifRule(LineScannerState start, Statement child()) {
     var ifIndentation = currentIndentation;
     var wasInControlDirective = _inControlDirective;
@@ -516,6 +571,9 @@ abstract class StylesheetParser extends Parser {
     return new IfRule(clauses, scanner.spanFrom(start), lastClause: lastClause);
   }
 
+  /// Consumes an `@import` rule.
+  ///
+  /// [start] should point before the `@`.
   Statement _importRule(LineScannerState start) {
     if (_inControlDirective) {
       _disallowedAtRule(start);
@@ -547,6 +605,7 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
+  /// Returns whether [url] indicates that an `@import` is a plain CSS import.
   bool _isPlainImportUrl(String url) {
     if (url.length < "//".length) return false;
 
@@ -556,6 +615,9 @@ abstract class StylesheetParser extends Parser {
     return url.startsWith("http://") || url.startsWith("https://");
   }
 
+  /// Consumes an `@include` rule.
+  ///
+  /// [start] should point before the `@`.
   IncludeRule _includeRule(LineScannerState start) {
     var name = identifier();
     whitespace();
@@ -575,9 +637,15 @@ abstract class StylesheetParser extends Parser {
         children: children);
   }
 
+  /// Consumes a `@media` rule.
+  ///
+  /// [start] should point before the `@`.
   MediaRule _mediaRule(LineScannerState start) => new MediaRule(
       _mediaQueryList(), children(_ruleChild), scanner.spanFrom(start));
 
+  /// Consumes a mixin declaration.
+  ///
+  /// [start] should point before the `@`.
   MixinRule _mixinRule(LineScannerState start) {
     var name = identifier();
     whitespace();
@@ -597,14 +665,21 @@ abstract class StylesheetParser extends Parser {
     _mixinHasContent = false;
     var children = this.children(_ruleChild);
     _inMixin = false;
+    _mixinHasContent = null;
 
     return new MixinRule(name, arguments, children, scanner.spanFrom(start),
         hasContent: _mixinHasContent);
   }
 
+  /// Consumes a `@return` rule.
+  ///
+  /// [start] should point before the `@`.
   ReturnRule _returnRule(LineScannerState start) =>
       new ReturnRule(_expression(), scanner.spanFrom(start));
 
+  /// Consumes a `@supports` rule.
+  ///
+  /// [start] should point before the `@`.
   SupportsRule _supportsRule(LineScannerState start) {
     var condition = _supportsCondition();
     whitespace();
@@ -612,9 +687,16 @@ abstract class StylesheetParser extends Parser {
         condition, children(_ruleChild), scanner.spanFrom(start));
   }
 
+  /// Consumes a `@warn` rule.
+  ///
+  /// [start] should point before the `@`.
   WarnRule _warnRule(LineScannerState start) =>
       new WarnRule(_expression(), scanner.spanFrom(start));
 
+  /// Consumes a `@while` rule.
+  ///
+  /// [start] should point before the `@`. [child] is called to consume any
+  /// children that are specifically allowed in the caller's context.
   WhileRule _whileRule(LineScannerState start, Statement child()) {
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
@@ -624,6 +706,9 @@ abstract class StylesheetParser extends Parser {
     return new WhileRule(expression, children, scanner.spanFrom(start));
   }
 
+  /// Consumes an at-rule that's not explicitly supported by Sass.
+  ///
+  /// [start] should point before the `@`. [name] is the name of the at-rule.
   AtRule _unknownAtRule(LineScannerState start, String name) {
     Interpolation value;
     var next = scanner.peekChar();
@@ -634,7 +719,11 @@ abstract class StylesheetParser extends Parser {
         children: lookingAtChildren() ? children(_ruleChild) : null);
   }
 
-  // This returns [Statement] so that it can be returned within case statements.
+  /// Throws a [StringScannerException] indicating that the at-rule starting at
+  /// [start] is not allowed in the current context.
+  ///
+  /// This declares a return type of [Statement] so that it can be returned
+  /// within case statements.
   Statement _disallowedAtRule(LineScannerState start) {
     _almostAnyValue();
     scanner.error("This at-rule is not allowed here.",
@@ -643,6 +732,7 @@ abstract class StylesheetParser extends Parser {
     return null;
   }
 
+  /// Consumes an argument declaration.
   ArgumentDeclaration _argumentDeclaration() {
     var start = scanner.state;
     scanner.expectChar($lparen);
@@ -684,6 +774,7 @@ abstract class StylesheetParser extends Parser {
 
   // ## Expressions
 
+  /// Consumes an argument invocation.
   ArgumentInvocation _argumentInvocation() {
     var start = scanner.state;
     scanner.expectChar($lparen);
@@ -731,6 +822,11 @@ abstract class StylesheetParser extends Parser {
         rest: rest, keywordRest: keywordRest);
   }
 
+  /// Consumes an expression.
+  ///
+  /// If [until] is passed, it's called each time the expression could end and
+  /// still be a valid expression. When it returns `true`, this returns the
+  /// expression.
   Expression _expression({bool until()}) {
     if (until != null && until()) scanner.error("Expected expression.");
 
@@ -1001,10 +1097,11 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
+  /// Consumes an expression until it reaches a top-level comma.
   Expression _expressionUntilComma() =>
       _expression(until: () => scanner.peekChar() == $comma);
 
-  // non-list expression
+  /// Consumes an expression that doesn't contain any top-level whitespace.
   Expression _singleExpression() {
     var first = scanner.peekChar();
     switch (first) {
@@ -1113,6 +1210,7 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
+  /// Consumes a bracketed list.
   ListExpression _bracketedList() {
     var start = scanner.state;
     scanner.expectChar($lbracket);
@@ -1129,6 +1227,7 @@ abstract class StylesheetParser extends Parser {
         brackets: true, span: scanner.spanFrom(start));
   }
 
+  /// Parse a parenthesized expression.
   Expression _parentheses() {
     var start = scanner.state;
     scanner.expectChar($lparen);
@@ -1991,6 +2090,10 @@ abstract class StylesheetParser extends Parser {
 
   bool get indented;
 
+  /// The indentation level at the current scanner position.
+  ///
+  /// This value isn't used directly by [StylesheetParser]; it's just passed to
+  /// [scanElse].
   int get currentIndentation;
 
   bool atEndOfStatement();

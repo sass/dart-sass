@@ -9,13 +9,13 @@ import '../util/character.dart';
 import '../utils.dart';
 import 'parser.dart';
 
+/// Pseudo-class selectors that take unadorned selectors as arguments.
 final _selectorPseudoClasses = new Set.from(
     ["not", "matches", "current", "any", "has", "host", "host-context"]);
 
-final _prefixedSelectorPseudoClasses =
-    new Set.from(["nth-child", "nth-last-child"]);
-
+/// A parser for selectors.
 class SelectorParser extends Parser {
+  /// Whether this parser allows the parent selector `&`.
   final bool _allowParent;
 
   SelectorParser(String contents, {url, bool allowParent: true})
@@ -46,6 +46,7 @@ class SelectorParser extends Parser {
     });
   }
 
+  /// Consumes a selector list.
   SelectorList _selectorList() {
     var components = <ComplexSelector>[];
 
@@ -65,6 +66,10 @@ class SelectorParser extends Parser {
     return new SelectorList(components);
   }
 
+  /// Consumes a complex selector.
+  ///
+  /// If [lineBreak] is `true`, that indicates that there was a line break
+  /// before this selector.
   ComplexSelector _complexSelector({bool lineBreak: false}) {
     var components = <ComplexSelectorComponent>[];
 
@@ -113,6 +118,7 @@ class SelectorParser extends Parser {
     return new ComplexSelector(components, lineBreak: lineBreak);
   }
 
+  /// Consumes a compound selector.
   CompoundSelector _compoundSelector() {
     var components = <SimpleSelector>[_simpleSelector()];
 
@@ -124,6 +130,10 @@ class SelectorParser extends Parser {
     return new CompoundSelector(components);
   }
 
+  /// Consumes a simple selector.
+  ///
+  /// If [allowParent] is passed, it controls whether the parent selector `&` is
+  /// allowed. Otherwise, it defaults to [_allowParent].
   SimpleSelector _simpleSelector({bool allowParent}) {
     allowParent ??= _allowParent;
     switch (scanner.peekChar()) {
@@ -146,6 +156,7 @@ class SelectorParser extends Parser {
     }
   }
 
+  /// Consumes an attribute selector.
   AttributeSelector _attributeSelector() {
     scanner.expectChar($lbracket);
     whitespace();
@@ -170,6 +181,7 @@ class SelectorParser extends Parser {
     return new AttributeSelector.withOperator(name, operator, value);
   }
 
+  /// Consumes a qualified name as part of an attribute selector.
   QualifiedName _attributeName() {
     if (scanner.scanChar($asterisk)) {
       scanner.expectChar($pipe);
@@ -185,6 +197,7 @@ class SelectorParser extends Parser {
     return new QualifiedName(identifier(), namespace: nameOrNamespace);
   }
 
+  /// Consumes an attribute selector's operator.
   AttributeOperator _attributeOperator() {
     var start = scanner.state;
     switch (scanner.readChar()) {
@@ -217,24 +230,28 @@ class SelectorParser extends Parser {
     }
   }
 
+  /// Consumes a class selector.
   ClassSelector _classSelector() {
     scanner.expectChar($dot);
     var name = identifier();
     return new ClassSelector(name);
   }
 
+  /// Consumes an ID selector.
   IDSelector _idSelector() {
     scanner.expectChar($hash);
     var name = identifier();
     return new IDSelector(name);
   }
 
+  /// Consumes a placeholder selector.
   PlaceholderSelector _placeholderSelector() {
     scanner.expectChar($percent);
     var name = identifier();
     return new PlaceholderSelector(name);
   }
 
+  /// Consumes a parent selector.
   ParentSelector _parentSelector() {
     scanner.expectChar($ampersand);
     var next = scanner.peekChar();
@@ -244,6 +261,7 @@ class SelectorParser extends Parser {
     return new ParentSelector(suffix: suffix);
   }
 
+  /// Consumes a pseudo selector.
   PseudoSelector _pseudoSelector() {
     scanner.expectChar($colon);
     var element = scanner.scanChar($colon);
@@ -261,7 +279,7 @@ class SelectorParser extends Parser {
       argument = declarationValue();
     } else if (_selectorPseudoClasses.contains(unvendored)) {
       selector = _selectorList();
-    } else if (_prefixedSelectorPseudoClasses.contains(unvendored)) {
+    } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
       argument = rawText(_aNPlusB);
       if (scanWhitespace()) {
         expectIdentifier("of", ignoreCase: true);
@@ -279,6 +297,9 @@ class SelectorParser extends Parser {
         element: element, argument: argument, selector: selector);
   }
 
+  /// Consumes an [`An+B` production][An+B].
+  ///
+  /// [An+B]: https://drafts.csswg.org/css-syntax-3/#anb-microsyntax
   void _aNPlusB() {
     switch (scanner.peekChar()) {
       case $e:
@@ -321,6 +342,9 @@ class SelectorParser extends Parser {
     }
   }
 
+  /// Consumes a type selector or a universal selector.
+  ///
+  /// These are combined because either one could start with `*`.
   SimpleSelector _typeOrUniversalSelector() {
     var first = scanner.peekChar();
     if (first == $asterisk) {

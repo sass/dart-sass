@@ -8,6 +8,7 @@ import '../ast/sass.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
 
+/// A parser for the CSS-compatible syntax.
 class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => null;
@@ -109,6 +110,7 @@ class ScssParser extends StylesheetParser {
     return statements;
   }
 
+  /// Consumes a statement-level silent comment block.
   Comment _silentComment() {
     var start = scanner.state;
     scanner.expect("//");
@@ -124,6 +126,7 @@ class ScssParser extends StylesheetParser {
         silent: true);
   }
 
+  /// Consumes a statement-level loud comment block.
   Comment _loudComment() {
     var start = scanner.state;
     scanner.expect("/*");
