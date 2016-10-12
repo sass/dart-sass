@@ -1227,7 +1227,7 @@ abstract class StylesheetParser extends Parser {
         brackets: true, span: scanner.spanFrom(start));
   }
 
-  /// Parse a parenthesized expression.
+  /// Consumes a parenthesized expression.
   Expression _parentheses() {
     var start = scanner.state;
     scanner.expectChar($lparen);
@@ -1263,6 +1263,11 @@ abstract class StylesheetParser extends Parser {
         span: scanner.spanFrom(start));
   }
 
+  /// Consumes a map expression.
+  ///
+  /// This expects to be called after the first colon in the map, with [first]
+  /// as the expression before the colon and [start] the point before the
+  /// opening parenthesis.
   MapExpression _map(Expression first, LineScannerState start) {
     var pairs = [new Tuple2(first, _expressionUntilComma())];
 
@@ -1281,17 +1286,76 @@ abstract class StylesheetParser extends Parser {
     return new MapExpression(pairs, scanner.spanFrom(start));
   }
 
+  /// Consumes an expression that starts with a `#`.
   Expression _hashExpression() {
     assert(scanner.peekChar() == $hash);
-    return scanner.peekChar(1) == $lbrace ? _identifierLike() : _hexColorOrID();
+    if (scanner.peekChar(1) == $lbrace) return _identifierLike();
+
+    var start = scanner.state;
+    scanner.expectChar($hash);
+
+    var first = scanner.peekChar();
+    if (first != null && isDigit(first)) {
+      return new ColorExpression(_hexColorContents(), scanner.spanFrom(start));
+    }
+
+    var afterHash = scanner.state;
+    var identifier = _interpolatedIdentifier();
+    if (_isHexColor(identifier)) {
+      scanner.state = afterHash;
+      return new ColorExpression(_hexColorContents(), scanner.spanFrom(start));
+    }
+
+    var buffer = new InterpolationBuffer();
+    buffer.writeCharCode($hash);
+    buffer.addInterpolation(identifier);
+    return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
   }
 
+  /// Consumes the contents of a hex color, after the `#`.
+  SassColor _hexColorContents() {
+    var red = _hexDigit();
+    var green = _hexDigit();
+    var blue = _hexDigit();
+
+    var next = scanner.peekChar();
+    if (next != null && isHex(next)) {
+      red = (red << 4) + green;
+      green = (blue << 4) + _hexDigit();
+      blue = (_hexDigit() << 4) + _hexDigit();
+    } else {
+      red = (red << 4) + red;
+      green = (green << 4) + green;
+      blue = (blue << 4) + blue;
+    }
+
+    return new SassColor.rgb(red, green, blue);
+  }
+
+  /// Returns whether [interpolation] is a plain string that can be parsed as a
+  /// hex color.
+  bool _isHexColor(Interpolation interpolation) {
+    var plain = interpolation.asPlain;
+    if (plain == null) return false;
+    if (plain.length != 3 && plain.length != 6) return false;
+    return plain.codeUnits.every(isHex);
+  }
+
+  // Consumes a single hexadecimal digit.
+  int _hexDigit() {
+    var char = scanner.peekChar();
+    if (char == null || !isHex(char)) scanner.error("Expected hex digit.");
+    return asHex(scanner.readChar());
+  }
+
+  /// Consumes an expression that starts with a `+`.
   Expression _plusExpression() {
     assert(scanner.peekChar() == $plus);
     var next = scanner.peekChar(1);
     return isDigit(next) || next == $dot ? _number() : _unaryOperation();
   }
 
+  /// Consumes an expression that starts with a `-`.
   Expression _minusExpression() {
     assert(scanner.peekChar() == $minus);
     var next = scanner.peekChar(1);
@@ -1300,6 +1364,7 @@ abstract class StylesheetParser extends Parser {
     return _unaryOperation();
   }
 
+  /// Consumes a unary operation expression.
   UnaryOperationExpression _unaryOperation() {
     var start = scanner.state;
     var operator = _unaryOperatorFor(scanner.readChar());
@@ -1313,6 +1378,8 @@ abstract class StylesheetParser extends Parser {
         operator, operand, scanner.spanFrom(start));
   }
 
+  /// Returns the unsary operator corresponding to [character], or `null` if
+  /// the character is not a unary operator.
   UnaryOperator _unaryOperatorFor(int character) {
     switch (character) {
       case $plus:
@@ -1326,6 +1393,7 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
+  /// Consumes a number expression.
   NumberExpression _number() {
     var start = scanner.state;
     var first = scanner.peekChar();
@@ -1379,17 +1447,20 @@ abstract class StylesheetParser extends Parser {
         unit: unit);
   }
 
+  /// Consumes a variable expression.
   VariableExpression _variable() {
     var start = scanner.state;
     return new VariableExpression(variableName(), scanner.spanFrom(start));
   }
 
+  /// Consumes a selector expression.
   SelectorExpression _selector() {
     var start = scanner.state;
     scanner.expectChar($ampersand);
     return new SelectorExpression(scanner.spanFrom(start));
   }
 
+  /// Consumes a quoted string expression.
   StringExpression interpolatedString() {
     // NOTE: this logic is largely duplicated in ScssParser.interpolatedString.
     // Most changes here should be mirrored there.
@@ -1429,60 +1500,6 @@ abstract class StylesheetParser extends Parser {
 
     return new StringExpression(buffer.interpolation(scanner.spanFrom(start)),
         quotes: true);
-  }
-
-  Expression _hexColorOrID() {
-    var start = scanner.state;
-    scanner.expectChar($hash);
-
-    var first = scanner.peekChar();
-    if (first != null && isDigit(first)) {
-      return new ColorExpression(_hexColorContents(), scanner.spanFrom(start));
-    }
-
-    var afterHash = scanner.state;
-    var identifier = _interpolatedIdentifier();
-    if (_isHexColor(identifier)) {
-      scanner.state = afterHash;
-      return new ColorExpression(_hexColorContents(), scanner.spanFrom(start));
-    }
-
-    var buffer = new InterpolationBuffer();
-    buffer.writeCharCode($hash);
-    buffer.addInterpolation(identifier);
-    return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
-  }
-
-  SassColor _hexColorContents() {
-    var red = _hexDigit();
-    var green = _hexDigit();
-    var blue = _hexDigit();
-
-    var next = scanner.peekChar();
-    if (next != null && isHex(next)) {
-      red = (red << 4) + green;
-      green = (blue << 4) + _hexDigit();
-      blue = (_hexDigit() << 4) + _hexDigit();
-    } else {
-      red = (red << 4) + red;
-      green = (green << 4) + green;
-      blue = (blue << 4) + blue;
-    }
-
-    return new SassColor.rgb(red, green, blue);
-  }
-
-  bool _isHexColor(Interpolation interpolation) {
-    var plain = interpolation.asPlain;
-    if (plain == null) return false;
-    if (plain.length != 3 && plain.length != 6) return false;
-    return plain.codeUnits.every(isHex);
-  }
-
-  int _hexDigit() {
-    var char = scanner.peekChar();
-    if (char == null || !isHex(char)) scanner.error("Expected hex digit.");
-    return asHex(scanner.readChar());
   }
 
   Expression _identifierLike() {
