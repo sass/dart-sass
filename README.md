@@ -7,7 +7,7 @@ Dart Sass isn't ready for distribution yet, but it's possible to test it out by
 running from source. This assumes you've already checked out this repository.
 
 1. [Install Dart](https://www.dartlang.org/install). If you download it
-  manually, make sure the SDK's `bin` directory is on your `PATH`.
+   manually, make sure the SDK's `bin` directory is on your `PATH`.
 
 2. In this repository, run `pub get`. This will install Dart Sass's
    dependencies.
