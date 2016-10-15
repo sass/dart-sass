@@ -6,8 +6,6 @@ import 'dart:io' as io;
 
 io.Stdout get stderr => io.stderr;
 
-List<String> getArguments(List<String> mainArguments) => mainArguments;
-
 String readFile(String path) => new io.File(path).readAsStringSync();
 
 bool fileExists(String path) => new io.File(path).existsSync();

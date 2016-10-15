@@ -1,0 +1,22 @@
+{
+  "name": "dart-sass",
+  "description": "A Dart implementation of Sass, compiled to JS.",
+  "license": "MIT",
+  "bugs": "https://github.com/sass/dart-sass/issues",
+  "homepage": "https://github.com/sass/dart-sass",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sass/dart-sass"
+  },
+  "author": {
+    "name": "Natalie Weizenbaum",
+    "email": "nweiz@google.com",
+    "url": "http://nex3.github.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "main": "sass.dart.js",
+  "bin": "sass.js",
+  "keywords": ["style", "scss", "sass", "preprocessor", "css"]
+}

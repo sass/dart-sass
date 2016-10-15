@@ -40,7 +40,7 @@ snapshot() {
   Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
 }
 
-@Task('Build packages for all OSes.')
+@Task('Build standalone packages for all OSes.')
 @Depends(snapshot)
 package() async {
   var client = new http.Client();
@@ -60,7 +60,29 @@ js() {
   Dart2js.compile(new File('bin/sass.dart'),
       outFile: destination, extraArgs: ['-Dnode=true', '-Dversion=$_version']);
   var text = destination.readAsStringSync();
-  destination.writeAsStringSync("${preamble.getPreamble()}\n$text");
+  destination.writeAsStringSync("""
+    ${preamble.getPreamble()}
+    global.exports = exports;
+    $text
+  """);
+}
+
+@Task('Build a pure-JS NPM package.')
+@Depends(js)
+npm_package() {
+  var dir = new Directory('build/npm');
+  dir.deleteSync(recursive: true);
+  dir.createSync(recursive: true);
+
+  log("copying package/package.json to build/npm");
+  var json = JSON.decode(
+      new File('package/package.json').readAsStringSync());
+  json['version'] = _version;
+  new File(p.join(dir.path, 'package.json'))
+      .writeAsStringSync(JSON.encode(json));
+
+  copy(new File('package/sass.js'), dir);
+  copy(new File('build/sass.dart.js'), dir);
 }
 
 /// Ensure that the `build/` directory exists.
@@ -113,7 +135,7 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
 
 /// Returns a shell script archive file for the given [os].
 ArchiveFile _scriptFor(String os) {
-  var contents = new File("script/sass.${os == 'windows' ? 'bat' : 'sh'}")
+  var contents = new File("package/sass.${os == 'windows' ? 'bat' : 'sh'}")
       .readAsStringSync()
       .replaceAll("SASS_VERSION", _version);
   var bytes = UTF8.encode(contents);

@@ -44,11 +44,5 @@ external _Stderr get _stderr;
 
 final stderr = new Stderr(_stderr);
 
-@JS("process.argv")
-external List<String> get _arguments;
-
-List<String> getArguments(List<String> mainArguments) =>
-    _arguments.skip(2).toList();
-
 @JS("process.exit")
 external int exit(int exitCode);

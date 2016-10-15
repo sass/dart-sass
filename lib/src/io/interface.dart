@@ -20,13 +20,6 @@ class Stderr {
 /// The standard error for the current process.
 Stderr get stderr => null;
 
-/// Returns the arguments for the current process.
-///
-/// If the arguments are available globally, the global value is returned.
-/// Otherwise, [mainArguments] (which should be the arguments passed to
-/// `main()`) is returned.
-List<String> getArguments(List<String> mainArguments) => null;
-
 /// Reads the file at [path].
 String readFile(String path) => null;
 
