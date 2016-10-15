@@ -16,6 +16,15 @@ import 'interface/css.dart';
 import 'interface/selector.dart';
 import 'interface/value.dart';
 
+/// Converts [node] to a CSS string.
+///
+/// If [style] is passed, it controls the style of the resulting CSS. It
+/// defaults to [OutputStyle.expanded].
+///
+/// If [inspect] is `true`, this will emit an unambiguous representation of the
+/// source structure. Note however that, although this will be valid SCSS, it
+/// may not be valid CSS. If [inspect] is `false` and [node] contains any values
+/// that can't be represented in plain CSS, throws a [SassException].
 String toCss(CssNode node, {OutputStyle style, bool inspect: false}) {
   var visitor = new _SerializeCssVisitor(style: style, inspect: inspect);
   node.accept(visitor);
@@ -29,26 +38,41 @@ String toCss(CssNode node, {OutputStyle style, bool inspect: false}) {
   return result.trim();
 }
 
-// Note: this may throw an [InternalException] if [inspect] is `false`.
+/// Converts [value] to a CSS string.
+///
+/// If [inspect] is `true`, this will emit an unambiguous representation of the
+/// source structure. Note however that, although this will be valid SCSS, it
+/// may not be valid CSS. If [inspect] is `false` and [value] can't be
+/// represented in plain CSS, throws an [InternalException].
 String valueToCss(Value value, {bool inspect: false}) {
   var visitor = new _SerializeCssVisitor(inspect: inspect);
   value.accept(visitor);
   return visitor._buffer.toString();
 }
 
-// Note: this may throw an [InternalException] if [inspect] is `false`.
+/// Converts [selector] to a CSS string.
+///
+/// If [inspect] is `true`, this will emit an unambiguous representation of the
+/// source structure. Note however that, although this will be valid SCSS, it
+/// may not be valid CSS. If [inspect] is `false` and [selector] can't be
+/// represented in plain CSS, throws an [InternalException].
 String selectorToCss(Selector selector, {bool inspect: false}) {
   var visitor = new _SerializeCssVisitor(inspect: inspect);
   selector.accept(visitor);
   return visitor._buffer.toString();
 }
 
+/// A visitor that converts CSS syntax trees to plain strings.
 class _SerializeCssVisitor
     implements CssVisitor, ValueVisitor, SelectorVisitor {
+  /// A buffer that contains the CSS produced so far.
   final _buffer = new StringBuffer();
 
+  /// The current indentation of the CSS output.
   var _indentation = 0;
 
+  /// Whether we're emitting an unambiguous representation of the source
+  /// structure, as opposed to valid CSS.
   final bool _inspect;
 
   _SerializeCssVisitor({OutputStyle style, bool inspect: false})
@@ -162,6 +186,9 @@ class _SerializeCssVisitor
     _buffer.writeCharCode($semicolon);
   }
 
+  /// Emits the value of [node] as a custom property value.
+  ///
+  /// This re-indents [node]'s value relative to the current indentation.
   void _writeCustomPropertyValue(CssDeclaration node) {
     var value = (node.value.value as SassString).text;
 
@@ -179,6 +206,8 @@ class _SerializeCssVisitor
     _writeWithIndent(value, minimumIndentation);
   }
 
+  /// Returns the indentation level of the least-indented, non-empty line in
+  /// [text].
   int _minimumIndentation(String text) {
     var scanner = new LineScanner(text);
     while (!scanner.isDone && scanner.readChar() != $lf) {}
@@ -195,6 +224,8 @@ class _SerializeCssVisitor
     return min;
   }
 
+  /// Writes [text] to [_buffer], adding [minimumIndentation] to each non-empty
+  /// line.
   void _writeWithIndent(String text, int minimumIndentation) {
     var scanner = new LineScanner(text);
     while (!scanner.isDone && scanner.peekChar() != $lf) {
@@ -213,6 +244,8 @@ class _SerializeCssVisitor
 
   // ## Values
 
+  /// Converts [value] to a plain CSS string, converting any
+  /// [InternalException]s to [SassException]s.
   void _visitValue(CssValue<Value> value) {
     try {
       value.value.accept(this);
@@ -238,7 +271,9 @@ class _SerializeCssVisitor
     }
   }
 
+  /// Emits [color] as a hex character pair.
   void _writeHexComponent(int color) {
+    assert(color < 0x100);
     _buffer.writeCharCode(hexCharFor(color >> 4));
     _buffer.writeCharCode(hexCharFor(color & 0xF));
   }
@@ -267,6 +302,8 @@ class _SerializeCssVisitor
     if (value.hasBrackets) _buffer.writeCharCode($rbracket);
   }
 
+  /// Returns whether [value] needs parentheses as an element in a list with the
+  /// given [separator].
   bool _elementNeedsParens(ListSeparator separator, Value value) {
     if (value is SassList) {
       if (value.contents.length < 2) return false;
@@ -289,6 +326,7 @@ class _SerializeCssVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  /// Writes [value] as key or value in a map, with parentheses as necessary.
   void _writeMapElement(Value value) {
     var needsParens = value is SassList &&
         value.separator == ListSeparator.comma &&
@@ -328,6 +366,11 @@ class _SerializeCssVisitor
     }
   }
 
+  /// Writes [string] to [_buffer].
+  ///
+  /// By default, this detects which type of quote to use based on the contents
+  /// of the string. If [forceDoubleQuote] is `true`, this always uses a double
+  /// quote.
   void _visitString(String string, {bool forceDoubleQuote: false}) {
     var includesSingleQuote = false;
     var includesDoubleQuote = false;
@@ -491,6 +534,7 @@ class _SerializeCssVisitor
 
   // ## Utilities
 
+  /// Emits [children] in a block.
   void _visitChildren(Iterable<CssNode> children) {
     _buffer.writeCharCode($lbrace);
     if (children.every(_isInvisible)) {
@@ -510,6 +554,7 @@ class _SerializeCssVisitor
     _buffer.writeCharCode($rbrace);
   }
 
+  /// Writes indentation based on [_indentation].
   void _writeIndentation() {
     for (var i = 0; i < _indentation; i++) {
       _buffer.writeCharCode($space);
@@ -517,6 +562,8 @@ class _SerializeCssVisitor
     }
   }
 
+  /// Calls [callback] to write each value in [iterable], and writes [text] in
+  /// between each one.
   void _writeBetween/*<T>*/(
       Iterable/*<T>*/ iterable, String text, void callback(/*=T*/ value)) {
     var first = true;
@@ -530,19 +577,23 @@ class _SerializeCssVisitor
     }
   }
 
+  /// Runs [callback] with indentation increased one level.
   void _indent(void callback()) {
     _indentation++;
     callback();
     _indentation--;
   }
 
+  /// Returns whether [node] is considered invisible.
   bool _isInvisible(CssNode node) => !_inspect && node.isInvisible;
 }
 
+/// An enum of generated CSS styles.
 class OutputStyle {
+  /// The standard CSS style, with each declaration on its own line.
   static const expanded = const OutputStyle._("expanded");
-  static const nested = const OutputStyle._("nested");
 
+  /// The name of the style.
   final String _name;
 
   const OutputStyle._(this._name);

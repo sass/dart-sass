@@ -145,13 +145,23 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     if (outerCopy != null) root.addChild(outerCopy);
-    _scopeForAtRule(innerCopy ?? root, query)(() {
+    _scopeForAtRoot(innerCopy ?? root, query)(() {
       for (var child in node.children) {
         child.accept(this);
       }
     });
   }
 
+  /// Destructively trims a trailing sublist that matches the current list of
+  /// parents from [nodes].
+  ///
+  /// [nodes] should be a list of parents included by an `@at-root` rule, from
+  /// innermost to outermost. If it contains a trailing sublist that's
+  /// contiguous—meaning that each node is a direct parent of the node before
+  /// it—and whose final node is a direct child of [_root], this removes that
+  /// sublist and returns the innermost removed parent.
+  ///
+  /// Otherwise, this leaves [nodes] as-is and returns [_root].
   CssParentNode _trimIncluded(List<CssParentNode> nodes) {
     var parent = _parent;
     int innermostContiguous;
@@ -171,7 +181,12 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return root;
   }
 
-  _ScopeCallback _scopeForAtRule(CssNode newParent, AtRootQuery query) {
+  /// Returns a [_ScopeCallback] for [query].
+  ///
+  /// This returns a callback that adjusts various instance variables for its
+  /// duration, based on which rules are excluded by [query]. It always assigns
+  /// [_parent] to [newParent].
+  _ScopeCallback _scopeForAtRoot(CssNode newParent, AtRootQuery query) {
     var scope = (callback()) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
@@ -260,6 +275,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }, semiGlobal: true);
   }
 
+  /// Destructures [value] and assigns it to [variables], as in an `@each`
+  /// statement.
   void _setMultipleVariables(List<String> variables, Value value) {
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
@@ -377,6 +394,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
+  /// Loads the [Stylesheet] imported by [node], or throws a
+  /// [SassRuntimeException] if loading fails.
   Stylesheet _loadImport(ImportRule node) {
     var path = _importPaths.putIfAbsent(node, () {
       var path = p.fromUri(node.url);
@@ -408,9 +427,14 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
+  /// Like [_tryImportPath], but checks both `.sass` and `.scss` extensions.
   String _tryImportPathWithExtensions(String path) =>
       _tryImportPath(path + '.sass') ?? _tryImportPath(path + '.scss');
 
+  /// If a file exists at [path], or a partial with the same name exists,
+  /// returns the resolved path.
+  ///
+  /// Otherwise, returns `null`.
   String _tryImportPath(String path) {
     var partial = p.join(p.dirname(path), "_${p.basename(path)}");
     if (fileExists(partial)) return partial;
@@ -484,6 +508,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }, through: (node) => node is CssStyleRule || node is CssMediaRule);
   }
 
+  /// Returns a list of queries that selects for platforms that match both
+  /// [queries1] and [queries2].
   List<CssMediaQuery> _mergeMediaQueries(
       Iterable<CssMediaQuery> queries1, Iterable<CssMediaQuery> queries2) {
     return new List.unmodifiable(queries1.expand/*<CssMediaQuery>*/((query1) {
@@ -491,6 +517,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }).where((query) => query != null));
   }
 
+  /// Evaluates [query] and converts it to a plain CSS query.
   CssMediaQuery _visitMediaQuery(MediaQuery query) {
     var modifier =
         query.modifier == null ? null : _interpolationToValue(query.modifier);
@@ -564,6 +591,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }, through: (node) => node is CssStyleRule);
   }
 
+  /// Evaluates [condition] and converts it to a plain CSS string.
   String _visitSupportsCondition(SupportsCondition condition) {
     if (condition is SupportsOperation) {
       return "${_parenthesize(condition.left, condition.operator)} "
@@ -581,6 +609,12 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
+  /// Evlauates [condition] and converts it to a plain CSS string, with
+  /// parentheses if necessary.
+  ///
+  /// If [operator] is passed, it's the operator for the surrounding
+  /// [SupportsOperation], and is used to determine whether parentheses are
+  /// necessary if [condition] is also a [SupportsOperation].
   String _parenthesize(SupportsCondition condition, [String operator]) {
     if ((condition is SupportsNegation) ||
         (condition is SupportsOperation &&
@@ -760,6 +794,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return new SassString("$name(${arguments.map(valueToCss).join(', ')})");
   }
 
+  /// Evaluates the arguments in [invocation] as applied to [callable], and
+  /// invokes [run] in a scope with those arguments defined.
   Value _runUserDefinedCallable(CallableInvocation invocation,
       UserDefinedCallable callable, Value run()) {
     var triple = _evaluateArguments(invocation);
@@ -819,6 +855,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
+  /// Evaluates [invocation] as applied to [callable], and invokes [callable]'s
+  /// body.
   Value _runBuiltInCallable(
       CallableInvocation invocation, BuiltInCallable callable) {
     var triple = _evaluateArguments(invocation);
@@ -881,6 +919,9 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         invocation.span);
   }
 
+  /// Evaluates the arguments in [invocation] and returns the positional and
+  /// named arguments, as well as the [ListSeparator] for the rest argument
+  /// list, if any.
   Tuple3<List<Value>, Map<String, Value>, ListSeparator> _evaluateArguments(
       CallableInvocation invocation) {
     var positional = invocation.arguments.positional
@@ -925,6 +966,11 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
+  /// Evaluates the arguments in [invocation] only as much as necessary to
+  /// separate out positional and named arguments.
+  ///
+  /// Returns the arguments as expressions so that they can be lazily evaluated
+  /// for macros such as `if()`.
   Tuple2<List<Expression>, Map<String, Expression>> _evaluateMacroArguments(
       CallableInvocation invocation) {
     if (invocation.arguments.rest == null) {
@@ -966,6 +1012,13 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
+  /// Adds the values in [map] to [values].
+  ///
+  /// Throws a [SassRuntimeException] associated with [span] if any [map] keys
+  /// aren't strings.
+  ///
+  /// If [convert] is passed, that's used to convert the map values to the value
+  /// type for [values]. Otherwise, the [Value]s are used as-is.
   void _addRestMap/*<T>*/(
       Map<String, Object/*=T*/ > values, SassMap map, FileSpan span,
       [/*=T*/ convert(Value value)]) {
@@ -982,6 +1035,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
+  /// Throws a [SassRuntimeException] if [positional] and [named] aren't valid
+  /// when applied to [arguments].
   void _verifyArguments(int positional, Map<String, dynamic> named,
       ArgumentDeclaration arguments, FileSpan span) {
     for (var i = 0; i < arguments.arguments.length; i++) {
@@ -1031,6 +1086,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   // ## Utilities
 
+  /// Runs [callback] with [environment] as the current environment.
   /*=T*/ _withEnvironment/*<T>*/(Environment environment, /*=T*/ callback()) {
     var oldEnvironment = _environment;
     _environment = environment;
@@ -1039,12 +1095,16 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return result;
   }
 
+  /// Evaluates [interpolation] and wraps the result in a [CssValue].
+  ///
+  /// If [trim] is `true`, removes whitespace around the result.
   CssValue<String> _interpolationToValue(Interpolation interpolation,
       {bool trim: false}) {
     var result = _performInterpolation(interpolation);
     return new CssValue(trim ? result.trim() : result, interpolation.span);
   }
 
+  /// Evaluates [interpolation].
   String _performInterpolation(Interpolation interpolation) {
     return interpolation.contents.map((value) {
       if (value is String) return value;
@@ -1053,9 +1113,15 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }).join();
   }
 
+  /// Evaluates [expression] and wraps the result in a [CssValue].
   CssValue<Value> _performExpression(Expression expression) =>
       new CssValue(expression.accept(this), expression.span);
 
+  /// Adds [node] as a child of the current parent, then runs [callback] with
+  /// [node] as the current parent.
+  ///
+  /// If [through] is passed, [node] is added as a child of the first parent for
+  /// which [through] returns `false`.
   /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
       /*=S*/ node,
       /*=T*/ callback(),
@@ -1078,6 +1144,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return result;
   }
 
+  /// Runs [callback] with [selector] as the current selector.
   /*=T*/ _withSelector/*<T>*/(
       CssValue<SelectorList> selector,
       /*=T*/ callback()) {
@@ -1088,6 +1155,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return result;
   }
 
+  /// Runs [callback] with [queries] as the current media queries.
   /*=T*/ _withMediaQueries/*<T>*/(
       List<CssMediaQuery> queries,
       /*=T*/ callback()) {
@@ -1098,6 +1166,10 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return result;
   }
 
+  /// Adds a frame to the stack with the given [member] name, and [span] as the
+  /// site of the new frame.
+  ///
+  /// Runs [callback] with the new stack.
   /*=T*/ _withStackFrame/*<T>*/(
       String member, FileSpan span, /*=T*/ callback()) {
     _stack.add(_stackFrame(span));
@@ -1109,17 +1181,29 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return result;
   }
 
+  /// Creates a new stack frame with location information from [span] and
+  /// [_member].
   Frame _stackFrame(FileSpan span) => new Frame(
       span.sourceUrl, span.start.line + 1, span.start.column + 1, _member);
 
+  /// Returns a stack trace at the current point.
+  ///
+  /// [span] is the current location, used for the bottom-most stack frame.
   Trace _stackTrace(FileSpan span) {
     var frames = _stack.toList()..add(_stackFrame(span));
     return new Trace(frames.reversed);
   }
 
+  /// Throws a [SassRuntimeException] with the given [message] and [span].
   SassRuntimeException _exception(String message, FileSpan span) =>
       new SassRuntimeException(message, span, _stackTrace(span));
 
+  /// Runs [callback], and adjusts any [SassFormatException] to be within [span].
+  ///
+  /// Specifically, this adjusts format exceptions so that the errors are
+  /// reported as though the text being parsed were exactly in [span]. This may
+  /// not be quite accurate if the source text contained interpolation, but
+  /// it'll still produce a useful error.
   /*=T*/ _adjustParseError/*<T>*/(FileSpan span, /*=T*/ callback()) {
     try {
       return callback();
@@ -1135,6 +1219,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
+  /// Runs [callback], and converts any [InternalException]s it throws to
+  /// [SassRuntimeException]s with [span].
   /*=T*/ _addExceptionSpan/*<T>*/(FileSpan span, /*=T*/ callback()) {
     try {
       return callback();
