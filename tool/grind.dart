@@ -57,8 +57,10 @@ package() async {
 js() {
   _ensureBuild();
   var destination = new File('build/sass.dart.js');
-  Dart2js.compile(new File('bin/sass.dart'),
-      outFile: destination, extraArgs: ['-Dnode=true', '-Dversion=$_version']);
+  Dart2js.compile(new File('bin/sass.dart'), outFile: destination, extraArgs: [
+    '-Dnode=true',
+    '-Dversion=$_version compiled with dart2js $_dartVersion'
+  ]);
   var text = destination.readAsStringSync();
   destination.writeAsStringSync("""
     ${preamble.getPreamble()}
