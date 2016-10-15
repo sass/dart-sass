@@ -11,6 +11,7 @@ import 'callable.dart';
 import 'environment.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
+import 'util/number.dart';
 import 'utils.dart';
 import 'value.dart';
 import 'visitor/serialize.dart';
@@ -974,7 +975,7 @@ SassColor _transparentize(List<Value> arguments) {
 /// Converts a Sass string index into a codepoint index into a string whose
 /// [String.runes] has length [lengthInCodepoints].
 ///
-/// A Sass string index is one-based, and uses negative numbers to refer count
+/// A Sass string index is one-based, and uses negative numbers to count
 /// backwards from the end of the string. A codepoint index is an index into
 /// [String.runes].
 int _codepointForIndex(int index, int lengthInCodepoints) {

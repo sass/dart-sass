@@ -5,8 +5,12 @@
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
+/// The SassScript `null` value.
 const sassNull = const SassNull._();
 
+/// A SassScript null value.
+///
+/// This can't be constructed directly; it can only be accessed via [sassNull].
 class SassNull extends Value {
   bool get isTruthy => false;
 

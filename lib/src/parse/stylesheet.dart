@@ -1502,6 +1502,7 @@ abstract class StylesheetParser extends Parser {
         quotes: true);
   }
 
+  /// Consumes an expression that starts like an identifier.
   Expression _identifierLike() {
     var start = scanner.state;
     var identifier = _interpolatedIdentifier();
@@ -1537,6 +1538,10 @@ abstract class StylesheetParser extends Parser {
         : new StringExpression(identifier);
   }
 
+  /// If [name] is the name of a function with special syntax, consumes it.
+  ///
+  /// Otherwise, returns `null`. [start] is the location before the beginning of
+  /// [name].
   Expression _trySpecialFunction(String name, LineScannerState start) {
     var normalized = unvendor(name);
 
@@ -1579,8 +1584,11 @@ abstract class StylesheetParser extends Parser {
     return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
   }
 
+  /// Consumes the contents of a `url()` token (after the name).
+  ///
+  /// [start] is the position before the beginning of the name.
   Interpolation _tryUrlContents(LineScannerState start) {
-    // NOTE: this logic is largely duplicated in ScssParser.tryUrl. Most changes
+    // NOTE: this logic is largely duplicated in Parser.tryUrl. Most changes
     // here should be mirrored there.
 
     var start = scanner.state;
@@ -1622,6 +1630,7 @@ abstract class StylesheetParser extends Parser {
     return null;
   }
 
+  /// Consumes a [url] token that's allowed to contain SassScript.
   Expression _dynamicUrl() {
     var start = scanner.state;
     expectIdentifier("url", ignoreCase: true);
@@ -1729,6 +1738,10 @@ abstract class StylesheetParser extends Parser {
     return buffer.interpolation(scanner.spanFrom(start));
   }
 
+  /// Consumes tokens until it reaches a top-level `":"`, `"!"`, `")"`, `"]"`,
+  /// or `"}"` and returns their contents as a string.
+  ///
+  /// Unlike [declarationValue], this allows interpolation.
   StringExpression _interpolatedDeclarationValue() {
     // NOTE: this logic is largely duplicated in Parser.declarationValue. Most
     // changes here should be mirrored there.
@@ -1845,6 +1858,7 @@ abstract class StylesheetParser extends Parser {
     return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
   }
 
+  /// Consumes an identifier that may contain interpolation.
   Interpolation _interpolatedIdentifier() {
     var start = scanner.state;
     var buffer = new InterpolationBuffer();
@@ -1885,6 +1899,7 @@ abstract class StylesheetParser extends Parser {
     return buffer.interpolation(scanner.spanFrom(start));
   }
 
+  /// Consumes interpolation.
   Expression singleInterpolation() {
     scanner.expect('#{');
     whitespace();
@@ -1893,7 +1908,7 @@ abstract class StylesheetParser extends Parser {
     return expression;
   }
 
-  /// A query expression of the form `(foo: bar)`.
+  /// Consumes a query expression of the form `(foo: bar)`.
   Interpolation _queryExpression() {
     if (scanner.peekChar() == $hash) {
       var interpolation = singleInterpolation();
@@ -1923,6 +1938,7 @@ abstract class StylesheetParser extends Parser {
 
   // ## Media Queries
 
+  /// Consumes a list of media queries.
   List<MediaQuery> _mediaQueryList() {
     var queries = <MediaQuery>[];
     do {
@@ -1932,6 +1948,7 @@ abstract class StylesheetParser extends Parser {
     return queries;
   }
 
+  /// Consumes a single media query.
   MediaQuery _mediaQuery() {
     Interpolation modifier;
     Interpolation type;
@@ -1982,6 +1999,7 @@ abstract class StylesheetParser extends Parser {
 
   // ## Supports Conditions
 
+  /// Consumes a `@supports` condition.
   SupportsCondition _supportsCondition() {
     var start = scanner.state;
     var first = scanner.peekChar();
@@ -2013,6 +2031,7 @@ abstract class StylesheetParser extends Parser {
     return condition;
   }
 
+  /// Consumes a parenthesized supports condition, or an interpolation.
   SupportsCondition _supportsConditionInParens() {
     var start = scanner.state;
     if (scanner.peekChar() == $hash) {
@@ -2043,7 +2062,9 @@ abstract class StylesheetParser extends Parser {
     return new SupportsDeclaration(name, value, scanner.spanFrom(start));
   }
 
-  // If this fails, it puts the cursor back at the beginning.
+  /// Tries to consume a negated supports condition.
+  ///
+  /// Returns `null` if it fails.
   SupportsNegation _trySupportsNegation() {
     var start = scanner.state;
     if (!scanIdentifier("not", ignoreCase: true) || scanner.isDone) {
@@ -2063,6 +2084,9 @@ abstract class StylesheetParser extends Parser {
 
   // ## Characters
 
+  /// Returns whether the scanner is immediately before an identifier that may
+  /// contain interpolation.
+  ///
   /// This is based on [the CSS algorithm][], but it assumes all backslashes
   /// start escapes and it considers interpolation to be valid in an identifier.
   ///
@@ -2083,6 +2107,7 @@ abstract class StylesheetParser extends Parser {
     return second == $hash && scanner.peekChar(2) == $lbrace;
   }
 
+  /// Returns whether the scanner is immediately before a SassScript expression.
   bool _lookingAtExpression() {
     var character = scanner.peekChar();
     if (character == null) return false;
@@ -2105,6 +2130,7 @@ abstract class StylesheetParser extends Parser {
 
   // ## Abstract Methods
 
+  /// Whether this is parsing the indented syntax.
   bool get indented;
 
   /// The indentation level at the current scanner position.
@@ -2113,12 +2139,24 @@ abstract class StylesheetParser extends Parser {
   /// [scanElse].
   int get currentIndentation;
 
+  /// Whether the scanner is positioned at the end of a statement.
   bool atEndOfStatement();
 
+  /// Whether the scanner is positioned before a block of children that can be
+  /// parsed with [children].
   bool lookingAtChildren();
 
+  /// Tries to scan an `@else` rule after an `@if` block, and returns whether
+  /// that succeeded.
+  ///
+  /// This should just scan the rule name, not anything afterwards.
+  /// [ifIndentation] is the result of [currentIndentation] from before the
+  /// corresponding `@if` was parsed.
   bool scanElse(int ifIndentation);
 
+  /// Consumes a block of child statements.
   List<Statement> children(Statement child());
+
+  /// Consumes top-level statements.
   List<Statement> statements(Statement statement());
 }

@@ -5,10 +5,14 @@
 import 'dart:math' as math;
 
 import '../exception.dart';
+import '../util/number.dart';
 import '../utils.dart';
-import '../visitor/interface/value.dart';
 import '../value.dart';
+import '../visitor/interface/value.dart';
 
+/// A nested map containing unit conversion rates.
+///
+/// `1unit1 * _conversions[unit1][unit2] = 1unit2`.
 final _conversions = {
   // Length
   "in": {
@@ -136,27 +140,47 @@ final _conversions = {
 // TODO(nweiz): If it's faster, add subclasses specifically for unitless numbers
 // and numbers with only a single numerator unit. These should be opaque to
 // users of SassNumber.
+
+/// A SassScript number.
+///
+/// Numbers can have units. Although there's no literal syntax for it, numbers
+/// support scientific-style numerator and denominator units (for example,
+/// `miles/hour`). These are expected to be resolved before being emitted to
+/// CSS.
 class SassNumber extends Value {
+  /// The number of distinct digits that are emitted when converting a number to
+  /// CSS.
   static const precision = 10;
 
+  /// The value of this number.
   final num value;
 
+  /// This number's numerator units.
   final List<String> numeratorUnits;
 
+  /// This number's denominator units.
   final List<String> denominatorUnits;
 
+  /// Whether [this] has any units.
   bool get hasUnits => numeratorUnits.isNotEmpty || denominatorUnits.isNotEmpty;
 
+  /// Whether [this] is an integer, according to [fuzzyEquals].
+  ///
+  /// The [int] value can be accessed using [assertInt].
   bool get isInt => value is int || fuzzyEquals(value % 1, 0.0);
 
-  String get unitString {
-    if (numeratorUnits.isEmpty && denominatorUnits.isEmpty) return '';
-    return _unitString(numeratorUnits, denominatorUnits);
-  }
+  /// Returns a human readable string representation of this number's units.
+  String get unitString =>
+      hasUnits ? _unitString(numeratorUnits, denominatorUnits) : '';
 
+  /// Returns a number, optionally with a single numerator unit.
+  ///
+  /// This matches the numbers that can be written as literals.
+  /// [SassNumber.withUnits] can be used to construct more complex units.
   SassNumber(num value, [String unit])
       : this.withUnits(value, numeratorUnits: unit == null ? null : [unit]);
 
+  /// Returns a number with full [numeratorUnits] and [denominatorUnits].
   SassNumber.withUnits(this.value,
       {Iterable<String> numeratorUnits, Iterable<String> denominatorUnits})
       : numeratorUnits = numeratorUnits == null
@@ -171,11 +195,26 @@ class SassNumber extends Value {
 
   SassNumber assertNumber([String name]) => this;
 
+  /// Returns [value] as an [int], if it's an integer value according to
+  /// [fuzzyEquals].
+  ///
+  /// Throws an [InternalException] if [value] isn't an integer. If this came
+  /// from a function argument, [name] is the argument name (without the `$`).
+  /// It's used for debugging.
   int assertInt([String name]) {
     if (isInt) return value.round();
     throw _exception("$this is not an int.", name);
   }
 
+  /// Asserts that this is a valid Sass-style index for [list], and returns the
+  /// Dart-style index.
+  ///
+  /// A Sass-style index is one-based, and uses negative numbers to count
+  /// backwards from the end of the list.
+  ///
+  /// Throws an [InternalException] if this isn't an integer or if it isn't a
+  /// valid index for [list]. If this came from a function argument, [name] is
+  /// the argument name (without the `$`). It's used for debugging.
   int assertIndexFor(List list, [String name]) {
     var sassIndex = assertInt(name);
     if (sassIndex == 0) throw _exception("List index may not be 0.");
@@ -187,6 +226,12 @@ class SassNumber extends Value {
     return sassIndex < 0 ? list.length + sassIndex : sassIndex - 1;
   }
 
+  /// If [value] is between [min] and [max], returns it.
+  ///
+  /// If [value] is [fuzzyEquals] to [min] or [max], it's clamped to the
+  /// appropriate value. Otherwise, this throws an [InternalException]. If this
+  /// came from a function argument, [name] is the argument name (without the
+  /// `$`). It's used for debugging.
   num valueInRange(num min, num max, [String name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
@@ -200,16 +245,30 @@ class SassNumber extends Value {
       denominatorUnits.isEmpty &&
       numeratorUnits.first == unit;
 
+  /// Throws an [InternalException] unless [this] has [unit] as its only unit
+  /// (and as a numerator).
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   void assertUnit(String unit, [String name]) {
     if (hasUnit(unit)) return;
     throw _exception('Expected $this to have unit "$unit".');
   }
 
+  /// Throws an [InternalException] unless [this] has no units.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   void assertNoUnits([String name]) {
     if (!hasUnits) return;
     throw _exception('Expected $this to have no units.');
   }
 
+  /// Returns [value], converted to the units represented by [newNumerators] and
+  /// [newDenominators].
+  ///
+  /// Throws an [InternalException] if this number's units aren't compatible
+  /// with [newNumerators] and [newDenominators].
   num valueInUnits(List<String> newNumerators, List<String> newDenominators) {
     if ((newNumerators.isEmpty && newDenominators.isEmpty) ||
         (numeratorUnits.isEmpty && denominatorUnits.isEmpty) ||
@@ -256,13 +315,16 @@ class SassNumber extends Value {
     return value;
   }
 
+  /// Returns whether this number can be compared to [other].
+  ///
+  /// Two numbers can be compared if they have compatible units, or if either
+  /// number has no units.
   bool isComparableTo(SassNumber other) {
     if (!hasUnits || !other.hasUnits) return true;
     try {
       greaterThan(other);
       return true;
-    } on InternalException catch (error) {
-      print(error);
+    } on InternalException {
       return false;
     }
   }
@@ -343,6 +405,10 @@ class SassNumber extends Value {
 
   Value unaryMinus() => new SassNumber(-value);
 
+  /// Converts [other]'s value to be compatible with this number's, and calls
+  /// [operation] with the resulting numbers.
+  ///
+  /// Throws an [InternalException] if the two numbers' units are incompatible.
   /*=T*/ _coerceUnits/*<T>*/(
       SassNumber other, /*=T*/ operation(num num1, num num2)) {
     num num1;
@@ -358,6 +424,8 @@ class SassNumber extends Value {
     return operation(num1, num2);
   }
 
+  /// Returns a new number that's equivalent to `value numerators1/denominators1
+  /// * 1 numerators2/denominators2`.
   SassNumber _multiplyUnits(
       num value,
       List<String> numerators1,
@@ -421,9 +489,12 @@ class SassNumber extends Value {
         denominatorUnits: mutableDenominators1..addAll(mutableDenominators2));
   }
 
+  /// Returns whether [unit] can be converted to or from any other units.
   bool _isConvertable(String unit) => _conversions.containsKey(unit);
 
-  // Returns [unit1]s per [unit2].
+  /// Returns the number of [unit1]s per [unit2].
+  ///
+  /// Equivalently, `1unit1 * _conversionFactor(unit1, unit2) = 1unit2`.
   num _conversionFactor(String unit1, String unit2) {
     if (unit1 == unit2) return 1;
     var innerMap = _conversions[unit1];
@@ -431,6 +502,8 @@ class SassNumber extends Value {
     return innerMap[unit2];
   }
 
+  /// Returns a human-readable string representation of [numerators] and
+  /// [denominators].
   String _unitString(List<String> numerators, List<String> denominators) {
     if (numerators.isEmpty) {
       if (denominators.isEmpty) return "no units";
@@ -448,6 +521,7 @@ class SassNumber extends Value {
 
   int get hashCode => fuzzyHashCode(value);
 
+  /// Throws an [InternalException] with the given [message].
   InternalException _exception(String message, [String name]) =>
       new InternalException(name == null ? message : "\$$name: $message");
 }

@@ -22,39 +22,93 @@ export 'value/null.dart';
 export 'value/number.dart';
 export 'value/string.dart';
 
+/// A SassScript value.
+///
+/// Note that all SassScript values are unmodifiable.
 abstract class Value {
   /// Whether the value will be represented in CSS as the empty string.
   bool get isBlank => false;
 
+  /// Whether the value counts as `true` in an `@if` statement and other
+  /// contexts.
   bool get isTruthy => true;
 
+  /// The separator for this value as a list.
+  ///
+  /// All SassScript values can be used as lists. Maps count as lists of pairs,
+  /// and all other values count as single-value lists.
   ListSeparator get separator => ListSeparator.undecided;
 
+  /// Whether this value as a list has brackets.
+  ///
+  /// All SassScript values can be used as lists. Maps count as lists of pairs,
+  /// and all other values count as single-value lists.
   bool get hasBrackets => false;
 
+  /// This value as a list.
+  ///
+  /// All SassScript values can be used as lists. Maps count as lists of pairs,
+  /// and all other values count as single-value lists.
   List<Value> get asList => [this];
 
+  /// Whether this is a `calc()` expression.
+  ///
+  /// Functions that shadow plain CSS functions need to gracefully handle when
+  /// `calc()`-derived arguments are passed in.
   bool get isCalc => false;
 
   const Value();
 
+  /// Calls the appropriate visit method on [visitor].
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
 
+  /// Throws an [InternalException] if [this] isn't a boolean.
+  ///
+  /// Note that generally, functions should use [isTruthy] rather than requiring
+  /// a literal boolean.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   SassBoolean assertBoolean([String name]) =>
       throw _exception("$this is not a boolean.", name);
 
+  /// Throws an [InternalException] if [this] isn't a color.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   SassColor assertColor([String name]) =>
       throw _exception("$this is not a color.", name);
 
+  /// Throws an [InternalException] if [this] isn't a map.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   SassMap assertMap([String name]) =>
       throw _exception("$this is not a map.", name);
 
+  /// Throws an [InternalException] if [this] isn't a number.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   SassNumber assertNumber([String name]) =>
       throw _exception("$this is not a number.", name);
 
+  /// Throws an [InternalException] if [this] isn't a string.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   SassString assertString([String name]) =>
       throw _exception("$this is not a string.", name);
 
+  /// Parses [this] as a selector list, in the same manner as the
+  /// `selector-parse()` function.
+  ///
+  /// Throws an [InternalException] if this isn't a type that can be parsed as a
+  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
+  /// [ParentSelector]s. Otherwise, they're considered parse errors.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   SelectorList assertSelector({String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
@@ -66,6 +120,15 @@ abstract class Value {
     }
   }
 
+  /// Parses [this] as a simple selector, in the same manner as the
+  /// `selector-parse()` function.
+  ///
+  /// Throws an [InternalException] if this isn't a type that can be parsed as a
+  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
+  /// [ParentSelector]s. Otherwise, they're considered parse errors.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   SimpleSelector assertSimpleSelector({String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
@@ -77,6 +140,15 @@ abstract class Value {
     }
   }
 
+  /// Parses [this] as a compound selector, in the same manner as the
+  /// `selector-parse()` function.
+  ///
+  /// Throws an [InternalException] if this isn't a type that can be parsed as a
+  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
+  /// [ParentSelector]s. Otherwise, they're considered parse errors.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
   CompoundSelector assertCompoundSelector(
       {String name, bool allowParent: false}) {
     var string = _selectorString(name);
@@ -89,6 +161,11 @@ abstract class Value {
     }
   }
 
+  /// Converts a `selector-parse()`-style input into a string that can be
+  /// parsed.
+  ///
+  /// Throws an [InternalException] if [this] isn't a type or a structure that
+  /// can be parsed as a selector.
   String _selectorString([String name]) {
     var string = _selectorStringOrNull();
     if (string != null) return string;
@@ -99,6 +176,11 @@ abstract class Value {
         name);
   }
 
+  /// Converts a `selector-parse()`-style input into a string that can be
+  /// parsed.
+  ///
+  /// Returns `null` if [this] isn't a type or a structure that can be parsed as
+  /// a selector.
   String _selectorStringOrNull() {
     if (this is SassString) return (this as SassString).text;
     if (this is! SassList) return null;
@@ -131,35 +213,45 @@ abstract class Value {
     return result.join(', ');
   }
 
-  // Note that if [contents] has length > 1, [separator] may not be undecided.
+  /// Returns a new list containing [contents] that defaults to this value's
+  /// separator and brackets.
   SassList changeListContents(Iterable<Value> contents,
       {ListSeparator separator, bool brackets}) {
     return new SassList(contents, separator ?? this.separator,
         brackets: brackets ?? this.hasBrackets);
   }
 
+  /// The SassScript `or` operation.
   Value or(Value other) => this;
 
+  /// The SassScript `and` operation.
   Value and(Value other) => other;
 
+  /// The SassScript `>` operation.
   SassBoolean greaterThan(Value other) =>
       throw new InternalException('Undefined operation "$this > $other".');
 
+  /// The SassScript `>=` operation.
   SassBoolean greaterThanOrEquals(Value other) =>
       throw new InternalException('Undefined operation "$this >= $other".');
 
+  /// The SassScript `<` operation.
   SassBoolean lessThan(Value other) =>
       throw new InternalException('Undefined operation "$this < $other".');
 
+  /// The SassScript `<=` operation.
   SassBoolean lessThanOrEquals(Value other) =>
       throw new InternalException('Undefined operation "$this <= $other".');
 
+  /// The SassScript `*` operation.
   Value times(Value other) =>
       throw new InternalException('Undefined operation "$this * $other".');
 
+  /// The SassScript `%` operation.
   Value modulo(Value other) =>
       throw new InternalException('Undefined operation "$this % $other".');
 
+  /// The SassScript `+` operation.
   Value plus(Value other) {
     if (other is SassString) {
       return new SassString(valueToCss(this) + other.text,
@@ -169,22 +261,34 @@ abstract class Value {
     }
   }
 
+  /// The SassScript `-` operation.
   Value minus(Value other) =>
       new SassString("${valueToCss(this)}-${valueToCss(other)}");
 
+  /// The SassScript `/` operation.
   Value dividedBy(Value other) =>
       new SassString("${valueToCss(this)}/${valueToCss(other)}");
 
+  /// The SassScript unary `+` operation.
   Value unaryPlus() => new SassString("+${valueToCss(this)}");
 
+  /// The SassScript unary `-` operation.
   Value unaryMinus() => new SassString("-${valueToCss(this)}");
 
+  /// The SassScript unary `/` operation.
   Value unaryDivide() => new SassString("/${valueToCss(this)}");
 
+  /// The SassScript unary `not` operation.
   Value unaryNot() => sassFalse;
 
+  /// Returns a string representation of [this].
+  ///
+  /// Note that this is equivalent to calling `inspect()` on the value, and thus
+  /// won't reflect the user's output settings. [valueToCss] should be used
+  /// instead to convert [this] to CSS.
   String toString() => valueToCss(this, inspect: true);
 
+  /// Throws an [InternalException] with the given [message].
   InternalException _exception(String message, [String name]) =>
       new InternalException(name == null ? message : "\$$name: $message");
 }

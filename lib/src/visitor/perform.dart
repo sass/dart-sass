@@ -23,11 +23,15 @@ import 'interface/statement.dart';
 import 'interface/expression.dart';
 import 'serialize.dart';
 
+/// A function that takes a callback with no arguments.
 typedef _ScopeCallback(callback());
 
+/// A visitor that executes Sass code to produce a CSS tree.
 class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
+  /// The paths to search for Sass files being imported.
   final List<String> _loadPaths;
 
+  /// The current lexical environment.
   Environment _environment;
 
   /// The current selector, if any.
@@ -45,14 +49,27 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   /// The name of the current declaration parent.
   String _declarationName;
 
+  /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
 
+  /// The resolved URLs for each [ImportRule] that's been seen so far.
+  ///
+  /// This is cached in case the same file is imported multiple times, and thus
+  /// its imports need to be resolved multiple times.
   final _importPaths = <ImportRule, String>{};
 
+  /// The parsed stylesheets for each resolved import URL.
+  ///
+  /// This is separate from [_importPaths] because multiple `@import` rules may
+  /// import the same stylesheet, and we don't want to parse the same stylesheet
+  /// multiple times.
   final _importedFiles = <String, Stylesheet>{};
 
+  /// The extender that handles extensions for this perform run.
   final _extender = new Extender();
 
+  /// The dynamic call stack representing function invocations, mixin
+  /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
   PerformVisitor({Iterable<String> loadPaths, Environment environment})

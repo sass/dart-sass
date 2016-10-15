@@ -7,6 +7,7 @@ import 'package:collection/collection.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
+/// A SassScript map.
 class SassMap extends Value {
   // TODO(nweiz): Use persistent data structures rather than copying here. We
   // need to preserve the order, which can be done by tracking an RRB vector of
@@ -14,6 +15,7 @@ class SassMap extends Value {
   //
   // We may also want to fall back to a plain unmodifiable Map for small maps
   // (<32 items?).
+  /// The contents of the map.
   final Map<Value, Value> contents;
 
   ListSeparator get separator => ListSeparator.comma;
@@ -26,6 +28,7 @@ class SassMap extends Value {
     return result;
   }
 
+  /// Returns an empty map.
   const SassMap.empty() : contents = const {};
 
   SassMap(Map<Value, Value> contents)

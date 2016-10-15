@@ -4,6 +4,9 @@
 
 import '../../ast/css.dart';
 
+/// An interface for [visitors][] that traverse CSS statements.
+///
+/// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
 abstract class CssVisitor<T> {
   T visitAtRule(CssAtRule node);
   T visitComment(CssComment node);

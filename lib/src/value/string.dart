@@ -8,9 +8,18 @@ import '../visitor/interface/value.dart';
 import '../visitor/serialize.dart';
 import '../value.dart';
 
+/// A SassScript string.
+///
+/// Strings can either be quoted or unquoted. Unquoted strings are usually CSS
+/// identifiers, but they may contain any text.
 class SassString extends Value {
+  /// The contents of the string.
+  ///
+  /// This is the semantic content—any escape sequences are resolved to their
+  /// Unicode values.
   final String text;
 
+  /// Whether this string has quotes.
   final bool hasQuotes;
 
   bool get isCalc {

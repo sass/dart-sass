@@ -5,12 +5,14 @@
 import 'dart:math' as math;
 
 import '../exception.dart';
-import '../utils.dart';
-import '../visitor/interface/value.dart';
+import '../util/number.dart';
 import '../value.dart';
+import '../visitor/interface/value.dart';
 
 // TODO(nweiz): track original representation.
+/// A SassScript color.
 class SassColor extends Value {
+  /// This color's red channel, between `0` and `255`.
   int get red {
     if (_red == null) _hslToRgb();
     return _red;
@@ -18,6 +20,7 @@ class SassColor extends Value {
 
   int _red;
 
+  /// This color's green channel, between `0` and `255`.
   int get green {
     if (_green == null) _hslToRgb();
     return _green;
@@ -25,6 +28,7 @@ class SassColor extends Value {
 
   int _green;
 
+  /// This color's blue channel, between `0` and `255`.
   int get blue {
     if (_blue == null) _hslToRgb();
     return _blue;
@@ -32,6 +36,7 @@ class SassColor extends Value {
 
   int _blue;
 
+  /// This color's hue, between `0` and `360`.
   num get hue {
     if (_hue == null) _rgbToHsl();
     return _hue;
@@ -39,6 +44,7 @@ class SassColor extends Value {
 
   num _hue;
 
+  /// This color's saturation, a percentage between `0` and `100`.
   num get saturation {
     if (_saturation == null) _rgbToHsl();
     return _saturation;
@@ -46,6 +52,7 @@ class SassColor extends Value {
 
   num _saturation;
 
+  /// This color's lightness, a percentage between `0` and `100`.
   num get lightness {
     if (_lightness == null) _rgbToHsl();
     return _lightness;
@@ -53,8 +60,13 @@ class SassColor extends Value {
 
   num _lightness;
 
+  /// This color's alpha channel, between `0` and `1`.
   final num alpha;
 
+  /// Creates an RGB color.
+  ///
+  /// Throws a [RangeError] if [red], [green], and [blue] aren't between `0` and
+  /// `255`, or if [alpha] isn't between `0` and `1`.
   SassColor.rgb(this._red, this._green, this._blue, [num alpha])
       : alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
     RangeError.checkValueInInterval(red, 0, 255, "red");
@@ -62,6 +74,10 @@ class SassColor extends Value {
     RangeError.checkValueInInterval(blue, 0, 255, "blue");
   }
 
+  /// Creates an HSL color.
+  ///
+  /// Throws a [RangeError] if [saturation] or [lightness] aren't between `0`
+  /// and `100`, or if [alpha] isn't between `0` and `1`.
   SassColor.hsl(num hue, num saturation, num lightness, [num alpha])
       : _hue = hue % 360,
         _saturation = fuzzyAssertRange(saturation, 0, 100, "saturation"),
@@ -75,14 +91,17 @@ class SassColor extends Value {
 
   SassColor assertColor([String name]) => this;
 
+  /// Changes one or more of this color's RGB channels and returns the result.
   SassColor changeRgb({int red, int green, int blue, num alpha}) =>
       new SassColor.rgb(red ?? this.red, green ?? this.green, blue ?? this.blue,
           alpha ?? this.alpha);
 
+  /// Changes one or more of this color's HSL channels and returns the result.
   SassColor changeHsl({num hue, num saturation, num lightness, num alpha}) =>
       new SassColor.hsl(hue ?? this.hue, saturation ?? this.saturation,
           lightness ?? this.lightness, alpha ?? this.alpha);
 
+  /// Returns a new copy of this color with the alpha channel set to [alpha].
   SassColor changeAlpha(num alpha) => new SassColor._(
       _red, _green, _blue, _hue, _saturation, _lightness, alpha);
 
@@ -114,6 +133,8 @@ class SassColor extends Value {
 
   int get hashCode => red.hashCode ^ green.hashCode ^ blue.hashCode;
 
+  /// Computes [_hue], [_saturation], and [_value] based on [red], [green], and
+  /// [blue].
   void _rgbToHsl() {
     // Algorithm from http://en.wikipedia.org/wiki/HSL_and_HSV#Conversion_from_RGB_to_HSL_or_HSV
     var scaledRed = red / 255;
@@ -145,6 +166,8 @@ class SassColor extends Value {
     }
   }
 
+  /// Computes [_red], [_green], and [_blue] based on [hue], [saturation], and
+  /// [value].
   void _hslToRgb() {
     // Algorithm from the CSS3 spec: http://www.w3.org/TR/css3-color/#hsl-color.
     var scaledHue = hue / 360;
@@ -162,8 +185,9 @@ class SassColor extends Value {
     _blue = _hueToRgb(m1, m2, scaledHue - 1 / 3);
   }
 
+  /// An algorithm from the CSS3 spec:
+  /// http://www.w3.org/TR/css3-color/#hsl-color.
   int _hueToRgb(num m1, num m2, num hue) {
-    // Algorithm from the CSS3 spec: http://www.w3.org/TR/css3-color/#hsl-color.
     if (hue < 0) hue += 1;
     if (hue > 1) hue -= 1;
 

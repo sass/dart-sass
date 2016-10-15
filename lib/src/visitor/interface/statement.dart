@@ -4,6 +4,9 @@
 
 import '../../ast/sass.dart';
 
+/// An interface for [visitors][] that traverse Sass statements.
+///
+/// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
 abstract class StatementVisitor<T> {
   T visitAtRootRule(AtRootRule node);
   T visitAtRule(AtRule node);

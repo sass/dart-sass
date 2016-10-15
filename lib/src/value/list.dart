@@ -6,12 +6,14 @@ import '../utils.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
+/// A SassScript list.
 class SassList extends Value {
   // TODO(nweiz): Use persistent data structures rather than copying here. An
   // RRB vector should fit our use-cases well.
   //
   // We may also want to fall back to a plain unmodifiable List for small lists
   // (<32 items?).
+  /// The contents of the list.
   final List<Value> contents;
 
   final ListSeparator separator;
@@ -22,6 +24,7 @@ class SassList extends Value {
 
   List<Value> get asList => contents;
 
+  /// Returns an empty list with the given [separator] and [brackets].
   const SassList.empty({ListSeparator separator, bool brackets: false})
       : contents = const [],
         separator = separator ?? ListSeparator.undecided,
@@ -51,14 +54,23 @@ class SassList extends Value {
   int get hashCode => listHash(contents);
 }
 
+/// An enum of list separator types.
 class ListSeparator {
+  /// A space-separated list.
   static const space = const ListSeparator._("space");
+
+  /// A comma-separated list.
   static const comma = const ListSeparator._("comma");
+
+  /// A separator that hasn't yet been determined.
+  ///
+  /// Singleton lists and empty lists don't have separators defiend. This means
+  /// that list functions will prefer other lists' separators if possible.
   static const undecided = const ListSeparator._("undecided");
 
-  final String name;
+  final String _name;
 
-  const ListSeparator._(this.name);
+  const ListSeparator._(this._name);
 
-  String toString() => name;
+  String toString() => _name;
 }

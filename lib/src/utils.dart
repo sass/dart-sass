@@ -11,16 +11,16 @@ import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
 import 'util/character.dart';
-import 'value.dart';
 
-const _epsilon = 1 / (10 * SassNumber.precision);
-
+/// A simple [LinkedListEntry] that just provides a reference to the value.
 class LinkedListValue<T> extends LinkedListEntry<LinkedListValue<T>> {
+  /// The value in the list.
   final T value;
 
   LinkedListValue(this.value);
 }
 
+/// Converts [iter] into a sentence, separating each word with [conjunction].
 String toSentence(Iterable iter, [String conjunction]) {
   conjunction ??= "and";
   if (iter.length == 1) return iter.first.toString();
@@ -37,6 +37,12 @@ String pluralize(String name, int number, {String plural}) {
   return '${name}s';
 }
 
+/// Flattens the first level of nested arrays in [iterable].
+///
+/// The return value is ordered first by index in the nested iterable, then by
+/// the index *of* that iterable in [iterable]. For example,
+/// `flattenVertically([["1a", "1b"], ["2a", "2b"]])` returns `["1a", "2a",
+/// "1b", "2b"]`.
 List/*<T>*/ flattenVertically/*<T>*/(Iterable<Iterable/*<T>*/ > iterable) {
   var queues = iterable.map((inner) => new QueueList.from(inner)).toList();
   if (queues.length == 1) return queues.first;
@@ -51,6 +57,10 @@ List/*<T>*/ flattenVertically/*<T>*/(Iterable<Iterable/*<T>*/ > iterable) {
   return result;
 }
 
+/// Converts [codepointIndex] to a code unit index, relative to [string].
+///
+/// A codepoint index is the index in pure Unicode codepoints; a code unit index
+/// is an index into a UTF-16 string.
 int codepointIndexToCodeUnitIndex(String string, int codepointIndex) {
   var codeUnitIndex = 0;
   for (var i = 0; i < codepointIndex; i++) {
@@ -59,6 +69,10 @@ int codepointIndexToCodeUnitIndex(String string, int codepointIndex) {
   return codeUnitIndex;
 }
 
+/// Converts [codeUnitIndex] to a codepoint index, relative to [string].
+///
+/// A codepoint index is the index in pure Unicode codepoints; a code unit index
+/// is an index into a UTF-16 string.
 int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
   var codepointIndex = 0;
   for (var i = 0; i < codeUnitIndex; i++) {
@@ -68,11 +82,18 @@ int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
   return codepointIndex;
 }
 
+/// Returns whether [list1] and [list2] have the same contents.
 bool listEquals/*<T>*/(List/*<T>*/ list1, List/*<T>*/ list2) =>
     const ListEquality().equals(list1, list2);
 
+/// Returns a hash code for [list] that matches [listEquals].
 int listHash(List list) => const ListEquality().hash(list);
 
+/// Returns a source span that covers the spans of both the first and last nodes
+/// in [nodes].
+///
+/// If [nodes] is empty, or if either the first or last node has a `null` span,
+/// returns `null`.
 FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
   // Spans may be null for dynamically-constructed ASTs.
@@ -81,6 +102,9 @@ FileSpan spanForList(List<AstNode> nodes) {
   return nodes.first.span.expand(nodes.last.span);
 }
 
+/// Returns [name] without a vendor prefix.
+///
+/// If [name] has no vendor prefix, it's returned as-is.
 String unvendor(String name) {
   if (name.length < 2) return name;
   if (name.codeUnitAt(0) != $dash) return name;
@@ -92,6 +116,8 @@ String unvendor(String name) {
   return name;
 }
 
+/// Returns whether [string1] and [string2] are equal if `-` and `_` are
+/// considered equivalent.
 bool equalsIgnoreSeparator(String string1, String string2) {
   if (identical(string1, string2)) return true;
   if (string1 == null || string2 == null) return false;
@@ -111,6 +137,7 @@ bool equalsIgnoreSeparator(String string1, String string2) {
   return true;
 }
 
+/// Returns a hash code for [string] that matches [equalsIgnoreSeparator].
 int hashCodeIgnoreSeparator(String string) {
   var hash = 4603;
   for (var i = 0; i < string.length; i++) {
@@ -123,6 +150,7 @@ int hashCodeIgnoreSeparator(String string) {
   return hash;
 }
 
+/// Returns whether [string1] and [string2] are equal, ignoring ASCII case.
 bool equalsIgnoreCase(String string1, String string2) {
   if (identical(string1, string2)) return true;
   if (string1 == null || string2 == null) return false;
@@ -130,12 +158,16 @@ bool equalsIgnoreCase(String string1, String string2) {
   return string1.toUpperCase() == string2.toUpperCase();
 }
 
+/// Returns an empty map that uses [equalsIgnoreSeparator] for key equality.
 Map/*<String, V>*/ normalizedMap/*<V>*/() => new LinkedHashMap(
     equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
 
+/// Returns an empty set that uses [equalsIgnoreSeparator] for equality.
 Set<String> normalizedSet() => new LinkedHashSet(
     equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
 
+/// Like [mapMap], but returns a map that uses [equalsIgnoreSeparator] for key
+/// equality.
 Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(Map/*<K, V1>*/ map,
     {String key(/*=K*/ key, /*=V1*/ value),
     /*=V2*/ value(/*=K*/ key, /*=V1*/ value)}) {
@@ -149,43 +181,14 @@ Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(Map/*<K, V1>*/ map,
   return result;
 }
 
-bool fuzzyEquals(num number1, num number2) =>
-    (number1 - number2).abs() < _epsilon;
-
-int fuzzyHashCode(num number) => (number % _epsilon).hashCode;
-
-bool fuzzyLessThan(num number1, num number2) =>
-    number1 < number2 && !fuzzyEquals(number1, number2);
-
-bool fuzzyLessThanOrEquals(num number1, num number2) =>
-    number1 < number2 || fuzzyEquals(number1, number2);
-
-bool fuzzyGreaterThan(num number1, num number2) =>
-    number1 > number2 && !fuzzyEquals(number1, number2);
-
-bool fuzzyGreaterThanOrEquals(num number1, num number2) =>
-    number1 > number2 || fuzzyEquals(number1, number2);
-
-int fuzzyRound(num number) {
-  // If the number is within epsilon of X.5, round up (or down for negative
-  // numbers).
-  if (fuzzyLessThan(number % 1, 0.5)) return number.round();
-  return number > 0 ? number.ceil() : number.floor();
-}
-
-num fuzzyCheckRange(num number, num min, num max) {
-  if (fuzzyEquals(number, min)) return min;
-  if (fuzzyEquals(number, max)) return max;
-  if (number > min && number < max) return number;
-  return null;
-}
-
-num fuzzyAssertRange(num number, num min, num max, [String name]) {
-  var result = fuzzyCheckRange(number, min, max);
-  if (result != null) return result;
-  throw new RangeError.value(number, name, "must be between $min and $max.");
-}
-
+/// Returns the longest common subsequence between [list1] and [list2].
+///
+/// If there are more than one equally long common subsequence, returns the one
+/// which starts first in [list1].
+///
+/// If [select] is passed, it's used to check equality between elements in each
+/// list. If it returns `null`, the elements are considered unequal; otherwise,
+/// it should return the element to include in the return value.
 List/*<T>*/ longestCommonSubsequence/*<T>*/(
     List/*<T>*/ list1, List/*<T>*/ list2,
     {/*=T*/ select(/*=T*/ element1, /*=T*/ element2)}) {
@@ -224,6 +227,10 @@ List/*<T>*/ longestCommonSubsequence/*<T>*/(
   return backtrack(list1.length - 1, list2.length - 1);
 }
 
+/// Removes and returns the first value in [list] that matches [test].
+///
+/// By default, throws a [StateError] if no value matches. If [orElse] is
+/// passed, its return value is used instead.
 /*=T*/ removeFirstWhere/*<T>*/(List/*<T>*/ list, bool test(/*=T*/ value),
     {/*=T*/ orElse()}) {
   var/*=T*/ toRemove;
