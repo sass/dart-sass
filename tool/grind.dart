@@ -77,8 +77,7 @@ npm_package() {
   dir.createSync(recursive: true);
 
   log("copying package/package.json to build/npm");
-  var json = JSON.decode(
-      new File('package/package.json').readAsStringSync());
+  var json = JSON.decode(new File('package/package.json').readAsStringSync());
   json['version'] = _version;
   new File(p.join(dir.path, 'package.json'))
       .writeAsStringSync(JSON.encode(json));

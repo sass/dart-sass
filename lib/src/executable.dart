@@ -9,11 +9,9 @@ import 'package:args/args.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:path/path.dart' as p;
 
-import 'ast/sass.dart';
+import '../sass.dart';
 import 'exception.dart';
 import 'io.dart';
-import 'visitor/perform.dart';
-import 'visitor/serialize.dart';
 
 void main(List<String> args) {
   var argParser = new ArgParser(allowTrailingOptions: true)
@@ -48,14 +46,7 @@ void main(List<String> args) {
   }
 
   try {
-    var file = options.rest.first;
-    var contents = readFile(file);
-    var url = p.toUri(file);
-    var sassTree = p.extension(file) == '.sass'
-        ? new Stylesheet.parseSass(contents, url: url)
-        : new Stylesheet.parseScss(contents, url: url);
-    var cssTree = new PerformVisitor().visitStylesheet(sassTree);
-    var css = toCss(cssTree);
+    var css = render(options.rest.first);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
     stderr.writeln(error.toString(color: options['color']));
