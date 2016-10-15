@@ -4,6 +4,9 @@ description: A Sass implementation in Dart.
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/sass
 
+executables:
+  dart-sass: sass
+
 environment:
   sdk: '>=1.8.0 <2.0.0'
 
