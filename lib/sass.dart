@@ -19,6 +19,6 @@ String render(String path) {
   var sassTree = p.extension(path) == '.sass'
       ? new Stylesheet.parseSass(contents, url: url)
       : new Stylesheet.parseScss(contents, url: url);
-  var cssTree = new PerformVisitor().visitStylesheet(sassTree);
+  var cssTree = evaluate(sassTree);
   return toCss(cssTree);
 }

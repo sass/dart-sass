@@ -26,8 +26,22 @@ import 'serialize.dart';
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback(callback());
 
+/// Converts [stylesheet] to a plain CSS tree.
+///
+/// If [loadPaths] is passed, it's used to search for Sass files being imported.
+/// Earlier paths will be preferred.
+///
+/// If [environment] is passed, it's used as the lexical environment when
+/// evaluating [stylesheet]. It should only contain global definitions.
+///
+/// Throws a [SassRuntimeException] if evaluation fails.
+CssStylesheet evaluate(Stylesheet stylesheet,
+        {Iterable<String> loadPaths, Environment environment}) =>
+    stylesheet.accept(
+        new _PerformVisitor(loadPaths: loadPaths, environment: environment));
+
 /// A visitor that executes Sass code to produce a CSS tree.
-class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
+class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   /// The paths to search for Sass files being imported.
   final List<String> _loadPaths;
 
@@ -72,7 +86,7 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
-  PerformVisitor({Iterable<String> loadPaths, Environment environment})
+  _PerformVisitor({Iterable<String> loadPaths, Environment environment})
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
         _environment = environment ?? new Environment() {
     _environment.defineFunction("call", r"$name, $args...", (arguments) {
@@ -85,14 +99,6 @@ class PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
               rest: new ValueExpression(args)));
       return expression.accept(this);
     });
-  }
-
-  void visit(node) {
-    if (node is Statement) {
-      node.accept(this);
-    } else {
-      (node as Expression).accept(this);
-    }
   }
 
   // ## Statements

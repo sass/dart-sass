@@ -876,7 +876,7 @@ void defineCoreFunctions(Environment environment) {
     return new SassBoolean(number1.isComparableTo(number2));
   });
 
-  // call() is defined in PerformVisitor to provide it access to private APIs.
+  // call() is defined in _PerformVisitor to provide it access to private APIs.
 
   // ## Miscellaneous
 

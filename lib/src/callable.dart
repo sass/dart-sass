@@ -15,6 +15,6 @@ abstract class Callable {
   // as well, but supporting overloads for built-in callables makes that more
   // difficult. Ideally, we'd define overloads as purely an implementation
   // detail of functions, using a helper method. But that would need to
-  // duplicate a lot of the logic in PerformVisitor, and I can't find an elegant
+  // duplicate a lot of the logic in _PerformVisitor, and I can't find an elegant
   // way to do that.
 }
