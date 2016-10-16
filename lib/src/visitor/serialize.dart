@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
@@ -11,6 +12,7 @@ import '../ast/css.dart';
 import '../ast/selector.dart';
 import '../exception.dart';
 import '../util/character.dart';
+import '../util/number.dart';
 import '../value.dart';
 import 'interface/css.dart';
 import 'interface/selector.dart';
@@ -264,10 +266,9 @@ class _SerializeCssVisitor
       _writeHexComponent(value.green);
       _writeHexComponent(value.blue);
     } else {
-      // TODO: support precision in alpha, make sure we don't write exponential
-      // notation.
-      _buffer.write(
-          "rgba(${value.red}, ${value.green}, ${value.blue}, ${value.alpha})");
+      _buffer.write("rgba(${value.red}, ${value.green}, ${value.blue}, ");
+      _writeNumber(value.alpha);
+      _buffer.writeCharCode($rparen);
     }
   }
 
@@ -340,9 +341,8 @@ class _SerializeCssVisitor
     _buffer.write("null");
   }
 
-  // TODO(nweiz): Support precision and don't support exponent notation.
   void visitNumber(SassNumber value) {
-    _buffer.write(value.value);
+    _writeNumber(value.value);
 
     if (!_inspect) {
       if (value.numeratorUnits.length > 1 ||
@@ -355,6 +355,111 @@ class _SerializeCssVisitor
       }
     } else {
       _buffer.write(value.unitString);
+    }
+  }
+
+  /// Writes [number] without exponent notation and with at most
+  /// [SassNumber.precision] digits after the decimal point.
+  void _writeNumber(num number) {
+    // Dart always converts integers to strings in the obvious way, so all we
+    // have to do is clamp doubles that are close to being integers.
+    var integer = fuzzyAsInt(number);
+    if (integer != null) {
+      _buffer.write(integer);
+      return;
+    }
+
+    var text = number.toString();
+    if (text.contains("e")) text = _removeExponent(text);
+
+    // Any double that doesn't contain "e" and is less than
+    // `SassNumber.precision + 2` digits long is guaranteed to be safe to emit
+    // directly, since it'll contain at most `0.` followed by
+    // [SassNumber.precision] digits.
+    if (text.length < SassNumber.precision + 2) {
+      _buffer.write(text);
+      return;
+    }
+
+    _writeDecimal(text);
+  }
+
+  /// Assuming [text] is a double written in exponent notation, returns a string
+  /// representation of that double without exponent notation.
+  String _removeExponent(String text) {
+    var buffer = new StringBuffer();
+    int exponent;
+    for (var i = 0; i < text.length; i++) {
+      var codeUnit = text.codeUnitAt(i);
+      if (codeUnit == $e) {
+        exponent = int.parse(text.substring(i + 1, text.length));
+        break;
+      } else if (codeUnit != $dot) {
+        buffer.writeCharCode(codeUnit);
+      }
+    }
+
+    if (exponent > 0) {
+      for (var i = 0; i < exponent; i++) {
+        buffer.writeCharCode($0);
+      }
+      return buffer.toString();
+    } else {
+      var result = new StringBuffer();
+      var negative = text.codeUnitAt(0) == $minus;
+      if (negative) result.writeCharCode($minus);
+      result.write("0.");
+      for (var i = -1; i > exponent; i--) {
+        result.writeCharCode($0);
+      }
+      result.write(negative ? buffer.toString().substring(1) : buffer);
+      return result.toString();
+    }
+  }
+
+  /// Assuming [text] is a double written without exponent notation, writes it
+  /// to [_buffer] with at most [SassNumber.precision] digits after the decimal.
+  void _writeDecimal(String text) {
+    var textIndex = 0;
+    for (; textIndex < text.length; textIndex++) {
+      var codeUnit = text.codeUnitAt(textIndex);
+      _buffer.writeCharCode(codeUnit);
+      if (codeUnit == $dot) {
+        textIndex++;
+        break;
+      }
+    }
+    if (textIndex == text.length) return;
+
+    // We need to ensure that we write at most [SassNumber.precision] digits
+    // after the decimal point, and that we round appropriately if necessary. To
+    // do this, we maintain an intermediate buffer of decimal digits, which we
+    // then convert to text.
+    var digits = new Uint8List(SassNumber.precision);
+    var digitsIndex = 0;
+    while (textIndex < text.length && digitsIndex < digits.length) {
+      digits[digitsIndex++] = asDecimal(text.codeUnitAt(textIndex++));
+    }
+
+    // Round the trailing digits in [digits] up if necessary. We can be
+    // confident this won't cause us to need to round anything before the
+    // decimal, because otherwise the number would be [fuzzyIsInt].
+    if (textIndex != text.length &&
+        asDecimal(text.codeUnitAt(textIndex)) >= 5) {
+      while (digitsIndex >= 0) {
+        var newDigit = ++digits[digitsIndex - 1];
+        if (newDigit != 10) break;
+        digitsIndex--;
+      }
+    }
+
+    // Remove trailing zeros.
+    while (digitsIndex >= 0 && digits[digitsIndex - 1] == 0) {
+      digitsIndex--;
+    }
+
+    for (var i = 0; i < digitsIndex; i++) {
+      _buffer.writeCharCode(decimalCharFor(digits[i]));
     }
   }
 

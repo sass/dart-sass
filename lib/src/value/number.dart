@@ -166,8 +166,16 @@ class SassNumber extends Value {
 
   /// Whether [this] is an integer, according to [fuzzyEquals].
   ///
-  /// The [int] value can be accessed using [assertInt].
-  bool get isInt => value is int || fuzzyEquals(value % 1, 0.0);
+  /// The [int] value can be accessed using [asInt] or [assertInt]. Note that
+  /// this may return `false` for very large doubles even though they may be
+  /// mathematically integers, because not all platforms have a valid
+  /// representation for integers that large.
+  bool get isInt => fuzzyIsInt(value);
+
+  /// If [this] is an integer according to [isInt], returns [value] as an [int].
+  ///
+  /// Otherwise, returns `null`.
+  int get asInt => fuzzyAsInt(value);
 
   /// Returns a human readable string representation of this number's units.
   String get unitString =>
@@ -196,13 +204,14 @@ class SassNumber extends Value {
   SassNumber assertNumber([String name]) => this;
 
   /// Returns [value] as an [int], if it's an integer value according to
-  /// [fuzzyEquals].
+  /// [isInt].
   ///
   /// Throws an [InternalException] if [value] isn't an integer. If this came
   /// from a function argument, [name] is the argument name (without the `$`).
   /// It's used for debugging.
   int assertInt([String name]) {
-    if (isInt) return value.round();
+    var integer = fuzzyAsInt(value);
+    if (integer != null) return integer;
     throw _exception("$this is not an int.", name);
   }
 

@@ -2,11 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+
 import '../value.dart';
 
 /// The maximum distance two Sass numbers are allowed to be from one another
 /// before they're considered different.
-const epsilon = 1 / (10 * SassNumber.precision);
+final epsilon = 1 / (math.pow(10, SassNumber.precision));
 
 /// Returns whether [number1] and [number2] are equal within [epsilon].
 bool fuzzyEquals(num number1, num number2) =>
@@ -30,6 +32,21 @@ bool fuzzyGreaterThan(num number1, num number2) =>
 /// Returns whether [number1] is greater than [number2], or [fuzzyEquals].
 bool fuzzyGreaterThanOrEquals(num number1, num number2) =>
     number1 > number2 || fuzzyEquals(number1, number2);
+
+/// Returns whether [number] is [fuzzyEquals] to an integer.
+bool fuzzyIsInt(num number) {
+  if (number is int) return true;
+
+  // Check against 0.5 rather than 0.0 so that we catch numbers that are both
+  // very slightly above an integer, and very slightly below.
+  return fuzzyEquals((number - 0.5).abs() % 1, 0.5);
+}
+
+/// If [number] is an integer according to [fuzzyIsInt], returns it as an
+/// [int].
+///
+/// Otherwise, returns `null`.
+int fuzzyAsInt(num number) => fuzzyIsInt(number) ? number.round() : null;
 
 /// Rounds [number] to the nearest integer.
 ///

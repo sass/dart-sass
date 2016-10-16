@@ -67,12 +67,28 @@ int asHex(int character) {
   return 10 + character - $a;
 }
 
-/// Returns the hexadecimal digit for [character].
+/// Returns the hexadecimal digit for [number].
 ///
-/// Assumes that [character] is less than 16.
-int hexCharFor(int character) {
-  assert(character < 0x10);
-  return character < 0xA ? $0 + character : $a - 0xA + character;
+/// Assumes that [number] is less than 16.
+int hexCharFor(int number) {
+  assert(number < 0x10);
+  return number < 0xA ? $0 + number : $a - 0xA + number;
+}
+
+/// Returns the value of [character] as a decimal digit.
+///
+/// Assumes that [character] is a decimal digit.
+int asDecimal(int character) {
+  assert(character >= $0 && character <= $9);
+  return character - $0;
+}
+
+/// Returns the decimal digit for [number].
+///
+/// Assumes that [number] is less than 10.
+int decimalCharFor(int number) {
+  assert(number < 10);
+  return $0 + number;
 }
 
 /// Assumes that [character] is a left-hand brace-like character, and returns
