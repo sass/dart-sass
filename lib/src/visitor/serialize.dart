@@ -267,7 +267,7 @@ class _SerializeCssVisitor
       // TODO: support precision in alpha, make sure we don't write exponential
       // notation.
       _buffer.write(
-          "rgb(${value.red}, ${value.green}, ${value.blue}, ${value.alpha})");
+          "rgba(${value.red}, ${value.green}, ${value.blue}, ${value.alpha})");
     }
   }
 
