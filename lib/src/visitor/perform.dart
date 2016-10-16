@@ -260,18 +260,16 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  void visitEachRule(EachRule node) {
+  Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
     var setVariables = node.variables.length == 1
         ? (value) => _environment.setLocalVariable(node.variables.first, value)
         : (value) => _setMultipleVariables(node.variables, value);
-    _environment.scope(() {
-      for (var element in list.asList) {
+    return _environment.scope(() {
+      return _handleReturn(list.asList, (element) {
         setVariables(element);
-        for (var child in node.children) {
-          child.accept(this);
-        }
-      }
+        return _handleReturn(node.children, (child) => child.accept(this));
+      });
     }, semiGlobal: true);
   }
 
@@ -342,7 +340,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }, through: (node) => node is CssStyleRule);
   }
 
-  void visitForRule(ForRule node) {
+  Value visitForRule(ForRule node) {
     var from = _addExceptionSpan(node.from.span,
         () => node.from.accept(this).assertNumber().assertInt());
     var to = _addExceptionSpan(
@@ -351,15 +349,16 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     // TODO: coerce units
     var direction = from > to ? -1 : 1;
     if (!node.isExclusive) to += direction;
-    if (from == to) return;
+    if (from == to) return null;
 
-    _environment.scope(() {
+    return _environment.scope(() {
       for (var i = from; i != to; i += direction) {
         _environment.setLocalVariable(node.variable, new SassNumber(i));
-        for (var child in node.children) {
-          child.accept(this);
-        }
+        var result =
+            _handleReturn(node.children, (child) => child.accept(this));
+        if (result != null) return result;
       }
+      return null;
     }, semiGlobal: true);
   }
 
@@ -368,7 +367,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         .setFunction(new UserDefinedCallable(node, _environment.closure()));
   }
 
-  void visitIfRule(IfRule node) {
+  Value visitIfRule(IfRule node) {
     var clause = node.clauses
             .firstWhere((pair) => pair.item1.accept(this).isTruthy,
                 orElse: () => null)
@@ -376,11 +375,9 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         node.lastClause;
     if (clause == null) return null;
 
-    _environment.scope(() {
-      for (var child in clause) {
-        child.accept(this);
-      }
-    }, semiGlobal: true);
+    return _environment.scope(
+        () => _handleReturn(clause, (child) => child.accept(this)),
+        semiGlobal: true);
   }
 
   void visitImportRule(ImportRule node) {
@@ -640,13 +637,14 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  void visitWhileRule(WhileRule node) {
-    _environment.scope(() {
+  Value visitWhileRule(WhileRule node) {
+    return _environment.scope(() {
       while (node.condition.accept(this).isTruthy) {
-        for (var child in node.children) {
-          child.accept(this);
-        }
+        var result =
+            _handleReturn(node.children, (child) => child.accept(this));
+        if (result != null) return result;
       }
+      return null;
     }, semiGlobal: true);
   }
 
@@ -1085,6 +1083,18 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       new SassString(_performInterpolation(node.text), quotes: node.hasQuotes);
 
   // ## Utilities
+
+  /// Runs [callback] for each value in [list] until it returns a [Value].
+  ///
+  /// Returns the value returned by [callback], or `null` if it only ever
+  /// returned `null`.
+  Value _handleReturn/*<T>*/(List/*<T>*/ list, Value callback(/*=T*/ value)) {
+    for (var value in list) {
+      var result = callback(value);
+      if (result != null) return result;
+    }
+    return null;
+  }
 
   /// Runs [callback] with [environment] as the current environment.
   /*=T*/ _withEnvironment/*<T>*/(Environment environment, /*=T*/ callback()) {

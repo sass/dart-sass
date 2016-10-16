@@ -166,7 +166,7 @@ List<List<ComplexSelectorComponent>> weave(
 /// identical to the intersection of all elements matched by `A X` and all
 /// elements matched by `B X`. Some `AB_i` are elided to reduce the size of
 /// the output.
-List<List<ComplexSelectorComponent>> _weaveParents(
+Iterable<List<ComplexSelectorComponent>> _weaveParents(
     List<ComplexSelectorComponent> parents1,
     List<ComplexSelectorComponent> parents2) {
   var queue1 = new Queue<ComplexSelectorComponent>.from(parents1);
@@ -226,12 +226,13 @@ List<List<ComplexSelectorComponent>> _weaveParents(
   choices.addAll(finalCombinator);
 
   return paths(choices.where((choice) => choice.isNotEmpty))
-      .map((path) => path.expand((group) => group));
+      .map((path) => path.expand((group) => group).toList());
 }
 
 /// If the first element of [queue] has a `::root` selector, removes and returns
 /// that element.
 CompoundSelector _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
+  if (queue.isEmpty) return null;
   var first = queue.first as CompoundSelector;
   if (!_hasRoot(first)) return null;
 
@@ -282,12 +283,12 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
 
   var combinators1 = <Combinator>[];
   while (components1.last is Combinator) {
-    combinators1.add(components1.last as Combinator);
+    combinators1.add(components1.removeLast() as Combinator);
   }
 
   var combinators2 = <Combinator>[];
   while (components2.last is Combinator) {
-    combinators2.add(components2.last as Combinator);
+    combinators2.add(components2.removeLast() as Combinator);
   }
 
   if (combinators1.length > 1 || combinators2.length > 1) {
