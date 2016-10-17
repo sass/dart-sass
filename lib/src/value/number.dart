@@ -161,6 +161,28 @@ class SassNumber extends Value {
   /// This number's denominator units.
   final List<String> denominatorUnits;
 
+  /// Whether this should be represented as a slash-separated series of numbers.
+  ///
+  /// This is `true` if and only if [original] contains a slash.
+  bool get isSlashSeparated => _hasOriginal && _original != null;
+
+  /// The original representation of the number.
+  ///
+  /// This is used to preserve slash-separated numbers in some contexts.
+  String get original {
+    if (_original != null) return _original;
+    if (_hasOriginal) return toCssString();
+    return _original;
+  }
+
+  final String _original;
+
+  /// Whether this number still has its original representation.
+  ///
+  /// This is separate from [_original] so that we can avoid eagerly converting
+  /// all number literals to strings.
+  final bool _hasOriginal;
+
   /// Whether [this] has any units.
   bool get hasUnits => numeratorUnits.isNotEmpty || denominatorUnits.isNotEmpty;
 
@@ -181,14 +203,27 @@ class SassNumber extends Value {
   String get unitString =>
       hasUnits ? _unitString(numeratorUnits, denominatorUnits) : '';
 
-  /// Returns a number, optionally with a single numerator unit.
+  /// Creates a number, optionally with a single numerator unit.
   ///
   /// This matches the numbers that can be written as literals.
   /// [SassNumber.withUnits] can be used to construct more complex units.
-  SassNumber(num value, [String unit])
-      : this.withUnits(value, numeratorUnits: unit == null ? null : [unit]);
+  SassNumber(this.value, [String unit])
+      : numeratorUnits =
+            unit == null ? const [] : new List.unmodifiable([unit]),
+        denominatorUnits = const [],
+        _original = null,
+        _hasOriginal = false;
 
-  /// Returns a number with full [numeratorUnits] and [denominatorUnits].
+  /// Like [new SassNumber], but sets [original] based on the string
+  /// representation of the number.
+  SassNumber.withOriginal(this.value, [String unit])
+      : numeratorUnits =
+            unit == null ? const [] : new List.unmodifiable([unit]),
+        denominatorUnits = const [],
+        _original = null,
+        _hasOriginal = true;
+
+  /// Creates a number with full [numeratorUnits] and [denominatorUnits].
   SassNumber.withUnits(this.value,
       {Iterable<String> numeratorUnits, Iterable<String> denominatorUnits})
       : numeratorUnits = numeratorUnits == null
@@ -196,10 +231,27 @@ class SassNumber extends Value {
             : new List.unmodifiable(numeratorUnits),
         denominatorUnits = denominatorUnits == null
             ? const []
-            : new List.unmodifiable(denominatorUnits);
+            : new List.unmodifiable(denominatorUnits),
+        _original = null,
+        _hasOriginal = false;
+
+  SassNumber._(this.value, this.numeratorUnits, this.denominatorUnits,
+      [String original])
+      : _original = original,
+        _hasOriginal = original != null;
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitNumber(this);
+
+  /// Returns a copy of [this] without [original] set.
+  SassNumber withoutOriginal() {
+    if (!_hasOriginal) return this;
+    return new SassNumber._(value, numeratorUnits, denominatorUnits);
+  }
+
+  /// Returns a copy of [this] with [this.original] set to [original].
+  SassNumber _withOriginal(String original) =>
+      new SassNumber._(value, numeratorUnits, denominatorUnits, original);
 
   SassNumber assertNumber([String name]) => this;
 
@@ -403,8 +455,10 @@ class SassNumber extends Value {
 
   Value dividedBy(Value other) {
     if (other is SassNumber) {
-      return _multiplyUnits(this.value / other.value, this.numeratorUnits,
+      var result = _multiplyUnits(this.value / other.value, this.numeratorUnits,
           this.denominatorUnits, other.denominatorUnits, other.numeratorUnits);
+      if (!this._hasOriginal || !other._hasOriginal) return result;
+      return result._withOriginal("${this.original}/${other.original}");
     }
     if (other is! SassColor) super.dividedBy(other);
     throw new SassScriptException('Undefined operation "$this / $other".');

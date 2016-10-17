@@ -45,6 +45,9 @@ abstract class StylesheetParser extends Parser {
   /// or `@each`.
   var _inControlDirective = false;
 
+  /// Whether the parser is currently within a parenthesized expression.
+  var _inParentheses = false;
+
   StylesheetParser(String contents, {url}) : super(contents, url: url);
 
   // ## Statements
@@ -1229,38 +1232,44 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a parenthesized expression.
   Expression _parentheses() {
-    var start = scanner.state;
-    scanner.expectChar($lparen);
-    whitespace();
-    if (!_lookingAtExpression()) {
+    try {
+      _inParentheses = true;
+      var start = scanner.state;
+      scanner.expectChar($lparen);
+      whitespace();
+      if (!_lookingAtExpression()) {
+        scanner.expectChar($rparen);
+        return new ListExpression([], ListSeparator.undecided,
+            span: scanner.spanFrom(start));
+      }
+
+      var first = _expressionUntilComma();
+      if (scanner.scanChar($colon)) {
+        whitespace();
+        _inParentheses = false;
+        return _map(first, start);
+      }
+
+      if (!scanner.scanChar($comma)) {
+        scanner.expectChar($rparen);
+        return first;
+      }
+      whitespace();
+
+      var expressions = [first];
+      while (true) {
+        if (!_lookingAtExpression()) break;
+        expressions.add(_expressionUntilComma());
+        if (!scanner.scanChar($comma)) break;
+        whitespace();
+      }
+
       scanner.expectChar($rparen);
-      return new ListExpression([], ListSeparator.undecided,
+      return new ListExpression(expressions, ListSeparator.comma,
           span: scanner.spanFrom(start));
+    } finally {
+      _inParentheses = false;
     }
-
-    var first = _expressionUntilComma();
-    if (scanner.scanChar($colon)) {
-      whitespace();
-      return _map(first, start);
-    }
-
-    if (!scanner.scanChar($comma)) {
-      scanner.expectChar($rparen);
-      return first;
-    }
-    whitespace();
-
-    var expressions = [first];
-    while (true) {
-      if (!_lookingAtExpression()) break;
-      expressions.add(_expressionUntilComma());
-      if (!scanner.scanChar($comma)) break;
-      whitespace();
-    }
-
-    scanner.expectChar($rparen);
-    return new ListExpression(expressions, ListSeparator.comma,
-        span: scanner.spanFrom(start));
   }
 
   /// Consumes a map expression.
@@ -1444,7 +1453,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     return new NumberExpression(sign * number, scanner.spanFrom(start),
-        unit: unit);
+        unit: unit, original: !_inParentheses);
   }
 
   /// Consumes a variable expression.

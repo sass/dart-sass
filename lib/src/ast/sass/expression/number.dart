@@ -15,9 +15,13 @@ class NumberExpression implements Expression {
   /// The number's unit, or `null`.
   final String unit;
 
+  /// Whether the number produced should retain its original representation.
+  final bool hasOriginal;
+
   final FileSpan span;
 
-  NumberExpression(this.value, this.span, {this.unit});
+  NumberExpression(this.value, this.span, {this.unit, bool original: false})
+      : hasOriginal = original;
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitNumberExpression(this);

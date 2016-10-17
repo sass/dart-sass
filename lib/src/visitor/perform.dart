@@ -622,7 +622,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   void visitVariableDeclaration(VariableDeclaration node) {
-    _environment.setVariable(node.name, node.expression.accept(this),
+    _environment.setVariable(
+        node.name, node.expression.accept(this).withoutOriginal(),
         global: node.isGlobal);
   }
 
@@ -732,8 +733,9 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
   SassNull visitNullExpression(NullExpression node) => sassNull;
 
-  SassNumber visitNumberExpression(NumberExpression node) =>
-      new SassNumber(node.value, node.unit);
+  SassNumber visitNumberExpression(NumberExpression node) => node.hasOriginal
+      ? new SassNumber.withOriginal(node.value, node.unit)
+      : new SassNumber(node.value, node.unit);
 
   SassColor visitColorExpression(ColorExpression node) => node.value;
 
@@ -761,7 +763,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var function = _environment.getFunction(plainName);
       if (function != null) {
         if (function is BuiltInCallable) {
-          return _runBuiltInCallable(node, function);
+          return _runBuiltInCallable(node, function).withoutOriginal();
         } else if (function is UserDefinedCallable) {
           return _runUserDefinedCallable(node, function, () {
             for (var statement in function.declaration.children) {
@@ -771,7 +773,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
 
             throw _exception("Function finished without @return.",
                 function.declaration.span);
-          });
+          }).withoutOriginal();
         } else {
           return null;
         }
