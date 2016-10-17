@@ -41,16 +41,16 @@ class SassFormatException extends SourceSpanFormatException
   SassFormatException(String message, FileSpan span) : super(message, span);
 }
 
-/// An exception thrown by SassScript that doesn't yet have a [FileSpan]
-/// associated with it.
+/// An exception thrown by SassScript.
 ///
-/// This is caught by Sass and converted to a [SassRuntimeException] with a
-/// source span and a stack trace.
-class InternalException {
+/// This doesn't extends [SassException] because it doesn't (yet) have a
+/// [FileSpan] associated with it. It's caught by Sass's internals and converted
+/// to a [SassRuntimeException] with a source span and a stack trace.
+class SassScriptException {
   /// The error message.
   final String message;
 
-  InternalException(this.message);
+  SassScriptException(this.message);
 
   String toString() => "$message\n\nBUG: This should include a source span!";
 }

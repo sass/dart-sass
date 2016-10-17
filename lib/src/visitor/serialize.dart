@@ -45,7 +45,7 @@ String toCss(CssNode node, {OutputStyle style, bool inspect: false}) {
 /// If [inspect] is `true`, this will emit an unambiguous representation of the
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [value] can't be
-/// represented in plain CSS, throws an [InternalException].
+/// represented in plain CSS, throws a [SassScriptException].
 String valueToCss(Value value, {bool inspect: false}) {
   var visitor = new _SerializeCssVisitor(inspect: inspect);
   value.accept(visitor);
@@ -57,7 +57,7 @@ String valueToCss(Value value, {bool inspect: false}) {
 /// If [inspect] is `true`, this will emit an unambiguous representation of the
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [selector] can't be
-/// represented in plain CSS, throws an [InternalException].
+/// represented in plain CSS, throws a [SassScriptException].
 String selectorToCss(Selector selector, {bool inspect: false}) {
   var visitor = new _SerializeCssVisitor(inspect: inspect);
   selector.accept(visitor);
@@ -247,11 +247,11 @@ class _SerializeCssVisitor
   // ## Values
 
   /// Converts [value] to a plain CSS string, converting any
-  /// [InternalException]s to [SassException]s.
+  /// [SassScriptException]s to [SassException]s.
   void _visitValue(CssValue<Value> value) {
     try {
       value.value.accept(this);
-    } on InternalException catch (error) {
+    } on SassScriptException catch (error) {
       throw new SassException(error.message, value.span);
     }
   }
@@ -283,7 +283,9 @@ class _SerializeCssVisitor
     if (value.hasBrackets) {
       _buffer.writeCharCode($lbracket);
     } else if (value.contents.isEmpty) {
-      if (!_inspect) throw new InternalException("() isn't a valid CSS value");
+      if (!_inspect) {
+        throw new SassScriptException("() isn't a valid CSS value");
+      }
       _buffer.write("()");
       return;
     }
@@ -317,7 +319,9 @@ class _SerializeCssVisitor
   }
 
   void visitMap(SassMap map) {
-    if (!_inspect) throw new InternalException("$map isn't a valid CSS value.");
+    if (!_inspect) {
+      throw new SassScriptException("$map isn't a valid CSS value.");
+    }
     _buffer.writeCharCode($lparen);
     _writeBetween(map.contents.keys, ", ", (key) {
       _writeMapElement(key);
@@ -347,7 +351,7 @@ class _SerializeCssVisitor
     if (!_inspect) {
       if (value.numeratorUnits.length > 1 ||
           value.denominatorUnits.isNotEmpty) {
-        throw new InternalException("$value isn't a valid CSS value.");
+        throw new SassScriptException("$value isn't a valid CSS value.");
       }
 
       if (value.numeratorUnits.isNotEmpty) {

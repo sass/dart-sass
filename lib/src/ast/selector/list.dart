@@ -88,12 +88,12 @@ class SelectorList extends Selector {
   ///
   /// The given [parent] may be `null`, indicating that this has no parents. If
   /// so, this list is returned as-is if it doesn't contain any explicit
-  /// [ParentSelector]s. If it does, this throws an [InternalException].
+  /// [ParentSelector]s. If it does, this throws a [SassScriptException].
   SelectorList resolveParentSelectors(SelectorList parent,
       {bool implicitParent: true}) {
     if (parent == null) {
       if (!_containsParentSelector) return this;
-      throw new InternalException(
+      throw new SassScriptException(
           'Top-level selectors may not contain the parent selector "&".');
     }
 
@@ -186,7 +186,7 @@ class SelectorList extends Selector {
     return parent.components.map((complex) {
       var lastComponent = complex.components.last;
       if (lastComponent is! CompoundSelector) {
-        throw new InternalException(
+        throw new SassScriptException(
             'Parent "$complex" is incompatible with this selector.');
       }
 

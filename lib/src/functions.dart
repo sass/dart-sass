@@ -263,7 +263,7 @@ void defineCoreFunctions(Environment environment) {
       }
 
       assert(arguments.length != 1);
-      throw new InternalException(
+      throw new SassScriptException(
           "Only 1 argument allowed, but ${arguments.length} were passed.");
     }
   ]));
@@ -289,7 +289,7 @@ void defineCoreFunctions(Environment environment) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.contents.isNotEmpty) {
-      throw new InternalException(
+      throw new SassScriptException(
           "Only only positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
@@ -307,7 +307,7 @@ void defineCoreFunctions(Environment environment) {
     var alpha = getInRange("alpha", -1, 1);
 
     if (keywords.isNotEmpty) {
-      throw new InternalException(
+      throw new SassScriptException(
           "No ${pluralize('argument', keywords.length)} named "
           "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
     }
@@ -316,7 +316,7 @@ void defineCoreFunctions(Environment environment) {
     var hasHsl = hue != null || saturation != null || lightness != null;
     if (hasRgb) {
       if (hasHsl) {
-        throw new InternalException(
+        throw new SassScriptException(
             "RGB parameters may not be passed along with HSL parameters.");
       }
 
@@ -340,7 +340,7 @@ void defineCoreFunctions(Environment environment) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.contents.isNotEmpty) {
-      throw new InternalException(
+      throw new SassScriptException(
           "Only only positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
@@ -367,7 +367,7 @@ void defineCoreFunctions(Environment environment) {
     var alpha = getScale("alpha");
 
     if (keywords.isNotEmpty) {
-      throw new InternalException(
+      throw new SassScriptException(
           "No ${pluralize('argument', keywords.length)} named "
           "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
     }
@@ -376,7 +376,7 @@ void defineCoreFunctions(Environment environment) {
     var hasHsl = saturation != null || lightness != null;
     if (hasRgb) {
       if (hasHsl) {
-        throw new InternalException(
+        throw new SassScriptException(
             "RGB parameters may not be passed along with HSL parameters.");
       }
 
@@ -400,7 +400,7 @@ void defineCoreFunctions(Environment environment) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.contents.isNotEmpty) {
-      throw new InternalException(
+      throw new SassScriptException(
           "Only only positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
@@ -418,7 +418,7 @@ void defineCoreFunctions(Environment environment) {
     var alpha = getInRange("alpha", 0, 1);
 
     if (keywords.isNotEmpty) {
-      throw new InternalException(
+      throw new SassScriptException(
           "No ${pluralize('argument', keywords.length)} named "
           "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
     }
@@ -427,7 +427,7 @@ void defineCoreFunctions(Environment environment) {
     var hasHsl = saturation != null || lightness != null;
     if (hasRgb) {
       if (hasHsl) {
-        throw new InternalException(
+        throw new SassScriptException(
             "RGB parameters may not be passed along with HSL parameters.");
       }
 
@@ -542,7 +542,7 @@ void defineCoreFunctions(Environment environment) {
       if (max == null || max.lessThan(number).isTruthy) max = number;
     }
     if (max != null) return max;
-    throw new InternalException("At least one argument must be passed.");
+    throw new SassScriptException("At least one argument must be passed.");
   });
 
   environment.defineFunction("min", r"$numbers...", (arguments) {
@@ -552,14 +552,14 @@ void defineCoreFunctions(Environment environment) {
       if (min == null || min.greaterThan(number).isTruthy) min = number;
     }
     if (min != null) return min;
-    throw new InternalException("At least one argument must be passed.");
+    throw new SassScriptException("At least one argument must be passed.");
   });
 
   environment.defineFunction("random", r"$limit: null", (arguments) {
     if (arguments[0] == sassNull) return new SassNumber(_random.nextDouble());
     var limit = arguments[0].assertNumber("limit").assertInt("limit");
     if (limit < 1) {
-      throw new InternalException(
+      throw new SassScriptException(
           "\$limit: Must be greater than 0, was $limit.");
     }
     return new SassNumber(_random.nextInt(limit + 1) + 1);
@@ -607,7 +607,7 @@ void defineCoreFunctions(Environment environment) {
     } else if (separatorParam.text == "comma") {
       separator = ListSeparator.comma;
     } else {
-      throw new InternalException(
+      throw new SassScriptException(
           '\$$separator: Must be "space", "comma", or "auto".');
     }
 
@@ -636,7 +636,7 @@ void defineCoreFunctions(Environment environment) {
     } else if (separatorParam.text == "comma") {
       separator = ListSeparator.comma;
     } else {
-      throw new InternalException(
+      throw new SassScriptException(
           '\$$separator: Must be "space", "comma", or "auto".');
     }
 
@@ -725,7 +725,7 @@ void defineCoreFunctions(Environment environment) {
       return new SassMap(
           mapMap(argumentList.keywords, key: (key, _) => new SassString(key)));
     } else {
-      throw new InternalException(
+      throw new SassScriptException(
           "\$args: $argumentList is not an argument list.");
     }
   });
@@ -735,7 +735,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("selector-nest", r"$selectors...", (arguments) {
     var selectors = (arguments[0] as SassArgumentList).contents;
     if (selectors.isEmpty) {
-      throw new InternalException(
+      throw new SassScriptException(
           "\$selectors: At least one selector must be passed.");
     }
 
@@ -748,7 +748,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("selector-append", r"$selectors...", (arguments) {
     var selectors = (arguments[0] as SassArgumentList).contents;
     if (selectors.isEmpty) {
-      throw new InternalException(
+      throw new SassScriptException(
           "\$selectors: At least one selector must be passed.");
     }
 
@@ -760,13 +760,13 @@ void defineCoreFunctions(Environment environment) {
         if (compound is CompoundSelector) {
           var newCompound = _prependParent(compound);
           if (newCompound == null) {
-            throw new InternalException("Can't append $complex to $parent.");
+            throw new SassScriptException("Can't append $complex to $parent.");
           }
 
           return new ComplexSelector(
               [newCompound]..addAll(complex.components.skip(1)));
         } else {
-          throw new InternalException("Can't append $complex to $parent.");
+          throw new SassScriptException("Can't append $complex to $parent.");
         }
       })).resolveParentSelectors(parent);
     }).asSassList;
@@ -899,7 +899,7 @@ void defineCoreFunctions(Environment environment) {
 ///
 /// If [number] has no units, its value is clamped to be greater than `0` or
 /// less than [max] and returned. If [number] is a percentage, it's scaled to be
-/// within `0` and [max]. Otherwise, this throws an [InternalException].
+/// within `0` and [max]. Otherwise, this throws a [SassScriptException].
 ///
 /// [name] is used to identify the argument in the error message.
 num _percentageOrUnitless(SassNumber number, num max, String name) {
@@ -909,7 +909,7 @@ num _percentageOrUnitless(SassNumber number, num max, String name) {
   } else if (number.hasUnit("%")) {
     value = max * number.value / 100;
   } else {
-    throw new InternalException(
+    throw new SassScriptException(
         '\$$name: Expected $number to have no units or "%".');
   }
 

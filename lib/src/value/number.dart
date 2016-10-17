@@ -206,7 +206,7 @@ class SassNumber extends Value {
   /// Returns [value] as an [int], if it's an integer value according to
   /// [isInt].
   ///
-  /// Throws an [InternalException] if [value] isn't an integer. If this came
+  /// Throws a [SassScriptException] if [value] isn't an integer. If this came
   /// from a function argument, [name] is the argument name (without the `$`).
   /// It's used for debugging.
   int assertInt([String name]) {
@@ -221,7 +221,7 @@ class SassNumber extends Value {
   /// A Sass-style index is one-based, and uses negative numbers to count
   /// backwards from the end of the list.
   ///
-  /// Throws an [InternalException] if this isn't an integer or if it isn't a
+  /// Throws a [SassScriptException] if this isn't an integer or if it isn't a
   /// valid index for [list]. If this came from a function argument, [name] is
   /// the argument name (without the `$`). It's used for debugging.
   int assertIndexFor(List list, [String name]) {
@@ -238,7 +238,7 @@ class SassNumber extends Value {
   /// If [value] is between [min] and [max], returns it.
   ///
   /// If [value] is [fuzzyEquals] to [min] or [max], it's clamped to the
-  /// appropriate value. Otherwise, this throws an [InternalException]. If this
+  /// appropriate value. Otherwise, this throws a [SassScriptException]. If this
   /// came from a function argument, [name] is the argument name (without the
   /// `$`). It's used for debugging.
   num valueInRange(num min, num max, [String name]) {
@@ -254,7 +254,7 @@ class SassNumber extends Value {
       denominatorUnits.isEmpty &&
       numeratorUnits.first == unit;
 
-  /// Throws an [InternalException] unless [this] has [unit] as its only unit
+  /// Throws a [SassScriptException] unless [this] has [unit] as its only unit
   /// (and as a numerator).
   ///
   /// If this came from a function argument, [name] is the argument name
@@ -264,7 +264,7 @@ class SassNumber extends Value {
     throw _exception('Expected $this to have unit "$unit".');
   }
 
-  /// Throws an [InternalException] unless [this] has no units.
+  /// Throws a [SassScriptException] unless [this] has no units.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for debugging.
@@ -276,7 +276,7 @@ class SassNumber extends Value {
   /// Returns [value], converted to the units represented by [newNumerators] and
   /// [newDenominators].
   ///
-  /// Throws an [InternalException] if this number's units aren't compatible
+  /// Throws a [SassScriptException] if this number's units aren't compatible
   /// with [newNumerators] and [newDenominators].
   num valueInUnits(List<String> newNumerators, List<String> newDenominators) {
     if ((newNumerators.isEmpty && newDenominators.isEmpty) ||
@@ -295,7 +295,7 @@ class SassNumber extends Value {
         value *= factor;
         return true;
       }, orElse: () {
-        throw new InternalException("Incompatible units "
+        throw new SassScriptException("Incompatible units "
             "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
             "${_unitString(newNumerators, newDenominators)}.");
       });
@@ -309,14 +309,14 @@ class SassNumber extends Value {
         value *= factor;
         return true;
       }, orElse: () {
-        throw new InternalException("Incompatible units "
+        throw new SassScriptException("Incompatible units "
             "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
             "${_unitString(newNumerators, newDenominators)}.");
       });
     }
 
     if (oldNumerators.isNotEmpty || oldDenominators.isNotEmpty) {
-      throw new InternalException("Incompatible units "
+      throw new SassScriptException("Incompatible units "
           "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
           "${_unitString(newNumerators, newDenominators)}.");
     }
@@ -333,7 +333,7 @@ class SassNumber extends Value {
     try {
       greaterThan(other);
       return true;
-    } on InternalException {
+    } on SassScriptException {
       return false;
     }
   }
@@ -343,7 +343,7 @@ class SassNumber extends Value {
       return new SassBoolean(
           _coerceUnits(other, (num1, num2) => fuzzyGreaterThan(num1, num2)));
     }
-    throw new InternalException('Undefined operation "$this > $other".');
+    throw new SassScriptException('Undefined operation "$this > $other".');
   }
 
   SassBoolean greaterThanOrEquals(Value other) {
@@ -351,7 +351,7 @@ class SassNumber extends Value {
       return new SassBoolean(_coerceUnits(
           other, (num1, num2) => fuzzyGreaterThanOrEquals(num1, num2)));
     }
-    throw new InternalException('Undefined operation "$this >= $other".');
+    throw new SassScriptException('Undefined operation "$this >= $other".');
   }
 
   SassBoolean lessThan(Value other) {
@@ -359,7 +359,7 @@ class SassNumber extends Value {
       return new SassBoolean(
           _coerceUnits(other, (num1, num2) => fuzzyLessThan(num1, num2)));
     }
-    throw new InternalException('Undefined operation "$this < $other".');
+    throw new SassScriptException('Undefined operation "$this < $other".');
   }
 
   SassBoolean lessThanOrEquals(Value other) {
@@ -367,14 +367,14 @@ class SassNumber extends Value {
       return new SassBoolean(_coerceUnits(
           other, (num1, num2) => fuzzyLessThanOrEquals(num1, num2)));
     }
-    throw new InternalException('Undefined operation "$this <= $other".');
+    throw new SassScriptException('Undefined operation "$this <= $other".');
   }
 
   Value modulo(Value other) {
     if (other is SassNumber) {
       return new SassNumber(_coerceUnits(other, (num1, num2) => num1 % num2));
     }
-    throw new InternalException('Undefined operation "$this % $other".');
+    throw new SassScriptException('Undefined operation "$this % $other".');
   }
 
   Value plus(Value other) {
@@ -382,7 +382,7 @@ class SassNumber extends Value {
       return new SassNumber(_coerceUnits(other, (num1, num2) => num1 + num2));
     }
     if (other is! SassColor) return super.plus(other);
-    throw new InternalException('Undefined operation "$this + $other".');
+    throw new SassScriptException('Undefined operation "$this + $other".');
   }
 
   Value minus(Value other) {
@@ -390,7 +390,7 @@ class SassNumber extends Value {
       return new SassNumber(_coerceUnits(other, (num1, num2) => num1 - num2));
     }
     if (other is! SassColor) return super.minus(other);
-    throw new InternalException('Undefined operation "$this - $other".');
+    throw new SassScriptException('Undefined operation "$this - $other".');
   }
 
   Value times(Value other) {
@@ -398,7 +398,7 @@ class SassNumber extends Value {
       return _multiplyUnits(this.value * other.value, this.numeratorUnits,
           this.denominatorUnits, other.numeratorUnits, other.denominatorUnits);
     }
-    throw new InternalException('Undefined operation "$this * $other".');
+    throw new SassScriptException('Undefined operation "$this * $other".');
   }
 
   Value dividedBy(Value other) {
@@ -407,7 +407,7 @@ class SassNumber extends Value {
           this.denominatorUnits, other.denominatorUnits, other.numeratorUnits);
     }
     if (other is! SassColor) super.dividedBy(other);
-    throw new InternalException('Undefined operation "$this / $other".');
+    throw new SassScriptException('Undefined operation "$this / $other".');
   }
 
   Value unaryPlus() => this;
@@ -417,7 +417,7 @@ class SassNumber extends Value {
   /// Converts [other]'s value to be compatible with this number's, and calls
   /// [operation] with the resulting numbers.
   ///
-  /// Throws an [InternalException] if the two numbers' units are incompatible.
+  /// Throws a [SassScriptException] if the two numbers' units are incompatible.
   /*=T*/ _coerceUnits/*<T>*/(
       SassNumber other, /*=T*/ operation(num num1, num num2)) {
     num num1;
@@ -530,7 +530,7 @@ class SassNumber extends Value {
 
   int get hashCode => fuzzyHashCode(value);
 
-  /// Throws an [InternalException] with the given [message].
-  InternalException _exception(String message, [String name]) =>
-      new InternalException(name == null ? message : "\$$name: $message");
+  /// Throws a [SassScriptException] with the given [message].
+  SassScriptException _exception(String message, [String name]) =>
+      new SassScriptException(name == null ? message : "\$$name: $message");
 }

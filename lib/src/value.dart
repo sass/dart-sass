@@ -62,7 +62,7 @@ abstract class Value {
   /// Calls the appropriate visit method on [visitor].
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
 
-  /// Throws an [InternalException] if [this] isn't a boolean.
+  /// Throws a [SassScriptException] if [this] isn't a boolean.
   ///
   /// Note that generally, functions should use [isTruthy] rather than requiring
   /// a literal boolean.
@@ -72,28 +72,28 @@ abstract class Value {
   SassBoolean assertBoolean([String name]) =>
       throw _exception("$this is not a boolean.", name);
 
-  /// Throws an [InternalException] if [this] isn't a color.
+  /// Throws a [SassScriptException] if [this] isn't a color.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for debugging.
   SassColor assertColor([String name]) =>
       throw _exception("$this is not a color.", name);
 
-  /// Throws an [InternalException] if [this] isn't a map.
+  /// Throws a [SassScriptException] if [this] isn't a map.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for debugging.
   SassMap assertMap([String name]) =>
       throw _exception("$this is not a map.", name);
 
-  /// Throws an [InternalException] if [this] isn't a number.
+  /// Throws a [SassScriptException] if [this] isn't a number.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for debugging.
   SassNumber assertNumber([String name]) =>
       throw _exception("$this is not a number.", name);
 
-  /// Throws an [InternalException] if [this] isn't a string.
+  /// Throws a [SassScriptException] if [this] isn't a string.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for debugging.
@@ -103,7 +103,7 @@ abstract class Value {
   /// Parses [this] as a selector list, in the same manner as the
   /// `selector-parse()` function.
   ///
-  /// Throws an [InternalException] if this isn't a type that can be parsed as a
+  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
   /// selector, or if parsing fails. If [allowParent] is `true`, this allows
   /// [ParentSelector]s. Otherwise, they're considered parse errors.
   ///
@@ -123,7 +123,7 @@ abstract class Value {
   /// Parses [this] as a simple selector, in the same manner as the
   /// `selector-parse()` function.
   ///
-  /// Throws an [InternalException] if this isn't a type that can be parsed as a
+  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
   /// selector, or if parsing fails. If [allowParent] is `true`, this allows
   /// [ParentSelector]s. Otherwise, they're considered parse errors.
   ///
@@ -143,7 +143,7 @@ abstract class Value {
   /// Parses [this] as a compound selector, in the same manner as the
   /// `selector-parse()` function.
   ///
-  /// Throws an [InternalException] if this isn't a type that can be parsed as a
+  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
   /// selector, or if parsing fails. If [allowParent] is `true`, this allows
   /// [ParentSelector]s. Otherwise, they're considered parse errors.
   ///
@@ -164,7 +164,7 @@ abstract class Value {
   /// Converts a `selector-parse()`-style input into a string that can be
   /// parsed.
   ///
-  /// Throws an [InternalException] if [this] isn't a type or a structure that
+  /// Throws a [SassScriptException] if [this] isn't a type or a structure that
   /// can be parsed as a selector.
   String _selectorString([String name]) {
     var string = _selectorStringOrNull();
@@ -229,27 +229,27 @@ abstract class Value {
 
   /// The SassScript `>` operation.
   SassBoolean greaterThan(Value other) =>
-      throw new InternalException('Undefined operation "$this > $other".');
+      throw new SassScriptException('Undefined operation "$this > $other".');
 
   /// The SassScript `>=` operation.
   SassBoolean greaterThanOrEquals(Value other) =>
-      throw new InternalException('Undefined operation "$this >= $other".');
+      throw new SassScriptException('Undefined operation "$this >= $other".');
 
   /// The SassScript `<` operation.
   SassBoolean lessThan(Value other) =>
-      throw new InternalException('Undefined operation "$this < $other".');
+      throw new SassScriptException('Undefined operation "$this < $other".');
 
   /// The SassScript `<=` operation.
   SassBoolean lessThanOrEquals(Value other) =>
-      throw new InternalException('Undefined operation "$this <= $other".');
+      throw new SassScriptException('Undefined operation "$this <= $other".');
 
   /// The SassScript `*` operation.
   Value times(Value other) =>
-      throw new InternalException('Undefined operation "$this * $other".');
+      throw new SassScriptException('Undefined operation "$this * $other".');
 
   /// The SassScript `%` operation.
   Value modulo(Value other) =>
-      throw new InternalException('Undefined operation "$this % $other".');
+      throw new SassScriptException('Undefined operation "$this % $other".');
 
   /// The SassScript `+` operation.
   Value plus(Value other) {
@@ -288,7 +288,7 @@ abstract class Value {
   /// instead to convert [this] to CSS.
   String toString() => valueToCss(this, inspect: true);
 
-  /// Throws an [InternalException] with the given [message].
-  InternalException _exception(String message, [String name]) =>
-      new InternalException(name == null ? message : "\$$name: $message");
+  /// Throws a [SassScriptException] with the given [message].
+  SassScriptException _exception(String message, [String name]) =>
+      new SassScriptException(name == null ? message : "\$$name: $message");
 }

@@ -1229,12 +1229,12 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  /// Runs [callback], and converts any [InternalException]s it throws to
+  /// Runs [callback], and converts any [SassScriptException]s it throws to
   /// [SassRuntimeException]s with [span].
   /*=T*/ _addExceptionSpan/*<T>*/(FileSpan span, /*=T*/ callback()) {
     try {
       return callback();
-    } on InternalException catch (error) {
+    } on SassScriptException catch (error) {
       throw _exception(error.message, span);
     }
   }
