@@ -476,19 +476,18 @@ class _SerializeCssVisitor
 
   void visitString(SassString string) {
     if (_quote && string.hasQuotes) {
-      _visitString(string.text);
+      _visitQuotedString(string.text);
     } else {
-      // TODO: write this character-by-character.
-      _buffer.write(string.text.replaceAll("\n", " "));
+      _visitUnquotedString(string.text);
     }
   }
 
-  /// Writes [string] to [_buffer].
+  /// Writes a quoted string with [string] contents to [_buffer].
   ///
   /// By default, this detects which type of quote to use based on the contents
   /// of the string. If [forceDoubleQuote] is `true`, this always uses a double
   /// quote.
-  void _visitString(String string, {bool forceDoubleQuote: false}) {
+  void _visitQuotedString(String string, {bool forceDoubleQuote: false}) {
     var includesSingleQuote = false;
     var includesDoubleQuote = false;
 
@@ -501,7 +500,7 @@ class _SerializeCssVisitor
           if (forceDoubleQuote) {
             buffer.writeCharCode($single_quote);
           } else if (includesDoubleQuote) {
-            _visitString(string, forceDoubleQuote: true);
+            _visitQuotedString(string, forceDoubleQuote: true);
             return;
           } else {
             includesSingleQuote = true;
@@ -514,7 +513,7 @@ class _SerializeCssVisitor
             buffer.writeCharCode($backslash);
             buffer.writeCharCode($double_quote);
           } else if (includesSingleQuote) {
-            _visitString(string, forceDoubleQuote: true);
+            _visitQuotedString(string, forceDoubleQuote: true);
             return;
           } else {
             includesDoubleQuote = true;
@@ -553,6 +552,27 @@ class _SerializeCssVisitor
       _buffer.writeCharCode(quote);
       _buffer.write(buffer);
       _buffer.writeCharCode(quote);
+    }
+  }
+
+  /// Writes an unquoted string with [string] contents to [_buffer].
+  void _visitUnquotedString(String string) {
+    for (var i = 0; i < string.length; i++) {
+      var char = string.codeUnitAt(i);
+      switch (char) {
+        case $backslash:
+          _buffer.writeCharCode($backslash);
+          _buffer.writeCharCode($backslash);
+          break;
+
+        case $lf:
+          _buffer.writeCharCode($space);
+          break;
+
+        default:
+          _buffer.writeCharCode(char);
+          break;
+      }
     }
   }
 
