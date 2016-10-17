@@ -254,37 +254,44 @@ abstract class Value {
   /// The SassScript `+` operation.
   Value plus(Value other) {
     if (other is SassString) {
-      return new SassString(valueToCss(this) + other.text,
+      return new SassString(toCssString() + other.text,
           quotes: other.hasQuotes);
     } else {
-      return new SassString(valueToCss(this) + valueToCss(other));
+      return new SassString(toCssString() + other.toCssString());
     }
   }
 
   /// The SassScript `-` operation.
   Value minus(Value other) =>
-      new SassString("${valueToCss(this)}-${valueToCss(other)}");
+      new SassString("${toCssString()}-${other.toCssString()}");
 
   /// The SassScript `/` operation.
   Value dividedBy(Value other) =>
-      new SassString("${valueToCss(this)}/${valueToCss(other)}");
+      new SassString("${toCssString()}/${other.toCssString()}");
 
   /// The SassScript unary `+` operation.
-  Value unaryPlus() => new SassString("+${valueToCss(this)}");
+  Value unaryPlus() => new SassString("+${toCssString()}");
 
   /// The SassScript unary `-` operation.
-  Value unaryMinus() => new SassString("-${valueToCss(this)}");
+  Value unaryMinus() => new SassString("-${toCssString()}");
 
   /// The SassScript unary `/` operation.
-  Value unaryDivide() => new SassString("/${valueToCss(this)}");
+  Value unaryDivide() => new SassString("/${toCssString()}");
 
   /// The SassScript unary `not` operation.
   Value unaryNot() => sassFalse;
 
+  /// Returns a valid CSS representation of [this].
+  ///
+  /// Throws a [SassScriptException] if [this] can't be represented in plain
+  /// CSS. Use [toString] instead to get a string representation even if this
+  /// isn't valid CSS.
+  String toCssString() => valueToCss(this);
+
   /// Returns a string representation of [this].
   ///
   /// Note that this is equivalent to calling `inspect()` on the value, and thus
-  /// won't reflect the user's output settings. [valueToCss] should be used
+  /// won't reflect the user's output settings. [toCssString] should be used
   /// instead to convert [this] to CSS.
   String toString() => valueToCss(this, inspect: true);
 

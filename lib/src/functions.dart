@@ -14,7 +14,6 @@ import 'extend/extender.dart';
 import 'util/number.dart';
 import 'utils.dart';
 import 'value.dart';
-import 'visitor/serialize.dart';
 
 /// A regular expression matching the beginning of a proprietary Microsoft
 /// filter declaration.
@@ -42,9 +41,7 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("rgb", r"$red, $green, $blue", (arguments) {
     if (arguments[0].isCalc || arguments[1].isCalc || arguments[2].isCalc) {
-      return new SassString(
-          "rgb(${valueToCss(arguments[0])}, ${valueToCss(arguments[0])}, "
-          "${valueToCss(arguments[0])})");
+      return _functionString('rgb', arguments);
     }
 
     var red = arguments[0].assertNumber("red");
@@ -66,9 +63,7 @@ void defineCoreFunctions(Environment environment) {
           arguments[1].isCalc ||
           arguments[2].isCalc ||
           arguments[3].isCalc) {
-        return new SassString(
-            "rgba(${valueToCss(arguments[0])}, ${valueToCss(arguments[1])}, "
-            "${valueToCss(arguments[2])}, ${valueToCss(arguments[3])})");
+        return _functionString('rgba', arguments);
       }
 
       var red = arguments[0].assertNumber("red");
@@ -88,7 +83,7 @@ void defineCoreFunctions(Environment environment) {
       if (arguments[1].isCalc) {
         return new SassString(
             "rgba(${color.red}, ${color.green}, ${color.blue}, "
-            "${valueToCss(arguments[1])})");
+            "${arguments[1].toCssString()})");
       }
 
       var alpha = arguments[0].assertNumber("alpha");
@@ -121,9 +116,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("hsl", r"$hue, $saturation, $lightness",
       (arguments) {
     if (arguments[0].isCalc || arguments[1].isCalc || arguments[2].isCalc) {
-      return new SassString(
-          "rgb(${valueToCss(arguments[0])}, ${valueToCss(arguments[0])}, "
-          "${valueToCss(arguments[0])})");
+      return _functionString("hsl", arguments);
     }
 
     var hue = arguments[0].assertNumber("hue");
@@ -139,9 +132,7 @@ void defineCoreFunctions(Environment environment) {
         arguments[1].isCalc ||
         arguments[2].isCalc ||
         arguments[3].isCalc) {
-      return new SassString(
-          "rgba(${valueToCss(arguments[0])}, ${valueToCss(arguments[1])}, "
-          "${valueToCss(arguments[2])}, ${valueToCss(arguments[3])})");
+      return _functionString("hsla", arguments);
     }
 
     var hue = arguments[0].assertNumber("hue");
@@ -207,7 +198,7 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
-      return new SassString("grayscale(${valueToCss(arguments[0])})");
+      return _functionString('grayscale', arguments);
     }
 
     var color = arguments[0].assertColor("color");
@@ -223,7 +214,7 @@ void defineCoreFunctions(Environment environment) {
     if (arguments[0] is SassNumber) {
       // TODO: find some way of ensuring this is stringified using the right
       // options. We may need to resort to zones.
-      return new SassString("invert(${valueToCss(arguments[0])})");
+      return _functionString("invert", arguments);
     }
 
     var color = arguments[0].assertColor("color");
@@ -247,7 +238,7 @@ void defineCoreFunctions(Environment environment) {
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart)) {
         // Suport the proprietary Microsoft alpha() function.
-        return new SassString("alpha(${valueToCss(argument)})");
+        return _functionString("alpha", arguments);
       }
 
       var color = argument.assertColor("color");
@@ -259,7 +250,7 @@ void defineCoreFunctions(Environment environment) {
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart))) {
         // Suport the proprietary Microsoft alpha() function.
-        return new SassString("alpha(${arguments.map(valueToCss).join(', ')})");
+        return _functionString("alpha", arguments);
       }
 
       assert(arguments.length != 1);
@@ -270,7 +261,7 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
-      return new SassString("opacity(${valueToCss(arguments[0])})");
+      return _functionString("opacity", arguments);
     }
 
     var color = arguments[0].assertColor("color");
@@ -893,6 +884,13 @@ void defineCoreFunctions(Environment environment) {
     return new SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}");
   });
 }
+
+/// Returns a string representation of [name] called with [arguments], as though
+/// it were a plain CSS function.
+SassString _functionString(String name, List<Value> arguments) =>
+    new SassString("$name(" +
+        arguments.map((argument) => argument.toCssString()).join(', ') +
+        ")");
 
 /// Asserts that [number] is a percentage or has no units, and normalizes the
 /// value.

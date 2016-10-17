@@ -5,7 +5,6 @@
 import 'package:charcode/charcode.dart';
 
 import '../visitor/interface/value.dart';
-import '../visitor/serialize.dart';
 import '../value.dart';
 
 /// A SassScript string.
@@ -44,7 +43,7 @@ class SassString extends Value {
       return new SassString(text + other.text,
           quotes: hasQuotes || other.hasQuotes);
     } else {
-      return new SassString(text + valueToCss(other), quotes: hasQuotes);
+      return new SassString(text + other.toCssString(), quotes: hasQuotes);
     }
   }
 

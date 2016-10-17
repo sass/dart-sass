@@ -21,7 +21,6 @@ import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
-import 'serialize.dart';
 
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback(callback());
@@ -597,10 +596,10 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     } else if (condition is SupportsNegation) {
       return "not ${_parenthesize(condition.condition)}";
     } else if (condition is SupportsInterpolation) {
-      return valueToCss(condition.expression.accept(this));
+      return condition.expression.accept(this).toCssString();
     } else if (condition is SupportsDeclaration) {
-      return "(${valueToCss(condition.name.accept(this))}: "
-          "${valueToCss(condition.value.accept(this))})";
+      return "(${condition.name.accept(this).toCssString()}: "
+          "${condition.value.accept(this).toCssString()})";
     } else {
       return null;
     }
@@ -631,7 +630,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     _addExceptionSpan(
         node.span,
         () => stderr
-            .writeln("WARNING: ${valueToCss(node.expression.accept(this))}"));
+            .writeln("WARNING: ${node.expression.accept(this).toCssString()}"));
     for (var line in _stackTrace(node.span).toString().split("\n")) {
       stderr.writeln("         $line");
     }
@@ -789,7 +788,9 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     // TODO: if rest is an arglist that has keywords, error out.
     var rest = node.arguments.rest?.accept(this);
     if (rest != null) arguments.add(rest);
-    return new SassString("$name(${arguments.map(valueToCss).join(', ')})");
+    return new SassString("$name(" +
+        arguments.map((argument) => argument.toCssString()).join(', ') +
+        ")");
   }
 
   /// Evaluates the arguments in [invocation] as applied to [callable], and
