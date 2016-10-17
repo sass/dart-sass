@@ -46,8 +46,10 @@ String toCss(CssNode node, {OutputStyle style, bool inspect: false}) {
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [value] can't be
 /// represented in plain CSS, throws a [SassScriptException].
-String valueToCss(Value value, {bool inspect: false}) {
-  var visitor = new _SerializeCssVisitor(inspect: inspect);
+///
+/// If [quote] is `false`, quoted strings are emitted without quotes.
+String valueToCss(Value value, {bool inspect: false, bool quote: true}) {
+  var visitor = new _SerializeCssVisitor(inspect: inspect, quote: quote);
   value.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -77,8 +79,13 @@ class _SerializeCssVisitor
   /// structure, as opposed to valid CSS.
   final bool _inspect;
 
-  _SerializeCssVisitor({OutputStyle style, bool inspect: false})
-      : _inspect = inspect;
+  /// Whether quoted strings should be emitted with quotes.
+  final bool _quote;
+
+  _SerializeCssVisitor(
+      {OutputStyle style, bool inspect: false, bool quote: true})
+      : _inspect = inspect,
+        _quote = quote;
 
   void visitStylesheet(CssStylesheet node) {
     for (var child in node.children) {
@@ -468,9 +475,10 @@ class _SerializeCssVisitor
   }
 
   void visitString(SassString string) {
-    if (string.hasQuotes) {
+    if (_quote && string.hasQuotes) {
       _visitString(string.text);
     } else {
+      // TODO: write this character-by-character.
       _buffer.write(string.text.replaceAll("\n", " "));
     }
   }

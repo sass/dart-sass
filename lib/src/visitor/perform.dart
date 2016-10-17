@@ -596,7 +596,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     } else if (condition is SupportsNegation) {
       return "not ${_parenthesize(condition.condition)}";
     } else if (condition is SupportsInterpolation) {
-      return condition.expression.accept(this).toCssString();
+      return condition.expression.accept(this).toCssString(quote: false);
     } else if (condition is SupportsDeclaration) {
       return "(${condition.name.accept(this).toCssString()}: "
           "${condition.value.accept(this).toCssString()})";
@@ -627,10 +627,12 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   void visitWarnRule(WarnRule node) {
-    _addExceptionSpan(
-        node.span,
-        () => stderr
-            .writeln("WARNING: ${node.expression.accept(this).toCssString()}"));
+    _addExceptionSpan(node.span, () {
+      var value = node.expression.accept(this);
+      var string = value is SassString ? value.text : value.toCssString();
+      stderr.writeln("WARNING: $string");
+    });
+
     for (var line in _stackTrace(node.span).toString().split("\n")) {
       stderr.writeln("         $line");
     }
@@ -1120,7 +1122,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return interpolation.contents.map((value) {
       if (value is String) return value;
       var result = (value as Expression).accept(this);
-      return result is SassString ? result.text : result;
+      return result.toCssString(quote: false);
     }).join();
   }
 

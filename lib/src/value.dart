@@ -286,7 +286,9 @@ abstract class Value {
   /// Throws a [SassScriptException] if [this] can't be represented in plain
   /// CSS. Use [toString] instead to get a string representation even if this
   /// isn't valid CSS.
-  String toCssString() => valueToCss(this);
+  ///
+  /// If [quote] is `false`, quoted strings are emitted without quotes.
+  String toCssString({bool quote: true}) => valueToCss(this, quote: quote);
 
   /// Returns a string representation of [this].
   ///
