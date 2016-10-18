@@ -1526,26 +1526,28 @@ abstract class StylesheetParser extends Parser {
     var identifier = _interpolatedIdentifier();
     var plain = identifier.asPlain;
     if (plain != null) {
-      switch (plain) {
-        case "false":
-          return new BooleanExpression(false, identifier.span);
-        case "if":
-          var invocation = _argumentInvocation();
-          return new IfExpression(
-              invocation, spanForList([identifier, invocation]));
-        case "not":
-          whitespace();
-          return new UnaryOperationExpression(
-              UnaryOperator.not, _singleExpression(), identifier.span);
-        case "null":
-          return new NullExpression(identifier.span);
-        case "true":
-          return new BooleanExpression(true, identifier.span);
-      }
-
       var lower = plain.toLowerCase();
-      var color = colorsByName[lower];
-      if (color != null) return new ColorExpression(color, identifier.span);
+      if (scanner.peekChar() != $lparen) {
+        switch (plain) {
+          case "false":
+            return new BooleanExpression(false, identifier.span);
+          case "if":
+            var invocation = _argumentInvocation();
+            return new IfExpression(
+                invocation, spanForList([identifier, invocation]));
+          case "not":
+            whitespace();
+            return new UnaryOperationExpression(
+                UnaryOperator.not, _singleExpression(), identifier.span);
+          case "null":
+            return new NullExpression(identifier.span);
+          case "true":
+            return new BooleanExpression(true, identifier.span);
+        }
+
+        var color = colorsByName[lower];
+        if (color != null) return new ColorExpression(color, identifier.span);
+      }
 
       var specialFunction = _trySpecialFunction(lower, start);
       if (specialFunction != null) return specialFunction;
