@@ -298,7 +298,9 @@ class _SerializeCssVisitor
     }
 
     _writeBetween(
-        value.contents.where((element) => !element.isBlank),
+        _inspect
+            ? value.contents
+            : value.contents.where((element) => !element.isBlank),
         value.separator == ListSeparator.space ? " " : ", ",
         _inspect
             ? (element) {
