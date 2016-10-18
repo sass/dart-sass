@@ -95,4 +95,6 @@ class StringExpression implements Expression {
     }
     return containsDoubleQuote ? $single_quote : $double_quote;
   }
+
+  String toString() => asInterpolation().toString();
 }
