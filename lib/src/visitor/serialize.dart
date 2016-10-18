@@ -537,6 +537,7 @@ class _SerializeCssVisitor
         case $enq:
         case $ack:
         case $bel:
+        case $bs:
         case $lf:
         case $vt:
         case $ff:
