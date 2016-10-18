@@ -418,24 +418,24 @@ class SassNumber extends Value {
     throw new SassScriptException('Undefined operation "$this <= $other".');
   }
 
-  Value modulo(Value other) {
+  SassNumber modulo(Value other) {
     if (other is SassNumber) {
-      return new SassNumber(_coerceUnits(other, (num1, num2) => num1 % num2));
+      return _coerceNumber(other, (num1, num2) => num1 % num2);
     }
     throw new SassScriptException('Undefined operation "$this % $other".');
   }
 
-  Value plus(Value other) {
+  SassNumber plus(Value other) {
     if (other is SassNumber) {
-      return new SassNumber(_coerceUnits(other, (num1, num2) => num1 + num2));
+      return _coerceNumber(other, (num1, num2) => num1 + num2);
     }
     if (other is! SassColor) return super.plus(other);
     throw new SassScriptException('Undefined operation "$this + $other".');
   }
 
-  Value minus(Value other) {
+  SassNumber minus(Value other) {
     if (other is SassNumber) {
-      return new SassNumber(_coerceUnits(other, (num1, num2) => num1 - num2));
+      return _coerceNumber(other, (num1, num2) => num1 - num2);
     }
     if (other is! SassColor) return super.minus(other);
     throw new SassScriptException('Undefined operation "$this - $other".');
@@ -475,6 +475,20 @@ class SassNumber extends Value {
   Value unaryPlus() => this;
 
   Value unaryMinus() => new SassNumber(-value);
+
+  /// Converts [other]'s value to be compatible with this number's, calls
+  /// [operation] with the resulting numbers, and wraps the result in a
+  /// [SassNumber].
+  ///
+  /// Throws a [SassScriptException] if the two numbers' units are incompatible.
+  SassNumber _coerceNumber(
+      SassNumber other, num operation(num num1, num num2)) {
+    var result = _coerceUnits(other, operation);
+    return new SassNumber.withUnits(result,
+        numeratorUnits: hasUnits ? this.numeratorUnits : other.numeratorUnits,
+        denominatorUnits:
+            hasUnits ? this.denominatorUnits : other.denominatorUnits);
+  }
 
   /// Converts [other]'s value to be compatible with this number's, and calls
   /// [operation] with the resulting numbers.
