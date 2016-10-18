@@ -497,18 +497,20 @@ class SassNumber extends Value {
       List<String> denominators2) {
     // Short-circuit without allocating any new unit lists if possible.
     if (numerators1.isEmpty) {
-      if (denominators1.isEmpty) {
-        return new SassNumber.withUnits(value,
-            numeratorUnits: numerators2, denominatorUnits: denominators2);
-      } else if (denominators2.isEmpty) {
+      if (denominators2.isEmpty) {
         return new SassNumber.withUnits(value,
             numeratorUnits: numerators2, denominatorUnits: denominators1);
+      } else if (denominators1.isEmpty &&
+          !_areAnyConvertible(numerators1, denominators2)) {
+        return new SassNumber.withUnits(value,
+            numeratorUnits: numerators2, denominatorUnits: denominators2);
       }
     } else if (numerators2.isEmpty) {
-      if (denominators1.isEmpty) {
+      if (denominators2.isEmpty) {
         return new SassNumber.withUnits(value,
             numeratorUnits: numerators1, denominatorUnits: denominators2);
-      } else if (denominators2.isEmpty) {
+      } else if (denominators1.isEmpty &&
+          !_areAnyConvertible(numerators1, denominators2)) {
         return new SassNumber.withUnits(value,
             numeratorUnits: numerators1, denominatorUnits: denominators2);
       }
@@ -526,6 +528,7 @@ class SassNumber extends Value {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
         value *= factor;
+        return true;
       }, orElse: () {
         newNumerators.add(numerator);
       });
@@ -550,6 +553,16 @@ class SassNumber extends Value {
     return new SassNumber.withUnits(value,
         numeratorUnits: newNumerators,
         denominatorUnits: mutableDenominators1..addAll(mutableDenominators2));
+  }
+
+  /// Returns whether there exists a unit in [units1] that can be converted to a
+  /// unit in [units2].
+  bool _areAnyConvertible(List<String> units1, List<String> units2) {
+    return units1.any((unit1) {
+      if (!_isConvertable(unit1)) return false;
+      var innerMap = _conversions[unit1];
+      return units2.any(innerMap.containsKey);
+    });
   }
 
   /// Returns whether [unit] can be converted to or from any other units.
