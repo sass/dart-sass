@@ -269,6 +269,14 @@ abstract class Value {
   Value dividedBy(Value other) =>
       new SassString("${toCssString()}/${other.toCssString()}");
 
+  /// The SassScript `==` operation.
+  ///
+  /// For the most part, this is the same as the Dart `==` operation, which is
+  /// used as equivalence for map keys. However, [SassNumber]s with units are
+  /// SassScript-`==` to the same unitless numbers, but they not Dart `==`. This
+  /// ensures that map-key equality is transitive.
+  SassBoolean equals(Value other) => new SassBoolean(this == other);
+
   /// The SassScript unary `+` operation.
   Value unaryPlus() => new SassString("+${toCssString()}");
 

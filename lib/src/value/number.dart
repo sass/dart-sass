@@ -392,32 +392,28 @@ class SassNumber extends Value {
 
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
-      return new SassBoolean(
-          _coerceUnits(other, (num1, num2) => fuzzyGreaterThan(num1, num2)));
+      return new SassBoolean(_coerceUnits(other, fuzzyGreaterThan));
     }
     throw new SassScriptException('Undefined operation "$this > $other".');
   }
 
   SassBoolean greaterThanOrEquals(Value other) {
     if (other is SassNumber) {
-      return new SassBoolean(_coerceUnits(
-          other, (num1, num2) => fuzzyGreaterThanOrEquals(num1, num2)));
+      return new SassBoolean(_coerceUnits(other, fuzzyGreaterThanOrEquals));
     }
     throw new SassScriptException('Undefined operation "$this >= $other".');
   }
 
   SassBoolean lessThan(Value other) {
     if (other is SassNumber) {
-      return new SassBoolean(
-          _coerceUnits(other, (num1, num2) => fuzzyLessThan(num1, num2)));
+      return new SassBoolean(_coerceUnits(other, fuzzyLessThan));
     }
     throw new SassScriptException('Undefined operation "$this < $other".');
   }
 
   SassBoolean lessThanOrEquals(Value other) {
     if (other is SassNumber) {
-      return new SassBoolean(_coerceUnits(
-          other, (num1, num2) => fuzzyLessThanOrEquals(num1, num2)));
+      return new SassBoolean(_coerceUnits(other, fuzzyLessThanOrEquals));
     }
     throw new SassScriptException('Undefined operation "$this <= $other".');
   }
@@ -462,6 +458,18 @@ class SassNumber extends Value {
     }
     if (other is! SassColor) super.dividedBy(other);
     throw new SassScriptException('Undefined operation "$this / $other".');
+  }
+
+  SassBoolean equals(Value other) {
+    if (other is SassNumber) {
+      try {
+        return new SassBoolean(_coerceUnits(other, fuzzyEquals));
+      } on SassScriptException {
+        return sassFalse;
+      }
+    } else {
+      return sassFalse;
+    }
   }
 
   Value unaryPlus() => this;
@@ -593,9 +601,15 @@ class SassNumber extends Value {
   }
 
   bool operator ==(other) =>
-      other is SassNumber && fuzzyEquals(value, other.value);
+      other is SassNumber &&
+      fuzzyEquals(value, other.value) &&
+      listEquals(numeratorUnits, other.numeratorUnits) &&
+      listEquals(denominatorUnits, other.denominatorUnits);
 
-  int get hashCode => fuzzyHashCode(value);
+  int get hashCode =>
+      fuzzyHashCode(value) ^
+      listHash(numeratorUnits) ^
+      listHash(denominatorUnits);
 
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String name]) =>
