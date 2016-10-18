@@ -14,6 +14,8 @@ const sassNull = const SassNull._();
 class SassNull extends Value {
   bool get isTruthy => false;
 
+  bool get isBlank => true;
+
   const SassNull._();
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitNull(this);
