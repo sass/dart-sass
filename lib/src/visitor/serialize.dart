@@ -612,7 +612,7 @@ class _SerializeCssVisitor
   void visitAttributeSelector(AttributeSelector attribute) {
     _buffer.writeCharCode($lbracket);
     _buffer.write(attribute.name);
-    if (attribute.op == null) {
+    if (attribute.op != null) {
       _buffer.write(attribute.op);
       // TODO: quote the value if it's not an identifier
       _buffer.write(attribute.value);
