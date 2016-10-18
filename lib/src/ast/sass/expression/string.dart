@@ -86,10 +86,12 @@ class StringExpression implements Expression {
   int _bestQuote() {
     var containsDoubleQuote = false;
     for (var value in text.contents) {
-      for (var i = 0; i < value.length; i++) {
-        var codeUnit = value.codeUnitAt(i);
-        if (codeUnit == $single_quote) return $double_quote;
-        if (codeUnit == $double_quote) containsDoubleQuote = true;
+      if (value is String) {
+        for (var i = 0; i < value.length; i++) {
+          var codeUnit = value.codeUnitAt(i);
+          if (codeUnit == $single_quote) return $double_quote;
+          if (codeUnit == $double_quote) containsDoubleQuote = true;
+        }
       }
     }
     return containsDoubleQuote ? $single_quote : $double_quote;

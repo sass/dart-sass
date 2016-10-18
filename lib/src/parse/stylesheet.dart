@@ -71,7 +71,8 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a statement that's allowed at the top level of the stylesheet.
   Statement _topLevelStatement() {
-    if (scanner.peekChar() == $at) return _atRule(_topLevelStatement);
+    if (scanner.peekChar() == $at)
+      return _atRule(_topLevelStatement, root: true);
     return _styleRule();
   }
 
@@ -301,13 +302,20 @@ abstract class StylesheetParser extends Parser {
   /// This consumes at-rules that are allowed at all levels of the document; the
   /// [child] parameter is called to consume any at-rules that are specifically
   /// allowed in the caller's context.
-  Statement _atRule(Statement child()) {
+  ///
+  /// If [root] is `true`, this parses at-rules that are allowed only at the
+  /// root of the stylesheet.
+  Statement _atRule(Statement child(), {bool root: false}) {
     var start = scanner.state;
     var name = _atRuleName();
 
     switch (name) {
       case "at-root":
         return _atRootRule(start);
+      case "charset":
+        if (!root) _disallowedAtRule(start);
+        string();
+        return null;
       case "content":
         return _contentRule(start);
       case "debug":
@@ -2193,5 +2201,8 @@ abstract class StylesheetParser extends Parser {
   List<Statement> children(Statement child());
 
   /// Consumes top-level statements.
+  ///
+  /// The [statement] callback may return `null`, indicating that a statement
+  /// was consumed that shouldn't be added to the AST.
   List<Statement> statements(Statement statement());
 }

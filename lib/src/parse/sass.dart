@@ -79,7 +79,8 @@ class SassParser extends StylesheetParser {
 
     var statements = <Statement>[];
     while (!scanner.isDone) {
-      statements.add(_child(statement));
+      var child = _child(statement);
+      if (child != null) statements.add(child);
       var indentation = _readIndentation();
       assert(indentation == 0);
     }

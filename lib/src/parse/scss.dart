@@ -92,7 +92,8 @@ class ScssParser extends StylesheetParser {
               statements.add(_loudComment());
               break;
             default:
-              statements.add(statement());
+              var child = statement();
+              if (child != null) statements.add(child);
               break;
           }
           break;
@@ -103,7 +104,8 @@ class ScssParser extends StylesheetParser {
           break;
 
         default:
-          statements.add(statement());
+          var child = statement();
+          if (child != null) statements.add(child);
           break;
       }
     }
