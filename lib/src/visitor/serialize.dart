@@ -594,11 +594,6 @@ class _SerializeCssVisitor
     for (var i = 0; i < string.length; i++) {
       var char = string.codeUnitAt(i);
       switch (char) {
-        case $backslash:
-          _buffer.writeCharCode($backslash);
-          _buffer.writeCharCode($backslash);
-          break;
-
         case $lf:
           _buffer.writeCharCode($space);
           break;

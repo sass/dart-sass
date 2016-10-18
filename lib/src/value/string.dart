@@ -14,8 +14,16 @@ import '../value.dart';
 class SassString extends Value {
   /// The contents of the string.
   ///
-  /// This is the semantic content—any escape sequences are resolved to their
-  /// Unicode values.
+  /// For quoted strings, this is the semantic content—any escape sequences that
+  /// were been written in the source text are resolved to their Unicode values.
+  /// For unquoted strings, though, escape sequences are preserved as literal
+  /// backslashes.
+  ///
+  /// This difference allows us to distinguish between identifiers with escapes,
+  /// such as `url\u28 http://example.com\u29`, and unquoted strings that
+  /// contain characters that aren't valid in identifiers, such as
+  /// `url(http://example.com)`. Unfortunately, it also means that we don't
+  /// consider `foo` and `f\6F\6F` the same string.
   final String text;
 
   /// Whether this string has quotes.

@@ -1882,7 +1882,7 @@ abstract class StylesheetParser extends Parser {
     } else if (isNameStart(first)) {
       buffer.writeCharCode(scanner.readChar());
     } else if (first == $backslash) {
-      buffer.writeCharCode(escape());
+      _scanEscapeText(buffer);
     } else if (first == $hash && scanner.peekChar(1) == $lbrace) {
       buffer.add(singleInterpolation());
     }
@@ -1897,7 +1897,7 @@ abstract class StylesheetParser extends Parser {
           next >= 0x0080) {
         buffer.writeCharCode(scanner.readChar());
       } else if (next == $backslash) {
-        buffer.writeCharCode(escape());
+        _scanEscapeText(buffer);
       } else if (next == $hash && scanner.peekChar(1) == $lbrace) {
         buffer.add(singleInterpolation());
       } else {
@@ -1906,6 +1906,31 @@ abstract class StylesheetParser extends Parser {
     }
 
     return buffer.interpolation(scanner.spanFrom(start));
+  }
+
+  /// Consumes an escape sequence and writes the characters that compose it to
+  /// [buffer].
+  void _scanEscapeText(StringSink buffer) {
+    scanner.expectChar($backslash);
+    buffer.writeCharCode($backslash);
+
+    var first = scanner.peekChar();
+    if (first == null) {
+      return;
+    } else if (isNewline(first)) {
+      scanner.error("Expected escape sequence.");
+    } else if (isHex(first)) {
+      for (var i = 0; i < 6; i++) {
+        var next = scanner.peekChar();
+        if (next == null || !isHex(next)) break;
+        buffer.writeCharCode(scanner.readChar());
+      }
+      if (isWhitespace(scanner.peekChar())) {
+        buffer.writeCharCode(scanner.readChar());
+      }
+    } else {
+      buffer.writeCharCode(scanner.readChar());
+    }
   }
 
   /// Consumes interpolation.

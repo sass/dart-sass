@@ -13,8 +13,7 @@ import '../interpolation.dart';
 
 /// A string literal.
 class StringExpression implements Expression {
-  /// Interpolation that, when evaluated, produces the semantic content of this
-  /// string.
+  /// Interpolation that, when evaluated, produces the contents of this string.
   ///
   /// Unlike [asInterpolation], escapes are resolved and quotes are not
   /// included.
@@ -41,7 +40,14 @@ class StringExpression implements Expression {
   ///
   /// Unlike [text], his doesn't resolve escapes and does include quotes for
   /// quoted strings.
+  ///
+  /// If [static] is true, this escapes any `#{` sequences in the string. If
+  /// [quote] is passed and this is a quoted string, it uses that character as
+  /// the quote mark; otherwise, it determines the best quote to add by looking
+  /// at the string.
   Interpolation asInterpolation({bool static: false, int quote}) {
+    if (!hasQuotes) return text;
+
     quote ??= hasQuotes ? null : _bestQuote();
     var buffer = new InterpolationBuffer();
     if (quote != null) buffer.writeCharCode(quote);
