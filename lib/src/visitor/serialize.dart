@@ -526,11 +526,40 @@ class _SerializeCssVisitor
           }
           break;
 
-        case $cr:
+        // Write newline characters and unprintable ASCII characters as escapes.
+        case $nul:
+        case $soh:
+        case $stx:
+        case $etx:
+        case $eot:
+        case $enq:
+        case $ack:
+        case $bel:
         case $lf:
+        case $vt:
         case $ff:
+        case $cr:
+        case $so:
+        case $si:
+        case $dle:
+        case $dc1:
+        case $dc2:
+        case $dc3:
+        case $dc4:
+        case $nak:
+        case $syn:
+        case $etb:
+        case $can:
+        case $em:
+        case $sub:
+        case $esc:
+        case $fs:
+        case $gs:
+        case $rs:
+        case $us:
           buffer.writeCharCode($backslash);
-          buffer.writeCharCode(hexCharFor(char));
+          if (char > 0xF) buffer.writeCharCode(hexCharFor(char >> 4));
+          buffer.writeCharCode(hexCharFor(char & 0xF));
           if (string.length == i + 1) break;
 
           var next = string.codeUnitAt(i + 1);
