@@ -967,6 +967,7 @@ abstract class StylesheetParser extends Parser {
           } else if (_lookingAtInterpolatedIdentifier()) {
             addSingleExpression(_identifierLike());
           } else {
+            scanner.readChar();
             addOperator(BinaryOperator.minus);
           }
           break;
@@ -1415,7 +1416,7 @@ abstract class StylesheetParser extends Parser {
 
     while (isDigit(scanner.peekChar())) {
       number *= 10;
-      number += scanner.readChar() - $0;
+      number += asDecimal(scanner.readChar());
     }
 
     if (scanner.peekChar() == $dot) {
@@ -1424,7 +1425,7 @@ abstract class StylesheetParser extends Parser {
 
       var decimal = 0.1;
       while (isDigit(scanner.peekChar())) {
-        number += (scanner.readChar() - $0) * decimal;
+        number += asDecimal(scanner.readChar()) * decimal;
         decimal /= 10;
       }
     }
