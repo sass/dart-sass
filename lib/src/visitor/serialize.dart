@@ -297,6 +297,11 @@ class _SerializeCssVisitor
       return;
     }
 
+    var singleton = _inspect &&
+        value.contents.length == 1 &&
+        value.separator == ListSeparator.comma;
+    if (singleton) _buffer.writeCharCode($lparen);
+
     _writeBetween(
         _inspect
             ? value.contents
@@ -310,6 +315,11 @@ class _SerializeCssVisitor
                 if (needsParens) _buffer.writeCharCode($rparen);
               }
             : (element) => element.accept(this));
+
+    if (singleton) {
+      _buffer.writeCharCode($comma);
+      _buffer.writeCharCode($rparen);
+    }
 
     if (value.hasBrackets) _buffer.writeCharCode($rbracket);
   }
