@@ -42,13 +42,12 @@ class StringExpression implements Expression {
   /// quoted strings.
   ///
   /// If [static] is true, this escapes any `#{` sequences in the string. If
-  /// [quote] is passed and this is a quoted string, it uses that character as
-  /// the quote mark; otherwise, it determines the best quote to add by looking
-  /// at the string.
+  /// [quote] is passed, it uses that character as the quote mark; otherwise, it
+  /// determines the best quote to add by looking at the string.
   Interpolation asInterpolation({bool static: false, int quote}) {
     if (!hasQuotes) return text;
 
-    quote ??= hasQuotes ? null : _bestQuote();
+    quote ??= hasQuotes ? _bestQuote() : null;
     var buffer = new InterpolationBuffer();
     if (quote != null) buffer.writeCharCode(quote);
     for (var value in text.contents) {
