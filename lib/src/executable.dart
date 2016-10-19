@@ -57,7 +57,9 @@ void main(List<String> args) {
       stderr.flush();
     }
 
-    exit(1);
+    // Exit code 65 indicates invalid data per
+    // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+    exit(65);
   }
 }
 
