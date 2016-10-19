@@ -787,6 +787,8 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes an argument invocation.
   ArgumentInvocation _argumentInvocation() {
+    var wasInParentheses = _inParentheses;
+    _inParentheses = true;
     var start = scanner.state;
     scanner.expectChar($lparen);
     whitespace();
@@ -829,6 +831,7 @@ abstract class StylesheetParser extends Parser {
     }
     scanner.expectChar($rparen);
 
+    _inParentheses = wasInParentheses;
     return new ArgumentInvocation(positional, named, scanner.spanFrom(start),
         rest: rest, keywordRest: keywordRest);
   }
@@ -1242,8 +1245,9 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a parenthesized expression.
   Expression _parentheses() {
+    var wasInParentheses = _inParentheses;
+    _inParentheses = true;
     try {
-      _inParentheses = true;
       var start = scanner.state;
       scanner.expectChar($lparen);
       whitespace();
@@ -1256,7 +1260,6 @@ abstract class StylesheetParser extends Parser {
       var first = _expressionUntilComma();
       if (scanner.scanChar($colon)) {
         whitespace();
-        _inParentheses = false;
         return _map(first, start);
       }
 
@@ -1278,7 +1281,7 @@ abstract class StylesheetParser extends Parser {
       return new ListExpression(expressions, ListSeparator.comma,
           span: scanner.spanFrom(start));
     } finally {
-      _inParentheses = false;
+      _inParentheses = wasInParentheses;
     }
   }
 
