@@ -87,7 +87,7 @@ void defineCoreFunctions(Environment environment) {
             "${arguments[1].toCssString()})");
       }
 
-      var alpha = arguments[0].assertNumber("alpha");
+      var alpha = arguments[1].assertNumber("alpha");
       return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
     }
   ]));
