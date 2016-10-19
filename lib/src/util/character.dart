@@ -106,6 +106,18 @@ int opposite(int character) {
   }
 }
 
+/// Returns [character], converted to upper case if it's an ASCII lowercase
+/// letter.
+int toUpperCase(int character) => (character >= $a && character <= $z)
+    ? character | _asciiCaseBit
+    : character;
+
+/// Returns [character], converted to lower case if it's an ASCII uppercase
+/// letter.
+int toLowerCase(int character) => (character >= $A && character <= $Z)
+    ? character & ~_asciiCaseBit
+    : character;
+
 /// Returns whether [character1] and [character2] are the same, modulo ASCII case.
 bool characterEqualsIgnoreCase(int character1, int character2) {
   if (character1 == character2) return true;

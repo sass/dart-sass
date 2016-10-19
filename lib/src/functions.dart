@@ -11,6 +11,7 @@ import 'callable.dart';
 import 'environment.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
+import 'util/character.dart';
 import 'util/number.dart';
 import 'utils.dart';
 import 'value.dart';
@@ -505,12 +506,20 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("to-upper-case", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
-    return new SassString(string.text.toUpperCase(), quotes: string.hasQuotes);
+    var buffer = new StringBuffer();
+    for (var i = 0; i < string.text.length; i++) {
+      buffer.writeCharCode(toUpperCase(string.text.codeUnitAt(i)));
+    }
+    return new SassString(buffer.toString(), quotes: string.hasQuotes);
   });
 
   environment.defineFunction("to-lower-case", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
-    return new SassString(string.text.toLowerCase(), quotes: string.hasQuotes);
+    var buffer = new StringBuffer();
+    for (var i = 0; i < string.text.length; i++) {
+      buffer.writeCharCode(toLowerCase(string.text.codeUnitAt(i)));
+    }
+    return new SassString(buffer.toString(), quotes: string.hasQuotes);
   });
 
   // ## Numbers
