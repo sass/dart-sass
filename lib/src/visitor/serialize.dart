@@ -132,11 +132,7 @@ class _SerializeCssVisitor
   void visitMediaRule(CssMediaRule node) {
     _writeIndentation();
     _buffer.write("@media ");
-
-    for (var query in node.queries) {
-      visitMediaQuery(query);
-    }
-
+    _writeBetween(node.queries, ", ", visitMediaQuery);
     _buffer.writeCharCode($space);
     _visitChildren(node.children);
   }
