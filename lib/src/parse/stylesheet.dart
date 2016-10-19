@@ -972,7 +972,7 @@ abstract class StylesheetParser extends Parser {
           var next = scanner.peekChar(1);
           if (isDigit(next) || next == $dot) {
             addSingleExpression(_number());
-          } else if (_lookingAtInterpolatedIdentifier()) {
+          } else if (lookingAtIdentifier()) {
             addSingleExpression(_identifierLike());
           } else {
             scanner.readChar();
