@@ -210,7 +210,7 @@ abstract class Value {
         }
       }
     }
-    return result.join(', ');
+    return result.join(list.separator == ListSeparator.comma ? ', ' : ' ');
   }
 
   /// Returns a new list containing [contents] that defaults to this value's
