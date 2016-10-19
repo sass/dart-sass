@@ -1018,7 +1018,7 @@ abstract class StylesheetParser extends Parser {
 
         case $o:
           if (scanIdentifier("or")) {
-            addOperator(BinaryOperator.and);
+            addOperator(BinaryOperator.or);
           } else {
             addSingleExpression(_identifierLike());
           }
