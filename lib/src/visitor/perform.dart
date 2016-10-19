@@ -265,7 +265,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   }
 
   /// Returns whether [value] is an empty [SassList].
-  bool _isEmptyList(Value value) => value is List && value.contents.isEmpty;
+  bool _isEmptyList(Value value) => value is SassList && value.contents.isEmpty;
 
   Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
