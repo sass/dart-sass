@@ -1526,15 +1526,17 @@ abstract class StylesheetParser extends Parser {
     var identifier = _interpolatedIdentifier();
     var plain = identifier.asPlain;
     if (plain != null) {
+      if (plain == "if") {
+        var invocation = _argumentInvocation();
+        return new IfExpression(
+            invocation, spanForList([identifier, invocation]));
+      }
+
       var lower = plain.toLowerCase();
       if (scanner.peekChar() != $lparen) {
         switch (plain) {
           case "false":
             return new BooleanExpression(false, identifier.span);
-          case "if":
-            var invocation = _argumentInvocation();
-            return new IfExpression(
-                invocation, spanForList([identifier, invocation]));
           case "not":
             whitespace();
             return new UnaryOperationExpression(
