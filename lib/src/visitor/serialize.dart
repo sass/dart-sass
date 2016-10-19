@@ -361,7 +361,7 @@ class _SerializeCssVisitor
   }
 
   void visitNull(SassNull value) {
-    _buffer.write("null");
+    if (_inspect) _buffer.write("null");
   }
 
   void visitNumber(SassNumber value) {
