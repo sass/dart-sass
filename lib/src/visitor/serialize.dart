@@ -604,15 +604,22 @@ class _SerializeCssVisitor
 
   /// Writes an unquoted string with [string] contents to [_buffer].
   void _visitUnquotedString(String string) {
+    var afterNewline = false;
     for (var i = 0; i < string.length; i++) {
       var char = string.codeUnitAt(i);
       switch (char) {
         case $lf:
           _buffer.writeCharCode($space);
+          afterNewline = true;
+          break;
+
+        case $space:
+          if (!afterNewline) _buffer.writeCharCode($space);
           break;
 
         default:
           _buffer.writeCharCode(char);
+          afterNewline = false;
           break;
       }
     }
