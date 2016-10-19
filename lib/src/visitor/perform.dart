@@ -245,7 +245,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     // If the value is an empty list, preserve it, because converting it to CSS
     // will throw an error that we want the user to see.
     if (cssValue != null &&
-        (!cssValue.value.isBlank || cssValue.value is SassList)) {
+        (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
       _parent.addChild(new CssDeclaration(name, cssValue, node.span));
     }
 
@@ -258,6 +258,9 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       _declarationName = oldDeclarationName;
     }
   }
+
+  /// Returns whether [value] is an empty [SassList].
+  bool _isEmptyList(Value value) => value is List && value.contents.isEmpty;
 
   Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
