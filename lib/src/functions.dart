@@ -812,7 +812,7 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("feature-exists", r"$feature", (arguments) {
     var feature = arguments[0].assertString("feature");
-    return new SassBoolean(_features.contains(feature));
+    return new SassBoolean(_features.contains(feature.text));
   });
 
   environment.defineFunction("variable-exists", r"$name", (arguments) {
