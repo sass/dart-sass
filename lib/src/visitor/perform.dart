@@ -36,8 +36,8 @@ typedef _ScopeCallback(callback());
 /// Throws a [SassRuntimeException] if evaluation fails.
 CssStylesheet evaluate(Stylesheet stylesheet,
         {Iterable<String> loadPaths, Environment environment}) =>
-    stylesheet.accept(
-        new _PerformVisitor(loadPaths: loadPaths, environment: environment));
+    new _PerformVisitor(loadPaths: loadPaths, environment: environment)
+        .visitStylesheet(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
 class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
