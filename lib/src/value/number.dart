@@ -418,14 +418,14 @@ class SassNumber extends Value {
     throw new SassScriptException('Undefined operation "$this <= $other".');
   }
 
-  SassNumber modulo(Value other) {
+  Value modulo(Value other) {
     if (other is SassNumber) {
       return _coerceNumber(other, (num1, num2) => num1 % num2);
     }
     throw new SassScriptException('Undefined operation "$this % $other".');
   }
 
-  SassNumber plus(Value other) {
+  Value plus(Value other) {
     if (other is SassNumber) {
       return _coerceNumber(other, (num1, num2) => num1 + num2);
     }
@@ -433,7 +433,7 @@ class SassNumber extends Value {
     throw new SassScriptException('Undefined operation "$this + $other".');
   }
 
-  SassNumber minus(Value other) {
+  Value minus(Value other) {
     if (other is SassNumber) {
       return _coerceNumber(other, (num1, num2) => num1 - num2);
     }
