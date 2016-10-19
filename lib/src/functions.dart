@@ -373,9 +373,9 @@ void defineCoreFunctions(Environment environment) {
       }
 
       return color.changeRgb(
-          red: scaleValue(color.red, red, 255),
-          green: scaleValue(color.green, green, 255),
-          blue: scaleValue(color.blue, blue, 255),
+          red: scaleValue(color.red, red, 255).round(),
+          green: scaleValue(color.green, green, 255).round(),
+          blue: scaleValue(color.blue, blue, 255).round(),
           alpha: scaleValue(color.alpha, alpha, 1));
     } else if (hasHsl) {
       return color.changeHsl(
