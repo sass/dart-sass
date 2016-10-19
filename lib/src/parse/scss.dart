@@ -47,9 +47,11 @@ class ScssParser extends StylesheetParser {
           switch (scanner.peekChar(1)) {
             case $slash:
               children.add(_silentComment());
+              whitespaceWithoutComments();
               break;
             case $asterisk:
               children.add(_loudComment());
+              whitespaceWithoutComments();
               break;
             default:
               children.add(child());
@@ -87,9 +89,11 @@ class ScssParser extends StylesheetParser {
           switch (scanner.peekChar(1)) {
             case $slash:
               statements.add(_silentComment());
+              whitespaceWithoutComments();
               break;
             case $asterisk:
               statements.add(_loudComment());
+              whitespaceWithoutComments();
               break;
             default:
               var child = statement();
