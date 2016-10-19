@@ -56,7 +56,7 @@ class SelectorParser extends Parser {
       whitespace();
       var next = scanner.peekChar();
       if (next == $comma) continue;
-      if (next == $lbrace) break;
+      if (scanner.isDone) break;
 
       var lineBreak = scanner.line != previousLine;
       if (lineBreak) previousLine = scanner.line;
