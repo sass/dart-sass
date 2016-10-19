@@ -50,8 +50,7 @@ class SassString extends Value {
 
   Value plus(Value other) {
     if (other is SassString) {
-      return new SassString(text + other.text,
-          quotes: hasQuotes || other.hasQuotes);
+      return new SassString(text + other.text, quotes: hasQuotes);
     } else {
       return new SassString(text + other.toCssString(), quotes: hasQuotes);
     }
