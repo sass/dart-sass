@@ -878,7 +878,7 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("unique-id", "", (arguments) {
     // Make it difficult to guess the next ID by randomizing the increase.
-    _uniqueID += _random.nextInt(36);
+    _uniqueID += _random.nextInt(36) + 1;
     if (_uniqueID > math.pow(36, 6)) _uniqueID %= math.pow(36, 6);
     // The leading "u" ensures that the result is a valid identifier.
     return new SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}");
