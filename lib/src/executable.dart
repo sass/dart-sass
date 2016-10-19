@@ -53,13 +53,23 @@ void main(List<String> args) {
 
     if (options['trace']) {
       stderr.writeln();
-      stderr.write(new Trace.from(stackTrace).toString());
+      stderr.write(new Trace.from(stackTrace).terse.toString());
       stderr.flush();
     }
 
     // Exit code 65 indicates invalid data per
     // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     exit(65);
+  } catch (error, stackTrace) {
+    if (options['color']) stderr.write('\u001b[31m\u001b[1m');
+    stderr.write('Unexpected exception:');
+    if (options['color']) stderr.write('\u001b[0m');
+    stderr.writeln();
+
+    stderr.writeln(error);
+    stderr.writeln();
+    stderr.write(new Trace.from(stackTrace).terse.toString());
+    stderr.flush();
   }
 }
 
