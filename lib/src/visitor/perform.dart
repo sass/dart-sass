@@ -65,6 +65,11 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
 
+  /// The span for the innermost callable that's been invoked.
+  ///
+  /// This is used to provide `call()` with a span.
+  FileSpan _callableSpan;
+
   /// The resolved URLs for each [ImportRule] that's been seen so far.
   ///
   /// This is cached in case the same file is imported multiple times, and thus
@@ -93,8 +98,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       var args = arguments[1] as SassArgumentList;
 
       var expression = new FunctionExpression(
-          new Interpolation([name.text], null),
-          new ArgumentInvocation([], {}, null,
+          new Interpolation([name.text], _callableSpan),
+          new ArgumentInvocation([], {}, _callableSpan,
               rest: new ValueExpression(args)));
       return expression.accept(this);
     });
@@ -871,6 +876,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var namedSet = named;
     var separator = triple.item3;
 
+    var oldCallableSpan = _callableSpan;
+    _callableSpan = invocation.span;
     int overloadIndex;
     for (var i = 0; i < callable.overloads.length - 1; i++) {
       try {
@@ -915,6 +922,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     var result = _addExceptionSpan(invocation.span, () => callback(positional));
+    _callableSpan = oldCallableSpan;
 
     if (argumentList == null) return result;
     if (named.isEmpty) return result;
