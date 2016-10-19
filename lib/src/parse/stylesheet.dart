@@ -939,8 +939,9 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $exclamation:
+          if (scanner.peekChar(1) != $equal) break loop;
           scanner.readChar();
-          scanner.expectChar($equal);
+          scanner.readChar();
           addOperator(BinaryOperator.notEquals);
           break;
 
