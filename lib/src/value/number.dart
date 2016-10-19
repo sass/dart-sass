@@ -474,7 +474,8 @@ class SassNumber extends Value {
 
   Value unaryPlus() => this;
 
-  Value unaryMinus() => new SassNumber(-value);
+  Value unaryMinus() => new SassNumber.withUnits(-value,
+      numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
 
   /// Converts [other]'s value to be compatible with this number's, calls
   /// [operation] with the resulting numbers, and wraps the result in a
