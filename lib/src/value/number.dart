@@ -358,7 +358,7 @@ class SassNumber extends Value {
       removeFirstWhere(oldDenominators, (oldDenominator) {
         var factor = _conversionFactor(newDenominator, oldDenominator);
         if (factor == null) return false;
-        value *= factor;
+        value /= factor;
         return true;
       }, orElse: () {
         throw new SassScriptException("Incompatible units "
@@ -458,18 +458,6 @@ class SassNumber extends Value {
     }
     if (other is! SassColor) super.dividedBy(other);
     throw new SassScriptException('Undefined operation "$this / $other".');
-  }
-
-  SassBoolean equals(Value other) {
-    if (other is SassNumber) {
-      try {
-        return new SassBoolean(_coerceUnits(other, fuzzyEquals));
-      } on SassScriptException {
-        return sassFalse;
-      }
-    } else {
-      return sassFalse;
-    }
   }
 
   Value unaryPlus() => this;
@@ -615,16 +603,33 @@ class SassNumber extends Value {
     return "${numerators.join("*")}/${denominators.join("*")}";
   }
 
-  bool operator ==(other) =>
-      other is SassNumber &&
-      fuzzyEquals(value, other.value) &&
-      listEquals(numeratorUnits, other.numeratorUnits) &&
-      listEquals(denominatorUnits, other.denominatorUnits);
+  bool operator ==(other) {
+    if (other is SassNumber) {
+      try {
+        return _coerceUnits(other, fuzzyEquals);
+      } on SassScriptException {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
 
-  int get hashCode =>
-      fuzzyHashCode(value) ^
-      listHash(numeratorUnits) ^
-      listHash(denominatorUnits);
+  int get hashCode => fuzzyHashCode(value *
+      _canonicalMultiplier(numeratorUnits) /
+      _canonicalMultiplier(denominatorUnits));
+
+  /// Returns a multiplier that encapsulates unit equivalence in [units].
+  ///
+  /// That is, if `X units1 == Y units2`, `X * _canonicalMultiplier(units1) == Y
+  /// * _canonicalMultiplier(units2)`.
+  num _canonicalMultiplier(List<String> units) =>
+      units.fold(1, (multiplier, unit) {
+        var innerMap = _conversions[unit];
+        return innerMap == null
+            ? multiplier
+            : multiplier * innerMap.values.first;
+      });
 
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String name]) =>

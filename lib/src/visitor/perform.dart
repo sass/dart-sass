@@ -662,9 +662,9 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         case BinaryOperator.and:
           return left.and(right);
         case BinaryOperator.equals:
-          return left.equals(right);
+          return new SassBoolean(left == right);
         case BinaryOperator.notEquals:
-          return left.equals(right).unaryNot();
+          return new SassBoolean(left != right);
         case BinaryOperator.greaterThan:
           return left.greaterThan(right);
         case BinaryOperator.greaterThanOrEquals:

@@ -61,11 +61,15 @@ Sass to update the reference behavior.
 
 6. Colors do not support channel-by-channel arithmetic. See [issue 2144][].
 
+7. Unitless numbers aren't `==` to unit numbers with the same value. In
+   addition, map keys follow the same logic as `==`-equality. See
+   [issue 1496][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
 [issue 1122]: https://github.com/sass/sass/issues/1122
 [issue 2144]: https://github.com/sass/sass/issues/2144
-
+[issue 1496]: https://github.com/sass/sass/issues/1496
 
 Disclaimer: this is not an official Google product.
