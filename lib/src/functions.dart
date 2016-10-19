@@ -553,7 +553,7 @@ void defineCoreFunctions(Environment environment) {
       throw new SassScriptException(
           "\$limit: Must be greater than 0, was $limit.");
     }
-    return new SassNumber(_random.nextInt(limit + 1) + 1);
+    return new SassNumber(_random.nextInt(limit) + 1);
   });
 
   // ## Lists
