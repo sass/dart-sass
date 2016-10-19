@@ -98,6 +98,7 @@ class _SerializeCssVisitor
   void visitComment(CssComment node) {
     var minimumIndentation = _minimumIndentation(node.text);
     if (minimumIndentation == null) {
+      _writeIndentation();
       _buffer.writeln(node.text);
       return;
     }
