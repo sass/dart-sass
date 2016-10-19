@@ -163,10 +163,7 @@ class SelectorParser extends Parser {
 
     var name = _attributeName();
     whitespace();
-    if (scanner.scanChar($rbracket)) {
-      scanner.readChar();
-      return new AttributeSelector(name);
-    }
+    if (scanner.scanChar($rbracket)) return new AttributeSelector(name);
 
     var operator = _attributeOperator();
     whitespace();
