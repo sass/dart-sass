@@ -39,6 +39,8 @@ class SassString extends Value {
     return text.codeUnitAt(4) == $lparen;
   }
 
+  bool get isBlank => !hasQuotes && text.isEmpty;
+
   SassString(this.text, {bool quotes: false}) : hasQuotes = quotes;
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
