@@ -214,7 +214,7 @@ void defineCoreFunctions(Environment environment) {
     if (arguments[0] is SassNumber) {
       // TODO: find some way of ensuring this is stringified using the right
       // options. We may need to resort to zones.
-      return _functionString("invert", arguments);
+      return _functionString("invert", arguments.take(1));
     }
 
     var color = arguments[0].assertColor("color");
@@ -887,7 +887,7 @@ void defineCoreFunctions(Environment environment) {
 
 /// Returns a string representation of [name] called with [arguments], as though
 /// it were a plain CSS function.
-SassString _functionString(String name, List<Value> arguments) =>
+SassString _functionString(String name, Iterable<Value> arguments) =>
     new SassString("$name(" +
         arguments.map((argument) => argument.toCssString()).join(', ') +
         ")");
