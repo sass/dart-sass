@@ -77,7 +77,7 @@ int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
   var codepointIndex = 0;
   for (var i = 0; i < codeUnitIndex; i++) {
     codepointIndex++;
-    if (isHighSurrogate(string.codeUnitAt(i++))) i++;
+    if (isHighSurrogate(string.codeUnitAt(i))) i++;
   }
   return codepointIndex;
 }

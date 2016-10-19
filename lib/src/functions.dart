@@ -480,9 +480,9 @@ void defineCoreFunctions(Environment environment) {
 
     var codeUnitIndex = string.text.indexOf(substring.text);
     if (codeUnitIndex == -1) return sassNull;
-    var codePointIndex =
+    var codepointIndex =
         codeUnitIndexToCodepointIndex(string.text, codeUnitIndex);
-    return new SassNumber(codePointIndex + 1);
+    return new SassNumber(codepointIndex + 1);
   });
 
   environment.defineFunction("str-slice", r"$string, $start-at, $end-at: -1",
