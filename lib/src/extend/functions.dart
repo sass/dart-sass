@@ -233,11 +233,15 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
 /// that element.
 CompoundSelector _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
   if (queue.isEmpty) return null;
-  var first = queue.first as CompoundSelector;
-  if (!_hasRoot(first)) return null;
+  var first = queue.first;
+  if (first is CompoundSelector) {
+    if (!_hasRoot(first)) return null;
 
-  queue.removeFirst();
-  return first;
+    queue.removeFirst();
+    return first;
+  } else {
+    return null;
+  }
 }
 
 /// Extracts leading [Combinator]s from [components1] and [components2] and
@@ -249,12 +253,12 @@ List<Combinator> _mergeInitialCombinators(
     Queue<ComplexSelectorComponent> components1,
     Queue<ComplexSelectorComponent> components2) {
   var combinators1 = <Combinator>[];
-  while (components1.first is Combinator) {
+  while (components1.isNotEmpty && components1.first is Combinator) {
     combinators1.add(components1.removeFirst() as Combinator);
   }
 
   var combinators2 = <Combinator>[];
-  while (components2.first is Combinator) {
+  while (components1.isNotEmpty && components2.first is Combinator) {
     combinators2.add(components2.removeFirst() as Combinator);
   }
 
