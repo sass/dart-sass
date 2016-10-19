@@ -586,11 +586,6 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   Statement _importRule(LineScannerState start) {
-    if (_inControlDirective) {
-      _disallowedAtRule(start);
-      return null;
-    }
-
     // TODO: parse supports clauses, url(), and query lists
     var urlStart = scanner.state;
     var next = scanner.peekChar();
@@ -606,6 +601,9 @@ abstract class StylesheetParser extends Parser {
           new Interpolation([scanner.substring(urlStart.position)],
               scanner.spanFrom(urlStart)),
           scanner.spanFrom(start));
+    } else if (_inControlDirective || _inMixin) {
+      _disallowedAtRule(start);
+      return null;
     } else {
       try {
         return new ImportRule(Uri.parse(url), scanner.spanFrom(start));
