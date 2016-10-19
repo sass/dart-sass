@@ -365,9 +365,11 @@ class SelectorParser extends Parser {
     var nameOrNamespace = identifier();
     if (!scanner.scanChar($pipe)) {
       return new TypeSelector(new QualifiedName(nameOrNamespace));
+    } else if (scanner.scanChar($asterisk)) {
+      return new UniversalSelector(namespace: nameOrNamespace);
+    } else {
+      return new TypeSelector(
+          new QualifiedName(identifier(), namespace: nameOrNamespace));
     }
-
-    return new TypeSelector(
-        new QualifiedName(identifier(), namespace: nameOrNamespace));
   }
 }
