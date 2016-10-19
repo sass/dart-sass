@@ -6,8 +6,8 @@ import 'package:charcode/charcode.dart';
 
 /// The difference between upper- and lowercase ASCII letters.
 ///
-/// `0b100000` can be bitwise-ORed with lowercase ASCII letters to get their
-/// uppercase equivalents.
+/// `0b100000` can be bitwise-ORed with uppercase ASCII letters to get their
+/// lowercase equivalents.
 const _asciiCaseBit = 0x20;
 
 /// Returns whether [character] is an ASCII whitespace character.
@@ -109,13 +109,13 @@ int opposite(int character) {
 /// Returns [character], converted to upper case if it's an ASCII lowercase
 /// letter.
 int toUpperCase(int character) => (character >= $a && character <= $z)
-    ? character | _asciiCaseBit
+    ? character & ~_asciiCaseBit
     : character;
 
 /// Returns [character], converted to lower case if it's an ASCII uppercase
 /// letter.
 int toLowerCase(int character) => (character >= $A && character <= $Z)
-    ? character & ~_asciiCaseBit
+    ? character | _asciiCaseBit
     : character;
 
 /// Returns whether [character1] and [character2] are the same, modulo ASCII case.
@@ -127,7 +127,7 @@ bool characterEqualsIgnoreCase(int character1, int character2) {
   if (character1 ^ character2 != _asciiCaseBit) return false;
 
   // Now we just need to verify that one of the characters is an ASCII letter.
-  var upperCase1 = character1 | _asciiCaseBit;
+  var upperCase1 = character1 & ~_asciiCaseBit;
   return upperCase1 >= $A && upperCase1 <= $Z;
 }
 
