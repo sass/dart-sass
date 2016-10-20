@@ -46,7 +46,7 @@ void main(List<String> args) {
   }
 
   try {
-    var css = render(options.rest.first);
+    var css = render(options.rest.first, color: options['color']);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
     stderr.writeln(error.toString(color: options['color']));

@@ -48,7 +48,13 @@ abstract class StylesheetParser extends Parser {
   /// Whether the parser is currently within a parenthesized expression.
   var _inParentheses = false;
 
-  StylesheetParser(String contents, {url}) : super(contents, url: url);
+  /// Whether warnings should be emitted using terminal colors.
+  ///
+  /// This is protected and shouldn't be accessed except by subclasses.
+  final bool color;
+
+  StylesheetParser(String contents, {url, this.color: false})
+      : super(contents, url: url);
 
   // ## Statements
 
@@ -157,6 +163,12 @@ abstract class StylesheetParser extends Parser {
     var selectorSpan = scanner.spanFrom(start);
 
     var children = this.children(_ruleChild);
+    if (indented && children.isEmpty) {
+      warn("This selector doesn't have any properties and won't be rendered.",
+          selectorSpan,
+          color: color);
+    }
+
     return new StyleRule(
         buffer.interpolation(selectorSpan), children, scanner.spanFrom(start));
   }
@@ -207,6 +219,10 @@ abstract class StylesheetParser extends Parser {
       return nameBuffer
         ..write(midBuffer)
         ..writeCharCode($colon);
+    } else if (indented && _lookingAtInterpolatedIdentifier()) {
+      // In the indented syntax, `foo:bar` is always considered a selector
+      // rather than a property.
+      return nameBuffer..write(midBuffer);
     }
 
     var postColonWhitespace = rawText(whitespace);

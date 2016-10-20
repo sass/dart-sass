@@ -35,7 +35,8 @@ class SassParser extends StylesheetParser {
 
   bool get indented => true;
 
-  SassParser(String contents, {url}) : super(contents, url: url);
+  SassParser(String contents, {url, bool color: false})
+      : super(contents, url: url, color: color);
 
   bool atEndOfStatement() {
     var next = scanner.peekChar();

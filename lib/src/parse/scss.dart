@@ -13,7 +13,8 @@ class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => null;
 
-  ScssParser(String contents, {url}) : super(contents, url: url);
+  ScssParser(String contents, {url, bool color: false})
+      : super(contents, url: url, color: color);
 
   bool atEndOfStatement() {
     var next = scanner.peekChar();

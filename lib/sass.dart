@@ -12,13 +12,15 @@ import 'src/visitor/serialize.dart';
 
 /// Loads the Sass file at [path], converts it to CSS, and returns the result.
 ///
+/// If [color] is `true`, this will use terminal colors in warnings.
+///
 /// Throws a [SassException] if conversion fails.
-String render(String path) {
+String render(String path, {bool color: false}) {
   var contents = readFile(path);
   var url = p.toUri(path);
   var sassTree = p.extension(path) == '.sass'
-      ? new Stylesheet.parseSass(contents, url: url)
-      : new Stylesheet.parseScss(contents, url: url);
-  var cssTree = evaluate(sassTree);
+      ? new Stylesheet.parseSass(contents, url: url, color: color)
+      : new Stylesheet.parseScss(contents, url: url, color: color);
+  var cssTree = evaluate(sassTree, color: color);
   return toCss(cssTree);
 }

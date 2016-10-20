@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
+import 'io.dart';
 import 'util/character.dart';
 
 /// A simple [LinkedListEntry] that just provides a reference to the value.
@@ -259,4 +260,12 @@ List/*<T>*/ longestCommonSubsequence/*<T>*/(
     list.remove(toRemove);
     return toRemove;
   }
+}
+
+/// Prints a warning to standard error, associated with [span].
+///
+/// If [color] is `true`, this uses terminal colors.
+void warn(String message, FileSpan span, {bool color: false}) {
+  var warning = color ? '\u001b[33m\u001b[1mWarning\u001b[0m' : 'WARNING';
+  stderr.writeln("$warning on ${span.message("\n$message", color: color)}\n");
 }

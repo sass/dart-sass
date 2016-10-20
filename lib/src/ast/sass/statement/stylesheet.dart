@@ -21,11 +21,23 @@ class Stylesheet implements Statement {
   Stylesheet(Iterable<Statement> children, this.span)
       : children = new List.unmodifiable(children);
 
-  factory Stylesheet.parseSass(String contents, {url}) =>
-      new SassParser(contents, url: url).parse();
+  /// Parses an indented-syntax stylesheet from [contents].
+  ///
+  /// If passed, [url] is the name of the file from which [contents] comes. If
+  /// [color] is `true`, this will use terminal colors in warnings.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  factory Stylesheet.parseSass(String contents, {url, bool color: false}) =>
+      new SassParser(contents, url: url, color: color).parse();
 
-  factory Stylesheet.parseScss(String contents, {url}) =>
-      new ScssParser(contents, url: url).parse();
+  /// Parses an SCSS stylesheet from [contents].
+  ///
+  /// If passed, [url] is the name of the file from which [contents] comes. If
+  /// [color] is `true`, this will use terminal colors in warnings.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  factory Stylesheet.parseScss(String contents, {url, bool color: false}) =>
+      new ScssParser(contents, url: url, color: color).parse();
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitStylesheet(this);

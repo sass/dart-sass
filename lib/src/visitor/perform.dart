@@ -33,10 +33,15 @@ typedef _ScopeCallback(callback());
 /// If [environment] is passed, it's used as the lexical environment when
 /// evaluating [stylesheet]. It should only contain global definitions.
 ///
+/// If [color] is `true`, this will use terminal colors in warnings.
+///
 /// Throws a [SassRuntimeException] if evaluation fails.
 CssStylesheet evaluate(Stylesheet stylesheet,
-        {Iterable<String> loadPaths, Environment environment}) =>
-    new _PerformVisitor(loadPaths: loadPaths, environment: environment)
+        {Iterable<String> loadPaths,
+        Environment environment,
+        bool color: false}) =>
+    new _PerformVisitor(
+            loadPaths: loadPaths, environment: environment, color: color)
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
@@ -44,6 +49,9 @@ class _PerformVisitor
     implements StatementVisitor<Value>, ExpressionVisitor<Value> {
   /// The paths to search for Sass files being imported.
   final List<String> _loadPaths;
+
+  /// Whether to use terminal colors in warnings.
+  final bool _color;
 
   /// The current lexical environment.
   Environment _environment;
@@ -94,9 +102,11 @@ class _PerformVisitor
   /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
-  _PerformVisitor({Iterable<String> loadPaths, Environment environment})
+  _PerformVisitor(
+      {Iterable<String> loadPaths, Environment environment, bool color: false})
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
-        _environment = environment ?? new Environment() {
+        _environment = environment ?? new Environment(),
+        _color = color {
     _environment.defineFunction("call", r"$name, $args...", (arguments) {
       var name = arguments[0].assertString("name");
       var args = arguments[1] as SassArgumentList;
@@ -467,8 +477,8 @@ class _PerformVisitor
       var contents = readFile(path);
       var url = p.toUri(path);
       return p.extension(path) == '.sass'
-          ? new Stylesheet.parseSass(contents, url: url)
-          : new Stylesheet.parseScss(contents, url: url);
+          ? new Stylesheet.parseSass(contents, url: url, color: _color)
+          : new Stylesheet.parseScss(contents, url: url, color: _color);
     });
   }
 
