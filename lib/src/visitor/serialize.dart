@@ -631,8 +631,11 @@ class _SerializeCssVisitor
     _buffer.write(attribute.name);
     if (attribute.op != null) {
       _buffer.write(attribute.op);
-      // TODO: quote the value if it's not an identifier
-      _buffer.write(attribute.value);
+      if (_isIdentifier(attribute.value)) {
+        _buffer.write(attribute.value);
+      } else {
+        _visitQuotedString(attribute.value);
+      }
     }
     _buffer.writeCharCode($rbracket);
   }
@@ -771,6 +774,58 @@ class _SerializeCssVisitor
 
   /// Returns whether [node] is considered invisible.
   bool _isInvisible(CssNode node) => !_inspect && node.isInvisible;
+
+  /// Returns whether [text] is a valid identifier.
+  bool _isIdentifier(String text) {
+    var scanner = new StringScanner(text);
+    while (scanner.scanChar($dash)) {}
+
+    var first = scanner.readChar();
+    if (first == null) return false;
+    if (isNameStart(first)) {
+      scanner.readChar();
+    } else if (first == $backslash) {
+      if (!_consumeEscape(scanner)) return false;
+    } else {
+      return false;
+    }
+
+    while (true) {
+      var next = scanner.peekChar();
+      if (next == null) return true;
+
+      if (isName(next)) {
+        scanner.readChar();
+      } else if (next == $backslash) {
+        if (!_consumeEscape(scanner)) return false;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  /// Consumes an escape sequence in [scanner].
+  ///
+  /// Returns whether a valid escape was consumed.
+  bool _consumeEscape(StringScanner scanner) {
+    scanner.expectChar($backslash);
+
+    var first = scanner.peekChar();
+    if (first == null || isNewline(first)) return false;
+
+    if (isHex(first)) {
+      for (var i = 0; i < 6; i++) {
+        var next = scanner.peekChar();
+        if (next == null || !isHex(next)) break;
+        scanner.readChar();
+      }
+      if (isWhitespace(scanner.peekChar())) scanner.readChar();
+    } else {
+      scanner.readChar();
+    }
+
+    return true;
+  }
 }
 
 /// An enum of generated CSS styles.
