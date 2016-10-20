@@ -172,10 +172,10 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
   var queue1 = new Queue<ComplexSelectorComponent>.from(parents1);
   var queue2 = new Queue<ComplexSelectorComponent>.from(parents2);
 
-  var initialCombinator = _mergeInitialCombinators(queue1, queue2);
-  if (initialCombinator == null) return null;
-  var finalCombinator = _mergeFinalCombinators(queue1, queue2);
-  if (finalCombinator == null) return null;
+  var initialCombinators = _mergeInitialCombinators(queue1, queue2);
+  if (initialCombinators == null) return null;
+  var finalCombinators = _mergeFinalCombinators(queue1, queue2);
+  if (finalCombinators == null) return null;
 
   // Make sure there's at most one `:root` in the output.
   var root1 = _firstIfRoot(queue1);
@@ -211,7 +211,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
   });
 
   var choices = [
-    <Iterable<ComplexSelectorComponent>>[initialCombinator]
+    <Iterable<ComplexSelectorComponent>>[initialCombinators]
   ];
   for (var group in lcs) {
     choices.add(_chunks/*<List<ComplexSelectorComponent>>*/(groups1, groups2,
@@ -225,7 +225,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
   choices.add(_chunks(groups1, groups2, (sequence) => sequence.isEmpty)
       .map((chunk) => chunk.expand((group) => group))
       .toList());
-  choices.addAll(finalCombinator);
+  choices.addAll(finalCombinators);
 
   return paths(choices.where((choice) => choice.isNotEmpty))
       .map((path) => path.expand((group) => group).toList());
@@ -302,9 +302,9 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     // is a supersequence of the other, use that, otherwise give up.
     var lcs = longestCommonSubsequence(combinators1, combinators2);
     if (listEquals(lcs, combinators1)) {
-      result.addAll([new List.from(combinators2.reversed)]);
+      result.add([new List.from(combinators2.reversed)]);
     } else if (listEquals(lcs, combinators2)) {
-      result.addAll([new List.from(combinators1.reversed)]);
+      result.add([new List.from(combinators1.reversed)]);
     }
     return result;
   }
