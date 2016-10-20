@@ -228,10 +228,6 @@ class _PerformVisitor
       var innerScope = scope;
       scope = (callback) => _withMediaQueries(null, () => innerScope(callback));
     }
-    if (query.excludesStyleRules) {
-      var innerScope = scope;
-      scope = (callback) => _withSelector(null, () => innerScope(callback));
-    }
     if (_inUnknownAtRule && !included.any((parent) => parent is CssAtRule)) {
       var innerScope = scope;
       scope = (callback) {
