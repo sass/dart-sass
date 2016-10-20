@@ -533,7 +533,7 @@ class SassNumber extends Value {
       removeFirstWhere/*<String>*/(mutableDenominators2, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
-        value *= factor;
+        value /= factor;
         return true;
       }, orElse: () {
         newNumerators.add(numerator);
