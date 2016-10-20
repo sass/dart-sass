@@ -951,15 +951,14 @@ abstract class StylesheetParser extends Parser {
             scanner.readChar();
             scanner.readChar();
             addOperator(BinaryOperator.notEquals);
-            break;
           } else if (next == null ||
               equalsLetterIgnoreCase($i, next) ||
               isWhitespace(next)) {
             addSingleExpression(_importantExpression());
-            break;
           } else {
             break loop;
           }
+          break;
 
         case $langle:
           scanner.readChar();
