@@ -102,8 +102,8 @@ class SassColor extends Value {
           lightness ?? this.lightness, alpha ?? this.alpha);
 
   /// Returns a new copy of this color with the alpha channel set to [alpha].
-  SassColor changeAlpha(num alpha) => new SassColor._(
-      _red, _green, _blue, _hue, _saturation, _lightness, alpha);
+  SassColor changeAlpha(num alpha) => new SassColor._(_red, _green, _blue, _hue,
+      _saturation, _lightness, fuzzyAssertRange(alpha, 0, 1, "alpha"));
 
   Value plus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.plus(other);

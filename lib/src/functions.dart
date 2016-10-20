@@ -313,18 +313,18 @@ void defineCoreFunctions(Environment environment) {
       }
 
       return color.changeRgb(
-          red: color.red + (red ?? 0),
-          green: color.green + (green ?? 0),
-          blue: color.blue + (blue ?? 0),
-          alpha: color.alpha + (alpha ?? 0));
+          red: (color.red + (red ?? 0)).clamp(0, 255) as int,
+          green: (color.green + (green ?? 0)).clamp(0, 255) as int,
+          blue: (color.blue + (blue ?? 0)).clamp(0, 255) as int,
+          alpha: (color.alpha + (alpha ?? 0)).clamp(0, 1));
     } else if (hasHsl) {
       return color.changeHsl(
           hue: color.hue + (hue ?? 0),
-          saturation: color.saturation + (saturation ?? 0),
-          lightness: color.lightness + (lightness ?? 0),
+          saturation: (color.saturation + (saturation ?? 0)).clamp(0, 100),
+          lightness: (color.lightness + (lightness ?? 0)).clamp(0, 100),
           alpha: color.alpha + (alpha ?? 0));
     } else {
-      return color.changeAlpha(color.alpha + (alpha ?? 0));
+      return color.changeAlpha((color.alpha + (alpha ?? 0)).clamp(0, 1));
     }
   });
 
