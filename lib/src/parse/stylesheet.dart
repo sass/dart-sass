@@ -695,11 +695,12 @@ abstract class StylesheetParser extends Parser {
     _inMixin = true;
     _mixinHasContent = false;
     var children = this.children(_ruleChild);
+    var hadContent = _mixinHasContent;
     _inMixin = false;
     _mixinHasContent = null;
 
     return new MixinRule(name, arguments, children, scanner.spanFrom(start),
-        hasContent: _mixinHasContent);
+        hasContent: hadContent);
   }
 
   /// Consumes a `@return` rule.
