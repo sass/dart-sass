@@ -29,6 +29,6 @@ class SassArgumentList extends SassList {
 
   SassArgumentList(Iterable<Value> contents, Map<String, Value> keywords,
       ListSeparator separator)
-      : _keywords = new UnmodifiableMapView(normalizedMap()..addAll(keywords)),
+      : _keywords = new UnmodifiableMapView(normalizedMap(keywords)),
         super(contents, separator);
 }

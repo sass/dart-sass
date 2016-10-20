@@ -211,18 +211,20 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
   });
 
   var choices = [
-    <List<ComplexSelectorComponent>>[initialCombinator]
+    <Iterable<ComplexSelectorComponent>>[initialCombinator]
   ];
   for (var group in lcs) {
     choices.add(_chunks/*<List<ComplexSelectorComponent>>*/(groups1, groups2,
             (sequence) => complexIsParentSuperselector(sequence.first, group))
-        .map((chunk) => chunk.expand((group) => group)));
+        .map((chunk) => chunk.expand((group) => group))
+        .toList());
     choices.add([group]);
     groups1.removeFirst();
     groups2.removeFirst();
   }
   choices.add(_chunks(groups1, groups2, (sequence) => sequence.isEmpty)
-      .map((chunk) => chunk.expand((group) => group)));
+      .map((chunk) => chunk.expand((group) => group))
+      .toList());
   choices.addAll(finalCombinator);
 
   return paths(choices.where((choice) => choice.isNotEmpty))
@@ -404,7 +406,7 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     if (combinator1 == Combinator.child &&
         components2.isNotEmpty &&
         (components2.last as CompoundSelector)
-            .isSuperselector(components1.last)) {
+            .isSuperselector(components1.last as CompoundSelector)) {
       components2.removeLast();
     }
     result.addFirst([
@@ -416,7 +418,7 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     if (combinator2 == Combinator.child &&
         components1.isNotEmpty &&
         (components1.last as CompoundSelector)
-            .isSuperselector(components2.last)) {
+            .isSuperselector(components2.last as CompoundSelector)) {
       components1.removeLast();
     }
     result.addFirst([
@@ -577,15 +579,16 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     // subselectors.
     if (complex1[i1] is Combinator) return false;
     if (complex2[i2] is Combinator) return false;
+    var compound1 = complex1[i1] as CompoundSelector;
+    var compound2 = complex2[i2] as CompoundSelector;
 
     if (remaining1 == 1) {
-      var selector = complex1[i1] as CompoundSelector;
-      return compoundIsSuperselector(selector, complex2[i2],
+      return compoundIsSuperselector(compound1, compound2,
           parents: complex2.skip(i2 + 1));
     }
 
     // Find the first index where `complex2.sublist(i2, afterSuperselector)` is
-    // a subselector of `complex1[i1]`. We stop before the superselector would
+    // a subselector of [compound1]. We stop before the superselector would
     // encompass all of [complex2] because we know [complex1] has more than one
     // element, and consuming all of [complex2] wouldn't leave anything for the
     // rest of [complex1] to match.
@@ -593,7 +596,7 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     for (; afterSuperselector < complex2.length; afterSuperselector++) {
       if (complex2[afterSuperselector - 1] is Combinator) continue;
 
-      if (compoundIsSuperselector(complex1[i1], complex2[i2],
+      if (compoundIsSuperselector(compound1, compound2,
           parents: complex2.take(afterSuperselector - 1).skip(i2 + 1))) {
         break;
       }
@@ -768,8 +771,8 @@ bool _selectorPseudoIsSuperselector(
 /// and that have the given [name].
 Iterable<PseudoSelector> _selectorPseudosNamed(
         CompoundSelector compound, String name) =>
-    compound.components.where((simple) =>
+    DelegatingIterable.typed(compound.components.where((simple) =>
         simple is PseudoSelector &&
         simple.isClass &&
         simple.selector != null &&
-        simple.name == name);
+        simple.name == name));

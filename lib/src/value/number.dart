@@ -341,7 +341,7 @@ class SassNumber extends Value {
     var value = this.value;
     var oldNumerators = numeratorUnits.toList();
     for (var newNumerator in newNumerators) {
-      removeFirstWhere(oldNumerators, (oldNumerator) {
+      removeFirstWhere/*<String>*/(oldNumerators, (oldNumerator) {
         var factor = _conversionFactor(newNumerator, oldNumerator);
         if (factor == null) return false;
         value *= factor;
@@ -355,7 +355,7 @@ class SassNumber extends Value {
 
     var oldDenominators = denominatorUnits.toList();
     for (var newDenominator in newDenominators) {
-      removeFirstWhere(oldDenominators, (oldDenominator) {
+      removeFirstWhere/*<String>*/(oldDenominators, (oldDenominator) {
         var factor = _conversionFactor(newDenominator, oldDenominator);
         if (factor == null) return false;
         value /= factor;
@@ -535,7 +535,7 @@ class SassNumber extends Value {
         continue;
       }
 
-      removeFirstWhere(mutableDenominators2, (denominator) {
+      removeFirstWhere/*<String>*/(mutableDenominators2, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
         value *= factor;
@@ -552,7 +552,7 @@ class SassNumber extends Value {
         continue;
       }
 
-      removeFirstWhere(mutableDenominators1, (denominator) {
+      removeFirstWhere/*<String>*/(mutableDenominators1, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
         value *= factor;

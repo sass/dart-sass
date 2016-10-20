@@ -22,12 +22,16 @@ class Interpolation implements SassNode {
   /// Otherwise, returns `null`.
   String get asPlain {
     if (contents.isEmpty) return '';
-    if (contents.length == 1 && contents.first is String) return contents.first;
-    return null;
+    if (contents.length > 1) return null;
+    var first = contents.first;
+    return first is String ? first : null;
   }
 
   /// Returns the plain text before the interpolation, or the empty string.
-  String get initialPlain => contents.first is String ? contents.first : '';
+  String get initialPlain {
+    var first = contents.first;
+    return first is String ? first : '';
+  }
 
   Interpolation(Iterable /*(String|Expression)*/ contents, this.span)
       : contents = new List.unmodifiable(contents) {

@@ -113,7 +113,7 @@ class Extender {
 
     var rules = _selectors[target];
     if (rules == null) return;
-    var extensions = {target: new Set()..add(source)};
+    var extensions = {target: new Set<ExtendSource>()..add(source)};
     for (var rule in rules.toList()) {
       rule.selector.value = _extendList(rule.selector.value, extensions);
       _registerSelector(rule.selector.value, rule);
@@ -210,7 +210,7 @@ class Extender {
         return new ComplexSelector(outputComplex,
             lineBreak: complex.lineBreak ||
                 path.any((inputComplex) => inputComplex.lineBreak));
-      });
+      }).toList();
     }).toList());
     return result;
   }
@@ -386,7 +386,9 @@ class Extender {
     // TODO(nweiz): I think there may be a way to get perfect trimming without
     // going quadratic by building some sort of trie-like data structure that
     // can be used to look up superselectors.
-    if (lists.length > 100) return lists.expand((selectors) => selectors);
+    if (lists.length > 100) {
+      return lists.expand((selectors) => selectors).toList();
+    }
 
     // This is n² on the sequences, but only comparing between separate
     // sequences should limit the quadratic behavior.

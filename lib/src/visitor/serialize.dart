@@ -299,7 +299,7 @@ class _SerializeCssVisitor
         value.separator == ListSeparator.comma;
     if (singleton) _buffer.writeCharCode($lparen);
 
-    _writeBetween(
+    _writeBetween/*<Value>*/(
         _inspect
             ? value.contents
             : value.contents.where((element) => !element.isBlank),
@@ -311,7 +311,9 @@ class _SerializeCssVisitor
                 element.accept(this);
                 if (needsParens) _buffer.writeCharCode($rparen);
               }
-            : (element) => element.accept(this));
+            : (element) {
+                element.accept(this);
+              });
 
     if (singleton) {
       _buffer.writeCharCode($comma);
@@ -339,7 +341,7 @@ class _SerializeCssVisitor
       throw new SassScriptException("$map isn't a valid CSS value.");
     }
     _buffer.writeCharCode($lparen);
-    _writeBetween(map.contents.keys, ", ", (key) {
+    _writeBetween/*<Value>*/(map.contents.keys, ", ", (key) {
       _writeMapElement(key);
       _buffer.write(": ");
       _writeMapElement(map.contents[key]);

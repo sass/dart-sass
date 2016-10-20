@@ -37,10 +37,11 @@ typedef _ScopeCallback(callback());
 CssStylesheet evaluate(Stylesheet stylesheet,
         {Iterable<String> loadPaths, Environment environment}) =>
     new _PerformVisitor(loadPaths: loadPaths, environment: environment)
-        .visitStylesheet(stylesheet);
+        .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
-class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
+class _PerformVisitor
+    implements StatementVisitor<Value>, ExpressionVisitor<Value> {
   /// The paths to search for Sass files being imported.
   final List<String> _loadPaths;
 
@@ -105,19 +106,24 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     });
   }
 
+  CssStylesheet run(Stylesheet node) {
+    visitStylesheet(node);
+    return _root;
+  }
+
   // ## Statements
 
-  CssStylesheet visitStylesheet(Stylesheet node) {
+  Value visitStylesheet(Stylesheet node) {
     _root = new CssStylesheet(node.span);
     _parent = _root;
     for (var child in node.children) {
       child.accept(this);
     }
     _extender.finalize();
-    return _root;
+    return null;
   }
 
-  void visitAtRootRule(AtRootRule node) {
+  Value visitAtRootRule(AtRootRule node) {
     var query = node.query == null
         ? AtRootQuery.defaultQuery
         : new AtRootQuery.parse(_performInterpolation(node.query));
@@ -136,7 +142,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       for (var child in node.children) {
         child.accept(this);
       }
-      return;
+      return null;
     }
 
     var innerCopy =
@@ -154,6 +160,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         child.accept(this);
       }
     });
+
+    return null;
   }
 
   /// Destructively trims a trailing sublist that matches the current list of
@@ -190,7 +198,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   /// This returns a callback that adjusts various instance variables for its
   /// duration, based on which rules are excluded by [query]. It always assigns
   /// [_parent] to [newParent].
-  _ScopeCallback _scopeForAtRoot(CssNode newParent, AtRootQuery query) {
+  _ScopeCallback _scopeForAtRoot(CssParentNode newParent, AtRootQuery query) {
     var scope = (callback()) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
@@ -212,14 +220,15 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return scope;
   }
 
-  void visitComment(Comment node) {
-    if (node.isSilent) return;
+  Value visitComment(Comment node) {
+    if (node.isSilent) return null;
     _parent.addChild(new CssComment(node.text, node.span));
+    return null;
   }
 
-  void visitContentRule(ContentRule node) {
+  Value visitContentRule(ContentRule node) {
     var block = _environment.contentBlock;
-    if (block == null) return;
+    if (block == null) return null;
 
     _withStackFrame("@content", node.span, () {
       _withEnvironment(_environment.contentEnvironment, () {
@@ -228,14 +237,17 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         }
       });
     });
+
+    return null;
   }
 
-  void visitDebugRule(DebugRule node) {
+  Value visitDebugRule(DebugRule node) {
     stderr.writeln("Line ${node.span.start.line + 1} DEBUG: "
         "${node.expression.accept(this)}");
+    return null;
   }
 
-  void visitDeclaration(Declaration node) {
+  Value visitDeclaration(Declaration node) {
     if (_selector == null) {
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
@@ -262,6 +274,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
       }
       _declarationName = oldDeclarationName;
     }
+
+    return null;
   }
 
   /// Returns whether [value] is an empty [SassList].
@@ -270,12 +284,14 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
   Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
     var setVariables = node.variables.length == 1
-        ? (value) => _environment.setLocalVariable(node.variables.first, value)
-        : (value) => _setMultipleVariables(node.variables, value);
+        ? (Value value) =>
+            _environment.setLocalVariable(node.variables.first, value)
+        : (Value value) => _setMultipleVariables(node.variables, value);
     return _environment.scope(() {
-      return _handleReturn(list.asList, (element) {
+      return _handleReturn/*<Value>*/(list.asList, (element) {
         setVariables(element);
-        return _handleReturn(node.children, (child) => child.accept(this));
+        return _handleReturn/*<Statement>*/(
+            node.children, (child) => child.accept(this));
       });
     }, semiGlobal: true);
   }
@@ -293,11 +309,11 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  void visitErrorRule(ErrorRule node) {
+  Value visitErrorRule(ErrorRule node) {
     throw _exception(node.expression.accept(this).toString(), node.span);
   }
 
-  void visitExtendRule(ExtendRule node) {
+  Value visitExtendRule(ExtendRule node) {
     if (_selector == null || _declarationName != null) {
       throw _exception(
           "@extend may only be used within style rules.", node.span);
@@ -310,9 +326,10 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         () => new SimpleSelector.parse(targetText.value.trim(),
             allowParent: false));
     _extender.addExtension(_selector, target, node);
+    return null;
   }
 
-  void visitAtRule(AtRule node) {
+  Value visitAtRule(AtRule node) {
     if (_declarationName != null) {
       throw _exception(
           "At-rules may not be used within nested declarations.", node.span);
@@ -325,7 +342,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     if (node.children == null) {
       _parent.addChild(
           new CssAtRule(node.name, node.span, childless: true, value: value));
-      return;
+      return null;
     }
 
     _withParent(new CssAtRule(node.name, node.span, value: value), () {
@@ -345,6 +362,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         });
       }
     }, through: (node) => node is CssStyleRule);
+
+    return null;
   }
 
   Value visitForRule(ForRule node) {
@@ -361,17 +380,18 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return _environment.scope(() {
       for (var i = from; i != to; i += direction) {
         _environment.setLocalVariable(node.variable, new SassNumber(i));
-        var result =
-            _handleReturn(node.children, (child) => child.accept(this));
+        var result = _handleReturn/*<Statement>*/(
+            node.children, (child) => child.accept(this));
         if (result != null) return result;
       }
       return null;
     }, semiGlobal: true);
   }
 
-  void visitFunctionRule(FunctionRule node) {
+  Value visitFunctionRule(FunctionRule node) {
     _environment
         .setFunction(new UserDefinedCallable(node, _environment.closure()));
+    return null;
   }
 
   Value visitIfRule(IfRule node) {
@@ -383,11 +403,12 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     if (clause == null) return null;
 
     return _environment.scope(
-        () => _handleReturn(clause, (child) => child.accept(this)),
+        () =>
+            _handleReturn/*<Statement>*/(clause, (child) => child.accept(this)),
         semiGlobal: true);
   }
 
-  void visitImportRule(ImportRule node) {
+  Value visitImportRule(ImportRule node) {
     var stylesheet = _loadImport(node);
     _withStackFrame("@import", node.span, () {
       _withEnvironment(_environment.global(), () {
@@ -396,6 +417,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         }
       });
     });
+    return null;
   }
 
   /// Loads the [Stylesheet] imported by [node], or throws a
@@ -446,7 +468,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return null;
   }
 
-  void visitIncludeRule(IncludeRule node) {
+  Value visitIncludeRule(IncludeRule node) {
     var mixin = _environment.getMixin(node.name) as UserDefinedCallable;
     if (mixin == null) {
       throw _exception("Undefined mixin.", node.span);
@@ -471,14 +493,17 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         _environment.withContent(node.children, environment, callback);
       });
     }
+
+    return null;
   }
 
-  void visitMixinRule(MixinRule node) {
+  Value visitMixinRule(MixinRule node) {
     _environment
         .setMixin(new UserDefinedCallable(node, _environment.closure()));
+    return null;
   }
 
-  void visitMediaRule(MediaRule node) {
+  Value visitMediaRule(MediaRule node) {
     if (_declarationName != null) {
       throw _exception(
           "Media rules may not be used within nested declarations.", node.span);
@@ -488,7 +513,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     var queries = _mediaQueries == null
         ? new List<CssMediaQuery>.unmodifiable(queryIterable)
         : _mergeMediaQueries(_mediaQueries, queryIterable);
-    if (queries.isEmpty) return;
+    if (queries.isEmpty) return null;
 
     _withParent(new CssMediaRule(queries, node.span), () {
       _withMediaQueries(queries, () {
@@ -510,6 +535,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         }
       });
     }, through: (node) => node is CssStyleRule || node is CssMediaRule);
+
+    return null;
   }
 
   /// Returns a list of queries that selects for platforms that match both
@@ -535,13 +562,14 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     return new CssMediaQuery(type, modifier: modifier, features: features);
   }
 
-  void visitPlainImportRule(PlainImportRule node) {
+  Value visitPlainImportRule(PlainImportRule node) {
     _parent.addChild(new CssImport(_interpolationToValue(node.url), node.span));
+    return null;
   }
 
   Value visitReturnRule(ReturnRule node) => node.expression.accept(this);
 
-  void visitStyleRule(StyleRule node) {
+  Value visitStyleRule(StyleRule node) {
     if (_declarationName != null) {
       throw _exception(
           "Style rules may not be used within nested declarations.", node.span);
@@ -564,9 +592,11 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         }
       });
     }, through: (node) => node is CssStyleRule);
+
+    return null;
   }
 
-  void visitSupportsRule(SupportsRule node) {
+  Value visitSupportsRule(SupportsRule node) {
     if (_declarationName != null) {
       throw _exception(
           "Supports rules may not be used within nested declarations.",
@@ -593,6 +623,8 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
         });
       }
     }, through: (node) => node is CssStyleRule);
+
+    return null;
   }
 
   /// Evaluates [condition] and converts it to a plain CSS string.
@@ -629,13 +661,14 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
   }
 
-  void visitVariableDeclaration(VariableDeclaration node) {
+  Value visitVariableDeclaration(VariableDeclaration node) {
     _environment.setVariable(
         node.name, node.expression.accept(this).withoutOriginal(),
         global: node.isGlobal);
+    return null;
   }
 
-  void visitWarnRule(WarnRule node) {
+  Value visitWarnRule(WarnRule node) {
     _addExceptionSpan(node.span, () {
       var value = node.expression.accept(this);
       var string = value is SassString ? value.text : value.toCssString();
@@ -645,13 +678,15 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     for (var line in _stackTrace(node.span).toString().split("\n")) {
       stderr.writeln("         $line");
     }
+
+    return null;
   }
 
   Value visitWhileRule(WhileRule node) {
     return _environment.scope(() {
       while (node.condition.accept(this).isTruthy) {
-        var result =
-            _handleReturn(node.children, (child) => child.accept(this));
+        var result = _handleReturn/*<Statement>*/(
+            node.children, (child) => child.accept(this));
         if (result != null) return result;
       }
       return null;
@@ -993,8 +1028,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     var positional = invocation.arguments.positional.toList();
-    var named = normalizedMap/*<Expression>*/()
-      ..addAll(invocation.arguments.named);
+    var named = normalizedMap(invocation.arguments.named);
     var rest = invocation.arguments.rest.accept(this);
     if (rest is SassMap) {
       _addRestMap(
@@ -1080,8 +1114,7 @@ class _PerformVisitor implements StatementVisitor, ExpressionVisitor<Value> {
     }
 
     if (arguments.arguments.length - positional < named.length) {
-      var unknownNames = normalizedSet()
-        ..addAll(named.keys)
+      var unknownNames = normalizedSet(named.keys)
         ..removeAll(arguments.arguments.map((argument) => argument.name));
       throw _exception(
           "No ${pluralize('argument', unknownNames.length)} named "

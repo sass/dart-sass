@@ -159,12 +159,24 @@ bool equalsIgnoreCase(String string1, String string2) {
 }
 
 /// Returns an empty map that uses [equalsIgnoreSeparator] for key equality.
-Map/*<String, V>*/ normalizedMap/*<V>*/() => new LinkedHashMap(
-    equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+///
+/// If [source] is passed, copies it into the map.
+Map/*<String, V>*/ normalizedMap/*<V>*/([Map<String, dynamic/*=V*/ > source]) {
+  var map = new LinkedHashMap/*<String, V>*/(
+      equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+  if (source != null) map.addAll(source);
+  return map;
+}
 
 /// Returns an empty set that uses [equalsIgnoreSeparator] for equality.
-Set<String> normalizedSet() => new LinkedHashSet(
-    equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+///
+/// If [source] is passed, copies it into the set.
+Set<String> normalizedSet([Iterable<String> source]) {
+  var set = new LinkedHashSet(
+      equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+  if (source != null) set.addAll(source);
+  return set;
+}
 
 /// Like [mapMap], but returns a map that uses [equalsIgnoreSeparator] for key
 /// equality.

@@ -120,7 +120,7 @@ class PseudoSelector extends SimpleSelector {
       }
     } else {
       // This is higher than any selector's specificity can actually be.
-      _minSpecificity = math.pow(super.minSpecificity, 3);
+      _minSpecificity = math.pow(super.minSpecificity, 3) as int;
       _maxSpecificity = 0;
       for (var complex in selector.components) {
         _minSpecificity = math.min(_minSpecificity, complex.minSpecificity);

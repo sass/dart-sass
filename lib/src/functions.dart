@@ -33,7 +33,7 @@ final _features = new Set.from([
 final _random = new math.Random();
 
 // We use base-36 so we can use the (26-character) alphabet and all digits.
-var _uniqueID = _random.nextInt(math.pow(36, 6));
+var _uniqueID = _random.nextInt(math.pow(36, 6) as int);
 
 /// Adds all core-library function definitions to [environment].
 void defineCoreFunctions(Environment environment) {
@@ -286,13 +286,13 @@ void defineCoreFunctions(Environment environment) {
           "be passed by name.");
     }
 
-    var keywords = normalizedMap/*<Value>*/()..addAll(argumentList.keywords);
+    var keywords = normalizedMap(argumentList.keywords);
     getInRange(String name, num min, num max) =>
         keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
 
-    var red = getInRange("red", -255, 255);
-    var green = getInRange("green", -255, 255);
-    var blue = getInRange("blue", -255, 255);
+    var red = getInRange("red", -255, 255)?.round();
+    var green = getInRange("green", -255, 255)?.round();
+    var blue = getInRange("blue", -255, 255)?.round();
     var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
     var saturation = getInRange("saturation", -100, 100);
     var lightness = getInRange("lightness", -100, 100);
@@ -337,7 +337,7 @@ void defineCoreFunctions(Environment environment) {
           "be passed by name.");
     }
 
-    var keywords = normalizedMap/*<Value>*/()..addAll(argumentList.keywords);
+    var keywords = normalizedMap(argumentList.keywords);
     getScale(String name) {
       var value = keywords.remove(name);
       if (value == null) return null;
@@ -397,13 +397,13 @@ void defineCoreFunctions(Environment environment) {
           "be passed by name.");
     }
 
-    var keywords = normalizedMap/*<Value>*/()..addAll(argumentList.keywords);
+    var keywords = normalizedMap(argumentList.keywords);
     getInRange(String name, num min, num max) =>
         keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
 
-    var red = getInRange("red", 0, 255);
-    var green = getInRange("green", 0, 255);
-    var blue = getInRange("blue", 0, 255);
+    var red = getInRange("red", 0, 255)?.round();
+    var green = getInRange("green", 0, 255)?.round();
+    var blue = getInRange("blue", 0, 255)?.round();
     var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
     var saturation = getInRange("saturation", 0, 100);
     var lightness = getInRange("lightness", 0, 100);
@@ -722,8 +722,8 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("keywords", r"$args", (arguments) {
     var argumentList = arguments[0];
     if (argumentList is SassArgumentList) {
-      return new SassMap(
-          mapMap(argumentList.keywords, key: (key, _) => new SassString(key)));
+      return new SassMap(mapMap(argumentList.keywords,
+          key: (String key, Value _) => new SassString(key)));
     } else {
       throw new SassScriptException(
           "\$args: $argumentList is not an argument list.");
@@ -763,8 +763,8 @@ void defineCoreFunctions(Environment environment) {
             throw new SassScriptException("Can't append $complex to $parent.");
           }
 
-          return new ComplexSelector(
-              [newCompound]..addAll(complex.components.skip(1)));
+          return new ComplexSelector(<ComplexSelectorComponent>[newCompound]
+            ..addAll(complex.components.skip(1)));
         } else {
           throw new SassScriptException("Can't append $complex to $parent.");
         }
@@ -888,7 +888,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction("unique-id", "", (arguments) {
     // Make it difficult to guess the next ID by randomizing the increase.
     _uniqueID += _random.nextInt(36) + 1;
-    if (_uniqueID > math.pow(36, 6)) _uniqueID %= math.pow(36, 6);
+    if (_uniqueID > math.pow(36, 6)) _uniqueID %= math.pow(36, 6) as int;
     // The leading "u" ensures that the result is a valid identifier.
     return new SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}");
   });
@@ -1009,8 +1009,9 @@ CompoundSelector _prependParent(CompoundSelector compound) {
   if (first is UniversalSelector) return null;
   if (first is TypeSelector) {
     if (first.name.namespace != null) return null;
-    return new CompoundSelector([new ParentSelector(suffix: first.name.name)]
-      ..addAll(compound.components.skip(1)));
+    return new CompoundSelector(<SimpleSelector>[
+      new ParentSelector(suffix: first.name.name)
+    ]..addAll(compound.components.skip(1)));
   } else {
     return new CompoundSelector(
         <SimpleSelector>[new ParentSelector()]..addAll(compound.components));

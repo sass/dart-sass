@@ -14,7 +14,7 @@ class IDSelector extends SimpleSelector {
   /// The ID name this selects for.
   final String name;
 
-  int get minSpecificity => math.pow(super.minSpecificity, 2);
+  int get minSpecificity => math.pow(super.minSpecificity, 2) as int;
 
   IDSelector(this.name);
 
