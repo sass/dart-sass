@@ -15,8 +15,8 @@ class AtRootQueryParser extends Parser {
     return wrapSpanFormatException(() {
       scanner.expectChar($lparen);
       whitespace();
-      expectIdentifier("with", ignoreCase: true);
-      var include = !scanIdentifier("out", ignoreCase: true);
+      var include = scanIdentifier("with");
+      if (!include) expectIdentifier("without");
       whitespace();
       scanner.expectChar($colon);
       whitespace();

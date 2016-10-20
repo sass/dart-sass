@@ -428,7 +428,7 @@ abstract class StylesheetParser extends Parser {
     var next = scanner.peekChar();
     var query = next == $hash || next == $lparen ? _queryExpression() : null;
     whitespace();
-    return new AtRootRule(children(_topLevelStatement), scanner.spanFrom(start),
+    return new AtRootRule(children(_ruleChild), scanner.spanFrom(start),
         query: query);
   }
 

@@ -71,6 +71,9 @@ class _PerformVisitor
   /// This is used to provide `call()` with a span.
   FileSpan _callableSpan;
 
+  /// Whether we're currently building the output of an unknown at rule.
+  var _inUnknownAtRule = false;
+
   /// The resolved URLs for each [ImportRule] that's been seen so far.
   ///
   /// This is cached in case the same file is imported multiple times, and thus
@@ -155,7 +158,7 @@ class _PerformVisitor
     }
 
     if (outerCopy != null) root.addChild(outerCopy);
-    _scopeForAtRoot(innerCopy ?? root, query)(() {
+    _scopeForAtRoot(innerCopy ?? root, query, included)(() {
       for (var child in node.children) {
         child.accept(this);
       }
@@ -198,7 +201,8 @@ class _PerformVisitor
   /// This returns a callback that adjusts various instance variables for its
   /// duration, based on which rules are excluded by [query]. It always assigns
   /// [_parent] to [newParent].
-  _ScopeCallback _scopeForAtRoot(CssParentNode newParent, AtRootQuery query) {
+  _ScopeCallback _scopeForAtRoot(CssParentNode newParent, AtRootQuery query,
+      List<CssParentNode> included) {
     var scope = (callback()) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
@@ -215,6 +219,16 @@ class _PerformVisitor
     if (query.excludesStyleRules) {
       var innerScope = scope;
       scope = (callback) => _withSelector(null, () => innerScope(callback));
+    }
+    if (_inUnknownAtRule && !included.any((parent) => parent is CssAtRule)) {
+      var innerScope = scope;
+      scope = (callback) {
+        var wasInUnknownAtRule = _inUnknownAtRule;
+        _inUnknownAtRule = false;
+        var result = innerScope(callback);
+        _inUnknownAtRule = wasInUnknownAtRule;
+        return result;
+      };
     }
 
     return scope;
@@ -248,7 +262,7 @@ class _PerformVisitor
   }
 
   Value visitDeclaration(Declaration node) {
-    if (_selector == null) {
+    if (_selector == null && !_inUnknownAtRule) {
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
@@ -335,6 +349,8 @@ class _PerformVisitor
           "At-rules may not be used within nested declarations.", node.span);
     }
 
+    var wasInUnknownAtRule = _inUnknownAtRule;
+    _inUnknownAtRule = true;
     var value = node.value == null
         ? null
         : _interpolationToValue(node.value, trim: true);
@@ -363,6 +379,7 @@ class _PerformVisitor
       }
     }, through: (node) => node is CssStyleRule);
 
+    _inUnknownAtRule = wasInUnknownAtRule;
     return null;
   }
 
