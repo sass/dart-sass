@@ -684,7 +684,7 @@ bool _simpleIsSuperselectorOfCompound(
     if (theirSimple is PseudoSelector &&
         theirSimple.selector != null &&
         _subselectorPseudos.contains(theirSimple.normalizedName)) {
-      return theirSimple.selector.components.any((complex) {
+      return theirSimple.selector.components.every((complex) {
         if (complex.components.length != 1) return false;
         var compound = complex.components.single as CompoundSelector;
         return compound.components.contains(simple);
@@ -775,4 +775,4 @@ Iterable<PseudoSelector> _selectorPseudosNamed(
         simple is PseudoSelector &&
         simple.isClass &&
         simple.selector != null &&
-        simple.name == name));
+        simple.normalizedName == name));
