@@ -456,7 +456,7 @@ class SassNumber extends Value {
       if (!this._hasOriginal || !other._hasOriginal) return result;
       return result._withOriginal("${this.original}/${other.original}");
     }
-    if (other is! SassColor) super.dividedBy(other);
+    if (other is! SassColor) return super.dividedBy(other);
     throw new SassScriptException('Undefined operation "$this / $other".');
   }
 
