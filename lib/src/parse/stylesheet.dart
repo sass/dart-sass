@@ -987,7 +987,10 @@ abstract class StylesheetParser extends Parser {
 
         case $minus:
           var next = scanner.peekChar(1);
-          if (isDigit(next) || next == $dot) {
+          if ((isDigit(next) || next == $dot) &&
+              // Make sure `1-2` parses as `1 - 2`, not `1 (-2)`.
+              (singleExpression == null ||
+                  isWhitespace(scanner.peekChar(-1)))) {
             addSingleExpression(_number());
           } else if (lookingAtIdentifier()) {
             addSingleExpression(_identifierLike());
@@ -1489,8 +1492,10 @@ abstract class StylesheetParser extends Parser {
     String unit;
     if (scanner.scanChar($percent)) {
       unit = "%";
-    } else if (lookingAtIdentifier()) {
-      unit = identifier();
+    } else if (lookingAtIdentifier() &&
+        // Disallow units beginning with `--`.
+        (scanner.peekChar() != $dash || scanner.peekChar(1) != $dash)) {
+      unit = identifier(unit: true);
     }
 
     return new NumberExpression(sign * number, scanner.spanFrom(start),

@@ -79,7 +79,14 @@ abstract class Parser {
   }
 
   /// Consumes a plain CSS identifier.
-  String identifier() {
+  ///
+  /// If [unit] is `true`, this doesn't parse a `-` followed by a digit. This
+  /// ensures that `1px-2px` parses as subtraction rather than the unit
+  /// `px-2px`.
+  String identifier({bool unit: false}) {
+    // NOTE: this logic is largely duplicated in ScssParser.identifier.
+    // Most changes here should be mirrored there.
+
     var text = new StringBuffer();
     while (scanner.scanChar($dash)) {
       text.writeCharCode($dash);
@@ -100,6 +107,11 @@ abstract class Parser {
       var next = scanner.peekChar();
       if (next == null) {
         break;
+      } else if (unit && next == $dash) {
+        // Disallow `-` followed by a digit in units.
+        var second = scanner.peekChar(1);
+        if (second != null && isDigit(second)) break;
+        text.writeCharCode(scanner.readChar());
       } else if (isName(next)) {
         text.writeCharCode(scanner.readChar());
       } else if (next == $backslash) {
