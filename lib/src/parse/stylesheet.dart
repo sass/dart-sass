@@ -946,11 +946,20 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $exclamation:
-          if (scanner.peekChar(1) != $equal) break loop;
-          scanner.readChar();
-          scanner.readChar();
-          addOperator(BinaryOperator.notEquals);
-          break;
+          var next = scanner.peekChar(1);
+          if (next == $equal) {
+            scanner.readChar();
+            scanner.readChar();
+            addOperator(BinaryOperator.notEquals);
+            break;
+          } else if (next == null ||
+              equalsLetterIgnoreCase($i, next) ||
+              isWhitespace(next)) {
+            addSingleExpression(_importantExpression());
+            break;
+          } else {
+            break loop;
+          }
 
         case $langle:
           scanner.readChar();
@@ -1152,6 +1161,9 @@ abstract class StylesheetParser extends Parser {
 
       case $minus:
         return _minusExpression();
+
+      case $exclamation:
+        return _importantExpression();
 
       case $0:
       case $1:
@@ -1388,6 +1400,18 @@ abstract class StylesheetParser extends Parser {
     if (isDigit(next) || next == $dot) return _number();
     if (_lookingAtInterpolatedIdentifier()) return _identifierLike();
     return _unaryOperation();
+  }
+
+  /// Consumes an `!important` expression.
+  Expression _importantExpression() {
+    assert(scanner.peekChar() == $exclamation);
+
+    var start = scanner.state;
+    scanner.readChar();
+    whitespace();
+    expectIdentifier("important", ignoreCase: true);
+    return new StringExpression(
+        new Interpolation(["!important"], scanner.spanFrom(start)));
   }
 
   /// Consumes a unary operation expression.
@@ -2167,6 +2191,12 @@ abstract class StylesheetParser extends Parser {
     var character = scanner.peekChar();
     if (character == null) return false;
     if (character == $dot) return scanner.peekChar(1) != $dot;
+    if (character == $exclamation) {
+      var next = scanner.peekChar(1);
+      return next == null ||
+          equalsLetterIgnoreCase($i, next) ||
+          isWhitespace(next);
+    }
 
     return character == $lparen ||
         character == $slash ||

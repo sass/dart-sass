@@ -135,5 +135,5 @@ bool characterEqualsIgnoreCase(int character1, int character2) {
 /// is known to be a lowercase ASCII letter.
 bool equalsLetterIgnoreCase(int letter, int actual) {
   assert(letter >= $a && letter <= $z);
-  return (actual & ~_asciiCaseBit) == letter;
+  return (actual | _asciiCaseBit) == letter;
 }
