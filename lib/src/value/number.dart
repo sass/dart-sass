@@ -530,11 +530,6 @@ class SassNumber extends Value {
     var newNumerators = <String>[];
     var mutableDenominators2 = denominators2.toList();
     for (var numerator in numerators1) {
-      if (!_isConvertable(numerator)) {
-        newNumerators.add(numerator);
-        continue;
-      }
-
       removeFirstWhere/*<String>*/(mutableDenominators2, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
@@ -547,11 +542,6 @@ class SassNumber extends Value {
 
     var mutableDenominators1 = denominators1.toList();
     for (var numerator in numerators2) {
-      if (!_isConvertable(numerator)) {
-        newNumerators.add(numerator);
-        continue;
-      }
-
       removeFirstWhere/*<String>*/(mutableDenominators1, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
@@ -570,7 +560,7 @@ class SassNumber extends Value {
   /// unit in [units2].
   bool _areAnyConvertible(List<String> units1, List<String> units2) {
     return units1.any((unit1) {
-      if (!_isConvertable(unit1)) return false;
+      if (!_isConvertable(unit1)) return units2.contains(unit1);
       var innerMap = _conversions[unit1];
       return units2.any(innerMap.containsKey);
     });
