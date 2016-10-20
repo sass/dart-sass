@@ -178,6 +178,8 @@ class _PerformVisitor
   ///
   /// Otherwise, this leaves [nodes] as-is and returns [_root].
   CssParentNode _trimIncluded(List<CssParentNode> nodes) {
+    if (nodes.isEmpty) return _root;
+
     var parent = _parent;
     int innermostContiguous;
     var i = 0;

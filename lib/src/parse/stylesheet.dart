@@ -425,11 +425,17 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   AtRootRule _atRootRule(LineScannerState start) {
-    var next = scanner.peekChar();
-    var query = next == $hash || next == $lparen ? _queryExpression() : null;
-    whitespace();
-    return new AtRootRule(children(_ruleChild), scanner.spanFrom(start),
-        query: query);
+    if (scanner.peekChar() == $lparen) {
+      var query = _queryExpression();
+      whitespace();
+      return new AtRootRule(children(_ruleChild), scanner.spanFrom(start),
+          query: query);
+    } else if (lookingAtChildren()) {
+      return new AtRootRule(children(_ruleChild), scanner.spanFrom(start));
+    } else {
+      var child = _styleRule();
+      return new AtRootRule([child], scanner.spanFrom(start));
+    }
   }
 
   /// Consumes a `@content` rule.
