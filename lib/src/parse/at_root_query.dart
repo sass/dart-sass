@@ -16,7 +16,7 @@ class AtRootQueryParser extends Parser {
       scanner.expectChar($lparen);
       whitespace();
       var include = scanIdentifier("with");
-      if (!include) expectIdentifier("without");
+      if (!include) expectIdentifier("without", name: '"with" or "without"');
       whitespace();
       scanner.expectChar($colon);
       whitespace();

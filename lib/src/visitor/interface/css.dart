@@ -12,6 +12,7 @@ abstract class CssVisitor<T> {
   T visitComment(CssComment node);
   T visitDeclaration(CssDeclaration node);
   T visitImport(CssImport node);
+  T visitKeyframeBlock(CssKeyframeBlock node);
   T visitMediaRule(CssMediaRule node);
   T visitStyleRule(CssStyleRule node);
   T visitStylesheet(CssStylesheet node);

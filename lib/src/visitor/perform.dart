@@ -17,6 +17,7 @@ import '../environment.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../io.dart';
+import '../parse/keyframe_selector.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
@@ -81,6 +82,9 @@ class _PerformVisitor
 
   /// Whether we're currently building the output of an unknown at rule.
   var _inUnknownAtRule = false;
+
+  /// Whether we're currently building the output of a `@keyframes` rule.
+  var _inKeyframes = false;
 
   /// The resolved URLs for each [ImportRule] that's been seen so far.
   ///
@@ -228,14 +232,24 @@ class _PerformVisitor
       var innerScope = scope;
       scope = (callback) => _withMediaQueries(null, () => innerScope(callback));
     }
+
+    if (_inKeyframes && query.excludesName('keyframes')) {
+      var innerScope = scope;
+      scope = (callback) {
+        var wasInKeyframes = _inKeyframes;
+        _inKeyframes = false;
+        innerScope(callback);
+        _inKeyframes = wasInKeyframes;
+      };
+    }
+
     if (_inUnknownAtRule && !included.any((parent) => parent is CssAtRule)) {
       var innerScope = scope;
       scope = (callback) {
         var wasInUnknownAtRule = _inUnknownAtRule;
         _inUnknownAtRule = false;
-        var result = innerScope(callback);
+        innerScope(callback);
         _inUnknownAtRule = wasInUnknownAtRule;
-        return result;
       };
     }
 
@@ -270,7 +284,7 @@ class _PerformVisitor
   }
 
   Value visitDeclaration(Declaration node) {
-    if (_selector == null && !_inUnknownAtRule) {
+    if (_selector == null && !_inUnknownAtRule && !_inKeyframes) {
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
@@ -357,8 +371,6 @@ class _PerformVisitor
           "At-rules may not be used within nested declarations.", node.span);
     }
 
-    var wasInUnknownAtRule = _inUnknownAtRule;
-    _inUnknownAtRule = true;
     var value = node.value == null
         ? null
         : _interpolationToValue(node.value, trim: true);
@@ -367,6 +379,14 @@ class _PerformVisitor
       _parent.addChild(
           new CssAtRule(node.name, node.span, childless: true, value: value));
       return null;
+    }
+
+    var wasInKeyframes = _inKeyframes;
+    var wasInUnknownAtRule = _inUnknownAtRule;
+    if (node.normalizedName == 'keyframes') {
+      _inKeyframes = true;
+    } else {
+      _inUnknownAtRule = true;
     }
 
     _withParent(new CssAtRule(node.name, node.span, value: value), () {
@@ -388,6 +408,7 @@ class _PerformVisitor
     }, through: (node) => node is CssStyleRule);
 
     _inUnknownAtRule = wasInUnknownAtRule;
+    _inKeyframes = wasInKeyframes;
     return null;
   }
 
@@ -601,6 +622,21 @@ class _PerformVisitor
     }
 
     var selectorText = _interpolationToValue(node.selector, trim: true);
+    if (_inKeyframes) {
+      var parsedSelector = _adjustParseError(node.selector.span,
+          () => new KeyframeSelectorParser(selectorText.value).parse());
+      var rule = new CssKeyframeBlock(
+          new CssValue(
+              new List.unmodifiable(parsedSelector), node.selector.span),
+          node.span);
+      _withParent(rule, () {
+        for (var child in node.children) {
+          child.accept(this);
+        }
+      }, through: (node) => node is CssStyleRule);
+      return null;
+    }
+
     var parsedSelector = _adjustParseError(
         node.selector.span, () => new SelectorList.parse(selectorText.value));
     parsedSelector = _addExceptionSpan(node.selector.span,

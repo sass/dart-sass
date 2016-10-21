@@ -6,6 +6,7 @@ export 'css/at_rule.dart';
 export 'css/comment.dart';
 export 'css/declaration.dart';
 export 'css/import.dart';
+export 'css/keyframe_block.dart';
 export 'css/media_query.dart';
 export 'css/media_rule.dart';
 export 'css/node.dart';

@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
 import '../statement.dart';
@@ -12,6 +13,9 @@ import '../statement.dart';
 class AtRule implements Statement {
   /// The name of this rule.
   final String name;
+
+  /// Like [name], but without any vendor prefixes.
+  final String normalizedName;
 
   /// The value of this rule.
   final Interpolation value;
@@ -24,8 +28,10 @@ class AtRule implements Statement {
 
   final FileSpan span;
 
-  AtRule(this.name, this.span, {this.value, Iterable<Statement> children})
-      : children = children == null ? null : new List.unmodifiable(children);
+  AtRule(String name, this.span, {this.value, Iterable<Statement> children})
+      : name = name,
+        normalizedName = unvendor(name),
+        children = children == null ? null : new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitAtRule(this);

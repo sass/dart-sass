@@ -28,7 +28,8 @@ bool isAlphabetic(int character) =>
     (character >= $A && character <= $Z);
 
 /// Returns whether [character] is a number.
-bool isDigit(int character) => character >= $0 && character <= $9;
+bool isDigit(int character) =>
+    character != null && character >= $0 && character <= $9;
 
 /// Returns whether [character] is legal as the start of a Sass identifier.
 bool isNameStart(int character) =>

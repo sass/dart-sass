@@ -144,6 +144,13 @@ class _SerializeCssVisitor
     _buffer.writeCharCode($semicolon);
   }
 
+  void visitKeyframeBlock(CssKeyframeBlock node) {
+    _writeIndentation();
+    _writeBetween(node.selector.value, ", ", _buffer.write);
+    _buffer.writeCharCode($space);
+    _visitChildren(node.children);
+  }
+
   void visitMediaQuery(CssMediaQuery query) {
     if (query.modifier != null) {
       _buffer.write(query.modifier.value);
