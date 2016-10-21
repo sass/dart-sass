@@ -8,4 +8,4 @@
 # package`.
 
 path=`dirname "$0"`
-exec "$path/dart" "-Dversion=SASS_VERSION" "$path/sass.dart.snapshot" "$@"
+exec "$path/src/dart" "-Dversion=SASS_VERSION" "$path/src/sass.dart.snapshot" "$@"

@@ -115,10 +115,10 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
   var sassLicense = new File('LICENSE').readAsBytesSync();
   var dartLicense = new File(p.join(_sdkDir, 'LICENSE')).readAsBytesSync();
   var archive = new Archive()
-    ..addFile(_file("dart-sass/dart", executable, executable: true))
-    ..addFile(_file("dart-sass/DART_LICENSE", dartLicense))
-    ..addFile(_file("dart-sass/sass.dart.snapshot", snapshot))
-    ..addFile(_file("dart-sass/SASS_LICENSE", sassLicense))
+    ..addFile(_file("dart-sass/src/dart", executable, executable: true))
+    ..addFile(_file("dart-sass/src/DART_LICENSE", dartLicense))
+    ..addFile(_file("dart-sass/src/sass.dart.snapshot", snapshot))
+    ..addFile(_file("dart-sass/src/SASS_LICENSE", sassLicense))
     ..addFile(_scriptFor(os));
 
   var prefix = 'build/dart-sass-$_version-$os-$architecture';
@@ -136,11 +136,11 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
 
 /// Returns a shell script archive file for the given [os].
 ArchiveFile _scriptFor(String os) {
-  var contents = new File("package/sass.${os == 'windows' ? 'bat' : 'sh'}")
+  var contents = new File("package/dart-sass.${os == 'windows' ? 'bat' : 'sh'}")
       .readAsStringSync()
       .replaceAll("SASS_VERSION", _version);
   var bytes = UTF8.encode(contents);
-  return _file("dart-sass/sass${os == 'windows' ? '.bat' : ''}", bytes,
+  return _file("dart-sass/dart-sass${os == 'windows' ? '.bat' : ''}", bytes,
       executable: true);
 }
 
