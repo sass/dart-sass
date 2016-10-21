@@ -364,8 +364,8 @@ class _SerializeCssVisitor
   }
 
   void visitNumber(SassNumber value) {
-    if (value.isSlashSeparated) {
-      _buffer.write(value.original);
+    if (value.asSlash != null) {
+      _buffer.write(value.asSlash);
       return;
     }
 

@@ -864,6 +864,8 @@ abstract class StylesheetParser extends Parser {
   /// expression.
   Expression _expression({bool until()}) {
     if (until != null && until()) scanner.error("Expected expression.");
+    var start = scanner.state;
+    var wasInParentheses = _inParentheses;
 
     List<Expression> commaExpressions;
     List<Expression> spaceExpressions;
@@ -877,12 +879,37 @@ abstract class StylesheetParser extends Parser {
     // The left-hand sides of [operators]. `operands[n]` is the left-hand side
     // of `operators[n]`.
     List<Expression> operands;
+
+    /// Whether the single expression parsed so far may be interpreted as
+    /// slash-separated numbers.
+    var allowSlash = lookingAtNumber();
+
+    /// The leftmost expression that's been fully-parsed.
     var singleExpression = _singleExpression();
+
+    // Resets the scanner state to the state it was at at the beginning of the
+    // expression, except for [_inParentheses].
+    resetState() {
+      commaExpressions = null;
+      spaceExpressions = null;
+      operators = null;
+      operands = null;
+      scanner.state = start;
+      allowSlash = lookingAtNumber();
+      singleExpression = _singleExpression();
+    }
 
     resolveOneOperation() {
       assert(singleExpression != null);
-      singleExpression = new BinaryOperationExpression(
-          operators.removeLast(), operands.removeLast(), singleExpression);
+      var operator = operators.removeLast();
+      if (operator != BinaryOperator.dividedBy) allowSlash = false;
+      if (allowSlash && !_inParentheses) {
+        singleExpression = new BinaryOperationExpression.slash(
+            operands.removeLast(), singleExpression);
+      } else {
+        singleExpression = new BinaryOperationExpression(
+            operator, operands.removeLast(), singleExpression);
+      }
     }
 
     resolveOperations() {
@@ -892,12 +919,28 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    addSingleExpression(Expression expression) {
+    addSingleExpression(Expression expression, {bool number: false}) {
       if (singleExpression != null) {
+        // If we discover we're parsing a list whose first element is a division
+        // operation, and we're in parentheses, reparse outside of a paren
+        // context. This ensures that `(1/2 1)` doesn't perform division on its
+        // first element.
+        if (_inParentheses) {
+          _inParentheses = false;
+          if (allowSlash) {
+            resetState();
+            return;
+          }
+        }
+
         spaceExpressions ??= [];
         resolveOperations();
         spaceExpressions.add(singleExpression);
+        allowSlash = number;
+      } else if (!number) {
+        allowSlash = false;
       }
+
       singleExpression = expression;
     }
 
@@ -932,6 +975,7 @@ abstract class StylesheetParser extends Parser {
       var first = scanner.peekChar();
       switch (first) {
         case $lparen:
+          // Parenthesized numbers can't be slash-separated.
           addSingleExpression(_parentheses());
           break;
 
@@ -1007,7 +1051,7 @@ abstract class StylesheetParser extends Parser {
               // Make sure `1-2` parses as `1 - 2`, not `1 (-2)`.
               (singleExpression == null ||
                   isWhitespace(scanner.peekChar(-1)))) {
-            addSingleExpression(_number());
+            addSingleExpression(_number(), number: true);
           } else if (lookingAtIdentifier()) {
             addSingleExpression(_identifierLike());
           } else {
@@ -1036,12 +1080,12 @@ abstract class StylesheetParser extends Parser {
         case $7:
         case $8:
         case $9:
-          addSingleExpression(_number());
+          addSingleExpression(_number(), number: true);
           break;
 
         case $dot:
           if (scanner.peekChar(1) == $dot) break loop;
-          addSingleExpression(_number());
+          addSingleExpression(_number(), number: true);
           break;
 
         case $a:
@@ -1116,12 +1160,25 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $comma:
+          // If we discover we're parsing a list whose first element is a
+          // division operation, and we're in parentheses, reparse outside of a
+          // paren context. This ensures that `(1/2, 1)` doesn't perform division
+          // on its first element.
+          if (_inParentheses) {
+            _inParentheses = false;
+            if (allowSlash) {
+              resetState();
+              break;
+            }
+          }
+
           commaExpressions ??= [];
           if (singleExpression == null) scanner.error("Expected expression.");
 
           resolveSpaceExpressions();
           commaExpressions.add(singleExpression);
           scanner.readChar();
+          allowSlash = true;
           singleExpression = null;
           break;
 
@@ -1136,6 +1193,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     resolveSpaceExpressions();
+    _inParentheses = wasInParentheses;
     if (commaExpressions != null) {
       if (singleExpression != null) commaExpressions.add(singleExpression);
       return new ListExpression(commaExpressions, ListSeparator.comma);
@@ -1515,7 +1573,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     return new NumberExpression(sign * number, scanner.spanFrom(start),
-        unit: unit, original: !_inParentheses);
+        unit: unit);
   }
 
   /// Consumes a variable expression.

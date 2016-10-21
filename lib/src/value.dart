@@ -281,10 +281,10 @@ abstract class Value {
   /// The SassScript unary `not` operation.
   Value unaryNot() => sassFalse;
 
-  /// Returns a copy of [this] without [SassNumber.original] set.
+  /// Returns a copy of [this] without [SassNumber.asSlash] set.
   ///
   /// If this isn't a [SassNumber], returns it as-is.
-  Value withoutOriginal() => this;
+  Value withoutSlash() => this;
 
   /// Returns a valid CSS representation of [this].
   ///

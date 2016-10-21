@@ -402,6 +402,31 @@ abstract class Parser {
 
   // ## Utilities
 
+  /// Returns whether the scanner is immediately before a number.
+  ///
+  /// This follows [the CSS algorithm][].
+  ///
+  /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#starts-with-a-number
+  bool lookingAtNumber() {
+    var first = scanner.peekChar();
+    if (first == null) return false;
+    if (isDigit(first)) return true;
+
+    if (first == $dot) {
+      var second = scanner.peekChar(1);
+      return second != null && isDigit(second);
+    } else if (first == $plus || first == $minus) {
+      var second = scanner.peekChar(1);
+      if (second == null) return false;
+      if (isDigit(second)) return true;
+
+      var third = scanner.peekChar(2);
+      return third != null && isDigit(third);
+    } else {
+      return false;
+    }
+  }
+
   /// Returns whether the scanner is immediately before a plain CSS identifier.
   ///
   /// This is based on [the CSS algorithm][], but it assumes all backslashes

@@ -161,27 +161,8 @@ class SassNumber extends Value {
   /// This number's denominator units.
   final List<String> denominatorUnits;
 
-  /// Whether this should be represented as a slash-separated series of numbers.
-  ///
-  /// This is `true` if and only if [original] contains a slash.
-  bool get isSlashSeparated => _hasOriginal && _original != null;
-
-  /// The original representation of the number.
-  ///
-  /// This is used to preserve slash-separated numbers in some contexts.
-  String get original {
-    if (_original != null) return _original;
-    if (_hasOriginal) return toCssString();
-    return _original;
-  }
-
-  final String _original;
-
-  /// Whether this number still has its original representation.
-  ///
-  /// This is separate from [_original] so that we can avoid eagerly converting
-  /// all number literals to strings.
-  final bool _hasOriginal;
+  /// The slash-separated representation of this number, if it has one.
+  final String asSlash;
 
   /// Whether [this] has any units.
   bool get hasUnits => numeratorUnits.isNotEmpty || denominatorUnits.isNotEmpty;
@@ -207,21 +188,8 @@ class SassNumber extends Value {
   ///
   /// This matches the numbers that can be written as literals.
   /// [SassNumber.withUnits] can be used to construct more complex units.
-  SassNumber(this.value, [String unit])
-      : numeratorUnits =
-            unit == null ? const [] : new List.unmodifiable([unit]),
-        denominatorUnits = const [],
-        _original = null,
-        _hasOriginal = false;
-
-  /// Like [new SassNumber], but sets [original] based on the string
-  /// representation of the number.
-  SassNumber.withOriginal(this.value, [String unit])
-      : numeratorUnits =
-            unit == null ? const [] : new List.unmodifiable([unit]),
-        denominatorUnits = const [],
-        _original = null,
-        _hasOriginal = true;
+  SassNumber(num value, [String unit])
+      : this.withUnits(value, numeratorUnits: unit == null ? null : [unit]);
 
   /// Creates a number with full [numeratorUnits] and [denominatorUnits].
   SassNumber.withUnits(this.value,
@@ -232,26 +200,23 @@ class SassNumber extends Value {
         denominatorUnits = denominatorUnits == null
             ? const []
             : new List.unmodifiable(denominatorUnits),
-        _original = null,
-        _hasOriginal = false;
+        asSlash = null;
 
   SassNumber._(this.value, this.numeratorUnits, this.denominatorUnits,
-      [String original])
-      : _original = original,
-        _hasOriginal = original != null;
+      [this.asSlash]);
 
   /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
       visitor.visitNumber(this);
 
-  /// Returns a copy of [this] without [original] set.
-  SassNumber withoutOriginal() {
-    if (!_hasOriginal) return this;
+  /// Returns a copy of [this] without [asSlash] set.
+  SassNumber withoutSlash() {
+    if (asSlash == null) return this;
     return new SassNumber._(value, numeratorUnits, denominatorUnits);
   }
 
-  /// Returns a copy of [this] with [this.original] set to [original].
-  SassNumber _withOriginal(String original) =>
-      new SassNumber._(value, numeratorUnits, denominatorUnits, original);
+  /// Returns a copy of [this] with [this.asSlash] set to [asSlash].
+  SassNumber withSlash(String asSlash) =>
+      new SassNumber._(value, numeratorUnits, denominatorUnits, asSlash);
 
   SassNumber assertNumber([String name]) => this;
 
@@ -451,10 +416,8 @@ class SassNumber extends Value {
 
   Value dividedBy(Value other) {
     if (other is SassNumber) {
-      var result = _multiplyUnits(this.value / other.value, this.numeratorUnits,
+      return _multiplyUnits(this.value / other.value, this.numeratorUnits,
           this.denominatorUnits, other.denominatorUnits, other.numeratorUnits);
-      if (!this._hasOriginal || !other._hasOriginal) return result;
-      return result._withOriginal("${this.original}/${other.original}");
     }
     if (other is! SassColor) return super.dividedBy(other);
     throw new SassScriptException('Undefined operation "$this / $other".');

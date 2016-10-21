@@ -20,9 +20,20 @@ class BinaryOperationExpression implements Expression {
   /// The right-hand operand.
   final Expression right;
 
+  /// Whether this is a [BinaryOperator.dividedBy] operation that may be
+  /// interpreted as slash-separated numbers.
+  final bool allowsSlash;
+
   FileSpan get span => spanForList([left, right]);
 
-  BinaryOperationExpression(this.operator, this.left, this.right);
+  BinaryOperationExpression(this.operator, this.left, this.right)
+      : allowsSlash = false;
+
+  /// Creates a [BinaryOperator.dividedBy] operation that may be interpreted as
+  /// slash-separated numbers.
+  BinaryOperationExpression.slash(this.left, this.right)
+      : operator = BinaryOperator.dividedBy,
+        allowsSlash = true;
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitBinaryOperationExpression(this);

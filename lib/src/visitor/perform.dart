@@ -688,7 +688,7 @@ class _PerformVisitor
 
   Value visitVariableDeclaration(VariableDeclaration node) {
     _environment.setVariable(
-        node.name, node.expression.accept(this).withoutOriginal(),
+        node.name, node.expression.accept(this).withoutSlash(),
         global: node.isGlobal);
     return null;
   }
@@ -748,7 +748,11 @@ class _PerformVisitor
         case BinaryOperator.times:
           return left.times(right);
         case BinaryOperator.dividedBy:
-          return left.dividedBy(right);
+          var result = left.dividedBy(right);
+          if (!node.allowsSlash) return result;
+          var leftSlash = (left as SassNumber).asSlash ?? left.toCssString();
+          var rightSlash = (right as SassNumber).asSlash ?? left.toCssString();
+          return (result as SassNumber).withSlash("$leftSlash/$rightSlash");
         case BinaryOperator.modulo:
           return left.modulo(right);
         default:
@@ -801,9 +805,8 @@ class _PerformVisitor
 
   SassNull visitNullExpression(NullExpression node) => sassNull;
 
-  SassNumber visitNumberExpression(NumberExpression node) => node.hasOriginal
-      ? new SassNumber.withOriginal(node.value, node.unit)
-      : new SassNumber(node.value, node.unit);
+  SassNumber visitNumberExpression(NumberExpression node) =>
+      new SassNumber(node.value, node.unit);
 
   SassColor visitColorExpression(ColorExpression node) => node.value;
 
@@ -831,7 +834,7 @@ class _PerformVisitor
       var function = _environment.getFunction(plainName);
       if (function != null) {
         if (function is BuiltInCallable) {
-          return _runBuiltInCallable(node, function).withoutOriginal();
+          return _runBuiltInCallable(node, function).withoutSlash();
         } else if (function is UserDefinedCallable) {
           return _runUserDefinedCallable(node, function, () {
             for (var statement in function.declaration.children) {
@@ -841,7 +844,7 @@ class _PerformVisitor
 
             throw _exception("Function finished without @return.",
                 function.declaration.span);
-          }).withoutOriginal();
+          }).withoutSlash();
         } else {
           return null;
         }
