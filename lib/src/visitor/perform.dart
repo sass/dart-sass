@@ -723,6 +723,11 @@ class _PerformVisitor
   }
 
   Value visitVariableDeclaration(VariableDeclaration node) {
+    if (node.isGuarded) {
+      var value = _environment.getVariable(node.name);
+      if (value != null && value != sassNull) return;
+    }
+
     _environment.setVariable(
         node.name, node.expression.accept(this).withoutSlash(),
         global: node.isGlobal);
