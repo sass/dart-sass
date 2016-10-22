@@ -787,7 +787,7 @@ class _PerformVisitor
           var result = left.dividedBy(right);
           if (!node.allowsSlash) return result;
           var leftSlash = (left as SassNumber).asSlash ?? left.toCssString();
-          var rightSlash = (right as SassNumber).asSlash ?? left.toCssString();
+          var rightSlash = (right as SassNumber).asSlash ?? right.toCssString();
           return (result as SassNumber).withSlash("$leftSlash/$rightSlash");
         case BinaryOperator.modulo:
           return left.modulo(right);
