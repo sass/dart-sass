@@ -63,6 +63,11 @@ class Extender {
   /// extensions are added, the returned rule is automatically updated.
   CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span) {
     for (var complex in selector.value.components) {
+      // Ignoring the specificity of complex selectors that contain placeholders
+      // matches Ruby Sass's behavior. I'm not sure if it's *correct* behavior,
+      // but it's probably not worth the pain of changing now.
+      if (complex.containsPlaceholder) continue;
+
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
@@ -142,29 +147,32 @@ class Extender {
       {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
-    var changed = false;
-    List<ComplexSelector> newList;
+    List<ComplexSelector> unextended;
+    List<List<ComplexSelector>> extended;
     for (var i = 0; i < list.components.length; i++) {
       var complex = list.components[i];
-      var extended = _extendComplex(complex, extensions, replace: replace);
-      if (extended == null) {
-        if (changed) newList.add(complex);
+      var result = _extendComplex(complex, extensions, replace: replace);
+      if (result == null) {
+        if (unextended != null) unextended.add(complex);
+      } else if (unextended == null) {
+        unextended = list.components.take(i).toList();
+        extended = result;
       } else {
-        if (!changed) newList = list.components.take(i).toList();
-        changed = true;
-        newList.addAll(extended);
+        extended.addAll(result);
       }
     }
-    if (!changed) return list;
+    if (unextended == null) return list;
 
-    return new SelectorList(newList.where((complex) => complex != null));
+    if (unextended.isNotEmpty) extended.add(unextended);
+    return new SelectorList(
+        _trim(extended).where((complex) => complex != null));
   }
 
   /// Extends [complex] using [extensions], and returns the contents of a
   /// [SelectorList].
   ///
   /// If [replace] is `true`, this doesn't preserve the original selectors.
-  Iterable<ComplexSelector> _extendComplex(ComplexSelector complex,
+  List<List<ComplexSelector>> _extendComplex(ComplexSelector complex,
       Map<SimpleSelector, Set<ExtendSource>> extensions,
       {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
@@ -204,15 +212,14 @@ class Extender {
     }
     if (!changed) return null;
 
-    var result = _trim(paths(extendedNotExpanded).map((path) {
+    return paths(extendedNotExpanded).map((path) {
       return weave(path.map((complex) => complex.components).toList())
           .map((outputComplex) {
         return new ComplexSelector(outputComplex,
             lineBreak: complex.lineBreak ||
                 path.any((inputComplex) => inputComplex.lineBreak));
       }).toList();
-    }).toList());
-    return result;
+    }).toList();
   }
 
   /// Extends [compound] using [extensions], and returns the contents of a
