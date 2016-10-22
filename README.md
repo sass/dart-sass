@@ -117,8 +117,7 @@ Sass to update the reference behavior.
 4. The numeric precision is set to 10. See [issue 1122][].
 
 5. The indented syntax parser is more flexible: it doesn't require consistent
-   indentation across the whole document. This doesn't have an issue yet; I need
-   to talk to Chris to determine if it's actually the right way forward.
+   indentation across the whole document. See [issue 2176][].
 
 6. Colors do not support channel-by-channel arithmetic. See [issue 2144][].
 
@@ -130,6 +129,7 @@ Sass to update the reference behavior.
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
 [issue 1122]: https://github.com/sass/sass/issues/1122
+[issue 2176]: https://github.com/sass/sass/issues/2176
 [issue 2144]: https://github.com/sass/sass/issues/2144
 [issue 1496]: https://github.com/sass/sass/issues/1496
 
