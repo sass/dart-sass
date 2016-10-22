@@ -165,15 +165,17 @@ class Environment {
   /// Otherwise, if the variable was already defined, it'll set it in the
   /// previous scope. If it's undefined, it'll set it in the current scope.
   void setVariable(String name, Value value, {bool global: false}) {
-    int index;
     if (global || _variables.length == 1) {
-      index = 0;
-    } else {
-      index = _variableIndices.putIfAbsent(name, () => _variables.length - 1);
-      if (!_inSemiGlobalScope && index == 0) {
-        index = _variables.length - 1;
-        _variableIndices[name] = index;
-      }
+      _variableIndices[name] = 0;
+      _variables.first[name] = value;
+      return;
+    }
+
+    var index = _variableIndices.putIfAbsent(
+        name, () => _variableIndex(name) ?? _variables.length - 1);
+    if (!_inSemiGlobalScope && index == 0) {
+      index = _variables.length - 1;
+      _variableIndices[name] = index;
     }
 
     _variables[index][name] = value;
