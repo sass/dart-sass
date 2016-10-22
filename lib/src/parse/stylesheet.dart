@@ -77,9 +77,11 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a statement that's allowed at the top level of the stylesheet.
   Statement _topLevelStatement() {
-    if (scanner.peekChar() == $at)
+    if (scanner.peekChar() == $at) {
       return _atRule(_topLevelStatement, root: true);
-    return _styleRule();
+    } else {
+      return _styleRule();
+    }
   }
 
   /// Consumes a variable declaration.
@@ -108,6 +110,8 @@ abstract class StylesheetParser extends Parser {
 
       whitespace();
     }
+
+    _expectStatementSeparator();
 
     return new VariableDeclaration(name, expression, scanner.spanFrom(start),
         guarded: guarded, global: global);
@@ -157,7 +161,11 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var declarationOrBuffer = _declarationOrBuffer();
 
-    if (declarationOrBuffer is Declaration) return declarationOrBuffer;
+    if (declarationOrBuffer is Declaration) {
+      _expectStatementSeparator();
+      return declarationOrBuffer;
+    }
+
     var buffer = declarationOrBuffer as InterpolationBuffer;
     buffer.addInterpolation(_almostAnyValue());
     var selectorSpan = scanner.spanFrom(start);
@@ -283,13 +291,15 @@ abstract class StylesheetParser extends Parser {
 
     if (lookingAtChildren()) {
       return new Declaration(name, scanner.spanFrom(start),
-          children: children(_declarationChild));
+          children: this.children(_declarationChild));
     }
 
     var value = _declarationExpression();
+    var children =
+        lookingAtChildren() ? this.children(_declarationChild) : null;
+    if (children == null) _expectStatementSeparator();
     return new Declaration(name, scanner.spanFrom(start),
-        value: value,
-        children: lookingAtChildren() ? children(_declarationChild) : null);
+        value: value, children: children);
   }
 
   /// Consumes an expression after a property declaration.
@@ -471,8 +481,11 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a `@debug` rule.
   ///
   /// [start] should point before the `@`.
-  DebugRule _debugRule(LineScannerState start) =>
-      new DebugRule(_expression(), scanner.spanFrom(start));
+  DebugRule _debugRule(LineScannerState start) {
+    var expression = _expression();
+    _expectStatementSeparator();
+    return new DebugRule(expression, scanner.spanFrom(start));
+  }
 
   /// Consumes an `@each` rule.
   ///
@@ -503,8 +516,11 @@ abstract class StylesheetParser extends Parser {
   /// Consumes an `@error` rule.
   ///
   /// [start] should point before the `@`.
-  ErrorRule _errorRule(LineScannerState start) =>
-      new ErrorRule(_expression(), scanner.spanFrom(start));
+  ErrorRule _errorRule(LineScannerState start) {
+    var expression = _expression();
+    _expectStatementSeparator();
+    return new ErrorRule(expression, scanner.spanFrom(start));
+  }
 
   /// Consumes an `@extend` rule.
   ///
@@ -513,6 +529,7 @@ abstract class StylesheetParser extends Parser {
     var value = _almostAnyValue();
     var optional = scanner.scanChar($exclamation);
     if (optional) expectIdentifier("optional");
+    _expectStatementSeparator();
     return new ExtendRule(value, scanner.spanFrom(start), optional: optional);
   }
 
@@ -612,21 +629,24 @@ abstract class StylesheetParser extends Parser {
     var urlStart = scanner.state;
     var next = scanner.peekChar();
     if (next == $u || next == $U) {
+      var url = _dynamicUrl();
+      _expectStatementSeparator();
       return new PlainImportRule(
-          new Interpolation([_dynamicUrl()], scanner.spanFrom(urlStart)),
+          new Interpolation([url], scanner.spanFrom(urlStart)),
           scanner.spanFrom(start));
     }
 
     var url = string();
     if (_isPlainImportUrl(url)) {
-      return new PlainImportRule(
-          new Interpolation([scanner.substring(urlStart.position)],
-              scanner.spanFrom(urlStart)),
-          scanner.spanFrom(start));
+      var interpolation = new Interpolation(
+          [scanner.substring(urlStart.position)], scanner.spanFrom(urlStart));
+      _expectStatementSeparator();
+      return new PlainImportRule(interpolation, scanner.spanFrom(start));
     } else if (_inControlDirective || _inMixin) {
       _disallowedAtRule(start);
       return null;
     } else {
+      _expectStatementSeparator();
       try {
         return new ImportRule(Uri.parse(url), scanner.spanFrom(start));
       } on FormatException catch (error) {
@@ -662,6 +682,8 @@ abstract class StylesheetParser extends Parser {
       _inContentBlock = true;
       children = this.children(_ruleChild);
       _inContentBlock = false;
+    } else {
+      _expectStatementSeparator();
     }
 
     return new IncludeRule(name, arguments, scanner.spanFrom(start),
@@ -706,8 +728,11 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a `@return` rule.
   ///
   /// [start] should point before the `@`.
-  ReturnRule _returnRule(LineScannerState start) =>
-      new ReturnRule(_expression(), scanner.spanFrom(start));
+  ReturnRule _returnRule(LineScannerState start) {
+    var expression = _expression();
+    _expectStatementSeparator();
+    return new ReturnRule(expression, scanner.spanFrom(start));
+  }
 
   /// Consumes a `@supports` rule.
   ///
@@ -722,8 +747,11 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a `@warn` rule.
   ///
   /// [start] should point before the `@`.
-  WarnRule _warnRule(LineScannerState start) =>
-      new WarnRule(_expression(), scanner.spanFrom(start));
+  WarnRule _warnRule(LineScannerState start) {
+    var expression = _expression();
+    _expectStatementSeparator();
+    return new WarnRule(expression, scanner.spanFrom(start));
+  }
 
   /// Consumes a `@while` rule.
   ///
@@ -746,9 +774,11 @@ abstract class StylesheetParser extends Parser {
     var next = scanner.peekChar();
     if (next != $exclamation && !atEndOfStatement()) value = _almostAnyValue();
 
+    var children = lookingAtChildren() ? this.children(_ruleChild) : null;
+    if (children == null) _expectStatementSeparator();
+
     return new AtRule(name, scanner.spanFrom(start),
-        value: value,
-        children: lookingAtChildren() ? children(_ruleChild) : null);
+        value: value, children: children);
   }
 
   /// Throws a [StringScannerException] indicating that the at-rule starting at
@@ -2290,6 +2320,20 @@ abstract class StylesheetParser extends Parser {
         character == $ampersand ||
         isNameStart(character) ||
         isDigit(character);
+  }
+
+  // ## Utilities
+
+  /// Asserts that the scanner is positioned immediately before a statement
+  /// separator, or at the end of a list of statements.
+  ///
+  /// This consumes whitespace, but nothing else, including comments.
+  void _expectStatementSeparator() {
+    whitespaceWithoutComments();
+    if (scanner.isDone) return;
+    var next = scanner.peekChar();
+    if (next == $semicolon || next == $rbrace) return;
+    scanner.expect(';');
   }
 
   // ## Abstract Methods
