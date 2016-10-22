@@ -509,6 +509,7 @@ class SassNumber extends Value {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
         value *= factor;
+        return true;
       }, orElse: () {
         newNumerators.add(numerator);
       });
