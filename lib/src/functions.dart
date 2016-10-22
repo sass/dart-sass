@@ -173,28 +173,32 @@ void defineCoreFunctions(Environment environment) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
-        lightness: color.lightness + amount.valueInRange(0, 100, "amount"));
+        lightness: (color.lightness + amount.valueInRange(0, 100, "amount"))
+            .clamp(0, 100));
   });
 
   environment.defineFunction("darken", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
-        lightness: color.lightness - amount.valueInRange(0, 100, "amount"));
+        lightness: (color.lightness - amount.valueInRange(0, 100, "amount"))
+            .clamp(0, 100));
   });
 
   environment.defineFunction("saturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
-        saturation: color.saturation + amount.valueInRange(0, 100, "amount"));
+        saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
+            .clamp(0, 100));
   });
 
   environment.defineFunction("desaturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
-        saturation: color.saturation - amount.valueInRange(0, 100, "amount"));
+        saturation: (color.saturation - amount.valueInRange(0, 100, "amount"))
+            .clamp(0, 100));
   });
 
   environment.defineFunction("grayscale", r"$color", (arguments) {
