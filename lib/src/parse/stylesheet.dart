@@ -1814,7 +1814,7 @@ abstract class StylesheetParser extends Parser {
           if (scanComment()) {
             buffer.write(scanner.substring(commentStart));
           } else {
-            buffer.write(scanner.readChar());
+            buffer.writeCharCode(scanner.readChar());
           }
           break;
 

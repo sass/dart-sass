@@ -95,6 +95,12 @@ class SelectorParser extends Parser {
           component = Combinator.followingSibling;
           break;
 
+        case $slash:
+          scanner.readChar();
+          component = new ReferenceCombinator(identifier());
+          scanner.expectChar($slash);
+          break;
+
         case $lbracket:
         case $dot:
         case $hash:

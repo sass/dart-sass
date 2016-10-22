@@ -123,3 +123,15 @@ class Combinator implements ComplexSelectorComponent {
 
   String toString() => _text;
 }
+
+/// A reference combinator, like `/for/`.
+class ReferenceCombinator implements Combinator {
+  /// The name of the attribute being selected for.
+  final String name;
+
+  String get _text => "/$name/";
+
+  ReferenceCombinator(this.name);
+
+  String toString() => _text;
+}
