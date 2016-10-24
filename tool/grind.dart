@@ -69,7 +69,7 @@ js() {
   """);
 }
 
-@Task('Build a pure-JS NPM package.')
+@Task('Build a pure-JS npm package.')
 @Depends(js)
 npm_package() {
   var dir = new Directory('build/npm');

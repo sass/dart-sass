@@ -5,7 +5,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 
 * [Using Dart Sass](#using-dart-sass)
   * [Standalone](#standalone)
-  * [From NPM](#from-npm)
+  * [From npm](#from-npm)
   * [From Pub](#from-pub)
   * [From Source](#from-source)
 * [Goals](#goals)
@@ -25,9 +25,9 @@ the `dart-sass` executable is ready to run!
 
 [releases]: https://github.com/sass/dart-sass/releases/tag/1.0.0-alpha.1
 
-### From NPM
+### From npm
 
-Dart Sass is available, compiled to JavaScript, [as an NPM package][npm]. You
+Dart Sass is available, compiled to JavaScript, [as an npm package][npm]. You
 can install it globally using `npm install -g dart-sass`, or to your project
 using `npm install dart-sass`. This provides a `dart-sass` executable as well as
 a library:
@@ -90,7 +90,7 @@ implementation of the Sass language. It has a number of advantages:
   applications into standalone snapshot files, so a fully-functional Dart Sass
   could be distributed as only three files (the VM, the snapshot, and a wrapper
   script). Dart can also be compiled to JavaScript, which would make it easy to
-  distribute Sass through NPM or other JS package managers.
+  distribute Sass through npm or other JS package managers.
 
 * It's friendlier to contributors. Dart is substantially easier to learn than
   Ruby, and many Sass users in Google in particular are already familiar with

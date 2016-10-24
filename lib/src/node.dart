@@ -15,7 +15,7 @@ import 'node/result.dart';
 ///
 /// This sets up exports that can be called from JS. These include a private
 /// export that runs the normal `main()`, which is called from `package/sass.js`
-/// to run the executable when installed from NPM.
+/// to run the executable when installed from npm.
 void main() {
   exports.run_ = allowInterop(executable.main);
   exports.render = allowInterop(_render);
