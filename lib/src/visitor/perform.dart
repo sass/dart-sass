@@ -609,7 +609,17 @@ class _PerformVisitor
   }
 
   Value visitPlainImportRule(PlainImportRule node) {
-    _parent.addChild(new CssImport(_interpolationToValue(node.url), node.span));
+    var url = _interpolationToValue(node.url);
+    var supports = node.supports;
+    var resolvedSupports = supports is SupportsDeclaration
+        ? "${supports.name.accept(this).toCssString()}: "
+            "${supports.value.accept(this).toCssString()})"
+        : (supports == null ? null : _visitSupportsCondition(supports));
+    _parent.addChild(new CssImport(url, node.span,
+        supports: resolvedSupports == null
+            ? null
+            : new CssValue(resolvedSupports, node.supports.span),
+        media: node?.media?.map(_visitMediaQuery)));
     return null;
   }
 

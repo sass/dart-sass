@@ -141,6 +141,17 @@ class _SerializeCssVisitor
     _writeIndentation();
     _buffer.write("@import ");
     _buffer.write(node.url.value);
+
+    if (node.supports != null) {
+      _buffer.writeCharCode($space);
+      _buffer.write(node.supports.value);
+    }
+
+    if (node.media != null) {
+      _buffer.writeCharCode($space);
+      _writeBetween(node.media, ', ', visitMediaQuery);
+    }
+
     _buffer.writeCharCode($semicolon);
   }
 

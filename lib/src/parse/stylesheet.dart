@@ -625,23 +625,29 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   Statement _importRule(LineScannerState start) {
-    // TODO: parse supports clauses, url(), and query lists
     var urlStart = scanner.state;
     var next = scanner.peekChar();
     if (next == $u || next == $U) {
       var url = _dynamicUrl();
+      whitespace();
+      var queries = _tryImportQueries();
       _expectStatementSeparator();
       return new PlainImportRule(
           new Interpolation([url], scanner.spanFrom(urlStart)),
-          scanner.spanFrom(start));
+          scanner.spanFrom(start),
+          supports: queries?.item1,
+          media: queries?.item2);
     }
 
     var url = string();
+    whitespace();
+    var queries = _tryImportQueries();
     if (_isPlainImportUrl(url)) {
       var interpolation = new Interpolation(
           [scanner.substring(urlStart.position)], scanner.spanFrom(urlStart));
       _expectStatementSeparator();
-      return new PlainImportRule(interpolation, scanner.spanFrom(start));
+      return new PlainImportRule(interpolation, scanner.spanFrom(start),
+          supports: queries?.item1, media: queries?.item2);
     } else if (_inControlDirective || _inMixin) {
       _disallowedAtRule(start);
       return null;
@@ -664,6 +670,38 @@ abstract class StylesheetParser extends Parser {
     if (first == $slash) return url.codeUnitAt(1) == $slash;
     if (first != $h) return false;
     return url.startsWith("http://") || url.startsWith("https://");
+  }
+
+  /// Consumes a supports condition and/or a media query after an `@import`.
+  ///
+  /// Returns `null` if neither type of query can be found.
+  Tuple2<SupportsCondition, List<MediaQuery>> _tryImportQueries() {
+    SupportsCondition supports;
+    if (scanIdentifier("supports", ignoreCase: true)) {
+      scanner.expectChar($lparen);
+      var start = scanner.state;
+      if (scanIdentifier("not", ignoreCase: true)) {
+        whitespace();
+        supports = new SupportsNegation(
+            _supportsConditionInParens(), scanner.spanFrom(start));
+      } else {
+        var name = _expression();
+        scanner.expectChar($colon);
+        whitespace();
+        var value = _expression();
+        supports =
+            new SupportsDeclaration(name, value, scanner.spanFrom(start));
+      }
+      scanner.expectChar($rparen);
+      whitespace();
+    }
+
+    var media =
+        _lookingAtInterpolatedIdentifier() || scanner.peekChar() == $lparen
+            ? _mediaQueryList()
+            : null;
+    if (supports == null && media == null) return null;
+    return new Tuple2(supports, media);
   }
 
   /// Consumes an `@include` rule.
