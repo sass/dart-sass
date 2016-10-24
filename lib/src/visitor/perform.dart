@@ -93,11 +93,11 @@ class _PerformVisitor
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
 
-  /// The resolved URLs for each [ImportRule] that's been seen so far.
+  /// The resolved URLs for each [DynamicImport] that's been seen so far.
   ///
   /// This is cached in case the same file is imported multiple times, and thus
   /// its imports need to be resolved multiple times.
-  final _importPaths = <ImportRule, String>{};
+  final _importPaths = <DynamicImport, String>{};
 
   /// The parsed stylesheets for each resolved import URL.
   ///
@@ -485,28 +485,39 @@ class _PerformVisitor
   }
 
   Value visitImportRule(ImportRule node) {
-    var stylesheet = _loadImport(node);
-    _withStackFrame("@import", node.span, () {
+    for (var import in node.imports) {
+      if (import is DynamicImport) {
+        _visitDynamicImport(import);
+      } else {
+        _visitStaticImport(import as StaticImport);
+      }
+    }
+    return null;
+  }
+
+  /// Adds the stylesheet imported by [import] to the current document.
+  void _visitDynamicImport(DynamicImport import) {
+    var stylesheet = _loadImport(import);
+    _withStackFrame("@import", import.span, () {
       _withEnvironment(_environment.global(), () {
         for (var statement in stylesheet.children) {
           statement.accept(this);
         }
       });
     });
-    return null;
   }
 
-  /// Loads the [Stylesheet] imported by [node], or throws a
+  /// Loads the [Stylesheet] imported by [import], or throws a
   /// [SassRuntimeException] if loading fails.
-  Stylesheet _loadImport(ImportRule node) {
-    var path = _importPaths.putIfAbsent(node, () {
-      var path = p.fromUri(node.url);
+  Stylesheet _loadImport(DynamicImport import) {
+    var path = _importPaths.putIfAbsent(import, () {
+      var path = p.fromUri(import.url);
       var extension = p.extension(path);
       var tryPath = extension == '.sass' || extension == '.scss'
           ? _tryImportPath
           : _tryImportPathWithExtensions;
 
-      var base = p.dirname(p.fromUri(node.span.file.url));
+      var base = p.dirname(p.fromUri(import.span.file.url));
       var resolved = tryPath(p.join(base, path));
       if (resolved != null) return resolved;
 
@@ -517,7 +528,7 @@ class _PerformVisitor
     });
 
     if (path == null) {
-      throw _exception("Can't find file to import.", node.span);
+      throw _exception("Can't find file to import.", import.span);
     }
 
     return _importedFiles.putIfAbsent(path, () {
@@ -541,6 +552,24 @@ class _PerformVisitor
     var partial = p.join(p.dirname(path), "_${p.basename(path)}");
     if (fileExists(partial)) return partial;
     if (fileExists(path)) return path;
+    return null;
+  }
+
+  /// Adds a CSS import for [import].
+  void _visitStaticImport(StaticImport import) {
+    var url = _interpolationToValue(import.url);
+    var supports = import.supports;
+    var resolvedSupports = supports is SupportsDeclaration
+        ? "${supports.name.accept(this).toCssString()}: "
+            "${supports.value.accept(this).toCssString()})"
+        : (supports == null ? null : _visitSupportsCondition(supports));
+    var mediaQuery =
+        import.media == null ? null : _visitMediaQueries(import.media);
+    _parent.addChild(new CssImport(url, import.span,
+        supports: resolvedSupports == null
+            ? null
+            : new CssValue(resolvedSupports, import.supports.span),
+        media: mediaQuery));
     return null;
   }
 
@@ -628,22 +657,6 @@ class _PerformVisitor
     return new List.unmodifiable(queries1.expand/*<CssMediaQuery>*/((query1) {
       return queries2.map((query2) => query1.merge(query2));
     }).where((query) => query != null));
-  }
-
-  Value visitPlainImportRule(PlainImportRule node) {
-    var url = _interpolationToValue(node.url);
-    var supports = node.supports;
-    var resolvedSupports = supports is SupportsDeclaration
-        ? "${supports.name.accept(this).toCssString()}: "
-            "${supports.value.accept(this).toCssString()})"
-        : (supports == null ? null : _visitSupportsCondition(supports));
-    var mediaQuery = node.media == null ? null : _visitMediaQueries(node.media);
-    _parent.addChild(new CssImport(url, node.span,
-        supports: resolvedSupports == null
-            ? null
-            : new CssValue(resolvedSupports, node.supports.span),
-        media: mediaQuery));
-    return null;
   }
 
   Value visitReturnRule(ReturnRule node) => node.expression.accept(this);

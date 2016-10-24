@@ -5,13 +5,12 @@
 import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/statement.dart';
+import '../import.dart';
 import '../interpolation.dart';
-import '../statement.dart';
 import '../supports_condition.dart';
 
-/// A rule that produces a plain CSS `@import` rule.
-class PlainImportRule implements Statement {
+/// An import that produces a plain CSS `@import` rule.
+class StaticImport implements Import {
   /// The URL for this import.
   ///
   /// This already contains quotes.
@@ -27,13 +26,10 @@ class PlainImportRule implements Statement {
 
   final FileSpan span;
 
-  PlainImportRule(this.url, this.span, {this.supports, this.media});
-
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitPlainImportRule(this);
+  StaticImport(this.url, this.span, {this.supports, this.media});
 
   String toString() {
-    var buffer = new StringBuffer("@import $url");
+    var buffer = new StringBuffer(url);
     if (supports != null) buffer.write(" supports($supports)");
     if (media != null) buffer.write(" $media");
     buffer.writeCharCode($semicolon);

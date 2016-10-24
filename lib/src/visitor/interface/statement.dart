@@ -24,7 +24,6 @@ abstract class StatementVisitor<T> {
   T visitIncludeRule(IncludeRule node);
   T visitMediaRule(MediaRule node);
   T visitMixinRule(MixinRule node);
-  T visitPlainImportRule(PlainImportRule node);
   T visitReturnRule(ReturnRule node);
   T visitStyleRule(StyleRule node);
   T visitStylesheet(Stylesheet node);

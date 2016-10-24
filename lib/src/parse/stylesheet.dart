@@ -627,40 +627,47 @@ abstract class StylesheetParser extends Parser {
   /// Consumes an `@import` rule.
   ///
   /// [start] should point before the `@`.
-  Statement _importRule(LineScannerState start) {
-    var urlStart = scanner.state;
+  ImportRule _importRule(LineScannerState start) {
+    var imports = <Import>[];
+    do {
+      whitespace();
+      imports.add(_importArgument());
+      whitespace();
+    } while (scanner.scanChar($comma));
+    _expectStatementSeparator();
+
+    return new ImportRule(imports, scanner.spanFrom(start));
+  }
+
+  Import _importArgument() {
+    var start = scanner.state;
     var next = scanner.peekChar();
     if (next == $u || next == $U) {
       var url = _dynamicUrl();
       whitespace();
       var queries = _tryImportQueries();
-      _expectStatementSeparator();
-      return new PlainImportRule(
-          new Interpolation([url], scanner.spanFrom(urlStart)),
+      return new StaticImport(new Interpolation([url], scanner.spanFrom(start)),
           scanner.spanFrom(start),
-          supports: queries?.item1,
-          media: queries?.item2);
+          supports: queries?.item1, media: queries?.item2);
     }
 
     var url = string();
+    var urlSpan = scanner.spanFrom(start);
     whitespace();
     var queries = _tryImportQueries();
     if (_isPlainImportUrl(url)) {
-      var interpolation = new Interpolation(
-          [scanner.substring(urlStart.position)], scanner.spanFrom(urlStart));
-      _expectStatementSeparator();
-      return new PlainImportRule(interpolation, scanner.spanFrom(start),
+      var interpolation =
+          new Interpolation([scanner.substring(start.position)], urlSpan);
+      return new StaticImport(interpolation, scanner.spanFrom(start),
           supports: queries?.item1, media: queries?.item2);
     } else if (_inControlDirective || _inMixin) {
       _disallowedAtRule(start);
       return null;
     } else {
-      _expectStatementSeparator();
       try {
-        return new ImportRule(Uri.parse(url), scanner.spanFrom(start));
+        return new DynamicImport(Uri.parse(url), urlSpan);
       } on FormatException catch (error) {
-        throw new SassFormatException(
-            "Invalid URL: ${error.message}", scanner.spanFrom(start));
+        throw new SassFormatException("Invalid URL: ${error.message}", urlSpan);
       }
     }
   }

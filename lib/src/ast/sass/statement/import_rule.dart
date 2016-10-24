@@ -5,22 +5,21 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
-import '../expression/string.dart';
+import '../import.dart';
 import '../statement.dart';
 
-/// An `@import` rule that will import a Sass file at runtime.
+/// An `@import` rule.
 class ImportRule implements Statement {
-  /// The URI of the file to import.
-  ///
-  /// If this is relative, it's relative to the containing file.
-  final Uri url;
+  /// The imports imported by this statement.
+  List<Import> imports;
 
   final FileSpan span;
 
-  ImportRule(this.url, this.span);
+  ImportRule(Iterable<Import> imports, this.span)
+      : imports = new List.unmodifiable(imports);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitImportRule(this);
 
-  String toString() => "@import ${StringExpression.quoteText(url.toString())};";
+  String toString() => "@import ${imports.join(', ')};";
 }
