@@ -209,7 +209,10 @@ abstract class StylesheetParser extends Parser {
 
     var midBuffer = new StringBuffer();
     midBuffer.write(rawText(whitespace));
-    if (!scanner.scanChar($colon)) return nameBuffer;
+    if (!scanner.scanChar($colon)) {
+      if (midBuffer.isNotEmpty) nameBuffer.writeCharCode($space);
+      return nameBuffer;
+    }
     midBuffer.writeCharCode($colon);
 
     // Parse custom properties as declarations no matter what.
