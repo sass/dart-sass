@@ -30,7 +30,7 @@ void main(List<String> args) {
         help: 'Print the version of Dart Sass.', negatable: false);
   var options = argParser.parse(args);
 
-  if (options['version']) {
+  if (options['version'] as bool) {
     _loadVersion().then((version) {
       print(version);
       exit(0);
@@ -38,20 +38,21 @@ void main(List<String> args) {
     return;
   }
 
-  if (options['help'] || options.rest.isEmpty) {
+  if (options['help'] as bool || options.rest.isEmpty) {
     print("Compile Sass to CSS.\n");
     print("Usage: sass <input>\n");
     print(argParser.usage);
     exit(64);
   }
 
+  var color = options['color'] as bool;
   try {
-    var css = render(options.rest.first, color: options['color']);
+    var css = render(options.rest.first, color: color);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
-    stderr.writeln(error.toString(color: options['color']));
+    stderr.writeln(error.toString(color: color));
 
-    if (options['trace']) {
+    if (options['trace'] as bool) {
       stderr.writeln();
       stderr.write(new Trace.from(stackTrace).terse.toString());
       stderr.flush();
@@ -61,9 +62,9 @@ void main(List<String> args) {
     // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     exit(65);
   } catch (error, stackTrace) {
-    if (options['color']) stderr.write('\u001b[31m\u001b[1m');
+    if (color) stderr.write('\u001b[31m\u001b[1m');
     stderr.write('Unexpected exception:');
-    if (options['color']) stderr.write('\u001b[0m');
+    if (color) stderr.write('\u001b[0m');
     stderr.writeln();
 
     stderr.writeln(error);

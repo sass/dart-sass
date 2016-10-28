@@ -5,6 +5,7 @@
 import 'package:js/js.dart';
 
 import '../sass.dart';
+import 'exception.dart';
 import 'executable.dart' as executable;
 import 'node/error.dart';
 import 'node/exports.dart';
@@ -33,7 +34,7 @@ NodeResult _render(NodeOptions options,
     var result = newNodeResult(render(options.file));
     if (callback == null) return result;
     callback(null, result);
-  } catch (error) {
+  } on SassException catch (error) {
     // TODO: should this also be a NodeError?
     if (callback == null) rethrow;
 
