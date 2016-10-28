@@ -1762,7 +1762,11 @@ abstract class StylesheetParser extends Parser {
         buffer = new InterpolationBuffer()
           ..write(name)
           ..writeCharCode($colon);
-        buffer.write(identifier());
+        var next = scanner.peekChar();
+        while (next != null && (isAlphabetic(next) || next == $dot)) {
+          buffer.writeCharCode(scanner.readChar());
+          next = scanner.peekChar();
+        }
         scanner.expectChar($lparen);
         buffer.writeCharCode($lparen);
         break;
