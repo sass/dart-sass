@@ -5,32 +5,26 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
-import '../media_query.dart';
+import '../interpolation.dart';
 import '../statement.dart';
 
 /// A `@media` rule.
 class MediaRule implements Statement {
-  /// The queries that select what browsers and conditions this rule targets.
+  /// The query that determines on which platforms the styles will be in effect.
   ///
-  /// This is never empty.
-  final List<MediaQuery> queries;
+  /// This is only parsed after the interpolation has been resolved.
+  final Interpolation query;
 
   /// The contents of this rule.
   final List<Statement> children;
 
   final FileSpan span;
 
-  MediaRule(
-      Iterable<MediaQuery> queries, Iterable<Statement> children, this.span)
-      : queries = new List.unmodifiable(queries),
-        children = new List.unmodifiable(children) {
-    if (this.queries.isEmpty) {
-      throw new ArgumentError("queries may not be empty.");
-    }
-  }
+  MediaRule(this.query, Iterable<Statement> children, this.span)
+      : children = new List.unmodifiable(children);
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitMediaRule(this);
 
-  String toString() => "@media ${queries.join(", ")} {${children.join(" ")}}";
+  String toString() => "@media $query {${children.join(" ")}}";
 }

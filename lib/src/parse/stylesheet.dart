@@ -675,7 +675,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a supports condition and/or a media query after an `@import`.
   ///
   /// Returns `null` if neither type of query can be found.
-  Tuple2<SupportsCondition, List<MediaQuery>> _tryImportQueries() {
+  Tuple2<SupportsCondition, Interpolation> _tryImportQueries() {
     SupportsCondition supports;
     if (scanIdentifier("supports", ignoreCase: true)) {
       scanner.expectChar($lparen);
@@ -731,8 +731,11 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a `@media` rule.
   ///
   /// [start] should point before the `@`.
-  MediaRule _mediaRule(LineScannerState start) => new MediaRule(
-      _mediaQueryList(), children(_ruleChild), scanner.spanFrom(start));
+  MediaRule _mediaRule(LineScannerState start) {
+    var query = _mediaQueryList();
+    var children = this.children(_ruleChild);
+    return new MediaRule(query, children, scanner.spanFrom(start));
+  }
 
   /// Consumes a mixin declaration.
   ///
@@ -2169,43 +2172,47 @@ abstract class StylesheetParser extends Parser {
   // ## Media Queries
 
   /// Consumes a list of media queries.
-  List<MediaQuery> _mediaQueryList() {
-    var queries = <MediaQuery>[];
-    do {
+  Interpolation _mediaQueryList() {
+    var start = scanner.state;
+    var buffer = new InterpolationBuffer();
+    while (true) {
       whitespace();
-      queries.add(_mediaQuery());
-    } while (scanner.scanChar($comma));
-    return queries;
+      _mediaQuery(buffer);
+      if (!scanner.scanChar($comma)) break;
+      buffer.writeCharCode($comma);
+      buffer.writeCharCode($space);
+    }
+    return buffer.interpolation(scanner.spanFrom(start));
   }
 
   /// Consumes a single media query.
-  MediaQuery _mediaQuery() {
-    Interpolation modifier;
-    Interpolation type;
+  void _mediaQuery(InterpolationBuffer buffer) {
+    // This is somewhat duplicated in MediaQueryParser._mediaQuery.
     if (scanner.peekChar() != $lparen) {
-      var identifier1 = _interpolatedIdentifier();
+      buffer.addInterpolation(_interpolatedIdentifier());
       whitespace();
 
       if (!_lookingAtInterpolatedIdentifier()) {
-        // For example, "@media screen {"
-        return new MediaQuery(identifier1);
+        // For example, "@media screen {".
+        return;
       }
 
-      var identifier2 = _interpolatedIdentifier();
+      buffer.writeCharCode($space);
+      var identifier = _interpolatedIdentifier();
       whitespace();
 
-      if (equalsIgnoreCase(identifier2.asPlain, "and")) {
+      if (equalsIgnoreCase(identifier.asPlain, "and")) {
         // For example, "@media screen and ..."
-        type = identifier1;
+        buffer.write("and ");
       } else {
-        modifier = identifier1;
-        type = identifier2;
+        buffer.addInterpolation(identifier);
         if (scanIdentifier("and", ignoreCase: true)) {
           // For example, "@media only screen and ..."
           whitespace();
+          buffer.write("and ");
         } else {
           // For example, "@media only screen {"
-          return new MediaQuery(type, modifier: modifier);
+          return;
         }
       }
     }
@@ -2213,17 +2220,12 @@ abstract class StylesheetParser extends Parser {
     // We've consumed either `IDENTIFIER "and"` or
     // `IDENTIFIER IDENTIFIER "and"`.
 
-    var features = <Interpolation>[];
-    do {
+    while (true) {
       whitespace();
-      features.add(_queryExpression());
+      buffer.addInterpolation(_queryExpression());
       whitespace();
-    } while (scanIdentifier("and", ignoreCase: true));
-
-    if (type == null) {
-      return new MediaQuery.condition(features);
-    } else {
-      return new MediaQuery(type, modifier: modifier, features: features);
+      if (!scanIdentifier("and", ignoreCase: true)) break;
+      buffer.write(" and ");
     }
   }
 

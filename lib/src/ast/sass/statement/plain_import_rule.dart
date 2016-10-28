@@ -7,7 +7,6 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
-import '../media_query.dart';
 import '../statement.dart';
 import '../supports_condition.dart';
 
@@ -24,13 +23,11 @@ class PlainImportRule implements Statement {
 
   /// The media query attached to this import, or `null` if no condition is
   /// attached.
-  final List<MediaQuery> media;
+  final Interpolation media;
 
   final FileSpan span;
 
-  PlainImportRule(this.url, this.span,
-      {this.supports, Iterable<MediaQuery> media})
-      : media = media == null ? null : new List.unmodifiable(media);
+  PlainImportRule(this.url, this.span, {this.supports, this.media});
 
   /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
       visitor.visitPlainImportRule(this);

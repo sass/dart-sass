@@ -17,7 +17,8 @@ class CssMediaRule extends CssParentNode {
 
   final FileSpan span;
 
-  CssMediaRule(this.queries, this.span) {
+  CssMediaRule(Iterable<CssMediaQuery> queries, this.span)
+      : queries = new List.unmodifiable(queries) {
     if (queries.isEmpty) {
       throw new ArgumentError.value(queries, "queries", "may not be empty.");
     }

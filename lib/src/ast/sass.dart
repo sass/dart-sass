@@ -24,7 +24,6 @@ export 'sass/expression/unary_operation.dart';
 export 'sass/expression/value.dart';
 export 'sass/expression/variable.dart';
 export 'sass/interpolation.dart';
-export 'sass/media_query.dart';
 export 'sass/node.dart';
 export 'sass/statement.dart';
 export 'sass/statement/at_root_rule.dart';

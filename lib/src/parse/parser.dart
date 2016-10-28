@@ -437,11 +437,13 @@ abstract class Parser {
     // See also [ScssParser._lookingAtInterpolatedIdentifier].
 
     var first = scanner.peekChar();
+    if (first == null) return false;
     if (isNameStart(first) || first == $backslash) return true;
 
     if (first != $dash) return false;
     var second = scanner.peekChar(1);
-    return isNameStart(second) || second == $dash || second == $backslash;
+    return second != null &&
+        (isNameStart(second) || second == $dash || second == $backslash);
   }
 
   /// Consumes an identifier if its name exactly matches [text].

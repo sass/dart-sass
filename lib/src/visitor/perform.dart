@@ -585,11 +585,11 @@ class _PerformVisitor
           "Media rules may not be used within nested declarations.", node.span);
     }
 
-    var queryIterable = node.queries.map(_visitMediaQuery);
-    var queries = _mediaQueries == null
-        ? new List<CssMediaQuery>.unmodifiable(queryIterable)
-        : _mergeMediaQueries(_mediaQueries, queryIterable);
-    if (queries.isEmpty) return null;
+    var queries = _visitMediaQueries(node.query);
+    if (_mediaQueries != null) {
+      queries = _mergeMediaQueries(_mediaQueries, queries);
+      if (queries.isEmpty) return null;
+    }
 
     _withParent(new CssMediaRule(queries, node.span), () {
       _withMediaQueries(queries, () {
@@ -615,6 +615,12 @@ class _PerformVisitor
     return null;
   }
 
+  /// Evaluates [interpolation] and parses the result as a list of media
+  /// queries.
+  List<CssMediaQuery> _visitMediaQueries(Interpolation interpolation) =>
+      _adjustParseError(interpolation.span,
+          () => CssMediaQuery.parseList(_performInterpolation(interpolation)));
+
   /// Returns a list of queries that selects for platforms that match both
   /// [queries1] and [queries2].
   List<CssMediaQuery> _mergeMediaQueries(
@@ -624,20 +630,6 @@ class _PerformVisitor
     }).where((query) => query != null));
   }
 
-  /// Evaluates [query] and converts it to a plain CSS query.
-  CssMediaQuery _visitMediaQuery(MediaQuery query) {
-    var modifier =
-        query.modifier == null ? null : _interpolationToValue(query.modifier);
-
-    var type = query.type == null ? null : _interpolationToValue(query.type);
-
-    var features =
-        query.features.map((feature) => _interpolationToValue(feature));
-
-    if (type == null) return new CssMediaQuery.condition(features);
-    return new CssMediaQuery(type, modifier: modifier, features: features);
-  }
-
   Value visitPlainImportRule(PlainImportRule node) {
     var url = _interpolationToValue(node.url);
     var supports = node.supports;
@@ -645,11 +637,12 @@ class _PerformVisitor
         ? "${supports.name.accept(this).toCssString()}: "
             "${supports.value.accept(this).toCssString()})"
         : (supports == null ? null : _visitSupportsCondition(supports));
+    var mediaQuery = node.media == null ? null : _visitMediaQueries(node.media);
     _parent.addChild(new CssImport(url, node.span,
         supports: resolvedSupports == null
             ? null
             : new CssValue(resolvedSupports, node.supports.span),
-        media: node?.media?.map(_visitMediaQuery)));
+        media: mediaQuery));
     return null;
   }
 

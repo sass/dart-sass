@@ -132,7 +132,7 @@ class _SerializeCssVisitor
   void visitMediaRule(CssMediaRule node) {
     _writeIndentation();
     _buffer.write("@media ");
-    _writeBetween(node.queries, ", ", visitMediaQuery);
+    _writeBetween(node.queries, ", ", _visitMediaQuery);
     _buffer.writeCharCode($space);
     _visitChildren(node.children);
   }
@@ -149,7 +149,7 @@ class _SerializeCssVisitor
 
     if (node.media != null) {
       _buffer.writeCharCode($space);
-      _writeBetween(node.media, ', ', visitMediaQuery);
+      _writeBetween(node.media, ', ', _visitMediaQuery);
     }
 
     _buffer.writeCharCode($semicolon);
@@ -162,14 +162,14 @@ class _SerializeCssVisitor
     _visitChildren(node.children);
   }
 
-  void visitMediaQuery(CssMediaQuery query) {
+  void _visitMediaQuery(CssMediaQuery query) {
     if (query.modifier != null) {
-      _buffer.write(query.modifier.value);
+      _buffer.write(query.modifier);
       _buffer.writeCharCode($space);
     }
 
     if (query.type != null) {
-      _buffer.write(query.type.value);
+      _buffer.write(query.type);
       if (query.features.isNotEmpty) _buffer.write(" and ");
     }
 

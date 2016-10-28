@@ -2,42 +2,38 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
-
-import '../../utils.dart';
-import '../node.dart';
-import 'value.dart';
+import '../../parse/media_query.dart';
 
 /// A plain CSS media query, as used in `@media` and `@import`.
-class CssMediaQuery implements AstNode {
+class CssMediaQuery {
   /// The modifier, probably either "not" or "only".
   ///
   /// This may be `null` if no modifier is in use.
-  final CssValue<String> modifier;
+  final String modifier;
 
   /// The media type, for example "screen" or "print".
   ///
   /// This may be `null`. If so, [features] will not be empty.
-  final CssValue<String> type;
+  final String type;
 
   /// Feature queries, including parentheses.
-  final List<CssValue<String>> features;
+  final List<String> features;
 
-  FileSpan get span {
-    var components = <AstNode>[];
-    if (modifier != null) components.add(modifier);
-    if (type != null) components.add(type);
-    components.addAll(features);
-    return spanForList(components);
-  }
+  /// Parses a media query from [contents].
+  ///
+  /// If passed, [url] is the name of the file from which [contents] comes.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  static List<CssMediaQuery> parseList(String contents, {url}) =>
+      new MediaQueryParser(contents, url: url).parse();
 
   /// Creates a media query specifies a type and, optionally, features.
-  CssMediaQuery(this.type, {this.modifier, Iterable<CssValue<String>> features})
+  CssMediaQuery(this.type, {this.modifier, Iterable<String> features})
       : features =
             features == null ? const [] : new List.unmodifiable(features);
 
   /// Creates a media query that only specifies features.
-  CssMediaQuery.condition(Iterable<CssValue<String>> features)
+  CssMediaQuery.condition(Iterable<String> features)
       : modifier = null,
         type = null,
         features = new List.unmodifiable(features);
@@ -45,10 +41,10 @@ class CssMediaQuery implements AstNode {
   /// Merges this with [other] to return a query that matches the intersection
   /// of both inputs.
   CssMediaQuery merge(CssMediaQuery other) {
-    var ourModifier = this.modifier?.value?.toLowerCase();
-    var ourType = this.type?.value?.toLowerCase();
-    var theirModifier = other.modifier?.value?.toLowerCase();
-    var theirType = other.type?.value?.toLowerCase();
+    var ourModifier = this.modifier?.toLowerCase();
+    var ourType = this.type?.toLowerCase();
+    var theirModifier = other.modifier?.toLowerCase();
+    var theirType = other.type?.toLowerCase();
 
     if (ourType == null && theirType == null) {
       return new CssMediaQuery.condition(
@@ -83,5 +79,16 @@ class CssMediaQuery implements AstNode {
     return new CssMediaQuery(type == ourType ? this.type : other.type,
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
         features: features.toList()..addAll(other.features));
+  }
+
+  String toString() {
+    var buffer = new StringBuffer();
+    if (modifier != null) buffer.write("$modifier ");
+    if (type != null) {
+      buffer.write(type);
+      if (features.isNotEmpty) buffer.write(" and ");
+    }
+    buffer.write(features.join(" and "));
+    return buffer.toString();
   }
 }
