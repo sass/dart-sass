@@ -301,6 +301,16 @@ class _SerializeCssVisitor
     _buffer.writeCharCode(hexCharFor(color & 0xF));
   }
 
+  void visitFunction(SassFunction function) {
+    if (!_inspect) {
+      throw new SassScriptException("$function isn't a valid CSS value.");
+    }
+
+    _buffer.write("get-function(");
+    _visitQuotedString(function.callable.name);
+    _buffer.writeCharCode($rparen);
+  }
+
   void visitList(SassList value) {
     if (value.hasBrackets) {
       _buffer.writeCharCode($lbracket);

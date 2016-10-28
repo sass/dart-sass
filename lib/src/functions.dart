@@ -880,6 +880,19 @@ void defineCoreFunctions(Environment environment) {
     return new SassBoolean(number1.isComparableTo(number2));
   });
 
+  environment.defineFunction("get-function", r"$name, $css: false",
+      (arguments) {
+    var name = arguments[0].assertString("name");
+    var css = arguments[1].isTruthy;
+
+    var callable = css
+        ? new PlainCssCallable(name.text)
+        : environment.getFunction(name.text);
+    if (callable != null) return new SassFunction(callable);
+
+    throw new SassScriptException("Function not found: $name");
+  });
+
   // call() is defined in _PerformVisitor to provide it access to private APIs.
 
   // ## Miscellaneous

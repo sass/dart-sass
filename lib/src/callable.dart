@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 export 'callable/built_in.dart';
+export 'callable/plain_css.dart';
 export 'callable/user_defined.dart';
 
 /// An interface for objects, such as functions and mixins, that can be invoked

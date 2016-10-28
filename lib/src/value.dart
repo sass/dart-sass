@@ -6,6 +6,7 @@ import 'ast/selector.dart';
 import 'exception.dart';
 import 'value/boolean.dart';
 import 'value/color.dart';
+import 'value/function.dart';
 import 'value/list.dart';
 import 'value/map.dart';
 import 'value/number.dart';
@@ -16,6 +17,7 @@ import 'visitor/serialize.dart';
 export 'value/argument_list.dart';
 export 'value/boolean.dart';
 export 'value/color.dart';
+export 'value/function.dart';
 export 'value/list.dart';
 export 'value/map.dart';
 export 'value/null.dart';
@@ -78,6 +80,13 @@ abstract class Value {
   /// (without the `$`). It's used for debugging.
   SassColor assertColor([String name]) =>
       throw _exception("$this is not a color.", name);
+
+  /// Throws a [SassScriptException] if [this] isn't a function reference.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for debugging.
+  SassFunction assertFunction([String name]) =>
+      throw _exception("$this is not a function reference.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a map.
   ///

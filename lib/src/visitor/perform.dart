@@ -118,15 +118,28 @@ class _PerformVisitor
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
         _environment = environment ?? new Environment(),
         _color = color {
-    _environment.defineFunction("call", r"$name, $args...", (arguments) {
-      var name = arguments[0].assertString("name");
+    _environment.defineFunction("call", r"$function, $args...", (arguments) {
+      var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
 
-      var expression = new FunctionExpression(
-          new Interpolation([name.text], _callableSpan),
-          new ArgumentInvocation([], {}, _callableSpan,
-              rest: new ValueExpression(args)));
-      return expression.accept(this);
+      var invocation = new ArgumentInvocation([], {}, _callableSpan,
+          rest: new ValueExpression(args));
+
+      if (function is SassString) {
+        warn(
+            "DEPRECATION WARNING: Passing a string to call() is deprecated and "
+            "will be illegal\n"
+            "in Sass 4.0. Use call(get-function($function)) instead.",
+            _callableSpan,
+            color: _color);
+
+        var expression = new FunctionExpression(
+            new Interpolation([function.text], _callableSpan), invocation);
+        return expression.accept(this);
+      }
+
+      return _runFunctionCallable(invocation,
+          function.assertFunction("function").callable, _callableSpan);
     });
   }
 
@@ -549,10 +562,10 @@ class _PerformVisitor
     }
 
     if (node.children == null) {
-      _runUserDefinedCallable(node, mixin, callback);
+      _runUserDefinedCallable(node.arguments, mixin, node.span, callback);
     } else {
       var environment = _environment.closure();
-      _runUserDefinedCallable(node, mixin, () {
+      _runUserDefinedCallable(node.arguments, mixin, node.span, () {
         _environment.withContent(node.children, environment, callback);
       });
     }
@@ -898,58 +911,27 @@ class _PerformVisitor
 
   Value visitFunctionExpression(FunctionExpression node) {
     var plainName = node.name.asPlain;
-    if (plainName != null) {
-      var function = _environment.getFunction(plainName);
-      if (function != null) {
-        if (function is BuiltInCallable) {
-          return _runBuiltInCallable(node, function).withoutSlash();
-        } else if (function is UserDefinedCallable) {
-          return _runUserDefinedCallable(node, function, () {
-            for (var statement in function.declaration.children) {
-              var returnValue = statement.accept(this);
-              if (returnValue is Value) return returnValue;
-            }
+    var function =
+        (plainName == null ? null : _environment.getFunction(plainName)) ??
+            new PlainCssCallable(_performInterpolation(node.name));
 
-            throw _exception("Function finished without @return.",
-                function.declaration.span);
-          }).withoutSlash();
-        } else {
-          return null;
-        }
-      }
-    }
-
-    if (node.arguments.named.isNotEmpty || node.arguments.keywordRest != null) {
-      throw _exception(
-          "Plain CSS functions don't support keyword arguments.", node.span);
-    }
-
-    var name = _performInterpolation(node.name);
-    var arguments = node.arguments.positional
-        .map((expression) => expression.accept(this))
-        .toList();
-    // TODO: if rest is an arglist that has keywords, error out.
-    var rest = node.arguments.rest?.accept(this);
-    if (rest != null) arguments.add(rest);
-    return new SassString("$name(" +
-        arguments.map((argument) => argument.toCssString()).join(', ') +
-        ")");
+    return _runFunctionCallable(node.arguments, function, node.span);
   }
 
-  /// Evaluates the arguments in [invocation] as applied to [callable], and
+  /// Evaluates the arguments in [arguments] as applied to [callable], and
   /// invokes [run] in a scope with those arguments defined.
-  Value _runUserDefinedCallable(CallableInvocation invocation,
-      UserDefinedCallable callable, Value run()) {
-    var triple = _evaluateArguments(invocation);
+  Value _runUserDefinedCallable(ArgumentInvocation arguments,
+      UserDefinedCallable callable, FileSpan span, Value run()) {
+    var triple = _evaluateArguments(arguments, span);
     var positional = triple.item1;
     var named = triple.item2;
     var separator = triple.item3;
 
-    return _withStackFrame(callable.name + "()", invocation.span, () {
+    return _withStackFrame(callable.name + "()", span, () {
       return _withEnvironment(callable.environment, () {
         return _environment.scope(() {
-          _verifyArguments(positional.length, named,
-              callable.declaration.arguments, invocation.span);
+          _verifyArguments(
+              positional.length, named, callable.declaration.arguments, span);
 
           // TODO: if we get here and there are no rest params involved, mark
           // the callable as fast-path and don't do error checking or extra
@@ -991,29 +973,64 @@ class _PerformVisitor
           throw _exception(
               "No ${pluralize('argument', named.keys.length)} named "
               "${toSentence(named.keys.map((name) => "\$$name"), 'or')}.",
-              invocation.span);
+              span);
         });
       });
     });
   }
 
+  /// Evaluates [arguments] as applied to [callable].
+  Value _runFunctionCallable(
+      ArgumentInvocation arguments, Callable callable, FileSpan span) {
+    if (callable is BuiltInCallable) {
+      return _runBuiltInCallable(arguments, callable, span).withoutSlash();
+    } else if (callable is UserDefinedCallable) {
+      return _runUserDefinedCallable(arguments, callable, span, () {
+        for (var statement in callable.declaration.children) {
+          var returnValue = statement.accept(this);
+          if (returnValue is Value) return returnValue;
+        }
+
+        throw _exception(
+            "Function finished without @return.", callable.declaration.span);
+      }).withoutSlash();
+    } else if (callable is PlainCssCallable) {
+      if (arguments.named.isNotEmpty || arguments.keywordRest != null) {
+        throw _exception(
+            "Plain CSS functions don't support keyword arguments.", span);
+      }
+
+      var argumentValues = arguments.positional
+          .map((expression) => expression.accept(this))
+          .toList();
+      // TODO: if rest is an arglist that has keywords, error out.
+      var rest = arguments.rest?.accept(this);
+      if (rest != null) argumentValues.add(rest);
+      return new SassString("${callable.name}(" +
+          argumentValues.map((argument) => argument.toCssString()).join(', ') +
+          ")");
+    } else {
+      return null;
+    }
+  }
+
   /// Evaluates [invocation] as applied to [callable], and invokes [callable]'s
   /// body.
   Value _runBuiltInCallable(
-      CallableInvocation invocation, BuiltInCallable callable) {
-    var triple = _evaluateArguments(invocation);
+      ArgumentInvocation arguments, BuiltInCallable callable, FileSpan span) {
+    var triple = _evaluateArguments(arguments, span);
     var positional = triple.item1;
     var named = triple.item2;
     var namedSet = named;
     var separator = triple.item3;
 
     var oldCallableSpan = _callableSpan;
-    _callableSpan = invocation.span;
+    _callableSpan = span;
     int overloadIndex;
     for (var i = 0; i < callable.overloads.length - 1; i++) {
       try {
-        _verifyArguments(positional.length, namedSet, callable.overloads[i],
-            invocation.span);
+        _verifyArguments(
+            positional.length, namedSet, callable.overloads[i], span);
         overloadIndex = i;
         break;
       } on SassRuntimeException catch (_) {
@@ -1021,8 +1038,8 @@ class _PerformVisitor
       }
     }
     if (overloadIndex == null) {
-      _verifyArguments(positional.length, namedSet, callable.overloads.last,
-          invocation.span);
+      _verifyArguments(
+          positional.length, namedSet, callable.overloads.last, span);
       overloadIndex = callable.overloads.length - 1;
     }
 
@@ -1052,7 +1069,7 @@ class _PerformVisitor
       positional.add(argumentList);
     }
 
-    var result = _addExceptionSpan(invocation.span, () => callback(positional));
+    var result = _addExceptionSpan(span, () => callback(positional));
     _callableSpan = oldCallableSpan;
 
     if (argumentList == null) return result;
@@ -1061,29 +1078,28 @@ class _PerformVisitor
     throw _exception(
         "No ${pluralize('argument', named.keys.length)} named "
         "${toSentence(named.keys.map((name) => "\$$name"), 'or')}.",
-        invocation.span);
+        span);
   }
 
-  /// Evaluates the arguments in [invocation] and returns the positional and
+  /// Evaluates the arguments in [arguments] and returns the positional and
   /// named arguments, as well as the [ListSeparator] for the rest argument
   /// list, if any.
   Tuple3<List<Value>, Map<String, Value>, ListSeparator> _evaluateArguments(
-      CallableInvocation invocation) {
-    var positional = invocation.arguments.positional
+      ArgumentInvocation arguments, FileSpan span) {
+    var positional = arguments.positional
         .map((expression) => expression.accept(this))
         .toList();
-    var named = normalizedMapMap/*<String, Expression, Value>*/(
-        invocation.arguments.named,
+    var named = normalizedMapMap/*<String, Expression, Value>*/(arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    if (invocation.arguments.rest == null) {
+    if (arguments.rest == null) {
       return new Tuple3(positional, named, ListSeparator.undecided);
     }
 
-    var rest = invocation.arguments.rest.accept(this);
+    var rest = arguments.rest.accept(this);
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
-      _addRestMap(named, rest, invocation.span);
+      _addRestMap(named, rest, span);
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
       separator = rest.separator;
@@ -1096,22 +1112,21 @@ class _PerformVisitor
       positional.add(rest);
     }
 
-    if (invocation.arguments.keywordRest == null) {
+    if (arguments.keywordRest == null) {
       return new Tuple3(positional, named, separator);
     }
 
-    var keywordRest = invocation.arguments.keywordRest.accept(this);
+    var keywordRest = arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, invocation.span);
+      _addRestMap(named, keywordRest, span);
       return new Tuple3(positional, named, separator);
     } else {
       throw _exception(
-          "Variable keyword arguments must be a map (was $keywordRest).",
-          invocation.span);
+          "Variable keyword arguments must be a map (was $keywordRest).", span);
     }
   }
 
-  /// Evaluates the arguments in [invocation] only as much as necessary to
+  /// Evaluates the arguments in [arguments] only as much as necessary to
   /// separate out positional and named arguments.
   ///
   /// Returns the arguments as expressions so that they can be lazily evaluated
