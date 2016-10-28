@@ -13,10 +13,9 @@ class KeyframeSelectorParser extends Parser {
 
   List<String> parse() {
     return wrapSpanFormatException(() {
-      whitespace();
-
       var selectors = <String>[];
       do {
+        whitespace();
         if (lookingAtIdentifier()) {
           if (scanIdentifier("from")) {
             selectors.add("from");
