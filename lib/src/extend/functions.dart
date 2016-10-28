@@ -512,8 +512,8 @@ QueueList<List<ComplexSelectorComponent>> _groupSelectors(
     var group = <ComplexSelectorComponent>[];
     do {
       group.add(iterator.current);
-    } while ((iterator.current is Combinator || group.last is Combinator) &&
-        iterator.moveNext());
+    } while (iterator.moveNext() &&
+        (iterator.current is Combinator || group.last is Combinator));
     groups.add(group);
   }
   return groups;
