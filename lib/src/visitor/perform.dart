@@ -60,6 +60,13 @@ class _PerformVisitor
   /// The current selector, if any.
   CssValue<SelectorList> _selector;
 
+  /// The value of [_selector] outside an `@at-root` statement that excludes
+  /// style rules.
+  ///
+  /// This is separate from [_selector] because `&` can see it but parent
+  /// resolution cannot.
+  CssValue<SelectorList> _selectorOutsideAtRoot;
+
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
 
@@ -227,6 +234,16 @@ class _PerformVisitor
       _environment.scope(callback);
       _parent = oldParent;
     };
+
+    if (query.excludesStyleRules) {
+      var innerScope = scope;
+      scope = (callback) {
+        var oldSelectorOutsideAtRoot = _selectorOutsideAtRoot;
+        _selectorOutsideAtRoot = _selector ?? _selectorOutsideAtRoot;
+        _withSelector(null, () => innerScope(callback));
+        _selectorOutsideAtRoot = oldSelectorOutsideAtRoot;
+      };
+    }
 
     if (query.excludesMedia) {
       var innerScope = scope;
@@ -1203,8 +1220,9 @@ class _PerformVisitor
   }
 
   Value visitSelectorExpression(SelectorExpression node) {
-    if (_selector == null) return sassNull;
-    return _selector.value.asSassList;
+    var selector = _selector ?? _selectorOutsideAtRoot;
+    if (selector == null) return sassNull;
+    return selector.value.asSassList;
   }
 
   SassString visitStringExpression(StringExpression node) =>
