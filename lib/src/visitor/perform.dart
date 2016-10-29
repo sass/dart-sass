@@ -687,6 +687,11 @@ class _PerformVisitor
       });
     }, through: (node) => node is CssStyleRule);
 
+    if (_selector == null) {
+      var lastChild = _parent.children.last;
+      lastChild.isGroupEnd = true;
+    }
+
     return null;
   }
 

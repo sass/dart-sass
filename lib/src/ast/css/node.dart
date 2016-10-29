@@ -22,6 +22,10 @@ abstract class CssNode extends AstNode {
   /// If `true`, this node should not be emitted to CSS.
   bool get isInvisible => false;
 
+  /// Whether this was generated from the last node in a nested Sass tree that
+  /// got flattened during evaluation.
+  var isGroupEnd = false;
+
   /// Calls the appropriate visit method on [visitor].
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor);
 

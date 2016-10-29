@@ -34,10 +34,7 @@ String toCss(CssNode node, {OutputStyle style, bool inspect: false}) {
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
     result = '@charset "UTF-8";\n$result';
   }
-
-  // TODO(nweiz): Do this in a way that's not O(n), maybe using a custom buffer
-  // that's not append-only.
-  return result.trim();
+  return result;
 }
 
 /// Converts [value] to a CSS string.
@@ -88,10 +85,12 @@ class _SerializeCssVisitor
         _quote = quote;
 
   void visitStylesheet(CssStylesheet node) {
-    for (var child in node.children) {
+    for (var i = 0; i < node.children.length; i++) {
+      var child = node.children[i];
       if (_isInvisible(child)) continue;
       child.accept(this);
       _buffer.writeln();
+      if (i != node.children.length - 1 && child.isGroupEnd) _buffer.writeln();
     }
   }
 
@@ -181,9 +180,6 @@ class _SerializeCssVisitor
     node.selector.value.accept(this);
     _buffer.writeCharCode($space);
     _visitChildren(node.children);
-
-    // TODO: only add an extra newline if this is a group end
-    _buffer.writeln();
   }
 
   void visitSupportsRule(CssSupportsRule node) {
@@ -192,9 +188,6 @@ class _SerializeCssVisitor
     _buffer.write(node.condition.value);
     _buffer.writeCharCode($space);
     _visitChildren(node.children);
-
-    // TODO: only add an extra newline if this is a group end
-    _buffer.writeln();
   }
 
   void visitDeclaration(CssDeclaration node) {
@@ -751,7 +744,7 @@ class _SerializeCssVisitor
   // ## Utilities
 
   /// Emits [children] in a block.
-  void _visitChildren(Iterable<CssNode> children) {
+  void _visitChildren(List<CssNode> children) {
     _buffer.writeCharCode($lbrace);
     if (children.every(_isInvisible)) {
       _buffer.writeCharCode($rbrace);
@@ -760,10 +753,12 @@ class _SerializeCssVisitor
 
     _buffer.writeln();
     _indent(() {
-      for (var child in children) {
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
         if (_isInvisible(child)) continue;
         child.accept(this);
         _buffer.writeln();
+        if (i != children.length - 1 && child.isGroupEnd) _buffer.writeln();
       }
     });
     _writeIndentation();
