@@ -20,6 +20,11 @@ import 'node/result.dart';
 void main() {
   exports.run_ = allowInterop(executable.main);
   exports.render = allowInterop(_render);
+  exports.info =
+      "dart-sass\t${const String.fromEnvironment('version')}\t(Sass Compiler)\t"
+      "[Dart]\n"
+      "dart2js\t${const String.fromEnvironment('dart-version')}\t"
+      "(Dart Compiler)\t[Dart]";
 }
 
 /// Converts Sass to CSS.

@@ -59,7 +59,8 @@ js() {
   var destination = new File('build/sass.dart.js');
   Dart2js.compile(new File('bin/sass.dart'), outFile: destination, extraArgs: [
     '-Dnode=true',
-    '-Dversion=$_version compiled with dart2js $_dartVersion'
+    '-Dversion=$_version',
+    '-Ddart-version=$_dartVersion',
   ]);
   var text = destination.readAsStringSync();
   destination.writeAsStringSync("""

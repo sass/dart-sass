@@ -8,6 +8,7 @@ import 'package:js/js.dart';
 class Exports {
   external set run_(function);
   external set render(function);
+  external set info(String info);
 }
 
 @JS()
