@@ -25,14 +25,15 @@ class Extender {
   /// extensions.
   final _extensions = <SimpleSelector, Set<ExtendSource>>{};
 
-  /// An expando from [SimpleSelector]s to [ComplexSelector]s.
+  /// An expando from [SimpleSelector]s to integers.
   ///
-  /// This tracks the [ComplexSelector]s that originally contained each
-  /// [SimpleSelector]. This allows us to ensure that we don't trim any
-  /// selectors that need to exist to satisfy the [second law of extend][].
+  /// This tracks the maximum specificity of the [ComplexSelector] that
+  /// originally contained each [SimpleSelector]. This allows us to ensure that
+  /// we don't trim any selectors that need to exist to satisfy the [second law
+  /// of extend][].
   ///
   /// [second law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
-  final _sources = new Expando<ComplexSelector>();
+  final _sourceSpecificity = new Expando<int>();
 
   /// Extends [selector] with [source] extender and [target] the extendee.
   ///
@@ -71,7 +72,7 @@ class Extender {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
-            _sources[simple] = complex;
+            _sourceSpecificity[simple] = complex.maxSpecificity;
           }
         }
       }
@@ -410,9 +411,8 @@ class Extender {
         for (var component in complex1.components) {
           if (component is CompoundSelector) {
             for (var simple in component.components) {
-              var source = _sources[simple];
-              if (source == null) continue;
-              maxSpecificity = math.max(maxSpecificity, source.maxSpecificity);
+              maxSpecificity =
+                  math.max(maxSpecificity, _sourceSpecificity[simple] ?? 0);
             }
           }
         }
