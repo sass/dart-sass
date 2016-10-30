@@ -271,10 +271,16 @@ class Extender {
               : [
                   new ComplexSelector([compound])
                 ];
-          extended.add(new ComplexSelector(
+
+          var newComplex = new ComplexSelector(
               complex.components.take(complex.components.length - 1).toList()
                 ..add(unified),
-              lineBreak: complex.lineBreak));
+              lineBreak: complex.lineBreak);
+          _addSourceSpecificity(
+              newComplex,
+              math.max(
+                  _sourceSpecificityFor(compound), complex.maxSpecificity));
+          extended.add(newComplex);
           source.isUsed = true;
         }
       }
@@ -440,5 +446,28 @@ class Extender {
     }
 
     return result;
+  }
+
+  /// Adds [specificity] to the [_sourceSpecificity] for all simple selectors in [complex].
+  void _addSourceSpecificity(ComplexSelector complex, int specificity) {
+    if (specificity == 0) return;
+    for (var component in complex.components) {
+      if (component is CompoundSelector) {
+        for (var simple in component.components) {
+          _sourceSpecificity[simple] =
+              math.max(_sourceSpecificity[simple] ?? 0, specificity);
+        }
+      }
+    }
+  }
+
+  /// Returns the maximum specificity for sources that went into producing
+  /// [compound].
+  int _sourceSpecificityFor(CompoundSelector compound) {
+    var specificity = 0;
+    for (var simple in compound.components) {
+      specificity = math.max(specificity, _sourceSpecificity[simple] ?? 0);
+    }
+    return specificity;
   }
 }
