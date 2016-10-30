@@ -19,6 +19,7 @@ class MediaQueryParser extends Parser {
         whitespace();
         queries.add(_mediaQuery());
       } while (scanner.scanChar($comma));
+      scanner.expectDone();
       return queries;
     });
   }

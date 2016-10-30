@@ -28,6 +28,7 @@ class KeyframeSelectorParser extends Parser {
         }
         whitespace();
       } while (scanner.scanChar($comma));
+      scanner.expectDone();
 
       return selectors;
     });
