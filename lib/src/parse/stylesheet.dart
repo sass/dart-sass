@@ -2213,13 +2213,13 @@ abstract class StylesheetParser extends Parser {
 
       if (equalsIgnoreCase(identifier.asPlain, "and")) {
         // For example, "@media screen and ..."
-        buffer.write("and ");
+        buffer.write(" and ");
       } else {
         buffer.addInterpolation(identifier);
         if (scanIdentifier("and", ignoreCase: true)) {
           // For example, "@media only screen and ..."
           whitespace();
-          buffer.write("and ");
+          buffer.write(" and ");
         } else {
           // For example, "@media only screen {"
           return;
