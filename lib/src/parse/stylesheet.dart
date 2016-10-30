@@ -111,7 +111,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
     }
 
-    _expectStatementSeparator();
+    expectStatementSeparator();
 
     return new VariableDeclaration(name, expression, scanner.spanFrom(start),
         guarded: guarded, global: global);
@@ -162,7 +162,7 @@ abstract class StylesheetParser extends Parser {
     var declarationOrBuffer = _declarationOrBuffer();
 
     if (declarationOrBuffer is Declaration) {
-      _expectStatementSeparator();
+      expectStatementSeparator();
       return declarationOrBuffer;
     }
 
@@ -300,7 +300,7 @@ abstract class StylesheetParser extends Parser {
     var value = _declarationExpression();
     var children =
         lookingAtChildren() ? this.children(_declarationChild) : null;
-    if (children == null) _expectStatementSeparator();
+    if (children == null) expectStatementSeparator();
     return new Declaration(name, scanner.spanFrom(start),
         value: value, children: children);
   }
@@ -486,7 +486,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   DebugRule _debugRule(LineScannerState start) {
     var expression = _expression();
-    _expectStatementSeparator();
+    expectStatementSeparator();
     return new DebugRule(expression, scanner.spanFrom(start));
   }
 
@@ -521,7 +521,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) {
     var expression = _expression();
-    _expectStatementSeparator();
+    expectStatementSeparator();
     return new ErrorRule(expression, scanner.spanFrom(start));
   }
 
@@ -532,7 +532,7 @@ abstract class StylesheetParser extends Parser {
     var value = _almostAnyValue();
     var optional = scanner.scanChar($exclamation);
     if (optional) expectIdentifier("optional");
-    _expectStatementSeparator();
+    expectStatementSeparator();
     return new ExtendRule(value, scanner.spanFrom(start), optional: optional);
   }
 
@@ -634,7 +634,7 @@ abstract class StylesheetParser extends Parser {
       imports.add(_importArgument());
       whitespace();
     } while (scanner.scanChar($comma));
-    _expectStatementSeparator();
+    expectStatementSeparator();
 
     return new ImportRule(imports, scanner.spanFrom(start));
   }
@@ -731,7 +731,7 @@ abstract class StylesheetParser extends Parser {
       children = this.children(_ruleChild);
       _inContentBlock = false;
     } else {
-      _expectStatementSeparator();
+      expectStatementSeparator();
     }
 
     return new IncludeRule(name, arguments, scanner.spanFrom(start),
@@ -781,7 +781,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   ReturnRule _returnRule(LineScannerState start) {
     var expression = _expression();
-    _expectStatementSeparator();
+    expectStatementSeparator();
     return new ReturnRule(expression, scanner.spanFrom(start));
   }
 
@@ -800,7 +800,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   WarnRule _warnRule(LineScannerState start) {
     var expression = _expression();
-    _expectStatementSeparator();
+    expectStatementSeparator();
     return new WarnRule(expression, scanner.spanFrom(start));
   }
 
@@ -826,7 +826,7 @@ abstract class StylesheetParser extends Parser {
     if (next != $exclamation && !atEndOfStatement()) value = _almostAnyValue();
 
     var children = lookingAtChildren() ? this.children(_ruleChild) : null;
-    if (children == null) _expectStatementSeparator();
+    if (children == null) expectStatementSeparator();
 
     return new AtRule(name, scanner.spanFrom(start),
         value: value, children: children);
@@ -2378,18 +2378,6 @@ abstract class StylesheetParser extends Parser {
 
   // ## Utilities
 
-  /// Asserts that the scanner is positioned immediately before a statement
-  /// separator, or at the end of a list of statements.
-  ///
-  /// This consumes whitespace, but nothing else, including comments.
-  void _expectStatementSeparator() {
-    whitespaceWithoutComments();
-    if (scanner.isDone) return;
-    var next = scanner.peekChar();
-    if (next == $semicolon || next == $rbrace) return;
-    scanner.expect(';');
-  }
-
   // ## Abstract Methods
 
   /// Whether this is parsing the indented syntax.
@@ -2400,6 +2388,12 @@ abstract class StylesheetParser extends Parser {
   /// This value isn't used directly by [StylesheetParser]; it's just passed to
   /// [scanElse].
   int get currentIndentation;
+
+  /// Asserts that the scanner is positioned before a statement separator, or at
+  /// the end of a list of statements.
+  ///
+  /// This consumes whitespace, but nothing else, including comments.
+  void expectStatementSeparator();
 
   /// Whether the scanner is positioned at the end of a statement.
   bool atEndOfStatement();

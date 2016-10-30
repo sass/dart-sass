@@ -38,6 +38,10 @@ class SassParser extends StylesheetParser {
   SassParser(String contents, {url, bool color: false})
       : super(contents, url: url, color: color);
 
+  void expectStatementSeparator() {
+    if (!atEndOfStatement()) scanner.expectChar($lf);
+  }
+
   bool atEndOfStatement() {
     var next = scanner.peekChar();
     return next == null || isNewline(next);

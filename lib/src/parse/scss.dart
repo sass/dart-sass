@@ -16,6 +16,14 @@ class ScssParser extends StylesheetParser {
   ScssParser(String contents, {url, bool color: false})
       : super(contents, url: url, color: color);
 
+  void expectStatementSeparator() {
+    whitespaceWithoutComments();
+    if (scanner.isDone) return;
+    var next = scanner.peekChar();
+    if (next == $semicolon || next == $rbrace) return;
+    scanner.expectChar($semicolon);
+  }
+
   bool atEndOfStatement() {
     var next = scanner.peekChar();
     return next == null ||
