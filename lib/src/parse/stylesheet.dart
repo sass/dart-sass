@@ -161,10 +161,7 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var declarationOrBuffer = _declarationOrBuffer();
 
-    if (declarationOrBuffer is Declaration) {
-      expectStatementSeparator();
-      return declarationOrBuffer;
-    }
+    if (declarationOrBuffer is Declaration) return declarationOrBuffer;
 
     var buffer = declarationOrBuffer as InterpolationBuffer;
     buffer.addInterpolation(_almostAnyValue());
@@ -239,7 +236,7 @@ abstract class StylesheetParser extends Parser {
     var postColonWhitespace = rawText(whitespace);
     if (lookingAtChildren()) {
       return new Declaration(name, scanner.spanFrom(start),
-          children: children(_declarationChild));
+          children: this.children(_declarationChild));
     }
 
     midBuffer.write(postColonWhitespace);
@@ -275,9 +272,12 @@ abstract class StylesheetParser extends Parser {
       return nameBuffer;
     }
 
+    var children =
+        lookingAtChildren() ? this.children(_declarationChild) : null;
+    if (children == null) expectStatementSeparator();
+
     return new Declaration(name, scanner.spanFrom(start),
-        value: value,
-        children: lookingAtChildren() ? children(_declarationChild) : null);
+        value: value, children: children);
   }
 
   /// Consumes a property declaration.
