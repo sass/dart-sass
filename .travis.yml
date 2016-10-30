@@ -1,0 +1,21 @@
+# Set the language to Ruby so that we can run sass-spec tests.
+language: ruby
+env:
+- DART_VERSION=1.19.1
+- DART_VERSION=latest
+
+rvm:
+- 2.3.1
+
+cache:
+  directories:
+  - $HOME/.pub-cache
+
+# Install the Dart SDK.
+install:
+- curl -o dart.zip "https://storage.googleapis.com/dart-archive/channels/stable/release/$DART_VERSION/sdk/dartsdk-linux-x64-release.zip"
+- unzip dart.zip
+- export PATH="$PATH:`pwd`/dart-sdk/bin"
+- pub get
+
+script: ./tool/travis.sh
