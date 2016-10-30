@@ -507,8 +507,8 @@ List<List/*<T>*/ > paths/*<T>*/(Iterable<List/*<T>*/ > choices) => choices.fold(
 QueueList<List<ComplexSelectorComponent>> _groupSelectors(
     Iterable<ComplexSelectorComponent> complex) {
   var groups = new QueueList<List<ComplexSelectorComponent>>();
-  var iterator = complex.iterator;
-  while (iterator.moveNext()) {
+  var iterator = complex.iterator..moveNext();
+  while (iterator.current != null) {
     var group = <ComplexSelectorComponent>[];
     do {
       group.add(iterator.current);
