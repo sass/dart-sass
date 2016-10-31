@@ -40,7 +40,7 @@ void main(List<String> args) {
 
   if (options['help'] as bool || options.rest.isEmpty) {
     print("Compile Sass to CSS.\n");
-    print("Usage: sass <input>\n");
+    print("Usage: dart-sass <input>\n");
     print(argParser.usage);
     exit(64);
   }
