@@ -74,7 +74,7 @@ js() {
 @Depends(js)
 npm_package() {
   var dir = new Directory('build/npm');
-  dir.deleteSync(recursive: true);
+  if (dir.existsSync()) dir.deleteSync(recursive: true);
   dir.createSync(recursive: true);
 
   log("copying package/package.json to build/npm");
