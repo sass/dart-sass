@@ -135,7 +135,7 @@ class Environment {
   /// variable is declared.
   Value getVariable(String name) {
     var index = _variableIndices[name];
-    if (index != null) _variables[index][name];
+    if (index != null) return _variables[index][name];
 
     index = _variableIndex(name);
     if (index == null) return null;
@@ -195,7 +195,7 @@ class Environment {
   /// function is declared.
   Callable getFunction(String name) {
     var index = _functionIndices[name];
-    if (index != null) _functions[index][name];
+    if (index != null) return _functions[index][name];
 
     index = _functionIndex(name);
     if (index == null) return null;
@@ -232,7 +232,7 @@ class Environment {
   /// declared.
   Callable getMixin(String name) {
     var index = _mixinIndices[name];
-    if (index != null) _mixins[index][name];
+    if (index != null) return _mixins[index][name];
 
     index = _mixinIndex(name);
     if (index == null) return null;
