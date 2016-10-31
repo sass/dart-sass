@@ -25,7 +25,9 @@ fold ()
     fi
 }
 
-echo-and-run dartanalyzer --fatal-warnings lib/
+if [ "$ANALYZE" != false ]; then
+    echo-and-run dartanalyzer --fatal-warnings lib/
+fi
 echo-and-run ./tool/assert-formatted.sh
 
 dart_sass=`pwd`

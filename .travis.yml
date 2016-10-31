@@ -1,8 +1,8 @@
 # Set the language to Ruby so that we can run sass-spec tests.
 language: ruby
 env:
-- DART_VERSION=1.19.1
-- DART_VERSION=latest
+- DART_VERSION=1.19.1 ANALYZE=false
+- DART_VERSION=latest ANALYZE=true
 
 rvm:
 - 2.3.1
