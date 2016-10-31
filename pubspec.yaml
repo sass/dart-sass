@@ -2,7 +2,7 @@ name: sass
 version: 1.0.0-alpha.1
 description: A Sass implementation in Dart.
 author: Dart Team <misc@dartlang.org>
-homepage: https://github.com/dart-lang/sass
+homepage: https://github.com/sass/dart-sass
 
 executables:
   dart-sass: sass
