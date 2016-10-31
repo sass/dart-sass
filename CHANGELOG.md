@@ -1,3 +1,3 @@
-## 0.0.0
+## 1.0.0-alpha.1
 
-* Initial version.
+* Initial alpha release.
