@@ -48,7 +48,7 @@ The `render()` function will eventually support the same API as
 ### From Pub
 
 If you're a Dart user, you can install Dart Sass globally using `pub global
-install dart-sass`, which will provide a `dart-sass` executable. You can also
+activate dart-sass`, which will provide a `dart-sass` executable. You can also
 add it to your pubspec and use it as a library:
 
 ```dart
