@@ -166,7 +166,9 @@ class Environment {
   /// previous scope. If it's undefined, it'll set it in the current scope.
   void setVariable(String name, Value value, {bool global: false}) {
     if (global || _variables.length == 1) {
-      _variableIndices[name] = 0;
+      // Don't set the index if there's already a variable with the given name,
+      // since local accesses should still return the local variable.
+      _variableIndices.putIfAbsent(name, () => 0);
       _variables.first[name] = value;
       return;
     }
