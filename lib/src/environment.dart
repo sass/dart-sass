@@ -123,11 +123,11 @@ class Environment {
   /// otherwise independent.
   Environment global() => new Environment._(
       [_variables.first],
-      new Map.fromIterable(_variables.first.keys, value: (_) => 1),
+      new Map.fromIterable(_variables.first.keys, value: (_) => 0),
       [_functions.first],
-      new Map.fromIterable(_functions.first.keys, value: (_) => 1),
+      new Map.fromIterable(_functions.first.keys, value: (_) => 0),
       [_mixins.first],
-      new Map.fromIterable(_mixins.first.keys, value: (_) => 1),
+      new Map.fromIterable(_mixins.first.keys, value: (_) => 0),
       null,
       null);
 
