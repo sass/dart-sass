@@ -117,7 +117,7 @@ increase along with the amount of extension. With only one `@extend` it's almost
 on par with libsass; with hundreds of thousands, it's actually faster.
 
 It's worth noting that Dart Sass implements `@extend` semantics according to
-[issue 1599][], while other implementations do not. This certainly simplifies
+[issue 1599][1599], while other implementations do not. This certainly simplifies
 the implementation and may explain some of the speed gains. However, even if
 other implementations could be faster, it's still the case that Dart Sass is
 *fast enough*.
