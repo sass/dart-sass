@@ -116,7 +116,9 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
   var sassLicense = new File('LICENSE').readAsBytesSync();
   var dartLicense = new File(p.join(_sdkDir, 'LICENSE')).readAsBytesSync();
   var archive = new Archive()
-    ..addFile(_file("dart-sass/src/dart", executable, executable: true))
+    ..addFile(_file(
+        "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
+        executable: true))
     ..addFile(_file("dart-sass/src/DART_LICENSE", dartLicense))
     ..addFile(_file("dart-sass/src/sass.dart.snapshot", snapshot))
     ..addFile(_file("dart-sass/src/SASS_LICENSE", sassLicense))
