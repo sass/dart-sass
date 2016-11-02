@@ -15,6 +15,7 @@ import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import '../value.dart';
+import '../value/color.dart';
 import 'parser.dart';
 
 /// The base class for both the SCSS and indented syntax parsers.
@@ -1492,14 +1493,20 @@ abstract class StylesheetParser extends Parser {
 
     var first = scanner.peekChar();
     if (first != null && isDigit(first)) {
-      return new ColorExpression(_hexColorContents(), scanner.spanFrom(start));
+      var color = _hexColorContents();
+      var span = scanner.spanFrom(start);
+      setOriginalSpan(color, span);
+      return new ColorExpression(color, span);
     }
 
     var afterHash = scanner.state;
     var identifier = _interpolatedIdentifier();
     if (_isHexColor(identifier)) {
       scanner.state = afterHash;
-      return new ColorExpression(_hexColorContents(), scanner.spanFrom(start));
+      var color = _hexColorContents();
+      var span = scanner.spanFrom(start);
+      setOriginalSpan(color, span);
+      return new ColorExpression(color, span);
     }
 
     var buffer = new InterpolationBuffer();
@@ -1740,7 +1747,13 @@ abstract class StylesheetParser extends Parser {
         }
 
         var color = colorsByName[lower];
-        if (color != null) return new ColorExpression(color, identifier.span);
+        if (color != null) {
+          // TODO(nweiz): Avoid copying the color in compressed mode.
+          color = new SassColor.rgb(
+              color.red, color.green, color.blue, color.alpha);
+          setOriginalSpan(color, identifier.span);
+          return new ColorExpression(color, identifier.span);
+        }
       }
 
       var specialFunction = _trySpecialFunction(lower, start);

@@ -4,10 +4,19 @@
 
 import 'dart:math' as math;
 
+import 'package:source_span/source_span.dart';
+
 import '../exception.dart';
 import '../util/number.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';
+
+/// Sets the span for [SassColor.original] to [span].
+///
+/// This is a separate function so it can be hidden in most exports.
+void setOriginalSpan(SassColor color, SourceSpan span) {
+  color._originalSpan = span;
+}
 
 // TODO(nweiz): track original representation.
 /// A SassScript color.
@@ -62,6 +71,15 @@ class SassColor extends Value {
 
   /// This color's alpha channel, between `0` and `1`.
   final num alpha;
+
+  /// The original string representation of this color, or `null` if one is
+  /// unavailable.
+  String get original => _originalSpan?.text;
+
+  /// The span tracking the location in which this color was originally defined.
+  ///
+  /// This is tracked as a span to avoid extra substring allocations.
+  SourceSpan _originalSpan;
 
   /// Creates an RGB color.
   ///

@@ -280,8 +280,9 @@ class _SerializeCssVisitor
   void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 
   void visitColor(SassColor value) {
-    // TODO(nweiz): Use color names for named colors.
-    if (value.alpha == 1) {
+    if (value.original != null) {
+      _buffer.write(value.original);
+    } else if (value.alpha == 1) {
       _buffer.writeCharCode($hash);
       _writeHexComponent(value.red);
       _writeHexComponent(value.green);

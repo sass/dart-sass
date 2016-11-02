@@ -16,7 +16,7 @@ import 'visitor/serialize.dart';
 
 export 'value/argument_list.dart';
 export 'value/boolean.dart';
-export 'value/color.dart';
+export 'value/color.dart' hide setOriginalSpan;
 export 'value/function.dart';
 export 'value/list.dart';
 export 'value/map.dart';
