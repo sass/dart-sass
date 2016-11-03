@@ -85,15 +85,18 @@ class _SerializeCssVisitor
         _quote = quote;
 
   void visitStylesheet(CssStylesheet node) {
+    CssNode previous;
     for (var i = 0; i < node.children.length; i++) {
       var child = node.children[i];
       if (_isInvisible(child)) continue;
-      child.accept(this);
 
-      if (i != node.children.length - 1) {
+      if (previous != null) {
         _buffer.writeln();
-        if (child.isGroupEnd) _buffer.writeln();
+        if (previous.isGroupEnd) _buffer.writeln();
       }
+      previous = child;
+
+      child.accept(this);
     }
   }
 
@@ -756,14 +759,21 @@ class _SerializeCssVisitor
 
     _buffer.writeln();
     _indent(() {
+      CssNode previous;
       for (var i = 0; i < children.length; i++) {
         var child = children[i];
         if (_isInvisible(child)) continue;
+
+        if (previous != null) {
+          _buffer.writeln();
+          if (previous.isGroupEnd) _buffer.writeln();
+        }
+        previous = child;
+
         child.accept(this);
-        _buffer.writeln();
-        if (i != children.length - 1 && child.isGroupEnd) _buffer.writeln();
       }
     });
+    _buffer.writeln();
     _writeIndentation();
     _buffer.writeCharCode($rbrace);
   }
