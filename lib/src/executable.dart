@@ -33,7 +33,7 @@ void main(List<String> args) {
   if (options['version'] as bool) {
     _loadVersion().then((version) {
       print(version);
-      exit(0);
+      exitCode = 0;
     });
     return;
   }
@@ -42,7 +42,8 @@ void main(List<String> args) {
     print("Compile Sass to CSS.\n");
     print("Usage: dart-sass <input>\n");
     print(argParser.usage);
-    exit(64);
+    exitCode = 64;
+    return;
   }
 
   var color = options['color'] as bool;
@@ -60,7 +61,7 @@ void main(List<String> args) {
 
     // Exit code 65 indicates invalid data per
     // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
-    exit(65);
+    exitCode = 65;
   } catch (error, stackTrace) {
     if (color) stderr.write('\u001b[31m\u001b[1m');
     stderr.write('Unexpected exception:');
@@ -71,6 +72,7 @@ void main(List<String> args) {
     stderr.writeln();
     stderr.write(new Trace.from(stackTrace).terse.toString());
     stderr.flush();
+    exitCode = 255;
   }
 }
 

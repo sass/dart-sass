@@ -26,5 +26,5 @@ String readFile(String path) => null;
 /// Returns whether a file at [path] exists.
 bool fileExists(String path) => null;
 
-/// Exits the process with the given [exitCode].
-void exit(int exitCode) {}
+/// Gets and sets the exit code that the process will use when it exits.
+int exitCode;

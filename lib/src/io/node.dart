@@ -44,5 +44,8 @@ external _Stderr get _stderr;
 
 final stderr = new Stderr(_stderr);
 
-@JS("process.exit")
-external int exit(int exitCode);
+@JS("process.exitCode")
+external int get exitCode;
+
+@JS("process.exitCode")
+external set exitCode(int code);

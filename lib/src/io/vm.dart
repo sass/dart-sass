@@ -4,10 +4,10 @@
 
 import 'dart:io' as io;
 
+export 'dart:io' show exitCode;
+
 io.Stdout get stderr => io.stderr;
 
 String readFile(String path) => new io.File(path).readAsStringSync();
 
 bool fileExists(String path) => new io.File(path).existsSync();
-
-void exit(int exitCode) => io.exit(exitCode);
