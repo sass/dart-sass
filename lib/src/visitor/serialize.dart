@@ -89,8 +89,11 @@ class _SerializeCssVisitor
       var child = node.children[i];
       if (_isInvisible(child)) continue;
       child.accept(this);
-      _buffer.writeln();
-      if (i != node.children.length - 1 && child.isGroupEnd) _buffer.writeln();
+
+      if (i != node.children.length - 1) {
+        _buffer.writeln();
+        if (child.isGroupEnd) _buffer.writeln();
+      }
     }
   }
 
