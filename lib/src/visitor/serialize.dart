@@ -104,7 +104,7 @@ class _SerializeCssVisitor
     var minimumIndentation = _minimumIndentation(node.text);
     if (minimumIndentation == null) {
       _writeIndentation();
-      _buffer.writeln(node.text);
+      _buffer.write(node.text);
       return;
     }
 
