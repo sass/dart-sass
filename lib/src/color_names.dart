@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:collection/collection.dart';
+
 import 'utils.dart';
 import 'value.dart';
 
@@ -157,3 +159,9 @@ final colorsByName = normalizedMap({
   'yellow': new SassColor.rgb(0xFF, 0xFF, 0x00),
   'yellowgreen': new SassColor.rgb(0x9A, 0xCD, 0x32),
 });
+
+/// A map from Sass colors to (lowercase) color names.
+final namesByColor = mapMap/*<String, SassColor, SassColor, String>*/(
+    colorsByName,
+    key: (_, color) => color,
+    value: (name, _) => name);

@@ -10,6 +10,7 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/css.dart';
 import '../ast/selector.dart';
+import '../color_names.dart';
 import '../exception.dart';
 import '../util/character.dart';
 import '../util/number.dart';
@@ -282,6 +283,8 @@ class _SerializeCssVisitor
   void visitColor(SassColor value) {
     if (value.original != null) {
       _buffer.write(value.original);
+    } else if (namesByColor.containsKey(value)) {
+      _buffer.write(namesByColor[value]);
     } else if (value.alpha == 1) {
       _buffer.writeCharCode($hash);
       _writeHexComponent(value.red);
