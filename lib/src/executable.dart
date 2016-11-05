@@ -13,7 +13,7 @@ import '../sass.dart';
 import 'exception.dart';
 import 'io.dart';
 
-void main(List<String> args) {
+main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addOption('precision', hide: true)
     ..addOption('style',
@@ -71,7 +71,7 @@ void main(List<String> args) {
     stderr.writeln(error);
     stderr.writeln();
     stderr.write(new Trace.from(stackTrace).terse.toString());
-    stderr.flush();
+    await stderr.flush();
     exitCode = 255;
   }
 }
