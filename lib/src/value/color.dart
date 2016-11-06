@@ -147,9 +147,11 @@ class SassColor extends Value {
       other is SassColor &&
       other.red == red &&
       other.green == green &&
-      other.blue == blue;
+      other.blue == blue &&
+      other.alpha == alpha;
 
-  int get hashCode => red.hashCode ^ green.hashCode ^ blue.hashCode;
+  int get hashCode =>
+      red.hashCode ^ green.hashCode ^ blue.hashCode ^ alpha.hashCode;
 
   /// Computes [_hue], [_saturation], and [_value] based on [red], [green], and
   /// [blue].
