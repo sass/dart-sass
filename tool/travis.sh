@@ -35,8 +35,8 @@ dir=`mktemp -d /tmp/sass-spec-XXXXXXXX`
 cd "$dir"
 
 fold "git.sass-spec" \
-     git clone git://github.com/sass/sass-spec --branch dart-sass-old --depth 1
+     git clone git://github.com/sass/sass-spec --branch dart-sass --depth 1
 cd sass-spec
 
 fold "bundle" bundle install --jobs=3 --retry=3
-echo-and-run bundle exec sass-spec.rb --output-style expanded --probe-todo --dart "$dart_sass"
+echo-and-run bundle exec sass-spec.rb --probe-todo --dart "$dart_sass"
