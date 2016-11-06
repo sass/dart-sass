@@ -179,10 +179,10 @@ class SassColor extends Value {
 
     if (max == min) {
       _saturation = 0;
-    } else if (_lightness < 0.5) {
-      _saturation = 5000 * delta / _lightness;
+    } else if (_lightness < 50) {
+      _saturation = 100 * delta / (max + min);
     } else {
-      _saturation = 5000 * delta / (100 - _lightness);
+      _saturation = 100 * delta / (2 - max - min);
     }
   }
 
