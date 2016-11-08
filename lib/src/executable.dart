@@ -51,7 +51,27 @@ main(List<String> args) async {
     var css = render(options.rest.first, color: color);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
-    stderr.writeln(error.toString(color: color));
+    stderr.writeln("Error: ${error.message}");
+    stderr.writeln(error.span.highlight(color: color));
+
+    var start = error.span.start;
+    if (error is SassRuntimeException) {
+      var firstFrame = error.trace.frames.first;
+      if (start.sourceUrl != firstFrame.uri ||
+          start.line + 1 != firstFrame.line ||
+          start.column + 1 != firstFrame.column) {
+        stderr.writeln(
+            "  ${start.sourceUrl} ${start.line + 1}:${start.column + 1}");
+      }
+
+      for (var frame in error.trace.toString().split("\n")) {
+        if (frame.isEmpty) continue;
+        stderr.writeln("  $frame");
+      }
+    } else {
+      stderr.writeln(
+          "  ${start.sourceUrl} ${start.line + 1}:${start.column + 1}");
+    }
 
     if (options['trace'] as bool) {
       stderr.writeln();
