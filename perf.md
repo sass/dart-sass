@@ -1,4 +1,4 @@
-These benchamrks are informal and only intended to give us a general sense of
+These benchmarks are informal and only intended to give us a general sense of
 the benefit Dart Sass could provide relative to other implementations.
 
 This was tested against:
