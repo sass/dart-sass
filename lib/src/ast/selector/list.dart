@@ -21,17 +21,8 @@ class SelectorList extends Selector {
   final List<ComplexSelector> components;
 
   /// Whether this contains a [ParentSelector].
-  bool get _containsParentSelector {
-    return components.any((complex) {
-      return complex.components.any((component) =>
-          component is CompoundSelector &&
-          component.components.any((simple) =>
-              simple is ParentSelector ||
-              (simple is PseudoSelector &&
-                  simple.selector != null &&
-                  simple.selector._containsParentSelector)));
-    });
-  }
+  bool get _containsParentSelector =>
+      components.any(_complexContainsParentSelector);
 
   /// Returns a SassScript list that represents this selector.
   ///
@@ -97,15 +88,13 @@ class SelectorList extends Selector {
           'Top-level selectors may not contain the parent selector "&".');
     }
 
-    if (!_containsParentSelector) {
-      return new SelectorList(parent.components.expand((parentComplex) {
-        return components.map((childComplex) => new ComplexSelector(
-            parentComplex.components.toList()..addAll(childComplex.components),
-            lineBreak: childComplex.lineBreak || parentComplex.lineBreak));
-      }));
-    }
-
     return new SelectorList(flattenVertically(components.map((complex) {
+      if (!_complexContainsParentSelector(complex)) {
+        return parent.components.map((parentComplex) => new ComplexSelector(
+            parentComplex.components.toList()..addAll(complex.components),
+            lineBreak: complex.lineBreak || parentComplex.lineBreak));
+      }
+
       var newComplexes = [<ComplexSelectorComponent>[]];
       var lineBreaks = <bool>[false];
       for (var component in complex.components) {
@@ -143,6 +132,16 @@ class SelectorList extends Selector {
           new ComplexSelector(newComplex, lineBreak: lineBreaks[i++]));
     })));
   }
+
+  /// Returns whether [complex] contains a [ParentSelector].
+  bool _complexContainsParentSelector(ComplexSelector complex) =>
+      complex.components.any((component) =>
+          component is CompoundSelector &&
+          component.components.any((simple) =>
+              simple is ParentSelector ||
+              (simple is PseudoSelector &&
+                  simple.selector != null &&
+                  simple.selector._containsParentSelector)));
 
   /// Returns a new [CompoundSelector] based on [compound] with all
   /// [ParentSelector]s replaced with [parent].
