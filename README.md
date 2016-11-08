@@ -37,11 +37,15 @@ a library:
 ```js
 var sass = require('dart-sass');
 
-var result = sass.render({file: scss_filename});
+sass.render({file: scss_filename}, function(err, result) { /* ... */ });
+
+// OR
+
+var result = sass.renderSync({file: scss_filename});
 ```
 
-The `render()` function will eventually support the same API as
-[node-sass's][render], but today it only supports the `file` option.
+The `render()` and `renderSync()` functions will eventually support the same API
+as [node-sass's][render], but today they only supports the `file` option.
 
 [render]: https://github.com/sass/node-sass#options
 
