@@ -1,5 +1,7 @@
 A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 
+[![Build Status](https://api.travis-ci.org/sass/dart-sass.svg)](https://travis-ci.org/sass/dart-sass)
+
 [dart]: https://www.dartlang.org
 [sass]: http://sass-lang.com/
 
