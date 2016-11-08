@@ -273,10 +273,11 @@ void defineCoreFunctions(Environment environment) {
     return new SassNumber(color.alpha);
   });
 
-  environment.defineFunction("opacify", r"$color", _opacify);
-  environment.defineFunction("fade-in", r"$color", _opacify);
-  environment.defineFunction("transparentize", r"$color", _transparentize);
-  environment.defineFunction("fade-out", r"$color", _transparentize);
+  environment.defineFunction("opacify", r"$color, $amount", _opacify);
+  environment.defineFunction("fade-in", r"$color, $amount", _opacify);
+  environment.defineFunction(
+      "transparentize", r"$color, $amount", _transparentize);
+  environment.defineFunction("fade-out", r"$color, $amount", _transparentize);
 
   // ### Miscellaneous
 
