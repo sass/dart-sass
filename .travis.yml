@@ -17,7 +17,10 @@ install:
 - unzip dart.zip
 - export PATH="$PATH:`pwd`/dart-sdk/bin"
 - pub get
-- git clone git://github.com/sass/sass-spec --branch dart-sass --depth 1
+- SASS_SPEC_REF=`tool/sass-spec-ref.sh`
+- git init sass-spec
+- git -C sass-spec fetch git://github.com/sass/sass-spec "$SASS_SPEC_REF" --depth 1
+- git -C sass-spec checkout FETCH_HEAD
 - (cd sass-spec; bundle install --jobs=3 --retry=3)
 
 script:
