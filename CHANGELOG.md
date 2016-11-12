@@ -1,3 +1,7 @@
+## 1.0.0-alpha.4
+
+* Fix a bug where `1 + - 2` and similar constructs would crash the parser.
+
 ## 1.0.0-alpha.3
 
 * Fix a bug where color equality didn't take the alpha channel into account.

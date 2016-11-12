@@ -966,7 +966,7 @@ abstract class StylesheetParser extends Parser {
     /// slash-separated numbers.
     var allowSlash = lookingAtNumber();
 
-    /// The leftmost expression that's been fully-parsed.
+    /// The leftmost expression that's been fully-parsed. Never `null`.
     var singleExpression = _singleExpression();
 
     // Resets the scanner state to the state it was at at the beginning of the
@@ -982,7 +982,6 @@ abstract class StylesheetParser extends Parser {
     }
 
     resolveOneOperation() {
-      assert(singleExpression != null);
       var operator = operators.removeLast();
       if (operator != BinaryOperator.dividedBy) allowSlash = false;
       if (allowSlash && !_inParentheses) {
@@ -1037,13 +1036,16 @@ abstract class StylesheetParser extends Parser {
 
       assert(singleExpression != null);
       operands.add(singleExpression);
-      singleExpression = null;
+      whitespace();
+      allowSlash = allowSlash && lookingAtNumber();
+      singleExpression = _singleExpression();
+      allowSlash = allowSlash && singleExpression is NumberExpression;
     }
 
     resolveSpaceExpressions() {
-      if (singleExpression != null) resolveOperations();
+      resolveOperations();
       if (spaceExpressions == null) return;
-      if (singleExpression != null) spaceExpressions.add(singleExpression);
+      spaceExpressions.add(singleExpression);
       singleExpression =
           new ListExpression(spaceExpressions, ListSeparator.space);
       spaceExpressions = null;
