@@ -230,6 +230,10 @@ abstract class Value {
         brackets: brackets ?? this.hasBrackets);
   }
 
+  /// The SassScript `=` operation.
+  Value singleEquals(Value other) =>
+      new SassString("${toCssString()}=${other.toCssString()}");
+
   /// The SassScript `or` operation.
   Value or(Value other) => this;
 
