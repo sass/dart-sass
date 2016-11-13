@@ -1,8 +1,10 @@
 # Set the language to Ruby so that we can run sass-spec tests.
 language: ruby
 env:
-- DART_VERSION=1.19.1 ANALYZE=false
-- DART_VERSION=latest ANALYZE=true
+- TASK=specs   DART_VERSION=latest
+- TASK=specs   DART_VERSION=1.19.1 
+- TASK=analyze DART_VERSION=latest
+- TASK=format  DART_VERSION=latest
 
 rvm:
 - 2.3.1
@@ -17,16 +19,19 @@ install:
 - unzip dart.zip
 - export PATH="$PATH:`pwd`/dart-sdk/bin"
 - pub get
-- SASS_SPEC_REF=`tool/sass-spec-ref.sh`
-- git init sass-spec
-- git -C sass-spec fetch git://github.com/sass/sass-spec "$SASS_SPEC_REF" --depth 1
-- git -C sass-spec checkout FETCH_HEAD
-- (cd sass-spec; bundle install --jobs=3 --retry=3)
+
+- if-specs() { if [ "$TASK" = specs ]; then "$@"; fi }
+- if-specs export sass_spec_ref=`tool/sass-spec-ref.sh`
+- if-specs git init sass-spec
+- if-specs git -C sass-spec fetch git://github.com/sass/sass-spec "$sass_spec_ref" --depth 1
+- if-specs git -C sass-spec checkout FETCH_HEAD
+- if-specs bundle install --gemfile=sass-spec/Gemfile --jobs=3 --retry=3
 
 script:
-- if [ "$ANALYZE" != false ]; then
+- if [ "$TASK" = analyze ]; then
     dartanalyzer --fatal-warnings lib/;
+  elif [ "$TASK" = format ]; then
+    ./tool/assert-formatted.sh;
+  else
+    (cd sass-spec; bundle exec sass-spec.rb --dart ..);
   fi
-
-- ./tool/assert-formatted.sh
-- (cd sass-spec; bundle exec sass-spec.rb --dart ..)
