@@ -817,6 +817,8 @@ class _PerformVisitor
       var left = node.left.accept(this);
       var right = node.right.accept(this);
       switch (node.operator) {
+        case BinaryOperator.singleEquals:
+          return left.singleEquals(right);
         case BinaryOperator.or:
           return left.or(right);
         case BinaryOperator.and:

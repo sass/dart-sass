@@ -722,7 +722,7 @@ abstract class StylesheetParser extends Parser {
     var name = identifier();
     whitespace();
     var arguments = scanner.peekChar() == $lparen
-        ? _argumentInvocation()
+        ? _argumentInvocation(mixin: true)
         : new ArgumentInvocation.empty(scanner.emptySpan);
     whitespace();
 
@@ -889,7 +889,11 @@ abstract class StylesheetParser extends Parser {
   // ## Expressions
 
   /// Consumes an argument invocation.
-  ArgumentInvocation _argumentInvocation() {
+  ///
+  /// If [mixin] is `true`, this is parsed as a mixin invocation. Mixin
+  /// invocations don't allow the Microsoft-style `=` operator at the top level,
+  /// but function invocations do.
+  ArgumentInvocation _argumentInvocation({bool mixin: false}) {
     var wasInParentheses = _inParentheses;
     _inParentheses = true;
     var start = scanner.state;
@@ -901,7 +905,7 @@ abstract class StylesheetParser extends Parser {
     Expression rest;
     Expression keywordRest;
     while (_lookingAtExpression()) {
-      var expression = _expressionUntilComma();
+      var expression = _expressionUntilComma(singleEquals: !mixin);
       whitespace();
 
       if (expression is VariableExpression && scanner.scanChar($colon)) {
@@ -911,7 +915,7 @@ abstract class StylesheetParser extends Parser {
               position: expression.span.start.offset,
               length: expression.span.length);
         }
-        named[expression.name] = _expressionUntilComma();
+        named[expression.name] = _expressionUntilComma(singleEquals: !mixin);
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -941,15 +945,21 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes an expression.
   ///
+  /// If [singleEquals] is true, this will allow the Microsoft-style `=`
+  /// operator at the top level.
+  ///
   /// If [until] is passed, it's called each time the expression could end and
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
-  Expression _expression({bool until()}) {
+  Expression _expression({bool singleEquals: false, bool until()}) {
     if (until != null && until()) scanner.error("Expected expression.");
     var start = scanner.state;
     var wasInParentheses = _inParentheses;
 
     List<Expression> commaExpressions;
+
+    Expression singleEqualsOperand;
+
     List<Expression> spaceExpressions;
 
     // Operators whose right-hand operands are not fully parsed yet, in order of
@@ -1044,11 +1054,19 @@ abstract class StylesheetParser extends Parser {
 
     resolveSpaceExpressions() {
       resolveOperations();
-      if (spaceExpressions == null) return;
-      spaceExpressions.add(singleExpression);
-      singleExpression =
-          new ListExpression(spaceExpressions, ListSeparator.space);
-      spaceExpressions = null;
+
+      if (spaceExpressions != null) {
+        spaceExpressions.add(singleExpression);
+        singleExpression =
+            new ListExpression(spaceExpressions, ListSeparator.space);
+        spaceExpressions = null;
+      }
+
+      if (singleEqualsOperand != null) {
+        singleExpression = new BinaryOperationExpression(
+            BinaryOperator.singleEquals, singleEqualsOperand, singleExpression);
+        singleEqualsOperand = null;
+      }
     }
 
     loop:
@@ -1086,8 +1104,14 @@ abstract class StylesheetParser extends Parser {
 
         case $equal:
           scanner.readChar();
-          scanner.expectChar($equal);
-          addOperator(BinaryOperator.equals);
+          if (singleEquals && scanner.peekChar() != $equal) {
+            resolveSpaceExpressions();
+            singleEqualsOperand = singleExpression;
+            singleExpression = null;
+          } else {
+            scanner.expectChar($equal);
+            addOperator(BinaryOperator.equals);
+          }
           break;
 
         case $exclamation:
@@ -1288,8 +1312,11 @@ abstract class StylesheetParser extends Parser {
   }
 
   /// Consumes an expression until it reaches a top-level comma.
-  Expression _expressionUntilComma() =>
-      _expression(until: () => scanner.peekChar() == $comma);
+  ///
+  /// If [singleEquals] is true, this will allow the Microsoft-style `=`
+  /// operator at the top level.
+  Expression _expressionUntilComma({bool singleEquals: false}) => _expression(
+      singleEquals: singleEquals, until: () => scanner.peekChar() == $comma);
 
   /// Consumes an expression that doesn't contain any top-level whitespace.
   Expression _singleExpression() {
