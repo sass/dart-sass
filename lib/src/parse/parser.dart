@@ -419,6 +419,7 @@ abstract class Parser {
       var second = scanner.peekChar(1);
       if (second == null) return false;
       if (isDigit(second)) return true;
+      if (second != $dot) return false;
 
       var third = scanner.peekChar(2);
       return third != null && isDigit(third);
@@ -446,6 +447,13 @@ abstract class Parser {
         (isNameStart(second) || second == $dash || second == $backslash);
   }
 
+  /// Returns whether the scanner is immediately before a sequence of characters
+  /// that could be part of a plain CSS identifier body.
+  bool lookingAtIdentifierBody() {
+    var next = scanner.peekChar();
+    return next != null && (isName(next) || next == $backslash);
+  }
+
   /// Consumes an identifier if its name exactly matches [text].
   ///
   /// If [ignoreCase] is `true`, does a case-insensitive match.
@@ -460,9 +468,7 @@ abstract class Parser {
       return false;
     }
 
-    var next = scanner.peekChar();
-    if (next == null) return true;
-    if (!isName(next) && next != $backslash) return true;
+    if (!lookingAtIdentifierBody()) return true;
     scanner.state = start;
     return false;
   }
@@ -480,9 +486,7 @@ abstract class Parser {
       scanner.error("Expected $name.", position: start);
     }
 
-    var next = scanner.peekChar();
-    if (next == null) return;
-    if (!isName(next) && next != $backslash) return;
+    if (!lookingAtIdentifierBody()) return;
     scanner.error("Expected $name", position: start);
   }
 

@@ -1212,6 +1212,15 @@ abstract class StylesheetParser extends Parser {
           }
           break;
 
+        case $u:
+        case $U:
+          if (scanner.peekChar(1) == $plus) {
+            addSingleExpression(_unicodeRange());
+          } else {
+            addSingleExpression(_identifierLike());
+          }
+          break;
+
         case $b:
         case $c:
         case $d:
@@ -1230,7 +1239,6 @@ abstract class StylesheetParser extends Parser {
         case $r:
         case $s:
         case $t:
-        case $u:
         case $v:
         case $w:
         case $x:
@@ -1256,7 +1264,6 @@ abstract class StylesheetParser extends Parser {
         case $R:
         case $S:
         case $T:
-        case $U:
         case $V:
         case $W:
         case $X:
@@ -1353,6 +1360,15 @@ abstract class StylesheetParser extends Parser {
       case $exclamation:
         return _importantExpression();
 
+      case $u:
+      case $U:
+        if (scanner.peekChar(1) == $plus) {
+          return _unicodeRange();
+        } else {
+          return _identifierLike();
+        }
+        break;
+
       case $0:
       case $1:
       case $2:
@@ -1386,7 +1402,6 @@ abstract class StylesheetParser extends Parser {
       case $r:
       case $s:
       case $t:
-      case $u:
       case $v:
       case $w:
       case $x:
@@ -1412,7 +1427,6 @@ abstract class StylesheetParser extends Parser {
       case $R:
       case $S:
       case $T:
-      case $U:
       case $V:
       case $W:
       case $X:
@@ -1604,8 +1618,7 @@ abstract class StylesheetParser extends Parser {
     scanner.readChar();
     whitespace();
     expectIdentifier("important", ignoreCase: true);
-    return new StringExpression(
-        new Interpolation(["!important"], scanner.spanFrom(start)));
+    return new StringExpression.plain("!important", scanner.spanFrom(start));
   }
 
   /// Consumes a unary operation expression.
@@ -1691,6 +1704,43 @@ abstract class StylesheetParser extends Parser {
 
     return new NumberExpression(sign * number, scanner.spanFrom(start),
         unit: unit);
+  }
+
+  /// Consumes a unicode range expression.
+  StringExpression _unicodeRange() {
+    var start = scanner.state;
+    expectCharIgnoreCase($u);
+    scanner.expectChar($plus);
+
+    var i = 0;
+    for (; i < 6; i++) {
+      if (!scanCharIf((char) => char != null && isHex(char))) break;
+    }
+
+    if (scanner.scanChar($question)) {
+      i++;
+      for (; i < 6; i++) {
+        if (!scanner.scanChar($question)) break;
+      }
+      return new StringExpression.plain(
+          scanner.substring(start.position), scanner.spanFrom(start));
+    }
+    if (i == 0) scanner.error('Expected hex digit or "?".');
+
+    if (scanner.scanChar($minus)) {
+      var j = 0;
+      for (; j < 6; j++) {
+        if (!scanCharIf((char) => char != null && isHex(char))) break;
+      }
+      if (j == 0) scanner.error("Expected hex digit.");
+    }
+
+    if (_lookingAtInterpolatedIdentifierBody()) {
+      scanner.error("Expected end of identifier.");
+    }
+
+    return new StringExpression.plain(
+        scanner.substring(start.position), scanner.spanFrom(start));
   }
 
   /// Consumes a variable expression.
@@ -2389,6 +2439,17 @@ abstract class StylesheetParser extends Parser {
       return true;
     }
     return second == $hash && scanner.peekChar(2) == $lbrace;
+  }
+
+  /// Returns whether the scanner is immediately before a sequence of characters
+  /// that could be part of an CSS identifier body.
+  ///
+  /// The identifier body may include interpolation.
+  bool _lookingAtInterpolatedIdentifierBody() {
+    var first = scanner.peekChar();
+    if (first == null) return false;
+    if (isName(first) || first == $backslash) return true;
+    return first == $hash && scanner.peekChar(1) == $lbrace;
   }
 
   /// Returns whether the scanner is immediately before a SassScript expression.

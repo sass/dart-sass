@@ -27,11 +27,15 @@ class StringExpression implements Expression {
   /// Returns Sass source for a quoted string that, when evaluated, will have
   /// [text] as its contents.
   static String quoteText(String text) =>
-      new StringExpression(new Interpolation([text], null), quotes: true)
+      new StringExpression.plain(text, null, quotes: true)
           .asInterpolation(static: true)
           .asPlain;
 
   StringExpression(this.text, {bool quotes: false}) : hasQuotes = quotes;
+
+  StringExpression.plain(String text, FileSpan span, {bool quotes: false})
+      : text = new Interpolation([text], span),
+        hasQuotes = quotes;
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitStringExpression(this);
