@@ -328,7 +328,7 @@ class _SerializeCssVisitor
     var singleton = _inspect &&
         value.contents.length == 1 &&
         value.separator == ListSeparator.comma;
-    if (singleton) _buffer.writeCharCode($lparen);
+    if (singleton && !value.hasBrackets) _buffer.writeCharCode($lparen);
 
     _writeBetween/*<Value>*/(
         _inspect
@@ -348,7 +348,7 @@ class _SerializeCssVisitor
 
     if (singleton) {
       _buffer.writeCharCode($comma);
-      _buffer.writeCharCode($rparen);
+      if (!value.hasBrackets) _buffer.writeCharCode($rparen);
     }
 
     if (value.hasBrackets) _buffer.writeCharCode($rbracket);
