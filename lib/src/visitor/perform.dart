@@ -308,8 +308,10 @@ class _PerformVisitor
   }
 
   Value visitDebugRule(DebugRule node) {
-    stderr.writeln("Line ${node.span.start.line + 1} DEBUG: "
-        "${node.expression.accept(this)}");
+    var start = node.span.start;
+    var value = node.expression.accept(this);
+    stderr.writeln("${p.prettyUri(start.sourceUrl)}:${start.line + 1} DEBUG: "
+        "${value is SassString ? value.text : value}");
     return null;
   }
 
