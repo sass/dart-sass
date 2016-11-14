@@ -253,7 +253,7 @@ class Environment {
   }
 
   /// Returns whether a mixin named [name] exists.
-  bool mixinExists(String name) => getFunction(name) != null;
+  bool mixinExists(String name) => getMixin(name) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
   void setMixin(Callable callable) {
