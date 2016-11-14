@@ -1,10 +1,21 @@
 ## 1.0.0-alpha.4
 
+* Add support for bracketed lists.
+
 * Add support for Unicode ranges.
 
 * Add support for the Microsoft-style `=` operator.
 
+* Print the filename for `@debug` rules.
+
 * Fix a bug where `1 + - 2` and similar constructs would crash the parser.
+
+* Fix a bug where `@extend` produced the wrong result when used with
+  selector combinators.
+
+* Fix a bug where placeholder selectors were not allowed to be unified.
+
+* Fix the `mixin-exists()` function.
 
 * Fix `:nth-child()` and `:nth-last-child()` parsing when they contain `of
   selector`.
