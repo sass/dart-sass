@@ -288,12 +288,12 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
   }
 
   var combinators1 = <Combinator>[];
-  while (components1.last is Combinator) {
+  while (components1.isNotEmpty && components1.last is Combinator) {
     combinators1.add(components1.removeLast() as Combinator);
   }
 
   var combinators2 = <Combinator>[];
-  while (components2.last is Combinator) {
+  while (components2.isNotEmpty && components2.last is Combinator) {
     combinators2.add(components2.removeLast() as Combinator);
   }
 
@@ -388,9 +388,9 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
         (combinator1 == Combinator.nextSibling ||
             combinator1 == Combinator.followingSibling)) {
       result.addFirst([
-        [compound2, combinator2]
+        [compound1, combinator1]
       ]);
-      components1..add(compound1)..add(Combinator.child);
+      components2..add(compound2)..add(Combinator.child);
     } else if (combinator1 == combinator2) {
       var unified = unifyCompound(compound1.components, compound2.components);
       if (unified == null) return null;
@@ -414,7 +414,6 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     ]);
     return _mergeFinalCombinators(components1, components2, result);
   } else {
-    assert(combinator1 != null);
     if (combinator2 == Combinator.child &&
         components1.isNotEmpty &&
         (components1.last as CompoundSelector)
