@@ -945,14 +945,31 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes an expression.
   ///
+  /// If [bracketList] is true, this parses this expression as the contents of a
+  /// bracketed list.
+  ///
   /// If [singleEquals] is true, this will allow the Microsoft-style `=`
   /// operator at the top level.
   ///
   /// If [until] is passed, it's called each time the expression could end and
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
-  Expression _expression({bool singleEquals: false, bool until()}) {
+  Expression _expression(
+      {bool bracketList: false, bool singleEquals: false, bool until()}) {
     if (until != null && until()) scanner.error("Expected expression.");
+
+    LineScannerState beforeBracket;
+    if (bracketList) {
+      beforeBracket = scanner.state;
+      scanner.expectChar($lbracket);
+      whitespace();
+
+      if (scanner.scanChar($rbracket)) {
+        return new ListExpression([], ListSeparator.undecided,
+            brackets: true, span: scanner.spanFrom(beforeBracket));
+      }
+    }
+
     var start = scanner.state;
     var wasInParentheses = _inParentheses;
 
@@ -1082,7 +1099,7 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $lbracket:
-          addSingleExpression(_bracketedList());
+          addSingleExpression(_expression(bracketList: true));
           break;
 
         case $dollar:
@@ -1307,13 +1324,28 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    resolveSpaceExpressions();
-    _inParentheses = wasInParentheses;
+    if (bracketList) scanner.expectChar($rbracket);
     if (commaExpressions != null) {
+      resolveSpaceExpressions();
+      _inParentheses = wasInParentheses;
       if (singleExpression != null) commaExpressions.add(singleExpression);
-      return new ListExpression(commaExpressions, ListSeparator.comma);
+      return new ListExpression(commaExpressions, ListSeparator.comma,
+          brackets: bracketList,
+          span: bracketList ? scanner.spanFrom(beforeBracket) : null);
+    } else if (bracketList &&
+        spaceExpressions != null &&
+        singleEqualsOperand == null) {
+      resolveOperations();
+      return new ListExpression(
+          spaceExpressions..add(singleExpression), ListSeparator.space,
+          brackets: true, span: scanner.spanFrom(beforeBracket));
     } else {
-      assert(singleExpression != null);
+      resolveSpaceExpressions();
+      if (bracketList) {
+        singleExpression = new ListExpression(
+            [singleExpression], ListSeparator.undecided,
+            brackets: true, span: scanner.spanFrom(beforeBracket));
+      }
       return singleExpression;
     }
   }
@@ -1338,7 +1370,7 @@ abstract class StylesheetParser extends Parser {
       case $dot:
         return _number();
       case $lbracket:
-        return _bracketedList();
+        return _expression(bracketList: true);
       case $dollar:
         return _variable();
       case $ampersand:
@@ -1442,23 +1474,6 @@ abstract class StylesheetParser extends Parser {
         scanner.error("Expected expression.");
         return null;
     }
-  }
-
-  /// Consumes a bracketed list.
-  ListExpression _bracketedList() {
-    var start = scanner.state;
-    scanner.expectChar($lbracket);
-    whitespace();
-
-    var expressions = <Expression>[];
-    while (!scanner.scanChar($lbracket)) {
-      expressions.add(_expressionUntilComma());
-      whitespace();
-      if (!scanner.scanChar($comma)) break;
-    }
-
-    return new ListExpression(expressions, ListSeparator.comma,
-        brackets: true, span: scanner.spanFrom(start));
   }
 
   /// Consumes a parenthesized expression.
