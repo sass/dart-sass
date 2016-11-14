@@ -497,6 +497,18 @@ abstract class Parser {
     return scanner.substring(start);
   }
 
+  /// Prints a source span highlight of the current location being scanned.
+  ///
+  /// If [message] is passed, prints that as well. This is intended for use when
+  /// debugging parser failures.
+  void debug([String message]) {
+    if (message == null) {
+      print(scanner.emptySpan.highlight(color: true));
+    } else {
+      print(scanner.emptySpan.message(message, color: true));
+    }
+  }
+
   /// Runs [callback] and wraps any [SourceSpanFormatException] it throws in a
   /// [SassFormatException].
   /*=T*/ wrapSpanFormatException/*<T>*/(/*=T*/ callback()) {

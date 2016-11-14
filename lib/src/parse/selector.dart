@@ -281,6 +281,7 @@ class SelectorParser extends Parser {
       selector = _selectorList();
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
       argument = rawText(_aNPlusB);
+      whitespace();
       if (isWhitespace(scanner.peekChar(-1))) {
         expectIdentifier("of", ignoreCase: true);
         argument += "of";

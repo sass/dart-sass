@@ -6,6 +6,9 @@
 
 * Fix a bug where `1 + - 2` and similar constructs would crash the parser.
 
+* Fix `:nth-child()` and `:nth-last-child()` parsing when they contain `of
+  selector`.
+
 ## 1.0.0-alpha.3
 
 * Fix a bug where color equality didn't take the alpha channel into account.
