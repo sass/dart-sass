@@ -22,9 +22,6 @@ class PlaceholderSelector extends SimpleSelector {
   PlaceholderSelector addSuffix(String suffix) =>
       new PlaceholderSelector(name + suffix);
 
-  List<SimpleSelector> unify(List<SimpleSelector> compound) =>
-      throw new UnsupportedError("Placeholders don't support unification.");
-
   bool operator ==(other) => other is PlaceholderSelector && other.name == name;
 
   int get hashCode => name.hashCode;
