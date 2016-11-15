@@ -579,10 +579,9 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     if (complex1[i1] is Combinator) return false;
     if (complex2[i2] is Combinator) return false;
     var compound1 = complex1[i1] as CompoundSelector;
-    var compound2 = complex2[i2] as CompoundSelector;
 
     if (remaining1 == 1) {
-      return compoundIsSuperselector(compound1, compound2,
+      return compoundIsSuperselector(compound1, complex2.last,
           parents: complex2.skip(i2 + 1));
     }
 
@@ -593,11 +592,12 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     // rest of [complex1] to match.
     var afterSuperselector = i2 + 1;
     for (; afterSuperselector < complex2.length; afterSuperselector++) {
-      if (complex2[afterSuperselector - 1] is Combinator) continue;
-
-      if (compoundIsSuperselector(compound1, compound2,
-          parents: complex2.take(afterSuperselector - 1).skip(i2 + 1))) {
-        break;
+      var compoundToTest = complex2[afterSuperselector - 1];
+      if (compoundToTest is CompoundSelector) {
+        if (compoundIsSuperselector(compound1, compoundToTest,
+            parents: complex2.take(afterSuperselector - 1).skip(i2 + 1))) {
+          break;
+        }
       }
     }
     if (afterSuperselector == complex2.length) return false;
