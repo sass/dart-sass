@@ -986,7 +986,8 @@ SassColor _opacify(List<Value> arguments) {
   var color = arguments[0].assertColor("color");
   var amount = arguments[1].assertNumber("amount");
 
-  return color.changeAlpha(color.alpha + amount.valueInRange(0, 1, "amount"));
+  return color.changeAlpha(
+      (color.alpha + amount.valueInRange(0, 1, "amount")).clamp(0, 1));
 }
 
 /// The definition of the `transparentize()` and `fade-out()` functions.
@@ -994,7 +995,8 @@ SassColor _transparentize(List<Value> arguments) {
   var color = arguments[0].assertColor("color");
   var amount = arguments[1].assertNumber("amount");
 
-  return color.changeAlpha(color.alpha - amount.valueInRange(0, 1, "amount"));
+  return color.changeAlpha(
+      (color.alpha - amount.valueInRange(0, 1, "amount")).clamp(0, 1));
 }
 
 /// Converts a Sass string index into a codepoint index into a string whose

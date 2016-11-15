@@ -1,3 +1,8 @@
+## 1.0.0-alpha.5
+
+* Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and
+  `fade-out()`.
+
 ## 1.0.0-alpha.4
 
 * Add support for bracketed lists.
