@@ -194,7 +194,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
   var groups1 = _groupSelectors(queue1);
   var groups2 = _groupSelectors(queue2);
   var lcs = longestCommonSubsequence/*<List<ComplexSelectorComponent>>*/(
-      groups1, groups2, select: (group1, group2) {
+      groups2, groups1, select: (group1, group2) {
     if (listEquals(group1, group2)) return group1;
     if (group1.first is! CompoundSelector ||
         group2.first is! CompoundSelector) {
@@ -550,7 +550,7 @@ bool complexIsParentSuperselector(List<ComplexSelectorComponent> complex1,
   // allocations...
   var base = new CompoundSelector([new PlaceholderSelector('<temp>')]);
   return complexIsSuperselector(
-      complex1..toList().add(base), complex2..toList().add(base));
+      complex1.toList()..add(base), complex2.toList()..add(base));
 }
 
 /// Returns whether [complex1] is a superselector of [complex2].
@@ -579,10 +579,10 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     if (complex1[i1] is Combinator) return false;
     if (complex2[i2] is Combinator) return false;
     var compound1 = complex1[i1] as CompoundSelector;
-    var compound2 = complex2[i2] as CompoundSelector;
 
     if (remaining1 == 1) {
-      return compoundIsSuperselector(compound1, compound2,
+      return compoundIsSuperselector(
+          compound1, complex2.last as CompoundSelector,
           parents: complex2.skip(i2 + 1));
     }
 
@@ -593,11 +593,12 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     // rest of [complex1] to match.
     var afterSuperselector = i2 + 1;
     for (; afterSuperselector < complex2.length; afterSuperselector++) {
-      if (complex2[afterSuperselector - 1] is Combinator) continue;
-
-      if (compoundIsSuperselector(compound1, compound2,
-          parents: complex2.take(afterSuperselector - 1).skip(i2 + 1))) {
-        break;
+      var compoundToTest = complex2[afterSuperselector - 1];
+      if (compoundToTest is CompoundSelector) {
+        if (compoundIsSuperselector(compound1, compoundToTest,
+            parents: complex2.take(afterSuperselector - 1).skip(i2 + 1))) {
+          break;
+        }
       }
     }
     if (afterSuperselector == complex2.length) return false;

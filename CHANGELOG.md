@@ -3,6 +3,8 @@
 * Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and
   `fade-out()`.
 
+* Fix a bug with `@extend` superselector calculations.
+
 ## 1.0.0-alpha.4
 
 * Add support for bracketed lists.
