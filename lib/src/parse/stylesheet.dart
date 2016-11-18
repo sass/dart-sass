@@ -675,7 +675,8 @@ abstract class StylesheetParser extends Parser {
 
   /// Returns whether [url] indicates that an `@import` is a plain CSS import.
   bool _isPlainImportUrl(String url) {
-    if (url.length < "//".length) return false;
+    if (url.length < 5) return false;
+    if (url.endsWith(".css")) return true;
 
     var first = url.codeUnitAt(0);
     if (first == $slash) return url.codeUnitAt(1) == $slash;
