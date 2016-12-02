@@ -27,5 +27,6 @@ dev_dependencies:
   http: "^0.11.0"
   js: "^0.6.0"
   node_preamble: "^1.1.0"
-  test: "^0.12.0"
+  scheduled_test: "^0.12.8"
+  test: "^0.12.5"
   yaml: "^2.0.0"
