@@ -63,11 +63,7 @@ js() {
     '-Ddart-version=$_dartVersion',
   ]);
   var text = destination.readAsStringSync();
-  destination.writeAsStringSync("""
-    ${preamble.getPreamble()}
-    global.exports = exports;
-    $text
-  """);
+  destination.writeAsStringSync(preamble.getPreamble() + text);
 }
 
 @Task('Build a pure-JS npm package.')
