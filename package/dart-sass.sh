@@ -7,5 +7,15 @@
 # executable and a snapshot of Sass. It can be created with `pub run grinder
 # package`.
 
-path=`dirname "$0"`
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+path=`dirname "$(follow_links "$BASH_SOURCE")"`
 exec "$path/src/dart" "-Dversion=SASS_VERSION" "$path/src/sass.dart.snapshot" "$@"
