@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+@Tags(const ['node'])
+
 import 'dart:io';
 
 import 'package:scheduled_test/scheduled_process.dart';
