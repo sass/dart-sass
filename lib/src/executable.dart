@@ -21,8 +21,7 @@ main(List<String> args) async {
         help: 'Output style.',
         allowed: ['expanded'],
         defaultsTo: 'expanded')
-    ..addFlag('color',
-        abbr: 'c', help: 'Whether to emit terminal colors.', defaultsTo: true)
+    ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
     ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
     ..addFlag('help',
         abbr: 'h', help: 'Print this usage information.', negatable: false)
@@ -46,7 +45,7 @@ main(List<String> args) async {
     return;
   }
 
-  var color = options['color'] as bool;
+  var color = (options['color'] as bool) ?? hasTerminal;
   try {
     var css = render(options.rest.first, color: color);
     if (css.isNotEmpty) print(css);

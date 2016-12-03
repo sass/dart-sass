@@ -4,12 +4,25 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_test.dart';
 
 import 'cli_shared.dart';
+import 'utils.dart';
 
 void main() {
-  sharedTests((arguments, {workingDirectory}) => new ScheduledProcess.start(
-      Platform.executable, <Object>["bin/sass.dart"]..addAll(arguments),
-      workingDirectory: workingDirectory, description: "sass"));
+  sharedTests(_runSass);
+
+  test("--version prints the Sass version", () {
+    var sass = _runSass(["--version"]);
+    sass.stdout.expect(matches(new RegExp(r"^\d+\.\d+\.\d+")));
+    sass.shouldExit(0);
+  });
 }
+
+ScheduledProcess _runSass(List arguments) => new ScheduledProcess.start(
+    Platform.executable,
+    <Object>[p.absolute("bin/sass.dart")]..addAll(arguments),
+    workingDirectory: sandbox,
+    description: "sass");
