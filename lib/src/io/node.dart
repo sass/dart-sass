@@ -44,6 +44,11 @@ external _Stderr get _stderr;
 
 final stderr = new Stderr(_stderr);
 
+bool get hasTerminal => _hasTerminal ?? false;
+
+@JS("process.stdout.isTTY")
+external bool get _hasTerminal;
+
 @JS("process.exitCode")
 external int get exitCode;
 

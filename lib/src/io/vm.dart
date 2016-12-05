@@ -8,6 +8,8 @@ export 'dart:io' show exitCode;
 
 io.Stdout get stderr => io.stderr;
 
+bool get hasTerminal => io.stdout.hasTerminal;
+
 String readFile(String path) => new io.File(path).readAsStringSync();
 
 bool fileExists(String path) => new io.File(path).existsSync();

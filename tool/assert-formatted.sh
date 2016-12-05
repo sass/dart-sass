@@ -3,7 +3,7 @@
 # license that can be found in the LICENSE file or at
 # https://opensource.org/licenses/MIT.
 
-unformatted=`pub run dart_style:format -n bin/ lib/ tool/`
+unformatted=`pub run dart_style:format -n bin/ lib/ tool/ test/`
 if [[ -z "$unformatted" ]]; then
     exit 0
 else

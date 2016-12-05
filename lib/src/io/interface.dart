@@ -20,6 +20,9 @@ class Stderr {
 /// The standard error for the current process.
 Stderr get stderr => null;
 
+/// Returns whether or not stdout is connected to an interactive terminal.
+bool get hasTerminal => false;
+
 /// Reads the file at [path].
 String readFile(String path) => null;
 
