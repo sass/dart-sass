@@ -147,6 +147,8 @@ class ScssParser extends StylesheetParser {
     scanner.expect("/*");
     do {
       while (scanner.readChar() != $asterisk) {}
+      // consume any optional extra asterisks before closing the block
+      while (scanner.scanChar($asterisk)) {}
     } while (scanner.readChar() != $slash);
 
     return new Comment(
