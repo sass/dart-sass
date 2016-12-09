@@ -13,14 +13,6 @@ import 'ast/node.dart';
 import 'io.dart';
 import 'util/character.dart';
 
-/// A simple [LinkedListEntry] that just provides a reference to the value.
-class LinkedListValue<T> extends LinkedListEntry<LinkedListValue<T>> {
-  /// The value in the list.
-  final T value;
-
-  LinkedListValue(this.value);
-}
-
 /// Converts [iter] into a sentence, separating each word with [conjunction].
 String toSentence(Iterable iter, [String conjunction]) {
   conjunction ??= "and";
