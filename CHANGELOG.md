@@ -5,6 +5,8 @@
 
 * Fix a bug with `@extend` superselector calculations.
 
+* Fix some cases where `#{...}--` would fail to parse in selectors.
+
 ## 1.0.0-alpha.4
 
 * Add support for bracketed lists.
