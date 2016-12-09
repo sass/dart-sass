@@ -5,6 +5,8 @@
 
 * Fix a bug with `@extend` superselector calculations.
 
+* Allow a single number to be passed to `saturate()` for use in filter contexts.
+
 ## 1.0.0-alpha.4
 
 * Add support for bracketed lists.
