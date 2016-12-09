@@ -5,6 +5,8 @@
 
 * Fix a bug with `@extend` superselector calculations.
 
+* Fix a bug where `**/` would fail to close a loud comment.
+
 ## 1.0.0-alpha.4
 
 * Add support for bracketed lists.
