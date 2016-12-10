@@ -5,6 +5,8 @@
 
 * Fix a bug with `@extend` superselector calculations.
 
+* Allow a single number to be passed to `saturate()` for use in filter contexts.
+
 * Fix a bug where `**/` would fail to close a loud comment.
 
 * Move plain CSS `@import`s to the top of the document.
