@@ -9,6 +9,8 @@
 
 * Fix a bug where `**/` would fail to close a loud comment.
 
+* Fix a bug where mixin and function calls could set variables incorrectly.
+
 ## 1.0.0-alpha.4
 
 * Add support for bracketed lists.

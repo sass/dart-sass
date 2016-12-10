@@ -958,12 +958,13 @@ class _PerformVisitor
           var declaredArguments = callable.declaration.arguments.arguments;
           var minLength = math.min(positional.length, declaredArguments.length);
           for (var i = 0; i < minLength; i++) {
-            _environment.setVariable(declaredArguments[i].name, positional[i]);
+            _environment.setLocalVariable(
+                declaredArguments[i].name, positional[i]);
           }
 
           for (var i = positional.length; i < declaredArguments.length; i++) {
             var argument = declaredArguments[i];
-            _environment.setVariable(
+            _environment.setLocalVariable(
                 argument.name,
                 named.remove(argument.name) ??
                     argument.defaultValue?.accept(this));
@@ -980,7 +981,7 @@ class _PerformVisitor
                 separator == ListSeparator.undecided
                     ? ListSeparator.comma
                     : separator);
-            _environment.setVariable(
+            _environment.setLocalVariable(
                 callable.declaration.arguments.restArgument, argumentList);
           }
 
