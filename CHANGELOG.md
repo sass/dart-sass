@@ -7,6 +7,8 @@
 
 * Fix a bug where `**/` would fail to close a loud comment.
 
+* Move plain CSS `@import`s to the top of the document.
+
 ## 1.0.0-alpha.4
 
 * Add support for bracketed lists.
