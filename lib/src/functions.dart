@@ -185,13 +185,22 @@ void defineCoreFunctions(Environment environment) {
             .clamp(0, 100));
   });
 
-  environment.defineFunction("saturate", r"$color, $amount", (arguments) {
-    var color = arguments[0].assertColor("color");
-    var amount = arguments[1].assertNumber("amount");
-    return color.changeHsl(
-        saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
-            .clamp(0, 100));
-  });
+  environment.setFunction(new BuiltInCallable.overloaded("saturate", [
+    r"$number",
+    r"$color, $amount",
+  ], [
+    (arguments) {
+      var number = arguments[0].assertNumber("number");
+      return new SassString("saturate(${number.toCssString()})");
+    },
+    (arguments) {
+      var color = arguments[0].assertColor("color");
+      var amount = arguments[1].assertNumber("amount");
+      return color.changeHsl(
+          saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
+              .clamp(0, 100));
+    }
+  ]));
 
   environment.defineFunction("desaturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
