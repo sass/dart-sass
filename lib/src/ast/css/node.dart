@@ -77,6 +77,14 @@ abstract class CssParentNode extends CssNode {
   /// Returns a copy of [this] with an empty [children] list.
   CssParentNode copyWithoutChildren();
 
+  /// Passes a modifiable view of [children] to [modify].
+  ///
+  /// This is used to explicitly indicate when modifications are intended so
+  /// that [children] can remain unmodifiable by default.
+  void modifyChildren(void modify(List<CssNode> children)) {
+    modify(_children);
+  }
+
   /// Adds [child] as a child of this statement.
   void addChild(CssNode child) {
     child._parent = this;

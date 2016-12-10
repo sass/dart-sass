@@ -93,6 +93,16 @@ class _PerformVisitor
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
 
+  /// The first index in [_root.children] after the initial block of CSS
+  /// imports.
+  var _endOfImports = 0;
+
+  /// Plain-CSS imports that didn't appear in the initial block of CSS imports.
+  ///
+  /// These are added to the initial CSS import block by [visitStylesheet] after
+  /// the stylesheet has been fully performed.
+  var _outOfOrderImports = <CssImport>[];
+
   /// The resolved URLs for each [DynamicImport] that's been seen so far.
   ///
   /// This is cached in case the same file is imported multiple times, and thus
@@ -156,6 +166,13 @@ class _PerformVisitor
     for (var child in node.children) {
       child.accept(this);
     }
+
+    if (_outOfOrderImports.isNotEmpty) {
+      _root.modifyChildren((children) {
+        children.insertAll(_endOfImports, _outOfOrderImports);
+      });
+    }
+
     _extender.finalize();
     return null;
   }
@@ -288,6 +305,12 @@ class _PerformVisitor
 
   Value visitComment(Comment node) {
     if (node.isSilent) return null;
+
+    // Comments are allowed to appear between CSS imports.
+    if (_parent == _root && _endOfImports == _root.children.length) {
+      _endOfImports++;
+    }
+
     _parent.addChild(new CssComment(node.text, node.span));
     return null;
   }
@@ -567,11 +590,21 @@ class _PerformVisitor
         : (supports == null ? null : _visitSupportsCondition(supports));
     var mediaQuery =
         import.media == null ? null : _visitMediaQueries(import.media);
-    _parent.addChild(new CssImport(url, import.span,
+
+    var node = new CssImport(url, import.span,
         supports: resolvedSupports == null
             ? null
             : new CssValue(resolvedSupports, import.supports.span),
-        media: mediaQuery));
+        media: mediaQuery);
+
+    if (_parent != _root) {
+      _parent.addChild(node);
+    } else if (_endOfImports == _root.children.length) {
+      _root.addChild(node);
+      _endOfImports++;
+    } else {
+      _outOfOrderImports.add(node);
+    }
     return null;
   }
 

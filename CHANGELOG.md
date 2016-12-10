@@ -13,6 +13,8 @@
 
 * Fix a bug where mixin and function calls could set variables incorrectly.
 
+* Move plain CSS `@import`s to the top of the document.
+
 ## 1.0.0-alpha.4
 
 * Add support for bracketed lists.
