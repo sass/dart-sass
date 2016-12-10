@@ -19,6 +19,10 @@ env:
 rvm:
 - 2.3.1
 
+# Only building master means that we don't run two builds for each pull request.
+branches:
+  only: [master]
+
 cache:
   directories:
   - $HOME/.pub-cache
