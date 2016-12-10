@@ -2013,7 +2013,9 @@ abstract class StylesheetParser extends Parser {
 
         case $hash:
           if (scanner.peekChar(1) == $lbrace) {
-            buffer.add(singleInterpolation());
+            // Add a full interpolated identifier to handle cases like
+            // "#{...}--1", since "--1" isn't a valid identifier on its own.
+            buffer.addInterpolation(_interpolatedIdentifier());
           } else {
             buffer.writeCharCode(scanner.readChar());
           }
@@ -2103,7 +2105,9 @@ abstract class StylesheetParser extends Parser {
 
         case $hash:
           if (scanner.peekChar(1) == $lbrace) {
-            buffer.add(singleInterpolation());
+            // Add a full interpolated identifier to handle cases like
+            // "#{...}--1", since "--1" isn't a valid identifier on its own.
+            buffer.addInterpolation(_interpolatedIdentifier());
           } else {
             buffer.writeCharCode(scanner.readChar());
           }

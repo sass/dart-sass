@@ -5,9 +5,13 @@
 
 * Fix a bug with `@extend` superselector calculations.
 
+* Fix some cases where `#{...}--` would fail to parse in selectors.
+
 * Allow a single number to be passed to `saturate()` for use in filter contexts.
 
 * Fix a bug where `**/` would fail to close a loud comment.
+
+* Fix a bug where mixin and function calls could set variables incorrectly.
 
 * Move plain CSS `@import`s to the top of the document.
 
