@@ -129,15 +129,15 @@ class Extender {
   /// Throws a [SassException] if any (non-optional) extensions failed to match
   /// any selectors.
   void finalize() {
-    for (var sources in _extensions.values) {
+    _extensions.forEach((target, sources) {
       for (var source in sources) {
         if (source.isUsed) continue;
         throw new SassException(
             'The target selector was not found.\n'
-            'Use "@extend %foo !optional" to avoid this error.',
+            'Use "@extend $target !optional" to avoid this error.',
             source.span);
       }
-    }
+    });
   }
 
   /// Extends [list] using [extensions].
