@@ -8,6 +8,12 @@ import '../util/character.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
+/// A quoted empty string, returned by [SassString.empty].
+final _emptyQuoted = new SassString("", quotes: true);
+
+/// An unquoted empty string, returned by [SassString.empty].
+final _emptyUnquoted = new SassString("", quotes: true);
+
 /// A SassScript string.
 ///
 /// Strings can either be quoted or unquoted. Unquoted strings are usually CSS
@@ -50,6 +56,9 @@ class SassString extends Value {
   }
 
   bool get isBlank => !hasQuotes && text.isEmpty;
+
+  factory SassString.empty({bool quotes: false}) =>
+      quotes ? _emptyQuoted : _emptyUnquoted;
 
   SassString(this.text, {bool quotes: false}) : hasQuotes = quotes;
 

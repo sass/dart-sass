@@ -487,6 +487,7 @@ void defineCoreFunctions(Environment environment) {
 
     var codeUnitIndex = codepointIndexToCodeUnitIndex(string.text,
         _codepointForIndex(index.assertInt("index"), string.text.runes.length));
+
     return new SassString(
         string.text.replaceRange(codeUnitIndex, codeUnitIndex, insert.text),
         quotes: string.hasQuotes);
@@ -514,7 +515,12 @@ void defineCoreFunctions(Environment environment) {
     var lengthInCodepoints = string.text.runes.length;
     var startCodepoint =
         _codepointForIndex(start.assertInt(), lengthInCodepoints);
-    var endCodepoint = _codepointForIndex(end.assertInt(), lengthInCodepoints);
+    var endCodepoint = _codepointForIndex(end.assertInt(), lengthInCodepoints,
+        allowNegative: true);
+    if (endCodepoint < startCodepoint) {
+      return new SassString.empty(quotes: string.hasQuotes);
+    }
+
     return new SassString(
         string.text.substring(
             codepointIndexToCodeUnitIndex(string.text, startCodepoint),
@@ -1018,10 +1024,17 @@ SassColor _transparentize(List<Value> arguments) {
 /// A Sass string index is one-based, and uses negative numbers to count
 /// backwards from the end of the string. A codepoint index is an index into
 /// [String.runes].
-int _codepointForIndex(int index, int lengthInCodepoints) {
+///
+/// If [index] is negative and it points before the beginning of
+/// [lengthInCodepoints], this will return `0` if [allowNegative] is `false` and
+/// the index if it's `true`.
+int _codepointForIndex(int index, int lengthInCodepoints,
+    {bool allowNegative: false}) {
   if (index == 0) return 0;
   if (index > 0) return math.min(index - 1, lengthInCodepoints);
-  return math.max(lengthInCodepoints + index, 0);
+  var result = lengthInCodepoints + index;
+  if (result < 0 && !allowNegative) return 0;
+  return result;
 }
 
 /// Returns a [BuiltInCallable] named [name] that transforms a number's value
