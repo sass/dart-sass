@@ -41,7 +41,9 @@ void defineCoreFunctions(Environment environment) {
   // ### RGB
 
   environment.defineFunction("rgb", r"$red, $green, $blue", (arguments) {
-    if (arguments[0].isCalc || arguments[1].isCalc || arguments[2].isCalc) {
+    if (arguments[0].isSpecialNumber ||
+        arguments[1].isSpecialNumber ||
+        arguments[2].isSpecialNumber) {
       return _functionString('rgb', arguments);
     }
 
@@ -60,10 +62,10 @@ void defineCoreFunctions(Environment environment) {
     r"$color, $alpha",
   ], [
     (arguments) {
-      if (arguments[0].isCalc ||
-          arguments[1].isCalc ||
-          arguments[2].isCalc ||
-          arguments[3].isCalc) {
+      if (arguments[0].isSpecialNumber ||
+          arguments[1].isSpecialNumber ||
+          arguments[2].isSpecialNumber ||
+          arguments[3].isSpecialNumber) {
         return _functionString('rgba', arguments);
       }
 
@@ -81,7 +83,7 @@ void defineCoreFunctions(Environment environment) {
     (arguments) {
       var color = arguments[0].assertColor("color");
 
-      if (arguments[1].isCalc) {
+      if (arguments[1].isSpecialNumber) {
         return new SassString(
             "rgba(${color.red}, ${color.green}, ${color.blue}, "
             "${arguments[1].toCssString()})");
@@ -116,7 +118,9 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("hsl", r"$hue, $saturation, $lightness",
       (arguments) {
-    if (arguments[0].isCalc || arguments[1].isCalc || arguments[2].isCalc) {
+    if (arguments[0].isSpecialNumber ||
+        arguments[1].isSpecialNumber ||
+        arguments[2].isSpecialNumber) {
       return _functionString("hsl", arguments);
     }
 
@@ -129,10 +133,10 @@ void defineCoreFunctions(Environment environment) {
 
   environment.defineFunction("hsla", r"$hue, $saturation, $lightness, $alpha",
       (arguments) {
-    if (arguments[0].isCalc ||
-        arguments[1].isCalc ||
-        arguments[2].isCalc ||
-        arguments[3].isCalc) {
+    if (arguments[0].isSpecialNumber ||
+        arguments[1].isSpecialNumber ||
+        arguments[2].isSpecialNumber ||
+        arguments[3].isSpecialNumber) {
       return _functionString("hsla", arguments);
     }
 
