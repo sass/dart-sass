@@ -2,6 +2,9 @@
 
 * Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.
 
+* Fix conversions between numbers with `dpi`, `dpcm`, and `dppx` units.
+  Previously these conversions were inverted.
+
 ## 1.0.0-alpha.5
 
 * Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and
