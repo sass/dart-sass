@@ -1,3 +1,7 @@
+## 1.0.0-alpha.6
+
+* Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.
+
 ## 1.0.0-alpha.5
 
 * Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and

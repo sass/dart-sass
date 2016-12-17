@@ -4,6 +4,7 @@
 
 import 'package:charcode/charcode.dart';
 
+import '../util/character.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
@@ -29,14 +30,23 @@ class SassString extends Value {
   /// Whether this string has quotes.
   final bool hasQuotes;
 
-  bool get isCalc {
+  bool get isSpecialNumber {
     if (hasQuotes) return false;
-    if (text.length < 6) return false;
-    if (text.codeUnitAt(0) != $c && text.codeUnitAt(0) != $C) return false;
-    if (text.codeUnitAt(1) != $a && text.codeUnitAt(1) != $A) return false;
-    if (text.codeUnitAt(2) != $l && text.codeUnitAt(2) != $L) return false;
-    if (text.codeUnitAt(3) != $c && text.codeUnitAt(3) != $C) return false;
-    return text.codeUnitAt(4) == $lparen;
+    if (text.length < "calc(_)".length) return false;
+
+    var first = text.codeUnitAt(0);
+    if (equalsLetterIgnoreCase($c, first)) {
+      if (!equalsLetterIgnoreCase($a, text.codeUnitAt(1))) return false;
+      if (!equalsLetterIgnoreCase($l, text.codeUnitAt(2))) return false;
+      if (!equalsLetterIgnoreCase($c, text.codeUnitAt(3))) return false;
+      return text.codeUnitAt(4) == $lparen;
+    } else if (equalsLetterIgnoreCase($v, first)) {
+      if (!equalsLetterIgnoreCase($a, text.codeUnitAt(1))) return false;
+      if (!equalsLetterIgnoreCase($r, text.codeUnitAt(2))) return false;
+      return text.codeUnitAt(3) == $lparen;
+    } else {
+      return false;
+    }
   }
 
   bool get isBlank => !hasQuotes && text.isEmpty;

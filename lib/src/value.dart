@@ -53,11 +53,12 @@ abstract class Value {
   /// and all other values count as single-value lists.
   List<Value> get asList => [this];
 
-  /// Whether this is a `calc()` expression.
+  /// Whether this is a value that CSS may treate as a number, such as `calc()`
+  /// or `var()`.
   ///
   /// Functions that shadow plain CSS functions need to gracefully handle when
-  /// `calc()`-derived arguments are passed in.
-  bool get isCalc => false;
+  /// these arguments are passed in.
+  bool get isSpecialNumber => false;
 
   const Value();
 
