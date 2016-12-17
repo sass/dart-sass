@@ -122,17 +122,17 @@ final _conversions = {
   // Pixel density
   "dpi": {
     "dpi": 1,
-    "dpcm": 1 / 2.54,
-    "dppx": 1 / 96,
+    "dpcm": 2.54,
+    "dppx": 96,
   },
   "dpcm": {
-    "dpi": 2.54,
+    "dpi": 1 / 2.54,
     "dpcm": 1,
-    "dppx": 2.54 / 96,
+    "dppx": 96 / 2.54,
   },
   "dppx": {
-    "dpi": 96,
-    "dpcm": 96 / 2.54,
+    "dpi": 1 / 96,
+    "dpcm": 2.54 / 96,
     "dppx": 1,
   },
 };
