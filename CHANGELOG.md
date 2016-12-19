@@ -16,6 +16,9 @@
 * Don't crash when passing only `$hue` or no keyword arguments to
   `adjust-color()`, `scale-color()`, or `change-color()`.
 
+* Preserve escapes in identifiers. This used to only work for identifiers in
+  SassScript.
+
 ## 1.0.0-alpha.5
 
 * Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and

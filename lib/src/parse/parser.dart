@@ -98,7 +98,7 @@ abstract class Parser {
     } else if (isNameStart(first)) {
       text.writeCharCode(scanner.readChar());
     } else if (first == $backslash) {
-      text.writeCharCode(escape());
+      text.write(escape());
     } else {
       scanner.error("Expected identifier.");
     }
@@ -115,7 +115,7 @@ abstract class Parser {
       } else if (isName(next)) {
         text.writeCharCode(scanner.readChar());
       } else if (next == $backslash) {
-        text.writeCharCode(escape());
+        text.write(escape());
       } else {
         break;
       }
@@ -151,7 +151,7 @@ abstract class Parser {
           scanner.readChar();
           scanner.readChar();
         } else {
-          buffer.writeCharCode(escape());
+          buffer.writeCharCode(escapeCharacter());
         }
       } else {
         buffer.writeCharCode(scanner.readChar());
@@ -176,7 +176,7 @@ abstract class Parser {
       var next = scanner.peekChar();
       switch (next) {
         case $backslash:
-          buffer.writeCharCode(escape());
+          buffer.write(escape());
           wroteNewline = false;
           break;
 
@@ -289,7 +289,7 @@ abstract class Parser {
           next >= 0x0080) {
         buffer.writeCharCode(scanner.readChar());
       } else if (next == $backslash) {
-        buffer.writeCharCode(escape());
+        buffer.write(escape());
       } else if (isWhitespace(next)) {
         whitespace();
         if (scanner.peekChar() != $rparen) break;
@@ -314,8 +314,38 @@ abstract class Parser {
 
   // ## Characters
 
+  /// Consumes an escape sequence and returns the text that defines it.
+  String escape() {
+    // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
+
+    var buffer = new StringBuffer();
+    scanner.expectChar($backslash);
+    buffer.writeCharCode($backslash);
+    var first = scanner.peekChar();
+    if (first == null) {
+      // Do nothing.
+    } else if (isNewline(first)) {
+      scanner.error("Expected escape sequence.");
+      return null;
+    } else if (isHex(first)) {
+      for (var i = 0; i < 6; i++) {
+        var next = scanner.peekChar();
+        if (next == null || !isHex(next)) break;
+        buffer.writeCharCode(scanner.readChar());
+      }
+
+      if (isWhitespace(scanner.peekChar())) {
+        buffer.writeCharCode(scanner.readChar());
+      }
+    } else {
+      buffer.writeCharCode(scanner.readChar());
+    }
+
+    return buffer.toString();
+  }
+
   /// Consumes an escape sequence and returns the character it represents.
-  int escape() {
+  int escapeCharacter() {
     // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
     scanner.expectChar($backslash);
@@ -344,32 +374,6 @@ abstract class Parser {
     } else {
       return scanner.readChar();
     }
-  }
-
-  /// Consumes and returns the next character.
-  ///
-  /// If the next character starts an escape sequence, parses the escape
-  /// sequence and returns the character it represents instead.
-  int readCharOrEscape() {
-    var next = scanner.readChar();
-    return next == $backslash ? escape() : next;
-  }
-
-  /// Consumes the next character or escape sequence, and returns whether it
-  /// equals [expected].
-  ///
-  /// If [ignoreCase] is `true`, this ignores ASCII case when comparing the
-  /// scanner character to [expected].
-  ///
-  /// Note that this conusmes the next character whether or not it matches
-  /// [expected].
-  bool _scanCharOrEscape(int expected, {bool ignoreCase: false}) {
-    // TODO(nweiz): Test if it's faster to split this into separate methods for
-    // case-sensitivity rather than checking the boolean each time.
-    var actual = readCharOrEscape();
-    return ignoreCase
-        ? characterEqualsIgnoreCase(actual, expected)
-        : actual == expected;
   }
 
   // Consumes the next character if it matches [condition].
@@ -463,7 +467,7 @@ abstract class Parser {
     var start = scanner.state;
     for (var i = 0; i < text.length; i++) {
       var next = text.codeUnitAt(i);
-      if (_scanCharOrEscape(next, ignoreCase: ignoreCase)) continue;
+      if (scanCharIgnoreCase(next)) continue;
       scanner.state = start;
       return false;
     }
@@ -482,7 +486,7 @@ abstract class Parser {
     var start = scanner.position;
     for (var i = 0; i < text.length; i++) {
       var next = text.codeUnitAt(i);
-      if (_scanCharOrEscape(next, ignoreCase: ignoreCase)) continue;
+      if (scanCharIgnoreCase(next)) continue;
       scanner.error("Expected $name.", position: start);
     }
 
