@@ -517,6 +517,7 @@ void defineCoreFunctions(Environment environment) {
         _codepointForIndex(start.assertInt(), lengthInCodepoints);
     var endCodepoint = _codepointForIndex(end.assertInt(), lengthInCodepoints,
         allowNegative: true);
+    if (endCodepoint == lengthInCodepoints) endCodepoint -= 1;
     if (endCodepoint < startCodepoint) {
       return new SassString.empty(quotes: string.hasQuotes);
     }
