@@ -341,8 +341,10 @@ void defineCoreFunctions(Environment environment) {
           saturation: (color.saturation + (saturation ?? 0)).clamp(0, 100),
           lightness: (color.lightness + (lightness ?? 0)).clamp(0, 100),
           alpha: color.alpha + (alpha ?? 0));
-    } else {
+    } else if (alpha != null) {
       return color.changeAlpha((color.alpha + (alpha ?? 0)).clamp(0, 1));
+    } else {
+      return color;
     }
   });
 
@@ -400,8 +402,10 @@ void defineCoreFunctions(Environment environment) {
           saturation: scaleValue(color.saturation, saturation, 100),
           lightness: scaleValue(color.lightness, lightness, 100),
           alpha: scaleValue(color.alpha, alpha, 1));
-    } else {
+    } else if (alpha != null) {
       return color.changeAlpha(scaleValue(color.alpha, alpha, 1));
+    } else {
+      return color;
     }
   });
 
@@ -434,7 +438,7 @@ void defineCoreFunctions(Environment environment) {
     }
 
     var hasRgb = red != null || green != null || blue != null;
-    var hasHsl = saturation != null || lightness != null;
+    var hasHsl = hue != null || saturation != null || lightness != null;
     if (hasRgb) {
       if (hasHsl) {
         throw new SassScriptException(
@@ -445,8 +449,10 @@ void defineCoreFunctions(Environment environment) {
     } else if (hasHsl) {
       return color.changeHsl(
           hue: hue, saturation: saturation, lightness: lightness, alpha: alpha);
-    } else {
+    } else if (alpha != null) {
       return color.changeAlpha(alpha);
+    } else {
+      return color;
     }
   });
 

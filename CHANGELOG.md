@@ -13,6 +13,9 @@
 
 * Interpolation in quoted strings now properly preserves newlines.
 
+* Don't crash when passing only `$hue` or no keyword arguments to
+  `adjust-color()`, `scale-color()`, or `change-color()`.
+
 ## 1.0.0-alpha.5
 
 * Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and
