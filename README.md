@@ -25,7 +25,7 @@ system—containing the Dart VM and the a snapshot of the Sass library—from
 [the release page][releases]. Extract it, add the directory to your path, and
 the `dart-sass` executable is ready to run!
 
-[releases]: https://github.com/sass/dart-sass/releases/tag/1.0.0-alpha.1
+[releases]: https://github.com/sass/dart-sass/releases/
 
 ### From npm
 
