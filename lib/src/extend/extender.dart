@@ -35,6 +35,15 @@ class Extender {
   /// [second law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
   final _sourceSpecificity = new Expando<int>();
 
+  /// An expando that tracks [ComplexSelector]s that were originally part of
+  /// their component [SelectorList]s, as opposed to being added by `@extend`.
+  ///
+  /// This allows us to ensure that we do'nt trim any selectors that need to
+  /// exist to satisfy the [first law of extend][].
+  ///
+  /// [first law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
+  final _original = new Expando<bool>();
+
   /// Extends [selector] with [source] extender and [target] the extendee.
   ///
   /// This works as though `source {@extend target}` were written in
@@ -64,18 +73,7 @@ class Extender {
   /// extensions are added, the returned rule is automatically updated.
   CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span) {
     for (var complex in selector.value.components) {
-      // Ignoring the specificity of complex selectors that contain placeholders
-      // matches Ruby Sass's behavior. I'm not sure if it's *correct* behavior,
-      // but it's probably not worth the pain of changing now.
-      if (complex.containsPlaceholder) continue;
-
-      for (var component in complex.components) {
-        if (component is CompoundSelector) {
-          for (var simple in component.components) {
-            _sourceSpecificity[simple] = complex.maxSpecificity;
-          }
-        }
-      }
+      _original[complex] = true;
     }
 
     if (_extensions.isNotEmpty) {
@@ -113,6 +111,16 @@ class Extender {
   /// provides the extend span and indicates whether the extension is optional.
   void addExtension(CssValue<SelectorList> extender, SimpleSelector target,
       ExtendRule extend) {
+    for (var complex in extender.value.components) {
+      for (var component in complex.components) {
+        if (component is CompoundSelector) {
+          for (var simple in component.components) {
+            _sourceSpecificity[simple] = complex.maxSpecificity;
+          }
+        }
+      }
+    }
+
     var source = new ExtendSource(extender, extend.span);
     source.isUsed = extend.isOptional;
     _extensions.putIfAbsent(target, () => new Set()).add(source);
@@ -148,23 +156,19 @@ class Extender {
       {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
-    List<ComplexSelector> unextended;
     List<List<ComplexSelector>> extended;
     for (var i = 0; i < list.components.length; i++) {
       var complex = list.components[i];
       var result = _extendComplex(complex, extensions, replace: replace);
       if (result == null) {
-        if (unextended != null) unextended.add(complex);
-      } else if (unextended == null) {
-        unextended = list.components.take(i).toList();
-        extended = result;
+        if (extended != null) extended.add([complex]);
       } else {
+        extended ??= i == 0 ? [] : [list.components.sublist(0, i).toList()];
         extended.addAll(result);
       }
     }
-    if (unextended == null) return list;
+    if (extended == null) return list;
 
-    if (unextended.isNotEmpty) extended.add(unextended);
     return new SelectorList(
         _trim(extended).where((complex) => complex != null));
   }
@@ -213,12 +217,23 @@ class Extender {
     }
     if (!changed) return null;
 
+    var first = true;
     return paths(extendedNotExpanded).map((path) {
       return weave(path.map((complex) => complex.components).toList())
-          .map((outputComplex) {
-        return new ComplexSelector(outputComplex,
+          .map((components) {
+        var outputComplex = new ComplexSelector(components,
             lineBreak: complex.lineBreak ||
                 path.any((inputComplex) => inputComplex.lineBreak));
+
+        // Make sure that copies of [complex] retain their status as "original"
+        // selectors. This includes selectors that are modified because a :not()
+        // was extended into.
+        if (first && _original[complex] != null) {
+          _original[outputComplex] = true;
+        }
+        first = false;
+
+        return outputComplex;
       }).toList();
     }).toList();
   }
@@ -273,8 +288,9 @@ class Extender {
                 ];
 
           var newComplex = new ComplexSelector(
-              complex.components.take(complex.components.length - 1).toList()
-                ..add(unified),
+              complex.components
+                  .sublist(0, complex.components.length - 1)
+                  .toList()..add(unified),
               lineBreak: complex.lineBreak);
           _addSourceSpecificity(
               newComplex,
@@ -409,6 +425,11 @@ class Extender {
     var result = <ComplexSelector>[];
     for (var i = 0; i < lists.length; i++) {
       for (var complex1 in lists[i]) {
+        if (_original[complex1] != null) {
+          result.add(complex1);
+          continue;
+        }
+
         // The maximum specificity of the sources that caused [complex1] to be
         // generated. In order for [complex1] to be removed, there must be
         // another selector that's a superselector of it *and* that has
