@@ -19,6 +19,8 @@
 * Preserve escapes in identifiers. This used to only work for identifiers in
   SassScript.
 
+* Fix a few small `@extend` bugs.
+
 ## 1.0.0-alpha.5
 
 * Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and
