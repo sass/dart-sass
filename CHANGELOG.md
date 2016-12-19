@@ -11,6 +11,8 @@
 * `str-slice()` now correctly returns `""` when `$end-at` is negative and points
   before the beginning of the string.
 
+* Interpolation in quoted strings now properly preserves newlines.
+
 * Don't crash when passing only `$hue` or no keyword arguments to
   `adjust-color()`, `scale-color()`, or `change-color()`.
 

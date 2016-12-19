@@ -1293,8 +1293,19 @@ class _PerformVisitor
     return selector.value.asSassList;
   }
 
-  SassString visitStringExpression(StringExpression node) =>
-      new SassString(_performInterpolation(node.text), quotes: node.hasQuotes);
+  SassString visitStringExpression(StringExpression node) {
+    // Don't use [performInterpolation] here because we need to get the raw text
+    // from strings.
+    return new SassString(
+        node.text.contents.map((value) {
+          if (value is String) return value;
+          var result = (value as Expression).accept(this);
+          return result is SassString
+              ? result.text
+              : result.toCssString(quote: false);
+        }).join(),
+        quotes: node.hasQuotes);
+  }
 
   // ## Utilities
 
