@@ -11,6 +11,8 @@
 * `str-slice()` now correctly returns `""` when `$end-at` is negative and points
   before the beginning of the string.
 
+* Interpolation in quoted strings now properly preserves newlines.
+
 ## 1.0.0-alpha.5
 
 * Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and
