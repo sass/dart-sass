@@ -5,6 +5,12 @@
 * Fix conversions between numbers with `dpi`, `dpcm`, and `dppx` units.
   Previously these conversions were inverted.
 
+* Don't crash when calling `str-slice()` with an `$end-at` index lower than the
+  `$start-at` index.
+
+* `str-slice()` now correctly returns `""` when `$end-at` is negative and points
+  before the beginning of the string.
+
 ## 1.0.0-alpha.5
 
 * Fix bounds-checking for `opacify()`, `fade-in()`, `transparentize()`, and
