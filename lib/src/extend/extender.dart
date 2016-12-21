@@ -50,20 +50,14 @@ class Extender {
   /// the stylesheet.
   static SelectorList extend(
           SelectorList selector, SelectorList source, SimpleSelector target) =>
-      new Extender()._extendList(selector, {
-        target: new Set()
-          ..add(new ExtendSource(new CssValue(source, null), null))
-      });
+      new Extender()._extendList(
+          selector, {target: new Set()..add(new ExtendSource(source, null))});
 
   /// Returns a copy of [selector] with [source] replaced by [target].
   static SelectorList replace(
           SelectorList selector, SelectorList source, SimpleSelector target) =>
       new Extender()._extendList(
-          selector,
-          {
-            target: new Set()
-              ..add(new ExtendSource(new CssValue(source, null), null))
-          },
+          selector, {target: new Set()..add(new ExtendSource(source, null))},
           replace: true);
 
   /// Adds [selector] to this extender, associated with [span].
@@ -109,9 +103,9 @@ class Extender {
   /// The [extender] is the selector for the style rule in which the extension
   /// is defined, and [target] is the selector passed to `@extend`. The [extend]
   /// provides the extend span and indicates whether the extension is optional.
-  void addExtension(CssValue<SelectorList> extender, SimpleSelector target,
-      ExtendRule extend) {
-    for (var complex in extender.value.components) {
+  void addExtension(
+      SelectorList extender, SimpleSelector target, ExtendRule extend) {
+    for (var complex in extender.components) {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
@@ -274,7 +268,7 @@ class Extender {
       compoundWithoutSimple.setRange(
           i, compound.components.length - 1, compound.components, i + 1);
       for (var source in sources) {
-        for (var complex in source.extender.value.components) {
+        for (var complex in source.extender.components) {
           var extenderBase = complex.components.last as CompoundSelector;
           var unified = compoundWithoutSimple.isEmpty
               ? extenderBase
