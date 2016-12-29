@@ -271,8 +271,8 @@ class Extender {
             compound.components.length - 1 + extendedPseudo.length);
         simples.setRange(0, i, compound.components);
         simples.setRange(i, i + extendedPseudo.length, extendedPseudo);
-        simples.setRange(
-            i + extendedPseudo.length, simples.length, compound.components, i);
+        simples.setRange(i + extendedPseudo.length, simples.length,
+            compound.components, i + 1);
         original = new CompoundSelector(simples);
       }
 
