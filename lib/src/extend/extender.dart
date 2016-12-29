@@ -271,8 +271,8 @@ class Extender {
             compound.components.length - 1 + extendedPseudo.length);
         simples.setRange(0, i, compound.components);
         simples.setRange(i, i + extendedPseudo.length, extendedPseudo);
-        simples.setRange(
-            i + extendedPseudo.length, simples.length, compound.components, i);
+        simples.setRange(i + extendedPseudo.length, simples.length,
+            compound.components, i + 1);
         original = new CompoundSelector(simples);
       }
 
@@ -338,7 +338,7 @@ class Extender {
       Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
       {bool replace: false}) {
     var extended = _extendList(pseudo.selector, extensions, replace: replace);
-    if (extended == null) return null;
+    if (identical(extended, pseudo.selector)) return null;
 
     // TODO: what do we do about placeholders in the selector? If we just
     // eliminate them here, what happens to future extends?
