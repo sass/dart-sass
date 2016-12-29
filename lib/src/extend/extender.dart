@@ -338,7 +338,7 @@ class Extender {
       Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
       {bool replace: false}) {
     var extended = _extendList(pseudo.selector, extensions, replace: replace);
-    if (extended == null) return null;
+    if (identical(extended, pseudo.selector)) return null;
 
     // TODO: what do we do about placeholders in the selector? If we just
     // eliminate them here, what happens to future extends?
