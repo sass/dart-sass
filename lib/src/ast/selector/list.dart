@@ -218,5 +218,5 @@ class SelectorList extends Selector {
   int get hashCode => listHash(components);
 
   bool operator ==(other) =>
-      other is ComplexSelector && listEquals(components, other.components);
+      other is SelectorList && listEquals(components, other.components);
 }

@@ -82,5 +82,5 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   int get hashCode => listHash(components);
 
   bool operator ==(other) =>
-      other is ComplexSelector && listEquals(components, other.components);
+      other is CompoundSelector && listEquals(components, other.components);
 }

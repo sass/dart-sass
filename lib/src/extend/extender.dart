@@ -10,7 +10,7 @@ import '../ast/css.dart';
 import '../ast/selector.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
-import 'source.dart';
+import 'state.dart';
 import 'functions.dart';
 
 /// Tracks style rules and extensions, and applies the latter to the former.
@@ -23,7 +23,7 @@ class Extender {
 
   /// A map from all extended simple selectors to the sources of those
   /// extensions.
-  final _extensions = <SimpleSelector, Set<ExtendSource>>{};
+  final _extensions = <SimpleSelector, Map<SelectorList, ExtendState>>{};
 
   /// An expando from [SimpleSelector]s to integers.
   ///
@@ -51,8 +51,7 @@ class Extender {
   static SelectorList extend(
           SelectorList selector, SelectorList source, SimpleSelector target) =>
       new Extender()._extendList(selector, {
-        target: new Set()
-          ..add(new ExtendSource(new CssValue(source, null), null))
+        target: {source: new ExtendState.optional()}
       });
 
   /// Returns a copy of [selector] with [source] replaced by [target].
@@ -61,8 +60,7 @@ class Extender {
       new Extender()._extendList(
           selector,
           {
-            target: new Set()
-              ..add(new ExtendSource(new CssValue(source, null), null))
+            target: {source: new ExtendState.optional()}
           },
           replace: true);
 
@@ -109,9 +107,24 @@ class Extender {
   /// The [extender] is the selector for the style rule in which the extension
   /// is defined, and [target] is the selector passed to `@extend`. The [extend]
   /// provides the extend span and indicates whether the extension is optional.
-  void addExtension(CssValue<SelectorList> extender, SimpleSelector target,
-      ExtendRule extend) {
-    for (var complex in extender.value.components) {
+  void addExtension(
+      SelectorList extender, SimpleSelector target, ExtendRule extend) {
+    var sources = _extensions.putIfAbsent(target, () => {});
+    var existingState = sources[extender];
+    if (existingState != null) {
+      // If there's already an extend from [extender] to [target], we don't need
+      // to re-run the extension. We may need to mark the extension as
+      // mandatory, though.
+      if (!extend.isOptional) existingState.makeMandatory(extend.span);
+      return;
+    }
+
+    var state = extend.isOptional
+        ? new ExtendState.optional()
+        : new ExtendState.mandatory(extend.span);
+    sources[extender] = state;
+
+    for (var complex in extender.components) {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
@@ -121,13 +134,11 @@ class Extender {
       }
     }
 
-    var source = new ExtendSource(extender, extend.span);
-    source.isUsed = extend.isOptional;
-    _extensions.putIfAbsent(target, () => new Set()).add(source);
-
     var rules = _selectors[target];
     if (rules == null) return;
-    var extensions = {target: new Set<ExtendSource>()..add(source)};
+    var extensions = {
+      target: {extender: state}
+    };
     for (var rule in rules.toList()) {
       rule.selector.value = _extendList(rule.selector.value, extensions);
       _registerSelector(rule.selector.value, rule);
@@ -138,21 +149,21 @@ class Extender {
   /// any selectors.
   void finalize() {
     _extensions.forEach((target, sources) {
-      for (var source in sources) {
-        if (source.isUsed) continue;
+      sources.forEach((_, state) {
+        if (state.isOptional || state.isUsed) return;
         throw new SassException(
             'The target selector was not found.\n'
             'Use "@extend $target !optional" to avoid this error.',
-            source.span);
-      }
+            state.span);
+      });
     });
   }
 
   /// Extends [list] using [extensions].
   ///
   /// If [replace] is `true`, this doesn't preserve the original selectors.
-  SelectorList _extendList(
-      SelectorList list, Map<SimpleSelector, Set<ExtendSource>> extensions,
+  SelectorList _extendList(SelectorList list,
+      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
       {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
@@ -178,7 +189,7 @@ class Extender {
   ///
   /// If [replace] is `true`, this doesn't preserve the original selectors.
   List<List<ComplexSelector>> _extendComplex(ComplexSelector complex,
-      Map<SimpleSelector, Set<ExtendSource>> extensions,
+      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
       {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
@@ -243,7 +254,7 @@ class Extender {
   ///
   /// If [replace] is `true`, this doesn't preserve the original selectors.
   List<ComplexSelector> _extendCompound(CompoundSelector compound,
-      Map<SimpleSelector, Set<ExtendSource>> extensions,
+      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
       {bool replace: false}) {
     var original = compound;
 
@@ -273,8 +284,8 @@ class Extender {
       compoundWithoutSimple.setRange(0, i, compound.components);
       compoundWithoutSimple.setRange(
           i, compound.components.length - 1, compound.components, i + 1);
-      for (var source in sources) {
-        for (var complex in source.extender.value.components) {
+      sources.forEach((extender, state) {
+        for (var complex in extender.components) {
           var extenderBase = complex.components.last as CompoundSelector;
           var unified = compoundWithoutSimple.isEmpty
               ? extenderBase
@@ -297,9 +308,9 @@ class Extender {
               math.max(
                   _sourceSpecificityFor(compound), complex.maxSpecificity));
           extended.add(newComplex);
-          source.isUsed = true;
+          state.isUsed = true;
         }
-      }
+      });
     }
 
     if (extended == null) {
@@ -323,8 +334,8 @@ class Extender {
   /// pseudo selectors.
   ///
   /// If [replace] is `true`, this doesn't preserve the original selectors.
-  List<PseudoSelector> _extendPseudo(
-      PseudoSelector pseudo, Map<SimpleSelector, Set<ExtendSource>> extensions,
+  List<PseudoSelector> _extendPseudo(PseudoSelector pseudo,
+      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
       {bool replace: false}) {
     var extended = _extendList(pseudo.selector, extensions, replace: replace);
     if (extended == null) return null;
