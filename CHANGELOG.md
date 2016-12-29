@@ -1,3 +1,7 @@
+## 1.0.0-alpha.7
+
+* Fix a few more small `@extend` bugs.
+
 ## 1.0.0-alpha.6
 
 * Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.
