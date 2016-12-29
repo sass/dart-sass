@@ -1,5 +1,7 @@
 ## 1.0.0-alpha.7
 
+* Properly parse `url()`s that contain comment-like text.
+
 * Fix a few more small `@extend` bugs.
 
 ## 1.0.0-alpha.6

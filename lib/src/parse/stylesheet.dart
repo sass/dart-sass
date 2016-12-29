@@ -1919,7 +1919,7 @@ abstract class StylesheetParser extends Parser {
 
     var start = scanner.state;
     if (!scanner.scanChar($lparen)) return null;
-    whitespace();
+    whitespaceWithoutComments();
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -1942,7 +1942,7 @@ abstract class StylesheetParser extends Parser {
           buffer.writeCharCode(scanner.readChar());
         }
       } else if (isWhitespace(next)) {
-        whitespace();
+        whitespaceWithoutComments();
         if (scanner.peekChar() != $rparen) break;
       } else if (next == $rparen) {
         buffer.writeCharCode(scanner.readChar());
