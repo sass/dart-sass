@@ -491,9 +491,24 @@ void defineCoreFunctions(Environment environment) {
     var index = arguments[2].assertNumber("index");
     index.assertNoUnits("index");
 
-    var codeUnitIndex = codepointIndexToCodeUnitIndex(string.text,
-        _codepointForIndex(index.assertInt("index"), string.text.runes.length));
+    var indexInt = index.assertInt("index");
+    var codepointIndex = _codepointForIndex(indexInt, string.text.runes.length,
+        allowNegative: true);
 
+    // str-insert has unusual behavior for negative inputs. It guarantees that
+    // the $insert is at $index in the result, which means that we want to
+    // insert before that point if $index is positive and after if it's
+    // negative.
+    if (indexInt < 0) {
+      if (codepointIndex < 0) {
+        codepointIndex = 0;
+      } else {
+        codepointIndex++;
+      }
+    }
+
+    var codeUnitIndex =
+        codepointIndexToCodeUnitIndex(string.text, codepointIndex);
     return new SassString(
         string.text.replaceRange(codeUnitIndex, codeUnitIndex, insert.text),
         quotes: string.hasQuotes);
