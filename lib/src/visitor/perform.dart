@@ -128,6 +128,21 @@ class _PerformVisitor
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
         _environment = environment ?? new Environment(),
         _color = color {
+    _environment.defineFunction("variable-exists", r"$name", (arguments) {
+      var variable = arguments[0].assertString("name");
+      return new SassBoolean(_environment.variableExists(variable.text));
+    });
+
+    _environment.defineFunction("function-exists", r"$name", (arguments) {
+      var variable = arguments[0].assertString("name");
+      return new SassBoolean(_environment.functionExists(variable.text));
+    });
+
+    _environment.defineFunction("mixin-exists", r"$name", (arguments) {
+      var variable = arguments[0].assertString("name");
+      return new SassBoolean(_environment.mixinExists(variable.text));
+    });
+
     _environment.defineFunction("call", r"$function, $args...", (arguments) {
       var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
