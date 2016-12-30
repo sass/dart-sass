@@ -1,5 +1,7 @@
 ## 1.0.0-alpha.7
 
+* `str-index()` now correctly inserts at negative indices.
+
 * Properly parse `url()`s that contain comment-like text.
 
 * Fix a few more small `@extend` bugs.
