@@ -1,5 +1,8 @@
 ## 1.0.0-alpha.7
 
+* Fix `function-exists()`, `variable-exists()`, and `mixin-exists()` to use the
+  lexical scope rather than always using the global scope.
+
 * `str-index()` now correctly inserts at negative indices.
 
 * Properly parse `url()`s that contain comment-like text.
