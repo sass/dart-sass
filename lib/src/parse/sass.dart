@@ -99,6 +99,11 @@ class SassParser extends StylesheetParser {
   /// allowed in the caller's context.
   Statement _child(Statement child()) {
     switch (scanner.peekChar()) {
+      // Ignore empty lines.
+      case $cr:
+      case $lf:
+        return null;
+
       case $dollar:
         return variableDeclaration();
         break;
@@ -274,7 +279,7 @@ class SassParser extends StylesheetParser {
 
     _checkIndentationConsistency(containsTab, containsSpace);
 
-    _spaces ??= containsSpace;
+    if (_nextIndentation > 0) _spaces ??= containsSpace;
     _nextIndentationEnd = scanner.state;
     scanner.state = start;
     return _nextIndentation;
