@@ -274,7 +274,7 @@ class SassParser extends StylesheetParser {
 
     _checkIndentationConsistency(containsTab, containsSpace);
 
-    _spaces ??= containsSpace;
+    if (_nextIndentation > 0) _spaces ??= containsSpace;
     _nextIndentationEnd = scanner.state;
     scanner.state = start;
     return _nextIndentation;
