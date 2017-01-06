@@ -99,6 +99,11 @@ class SassParser extends StylesheetParser {
   /// allowed in the caller's context.
   Statement _child(Statement child()) {
     switch (scanner.peekChar()) {
+      // Ignore empty lines.
+      case $cr:
+      case $lf:
+        return null;
+
       case $dollar:
         return variableDeclaration();
         break;
