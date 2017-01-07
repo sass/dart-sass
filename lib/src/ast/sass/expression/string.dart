@@ -55,8 +55,9 @@ class StringExpression implements Expression {
     var buffer = new InterpolationBuffer();
     if (quote != null) buffer.writeCharCode(quote);
     for (var value in text.contents) {
-      if (value is Interpolation) {
-        buffer.addInterpolation(value);
+      assert(value is Expression || value is String);
+      if (value is Expression) {
+        buffer.add(value);
       } else if (value is String) {
         for (var i = 0; i < value.length; i++) {
           var codeUnit = value.codeUnitAt(i);

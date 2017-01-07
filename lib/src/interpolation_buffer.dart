@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/sass.dart';
@@ -71,5 +72,18 @@ class InterpolationBuffer implements StringSink {
     return new Interpolation(contents, span);
   }
 
-  String toString() => "${_contents.join('')}$_text";
+  String toString() {
+    var buffer = new StringBuffer();
+    for (var element in _contents) {
+      if (element is String) {
+        buffer.write(element);
+      } else {
+        buffer.write("#{");
+        buffer.write(element);
+        buffer.writeCharCode($rbrace);
+      }
+    }
+    buffer.write(_text);
+    return buffer.toString();
+  }
 }

@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 
 import 'src/ast/sass.dart';
 import 'src/exception.dart';
-import 'src/io.dart';
+import 'src/utils.dart';
 import 'src/visitor/perform.dart';
 import 'src/visitor/serialize.dart';
 
@@ -16,7 +16,7 @@ import 'src/visitor/serialize.dart';
 ///
 /// Throws a [SassException] if conversion fails.
 String render(String path, {bool color: false}) {
-  var contents = readFile(path);
+  var contents = readSassFile(path);
   var url = p.toUri(path);
   var sassTree = p.extension(path) == '.sass'
       ? new Stylesheet.parseSass(contents, url: url, color: color)

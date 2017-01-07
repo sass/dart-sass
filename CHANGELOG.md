@@ -9,6 +9,19 @@
 
 * Fix a few more small `@extend` bugs.
 
+* Fix a bug where interpolation in a quoted string was being dropped in some
+  circumstances.
+
+* Properly handle `@for` rules where each bound has a different unit.
+
+* Forbid mixins and functions from being defined in control directives.
+
+* Fix a superselector-computation edge case involving `:not()`.
+
+* Gracefully handle input files that are invalid UTF-8.
+
+* Print a Sass stack trace when a file fails to load.
+
 ## 1.0.0-alpha.6
 
 * Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.

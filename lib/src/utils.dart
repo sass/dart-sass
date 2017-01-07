@@ -3,13 +3,16 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
+import 'exception.dart';
 import 'io.dart';
 import 'util/character.dart';
 
@@ -251,6 +254,31 @@ List/*<T>*/ longestCommonSubsequence/*<T>*/(
   } else {
     list.remove(toRemove);
     return toRemove;
+  }
+}
+
+/// Reads a Sass source file from diskx, and throws a [SassException] if UTF-8
+/// decoding fails.
+String readSassFile(String path) {
+  var bytes = readFileAsBytes(path);
+
+  try {
+    return UTF8.decode(bytes);
+  } on FormatException {
+    var decoded = UTF8.decode(bytes, allowMalformed: true);
+    var sourceFile = new SourceFile(decoded, url: p.toUri(path));
+
+    // TODO(nweiz): Use [FormatException.offset] instead when
+    // dart-lang/sdk#28293 is fixed.
+    for (var i = 0; i < bytes.length; i++) {
+      if (decoded.codeUnitAt(i) != 0xFFFD) continue;
+      throw new SassException(
+          "Invalid UTF-8.", sourceFile.location(i).pointSpan());
+    }
+
+    // This should be unreachable, but we'll rethrow the original exception just
+    // in case.
+    rethrow;
   }
 }
 

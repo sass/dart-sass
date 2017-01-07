@@ -729,7 +729,7 @@ bool _selectorPseudoIsSuperselector(
 
     case 'not':
       return pseudo1.selector.components.every((complex) {
-        return compound2.components.every((simple2) {
+        return compound2.components.any((simple2) {
           if (simple2 is TypeSelector) {
             var compound1 = complex.components.last;
             return compound1 is CompoundSelector &&

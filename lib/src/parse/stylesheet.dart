@@ -550,6 +550,11 @@ abstract class StylesheetParser extends Parser {
           "Mixins may not contain function declarations.",
           scanner.spanFrom(start),
           scanner.string);
+    } else if (_inControlDirective) {
+      throw new StringScannerException(
+          "Functions may not be declared in control directives.",
+          scanner.spanFrom(start),
+          scanner.string);
     }
 
     whitespace();
@@ -632,7 +637,7 @@ abstract class StylesheetParser extends Parser {
     var imports = <Import>[];
     do {
       whitespace();
-      imports.add(_importArgument());
+      imports.add(_importArgument(start));
       whitespace();
     } while (scanner.scanChar($comma));
     expectStatementSeparator();
@@ -640,7 +645,10 @@ abstract class StylesheetParser extends Parser {
     return new ImportRule(imports, scanner.spanFrom(start));
   }
 
-  Import _importArgument() {
+  /// Consumes an argument to an `@import` rule.
+  ///
+  /// [ruleStart] should point before the `@`.
+  Import _importArgument(LineScannerState ruleStart) {
     var start = scanner.state;
     var next = scanner.peekChar();
     if (next == $u || next == $U) {
@@ -662,7 +670,7 @@ abstract class StylesheetParser extends Parser {
       return new StaticImport(interpolation, scanner.spanFrom(start),
           supports: queries?.item1, media: queries?.item2);
     } else if (_inControlDirective || _inMixin) {
-      _disallowedAtRule(start);
+      _disallowedAtRule(ruleStart);
       return null;
     } else {
       try {
@@ -762,6 +770,11 @@ abstract class StylesheetParser extends Parser {
     if (_inMixin || _inContentBlock) {
       throw new StringScannerException(
           "Mixins may not contain mixin declarations.",
+          scanner.spanFrom(start),
+          scanner.string);
+    } else if (_inControlDirective) {
+      throw new StringScannerException(
+          "Mixins may not be declared in control directives.",
           scanner.spanFrom(start),
           scanner.string);
     }
