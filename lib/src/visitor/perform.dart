@@ -579,7 +579,7 @@ class _PerformVisitor
     }
 
     return _importedFiles.putIfAbsent(path, () {
-      var contents = readFile(path);
+      var contents = readSassFile(path);
       var url = p.toUri(path);
       return p.extension(path) == '.sass'
           ? new Stylesheet.parseSass(contents, url: url, color: _color)

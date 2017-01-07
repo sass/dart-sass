@@ -18,6 +18,8 @@
 
 * Fix a superselector-computation edge case involving `:not()`.
 
+* Gracefully handle input files that are invalid UTF-8.
+
 ## 1.0.0-alpha.6
 
 * Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.

@@ -2,11 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:typed_data';
+
 import 'package:js/js.dart';
 
 @JS()
 class _FS {
-  external String readFileSync(String path, String encoding);
+  external readFileSync(String path, [String encoding]);
 
   external bool existsSync(String path);
 }
@@ -35,7 +37,10 @@ external _FS _require(String name);
 
 final _fs = _require("fs");
 
-String readFile(String path) => _fs.readFileSync(path, 'utf8');
+List<int> readFileAsBytes(String path) => _fs.readFileSync(path) as Uint8List;
+
+String readFileAsString(String path) =>
+    _fs.readFileSync(path, 'utf8') as String;
 
 bool fileExists(String path) => _fs.existsSync(path);
 

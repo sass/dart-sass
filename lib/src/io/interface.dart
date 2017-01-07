@@ -23,8 +23,11 @@ Stderr get stderr => null;
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => false;
 
-/// Reads the file at [path].
-String readFile(String path) => null;
+/// Reads the file at [path] as a list of bytes.
+List<int> readFileAsBytes(String path) => null;
+
+/// Reads the file at [path] as a UTF-8 encoded string.
+String readFileAsString(String path) => null;
 
 /// Returns whether a file at [path] exists.
 bool fileExists(String path) => null;

@@ -106,7 +106,7 @@ Future<String> _loadVersion() async {
 
   var libDir =
       p.fromUri(await Isolate.resolvePackageUri(Uri.parse('package:sass/')));
-  var pubspec = readFile(p.join(libDir, '..', 'pubspec.yaml'));
+  var pubspec = readFileAsString(p.join(libDir, '..', 'pubspec.yaml'));
   return pubspec
       .split("\n")
       .firstWhere((line) => line.startsWith('version: '))
