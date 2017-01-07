@@ -14,6 +14,8 @@
 
 * Properly handle `@for` rules where each bound has a different unit.
 
+* Forbid mixins and functions from being defined in control directives.
+
 ## 1.0.0-alpha.6
 
 * Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.

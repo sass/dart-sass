@@ -550,6 +550,11 @@ abstract class StylesheetParser extends Parser {
           "Mixins may not contain function declarations.",
           scanner.spanFrom(start),
           scanner.string);
+    } else if (_inControlDirective) {
+      throw new StringScannerException(
+          "Functions may not be declared in control directives.",
+          scanner.spanFrom(start),
+          scanner.string);
     }
 
     whitespace();
@@ -765,6 +770,11 @@ abstract class StylesheetParser extends Parser {
     if (_inMixin || _inContentBlock) {
       throw new StringScannerException(
           "Mixins may not contain mixin declarations.",
+          scanner.spanFrom(start),
+          scanner.string);
+    } else if (_inControlDirective) {
+      throw new StringScannerException(
+          "Mixins may not be declared in control directives.",
           scanner.spanFrom(start),
           scanner.string);
     }
