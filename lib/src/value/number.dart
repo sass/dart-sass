@@ -290,6 +290,18 @@ class SassNumber extends Value {
     throw _exception('Expected $this to have no units.');
   }
 
+  /// Returns a copy of this number, converted to the units represented by
+  /// [newNumerators] and [newDenominators].
+  ///
+  /// Note that [valueInUnits] is generally more efficient if the value is going
+  /// to be accessed directly.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [newNumerators] and [newDenominators].
+  SassNumber coerce(List<String> newNumerators, List<String> newDenominators) =>
+      new SassNumber.withUnits(valueInUnits(newNumerators, newDenominators),
+          numeratorUnits: newNumerators, denominatorUnits: newDenominators);
+
   /// Returns [value], converted to the units represented by [newNumerators] and
   /// [newDenominators].
   ///

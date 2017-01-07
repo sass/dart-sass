@@ -483,10 +483,17 @@ class _PerformVisitor
   }
 
   Value visitForRule(ForRule node) {
-    var from = _addExceptionSpan(node.from.span,
-        () => node.from.accept(this).assertNumber().assertInt());
-    var to = _addExceptionSpan(
-        node.to.span, () => node.to.accept(this).assertNumber().assertInt());
+    var fromNumber = _addExceptionSpan(
+        node.from.span, () => node.from.accept(this).assertNumber());
+    var toNumber = _addExceptionSpan(
+        node.to.span, () => node.to.accept(this).assertNumber());
+
+    var from = _addExceptionSpan(
+        node.from.span,
+        () => fromNumber
+            .coerce(toNumber.numeratorUnits, toNumber.denominatorUnits)
+            .assertInt());
+    var to = _addExceptionSpan(node.to.span, () => toNumber.assertInt());
 
     // TODO: coerce units
     var direction = from > to ? -1 : 1;
