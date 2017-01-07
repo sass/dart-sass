@@ -16,6 +16,8 @@
 
 * Forbid mixins and functions from being defined in control directives.
 
+* Fix a superselector-computation edge case involving `:not()`.
+
 ## 1.0.0-alpha.6
 
 * Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.
