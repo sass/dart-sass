@@ -579,7 +579,17 @@ class _PerformVisitor
     }
 
     return _importedFiles.putIfAbsent(path, () {
-      var contents = readSassFile(path);
+      String contents;
+      try {
+        contents = readSassFile(path);
+      } on SassException catch (error) {
+        var frames = _stack.toList()..add(_stackFrame(import.span));
+        throw new SassRuntimeException(
+            error.message, error.span, new Trace(frames));
+      } on FileSystemException catch (error) {
+        throw _exception(error.message, import.span);
+      }
+
       var url = p.toUri(path);
       return p.extension(path) == '.sass'
           ? new Stylesheet.parseSass(contents, url: url, color: _color)

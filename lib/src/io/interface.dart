@@ -17,6 +17,11 @@ class Stderr {
   void flush() {}
 }
 
+/// An error thrown by [readFileAsBytes] and [readFileAsString].
+class FileSystemException {
+  String get message => null;
+}
+
 /// The standard error for the current process.
 Stderr get stderr => null;
 

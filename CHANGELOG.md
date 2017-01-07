@@ -20,6 +20,8 @@
 
 * Gracefully handle input files that are invalid UTF-8.
 
+* Print a Sass stack trace when a file fails to load.
+
 ## 1.0.0-alpha.6
 
 * Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.

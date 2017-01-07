@@ -18,6 +18,20 @@ class _Stderr {
   external void write(String text);
 }
 
+@JS()
+class _SystemError {
+  external String get message;
+  external String get code;
+  external String get syscall;
+  external String get path;
+}
+
+class FileSystemException {
+  final String message;
+
+  FileSystemException._(this.message);
+}
+
 class Stderr {
   final _Stderr _stderr;
 
@@ -37,10 +51,26 @@ external _FS _require(String name);
 
 final _fs = _require("fs");
 
-List<int> readFileAsBytes(String path) => _fs.readFileSync(path) as Uint8List;
+List<int> readFileAsBytes(String path) => _readFile(path) as Uint8List;
 
-String readFileAsString(String path) =>
-    _fs.readFileSync(path, 'utf8') as String;
+String readFileAsString(String path) => _readFile(path, 'utf8') as String;
+
+/// Wraps `fs.readFileSync` to throw a [FileSystemException].
+_readFile(String path, [String encoding]) {
+  try {
+    return _fs.readFileSync(path);
+  } catch (error) {
+    throw new FileSystemException._(_cleanErrorMessage(error as _SystemError));
+  }
+}
+
+/// Cleans up a Node system error's message.
+String _cleanErrorMessage(_SystemError error) {
+  // The error message is of the form "$code: $text, $syscall '$path'". We just
+  // want the text.
+  return error.message.substring("${error.code}: ".length,
+      error.message.length - ", ${error.syscall} '${error.path}'".length);
+}
 
 bool fileExists(String path) => _fs.existsSync(path);
 

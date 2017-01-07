@@ -4,7 +4,7 @@
 
 import 'dart:io' as io;
 
-export 'dart:io' show exitCode;
+export 'dart:io' show exitCode, FileSystemException;
 
 io.Stdout get stderr => io.stderr;
 
