@@ -9,6 +9,9 @@
 
 * Fix a few more small `@extend` bugs.
 
+* Fix a bug where interpolation in a quoted string was being dropped in some
+  circumstances.
+
 ## 1.0.0-alpha.6
 
 * Allow `var()` to be passed to `rgb()`, `rgba()`, `hsl()`, and `hsla()`.
