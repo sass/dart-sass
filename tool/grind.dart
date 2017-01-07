@@ -81,6 +81,7 @@ npm_package() {
 
   copy(new File('package/sass.js'), dir);
   copy(new File('build/sass.dart.js'), dir);
+  copy(new File('README.md'), dir);
 }
 
 /// Ensure that the `build/` directory exists.
