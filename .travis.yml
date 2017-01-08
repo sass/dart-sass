@@ -57,7 +57,7 @@ install:
 script:
 - if [ "$TASK" = analyze ]; then
     echo "${bold}Analzing Dart code.$none";
-    dartanalyzer --fatal-warnings lib/ test/;
+    dartanalyzer --fatal-warnings lib/ test/ tool/;
   elif [ "$TASK" = format ]; then
     echo "${bold}Ensuring Dart code is formatted.$none";
     ./tool/assert-formatted.sh;
