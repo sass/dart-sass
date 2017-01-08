@@ -195,7 +195,8 @@ class _PerformVisitor
   Value visitAtRootRule(AtRootRule node) {
     var query = node.query == null
         ? AtRootQuery.defaultQuery
-        : new AtRootQuery.parse(_performInterpolation(node.query));
+        : _adjustParseError(node.query.span,
+            () => new AtRootQuery.parse(_performInterpolation(node.query)));
 
     var parent = _parent;
     var included = <CssParentNode>[];

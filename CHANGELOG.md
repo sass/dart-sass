@@ -1,3 +1,7 @@
+## 1.0.0-alpha.8
+
+* Fix `@at-root` query parsing.
+
 ## 1.0.0-alpha.7
 
 * Fix `function-exists()`, `variable-exists()`, and `mixin-exists()` to use the
