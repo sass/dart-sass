@@ -29,4 +29,5 @@ dev_dependencies:
   node_preamble: "^1.1.0"
   scheduled_test: "^0.12.8"
   test: "^0.12.5"
+  xml: "^2.4.0"
   yaml: "^2.0.0"
