@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:archive/archive.dart';
 import 'package:grinder/grinder.dart';
@@ -16,7 +15,7 @@ import 'package:yaml/yaml.dart';
 
 /// The version of Dart Sass.
 final String _version =
-    loadYaml(new File('pubspec.yaml').readAsStringSync())['version'];
+    loadYaml(new File('pubspec.yaml').readAsStringSync())['version'] as String;
 
 /// The version of the current Dart executable.
 final String _dartVersion = Platform.version.split(" ").first;
@@ -24,7 +23,7 @@ final String _dartVersion = Platform.version.split(" ").first;
 /// The root of the Dart SDK.
 final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
 
-main(args) => grind(args);
+main(List<String> args) => grind(args);
 
 @DefaultTask('Run the Dart formatter.')
 format() {
