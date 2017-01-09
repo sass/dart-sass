@@ -4,6 +4,9 @@
 
 * Support interpolation in loud comments.
 
+* Fix a bug where even valid semicolons and exclamation marks in custom property
+  values were disallowed.
+
 * Disallow invalid function names.
 
 * Support terse mixin syntax in the indented syntax.
