@@ -1760,13 +1760,17 @@ abstract class StylesheetParser extends Parser {
     }
 
     if (scanner.peekChar() == $dot) {
-      scanner.readChar();
-      if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
-
-      var decimal = 0.1;
-      while (isDigit(scanner.peekChar())) {
-        number += asDecimal(scanner.readChar()) * decimal;
-        decimal /= 10;
+      if (!isDigit(scanner.peekChar(1))) {
+        if (first == $dot) {
+          scanner.error("Expected digit.", position: scanner.position + 1);
+        }
+      } else {
+        scanner.readChar();
+        var decimal = 0.1;
+        while (isDigit(scanner.peekChar())) {
+          number += asDecimal(scanner.readChar()) * decimal;
+          decimal /= 10;
+        }
       }
     }
 

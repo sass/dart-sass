@@ -6,6 +6,8 @@
 
 * Support special functions in `@-moz-document`.
 
+* Support `...` after a digit.
+
 ## 1.0.0-alpha.7
 
 * Fix `function-exists()`, `variable-exists()`, and `mixin-exists()` to use the
