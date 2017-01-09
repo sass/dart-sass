@@ -327,18 +327,6 @@ class _PerformVisitor
     return scope;
   }
 
-  Value visitComment(Comment node) {
-    if (node.isSilent) return null;
-
-    // Comments are allowed to appear between CSS imports.
-    if (_parent == _root && _endOfImports == _root.children.length) {
-      _endOfImports++;
-    }
-
-    _parent.addChild(new CssComment(node.text, node.span));
-    return null;
-  }
-
   Value visitContentRule(ContentRule node) {
     var block = _environment.contentBlock;
     if (block == null) return null;
@@ -686,6 +674,17 @@ class _PerformVisitor
     return null;
   }
 
+  Value visitLoudComment(LoudComment node) {
+    // Comments are allowed to appear between CSS imports.
+    if (_parent == _root && _endOfImports == _root.children.length) {
+      _endOfImports++;
+    }
+
+    _parent
+        .addChild(new CssComment(_performInterpolation(node.text), node.span));
+    return null;
+  }
+
   Value visitMediaRule(MediaRule node) {
     if (_declarationName != null) {
       throw _exception(
@@ -738,6 +737,8 @@ class _PerformVisitor
   }
 
   Value visitReturnRule(ReturnRule node) => node.expression.accept(this);
+
+  Value visitSilentComment(SilentComment node) => null;
 
   Value visitStyleRule(StyleRule node) {
     if (_declarationName != null) {

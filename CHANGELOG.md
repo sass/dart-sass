@@ -2,6 +2,8 @@
 
 * Add the `content-exists()` function.
 
+* Support interpolation in loud comments.
+
 * Disallow invalid function names.
 
 * Support terse mixin syntax in the indented syntax.

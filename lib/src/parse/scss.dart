@@ -5,6 +5,7 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
+import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
 
@@ -126,7 +127,7 @@ class ScssParser extends StylesheetParser {
   }
 
   /// Consumes a statement-level silent comment block.
-  Comment _silentComment() {
+  SilentComment _silentComment() {
     var start = scanner.state;
     scanner.expect("//");
 
@@ -136,21 +137,36 @@ class ScssParser extends StylesheetParser {
       whitespaceWithoutComments();
     } while (scanner.scan("//"));
 
-    return new Comment(
-        scanner.substring(start.position), scanner.spanFrom(start),
-        silent: true);
+    return new SilentComment(
+        scanner.substring(start.position), scanner.spanFrom(start));
   }
 
   /// Consumes a statement-level loud comment block.
-  Comment _loudComment() {
+  LoudComment _loudComment() {
     var start = scanner.state;
     scanner.expect("/*");
-    do {
-      while (scanner.readChar() != $asterisk) {}
-    } while (!scanner.scanChar($slash));
+    var buffer = new InterpolationBuffer()..write("/*");
+    while (true) {
+      switch (scanner.peekChar()) {
+        case $hash:
+          if (scanner.peekChar(1) == $lbrace) {
+            buffer.add(singleInterpolation());
+          } else {
+            buffer.writeCharCode(scanner.readChar());
+          }
+          break;
 
-    return new Comment(
-        scanner.substring(start.position), scanner.spanFrom(start),
-        silent: false);
+        case $asterisk:
+          buffer.writeCharCode(scanner.readChar());
+          if (scanner.peekChar() != $slash) break;
+
+          buffer.writeCharCode(scanner.readChar());
+          return new LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+
+        default:
+          buffer.writeCharCode(scanner.readChar());
+          break;
+      }
+    }
   }
 }

@@ -10,7 +10,6 @@ import '../../ast/sass.dart';
 abstract class StatementVisitor<T> {
   T visitAtRootRule(AtRootRule node);
   T visitAtRule(AtRule node);
-  T visitComment(Comment node);
   T visitContentRule(ContentRule node);
   T visitDebugRule(DebugRule node);
   T visitDeclaration(Declaration node);
@@ -22,9 +21,11 @@ abstract class StatementVisitor<T> {
   T visitIfRule(IfRule node);
   T visitImportRule(ImportRule node);
   T visitIncludeRule(IncludeRule node);
+  T visitLoudComment(LoudComment node);
   T visitMediaRule(MediaRule node);
   T visitMixinRule(MixinRule node);
   T visitReturnRule(ReturnRule node);
+  T visitSilentComment(SilentComment node);
   T visitStyleRule(StyleRule node);
   T visitStylesheet(Stylesheet node);
   T visitSupportsRule(SupportsRule node);
