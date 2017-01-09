@@ -1,3 +1,15 @@
+## 1.0.0-alpha.8
+
+* Disallow invalid function names.
+
+* Support terse mixin syntax in the indented syntax.
+
+* Fix `@at-root` query parsing.
+
+* Support special functions in `@-moz-document`.
+
+* Support `...` after a digit.
+
 ## 1.0.0-alpha.7
 
 * Fix `function-exists()`, `variable-exists()`, and `mixin-exists()` to use the

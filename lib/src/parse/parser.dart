@@ -262,8 +262,8 @@ abstract class Parser {
 
   /// Consumes a `url()` token if possible, and returns `null` otherwise.
   String tryUrl() {
-    // NOTE: this logic is largely duplicated in ScssParser._tryUrlContents.
-    // Most changes here should be mirrored there.
+    // NOTE: this logic is largely duplicated in ScssParser._urlContents and
+    // ScssParser._tryUrlContents. Most changes here should be mirrored there.
 
     var start = scanner.state;
     if (!scanIdentifier("url", ignoreCase: true)) return null;
@@ -434,19 +434,22 @@ abstract class Parser {
 
   /// Returns whether the scanner is immediately before a plain CSS identifier.
   ///
+  /// If [forward] is passed, this looks that many characters forward instead.
+  ///
   /// This is based on [the CSS algorithm][], but it assumes all backslashes
   /// start escapes.
   ///
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
-  bool lookingAtIdentifier() {
+  bool lookingAtIdentifier([int forward]) {
     // See also [ScssParser._lookingAtInterpolatedIdentifier].
 
-    var first = scanner.peekChar();
+    forward ??= 0;
+    var first = scanner.peekChar(forward);
     if (first == null) return false;
     if (isNameStart(first) || first == $backslash) return true;
 
     if (first != $dash) return false;
-    var second = scanner.peekChar(1);
+    var second = scanner.peekChar(forward + 1);
     return second != null &&
         (isNameStart(second) || second == $dash || second == $backslash);
   }

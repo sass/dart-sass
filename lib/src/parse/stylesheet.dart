@@ -62,7 +62,7 @@ abstract class StylesheetParser extends Parser {
   Stylesheet parse() {
     return wrapSpanFormatException(() {
       var start = scanner.state;
-      var statements = this.statements(_topLevelStatement);
+      var statements = this.statements(() => _statement(root: true));
       scanner.expectDone();
       return new Stylesheet(statements, scanner.spanFrom(start));
     });
@@ -76,12 +76,30 @@ abstract class StylesheetParser extends Parser {
     });
   }
 
-  /// Consumes a statement that's allowed at the top level of the stylesheet.
-  Statement _topLevelStatement() {
-    if (scanner.peekChar() == $at) {
-      return _atRule(_topLevelStatement, root: true);
-    } else {
-      return _styleRule();
+  /// Consumes a statement that's allowed at the top level of the stylesheet or
+  /// within nested style and at rules.
+  ///
+  /// If [root] is `true`, this parses at-rules that are allowed only at the
+  /// root of the stylesheet.
+  Statement _statement({bool root: false}) {
+    switch (scanner.peekChar()) {
+      case $at:
+        return _atRule(() => _statement(), root: root);
+
+      case $plus:
+        if (!indented || !lookingAtIdentifier(1)) return _styleRule();
+        var start = scanner.state;
+        scanner.readChar();
+        return _includeRule(start);
+
+      case $equal:
+        if (!indented) return _styleRule();
+        var start = scanner.state;
+        scanner.readChar();
+        return _mixinRule(start);
+
+      default:
+        return root ? _styleRule() : _declarationOrStyleRule();
     }
   }
 
@@ -122,14 +140,8 @@ abstract class StylesheetParser extends Parser {
   StyleRule _styleRule() {
     var start = scanner.state;
     var selector = _almostAnyValue();
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     return new StyleRule(selector, children, scanner.spanFrom(start));
-  }
-
-  /// Consumes a statement that's allowed within a style rule.
-  Statement _ruleChild() {
-    if (scanner.peekChar() == $at) return _atRule(_ruleChild);
-    return _declarationOrStyleRule();
   }
 
   /// Consumes a [Declaration] or a [StyleRule].
@@ -168,7 +180,7 @@ abstract class StylesheetParser extends Parser {
     buffer.addInterpolation(_almostAnyValue());
     var selectorSpan = scanner.spanFrom(start);
 
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     if (indented && children.isEmpty) {
       warn("This selector doesn't have any properties and won't be rendered.",
           selectorSpan,
@@ -372,6 +384,8 @@ abstract class StylesheetParser extends Parser {
         return _mediaRule(start);
       case "mixin":
         return _mixinRule(start);
+      case "-moz-document":
+        return _mozDocumentRule(start);
       case "return":
         return _disallowedAtRule(start);
       case "supports":
@@ -458,10 +472,10 @@ abstract class StylesheetParser extends Parser {
     if (scanner.peekChar() == $lparen) {
       var query = _queryExpression();
       whitespace();
-      return new AtRootRule(children(_ruleChild), scanner.spanFrom(start),
+      return new AtRootRule(children(_statement), scanner.spanFrom(start),
           query: query);
     } else if (lookingAtChildren()) {
-      return new AtRootRule(children(_ruleChild), scanner.spanFrom(start));
+      return new AtRootRule(children(_statement), scanner.spanFrom(start));
     } else {
       var child = _styleRule();
       return new AtRootRule([child], scanner.spanFrom(start));
@@ -555,6 +569,17 @@ abstract class StylesheetParser extends Parser {
           "Functions may not be declared in control directives.",
           scanner.spanFrom(start),
           scanner.string);
+    }
+
+    switch (unvendor(name)) {
+      case "calc":
+      case "element":
+      case "expression":
+      case "url":
+        scanner.error("Invalid function name.",
+            position: start.position,
+            length: scanner.position - start.position);
+        break;
     }
 
     whitespace();
@@ -738,7 +763,7 @@ abstract class StylesheetParser extends Parser {
     List<Statement> children;
     if (lookingAtChildren()) {
       _inContentBlock = true;
-      children = this.children(_ruleChild);
+      children = this.children(_statement);
       _inContentBlock = false;
     } else {
       expectStatementSeparator();
@@ -753,7 +778,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   MediaRule _mediaRule(LineScannerState start) {
     var query = _mediaQueryList();
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     return new MediaRule(query, children, scanner.spanFrom(start));
   }
 
@@ -782,13 +807,64 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     _inMixin = true;
     _mixinHasContent = false;
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     var hadContent = _mixinHasContent;
     _inMixin = false;
     _mixinHasContent = null;
 
     return new MixinRule(name, arguments, children, scanner.spanFrom(start),
         hasContent: hadContent);
+  }
+
+  /// Consumes a `@moz-document` rule.
+  ///
+  /// Gecko's `@-moz-document` diverges from [the specificiation][] allows the
+  /// `url-prefix` and `domain` functions to omit quotation marks, contrary to
+  /// the standard.
+  ///
+  /// [the specificiation]: http://www.w3.org/TR/css3-conditional/
+  AtRule _mozDocumentRule(LineScannerState start) {
+    var valueStart = scanner.state;
+    var buffer = new InterpolationBuffer();
+    while (true) {
+      if (scanner.peekChar() == $hash) {
+        buffer.add(singleInterpolation());
+      } else {
+        var identifierStart = scanner.state;
+        var identifier = this.identifier();
+        switch (identifier) {
+          case "url":
+          case "url-prefix":
+          case "domain":
+            buffer.addInterpolation(
+                _urlContents(identifierStart, name: identifier));
+            break;
+
+          case "regexp":
+            buffer.write("regexp(");
+            scanner.expectChar($lparen);
+            buffer.addInterpolation(interpolatedString().asInterpolation());
+            scanner.expectChar($rparen);
+            buffer.writeCharCode($rparen);
+            break;
+
+          default:
+            scanner.error("Invalid function name.",
+                position: identifierStart.position, length: identifier.length);
+        }
+      }
+
+      whitespace();
+      if (!scanner.scanChar($comma)) break;
+
+      buffer.writeCharCode($comma);
+      buffer.write(rawText(whitespace));
+    }
+
+    var value = buffer.interpolation(scanner.spanFrom(valueStart));
+    var children = this.children(_statement);
+    return new AtRule("-moz-document", scanner.spanFrom(start),
+        value: value, children: children);
   }
 
   /// Consumes a `@return` rule.
@@ -807,7 +883,7 @@ abstract class StylesheetParser extends Parser {
     var condition = _supportsCondition();
     whitespace();
     return new SupportsRule(
-        condition, children(_ruleChild), scanner.spanFrom(start));
+        condition, children(_statement), scanner.spanFrom(start));
   }
 
   /// Consumes a `@warn` rule.
@@ -840,7 +916,7 @@ abstract class StylesheetParser extends Parser {
     var next = scanner.peekChar();
     if (next != $exclamation && !atEndOfStatement()) value = _almostAnyValue();
 
-    var children = lookingAtChildren() ? this.children(_ruleChild) : null;
+    var children = lookingAtChildren() ? this.children(_statement) : null;
     if (children == null) expectStatementSeparator();
 
     return new AtRule(name, scanner.spanFrom(start),
@@ -1696,13 +1772,17 @@ abstract class StylesheetParser extends Parser {
     }
 
     if (scanner.peekChar() == $dot) {
-      scanner.readChar();
-      if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
-
-      var decimal = 0.1;
-      while (isDigit(scanner.peekChar())) {
-        number += asDecimal(scanner.readChar()) * decimal;
-        decimal /= 10;
+      if (!isDigit(scanner.peekChar(1))) {
+        if (first == $dot) {
+          scanner.error("Expected digit.", position: scanner.position + 1);
+        }
+      } else {
+        scanner.readChar();
+        var decimal = 0.1;
+        while (isDigit(scanner.peekChar())) {
+          number += asDecimal(scanner.readChar()) * decimal;
+          decimal /= 10;
+        }
       }
     }
 
@@ -1925,10 +2005,56 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes the contents of a `url()` token (after the name).
   ///
-  /// [start] is the position before the beginning of the name.
+  /// [start] is the position before the beginning of the name. [name] is the
+  /// function's name; it defaults to `"url"`.
+  Interpolation _urlContents(LineScannerState start, {String name}) {
+    // NOTE: this logic is largely duplicated in [_tryUrlContents] and
+    // Parser.tryUrl. Most changes here should be mirrored there.
+
+    var start = scanner.state;
+    scanner.expectChar($lparen);
+    whitespaceWithoutComments();
+
+    // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
+    // backtrack and re-parse as a function expression.
+    var buffer = new InterpolationBuffer()..write("${name ?? 'url'}(");
+    while (true) {
+      var next = scanner.peekChar();
+      if (next == null) {
+        break;
+      } else if (next == $percent ||
+          next == $ampersand ||
+          (next >= $asterisk && next <= $tilde) ||
+          next >= 0x0080) {
+        buffer.writeCharCode(scanner.readChar());
+      } else if (next == $backslash) {
+        buffer.write(escape());
+      } else if (next == $hash) {
+        if (scanner.peekChar(1) == $lbrace) {
+          buffer.add(singleInterpolation());
+        } else {
+          buffer.writeCharCode(scanner.readChar());
+        }
+      } else if (isWhitespace(next)) {
+        whitespaceWithoutComments();
+        scanner.expectChar($rparen);
+        buffer.writeCharCode($rparen);
+        break;
+      } else if (next == $rparen) {
+        buffer.writeCharCode(scanner.readChar());
+        break;
+      } else {
+        scanner.expectChar($rparen);
+      }
+    }
+
+    return buffer.interpolation(scanner.spanFrom(start));
+  }
+
+  /// Like [_urlContents], but returns `null` if the URL fails to parse.
   Interpolation _tryUrlContents(LineScannerState start) {
-    // NOTE: this logic is largely duplicated in Parser.tryUrl. Most changes
-    // here should be mirrored there.
+    // NOTE: this logic is largely duplicated in [_urlContents] and
+    // Parser.tryUrl. Most changes here should be mirrored there.
 
     var start = scanner.state;
     if (!scanner.scanChar($lparen)) return null;

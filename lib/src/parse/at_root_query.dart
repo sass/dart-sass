@@ -26,6 +26,7 @@ class AtRootQueryParser extends Parser {
         atRules.add(identifier().toLowerCase());
         whitespace();
       } while (lookingAtIdentifier());
+      scanner.expectChar($rparen);
       scanner.expectDone();
 
       return new AtRootQuery(include, atRules);
