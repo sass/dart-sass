@@ -278,7 +278,7 @@ class SassNumber extends Value {
   /// (without the `$`). It's used for debugging.
   void assertUnit(String unit, [String name]) {
     if (hasUnit(unit)) return;
-    throw _exception('Expected $this to have unit "$unit".');
+    throw _exception('Expected $this to have unit "$unit".', name);
   }
 
   /// Throws a [SassScriptException] unless [this] has no units.
@@ -287,7 +287,7 @@ class SassNumber extends Value {
   /// (without the `$`). It's used for debugging.
   void assertNoUnits([String name]) {
     if (!hasUnits) return;
-    throw _exception('Expected $this to have no units.');
+    throw _exception('Expected $this to have no units.', name);
   }
 
   /// Returns a copy of this number, converted to the units represented by
