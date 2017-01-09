@@ -239,7 +239,11 @@ class _SerializeCssVisitor
 
     int min;
     while (!scanner.isDone) {
-      while (!scanner.isDone && scanner.scanChar($space)) {}
+      while (!scanner.isDone) {
+        var next = scanner.peekChar();
+        if (next != $space && next != $tab) break;
+        scanner.readChar();
+      }
       if (scanner.isDone || scanner.scanChar($lf)) continue;
       min = min == null ? scanner.column : math.min(min, scanner.column);
       while (!scanner.isDone && scanner.readChar() != $lf) {}

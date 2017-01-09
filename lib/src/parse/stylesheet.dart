@@ -2257,9 +2257,10 @@ abstract class StylesheetParser extends Parser {
         case $space:
         case $tab:
           if (wroteNewline || !isWhitespace(scanner.peekChar(1))) {
-            buffer.writeCharCode($space);
+            buffer.writeCharCode(scanner.readChar());
+          } else {
+            scanner.readChar();
           }
-          scanner.readChar();
           break;
 
         case $lf:
