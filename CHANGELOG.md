@@ -2,6 +2,8 @@
 
 * Disallow invalid function names.
 
+* Support terse mixin syntax in the indented syntax.
+
 * Fix `@at-root` query parsing.
 
 * Support special functions in `@-moz-document`.

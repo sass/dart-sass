@@ -62,7 +62,7 @@ abstract class StylesheetParser extends Parser {
   Stylesheet parse() {
     return wrapSpanFormatException(() {
       var start = scanner.state;
-      var statements = this.statements(_topLevelStatement);
+      var statements = this.statements(() => _statement(root: true));
       scanner.expectDone();
       return new Stylesheet(statements, scanner.spanFrom(start));
     });
@@ -76,12 +76,30 @@ abstract class StylesheetParser extends Parser {
     });
   }
 
-  /// Consumes a statement that's allowed at the top level of the stylesheet.
-  Statement _topLevelStatement() {
-    if (scanner.peekChar() == $at) {
-      return _atRule(_topLevelStatement, root: true);
-    } else {
-      return _styleRule();
+  /// Consumes a statement that's allowed at the top level of the stylesheet or
+  /// within nested style and at rules.
+  ///
+  /// If [root] is `true`, this parses at-rules that are allowed only at the
+  /// root of the stylesheet.
+  Statement _statement({bool root: false}) {
+    switch (scanner.peekChar()) {
+      case $at:
+        return _atRule(() => _statement(), root: root);
+
+      case $plus:
+        if (!indented || !lookingAtIdentifier(1)) return _styleRule();
+        var start = scanner.state;
+        scanner.readChar();
+        return _includeRule(start);
+
+      case $equal:
+        if (!indented) return _styleRule();
+        var start = scanner.state;
+        scanner.readChar();
+        return _mixinRule(start);
+
+      default:
+        return root ? _styleRule() : _declarationOrStyleRule();
     }
   }
 
@@ -122,14 +140,8 @@ abstract class StylesheetParser extends Parser {
   StyleRule _styleRule() {
     var start = scanner.state;
     var selector = _almostAnyValue();
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     return new StyleRule(selector, children, scanner.spanFrom(start));
-  }
-
-  /// Consumes a statement that's allowed within a style rule.
-  Statement _ruleChild() {
-    if (scanner.peekChar() == $at) return _atRule(_ruleChild);
-    return _declarationOrStyleRule();
   }
 
   /// Consumes a [Declaration] or a [StyleRule].
@@ -168,7 +180,7 @@ abstract class StylesheetParser extends Parser {
     buffer.addInterpolation(_almostAnyValue());
     var selectorSpan = scanner.spanFrom(start);
 
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     if (indented && children.isEmpty) {
       warn("This selector doesn't have any properties and won't be rendered.",
           selectorSpan,
@@ -460,10 +472,10 @@ abstract class StylesheetParser extends Parser {
     if (scanner.peekChar() == $lparen) {
       var query = _queryExpression();
       whitespace();
-      return new AtRootRule(children(_ruleChild), scanner.spanFrom(start),
+      return new AtRootRule(children(_statement), scanner.spanFrom(start),
           query: query);
     } else if (lookingAtChildren()) {
-      return new AtRootRule(children(_ruleChild), scanner.spanFrom(start));
+      return new AtRootRule(children(_statement), scanner.spanFrom(start));
     } else {
       var child = _styleRule();
       return new AtRootRule([child], scanner.spanFrom(start));
@@ -751,7 +763,7 @@ abstract class StylesheetParser extends Parser {
     List<Statement> children;
     if (lookingAtChildren()) {
       _inContentBlock = true;
-      children = this.children(_ruleChild);
+      children = this.children(_statement);
       _inContentBlock = false;
     } else {
       expectStatementSeparator();
@@ -766,7 +778,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   MediaRule _mediaRule(LineScannerState start) {
     var query = _mediaQueryList();
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     return new MediaRule(query, children, scanner.spanFrom(start));
   }
 
@@ -795,7 +807,7 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     _inMixin = true;
     _mixinHasContent = false;
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     var hadContent = _mixinHasContent;
     _inMixin = false;
     _mixinHasContent = null;
@@ -850,7 +862,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
-    var children = this.children(_ruleChild);
+    var children = this.children(_statement);
     return new AtRule("-moz-document", scanner.spanFrom(start),
         value: value, children: children);
   }
@@ -871,7 +883,7 @@ abstract class StylesheetParser extends Parser {
     var condition = _supportsCondition();
     whitespace();
     return new SupportsRule(
-        condition, children(_ruleChild), scanner.spanFrom(start));
+        condition, children(_statement), scanner.spanFrom(start));
   }
 
   /// Consumes a `@warn` rule.
@@ -904,7 +916,7 @@ abstract class StylesheetParser extends Parser {
     var next = scanner.peekChar();
     if (next != $exclamation && !atEndOfStatement()) value = _almostAnyValue();
 
-    var children = lookingAtChildren() ? this.children(_ruleChild) : null;
+    var children = lookingAtChildren() ? this.children(_statement) : null;
     if (children == null) expectStatementSeparator();
 
     return new AtRule(name, scanner.spanFrom(start),
