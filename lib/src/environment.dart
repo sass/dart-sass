@@ -76,6 +76,10 @@ class Environment {
   Environment get contentEnvironment => _contentEnvironment;
   Environment _contentEnvironment;
 
+  /// Whether the environment is lexically within a mixin.
+  bool get inMixin => _inMixin;
+  var _inMixin = false;
+
   /// Whether the environment is currently in a semi-global scope.
   ///
   /// A semi-global scope can assign to global variables, but it doesn't declare
@@ -273,6 +277,14 @@ class Environment {
     callback();
     _contentBlock = oldBlock;
     _contentEnvironment = oldEnvironment;
+  }
+
+  /// Sets [inMixin] to `true` for the duration of [callback].
+  void asMixin(void callback()) {
+    var oldInMixin = _inMixin;
+    _inMixin = true;
+    callback();
+    _inMixin = oldInMixin;
   }
 
   /// Runs [callback] in a new scope.

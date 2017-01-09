@@ -143,6 +143,14 @@ class _PerformVisitor
       return new SassBoolean(_environment.mixinExists(variable.text));
     });
 
+    _environment.defineFunction("content-exists", "", (arguments) {
+      if (!_environment.inMixin) {
+        throw new SassScriptException(
+            "content-exists() may only be called within a mixin.");
+      }
+      return new SassBoolean(_environment.contentBlock != null);
+    });
+
     _environment.defineFunction("call", r"$function, $args...", (arguments) {
       var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
@@ -652,9 +660,11 @@ class _PerformVisitor
     }
 
     Value callback() {
-      for (var statement in mixin.declaration.children) {
-        statement.accept(this);
-      }
+      _environment.asMixin(() {
+        for (var statement in mixin.declaration.children) {
+          statement.accept(this);
+        }
+      });
       return null;
     }
 

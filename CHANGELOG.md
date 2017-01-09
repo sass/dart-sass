@@ -1,5 +1,7 @@
 ## 1.0.0-alpha.8
 
+* Add the `content-exists()` function.
+
 * Disallow invalid function names.
 
 * Support terse mixin syntax in the indented syntax.
