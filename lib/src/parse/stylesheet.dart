@@ -372,6 +372,8 @@ abstract class StylesheetParser extends Parser {
         return _mediaRule(start);
       case "mixin":
         return _mixinRule(start);
+      case "-moz-document":
+        return _mozDocumentRule(start);
       case "return":
         return _disallowedAtRule(start);
       case "supports":
@@ -789,6 +791,57 @@ abstract class StylesheetParser extends Parser {
 
     return new MixinRule(name, arguments, children, scanner.spanFrom(start),
         hasContent: hadContent);
+  }
+
+  /// Consumes a `@moz-document` rule.
+  ///
+  /// Gecko's `@-moz-document` diverges from [the specificiation][] allows the
+  /// `url-prefix` and `domain` functions to omit quotation marks, contrary to
+  /// the standard.
+  ///
+  /// [the specificiation]: http://www.w3.org/TR/css3-conditional/
+  AtRule _mozDocumentRule(LineScannerState start) {
+    var valueStart = scanner.state;
+    var buffer = new InterpolationBuffer();
+    while (true) {
+      if (scanner.peekChar() == $hash) {
+        buffer.add(singleInterpolation());
+      } else {
+        var identifierStart = scanner.state;
+        var identifier = this.identifier();
+        switch (identifier) {
+          case "url":
+          case "url-prefix":
+          case "domain":
+            buffer.addInterpolation(
+                _urlContents(identifierStart, name: identifier));
+            break;
+
+          case "regexp":
+            buffer.write("regexp(");
+            scanner.expectChar($lparen);
+            buffer.addInterpolation(interpolatedString().asInterpolation());
+            scanner.expectChar($rparen);
+            buffer.writeCharCode($rparen);
+            break;
+
+          default:
+            scanner.error("Invalid function name.",
+                position: identifierStart.position, length: identifier.length);
+        }
+      }
+
+      whitespace();
+      if (!scanner.scanChar($comma)) break;
+
+      buffer.writeCharCode($comma);
+      buffer.write(rawText(whitespace));
+    }
+
+    var value = buffer.interpolation(scanner.spanFrom(valueStart));
+    var children = this.children(_ruleChild);
+    return new AtRule("-moz-document", scanner.spanFrom(start),
+        value: value, children: children);
   }
 
   /// Consumes a `@return` rule.
@@ -1925,10 +1978,56 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes the contents of a `url()` token (after the name).
   ///
-  /// [start] is the position before the beginning of the name.
+  /// [start] is the position before the beginning of the name. [name] is the
+  /// function's name; it defaults to `"url"`.
+  Interpolation _urlContents(LineScannerState start, {String name}) {
+    // NOTE: this logic is largely duplicated in [_tryUrlContents] and
+    // Parser.tryUrl. Most changes here should be mirrored there.
+
+    var start = scanner.state;
+    scanner.expectChar($lparen);
+    whitespaceWithoutComments();
+
+    // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
+    // backtrack and re-parse as a function expression.
+    var buffer = new InterpolationBuffer()..write("${name ?? 'url'}(");
+    while (true) {
+      var next = scanner.peekChar();
+      if (next == null) {
+        break;
+      } else if (next == $percent ||
+          next == $ampersand ||
+          (next >= $asterisk && next <= $tilde) ||
+          next >= 0x0080) {
+        buffer.writeCharCode(scanner.readChar());
+      } else if (next == $backslash) {
+        buffer.write(escape());
+      } else if (next == $hash) {
+        if (scanner.peekChar(1) == $lbrace) {
+          buffer.add(singleInterpolation());
+        } else {
+          buffer.writeCharCode(scanner.readChar());
+        }
+      } else if (isWhitespace(next)) {
+        whitespaceWithoutComments();
+        scanner.expectChar($rparen);
+        buffer.writeCharCode($rparen);
+        break;
+      } else if (next == $rparen) {
+        buffer.writeCharCode(scanner.readChar());
+        break;
+      } else {
+        scanner.expectChar($rparen);
+      }
+    }
+
+    return buffer.interpolation(scanner.spanFrom(start));
+  }
+
+  /// Like [_urlContents], but returns `null` if the URL fails to parse.
   Interpolation _tryUrlContents(LineScannerState start) {
-    // NOTE: this logic is largely duplicated in Parser.tryUrl. Most changes
-    // here should be mirrored there.
+    // NOTE: this logic is largely duplicated in [_urlContents] and
+    // Parser.tryUrl. Most changes here should be mirrored there.
 
     var start = scanner.state;
     if (!scanner.scanChar($lparen)) return null;

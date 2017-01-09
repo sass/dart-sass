@@ -2,6 +2,8 @@
 
 * Fix `@at-root` query parsing.
 
+* Support special functions in `@-moz-document`.
+
 ## 1.0.0-alpha.7
 
 * Fix `function-exists()`, `variable-exists()`, and `mixin-exists()` to use the
