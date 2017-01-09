@@ -10,6 +10,8 @@
 
 * Support `...` after a digit.
 
+* Fix some bugs when treating a map as a list of pairs.
+
 ## 1.0.0-alpha.7
 
 * Fix `function-exists()`, `variable-exists()`, and `mixin-exists()` to use the
