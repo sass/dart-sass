@@ -559,6 +559,17 @@ abstract class StylesheetParser extends Parser {
           scanner.string);
     }
 
+    switch (unvendor(name)) {
+      case "calc":
+      case "element":
+      case "expression":
+      case "url":
+        scanner.error("Invalid function name.",
+            position: start.position,
+            length: scanner.position - start.position);
+        break;
+    }
+
     whitespace();
     var children = this.children(_functionAtRule);
 

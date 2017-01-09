@@ -1,5 +1,7 @@
 ## 1.0.0-alpha.8
 
+* Disallow invalid function names.
+
 * Fix `@at-root` query parsing.
 
 * Support special functions in `@-moz-document`.
