@@ -956,6 +956,7 @@ abstract class StylesheetParser extends Parser {
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
+        whitespace();
         restArgument = name;
         break;
       }

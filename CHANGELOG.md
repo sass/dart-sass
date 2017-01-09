@@ -9,6 +9,8 @@
 
 * Disallow invalid function names.
 
+* Properly parse whitespace after `...` in argument declaration lists.
+
 * Support terse mixin syntax in the indented syntax.
 
 * Fix `@at-root` query parsing.
