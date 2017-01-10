@@ -143,6 +143,14 @@ class _PerformVisitor
       return new SassBoolean(_environment.mixinExists(variable.text));
     });
 
+    _environment.defineFunction("content-exists", "", (arguments) {
+      if (!_environment.inMixin) {
+        throw new SassScriptException(
+            "content-exists() may only be called within a mixin.");
+      }
+      return new SassBoolean(_environment.contentBlock != null);
+    });
+
     _environment.defineFunction("call", r"$function, $args...", (arguments) {
       var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
@@ -317,18 +325,6 @@ class _PerformVisitor
     }
 
     return scope;
-  }
-
-  Value visitComment(Comment node) {
-    if (node.isSilent) return null;
-
-    // Comments are allowed to appear between CSS imports.
-    if (_parent == _root && _endOfImports == _root.children.length) {
-      _endOfImports++;
-    }
-
-    _parent.addChild(new CssComment(node.text, node.span));
-    return null;
   }
 
   Value visitContentRule(ContentRule node) {
@@ -652,9 +648,11 @@ class _PerformVisitor
     }
 
     Value callback() {
-      for (var statement in mixin.declaration.children) {
-        statement.accept(this);
-      }
+      _environment.asMixin(() {
+        for (var statement in mixin.declaration.children) {
+          statement.accept(this);
+        }
+      });
       return null;
     }
 
@@ -673,6 +671,17 @@ class _PerformVisitor
   Value visitMixinRule(MixinRule node) {
     _environment
         .setMixin(new UserDefinedCallable(node, _environment.closure()));
+    return null;
+  }
+
+  Value visitLoudComment(LoudComment node) {
+    // Comments are allowed to appear between CSS imports.
+    if (_parent == _root && _endOfImports == _root.children.length) {
+      _endOfImports++;
+    }
+
+    _parent
+        .addChild(new CssComment(_performInterpolation(node.text), node.span));
     return null;
   }
 
@@ -728,6 +737,8 @@ class _PerformVisitor
   }
 
   Value visitReturnRule(ReturnRule node) => node.expression.accept(this);
+
+  Value visitSilentComment(SilentComment node) => null;
 
   Value visitStyleRule(StyleRule node) {
     if (_declarationName != null) {

@@ -956,6 +956,7 @@ abstract class StylesheetParser extends Parser {
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
+        whitespace();
         restArgument = name;
         break;
       }
@@ -2256,9 +2257,10 @@ abstract class StylesheetParser extends Parser {
         case $space:
         case $tab:
           if (wroteNewline || !isWhitespace(scanner.peekChar(1))) {
-            buffer.writeCharCode($space);
+            buffer.writeCharCode(scanner.readChar());
+          } else {
+            scanner.readChar();
           }
-          scanner.readChar();
           break;
 
         case $lf:
@@ -2289,7 +2291,9 @@ abstract class StylesheetParser extends Parser {
 
         case $exclamation:
         case $semicolon:
-          break loop;
+          if (brackets.isEmpty) break loop;
+          buffer.writeCharCode(scanner.readChar());
+          break;
 
         case $u:
         case $U:

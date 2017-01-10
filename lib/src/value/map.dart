@@ -20,8 +20,8 @@ class SassMap extends Value {
 
   ListSeparator get separator => ListSeparator.comma;
 
-  List<SassList> get asList {
-    var result = <SassList>[];
+  List<Value> get asList {
+    var result = <Value>[];
     contents.forEach((key, value) {
       result.add(new SassList([key, value], ListSeparator.space));
     });

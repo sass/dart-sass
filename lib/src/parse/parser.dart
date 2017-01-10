@@ -230,7 +230,9 @@ abstract class Parser {
 
         case $exclamation:
         case $semicolon:
-          break loop;
+          if (brackets.isEmpty) break loop;
+          buffer.writeCharCode(scanner.readChar());
+          break;
 
         case $u:
         case $U:

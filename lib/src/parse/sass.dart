@@ -6,6 +6,7 @@ import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
+import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
 
@@ -129,7 +130,7 @@ class SassParser extends StylesheetParser {
   }
 
   /// Consumes an indented-style silent comment.
-  Comment _silentComment() {
+  SilentComment _silentComment() {
     var start = scanner.state;
     scanner.expect("//");
 
@@ -153,17 +154,16 @@ class SassParser extends StylesheetParser {
       _readIndentation();
     }
 
-    return new Comment(buffer.toString(), scanner.spanFrom(start),
-        silent: true);
+    return new SilentComment(buffer.toString(), scanner.spanFrom(start));
   }
 
   /// Consumes an indented-style loud context.
-  Comment _loudComment() {
+  LoudComment _loudComment() {
     var start = scanner.state;
     scanner.expect("/*");
 
     var first = true;
-    var buffer = new StringBuffer("/*");
+    var buffer = new InterpolationBuffer()..write("/*");
     var parentIndentation = currentIndentation;
     while (true) {
       if (!first) {
@@ -176,8 +176,26 @@ class SassParser extends StylesheetParser {
         buffer.writeCharCode($space);
       }
 
-      while (!scanner.isDone && !isNewline(scanner.peekChar())) {
-        buffer.writeCharCode(scanner.readChar());
+      while (!scanner.isDone) {
+        var next = scanner.peekChar();
+        switch (next) {
+          case $lf:
+          case $cr:
+          case $ff:
+            break;
+
+          case $hash:
+            if (scanner.peekChar(1) == $lbrace) {
+              buffer.add(singleInterpolation());
+            } else {
+              buffer.writeCharCode(scanner.readChar());
+            }
+            break;
+
+          default:
+            buffer.writeCharCode(scanner.readChar());
+            break;
+        }
       }
 
       if (_peekIndentation() <= parentIndentation) break;
@@ -186,8 +204,7 @@ class SassParser extends StylesheetParser {
     buffer.write(" */");
 
     print(buffer);
-    return new Comment(buffer.toString(), scanner.spanFrom(start),
-        silent: false);
+    return new LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
   void whitespace() {

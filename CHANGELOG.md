@@ -1,6 +1,15 @@
 ## 1.0.0-alpha.8
 
+* Add the `content-exists()` function.
+
+* Support interpolation in loud comments.
+
+* Fix a bug where even valid semicolons and exclamation marks in custom property
+  values were disallowed.
+
 * Disallow invalid function names.
+
+* Properly parse whitespace after `...` in argument declaration lists.
 
 * Support terse mixin syntax in the indented syntax.
 
@@ -9,6 +18,8 @@
 * Support special functions in `@-moz-document`.
 
 * Support `...` after a digit.
+
+* Fix some bugs when treating a map as a list of pairs.
 
 ## 1.0.0-alpha.7
 

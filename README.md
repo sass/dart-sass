@@ -131,6 +131,12 @@ Sass to update the reference behavior.
    addition, map keys follow the same logic as `==`-equality. See
    [issue 1496][].
 
+8. `rgba()` and `hsla()` alpha values with percentage units are interpreted as
+   percentages. Other units are forbidden. See [issue 1525][].
+
+9. Too many variable arguments passed to a function is an error. See
+   [issue 1408][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
@@ -138,5 +144,7 @@ Sass to update the reference behavior.
 [issue 2176]: https://github.com/sass/sass/issues/2176
 [issue 2144]: https://github.com/sass/sass/issues/2144
 [issue 1496]: https://github.com/sass/sass/issues/1496
+[issue 1525]: https://github.com/sass/sass/issues/1525
+[issue 1408]: https://github.com/sass/sass/issues/1408
 
 Disclaimer: this is not an official Google product.
