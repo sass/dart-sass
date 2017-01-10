@@ -13,18 +13,18 @@ main() async {
 
   await writeNTimes("${sources.path}/small_plain.scss", ".foo {a: b}", 4);
   await writeNTimes(
-      "${sources.path}/large_plain.scss", ".foo {a: b}", math.pow(2, 17));
+      "${sources.path}/large_plain.scss", ".foo {a: b}", math.pow(2, 17).ceil());
   await writeNTimes("${sources.path}/preceding_sparse_extend.scss",
-      ".foo {a: b}", math.pow(2, 17),
+      ".foo {a: b}", math.pow(2, 17).ceil(),
       header: '.x {@extend .y}', footer: '.y {a: b}');
   await writeNTimes("${sources.path}/following_sparse_extend.scss",
-      ".foo {a: b}", math.pow(2, 17),
+      ".foo {a: b}", math.pow(2, 17).ceil(),
       header: '.y {a: b}', footer: '.x {@extend .y}');
   await writeNTimes("${sources.path}/preceding_dense_extend.scss",
-      ".foo {a: b}", math.pow(2, 17),
+      ".foo {a: b}", math.pow(2, 17).ceil(),
       header: '.bar {@extend .foo}');
   await writeNTimes("${sources.path}/following_dense_extend.scss",
-      ".foo {a: b}", math.pow(2, 17),
+      ".foo {a: b}", math.pow(2, 17).ceil(),
       footer: '.bar {@extend .foo}');
 }
 

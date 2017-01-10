@@ -19,6 +19,7 @@ dependencies:
   string_scanner: ">=0.1.5 <2.0.0"
   stack_trace: ">=0.9.0 <2.0.0"
   tuple: "^1.0.0"
+  package_resolver: ^1.0.2
 
 dev_dependencies:
   archive: "^1.0.0"
@@ -30,3 +31,4 @@ dev_dependencies:
   scheduled_test: "^0.12.8"
   test: "^0.12.5"
   yaml: "^2.0.0"
+  bootstrap_sass: ^4.0.0-alpah.3+4

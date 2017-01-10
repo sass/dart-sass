@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
@@ -22,6 +23,7 @@ import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
+import '../sync_package_resolver/index.dart';
 
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback(callback());
@@ -37,12 +39,15 @@ typedef _ScopeCallback(callback());
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
 /// Throws a [SassRuntimeException] if evaluation fails.
-CssStylesheet evaluate(Stylesheet stylesheet,
+Future<CssStylesheet> evaluate(Stylesheet stylesheet,
         {Iterable<String> loadPaths,
         Environment environment,
-        bool color: false}) =>
+        bool color: false}) async =>
     new _PerformVisitor(
-            loadPaths: loadPaths, environment: environment, color: color)
+            loadPaths: loadPaths,
+            environment: environment,
+            color: color,
+            packageResolver: await SyncPackageResolver.current)
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
@@ -123,8 +128,13 @@ class _PerformVisitor
   /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
+  final SyncPackageResolver packageResolver;
+
   _PerformVisitor(
-      {Iterable<String> loadPaths, Environment environment, bool color: false})
+      {Iterable<String> loadPaths,
+      Environment environment,
+      bool color: false,
+      this.packageResolver})
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
         _environment = environment ?? new Environment(),
         _color = color {
@@ -555,11 +565,17 @@ class _PerformVisitor
     });
   }
 
+  Uri _resolvePackageUri(Uri packageUri) {
+    return packageUri.scheme == 'package' && packageResolver != null
+        ? packageResolver.resolveUri(packageUri) ?? new Uri()
+        : packageUri;
+  }
+
   /// Loads the [Stylesheet] imported by [import], or throws a
   /// [SassRuntimeException] if loading fails.
   Stylesheet _loadImport(DynamicImport import) {
     var path = _importPaths.putIfAbsent(import, () {
-      var path = p.fromUri(import.url);
+      var path = p.fromUri(_resolvePackageUri(import.url));
       var extension = p.extension(path);
       var tryPath = extension == '.sass' || extension == '.scss'
           ? _tryImportPath

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+import 'dart:js';
 import 'package:js/js.dart';
 
 import '../sass.dart';
@@ -34,10 +36,10 @@ void main() {
 /// possible.
 ///
 /// [render]: https://github.com/sass/node-sass#options
-void _render(
-    NodeOptions options, void callback(NodeError error, NodeResult result)) {
+Future _render(NodeOptions options,
+    void callback(NodeError error, NodeResult result)) async {
   try {
-    var result = newNodeResult(render(options.file));
+    var result = newNodeResult(await render(options.file));
     callback(null, result);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
@@ -51,9 +53,9 @@ void _render(
 /// as possible.
 ///
 /// [render]: https://github.com/sass/node-sass#options
-NodeResult _renderSync(NodeOptions options) {
+Future<NodeResult> _renderSync(NodeOptions options) async {
   try {
-    return newNodeResult(render(options.file));
+    return newNodeResult(await render(options.file));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
     throw new NodeError(message: error.message);
