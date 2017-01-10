@@ -4,8 +4,10 @@
 
 import 'dart:io';
 
+import 'package:scheduled_test/descriptor.dart' as d;
 import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import 'cli_shared.dart';
@@ -18,6 +20,34 @@ void main() {
     var sass = _runSass(["--version"]);
     sass.stdout.expect(matches(new RegExp(r"^\d+\.\d+\.\d+")));
     sass.shouldExit(0);
+  });
+
+  group("supports package imports", () {
+    test("is found", () {
+      d.file("test.scss", "a {b: 1 + 2}").create('lib');
+      d.file("test.scss", "@import 'package:sass/test';").create();
+
+      var sass = _runSass(["test.scss", "test.css"]);
+      sass.stdout.expect(inOrder([
+        "a {",
+        "  b: 3;",
+        "}",
+      ]));
+      sass.shouldExit(0);
+    });
+
+    test("is not found", () {
+      d.file("test.scss", "@import 'package:no_existing/test';").create();
+
+      var sass = _runSass(["test.scss", "test.css"]);
+      sass.shouldExit();
+      sass.stderr.expect(inOrder([
+        "Error: Can't resolve: \"package:no_existing/test\"",
+        "@import 'package:no_existing/test';",
+        "        ^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  test.scss 1:9  root stylesheet"
+      ]));
+    });
   });
 }
 

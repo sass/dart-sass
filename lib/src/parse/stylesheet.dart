@@ -1492,12 +1492,6 @@ abstract class StylesheetParser extends Parser {
         break;
 
       case $0:
-        if (scanner.peekChar(1) == $backslash && scanner.peekChar(2) == $0) {
-          var start = scanner.state;
-          scanner.position += 3;
-          return new StringExpression.plain(r'0\\0', scanner.spanFrom(start));
-        }
-        return _number();
       case $1:
       case $2:
       case $3:
@@ -1508,6 +1502,7 @@ abstract class StylesheetParser extends Parser {
       case $8:
       case $9:
         return _number();
+        break;
 
       case $a:
       case $b:
@@ -1562,6 +1557,7 @@ abstract class StylesheetParser extends Parser {
       case $_:
       case $backslash:
         return _identifierLike();
+        break;
 
       default:
         if (first != null && first >= 0x80) return _identifierLike();

@@ -5,8 +5,10 @@
 @Tags(const ['node'])
 import 'dart:io';
 
+import 'package:scheduled_test/descriptor.dart' as d;
 import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import 'cli_shared.dart';
@@ -26,6 +28,20 @@ void main() {
     sass.stdout.expect(matches(
         new RegExp(r"^\d+\.\d+\.\d+.* compiled with dart2js \d+\.\d+\.\d+")));
     sass.shouldExit(0);
+  });
+
+  test("fails to import package uri", () {
+    d.file("test.scss", "@import 'package:sass/test';").create();
+
+    var sass = _runSass(["test.scss", "test.css"]);
+    sass.shouldExit();
+    sass.stderr.expect(inOrder([
+      "Error: Can't resolve: \"package:sass/test\", packageResolver is not supported by node vm."
+          " If you are using dart-vm please use `renderAsync` function or provide a `packageResolver`",
+      "@import 'package:sass/test';",
+      "        ^^^^^^^^^^^^^^^^^^^",
+      "  test.scss 1:9  root stylesheet"
+    ]));
   });
 }
 

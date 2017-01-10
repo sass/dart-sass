@@ -47,7 +47,7 @@ main(List<String> args) async {
 
   var color = (options['color'] as bool) ?? hasTerminal;
   try {
-    var css = await render(options.rest.first, color: color);
+    var css = await renderAsync(options.rest.first, color: color);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
     stderr.writeln("Error: ${error.message}");

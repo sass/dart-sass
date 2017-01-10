@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
@@ -39,15 +38,16 @@ typedef _ScopeCallback(callback());
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
 /// Throws a [SassRuntimeException] if evaluation fails.
-Future<CssStylesheet> evaluate(Stylesheet stylesheet,
+CssStylesheet evaluate(Stylesheet stylesheet,
         {Iterable<String> loadPaths,
         Environment environment,
-        bool color: false}) async =>
+        bool color: false,
+        SyncPackageResolver packageResolver}) =>
     new _PerformVisitor(
             loadPaths: loadPaths,
             environment: environment,
             color: color,
-            packageResolver: await SyncPackageResolver.current)
+            packageResolver: packageResolver)
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
@@ -565,17 +565,29 @@ class _PerformVisitor
     });
   }
 
-  Uri _resolvePackageUri(Uri packageUri) {
-    return packageUri.scheme == 'package' && packageResolver != null
-        ? packageResolver.resolveUri(packageUri) ?? new Uri()
-        : packageUri;
+  Uri _resolvePackageUri(DynamicImport import) {
+    var packageUri = import.url;
+    if (packageUri.scheme == 'package') {
+      if (packageResolver == null)
+        throw _exception(
+            'Can\'t resolve: "$packageUri", packageResolver is not supported by node vm.'
+            ' If you are using dart-vm please use `renderAsync` function or provide a `packageResolver`',
+            import.span);
+
+      var resolvedPackageUri = packageResolver.resolveUri(packageUri);
+      if (resolvedPackageUri == null ||
+          !dirExists(p.dirname(p.fromUri(resolvedPackageUri))))
+        throw _exception('Can\'t resolve: "$packageUri"', import.span);
+      return resolvedPackageUri;
+    }
+    return packageUri;
   }
 
   /// Loads the [Stylesheet] imported by [import], or throws a
   /// [SassRuntimeException] if loading fails.
   Stylesheet _loadImport(DynamicImport import) {
     var path = _importPaths.putIfAbsent(import, () {
-      var path = p.fromUri(_resolvePackageUri(import.url));
+      var path = p.fromUri(_resolvePackageUri(import));
       var extension = p.extension(path);
       var tryPath = extension == '.sass' || extension == '.scss'
           ? _tryImportPath
