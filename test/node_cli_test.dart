@@ -29,20 +29,6 @@ void main() {
         new RegExp(r"^\d+\.\d+\.\d+.* compiled with dart2js \d+\.\d+\.\d+")));
     sass.shouldExit(0);
   });
-
-  test("fails to import package uri", () {
-    d.file("test.scss", "@import 'package:sass/test';").create();
-
-    var sass = _runSass(["test.scss", "test.css"]);
-    sass.shouldExit();
-    sass.stderr.expect(inOrder([
-      "Error: Can't resolve: \"package:sass/test\", packageResolver is not supported by node vm."
-          " If you are using dart-vm please use `renderAsync` function or provide a `packageResolver`",
-      "@import 'package:sass/test';",
-      "        ^^^^^^^^^^^^^^^^^^^",
-      "  test.scss 1:9  root stylesheet"
-    ]));
-  });
 }
 
 ScheduledProcess _runSass(List arguments) => new ScheduledProcess.start(

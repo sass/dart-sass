@@ -5,28 +5,10 @@
 import 'dart:async';
 
 class SyncPackageResolver {
-  Map<String, Uri> get packageConfigMap =>
-      throw new UnsupportedError('not implemented for node');
-
-  Uri get packageConfigUri =>
-      throw new UnsupportedError('not implemented for node');
-
-  Uri get packageRoot => throw new UnsupportedError('not implemented for node');
-
-  String get processArgument =>
-      throw new UnsupportedError('not implemented for node');
-
   static final Future<SyncPackageResolver> current = null;
 
   Uri resolveUri(packageUri) =>
       throw new UnsupportedError('not implemented for node');
 
-  Uri urlFor(String package, [String path]) =>
-      throw new UnsupportedError('not implemented for node');
-
-  Uri packageUriFor(url) =>
-      throw new UnsupportedError('not implemented for node');
-
-  String packagePath(String package) =>
-      throw new UnsupportedError('not implemented for node');
+  factory SyncPackageResolver.config(Map<String, Uri> configMap) => null;
 }

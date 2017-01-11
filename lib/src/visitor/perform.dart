@@ -22,7 +22,7 @@ import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
-import '../sync_package_resolver/index.dart';
+import '../sync_package_resolver/sync_package_resolver.dart';
 
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback(callback());
@@ -128,16 +128,17 @@ class _PerformVisitor
   /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
-  final SyncPackageResolver packageResolver;
+  final SyncPackageResolver _packageResolver;
 
   _PerformVisitor(
       {Iterable<String> loadPaths,
       Environment environment,
       bool color: false,
-      this.packageResolver})
+      SyncPackageResolver packageResolver})
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
         _environment = environment ?? new Environment(),
-        _color = color {
+        _color = color,
+        _packageResolver = packageResolver {
     _environment.defineFunction("variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return new SassBoolean(_environment.variableExists(variable.text));
@@ -565,19 +566,25 @@ class _PerformVisitor
     });
   }
 
+  /// If the scheme is `package`, converts the [import] url into a dart package uri.
+  /// If the scheme is not `package`, returns the the same [import] url.
+  /// If the [_packageResolver] is null, throws a [SassRuntimeException].
+  /// If the [_packageResolver] cannot find the file, throws a [SassRuntimeException].
   Uri _resolvePackageUri(DynamicImport import) {
     var packageUri = import.url;
     if (packageUri.scheme == 'package') {
-      if (packageResolver == null)
+      if (_packageResolver == null) {
         throw _exception(
             'Can\'t resolve: "$packageUri", packageResolver is not supported by node vm.'
-            ' If you are using dart-vm please use `renderAsync` function or provide a `packageResolver`',
+            ' If you are using dart-vm please provide a `SyncPackageResolver` to the `render` function',
             import.span);
+      }
 
-      var resolvedPackageUri = packageResolver.resolveUri(packageUri);
+      var resolvedPackageUri = _packageResolver.resolveUri(packageUri);
       if (resolvedPackageUri == null ||
-          !dirExists(p.dirname(p.fromUri(resolvedPackageUri))))
+          !dirExists(p.dirname(p.fromUri(resolvedPackageUri)))) {
         throw _exception('Can\'t resolve: "$packageUri"', import.span);
+      }
       return resolvedPackageUri;
     }
     return packageUri;
