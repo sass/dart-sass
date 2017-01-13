@@ -9,6 +9,8 @@
 
 * Disallow invalid function names.
 
+* Disallow extending across media queries.
+
 * Properly parse whitespace after `...` in argument declaration lists.
 
 * Support terse mixin syntax in the indented syntax.

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../parse/media_query.dart';
+import '../../utils.dart';
 
 /// A plain CSS media query, as used in `@media` and `@import`.
 class CssMediaQuery {
@@ -80,6 +81,14 @@ class CssMediaQuery {
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
         features: features.toList()..addAll(other.features));
   }
+
+  bool operator ==(other) =>
+      other is CssMediaQuery &&
+      other.modifier == modifier &&
+      other.type == type &&
+      listEquals(other.features, features);
+
+  int get hashCode => modifier.hashCode ^ type.hashCode ^ listHash(features);
 
   String toString() {
     var buffer = new StringBuffer();

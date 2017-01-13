@@ -137,6 +137,10 @@ Sass to update the reference behavior.
 9. Too many variable arguments passed to a function is an error. See
    [issue 1408][].
 
+10. Allow `@extend` to reach outside a media query if there's an identical
+    `@extend` defined outside that query. This isn't tracked explicitly, because
+    it'll be irrelevant when [issue 1050][] is fixed.
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
@@ -146,5 +150,6 @@ Sass to update the reference behavior.
 [issue 1496]: https://github.com/sass/sass/issues/1496
 [issue 1525]: https://github.com/sass/sass/issues/1525
 [issue 1408]: https://github.com/sass/sass/issues/1408
+[issue 1050]: https://github.com/sass/sass/issues/1050
 
 Disclaimer: this is not an official Google product.

@@ -428,7 +428,7 @@ class _PerformVisitor
         targetText.span,
         () => new SimpleSelector.parse(targetText.value.trim(),
             allowParent: false));
-    _extender.addExtension(_selector.value, target, node);
+    _extender.addExtension(_selector.value, target, node, _mediaQueries);
     return null;
   }
 
@@ -770,7 +770,7 @@ class _PerformVisitor
     var selector =
         new CssValue<SelectorList>(parsedSelector, node.selector.span);
 
-    var rule = _extender.addSelector(selector, node.span);
+    var rule = _extender.addSelector(selector, node.span, _mediaQueries);
     _withParent(rule, () {
       _withSelector(rule.selector, () {
         for (var child in node.children) {
