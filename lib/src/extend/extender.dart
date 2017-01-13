@@ -139,7 +139,7 @@ class Extender {
     var extensions = {
       target: {extender: state}
     };
-    for (var rule in rules.toList()) {
+    for (var rule in rules) {
       rule.selector.value = _extendList(rule.selector.value, extensions);
       _registerSelector(rule.selector.value, rule);
     }
