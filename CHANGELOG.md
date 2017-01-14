@@ -10,6 +10,8 @@
 
 * Forbid functions named "and", "or", and "not".
 
+* Fix `type-of()` with a function.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
