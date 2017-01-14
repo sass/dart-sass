@@ -77,27 +77,26 @@ class SelectorParser extends Parser {
     while (true) {
       whitespace();
 
-      ComplexSelectorComponent component;
       var next = scanner.peekChar();
       switch (next) {
         case $plus:
           scanner.readChar();
-          component = Combinator.nextSibling;
+          components.add(Combinator.nextSibling);
           break;
 
         case $gt:
           scanner.readChar();
-          component = Combinator.child;
+          components.add(Combinator.child);
           break;
 
         case $tilde:
           scanner.readChar();
-          component = Combinator.followingSibling;
+          components.add(Combinator.followingSibling);
           break;
 
         case $slash:
           scanner.readChar();
-          component = new ReferenceCombinator(identifier());
+          components.add(new ReferenceCombinator(identifier()));
           scanner.expectChar($slash);
           break;
 
@@ -109,16 +108,22 @@ class SelectorParser extends Parser {
         case $ampersand:
         case $asterisk:
         case $pipe:
-          component = _compoundSelector();
+          components.add(_compoundSelector());
+          if (scanner.peekChar() == $ampersand) {
+            scanner.error(
+                '"&" may only used at the beginning of a compound selector.');
+          }
           break;
 
         default:
           if (next == null || !lookingAtIdentifier()) break loop;
-          component = _compoundSelector();
+          components.add(_compoundSelector());
+          if (scanner.peekChar() == $ampersand) {
+            scanner.error(
+                '"&" may only used at the beginning of a compound selector.');
+          }
           break;
       }
-
-      components.add(component);
     }
 
     return new ComplexSelector(components, lineBreak: lineBreak);

@@ -2,6 +2,8 @@
 
 * Support `&` within `@at-root`.
 
+* Properly error when a compound selector is followed immediately by `&`.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
