@@ -593,9 +593,9 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     // rest of [complex1] to match.
     var afterSuperselector = i2 + 1;
     for (; afterSuperselector < complex2.length; afterSuperselector++) {
-      var compoundToTest = complex2[afterSuperselector - 1];
-      if (compoundToTest is CompoundSelector) {
-        if (compoundIsSuperselector(compound1, compoundToTest,
+      var compound2 = complex2[afterSuperselector - 1];
+      if (compound2 is CompoundSelector) {
+        if (compoundIsSuperselector(compound1, compound2,
             parents: complex2.take(afterSuperselector - 1).skip(i2 + 1))) {
           break;
         }

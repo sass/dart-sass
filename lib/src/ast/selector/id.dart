@@ -32,7 +32,7 @@ class IDSelector extends SimpleSelector {
     return super.unify(compound);
   }
 
-  bool operator ==(other) => other is ClassSelector && other.name == name;
+  bool operator ==(other) => other is IDSelector && other.name == name;
 
   int get hashCode => name.hashCode;
 }
