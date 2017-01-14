@@ -11,6 +11,7 @@ import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
 import 'package:path/path.dart' as p;
+import 'package:xml/xml.dart' as xml;
 import 'package:yaml/yaml.dart';
 
 /// The version of Dart Sass.
@@ -83,6 +84,115 @@ npm_package() {
   copy(new File('README.md'), dir);
 }
 
+@Task('Build a Chocolatey package.')
+@Depends(snapshot)
+chocolatey_package() {
+  _ensureBuild();
+
+  var nuspec = _nuspec();
+  var archive = new Archive()
+    ..addFile(_fileFromString("sass.nuspec", nuspec.toString()))
+    ..addFile(
+        _file("[Content_Types].xml", "package/chocolatey/[Content_Types].xml"))
+    ..addFile(_file("_rels/.rels", "package/chocolatey/rels.xml"))
+    ..addFile(_fileFromString(
+        "package/services/metadata/core-properties/properties.psmdcp",
+        _nupkgProperties(nuspec)))
+    ..addFile(_file("tools/LICENSE", "LICENSE"))
+    ..addFile(_file("tools/sass.dart.snapshot", "build/sass.dart.snapshot"))
+    ..addFile(_file("tools/chocolateyInstall.ps1",
+        "package/chocolatey/chocolateyInstall.ps1"))
+    ..addFile(_file("tools/chocolateyUninstall.ps1",
+        "package/chocolatey/chocolateyUninstall.ps1"))
+    ..addFile(_fileFromString("tools/sass.bat",
+        _readAndReplaceVersion("package/chocolatey/sass.bat")));
+
+  var output = "build/sass.${_chocolateyVersion()}.nupkg";
+  log("Creating $output...");
+  new File(output).writeAsBytesSync(new ZipEncoder().encode(archive));
+}
+
+/// Creates a `sass.nuspec` file's contents.
+xml.XmlDocument _nuspec() {
+  var builder = new xml.XmlBuilder();
+  builder.processing("xml", 'version="1.0"');
+  builder.element("package", nest: () {
+    builder
+        .namespace("http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd");
+    builder.element("metadata", nest: () {
+      builder.element("id", nest: "sass");
+      builder.element("title", nest: "Sass");
+      builder.element("version", nest: _chocolateyVersion());
+      builder.element("authors", nest: "Natalie Weizenbaum");
+      builder.element("owners", nest: "nex3");
+      builder.element("projectUrl", nest: "https://github.com/sass/dart-sass");
+      builder.element("licenseUrl",
+          nest: "https://github.com/sass/dart-sass/blob/$_version/LICENSE");
+      builder.element("iconUrl",
+          nest: "https://cdn.rawgit.com/sass/sass-site/"
+              "f99ee33e4f688e244c7a5902c59d61f78daccc55/source/assets/img/"
+              "logos/logo-seal.png");
+      builder.element("bugTrackerUrl",
+          nest: "https://github.com/sass/dart-sass/issues");
+      builder.element("description",
+          nest: """
+**Sass makes CSS fun again**. Sass is an extension of CSS, adding nested rules, variables, mixins, selector inheritance, and more. It's translated to well-formatted, standard CSS using the command line tool or a web-framework plugin.
+
+This package is Dart Sass, the new Dart implementation of Sass.
+""");
+      builder.element("summary", nest: "Sass makes CSS fun again.");
+      builder.element("tags", nest: "css preprocessor style sass");
+      builder.element("copyright",
+          nest: "Copyright ${new DateTime.now().year} Google, Inc.");
+      builder.element("dependencies", nest: () {
+        builder.element("dependency", attributes: {
+          "id": "dart-sdk",
+          // Unfortunately we need the exact same Dart version as we built with,
+          // since we ship a snapshot which isn't cross-version compatible. Once
+          // we switch to native compilation this won't be an issue.
+          "version": "[$_dartVersion]",
+        });
+      });
+    });
+  });
+
+  return builder.build() as xml.XmlDocument;
+}
+
+/// The current Sass version, formatted for Chocolatey which doesn't allow dots
+/// in prerelease versions.
+String _chocolateyVersion() {
+  var components = _version.split("-");
+  if (components.length == 1) return components.first;
+  assert(components.length == 2);
+  return "${components.first}-${components.last.replaceAll('.', '')}";
+}
+
+/// Returns the contents of the `properties.psmdcp` file, computed from the
+/// nuspec's XML.
+String _nupkgProperties(xml.XmlDocument nuspec) {
+  var builder = new xml.XmlBuilder();
+  builder.processing("xml", 'version="1.0"');
+  builder.element("coreProperties", nest: () {
+    builder.namespace(
+        "http://schemas.openxmlformats.org/package/2006/metadata/core-properties");
+    builder.namespace("http://purl.org/dc/elements/1.1/", "dc");
+    builder.element("dc:creator",
+        nest: nuspec.findAllElements("authors").first.text);
+    builder.element("dc:description",
+        nest: nuspec.findAllElements("description").first.text);
+    builder.element("dc:identifier",
+        nest: nuspec.findAllElements("id").first.text);
+    builder.element("version",
+        nest: nuspec.findAllElements("version").first.text);
+    builder.element("keywords",
+        nest: nuspec.findAllElements("tags").first.text);
+    builder.element("dc:title",
+        nest: nuspec.findAllElements("title").first.text);
+  });
+  return builder.build().toString();
+}
+
 /// Ensure that the `build/` directory exists.
 void _ensureBuild() {
   new Directory('build').createSync(recursive: true);
@@ -108,17 +218,19 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
           ? file.name.endsWith("/bin/dart.exe")
           : file.name.endsWith("/bin/dart"));
   var executable = dartExecutable.content;
-  var snapshot = new File('build/sass.dart.snapshot').readAsBytesSync();
-  var sassLicense = new File('LICENSE').readAsBytesSync();
-  var dartLicense = new File(p.join(_sdkDir, 'LICENSE')).readAsBytesSync();
   var archive = new Archive()
-    ..addFile(_file(
+    ..addFile(_fileFromBytes(
         "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
         executable: true))
-    ..addFile(_file("dart-sass/src/DART_LICENSE", dartLicense))
-    ..addFile(_file("dart-sass/src/sass.dart.snapshot", snapshot))
-    ..addFile(_file("dart-sass/src/SASS_LICENSE", sassLicense))
-    ..addFile(_scriptFor(os));
+    ..addFile(_file("dart-sass/src/DART_LICENSE", p.join(_sdkDir, 'LICENSE')))
+    ..addFile(
+        _file("dart-sass/src/sass.dart.snapshot", "build/sass.dart.snapshot"))
+    ..addFile(_file("dart-sass/src/SASS_LICENSE", "LICENSE"))
+    ..addFile(_fileFromString(
+        "dart-sass/dart-sass${os == 'windows' ? '.bat' : ''}",
+        _readAndReplaceVersion(
+            "package/dart-sass.${os == 'windows' ? 'bat' : 'sh'}"),
+        executable: true));
 
   var prefix = 'build/dart-sass-$_version-$os-$architecture';
   if (os == 'windows') {
@@ -133,20 +245,31 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
   }
 }
 
-/// Returns a shell script archive file for the given [os].
-ArchiveFile _scriptFor(String os) {
-  var contents = new File("package/dart-sass.${os == 'windows' ? 'bat' : 'sh'}")
-      .readAsStringSync()
-      .replaceAll("SASS_VERSION", _version);
-  var bytes = UTF8.encode(contents);
-  return _file("dart-sass/dart-sass${os == 'windows' ? '.bat' : ''}", bytes,
-      executable: true);
-}
+/// Reads [file], replaces all instances of SASS_VERSION with the actual
+/// version, and returns its contents.
+String _readAndReplaceVersion(String file) =>
+    new File(file).readAsStringSync().replaceAll("SASS_VERSION", _version);
 
 /// Creates an [ArchiveFile] with the given [path] and [data].
 ///
 /// If [executable] is `true`, this marks the file as executable.
-ArchiveFile _file(String path, List<int> data, {bool executable: false}) =>
+ArchiveFile _fileFromBytes(String path, List<int> data,
+        {bool executable: false}) =>
     new ArchiveFile(path, data.length, data)
       ..mode = executable ? 495 : 428
       ..lastModTime = new DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+/// Creates a UTF-8-encoded [ArchiveFile] with the given [path] and [contents].
+///
+/// If [executable] is `true`, this marks the file as executable.
+ArchiveFile _fileFromString(String path, String contents,
+        {bool executable: false}) =>
+    _fileFromBytes(path, UTF8.encode(contents), executable: executable);
+
+/// Creates an [ArchiveFile] at the archive path [target] from the local file at
+/// [source].
+///
+/// If [executable] is `true`, this marks the file as executable.
+ArchiveFile _file(String target, String source, {bool executable: false}) =>
+    _fileFromBytes(target, new File(source).readAsBytesSync(),
+        executable: executable);
