@@ -19,21 +19,6 @@ void main() {
     sass.stdout.expect(matches(new RegExp(r"^\d+\.\d+\.\d+")));
     sass.shouldExit(0);
   });
-
-//  group("supports package imports", () {
-//    test("is found", () {
-//      d.file("test.scss", "a {b: 1 + 2}").create('lib');
-//      d.file("test.scss", "@import 'package:sass/test';").create();
-//
-//      var sass = _runSass(["test.scss", "test.css"]);
-//      sass.stdout.expect(inOrder([
-//        "a {",
-//        "  b: 3;",
-//        "}",
-//      ]));
-//      sass.shouldExit(0);
-//    });
-//  });
 }
 
 ScheduledProcess _runSass(List arguments) => new ScheduledProcess.start(
