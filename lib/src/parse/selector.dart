@@ -25,7 +25,7 @@ class SelectorParser extends Parser {
   SelectorList parse() {
     return wrapSpanFormatException(() {
       var selector = _selectorList();
-      scanner.expectDone();
+      if (!scanner.isDone) scanner.error("expected selector.");
       return selector;
     });
   }
@@ -33,7 +33,7 @@ class SelectorParser extends Parser {
   CompoundSelector parseCompoundSelector() {
     return wrapSpanFormatException(() {
       var compound = _compoundSelector();
-      scanner.expectDone();
+      if (!scanner.isDone) scanner.error("expected selector.");
       return compound;
     });
   }
@@ -41,18 +41,18 @@ class SelectorParser extends Parser {
   SimpleSelector parseSimpleSelector() {
     return wrapSpanFormatException(() {
       var simple = _simpleSelector();
-      scanner.expectDone();
+      if (!scanner.isDone) scanner.error("expected selector.");
       return simple;
     });
   }
 
   /// Consumes a selector list.
   SelectorList _selectorList() {
-    var components = <ComplexSelector>[];
+    var previousLine = scanner.line;
+    var components = <ComplexSelector>[_complexSelector()];
 
     whitespace();
-    var previousLine = scanner.line;
-    do {
+    while (scanner.scanChar($comma)) {
       whitespace();
       var next = scanner.peekChar();
       if (next == $comma) continue;
@@ -61,7 +61,7 @@ class SelectorParser extends Parser {
       var lineBreak = scanner.line != previousLine;
       if (lineBreak) previousLine = scanner.line;
       components.add(_complexSelector(lineBreak: lineBreak));
-    } while (scanner.scanChar($comma));
+    }
 
     return new SelectorList(components);
   }
@@ -126,6 +126,7 @@ class SelectorParser extends Parser {
       }
     }
 
+    if (components.isEmpty) scanner.error("expected selector.");
     return new ComplexSelector(components, lineBreak: lineBreak);
   }
 

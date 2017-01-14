@@ -12,6 +12,8 @@
 
 * Fix `type-of()` with a function.
 
+* Emit a nicer error for invalid tokens in a selector.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
