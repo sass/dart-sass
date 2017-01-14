@@ -217,9 +217,11 @@ class _PerformVisitor
     // If we didn't exclude any rules, we don't need to use the copies we might
     // have created.
     if (root == _parent) {
-      for (var child in node.children) {
-        child.accept(this);
-      }
+      _environment.scope(() {
+        for (var child in node.children) {
+          child.accept(this);
+        }
+      });
       return null;
     }
 
@@ -372,9 +374,11 @@ class _PerformVisitor
     if (node.children != null) {
       var oldDeclarationName = _declarationName;
       _declarationName = name.value;
-      for (var child in node.children) {
-        child.accept(this);
-      }
+      _environment.scope(() {
+        for (var child in node.children) {
+          child.accept(this);
+        }
+      });
       _declarationName = oldDeclarationName;
     }
 

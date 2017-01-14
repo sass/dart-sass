@@ -4,6 +4,8 @@
 
 * Properly error when a compound selector is followed immediately by `&`.
 
+* Properly handle variable scoping in `@at-root` and nested properties.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
