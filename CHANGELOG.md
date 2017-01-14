@@ -8,6 +8,8 @@
 
 * Fix `@import` with a `supports()` clause.
 
+* Forbid functions named "and", "or", and "not".
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

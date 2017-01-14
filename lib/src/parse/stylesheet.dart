@@ -576,6 +576,9 @@ abstract class StylesheetParser extends Parser {
       case "element":
       case "expression":
       case "url":
+      case "and":
+      case "or":
+      case "not":
         scanner.error("Invalid function name.",
             position: start.position,
             length: scanner.position - start.position);
