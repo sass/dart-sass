@@ -1,3 +1,7 @@
+## 1.0.0-alpha.9
+
+* Support `&` within `@at-root`.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

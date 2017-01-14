@@ -60,13 +60,6 @@ class _PerformVisitor
   /// The current selector, if any.
   CssValue<SelectorList> _selector;
 
-  /// The value of [_selector] outside an `@at-root` statement that excludes
-  /// style rules.
-  ///
-  /// This is separate from [_selector] because `&` can see it but parent
-  /// resolution cannot.
-  CssValue<SelectorList> _selectorOutsideAtRoot;
-
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
 
@@ -89,6 +82,13 @@ class _PerformVisitor
 
   /// Whether we're currently building the output of an unknown at rule.
   var _inUnknownAtRule = false;
+
+  /// Whether we're currently building the output of a style rule.
+  bool get _inStyleRule => _selector != null && !_atRootExcludingStyleRule;
+
+  /// Whether we're directly within an `@at-root` rule that excludes style
+  /// rules.
+  var _atRootExcludingStyleRule = false;
 
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
@@ -292,10 +292,10 @@ class _PerformVisitor
     if (query.excludesStyleRules) {
       var innerScope = scope;
       scope = (callback) {
-        var oldSelectorOutsideAtRoot = _selectorOutsideAtRoot;
-        _selectorOutsideAtRoot = _selector ?? _selectorOutsideAtRoot;
-        _withSelector(null, () => innerScope(callback));
-        _selectorOutsideAtRoot = oldSelectorOutsideAtRoot;
+        var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
+        _atRootExcludingStyleRule = true;
+        innerScope(callback);
+        _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
       };
     }
 
@@ -351,7 +351,7 @@ class _PerformVisitor
   }
 
   Value visitDeclaration(Declaration node) {
-    if (_selector == null && !_inUnknownAtRule && !_inKeyframes) {
+    if (!_inStyleRule && !_inUnknownAtRule && !_inKeyframes) {
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
@@ -417,7 +417,7 @@ class _PerformVisitor
   }
 
   Value visitExtendRule(ExtendRule node) {
-    if (_selector == null || _declarationName != null) {
+    if (!_inStyleRule || _declarationName != null) {
       throw _exception(
           "@extend may only be used within style rules.", node.span);
     }
@@ -457,7 +457,7 @@ class _PerformVisitor
     }
 
     _withParent(new CssAtRule(node.name, node.span, value: value), () {
-      if (_selector == null) {
+      if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);
         }
@@ -699,7 +699,7 @@ class _PerformVisitor
 
     _withParent(new CssMediaRule(queries, node.span), () {
       _withMediaQueries(queries, () {
-        if (_selector == null) {
+        if (!_inStyleRule) {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -764,13 +764,17 @@ class _PerformVisitor
 
     var parsedSelector = _adjustParseError(
         node.selector.span, () => new SelectorList.parse(selectorText.value));
-    parsedSelector = _addExceptionSpan(node.selector.span,
-        () => parsedSelector.resolveParentSelectors(_selector?.value));
+    parsedSelector = _addExceptionSpan(
+        node.selector.span,
+        () => parsedSelector.resolveParentSelectors(_selector?.value,
+            implicitParent: !_atRootExcludingStyleRule));
 
     var selector =
         new CssValue<SelectorList>(parsedSelector, node.selector.span);
 
     var rule = _extender.addSelector(selector, node.span, _mediaQueries);
+    var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
+    _atRootExcludingStyleRule = false;
     _withParent(rule, () {
       _withSelector(rule.selector, () {
         for (var child in node.children) {
@@ -778,8 +782,9 @@ class _PerformVisitor
         }
       });
     }, through: (node) => node is CssStyleRule);
+    _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    if (_selector == null) {
+    if (!_inStyleRule) {
       var lastChild = _parent.children.last;
       lastChild.isGroupEnd = true;
     }
@@ -797,7 +802,7 @@ class _PerformVisitor
     var condition = new CssValue(
         _visitSupportsCondition(node.condition), node.condition.span);
     _withParent(new CssSupportsRule(condition, node.span), () {
-      if (_selector == null) {
+      if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);
         }
@@ -1332,7 +1337,7 @@ class _PerformVisitor
   }
 
   Value visitSelectorExpression(SelectorExpression node) {
-    var selector = _selector ?? _selectorOutsideAtRoot;
+    var selector = _selector;
     if (selector == null) return sassNull;
     return selector.value.asSassList;
   }
