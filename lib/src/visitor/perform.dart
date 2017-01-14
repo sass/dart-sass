@@ -618,7 +618,7 @@ class _PerformVisitor
     var url = _interpolationToValue(import.url);
     var supports = import.supports;
     var resolvedSupports = supports is SupportsDeclaration
-        ? "${supports.name.accept(this).toCssString()}: "
+        ? "(${supports.name.accept(this).toCssString()}: "
             "${supports.value.accept(this).toCssString()})"
         : (supports == null ? null : _visitSupportsCondition(supports));
     var mediaQuery =
@@ -627,7 +627,7 @@ class _PerformVisitor
     var node = new CssImport(url, import.span,
         supports: resolvedSupports == null
             ? null
-            : new CssValue(resolvedSupports, import.supports.span),
+            : new CssValue("supports($resolvedSupports)", import.supports.span),
         media: mediaQuery);
 
     if (_parent != _root) {

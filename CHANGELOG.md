@@ -6,6 +6,8 @@
 
 * Properly handle variable scoping in `@at-root` and nested properties.
 
+* Fix `@import` with a `supports()` clause.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
