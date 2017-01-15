@@ -534,10 +534,16 @@ void defineCoreFunctions(Environment environment) {
     end.assertNoUnits("end");
 
     var lengthInCodepoints = string.text.runes.length;
+
+    // No matter what the start index is, an end index of 0 will produce an
+    // empty string.
+    var endInt = end.assertInt();
+    if (endInt == 0) return new SassString.empty(quotes: string.hasQuotes);
+
     var startCodepoint =
         _codepointForIndex(start.assertInt(), lengthInCodepoints);
-    var endCodepoint = _codepointForIndex(end.assertInt(), lengthInCodepoints,
-        allowNegative: true);
+    var endCodepoint =
+        _codepointForIndex(endInt, lengthInCodepoints, allowNegative: true);
     if (endCodepoint == lengthInCodepoints) endCodepoint -= 1;
     if (endCodepoint < startCodepoint) {
       return new SassString.empty(quotes: string.hasQuotes);

@@ -33,6 +33,8 @@
 * Properly handle a placeholder selector that isn't at the beginning of a
   compound selector.
 
+* Fix more `str-slice()` bugs.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

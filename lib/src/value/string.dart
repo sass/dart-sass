@@ -12,7 +12,7 @@ import '../value.dart';
 final _emptyQuoted = new SassString("", quotes: true);
 
 /// An unquoted empty string, returned by [SassString.empty].
-final _emptyUnquoted = new SassString("", quotes: true);
+final _emptyUnquoted = new SassString("", quotes: false);
 
 /// A SassScript string.
 ///
