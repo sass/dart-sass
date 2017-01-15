@@ -263,7 +263,7 @@ class SelectorParser extends Parser {
   /// Consumes a parent selector.
   ParentSelector _parentSelector() {
     scanner.expectChar($ampersand);
-    var suffix = lookingAtIdentifierBody() ? identifier() : null;
+    var suffix = lookingAtIdentifierBody() ? identifierBody() : null;
     return new ParentSelector(suffix: suffix);
   }
 

@@ -692,7 +692,7 @@ abstract class StylesheetParser extends Parser {
     var urlSpan = scanner.spanFrom(start);
     whitespace();
     var queries = _tryImportQueries();
-    if (_isPlainImportUrl(url)) {
+    if (_isPlainImportUrl(url) || queries != null) {
       return new StaticImport(
           new Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
           supports: queries?.item1, media: queries?.item2);
@@ -2577,10 +2577,16 @@ abstract class StylesheetParser extends Parser {
 
     if (first != $dash) return false;
     var second = scanner.peekChar(1);
-    if (isNameStart(second) || second == $dash || second == $backslash) {
-      return true;
-    }
-    return second == $hash && scanner.peekChar(2) == $lbrace;
+    if (second == null) return false;
+    if (isNameStart(second) || second == $backslash) return true;
+
+    if (second == $hash) return scanner.peekChar(2) == $lbrace;
+    if (second != $dash) return false;
+
+    var third = scanner.peekChar(2);
+    if (third == null) return false;
+    if (third == $hash) return scanner.peekChar(3) == $lbrace;
+    return isNameStart(third);
   }
 
   /// Returns whether the scanner is immediately before a sequence of characters

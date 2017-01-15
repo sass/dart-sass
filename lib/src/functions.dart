@@ -241,7 +241,7 @@ void defineCoreFunctions(Environment environment) {
         red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
     if (weight.value == 50) return inverse;
 
-    return _mix(color, inverse, weight);
+    return _mix(inverse, color, weight);
   });
 
   // ### Opacity

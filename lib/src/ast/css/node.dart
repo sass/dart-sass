@@ -26,6 +26,17 @@ abstract class CssNode extends AstNode {
   /// got flattened during evaluation.
   var isGroupEnd = false;
 
+  /// Whether this node has a visible sibling after it.
+  bool get hasFollowingSibling {
+    if (_parent == null) return false;
+    var siblings = _parent.children;
+    for (var i = _indexInParent + 1; i < siblings.length; i++) {
+      var sibling = siblings[i];
+      if (!sibling.isInvisible) return true;
+    }
+    return false;
+  }
+
   /// Calls the appropriate visit method on [visitor].
   /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor);
 

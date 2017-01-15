@@ -6,6 +6,8 @@
 
 * Properly handle variable scoping in `@at-root` and nested properties.
 
+* Support `--$variable`.
+
 * Fix `@import` with a `supports()` clause.
 
 * Forbid functions named "and", "or", and "not".
@@ -13,6 +15,16 @@
 * Fix `type-of()` with a function.
 
 * Emit a nicer error for invalid tokens in a selector.
+
+* Fix `invert()` with a `$weight` parameter.
+
+* Fix a unit-parsing edge-cases.
+
+* Always parse imports with queries as plain CSS imports.
+
+* Support `&` followed by a non-identifier.
+
+* Properly handle split media queries.
 
 ## 1.0.0-alpha.8
 

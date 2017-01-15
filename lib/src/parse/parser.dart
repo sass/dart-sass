@@ -103,14 +103,28 @@ abstract class Parser {
       scanner.error("Expected identifier.");
     }
 
+    _identifierBody(text, unit: unit);
+    return text.toString();
+  }
+
+  /// Consumes a chunk of a plain CSS identifier after the name start.
+  String identifierBody() {
+    var text = new StringBuffer();
+    _identifierBody(text);
+    if (text.isEmpty) scanner.error("expected identifier body.");
+    return text.toString();
+  }
+
+  /// Like [_identifierBody], but parses the body into the [text] buffer.
+  void _identifierBody(StringBuffer text, {bool unit: false}) {
     while (true) {
       var next = scanner.peekChar();
       if (next == null) {
         break;
       } else if (unit && next == $dash) {
-        // Disallow `-` followed by a digit in units.
+        // Disallow `-` followed by a dot or a digit digit in units.
         var second = scanner.peekChar(1);
-        if (second != null && isDigit(second)) break;
+        if (second != null && (second == $dot || isDigit(second))) break;
         text.writeCharCode(scanner.readChar());
       } else if (isName(next)) {
         text.writeCharCode(scanner.readChar());
@@ -120,8 +134,6 @@ abstract class Parser {
         break;
       }
     }
-
-    return text.toString();
   }
 
   /// Consumes a plain CSS string.
@@ -449,11 +461,15 @@ abstract class Parser {
     var first = scanner.peekChar(forward);
     if (first == null) return false;
     if (isNameStart(first) || first == $backslash) return true;
-
     if (first != $dash) return false;
+
     var second = scanner.peekChar(forward + 1);
-    return second != null &&
-        (isNameStart(second) || second == $dash || second == $backslash);
+    if (second == null) return false;
+    if (isNameStart(second) || second == $backslash) return true;
+    if (second != $dash) return false;
+
+    var third = scanner.peekChar(forward + 2);
+    return third != null && isNameStart(third);
   }
 
   /// Returns whether the scanner is immediately before a sequence of characters
