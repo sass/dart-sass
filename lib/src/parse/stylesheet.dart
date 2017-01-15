@@ -2586,7 +2586,7 @@ abstract class StylesheetParser extends Parser {
     var third = scanner.peekChar(2);
     if (third == null) return false;
     if (third == $hash) return scanner.peekChar(3) == $lbrace;
-    return isName(third);
+    return isNameStart(third);
   }
 
   /// Returns whether the scanner is immediately before a sequence of characters
