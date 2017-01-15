@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:charcode/charcode.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -618,8 +619,8 @@ class _PerformVisitor
     var url = _interpolationToValue(import.url);
     var supports = import.supports;
     var resolvedSupports = supports is SupportsDeclaration
-        ? "(${supports.name.accept(this).toCssString()}: "
-            "${supports.value.accept(this).toCssString()})"
+        ? "(${_evaluateToCss(supports.name)}: "
+            "${_evaluateToCss(supports.value)})"
         : (supports == null ? null : _visitSupportsCondition(supports));
     var mediaQuery =
         import.media == null ? null : _visitMediaQueries(import.media);
@@ -836,10 +837,10 @@ class _PerformVisitor
     } else if (condition is SupportsNegation) {
       return "not ${_parenthesize(condition.condition)}";
     } else if (condition is SupportsInterpolation) {
-      return condition.expression.accept(this).toCssString(quote: false);
+      return _evaluateToCss(condition.expression, quote: false);
     } else if (condition is SupportsDeclaration) {
-      return "(${condition.name.accept(this).toCssString()}: "
-          "${condition.value.accept(this).toCssString()})";
+      return "(${_evaluateToCss(condition.name)}: "
+          "${_evaluateToCss(condition.value)})";
     } else {
       return null;
     }
@@ -876,7 +877,9 @@ class _PerformVisitor
   Value visitWarnRule(WarnRule node) {
     _addExceptionSpan(node.span, () {
       var value = node.expression.accept(this);
-      var string = value is SassString ? value.text : value.toCssString();
+      var string = value is SassString
+          ? value.text
+          : _toCss(value, node.expression.span);
       stderr.writeln("WARNING: $string");
     });
 
@@ -932,8 +935,8 @@ class _PerformVisitor
         case BinaryOperator.dividedBy:
           var result = left.dividedBy(right);
           if (node.allowsSlash && left is SassNumber && right is SassNumber) {
-            var leftSlash = left.asSlash ?? left.toCssString();
-            var rightSlash = right.asSlash ?? right.toCssString();
+            var leftSlash = left.asSlash ?? _toCss(left, node.left.span);
+            var rightSlash = right.asSlash ?? _toCss(right, node.left.span);
             return (result as SassNumber).withSlash("$leftSlash/$rightSlash");
           } else {
             return result;
@@ -1106,15 +1109,26 @@ class _PerformVisitor
             "Plain CSS functions don't support keyword arguments.", span);
       }
 
-      var argumentValues = arguments.positional
-          .map((expression) => expression.accept(this))
-          .toList();
-      // TODO: if rest is an arglist that has keywords, error out.
+      var buffer = new StringBuffer("${callable.name}(");
+      var first = true;
+      for (var argument in arguments.positional) {
+        if (first) {
+          first = false;
+        } else {
+          buffer.write(", ");
+        }
+
+        buffer.write(_evaluateToCss(argument));
+      }
+
       var rest = arguments.rest?.accept(this);
-      if (rest != null) argumentValues.add(rest);
-      return new SassString("${callable.name}(" +
-          argumentValues.map((argument) => argument.toCssString()).join(', ') +
-          ")");
+      if (rest != null) {
+        if (!first) buffer.write(", ");
+        buffer.write(_toCss(rest, arguments.rest.span));
+      }
+      buffer.writeCharCode($rparen);
+
+      return new SassString(buffer.toString());
     } else {
       return null;
     }
@@ -1352,10 +1366,11 @@ class _PerformVisitor
     return new SassString(
         node.text.contents.map((value) {
           if (value is String) return value;
-          var result = (value as Expression).accept(this);
+          var expression = value as Expression;
+          var result = expression.accept(this);
           return result is SassString
               ? result.text
-              : result.toCssString(quote: false);
+              : _toCss(result, expression.span, quote: false);
         }).join(),
         quotes: node.hasQuotes);
   }
@@ -1396,14 +1411,25 @@ class _PerformVisitor
   String _performInterpolation(Interpolation interpolation) {
     return interpolation.contents.map((value) {
       if (value is String) return value;
-      var result = (value as Expression).accept(this);
-      return result.toCssString(quote: false);
+      var expression = value as Expression;
+      var result = expression.accept(this);
+      return _toCss(result, expression.span, quote: false);
     }).join();
   }
 
   /// Evaluates [expression] and wraps the result in a [CssValue].
   CssValue<Value> _performExpression(Expression expression) =>
       new CssValue(expression.accept(this), expression.span);
+
+  /// Evaluates [expression] and calls `toCssString()` and wraps a
+  /// [SassScriptException] to associate it with [span].
+  String _evaluateToCss(Expression expression, {bool quote: true}) =>
+      _toCss(expression.accept(this), expression.span, quote: quote);
+
+  /// Calls `value.toCssString()` and wraps a [SassScriptException] to associate
+  /// it with [span].
+  String _toCss(Value value, FileSpan span, {bool quote: true}) =>
+      _addExceptionSpan(span, () => value.toCssString(quote: quote));
 
   /// Adds [node] as a child of the current parent, then runs [callback] with
   /// [node] as the current parent.
