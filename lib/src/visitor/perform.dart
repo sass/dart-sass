@@ -14,6 +14,7 @@ import '../ast/css.dart';
 import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../callable.dart';
+import '../color_names.dart';
 import '../environment.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
@@ -204,8 +205,10 @@ class _PerformVisitor
   Value visitAtRootRule(AtRootRule node) {
     var query = node.query == null
         ? AtRootQuery.defaultQuery
-        : _adjustParseError(node.query.span,
-            () => new AtRootQuery.parse(_performInterpolation(node.query)));
+        : _adjustParseError(
+            node.query.span,
+            () => new AtRootQuery.parse(
+                _performInterpolation(node.query, warnForColor: true)));
 
     var parent = _parent;
     var included = <CssParentNode>[];
@@ -359,7 +362,7 @@ class _PerformVisitor
           "Declarations may only be used within style rules.", node.span);
     }
 
-    var name = _interpolationToValue(node.name);
+    var name = _interpolationToValue(node.name, warnForColor: true);
     if (_declarationName != null) {
       name = new CssValue("$_declarationName-${name.value}", name.span);
     }
@@ -427,7 +430,7 @@ class _PerformVisitor
           "@extend may only be used within style rules.", node.span);
     }
 
-    var targetText = _interpolationToValue(node.selector);
+    var targetText = _interpolationToValue(node.selector, warnForColor: true);
 
     var target = _adjustParseError(
         targetText.span,
@@ -445,7 +448,7 @@ class _PerformVisitor
 
     var value = node.value == null
         ? null
-        : _interpolationToValue(node.value, trim: true);
+        : _interpolationToValue(node.value, trim: true, warnForColor: true);
 
     if (node.children == null) {
       _parent.addChild(
@@ -729,8 +732,10 @@ class _PerformVisitor
   /// Evaluates [interpolation] and parses the result as a list of media
   /// queries.
   List<CssMediaQuery> _visitMediaQueries(Interpolation interpolation) =>
-      _adjustParseError(interpolation.span,
-          () => CssMediaQuery.parseList(_performInterpolation(interpolation)));
+      _adjustParseError(
+          interpolation.span,
+          () => CssMediaQuery.parseList(
+              _performInterpolation(interpolation, warnForColor: true)));
 
   /// Returns a list of queries that selects for platforms that match both
   /// [queries1] and [queries2].
@@ -751,7 +756,8 @@ class _PerformVisitor
           "Style rules may not be used within nested declarations.", node.span);
     }
 
-    var selectorText = _interpolationToValue(node.selector, trim: true);
+    var selectorText =
+        _interpolationToValue(node.selector, trim: true, warnForColor: true);
     if (_inKeyframes) {
       var parsedSelector = _adjustParseError(node.selector.span,
           () => new KeyframeSelectorParser(selectorText.value).parse());
@@ -1362,7 +1368,7 @@ class _PerformVisitor
 
   SassString visitStringExpression(StringExpression node) {
     // Don't use [performInterpolation] here because we need to get the raw text
-    // from strings.
+    // from strings, rather than the semantic value.
     return new SassString(
         node.text.contents.map((value) {
           if (value is String) return value;
@@ -1400,19 +1406,45 @@ class _PerformVisitor
 
   /// Evaluates [interpolation] and wraps the result in a [CssValue].
   ///
-  /// If [trim] is `true`, removes whitespace around the result.
+  /// If [trim] is `true`, removes whitespace around the result. If
+  /// [warnForColor] is `true`, this will emit a warning for any named color
+  /// values passed into the interpolation.
   CssValue<String> _interpolationToValue(Interpolation interpolation,
-      {bool trim: false}) {
-    var result = _performInterpolation(interpolation);
+      {bool trim: false, bool warnForColor: false}) {
+    var result =
+        _performInterpolation(interpolation, warnForColor: warnForColor);
     return new CssValue(trim ? result.trim() : result, interpolation.span);
   }
 
   /// Evaluates [interpolation].
-  String _performInterpolation(Interpolation interpolation) {
+  ///
+  /// If [warnForColor] is `true`, this will emit a warning for any named color
+  /// values passed into the interpolation.
+  String _performInterpolation(Interpolation interpolation,
+      {bool warnForColor: false}) {
     return interpolation.contents.map((value) {
       if (value is String) return value;
       var expression = value as Expression;
       var result = expression.accept(this);
+
+      if (warnForColor &&
+          result is SassColor &&
+          namesByColor.containsKey(result)) {
+        var alternative = new BinaryOperationExpression(
+            BinaryOperator.plus,
+            new StringExpression(new Interpolation([""], null), quotes: true),
+            expression);
+        warn(
+            "You probably don't mean to use the color value "
+            "${namesByColor[result]} in interpolation here.\n"
+            "It may end up represented as $result, which will likely produce "
+            "invalid CSS.\n"
+            "Always quote color names when using them as strings or map keys "
+            '(for example, "${namesByColor[result]}").\n'
+            "If you really want to use the color value here, use '$alternative'.\n",
+            expression.span);
+      }
+
       return _toCss(result, expression.span, quote: false);
     }).join();
   }

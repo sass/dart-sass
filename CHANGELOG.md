@@ -12,6 +12,8 @@
 
 * Don't consider unitless numbers equal to numbers with units.
 
+* Warn about using named colors in interpolation.
+
 * Fix `@import` with a `supports()` clause.
 
 * Forbid functions named "and", "or", and "not".
