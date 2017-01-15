@@ -103,6 +103,20 @@ abstract class Parser {
       scanner.error("Expected identifier.");
     }
 
+    _identifierBody(text, unit: unit);
+    return text.toString();
+  }
+
+  /// Consumes a chunk of a plain CSS identifier after the name start.
+  String identifierBody() {
+    var text = new StringBuffer();
+    _identifierBody(text);
+    if (text.isEmpty) scanner.error("expected identifier body.");
+    return text.toString();
+  }
+
+  /// Like [_identifierBody], but parses the body into the [text] buffer.
+  void _identifierBody(StringBuffer text, {bool unit: false}) {
     while (true) {
       var next = scanner.peekChar();
       if (next == null) {
@@ -120,8 +134,6 @@ abstract class Parser {
         break;
       }
     }
-
-    return text.toString();
   }
 
   /// Consumes a plain CSS string.
