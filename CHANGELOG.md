@@ -6,6 +6,8 @@
 
 * Properly handle variable scoping in `@at-root` and nested properties.
 
+* Properly handle placeholder selectors in selector pseudos.
+
 * Support `--$variable`.
 
 * Fix `@import` with a `supports()` clause.

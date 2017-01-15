@@ -141,6 +141,10 @@ Sass to update the reference behavior.
     `@extend` defined outside that query. This isn't tracked explicitly, because
     it'll be irrelevant when [issue 1050][] is fixed.
 
+11. Some selector pseudos containing placeholder selectors will be rendered
+    where they wouldn't be in Ruby Sass. This better matches the semantics of
+    the selectors in question, and is more efficient. See [issue 2228][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
@@ -151,5 +155,6 @@ Sass to update the reference behavior.
 [issue 1525]: https://github.com/sass/sass/issues/1525
 [issue 1408]: https://github.com/sass/sass/issues/1408
 [issue 1050]: https://github.com/sass/sass/issues/1050
+[issue 2228]: https://github.com/sass/sass/issues/2228
 
 Disclaimer: this is not an official Google product.
