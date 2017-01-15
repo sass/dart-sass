@@ -28,6 +28,9 @@
 
 * Properly handle split media queries.
 
+* Properly handle a placeholder selector that isn't at the beginning of a
+  compound selector.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

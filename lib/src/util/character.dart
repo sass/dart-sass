@@ -56,6 +56,7 @@ bool isSimpleSelectorStart(int character) =>
     character == $lbracket ||
     character == $dot ||
     character == $hash ||
+    character == $percent ||
     character == $colon;
 
 /// Returns the value of [character] as a hex digit.
