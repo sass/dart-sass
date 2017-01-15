@@ -691,9 +691,15 @@ class _SerializeCssVisitor
   }
 
   void visitCompoundSelector(CompoundSelector compound) {
+    var start = _buffer.length;
     for (var simple in compound.components) {
       simple.accept(this);
     }
+
+    // If we emit an empty compound, it's because all of the components got
+    // optimized out because they match all selectors, so we just emit the
+    // universal selector.
+    if (_buffer.length == start) _buffer.writeCharCode($asterisk);
   }
 
   void visitIDSelector(IDSelector id) {
@@ -704,7 +710,7 @@ class _SerializeCssVisitor
   void visitSelectorList(SelectorList list) {
     var complexes = _inspect
         ? list.components
-        : list.components.where((complex) => !complex.containsPlaceholder);
+        : list.components.where((complex) => !complex.isInvisible);
 
     var first = true;
     for (var complex in complexes) {
@@ -729,6 +735,13 @@ class _SerializeCssVisitor
   }
 
   void visitPseudoSelector(PseudoSelector pseudo) {
+    // `:not(%a)` is semantically identical to `*`.
+    if (pseudo.selector != null &&
+        pseudo.name == 'not' &&
+        pseudo.selector.isInvisible) {
+      return;
+    }
+
     _buffer.writeCharCode($colon);
     if (pseudo.isElement) _buffer.writeCharCode($colon);
     _buffer.write(pseudo.name);
@@ -739,7 +752,7 @@ class _SerializeCssVisitor
       _buffer.write(pseudo.argument);
       if (pseudo.selector != null) _buffer.writeCharCode($space);
     }
-    if (pseudo.selector != null) _buffer.write(pseudo.selector);
+    if (pseudo.selector != null) visitSelectorList(pseudo.selector);
     _buffer.writeCharCode($rparen);
   }
 

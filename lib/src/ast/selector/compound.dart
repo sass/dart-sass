@@ -40,6 +40,8 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
 
   int _maxSpecificity;
 
+  bool get isInvisible => components.any((component) => component.isInvisible);
+
   CompoundSelector(Iterable<SimpleSelector> components)
       : components = new List.unmodifiable(components) {
     if (this.components.isEmpty) {

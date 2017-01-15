@@ -18,7 +18,6 @@ void setOriginalSpan(SassColor color, SourceSpan span) {
   color._originalSpan = span;
 }
 
-// TODO(nweiz): track original representation.
 /// A SassScript color.
 class SassColor extends Value {
   /// This color's red channel, between `0` and `255`.

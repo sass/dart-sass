@@ -14,6 +14,8 @@ class PlaceholderSelector extends SimpleSelector {
   /// The name of the placeholder.
   final String name;
 
+  bool get isInvisible => true;
+
   PlaceholderSelector(this.name);
 
   /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>

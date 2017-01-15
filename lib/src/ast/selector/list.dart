@@ -24,6 +24,8 @@ class SelectorList extends Selector {
   bool get _containsParentSelector =>
       components.any(_complexContainsParentSelector);
 
+  bool get isInvisible => components.every((complex) => complex.isInvisible);
+
   /// Returns a SassScript list that represents this selector.
   ///
   /// This has the same format as a list returned by `selector-parse()`.

@@ -6,7 +6,13 @@
 
 * Properly handle variable scoping in `@at-root` and nested properties.
 
+* Properly handle placeholder selectors in selector pseudos.
+
 * Support `--$variable`.
+
+* Don't consider unitless numbers equal to numbers with units.
+
+* Warn about using named colors in interpolation.
 
 * Fix `@import` with a `supports()` clause.
 
@@ -25,6 +31,15 @@
 * Support `&` followed by a non-identifier.
 
 * Properly handle split media queries.
+
+* Properly handle a placeholder selector that isn't at the beginning of a
+  compound selector.
+
+* Fix more `str-slice()` bugs.
+
+* Fix the `%` operator.
+
+* Allow whitespace between `=` and the mixin name in the indented syntax.
 
 ## 1.0.0-alpha.8
 

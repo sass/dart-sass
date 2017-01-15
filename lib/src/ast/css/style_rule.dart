@@ -25,8 +25,7 @@ class CssStyleRule extends CssParentNode {
   /// placeholder.
   bool get isInvisible {
     if (super.isInvisible) return true;
-    return selector.value.components
-        .every((complex) => complex.containsPlaceholder);
+    return selector.value.isInvisible;
   }
 
   CssStyleRule(this.selector, this.span);

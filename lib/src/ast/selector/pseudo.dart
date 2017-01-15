@@ -57,6 +57,16 @@ class PseudoSelector extends SimpleSelector {
 
   int _maxSpecificity;
 
+  bool get isInvisible {
+    if (selector == null) return false;
+
+    // We don't consider `:not(%foo)` to be invisible because, semantically, it
+    // means "doesn't match this selector that matches nothing", so it's
+    // equivalent to *. If the entire compound selector is composed of `:not`s
+    // with invisible lists, the serialier emits it as `*`.
+    return name != 'not' && selector.isInvisible;
+  }
+
   PseudoSelector(String name,
       {bool element: false, this.argument, this.selector})
       : isClass = !element,

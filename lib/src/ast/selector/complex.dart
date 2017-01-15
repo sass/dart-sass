@@ -49,16 +49,14 @@ class ComplexSelector extends Selector {
 
   int _maxSpecificity;
 
-  /// Whether this contains a placeholder selector.
-  bool get containsPlaceholder {
-    if (_containsPlaceholder != null) return _containsPlaceholder;
-    _containsPlaceholder = components.any((component) =>
-        component is CompoundSelector &&
-        component.components.any((simple) => simple is PlaceholderSelector));
-    return _containsPlaceholder;
+  bool get isInvisible {
+    if (_isInvisible != null) return _isInvisible;
+    _isInvisible = components.any(
+        (component) => component is CompoundSelector && component.isInvisible);
+    return _isInvisible;
   }
 
-  bool _containsPlaceholder;
+  bool _isInvisible;
 
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
       {this.lineBreak: false})
