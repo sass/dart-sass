@@ -24,6 +24,8 @@
 
 * Support `&` followed by a non-identifier.
 
+* Properly handle split media queries.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

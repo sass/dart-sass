@@ -1435,7 +1435,8 @@ class _PerformVisitor
   /// [node] as the current parent.
   ///
   /// If [through] is passed, [node] is added as a child of the first parent for
-  /// which [through] returns `false`.
+  /// which [through] returns `false`. That parent is copied unless it's the
+  /// lattermost child of its parent.
   /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
       /*=S*/ node,
       /*=T*/ callback(),
@@ -1447,6 +1448,15 @@ class _PerformVisitor
     if (through != null) {
       while (through(parent)) {
         parent = parent.parent;
+      }
+
+      // If the parent has a (visible) following sibling, we shouldn't add to
+      // the parent. Instead, we should create a copy and add it after the
+      // interstitial sibling.
+      if (parent.hasFollowingSibling) {
+        var grandparent = parent.parent;
+        parent = parent.copyWithoutChildren();
+        grandparent.addChild(parent);
       }
     }
 
