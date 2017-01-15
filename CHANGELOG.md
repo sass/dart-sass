@@ -16,6 +16,8 @@
 
 * Fix `invert()` with a `$weight` parameter.
 
+* Fix a unit-parsing edge-cases.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

@@ -108,9 +108,9 @@ abstract class Parser {
       if (next == null) {
         break;
       } else if (unit && next == $dash) {
-        // Disallow `-` followed by a digit in units.
+        // Disallow `-` followed by a dot or a digit digit in units.
         var second = scanner.peekChar(1);
-        if (second != null && isDigit(second)) break;
+        if (second != null && (second == $dot || isDigit(second))) break;
         text.writeCharCode(scanner.readChar());
       } else if (isName(next)) {
         text.writeCharCode(scanner.readChar());
