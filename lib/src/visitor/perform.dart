@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -163,7 +164,14 @@ class _PerformVisitor
       var args = arguments[1] as SassArgumentList;
 
       var invocation = new ArgumentInvocation([], {}, _callableSpan,
-          rest: new ValueExpression(args, _callableSpan));
+          rest: new ValueExpression(args, _callableSpan),
+          keywordRest: args.keywords.isEmpty
+              ? null
+              : new ValueExpression(
+                  new SassMap(mapMap(args.keywords,
+                      key: (String key, Value _) => new SassString(key),
+                      value: (String _, Value value) => value)),
+                  _callableSpan));
 
       if (function is SassString) {
         warn(
