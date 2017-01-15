@@ -6,6 +6,8 @@
 
 * Properly handle variable scoping in `@at-root` and nested properties.
 
+* Support `--$variable`.
+
 * Fix `@import` with a `supports()` clause.
 
 * Forbid functions named "and", "or", and "not".

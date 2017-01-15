@@ -452,8 +452,12 @@ abstract class Parser {
 
     if (first != $dash) return false;
     var second = scanner.peekChar(forward + 1);
-    return second != null &&
-        (isNameStart(second) || second == $dash || second == $backslash);
+    if (second == null) return false;
+    if (isNameStart(second) || second == $backslash) return true;
+    if (second != $dash) return false;
+
+    var third = scanner.peekChar(forward + 1);
+    return third != null && isName(third);
   }
 
   /// Returns whether the scanner is immediately before a sequence of characters
