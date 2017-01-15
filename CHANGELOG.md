@@ -10,6 +10,8 @@
 
 * Support `--$variable`.
 
+* Don't consider unitless numbers equal to numbers with units.
+
 * Fix `@import` with a `supports()` clause.
 
 * Forbid functions named "and", "or", and "not".

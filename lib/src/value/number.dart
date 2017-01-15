@@ -571,6 +571,11 @@ class SassNumber extends Value {
 
   bool operator ==(other) {
     if (other is SassNumber) {
+      // Unitless numbers are convertable to unit numbers, but not equal, so we
+      // special-case unitless here.
+      if (hasUnits != other.hasUnits) return false;
+      if (!hasUnits) return fuzzyEquals(value, other.value);
+
       try {
         return _coerceUnits(other, fuzzyEquals);
       } on SassScriptException {
