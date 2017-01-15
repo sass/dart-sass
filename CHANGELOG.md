@@ -16,6 +16,8 @@
 
 * Don't emit loud comments in functions.
 
+* Detect import loops.
+
 * Fix `@import` with a `supports()` clause.
 
 * Forbid functions named "and", "or", and "not".

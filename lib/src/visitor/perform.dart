@@ -121,6 +121,8 @@ class _PerformVisitor
   /// multiple times.
   final _importedFiles = <String, Stylesheet>{};
 
+  final _activeImports = new Set<Uri>();
+
   /// The extender that handles extensions for this perform run.
   final _extender = new Extender();
 
@@ -182,6 +184,7 @@ class _PerformVisitor
   }
 
   CssStylesheet run(Stylesheet node) {
+    _activeImports.add(node.span.sourceUrl);
     visitStylesheet(node);
     return _root;
   }
@@ -553,6 +556,13 @@ class _PerformVisitor
   /// Adds the stylesheet imported by [import] to the current document.
   void _visitDynamicImport(DynamicImport import) {
     var stylesheet = _loadImport(import);
+
+    var url = stylesheet.span.sourceUrl;
+    if (_activeImports.contains(url)) {
+      throw _exception("This file is already being imported.", import.span);
+    }
+
+    _activeImports.add(url);
     _withStackFrame("@import", import.span, () {
       _withEnvironment(_environment.global(), () {
         for (var statement in stylesheet.children) {
@@ -560,6 +570,7 @@ class _PerformVisitor
         }
       });
     });
+    _activeImports.remove(url);
   }
 
   /// Loads the [Stylesheet] imported by [import], or throws a
