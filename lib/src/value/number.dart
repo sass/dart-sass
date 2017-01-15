@@ -397,7 +397,14 @@ class SassNumber extends Value {
 
   Value modulo(Value other) {
     if (other is SassNumber) {
-      return _coerceNumber(other, (num1, num2) => num1 % num2);
+      return _coerceNumber(other, (num1, num2) {
+        if (num2 >= 0) return num1 % num2;
+
+        // Dart has different mod-negative semantics than Ruby, and thus than
+        // Sass.
+        var result = num1 % num2;
+        return result == 0 ? 0 : result + num2;
+      });
     }
     throw new SassScriptException('Undefined operation "$this % $other".');
   }

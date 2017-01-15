@@ -35,6 +35,8 @@
 
 * Fix more `str-slice()` bugs.
 
+* Fix the `%` operator.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
