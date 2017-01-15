@@ -47,6 +47,8 @@
 
 * Fix `not` when used like a function.
 
+* Fix attribute selectors with single-character values.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
