@@ -1889,9 +1889,11 @@ abstract class StylesheetParser extends Parser {
       } else if (next == null || isNewline(next)) {
         scanner.error("Expected ${new String.fromCharCode(quote)}.");
       } else if (next == $backslash) {
-        if (isNewline(scanner.peekChar(1))) {
+        var second = scanner.peekChar(1);
+        if (isNewline(second)) {
           scanner.readChar();
           scanner.readChar();
+          if (second == $cr) scanner.scanChar($lf);
         } else {
           buffer.writeCharCode(escapeCharacter());
         }
