@@ -25,7 +25,7 @@ class SelectorParser extends Parser {
   SelectorList parse() {
     return wrapSpanFormatException(() {
       var selector = _selectorList();
-      scanner.expectDone();
+      if (!scanner.isDone) scanner.error("expected selector.");
       return selector;
     });
   }
@@ -33,7 +33,7 @@ class SelectorParser extends Parser {
   CompoundSelector parseCompoundSelector() {
     return wrapSpanFormatException(() {
       var compound = _compoundSelector();
-      scanner.expectDone();
+      if (!scanner.isDone) scanner.error("expected selector.");
       return compound;
     });
   }
@@ -41,18 +41,18 @@ class SelectorParser extends Parser {
   SimpleSelector parseSimpleSelector() {
     return wrapSpanFormatException(() {
       var simple = _simpleSelector();
-      scanner.expectDone();
+      if (!scanner.isDone) scanner.error("expected selector.");
       return simple;
     });
   }
 
   /// Consumes a selector list.
   SelectorList _selectorList() {
-    var components = <ComplexSelector>[];
+    var previousLine = scanner.line;
+    var components = <ComplexSelector>[_complexSelector()];
 
     whitespace();
-    var previousLine = scanner.line;
-    do {
+    while (scanner.scanChar($comma)) {
       whitespace();
       var next = scanner.peekChar();
       if (next == $comma) continue;
@@ -61,7 +61,7 @@ class SelectorParser extends Parser {
       var lineBreak = scanner.line != previousLine;
       if (lineBreak) previousLine = scanner.line;
       components.add(_complexSelector(lineBreak: lineBreak));
-    } while (scanner.scanChar($comma));
+    }
 
     return new SelectorList(components);
   }
@@ -77,27 +77,26 @@ class SelectorParser extends Parser {
     while (true) {
       whitespace();
 
-      ComplexSelectorComponent component;
       var next = scanner.peekChar();
       switch (next) {
         case $plus:
           scanner.readChar();
-          component = Combinator.nextSibling;
+          components.add(Combinator.nextSibling);
           break;
 
         case $gt:
           scanner.readChar();
-          component = Combinator.child;
+          components.add(Combinator.child);
           break;
 
         case $tilde:
           scanner.readChar();
-          component = Combinator.followingSibling;
+          components.add(Combinator.followingSibling);
           break;
 
         case $slash:
           scanner.readChar();
-          component = new ReferenceCombinator(identifier());
+          components.add(new ReferenceCombinator(identifier()));
           scanner.expectChar($slash);
           break;
 
@@ -109,18 +108,25 @@ class SelectorParser extends Parser {
         case $ampersand:
         case $asterisk:
         case $pipe:
-          component = _compoundSelector();
+          components.add(_compoundSelector());
+          if (scanner.peekChar() == $ampersand) {
+            scanner.error(
+                '"&" may only used at the beginning of a compound selector.');
+          }
           break;
 
         default:
           if (next == null || !lookingAtIdentifier()) break loop;
-          component = _compoundSelector();
+          components.add(_compoundSelector());
+          if (scanner.peekChar() == $ampersand) {
+            scanner.error(
+                '"&" may only used at the beginning of a compound selector.');
+          }
           break;
       }
-
-      components.add(component);
     }
 
+    if (components.isEmpty) scanner.error("expected selector.");
     return new ComplexSelector(components, lineBreak: lineBreak);
   }
 

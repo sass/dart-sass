@@ -1,3 +1,19 @@
+## 1.0.0-alpha.9
+
+* Support `&` within `@at-root`.
+
+* Properly error when a compound selector is followed immediately by `&`.
+
+* Properly handle variable scoping in `@at-root` and nested properties.
+
+* Fix `@import` with a `supports()` clause.
+
+* Forbid functions named "and", "or", and "not".
+
+* Fix `type-of()` with a function.
+
+* Emit a nicer error for invalid tokens in a selector.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

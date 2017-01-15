@@ -90,6 +90,7 @@ class SelectorList extends Selector {
 
     return new SelectorList(flattenVertically(components.map((complex) {
       if (!_complexContainsParentSelector(complex)) {
+        if (!implicitParent) return [complex];
         return parent.components.map((parentComplex) => new ComplexSelector(
             parentComplex.components.toList()..addAll(complex.components),
             lineBreak: complex.lineBreak || parentComplex.lineBreak));

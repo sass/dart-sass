@@ -887,6 +887,7 @@ void defineCoreFunctions(Environment environment) {
     if (value is SassMap) return new SassString("map");
     if (value is SassNull) return new SassString("null");
     if (value is SassNumber) return new SassString("number");
+    if (value is SassFunction) return new SassString("function");
     assert(value is SassString);
     return new SassString("string");
   });

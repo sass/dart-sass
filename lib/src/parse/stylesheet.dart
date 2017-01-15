@@ -576,6 +576,9 @@ abstract class StylesheetParser extends Parser {
       case "element":
       case "expression":
       case "url":
+      case "and":
+      case "or":
+      case "not":
         scanner.error("Invalid function name.",
             position: start.position,
             length: scanner.position - start.position);
@@ -690,9 +693,8 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     var queries = _tryImportQueries();
     if (_isPlainImportUrl(url)) {
-      var interpolation =
-          new Interpolation([scanner.substring(start.position)], urlSpan);
-      return new StaticImport(interpolation, scanner.spanFrom(start),
+      return new StaticImport(
+          new Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
           supports: queries?.item1, media: queries?.item2);
     } else if (_inControlDirective || _inMixin) {
       _disallowedAtRule(ruleStart);
@@ -729,6 +731,8 @@ abstract class StylesheetParser extends Parser {
         whitespace();
         supports = new SupportsNegation(
             _supportsConditionInParens(), scanner.spanFrom(start));
+      } else if (scanner.peekChar() == $lparen) {
+        supports = _supportsCondition();
       } else {
         var name = _expression();
         scanner.expectChar($colon);
