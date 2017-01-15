@@ -43,6 +43,8 @@
 
 * Allow whitespace between `=` and the mixin name in the indented syntax.
 
+* Fix an edge-case where division was being incorrectly emitted as a slash.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

@@ -398,8 +398,8 @@ class _PerformVisitor
   Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
     var setVariables = node.variables.length == 1
-        ? (Value value) =>
-            _environment.setLocalVariable(node.variables.first, value)
+        ? (Value value) => _environment.setLocalVariable(
+            node.variables.first, value.withoutSlash())
         : (Value value) => _setMultipleVariables(node.variables, value);
     return _environment.scope(() {
       return _handleReturn/*<Value>*/(list.asList, (element) {
@@ -416,7 +416,7 @@ class _PerformVisitor
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
-      _environment.setLocalVariable(variables[i], list[i]);
+      _environment.setLocalVariable(variables[i], list[i].withoutSlash());
     }
     for (var i = minLength; i < variables.length; i++) {
       _environment.setLocalVariable(variables[i], sassNull);
