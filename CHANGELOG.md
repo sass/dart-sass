@@ -14,6 +14,8 @@
 
 * Emit a nicer error for invalid tokens in a selector.
 
+* Fix `invert()` with a `$weight` parameter.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
