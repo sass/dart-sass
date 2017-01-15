@@ -692,7 +692,7 @@ abstract class StylesheetParser extends Parser {
     var urlSpan = scanner.spanFrom(start);
     whitespace();
     var queries = _tryImportQueries();
-    if (_isPlainImportUrl(url)) {
+    if (_isPlainImportUrl(url) || queries != null) {
       return new StaticImport(
           new Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
           supports: queries?.item1, media: queries?.item2);

@@ -20,6 +20,8 @@
 
 * Fix a unit-parsing edge-cases.
 
+* Always parse imports with queries as plain CSS imports.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
