@@ -39,7 +39,15 @@ class SassParser extends StylesheetParser {
   SassParser(String contents, {url, bool color: false})
       : super(contents, url: url, color: color);
 
-  void expectStatementSeparator() {
+  void expectStatementSeparator([String name]) {
+    if (!atEndOfStatement()) scanner.expectChar($lf);
+    if (_peekIndentation() <= currentIndentation) return;
+    scanner.error(
+        "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
+        position: _nextIndentationEnd.position);
+  }
+
+  void expectSemicolon(String name) {
     if (!atEndOfStatement()) scanner.expectChar($lf);
   }
 
