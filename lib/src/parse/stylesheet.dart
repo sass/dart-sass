@@ -96,6 +96,7 @@ abstract class StylesheetParser extends Parser {
         if (!indented) return _styleRule();
         var start = scanner.state;
         scanner.readChar();
+        whitespace();
         return _mixinRule(start);
 
       default:

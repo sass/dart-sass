@@ -37,6 +37,8 @@
 
 * Fix the `%` operator.
 
+* Allow whitespace between `=` and the mixin name in the indented syntax.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
