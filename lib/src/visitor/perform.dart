@@ -163,7 +163,7 @@ class _PerformVisitor
       var args = arguments[1] as SassArgumentList;
 
       var invocation = new ArgumentInvocation([], {}, _callableSpan,
-          rest: new ValueExpression(args));
+          rest: new ValueExpression(args, _callableSpan));
 
       if (function is SassString) {
         warn(
@@ -184,7 +184,7 @@ class _PerformVisitor
   }
 
   CssStylesheet run(Stylesheet node) {
-    _activeImports.add(node.span.sourceUrl);
+    if (node.span != null) _activeImports.add(node.span.sourceUrl);
     visitStylesheet(node);
     return _root;
   }
