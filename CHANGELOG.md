@@ -14,6 +14,8 @@
 
 * Warn about using named colors in interpolation.
 
+* Don't emit loud comments in functions.
+
 * Fix `@import` with a `supports()` clause.
 
 * Forbid functions named "and", "or", and "not".

@@ -82,6 +82,9 @@ class _PerformVisitor
   /// This is used to provide `call()` with a span.
   FileSpan _callableSpan;
 
+  /// Whether we're currently executing a function.
+  var _inFunction = false;
+
   /// Whether we're currently building the output of an unknown at rule.
   var _inUnknownAtRule = false;
 
@@ -683,6 +686,8 @@ class _PerformVisitor
   }
 
   Value visitLoudComment(LoudComment node) {
+    if (_inFunction) return null;
+
     // Comments are allowed to appear between CSS imports.
     if (_parent == _root && _endOfImports == _root.children.length) {
       _endOfImports++;
@@ -1029,7 +1034,11 @@ class _PerformVisitor
         (plainName == null ? null : _environment.getFunction(plainName)) ??
             new PlainCssCallable(_performInterpolation(node.name));
 
-    return _runFunctionCallable(node.arguments, function, node.span);
+    var oldInFunction = _inFunction;
+    _inFunction = true;
+    var result = _runFunctionCallable(node.arguments, function, node.span);
+    _inFunction = oldInFunction;
+    return result;
   }
 
   /// Evaluates the arguments in [arguments] as applied to [callable], and
