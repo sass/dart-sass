@@ -1923,6 +1923,10 @@ abstract class StylesheetParser extends Parser {
         var invocation = _argumentInvocation();
         return new IfExpression(
             invocation, spanForList([identifier, invocation]));
+      } else if (plain == "not") {
+        whitespace();
+        return new UnaryOperationExpression(
+            UnaryOperator.not, _singleExpression(), identifier.span);
       }
 
       var lower = plain.toLowerCase();
@@ -1930,10 +1934,6 @@ abstract class StylesheetParser extends Parser {
         switch (plain) {
           case "false":
             return new BooleanExpression(false, identifier.span);
-          case "not":
-            whitespace();
-            return new UnaryOperationExpression(
-                UnaryOperator.not, _singleExpression(), identifier.span);
           case "null":
             return new NullExpression(identifier.span);
           case "true":
