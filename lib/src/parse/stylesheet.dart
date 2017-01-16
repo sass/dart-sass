@@ -987,8 +987,6 @@ abstract class StylesheetParser extends Parser {
   /// invocations don't allow the Microsoft-style `=` operator at the top level,
   /// but function invocations do.
   ArgumentInvocation _argumentInvocation({bool mixin: false}) {
-    var wasInParentheses = _inParentheses;
-    _inParentheses = true;
     var start = scanner.state;
     scanner.expectChar($lparen);
     whitespace();
@@ -1031,7 +1029,6 @@ abstract class StylesheetParser extends Parser {
     }
     scanner.expectChar($rparen);
 
-    _inParentheses = wasInParentheses;
     return new ArgumentInvocation(positional, named, scanner.spanFrom(start),
         rest: rest, keywordRest: keywordRest);
   }

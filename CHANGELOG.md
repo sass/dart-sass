@@ -45,7 +45,7 @@
 
 * Allow whitespace between `=` and the mixin name in the indented syntax.
 
-* Fix an edge-case where division was being incorrectly emitted as a slash.
+* Fix some slash division edge cases.
 
 * Fix `not` when used like a function.
 

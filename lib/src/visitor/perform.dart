@@ -1082,15 +1082,14 @@ class _PerformVisitor
           var minLength = math.min(positional.length, declaredArguments.length);
           for (var i = 0; i < minLength; i++) {
             _environment.setLocalVariable(
-                declaredArguments[i].name, positional[i]);
+                declaredArguments[i].name, positional[i].withoutSlash());
           }
 
           for (var i = positional.length; i < declaredArguments.length; i++) {
             var argument = declaredArguments[i];
-            _environment.setLocalVariable(
-                argument.name,
-                named.remove(argument.name) ??
-                    argument.defaultValue?.accept(this));
+            var value = named.remove(argument.name) ??
+                argument.defaultValue?.accept(this);
+            _environment.setLocalVariable(argument.name, value?.withoutSlash());
           }
 
           SassArgumentList argumentList;
