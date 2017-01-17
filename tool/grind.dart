@@ -21,9 +21,6 @@ final String _version =
 /// The version of the current Dart executable.
 final String _dartVersion = Platform.version.split(" ").first;
 
-/// The root of the Dart SDK.
-final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
-
 main(List<String> args) => grind(args);
 
 @DefaultTask('Run the Dart formatter.')
@@ -212,17 +209,18 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
         "${response.reasonPhrase}.";
   }
 
-  var dartExecutable = new ZipDecoder()
-      .decodeBytes(response.bodyBytes)
-      .firstWhere((file) => os == 'windows'
-          ? file.name.endsWith("/bin/dart.exe")
-          : file.name.endsWith("/bin/dart"));
+  var dartSdk = new ZipDecoder().decodeBytes(response.bodyBytes);
+  var dartExecutable = dartSdk.firstWhere((file) => os == 'windows'
+      ? file.name.endsWith("/bin/dart.exe")
+      : file.name.endsWith("/bin/dart"));
+  var dartLicense = dartSdk.firstWhere((file) => file.name.endsWith("LICENSE"));
   var executable = dartExecutable.content;
+  var license = dartLicense.content;
   var archive = new Archive()
     ..addFile(_fileFromBytes(
         "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
         executable: true))
-    ..addFile(_file("dart-sass/src/DART_LICENSE", p.join(_sdkDir, 'LICENSE')))
+    ..addFile(_fileFromBytes("dart-sass/src/DART_LICENSE", license))
     ..addFile(
         _file("dart-sass/src/sass.dart.snapshot", "build/sass.dart.snapshot"))
     ..addFile(_file("dart-sass/src/SASS_LICENSE", "LICENSE"))
