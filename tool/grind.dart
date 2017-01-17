@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:crypto/crypto.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
@@ -271,3 +272,52 @@ ArchiveFile _fileFromString(String path, String contents,
 ArchiveFile _file(String target, String source, {bool executable: false}) =>
     _fileFromBytes(target, new File(source).readAsBytesSync(),
         executable: executable);
+
+/// Generate a [algo] hash value using the contents of a given [file]
+String _hash(String file, String algo) {
+  Hash hasher;
+  switch (algo) {
+    case 'md5':
+      hasher = md5;
+      break;
+    case 'sha1':
+      hasher = sha1;
+      break;
+    case 'sha256':
+      hasher = sha256;
+      break;
+  }
+  return hasher.convert(new File(file).readAsBytesSync()).toString();
+}
+
+@Task('Build Homebrew formulae.')
+//@Depends(package)
+homebrew_formulae() {
+  var hash_x64 = _hash('build/dart-sass-$_version-macos-x64.tar.gz', 'sha256');
+  var hash_ia32 = _hash('build/dart-sass-$_version-macos-ia32.tar.gz', 'sha256');
+  var formulae = """
+require 'formula'
+
+class DartSass < Formula
+  homepage 'https://github.com/sass/dart-sass'
+
+  version '$_version'
+  if MacOS.prefer_64_bit?
+    url 'https://github.com/sass/dart-sass/releases/download/$_version/dart-sass-$_version-macos-x64.tar.gz'
+    sha256 '$hash_x64'
+  else
+    url 'https://github.com/sass/dart-sass/releases/download/$_version/dart-sass-$_version-macos-ia32.tar.gz'
+    sha256 '$hash_ia32'
+  end
+
+  def install
+    bin.install "dart-sass"
+    bin.install Dir["src"]
+  end
+end
+  """;
+
+  var output = "build/dart-sass.rb";
+  log("Creating $output...");
+  new File(output).writeAsStringSync(formulae);
+}
