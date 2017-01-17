@@ -8,12 +8,15 @@
 # package`.
 
 function follow_links() {
-  file="$1"
+  local file="$1"
+
+  cd $(dirname "$file")
   while [ -h "$file" ]; do
     # On Mac OS, readlink -f doesn't work.
     file="$(readlink "$file")"
+    cd $(dirname "$file")
   done
-  echo "$file"
+  echo "$(pwd -P)/$(basename "$file")"
 }
 
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
