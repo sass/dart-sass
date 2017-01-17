@@ -294,7 +294,8 @@ String _hash(String file, String algo) {
 //@Depends(package)
 homebrew_formulae() {
   var hash_x64 = _hash('build/dart-sass-$_version-macos-x64.tar.gz', 'sha256');
-  var hash_ia32 = _hash('build/dart-sass-$_version-macos-ia32.tar.gz', 'sha256');
+  var hash_ia32 =
+      _hash('build/dart-sass-$_version-macos-ia32.tar.gz', 'sha256');
   var formulae = """
 require 'formula'
 
