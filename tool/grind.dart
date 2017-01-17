@@ -314,10 +314,43 @@ class DartSass < Formula
     bin.install "dart-sass"
     bin.install Dir["src"]
   end
-end
-  """;
+end""";
 
   var output = "build/dart-sass.rb";
   log("Creating $output...");
   new File(output).writeAsStringSync(formulae);
+}
+
+@Task('Build Scoop manifest.')
+//@Depends(package)
+scoop_manifest() {
+  var hash_x64 = _hash('build/dart-sass-$_version-windows-x64.zip', 'sha256');
+  var hash_ia32 = _hash('build/dart-sass-$_version-windows-ia32.zip', 'sha256');
+  var manifest = """
+{
+  "homepage": "https://github.com/sass/dart-sass",
+  "version": "$_version",
+  "license": "https://raw.githubusercontent.com/sass/dart-sass/master/LICENSE",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/sass/dart-sass/releases/download/$_version/dart-sass-$_version-windows-x64.zip",
+      "hash": "$hash_x64"
+    },
+    "32bit": {
+      "url": "https://github.com/sass/dart-sass/releases/download/$_version/dart-sass-$_version-windows-ia32.zip",
+      "hash": "$hash_ia32"
+    }
+  },
+  "extract_dir": "dart-sass",
+  "bin": [
+    "dart-sass.bat"
+  ],
+  "checkver": {
+    "github": "https://github.com/sass/dart-sass"
+  }
+}""";
+
+  var output = "build/dart-sass.json";
+  log("Creating $output...");
+  new File(output).writeAsStringSync(manifest);
 }
