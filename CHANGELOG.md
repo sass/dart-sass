@@ -57,6 +57,8 @@
 
 * Fix numbers divided by colors.
 
+* Support slash-separated numbers in arguments to plain CSS functions.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
