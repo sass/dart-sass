@@ -55,6 +55,8 @@
 
 * Properly handle a backslash followed by a CRLF sequence in a quoted string.
 
+* Fix numbers divided by colors.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
