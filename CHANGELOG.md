@@ -14,6 +14,10 @@
 
 * Warn about using named colors in interpolation.
 
+* Don't emit loud comments in functions.
+
+* Detect import loops.
+
 * Fix `@import` with a `supports()` clause.
 
 * Forbid functions named "and", "or", and "not".
@@ -40,6 +44,16 @@
 * Fix the `%` operator.
 
 * Allow whitespace between `=` and the mixin name in the indented syntax.
+
+* Fix some slash division edge cases.
+
+* Fix `not` when used like a function.
+
+* Fix attribute selectors with single-character values.
+
+* Fix some bugs with the `call()` function.
+
+* Properly handle a backslash followed by a CRLF sequence in a quoted string.
 
 ## 1.0.0-alpha.8
 

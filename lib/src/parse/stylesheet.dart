@@ -131,8 +131,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
     }
 
-    expectStatementSeparator();
-
+    expectStatementSeparator("variable declaration");
     return new VariableDeclaration(name, expression, scanner.spanFrom(start),
         guarded: guarded, global: global);
   }
@@ -230,10 +229,7 @@ abstract class StylesheetParser extends Parser {
     var name = nameBuffer.interpolation(scanner.spanFrom(start));
     if (name.initialPlain.startsWith('--')) {
       var value = _interpolatedDeclarationValue();
-      if (!atEndOfStatement()) {
-        if (!indented) scanner.expectChar($semicolon);
-        scanner.error("Expected newline.");
-      }
+      expectStatementSeparator("custom property");
       return new Declaration(name, scanner.spanFrom(start), value: value);
     }
 
@@ -489,6 +485,7 @@ abstract class StylesheetParser extends Parser {
   ContentRule _contentRule(LineScannerState start) {
     if (_inMixin) {
       _mixinHasContent = true;
+      expectStatementSeparator("@content rule");
       return new ContentRule(scanner.spanFrom(start));
     }
 
@@ -502,7 +499,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   DebugRule _debugRule(LineScannerState start) {
     var expression = _expression();
-    expectStatementSeparator();
+    expectStatementSeparator("@debug rule");
     return new DebugRule(expression, scanner.spanFrom(start));
   }
 
@@ -537,7 +534,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) {
     var expression = _expression();
-    expectStatementSeparator();
+    expectStatementSeparator("@error rule");
     return new ErrorRule(expression, scanner.spanFrom(start));
   }
 
@@ -548,7 +545,7 @@ abstract class StylesheetParser extends Parser {
     var value = _almostAnyValue();
     var optional = scanner.scanChar($exclamation);
     if (optional) expectIdentifier("optional");
-    expectStatementSeparator();
+    expectStatementSeparator("@extend rule");
     return new ExtendRule(value, scanner.spanFrom(start), optional: optional);
   }
 
@@ -669,7 +666,7 @@ abstract class StylesheetParser extends Parser {
       imports.add(_importArgument(start));
       whitespace();
     } while (scanner.scanChar($comma));
-    expectStatementSeparator();
+    expectStatementSeparator("@import rule");
 
     return new ImportRule(imports, scanner.spanFrom(start));
   }
@@ -877,7 +874,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   ReturnRule _returnRule(LineScannerState start) {
     var expression = _expression();
-    expectStatementSeparator();
+    expectStatementSeparator("@return rule");
     return new ReturnRule(expression, scanner.spanFrom(start));
   }
 
@@ -896,7 +893,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   WarnRule _warnRule(LineScannerState start) {
     var expression = _expression();
-    expectStatementSeparator();
+    expectStatementSeparator("@warn rule");
     return new WarnRule(expression, scanner.spanFrom(start));
   }
 
@@ -990,8 +987,6 @@ abstract class StylesheetParser extends Parser {
   /// invocations don't allow the Microsoft-style `=` operator at the top level,
   /// but function invocations do.
   ArgumentInvocation _argumentInvocation({bool mixin: false}) {
-    var wasInParentheses = _inParentheses;
-    _inParentheses = true;
     var start = scanner.state;
     scanner.expectChar($lparen);
     whitespace();
@@ -1034,7 +1029,6 @@ abstract class StylesheetParser extends Parser {
     }
     scanner.expectChar($rparen);
 
-    _inParentheses = wasInParentheses;
     return new ArgumentInvocation(positional, named, scanner.spanFrom(start),
         rest: rest, keywordRest: keywordRest);
   }
@@ -1892,9 +1886,11 @@ abstract class StylesheetParser extends Parser {
       } else if (next == null || isNewline(next)) {
         scanner.error("Expected ${new String.fromCharCode(quote)}.");
       } else if (next == $backslash) {
-        if (isNewline(scanner.peekChar(1))) {
+        var second = scanner.peekChar(1);
+        if (isNewline(second)) {
           scanner.readChar();
           scanner.readChar();
+          if (second == $cr) scanner.scanChar($lf);
         } else {
           buffer.writeCharCode(escapeCharacter());
         }
@@ -1923,6 +1919,10 @@ abstract class StylesheetParser extends Parser {
         var invocation = _argumentInvocation();
         return new IfExpression(
             invocation, spanForList([identifier, invocation]));
+      } else if (plain == "not") {
+        whitespace();
+        return new UnaryOperationExpression(
+            UnaryOperator.not, _singleExpression(), identifier.span);
       }
 
       var lower = plain.toLowerCase();
@@ -1930,10 +1930,6 @@ abstract class StylesheetParser extends Parser {
         switch (plain) {
           case "false":
             return new BooleanExpression(false, identifier.span);
-          case "not":
-            whitespace();
-            return new UnaryOperationExpression(
-                UnaryOperator.not, _singleExpression(), identifier.span);
           case "null":
             return new NullExpression(identifier.span);
           case "true":
@@ -2644,8 +2640,10 @@ abstract class StylesheetParser extends Parser {
   /// Asserts that the scanner is positioned before a statement separator, or at
   /// the end of a list of statements.
   ///
+  /// If the [name] of the parent rule is passed, it's used for error reporting.
+  ///
   /// This consumes whitespace, but nothing else, including comments.
-  void expectStatementSeparator();
+  void expectStatementSeparator([String name]);
 
   /// Whether the scanner is positioned at the end of a statement.
   bool atEndOfStatement();

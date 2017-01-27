@@ -837,9 +837,11 @@ class _SerializeCssVisitor
     var scanner = new StringScanner(text);
     while (scanner.scanChar($dash)) {}
 
+    if (scanner.isDone) return false;
     var first = scanner.readChar();
-    if (first == null) return false;
+
     if (isNameStart(first)) {
+      if (scanner.isDone) return true;
       scanner.readChar();
     } else if (first == $backslash) {
       if (!_consumeEscape(scanner)) return false;
@@ -878,6 +880,7 @@ class _SerializeCssVisitor
       }
       if (isWhitespace(scanner.peekChar())) scanner.readChar();
     } else {
+      if (scanner.isDone) return false;
       scanner.readChar();
     }
 

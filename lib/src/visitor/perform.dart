@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -82,6 +83,9 @@ class _PerformVisitor
   /// This is used to provide `call()` with a span.
   FileSpan _callableSpan;
 
+  /// Whether we're currently executing a function.
+  var _inFunction = false;
+
   /// Whether we're currently building the output of an unknown at rule.
   var _inUnknownAtRule = false;
 
@@ -117,6 +121,8 @@ class _PerformVisitor
   /// import the same stylesheet, and we don't want to parse the same stylesheet
   /// multiple times.
   final _importedFiles = <String, Stylesheet>{};
+
+  final _activeImports = new Set<Uri>();
 
   /// The extender that handles extensions for this perform run.
   final _extender = new Extender();
@@ -158,7 +164,14 @@ class _PerformVisitor
       var args = arguments[1] as SassArgumentList;
 
       var invocation = new ArgumentInvocation([], {}, _callableSpan,
-          rest: new ValueExpression(args));
+          rest: new ValueExpression(args, _callableSpan),
+          keywordRest: args.keywords.isEmpty
+              ? null
+              : new ValueExpression(
+                  new SassMap(mapMap(args.keywords,
+                      key: (String key, Value _) => new SassString(key),
+                      value: (String _, Value value) => value)),
+                  _callableSpan));
 
       if (function is SassString) {
         warn(
@@ -179,6 +192,7 @@ class _PerformVisitor
   }
 
   CssStylesheet run(Stylesheet node) {
+    if (node.span != null) _activeImports.add(node.span.sourceUrl);
     visitStylesheet(node);
     return _root;
   }
@@ -395,8 +409,8 @@ class _PerformVisitor
   Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
     var setVariables = node.variables.length == 1
-        ? (Value value) =>
-            _environment.setLocalVariable(node.variables.first, value)
+        ? (Value value) => _environment.setLocalVariable(
+            node.variables.first, value.withoutSlash())
         : (Value value) => _setMultipleVariables(node.variables, value);
     return _environment.scope(() {
       return _handleReturn/*<Value>*/(list.asList, (element) {
@@ -413,7 +427,7 @@ class _PerformVisitor
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
-      _environment.setLocalVariable(variables[i], list[i]);
+      _environment.setLocalVariable(variables[i], list[i].withoutSlash());
     }
     for (var i = minLength; i < variables.length; i++) {
       _environment.setLocalVariable(variables[i], sassNull);
@@ -550,6 +564,13 @@ class _PerformVisitor
   /// Adds the stylesheet imported by [import] to the current document.
   void _visitDynamicImport(DynamicImport import) {
     var stylesheet = _loadImport(import);
+
+    var url = stylesheet.span.sourceUrl;
+    if (_activeImports.contains(url)) {
+      throw _exception("This file is already being imported.", import.span);
+    }
+
+    _activeImports.add(url);
     _withStackFrame("@import", import.span, () {
       _withEnvironment(_environment.global(), () {
         for (var statement in stylesheet.children) {
@@ -557,6 +578,7 @@ class _PerformVisitor
         }
       });
     });
+    _activeImports.remove(url);
   }
 
   /// Loads the [Stylesheet] imported by [import], or throws a
@@ -683,6 +705,8 @@ class _PerformVisitor
   }
 
   Value visitLoudComment(LoudComment node) {
+    if (_inFunction) return null;
+
     // Comments are allowed to appear between CSS imports.
     if (_parent == _root && _endOfImports == _root.children.length) {
       _endOfImports++;
@@ -1029,7 +1053,11 @@ class _PerformVisitor
         (plainName == null ? null : _environment.getFunction(plainName)) ??
             new PlainCssCallable(_performInterpolation(node.name));
 
-    return _runFunctionCallable(node.arguments, function, node.span);
+    var oldInFunction = _inFunction;
+    _inFunction = true;
+    var result = _runFunctionCallable(node.arguments, function, node.span);
+    _inFunction = oldInFunction;
+    return result;
   }
 
   /// Evaluates the arguments in [arguments] as applied to [callable], and
@@ -1054,15 +1082,14 @@ class _PerformVisitor
           var minLength = math.min(positional.length, declaredArguments.length);
           for (var i = 0; i < minLength; i++) {
             _environment.setLocalVariable(
-                declaredArguments[i].name, positional[i]);
+                declaredArguments[i].name, positional[i].withoutSlash());
           }
 
           for (var i = positional.length; i < declaredArguments.length; i++) {
             var argument = declaredArguments[i];
-            _environment.setLocalVariable(
-                argument.name,
-                named.remove(argument.name) ??
-                    argument.defaultValue?.accept(this));
+            var value = named.remove(argument.name) ??
+                argument.defaultValue?.accept(this);
+            _environment.setLocalVariable(argument.name, value?.withoutSlash());
           }
 
           SassArgumentList argumentList;

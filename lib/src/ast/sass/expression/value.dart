@@ -16,9 +16,9 @@ class ValueExpression implements Expression {
   /// The embedded value.
   final Value value;
 
-  FileSpan get span => null;
+  final FileSpan span;
 
-  ValueExpression(this.value);
+  ValueExpression(this.value, [this.span]);
 
   /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
       visitor.visitValueExpression(this);
