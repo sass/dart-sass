@@ -59,6 +59,8 @@
 
 * Support slash-separated numbers in arguments to plain CSS functions.
 
+* Error out if a function is passed an unknown named parameter.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

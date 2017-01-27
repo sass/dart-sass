@@ -1351,6 +1351,7 @@ class _PerformVisitor
   /// when applied to [arguments].
   void _verifyArguments(int positional, Map<String, dynamic> named,
       ArgumentDeclaration arguments, FileSpan span) {
+    var namedUsed = 0;
     for (var i = 0; i < arguments.arguments.length; i++) {
       var argument = arguments.arguments[i];
       if (i < positional) {
@@ -1360,8 +1361,9 @@ class _PerformVisitor
               "name.",
               span);
         }
-      } else if (argument.defaultValue == null &&
-          !named.containsKey(argument.name)) {
+      } else if (named.containsKey(argument.name)) {
+        namedUsed++;
+      } else if (argument.defaultValue == null) {
         throw _exception("Missing argument \$${argument.name}.", span);
       }
     }
@@ -1377,7 +1379,7 @@ class _PerformVisitor
           span);
     }
 
-    if (arguments.arguments.length - positional < named.length) {
+    if (namedUsed < named.length) {
       var unknownNames = normalizedSet(named.keys)
         ..removeAll(arguments.arguments.map((argument) => argument.name));
       throw _exception(
