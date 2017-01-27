@@ -581,9 +581,8 @@ class _PerformVisitor
       }
 
       var resolvedPackageUri = _packageResolver.resolveUri(packageUri);
-      if (resolvedPackageUri == null ||
-          !dirExists(p.dirname(p.fromUri(resolvedPackageUri)))) {
-        throw _exception('Can\'t resolve: "$packageUri"', import.span);
+      if (resolvedPackageUri == null) {
+        throw _exception("Can't find file to import.", import.span);
       }
       return resolvedPackageUri;
     }
