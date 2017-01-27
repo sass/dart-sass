@@ -93,9 +93,9 @@ SimpleSelector unifyUniversalAndElement(
   }
 
   String namespace;
-  if (namespace1 == namespace2 || namespace2 == null || namespace2 == '*') {
+  if (namespace1 == namespace2 || namespace2 == '*') {
     namespace = namespace1;
-  } else if (namespace1 == null || namespace1 == '*') {
+  } else if (namespace1 == '*') {
     namespace = namespace2;
   } else {
     return null;
