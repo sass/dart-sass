@@ -273,29 +273,15 @@ ArchiveFile _file(String target, String source, {bool executable: false}) =>
     _fileFromBytes(target, new File(source).readAsBytesSync(),
         executable: executable);
 
-/// Generate a [algo] hash value using the contents of a given [file]
-String _hash(String file, String algo) {
-  Hash hasher;
-  switch (algo) {
-    case 'md5':
-      hasher = md5;
-      break;
-    case 'sha1':
-      hasher = sha1;
-      break;
-    case 'sha256':
-      hasher = sha256;
-      break;
-  }
-  return hasher.convert(new File(file).readAsBytesSync()).toString();
-}
+/// Generate a SHA256 hash value using the contents of a given [file]
+String _sha256(String file) =>
+    sha256.convert(new File(file).readAsBytesSync()).toString();
 
 @Task('Build Homebrew formulae.')
 //@Depends(package)
 homebrew_formulae() {
-  var hash_x64 = _hash('build/dart-sass-$_version-macos-x64.tar.gz', 'sha256');
-  var hash_ia32 =
-      _hash('build/dart-sass-$_version-macos-ia32.tar.gz', 'sha256');
+  var hash_x64 = _sha256('build/dart-sass-$_version-macos-x64.tar.gz');
+  var hash_ia32 = _sha256('build/dart-sass-$_version-macos-ia32.tar.gz');
   var formulae = """
 require 'formula'
 
@@ -325,8 +311,8 @@ end""";
 @Task('Build Scoop manifest.')
 //@Depends(package)
 scoop_manifest() {
-  var hash_x64 = _hash('build/dart-sass-$_version-windows-x64.zip', 'sha256');
-  var hash_ia32 = _hash('build/dart-sass-$_version-windows-ia32.zip', 'sha256');
+  var hash_x64 = _sha256('build/dart-sass-$_version-windows-x64.zip');
+  var hash_ia32 = _sha256('build/dart-sass-$_version-windows-ia32.zip');
   var manifest = """
 {
   "homepage": "https://github.com/sass/dart-sass",
