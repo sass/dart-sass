@@ -1,4 +1,5 @@
 // Copyright 2016 Google Inc. Use of this source code is governed by an
+
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
@@ -94,5 +95,27 @@ void sharedTests(ScheduledProcess runSass(List arguments)) {
     var sass = runSass(["--trace", "test.scss", "test.css"]);
     sass.stderr.expect(consumeThrough(contains("\.dart")));
     sass.shouldExit(65);
+  });
+
+  test("division by 0 in media query", () {
+    d
+        .file(
+            "test.scss",
+            r"""@media screen and (min-width:0\0) {
+  .progress-animated .progress-bar-striped {
+    animation: progress-bar-stripes 2s linear infinite;
+  }
+}""")
+        .create();
+
+    var sass = runSass(["--trace", "test.scss", "test.css"]);
+    sass.stdout.expect(inOrder([
+      r"@media screen and (min-width: 0\\0) {",
+      "  .progress-animated .progress-bar-striped {",
+      "    animation: progress-bar-stripes 2s linear infinite;",
+      "  }",
+      "}"
+    ]));
+    sass.shouldExit(0);
   });
 }
