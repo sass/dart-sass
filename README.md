@@ -27,6 +27,21 @@ the `dart-sass` executable is ready to run!
 
 [releases]: https://github.com/sass/dart-sass/releases/
 
+To add the directory to your path on Windows, open the Control Panel, then
+search for and select "edit environment variables". Find the variable named
+`PATH`, click Edit, add `;C:\path\to\dart-sass` to the end of the value, then
+click OK.
+
+On more Unix-y systems, edit your shell configuration file (usually `~/.bashrc`
+or `~/.profile`) and add at the end:
+
+```sh
+export PATH=$PATH:/path/to/dart-sass
+```
+
+Regardless of your OS, you'll need to restart your terminal in order for this
+configuration to take effect.
+
 ### From npm
 
 Dart Sass is available, compiled to JavaScript, [as an npm package][npm]. You
