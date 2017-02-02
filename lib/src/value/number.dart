@@ -438,8 +438,7 @@ class SassNumber extends Value {
       return _multiplyUnits(this.value / other.value, this.numeratorUnits,
           this.denominatorUnits, other.denominatorUnits, other.numeratorUnits);
     }
-    if (other is! SassColor) return super.dividedBy(other);
-    throw new SassScriptException('Undefined operation "$this / $other".');
+    return super.dividedBy(other);
   }
 
   Value unaryPlus() => this;
