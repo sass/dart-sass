@@ -5,7 +5,7 @@
 import 'package:path/path.dart' as p;
 
 import 'src/ast/sass.dart';
-import 'src/exception.dart';
+import 'src/sync_package_resolver.dart';
 import 'src/utils.dart';
 import 'src/visitor/perform.dart';
 import 'src/visitor/serialize.dart';
@@ -14,13 +14,21 @@ import 'src/visitor/serialize.dart';
 ///
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
-/// Throws a [SassException] if conversion fails.
-String render(String path, {bool color: false}) {
+/// If [packageResolver] is provided, it's used to resolve `package:` imports.
+/// Otherwise, they aren't supported. It takes a [SyncPackageResolver][] from
+/// the `package_resolver` package.
+///
+/// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+///
+/// Finally throws a [SassException] if conversion fails.
+String render(String path,
+    {bool color: false, SyncPackageResolver packageResolver}) {
   var contents = readSassFile(path);
   var url = p.toUri(path);
   var sassTree = p.extension(path) == '.sass'
       ? new Stylesheet.parseSass(contents, url: url, color: color)
       : new Stylesheet.parseScss(contents, url: url, color: color);
-  var cssTree = evaluate(sassTree, color: color);
+  var cssTree =
+      evaluate(sassTree, color: color, packageResolver: packageResolver);
   return toCss(cssTree);
 }

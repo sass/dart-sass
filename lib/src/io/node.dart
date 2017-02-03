@@ -74,6 +74,8 @@ String _cleanErrorMessage(_SystemError error) {
 
 bool fileExists(String path) => _fs.existsSync(path);
 
+bool dirExists(String path) => _fs.existsSync(path);
+
 @JS("process.stderr")
 external _Stderr get _stderr;
 

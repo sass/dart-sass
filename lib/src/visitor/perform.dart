@@ -21,6 +21,7 @@ import '../exception.dart';
 import '../extend/extender.dart';
 import '../io.dart';
 import '../parse/keyframe_selector.dart';
+import '../sync_package_resolver.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
@@ -43,9 +44,13 @@ typedef _ScopeCallback(callback());
 CssStylesheet evaluate(Stylesheet stylesheet,
         {Iterable<String> loadPaths,
         Environment environment,
-        bool color: false}) =>
+        bool color: false,
+        SyncPackageResolver packageResolver}) =>
     new _PerformVisitor(
-            loadPaths: loadPaths, environment: environment, color: color)
+            loadPaths: loadPaths,
+            environment: environment,
+            color: color,
+            packageResolver: packageResolver)
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
@@ -131,11 +136,18 @@ class _PerformVisitor
   /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
+  /// The resolver to use for `package:` URLs, or `null` if no resolver exists.
+  final SyncPackageResolver _packageResolver;
+
   _PerformVisitor(
-      {Iterable<String> loadPaths, Environment environment, bool color: false})
+      {Iterable<String> loadPaths,
+      Environment environment,
+      bool color: false,
+      SyncPackageResolver packageResolver})
       : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
         _environment = environment ?? new Environment(),
-        _color = color {
+        _color = color,
+        _packageResolver = packageResolver {
     _environment.defineFunction("variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return new SassBoolean(_environment.variableExists(variable.text));
@@ -581,11 +593,27 @@ class _PerformVisitor
     _activeImports.remove(url);
   }
 
+  /// Returns [import]'s URL, resolved to a `file:` URL if possible.
+  Uri _resolveImportUrl(DynamicImport import) {
+    var packageUrl = import.url;
+    if (packageUrl.scheme != 'package') return packageUrl;
+
+    if (_packageResolver == null) {
+      throw _exception(
+          '"package:" URLs aren\'t supported on this platform.', import.span);
+    }
+
+    var resolvedPackageUrl = _packageResolver.resolveUri(packageUrl);
+    if (resolvedPackageUrl != null) return resolvedPackageUrl;
+
+    throw _exception("Unknown package.", import.span);
+  }
+
   /// Loads the [Stylesheet] imported by [import], or throws a
   /// [SassRuntimeException] if loading fails.
   Stylesheet _loadImport(DynamicImport import) {
     var path = _importPaths.putIfAbsent(import, () {
-      var path = p.fromUri(import.url);
+      var path = p.fromUri(_resolveImportUrl(import));
       var extension = p.extension(path);
       var tryPath = extension == '.sass' || extension == '.scss'
           ? _tryImportPath

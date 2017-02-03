@@ -95,4 +95,17 @@ void sharedTests(ScheduledProcess runSass(List arguments)) {
     sass.stderr.expect(consumeThrough(contains("\.dart")));
     sass.shouldExit(65);
   });
+
+  test("fails to import a package url", () {
+    d.file("test.scss", "@import 'package:nope/test';").create();
+
+    var sass = runSass(["test.scss", "test.css"]);
+    sass.stderr.expect(inOrder([
+      "Error: \"package:\" URLs aren't supported on this platform.",
+      "@import 'package:nope/test';",
+      "        ^^^^^^^^^^^^^^^^^^^",
+      "  test.scss 1:9  root stylesheet"
+    ]));
+    sass.shouldExit(65);
+  });
 }
