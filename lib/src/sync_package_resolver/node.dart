@@ -5,10 +5,13 @@
 import 'dart:async';
 
 class SyncPackageResolver {
-  static final Future<SyncPackageResolver> current = null;
+  static final _error =
+      new UnsupportedError('SyncPackageResolver is not supported in JS.');
 
-  Uri resolveUri(packageUri) =>
-      throw new UnsupportedError('not implemented for node');
+  static Future<SyncPackageResolver> get current => throw _error;
 
-  factory SyncPackageResolver.config(Map<String, Uri> configMap) => null;
+  Uri resolveUri(packageUri) => throw _error;
+
+  factory SyncPackageResolver.config(Map<String, Uri> configMap) =>
+      throw _error;
 }
