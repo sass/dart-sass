@@ -96,17 +96,16 @@ void sharedTests(ScheduledProcess runSass(List arguments)) {
     sass.shouldExit(65);
   });
 
-  test("fails to import package uri", () {
-    d.file("test.scss", "@import 'package:no_existing/test';").create();
+  test("fails to import a package url", () {
+    d.file("test.scss", "@import 'package:nope/test';").create();
 
     var sass = runSass(["test.scss", "test.css"]);
-    sass.shouldExit();
     sass.stderr.expect(inOrder([
-      "Error: Can't resolve: \"package:no_existing/test\", packageResolver is not supported by node vm."
-          " If you are using dart-vm please provide a `SyncPackageResolver` to the `render` function",
-      "@import 'package:no_existing/test';",
-      "        ^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "Error: \"package:\" URLs aren't supported on this platform.",
+      "@import 'package:nope/test';",
+      "        ^^^^^^^^^^^^^^^^^^^",
       "  test.scss 1:9  root stylesheet"
     ]));
+    sass.shouldExit(65);
   });
 }

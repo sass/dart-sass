@@ -4,6 +4,10 @@
 
 import 'dart:async';
 
+/// A cross-platform interface for the [SyncPackageResolver][] class from the
+/// `package_resolver` package.
+///
+/// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 abstract class SyncPackageResolver {
   static final Future<SyncPackageResolver> current = null;
 

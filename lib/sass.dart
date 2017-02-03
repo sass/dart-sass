@@ -3,9 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:path/path.dart' as p;
-import 'package:sass/src/sync_package_resolver/sync_package_resolver.dart';
 
 import 'src/ast/sass.dart';
+import 'src/sync_package_resolver.dart';
 import 'src/utils.dart';
 import 'src/visitor/perform.dart';
 import 'src/visitor/serialize.dart';
@@ -14,16 +14,11 @@ import 'src/visitor/serialize.dart';
 ///
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
-/// If [packageResolver] is provided, tries to resolve the imports with "package" uri
-/// to the dart-package uri. If file doesn't exist inside the dart-package folder,
-/// throws a [SassException]. For example if next code is found:
+/// If [packageResolver] is provided, it's used to resolve `package:` imports.
+/// Otherwise, they aren't supported. It takes a [SyncPackageResolver][] from
+/// the `package_resolver` package.
 ///
-/// ```sass
-/// @import "package:sass/all";
-/// ```
-///
-/// will try to open the file `~/.pub-cache/hosted/pub.dartlang.org/sass-X.X.X/all.scss`
-/// in POSIX systems.
+/// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 ///
 /// Finally throws a [SassException] if conversion fails.
 String render(String path,

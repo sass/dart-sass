@@ -18,11 +18,11 @@ import '../exception.dart';
 import '../extend/extender.dart';
 import '../io.dart';
 import '../parse/keyframe_selector.dart';
+import '../sync_package_resolver.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
-import '../sync_package_resolver/sync_package_resolver.dart';
 
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback(callback());
@@ -128,6 +128,7 @@ class _PerformVisitor
   /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
+  /// The resolver to use for `package:` URLs, or `null` if no resolver exists.
   final SyncPackageResolver _packageResolver;
 
   _PerformVisitor(
@@ -566,34 +567,27 @@ class _PerformVisitor
     });
   }
 
-  /// If the scheme is `package`, converts the [import] url into a dart package uri.
-  /// If the scheme is not `package`, returns the the same [import] url.
-  /// If the [_packageResolver] is null, throws a [SassRuntimeException].
-  /// If the [_packageResolver] cannot find the file, throws a [SassRuntimeException].
-  Uri _resolvePackageUri(DynamicImport import) {
-    var packageUri = import.url;
-    if (packageUri.scheme == 'package') {
-      if (_packageResolver == null) {
-        throw _exception(
-            'Can\'t resolve: "$packageUri", packageResolver is not supported by node vm.'
-            ' If you are using dart-vm please provide a `SyncPackageResolver` to the `render` function',
-            import.span);
-      }
+  /// Returns [import]'s URL, resolved to a `file:` URL if possible.
+  Uri _resolveImportUrl(DynamicImport import) {
+    var packageUrl = import.url;
+    if (packageUrl.scheme != 'package') return packageUrl;
 
-      var resolvedPackageUri = _packageResolver.resolveUri(packageUri);
-      if (resolvedPackageUri == null) {
-        throw _exception("Can't find file to import.", import.span);
-      }
-      return resolvedPackageUri;
+    if (_packageResolver == null) {
+      throw _exception(
+          '"package:" URLs aren\'t supported on this platform.', import.span);
     }
-    return packageUri;
+
+    var resolvedPackageUrl = _packageResolver.resolveUri(packageUrl);
+    if (resolvedPackageUrl != null) return resolvedPackageUrl;
+
+    throw _exception("Unknown package.", import.span);
   }
 
   /// Loads the [Stylesheet] imported by [import], or throws a
   /// [SassRuntimeException] if loading fails.
   Stylesheet _loadImport(DynamicImport import) {
     var path = _importPaths.putIfAbsent(import, () {
-      var path = p.fromUri(_resolvePackageUri(import));
+      var path = p.fromUri(_resolveImportUrl(import));
       var extension = p.extension(path);
       var tryPath = extension == '.sass' || extension == '.scss'
           ? _tryImportPath

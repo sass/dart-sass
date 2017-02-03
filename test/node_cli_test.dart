@@ -5,10 +5,8 @@
 @Tags(const ['node'])
 import 'dart:io';
 
-import 'package:scheduled_test/descriptor.dart' as d;
 import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
-import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import 'cli_shared.dart';
