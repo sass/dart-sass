@@ -1,11 +1,9 @@
-## 1.0.0-alpha.10
+## 1.0.0-alpha.9
 
 * Elements without a namespace (such as `div`) are no longer unified with
   elements with the empty namespace (such as `|div`). This unification didn't
   match the results returned by `is-superselector()`, and was not guaranteed to
   be valid.
-
-## 1.0.0-alpha.9
 
 * Support `&` within `@at-root`.
 
