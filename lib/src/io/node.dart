@@ -2,9 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:typed_data';
-
 import 'package:js/js.dart';
+import 'package:path/path.dart' as p;
+import 'package:source_span/source_span.dart';
+
+import '../exception.dart';
 
 @JS()
 class _FS {
@@ -51,14 +53,28 @@ external _FS _require(String name);
 
 final _fs = _require("fs");
 
-List<int> readFileAsBytes(String path) => _readFile(path) as Uint8List;
+String readFile(String path) {
+  // TODO(nweiz): explicitly decode the bytes as UTF-8 like we do in the VM when
+  // it doesn't cause a substantial performance degradation for large files. See
+  // also dart-lang/sdk#25377.
+  var contents = _readFile(path, 'utf8') as String;
+  if (!contents.contains("�")) return contents;
 
-String readFileAsString(String path) => _readFile(path, 'utf8') as String;
+  var sourceFile = new SourceFile(contents, url: p.toUri(path));
+  for (var i = 0; i < contents.length; i++) {
+    if (contents.codeUnitAt(i) != 0xFFFD) continue;
+    throw new SassException(
+        "Invalid UTF-8.", sourceFile.location(i).pointSpan());
+  }
+
+  // This should be unreachable.
+  return contents;
+}
 
 /// Wraps `fs.readFileSync` to throw a [FileSystemException].
 _readFile(String path, [String encoding]) {
   try {
-    return _fs.readFileSync(path);
+    return _fs.readFileSync(path, encoding);
   } catch (error) {
     throw new FileSystemException._(_cleanErrorMessage(error as _SystemError));
   }

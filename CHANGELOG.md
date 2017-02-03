@@ -66,6 +66,8 @@
 
 * Error out if a function is passed an unknown named parameter.
 
+* Improve the speed of loading large files on Node.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

@@ -17,7 +17,7 @@ class Stderr {
   void flush() {}
 }
 
-/// An error thrown by [readFileAsBytes] and [readFileAsString].
+/// An error thrown by [readFile].
 class FileSystemException {
   String get message => null;
 }
@@ -28,11 +28,11 @@ Stderr get stderr => null;
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => false;
 
-/// Reads the file at [path] as a list of bytes.
-List<int> readFileAsBytes(String path) => null;
-
 /// Reads the file at [path] as a UTF-8 encoded string.
-String readFileAsString(String path) => null;
+///
+/// Throws a [FileSystemException] if reading fails, and a [SassException] if
+/// the file isn't valid UTF-8.
+String readFile(String path) => null;
 
 /// Returns whether a file at [path] exists.
 bool fileExists(String path) => null;

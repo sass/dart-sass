@@ -636,7 +636,7 @@ class _PerformVisitor
     return _importedFiles.putIfAbsent(path, () {
       String contents;
       try {
-        contents = readSassFile(path);
+        contents = readFile(path);
       } on SassException catch (error) {
         var frames = _stack.toList()..add(_stackFrame(import.span));
         throw new SassRuntimeException(
