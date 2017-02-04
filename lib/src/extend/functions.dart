@@ -302,9 +302,9 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     // is a supersequence of the other, use that, otherwise give up.
     var lcs = longestCommonSubsequence(combinators1, combinators2);
     if (listEquals(lcs, combinators1)) {
-      result.add([new List.from(combinators2.reversed)]);
+      result.addFirst([new List.from(combinators2.reversed)]);
     } else if (listEquals(lcs, combinators2)) {
-      result.add([new List.from(combinators1.reversed)]);
+      result.addFirst([new List.from(combinators1.reversed)]);
     }
     return result;
   }
@@ -711,7 +711,7 @@ bool _selectorPseudoIsSuperselector(
   switch (pseudo1.normalizedName) {
     case 'matches':
     case 'any':
-      var pseudos = _selectorPseudosNamed(compound2, pseudo1.normalizedName);
+      var pseudos = _selectorPseudosNamed(compound2, pseudo1.name);
       return pseudos.any((pseudo2) {
             return pseudo1.selector.isSuperselector(pseudo2.selector);
           }) ||
@@ -724,7 +724,7 @@ bool _selectorPseudoIsSuperselector(
     case 'has':
     case 'host':
     case 'host-context':
-      return _selectorPseudosNamed(compound2, pseudo1.normalizedName)
+      return _selectorPseudosNamed(compound2, pseudo1.name)
           .any((pseudo2) => pseudo1.selector.isSuperselector(pseudo2.selector));
 
     case 'not':
@@ -775,4 +775,4 @@ Iterable<PseudoSelector> _selectorPseudosNamed(
         simple is PseudoSelector &&
         simple.isClass &&
         simple.selector != null &&
-        simple.normalizedName == name));
+        simple.name == name));
