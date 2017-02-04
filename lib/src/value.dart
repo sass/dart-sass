@@ -235,12 +235,6 @@ abstract class Value {
   Value singleEquals(Value other) =>
       new SassString("${toCssString()}=${other.toCssString()}");
 
-  /// The SassScript `or` operation.
-  Value or(Value other) => this;
-
-  /// The SassScript `and` operation.
-  Value and(Value other) => other;
-
   /// The SassScript `>` operation.
   SassBoolean greaterThan(Value other) =>
       throw new SassScriptException('Undefined operation "$this > $other".');

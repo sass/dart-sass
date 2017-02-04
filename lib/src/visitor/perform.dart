@@ -964,33 +964,55 @@ class _PerformVisitor
   Value visitBinaryOperationExpression(BinaryOperationExpression node) {
     return _addExceptionSpan(node.span, () {
       var left = node.left.accept(this);
-      var right = node.right.accept(this);
       switch (node.operator) {
         case BinaryOperator.singleEquals:
+          var right = node.right.accept(this);
           return left.singleEquals(right);
+
         case BinaryOperator.or:
-          return left.or(right);
+          return left.isTruthy ? left : node.right.accept(this);
+
         case BinaryOperator.and:
-          return left.and(right);
+          return left.isTruthy ? node.right.accept(this) : left;
+
         case BinaryOperator.equals:
+          var right = node.right.accept(this);
           return new SassBoolean(left == right);
+
         case BinaryOperator.notEquals:
+          var right = node.right.accept(this);
           return new SassBoolean(left != right);
+
         case BinaryOperator.greaterThan:
+          var right = node.right.accept(this);
           return left.greaterThan(right);
+
         case BinaryOperator.greaterThanOrEquals:
+          var right = node.right.accept(this);
           return left.greaterThanOrEquals(right);
+
         case BinaryOperator.lessThan:
+          var right = node.right.accept(this);
           return left.lessThan(right);
+
         case BinaryOperator.lessThanOrEquals:
+          var right = node.right.accept(this);
           return left.lessThanOrEquals(right);
+
         case BinaryOperator.plus:
+          var right = node.right.accept(this);
           return left.plus(right);
+
         case BinaryOperator.minus:
+          var right = node.right.accept(this);
           return left.minus(right);
+
         case BinaryOperator.times:
+          var right = node.right.accept(this);
           return left.times(right);
+
         case BinaryOperator.dividedBy:
+          var right = node.right.accept(this);
           var result = left.dividedBy(right);
           if (node.allowsSlash && left is SassNumber && right is SassNumber) {
             var leftSlash = left.asSlash ?? _toCss(left, node.left.span);
@@ -1000,7 +1022,9 @@ class _PerformVisitor
             return result;
           }
           break;
+
         case BinaryOperator.modulo:
+          var right = node.right.accept(this);
           return left.modulo(right);
         default:
           return null;

@@ -13,6 +13,8 @@
 
 * Properly handle placeholder selectors in selector pseudos.
 
+* Properly short-circuit the `or` and `and` operators.
+
 * Support `--$variable`.
 
 * Don't consider unitless numbers equal to numbers with units.
@@ -67,6 +69,11 @@
 * Error out if a function is passed an unknown named parameter.
 
 * Improve the speed of loading large files on Node.
+
+* Don't consider browser-prefixed selector pseudos to be superselectors of
+  differently- or non-prefixed selector pseudos with the same base name.
+
+* Fix an `@extend` edge case involving multiple combinators in a row.
 
 ## 1.0.0-alpha.8
 

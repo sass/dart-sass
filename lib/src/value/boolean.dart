@@ -31,9 +31,5 @@ class SassBoolean extends Value {
 
   SassBoolean assertBoolean([String name]) => this;
 
-  Value or(Value other) => value ? this : other;
-
-  Value and(Value other) => value ? other : this;
-
   Value unaryNot() => value ? sassFalse : sassTrue;
 }
