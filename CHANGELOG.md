@@ -68,6 +68,8 @@
 
 * Error out if a function is passed an unknown named parameter.
 
+* Improve the speed of loading large files on Node.
+
 * Don't consider browser-prefixed selector pseudos to be superselectors of
   differently- or non-prefixed selector pseudos with the same base name.
 
