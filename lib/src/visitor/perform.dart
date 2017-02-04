@@ -714,14 +714,10 @@ class _PerformVisitor
       return null;
     }
 
-    if (node.children == null) {
-      _runUserDefinedCallable(node.arguments, mixin, node.span, callback);
-    } else {
-      var environment = _environment.closure();
-      _runUserDefinedCallable(node.arguments, mixin, node.span, () {
-        _environment.withContent(node.children, environment, callback);
-      });
-    }
+    var environment = node.children == null ? null : _environment.closure();
+    _runUserDefinedCallable(node.arguments, mixin, node.span, () {
+      _environment.withContent(node.children, environment, callback);
+    });
 
     return null;
   }
