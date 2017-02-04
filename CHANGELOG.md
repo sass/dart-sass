@@ -13,6 +13,8 @@
 
 * Properly handle placeholder selectors in selector pseudos.
 
+* Properly short-circuit the `or` and `and` operators.
+
 * Support `--$variable`.
 
 * Don't consider unitless numbers equal to numbers with units.
