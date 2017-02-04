@@ -66,6 +66,9 @@
 
 * Error out if a function is passed an unknown named parameter.
 
+* Don't consider browser-prefixed selector pseudos to be superselectors of
+  differently- or non-prefixed selector pseudos with the same base name.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
