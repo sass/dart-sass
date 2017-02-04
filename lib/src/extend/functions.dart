@@ -302,9 +302,9 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     // is a supersequence of the other, use that, otherwise give up.
     var lcs = longestCommonSubsequence(combinators1, combinators2);
     if (listEquals(lcs, combinators1)) {
-      result.add([new List.from(combinators2.reversed)]);
+      result.addFirst([new List.from(combinators2.reversed)]);
     } else if (listEquals(lcs, combinators2)) {
-      result.add([new List.from(combinators1.reversed)]);
+      result.addFirst([new List.from(combinators1.reversed)]);
     }
     return result;
   }

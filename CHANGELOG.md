@@ -69,6 +69,8 @@
 * Don't consider browser-prefixed selector pseudos to be superselectors of
   differently- or non-prefixed selector pseudos with the same base name.
 
+* Fix an `@extend` edge case involving multiple combinators in a row.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.
