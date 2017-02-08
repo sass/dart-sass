@@ -434,7 +434,7 @@ update_homebrew() async {
     delete(new Directory("build/homebrew-sass"));
     await runAsync("git", arguments: [
       "clone",
-      "git@github.com:sass/homebrew-sass.git",
+      "https://github.com/sass/homebrew-sass.git",
       "build/homebrew-sass"
     ]);
   }
