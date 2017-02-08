@@ -75,6 +75,11 @@
 
 * Fix an `@extend` edge case involving multiple combinators in a row.
 
+* Fix a bug where a `@content` block could get incorrectly passed to a mixin.
+
+* Properly isolate the lexical environments of different calls to the same mixin
+  and function.
+
 ## 1.0.0-alpha.8
 
 * Add the `content-exists()` function.

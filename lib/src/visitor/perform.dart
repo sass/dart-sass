@@ -364,7 +364,9 @@ class _PerformVisitor
     if (block == null) return null;
 
     _withStackFrame("@content", node.span, () {
-      _withEnvironment(_environment.contentEnvironment, () {
+      // Add an extra closure() call so that modifications to the environment
+      // don't affect the underlying environment closure.
+      _withEnvironment(_environment.contentEnvironment.closure(), () {
         for (var statement in block) {
           statement.accept(this);
         }
@@ -714,14 +716,10 @@ class _PerformVisitor
       return null;
     }
 
-    if (node.children == null) {
-      _runUserDefinedCallable(node.arguments, mixin, node.span, callback);
-    } else {
-      var environment = _environment.closure();
-      _runUserDefinedCallable(node.arguments, mixin, node.span, () {
-        _environment.withContent(node.children, environment, callback);
-      });
-    }
+    var environment = node.children == null ? null : _environment.closure();
+    _runUserDefinedCallable(node.arguments, mixin, node.span, () {
+      _environment.withContent(node.children, environment, callback);
+    });
 
     return null;
   }
@@ -1122,7 +1120,9 @@ class _PerformVisitor
     var separator = triple.item3;
 
     return _withStackFrame(callable.name + "()", span, () {
-      return _withEnvironment(callable.environment, () {
+      // Add an extra closure() call so that modifications to the environment
+      // don't affect the underlying environment closure.
+      return _withEnvironment(callable.environment.closure(), () {
         return _environment.scope(() {
           _verifyArguments(
               positional.length, named, callable.declaration.arguments, span);
