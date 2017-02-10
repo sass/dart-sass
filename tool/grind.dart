@@ -79,8 +79,8 @@ npm_package() {
   new File(p.join(dir.path, 'package.json'))
       .writeAsStringSync(JSON.encode(json));
 
-  copy(new File('package/sass.js'), dir);
-  copy(new File('build/sass.dart.js'), dir);
+  copy(new File(p.join('package', 'sass.js')), dir);
+  copy(new File(p.join('build', 'sass.dart.js')), dir);
   copy(new File('README.md'), dir);
 }
 

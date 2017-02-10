@@ -1,0 +1,28 @@
+build: off
+
+branches:
+  only: [master]
+
+# Don't run specs because sass-spec doesn't support Windows. They're also
+# supposed to be platform-independent.
+environment:
+  matrix:
+  - {TASK: tests, NODE: false}
+  - {TASK: tests, NODE: true}
+
+install:
+- choco install dart-sdk
+- refreshenv
+- pub get
+- ps: >-
+    If ($env:NODE -eq "true") {
+      Install-Product node ''
+    }
+
+test_script:
+- ps: >-
+    If ($env:NODE -eq "true") {
+      pub run test -t node
+    } Else {
+      pub run test -x node
+    }
