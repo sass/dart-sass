@@ -6,6 +6,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 [sass]: http://sass-lang.com/
 
 * [Using Dart Sass](#using-dart-sass)
+  * [From Chocolatey (Windows)](#from-chocolatey-windows)
   * [Standalone](#standalone)
   * [From npm](#from-npm)
   * [From Pub](#from-pub)
@@ -17,6 +18,13 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 
 There are a few different ways to install and run Dart Sass, depending on your
 environment and your needs.
+
+### From Chocolatey (Windows)
+
+If you use [the Chocolatey package manager](https://chocolatey.org/) for
+Windows, you can install Dart Sass by running `choco install sass -prerelease`.
+That'll give you a `sass` executable on your command line that will run Dart
+Sass.
 
 ### Standalone
 
