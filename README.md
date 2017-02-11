@@ -22,7 +22,12 @@ environment and your needs.
 ### From Chocolatey (Windows)
 
 If you use [the Chocolatey package manager](https://chocolatey.org/) for
-Windows, you can install Dart Sass by running `choco install sass -prerelease`.
+Windows, you can install Dart Sass by running
+
+```cmd
+choco install sass -prerelease
+```
+
 That'll give you a `sass` executable on your command line that will run Dart
 Sass.
 
