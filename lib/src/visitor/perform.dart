@@ -1232,6 +1232,9 @@ class _PerformVisitor
     var oldCallableSpan = _callableSpan;
     _callableSpan = span;
     int overloadIndex;
+    // TODO(nweiz): Throwing and catching here profiles poorly on Susy's tests.
+    // We should be able to choose the overload to use based purely on number or
+    // name of arguments.
     for (var i = 0; i < callable.overloads.length - 1; i++) {
       try {
         _verifyArguments(
