@@ -96,15 +96,15 @@ class Environment {
     defineCoreFunctions(this);
   }
 
-  Environment._(
-      this._variables,
-      this._variableIndices,
-      this._functions,
-      this._functionIndices,
-      this._mixins,
-      this._mixinIndices,
-      this._contentBlock,
-      this._contentEnvironment);
+  Environment._(this._variables, this._functions, this._mixins,
+      this._contentBlock, this._contentEnvironment)
+      // Lazily fill in the indices rather than eagerly copying them from the
+      // existing environment in closure() and global() because the copying took a
+      // lot of time and was rarely helpful. This saves a bunch of time on Susy's
+      // tests.
+      : _variableIndices = normalizedMap(),
+        _functionIndices = normalizedMap(),
+        _mixinIndices = normalizedMap();
 
   /// Creates a closure based on this environment.
   ///
@@ -113,11 +113,8 @@ class Environment {
   /// when the closure was created will be reflected.
   Environment closure() => new Environment._(
       _variables.toList(),
-      new Map.from(_variableIndices),
       _functions.toList(),
-      new Map.from(_functionIndices),
       _mixins.toList(),
-      new Map.from(_mixinIndices),
       _contentBlock,
       _contentEnvironment);
 
@@ -126,14 +123,7 @@ class Environment {
   /// The returned environment shares this environment's global, but is
   /// otherwise independent.
   Environment global() => new Environment._(
-      [_variables.first],
-      new Map.fromIterable(_variables.first.keys, value: (_) => 0),
-      [_functions.first],
-      new Map.fromIterable(_functions.first.keys, value: (_) => 0),
-      [_mixins.first],
-      new Map.fromIterable(_mixins.first.keys, value: (_) => 0),
-      null,
-      null);
+      [_variables.first], [_functions.first], [_mixins.first], null, null);
 
   /// Returns the value of the variable named [name], or `null` if no such
   /// variable is declared.
