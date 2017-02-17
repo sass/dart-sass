@@ -299,20 +299,10 @@ class Extender {
     for (var i = 0; i < compound.components.length; i++) {
       var simple = compound.components[i];
 
-      var extendedPseudo = simple is PseudoSelector && simple.selector != null
-          ? _extendPseudo(simple, extensions, mediaQueryContext,
-              replace: replace)
-          : null;
-
-      if (extendedPseudo != null) {
-        var simples = new List<SimpleSelector>(
-            compound.components.length - 1 + extendedPseudo.length);
-        simples.setRange(0, i, compound.components);
-        simples.setRange(i, i + extendedPseudo.length, extendedPseudo);
-        simples.setRange(i + extendedPseudo.length, simples.length,
-            compound.components, i + 1);
-        original = new CompoundSelector(simples);
-      }
+      original = _maybeExtendPseudo(
+              compound, i, simple, extensions, mediaQueryContext,
+              replace: replace) ??
+          original;
 
       var sources = extensions[simple];
       if (sources == null) continue;
@@ -369,6 +359,36 @@ class Extender {
     }
 
     return extended;
+  }
+
+  /// If [simple] is a selector pseudoclass, extends its contents and returns a
+  /// copy of [compound] with the results injected instead of the simple
+  /// selector at [i] (assumed to be [simple]).
+  ///
+  /// If the extension doesn't happen for any reason, returns `null` instead.
+  CompoundSelector _maybeExtendPseudo(
+      CompoundSelector compound,
+      int i,
+      SimpleSelector simple,
+      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
+      List<CssMediaQuery> mediaQueryContext,
+      {bool replace: false}) {
+    if (simple is PseudoSelector && simple.selector != null) {
+      var extendedPseudo = _extendPseudo(simple, extensions, mediaQueryContext,
+          replace: replace);
+      if (extendedPseudo == null) return null;
+
+      assert(identical(compound.components[i], simple));
+      var simples = new List<SimpleSelector>(
+          compound.components.length - 1 + extendedPseudo.length);
+      simples.setRange(0, i, compound.components);
+      simples.setRange(i, i + extendedPseudo.length, extendedPseudo);
+      simples.setRange(i + extendedPseudo.length, simples.length,
+          compound.components, i + 1);
+      return new CompoundSelector(simples);
+    } else {
+      return null;
+    }
   }
 
   /// Extends [pseudo] using [extensions], and returns a list of resulting
