@@ -260,7 +260,7 @@ List<Combinator> _mergeInitialCombinators(
   }
 
   var combinators2 = <Combinator>[];
-  while (components1.isNotEmpty && components2.first is Combinator) {
+  while (components2.isNotEmpty && components2.first is Combinator) {
     combinators2.add(components2.removeFirst() as Combinator);
   }
 
