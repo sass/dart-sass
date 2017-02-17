@@ -1,3 +1,8 @@
+## 1.0.0-alpha.10
+
+* Fix an `@extend` edge case where both the extender and the extended selector
+  have invalid combinator sequences.
+
 ## 1.0.0-alpha.9
 
 * Elements without a namespace (such as `div`) are no longer unified with

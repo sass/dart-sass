@@ -305,7 +305,10 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
       result.addFirst([new List.from(combinators2.reversed)]);
     } else if (listEquals(lcs, combinators2)) {
       result.addFirst([new List.from(combinators1.reversed)]);
+    } else {
+      return null;
     }
+
     return result;
   }
 
