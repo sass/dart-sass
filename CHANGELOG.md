@@ -1,3 +1,8 @@
+## 1.0.0-alpha.10
+
+* Trust type annotations when compiling to JavaScript, which makes it
+  substantially faster.
+
 ## 1.0.0-alpha.9
 
 * Elements without a namespace (such as `div`) are no longer unified with
