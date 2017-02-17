@@ -58,6 +58,7 @@ js() {
   _ensureBuild();
   var destination = new File('build/sass.dart.js');
   Dart2js.compile(new File('bin/sass.dart'), outFile: destination, extraArgs: [
+    '--minify',
     '--trust-type-annotations',
     '-Dnode=true',
     '-Dversion=$_version',
