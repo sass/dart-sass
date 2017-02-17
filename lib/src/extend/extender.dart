@@ -235,7 +235,6 @@ class Extender {
       {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
-    var changed = false;
     List<List<ComplexSelector>> extendedNotExpanded;
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
@@ -243,33 +242,26 @@ class Extender {
         var extended = _extendCompound(component, extensions, mediaQueryContext,
             replace: replace);
         if (extended == null) {
-          if (changed) {
-            extendedNotExpanded.add([
-              new ComplexSelector([component])
-            ]);
-          }
+          extendedNotExpanded?.add([
+            new ComplexSelector([component])
+          ]);
         } else {
-          if (!changed) {
-            extendedNotExpanded = complex.components
-                .take(i)
-                .map((component) => [
-                      new ComplexSelector([component],
-                          lineBreak: complex.lineBreak)
-                    ])
-                .toList();
-          }
-          changed = true;
+          extendedNotExpanded ??= complex.components
+              .take(i)
+              .map((component) => [
+                    new ComplexSelector([component],
+                        lineBreak: complex.lineBreak)
+                  ])
+              .toList();
           extendedNotExpanded.add(extended);
         }
       } else {
-        if (changed) {
-          extendedNotExpanded.add([
-            new ComplexSelector([component])
-          ]);
-        }
+        extendedNotExpanded?.add([
+          new ComplexSelector([component])
+        ]);
       }
     }
-    if (!changed) return null;
+    if (extendedNotExpanded == null) return null;
 
     var first = true;
     return paths(extendedNotExpanded).map((path) {
