@@ -1,3 +1,8 @@
+## 1.0.0-alpha.10
+
+* Drop support for the reference combinator. This has been removed from the
+  spec, and will be deprecated and eventually removed in other implementations.
+
 ## 1.0.0-alpha.9
 
 * Elements without a namespace (such as `div`) are no longer unified with
