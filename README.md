@@ -178,6 +178,8 @@ Sass to update the reference behavior.
 
 13. The reference combinator is not supported. See [issue 303][].
 
+14. Universal selector unification is symmetrical. See [issue 2247][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
@@ -191,5 +193,6 @@ Sass to update the reference behavior.
 [issue 2228]: https://github.com/sass/sass/issues/2228
 [issue 2245]: https://github.com/sass/sass/issues/2245
 [issue 303]: https://github.com/sass/sass/issues/303
+[issue 2247]: https://github.com/sass/sass/issues/2247
 
 Disclaimer: this is not an official Google product.

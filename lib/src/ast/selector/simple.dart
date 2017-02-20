@@ -56,6 +56,9 @@ abstract class SimpleSelector extends Selector {
   /// Returns `null` if unification is impossible—for example, if there are
   /// multiple ID selectors.
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
+    if (compound.length == 1 && compound.first is UniversalSelector) {
+      return compound.first.unify([this]);
+    }
     if (compound.contains(this)) return compound;
 
     var result = <SimpleSelector>[];
