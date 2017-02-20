@@ -17,9 +17,17 @@ class Extension {
   /// The selector in which the `@extend` appeared.
   final ComplexSelector extender;
 
+  /// The minimum specificity required for any selector generated from this
+  /// extender.
+  final int specificity;
+
   /// Whether this extension is optional.
   bool get isOptional => _isOptional;
   bool _isOptional;
+
+  /// Whether this is a one-off extender representing a selector that was
+  /// originally in the document, rather than one defined with `@extend`.
+  final bool isOriginal;
 
   /// Whether this extension matched a selector.
   var isUsed = false;
@@ -37,13 +45,23 @@ class Extension {
   FileSpan _span;
 
   /// Creates a new extension.
-  Extension(this.extender, this._span, this._mediaContext,
-      {bool optional: false})
-      : _isOptional = optional;
+  ///
+  /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
+  Extension(ComplexSelector extender, this._span, this._mediaContext,
+      {int specificity, bool optional: false})
+      : extender = extender,
+        specificity = specificity ?? extender.maxSpecificity,
+        _isOptional = optional,
+        isOriginal = false;
 
   /// Creates a one-off extension that's not intended to be modified over time.
-  Extension.oneOff(this.extender)
-      : _isOptional = true,
+  ///
+  /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
+  Extension.oneOff(ComplexSelector extender,
+      {int specificity, this.isOriginal: false})
+      : extender = extender,
+        specificity = specificity ?? extender.maxSpecificity,
+        _isOptional = true,
         _mediaContext = null,
         _span = null;
 
@@ -77,4 +95,6 @@ class Extension {
     _span = span;
     _isOptional = false;
   }
+
+  String toString() => extender.toString();
 }

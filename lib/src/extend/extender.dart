@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
@@ -172,8 +173,13 @@ class Extender {
     if (newExtenders == null) return;
     for (var rule in rules) {
       try {
-        rule.selector.value = _extendList(
+        var extended = _extendList(
             rule.selector.value, {target: newExtenders}, _mediaContexts[rule]);
+
+        // A selector can't extend its own rule. We still have to run the extend
+        // to set [state.isUsed] appropriately, though.
+        if (identical(rule.selector.value, extender)) continue;
+        rule.selector.value = extended;
       } on SassException catch (error) {
         throw new SassException(
             "From ${rule.selector.span.message('')}\n"
@@ -236,6 +242,21 @@ class Extender {
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
       {bool replace: false}) {
+    // The complex selectors that each compound selector in [complex.components]
+    // can expand to.
+    //
+    // For example, given
+    //
+    //     .a .b {...}
+    //     .x .y {@extend .b}
+    //
+    // this will contain
+    //
+    //     [
+    //       [.a],
+    //       [.b, .x .y]
+    //     ]
+    //
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     List<List<ComplexSelector>> extendedNotExpanded;
@@ -296,99 +317,164 @@ class Extender {
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
       {bool replace: false}) {
-    var original = compound;
-
-    List<ComplexSelector> extended;
+    // The complex selectors produced from each component of [compound].
+    List<List<Extension>> options;
     for (var i = 0; i < compound.components.length; i++) {
       var simple = compound.components[i];
-
-      original = _maybeExtendPseudo(
-              compound, i, simple, extensions, mediaQueryContext,
-              replace: replace) ??
-          original;
-
-      var sources = extensions[simple];
-      if (sources == null) continue;
-
-      var compoundWithoutSimple =
-          new List<SimpleSelector>(compound.components.length - 1);
-      compoundWithoutSimple.setRange(0, i, compound.components);
-      compoundWithoutSimple.setRange(
-          i, compound.components.length - 1, compound.components, i + 1);
-      sources.forEach((complex, state) {
-        var extenderBase = complex.components.last as CompoundSelector;
-        var unified = compoundWithoutSimple.isEmpty
-            ? extenderBase
-            : unifyCompound(extenderBase.components, compoundWithoutSimple);
-        if (unified == null) return;
-
-        state.assertCompatibleMediaContext(mediaQueryContext);
-
-        extended ??= replace
-            ? []
-            : [
-                new ComplexSelector([compound])
-              ];
-
-        var newComplex = new ComplexSelector(
-            complex.components
-                .sublist(0, complex.components.length - 1)
-                .toList()
-                  ..add(unified),
-            lineBreak: complex.lineBreak);
-        _addSourceSpecificity(newComplex,
-            math.max(_sourceSpecificityFor(compound), complex.maxSpecificity));
-        extended.add(newComplex);
-        state.isUsed = true;
-      });
-    }
-
-    if (extended == null) {
-      return identical(original, compound)
-          ? null
-          : [
-              new ComplexSelector([original])
-            ];
-    } else if (!identical(original, compound)) {
-      if (replace) {
-        extended.insert(0, new ComplexSelector([original]));
+      var extended = _extendSimple(simple, extensions, mediaQueryContext,
+          replace: replace);
+      if (extended == null) {
+        options?.add([_extensionForSimple(simple)]);
       } else {
-        extended[0] = new ComplexSelector([original]);
+        if (options == null) {
+          options = [];
+          if (i != 0) {
+            options.add([_extensionForCompound(compound.components.take(i))]);
+          }
+        }
+
+        options.addAll(extended);
       }
     }
+    if (options == null) return null;
 
-    return extended;
+    // Optimize for the simple case of a single simple selector that doesn't
+    // need any unification.
+    if (options.length == 1) {
+      return options.first.map((state) {
+        state.isUsed = true;
+        state.assertCompatibleMediaContext(mediaQueryContext);
+        return state.extender;
+      }).toList();
+    }
+
+    // Find all paths through [options]. In this case, each path represents a
+    // different unification of the base selector. For example, if we have:
+    //
+    //     .a.b {...}
+    //     .w .x {@extend .a}
+    //     .y .z {@extend .b}
+    //
+    // then [options] is `[[.a, .w .x], [.b, .y .z]]` and `paths(options)` is
+    //
+    //     [
+    //       [.a, .b],
+    //       [.a, .y .z],
+    //       [.w .x, .b],
+    //       [.w .x, .y .z]
+    //     ]
+    //
+    // We then unify each path to get a list of complex selectors:
+    //
+    //     [
+    //       [.a.b],
+    //       [.y .a.z],
+    //       [.w .x.b],
+    //       [.w .y .x.z, .y .w .x.z]
+    //     ]
+    var first = !replace;
+    var unifiedPaths = paths(options).map((path) {
+      List<List<ComplexSelectorComponent>> complexes;
+      if (first) {
+        // The first path is always the original selector. We can't just
+        // return [compound] directly because pseudo selectors may be
+        // modified, but we don't have to do any unification.
+        first = false;
+        complexes = [
+          [
+            new CompoundSelector(path.expand((state) {
+              assert(state.extender.components.length == 1);
+              return (state.extender.components.last as CompoundSelector)
+                  .components;
+            }))
+          ]
+        ];
+      } else {
+        var toUnify = new QueueList<List<ComplexSelectorComponent>>();
+        List<SimpleSelector> originals;
+        for (var state in path) {
+          if (state.isOriginal) {
+            originals ??= [];
+            originals.addAll(
+                (state.extender.components.last as CompoundSelector)
+                    .components);
+          } else {
+            toUnify.add(state.extender.components);
+          }
+        }
+
+        if (originals != null) {
+          toUnify.addFirst([new CompoundSelector(originals)]);
+        }
+
+        complexes = unifyComplex(toUnify);
+        if (complexes == null) return null;
+      }
+
+      var lineBreak = false;
+      var specificity = _sourceSpecificityFor(compound);
+      for (var state in path) {
+        state.assertCompatibleMediaContext(mediaQueryContext);
+        state.isUsed = true;
+        lineBreak = lineBreak || state.extender.lineBreak;
+        specificity = math.max(specificity, state.specificity);
+      }
+
+      return complexes.map((components) {
+        var complex = new ComplexSelector(components, lineBreak: lineBreak);
+        _addSourceSpecificity(complex, specificity);
+        return complex;
+      }).toList();
+    });
+
+    return _trim(unifiedPaths.where((complexes) => complexes != null).toList());
   }
 
-  /// If [simple] is a selector pseudoclass, extends its contents and returns a
-  /// copy of [compound] with the results injected instead of the simple
-  /// selector at [i] (assumed to be [simple]).
-  ///
-  /// If the extension doesn't happen for any reason, returns `null` instead.
-  CompoundSelector _maybeExtendPseudo(
-      CompoundSelector compound,
-      int i,
+  Iterable<List<Extension>> _extendSimple(
       SimpleSelector simple,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
       {bool replace: false}) {
-    if (simple is PseudoSelector && simple.selector != null) {
-      var extendedPseudo = _extendPseudo(simple, extensions, mediaQueryContext,
-          replace: replace);
-      if (extendedPseudo == null) return null;
+    withoutPseudo(SimpleSelector simple) {
+      var extenders = extensions[simple];
+      if (extenders == null) return null;
+      if (replace) return extenders.values.toList();
 
-      assert(identical(compound.components[i], simple));
-      var simples = new List<SimpleSelector>(
-          compound.components.length - 1 + extendedPseudo.length);
-      simples.setRange(0, i, compound.components);
-      simples.setRange(i, i + extendedPseudo.length, extendedPseudo);
-      simples.setRange(i + extendedPseudo.length, simples.length,
-          compound.components, i + 1);
-      return new CompoundSelector(simples);
-    } else {
-      return null;
+      var extenderList = new List<Extension>(extenders.length + 1);
+      extenderList[0] = _extensionForSimple(simple);
+      extenderList.setRange(1, extenderList.length, extenders.values);
+      return extenderList;
     }
+
+    if (simple is PseudoSelector && simple.selector != null) {
+      var extended = _extendPseudo(simple, extensions, mediaQueryContext,
+          replace: replace);
+      if (extended != null) {
+        return extended.map(
+            (pseudo) => withoutPseudo(pseudo) ?? [_extensionForSimple(pseudo)]);
+      }
+    }
+
+    var result = withoutPseudo(simple);
+    return result == null ? null : [result];
   }
+
+  /// Returns a one-off [Extension] whose extender is composed solely of a
+  /// compound selector containing [simples].
+  Extension _extensionForCompound(Iterable<SimpleSelector> simples) {
+    var compound = new CompoundSelector(simples);
+    return new Extension.oneOff(new ComplexSelector([compound]),
+        specificity: _sourceSpecificityFor(compound), isOriginal: true);
+  }
+
+  /// Returns a one-off [Extension] whose extender is composed solely of
+  /// [simple].
+  Extension _extensionForSimple(SimpleSelector simple) => new Extension.oneOff(
+      new ComplexSelector([
+        new CompoundSelector([simple])
+      ]),
+      specificity: _sourceSpecificity[simple] ?? 0,
+      isOriginal: true);
 
   /// Extends [pseudo] using [extensions], and returns a list of resulting
   /// pseudo selectors.
@@ -495,12 +581,14 @@ class Extender {
     }
 
     // This is n² on the sequences, but only comparing between separate
-    // sequences should limit the quadratic behavior.
-    var result = <ComplexSelector>[];
-    for (var i = 0; i < lists.length; i++) {
-      for (var complex1 in lists[i]) {
+    // sequences should limit the quadratic behavior. We iterate from last to
+    // first and reverse the result so that, if two selectors are identical, we
+    // keep the first one.
+    var result = new QueueList<ComplexSelector>();
+    for (var i = lists.length - 1; i >= 0; i--) {
+      for (var complex1 in lists[i].reversed) {
         if (_original[complex1] != null) {
-          result.add(complex1);
+          result.addFirst(complex1);
           continue;
         }
 
@@ -518,7 +606,7 @@ class Extender {
           }
         }
 
-        // Look in [result] rather than [lists] for selectors before [i]. This
+        // Look in [result] rather than [lists] for selectors after [i]. This
         // ensures that we aren't comparing against a selector that's already
         // been trimmed, and thus that if there are two identical selectors only
         // one is trimmed.
@@ -530,13 +618,13 @@ class Extender {
 
         // We intentionally don't compare [complex1] against other selectors in
         // `lists[i]`, since they come from the same source.
-        if (lists.skip(i + 1).any((list) => list.any((complex2) =>
+        if (lists.take(i).any((list) => list.any((complex2) =>
             complex2.minSpecificity >= maxSpecificity &&
             complex2.isSuperselector(complex1)))) {
           continue;
         }
 
-        result.add(complex1);
+        result.addFirst(complex1);
       }
     }
 
