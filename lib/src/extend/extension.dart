@@ -5,14 +5,18 @@
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
+import '../ast/selector/complex.dart';
 import '../exception.dart';
 import '../utils.dart';
 
-/// The state of an extension for a given source and target.
+/// The state of an extension for a given extender.
 ///
-/// The source and target are represented externally, in the nested map that
-/// contains this state.
-class ExtendState {
+/// The target of the extension is represented externally, in the map that
+/// contains this extender.
+class Extension {
+  /// The selector in which the `@extend` appeared.
+  final ComplexSelector extender;
+
   /// Whether this extension is optional.
   bool get isOptional => _isOptional;
   bool _isOptional;
@@ -32,12 +36,13 @@ class ExtendState {
   FileSpan get span => _span;
   FileSpan _span;
 
-  /// Creates a new extend state.
-  ExtendState(this._span, this._mediaContext, {bool optional: false})
+  /// Creates a new extension.
+  Extension(this.extender, this._span, this._mediaContext,
+      {bool optional: false})
       : _isOptional = optional;
 
-  /// Creates a one-off extend state that's not intended to be modified over time.
-  ExtendState.oneOff()
+  /// Creates a one-off extension that's not intended to be modified over time.
+  Extension.oneOff(this.extender)
       : _isOptional = true,
         _mediaContext = null,
         _span = null;
