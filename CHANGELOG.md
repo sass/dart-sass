@@ -1,5 +1,14 @@
 ## 1.0.0-alpha.10
 
+* Drop support for the reference combinator. This has been removed from the
+  spec, and will be deprecated and eventually removed in other implementations.
+
+* Trust type annotations when compiling to JavaScript, which makes it
+  substantially faster.
+
+* Compile to minified JavaScript, which decreases the code size substantially
+  and makes startup a little faster.
+
 * Fix an `@extend` edge case where both the extender and the extended selector
   have invalid combinator sequences.
 
