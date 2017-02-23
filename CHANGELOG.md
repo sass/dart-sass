@@ -9,6 +9,12 @@
 * Compile to minified JavaScript, which decreases the code size substantially
   and makes startup a little faster.
 
+* Fix an `@extend` edge case where both the extender and the extended selector
+  have invalid combinator sequences.
+
+* Fix a bug where Sass would crash with a "Bad state: no element" error on some
+  rare `@extend` rules.
+
 ## 1.0.0-alpha.9
 
 * Elements without a namespace (such as `div`) are no longer unified with

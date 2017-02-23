@@ -260,7 +260,7 @@ List<Combinator> _mergeInitialCombinators(
   }
 
   var combinators2 = <Combinator>[];
-  while (components1.isNotEmpty && components2.first is Combinator) {
+  while (components2.isNotEmpty && components2.first is Combinator) {
     combinators2.add(components2.removeFirst() as Combinator);
   }
 
@@ -305,7 +305,10 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
       result.addFirst([new List.from(combinators2.reversed)]);
     } else if (listEquals(lcs, combinators2)) {
       result.addFirst([new List.from(combinators1.reversed)]);
+    } else {
+      return null;
     }
+
     return result;
   }
 
