@@ -1,5 +1,8 @@
 ## 1.0.0-alpha.10
 
+* Drop support for the reference combinator. This has been removed from the
+  spec, and will be deprecated and eventually removed in other implementations.
+
 * Trust type annotations when compiling to JavaScript, which makes it
   substantially faster.
 

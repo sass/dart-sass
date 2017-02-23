@@ -173,6 +173,8 @@ Sass to update the reference behavior.
     where they wouldn't be in Ruby Sass. This better matches the semantics of
     the selectors in question, and is more efficient. See [issue 2228][].
 
+12. The reference combinator is not supported. See [issue 303][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
@@ -184,5 +186,6 @@ Sass to update the reference behavior.
 [issue 1408]: https://github.com/sass/sass/issues/1408
 [issue 1050]: https://github.com/sass/sass/issues/1050
 [issue 2228]: https://github.com/sass/sass/issues/2228
+[issue 303]: https://github.com/sass/sass/issues/303
 
 Disclaimer: this is not an official Google product.
