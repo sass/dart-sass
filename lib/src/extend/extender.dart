@@ -26,13 +26,14 @@ class Extender {
   /// extensions.
   final _extensions = <SimpleSelector, Map<ComplexSelector, Extension>>{};
 
-  /// An expando from [CssStyleRule] to media query contexts.
+  /// A map from CSS rules to the media query contexts they're defined in.
   ///
   /// This tracks the contexts in which each style rule is defined. If a rule is
   /// defined at the top level, it doesn't have an entry.
-  final _mediaContexts = new Expando<List<CssMediaQuery>>();
+  final _mediaContexts = new Map<CssStyleRule, List<CssMediaQuery>>();
 
-  /// An expando from [SimpleSelector]s to integers.
+  /// A map from [SimpleSelector]s to the specificity of their source
+  /// selectors.
   ///
   /// This tracks the maximum specificity of the [ComplexSelector] that
   /// originally contained each [SimpleSelector]. This allows us to ensure that
@@ -40,16 +41,16 @@ class Extender {
   /// of extend][].
   ///
   /// [second law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
-  final _sourceSpecificity = new Expando<int>();
+  final _sourceSpecificity = new Map<SimpleSelector, int>.identity();
 
-  /// An expando that tracks [ComplexSelector]s that were originally part of
+  /// A set of [ComplexSelector]s that were originally part of
   /// their component [SelectorList]s, as opposed to being added by `@extend`.
   ///
   /// This allows us to ensure that we do'nt trim any selectors that need to
   /// exist to satisfy the [first law of extend][].
   ///
   /// [first law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
-  final _original = new Expando<bool>();
+  final _originals = new Set<ComplexSelector>.identity();
 
   /// Extends [selector] with [source] extender and [target] the extendee.
   ///
@@ -84,7 +85,7 @@ class Extender {
   CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span,
       [List<CssMediaQuery> mediaContext]) {
     for (var complex in selector.value.components) {
-      _original[complex] = true;
+      _originals.add(complex);
     }
 
     if (_extensions.isNotEmpty) {
@@ -298,8 +299,8 @@ class Extender {
         // Make sure that copies of [complex] retain their status as "original"
         // selectors. This includes selectors that are modified because a :not()
         // was extended into.
-        if (first && _original[complex] != null) {
-          _original[outputComplex] = true;
+        if (first && _originals.contains(complex)) {
+          _originals.add(outputComplex);
         }
         first = false;
 
@@ -587,7 +588,7 @@ class Extender {
     var result = new QueueList<ComplexSelector>();
     for (var i = lists.length - 1; i >= 0; i--) {
       for (var complex1 in lists[i].reversed) {
-        if (_original[complex1] != null) {
+        if (_originals.contains(complex1)) {
           result.addFirst(complex1);
           continue;
         }
