@@ -29,9 +29,6 @@ class Extension {
   /// originally in the document, rather than one defined with `@extend`.
   final bool isOriginal;
 
-  /// Whether this extension matched a selector.
-  var isUsed = false;
-
   /// The media query context to which this extend is restricted, or `null` if
   /// it can apply within any context.
   List<CssMediaQuery> get mediaContext => _mediaContext;

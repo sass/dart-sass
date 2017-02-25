@@ -180,6 +180,9 @@ Sass to update the reference behavior.
 
 14. Universal selector unification is symmetrical. See [issue 2247][].
 
+15. `@extend` doesn't produce an error if it matches but fails to unify. See
+    [issue 2250][].
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
@@ -194,5 +197,6 @@ Sass to update the reference behavior.
 [issue 2245]: https://github.com/sass/sass/issues/2245
 [issue 303]: https://github.com/sass/sass/issues/303
 [issue 2247]: https://github.com/sass/sass/issues/2247
+[issue 2250]: https://github.com/sass/sass/issues/2250
 
 Disclaimer: this is not an official Google product.

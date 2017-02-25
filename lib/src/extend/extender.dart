@@ -173,14 +173,12 @@ class Extender {
     if (rules == null) return;
     if (newExtenders == null) return;
     for (var rule in rules) {
-      try {
-        var extended = _extendList(
-            rule.selector.value, {target: newExtenders}, _mediaContexts[rule]);
+      // A selector can't extend its own rule.
+      if (identical(rule.selector.value, extender)) continue;
 
-        // A selector can't extend its own rule. We still have to run the extend
-        // to set [state.isUsed] appropriately, though.
-        if (identical(rule.selector.value, extender)) continue;
-        rule.selector.value = extended;
+      try {
+        rule.selector.value = _extendList(
+            rule.selector.value, {target: newExtenders}, _mediaContexts[rule]);
       } on SassException catch (error) {
         throw new SassException(
             "From ${rule.selector.span.message('')}\n"
@@ -195,13 +193,15 @@ class Extender {
   /// Throws a [SassException] if any (non-optional) extensions failed to match
   /// any selectors.
   void finalize() {
-    _extensions.forEach((target, sources) {
-      sources.forEach((_, state) {
-        if (state.isOptional || state.isUsed) return;
+    _extensions.forEach((target, extensions) {
+      if (_selectors.containsKey(target)) return;
+
+      extensions.forEach((_, extension) {
+        if (extension.isOptional) return;
         throw new SassException(
             'The target selector was not found.\n'
             'Use "@extend $target !optional" to avoid this error.',
-            state.span);
+            extension.span);
       });
     });
   }
@@ -343,7 +343,6 @@ class Extender {
     // need any unification.
     if (options.length == 1) {
       return options.first.map((state) {
-        state.isUsed = true;
         state.assertCompatibleMediaContext(mediaQueryContext);
         return state.extender;
       }).toList();
@@ -416,7 +415,6 @@ class Extender {
       var specificity = _sourceSpecificityFor(compound);
       for (var state in path) {
         state.assertCompatibleMediaContext(mediaQueryContext);
-        state.isUsed = true;
         lineBreak = lineBreak || state.extender.lineBreak;
         specificity = math.max(specificity, state.specificity);
       }
