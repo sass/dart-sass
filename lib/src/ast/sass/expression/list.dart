@@ -22,14 +22,18 @@ class ListExpression implements Expression {
   /// Whether the list has square brackets or not.
   final bool hasBrackets;
 
+  /// Whether the list has a trailing comma or not.
+  final bool hasTrailingComma;
+
   final FileSpan span;
 
   ListExpression(Iterable<Expression> contents, ListSeparator separator,
-      {bool brackets: false, FileSpan span})
-      : this._(new List.unmodifiable(contents), separator, brackets, span);
+      {bool brackets: false, bool trailingComma: false, FileSpan span})
+      : this._(new List.unmodifiable(contents), separator, brackets,
+            trailingComma, span);
 
   ListExpression._(List<Expression> contents, this.separator, this.hasBrackets,
-      FileSpan span)
+      this.hasTrailingComma, FileSpan span)
       : contents = contents,
         span = span ?? spanForList(contents);
 
@@ -43,6 +47,7 @@ class ListExpression implements Expression {
         .map((element) =>
             _elementNeedsParens(element) ? "($element)" : element.toString())
         .join(separator == ListSeparator.comma ? ", " : " "));
+    if (hasTrailingComma) buffer.writeCharCode($comma);
     if (hasBrackets) buffer.writeCharCode($rbracket);
     return buffer.toString();
   }
