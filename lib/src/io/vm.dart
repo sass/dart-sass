@@ -39,6 +39,13 @@ String readFile(String path) {
   }
 }
 
+String readStdin() {
+  var inputBuffer = new StringBuffer();
+  var line;
+  while ((line = io.stdin.readLineSync()) != null) inputBuffer.writeln(line);
+  return inputBuffer.toString();
+}
+
 bool fileExists(String path) => new io.File(path).existsSync();
 
 bool dirExists(String path) => new io.Directory(path).existsSync();

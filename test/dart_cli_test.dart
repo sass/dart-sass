@@ -19,6 +19,17 @@ void main() {
     sass.stdout.expect(matches(new RegExp(r"^\d+\.\d+\.\d+")));
     sass.shouldExit(0);
   });
+
+  test("Sass can be read from stdin", () {
+    var sass = _runSass([]);
+    sass.writeLine(r'$red: #f00; a { color: $red; }');
+    sass.closeStdin();
+    sass.stdout.expect(equals('a {'));
+    sass.stdout.expect(equals('  color: #f00;'));
+    sass.stdout.expect(equals('}'));
+    //expect(sass.stdout.allValues.join(''), equals('a {\n  color: #f00;\n}\n'));
+    sass.shouldExit(0);
+  });
 }
 
 ScheduledProcess _runSass(List arguments) => new ScheduledProcess.start(

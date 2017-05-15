@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
@@ -18,6 +21,13 @@ class _FS {
 @JS()
 class _Stderr {
   external void write(String text);
+}
+
+@JS()
+class _Stdin {
+  external String read();
+
+  external void on(String event, void callback(object));
 }
 
 @JS()
@@ -46,6 +56,16 @@ class Stderr {
   }
 
   void flush() {}
+}
+
+class Stdin {
+  final _Stdin _stdin;
+
+  Stdin(this._stdin);
+
+  String read() => _stdin.read();
+
+  void on(event, void callback(object)) => _stdin.on(event, callback);
 }
 
 @JS("require")
@@ -80,6 +100,19 @@ _readFile(String path, [String encoding]) {
   }
 }
 
+String readStdin() async {
+  var completer = new Completer<Null>();
+  var contents = new StringBuffer();
+  _stdin.on('data', allowInterop((buf) {
+    contents.write(UTF8.decode(buf));
+  }));
+  _stdin.on('end', allowInterop(() {
+    completer.complete();
+  }));
+  await completer.future;
+  return contents.toString();
+}
+
 /// Cleans up a Node system error's message.
 String _cleanErrorMessage(_SystemError error) {
   // The error message is of the form "$code: $text, $syscall '$path'". We just
@@ -96,6 +129,11 @@ bool dirExists(String path) => _fs.existsSync(path);
 external _Stderr get _stderr;
 
 final stderr = new Stderr(_stderr);
+
+@JS("process.stdin")
+external _Stdin get _stdin;
+
+final stdin = new Stdin(_stdin);
 
 bool get hasTerminal => _hasTerminal ?? false;
 
