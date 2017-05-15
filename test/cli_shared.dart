@@ -35,6 +35,18 @@ void sharedTests(ScheduledProcess runSass(List arguments)) {
     sass.shouldExit(0);
   });
 
+  test("compiles Sass from stdin to CSS", () {
+    var sass = runSass([]);
+    sass.writeLine("a {b: 1 + 2}");
+    sass.closeStdin();
+    sass.stdout.expect(inOrder([
+      "a {",
+      "  b: 3;",
+      "}",
+    ]));
+    sass.shouldExit(0);
+  });
+
   test("supports relative imports", () {
     d.file("test.scss", "@import 'dir/test'").create();
 
