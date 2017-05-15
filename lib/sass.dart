@@ -23,7 +23,10 @@ import 'src/visitor/serialize.dart';
 ///
 /// Finally throws a [SassException] if conversion fails.
 String render(String path,
-    {bool color: false, SyncPackageResolver packageResolver}) {
+    {bool color: false,
+    SyncPackageResolver packageResolver,
+    String indentType: 'space',
+    int indentWidth: 2}) {
   var contents = readFile(path);
   var url = p.toUri(path);
   var sassTree = p.extension(path) == '.sass'
@@ -31,5 +34,5 @@ String render(String path,
       : new Stylesheet.parseScss(contents, url: url, color: color);
   var cssTree =
       evaluate(sassTree, color: color, packageResolver: packageResolver);
-  return toCss(cssTree);
+  return toCss(cssTree, indentType: indentType, indentWidth: indentWidth);
 }

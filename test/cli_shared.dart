@@ -96,6 +96,18 @@ void sharedTests(ScheduledProcess runSass(List arguments)) {
     sass.shouldExit(65);
   });
 
+  test("allows indent-type and indent-width to be configured", () {
+    d.file("test.scss", "a {b: 1 + 2}").create();
+
+    var sass = runSass(["--indent-type=tab", "--indent-width=3", "test.scss", "test.css"]);
+    sass.stdout.expect(inOrder([
+      "a {",
+      "\t\t\tb: 3;",
+      "}",
+    ]));
+    sass.shouldExit(0);
+  });
+
   test("fails to import a package url", () {
     d.file("test.scss", "@import 'package:nope/test';").create();
 

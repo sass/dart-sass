@@ -23,6 +23,11 @@ main(List<String> args) async {
         defaultsTo: 'expanded')
     ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
     ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
+    ..addOption('indent-type',
+        defaultsTo: 'space', help: 'Indent type for output CSS (space | tab)')
+    ..addOption('indent-width',
+        defaultsTo: '2',
+        help: 'Indent width; number of spaces or tabs (maximum value: 10)')
     ..addFlag('help',
         abbr: 'h', help: 'Print this usage information.', negatable: false)
     ..addFlag('version',
@@ -46,8 +51,23 @@ main(List<String> args) async {
   }
 
   var color = (options['color'] as bool) ?? hasTerminal;
+  var indentType = options['indent-type'];
+  if (indentType != 'space' && indentType != 'tab') {
+    stderr.writeln("Error: $indentType is an invalid indent type; must be "
+        "either 'space' or 'tab'.");
+    exitCode = 1;
+    return;
+  }
+  var indentWidth = int.parse(options['indent-width']);
+  if (indentWidth < 0 || indentWidth > 10) {
+    stderr.writeln("Error: $indentWidth is an invalid indent width; must be "
+        "between 0 and 10, inclusive.");
+    exitCode = 1;
+    return;
+  }
   try {
-    var css = render(options.rest.first, color: color);
+    var css = render(options.rest.first,
+        color: color, indentType: indentType, indentWidth: indentWidth);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
     stderr.writeln("Error: ${error.message}");
