@@ -19,8 +19,7 @@ class ReturnRule implements Statement {
 
   ReturnRule(this.expression, this.span);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitReturnRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitReturnRule(this);
 
   String toString() => "@return $expression;";
 }

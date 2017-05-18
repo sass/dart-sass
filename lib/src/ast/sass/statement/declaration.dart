@@ -27,8 +27,7 @@ class Declaration implements Statement {
   Declaration(this.name, this.span, {this.value, Iterable<Statement> children})
       : children = children == null ? null : new List.unmodifiable(children);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitDeclaration(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
 
   String toString() => "$name: $value;";
 }

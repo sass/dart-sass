@@ -37,8 +37,8 @@ class StringExpression implements Expression {
       : text = new Interpolation([text], span),
         hasQuotes = quotes;
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
-      visitor.visitStringExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) => visitor
+      .visitStringExpression(this);
 
   /// Interpolation that, when evaluated, produces the syntax of this string.
   ///

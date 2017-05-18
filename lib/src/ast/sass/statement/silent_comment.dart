@@ -16,8 +16,7 @@ class SilentComment implements Statement {
 
   SilentComment(this.text, this.span);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitSilentComment(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitSilentComment(this);
 
   String toString() => text;
 }

@@ -16,8 +16,7 @@ class ContentRule implements Statement {
 
   ContentRule(this.span);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitContentRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentRule(this);
 
   String toString() => "@content;";
 }

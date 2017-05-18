@@ -24,8 +24,7 @@ class AtRootRule implements Statement {
   AtRootRule(Iterable<Statement> children, this.span, {this.query})
       : children = new List.from(children);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitAtRootRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRootRule(this);
 
   String toString() {
     var buffer = new StringBuffer("@at-root ");

@@ -23,8 +23,7 @@ class MediaRule implements Statement {
   MediaRule(this.query, Iterable<Statement> children, this.span)
       : children = new List.unmodifiable(children);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitMediaRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitMediaRule(this);
 
   String toString() => "@media $query {${children.join(" ")}}";
 }

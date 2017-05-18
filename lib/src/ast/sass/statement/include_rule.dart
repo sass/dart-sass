@@ -27,8 +27,7 @@ class IncludeRule implements Statement, CallableInvocation {
       {Iterable<Statement> children})
       : children = children == null ? null : new List.unmodifiable(children);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitIncludeRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 
   String toString() =>
       "@include $name($arguments)" +

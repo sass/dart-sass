@@ -16,8 +16,7 @@ class TypeSelector extends SimpleSelector {
 
   TypeSelector(this.name);
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitTypeSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitTypeSelector(this);
 
   TypeSelector addSuffix(String suffix) => new TypeSelector(
       new QualifiedName(name.name + suffix, namespace: name.namespace));

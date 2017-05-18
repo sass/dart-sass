@@ -193,7 +193,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
 
   var groups1 = _groupSelectors(queue1);
   var groups2 = _groupSelectors(queue2);
-  var lcs = longestCommonSubsequence/*<List<ComplexSelectorComponent>>*/(
+  var lcs = longestCommonSubsequence<List<ComplexSelectorComponent>>(
       groups2, groups1, select: (group1, group2) {
     if (listEquals(group1, group2)) return group1;
     if (group1.first is! CompoundSelector ||
@@ -214,7 +214,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
     <Iterable<ComplexSelectorComponent>>[initialCombinators]
   ];
   for (var group in lcs) {
-    choices.add(_chunks/*<List<ComplexSelectorComponent>>*/(groups1, groups2,
+    choices.add(_chunks<List<ComplexSelectorComponent>>(groups1, groups2,
             (sequence) => complexIsParentSuperselector(sequence.first, group))
         .map((chunk) => chunk.expand((group) => group))
         .toList());
@@ -467,14 +467,14 @@ bool _isUnique(SimpleSelector simple) =>
 /// For example, given `(A B C | D E)` and `(1 2 | 3 4 5)` (with `|` denoting
 /// the boundary of the initial subsequence), this would return `[(A B C 1 2),
 /// (1 2 A B C)]`. The queues would then contain `(D E)` and `(3 4 5)`.
-List<List/*<T>*/ > _chunks/*<T>*/(
-    Queue/*<T>*/ queue1, Queue/*<T>*/ queue2, bool done(Queue/*<T>*/ queue)) {
-  var chunk1 = /*<T>*/ [];
+List<List<T>> _chunks<T>(
+    Queue<T> queue1, Queue<T> queue2, bool done(Queue<T> queue)) {
+  var chunk1 = <T>[];
   while (!done(queue1)) {
     chunk1.add(queue1.removeFirst());
   }
 
-  var chunk2 = /*<T>*/ [];
+  var chunk2 = <T>[];
   while (!done(queue2)) {
     chunk2.add(queue2.removeFirst());
   }
@@ -495,7 +495,7 @@ List<List/*<T>*/ > _chunks/*<T>*/(
 ///  [1, 4, 5],
 ///  [2, 4, 5]]
 /// ```
-List<List/*<T>*/ > paths/*<T>*/(Iterable<List/*<T>*/ > choices) => choices.fold(
+List<List<T>> paths<T>(Iterable<List<T>> choices) => choices.fold(
     [[]],
     (paths, choice) => choice
         .expand((option) => paths.map((path) => path.toList()..add(option)))

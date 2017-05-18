@@ -161,7 +161,5 @@ final colorsByName = normalizedMap({
 });
 
 /// A map from Sass colors to (lowercase) color names.
-final namesByColor = mapMap/*<String, SassColor, SassColor, String>*/(
-    colorsByName,
-    key: (_, color) => color,
-    value: (name, _) => name);
+final namesByColor = mapMap<String, SassColor, SassColor, String>(colorsByName,
+    key: (_, color) => color, value: (name, _) => name);

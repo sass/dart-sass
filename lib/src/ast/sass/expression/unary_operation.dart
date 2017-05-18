@@ -20,8 +20,8 @@ class UnaryOperationExpression implements Expression {
 
   UnaryOperationExpression(this.operator, this.operand, this.span);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
-      visitor.visitUnaryOperationExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) => visitor
+      .visitUnaryOperationExpression(this);
 
   String toString() {
     var buffer = new StringBuffer(operator.operator);

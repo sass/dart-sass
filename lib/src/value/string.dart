@@ -62,8 +62,7 @@ class SassString extends Value {
 
   SassString(this.text, {bool quotes: false}) : hasQuotes = quotes;
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
-      visitor.visitString(this);
+  T accept<T>(ValueVisitor<T> visitor) => visitor.visitString(this);
 
   SassString assertString([String name]) => this;
 

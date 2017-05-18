@@ -37,8 +37,8 @@ class AttributeSelector extends SimpleSelector {
   /// named [name], whose value matches [value] based on the semantics of [op].
   AttributeSelector.withOperator(this.name, this.op, this.value);
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitAttributeSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor
+      .visitAttributeSelector(this);
 
   bool operator ==(other) =>
       other is AttributeSelector &&

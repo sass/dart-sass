@@ -139,8 +139,7 @@ class PseudoSelector extends SimpleSelector {
     }
   }
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitPseudoSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitPseudoSelector(this);
 
   // This intentionally uses identity for the selector list, if one is available.
   bool operator ==(other) =>

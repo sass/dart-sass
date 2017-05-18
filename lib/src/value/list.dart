@@ -39,7 +39,7 @@ class SassList extends Value {
     }
   }
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitList(this);
+  T accept<T>(ValueVisitor<T> visitor) => visitor.visitList(this);
 
   SassMap assertMap([String name]) =>
       contents.isEmpty ? const SassMap.empty() : super.assertMap(name);

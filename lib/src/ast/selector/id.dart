@@ -18,8 +18,7 @@ class IDSelector extends SimpleSelector {
 
   IDSelector(this.name);
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitIDSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitIDSelector(this);
 
   IDSelector addSuffix(String suffix) => new IDSelector(name + suffix);
 

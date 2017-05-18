@@ -28,8 +28,8 @@ class FunctionExpression implements Expression, CallableInvocation {
 
   FunctionExpression(this.name, this.arguments);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
-      visitor.visitFunctionExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) => visitor
+      .visitFunctionExpression(this);
 
   String toString() => "$name$arguments";
 }

@@ -27,8 +27,7 @@ class IfExpression implements Expression, CallableInvocation {
 
   IfExpression(this.arguments, this.span);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
-      visitor.visitIfExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitIfExpression(this);
 
   String toString() => "if$arguments";
 }

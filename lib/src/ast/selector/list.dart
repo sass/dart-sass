@@ -55,8 +55,7 @@ class SelectorList extends Selector {
   factory SelectorList.parse(String contents, {url, bool allowParent: true}) =>
       new SelectorParser(contents, url: url, allowParent: allowParent).parse();
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitSelectorList(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);
 
   /// Returns a [SelectorList] that matches only elements that are matched by
   /// both this and [other].

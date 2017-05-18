@@ -35,8 +35,7 @@ class ForRule implements Statement {
       : children = new List.unmodifiable(children),
         isExclusive = exclusive;
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitForRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);
 
   String toString() =>
       "@for \$$variable from $from ${isExclusive ? 'to' : 'through'} $to "

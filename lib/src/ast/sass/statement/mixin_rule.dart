@@ -26,8 +26,7 @@ class MixinRule extends CallableDeclaration {
       {this.hasContent: false})
       : super(name, arguments, children, span);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitMixinRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
 
   String toString() => "@mixin $name($arguments) {${children.join(' ')}}";
 }

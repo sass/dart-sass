@@ -16,8 +16,7 @@ class SassFunction extends Value {
 
   SassFunction(this.callable);
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
-      visitor.visitFunction(this);
+  T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunction(this);
 
   SassFunction assertFunction([String name]) => this;
 

@@ -19,8 +19,7 @@ class ParentSelector extends SimpleSelector {
 
   ParentSelector({this.suffix});
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitParentSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitParentSelector(this);
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) =>
       throw new UnsupportedError("& doesn't support unification.");
