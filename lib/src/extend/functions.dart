@@ -22,7 +22,7 @@ import '../utils.dart';
 ///
 /// For example, `.foo` is a superselector of `:matches(.foo)`.
 final _subselectorPseudos =
-    new Set.from(['matches', 'any', 'nth-child', 'nth-last-child']);
+    new Set<String>.from(['matches', 'any', 'nth-child', 'nth-last-child']);
 
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by both [complex1] and [complex2].

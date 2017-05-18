@@ -21,7 +21,7 @@ import 'value.dart';
 final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
 
 /// Feature names supported by Dart sass.
-final _features = new Set.from([
+final _features = new Set<String>.from([
   "global-variable-shadowing",
   "extend-selector-pseudoclass",
   "units-level-3",
