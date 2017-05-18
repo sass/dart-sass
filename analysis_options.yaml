@@ -1,3 +1,5 @@
 analyzer:
   strong-mode:
     implicit-casts: false
+  errors:
+    missing_js_lib_annotation: ignore
