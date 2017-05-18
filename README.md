@@ -34,7 +34,7 @@ Sass.
 ### Standalone
 
 You can download the standalone Dart Sass archive for your operating
-system—containing the Dart VM and the a snapshot of the Sass library—from
+system—containing the Dart VM and the snapshot of the Sass library—from
 [the release page][releases]. Extract it, add the directory to your path, and
 the `dart-sass` executable is ready to run!
 
