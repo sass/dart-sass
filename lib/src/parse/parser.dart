@@ -526,11 +526,11 @@ abstract class Parser {
   ///
   /// If [message] is passed, prints that as well. This is intended for use when
   /// debugging parser failures.
-  void debug([String message]) {
+  void debug([message]) {
     if (message == null) {
       print(scanner.emptySpan.highlight(color: true));
     } else {
-      print(scanner.emptySpan.message(message, color: true));
+      print(scanner.emptySpan.message(message.toString(), color: true));
     }
   }
 
