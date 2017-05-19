@@ -66,8 +66,7 @@ class ComplexSelector extends Selector {
     }
   }
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitComplexSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitComplexSelector(this);
 
   /// Whether this is a superselector of [other].
   ///

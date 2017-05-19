@@ -38,7 +38,7 @@ abstract class CssNode extends AstNode {
   }
 
   /// Calls the appropriate visit method on [visitor].
-  /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor);
+  T accept<T>(CssVisitor<T> visitor);
 
   /// Removes [this] from [parent]'s child list.
   ///

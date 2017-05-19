@@ -536,7 +536,7 @@ abstract class Parser {
 
   /// Runs [callback] and wraps any [SourceSpanFormatException] it throws in a
   /// [SassFormatException].
-  /*=T*/ wrapSpanFormatException/*<T>*/(/*=T*/ callback()) {
+  T wrapSpanFormatException<T>(T callback()) {
     try {
       return callback();
     } on SourceSpanFormatException catch (error) {

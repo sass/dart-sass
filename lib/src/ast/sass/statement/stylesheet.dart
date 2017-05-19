@@ -39,8 +39,7 @@ class Stylesheet implements Statement {
   factory Stylesheet.parseScss(String contents, {url, bool color: false}) =>
       new ScssParser(contents, url: url, color: color).parse();
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitStylesheet(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);
 
   String toString() => children.join(" ");
 }

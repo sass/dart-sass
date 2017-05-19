@@ -36,11 +36,11 @@ String pluralize(String name, int number, {String plural}) {
 /// the index *of* that iterable in [iterable]. For example,
 /// `flattenVertically([["1a", "1b"], ["2a", "2b"]])` returns `["1a", "2a",
 /// "1b", "2b"]`.
-List/*<T>*/ flattenVertically/*<T>*/(Iterable<Iterable/*<T>*/ > iterable) {
+List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
   var queues = iterable.map((inner) => new QueueList.from(inner)).toList();
   if (queues.length == 1) return queues.first;
 
-  var result = /*<T>*/ [];
+  var result = <T>[];
   while (queues.isNotEmpty) {
     queues.removeWhere((queue) {
       result.add(queue.removeFirst());
@@ -76,8 +76,8 @@ int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
 }
 
 /// Returns whether [list1] and [list2] have the same contents.
-bool listEquals/*<T>*/(List/*<T>*/ list1, List/*<T>*/ list2) =>
-    const ListEquality().equals(list1, list2);
+bool listEquals<T>(List<T> list1, List<T> list2) => const ListEquality()
+    .equals(list1, list2);
 
 /// Returns a hash code for [list] that matches [listEquals].
 int listHash(List list) => const ListEquality().hash(list);
@@ -154,8 +154,8 @@ bool equalsIgnoreCase(String string1, String string2) {
 /// Returns an empty map that uses [equalsIgnoreSeparator] for key equality.
 ///
 /// If [source] is passed, copies it into the map.
-Map/*<String, V>*/ normalizedMap/*<V>*/([Map<String, dynamic/*=V*/ > source]) {
-  var map = new LinkedHashMap/*<String, V>*/(
+Map<String, V> normalizedMap<V>([Map<String, V> source]) {
+  var map = new LinkedHashMap<String, V>(
       equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
   if (source != null) map.addAll(source);
   return map;
@@ -173,13 +173,12 @@ Set<String> normalizedSet([Iterable<String> source]) {
 
 /// Like [mapMap], but returns a map that uses [equalsIgnoreSeparator] for key
 /// equality.
-Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(Map/*<K, V1>*/ map,
-    {String key(/*=K*/ key, /*=V1*/ value),
-    /*=V2*/ value(/*=K*/ key, /*=V1*/ value)}) {
+Map<String, V2> normalizedMapMap<K, V1, V2>(Map<K, V1> map,
+    {String key(K key, V1 value), V2 value(K key, V1 value)}) {
   key ??= (mapKey, _) => mapKey as String;
-  value ??= (_, mapValue) => mapValue as dynamic/*=V2*/;
+  value ??= (_, mapValue) => mapValue as V2;
 
-  var result = normalizedMap/*<V2>*/();
+  var result = normalizedMap<V2>();
   map.forEach((mapKey, mapValue) {
     result[key(mapKey, mapValue)] = value(mapKey, mapValue);
   });
@@ -194,17 +193,16 @@ Map/*<String, V2>*/ normalizedMapMap/*<K, V1, V2>*/(Map/*<K, V1>*/ map,
 /// If [select] is passed, it's used to check equality between elements in each
 /// list. If it returns `null`, the elements are considered unequal; otherwise,
 /// it should return the element to include in the return value.
-List/*<T>*/ longestCommonSubsequence/*<T>*/(
-    List/*<T>*/ list1, List/*<T>*/ list2,
-    {/*=T*/ select(/*=T*/ element1, /*=T*/ element2)}) {
+List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
+    {T select(T element1, T element2)}) {
   select ??= (element1, element2) => element1 == element2 ? element1 : null;
 
   var lengths = new List.generate(
       list1.length + 1, (_) => new List.filled(list2.length + 1, 0),
       growable: false);
 
-  var selections = new List<List/*<T>*/ >.generate(
-      list1.length, (_) => new List/*<T>*/(list2.length),
+  var selections = new List<List<T>>.generate(
+      list1.length, (_) => new List<T>(list2.length),
       growable: false);
 
   // TODO(nweiz): Calling [select] here may be expensive. Can we use a memoizing
@@ -219,7 +217,7 @@ List/*<T>*/ longestCommonSubsequence/*<T>*/(
     }
   }
 
-  List/*<T>*/ backtrack(int i, int j) {
+  List<T> backtrack(int i, int j) {
     if (i == -1 || j == -1) return [];
     var selection = selections[i][j];
     if (selection != null) return backtrack(i - 1, j - 1)..add(selection);
@@ -236,9 +234,8 @@ List/*<T>*/ longestCommonSubsequence/*<T>*/(
 ///
 /// By default, throws a [StateError] if no value matches. If [orElse] is
 /// passed, its return value is used instead.
-/*=T*/ removeFirstWhere/*<T>*/(List/*<T>*/ list, bool test(/*=T*/ value),
-    {/*=T*/ orElse()}) {
-  var/*=T*/ toRemove;
+T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
+  T toRemove;
   for (var element in list) {
     if (!test(element)) continue;
     toRemove = element;

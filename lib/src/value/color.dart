@@ -104,7 +104,7 @@ class SassColor extends Value {
   SassColor._(this._red, this._green, this._blue, this._hue, this._saturation,
       this._lightness, this.alpha);
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitColor(this);
+  T accept<T>(ValueVisitor<T> visitor) => visitor.visitColor(this);
 
   SassColor assertColor([String name]) => this;
 

@@ -35,8 +35,8 @@ class VariableDeclaration implements Statement {
       : isGuarded = guarded,
         isGlobal = global;
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitVariableDeclaration(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor
+      .visitVariableDeclaration(this);
 
   String toString() => "\$$name: $expression;";
 }

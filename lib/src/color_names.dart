@@ -8,7 +8,7 @@ import 'utils.dart';
 import 'value.dart';
 
 /// A map from (lowercase) color names to their color values.
-final colorsByName = normalizedMap({
+final colorsByName = normalizedMap<SassColor>({
   'aliceblue': new SassColor.rgb(0xF0, 0xF8, 0xFF),
   'antiquewhite': new SassColor.rgb(0xFA, 0xEB, 0xD7),
   'aquamarine': new SassColor.rgb(0x7F, 0xFF, 0xD4),
@@ -161,7 +161,5 @@ final colorsByName = normalizedMap({
 });
 
 /// A map from Sass colors to (lowercase) color names.
-final namesByColor = mapMap/*<String, SassColor, SassColor, String>*/(
-    colorsByName,
-    key: (_, color) => color,
-    value: (name, _) => name);
+final namesByColor = mapMap<String, SassColor, SassColor, String>(colorsByName,
+    key: (_, color) => color, value: (name, _) => name);

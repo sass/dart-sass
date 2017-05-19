@@ -992,7 +992,7 @@ abstract class StylesheetParser extends Parser {
     whitespace();
 
     var positional = <Expression>[];
-    var named = normalizedMap/*<Expression>*/();
+    var named = normalizedMap<Expression>();
     Expression rest;
     Expression keywordRest;
     while (_lookingAtExpression()) {

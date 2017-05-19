@@ -21,8 +21,7 @@ class MapExpression implements Expression {
   MapExpression(Iterable<Tuple2<Expression, Expression>> pairs, this.span)
       : pairs = new List.unmodifiable(pairs);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
-      visitor.visitMapExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitMapExpression(this);
 
   String toString() =>
       '(${pairs.map((pair) => '${pair.item1}: ${pair.item2}').join(', ')})';

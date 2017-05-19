@@ -20,8 +20,8 @@ class UniversalSelector extends SimpleSelector {
 
   UniversalSelector({this.namespace});
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitUniversalSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor
+      .visitUniversalSelector(this);
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
