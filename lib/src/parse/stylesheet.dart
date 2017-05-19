@@ -2524,7 +2524,10 @@ abstract class StylesheetParser extends Parser {
 
     if (next == $n || next == $N) {
       var negation = _trySupportsNegation();
-      if (negation != null) return negation;
+      if (negation != null) {
+        scanner.expectChar($rparen);
+        return negation;
+      }
     }
 
     var name = _expression();
@@ -2551,6 +2554,7 @@ abstract class StylesheetParser extends Parser {
       return null;
     }
 
+    whitespace();
     return new SupportsNegation(
         _supportsConditionInParens(), scanner.spanFrom(start));
   }

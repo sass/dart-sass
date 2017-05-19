@@ -15,6 +15,8 @@
 * Fix a bug where Sass would crash with a "Bad state: no element" error on some
   rare `@extend` rules.
 
+* Fix `not` in parentheses in `@supports` conditions.
+
 ## 1.0.0-alpha.9
 
 * Elements without a namespace (such as `div`) are no longer unified with
