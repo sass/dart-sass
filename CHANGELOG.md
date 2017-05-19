@@ -21,6 +21,8 @@
 
 * Allow `url` as an identifier name.
 
+* Properly parse `/***/` in selectors.
+
 ## 1.0.0-alpha.9
 
 * Elements without a namespace (such as `div`) are no longer unified with

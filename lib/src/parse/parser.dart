@@ -73,9 +73,15 @@ abstract class Parser {
   /// Consumes and ignores a loud (CSS-style) comment.
   void loudComment() {
     scanner.expect("/*");
-    do {
-      while (scanner.readChar() != $asterisk) {}
-    } while (scanner.readChar() != $slash);
+    while (true) {
+      var next = scanner.readChar();
+      if (next != $asterisk) continue;
+
+      do {
+        next = scanner.readChar();
+      } while (next == $asterisk);
+      if (next == $slash) break;
+    }
   }
 
   /// Consumes a plain CSS identifier.
