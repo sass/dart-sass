@@ -1256,8 +1256,12 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $plus:
-          scanner.readChar();
-          addOperator(BinaryOperator.plus);
+          if (singleExpression == null) {
+            addSingleExpression(_unaryOperation());
+          } else {
+            scanner.readChar();
+            addOperator(BinaryOperator.plus);
+          }
           break;
 
         case $minus:
@@ -1269,6 +1273,8 @@ abstract class StylesheetParser extends Parser {
             addSingleExpression(_number(), number: true);
           } else if (lookingAtIdentifier()) {
             addSingleExpression(_identifierLike());
+          } else if (singleExpression == null) {
+            addSingleExpression(_unaryOperation());
           } else {
             scanner.readChar();
             addOperator(BinaryOperator.minus);
@@ -1276,8 +1282,12 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $slash:
-          scanner.readChar();
-          addOperator(BinaryOperator.dividedBy);
+          if (singleExpression == null) {
+            addSingleExpression(_unaryOperation());
+          } else {
+            scanner.readChar();
+            addOperator(BinaryOperator.dividedBy);
+          }
           break;
 
         case $percent:

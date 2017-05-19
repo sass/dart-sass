@@ -23,6 +23,8 @@
 
 * Properly parse `/***/` in selectors.
 
+* Properly parse unary operators immediately after commas.
+
 ## 1.0.0-alpha.9
 
 * Elements without a namespace (such as `div`) are no longer unified with
