@@ -27,6 +27,18 @@ String render(String path,
     SyncPackageResolver packageResolver,
     String indentType: 'space',
     int indentWidth: 2}) {
+  if (indentType != 'space' && indentType != 'tab') {
+    stderr.writeln("Error: $indentType is an invalid indent type; must be "
+        "either 'space' or 'tab'.");
+    exitCode = 1;
+    return;
+  }
+  if (indentWidth < 0 || indentWidth > 10) {
+    stderr.writeln("Error: $indentWidth is an invalid indent width; must be "
+        "between 0 and 10, inclusive.");
+    exitCode = 1;
+    return;
+  }
   var contents = readFile(path);
   var url = p.toUri(path);
   var sassTree = p.extension(path) == '.sass'
