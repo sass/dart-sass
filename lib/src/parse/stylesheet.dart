@@ -1990,6 +1990,7 @@ abstract class StylesheetParser extends Parser {
       case "url":
         var contents = _tryUrlContents(start);
         if (contents != null) return new StringExpression(contents);
+        if (scanner.peekChar() != $lparen) return null;
         return new FunctionExpression(
             new Interpolation(["url"], scanner.spanFrom(start)),
             _argumentInvocation());
