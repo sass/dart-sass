@@ -15,7 +15,15 @@
 * Fix a bug where Sass would crash with a "Bad state: no element" error on some
   rare `@extend` rules.
 
+* Fix a crash when inspecting a string expression that ended in "\a".
+
 * Fix `not` in parentheses in `@supports` conditions.
+
+* Allow `url` as an identifier name.
+
+* Properly parse `/***/` in selectors.
+
+* Properly parse unary operators immediately after commas.
 
 ## 1.0.0-alpha.9
 

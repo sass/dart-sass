@@ -65,8 +65,12 @@ class StringExpression implements Expression {
           if (isNewline(codeUnit)) {
             buffer.writeCharCode($backslash);
             buffer.writeCharCode($a);
-            var next = i == value.length - 1 ? null : value.codeUnitAt(i + 1);
-            if (isWhitespace(next) || isHex(next)) buffer.writeCharCode($space);
+            if (i != value.length - 1) {
+              var next = value.codeUnitAt(i + 1);
+              if (isWhitespace(next) || isHex(next)) {
+                buffer.writeCharCode($space);
+              }
+            }
           } else {
             if (codeUnit == quote ||
                 codeUnit == $backslash ||
