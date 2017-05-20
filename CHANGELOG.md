@@ -17,6 +17,9 @@
 
 * Fix a crash when inspecting a string expression that ended in "\a".
 
+* Fix a bug where declarations and `@extend` were allowed outside of a style
+  rule in certain circumstances.
+
 * Fix `not` in parentheses in `@supports` conditions.
 
 * Allow `url` as an identifier name.

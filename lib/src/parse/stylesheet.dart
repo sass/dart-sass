@@ -46,6 +46,12 @@ abstract class StylesheetParser extends Parser {
   /// or `@each`.
   var _inControlDirective = false;
 
+  /// Whether the parser is currently parsing an unknown rule.
+  var _inUnknownAtRule = false;
+
+  /// Whether the parser is currently parsing a style rule.
+  var _inStyleRule = false;
+
   /// Whether the parser is currently within a parenthesized expression.
   var _inParentheses = false;
 
@@ -100,7 +106,9 @@ abstract class StylesheetParser extends Parser {
         return _mixinRule(start);
 
       default:
-        return root ? _styleRule() : _declarationOrStyleRule();
+        return _inStyleRule || _inUnknownAtRule || _inMixin || _inContentBlock
+            ? _declarationOrStyleRule()
+            : _styleRule();
     }
   }
 
@@ -138,10 +146,14 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a style rule.
   StyleRule _styleRule() {
+    var wasInStyleRule = _inStyleRule;
+    _inStyleRule = true;
     var start = scanner.state;
     var selector = _almostAnyValue();
     var children = this.children(_statement);
-    return new StyleRule(selector, children, scanner.spanFrom(start));
+    var rule = new StyleRule(selector, children, scanner.spanFrom(start));
+    _inStyleRule = wasInStyleRule;
+    return rule;
   }
 
   /// Consumes a [Declaration] or a [StyleRule].
@@ -180,12 +192,17 @@ abstract class StylesheetParser extends Parser {
     buffer.addInterpolation(_almostAnyValue());
     var selectorSpan = scanner.spanFrom(start);
 
+    var wasInStyleRule = _inStyleRule;
+    _inStyleRule = true;
+
     var children = this.children(_statement);
     if (indented && children.isEmpty) {
       warn("This selector doesn't have any properties and won't be rendered.",
           selectorSpan,
           color: color);
     }
+
+    _inStyleRule = wasInStyleRule;
 
     return new StyleRule(
         buffer.interpolation(selectorSpan), children, scanner.spanFrom(start));
@@ -542,6 +559,11 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ExtendRule _extendRule(LineScannerState start) {
+    if (!_inStyleRule && !_inMixin && !_inContentBlock) {
+      scanner.error("@extend may only be used within style rules.",
+          position: start.position, length: "@extend".length);
+    }
+
     var value = _almostAnyValue();
     var optional = scanner.scanChar($exclamation);
     if (optional) expectIdentifier("optional");
@@ -914,6 +936,9 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`. [name] is the name of the at-rule.
   AtRule _unknownAtRule(LineScannerState start, String name) {
+    var wasInUnknownAtRule = _inUnknownAtRule;
+    _inUnknownAtRule = true;
+
     Interpolation value;
     var next = scanner.peekChar();
     if (next != $exclamation && !atEndOfStatement()) value = _almostAnyValue();
@@ -921,8 +946,10 @@ abstract class StylesheetParser extends Parser {
     var children = lookingAtChildren() ? this.children(_statement) : null;
     if (children == null) expectStatementSeparator();
 
-    return new AtRule(name, scanner.spanFrom(start),
+    var rule = new AtRule(name, scanner.spanFrom(start),
         value: value, children: children);
+    _inUnknownAtRule = wasInUnknownAtRule;
+    return rule;
   }
 
   /// Throws a [StringScannerException] indicating that the at-rule starting at
