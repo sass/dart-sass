@@ -2,9 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:convert/convert.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
@@ -39,11 +41,12 @@ String readFile(String path) {
   }
 }
 
-String readStdin() {
-  var inputBuffer = new StringBuffer();
-  var line;
-  while ((line = io.stdin.readLineSync()) != null) inputBuffer.writeln(line);
-  return inputBuffer.toString();
+Future<String> readStdin() async {
+  var completer = new Completer<String>();
+  var inputBuffer = new StringAccumulatorSink();
+  io.stdin.transform(new Utf8Decoder()).listen(inputBuffer.add,
+      onDone: () => completer.complete(inputBuffer.string));
+  return completer.future;
 }
 
 bool fileExists(String path) => new io.File(path).existsSync();
