@@ -22,27 +22,33 @@ import 'src/visitor/serialize.dart';
 /// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 ///
 /// Finally throws a [SassException] if conversion fails.
-String render(
-    {String path,
-    String data,
-    bool color: false,
-    SyncPackageResolver packageResolver}) {
-  if ((path == null && data == null) || (path != null && data != null)) {
-    throw new ArgumentError('render must be given either a path: or data: '
-        'argument');
-  }
-  var sassTree;
-  if (path != null) {
-    var contents = readFile(path);
-    var url = p.toUri(path);
-    sassTree = p.extension(path) == '.sass'
-        ? new Stylesheet.parseSass(contents, url: url, color: color)
-        : new Stylesheet.parseScss(contents, url: url, color: color);
-  } else if (data != null) {
-    var contents = data;
-    var url = new UriData.fromString(contents);
-    sassTree = new Stylesheet.parseScss(contents, url: url, color: color);
-  }
+String render(String path,
+    {bool color: false, SyncPackageResolver packageResolver}) {
+  var contents = readFile(path);
+  var url = p.toUri(path);
+  var sassTree = p.extension(path) == '.sass'
+      ? new Stylesheet.parseSass(contents, url: url, color: color)
+      : new Stylesheet.parseScss(contents, url: url, color: color);
+  var cssTree =
+      evaluate(sassTree, color: color, packageResolver: packageResolver);
+  return toCss(cssTree);
+}
+
+/// Loads [source] as Sass, converts it to CSS, and returns the result.
+///
+/// If [color] is `true`, this will use terminal colors in warnings.
+///
+/// If [packageResolver] is provided, it's used to resolve `package:` imports.
+/// Otherwise, they aren't supported. It takes a [SyncPackageResolver][] from
+/// the `package_resolver` package.
+///
+/// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+///
+/// Finally throws a [SassException] if conversion fails.
+String renderSource(String source,
+    {bool color: false, SyncPackageResolver packageResolver}) {
+  var url = new UriData.fromString(source);
+  var sassTree = new Stylesheet.parseScss(source, url: url, color: color);
   var cssTree =
       evaluate(sassTree, color: color, packageResolver: packageResolver);
   return toCss(cssTree);

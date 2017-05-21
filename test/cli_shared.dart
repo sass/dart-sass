@@ -36,7 +36,7 @@ void sharedTests(ScheduledProcess runSass(List arguments)) {
   });
 
   test("compiles Sass from stdin to CSS", () {
-    var sass = runSass([]);
+    var sass = runSass(["-"]);
     sass.writeLine("a {b: 1 + 2}");
     sass.closeStdin();
     sass.stdout.expect(inOrder([

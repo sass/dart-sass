@@ -37,7 +37,7 @@ main(List<String> args) async {
     return;
   }
 
-  if (options['help'] as bool) {
+  if (options['help'] as bool || options.rest.isEmpty) {
     print("Compile Sass to CSS.\n");
     print("Usage: dart-sass <input>\n");
     print(argParser.usage);
@@ -47,14 +47,10 @@ main(List<String> args) async {
 
   var color = (options['color'] as bool) ?? hasTerminal;
   try {
-    var css;
-    if (options.rest.isEmpty) {
-      var data = await readStdin();
-      css = render(data: data, color: color);
-    } else {
-      var input = options.rest.first;
-      css = render(path: input, color: color);
-    }
+    var input = options.rest.first;
+    var css = input == '-'
+        ? renderSource(await readStdin(), color: color)
+        : render(input, color: color);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
     stderr.writeln("Error: ${error.message}");

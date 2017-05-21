@@ -58,16 +58,6 @@ class Stderr {
   void flush() {}
 }
 
-class Stdin {
-  final _Stdin _stdin;
-
-  Stdin(this._stdin);
-
-  String read() => _stdin.read();
-
-  void on(event, void callback(object)) => _stdin.on(event, callback);
-}
-
 @JS("require")
 external _FS _require(String name);
 
@@ -100,17 +90,20 @@ _readFile(String path, [String encoding]) {
   }
 }
 
-String readStdin() async {
-  var completer = new Completer<Null>();
+Future<String> readStdin() async {
+  var completer = new Completer<String>();
   var contents = new StringBuffer();
   _stdin.on('data', allowInterop((buf) {
     contents.write(UTF8.decode(buf));
   }));
   _stdin.on('end', allowInterop(() {
-    completer.complete();
+    completer.complete(contents.toString());
   }));
-  await completer.future;
-  return contents.toString();
+  _stdin.on('error', allowInterop((e) {
+    stderr.writeln('Failed to read from stdin');
+    stderr.writeln(e);
+  }));
+  return completer.future;
 }
 
 /// Cleans up a Node system error's message.
@@ -132,8 +125,6 @@ final stderr = new Stderr(_stderr);
 
 @JS("process.stdin")
 external _Stdin get _stdin;
-
-final stdin = new Stdin(_stdin);
 
 bool get hasTerminal => _hasTerminal ?? false;
 

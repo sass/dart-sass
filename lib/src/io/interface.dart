@@ -34,6 +34,10 @@ bool get hasTerminal => false;
 /// the file isn't valid UTF-8.
 String readFile(String path) => null;
 
+/// Reads from the standard input for the current process until it closes,
+/// returning the contents.
+Future<String> readStdin() async => null;
+
 /// Returns whether a file at [path] exists.
 bool fileExists(String path) => null;
 

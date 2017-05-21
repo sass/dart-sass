@@ -23,7 +23,7 @@ main() {
         {"fake_package": p.toUri(p.join(sandbox, 'subdir'))});
 
     schedule(() {
-      var css = render(path: p.join(sandbox, "test.scss"), packageResolver: resolver);
+      var css = render(p.join(sandbox, "test.scss"), packageResolver: resolver);
       expect(css, equals("a {\n  b: 3;\n}"));
     });
   });
@@ -33,7 +33,7 @@ main() {
     var resolver = new SyncPackageResolver.config({});
 
     schedule(() {
-      expect(() => render(path: sandbox + "/test.scss", packageResolver: resolver),
+      expect(() => render(sandbox + "/test.scss", packageResolver: resolver),
           throwsA(new isInstanceOf<SassRuntimeException>()));
     });
   });
