@@ -37,7 +37,7 @@ void main() {
 void _render(
     NodeOptions options, void callback(NodeError error, NodeResult result)) {
   try {
-    var result = newNodeResult(render(path: options.file));
+    var result = newNodeResult(render(options.file));
     callback(null, result);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
@@ -53,7 +53,7 @@ void _render(
 /// [render]: https://github.com/sass/node-sass#options
 NodeResult _renderSync(NodeOptions options) {
   try {
-    return newNodeResult(render(path: options.file));
+    return newNodeResult(render(options.file));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
     throw new NodeError(message: error.message);
