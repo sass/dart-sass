@@ -1593,12 +1593,8 @@ abstract class StylesheetParser extends Parser {
       whitespace();
 
       var expressions = [first];
-      var trailingComma = false;
       while (true) {
-        if (!_lookingAtExpression()) {
-          trailingComma = true;
-          break;
-        }
+        if (!_lookingAtExpression()) break;
         expressions.add(_expressionUntilComma());
         if (!scanner.scanChar($comma)) break;
         whitespace();
@@ -1606,7 +1602,7 @@ abstract class StylesheetParser extends Parser {
 
       scanner.expectChar($rparen);
       return new ListExpression(expressions, ListSeparator.comma,
-          trailingComma: trailingComma, span: scanner.spanFrom(start));
+          span: scanner.spanFrom(start));
     } finally {
       _inParentheses = wasInParentheses;
     }
