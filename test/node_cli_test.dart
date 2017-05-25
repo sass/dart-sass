@@ -3,32 +3,35 @@
 // https://opensource.org/licenses/MIT.
 
 @Tags(const ['node'])
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:scheduled_test/scheduled_process.dart';
-import 'package:scheduled_test/scheduled_test.dart';
+import 'package:test_process/test_process.dart';
+import 'package:test_descriptor/test_descriptor.dart' as d;
+import 'package:test/test.dart';
 
 import 'cli_shared.dart';
-import 'utils.dart';
 
 void main() {
-  setUpAll(() {
-    var grinder = new ScheduledProcess.start(
-        Platform.executable, ["tool/grind.dart", "npm_package"]);
-    grinder.shouldExit(0);
+  setUpAll(() async {
+    var grinder = await TestProcess
+        .start(Platform.executable, ["tool/grind.dart", "npm_package"]);
+    await grinder.shouldExit(0);
   });
 
   sharedTests(_runSass);
 
-  test("--version prints the Sass and dart2js versions", () {
-    var sass = _runSass(["--version"]);
-    sass.stdout.expect(matches(
-        new RegExp(r"^\d+\.\d+\.\d+.* compiled with dart2js \d+\.\d+\.\d+")));
-    sass.shouldExit(0);
+  test("--version prints the Sass and dart2js versions", () async {
+    var sass = await _runSass(["--version"]);
+    expect(
+        sass.stdout,
+        emits(matches(new RegExp(
+            r"^\d+\.\d+\.\d+.* compiled with dart2js \d+\.\d+\.\d+"))));
+    await sass.shouldExit(0);
   });
 }
 
-ScheduledProcess _runSass(List arguments) => new ScheduledProcess.start(
-    "node", <Object>[p.absolute("build/npm/sass.js")]..addAll(arguments),
-    workingDirectory: sandbox, description: "sass");
+Future<TestProcess> _runSass(Iterable<String> arguments) => TestProcess.start(
+    "node", [p.absolute("build/npm/sass.js")]..addAll(arguments),
+    workingDirectory: d.sandbox, description: "sass");

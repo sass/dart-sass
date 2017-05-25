@@ -2,27 +2,26 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:scheduled_test/scheduled_process.dart';
-import 'package:scheduled_test/scheduled_test.dart';
+import 'package:test/test.dart';
+import 'package:test_descriptor/test_descriptor.dart' as d;
+import 'package:test_process/test_process.dart';
 
 import 'cli_shared.dart';
-import 'utils.dart';
 
 void main() {
   sharedTests(_runSass);
 
-  test("--version prints the Sass version", () {
-    var sass = _runSass(["--version"]);
-    sass.stdout.expect(matches(new RegExp(r"^\d+\.\d+\.\d+")));
-    sass.shouldExit(0);
+  test("--version prints the Sass version", () async {
+    var sass = await _runSass(["--version"]);
+    expect(sass.stdout, emits(matches(new RegExp(r"^\d+\.\d+\.\d+"))));
+    await sass.shouldExit(0);
   });
 }
 
-ScheduledProcess _runSass(List arguments) => new ScheduledProcess.start(
-    Platform.executable,
-    <Object>[p.absolute("bin/sass.dart")]..addAll(arguments),
-    workingDirectory: sandbox,
-    description: "sass");
+Future<TestProcess> _runSass(Iterable<String> arguments) => TestProcess.start(
+    Platform.executable, [p.absolute("bin/sass.dart")]..addAll(arguments),
+    workingDirectory: d.sandbox, description: "sass");
