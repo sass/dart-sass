@@ -70,6 +70,10 @@ class ListSeparator {
 
   final String _name;
 
+  /// The separator character.
+  ///
+  /// If the separator of a list has not been decided, this value will be
+  /// `null`.
   final String separator;
 
   const ListSeparator._(this._name, this.separator);
