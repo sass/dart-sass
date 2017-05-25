@@ -179,6 +179,7 @@ class Extender {
       // A selector can't extend its own rule.
       if (identical(rule.selector.value, extender)) continue;
 
+      var oldValue = rule.selector.value;
       try {
         rule.selector.value = _extendList(
             rule.selector.value, {target: newExtenders}, _mediaContexts[rule]);
@@ -189,6 +190,9 @@ class Extender {
             error.span);
       }
 
+      // If no extends actually happenedit (for example becaues unification
+      // failed), we don't need to re-register the selector.
+      if (identical(oldValue, rule.selector.value)) continue;
       _registerSelector(rule.selector.value, rule);
     }
   }
