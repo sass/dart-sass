@@ -4,13 +4,13 @@
 
 import 'package:js/js.dart';
 
-import '../sass.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
 import 'node/error.dart';
 import 'node/exports.dart';
 import 'node/options.dart';
 import 'node/result.dart';
+import 'render.dart';
 
 /// The entrypoint for Node.js.
 ///
