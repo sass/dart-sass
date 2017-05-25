@@ -139,7 +139,7 @@ class Extender {
       [List<CssMediaQuery> mediaContext]) {
     var rules = _selectors[target];
 
-    Map<ComplexSelector, Extension> newExtenders;
+    Map<ComplexSelector, Extension> newExtensions;
     var sources = _extensions.putIfAbsent(target, () => {});
     for (var complex in extender.components) {
       var existingState = sources[complex];
@@ -168,13 +168,18 @@ class Extender {
       }
 
       if (rules != null) {
-        newExtenders ??= {};
-        newExtenders[complex] = state;
+        newExtensions ??= {};
+        newExtensions[complex] = state;
       }
     }
 
-    if (rules == null) return;
-    if (newExtenders == null) return;
+    if (rules != null && newExtensions != null) {
+      _extendExistingStyleRules(extender, target, rules, newExtensions);
+    }
+  }
+
+  void _extendExistingStyleRules(Selector extender, SimpleSelector target,
+      Set<CssStyleRule> rules, Map<ComplexSelector, Extension> extensions) {
     for (var rule in rules) {
       // A selector can't extend its own rule.
       if (identical(rule.selector.value, extender)) continue;
@@ -182,7 +187,7 @@ class Extender {
       var oldValue = rule.selector.value;
       try {
         rule.selector.value = _extendList(
-            rule.selector.value, {target: newExtenders}, _mediaContexts[rule]);
+            rule.selector.value, {target: extensions}, _mediaContexts[rule]);
       } on SassException catch (error) {
         throw new SassException(
             "From ${rule.selector.span.message('')}\n"
