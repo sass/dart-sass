@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:crypto/crypto.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
@@ -20,9 +21,6 @@ final String _version =
 
 /// The version of the current Dart executable.
 final String _dartVersion = Platform.version.split(" ").first;
-
-/// The root of the Dart SDK.
-final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
 
 main(List<String> args) => grind(args);
 
@@ -214,17 +212,18 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
         "${response.reasonPhrase}.";
   }
 
-  var dartExecutable = new ZipDecoder()
-      .decodeBytes(response.bodyBytes)
-      .firstWhere((file) => os == 'windows'
-          ? file.name.endsWith("/bin/dart.exe")
-          : file.name.endsWith("/bin/dart"));
+  var dartSdk = new ZipDecoder().decodeBytes(response.bodyBytes);
+  var dartExecutable = dartSdk.firstWhere((file) => os == 'windows'
+      ? file.name.endsWith("/bin/dart.exe")
+      : file.name.endsWith("/bin/dart"));
+  var dartLicense = dartSdk.firstWhere((file) => file.name.endsWith("LICENSE"));
   var executable = dartExecutable.content;
+  var license = dartLicense.content;
   var archive = new Archive()
     ..addFile(_fileFromBytes(
         "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
         executable: true))
-    ..addFile(_file("dart-sass/src/DART_LICENSE", p.join(_sdkDir, 'LICENSE')))
+    ..addFile(_fileFromBytes("dart-sass/src/DART_LICENSE", license))
     ..addFile(
         _file("dart-sass/src/sass.dart.snapshot", "build/sass.dart.snapshot"))
     ..addFile(_file("dart-sass/src/SASS_LICENSE", "LICENSE"))
@@ -275,3 +274,72 @@ ArchiveFile _fileFromString(String path, String contents,
 ArchiveFile _file(String target, String source, {bool executable: false}) =>
     _fileFromBytes(target, new File(source).readAsBytesSync(),
         executable: executable);
+
+/// Generate a SHA256 hash value using the contents of a given [file]
+String _sha256(String file) =>
+    sha256.convert(new File(file).readAsBytesSync()).toString();
+
+@Task('Build Homebrew formulae.')
+//@Depends(package)
+homebrew_formulae() {
+  var hash_x64 = _sha256('build/dart-sass-$_version-macos-x64.tar.gz');
+  var hash_ia32 = _sha256('build/dart-sass-$_version-macos-ia32.tar.gz');
+  var formulae = """
+require 'formula'
+
+class DartSass < Formula
+  homepage 'https://github.com/sass/dart-sass'
+
+  version '$_version'
+  if MacOS.prefer_64_bit?
+    url 'https://github.com/sass/dart-sass/releases/download/$_version/dart-sass-$_version-macos-x64.tar.gz'
+    sha256 '$hash_x64'
+  else
+    url 'https://github.com/sass/dart-sass/releases/download/$_version/dart-sass-$_version-macos-ia32.tar.gz'
+    sha256 '$hash_ia32'
+  end
+
+  def install
+    bin.install "dart-sass"
+    bin.install Dir["src"]
+  end
+end""";
+
+  var output = "build/dart-sass.rb";
+  log("Creating $output...");
+  new File(output).writeAsStringSync(formulae);
+}
+
+@Task('Build Scoop manifest.')
+//@Depends(package)
+scoop_manifest() {
+  var hash_x64 = _sha256('build/dart-sass-$_version-windows-x64.zip');
+  var hash_ia32 = _sha256('build/dart-sass-$_version-windows-ia32.zip');
+  var manifest = """
+{
+  "homepage": "https://github.com/sass/dart-sass",
+  "version": "$_version",
+  "license": "https://raw.githubusercontent.com/sass/dart-sass/master/LICENSE",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/sass/dart-sass/releases/download/$_version/dart-sass-$_version-windows-x64.zip",
+      "hash": "$hash_x64"
+    },
+    "32bit": {
+      "url": "https://github.com/sass/dart-sass/releases/download/$_version/dart-sass-$_version-windows-ia32.zip",
+      "hash": "$hash_ia32"
+    }
+  },
+  "extract_dir": "dart-sass",
+  "bin": [
+    "dart-sass.bat"
+  ],
+  "checkver": {
+    "github": "https://github.com/sass/dart-sass"
+  }
+}""";
+
+  var output = "build/dart-sass.json";
+  log("Creating $output...");
+  new File(output).writeAsStringSync(manifest);
+}

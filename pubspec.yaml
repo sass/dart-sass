@@ -23,6 +23,7 @@ dependencies:
 
 dev_dependencies:
   archive: "^1.0.0"
+  crypto: "^2.0.1"
   dart_style: "^0.2.9"
   grinder: "^0.8.0"
   http: "^0.11.0"
