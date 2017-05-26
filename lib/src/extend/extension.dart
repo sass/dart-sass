@@ -5,7 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
-import '../ast/selector/complex.dart';
+import '../ast/selector.dart';
 import '../exception.dart';
 import '../utils.dart';
 
@@ -16,6 +16,11 @@ import '../utils.dart';
 class Extension {
   /// The selector in which the `@extend` appeared.
   final ComplexSelector extender;
+
+  /// The selector that's being extended.
+  ///
+  /// `null` for one-off extensions.
+  final SimpleSelector target;
 
   /// The minimum specificity required for any selector generated from this
   /// extender.
@@ -34,6 +39,11 @@ class Extension {
   List<CssMediaQuery> get mediaContext => _mediaContext;
   List<CssMediaQuery> _mediaContext;
 
+  /// The span in which [extender] was defined.
+  ///
+  /// `null` for one-off extensions.
+  final FileSpan extenderSpan;
+
   /// The span for an `@extend` rule that defined this extension.
   ///
   /// If any extend rule for this is extension is mandatory, this is guaranteed
@@ -44,7 +54,8 @@ class Extension {
   /// Creates a new extension.
   ///
   /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
-  Extension(ComplexSelector extender, this._span, this._mediaContext,
+  Extension(ComplexSelector extender, this.target, this.extenderSpan,
+      this._span, this._mediaContext,
       {int specificity, bool optional: false})
       : extender = extender,
         specificity = specificity ?? extender.maxSpecificity,
@@ -57,6 +68,8 @@ class Extension {
   Extension.oneOff(ComplexSelector extender,
       {int specificity, this.isOriginal: false})
       : extender = extender,
+        target = null,
+        extenderSpan = null,
         specificity = specificity ?? extender.maxSpecificity,
         _isOptional = true,
         _mediaContext = null,
@@ -92,6 +105,10 @@ class Extension {
     _span = span;
     _isOptional = false;
   }
+
+  Extension withExtender(ComplexSelector newExtender) =>
+      new Extension(newExtender, target, extenderSpan, _span, _mediaContext,
+          specificity: specificity, optional: isOptional);
 
   String toString() => extender.toString();
 }
