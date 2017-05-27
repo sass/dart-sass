@@ -53,7 +53,7 @@ class Extender {
   /// A set of [ComplexSelector]s that were originally part of
   /// their component [SelectorList]s, as opposed to being added by `@extend`.
   ///
-  /// This allows us to ensure that we do'nt trim any selectors that need to
+  /// This allows us to ensure that we don't trim any selectors that need to
   /// exist to satisfy the [first law of extend][].
   ///
   /// [first law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
@@ -331,8 +331,8 @@ class Extender {
     }
     if (extended == null) return list;
 
-    return new SelectorList(
-        _trim(extended).where((complex) => complex != null));
+    return new SelectorList(_trim(extended, _originals.contains)
+        .where((complex) => complex != null));
   }
 
   /// Extends [complex] using [extensions], and returns the contents of a
@@ -362,11 +362,12 @@ class Extender {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     List<List<ComplexSelector>> extendedNotExpanded;
+    var isOriginal = _originals.contains(complex);
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
       if (component is CompoundSelector) {
         var extended = _extendCompound(component, extensions, mediaQueryContext,
-            replace: replace);
+            inOriginal: isOriginal, replace: replace);
         if (extended == null) {
           extendedNotExpanded?.add([
             new ComplexSelector([component])
@@ -413,12 +414,16 @@ class Extender {
   /// Extends [compound] using [extensions], and returns the contents of a
   /// [SelectorList].
   ///
+  /// The [inOriginal] parameter indicates whether this is in an original
+  /// complex selector, meaning that [compound] should not be trimmed out.
+  ///
   /// If [replace] is `true`, this doesn't preserve the original selectors.
   List<ComplexSelector> _extendCompound(
       CompoundSelector compound,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
-      {bool replace: false}) {
+      {bool inOriginal,
+      bool replace: false}) {
     // The complex selectors produced from each component of [compound].
     List<List<Extension>> options;
     for (var i = 0; i < compound.components.length; i++) {
@@ -526,7 +531,16 @@ class Extender {
           .toList();
     });
 
-    return _trim(unifiedPaths.where((complexes) => complexes != null).toList());
+    // If we're preserving the original selector, mark the first unification as
+    // such so [_trim] doesn't get rid of it.
+    var isOriginal = (ComplexSelector _) => false;
+    if (inOriginal && !replace) {
+      var original = unifiedPaths.first.first;
+      isOriginal = (complex) => complex == original;
+    }
+
+    return _trim(unifiedPaths.where((complexes) => complexes != null).toList(),
+        isOriginal);
   }
 
   Iterable<List<Extension>> _extendSimple(
@@ -669,7 +683,11 @@ class Extender {
   // itself. A selector is only removed if it's redundant with a selector in
   // another list. "Redundant" here means that one selector is a superselector
   // of the other. The more specific selector is removed.
-  List<ComplexSelector> _trim(List<List<ComplexSelector>> lists) {
+  //
+  // The [isOriginal] callback indicates which selectors are original to the
+  // document, and thus should never be trimmed.
+  List<ComplexSelector> _trim(List<List<ComplexSelector>> lists,
+      bool isOriginal(ComplexSelector complex)) {
     // Avoid truly horrific quadratic behavior.
     //
     // TODO(nweiz): I think there may be a way to get perfect trimming without
@@ -688,7 +706,7 @@ class Extender {
     for (var i = lists.length - 1; i >= 0; i--) {
       middle:
       for (var complex1 in lists[i].reversed) {
-        if (_originals.contains(complex1)) {
+        if (isOriginal(complex1)) {
           // Make sure we don't include duplicate originals, which could happen
           // if a style rule extends a component of its own selector.
           for (var j = 0; j < numOriginals; j++) {
