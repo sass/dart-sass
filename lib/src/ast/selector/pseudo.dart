@@ -84,6 +84,9 @@ class PseudoSelector extends SimpleSelector {
   }
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
+    if (compound.length == 1 && compound.first is UniversalSelector) {
+      return compound.first.unify([this]);
+    }
     if (compound.contains(this)) return compound;
 
     var result = <SimpleSelector>[];

@@ -64,7 +64,7 @@ class SelectorList extends Selector {
   SelectorList unify(SelectorList other) {
     var contents = components.expand((complex1) {
       return other.components.expand((complex2) {
-        var unified = unifyComplex(complex1.components, complex2.components);
+        var unified = unifyComplex([complex1.components, complex2.components]);
         if (unified == null) return const <ComplexSelector>[];
         return unified.map((complex) => new ComplexSelector(complex));
       });

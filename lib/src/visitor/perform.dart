@@ -464,7 +464,7 @@ class _PerformVisitor
         targetText.span,
         () => new SimpleSelector.parse(targetText.value.trim(),
             allowParent: false));
-    _extender.addExtension(_selector.value, target, node, _mediaQueries);
+    _extender.addExtension(_selector, target, node, _mediaQueries);
     return null;
   }
 

@@ -4,13 +4,15 @@
 
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
 import '../ast/selector.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
-import 'state.dart';
+import '../utils.dart';
+import 'extension.dart';
 import 'functions.dart';
 
 /// Tracks style rules and extensions, and applies the latter to the former.
@@ -23,15 +25,22 @@ class Extender {
 
   /// A map from all extended simple selectors to the sources of those
   /// extensions.
-  final _extensions = <SimpleSelector, Map<SelectorList, ExtendState>>{};
+  final _extensions = <SimpleSelector, Map<ComplexSelector, Extension>>{};
 
-  /// An expando from [CssStyleRule] to media query contexts.
+  // TODO: Create a custom PairList class that's more efficient.
+
+  /// A map from all simple selectors in extenders to the extensions that those
+  /// extenders define.
+  final _extensionsByExtender = <SimpleSelector, List<Extension>>{};
+
+  /// A map from CSS rules to the media query contexts they're defined in.
   ///
   /// This tracks the contexts in which each style rule is defined. If a rule is
   /// defined at the top level, it doesn't have an entry.
-  final _mediaContexts = new Expando<List<CssMediaQuery>>();
+  final _mediaContexts = new Map<CssStyleRule, List<CssMediaQuery>>();
 
-  /// An expando from [SimpleSelector]s to integers.
+  /// A map from [SimpleSelector]s to the specificity of their source
+  /// selectors.
   ///
   /// This tracks the maximum specificity of the [ComplexSelector] that
   /// originally contained each [SimpleSelector]. This allows us to ensure that
@@ -39,40 +48,38 @@ class Extender {
   /// of extend][].
   ///
   /// [second law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
-  final _sourceSpecificity = new Expando<int>();
+  final _sourceSpecificity = new Map<SimpleSelector, int>.identity();
 
-  /// An expando that tracks [ComplexSelector]s that were originally part of
+  /// A set of [ComplexSelector]s that were originally part of
   /// their component [SelectorList]s, as opposed to being added by `@extend`.
   ///
-  /// This allows us to ensure that we do'nt trim any selectors that need to
+  /// This allows us to ensure that we don't trim any selectors that need to
   /// exist to satisfy the [first law of extend][].
   ///
   /// [first law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
-  final _original = new Expando<bool>();
+  final _originals = new Set<ComplexSelector>.identity();
 
   /// Extends [selector] with [source] extender and [target] the extendee.
   ///
   /// This works as though `source {@extend target}` were written in
   /// the stylesheet.
   static SelectorList extend(
-          SelectorList selector, SelectorList source, SimpleSelector target) =>
-      new Extender()._extendList(
-          selector,
-          {
-            target: {source: new ExtendState.oneOff()}
-          },
-          null);
+      SelectorList selector, SelectorList source, SimpleSelector target) {
+    var extenders = new Map<ComplexSelector, Extension>.fromIterable(
+        source.components,
+        value: (ComplexSelector complex) => new Extension.oneOff(complex));
+    return new Extender()._extendList(selector, {target: extenders}, null);
+  }
 
   /// Returns a copy of [selector] with [source] replaced by [target].
   static SelectorList replace(
-          SelectorList selector, SelectorList source, SimpleSelector target) =>
-      new Extender()._extendList(
-          selector,
-          {
-            target: {source: new ExtendState.oneOff()}
-          },
-          null,
-          replace: true);
+      SelectorList selector, SelectorList source, SimpleSelector target) {
+    var extenders = new Map<ComplexSelector, Extension>.fromIterable(
+        source.components,
+        value: (ComplexSelector complex) => new Extension.oneOff(complex));
+    return new Extender()
+        ._extendList(selector, {target: extenders}, null, replace: true);
+  }
 
   /// Adds [selector] to this extender, associated with [span].
   ///
@@ -85,7 +92,7 @@ class Extender {
   CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span,
       [List<CssMediaQuery> mediaContext]) {
     for (var complex in selector.value.components) {
-      _original[complex] = true;
+      _originals.add(complex);
     }
 
     if (_extensions.isNotEmpty) {
@@ -135,42 +142,141 @@ class Extender {
   /// is defined. It can only extend selectors within the same context. A `null`
   /// context indicates no media queries.
   void addExtension(
-      SelectorList extender, SimpleSelector target, ExtendRule extend,
+      CssValue<SelectorList> extender, SimpleSelector target, ExtendRule extend,
       [List<CssMediaQuery> mediaContext]) {
+    var rules = _selectors[target];
+    var existingExtensions = _extensionsByExtender[target];
+
+    Map<ComplexSelector, Extension> newExtensions;
     var sources = _extensions.putIfAbsent(target, () => {});
-    var existingState = sources[extender];
-    if (existingState != null) {
-      // If there's already an extend from [extender] to [target], we don't need
-      // to re-run the extension. We may need to mark the extension as
-      // mandatory, though.
-      existingState.addSource(extend.span, mediaContext,
+    for (var complex in extender.value.components) {
+      var existingState = sources[complex];
+      if (existingState != null) {
+        // If there's already an extend from [extender] to [target], we don't need
+        // to re-run the extension. We may need to mark the extension as
+        // mandatory, though.
+        existingState.addSource(extend.span, mediaContext,
+            optional: extend.isOptional);
+        continue;
+      }
+
+      var state = new Extension(
+          complex, target, extender.span, extend.span, mediaContext,
           optional: extend.isOptional);
-      return;
-    }
+      sources[complex] = state;
 
-    var state =
-        new ExtendState(extend.span, mediaContext, optional: extend.isOptional);
-    sources[extender] = state;
-
-    for (var complex in extender.components) {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
-            _sourceSpecificity[simple] = complex.maxSpecificity;
+            _extensionsByExtender.putIfAbsent(simple, () => []).add(state);
+            // Only source specificity for the original selector is relevant.
+            // Selectors generated by `@extend` don't get new specificity.
+            _sourceSpecificity.putIfAbsent(
+                simple, () => complex.maxSpecificity);
           }
         }
       }
+
+      if (rules != null || existingExtensions != null) {
+        newExtensions ??= {};
+        newExtensions[complex] = state;
+      }
     }
 
-    var rules = _selectors[target];
-    if (rules == null) return;
-    var extensions = {
-      target: {extender: state}
-    };
-    for (var rule in rules) {
+    if (newExtensions == null) return;
+
+    if (existingExtensions != null) {
+      _extendExistingExtensions(existingExtensions, target, newExtensions);
+    }
+
+    if (rules != null) {
+      _extendExistingStyleRules(rules, target, newExtensions);
+    }
+  }
+
+  /// Extend [extensions] using [newExtensions].
+  ///
+  /// The [newTarget] is the extendee of [newExtensions].
+  ///
+  /// Note that this does duplicate some work done by
+  /// [_extendExistingStyleRules], but it's necessary to expand each extension's
+  /// extender separately without reference to the full selector list, so that
+  /// relevant results don't get trimmed too early.
+  void _extendExistingExtensions(List<Extension> extensions,
+      SimpleSelector newTarget, Map<ComplexSelector, Extension> newExtensions) {
+    // Extensions to add to [newExtensions] after updating [extensions].
+    Map<ComplexSelector, Extension> additionalExtensions;
+    for (var extension in extensions.toList()) {
+      var sources = _extensions[extension.target];
+
+      // [_extendExistingStyleRules] would have thrown already.
+      List<List<ComplexSelector>> lists;
       try {
-        rule.selector.value =
-            _extendList(rule.selector.value, extensions, _mediaContexts[rule]);
+        lists = _extendComplex(extension.extender, {newTarget: newExtensions},
+            extension.mediaContext);
+        if (lists == null) continue;
+      } on SassException catch (error) {
+        throw new SassException(
+            "From ${extension.extenderSpan.message('')}\n"
+            "${error.message}",
+            error.span);
+      }
+
+      var containsExtension = lists.first.first == extension.extender;
+      var first = false;
+      for (var list in lists) {
+        for (var complex in list) {
+          // If the output contains the original complex selector, there's no
+          // need to recreate it.
+          if (containsExtension && first) {
+            first = false;
+            continue;
+          }
+
+          var existingExtension = sources[complex];
+          if (existingExtension != null) {
+            existingExtension.addSource(extension.span, extension.mediaContext,
+                optional: extension.isOptional);
+          } else {
+            var withExtender = extension.withExtender(complex);
+            sources[complex] = withExtender;
+
+            for (var component in complex.components) {
+              if (component is CompoundSelector) {
+                for (var simple in component.components) {
+                  _extensionsByExtender
+                      .putIfAbsent(simple, () => [])
+                      .add(withExtender);
+                }
+              }
+            }
+
+            if (extension.target == newTarget) {
+              additionalExtensions ??= {};
+              additionalExtensions[complex] = withExtender;
+            }
+          }
+        }
+      }
+
+      // If [lists] doesn't contain [extension.extender], for example if it
+      // was replaced due to :not() expansion, we must get rid of the old
+      // version.
+      if (!containsExtension) sources.remove(extension.extender);
+    }
+
+    if (additionalExtensions != null) {
+      newExtensions.addAll(additionalExtensions);
+    }
+  }
+
+  void _extendExistingStyleRules(Set<CssStyleRule> rules, SimpleSelector target,
+      Map<ComplexSelector, Extension> extensions) {
+    for (var rule in rules) {
+      var oldValue = rule.selector.value;
+      try {
+        rule.selector.value = _extendList(
+            rule.selector.value, {target: extensions}, _mediaContexts[rule]);
       } on SassException catch (error) {
         throw new SassException(
             "From ${rule.selector.span.message('')}\n"
@@ -178,6 +284,9 @@ class Extender {
             error.span);
       }
 
+      // If no extends actually happenedit (for example becaues unification
+      // failed), we don't need to re-register the selector.
+      if (identical(oldValue, rule.selector.value)) continue;
       _registerSelector(rule.selector.value, rule);
     }
   }
@@ -185,13 +294,15 @@ class Extender {
   /// Throws a [SassException] if any (non-optional) extensions failed to match
   /// any selectors.
   void finalize() {
-    _extensions.forEach((target, sources) {
-      sources.forEach((_, state) {
-        if (state.isOptional || state.isUsed) return;
+    _extensions.forEach((target, extensions) {
+      if (_selectors.containsKey(target)) return;
+
+      extensions.forEach((_, extension) {
+        if (extension.isOptional) return;
         throw new SassException(
             'The target selector was not found.\n'
             'Use "@extend $target !optional" to avoid this error.',
-            state.span);
+            extension.span);
       });
     });
   }
@@ -201,7 +312,7 @@ class Extender {
   /// If [replace] is `true`, this doesn't preserve the original selectors.
   SelectorList _extendList(
       SelectorList list,
-      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
+      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
       {bool replace: false}) {
     // This could be written more simply using [List.map], but we want to avoid
@@ -220,8 +331,8 @@ class Extender {
     }
     if (extended == null) return list;
 
-    return new SelectorList(
-        _trim(extended).where((complex) => complex != null));
+    return new SelectorList(_trim(extended, _originals.contains)
+        .where((complex) => complex != null));
   }
 
   /// Extends [complex] using [extensions], and returns the contents of a
@@ -230,46 +341,54 @@ class Extender {
   /// If [replace] is `true`, this doesn't preserve the original selectors.
   List<List<ComplexSelector>> _extendComplex(
       ComplexSelector complex,
-      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
+      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
       {bool replace: false}) {
+    // The complex selectors that each compound selector in [complex.components]
+    // can expand to.
+    //
+    // For example, given
+    //
+    //     .a .b {...}
+    //     .x .y {@extend .b}
+    //
+    // this will contain
+    //
+    //     [
+    //       [.a],
+    //       [.b, .x .y]
+    //     ]
+    //
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
-    var changed = false;
     List<List<ComplexSelector>> extendedNotExpanded;
+    var isOriginal = _originals.contains(complex);
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
       if (component is CompoundSelector) {
         var extended = _extendCompound(component, extensions, mediaQueryContext,
-            replace: replace);
+            inOriginal: isOriginal, replace: replace);
         if (extended == null) {
-          if (changed) {
-            extendedNotExpanded.add([
-              new ComplexSelector([component])
-            ]);
-          }
+          extendedNotExpanded?.add([
+            new ComplexSelector([component])
+          ]);
         } else {
-          if (!changed) {
-            extendedNotExpanded = complex.components
-                .take(i)
-                .map((component) => [
-                      new ComplexSelector([component],
-                          lineBreak: complex.lineBreak)
-                    ])
-                .toList();
-          }
-          changed = true;
+          extendedNotExpanded ??= complex.components
+              .take(i)
+              .map((component) => [
+                    new ComplexSelector([component],
+                        lineBreak: complex.lineBreak)
+                  ])
+              .toList();
           extendedNotExpanded.add(extended);
         }
       } else {
-        if (changed) {
-          extendedNotExpanded.add([
-            new ComplexSelector([component])
-          ]);
-        }
+        extendedNotExpanded?.add([
+          new ComplexSelector([component])
+        ]);
       }
     }
-    if (!changed) return null;
+    if (extendedNotExpanded == null) return null;
 
     var first = true;
     return paths(extendedNotExpanded).map((path) {
@@ -282,8 +401,8 @@ class Extender {
         // Make sure that copies of [complex] retain their status as "original"
         // selectors. This includes selectors that are modified because a :not()
         // was extended into.
-        if (first && _original[complex] != null) {
-          _original[outputComplex] = true;
+        if (first && _originals.contains(complex)) {
+          _originals.add(outputComplex);
         }
         first = false;
 
@@ -295,89 +414,180 @@ class Extender {
   /// Extends [compound] using [extensions], and returns the contents of a
   /// [SelectorList].
   ///
+  /// The [inOriginal] parameter indicates whether this is in an original
+  /// complex selector, meaning that [compound] should not be trimmed out.
+  ///
   /// If [replace] is `true`, this doesn't preserve the original selectors.
   List<ComplexSelector> _extendCompound(
       CompoundSelector compound,
-      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
+      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
-      {bool replace: false}) {
-    var original = compound;
-
-    List<ComplexSelector> extended;
+      {bool inOriginal,
+      bool replace: false}) {
+    // The complex selectors produced from each component of [compound].
+    List<List<Extension>> options;
     for (var i = 0; i < compound.components.length; i++) {
       var simple = compound.components[i];
-
-      var extendedPseudo = simple is PseudoSelector && simple.selector != null
-          ? _extendPseudo(simple, extensions, mediaQueryContext,
-              replace: replace)
-          : null;
-
-      if (extendedPseudo != null) {
-        var simples = new List<SimpleSelector>(
-            compound.components.length - 1 + extendedPseudo.length);
-        simples.setRange(0, i, compound.components);
-        simples.setRange(i, i + extendedPseudo.length, extendedPseudo);
-        simples.setRange(i + extendedPseudo.length, simples.length,
-            compound.components, i + 1);
-        original = new CompoundSelector(simples);
-      }
-
-      var sources = extensions[simple];
-      if (sources == null) continue;
-
-      var compoundWithoutSimple =
-          new List<SimpleSelector>(compound.components.length - 1);
-      compoundWithoutSimple.setRange(0, i, compound.components);
-      compoundWithoutSimple.setRange(
-          i, compound.components.length - 1, compound.components, i + 1);
-      sources.forEach((extender, state) {
-        for (var complex in extender.components) {
-          var extenderBase = complex.components.last as CompoundSelector;
-          var unified = compoundWithoutSimple.isEmpty
-              ? extenderBase
-              : unifyCompound(extenderBase.components, compoundWithoutSimple);
-          if (unified == null) continue;
-
-          state.assertCompatibleMediaContext(mediaQueryContext);
-
-          extended ??= replace
-              ? []
-              : [
-                  new ComplexSelector([compound])
-                ];
-
-          var newComplex = new ComplexSelector(
-              complex.components
-                  .sublist(0, complex.components.length - 1)
-                  .toList()
-                    ..add(unified),
-              lineBreak: complex.lineBreak);
-          _addSourceSpecificity(
-              newComplex,
-              math.max(
-                  _sourceSpecificityFor(compound), complex.maxSpecificity));
-          extended.add(newComplex);
-          state.isUsed = true;
-        }
-      });
-    }
-
-    if (extended == null) {
-      return identical(original, compound)
-          ? null
-          : [
-              new ComplexSelector([original])
-            ];
-    } else if (!identical(original, compound)) {
-      if (replace) {
-        extended.insert(0, new ComplexSelector([original]));
+      var extended = _extendSimple(simple, extensions, mediaQueryContext,
+          replace: replace);
+      if (extended == null) {
+        options?.add([_extensionForSimple(simple)]);
       } else {
-        extended[0] = new ComplexSelector([original]);
+        if (options == null) {
+          options = [];
+          if (i != 0) {
+            options.add([_extensionForCompound(compound.components.take(i))]);
+          }
+        }
+
+        options.addAll(extended);
+      }
+    }
+    if (options == null) return null;
+
+    // Optimize for the simple case of a single simple selector that doesn't
+    // need any unification.
+    if (options.length == 1) {
+      return options.first.map((state) {
+        state.assertCompatibleMediaContext(mediaQueryContext);
+        return state.extender;
+      }).toList();
+    }
+
+    // Find all paths through [options]. In this case, each path represents a
+    // different unification of the base selector. For example, if we have:
+    //
+    //     .a.b {...}
+    //     .w .x {@extend .a}
+    //     .y .z {@extend .b}
+    //
+    // then [options] is `[[.a, .w .x], [.b, .y .z]]` and `paths(options)` is
+    //
+    //     [
+    //       [.a, .b],
+    //       [.a, .y .z],
+    //       [.w .x, .b],
+    //       [.w .x, .y .z]
+    //     ]
+    //
+    // We then unify each path to get a list of complex selectors:
+    //
+    //     [
+    //       [.a.b],
+    //       [.y .a.z],
+    //       [.w .x.b],
+    //       [.w .y .x.z, .y .w .x.z]
+    //     ]
+    var first = !replace;
+    var unifiedPaths = paths(options).map((path) {
+      List<List<ComplexSelectorComponent>> complexes;
+      if (first) {
+        // The first path is always the original selector. We can't just
+        // return [compound] directly because pseudo selectors may be
+        // modified, but we don't have to do any unification.
+        first = false;
+        complexes = [
+          [
+            new CompoundSelector(path.expand((state) {
+              assert(state.extender.components.length == 1);
+              return (state.extender.components.last as CompoundSelector)
+                  .components;
+            }))
+          ]
+        ];
+      } else {
+        var toUnify = new QueueList<List<ComplexSelectorComponent>>();
+        List<SimpleSelector> originals;
+        for (var state in path) {
+          if (state.isOriginal) {
+            originals ??= [];
+            originals.addAll(
+                (state.extender.components.last as CompoundSelector)
+                    .components);
+          } else {
+            toUnify.add(state.extender.components);
+          }
+        }
+
+        if (originals != null) {
+          toUnify.addFirst([new CompoundSelector(originals)]);
+        }
+
+        complexes = unifyComplex(toUnify);
+        if (complexes == null) return null;
+      }
+
+      var lineBreak = false;
+      var specificity = _sourceSpecificityFor(compound);
+      for (var state in path) {
+        state.assertCompatibleMediaContext(mediaQueryContext);
+        lineBreak = lineBreak || state.extender.lineBreak;
+        specificity = math.max(specificity, state.specificity);
+      }
+
+      return complexes
+          .map((components) =>
+              new ComplexSelector(components, lineBreak: lineBreak))
+          .toList();
+    });
+
+    // If we're preserving the original selector, mark the first unification as
+    // such so [_trim] doesn't get rid of it.
+    var isOriginal = (ComplexSelector _) => false;
+    if (inOriginal && !replace) {
+      var original = unifiedPaths.first.first;
+      isOriginal = (complex) => complex == original;
+    }
+
+    return _trim(unifiedPaths.where((complexes) => complexes != null).toList(),
+        isOriginal);
+  }
+
+  Iterable<List<Extension>> _extendSimple(
+      SimpleSelector simple,
+      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
+      List<CssMediaQuery> mediaQueryContext,
+      {bool replace: false}) {
+    withoutPseudo(SimpleSelector simple) {
+      var extenders = extensions[simple];
+      if (extenders == null) return null;
+      if (replace) return extenders.values.toList();
+
+      var extenderList = new List<Extension>(extenders.length + 1);
+      extenderList[0] = _extensionForSimple(simple);
+      extenderList.setRange(1, extenderList.length, extenders.values);
+      return extenderList;
+    }
+
+    if (simple is PseudoSelector && simple.selector != null) {
+      var extended = _extendPseudo(simple, extensions, mediaQueryContext,
+          replace: replace);
+      if (extended != null) {
+        return extended.map(
+            (pseudo) => withoutPseudo(pseudo) ?? [_extensionForSimple(pseudo)]);
       }
     }
 
-    return extended;
+    var result = withoutPseudo(simple);
+    return result == null ? null : [result];
   }
+
+  /// Returns a one-off [Extension] whose extender is composed solely of a
+  /// compound selector containing [simples].
+  Extension _extensionForCompound(Iterable<SimpleSelector> simples) {
+    var compound = new CompoundSelector(simples);
+    return new Extension.oneOff(new ComplexSelector([compound]),
+        specificity: _sourceSpecificityFor(compound), isOriginal: true);
+  }
+
+  /// Returns a one-off [Extension] whose extender is composed solely of
+  /// [simple].
+  Extension _extensionForSimple(SimpleSelector simple) => new Extension.oneOff(
+      new ComplexSelector([
+        new CompoundSelector([simple])
+      ]),
+      specificity: _sourceSpecificity[simple] ?? 0,
+      isOriginal: true);
 
   /// Extends [pseudo] using [extensions], and returns a list of resulting
   /// pseudo selectors.
@@ -385,7 +595,7 @@ class Extender {
   /// If [replace] is `true`, this doesn't preserve the original selectors.
   List<PseudoSelector> _extendPseudo(
       PseudoSelector pseudo,
-      Map<SimpleSelector, Map<SelectorList, ExtendState>> extensions,
+      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
       {bool replace: false}) {
     var extended = _extendList(pseudo.selector, extensions, mediaQueryContext,
@@ -473,7 +683,11 @@ class Extender {
   // itself. A selector is only removed if it's redundant with a selector in
   // another list. "Redundant" here means that one selector is a superselector
   // of the other. The more specific selector is removed.
-  List<ComplexSelector> _trim(List<List<ComplexSelector>> lists) {
+  //
+  // The [isOriginal] callback indicates which selectors are original to the
+  // document, and thus should never be trimmed.
+  List<ComplexSelector> _trim(List<List<ComplexSelector>> lists,
+      bool isOriginal(ComplexSelector complex)) {
     // Avoid truly horrific quadratic behavior.
     //
     // TODO(nweiz): I think there may be a way to get perfect trimming without
@@ -484,12 +698,26 @@ class Extender {
     }
 
     // This is n² on the sequences, but only comparing between separate
-    // sequences should limit the quadratic behavior.
-    var result = <ComplexSelector>[];
-    for (var i = 0; i < lists.length; i++) {
-      for (var complex1 in lists[i]) {
-        if (_original[complex1] != null) {
-          result.add(complex1);
+    // sequences should limit the quadratic behavior. We iterate from last to
+    // first and reverse the result so that, if two selectors are identical, we
+    // keep the first one.
+    var result = new QueueList<ComplexSelector>();
+    var numOriginals = 0;
+    for (var i = lists.length - 1; i >= 0; i--) {
+      middle:
+      for (var complex1 in lists[i].reversed) {
+        if (isOriginal(complex1)) {
+          // Make sure we don't include duplicate originals, which could happen
+          // if a style rule extends a component of its own selector.
+          for (var j = 0; j < numOriginals; j++) {
+            if (result[j] == complex1) {
+              rotateSlice(result, 0, j + 1);
+              continue middle;
+            }
+          }
+
+          numOriginals++;
+          result.addFirst(complex1);
           continue;
         }
 
@@ -500,14 +728,12 @@ class Extender {
         var maxSpecificity = 0;
         for (var component in complex1.components) {
           if (component is CompoundSelector) {
-            for (var simple in component.components) {
-              maxSpecificity =
-                  math.max(maxSpecificity, _sourceSpecificity[simple] ?? 0);
-            }
+            maxSpecificity =
+                math.max(maxSpecificity, _sourceSpecificityFor(component));
           }
         }
 
-        // Look in [result] rather than [lists] for selectors before [i]. This
+        // Look in [result] rather than [lists] for selectors after [i]. This
         // ensures that we aren't comparing against a selector that's already
         // been trimmed, and thus that if there are two identical selectors only
         // one is trimmed.
@@ -519,30 +745,17 @@ class Extender {
 
         // We intentionally don't compare [complex1] against other selectors in
         // `lists[i]`, since they come from the same source.
-        if (lists.skip(i + 1).any((list) => list.any((complex2) =>
+        if (lists.take(i).any((list) => list.any((complex2) =>
             complex2.minSpecificity >= maxSpecificity &&
             complex2.isSuperselector(complex1)))) {
           continue;
         }
 
-        result.add(complex1);
+        result.addFirst(complex1);
       }
     }
 
     return result;
-  }
-
-  /// Adds [specificity] to the [_sourceSpecificity] for all simple selectors in [complex].
-  void _addSourceSpecificity(ComplexSelector complex, int specificity) {
-    if (specificity == 0) return;
-    for (var component in complex.components) {
-      if (component is CompoundSelector) {
-        for (var simple in component.components) {
-          _sourceSpecificity[simple] =
-              math.max(_sourceSpecificity[simple] ?? 0, specificity);
-        }
-      }
-    }
   }
 
   /// Returns the maximum specificity for sources that went into producing

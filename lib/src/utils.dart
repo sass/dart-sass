@@ -251,6 +251,17 @@ T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
   }
 }
 
+/// Rotates the element in list from [start] (inclusive) to [end] (exclusive)
+/// one index higher, looping the final element back to [start].
+void rotateSlice(List list, int start, int end) {
+  var element = list[end - 1];
+  for (var i = start; i < end; i++) {
+    var next = list[i];
+    list[i] = element;
+    element = next;
+  }
+}
+
 /// Prints a warning to standard error, associated with [span].
 ///
 /// If [color] is `true`, this uses terminal colors.

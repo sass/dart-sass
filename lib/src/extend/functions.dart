@@ -29,21 +29,33 @@ final _subselectorPseudos =
 ///
 /// If no such list can be produced, returns `null`.
 List<List<ComplexSelectorComponent>> unifyComplex(
-    List<ComplexSelectorComponent> complex1,
-    List<ComplexSelectorComponent> complex2) {
-  var base1 = complex1.last;
-  var base2 = complex2.last;
-  if (base1 is CompoundSelector && base2 is CompoundSelector) {
-    var unified = unifyCompound(base2.components, base1.components);
-    if (unified == null) return null;
+    List<List<ComplexSelectorComponent>> complexes) {
+  assert(complexes.isNotEmpty);
 
-    return weave([
-      complex1.take(complex1.length - 1).toList(),
-      complex2.take(complex2.length - 1).toList()..add(unified)
-    ]);
-  } else {
-    return null;
+  if (complexes.length == 1) return complexes;
+
+  List<SimpleSelector> unifiedBase;
+  for (var complex in complexes) {
+    var base = complex.last;
+    if (base is CompoundSelector) {
+      if (unifiedBase == null) {
+        unifiedBase = base.components;
+      } else {
+        for (var simple in base.components) {
+          unifiedBase = simple.unify(unifiedBase);
+          if (unifiedBase == null) return null;
+        }
+      }
+    } else {
+      return null;
+    }
   }
+
+  var complexesWithoutBases = complexes
+      .map((complex) => complex.sublist(0, complex.length - 1))
+      .toList();
+  complexesWithoutBases.last.add(new CompoundSelector(unifiedBase));
+  return weave(complexesWithoutBases);
 }
 
 /// Returns a [CompoundSelector] that matches only elements that are matched by
@@ -122,6 +134,8 @@ SimpleSelector unifyUniversalAndElement(
 /// `.D (.A .B)` into `.D .A .B, .A .D .B`. For thoroughness, `.A.D .B` would
 /// also be required, but including merged selectors results in exponential
 /// output for very little gain.
+///
+/// The selector `.D (.A .B)` is represented as the list `[[.D], [.A, .B]]`.
 List<List<ComplexSelectorComponent>> weave(
     List<List<ComplexSelectorComponent>> complexes) {
   var prefixes = [complexes.first.toList()];
@@ -204,7 +218,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
     if (complexIsParentSuperselector(group2, group1)) return group1;
     if (!_mustUnify(group1, group2)) return null;
 
-    var unified = unifyComplex(group1, group2);
+    var unified = unifyComplex([group1, group2]);
     if (unified == null) return null;
     if (unified.length > 1) return null;
     return unified.first;
