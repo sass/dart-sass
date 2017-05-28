@@ -65,8 +65,8 @@ class _PerformVisitor
   /// The current lexical environment.
   Environment _environment;
 
-  /// The current selector, if any.
-  CssValue<SelectorList> _selector;
+  /// The style rule that defines the current parent selector, if any.
+  CssStyleRule _styleRule;
 
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
@@ -95,7 +95,7 @@ class _PerformVisitor
   var _inUnknownAtRule = false;
 
   /// Whether we're currently building the output of a style rule.
-  bool get _inStyleRule => _selector != null && !_atRootExcludingStyleRule;
+  bool get _inStyleRule => _styleRule != null && !_atRootExcludingStyleRule;
 
   /// Whether we're directly within an `@at-root` rule that excludes style
   /// rules.
@@ -464,7 +464,7 @@ class _PerformVisitor
         targetText.span,
         () => new SimpleSelector.parse(targetText.value.trim(),
             allowParent: false));
-    _extender.addExtension(_selector, target, node, _mediaQueries);
+    _extender.addExtension(_styleRule.selector, target, node, _mediaQueries);
     return null;
   }
 
@@ -502,7 +502,7 @@ class _PerformVisitor
         // declarations immediately inside it have somewhere to go.
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
-        _withParent(new CssStyleRule(_selector, _selector.span), () {
+        _withParent(_styleRule.copyWithoutChildren(), () {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -766,7 +766,7 @@ class _PerformVisitor
           //
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
-          _withParent(new CssStyleRule(_selector, _selector.span), () {
+          _withParent(_styleRule.copyWithoutChildren(), () {
             for (var child in node.children) {
               child.accept(this);
             }
@@ -826,7 +826,8 @@ class _PerformVisitor
         node.selector.span, () => new SelectorList.parse(selectorText.value));
     parsedSelector = _addExceptionSpan(
         node.selector.span,
-        () => parsedSelector.resolveParentSelectors(_selector?.value,
+        () => parsedSelector.resolveParentSelectors(
+            _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
     var selector =
@@ -836,7 +837,7 @@ class _PerformVisitor
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     _withParent(rule, () {
-      _withSelector(rule.selector, () {
+      _withStyleRule(rule, () {
         for (var child in node.children) {
           child.accept(this);
         }
@@ -872,7 +873,7 @@ class _PerformVisitor
         //
         // For example, "a {@supports (a: b) {b: c}}" should produce "@supports
         // (a: b) {a {b: c}}".
-        _withParent(new CssStyleRule(_selector, _selector.span), () {
+        _withParent(_styleRule.copyWithoutChildren(), () {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -1443,9 +1444,8 @@ class _PerformVisitor
   }
 
   Value visitSelectorExpression(SelectorExpression node) {
-    var selector = _selector;
-    if (selector == null) return sassNull;
-    return selector.value.asSassList;
+    if (_styleRule == null) return sassNull;
+    return _styleRule.originalSelector.asSassList;
   }
 
   SassString visitStringExpression(StringExpression node) {
@@ -1580,12 +1580,12 @@ class _PerformVisitor
     return result;
   }
 
-  /// Runs [callback] with [selector] as the current selector.
-  T _withSelector<T>(CssValue<SelectorList> selector, T callback()) {
-    var oldSelector = _selector;
-    _selector = selector;
+  /// Runs [callback] with [rule] as the current style rule.
+  T _withStyleRule<T>(CssStyleRule rule, T callback()) {
+    var oldRule = _styleRule;
+    _styleRule = rule;
     var result = callback();
-    _selector = oldSelector;
+    _styleRule = oldRule;
     return result;
   }
 

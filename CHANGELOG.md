@@ -38,6 +38,8 @@
 
   * Allow extensions that match selectors but fail to unify.
 
+  * Partially-extended selectors are no longer used as parent selectors.
+
   * Fix an edge case where both the extender and the extended selector
     have invalid combinator sequences.
 

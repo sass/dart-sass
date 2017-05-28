@@ -91,14 +91,15 @@ class Extender {
   /// defined, or `null` if it was defined at the top level of the document.
   CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span,
       [List<CssMediaQuery> mediaContext]) {
-    for (var complex in selector.value.components) {
+    var originalSelector = selector.value;
+    for (var complex in originalSelector.components) {
       _originals.add(complex);
     }
 
     if (_extensions.isNotEmpty) {
       try {
         selector = new CssValue(
-            _extendList(selector.value, _extensions, mediaContext),
+            _extendList(originalSelector, _extensions, mediaContext),
             selector.span);
       } on SassException catch (error) {
         throw new SassException(
@@ -107,7 +108,8 @@ class Extender {
             selector.span);
       }
     }
-    var rule = new CssStyleRule(selector, span);
+    var rule =
+        new CssStyleRule(selector, span, originalSelector: originalSelector);
     if (mediaContext != null) _mediaContexts[rule] = mediaContext;
     _registerSelector(selector.value, rule);
 
