@@ -9,12 +9,6 @@
 * Compile to minified JavaScript, which decreases the code size substantially
   and makes startup a little faster.
 
-* Fix an `@extend` edge case where both the extender and the extended selector
-  have invalid combinator sequences.
-
-* Fix a bug where Sass would crash with a "Bad state: no element" error on some
-  rare `@extend` rules.
-
 * Fix a crash when inspecting a string expression that ended in "\a".
 
 * Fix a bug where declarations and `@extend` were allowed outside of a style
@@ -27,6 +21,29 @@
 * Properly parse `/***/` in selectors.
 
 * Properly parse unary operators immediately after commas.
+
+* Fix a number of `@extend` bugs:
+
+  * Remove the universal selector `*` when unifying with other selectors.
+
+  * Properly unify the result of multiple simple selectors in the same compound
+    selector being extended.
+
+  * Properly handle extensions being extended.
+
+  * Properly follow the [first law of `@extend`][laws].
+
+  * Fix selector specificity tracking to follow the
+    [second law of `@extend`][laws].
+
+  * Allow extensions that match selectors but fail to unify.
+
+  * Fix an edge case where both the extender and the extended selector
+    have invalid combinator sequences.
+
+  * Don't crash with a "Bad state: no element" error in certain edge cases.
+
+[laws]: https://github.com/sass/sass/issues/324#issuecomment-4607184
 
 ## 1.0.0-alpha.9
 
