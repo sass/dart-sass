@@ -24,6 +24,9 @@
 
 * Fix a number of `@extend` bugs:
 
+  * `selector-extend()` and `selector-replace()` now allow compound selector
+    extendees.
+
   * Remove the universal selector `*` when unifying with other selectors.
 
   * Properly unify the result of multiple simple selectors in the same compound

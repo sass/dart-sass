@@ -827,7 +827,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction(
       "selector-extend", r"$selector, $extendee, $extender", (arguments) {
     var selector = arguments[0].assertSelector(name: "selector");
-    var target = arguments[1].assertSimpleSelector(name: "extendee");
+    var target = arguments[1].assertSelector(name: "extendee");
     var source = arguments[2].assertSelector(name: "extender");
 
     return Extender.extend(selector, source, target).asSassList;
@@ -836,7 +836,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction(
       "selector-replace", r"$selector, $original, $replacement", (arguments) {
     var selector = arguments[0].assertSelector(name: "selector");
-    var target = arguments[1].assertSimpleSelector(name: "original");
+    var target = arguments[1].assertSelector(name: "original");
     var source = arguments[2].assertSelector(name: "replacement");
 
     return Extender.replace(selector, source, target).asSassList;
