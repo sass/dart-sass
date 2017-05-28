@@ -349,7 +349,8 @@ class Extender {
           var newComplex = new ComplexSelector(
               complex.components
                   .sublist(0, complex.components.length - 1)
-                  .toList()..add(unified),
+                  .toList()
+                    ..add(unified),
               lineBreak: complex.lineBreak);
           _addSourceSpecificity(
               newComplex,

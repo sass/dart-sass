@@ -13,8 +13,8 @@ class SelectorExpression implements Expression {
 
   SelectorExpression(this.span);
 
-  T accept<T>(ExpressionVisitor<T> visitor) => visitor
-      .visitSelectorExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) =>
+      visitor.visitSelectorExpression(this);
 
   String toString() => "&";
 }

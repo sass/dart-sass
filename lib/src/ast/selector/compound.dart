@@ -61,8 +61,8 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
       new SelectorParser(contents, url: url, allowParent: allowParent)
           .parseCompoundSelector();
 
-  T accept<T>(SelectorVisitor<T> visitor) => visitor
-      .visitCompoundSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) =>
+      visitor.visitCompoundSelector(this);
 
   /// Whether this is a superselector of [other].
   ///

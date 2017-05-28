@@ -76,8 +76,8 @@ int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
 }
 
 /// Returns whether [list1] and [list2] have the same contents.
-bool listEquals<T>(List<T> list1, List<T> list2) => const ListEquality()
-    .equals(list1, list2);
+bool listEquals<T>(List<T> list1, List<T> list2) =>
+    const ListEquality().equals(list1, list2);
 
 /// Returns a hash code for [list] that matches [listEquals].
 int listHash(List list) => const ListEquality().hash(list);

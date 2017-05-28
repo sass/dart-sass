@@ -19,8 +19,8 @@ class NumberExpression implements Expression {
 
   NumberExpression(this.value, this.span, {this.unit});
 
-  T accept<T>(ExpressionVisitor<T> visitor) => visitor
-      .visitNumberExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) =>
+      visitor.visitNumberExpression(this);
 
   String toString() => "${value}${unit ?? ''}";
 }

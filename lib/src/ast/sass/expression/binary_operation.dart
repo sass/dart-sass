@@ -35,8 +35,8 @@ class BinaryOperationExpression implements Expression {
       : operator = BinaryOperator.dividedBy,
         allowsSlash = true;
 
-  T accept<T>(ExpressionVisitor<T> visitor) => visitor
-      .visitBinaryOperationExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) =>
+      visitor.visitBinaryOperationExpression(this);
 
   String toString() {
     var buffer = new StringBuffer();
