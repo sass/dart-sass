@@ -18,6 +18,9 @@ class CssStyleRule extends CssParentNode {
   /// The selector for this rule.
   final CssValue<SelectorList> selector;
 
+  /// The selector for this rule, before any extensions are applied.
+  final SelectorList originalSelector;
+
   final FileSpan span;
 
   /// A style rule is invisible if it's empty, if all its children are
@@ -28,9 +31,16 @@ class CssStyleRule extends CssParentNode {
     return selector.value.isInvisible;
   }
 
-  CssStyleRule(this.selector, this.span);
+  /// Creates a new [CssStyleRule].
+  ///
+  /// If [originalSelector] isn't passed, it defaults to [selector.value].
+  CssStyleRule(CssValue<SelectorList> selector, this.span,
+      {SelectorList originalSelector})
+      : selector = selector,
+        originalSelector = originalSelector ?? selector.value;
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitStyleRule(this);
 
-  CssStyleRule copyWithoutChildren() => new CssStyleRule(selector, span);
+  CssStyleRule copyWithoutChildren() =>
+      new CssStyleRule(selector, span, originalSelector: originalSelector);
 }

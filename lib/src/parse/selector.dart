@@ -290,7 +290,7 @@ class SelectorParser extends Parser {
         selector = _selectorList();
       }
     } else {
-      argument = declarationValue();
+      argument = declarationValue().trimRight();
     }
     scanner.expectChar($rparen);
 
