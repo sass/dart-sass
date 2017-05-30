@@ -31,13 +31,13 @@ String render(String path,
     stderr.writeln("Error: $indentType is an invalid indent type; must be "
         "either 'space' or 'tab'.");
     exitCode = 1;
-    return;
+    return null;
   }
   if (indentWidth < 0 || indentWidth > 10) {
     stderr.writeln("Error: $indentWidth is an invalid indent width; must be "
         "between 0 and 10, inclusive.");
     exitCode = 1;
-    return;
+    return null;
   }
   var contents = readFile(path);
   var url = p.toUri(path);
