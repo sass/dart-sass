@@ -22,6 +22,8 @@
 
 * Properly parse unary operators immediately after commas.
 
+* Match Ruby Sass's rounding behavior for all functions.
+
 * Fix a number of `@extend` bugs:
 
   * `selector-extend()` and `selector-replace()` now allow compound selector
