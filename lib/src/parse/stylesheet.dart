@@ -178,10 +178,10 @@ abstract class StylesheetParser extends Parser {
   ///   parsing it as a declaration value. If this fails, backtrack and parse
   ///   it as a selector.
   ///
-  /// * If the declaration value value valid but is followed by "{", backtrack
-  ///   and parse it as a selector anyway. This ensures that ".foo:bar {" is
-  ///   always parsed as a selector and never as a property with nested
-  ///   properties beneath it.
+  /// * If the declaration value is valid but is followed by "{", backtrack and
+  ///   parse it as a selector anyway. This ensures that ".foo:bar {" is always
+  ///   parsed as a selector and never as a property with nested properties
+  ///   beneath it.
   Statement _declarationOrStyleRule() {
     var start = scanner.state;
     var declarationOrBuffer = _declarationOrBuffer();
@@ -262,8 +262,8 @@ abstract class StylesheetParser extends Parser {
 
     var postColonWhitespace = rawText(whitespace);
     if (lookingAtChildren()) {
-      return new Declaration(name, scanner.spanFrom(start),
-          children: this.children(_declarationChild));
+      var children = this.children(_declarationChild);
+      return new Declaration(name, scanner.spanFrom(start), children: children);
     }
 
     midBuffer.write(postColonWhitespace);
