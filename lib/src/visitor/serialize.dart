@@ -821,10 +821,8 @@ class _SerializeCssVisitor
 
   /// Writes indentation based on [_indentation].
   void _writeIndentation() {
-    for (var i = 0; i < _indentation; i++) {
-      for (var j = 0; j < _indentWidth; j++) {
-        _buffer.writeCharCode(_indentCharacter);
-      }
+    for (var i = 0; i < _indentation * _indentWidth; i++) {
+      _buffer.writeCharCode(_indentCharacter);
     }
   }
 

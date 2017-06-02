@@ -11,26 +11,15 @@ import 'sync_package_resolver.dart';
 import 'visitor/perform.dart';
 import 'visitor/serialize.dart';
 
-/// Loads the Sass file at [path], converts it to CSS, and returns the result.
-///
-/// If [color] is `true`, this will use terminal colors in warnings.
-///
-/// If [packageResolver] is provided, it's used to resolve `package:` imports.
-/// Otherwise, they aren't supported. It takes a [SyncPackageResolver][] from
-/// the `package_resolver` package.
-///
-/// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
-///
-/// Finally throws a [SassException] if conversion fails.
+/// Like [render] in `lib/sass.dart`, but provides more options to support the
+/// node-sass compatible API.
 String render(String path,
     {bool color: false,
     SyncPackageResolver packageResolver,
     bool useSpaces: true,
     int indentWidth: 2}) {
-  if (indentWidth < 0 || indentWidth > 10) {
-    throw new ArgumentError("Error: $indentWidth is an invalid indent width; "
-        "must be between 0 and 10, inclusive.");
-  }
+  RangeError.checkValueInInterval(indentWidth, 0, 10, "indentWidth");
+
   var contents = readFile(path);
   var url = p.toUri(path);
   var sassTree = p.extension(path) == '.sass'
