@@ -37,11 +37,12 @@ void main() {
 void _render(
     NodeOptions options, void callback(NodeError error, NodeResult result)) {
   try {
-    var indentWidth = options.indentWidth is int
-        ? options.indentWidth
-        : int.parse(options.indentWidth);
+    var indentWidthValue = options.indentWidth;
+    var indentWidth = indentWidthValue is int
+        ? indentWidthValue
+        : int.parse(indentWidthValue.toString());
     var result = newNodeResult(render(options.file,
-        indentType: options.indentType, indentWidth: indentWidth));
+        useSpaces: options.indentType == 'space', indentWidth: indentWidth));
     callback(null, result);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
@@ -57,11 +58,12 @@ void _render(
 /// [render]: https://github.com/sass/node-sass#options
 NodeResult _renderSync(NodeOptions options) {
   try {
-    var indentWidth = options.indentWidth is int
-        ? options.indentWidth
-        : int.parse(options.indentWidth);
+    var indentWidthValue = options.indentWidth;
+    var indentWidth = indentWidthValue is int
+        ? indentWidthValue
+        : int.parse(indentWidthValue.toString());
     return newNodeResult(render(options.file,
-        indentType: options.indentType, indentWidth: indentWidth));
+        useSpaces: options.indentType == 'space', indentWidth: indentWidth));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
     throw new NodeError(message: error.message);
