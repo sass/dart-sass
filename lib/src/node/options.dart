@@ -8,5 +8,5 @@ import 'package:js/js.dart';
 class NodeOptions {
   external String get file;
   external String get indentType;
-  external int get indentWidth;
+  external dynamic get indentWidth;
 }

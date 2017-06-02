@@ -31,12 +31,12 @@ import 'interface/value.dart';
 String toCss(CssNode node,
     {OutputStyle style,
     bool inspect: false,
-    String indentType: 'space',
+    bool useSpaces: true,
     int indentWidth: 2}) {
   var visitor = new _SerializeCssVisitor(
       style: style,
       inspect: inspect,
-      indentType: indentType,
+      useSpaces: useSpaces,
       indentWidth: indentWidth);
   node.accept(visitor);
   var result = visitor._buffer.toString();
@@ -98,11 +98,11 @@ class _SerializeCssVisitor
       {OutputStyle style,
       bool inspect: false,
       bool quote: true,
-      String indentType: 'space',
+      bool useSpaces: true,
       int indentWidth: 2})
       : _inspect = inspect,
         _quote = quote,
-        _indentCharacter = indentType == 'space' ? $space : $tab,
+        _indentCharacter = useSpaces ? $space : $tab,
         _indentWidth = indentWidth;
 
   void visitStylesheet(CssStylesheet node) {

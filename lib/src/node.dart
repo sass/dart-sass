@@ -37,8 +37,11 @@ void main() {
 void _render(
     NodeOptions options, void callback(NodeError error, NodeResult result)) {
   try {
+    var indentWidth = options.indentWidth is int
+        ? options.indentWidth
+        : int.parse(options.indentWidth);
     var result = newNodeResult(render(options.file,
-        indentType: options.indentType, indentWidth: options.indentWidth));
+        indentType: options.indentType, indentWidth: indentWidth));
     callback(null, result);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
@@ -54,8 +57,11 @@ void _render(
 /// [render]: https://github.com/sass/node-sass#options
 NodeResult _renderSync(NodeOptions options) {
   try {
+    var indentWidth = options.indentWidth is int
+        ? options.indentWidth
+        : int.parse(options.indentWidth);
     return newNodeResult(render(options.file,
-        indentType: options.indentType, indentWidth: options.indentWidth));
+        indentType: options.indentType, indentWidth: indentWidth));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
     throw new NodeError(message: error.message);

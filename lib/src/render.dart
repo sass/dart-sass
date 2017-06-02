@@ -25,19 +25,11 @@ import 'visitor/serialize.dart';
 String render(String path,
     {bool color: false,
     SyncPackageResolver packageResolver,
-    String indentType: 'space',
+    bool useSpaces: true,
     int indentWidth: 2}) {
-  if (indentType != 'space' && indentType != 'tab') {
-    stderr.writeln("Error: $indentType is an invalid indent type; must be "
-        "either 'space' or 'tab'.");
-    exitCode = 1;
-    return null;
-  }
   if (indentWidth < 0 || indentWidth > 10) {
-    stderr.writeln("Error: $indentWidth is an invalid indent width; must be "
-        "between 0 and 10, inclusive.");
-    exitCode = 1;
-    return null;
+    throw new ArgumentError("Error: $indentWidth is an invalid indent width; "
+        "must be between 0 and 10, inclusive.");
   }
   var contents = readFile(path);
   var url = p.toUri(path);
@@ -46,5 +38,5 @@ String render(String path,
       : new Stylesheet.parseScss(contents, url: url, color: color);
   var cssTree =
       evaluate(sassTree, color: color, packageResolver: packageResolver);
-  return toCss(cssTree, indentType: indentType, indentWidth: indentWidth);
+  return toCss(cssTree, useSpaces: useSpaces, indentWidth: indentWidth);
 }
