@@ -28,8 +28,16 @@ import 'interface/value.dart';
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [node] contains any values
 /// that can't be represented in plain CSS, throws a [SassException].
-String toCss(CssNode node, {OutputStyle style, bool inspect: false}) {
-  var visitor = new _SerializeCssVisitor(style: style, inspect: inspect);
+String toCss(CssNode node,
+    {OutputStyle style,
+    bool inspect: false,
+    bool useSpaces: true,
+    int indentWidth: 2}) {
+  var visitor = new _SerializeCssVisitor(
+      style: style,
+      inspect: inspect,
+      useSpaces: useSpaces,
+      indentWidth: indentWidth);
   node.accept(visitor);
   var result = visitor._buffer.toString();
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
@@ -80,10 +88,22 @@ class _SerializeCssVisitor
   /// Whether quoted strings should be emitted with quotes.
   final bool _quote;
 
+  /// The character to use for indentation; either space or tab.
+  final int _indentCharacter;
+
+  /// The number of spaces or tabs to be used for indentation.
+  final int _indentWidth;
+
   _SerializeCssVisitor(
-      {OutputStyle style, bool inspect: false, bool quote: true})
+      {OutputStyle style,
+      bool inspect: false,
+      bool quote: true,
+      bool useSpaces: true,
+      int indentWidth: 2})
       : _inspect = inspect,
-        _quote = quote;
+        _quote = quote,
+        _indentCharacter = useSpaces ? $space : $tab,
+        _indentWidth = indentWidth;
 
   void visitStylesheet(CssStylesheet node) {
     CssNode previous;
@@ -801,9 +821,8 @@ class _SerializeCssVisitor
 
   /// Writes indentation based on [_indentation].
   void _writeIndentation() {
-    for (var i = 0; i < _indentation; i++) {
-      _buffer.writeCharCode($space);
-      _buffer.writeCharCode($space);
+    for (var i = 0; i < _indentation * _indentWidth; i++) {
+      _buffer.writeCharCode(_indentCharacter);
     }
   }
 

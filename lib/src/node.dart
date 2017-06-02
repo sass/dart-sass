@@ -4,13 +4,13 @@
 
 import 'package:js/js.dart';
 
-import '../sass.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
 import 'node/error.dart';
 import 'node/exports.dart';
 import 'node/options.dart';
 import 'node/result.dart';
+import 'render.dart';
 
 /// The entrypoint for Node.js.
 ///
@@ -37,7 +37,12 @@ void main() {
 void _render(
     NodeOptions options, void callback(NodeError error, NodeResult result)) {
   try {
-    var result = newNodeResult(render(options.file));
+    var indentWidthValue = options.indentWidth;
+    var indentWidth = indentWidthValue is int
+        ? indentWidthValue
+        : int.parse(indentWidthValue.toString());
+    var result = newNodeResult(render(options.file,
+        useSpaces: options.indentType == 'space', indentWidth: indentWidth));
     callback(null, result);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
@@ -53,7 +58,12 @@ void _render(
 /// [render]: https://github.com/sass/node-sass#options
 NodeResult _renderSync(NodeOptions options) {
   try {
-    return newNodeResult(render(options.file));
+    var indentWidthValue = options.indentWidth;
+    var indentWidth = indentWidthValue is int
+        ? indentWidthValue
+        : int.parse(indentWidthValue.toString());
+    return newNodeResult(render(options.file,
+        useSpaces: options.indentType == 'space', indentWidth: indentWidth));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
     throw new NodeError(message: error.message);
