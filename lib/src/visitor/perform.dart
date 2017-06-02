@@ -1643,8 +1643,9 @@ class _PerformVisitor
       var syntheticFile = span.file
           .getText(0)
           .replaceRange(span.start.offset, span.end.offset, errorText);
-      var syntheticSpan = new SourceFile(syntheticFile, url: span.file.url)
-          .span(span.start.offset + error.span.start.offset,
+      var syntheticSpan =
+          new SourceFile.fromString(syntheticFile, url: span.file.url).span(
+              span.start.offset + error.span.start.offset,
               span.start.offset + error.span.end.offset);
       throw _exception(error.message, syntheticSpan);
     }

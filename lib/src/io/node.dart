@@ -60,7 +60,7 @@ String readFile(String path) {
   var contents = _readFile(path, 'utf8') as String;
   if (!contents.contains("�")) return contents;
 
-  var sourceFile = new SourceFile(contents, url: p.toUri(path));
+  var sourceFile = new SourceFile.fromString(contents, url: p.toUri(path));
   for (var i = 0; i < contents.length; i++) {
     if (contents.codeUnitAt(i) != 0xFFFD) continue;
     throw new SassException(
