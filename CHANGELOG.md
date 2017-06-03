@@ -24,6 +24,8 @@
 
 * Match Ruby Sass's rounding behavior for all functions.
 
+* Allow `\` at the beginning of a selector in the indented syntax.
+
 * Fix a number of `@extend` bugs:
 
   * `selector-extend()` and `selector-replace()` now allow compound selector

@@ -148,6 +148,12 @@ abstract class StylesheetParser extends Parser {
   StyleRule _styleRule() {
     var wasInStyleRule = _inStyleRule;
     _inStyleRule = true;
+
+    // The indented syntax allows a single backslash to distinguish a style rule
+    // from old-style property syntax. We don't support old property syntax, but
+    // we do support the backslash because it's easy to do.
+    if (indented) scanner.scanChar($backslash);
+
     var start = scanner.state;
     var selector = _almostAnyValue();
     var children = this.children(_statement);
@@ -183,6 +189,11 @@ abstract class StylesheetParser extends Parser {
   ///   parsed as a selector and never as a property with nested properties
   ///   beneath it.
   Statement _declarationOrStyleRule() {
+    // The indented syntax allows a single backslash to distinguish a style rule
+    // from old-style property syntax. We don't support old property syntax, but
+    // we do support the backslash because it's easy to do.
+    if (indented && scanner.scanChar($backslash)) return _styleRule();
+
     var start = scanner.state;
     var declarationOrBuffer = _declarationOrBuffer();
 
