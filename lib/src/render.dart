@@ -5,7 +5,6 @@
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
-import 'exception.dart';
 import 'io.dart';
 import 'sync_package_resolver.dart';
 import 'visitor/perform.dart';

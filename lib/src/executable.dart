@@ -13,7 +13,6 @@ import '../sass.dart';
 import 'exception.dart';
 import 'io.dart';
 import 'render.dart' show parseLineFeed;
-import 'visitor/serialize.dart';
 
 main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
@@ -49,7 +48,7 @@ main(List<String> args) async {
   }
 
   var color = (options['color'] as bool) ?? hasTerminal;
-  var linefeed = parseLineFeed(options['linefeed']);
+  var linefeed = parseLineFeed(options['linefeed'] as String);
   try {
     var css = render(options.rest.first, color: color, linefeed: linefeed);
     if (css.isNotEmpty) print(css);
