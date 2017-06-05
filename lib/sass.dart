@@ -20,9 +20,9 @@ import 'src/sync_package_resolver.dart';
 String render(String path,
         {bool color: false, SyncPackageResolver packageResolver}) =>
     r.render(path, color: color, packageResolver: packageResolver);
-}
 
-/// Loads [source] as Sass, converts it to CSS, and returns the result.
+/// Loads [source] as new-syntax Sass, converts it to CSS, and returns the
+/// result.
 ///
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
@@ -34,10 +34,5 @@ String render(String path,
 ///
 /// Finally throws a [SassException] if conversion fails.
 String renderSource(String source,
-    {bool color: false, SyncPackageResolver packageResolver}) {
-  var url = new UriData.fromString(source);
-  var sassTree = new Stylesheet.parseScss(source, url: url, color: color);
-  var cssTree =
-      evaluate(sassTree, color: color, packageResolver: packageResolver);
-  return toCss(cssTree);
-}
+        {bool color: false, SyncPackageResolver packageResolver}) =>
+    r.renderSource(source, color: color, packageResolver: packageResolver);

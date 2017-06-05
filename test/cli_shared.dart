@@ -34,19 +34,19 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(0);
   });
 
-  test("compiles Sass from stdin to CSS", () {
-    var sass = runSass(["-"]);
-    sass.writeLine("a {b: 1 + 2}");
-    sass.closeStdin();
-    sass.stdout.expect(inOrder([
+  test("compiles Sass from stdin to CSS", () async {
+    var sass = await runSass(["-"]);
+    sass.stdin.writeln("a {b: 1 + 2}");
+    sass.stdin.close();
+    expect(sass.stdout, emitsInOrder([
       "a {",
       "  b: 3;",
       "}",
     ]));
-    sass.shouldExit(0);
+    await sass.shouldExit(0);
   });
 
-  test("supports relative imports", () {
+  test("supports relative imports", ()  async {
     await d.file("test.scss", "@import 'dir/test'").create();
 
     await d.dir("dir", [d.file("test.scss", "a {b: 1 + 2}")]).create();
