@@ -205,8 +205,7 @@ class SassNumber extends Value {
   SassNumber._(this.value, this.numeratorUnits, this.denominatorUnits,
       [this.asSlash]);
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
-      visitor.visitNumber(this);
+  T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);
 
   /// Returns a copy of [this] without [asSlash] set.
   SassNumber withoutSlash() {
@@ -318,7 +317,7 @@ class SassNumber extends Value {
     var value = this.value;
     var oldNumerators = numeratorUnits.toList();
     for (var newNumerator in newNumerators) {
-      removeFirstWhere/*<String>*/(oldNumerators, (oldNumerator) {
+      removeFirstWhere<String>(oldNumerators, (oldNumerator) {
         var factor = _conversionFactor(newNumerator, oldNumerator);
         if (factor == null) return false;
         value *= factor;
@@ -332,7 +331,7 @@ class SassNumber extends Value {
 
     var oldDenominators = denominatorUnits.toList();
     for (var newDenominator in newDenominators) {
-      removeFirstWhere/*<String>*/(oldDenominators, (oldDenominator) {
+      removeFirstWhere<String>(oldDenominators, (oldDenominator) {
         var factor = _conversionFactor(newDenominator, oldDenominator);
         if (factor == null) return false;
         value /= factor;
@@ -464,8 +463,7 @@ class SassNumber extends Value {
   /// [operation] with the resulting numbers.
   ///
   /// Throws a [SassScriptException] if the two numbers' units are incompatible.
-  /*=T*/ _coerceUnits/*<T>*/(
-      SassNumber other, /*=T*/ operation(num num1, num num2)) {
+  T _coerceUnits<T>(SassNumber other, T operation(num num1, num num2)) {
     num num1;
     num num2;
     if (hasUnits) {
@@ -511,7 +509,7 @@ class SassNumber extends Value {
     var newNumerators = <String>[];
     var mutableDenominators2 = denominators2.toList();
     for (var numerator in numerators1) {
-      removeFirstWhere/*<String>*/(mutableDenominators2, (denominator) {
+      removeFirstWhere<String>(mutableDenominators2, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
         value /= factor;
@@ -523,7 +521,7 @@ class SassNumber extends Value {
 
     var mutableDenominators1 = denominators1.toList();
     for (var numerator in numerators2) {
-      removeFirstWhere/*<String>*/(mutableDenominators1, (denominator) {
+      removeFirstWhere<String>(mutableDenominators1, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
         value *= factor;

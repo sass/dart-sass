@@ -14,7 +14,7 @@
     "url": "http://nex3.github.com"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=0.11.8"
   },
   "main": "sass.dart.js",
   "bin": "sass.js",

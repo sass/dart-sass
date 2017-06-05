@@ -22,28 +22,40 @@ import '../utils.dart';
 ///
 /// For example, `.foo` is a superselector of `:matches(.foo)`.
 final _subselectorPseudos =
-    new Set.from(['matches', 'any', 'nth-child', 'nth-last-child']);
+    new Set<String>.from(['matches', 'any', 'nth-child', 'nth-last-child']);
 
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by both [complex1] and [complex2].
 ///
 /// If no such list can be produced, returns `null`.
 List<List<ComplexSelectorComponent>> unifyComplex(
-    List<ComplexSelectorComponent> complex1,
-    List<ComplexSelectorComponent> complex2) {
-  var base1 = complex1.last;
-  var base2 = complex2.last;
-  if (base1 is CompoundSelector && base2 is CompoundSelector) {
-    var unified = unifyCompound(base2.components, base1.components);
-    if (unified == null) return null;
+    List<List<ComplexSelectorComponent>> complexes) {
+  assert(complexes.isNotEmpty);
 
-    return weave([
-      complex1.take(complex1.length - 1).toList(),
-      complex2.take(complex2.length - 1).toList()..add(unified)
-    ]);
-  } else {
-    return null;
+  if (complexes.length == 1) return complexes;
+
+  List<SimpleSelector> unifiedBase;
+  for (var complex in complexes) {
+    var base = complex.last;
+    if (base is CompoundSelector) {
+      if (unifiedBase == null) {
+        unifiedBase = base.components;
+      } else {
+        for (var simple in base.components) {
+          unifiedBase = simple.unify(unifiedBase);
+          if (unifiedBase == null) return null;
+        }
+      }
+    } else {
+      return null;
+    }
   }
+
+  var complexesWithoutBases = complexes
+      .map((complex) => complex.sublist(0, complex.length - 1))
+      .toList();
+  complexesWithoutBases.last.add(new CompoundSelector(unifiedBase));
+  return weave(complexesWithoutBases);
 }
 
 /// Returns a [CompoundSelector] that matches only elements that are matched by
@@ -122,6 +134,8 @@ SimpleSelector unifyUniversalAndElement(
 /// `.D (.A .B)` into `.D .A .B, .A .D .B`. For thoroughness, `.A.D .B` would
 /// also be required, but including merged selectors results in exponential
 /// output for very little gain.
+///
+/// The selector `.D (.A .B)` is represented as the list `[[.D], [.A, .B]]`.
 List<List<ComplexSelectorComponent>> weave(
     List<List<ComplexSelectorComponent>> complexes) {
   var prefixes = [complexes.first.toList()];
@@ -193,7 +207,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
 
   var groups1 = _groupSelectors(queue1);
   var groups2 = _groupSelectors(queue2);
-  var lcs = longestCommonSubsequence/*<List<ComplexSelectorComponent>>*/(
+  var lcs = longestCommonSubsequence<List<ComplexSelectorComponent>>(
       groups2, groups1, select: (group1, group2) {
     if (listEquals(group1, group2)) return group1;
     if (group1.first is! CompoundSelector ||
@@ -204,7 +218,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
     if (complexIsParentSuperselector(group2, group1)) return group1;
     if (!_mustUnify(group1, group2)) return null;
 
-    var unified = unifyComplex(group1, group2);
+    var unified = unifyComplex([group1, group2]);
     if (unified == null) return null;
     if (unified.length > 1) return null;
     return unified.first;
@@ -214,7 +228,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
     <Iterable<ComplexSelectorComponent>>[initialCombinators]
   ];
   for (var group in lcs) {
-    choices.add(_chunks/*<List<ComplexSelectorComponent>>*/(groups1, groups2,
+    choices.add(_chunks<List<ComplexSelectorComponent>>(groups1, groups2,
             (sequence) => complexIsParentSuperselector(sequence.first, group))
         .map((chunk) => chunk.expand((group) => group))
         .toList());
@@ -467,14 +481,14 @@ bool _isUnique(SimpleSelector simple) =>
 /// For example, given `(A B C | D E)` and `(1 2 | 3 4 5)` (with `|` denoting
 /// the boundary of the initial subsequence), this would return `[(A B C 1 2),
 /// (1 2 A B C)]`. The queues would then contain `(D E)` and `(3 4 5)`.
-List<List/*<T>*/ > _chunks/*<T>*/(
-    Queue/*<T>*/ queue1, Queue/*<T>*/ queue2, bool done(Queue/*<T>*/ queue)) {
-  var chunk1 = /*<T>*/ [];
+List<List<T>> _chunks<T>(
+    Queue<T> queue1, Queue<T> queue2, bool done(Queue<T> queue)) {
+  var chunk1 = <T>[];
   while (!done(queue1)) {
     chunk1.add(queue1.removeFirst());
   }
 
-  var chunk2 = /*<T>*/ [];
+  var chunk2 = <T>[];
   while (!done(queue2)) {
     chunk2.add(queue2.removeFirst());
   }
@@ -495,7 +509,7 @@ List<List/*<T>*/ > _chunks/*<T>*/(
 ///  [1, 4, 5],
 ///  [2, 4, 5]]
 /// ```
-List<List/*<T>*/ > paths/*<T>*/(Iterable<List/*<T>*/ > choices) => choices.fold(
+List<List<T>> paths<T>(Iterable<List<T>> choices) => choices.fold(
     [[]],
     (paths, choice) => choice
         .expand((option) => paths.map((path) => path.toList()..add(option)))

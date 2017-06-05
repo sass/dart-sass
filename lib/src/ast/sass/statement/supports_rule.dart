@@ -21,8 +21,7 @@ class SupportsRule implements Statement {
   SupportsRule(this.condition, Iterable<Statement> children, this.span)
       : children = new List.from(children);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitSupportsRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this);
 
   String toString() => "@supports $condition {${children.join(' ')}}";
 }

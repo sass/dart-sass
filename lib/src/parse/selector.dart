@@ -10,7 +10,7 @@ import '../utils.dart';
 import 'parser.dart';
 
 /// Pseudo-class selectors that take unadorned selectors as arguments.
-final _selectorPseudoClasses = new Set.from(
+final _selectorPseudoClasses = new Set<String>.from(
     ["not", "matches", "current", "any", "has", "host", "host-context"]);
 
 /// A parser for selectors.
@@ -290,7 +290,7 @@ class SelectorParser extends Parser {
         selector = _selectorList();
       }
     } else {
-      argument = declarationValue();
+      argument = declarationValue().trimRight();
     }
     scanner.expectChar($rparen);
 

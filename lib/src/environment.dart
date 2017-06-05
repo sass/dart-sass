@@ -282,7 +282,7 @@ class Environment {
   /// Variables, functions, and mixins declared in a given scope are
   /// inaccessible outside of it. If [semiGlobal] is passed, this scope can
   /// assign to global variables without a `!global` declaration.
-  /*=T*/ scope/*<T>*/(/*=T*/ callback(), {bool semiGlobal: false}) {
+  T scope<T>(T callback(), {bool semiGlobal: false}) {
     semiGlobal = semiGlobal && (_inSemiGlobalScope || _variables.length == 1);
 
     // TODO: avoid creating a new scope if no variables are declared.

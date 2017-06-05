@@ -27,6 +27,5 @@ class CssDeclaration extends CssNode {
 
   CssDeclaration(this.name, this.value, this.span);
 
-  /*=T*/ accept/*<T>*/(CssVisitor/*<T>*/ visitor) =>
-      visitor.visitDeclaration(this);
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitDeclaration(this);
 }

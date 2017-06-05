@@ -19,8 +19,7 @@ class ErrorRule implements Statement {
 
   ErrorRule(this.expression, this.span);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitErrorRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitErrorRule(this);
 
   String toString() => "@error $expression;";
 }

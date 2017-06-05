@@ -34,7 +34,7 @@ class SassMap extends Value {
   SassMap(Map<Value, Value> contents)
       : contents = new Map.unmodifiable(contents);
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) => visitor.visitMap(this);
+  T accept<T>(ValueVisitor<T> visitor) => visitor.visitMap(this);
 
   SassMap assertMap([String name]) => this;
 

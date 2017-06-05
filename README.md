@@ -34,7 +34,7 @@ Sass.
 ### Standalone
 
 You can download the standalone Dart Sass archive for your operating
-system—containing the Dart VM and the a snapshot of the Sass library—from
+system—containing the Dart VM and the snapshot of the Sass library—from
 [the release page][releases]. Extract it, add the directory to your path, and
 the `dart-sass` executable is ready to run!
 
@@ -178,6 +178,15 @@ Sass to update the reference behavior.
 
 13. The reference combinator is not supported. See [issue 303][].
 
+14. Universal selector unification is symmetrical. See [issue 2247][].
+
+15. `@extend` doesn't produce an error if it matches but fails to unify. See
+    [issue 2250][].
+
+16. Dart Sass currently only supports UTF-8 documents. We'd like to support
+    more, but Dart currently doesn't support them. See [dart-lang/sdk#11744][],
+    for example.
+
 [issue 1599]: https://github.com/sass/sass/issues/1599
 [issue 1126]: https://github.com/sass/sass/issues/1126
 [issue 2120]: https://github.com/sass/sass/issues/2120
@@ -191,5 +200,8 @@ Sass to update the reference behavior.
 [issue 2228]: https://github.com/sass/sass/issues/2228
 [issue 2245]: https://github.com/sass/sass/issues/2245
 [issue 303]: https://github.com/sass/sass/issues/303
+[issue 2247]: https://github.com/sass/sass/issues/2247
+[issue 2250]: https://github.com/sass/sass/issues/2250
+[dart-lang/sdk#11744]: https://github.com/dart-lang/sdk/issues/11744
 
 Disclaimer: this is not an official Google product.

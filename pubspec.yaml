@@ -8,7 +8,7 @@ executables:
   dart-sass: sass
 
 environment:
-  sdk: '>=1.19.0 <2.0.0'
+  sdk: '>=1.21.0 <2.0.0'
 
 dependencies:
   args: "^0.13.0"
@@ -24,12 +24,13 @@ dependencies:
 
 dev_dependencies:
   archive: "^1.0.0"
-  dart_style: "^0.2.9"
+  dart_style: "^1.0.0"
   grinder: "^0.8.0"
   http: "^0.11.0"
   js: "^0.6.0"
   node_preamble: "^1.1.0"
-  scheduled_test: "^0.12.8"
+  test_descriptor: "^1.0.0"
+  test_process: "^1.0.0-rc.1"
   test: "^0.12.5"
   xml: "^2.4.0"
   yaml: "^2.0.0"

@@ -34,8 +34,7 @@ class IfRule implements Statement {
         lastClause =
             lastClause == null ? null : new List.unmodifiable(lastClause);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitIfRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
 
   String toString() {
     var first = true;

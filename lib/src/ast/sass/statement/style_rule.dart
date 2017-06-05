@@ -25,8 +25,7 @@ class StyleRule implements Statement {
   StyleRule(this.selector, Iterable<Statement> children, this.span)
       : children = new List.unmodifiable(children);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitStyleRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this);
 
   String toString() => "$selector {${children.join(" ")}}";
 }

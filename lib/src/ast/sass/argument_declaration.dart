@@ -37,6 +37,9 @@ class ArgumentDeclaration implements SassNode {
   factory ArgumentDeclaration.parse(String contents, {url}) =>
       new ScssParser("($contents)", url: url).parseArgumentDeclaration();
 
-  String toString() =>
-      arguments.join(', ') + (restArgument == null ? '' : ", $restArgument...");
+  String toString() {
+    var components = new List.from(arguments.map((arg) => arg.toString()));
+    if (restArgument != null) components.add('$restArgument...');
+    return components.join(', ');
+  }
 }

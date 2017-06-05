@@ -17,8 +17,7 @@ class LoudComment implements Statement {
 
   LoudComment(this.text);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitLoudComment(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitLoudComment(this);
 
   String toString() => text.toString();
 }

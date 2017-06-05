@@ -31,7 +31,7 @@ abstract class Selector {
   bool get isInvisible => false;
 
   /// Calls the appropriate visit method on [visitor].
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor);
+  T accept<T>(SelectorVisitor<T> visitor);
 
   String toString() => selectorToCss(this, inspect: true);
 }

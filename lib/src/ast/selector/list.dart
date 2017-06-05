@@ -55,8 +55,7 @@ class SelectorList extends Selector {
   factory SelectorList.parse(String contents, {url, bool allowParent: true}) =>
       new SelectorParser(contents, url: url, allowParent: allowParent).parse();
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitSelectorList(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);
 
   /// Returns a [SelectorList] that matches only elements that are matched by
   /// both this and [other].
@@ -65,7 +64,7 @@ class SelectorList extends Selector {
   SelectorList unify(SelectorList other) {
     var contents = components.expand((complex1) {
       return other.components.expand((complex2) {
-        var unified = unifyComplex(complex1.components, complex2.components);
+        var unified = unifyComplex([complex1.components, complex2.components]);
         if (unified == null) return const <ComplexSelector>[];
         return unified.map((complex) => new ComplexSelector(complex));
       });

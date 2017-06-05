@@ -5,25 +5,44 @@
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
+import '../ast/selector.dart';
 import '../exception.dart';
 import '../utils.dart';
 
-/// The state of an extension for a given source and target.
+/// The state of an extension for a given extender.
 ///
-/// The source and target are represented externally, in the nested map that
-/// contains this state.
-class ExtendState {
+/// The target of the extension is represented externally, in the map that
+/// contains this extender.
+class Extension {
+  /// The selector in which the `@extend` appeared.
+  final ComplexSelector extender;
+
+  /// The selector that's being extended.
+  ///
+  /// `null` for one-off extensions.
+  final SimpleSelector target;
+
+  /// The minimum specificity required for any selector generated from this
+  /// extender.
+  final int specificity;
+
   /// Whether this extension is optional.
   bool get isOptional => _isOptional;
   bool _isOptional;
 
-  /// Whether this extension matched a selector.
-  var isUsed = false;
+  /// Whether this is a one-off extender representing a selector that was
+  /// originally in the document, rather than one defined with `@extend`.
+  final bool isOriginal;
 
   /// The media query context to which this extend is restricted, or `null` if
   /// it can apply within any context.
   List<CssMediaQuery> get mediaContext => _mediaContext;
   List<CssMediaQuery> _mediaContext;
+
+  /// The span in which [extender] was defined.
+  ///
+  /// `null` for one-off extensions.
+  final FileSpan extenderSpan;
 
   /// The span for an `@extend` rule that defined this extension.
   ///
@@ -32,13 +51,27 @@ class ExtendState {
   FileSpan get span => _span;
   FileSpan _span;
 
-  /// Creates a new extend state.
-  ExtendState(this._span, this._mediaContext, {bool optional: false})
-      : _isOptional = optional;
+  /// Creates a new extension.
+  ///
+  /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
+  Extension(ComplexSelector extender, this.target, this.extenderSpan,
+      this._span, this._mediaContext,
+      {int specificity, bool optional: false})
+      : extender = extender,
+        specificity = specificity ?? extender.maxSpecificity,
+        _isOptional = optional,
+        isOriginal = false;
 
-  /// Creates a one-off extend state that's not intended to be modified over time.
-  ExtendState.oneOff()
-      : _isOptional = true,
+  /// Creates a one-off extension that's not intended to be modified over time.
+  ///
+  /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
+  Extension.oneOff(ComplexSelector extender,
+      {int specificity, this.isOriginal: false})
+      : extender = extender,
+        target = null,
+        extenderSpan = null,
+        specificity = specificity ?? extender.maxSpecificity,
+        _isOptional = true,
         _mediaContext = null,
         _span = null;
 
@@ -72,4 +105,10 @@ class ExtendState {
     _span = span;
     _isOptional = false;
   }
+
+  Extension withExtender(ComplexSelector newExtender) =>
+      new Extension(newExtender, target, extenderSpan, _span, _mediaContext,
+          specificity: specificity, optional: isOptional);
+
+  String toString() => extender.toString();
 }

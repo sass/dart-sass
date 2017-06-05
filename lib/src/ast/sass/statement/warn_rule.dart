@@ -19,8 +19,7 @@ class WarnRule implements Statement {
 
   WarnRule(this.expression, this.span);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitWarnRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitWarnRule(this);
 
   String toString() => "@warn $expression;";
 }

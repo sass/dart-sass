@@ -84,6 +84,9 @@ class PseudoSelector extends SimpleSelector {
   }
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
+    if (compound.length == 1 && compound.first is UniversalSelector) {
+      return compound.first.unify([this]);
+    }
     if (compound.contains(this)) return compound;
 
     var result = <SimpleSelector>[];
@@ -139,8 +142,7 @@ class PseudoSelector extends SimpleSelector {
     }
   }
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitPseudoSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitPseudoSelector(this);
 
   // This intentionally uses identity for the selector list, if one is available.
   bool operator ==(other) =>

@@ -33,7 +33,7 @@ class ListExpression implements Expression {
       : contents = contents,
         span = span ?? spanForList(contents);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitListExpression(this);
 
   String toString() {

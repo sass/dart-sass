@@ -63,7 +63,7 @@ abstract class Value {
   const Value();
 
   /// Calls the appropriate visit method on [visitor].
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor);
+  T accept<T>(ValueVisitor<T> visitor);
 
   /// Throws a [SassScriptException] if [this] isn't a boolean.
   ///

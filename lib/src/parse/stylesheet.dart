@@ -46,6 +46,12 @@ abstract class StylesheetParser extends Parser {
   /// or `@each`.
   var _inControlDirective = false;
 
+  /// Whether the parser is currently parsing an unknown rule.
+  var _inUnknownAtRule = false;
+
+  /// Whether the parser is currently parsing a style rule.
+  var _inStyleRule = false;
+
   /// Whether the parser is currently within a parenthesized expression.
   var _inParentheses = false;
 
@@ -100,7 +106,9 @@ abstract class StylesheetParser extends Parser {
         return _mixinRule(start);
 
       default:
-        return root ? _styleRule() : _declarationOrStyleRule();
+        return _inStyleRule || _inUnknownAtRule || _inMixin || _inContentBlock
+            ? _declarationOrStyleRule()
+            : _styleRule();
     }
   }
 
@@ -138,10 +146,20 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a style rule.
   StyleRule _styleRule() {
+    var wasInStyleRule = _inStyleRule;
+    _inStyleRule = true;
+
+    // The indented syntax allows a single backslash to distinguish a style rule
+    // from old-style property syntax. We don't support old property syntax, but
+    // we do support the backslash because it's easy to do.
+    if (indented) scanner.scanChar($backslash);
+
     var start = scanner.state;
     var selector = _almostAnyValue();
     var children = this.children(_statement);
-    return new StyleRule(selector, children, scanner.spanFrom(start));
+    var rule = new StyleRule(selector, children, scanner.spanFrom(start));
+    _inStyleRule = wasInStyleRule;
+    return rule;
   }
 
   /// Consumes a [Declaration] or a [StyleRule].
@@ -166,11 +184,16 @@ abstract class StylesheetParser extends Parser {
   ///   parsing it as a declaration value. If this fails, backtrack and parse
   ///   it as a selector.
   ///
-  /// * If the declaration value value valid but is followed by "{", backtrack
-  ///   and parse it as a selector anyway. This ensures that ".foo:bar {" is
-  ///   always parsed as a selector and never as a property with nested
-  ///   properties beneath it.
+  /// * If the declaration value is valid but is followed by "{", backtrack and
+  ///   parse it as a selector anyway. This ensures that ".foo:bar {" is always
+  ///   parsed as a selector and never as a property with nested properties
+  ///   beneath it.
   Statement _declarationOrStyleRule() {
+    // The indented syntax allows a single backslash to distinguish a style rule
+    // from old-style property syntax. We don't support old property syntax, but
+    // we do support the backslash because it's easy to do.
+    if (indented && scanner.scanChar($backslash)) return _styleRule();
+
     var start = scanner.state;
     var declarationOrBuffer = _declarationOrBuffer();
 
@@ -180,12 +203,17 @@ abstract class StylesheetParser extends Parser {
     buffer.addInterpolation(_almostAnyValue());
     var selectorSpan = scanner.spanFrom(start);
 
+    var wasInStyleRule = _inStyleRule;
+    _inStyleRule = true;
+
     var children = this.children(_statement);
     if (indented && children.isEmpty) {
       warn("This selector doesn't have any properties and won't be rendered.",
           selectorSpan,
           color: color);
     }
+
+    _inStyleRule = wasInStyleRule;
 
     return new StyleRule(
         buffer.interpolation(selectorSpan), children, scanner.spanFrom(start));
@@ -245,8 +273,8 @@ abstract class StylesheetParser extends Parser {
 
     var postColonWhitespace = rawText(whitespace);
     if (lookingAtChildren()) {
-      return new Declaration(name, scanner.spanFrom(start),
-          children: this.children(_declarationChild));
+      var children = this.children(_declarationChild);
+      return new Declaration(name, scanner.spanFrom(start), children: children);
     }
 
     midBuffer.write(postColonWhitespace);
@@ -542,6 +570,11 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ExtendRule _extendRule(LineScannerState start) {
+    if (!_inStyleRule && !_inMixin && !_inContentBlock) {
+      scanner.error("@extend may only be used within style rules.",
+          position: start.position, length: "@extend".length);
+    }
+
     var value = _almostAnyValue();
     var optional = scanner.scanChar($exclamation);
     if (optional) expectIdentifier("optional");
@@ -914,6 +947,9 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`. [name] is the name of the at-rule.
   AtRule _unknownAtRule(LineScannerState start, String name) {
+    var wasInUnknownAtRule = _inUnknownAtRule;
+    _inUnknownAtRule = true;
+
     Interpolation value;
     var next = scanner.peekChar();
     if (next != $exclamation && !atEndOfStatement()) value = _almostAnyValue();
@@ -921,8 +957,10 @@ abstract class StylesheetParser extends Parser {
     var children = lookingAtChildren() ? this.children(_statement) : null;
     if (children == null) expectStatementSeparator();
 
-    return new AtRule(name, scanner.spanFrom(start),
+    var rule = new AtRule(name, scanner.spanFrom(start),
         value: value, children: children);
+    _inUnknownAtRule = wasInUnknownAtRule;
+    return rule;
   }
 
   /// Throws a [StringScannerException] indicating that the at-rule starting at
@@ -992,7 +1030,7 @@ abstract class StylesheetParser extends Parser {
     whitespace();
 
     var positional = <Expression>[];
-    var named = normalizedMap/*<Expression>*/();
+    var named = normalizedMap<Expression>();
     Expression rest;
     Expression keywordRest;
     while (_lookingAtExpression()) {
@@ -1256,8 +1294,12 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $plus:
-          scanner.readChar();
-          addOperator(BinaryOperator.plus);
+          if (singleExpression == null) {
+            addSingleExpression(_unaryOperation());
+          } else {
+            scanner.readChar();
+            addOperator(BinaryOperator.plus);
+          }
           break;
 
         case $minus:
@@ -1269,6 +1311,8 @@ abstract class StylesheetParser extends Parser {
             addSingleExpression(_number(), number: true);
           } else if (lookingAtIdentifier()) {
             addSingleExpression(_identifierLike());
+          } else if (singleExpression == null) {
+            addSingleExpression(_unaryOperation());
           } else {
             scanner.readChar();
             addOperator(BinaryOperator.minus);
@@ -1276,8 +1320,12 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $slash:
-          scanner.readChar();
-          addOperator(BinaryOperator.dividedBy);
+          if (singleExpression == null) {
+            addSingleExpression(_unaryOperation());
+          } else {
+            scanner.readChar();
+            addOperator(BinaryOperator.dividedBy);
+          }
           break;
 
         case $percent:
@@ -1990,6 +2038,7 @@ abstract class StylesheetParser extends Parser {
       case "url":
         var contents = _tryUrlContents(start);
         if (contents != null) return new StringExpression(contents);
+        if (scanner.peekChar() != $lparen) return null;
         return new FunctionExpression(
             new Interpolation(["url"], scanner.spanFrom(start)),
             _argumentInvocation());
@@ -2524,7 +2573,10 @@ abstract class StylesheetParser extends Parser {
 
     if (next == $n || next == $N) {
       var negation = _trySupportsNegation();
-      if (negation != null) return negation;
+      if (negation != null) {
+        scanner.expectChar($rparen);
+        return negation;
+      }
     }
 
     var name = _expression();
@@ -2551,6 +2603,7 @@ abstract class StylesheetParser extends Parser {
       return null;
     }
 
+    whitespace();
     return new SupportsNegation(
         _supportsConditionInParens(), scanner.spanFrom(start));
   }

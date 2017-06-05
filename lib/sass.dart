@@ -2,14 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:path/path.dart' as p;
-
-import 'src/ast/sass.dart';
 import 'src/exception.dart';
-import 'src/io.dart';
+import 'src/render.dart' as r;
 import 'src/sync_package_resolver.dart';
-import 'src/visitor/perform.dart';
-import 'src/visitor/serialize.dart';
 
 /// Loads the Sass file at [path], converts it to CSS, and returns the result.
 ///
@@ -23,15 +18,8 @@ import 'src/visitor/serialize.dart';
 ///
 /// Finally throws a [SassException] if conversion fails.
 String render(String path,
-    {bool color: false, SyncPackageResolver packageResolver}) {
-  var contents = readFile(path);
-  var url = p.toUri(path);
-  var sassTree = p.extension(path) == '.sass'
-      ? new Stylesheet.parseSass(contents, url: url, color: color)
-      : new Stylesheet.parseScss(contents, url: url, color: color);
-  var cssTree =
-      evaluate(sassTree, color: color, packageResolver: packageResolver);
-  return toCss(cssTree);
+        {bool color: false, SyncPackageResolver packageResolver}) =>
+    r.render(path, color: color, packageResolver: packageResolver);
 }
 
 /// Loads [source] as Sass, converts it to CSS, and returns the result.

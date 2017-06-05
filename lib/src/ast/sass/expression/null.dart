@@ -13,7 +13,7 @@ class NullExpression implements Expression {
 
   NullExpression(this.span);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitNullExpression(this);
 
   String toString() => "null";

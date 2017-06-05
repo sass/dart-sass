@@ -17,7 +17,7 @@ class ColorExpression implements Expression {
 
   ColorExpression(this.value, this.span);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitColorExpression(this);
 
   String toString() => value.toString();

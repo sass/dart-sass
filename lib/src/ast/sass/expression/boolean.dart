@@ -16,7 +16,7 @@ class BooleanExpression implements Expression {
 
   BooleanExpression(this.value, this.span);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitBooleanExpression(this);
 
   String toString() => value.toString();

@@ -28,8 +28,7 @@ class EachRule implements Statement {
       : variables = new List.unmodifiable(variables),
         children = new List.unmodifiable(children);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitEachRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);
 
   String toString() =>
       "@each ${variables.map((variable) => '\$' + variable).join(', ')} in "

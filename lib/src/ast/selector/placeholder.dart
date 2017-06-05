@@ -18,7 +18,7 @@ class PlaceholderSelector extends SimpleSelector {
 
   PlaceholderSelector(this.name);
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
+  T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitPlaceholderSelector(this);
 
   PlaceholderSelector addSuffix(String suffix) =>

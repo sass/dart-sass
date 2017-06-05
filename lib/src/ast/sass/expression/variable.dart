@@ -16,7 +16,7 @@ class VariableExpression implements Expression {
 
   VariableExpression(this.name, this.span);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitVariableExpression(this);
 
   String toString() => "\$$name";

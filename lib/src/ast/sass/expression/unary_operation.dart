@@ -20,7 +20,7 @@ class UnaryOperationExpression implements Expression {
 
   UnaryOperationExpression(this.operator, this.operand, this.span);
 
-  /*=T*/ accept/*<T>*/(ExpressionVisitor/*<T>*/ visitor) =>
+  T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitUnaryOperationExpression(this);
 
   String toString() {

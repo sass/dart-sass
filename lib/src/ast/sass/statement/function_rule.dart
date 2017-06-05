@@ -17,8 +17,7 @@ class FunctionRule extends CallableDeclaration {
       Iterable<Statement> children, FileSpan span)
       : super(name, arguments, children, span);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitFunctionRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);
 
   String toString() => "@function $name($arguments) {${children.join(' ')}}";
 }

@@ -17,8 +17,7 @@ class ClassSelector extends SimpleSelector {
 
   bool operator ==(other) => other is ClassSelector && other.name == name;
 
-  /*=T*/ accept/*<T>*/(SelectorVisitor/*<T>*/ visitor) =>
-      visitor.visitClassSelector(this);
+  T accept<T>(SelectorVisitor<T> visitor) => visitor.visitClassSelector(this);
 
   ClassSelector addSuffix(String suffix) => new ClassSelector(name + suffix);
 

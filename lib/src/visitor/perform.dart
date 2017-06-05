@@ -65,8 +65,8 @@ class _PerformVisitor
   /// The current lexical environment.
   Environment _environment;
 
-  /// The current selector, if any.
-  CssValue<SelectorList> _selector;
+  /// The style rule that defines the current parent selector, if any.
+  CssStyleRule _styleRule;
 
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
@@ -95,7 +95,7 @@ class _PerformVisitor
   var _inUnknownAtRule = false;
 
   /// Whether we're currently building the output of a style rule.
-  bool get _inStyleRule => _selector != null && !_atRootExcludingStyleRule;
+  bool get _inStyleRule => _styleRule != null && !_atRootExcludingStyleRule;
 
   /// Whether we're directly within an `@at-root` rule that excludes style
   /// rules.
@@ -427,9 +427,9 @@ class _PerformVisitor
             node.variables.first, value.withoutSlash())
         : (Value value) => _setMultipleVariables(node.variables, value);
     return _environment.scope(() {
-      return _handleReturn/*<Value>*/(list.asList, (element) {
+      return _handleReturn<Value>(list.asList, (element) {
         setVariables(element);
-        return _handleReturn/*<Statement>*/(
+        return _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
       });
     }, semiGlobal: true);
@@ -464,7 +464,7 @@ class _PerformVisitor
         targetText.span,
         () => new SimpleSelector.parse(targetText.value.trim(),
             allowParent: false));
-    _extender.addExtension(_selector.value, target, node, _mediaQueries);
+    _extender.addExtension(_styleRule.selector, target, node, _mediaQueries);
     return null;
   }
 
@@ -502,7 +502,7 @@ class _PerformVisitor
         // declarations immediately inside it have somewhere to go.
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
-        _withParent(new CssStyleRule(_selector, _selector.span), () {
+        _withParent(_styleRule.copyWithoutChildren(), () {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -536,7 +536,7 @@ class _PerformVisitor
     return _environment.scope(() {
       for (var i = from; i != to; i += direction) {
         _environment.setLocalVariable(node.variable, new SassNumber(i));
-        var result = _handleReturn/*<Statement>*/(
+        var result = _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;
       }
@@ -559,8 +559,7 @@ class _PerformVisitor
     if (clause == null) return null;
 
     return _environment.scope(
-        () =>
-            _handleReturn/*<Statement>*/(clause, (child) => child.accept(this)),
+        () => _handleReturn<Statement>(clause, (child) => child.accept(this)),
         semiGlobal: true);
   }
 
@@ -767,7 +766,7 @@ class _PerformVisitor
           //
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
-          _withParent(new CssStyleRule(_selector, _selector.span), () {
+          _withParent(_styleRule.copyWithoutChildren(), () {
             for (var child in node.children) {
               child.accept(this);
             }
@@ -791,7 +790,7 @@ class _PerformVisitor
   /// [queries1] and [queries2].
   List<CssMediaQuery> _mergeMediaQueries(
       Iterable<CssMediaQuery> queries1, Iterable<CssMediaQuery> queries2) {
-    return new List.unmodifiable(queries1.expand/*<CssMediaQuery>*/((query1) {
+    return new List.unmodifiable(queries1.expand((query1) {
       return queries2.map((query2) => query1.merge(query2));
     }).where((query) => query != null));
   }
@@ -827,7 +826,8 @@ class _PerformVisitor
         node.selector.span, () => new SelectorList.parse(selectorText.value));
     parsedSelector = _addExceptionSpan(
         node.selector.span,
-        () => parsedSelector.resolveParentSelectors(_selector?.value,
+        () => parsedSelector.resolveParentSelectors(
+            _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
     var selector =
@@ -837,7 +837,7 @@ class _PerformVisitor
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     _withParent(rule, () {
-      _withSelector(rule.selector, () {
+      _withStyleRule(rule, () {
         for (var child in node.children) {
           child.accept(this);
         }
@@ -873,7 +873,7 @@ class _PerformVisitor
         //
         // For example, "a {@supports (a: b) {b: c}}" should produce "@supports
         // (a: b) {a {b: c}}".
-        _withParent(new CssStyleRule(_selector, _selector.span), () {
+        _withParent(_styleRule.copyWithoutChildren(), () {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -949,7 +949,7 @@ class _PerformVisitor
   Value visitWhileRule(WhileRule node) {
     return _environment.scope(() {
       while (node.condition.accept(this).isTruthy) {
-        var result = _handleReturn/*<Statement>*/(
+        var result = _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;
       }
@@ -1297,7 +1297,7 @@ class _PerformVisitor
     var positional = arguments.positional
         .map((expression) => expression.accept(this))
         .toList();
-    var named = normalizedMapMap/*<String, Expression, Value>*/(arguments.named,
+    var named = normalizedMapMap<String, Expression, Value>(arguments.named,
         value: (_, expression) => expression.accept(this));
 
     if (arguments.rest == null) {
@@ -1386,10 +1386,9 @@ class _PerformVisitor
   ///
   /// If [convert] is passed, that's used to convert the map values to the value
   /// type for [values]. Otherwise, the [Value]s are used as-is.
-  void _addRestMap/*<T>*/(
-      Map<String, Object/*=T*/ > values, SassMap map, FileSpan span,
-      [/*=T*/ convert(Value value)]) {
-    convert ??= (value) => value as Object/*=T*/;
+  void _addRestMap<T>(Map<String, T> values, SassMap map, FileSpan span,
+      [T convert(Value value)]) {
+    convert ??= (value) => value as T;
     map.contents.forEach((key, value) {
       if (key is SassString) {
         values[key.text] = convert(value);
@@ -1445,9 +1444,8 @@ class _PerformVisitor
   }
 
   Value visitSelectorExpression(SelectorExpression node) {
-    var selector = _selector;
-    if (selector == null) return sassNull;
-    return selector.value.asSassList;
+    if (_styleRule == null) return sassNull;
+    return _styleRule.originalSelector.asSassList;
   }
 
   SassString visitStringExpression(StringExpression node) {
@@ -1471,7 +1469,7 @@ class _PerformVisitor
   ///
   /// Returns the value returned by [callback], or `null` if it only ever
   /// returned `null`.
-  Value _handleReturn/*<T>*/(List/*<T>*/ list, Value callback(/*=T*/ value)) {
+  Value _handleReturn<T>(List<T> list, Value callback(T value)) {
     for (var value in list) {
       var result = callback(value);
       if (result != null) return result;
@@ -1480,7 +1478,7 @@ class _PerformVisitor
   }
 
   /// Runs [callback] with [environment] as the current environment.
-  /*=T*/ _withEnvironment/*<T>*/(Environment environment, /*=T*/ callback()) {
+  T _withEnvironment<T>(Environment environment, T callback()) {
     var oldEnvironment = _environment;
     _environment = environment;
     var result = callback();
@@ -1553,9 +1551,7 @@ class _PerformVisitor
   /// If [through] is passed, [node] is added as a child of the first parent for
   /// which [through] returns `false`. That parent is copied unless it's the
   /// lattermost child of its parent.
-  /*=T*/ _withParent/*<S extends CssParentNode, T>*/(
-      /*=S*/ node,
-      /*=T*/ callback(),
+  T _withParent<S extends CssParentNode, T>(S node, T callback(),
       {bool through(CssNode node)}) {
     var oldParent = _parent;
 
@@ -1584,21 +1580,17 @@ class _PerformVisitor
     return result;
   }
 
-  /// Runs [callback] with [selector] as the current selector.
-  /*=T*/ _withSelector/*<T>*/(
-      CssValue<SelectorList> selector,
-      /*=T*/ callback()) {
-    var oldSelector = _selector;
-    _selector = selector;
+  /// Runs [callback] with [rule] as the current style rule.
+  T _withStyleRule<T>(CssStyleRule rule, T callback()) {
+    var oldRule = _styleRule;
+    _styleRule = rule;
     var result = callback();
-    _selector = oldSelector;
+    _styleRule = oldRule;
     return result;
   }
 
   /// Runs [callback] with [queries] as the current media queries.
-  /*=T*/ _withMediaQueries/*<T>*/(
-      List<CssMediaQuery> queries,
-      /*=T*/ callback()) {
+  T _withMediaQueries<T>(List<CssMediaQuery> queries, T callback()) {
     var oldMediaQueries = _mediaQueries;
     _mediaQueries = queries;
     var result = callback();
@@ -1610,8 +1602,7 @@ class _PerformVisitor
   /// site of the new frame.
   ///
   /// Runs [callback] with the new stack.
-  /*=T*/ _withStackFrame/*<T>*/(
-      String member, FileSpan span, /*=T*/ callback()) {
+  T _withStackFrame<T>(String member, FileSpan span, T callback()) {
     _stack.add(_stackFrame(span));
     var oldMember = _member;
     _member = member;
@@ -1644,7 +1635,7 @@ class _PerformVisitor
   /// reported as though the text being parsed were exactly in [span]. This may
   /// not be quite accurate if the source text contained interpolation, but
   /// it'll still produce a useful error.
-  /*=T*/ _adjustParseError/*<T>*/(FileSpan span, /*=T*/ callback()) {
+  T _adjustParseError<T>(FileSpan span, T callback()) {
     try {
       return callback();
     } on SassFormatException catch (error) {
@@ -1661,7 +1652,7 @@ class _PerformVisitor
 
   /// Runs [callback], and converts any [SassScriptException]s it throws to
   /// [SassRuntimeException]s with [span].
-  /*=T*/ _addExceptionSpan/*<T>*/(FileSpan span, /*=T*/ callback()) {
+  T _addExceptionSpan<T>(FileSpan span, T callback()) {
     try {
       return callback();
     } on SassScriptException catch (error) {

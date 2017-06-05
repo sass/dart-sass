@@ -21,7 +21,7 @@ import 'value.dart';
 final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
 
 /// Feature names supported by Dart sass.
-final _features = new Set.from([
+final _features = new Set<String>.from([
   "global-variable-shadowing",
   "extend-selector-pseudoclass",
   "units-level-3",
@@ -75,9 +75,9 @@ void defineCoreFunctions(Environment environment) {
       var alpha = arguments[3].assertNumber("alpha");
 
       return new SassColor.rgb(
-          _percentageOrUnitless(red, 255, "red").round(),
-          _percentageOrUnitless(green, 255, "green").round(),
-          _percentageOrUnitless(blue, 255, "blue").round(),
+          fuzzyRound(_percentageOrUnitless(red, 255, "red")),
+          fuzzyRound(_percentageOrUnitless(green, 255, "green")),
+          fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
           _percentageOrUnitless(alpha, 1, "alpha"));
     },
     (arguments) {
@@ -308,9 +308,9 @@ void defineCoreFunctions(Environment environment) {
     getInRange(String name, num min, num max) =>
         keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
 
-    var red = getInRange("red", -255, 255)?.round();
-    var green = getInRange("green", -255, 255)?.round();
-    var blue = getInRange("blue", -255, 255)?.round();
+    var red = _fuzzyRoundOrNull(getInRange("red", -255, 255));
+    var green = _fuzzyRoundOrNull(getInRange("green", -255, 255));
+    var blue = _fuzzyRoundOrNull(getInRange("blue", -255, 255));
     var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
     var saturation = getInRange("saturation", -100, 100);
     var lightness = getInRange("lightness", -100, 100);
@@ -393,9 +393,9 @@ void defineCoreFunctions(Environment environment) {
       }
 
       return color.changeRgb(
-          red: scaleValue(color.red, red, 255).round(),
-          green: scaleValue(color.green, green, 255).round(),
-          blue: scaleValue(color.blue, blue, 255).round(),
+          red: fuzzyRound(scaleValue(color.red, red, 255)),
+          green: fuzzyRound(scaleValue(color.green, green, 255)),
+          blue: fuzzyRound(scaleValue(color.blue, blue, 255)),
           alpha: scaleValue(color.alpha, alpha, 1));
     } else if (hasHsl) {
       return color.changeHsl(
@@ -423,9 +423,9 @@ void defineCoreFunctions(Environment environment) {
     getInRange(String name, num min, num max) =>
         keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
 
-    var red = getInRange("red", 0, 255)?.round();
-    var green = getInRange("green", 0, 255)?.round();
-    var blue = getInRange("blue", 0, 255)?.round();
+    var red = _fuzzyRoundOrNull(getInRange("red", 0, 255));
+    var green = _fuzzyRoundOrNull(getInRange("green", 0, 255));
+    var blue = _fuzzyRoundOrNull(getInRange("blue", 0, 255));
     var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
     var saturation = getInRange("saturation", 0, 100);
     var lightness = getInRange("lightness", 0, 100);
@@ -827,7 +827,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction(
       "selector-extend", r"$selector, $extendee, $extender", (arguments) {
     var selector = arguments[0].assertSelector(name: "selector");
-    var target = arguments[1].assertSimpleSelector(name: "extendee");
+    var target = arguments[1].assertSelector(name: "extendee");
     var source = arguments[2].assertSelector(name: "extender");
 
     return Extender.extend(selector, source, target).asSassList;
@@ -836,7 +836,7 @@ void defineCoreFunctions(Environment environment) {
   environment.defineFunction(
       "selector-replace", r"$selector, $original, $replacement", (arguments) {
     var selector = arguments[0].assertSelector(name: "selector");
-    var target = arguments[1].assertSimpleSelector(name: "original");
+    var target = arguments[1].assertSelector(name: "original");
     var source = arguments[2].assertSelector(name: "replacement");
 
     return Extender.replace(selector, source, target).asSassList;
@@ -1008,9 +1008,9 @@ SassColor _mix(SassColor color1, SassColor color2, SassNumber weight) {
   var weight2 = 1 - weight1;
 
   return new SassColor.rgb(
-      (color1.red * weight1 + color2.red * weight2).round(),
-      (color1.green * weight1 + color2.green * weight2).round(),
-      (color1.blue * weight1 + color2.blue * weight2).round(),
+      fuzzyRound(color1.red * weight1 + color2.red * weight2),
+      fuzzyRound(color1.green * weight1 + color2.green * weight2),
+      fuzzyRound(color1.blue * weight1 + color2.blue * weight2),
       color1.alpha * weightScale + color2.alpha * (1 - weightScale));
 }
 
@@ -1077,3 +1077,6 @@ CompoundSelector _prependParent(CompoundSelector compound) {
         <SimpleSelector>[new ParentSelector()]..addAll(compound.components));
   }
 }
+
+/// Like [fuzzyRound], but returns `null` if [number] is `null`.
+int _fuzzyRoundOrNull(num number) => number == null ? null : fuzzyRound(number);

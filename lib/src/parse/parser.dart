@@ -73,9 +73,15 @@ abstract class Parser {
   /// Consumes and ignores a loud (CSS-style) comment.
   void loudComment() {
     scanner.expect("/*");
-    do {
-      while (scanner.readChar() != $asterisk) {}
-    } while (scanner.readChar() != $slash);
+    while (true) {
+      var next = scanner.readChar();
+      if (next != $asterisk) continue;
+
+      do {
+        next = scanner.readChar();
+      } while (next == $asterisk);
+      if (next == $slash) break;
+    }
   }
 
   /// Consumes a plain CSS identifier.
@@ -526,17 +532,17 @@ abstract class Parser {
   ///
   /// If [message] is passed, prints that as well. This is intended for use when
   /// debugging parser failures.
-  void debug([String message]) {
+  void debug([message]) {
     if (message == null) {
       print(scanner.emptySpan.highlight(color: true));
     } else {
-      print(scanner.emptySpan.message(message, color: true));
+      print(scanner.emptySpan.message(message.toString(), color: true));
     }
   }
 
   /// Runs [callback] and wraps any [SourceSpanFormatException] it throws in a
   /// [SassFormatException].
-  /*=T*/ wrapSpanFormatException/*<T>*/(/*=T*/ callback()) {
+  T wrapSpanFormatException<T>(T callback()) {
     try {
       return callback();
     } on SourceSpanFormatException catch (error) {

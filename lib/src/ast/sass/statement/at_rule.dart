@@ -33,8 +33,7 @@ class AtRule implements Statement {
         normalizedName = unvendor(name),
         children = children == null ? null : new List.unmodifiable(children);
 
-  /*=T*/ accept/*<T>*/(StatementVisitor/*<T>*/ visitor) =>
-      visitor.visitAtRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);
 
   String toString() {
     var buffer = new StringBuffer("@$name");

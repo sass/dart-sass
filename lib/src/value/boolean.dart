@@ -26,8 +26,7 @@ class SassBoolean extends Value {
 
   const SassBoolean._(this.value);
 
-  /*=T*/ accept/*<T>*/(ValueVisitor/*<T>*/ visitor) =>
-      visitor.visitBoolean(this);
+  T accept<T>(ValueVisitor<T> visitor) => visitor.visitBoolean(this);
 
   SassBoolean assertBoolean([String name]) => this;
 
