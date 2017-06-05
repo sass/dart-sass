@@ -37,13 +37,7 @@ format() {
 @Task('Build Dart snapshot.')
 snapshot() {
   _ensureBuild();
-  Dart.run('bin/sass.dart',
-      arguments: ['tool/training.scss'],
-      vmArgs: [
-        '--snapshot=build/sass.dart.snapshot',
-        '--snapshot-kind=app-jit'
-      ],
-      quiet: true);
+  Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
 }
 
 @Task('Build standalone packages for all OSes.')
