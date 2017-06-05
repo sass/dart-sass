@@ -23,7 +23,7 @@ String readFile(String path) {
     return UTF8.decode(bytes);
   } on FormatException {
     var decoded = UTF8.decode(bytes, allowMalformed: true);
-    var sourceFile = new SourceFile(decoded, url: p.toUri(path));
+    var sourceFile = new SourceFile.fromString(decoded, url: p.toUri(path));
 
     // TODO(nweiz): Use [FormatException.offset] instead when
     // dart-lang/sdk#28293 is fixed.
