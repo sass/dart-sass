@@ -17,7 +17,8 @@ String render(String path,
     {bool color: false,
     SyncPackageResolver packageResolver,
     bool useSpaces: true,
-    int indentWidth: 2}) {
+    int indentWidth: 2,
+    LineFeed linefeed: LineFeed.LF}) {
   RangeError.checkValueInInterval(indentWidth, 0, 10, "indentWidth");
 
   var contents = readFile(path);
@@ -27,5 +28,23 @@ String render(String path,
       : new Stylesheet.parseScss(contents, url: url, color: color);
   var cssTree =
       evaluate(sassTree, color: color, packageResolver: packageResolver);
-  return toCss(cssTree, useSpaces: useSpaces, indentWidth: indentWidth);
+  return toCss(cssTree,
+      useSpaces: useSpaces, indentWidth: indentWidth, linefeed: linefeed);
+}
+
+LineFeed parseLineFeed(String str) {
+  switch (str) {
+    case 'cr':
+      return LineFeed.CR;
+      break;
+    case 'crlf':
+      return LineFeed.CRLF;
+      break;
+    case 'lfcr':
+      return LineFeed.LFCR;
+      break;
+    case 'lf':
+    default:
+      return LineFeed.LF;
+  }
 }

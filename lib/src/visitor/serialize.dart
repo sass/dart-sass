@@ -19,6 +19,15 @@ import 'interface/css.dart';
 import 'interface/selector.dart';
 import 'interface/value.dart';
 
+enum LineFeed { CR, CRLF, LF, LFCR }
+
+final linefeedChars = <LineFeed, String>{
+  LineFeed.CR: '\r',
+  LineFeed.CRLF: '\r\n',
+  LineFeed.LF: '\n',
+  LineFeed.LFCR: '\n\r',
+};
+
 /// Converts [node] to a CSS string.
 ///
 /// If [style] is passed, it controls the style of the resulting CSS. It
@@ -32,12 +41,14 @@ String toCss(CssNode node,
     {OutputStyle style,
     bool inspect: false,
     bool useSpaces: true,
-    int indentWidth: 2}) {
+    int indentWidth: 2,
+    LineFeed linefeed: LineFeed.LF}) {
   var visitor = new _SerializeCssVisitor(
       style: style,
       inspect: inspect,
       useSpaces: useSpaces,
-      indentWidth: indentWidth);
+      indentWidth: indentWidth,
+      linefeed: linefeed);
   node.accept(visitor);
   var result = visitor._buffer.toString();
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
@@ -94,16 +105,20 @@ class _SerializeCssVisitor
   /// The number of spaces or tabs to be used for indentation.
   final int _indentWidth;
 
+  final String _linefeed;
+
   _SerializeCssVisitor(
       {OutputStyle style,
       bool inspect: false,
       bool quote: true,
       bool useSpaces: true,
-      int indentWidth: 2})
+      int indentWidth: 2,
+      LineFeed linefeed: LineFeed.LF})
       : _inspect = inspect,
         _quote = quote,
         _indentCharacter = useSpaces ? $space : $tab,
-        _indentWidth = indentWidth;
+        _indentWidth = indentWidth,
+        _linefeed = linefeedChars[linefeed];
 
   void visitStylesheet(CssStylesheet node) {
     CssNode previous;
@@ -112,8 +127,8 @@ class _SerializeCssVisitor
       if (_isInvisible(child)) continue;
 
       if (previous != null) {
-        _buffer.writeln();
-        if (previous.isGroupEnd) _buffer.writeln();
+        _buffer.write(_linefeed);
+        if (previous.isGroupEnd) _buffer.write(_linefeed);
       }
       previous = child;
 
@@ -738,7 +753,11 @@ class _SerializeCssVisitor
         first = false;
       } else {
         _buffer.writeCharCode($comma);
-        _buffer.writeCharCode(complex.lineBreak ? $lf : $space);
+        if (complex.lineBreak) {
+          _buffer.write(_linefeed);
+        } else {
+          _buffer.writeCharCode($space);
+        }
       }
       visitComplexSelector(complex);
     }
@@ -798,7 +817,7 @@ class _SerializeCssVisitor
       return;
     }
 
-    _buffer.writeln();
+    _buffer.write(_linefeed);
     _indent(() {
       CssNode previous;
       for (var i = 0; i < children.length; i++) {
@@ -806,15 +825,15 @@ class _SerializeCssVisitor
         if (_isInvisible(child)) continue;
 
         if (previous != null) {
-          _buffer.writeln();
-          if (previous.isGroupEnd) _buffer.writeln();
+          _buffer.write(_linefeed);
+          if (previous.isGroupEnd) _buffer.write(_linefeed);
         }
         previous = child;
 
         child.accept(this);
       }
     });
-    _buffer.writeln();
+    _buffer.write(_linefeed);
     _writeIndentation();
     _buffer.writeCharCode($rbrace);
   }

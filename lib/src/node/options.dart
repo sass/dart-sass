@@ -9,4 +9,5 @@ class NodeOptions {
   external String get file;
   external String get indentType;
   external dynamic get indentWidth;
+  external String get linefeed;
 }

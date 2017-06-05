@@ -5,6 +5,7 @@
 import 'src/exception.dart';
 import 'src/render.dart' as r;
 import 'src/sync_package_resolver.dart';
+import 'src/visitor/serialize.dart';
 
 /// Loads the Sass file at [path], converts it to CSS, and returns the result.
 ///
@@ -18,5 +19,7 @@ import 'src/sync_package_resolver.dart';
 ///
 /// Finally throws a [SassException] if conversion fails.
 String render(String path,
-        {bool color: false, SyncPackageResolver packageResolver}) =>
+        {bool color: false,
+        SyncPackageResolver packageResolver,
+        LineFeed linefeed: LineFeed.LF}) =>
     r.render(path, color: color, packageResolver: packageResolver);

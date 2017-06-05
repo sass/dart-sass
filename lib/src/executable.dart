@@ -12,10 +12,13 @@ import 'package:path/path.dart' as p;
 import '../sass.dart';
 import 'exception.dart';
 import 'io.dart';
+import 'render.dart' show parseLineFeed;
+import 'visitor/serialize.dart';
 
 main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addOption('precision', hide: true)
+    ..addOption('linefeed', hide: true)
     ..addOption('style',
         abbr: 's',
         help: 'Output style.',
@@ -46,8 +49,9 @@ main(List<String> args) async {
   }
 
   var color = (options['color'] as bool) ?? hasTerminal;
+  var linefeed = parseLineFeed(options['linefeed']);
   try {
-    var css = render(options.rest.first, color: color);
+    var css = render(options.rest.first, color: color, linefeed: linefeed);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
     stderr.writeln("Error: ${error.message}");
