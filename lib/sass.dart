@@ -22,4 +22,5 @@ String render(String path,
         {bool color: false,
         SyncPackageResolver packageResolver,
         LineFeed linefeed: LineFeed.LF}) =>
-    r.render(path, color: color, packageResolver: packageResolver);
+    r.render(path, color: color, packageResolver: packageResolver, linefeed:
+        linefeed);
