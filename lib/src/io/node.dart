@@ -92,12 +92,18 @@ _readFile(String path, [String encoding]) {
 
 Future<String> readStdin() async {
   var completer = new Completer<String>();
-  var contents = new StringBuffer();
-  _stdin.on('data', allowInterop((buf) {
-    contents.write(UTF8.decode(buf));
+  String contents;
+  var innerSink = new StringConversionSink.withCallback((String result) {
+    contents = result;
+    completer.complete(contents);
+  });
+  // Node defaults all buffers to 'utf8'.
+  var sink = UTF8.decoder.startChunkedConversion(innerSink);
+  _stdin.on('data', allowInterop((chunk) {
+    sink.add(chunk as List<int>);
   }));
   _stdin.on('end', allowInterop(() {
-    completer.complete(contents.toString());
+    sink.close();
   }));
   _stdin.on('error', allowInterop((e) {
     stderr.writeln('Failed to read from stdin');

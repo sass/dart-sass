@@ -21,8 +21,7 @@ String render(String path,
         {bool color: false, SyncPackageResolver packageResolver}) =>
     r.render(path, color: color, packageResolver: packageResolver);
 
-/// Loads [source] as new-syntax Sass, converts it to CSS, and returns the
-/// result.
+/// Loads [source] as SCSS Sass, converts it to CSS, and returns the result.
 ///
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
@@ -30,9 +29,12 @@ String render(String path,
 /// Otherwise, they aren't supported. It takes a [SyncPackageResolver][] from
 /// the `package_resolver` package.
 ///
+/// If [url] is provided, it is the name of the file from which [source] comes.
+///
 /// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 ///
 /// Finally throws a [SassException] if conversion fails.
 String renderSource(String source,
-        {bool color: false, SyncPackageResolver packageResolver}) =>
-    r.renderSource(source, color: color, packageResolver: packageResolver);
+        {bool color: false, SyncPackageResolver packageResolver, String url}) =>
+    r.renderSource(source,
+        color: color, packageResolver: packageResolver, url: url);

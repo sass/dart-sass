@@ -43,9 +43,7 @@ String readFile(String path) {
 
 Future<String> readStdin() async {
   var completer = new Completer<String>();
-  var inputBuffer = new StringAccumulatorSink();
-  io.stdin.transform(new Utf8Decoder()).listen(inputBuffer.add,
-      onDone: () => completer.complete(inputBuffer.string));
+  completer.complete(await io.SYSTEM_ENCODING.decodeStream(io.stdin));
   return completer.future;
 }
 

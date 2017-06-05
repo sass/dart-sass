@@ -5,7 +5,6 @@
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
-import 'exception.dart';
 import 'io.dart';
 import 'sync_package_resolver.dart';
 import 'visitor/perform.dart';
@@ -33,12 +32,15 @@ String render(String path,
 /// Like [renderSource] in `lib/sass.dart`, but provides more options to support the
 /// node-sass compatible API.
 String renderSource(String source,
-    {bool color: false, SyncPackageResolver packageResolver, bool useSpaces:
-      true, int indentWidth: 2}) {
+    {bool color: false,
+    SyncPackageResolver packageResolver,
+    bool useSpaces: true,
+    int indentWidth: 2,
+    String url}) {
   RangeError.checkValueInInterval(indentWidth, 0, 10, "indentWidth");
 
-  var url = new UriData.fromString(source);
-  var sassTree = new Stylesheet.parseScss(source, url: url, color: color);
+  var sassTree = new Stylesheet.parseScss(source,
+      url: url == null ? url : Uri.parse(url), color: color);
   var cssTree =
       evaluate(sassTree, color: color, packageResolver: packageResolver);
   return toCss(cssTree);
