@@ -71,13 +71,22 @@ js() {
 @Task('Build a pure-JS npm package.')
 @Depends(js)
 npm_package() {
-  var dir = new Directory('build/npm');
+  var json = JSON.decode(new File('package/package.json').readAsStringSync());
+  json['version'] = _version;
+
+  _writeNpmPackage('build/npm', json);
+  _writeNpmPackage('build/npm-old', json..addAll({"name": "dart-sass"}));
+}
+
+/// Writes a Dart Sass NPM package to the directory at [destination].
+///
+/// The [json] will be used as the package's package.json.
+void _writeNpmPackage(String destination, Map<String, dynamic> json) {
+  var dir = new Directory(destination);
   if (dir.existsSync()) dir.deleteSync(recursive: true);
   dir.createSync(recursive: true);
 
-  log("copying package/package.json to build/npm");
-  var json = JSON.decode(new File('package/package.json').readAsStringSync());
-  json['version'] = _version;
+  log("copying package/package.json to $destination");
   new File(p.join(dir.path, 'package.json'))
       .writeAsStringSync(JSON.encode(json));
 
