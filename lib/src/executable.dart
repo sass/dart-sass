@@ -12,12 +12,10 @@ import 'package:path/path.dart' as p;
 import '../sass.dart';
 import 'exception.dart';
 import 'io.dart';
-import 'render.dart' show parseLineFeed;
 
 main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addOption('precision', hide: true)
-    ..addOption('linefeed', hide: true)
     ..addOption('style',
         abbr: 's',
         help: 'Output style.',
