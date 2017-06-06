@@ -108,6 +108,7 @@ Future<String> readStdin() async {
   _stdin.on('error', allowInterop((e) {
     stderr.writeln('Failed to read from stdin');
     stderr.writeln(e);
+    completer.completeError(e);
   }));
   return completer.future;
 }
