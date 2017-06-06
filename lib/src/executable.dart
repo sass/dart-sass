@@ -48,9 +48,8 @@ main(List<String> args) async {
   }
 
   var color = (options['color'] as bool) ?? hasTerminal;
-  var linefeed = parseLineFeed(options['linefeed'] as String);
   try {
-    var css = render(options.rest.first, color: color, linefeed: linefeed);
+    var css = render(options.rest.first, color: color);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
     stderr.writeln("Error: ${error.message}");
