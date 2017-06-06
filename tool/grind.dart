@@ -71,7 +71,8 @@ js() {
 @Task('Build a pure-JS npm package.')
 @Depends(js)
 npm_package() {
-  var json = JSON.decode(new File('package/package.json').readAsStringSync());
+  var json = JSON.decode(new File('package/package.json').readAsStringSync())
+      as Map<String, dynamic>;
   json['version'] = _version;
 
   _writeNpmPackage('build/npm', json);

@@ -28,7 +28,7 @@ main() async {
       footer: '.bar {@extend .foo}');
 }
 
-Future writeNTimes(String path, String text, int times,
+Future writeNTimes(String path, String text, num times,
     {String header, String footer}) async {
   print("Generating $path...");
   var file = new File(path).openWrite();
