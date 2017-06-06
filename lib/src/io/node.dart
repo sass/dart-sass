@@ -27,7 +27,7 @@ class _Stderr {
 class _Stdin {
   external String read();
 
-  external void on(String event, void callback(object));
+  external void on(String event, void callback([object]));
 }
 
 @JS()
@@ -99,13 +99,17 @@ Future<String> readStdin() async {
   });
   // Node defaults all buffers to 'utf8'.
   var sink = UTF8.decoder.startChunkedConversion(innerSink);
-  _stdin.on('data', allowInterop((chunk) {
+  _stdin.on('data', allowInterop(([chunk]) {
+    assert(chunk != null);
     sink.add(chunk as List<int>);
   }));
-  _stdin.on('end', allowInterop(() {
+  _stdin.on('end', allowInterop(([_]) {
+    // Callback for 'end' receives no args.
+    assert(_ == null);
     sink.close();
   }));
-  _stdin.on('error', allowInterop((e) {
+  _stdin.on('error', allowInterop(([e]) {
+    assert(e != null);
     stderr.writeln('Failed to read from stdin');
     stderr.writeln(e);
     completer.completeError(e);
