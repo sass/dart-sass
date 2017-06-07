@@ -19,14 +19,18 @@ import 'interface/css.dart';
 import 'interface/selector.dart';
 import 'interface/value.dart';
 
-enum LineFeed { CR, CRLF, LF, LFCR }
+/// A simple enum-like class representing the supported line feed
+/// characters.
+class LineFeed {
+  final String _text;
 
-final linefeedChars = <LineFeed, String>{
-  LineFeed.CR: '\r',
-  LineFeed.CRLF: '\r\n',
-  LineFeed.LF: '\n',
-  LineFeed.LFCR: '\n\r',
-};
+  const LineFeed._(this._text);
+
+  static final LineFeed cr = const LineFeed._('\r');
+  static final LineFeed crlf = const LineFeed._('\r\n');
+  static final LineFeed lf = const LineFeed._('\n');
+  static final LineFeed lfcr = const LineFeed._('\n\r');
+}
 
 /// Converts [node] to a CSS string.
 ///
@@ -41,14 +45,16 @@ String toCss(CssNode node,
     {OutputStyle style,
     bool inspect: false,
     bool useSpaces: true,
-    int indentWidth: 2,
-    LineFeed linefeed: LineFeed.LF}) {
+    int indentWidth,
+    LineFeed lineFeed}) {
+  indentWidth ??= 2;
+  lineFeed ??= LineFeed.lf;
   var visitor = new _SerializeCssVisitor(
       style: style,
       inspect: inspect,
       useSpaces: useSpaces,
       indentWidth: indentWidth,
-      linefeed: linefeed);
+      lineFeed: lineFeed);
   node.accept(visitor);
   var result = visitor._buffer.toString();
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
@@ -105,20 +111,21 @@ class _SerializeCssVisitor
   /// The number of spaces or tabs to be used for indentation.
   final int _indentWidth;
 
-  final String _linefeed;
+  /// The characters to use for a line feed.
+  final String _lineFeed;
 
   _SerializeCssVisitor(
       {OutputStyle style,
       bool inspect: false,
       bool quote: true,
       bool useSpaces: true,
-      int indentWidth: 2,
-      LineFeed linefeed: LineFeed.LF})
+      int indentWidth,
+      LineFeed lineFeed})
       : _inspect = inspect,
         _quote = quote,
         _indentCharacter = useSpaces ? $space : $tab,
-        _indentWidth = indentWidth,
-        _linefeed = linefeedChars[linefeed];
+        _indentWidth = indentWidth ?? 2,
+        _lineFeed = (lineFeed ?? LineFeed.lf)._text;
 
   void visitStylesheet(CssStylesheet node) {
     CssNode previous;
@@ -127,8 +134,8 @@ class _SerializeCssVisitor
       if (_isInvisible(child)) continue;
 
       if (previous != null) {
-        _buffer.write(_linefeed);
-        if (previous.isGroupEnd) _buffer.write(_linefeed);
+        _buffer.write(_lineFeed);
+        if (previous.isGroupEnd) _buffer.write(_lineFeed);
       }
       previous = child;
 
@@ -754,7 +761,7 @@ class _SerializeCssVisitor
       } else {
         _buffer.writeCharCode($comma);
         if (complex.lineBreak) {
-          _buffer.write(_linefeed);
+          _buffer.write(_lineFeed);
         } else {
           _buffer.writeCharCode($space);
         }
@@ -817,7 +824,7 @@ class _SerializeCssVisitor
       return;
     }
 
-    _buffer.write(_linefeed);
+    _buffer.write(_lineFeed);
     _indent(() {
       CssNode previous;
       for (var i = 0; i < children.length; i++) {
@@ -825,15 +832,15 @@ class _SerializeCssVisitor
         if (_isInvisible(child)) continue;
 
         if (previous != null) {
-          _buffer.write(_linefeed);
-          if (previous.isGroupEnd) _buffer.write(_linefeed);
+          _buffer.write(_lineFeed);
+          if (previous.isGroupEnd) _buffer.write(_lineFeed);
         }
         previous = child;
 
         child.accept(this);
       }
     });
-    _buffer.write(_linefeed);
+    _buffer.write(_lineFeed);
     _writeIndentation();
     _buffer.writeCharCode($rbrace);
   }

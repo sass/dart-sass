@@ -16,8 +16,10 @@ String render(String path,
     {bool color: false,
     SyncPackageResolver packageResolver,
     bool useSpaces: true,
-    int indentWidth: 2,
-    LineFeed linefeed: LineFeed.LF}) {
+    int indentWidth,
+    LineFeed lineFeed}) {
+  indentWidth ??= 2;
+  lineFeed ??= LineFeed.lf;
   RangeError.checkValueInInterval(indentWidth, 0, 10, "indentWidth");
 
   var contents = readFile(path);
@@ -28,22 +30,5 @@ String render(String path,
   var cssTree =
       evaluate(sassTree, color: color, packageResolver: packageResolver);
   return toCss(cssTree,
-      useSpaces: useSpaces, indentWidth: indentWidth, linefeed: linefeed);
-}
-
-LineFeed parseLineFeed(String str) {
-  switch (str) {
-    case 'cr':
-      return LineFeed.CR;
-      break;
-    case 'crlf':
-      return LineFeed.CRLF;
-      break;
-    case 'lfcr':
-      return LineFeed.LFCR;
-      break;
-    case 'lf':
-    default:
-      return LineFeed.LF;
-  }
+      useSpaces: useSpaces, indentWidth: indentWidth, lineFeed: lineFeed);
 }

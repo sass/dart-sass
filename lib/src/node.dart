@@ -41,11 +41,11 @@ void _render(
     var indentWidth = indentWidthValue is int
         ? indentWidthValue
         : int.parse(indentWidthValue.toString());
-    var linefeed = parseLineFeed(options.linefeed);
+    var lineFeed = _parseLineFeed(options.linefeed);
     var result = newNodeResult(render(options.file,
         useSpaces: options.indentType == 'space',
         indentWidth: indentWidth,
-        linefeed: linefeed));
+        lineFeed: lineFeed));
     callback(null, result);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
@@ -65,13 +65,31 @@ NodeResult _renderSync(NodeOptions options) {
     var indentWidth = indentWidthValue is int
         ? indentWidthValue
         : int.parse(indentWidthValue.toString());
-    var linefeed = parseLineFeed(options.linefeed);
+    var lineFeed = _parseLineFeed(options.linefeed);
     return newNodeResult(render(options.file,
         useSpaces: options.indentType == 'space',
         indentWidth: indentWidth,
-        linefeed: linefeed));
+        lineFeed: lineFeed));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
     throw new NodeError(message: error.message);
+  }
+}
+
+/// Parses a String representation of a [LineFeed] into a value of the enum-like
+/// class.
+LineFeed _parseLineFeed(String str) {
+  switch (str) {
+    case 'cr':
+      return LineFeed.cr;
+      break;
+    case 'crlf':
+      return LineFeed.crlf;
+      break;
+    case 'lfcr':
+      return LineFeed.lfcr;
+      break;
+    default:
+      return LineFeed.lf;
   }
 }
