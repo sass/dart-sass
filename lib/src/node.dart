@@ -11,6 +11,7 @@ import 'node/exports.dart';
 import 'node/options.dart';
 import 'node/result.dart';
 import 'render.dart';
+import 'visitor/serialize.dart';
 
 /// The entrypoint for Node.js.
 ///
