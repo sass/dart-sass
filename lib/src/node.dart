@@ -77,19 +77,15 @@ NodeResult _renderSync(NodeOptions options) {
   }
 }
 
-/// Parses a String representation of a [LineFeed] into a value of the enum-like
-/// class.
+/// Parses the name of a line feed type into a [LineFeed].
 LineFeed _parseLineFeed(String str) {
   switch (str) {
     case 'cr':
       return LineFeed.cr;
-      break;
     case 'crlf':
       return LineFeed.crlf;
-      break;
     case 'lfcr':
       return LineFeed.lfcr;
-      break;
     default:
       return LineFeed.lf;
   }

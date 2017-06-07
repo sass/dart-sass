@@ -18,10 +18,6 @@ String render(String path,
     bool useSpaces: true,
     int indentWidth,
     LineFeed lineFeed}) {
-  indentWidth ??= 2;
-  lineFeed ??= LineFeed.lf;
-  RangeError.checkValueInInterval(indentWidth, 0, 10, "indentWidth");
-
   var contents = readFile(path);
   var url = p.toUri(path);
   var sassTree = p.extension(path) == '.sass'

@@ -19,19 +19,6 @@ import 'interface/css.dart';
 import 'interface/selector.dart';
 import 'interface/value.dart';
 
-/// A simple enum-like class representing the supported line feed
-/// characters.
-class LineFeed {
-  final String _text;
-
-  const LineFeed._(this._text);
-
-  static final LineFeed cr = const LineFeed._('\r');
-  static final LineFeed crlf = const LineFeed._('\r\n');
-  static final LineFeed lf = const LineFeed._('\n');
-  static final LineFeed lfcr = const LineFeed._('\n\r');
-}
-
 /// Converts [node] to a CSS string.
 ///
 /// If [style] is passed, it controls the style of the resulting CSS. It
@@ -48,7 +35,6 @@ String toCss(CssNode node,
     int indentWidth,
     LineFeed lineFeed}) {
   indentWidth ??= 2;
-  lineFeed ??= LineFeed.lf;
   var visitor = new _SerializeCssVisitor(
       style: style,
       inspect: inspect,
@@ -112,7 +98,7 @@ class _SerializeCssVisitor
   final int _indentWidth;
 
   /// The characters to use for a line feed.
-  final String _lineFeed;
+  final LineFeed _lineFeed;
 
   _SerializeCssVisitor(
       {OutputStyle style,
@@ -125,7 +111,9 @@ class _SerializeCssVisitor
         _quote = quote,
         _indentCharacter = useSpaces ? $space : $tab,
         _indentWidth = indentWidth ?? 2,
-        _lineFeed = (lineFeed ?? LineFeed.lf)._text;
+        _lineFeed = lineFeed ?? LineFeed.lf {
+    RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
+  }
 
   void visitStylesheet(CssStylesheet node) {
     CssNode previous;
@@ -134,8 +122,8 @@ class _SerializeCssVisitor
       if (_isInvisible(child)) continue;
 
       if (previous != null) {
-        _buffer.write(_lineFeed);
-        if (previous.isGroupEnd) _buffer.write(_lineFeed);
+        _buffer.write(_lineFeed.text);
+        if (previous.isGroupEnd) _buffer.write(_lineFeed.text);
       }
       previous = child;
 
@@ -761,7 +749,7 @@ class _SerializeCssVisitor
       } else {
         _buffer.writeCharCode($comma);
         if (complex.lineBreak) {
-          _buffer.write(_lineFeed);
+          _buffer.write(_lineFeed.text);
         } else {
           _buffer.writeCharCode($space);
         }
@@ -824,7 +812,7 @@ class _SerializeCssVisitor
       return;
     }
 
-    _buffer.write(_lineFeed);
+    _buffer.write(_lineFeed.text);
     _indent(() {
       CssNode previous;
       for (var i = 0; i < children.length; i++) {
@@ -832,15 +820,15 @@ class _SerializeCssVisitor
         if (_isInvisible(child)) continue;
 
         if (previous != null) {
-          _buffer.write(_lineFeed);
-          if (previous.isGroupEnd) _buffer.write(_lineFeed);
+          _buffer.write(_lineFeed.text);
+          if (previous.isGroupEnd) _buffer.write(_lineFeed.text);
         }
         previous = child;
 
         child.accept(this);
       }
     });
-    _buffer.write(_lineFeed);
+    _buffer.write(_lineFeed.text);
     _writeIndentation();
     _buffer.writeCharCode($rbrace);
   }
@@ -944,4 +932,29 @@ class OutputStyle {
   const OutputStyle._(this._name);
 
   String toString() => _name;
+}
+
+/// An enum of line feed sequences.
+class LineFeed {
+  /// A single carriage return.
+  static const cr = const LineFeed._('cr', '\r');
+
+  /// A carriage return followed by a line feed.
+  static const crlf = const LineFeed._('crlf', '\r\n');
+
+  /// A single line feed.
+  static const lf = const LineFeed._('lf', '\n');
+
+  /// A line feed followed by a carriage return.
+  static const lfcr = const LineFeed._('lfcr', '\n\r');
+
+  /// The name of this sequence..
+  final String name;
+
+  /// The text to emit for this line feed.
+  final String text;
+
+  const LineFeed._(this.name, this.text);
+
+  String toString() => name;
 }
