@@ -64,7 +64,7 @@ can install it globally using `npm install -g sass`, or to your project using
 [npm]: https://www.npmjs.com/package/sass
 
 ```js
-var sass = require(sass');
+var sass = require('sass');
 
 sass.render({file: scss_filename}, function(err, result) { /* ... */ });
 
