@@ -1,4 +1,4 @@
-## 1.0.0-alpha.10
+## 1.0.0-beta.1
 
 * Drop support for the reference combinator. This has been removed from the
   spec, and will be deprecated and eventually removed in other implementations.
