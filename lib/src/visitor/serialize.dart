@@ -32,12 +32,15 @@ String toCss(CssNode node,
     {OutputStyle style,
     bool inspect: false,
     bool useSpaces: true,
-    int indentWidth: 2}) {
+    int indentWidth,
+    LineFeed lineFeed}) {
+  indentWidth ??= 2;
   var visitor = new _SerializeCssVisitor(
       style: style,
       inspect: inspect,
       useSpaces: useSpaces,
-      indentWidth: indentWidth);
+      indentWidth: indentWidth,
+      lineFeed: lineFeed);
   node.accept(visitor);
   var result = visitor._buffer.toString();
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
@@ -94,16 +97,23 @@ class _SerializeCssVisitor
   /// The number of spaces or tabs to be used for indentation.
   final int _indentWidth;
 
+  /// The characters to use for a line feed.
+  final LineFeed _lineFeed;
+
   _SerializeCssVisitor(
       {OutputStyle style,
       bool inspect: false,
       bool quote: true,
       bool useSpaces: true,
-      int indentWidth: 2})
+      int indentWidth,
+      LineFeed lineFeed})
       : _inspect = inspect,
         _quote = quote,
         _indentCharacter = useSpaces ? $space : $tab,
-        _indentWidth = indentWidth;
+        _indentWidth = indentWidth ?? 2,
+        _lineFeed = lineFeed ?? LineFeed.lf {
+    RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
+  }
 
   void visitStylesheet(CssStylesheet node) {
     CssNode previous;
@@ -112,8 +122,8 @@ class _SerializeCssVisitor
       if (_isInvisible(child)) continue;
 
       if (previous != null) {
-        _buffer.writeln();
-        if (previous.isGroupEnd) _buffer.writeln();
+        _buffer.write(_lineFeed.text);
+        if (previous.isGroupEnd) _buffer.write(_lineFeed.text);
       }
       previous = child;
 
@@ -738,7 +748,11 @@ class _SerializeCssVisitor
         first = false;
       } else {
         _buffer.writeCharCode($comma);
-        _buffer.writeCharCode(complex.lineBreak ? $lf : $space);
+        if (complex.lineBreak) {
+          _buffer.write(_lineFeed.text);
+        } else {
+          _buffer.writeCharCode($space);
+        }
       }
       visitComplexSelector(complex);
     }
@@ -798,7 +812,7 @@ class _SerializeCssVisitor
       return;
     }
 
-    _buffer.writeln();
+    _buffer.write(_lineFeed.text);
     _indent(() {
       CssNode previous;
       for (var i = 0; i < children.length; i++) {
@@ -806,15 +820,15 @@ class _SerializeCssVisitor
         if (_isInvisible(child)) continue;
 
         if (previous != null) {
-          _buffer.writeln();
-          if (previous.isGroupEnd) _buffer.writeln();
+          _buffer.write(_lineFeed.text);
+          if (previous.isGroupEnd) _buffer.write(_lineFeed.text);
         }
         previous = child;
 
         child.accept(this);
       }
     });
-    _buffer.writeln();
+    _buffer.write(_lineFeed.text);
     _writeIndentation();
     _buffer.writeCharCode($rbrace);
   }
@@ -918,4 +932,29 @@ class OutputStyle {
   const OutputStyle._(this._name);
 
   String toString() => _name;
+}
+
+/// An enum of line feed sequences.
+class LineFeed {
+  /// A single carriage return.
+  static const cr = const LineFeed._('cr', '\r');
+
+  /// A carriage return followed by a line feed.
+  static const crlf = const LineFeed._('crlf', '\r\n');
+
+  /// A single line feed.
+  static const lf = const LineFeed._('lf', '\n');
+
+  /// A line feed followed by a carriage return.
+  static const lfcr = const LineFeed._('lfcr', '\n\r');
+
+  /// The name of this sequence..
+  final String name;
+
+  /// The text to emit for this line feed.
+  final String text;
+
+  const LineFeed._(this.name, this.text);
+
+  String toString() => name;
 }

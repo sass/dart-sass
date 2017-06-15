@@ -11,6 +11,7 @@ import 'node/exports.dart';
 import 'node/options.dart';
 import 'node/result.dart';
 import 'render.dart';
+import 'visitor/serialize.dart';
 
 /// The entrypoint for Node.js.
 ///
@@ -41,8 +42,11 @@ void _render(
     var indentWidth = indentWidthValue is int
         ? indentWidthValue
         : int.parse(indentWidthValue.toString());
+    var lineFeed = _parseLineFeed(options.linefeed);
     var result = newNodeResult(render(options.file,
-        useSpaces: options.indentType == 'space', indentWidth: indentWidth));
+        useSpaces: options.indentType == 'space',
+        indentWidth: indentWidth,
+        lineFeed: lineFeed));
     callback(null, result);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
@@ -62,10 +66,27 @@ NodeResult _renderSync(NodeOptions options) {
     var indentWidth = indentWidthValue is int
         ? indentWidthValue
         : int.parse(indentWidthValue.toString());
+    var lineFeed = _parseLineFeed(options.linefeed);
     return newNodeResult(render(options.file,
-        useSpaces: options.indentType == 'space', indentWidth: indentWidth));
+        useSpaces: options.indentType == 'space',
+        indentWidth: indentWidth,
+        lineFeed: lineFeed));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
     throw new NodeError(message: error.message);
+  }
+}
+
+/// Parses the name of a line feed type into a [LineFeed].
+LineFeed _parseLineFeed(String str) {
+  switch (str) {
+    case 'cr':
+      return LineFeed.cr;
+    case 'crlf':
+      return LineFeed.crlf;
+    case 'lfcr':
+      return LineFeed.lfcr;
+    default:
+      return LineFeed.lf;
   }
 }

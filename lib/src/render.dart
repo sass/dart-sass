@@ -16,9 +16,8 @@ String render(String path,
     {bool color: false,
     SyncPackageResolver packageResolver,
     bool useSpaces: true,
-    int indentWidth: 2}) {
-  RangeError.checkValueInInterval(indentWidth, 0, 10, "indentWidth");
-
+    int indentWidth,
+    LineFeed lineFeed}) {
   var contents = readFile(path);
   var url = p.toUri(path);
   var sassTree = p.extension(path) == '.sass'
@@ -26,5 +25,6 @@ String render(String path,
       : new Stylesheet.parseScss(contents, url: url, color: color);
   var cssTree =
       evaluate(sassTree, color: color, packageResolver: packageResolver);
-  return toCss(cssTree, useSpaces: useSpaces, indentWidth: indentWidth);
+  return toCss(cssTree,
+      useSpaces: useSpaces, indentWidth: indentWidth, lineFeed: lineFeed);
 }
