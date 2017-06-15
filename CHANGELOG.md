@@ -1,3 +1,10 @@
+## 1.0.0-beta.2
+
+### Node JS API
+
+* Add support for `lineFeed`, `indentWidth`, and `indentType` options to
+  `render()` and `renderSync()`.
+
 ## 1.0.0-beta.1
 
 * Drop support for the reference combinator. This has been removed from the
