@@ -1,5 +1,7 @@
 ## 1.0.0-beta.2
 
+* Add support for the `::slotted()` pseudo-element.
+
 ### Node JS API
 
 * Add support for `lineFeed`, `indentWidth`, and `indentType` options to

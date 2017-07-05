@@ -578,7 +578,9 @@ class Extender {
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext,
       Set<SimpleSelector> targetsUsed) {
-    withoutPseudo(SimpleSelector simple) {
+    // Extends [simple] without extending the contents of any selector pseudos
+    // it contains.
+    List<Extension> withoutPseudo(SimpleSelector simple) {
       var extenders = extensions[simple];
       if (extenders == null) return null;
       targetsUsed?.add(simple);
@@ -627,9 +629,6 @@ class Extender {
       List<CssMediaQuery> mediaQueryContext) {
     var extended = _extendList(pseudo.selector, extensions, mediaQueryContext);
     if (identical(extended, pseudo.selector)) return null;
-
-    // TODO: what do we do about placeholders in the selector? If we just
-    // eliminate them here, what happens to future extends?
 
     // For `:not()`, we usually want to get rid of any complex selectors because
     // that will cause the selector to fail to parse on all browsers at time of
@@ -680,6 +679,7 @@ class Extender {
         case 'has':
         case 'host':
         case 'host-context':
+        case 'slotted':
           // We can't expand nested selectors here, because each layer adds an
           // additional layer of semantics. For example, `:has(:has(img))`
           // doesn't match `<div><img></div>` but `:has(img)` does.
