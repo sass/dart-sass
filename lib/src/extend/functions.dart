@@ -741,6 +741,7 @@ bool _selectorPseudoIsSuperselector(
     case 'has':
     case 'host':
     case 'host-context':
+    case 'slotted':
       return _selectorPseudosNamed(compound2, pseudo1.name)
           .any((pseudo2) => pseudo1.selector.isSuperselector(pseudo2.selector));
 
