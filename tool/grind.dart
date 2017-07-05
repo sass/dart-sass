@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
@@ -229,7 +230,7 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
       .firstWhere((file) => os == 'windows'
           ? file.name.endsWith("/bin/dart.exe")
           : file.name.endsWith("/bin/dart"));
-  var executable = dartExecutable.content;
+  var executable = DelegatingList.typed<int>(dartExecutable.content as List);
   var archive = new Archive()
     ..addFile(_fileFromBytes(
         "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
