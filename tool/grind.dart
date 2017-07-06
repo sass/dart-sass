@@ -58,13 +58,16 @@ package() async {
 js() {
   _ensureBuild();
   var destination = new File('build/sass.dart.js');
-  Dart2js.compile(new File('bin/sass.dart'), outFile: destination, extraArgs: [
-    '--minify',
+
+  var args = [
     '--trust-type-annotations',
     '-Dnode=true',
     '-Dversion=$_version',
     '-Ddart-version=$_dartVersion',
-  ]);
+  ];
+  if (Platform.environment["SASS_MINIFY_JS"] != "false") args.add("--minify");
+
+  Dart2js.compile(new File('bin/sass.dart'), outFile: destination, extraArgs: args);
   var text = destination.readAsStringSync();
   destination.writeAsStringSync(preamble.getPreamble() + text);
 }
