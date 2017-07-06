@@ -147,8 +147,7 @@ xml.XmlDocument _nuspec() {
               "logos/logo-seal.png");
       builder.element("bugTrackerUrl",
           nest: "https://github.com/sass/dart-sass/issues");
-      builder.element("description",
-          nest: """
+      builder.element("description", nest: """
 **Sass makes CSS fun again**. Sass is an extension of CSS, adding nested rules, variables, mixins, selector inheritance, and more. It's translated to well-formatted, standard CSS using the command line tool or a web-framework plugin.
 
 This package is Dart Sass, the new Dart implementation of Sass.
