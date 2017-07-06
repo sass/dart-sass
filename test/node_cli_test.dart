@@ -12,13 +12,10 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test/test.dart';
 
 import 'cli_shared.dart';
+import 'ensure_npm_package.dart';
 
 void main() {
-  setUpAll(() async {
-    var grinder = await TestProcess
-        .start(Platform.executable, ["tool/grind.dart", "npm_package"]);
-    await grinder.shouldExit(0);
-  });
+  setUpAll(ensureNpmPackage);
 
   sharedTests(_runSass);
 
