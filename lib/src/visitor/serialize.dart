@@ -317,7 +317,10 @@ class _SerializeCssVisitor
   void visitColor(SassColor value) {
     if (value.original != null) {
       _buffer.write(value.original);
-    } else if (namesByColor.containsKey(value)) {
+    } else if (namesByColor.containsKey(value) &&
+        // Always emit generated transparent colors in rgba format. This works
+        // around an IE bug. See sass/sass#1782.
+        !fuzzyEquals(value.alpha, 0)) {
       _buffer.write(namesByColor[value]);
     } else if (value.alpha == 1) {
       _buffer.writeCharCode($hash);

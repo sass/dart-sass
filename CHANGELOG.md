@@ -2,6 +2,10 @@
 
 * Add support for the `::slotted()` pseudo-element.
 
+* Generated transparent colors will now be emitted as `rgba(0, 0, 0, 0)` rather
+  than `transparent`. This works around a bug wherein IE incorrectly handles the
+  latter format.
+
 ### Node JS API
 
 * Add support for `lineFeed`, `indentWidth`, and `indentType` options to
