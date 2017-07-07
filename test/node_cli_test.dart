@@ -2,23 +2,23 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+@TestOn('vm')
 @Tags(const ['node'])
+
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:test_process/test_process.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test/test.dart';
 
+import 'package:sass/src/util/path.dart';
+
 import 'cli_shared.dart';
+import 'ensure_npm_package.dart';
 
 void main() {
-  setUpAll(() async {
-    var grinder = await TestProcess
-        .start(Platform.executable, ["tool/grind.dart", "npm_package"]);
-    await grinder.shouldExit(0);
-  });
+  setUpAll(ensureNpmPackage);
 
   sharedTests(_runSass);
 

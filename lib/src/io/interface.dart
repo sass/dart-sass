@@ -25,8 +25,14 @@ class FileSystemException {
 /// The standard error for the current process.
 Stderr get stderr => null;
 
+/// Whether the current process is running on Windows.
+bool get isWindows => false;
+
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => false;
+
+/// The current working directory.
+String get currentPath => null;
 
 /// Reads the file at [path] as a UTF-8 encoded string.
 ///

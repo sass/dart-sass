@@ -5,16 +5,20 @@
 import 'dart:convert';
 import 'dart:io' as io;
 
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../exception.dart';
+import '../util/path.dart';
 
 export 'dart:io' show exitCode, FileSystemException;
 
 io.Stdout get stderr => io.stderr;
 
+bool get isWindows => io.Platform.isWindows;
+
 bool get hasTerminal => io.stdout.hasTerminal;
+
+String get currentPath => io.Directory.current.path;
 
 String readFile(String path) {
   var bytes = new io.File(path).readAsBytesSync();

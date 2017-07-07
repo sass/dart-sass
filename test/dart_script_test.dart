@@ -2,13 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+@TestOn('vm')
+
 import 'package:package_resolver/package_resolver.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
+import 'package:sass/src/util/path.dart';
 
 main() {
   test("successfully imports a package URL", () async {

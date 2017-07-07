@@ -2,11 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:path/path.dart' as p;
-
 import 'ast/sass.dart';
 import 'io.dart';
 import 'sync_package_resolver.dart';
+import 'util/path.dart';
 import 'visitor/perform.dart';
 import 'visitor/serialize.dart';
 

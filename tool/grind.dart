@@ -11,9 +11,10 @@ import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
-import 'package:path/path.dart' as p;
 import 'package:xml/xml.dart' as xml;
 import 'package:yaml/yaml.dart';
+
+import 'package:sass/src/util/path.dart';
 
 /// The version of Dart Sass.
 final String _version =
@@ -58,13 +59,17 @@ package() async {
 js() {
   _ensureBuild();
   var destination = new File('build/sass.dart.js');
-  Dart2js.compile(new File('bin/sass.dart'), outFile: destination, extraArgs: [
-    '--minify',
+
+  var args = [
     '--trust-type-annotations',
     '-Dnode=true',
     '-Dversion=$_version',
     '-Ddart-version=$_dartVersion',
-  ]);
+  ];
+  if (Platform.environment["SASS_MINIFY_JS"] != "false") args.add("--minify");
+
+  Dart2js.compile(new File('bin/sass.dart'),
+      outFile: destination, extraArgs: args);
   var text = destination.readAsStringSync();
   destination.writeAsStringSync(preamble.getPreamble() + text);
 }

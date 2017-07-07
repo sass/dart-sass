@@ -5,9 +5,13 @@
 import 'package:js/js.dart';
 
 @JS()
-class NodeOptions {
+@anonymous
+class RenderOptions {
   external String get file;
   external String get indentType;
   external dynamic get indentWidth;
   external String get linefeed;
+
+  external factory RenderOptions(
+      {String file, String indentType, indentWidth, String linefeed});
 }

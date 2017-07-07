@@ -45,6 +45,7 @@ install:
 - if-node nvm install "$NODE_VERSION"
 - if-node nvm use "$NODE_VERSION"
 - if-node nvm install
+- SASS_MINIFY_JS=false if-node pub run grinder npm_package
 
 # Download sass-spec and install its dependencies if we're running specs.
 - if-specs() { if [ "$TASK" = specs ]; then "$@"; fi }
@@ -67,7 +68,7 @@ script:
       pub run test -x node;
     else
       echo "${bold}Running Node tests against Node $(node --version).$none";
-      pub run test -t node;
+      pub run test -p node,vm -t node;
     fi;
   else
     echo "${bold}Running sass-spec against $(dart --version &> /dev/stdout).$none";
