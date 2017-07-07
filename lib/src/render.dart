@@ -12,16 +12,33 @@ import 'visitor/serialize.dart';
 /// Like [render] in `lib/sass.dart`, but provides more options to support the
 /// node-sass compatible API.
 String render(String path,
-    {bool color: false,
+        {bool color: false,
+        SyncPackageResolver packageResolver,
+        bool useSpaces: true,
+        int indentWidth,
+        LineFeed lineFeed}) =>
+    renderString(readFile(path),
+        indented: p.extension(path) == '.sass',
+        color: color,
+        packageResolver: packageResolver,
+        useSpaces: useSpaces,
+        indentWidth: indentWidth,
+        lineFeed: lineFeed,
+        url: p.toUri(path));
+
+/// Like [renderString] in `lib/sass.dart`, but provides more options to support
+/// the node-sass compatible API.
+String renderString(String source,
+    {bool indented: false,
+    bool color: false,
     SyncPackageResolver packageResolver,
     bool useSpaces: true,
     int indentWidth,
-    LineFeed lineFeed}) {
-  var contents = readFile(path);
-  var url = p.toUri(path);
-  var sassTree = p.extension(path) == '.sass'
-      ? new Stylesheet.parseSass(contents, url: url, color: color)
-      : new Stylesheet.parseScss(contents, url: url, color: color);
+    LineFeed lineFeed,
+    url}) {
+  var sassTree = indented
+      ? new Stylesheet.parseSass(source, url: url, color: color)
+      : new Stylesheet.parseScss(source, url: url, color: color);
   var cssTree =
       evaluate(sassTree, color: color, packageResolver: packageResolver);
   return toCss(cssTree,
