@@ -81,6 +81,7 @@ RenderResult _doRender(RenderOptions options) {
     output = renderString(options.data,
         loadPaths: options.includePaths,
         indented: options.indentedSyntax ?? false,
+        style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed));
@@ -88,6 +89,7 @@ RenderResult _doRender(RenderOptions options) {
     output = render(options.file,
         loadPaths: options.includePaths,
         indented: options.indentedSyntax,
+        style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed));
@@ -96,6 +98,12 @@ RenderResult _doRender(RenderOptions options) {
   }
 
   return newRenderResult(output);
+}
+
+/// Parse [style] into an [OutputStyle].
+OutputStyle _parseOutputStyle(String style) {
+  if (style == null || style == 'expanded') return OutputStyle.expanded;
+  throw new ArgumentError('Unsupported output style "$style".');
 }
 
 /// Parses the indentation width into an [int].

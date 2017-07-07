@@ -11,6 +11,7 @@ class RenderOptions {
   external String get data;
   external List<String> get includePaths;
   external bool get indentedSyntax;
+  external String get outputStyle;
   external String get indentType;
   external dynamic get indentWidth;
   external String get linefeed;
@@ -20,6 +21,7 @@ class RenderOptions {
       String data,
       List<String> includePaths,
       bool indentedSyntax,
+      String outputStyle,
       String indentType,
       indentWidth,
       String linefeed});
