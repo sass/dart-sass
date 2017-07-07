@@ -7,11 +7,11 @@ import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:stack_trace/stack_trace.dart';
-import 'package:path/path.dart' as p;
 
 import '../sass.dart';
 import 'exception.dart';
 import 'io.dart';
+import 'util/path.dart';
 
 main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)

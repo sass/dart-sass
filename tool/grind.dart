@@ -11,9 +11,10 @@ import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
-import 'package:path/path.dart' as p;
 import 'package:xml/xml.dart' as xml;
 import 'package:yaml/yaml.dart';
+
+import 'package:sass/src/util/path.dart';
 
 /// The version of Dart Sass.
 final String _version =

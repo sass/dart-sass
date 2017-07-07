@@ -3,10 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:js/js.dart';
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../exception.dart';
+import '../util/path.dart';
 
 @JS()
 class _FS {
@@ -26,6 +26,12 @@ class _SystemError {
   external String get code;
   external String get syscall;
   external String get path;
+}
+
+@JS()
+class _Process {
+  external String get platform;
+  external String cwd();
 }
 
 class FileSystemException {
@@ -52,6 +58,9 @@ class Stderr {
 external _FS _require(String name);
 
 final _fs = _require("fs");
+
+@JS("process")
+external _Process get _process;
 
 String readFile(String path) {
   // TODO(nweiz): explicitly decode the bytes as UTF-8 like we do in the VM when
@@ -98,6 +107,10 @@ external _Stderr get _stderr;
 final stderr = new Stderr(_stderr);
 
 bool get hasTerminal => _hasTerminal ?? false;
+
+bool get isWindows => _process.platform == 'win32';
+
+String get currentPath => _process.cwd();
 
 @JS("process.stdout.isTTY")
 external bool get _hasTerminal;

@@ -9,8 +9,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:js/js.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'package:sass/src/util/path.dart';
 
 import 'ensure_npm_package.dart';
 import 'hybrid.dart';
