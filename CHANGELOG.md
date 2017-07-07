@@ -8,8 +8,8 @@
 
 ### Node JS API
 
-* Add support for `data`, `lineFeed`, `indentWidth`, and `indentType` options to
-  `render()` and `renderSync()`.
+* Add support for `data`, `includePaths`, `indentedSyntax`, `lineFeed`,
+  `indentWidth`, and `indentType` options to `render()` and `renderSync()`.
 
 ### Dart API
 

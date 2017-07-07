@@ -15,6 +15,7 @@ String render(String path,
         {bool indented,
         bool color: false,
         SyncPackageResolver packageResolver,
+        Iterable<String> loadPaths,
         bool useSpaces: true,
         int indentWidth,
         LineFeed lineFeed}) =>
@@ -22,6 +23,7 @@ String render(String path,
         indented: indented ?? p.extension(path) == '.sass',
         color: color,
         packageResolver: packageResolver,
+        loadPaths: loadPaths,
         useSpaces: useSpaces,
         indentWidth: indentWidth,
         lineFeed: lineFeed,
@@ -33,6 +35,7 @@ String renderString(String source,
     {bool indented: false,
     bool color: false,
     SyncPackageResolver packageResolver,
+    Iterable<String> loadPaths,
     bool useSpaces: true,
     int indentWidth,
     LineFeed lineFeed,
@@ -40,8 +43,8 @@ String renderString(String source,
   var sassTree = indented
       ? new Stylesheet.parseSass(source, url: url, color: color)
       : new Stylesheet.parseScss(source, url: url, color: color);
-  var cssTree =
-      evaluate(sassTree, color: color, packageResolver: packageResolver);
+  var cssTree = evaluate(sassTree,
+      color: color, packageResolver: packageResolver, loadPaths: loadPaths);
   return toCss(cssTree,
       useSpaces: useSpaces, indentWidth: indentWidth, lineFeed: lineFeed);
 }

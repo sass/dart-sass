@@ -620,9 +620,12 @@ class _PerformVisitor
           ? _tryImportPath
           : _tryImportPathWithExtensions;
 
-      var base = p.dirname(p.fromUri(import.span.file.url));
-      var resolved = tryPath(p.join(base, path));
-      if (resolved != null) return resolved;
+      if (import.span.file.url != null) {
+        var base = p.dirname(p.fromUri(import.span.file.url));
+
+        var resolved = tryPath(p.join(base, path));
+        if (resolved != null) return resolved;
+      }
 
       for (var loadPath in _loadPaths) {
         var resolved = tryPath(p.join(loadPath, path));
