@@ -79,6 +79,33 @@ a {
           contains('Either options.data or options.file must be set.'));
     });
 
+    test("supports load paths", () {
+      expect(
+          _renderSync(new RenderOptions(
+              data: "@import 'test'", includePaths: [sandbox])),
+          equals('''
+a {
+  b: c;
+}'''));
+    });
+
+    test("supports relative paths in preference to load paths", () async {
+      await createDirectory(p.join(sandbox, 'sub'));
+      var subPath = p.join(sandbox, 'sub/test.scss');
+      await writeTextFile(subPath, 'x {y: z}');
+
+      var importerPath = p.join(sandbox, 'importer.scss');
+      await writeTextFile(importerPath, '@import "test"');
+
+      expect(
+          _renderSync(new RenderOptions(
+              file: importerPath, includePaths: [p.join(sandbox, 'sub')])),
+          equals('''
+a {
+  b: c;
+}'''));
+    });
+
     test("can render the indented syntax", () {
       expect(
           _renderSync(
