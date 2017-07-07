@@ -6,10 +6,11 @@ import 'package:js/js.dart';
 
 import 'exception.dart';
 import 'executable.dart' as executable;
-import 'node/error.dart';
 import 'node/exports.dart';
-import 'node/options.dart';
-import 'node/result.dart';
+import 'node/render_error.dart';
+import 'node/render_options.dart';
+import 'node/render_result.dart';
+import 'node/utils.dart';
 import 'render.dart';
 import 'visitor/serialize.dart';
 
@@ -35,22 +36,17 @@ void main() {
 /// possible.
 ///
 /// [render]: https://github.com/sass/node-sass#options
-void _render(
-    NodeOptions options, void callback(NodeError error, NodeResult result)) {
+void _render(RenderOptions options,
+    void callback(RenderError error, RenderResult result)) {
   try {
-    var indentWidthValue = options.indentWidth;
-    var indentWidth = indentWidthValue is int
-        ? indentWidthValue
-        : int.parse(indentWidthValue.toString());
-    var lineFeed = _parseLineFeed(options.linefeed);
-    var result = newNodeResult(render(options.file,
-        useSpaces: options.indentType == 'space',
-        indentWidth: indentWidth,
-        lineFeed: lineFeed));
+    var result = newRenderResult(render(options.file,
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed)));
     callback(null, result);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
-    callback(new NodeError(message: error.message), null);
+    callback(newRenderError(message: error.message), null);
   }
 }
 
@@ -60,21 +56,23 @@ void _render(
 /// as possible.
 ///
 /// [render]: https://github.com/sass/node-sass#options
-NodeResult _renderSync(NodeOptions options) {
+RenderResult _renderSync(RenderOptions options) {
   try {
-    var indentWidthValue = options.indentWidth;
-    var indentWidth = indentWidthValue is int
-        ? indentWidthValue
-        : int.parse(indentWidthValue.toString());
-    var lineFeed = _parseLineFeed(options.linefeed);
-    return newNodeResult(render(options.file,
-        useSpaces: options.indentType == 'space',
-        indentWidth: indentWidth,
-        lineFeed: lineFeed));
+    return newRenderResult(render(options.file,
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed)));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
-    throw new NodeError(message: error.message);
+    jsThrow(newRenderError(message: error.message));
+    throw "unreachable";
   }
+}
+
+/// Parses the indentation width into an [int].
+int _parseIndentWidth(width) {
+  if (width == null) return null;
+  return width is int ? width : int.parse(width.toString());
 }
 
 /// Parses the name of a line feed type into a [LineFeed].

@@ -6,22 +6,25 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-void hybridMain(StreamChannel channel) async {
+hybridMain(StreamChannel channel) async {
   if (!new Directory("build/npm").existsSync()) {
     throw "NPM package is not build. Run pub run grinder npm_package.";
   }
 
   var lastModified = new DateTime(0);
   var entriesToCheck = new Directory("lib").listSync(recursive: true).toList()
-    ..add("pubspec.lock");
+    ..add(new File("pubspec.lock"));
   for (var entry in entriesToCheck) {
-    if (entry is! File) continue;
-    var entryLastModified = entry.lastModifiedSync();
-    if (lastModified.isBefore(entryLastModified))
-      lastModified = entryLastModified;
+    if (entry is File) {
+      var entryLastModified = entry.lastModifiedSync();
+      if (lastModified.isBefore(entryLastModified)) {
+        lastModified = entryLastModified;
+      }
+    }
   }
 
   if (lastModified
