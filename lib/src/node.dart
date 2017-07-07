@@ -79,11 +79,13 @@ RenderResult _doRender(RenderOptions options) {
     }
 
     output = renderString(options.data,
+        indented: options.indentedSyntax ?? false,
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed));
   } else if (options.file != null) {
     output = render(options.file,
+        indented: options.indentedSyntax,
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed));

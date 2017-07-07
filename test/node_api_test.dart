@@ -41,6 +41,15 @@ a {
 }'''));
     });
 
+    test("renders a file with the indented syntax", () async {
+      var indentedPath = p.join(sandbox, 'test.sass');
+      await writeTextFile(indentedPath, 'a\n  b: c');
+      expect(_renderSync(new RenderOptions(file: indentedPath)), equals('''
+a {
+  b: c;
+}'''));
+    });
+
     test("supports relative imports for a file", () async {
       var importerPath = p.join(sandbox, 'importer.scss');
       await writeTextFile(importerPath, '@import "test"');
@@ -70,8 +79,23 @@ a {
           contains('Either options.data or options.file must be set.'));
     });
 
-    test("rejects both a file and a string", () {
-      expect(_renderSync(new RenderOptions(data: "a {b: c}")), equals('''
+    test("can render the indented syntax", () {
+      expect(
+          _renderSync(
+              new RenderOptions(data: "a\n  b: c", indentedSyntax: true)),
+          equals('''
+a {
+  b: c;
+}'''));
+    });
+
+    test("the indented syntax flag takes precedence over the file extension",
+        () async {
+      var scssPath = p.join(sandbox, 'test.scss');
+      await writeTextFile(scssPath, 'a\n  b: c');
+      expect(
+          _renderSync(new RenderOptions(file: scssPath, indentedSyntax: true)),
+          equals('''
 a {
   b: c;
 }'''));

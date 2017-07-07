@@ -12,13 +12,14 @@ import 'visitor/serialize.dart';
 /// Like [render] in `lib/sass.dart`, but provides more options to support the
 /// node-sass compatible API.
 String render(String path,
-        {bool color: false,
+        {bool indented,
+        bool color: false,
         SyncPackageResolver packageResolver,
         bool useSpaces: true,
         int indentWidth,
         LineFeed lineFeed}) =>
     renderString(readFile(path),
-        indented: p.extension(path) == '.sass',
+        indented: indented ?? p.extension(path) == '.sass',
         color: color,
         packageResolver: packageResolver,
         useSpaces: useSpaces,
