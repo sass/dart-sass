@@ -19,8 +19,8 @@ class RenderError {
       {String message, int line, int column, int status, String file});
 }
 
-RenderError newRenderError(
-    {String message, int line, int column, int status, String file}) {
+RenderError newRenderError(String message,
+    {int line, int column, int status, String file}) {
   var error = new RenderError._(
       message: message, line: line, column: column, status: status, file: file);
   setToString(error, () => "Error: $message");

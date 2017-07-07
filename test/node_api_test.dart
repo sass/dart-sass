@@ -41,6 +41,42 @@ a {
 }'''));
     });
 
+    test("supports relative imports for a file", () async {
+      var importerPath = p.join(sandbox, 'importer.scss');
+      await writeTextFile(importerPath, '@import "test"');
+      expect(_renderSync(new RenderOptions(file: importerPath)), equals('''
+a {
+  b: c;
+}'''));
+    });
+
+    test("renders a string", () {
+      expect(_renderSync(new RenderOptions(data: "a {b: c}")), equals('''
+a {
+  b: c;
+}'''));
+    });
+
+    test("data and file may not both be set", () {
+      var error =
+          _renderSyncError(new RenderOptions(data: "x {y: z}", file: sassPath));
+      expect(error.toString(),
+          contains('options.data and options.file may not both be set.'));
+    });
+
+    test("one of data and file must be set", () {
+      var error = _renderSyncError(new RenderOptions());
+      expect(error.toString(),
+          contains('Either options.data or options.file must be set.'));
+    });
+
+    test("rejects both a file and a string", () {
+      expect(_renderSync(new RenderOptions(data: "a {b: c}")), equals('''
+a {
+  b: c;
+}'''));
+    });
+
     test("allows tab indentation", () {
       expect(_renderSync(new RenderOptions(file: sassPath, indentType: 'tab')),
           equals('''

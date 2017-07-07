@@ -16,7 +16,34 @@ import 'src/sync_package_resolver.dart';
 ///
 /// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 ///
-/// Finally throws a [SassException] if conversion fails.
+/// Throws a [SassException] if conversion fails.
 String render(String path,
         {bool color: false, SyncPackageResolver packageResolver}) =>
     r.render(path, color: color, packageResolver: packageResolver);
+
+/// Converts [source] to CSS and returns the result.
+///
+/// If [indented] is `true`, this parses [source] using indented syntax;
+/// otherwise (and by default) it uses SCSS. If [color] is `true`, this will use
+/// terminal colors in warnings.
+///
+/// If [packageResolver] is provided, it's used to resolve `package:` imports.
+/// Otherwise, they aren't supported. It takes a [SyncPackageResolver][] from
+/// the `package_resolver` package.
+///
+/// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+///
+/// The [url] indicates the location from which [source] was loaded. It may may
+/// be a [String] or a [Uri].
+///
+/// Throws a [SassException] if conversion fails.
+String renderString(String source,
+        {bool indented: false,
+        bool color: false,
+        SyncPackageResolver packageResolver,
+        url}) =>
+    r.renderString(source,
+        indented: indented,
+        color: color,
+        packageResolver: packageResolver,
+        url: url);

@@ -39,14 +39,12 @@ void main() {
 void _render(RenderOptions options,
     void callback(RenderError error, RenderResult result)) {
   try {
-    var result = newRenderResult(render(options.file,
-        useSpaces: options.indentType != 'tab',
-        indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed)));
-    callback(null, result);
+    callback(null, _doRender(options));
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
-    callback(newRenderError(message: error.message), null);
+    callback(newRenderError(error.message), null);
+  } catch (error) {
+    callback(newRenderError(error.toString()), null);
   }
 }
 
@@ -58,15 +56,42 @@ void _render(RenderOptions options,
 /// [render]: https://github.com/sass/node-sass#options
 RenderResult _renderSync(RenderOptions options) {
   try {
-    return newRenderResult(render(options.file,
-        useSpaces: options.indentType != 'tab',
-        indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed)));
+    return _doRender(options);
   } on SassException catch (error) {
     // TODO: populate the error more thoroughly if possible.
-    jsThrow(newRenderError(message: error.message));
-    throw "unreachable";
+    jsThrow(newRenderError(error.message));
+  } catch (error) {
+    jsThrow(newRenderError(error.toString()));
   }
+  throw "unreachable";
+}
+
+/// Converts Sass to CSS.
+///
+/// Unlike [_render] and [_renderSync], this doesn't do any special handling for
+/// Dart exceptions.
+RenderResult _doRender(RenderOptions options) {
+  String output;
+  if (options.data != null) {
+    if (options.file != null) {
+      throw new ArgumentError(
+          "options.data and options.file may not both be set.");
+    }
+
+    output = renderString(options.data,
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed));
+  } else if (options.file != null) {
+    output = render(options.file,
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed));
+  } else {
+    throw new ArgumentError("Either options.data or options.file must be set.");
+  }
+
+  return newRenderResult(output);
 }
 
 /// Parses the indentation width into an [int].
