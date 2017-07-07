@@ -34,9 +34,3 @@ dev_dependencies:
   test: "^0.12.24"
   xml: "^2.4.0"
   yaml: "^2.0.0"
-
-dependency_overrides:
-  test:
-    git:
-      url: git://github.com/dart-lang/test.git
-      ref: node
