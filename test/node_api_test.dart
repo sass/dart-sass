@@ -128,6 +128,22 @@ a {
 }'''));
     });
 
+    test("supports the expanded output style", () {
+      expect(
+          _renderSync(
+              new RenderOptions(file: sassPath, outputStyle: 'expanded')),
+          equals('''
+a {
+  b: c;
+}'''));
+    });
+
+    test("doesn't support other output styles", () {
+      var error = _renderSyncError(
+          new RenderOptions(file: sassPath, outputStyle: 'nested'));
+      expect(error.toString(), contains('Unsupported output style "nested".'));
+    });
+
     test("allows tab indentation", () {
       expect(_renderSync(new RenderOptions(file: sassPath, indentType: 'tab')),
           equals('''
