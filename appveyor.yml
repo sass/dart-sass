@@ -17,12 +17,15 @@ install:
 - ps: >-
     If ($env:NODE -eq "true") {
       Install-Product node ''
+      $env:SASS_MINIFY_JS = "false"
+      pub run grinder npm_package
     }
 
+# Don't run Node tests on Windows until dart-lang/sdk#30098 lands.
 test_script:
 - ps: >-
     If ($env:NODE -eq "true") {
-      pub run test -t node
+      pub run test -p vm -t node
     } Else {
       pub run test -x node
     }
