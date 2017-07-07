@@ -67,7 +67,8 @@ js() {
   ];
   if (Platform.environment["SASS_MINIFY_JS"] != "false") args.add("--minify");
 
-  Dart2js.compile(new File('bin/sass.dart'), outFile: destination, extraArgs: args);
+  Dart2js.compile(new File('bin/sass.dart'),
+      outFile: destination, extraArgs: args);
   var text = destination.readAsStringSync();
   destination.writeAsStringSync(preamble.getPreamble() + text);
 }
