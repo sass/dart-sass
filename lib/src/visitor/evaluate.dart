@@ -46,7 +46,7 @@ CssStylesheet evaluate(Stylesheet stylesheet,
         Environment environment,
         bool color: false,
         SyncPackageResolver packageResolver}) =>
-    new _PerformVisitor(
+    new _EvaluateVisitor(
             loadPaths: loadPaths,
             environment: environment,
             color: color,
@@ -54,7 +54,7 @@ CssStylesheet evaluate(Stylesheet stylesheet,
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
-class _PerformVisitor
+class _EvaluateVisitor
     implements StatementVisitor<Value>, ExpressionVisitor<Value> {
   /// The paths to search for Sass files being imported.
   final List<String> _loadPaths;
@@ -139,7 +139,7 @@ class _PerformVisitor
   /// The resolver to use for `package:` URLs, or `null` if no resolver exists.
   final SyncPackageResolver _packageResolver;
 
-  _PerformVisitor(
+  _EvaluateVisitor(
       {Iterable<String> loadPaths,
       Environment environment,
       bool color: false,
@@ -938,7 +938,7 @@ class _PerformVisitor
       var value = node.expression.accept(this);
       var string = value is SassString
           ? value.text
-          : _toCss(value, node.expression.span);
+          : _serialize(value, node.expression.span);
       stderr.writeln("WARNING: $string");
     });
 
@@ -1016,8 +1016,8 @@ class _PerformVisitor
           var right = node.right.accept(this);
           var result = left.dividedBy(right);
           if (node.allowsSlash && left is SassNumber && right is SassNumber) {
-            var leftSlash = left.asSlash ?? _toCss(left, node.left.span);
-            var rightSlash = right.asSlash ?? _toCss(right, node.left.span);
+            var leftSlash = left.asSlash ?? _serialize(left, node.left.span);
+            var rightSlash = right.asSlash ?? _serialize(right, node.left.span);
             return (result as SassNumber).withSlash("$leftSlash/$rightSlash");
           } else {
             return result;
@@ -1212,7 +1212,7 @@ class _PerformVisitor
       var rest = arguments.rest?.accept(this);
       if (rest != null) {
         if (!first) buffer.write(", ");
-        buffer.write(_toCss(rest, arguments.rest.span));
+        buffer.write(_serialize(rest, arguments.rest.span));
       }
       buffer.writeCharCode($rparen);
 
@@ -1461,7 +1461,7 @@ class _PerformVisitor
           var result = expression.accept(this);
           return result is SassString
               ? result.text
-              : _toCss(result, expression.span, quote: false);
+              : _serialize(result, expression.span, quote: false);
         }).join(),
         quotes: node.hasQuotes);
   }
@@ -1530,7 +1530,7 @@ class _PerformVisitor
             expression.span);
       }
 
-      return _toCss(result, expression.span, quote: false);
+      return _serialize(result, expression.span, quote: false);
     }).join();
   }
 
@@ -1541,11 +1541,11 @@ class _PerformVisitor
   /// Evaluates [expression] and calls `toCssString()` and wraps a
   /// [SassScriptException] to associate it with [span].
   String _evaluateToCss(Expression expression, {bool quote: true}) =>
-      _toCss(expression.accept(this), expression.span, quote: quote);
+      _serialize(expression.accept(this), expression.span, quote: quote);
 
   /// Calls `value.toCssString()` and wraps a [SassScriptException] to associate
   /// it with [span].
-  String _toCss(Value value, FileSpan span, {bool quote: true}) =>
+  String _serialize(Value value, FileSpan span, {bool quote: true}) =>
       _addExceptionSpan(span, () => value.toCssString(quote: quote));
 
   /// Adds [node] as a child of the current parent, then runs [callback] with

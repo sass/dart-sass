@@ -6,12 +6,12 @@ import 'ast/sass.dart';
 import 'io.dart';
 import 'sync_package_resolver.dart';
 import 'util/path.dart';
-import 'visitor/perform.dart';
+import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
 
-/// Like [render] in `lib/sass.dart`, but provides more options to support the
+/// Like [compile] in `lib/sass.dart`, but provides more options to support the
 /// node-sass compatible API.
-String render(String path,
+String compile(String path,
         {bool indented,
         bool color: false,
         SyncPackageResolver packageResolver,
@@ -20,7 +20,7 @@ String render(String path,
         bool useSpaces: true,
         int indentWidth,
         LineFeed lineFeed}) =>
-    renderString(readFile(path),
+    compileString(readFile(path),
         indented: indented ?? p.extension(path) == '.sass',
         color: color,
         packageResolver: packageResolver,
@@ -31,9 +31,9 @@ String render(String path,
         lineFeed: lineFeed,
         url: p.toUri(path));
 
-/// Like [renderString] in `lib/sass.dart`, but provides more options to support
+/// Like [compileString] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API.
-String renderString(String source,
+String compileString(String source,
     {bool indented: false,
     bool color: false,
     SyncPackageResolver packageResolver,
@@ -48,7 +48,7 @@ String renderString(String source,
       : new Stylesheet.parseScss(source, url: url, color: color);
   var cssTree = evaluate(sassTree,
       color: color, packageResolver: packageResolver, loadPaths: loadPaths);
-  return toCss(cssTree,
+  return serialize(cssTree,
       style: style,
       useSpaces: useSpaces,
       indentWidth: indentWidth,

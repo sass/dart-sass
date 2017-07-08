@@ -28,14 +28,14 @@ import 'interface/value.dart';
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [node] contains any values
 /// that can't be represented in plain CSS, throws a [SassException].
-String toCss(CssNode node,
+String serialize(CssNode node,
     {OutputStyle style,
     bool inspect: false,
     bool useSpaces: true,
     int indentWidth,
     LineFeed lineFeed}) {
   indentWidth ??= 2;
-  var visitor = new _SerializeCssVisitor(
+  var visitor = new _SerializeVisitor(
       style: style,
       inspect: inspect,
       useSpaces: useSpaces,
@@ -57,8 +57,8 @@ String toCss(CssNode node,
 /// represented in plain CSS, throws a [SassScriptException].
 ///
 /// If [quote] is `false`, quoted strings are emitted without quotes.
-String valueToCss(Value value, {bool inspect: false, bool quote: true}) {
-  var visitor = new _SerializeCssVisitor(inspect: inspect, quote: quote);
+String serializeValue(Value value, {bool inspect: false, bool quote: true}) {
+  var visitor = new _SerializeVisitor(inspect: inspect, quote: quote);
   value.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -69,15 +69,14 @@ String valueToCss(Value value, {bool inspect: false, bool quote: true}) {
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [selector] can't be
 /// represented in plain CSS, throws a [SassScriptException].
-String selectorToCss(Selector selector, {bool inspect: false}) {
-  var visitor = new _SerializeCssVisitor(inspect: inspect);
+String serializeSelector(Selector selector, {bool inspect: false}) {
+  var visitor = new _SerializeVisitor(inspect: inspect);
   selector.accept(visitor);
   return visitor._buffer.toString();
 }
 
 /// A visitor that converts CSS syntax trees to plain strings.
-class _SerializeCssVisitor
-    implements CssVisitor, ValueVisitor, SelectorVisitor {
+class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// A buffer that contains the CSS produced so far.
   final _buffer = new StringBuffer();
 
@@ -100,7 +99,7 @@ class _SerializeCssVisitor
   /// The characters to use for a line feed.
   final LineFeed _lineFeed;
 
-  _SerializeCssVisitor(
+  _SerializeVisitor(
       {OutputStyle style,
       bool inspect: false,
       bool quote: true,
