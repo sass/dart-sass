@@ -13,9 +13,39 @@ external _buffer(String source, String encoding);
 @anonymous
 class RenderResult {
   external Uint8List get css;
+  external RenderResultStats get stats;
 
-  external factory RenderResult._({css});
+  external factory RenderResult._({css, RenderResultStats stats});
 }
 
-RenderResult newRenderResult(String css) =>
-    new RenderResult._(css: _buffer(css, 'utf8'));
+@JS()
+@anonymous
+class RenderResultStats {
+  external String get entry;
+  external int get start;
+  external int get end;
+  external int get duration;
+  external List<String> get includedFiles;
+
+  external factory RenderResultStats._(
+      {String entry,
+      int start,
+      int end,
+      int duration,
+      List<String> includedFiles});
+}
+
+RenderResult newRenderResult(String css,
+        {String entry,
+        int start,
+        int end,
+        int duration,
+        List<String> includedFiles}) =>
+    new RenderResult._(
+        css: _buffer(css, 'utf8'),
+        stats: new RenderResultStats._(
+            entry: entry,
+            start: start,
+            end: end,
+            duration: duration,
+            includedFiles: includedFiles));

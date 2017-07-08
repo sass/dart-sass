@@ -200,6 +200,57 @@ a {
       });
     });
 
+    group("the result object", () {
+      test("includes the filename", () {
+        var result = sass.renderSync(new RenderOptions(file: sassPath));
+        expect(result.stats.entry, equals(sassPath));
+      });
+
+      test("includes data without a filename", () {
+        var result = sass.renderSync(new RenderOptions(data: 'a {b: c}'));
+        expect(result.stats.entry, equals('data'));
+      });
+
+      test("includes timing information", () {
+        var result = sass.renderSync(new RenderOptions(file: sassPath));
+        expect(result.stats.start, new isInstanceOf<int>());
+        expect(result.stats.end, new isInstanceOf<int>());
+        expect(result.stats.start, lessThan(result.stats.end));
+        expect(result.stats.duration,
+            equals(result.stats.end - result.stats.start));
+      });
+
+      group("has includedFiles which", () {
+        test("contains the root path if available", () {
+          var result = sass.renderSync(new RenderOptions(file: sassPath));
+          expect(result.stats.includedFiles, equals([sassPath]));
+        });
+
+        test("doesn't contain the root path if it's not available", () {
+          var result = sass.renderSync(new RenderOptions(data: 'a {b: c}'));
+          expect(result.stats.includedFiles, isEmpty);
+        });
+
+        test("contains imported paths", () async {
+          var importerPath = p.join(sandbox, 'importer.scss');
+          await writeTextFile(importerPath, '@import "test"');
+
+          var result = sass.renderSync(new RenderOptions(file: importerPath));
+          expect(result.stats.includedFiles,
+              unorderedEquals([importerPath, sassPath]));
+        });
+
+        test("only contains each path once", () async {
+          var importerPath = p.join(sandbox, 'importer.scss');
+          await writeTextFile(importerPath, '@import "test"; @import "test";');
+
+          var result = sass.renderSync(new RenderOptions(file: importerPath));
+          expect(result.stats.includedFiles,
+              unorderedEquals([importerPath, sassPath]));
+        });
+      });
+    });
+
     group("throws an error that", () {
       setUp(() => writeTextFile(sassPath, 'a {b: }'));
 

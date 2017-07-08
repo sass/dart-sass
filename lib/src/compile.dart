@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
+
 import 'ast/sass.dart';
 import 'io.dart';
 import 'sync_package_resolver.dart';
@@ -11,7 +13,7 @@ import 'visitor/serialize.dart';
 
 /// Like [compile] in `lib/sass.dart`, but provides more options to support the
 /// node-sass compatible API.
-String compile(String path,
+CompileResult compile(String path,
         {bool indented,
         bool color: false,
         SyncPackageResolver packageResolver,
@@ -33,7 +35,7 @@ String compile(String path,
 
 /// Like [compileString] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API.
-String compileString(String source,
+CompileResult compileString(String source,
     {bool indented: false,
     bool color: false,
     SyncPackageResolver packageResolver,
@@ -46,11 +48,26 @@ String compileString(String source,
   var sassTree = indented
       ? new Stylesheet.parseSass(source, url: url, color: color)
       : new Stylesheet.parseScss(source, url: url, color: color);
-  var cssTree = evaluate(sassTree,
+  var evaluateResult = evaluate(sassTree,
       color: color, packageResolver: packageResolver, loadPaths: loadPaths);
-  return serialize(cssTree,
+  var css = serialize(evaluateResult.stylesheet,
       style: style,
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed);
+
+  return new CompileResult(css, evaluateResult.includedUrls);
+}
+
+/// The result of compiling a Sass document to CSS, along with metadata about
+/// the compilation process.
+class CompileResult {
+  /// The compiled CSS.
+  final String css;
+
+  /// The URLs that were loaded during the compilation, including the main
+  /// file's.
+  final Set<Uri> includedUrls;
+
+  CompileResult(this.css, this.includedUrls);
 }

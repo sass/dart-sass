@@ -19,7 +19,7 @@ import 'src/sync_package_resolver.dart';
 /// Throws a [SassException] if conversion fails.
 String compile(String path,
         {bool color: false, SyncPackageResolver packageResolver}) =>
-    c.compile(path, color: color, packageResolver: packageResolver);
+    c.compile(path, color: color, packageResolver: packageResolver).css;
 
 /// Compiles [source] to CSS and returns the result.
 ///
@@ -38,18 +38,20 @@ String compile(String path,
 ///
 /// Throws a [SassException] if conversion fails.
 String compileString(String source,
-        {bool indented: false,
-        bool color: false,
-        SyncPackageResolver packageResolver,
-        url}) =>
-    c.compileString(source,
-        indented: indented,
-        color: color,
-        packageResolver: packageResolver,
-        url: url);
+    {bool indented: false,
+    bool color: false,
+    SyncPackageResolver packageResolver,
+    url}) {
+  var result = c.compileString(source,
+      indented: indented,
+      color: color,
+      packageResolver: packageResolver,
+      url: url);
+  return result.css;
+}
 
 /// Use [compile] instead.
 @Deprecated('Will be removed in 1.0.0')
 String render(String path,
         {bool color: false, SyncPackageResolver packageResolver}) =>
-    c.compile(path, color: color, packageResolver: packageResolver);
+    compile(path, color: color, packageResolver: packageResolver);

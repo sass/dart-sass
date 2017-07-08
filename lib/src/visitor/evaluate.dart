@@ -41,7 +41,7 @@ typedef _ScopeCallback(callback());
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
 /// Throws a [SassRuntimeException] if evaluation fails.
-CssStylesheet evaluate(Stylesheet stylesheet,
+EvaluateResult evaluate(Stylesheet stylesheet,
         {Iterable<String> loadPaths,
         Environment environment,
         bool color: false,
@@ -125,7 +125,7 @@ class _EvaluateVisitor
   /// This is separate from [_importPaths] because multiple `@import` rules may
   /// import the same stylesheet, and we don't want to parse the same stylesheet
   /// multiple times.
-  final _importedFiles = <String, Stylesheet>{};
+  final _importedFiles = <Uri, Stylesheet>{};
 
   final _activeImports = new Set<Uri>();
 
@@ -203,10 +203,13 @@ class _EvaluateVisitor
     });
   }
 
-  CssStylesheet run(Stylesheet node) {
-    if (node.span != null) _activeImports.add(node.span.sourceUrl);
+  EvaluateResult run(Stylesheet node) {
+    if (node.span?.sourceUrl != null) {
+      _activeImports.add(node.span.sourceUrl);
+      _importedFiles[node.span.sourceUrl] = node;
+    }
     visitStylesheet(node);
-    return _root;
+    return new EvaluateResult(_root, new MapKeySet(_importedFiles));
   }
 
   // ## Statements
@@ -637,7 +640,8 @@ class _EvaluateVisitor
       throw _exception("Can't find file to import.", import.span);
     }
 
-    return _importedFiles.putIfAbsent(path, () {
+    var url = p.toUri(path);
+    return _importedFiles.putIfAbsent(url, () {
       String contents;
       try {
         contents = readFile(path);
@@ -649,7 +653,6 @@ class _EvaluateVisitor
         throw _exception(error.message, import.span);
       }
 
-      var url = p.toUri(path);
       return p.extension(path) == '.sass'
           ? new Stylesheet.parseSass(contents, url: url, color: _color)
           : new Stylesheet.parseScss(contents, url: url, color: _color);
@@ -1663,4 +1666,17 @@ class _EvaluateVisitor
       throw _exception(error.message, span);
     }
   }
+}
+
+/// The result of compiling a Sass document to a CSS tree, along with metadata
+/// about the compilation process.
+class EvaluateResult {
+  /// The CSS syntax tree.
+  final CssStylesheet stylesheet;
+
+  /// The URLs that were loaded during the compilation, including the main
+  /// file's.
+  final Set<Uri> includedUrls;
+
+  EvaluateResult(this.stylesheet, this.includedUrls);
 }
