@@ -6,7 +6,7 @@ import 'ast/sass.dart';
 import 'io.dart';
 import 'sync_package_resolver.dart';
 import 'util/path.dart';
-import 'visitor/perform.dart';
+import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
 
 /// Like [compile] in `lib/sass.dart`, but provides more options to support the

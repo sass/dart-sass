@@ -46,7 +46,7 @@ CssStylesheet evaluate(Stylesheet stylesheet,
         Environment environment,
         bool color: false,
         SyncPackageResolver packageResolver}) =>
-    new _PerformVisitor(
+    new _EvaluateVisitor(
             loadPaths: loadPaths,
             environment: environment,
             color: color,
@@ -54,7 +54,7 @@ CssStylesheet evaluate(Stylesheet stylesheet,
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
-class _PerformVisitor
+class _EvaluateVisitor
     implements StatementVisitor<Value>, ExpressionVisitor<Value> {
   /// The paths to search for Sass files being imported.
   final List<String> _loadPaths;
@@ -139,7 +139,7 @@ class _PerformVisitor
   /// The resolver to use for `package:` URLs, or `null` if no resolver exists.
   final SyncPackageResolver _packageResolver;
 
-  _PerformVisitor(
+  _EvaluateVisitor(
       {Iterable<String> loadPaths,
       Environment environment,
       bool color: false,
