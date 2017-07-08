@@ -4,6 +4,7 @@
 
 import 'package:js/js.dart';
 
+import 'compile.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
 import 'node/exports.dart';
@@ -11,7 +12,6 @@ import 'node/render_error.dart';
 import 'node/render_options.dart';
 import 'node/render_result.dart';
 import 'node/utils.dart';
-import 'render.dart';
 import 'visitor/serialize.dart';
 
 /// The entrypoint for Node.js.
@@ -78,7 +78,7 @@ RenderResult _doRender(RenderOptions options) {
           "options.data and options.file may not both be set.");
     }
 
-    output = renderString(options.data,
+    output = compileString(options.data,
         loadPaths: options.includePaths,
         indented: options.indentedSyntax ?? false,
         style: _parseOutputStyle(options.outputStyle),
@@ -86,7 +86,7 @@ RenderResult _doRender(RenderOptions options) {
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed));
   } else if (options.file != null) {
-    output = render(options.file,
+    output = compile(options.file,
         loadPaths: options.includePaths,
         indented: options.indentedSyntax,
         style: _parseOutputStyle(options.outputStyle),
