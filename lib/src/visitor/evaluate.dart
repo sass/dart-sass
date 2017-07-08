@@ -938,7 +938,7 @@ class _EvaluateVisitor
       var value = node.expression.accept(this);
       var string = value is SassString
           ? value.text
-          : _toCss(value, node.expression.span);
+          : _serialize(value, node.expression.span);
       stderr.writeln("WARNING: $string");
     });
 
@@ -1016,8 +1016,8 @@ class _EvaluateVisitor
           var right = node.right.accept(this);
           var result = left.dividedBy(right);
           if (node.allowsSlash && left is SassNumber && right is SassNumber) {
-            var leftSlash = left.asSlash ?? _toCss(left, node.left.span);
-            var rightSlash = right.asSlash ?? _toCss(right, node.left.span);
+            var leftSlash = left.asSlash ?? _serialize(left, node.left.span);
+            var rightSlash = right.asSlash ?? _serialize(right, node.left.span);
             return (result as SassNumber).withSlash("$leftSlash/$rightSlash");
           } else {
             return result;
@@ -1212,7 +1212,7 @@ class _EvaluateVisitor
       var rest = arguments.rest?.accept(this);
       if (rest != null) {
         if (!first) buffer.write(", ");
-        buffer.write(_toCss(rest, arguments.rest.span));
+        buffer.write(_serialize(rest, arguments.rest.span));
       }
       buffer.writeCharCode($rparen);
 
@@ -1461,7 +1461,7 @@ class _EvaluateVisitor
           var result = expression.accept(this);
           return result is SassString
               ? result.text
-              : _toCss(result, expression.span, quote: false);
+              : _serialize(result, expression.span, quote: false);
         }).join(),
         quotes: node.hasQuotes);
   }
@@ -1530,7 +1530,7 @@ class _EvaluateVisitor
             expression.span);
       }
 
-      return _toCss(result, expression.span, quote: false);
+      return _serialize(result, expression.span, quote: false);
     }).join();
   }
 
@@ -1541,11 +1541,11 @@ class _EvaluateVisitor
   /// Evaluates [expression] and calls `toCssString()` and wraps a
   /// [SassScriptException] to associate it with [span].
   String _evaluateToCss(Expression expression, {bool quote: true}) =>
-      _toCss(expression.accept(this), expression.span, quote: quote);
+      _serialize(expression.accept(this), expression.span, quote: quote);
 
   /// Calls `value.toCssString()` and wraps a [SassScriptException] to associate
   /// it with [span].
-  String _toCss(Value value, FileSpan span, {bool quote: true}) =>
+  String _serialize(Value value, FileSpan span, {bool quote: true}) =>
       _addExceptionSpan(span, () => value.toCssString(quote: quote));
 
   /// Adds [node] as a child of the current parent, then runs [callback] with

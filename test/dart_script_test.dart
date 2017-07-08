@@ -20,7 +20,8 @@ main() {
     var resolver = new SyncPackageResolver.config(
         {"fake_package": p.toUri(p.join(d.sandbox, 'subdir'))});
 
-    var css = compile(p.join(d.sandbox, "test.scss"), packageResolver: resolver);
+    var css =
+        compile(p.join(d.sandbox, "test.scss"), packageResolver: resolver);
     expect(css, equals("a {\n  b: 3;\n}"));
   });
 

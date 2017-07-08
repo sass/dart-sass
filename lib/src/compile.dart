@@ -48,7 +48,7 @@ String compileString(String source,
       : new Stylesheet.parseScss(source, url: url, color: color);
   var cssTree = evaluate(sassTree,
       color: color, packageResolver: packageResolver, loadPaths: loadPaths);
-  return toCss(cssTree,
+  return serialize(cssTree,
       style: style,
       useSpaces: useSpaces,
       indentWidth: indentWidth,

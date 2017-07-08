@@ -33,5 +33,5 @@ abstract class Selector {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(SelectorVisitor<T> visitor);
 
-  String toString() => selectorToCss(this, inspect: true);
+  String toString() => serializeSelector(this, inspect: true);
 }

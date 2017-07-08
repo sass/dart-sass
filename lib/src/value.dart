@@ -301,14 +301,14 @@ abstract class Value {
   /// isn't valid CSS.
   ///
   /// If [quote] is `false`, quoted strings are emitted without quotes.
-  String toCssString({bool quote: true}) => valueToCss(this, quote: quote);
+  String toCssString({bool quote: true}) => serializeValue(this, quote: quote);
 
   /// Returns a string representation of [this].
   ///
   /// Note that this is equivalent to calling `inspect()` on the value, and thus
   /// won't reflect the user's output settings. [toCssString] should be used
   /// instead to convert [this] to CSS.
-  String toString() => valueToCss(this, inspect: true);
+  String toString() => serializeValue(this, inspect: true);
 
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String name]) =>
