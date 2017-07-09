@@ -12,6 +12,7 @@ import 'node/render_error.dart';
 import 'node/render_options.dart';
 import 'node/render_result.dart';
 import 'node/utils.dart';
+import 'util/path.dart';
 import 'visitor/serialize.dart';
 
 /// The entrypoint for Node.js.
@@ -71,14 +72,15 @@ RenderResult _renderSync(RenderOptions options) {
 /// Unlike [_render] and [_renderSync], this doesn't do any special handling for
 /// Dart exceptions.
 RenderResult _doRender(RenderOptions options) {
-  String output;
+  var start = new DateTime.now();
+  CompileResult result;
   if (options.data != null) {
     if (options.file != null) {
       throw new ArgumentError(
           "options.data and options.file may not both be set.");
     }
 
-    output = compileString(options.data,
+    result = compileString(options.data,
         loadPaths: options.includePaths,
         indented: options.indentedSyntax ?? false,
         style: _parseOutputStyle(options.outputStyle),
@@ -86,7 +88,7 @@ RenderResult _doRender(RenderOptions options) {
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed));
   } else if (options.file != null) {
-    output = compile(options.file,
+    result = compile(options.file,
         loadPaths: options.includePaths,
         indented: options.indentedSyntax,
         style: _parseOutputStyle(options.outputStyle),
@@ -96,8 +98,14 @@ RenderResult _doRender(RenderOptions options) {
   } else {
     throw new ArgumentError("Either options.data or options.file must be set.");
   }
+  var end = new DateTime.now();
 
-  return newRenderResult(output);
+  return newRenderResult(result.css,
+      entry: options.file ?? 'data',
+      start: start.millisecondsSinceEpoch,
+      end: end.millisecondsSinceEpoch,
+      duration: end.difference(start).inMilliseconds,
+      includedFiles: result.includedUrls.map((url) => p.fromUri(url)).toList());
 }
 
 /// Parse [style] into an [OutputStyle].
