@@ -45,7 +45,8 @@ main(List<String> args) async {
     return;
   }
 
-  var color = (options['color'] as bool) ?? hasTerminal;
+  var color =
+      options.wasParsed('color') ? options['color'] as bool : hasTerminal;
   try {
     var css = compile(options.rest.first, color: color);
     if (css.isNotEmpty) print(css);

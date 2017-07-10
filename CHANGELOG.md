@@ -6,6 +6,10 @@
   than `transparent`. This works around a bug wherein IE incorrectly handles the
   latter format.
 
+### Command-Line Interface
+
+* Improve the logic for whether to use terminal colors by default.
+
 ### Node JS API
 
 * Add support for `data`, `includePaths`, `indentedSyntax`, `lineFeed`,
