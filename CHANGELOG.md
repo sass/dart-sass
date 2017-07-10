@@ -11,6 +11,13 @@
 * Add support for `data`, `includePaths`, `indentedSyntax`, `lineFeed`,
   `indentWidth`, and `indentType` options to `render()` and `renderSync()`.
 
+* The result object returned by `render()` and `renderSync()` now includes the
+  `stats` object which provides metadata about the compilation process.
+
+* The error object thrown by `render()` and `renderSync()` now includes `line`,
+  `column`, `file`, `status`, and `formatted` fields. The `message` field and
+  `toString()` also provide more information.
+
 ### Dart API
 
 * Add a `renderString()` method for rendering Sass source that's not in a file

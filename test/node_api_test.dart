@@ -251,17 +251,120 @@ a {
       });
     });
 
-    group("throws an error that", () {
-      setUp(() => writeTextFile(sassPath, 'a {b: }'));
+    group("the error object", () {
+      RenderError error;
+      group("for a parse error in a file", () {
+        setUp(() async {
+          await writeTextFile(sassPath, "a {b: }");
+          error = _renderSyncError(new RenderOptions(file: sassPath));
+        });
 
-      test("has a useful toString", () {
-        var error = _renderSyncError(new RenderOptions(file: sassPath));
-        expect(error.toString(), equals("Error: Expected expression."));
+        test("has a useful toString() and message", () async {
+          expect(
+              error,
+              toStringAndMessageEqual("Expected expression.\n"
+                  "  $sassPath 1:7  root stylesheet"));
+        });
+
+        test("has a useful formatted message", () async {
+          expect(
+              error.formatted,
+              "Error: Expected expression.\n"
+              "a {b: }\n"
+              "      ^\n"
+              "  $sassPath 1:7  root stylesheet");
+        });
+
+        test("sets the line, column, and filename", () {
+          expect(error.line, equals(1));
+          expect(error.column, equals(7));
+          expect(error.file, equals(sassPath));
+        });
       });
 
-      test("has a useful message", () {
-        var error = _renderSyncError(new RenderOptions(file: sassPath));
-        expect(error.message, equals("Expected expression."));
+      group("for a parse error in a string", () {
+        setUp(() {
+          error = _renderSyncError(new RenderOptions(data: "a {b: }"));
+        });
+
+        test("has a useful toString() and message", () {
+          expect(
+              error,
+              toStringAndMessageEqual("Expected expression.\n"
+                  "  - 1:7  root stylesheet"));
+        });
+
+        test("has a useful formatted message", () {
+          expect(
+              error.formatted,
+              "Error: Expected expression.\n"
+              "a {b: }\n"
+              "      ^\n"
+              "  - 1:7  root stylesheet");
+        });
+
+        test("sets the line, column, and filename", () {
+          expect(error.line, equals(1));
+          expect(error.column, equals(7));
+          expect(error.file, equals("stdin"));
+        });
+      });
+
+      group("for a runtime error in a file", () {
+        setUp(() async {
+          await writeTextFile(sassPath, "a {b: 1 % a}");
+          error = _renderSyncError(new RenderOptions(file: sassPath));
+        });
+
+        test("has a useful toString() and message", () {
+          expect(
+              error,
+              toStringAndMessageEqual('Undefined operation "1 % a".\n'
+                  '  $sassPath 1:7  root stylesheet'));
+        });
+
+        test("has a useful formatted message", () async {
+          expect(
+              error.formatted,
+              'Error: Undefined operation "1 % a".\n'
+              'a {b: 1 % a}\n'
+              '      ^^^^^\n'
+              '  $sassPath 1:7  root stylesheet');
+        });
+
+        test("sets the line, column, and filename", () {
+          expect(error.line, equals(1));
+          expect(error.column, equals(7));
+          expect(error.file, equals(sassPath));
+        });
+      });
+
+      group("for a runtime error in a string", () {
+        setUp(() {
+          error = _renderSyncError(new RenderOptions(data: "a {b: 1 % a}"));
+        });
+
+        test("has a useful toString() and message", () {
+          expect(
+              error,
+              toStringAndMessageEqual('Undefined operation "1 % a".\n'
+                  '  - 1:7  root stylesheet'));
+        });
+
+        test("has a useful formatted message", () {
+          expect(
+              error.formatted,
+              'Error: Undefined operation "1 % a".\n'
+              'a {b: 1 % a}\n'
+              '      ^^^^^\n'
+              '  - 1:7  root stylesheet');
+        });
+
+        test("sets the line, column, and filename", () {
+          expect(error.line, equals(1));
+          expect(error.column, equals(7));
+          expect(error.file, equals("stdin"));
+        });
       });
     });
   });
@@ -278,10 +381,21 @@ a {
       await writeTextFile(sassPath, 'a {b: }');
 
       var error = await _renderError(new RenderOptions(file: sassPath));
-      expect(error.toString(), equals("Error: Expected expression."));
+      expect(
+          error.toString(),
+          equals("Error: Expected expression.\n"
+              "  $sassPath 1:7  root stylesheet"));
     });
   });
 }
+
+/// Validates that a [RenderError]'s `toString()` and `message` both equal
+/// [text].
+Matcher toStringAndMessageEqual(String text) => predicate((error) {
+      expect(error.toString(), equals("Error: $text"));
+      expect(error.message, equals(text));
+      return true;
+    });
 
 /// Returns the result of rendering via [options] as a string.
 Future<String> _render(RenderOptions options) {

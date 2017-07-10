@@ -30,6 +30,9 @@ import 'interface/expression.dart';
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback(callback());
 
+/// The URL used in stack traces when no source URL is available.
+final _noSourceUrl = Uri.parse("-");
+
 /// Converts [stylesheet] to a plain CSS tree.
 ///
 /// If [loadPaths] is passed, it's used to search for Sass files being imported.
@@ -1620,8 +1623,7 @@ class _EvaluateVisitor
 
   /// Creates a new stack frame with location information from [span] and
   /// [_member].
-  Frame _stackFrame(FileSpan span) => new Frame(
-      span.sourceUrl, span.start.line + 1, span.start.column + 1, _member);
+  Frame _stackFrame(FileSpan span) => frameForSpan(span, _member);
 
   /// Returns a stack trace at the current point.
   ///

@@ -60,7 +60,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "Error: Expected expression.",
           "a {b: }",
           "      ^",
-          "  test.scss 1:7",
+          "  test.scss 1:7  root stylesheet",
         ]));
     await sass.shouldExit(65);
   });
@@ -90,7 +90,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "Error: Expected expression.",
           "a {b: \u001b[31m\u001b[0m}",
           "      \u001b[31m^\u001b[0m",
-          "  test.scss 1:7",
+          "  test.scss 1:7  root stylesheet",
         ]));
     await sass.shouldExit(65);
   });

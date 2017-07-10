@@ -42,10 +42,9 @@ void _render(RenderOptions options,
   try {
     callback(null, _doRender(options));
   } on SassException catch (error) {
-    // TODO: populate the error more thoroughly if possible.
-    callback(newRenderError(error.message), null);
+    callback(_wrapException(error), null);
   } catch (error) {
-    callback(newRenderError(error.toString()), null);
+    callback(newRenderError(error.toString(), status: 3), null);
   }
 }
 
@@ -59,10 +58,9 @@ RenderResult _renderSync(RenderOptions options) {
   try {
     return _doRender(options);
   } on SassException catch (error) {
-    // TODO: populate the error more thoroughly if possible.
-    jsThrow(newRenderError(error.message));
+    jsThrow(_wrapException(error));
   } catch (error) {
-    jsThrow(newRenderError(error.toString()));
+    jsThrow(newRenderError(error.toString(), status: 3));
   }
   throw "unreachable";
 }
@@ -106,6 +104,30 @@ RenderResult _doRender(RenderOptions options) {
       end: end.millisecondsSinceEpoch,
       duration: end.difference(start).inMilliseconds,
       includedFiles: result.includedUrls.map((url) => p.fromUri(url)).toList());
+}
+
+/// Converts a [SassException] to a [RenderError].
+RenderError _wrapException(SassException exception) {
+  var trace = exception is SassRuntimeException
+      ? "\n" +
+          exception.trace
+              .toString()
+              .trimRight()
+              .split("\n")
+              .map((frame) => "  $frame")
+              .join("\n")
+      : "\n  ${p.fromUri(exception.span.sourceUrl ?? '-')} "
+      "${exception.span.start.line + 1}:${exception.span.start.column + 1}  "
+      "root stylesheet";
+
+  return newRenderError(exception.message + trace,
+      formatted: exception.toString(),
+      line: exception.span.start.line + 1,
+      column: exception.span.start.column + 1,
+      file: exception.span.sourceUrl == null
+          ? 'stdin'
+          : p.fromUri(exception.span.sourceUrl),
+      status: 1);
 }
 
 /// Parse [style] into an [OutputStyle].
