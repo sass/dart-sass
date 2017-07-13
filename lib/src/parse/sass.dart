@@ -211,7 +211,6 @@ class SassParser extends StylesheetParser {
     }
     buffer.write(" */");
 
-    print(buffer);
     return new LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
