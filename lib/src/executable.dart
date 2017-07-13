@@ -27,7 +27,15 @@ main(List<String> args) async {
         abbr: 'h', help: 'Print this usage information.', negatable: false)
     ..addFlag('version',
         help: 'Print the version of Dart Sass.', negatable: false);
-  var options = argParser.parse(args);
+
+  ArgResults options;
+  try {
+    options = argParser.parse(args);
+  } on FormatException catch (error) {
+    _printUsage(argParser, error.message);
+    exitCode = 64;
+    return;
+  }
 
   if (options['version'] as bool) {
     _loadVersion().then((version) {
@@ -38,9 +46,7 @@ main(List<String> args) async {
   }
 
   if (options['help'] as bool || options.rest.isEmpty) {
-    print("Compile Sass to CSS.\n");
-    print("Usage: dart-sass <input>\n");
-    print(argParser.usage);
+    _printUsage(argParser, "Compile Sass to CSS.");
     exitCode = 64;
     return;
   }
@@ -93,4 +99,11 @@ Future<String> _loadVersion() async {
       .firstWhere((line) => line.startsWith('version: '))
       .split(" ")
       .last;
+}
+
+/// Print the usage information for Sass, with [message] as a header.
+void _printUsage(ArgParser parser, String message) {
+  print("$message\n");
+  print("Usage: dart-sass <input>\n");
+  print(parser.usage);
 }
