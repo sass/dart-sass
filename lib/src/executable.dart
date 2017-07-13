@@ -68,6 +68,18 @@ main(List<String> args) async {
     // Exit code 65 indicates invalid data per
     // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     exitCode = 65;
+  } on FileSystemException catch (error, stackTrace) {
+    stderr
+        .writeln("Error reading ${p.relative(error.path)}: ${error.message}.");
+
+    // Error 66 indicates no input.
+    exitCode = 66;
+
+    if (options['trace'] as bool) {
+      stderr.writeln();
+      stderr.write(new Trace.from(stackTrace).terse.toString());
+      stderr.flush();
+    }
   } catch (error, stackTrace) {
     if (color) stderr.write('\u001b[31m\u001b[1m');
     stderr.write('Unexpected exception:');

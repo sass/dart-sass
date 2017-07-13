@@ -36,8 +36,9 @@ class _Process {
 
 class FileSystemException {
   final String message;
+  final String path;
 
-  FileSystemException._(this.message);
+  FileSystemException._(this.message, this.path);
 }
 
 class Stderr {
@@ -85,7 +86,9 @@ _readFile(String path, [String encoding]) {
   try {
     return _fs.readFileSync(path, encoding);
   } catch (error) {
-    throw new FileSystemException._(_cleanErrorMessage(error as _SystemError));
+    var systemError = error as _SystemError;
+    throw new FileSystemException._(
+        _cleanErrorMessage(systemError), systemError.path);
   }
 }
 
