@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:js/js.dart';
-import 'package:meta/meta.dart';
 
 import 'function.dart';
 

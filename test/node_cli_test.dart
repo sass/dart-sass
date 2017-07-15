@@ -6,7 +6,6 @@
 @Tags(const ['node'])
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:test_process/test_process.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;

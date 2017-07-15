@@ -6,8 +6,6 @@
 /// to Dart. This is kind of convoluted, but it allows us to test the API as it
 /// will be used in the real world without having to manually write any JS.
 
-import 'dart:typed_data';
-
 import 'package:sass/src/node/render_error.dart';
 import 'package:sass/src/node/render_options.dart';
 import 'package:sass/src/node/render_result.dart';

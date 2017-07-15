@@ -413,7 +413,7 @@ Future<RenderError> _renderError(RenderOptions options) {
   var completer = new Completer<RenderError>();
   sass.render(options, allowInterop((error, result) {
     expect(result, isNull);
-    completer.complete(error as RenderError);
+    completer.complete(error);
   }));
   return completer.future;
 }

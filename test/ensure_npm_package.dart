@@ -3,12 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 hybridMain(StreamChannel channel) async {
   if (!new Directory("build/npm").existsSync()) {
