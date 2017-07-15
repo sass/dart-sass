@@ -20,6 +20,7 @@ class Stderr {
 /// An error thrown by [readFile].
 class FileSystemException {
   String get message => null;
+  String get path => null;
 }
 
 /// The standard error for the current process.

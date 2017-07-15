@@ -27,7 +27,15 @@ main(List<String> args) async {
         abbr: 'h', help: 'Print this usage information.', negatable: false)
     ..addFlag('version',
         help: 'Print the version of Dart Sass.', negatable: false);
-  var options = argParser.parse(args);
+
+  ArgResults options;
+  try {
+    options = argParser.parse(args);
+  } on FormatException catch (error) {
+    _printUsage(argParser, error.message);
+    exitCode = 64;
+    return;
+  }
 
   if (options['version'] as bool) {
     _loadVersion().then((version) {
@@ -38,14 +46,13 @@ main(List<String> args) async {
   }
 
   if (options['help'] as bool || options.rest.isEmpty) {
-    print("Compile Sass to CSS.\n");
-    print("Usage: dart-sass <input>\n");
-    print(argParser.usage);
+    _printUsage(argParser, "Compile Sass to CSS.");
     exitCode = 64;
     return;
   }
 
-  var color = (options['color'] as bool) ?? hasTerminal;
+  var color =
+      options.wasParsed('color') ? options['color'] as bool : hasTerminal;
   try {
     var css = compile(options.rest.first, color: color);
     if (css.isNotEmpty) print(css);
@@ -61,6 +68,18 @@ main(List<String> args) async {
     // Exit code 65 indicates invalid data per
     // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     exitCode = 65;
+  } on FileSystemException catch (error, stackTrace) {
+    stderr
+        .writeln("Error reading ${p.relative(error.path)}: ${error.message}.");
+
+    // Error 66 indicates no input.
+    exitCode = 66;
+
+    if (options['trace'] as bool) {
+      stderr.writeln();
+      stderr.write(new Trace.from(stackTrace).terse.toString());
+      stderr.flush();
+    }
   } catch (error, stackTrace) {
     if (color) stderr.write('\u001b[31m\u001b[1m');
     stderr.write('Unexpected exception:');
@@ -92,4 +111,11 @@ Future<String> _loadVersion() async {
       .firstWhere((line) => line.startsWith('version: '))
       .split(" ")
       .last;
+}
+
+/// Print the usage information for Sass, with [message] as a header.
+void _printUsage(ArgParser parser, String message) {
+  print("$message\n");
+  print("Usage: dart-sass <input>\n");
+  print(parser.usage);
 }
