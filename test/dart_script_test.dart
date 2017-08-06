@@ -34,4 +34,27 @@ main() {
     expect(() => compile(d.sandbox + "/test.scss", packageResolver: resolver),
         throwsA(new isInstanceOf<SassRuntimeException>()));
   });
+
+  test('imports a package URL from a local path package with a relative path',
+      () async {
+    await d.dir('dart_projects', [
+      d.dir('shared_styles', [
+        d.dir('lib', [d.file('imported.scss', 'a {b: 1 + 2}')])
+      ]),
+      d.dir('fake_project', [
+        d.file('.packages', 'shared_styles:../shared_styles/lib'),
+        d.dir('lib',
+            [d.file('test.scss', '@import "package:shared_styles/imported";')])
+      ])
+    ]).create();
+
+    var resolver = await SyncPackageResolver.loadConfig(
+        p.toUri(p.join(d.sandbox, "dart_projects/fake_project/.packages")));
+
+    var css = compile(
+        p.join(d.sandbox, "dart_projects/fake_project/lib/test.scss"),
+        packageResolver: resolver);
+
+    expect(css, equals("a {\n  b: 3;\n}"));
+  });
 }
