@@ -1807,7 +1807,7 @@ abstract class StylesheetParser extends Parser {
   NumberExpression _number() {
     var start = scanner.state;
     var first = scanner.peekChar();
-    var sign = first == $dash ? -1 : 1;
+    var sign = first == $minus ? -1 : 1;
     if (first == $plus || first == $minus) scanner.readChar();
 
     num number = 0;
@@ -1819,36 +1819,11 @@ abstract class StylesheetParser extends Parser {
       number += asDecimal(scanner.readChar());
     }
 
-    if (scanner.peekChar() == $dot) {
-      if (!isDigit(scanner.peekChar(1))) {
-        if (first == $dot) {
-          scanner.error("Expected digit.", position: scanner.position + 1);
-        }
-      } else {
-        scanner.readChar();
-        var decimal = 0.1;
-        while (isDigit(scanner.peekChar())) {
-          number += asDecimal(scanner.readChar()) * decimal;
-          decimal /= 10;
-        }
-      }
-    }
-
-    if (scanIdentifier("e", ignoreCase: true)) {
-      scanner.readChar();
-      var next = scanner.peekChar();
-      var exponentSign = next == $dash ? -1 : 1;
-      if (next == $plus || next == $minus) scanner.readChar();
-      if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
-
-      var exponent = 0.0;
-      while (isDigit(scanner.peekChar())) {
-        exponent *= 10;
-        exponent += scanner.readChar() - $0;
-      }
-
-      number = number * math.pow(10, exponentSign * exponent);
-    }
+    // Don't complain about a dot after a number unless the number starts with a
+    // dot. We don't allow a plain ".", but we need to allow "1." so that
+    // "1..." will work as a rest argument.
+    number += _tryDecimal(allowTrailingDot: scanner.position != start.position);
+    number *= _tryExponent();
 
     String unit;
     if (scanner.scanChar($percent)) {
@@ -1861,6 +1836,53 @@ abstract class StylesheetParser extends Parser {
 
     return new NumberExpression(sign * number, scanner.spanFrom(start),
         unit: unit);
+  }
+
+  /// Consumes the decimal component of a number and returns its value, or 0 if
+  /// there is no decimal component.
+  ///
+  /// If [allowTrailingDot] is `false`, this will throw an error if there's a
+  /// dot without any numbers following it. Otherwise, it will ignore the dot
+  /// without consuming it.
+  num _tryDecimal({bool allowTrailingDot: false}) {
+    if (scanner.peekChar() != $dot) return 0;
+
+    if (!isDigit(scanner.peekChar(1))) {
+      if (allowTrailingDot) return 0;
+      scanner.error("Expected digit.", position: scanner.position + 1);
+    }
+
+    var number = 0.0;
+    scanner.readChar();
+    var decimal = 0.1;
+    while (isDigit(scanner.peekChar())) {
+      number += asDecimal(scanner.readChar()) * decimal;
+      decimal /= 10;
+    }
+    return number;
+  }
+
+  /// Consumes the exponent component of a number and returns its value, or 1 if
+  /// there is no exponent component.
+  num _tryExponent() {
+    var first = scanner.peekChar();
+    if (first != $e && first != $E) return 1;
+
+    var next = scanner.peekChar(1);
+    if (!isDigit(next) && next != $minus && next != $plus) return 1;
+
+    scanner.readChar();
+    var exponentSign = next == $minus ? -1 : 1;
+    if (next == $plus || next == $minus) scanner.readChar();
+    if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
+
+    var exponent = 0.0;
+    while (isDigit(scanner.peekChar())) {
+      exponent *= 10;
+      exponent += scanner.readChar() - $0;
+    }
+
+    return math.pow(10, exponentSign * exponent);
   }
 
   /// Consumes a unicode range expression.

@@ -1,3 +1,7 @@
+## 1.0.0-beta.3
+
+* Properly parse numbers with exponents.
+
 ## 1.0.0-beta.2
 
 * Add support for the `::slotted()` pseudo-element.
