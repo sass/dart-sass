@@ -42,7 +42,6 @@ install:
 - if-node . "$HOME/.nvm/nvm.sh"
 - if-node nvm install "$NODE_VERSION"
 - if-node nvm use "$NODE_VERSION"
-- if-node nvm install
 - SASS_MINIFY_JS=false if-node pub run grinder npm_package
 
 # Download sass-spec and install its dependencies if we're running specs.
