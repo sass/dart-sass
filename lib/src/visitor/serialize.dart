@@ -230,8 +230,8 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _writeIndentation();
     _buffer.write(node.name.value);
     _buffer.writeCharCode($colon);
-    if (node.isCustomProperty) {
-      _writeCustomPropertyValue(node);
+    if (_shouldReindentValue(node)) {
+      _writeReindentedValue(node);
     } else {
       _buffer.writeCharCode($space);
       _visitValue(node.value);
@@ -239,10 +239,22 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _buffer.writeCharCode($semicolon);
   }
 
-  /// Emits the value of [node] as a custom property value.
+  /// Returns whether [node]'s value should be re-indented when being written to
+  /// the stylesheet.
   ///
-  /// This re-indents [node]'s value relative to the current indentation.
-  void _writeCustomPropertyValue(CssDeclaration node) {
+  /// We only re-indent custom property values that were parsed as custom
+  /// properties, which we detect as unquoted strings. It's possible to have
+  /// false positives here, since someone could write `#{--foo}: unquoted`, but
+  /// that's unlikely enough that we can spare the extra time a no-op
+  /// reindenting will take.
+  bool _shouldReindentValue(CssDeclaration node) {
+    if (!node.name.value.startsWith("--")) return false;
+    var value = node.value.value;
+    return value is SassString && !value.hasQuotes;
+  }
+
+  /// Emits the value of [node], re-indented relative to the current indentation.
+  void _writeReindentedValue(CssDeclaration node) {
     var value = (node.value.value as SassString).text;
 
     var minimumIndentation = _minimumIndentation(value);

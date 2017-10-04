@@ -19,12 +19,6 @@ class CssDeclaration extends CssNode {
 
   final FileSpan span;
 
-  /// Whether this is a custom property declaration, also known as a CSS
-  /// variable.
-  ///
-  /// Custom property declarations always have unquoted [SassString] values.
-  bool get isCustomProperty => name.value.startsWith("--");
-
   CssDeclaration(this.name, this.value, this.span);
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitDeclaration(this);

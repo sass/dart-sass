@@ -2,6 +2,9 @@
 
 * Properly parse numbers with exponents.
 
+* Don't crash when evaluating CSS variables whose names are entirely
+  interpolated (for example, `#{--foo}: ...`).
+
 ## 1.0.0-beta.2
 
 * Add support for the `::slotted()` pseudo-element.
