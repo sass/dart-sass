@@ -18,9 +18,10 @@ import '../color_names.dart';
 import '../environment.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
+import '../importer.dart';
+import '../importer/filesystem.dart';
 import '../io.dart';
 import '../parse/keyframe_selector.dart';
-import '../sync_package_resolver.dart';
 import '../utils.dart';
 import '../util/path.dart';
 import '../value.dart';
@@ -43,30 +44,42 @@ final _noSourceUrl = Uri.parse("-");
 ///
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
+/// If [importer] is passed, it's used to resolve relative imports in
+/// [stylesheet] relative to `stylesheet.span.sourceUrl`.
+///
 /// Throws a [SassRuntimeException] if evaluation fails.
 EvaluateResult evaluate(Stylesheet stylesheet,
-        {Iterable<String> loadPaths,
+        {Iterable<Importer> importers,
+        Importer importer,
         Environment environment,
-        bool color: false,
-        SyncPackageResolver packageResolver}) =>
+        bool color: false}) =>
     new _EvaluateVisitor(
-            loadPaths: loadPaths,
+            importers: importers,
+            importer: importer,
             environment: environment,
-            color: color,
-            packageResolver: packageResolver)
+            color: color)
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
     implements StatementVisitor<Value>, ExpressionVisitor<Value> {
-  /// The paths to search for Sass files being imported.
-  final List<String> _loadPaths;
+  /// The importers to use when loading new Sass files.
+  final List<Importer> _importers;
 
   /// Whether to use terminal colors in warnings.
   final bool _color;
 
   /// The current lexical environment.
   Environment _environment;
+
+  /// The importer that's currently being used to resolve relative imports.
+  ///
+  /// If this is `null`, relative imports aren't supported in the current
+  /// stylesheet.
+  Importer _importer;
+
+  /// The base URL to use for resolving relative imports.
+  Uri _baseUrl;
 
   /// The style rule that defines the current parent selector, if any.
   CssStyleRule _styleRule;
@@ -117,18 +130,15 @@ class _EvaluateVisitor
   /// the stylesheet has been fully performed.
   var _outOfOrderImports = <CssImport>[];
 
-  /// The resolved URLs for each [DynamicImport] that's been seen so far.
-  ///
-  /// This is cached in case the same file is imported multiple times, and thus
-  /// its imports need to be resolved multiple times.
-  final _importPaths = <DynamicImport, String>{};
+  /// The parsed stylesheets for each canonicalized import URL.
+  final _importCache = <Uri, Stylesheet>{};
 
-  /// The parsed stylesheets for each resolved import URL.
+  /// The set that will eventually populate the JS API's
+  /// `result.stats.includedFiles` field.
   ///
-  /// This is separate from [_importPaths] because multiple `@import` rules may
-  /// import the same stylesheet, and we don't want to parse the same stylesheet
-  /// multiple times.
-  final _importedFiles = <Uri, Stylesheet>{};
+  /// For filesystem imports, this contains the import path. For all other
+  /// imports, it contains the URL passed to the `@import`.
+  final _includedFiles = new Set<String>();
 
   final _activeImports = new Set<Uri>();
 
@@ -139,18 +149,15 @@ class _EvaluateVisitor
   /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
-  /// The resolver to use for `package:` URLs, or `null` if no resolver exists.
-  final SyncPackageResolver _packageResolver;
-
   _EvaluateVisitor(
-      {Iterable<String> loadPaths,
+      {Iterable<Importer> importers,
+      Importer importer,
       Environment environment,
-      bool color: false,
-      SyncPackageResolver packageResolver})
-      : _loadPaths = loadPaths == null ? const [] : new List.from(loadPaths),
+      bool color: false})
+      : _importers = importers == null ? const [] : importers.toList(),
+        _importer = importer ?? Importer.noOp,
         _environment = environment ?? new Environment(),
-        _color = color,
-        _packageResolver = packageResolver {
+        _color = color {
     _environment.defineFunction("variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return new SassBoolean(_environment.variableExists(variable.text));
@@ -207,12 +214,25 @@ class _EvaluateVisitor
   }
 
   EvaluateResult run(Stylesheet node) {
-    if (node.span?.sourceUrl != null) {
-      _activeImports.add(node.span.sourceUrl);
-      _importedFiles[node.span.sourceUrl] = node;
+    _baseUrl = node.span?.sourceUrl;
+    if (_baseUrl != null) {
+      if (_importer is FilesystemImporter) {
+        _includedFiles.add(p.fromUri(_baseUrl));
+      } else {
+        _includedFiles.add(_baseUrl.toString());
+      }
+
+      var canonicalUrl = _importer?.canonicalize(_baseUrl);
+      if (canonicalUrl != null) {
+        _activeImports.add(canonicalUrl);
+        _importCache[canonicalUrl] = node;
+      }
     }
+    _baseUrl ??= new Uri(path: '.');
+
     visitStylesheet(node);
-    return new EvaluateResult(_root, new MapKeySet(_importedFiles));
+
+    return new EvaluateResult(_root, _includedFiles);
   }
 
   // ## Statements
@@ -582,7 +602,9 @@ class _EvaluateVisitor
 
   /// Adds the stylesheet imported by [import] to the current document.
   void _visitDynamicImport(DynamicImport import) {
-    var stylesheet = _loadImport(import);
+    var result = _loadImport(import);
+    var importer = result.item1;
+    var stylesheet = result.item2;
 
     var url = stylesheet.span.sourceUrl;
     if (_activeImports.contains(url)) {
@@ -592,89 +614,86 @@ class _EvaluateVisitor
     _activeImports.add(url);
     _withStackFrame("@import", import.span, () {
       _withEnvironment(_environment.global(), () {
+        var oldImporter = _importer;
+        var oldBaseUrl = _baseUrl;
+        _importer = importer;
+        _baseUrl = url;
         for (var statement in stylesheet.children) {
           statement.accept(this);
         }
+        _importer = oldImporter;
+        _baseUrl = oldBaseUrl;
       });
     });
     _activeImports.remove(url);
   }
 
-  /// Returns [import]'s URL, resolved to a `file:` URL if possible.
-  Uri _resolveImportUrl(DynamicImport import) {
-    var packageUrl = import.url;
-    if (packageUrl.scheme != 'package') return packageUrl;
-
-    if (_packageResolver == null) {
-      throw _exception(
-          '"package:" URLs aren\'t supported on this platform.', import.span);
-    }
-
-    var resolvedPackageUrl = _packageResolver.resolveUri(packageUrl);
-    if (resolvedPackageUrl != null) return resolvedPackageUrl;
-
-    throw _exception("Unknown package.", import.span);
-  }
-
   /// Loads the [Stylesheet] imported by [import], or throws a
   /// [SassRuntimeException] if loading fails.
-  Stylesheet _loadImport(DynamicImport import) {
-    var path = _importPaths.putIfAbsent(import, () {
-      var path = p.fromUri(_resolveImportUrl(import));
-      var extension = p.extension(path);
-      var tryPath = extension == '.sass' || extension == '.scss'
-          ? _tryImportPath
-          : _tryImportPathWithExtensions;
-
-      if (import.span.file.url != null) {
-        var base = p.dirname(p.fromUri(import.span.file.url));
-
-        var resolved = tryPath(p.join(base, path));
-        if (resolved != null) return resolved;
+  Tuple2<Importer, Stylesheet> _loadImport(DynamicImport import) {
+    try {
+      // Try to resolve [import.url] relative to the current URL with the
+      // current importer.
+      if (import.url.scheme.isEmpty && _importer != null) {
+        var stylesheet = _tryImport(_importer, _baseUrl.resolveUri(import.url));
+        if (stylesheet != null) return new Tuple2(_importer, stylesheet);
       }
 
-      for (var loadPath in _loadPaths) {
-        var resolved = tryPath(p.join(loadPath, path));
-        if (resolved != null) return resolved;
+      for (var importer in _importers) {
+        var stylesheet = _tryImport(importer, import.url);
+        if (stylesheet != null) return new Tuple2(importer, stylesheet);
       }
-    });
 
-    if (path == null) {
-      throw _exception("Can't find file to import.", import.span);
-    }
-
-    var url = p.toUri(path);
-    return _importedFiles.putIfAbsent(url, () {
-      String contents;
+      if (import.url.scheme == 'package') {
+        // Special-case this error message, since it's tripped people up in the
+        // past.
+        throw "\"package:\" URLs aren't supported on this platform.";
+      } else {
+        throw "Can't find stylesheet to import.";
+      }
+    } on SassException catch (error) {
+      var frames = error.trace.frames.toList()
+        ..add(_stackFrame(import.span))
+        ..addAll(_stack.toList());
+      throw new SassRuntimeException(
+          error.message, error.span, new Trace(frames));
+    } catch (error) {
+      String message;
       try {
-        contents = readFile(path);
-      } on SassException catch (error) {
-        var frames = _stack.toList()..add(_stackFrame(import.span));
-        throw new SassRuntimeException(
-            error.message, error.span, new Trace(frames));
-      } on FileSystemException catch (error) {
-        throw _exception(error.message, import.span);
+        message = error.message as String;
+      } catch (_) {
+        message = error.toString();
       }
-
-      return p.extension(path) == '.sass'
-          ? new Stylesheet.parseSass(contents, url: url, color: _color)
-          : new Stylesheet.parseScss(contents, url: url, color: _color);
-    });
+      throw _exception(message, import.span);
+    }
   }
 
-  /// Like [_tryImportPath], but checks both `.sass` and `.scss` extensions.
-  String _tryImportPathWithExtensions(String path) =>
-      _tryImportPath(path + '.sass') ?? _tryImportPath(path + '.scss');
+  /// Parses the contents of [result] into a [Stylesheet].
+  Stylesheet _tryImport(Importer importer, Uri url) {
+    // TODO(nweiz): Measure to see if it's worth caching this, too.
+    var canonicalUrl = importer.canonicalize(url);
+    if (canonicalUrl == null) return null;
 
-  /// If a file exists at [path], or a partial with the same name exists,
-  /// returns the resolved path.
-  ///
-  /// Otherwise, returns `null`.
-  String _tryImportPath(String path) {
-    var partial = p.join(p.dirname(path), "_${p.basename(path)}");
-    if (fileExists(partial)) return partial;
-    if (fileExists(path)) return path;
-    return null;
+    return _importCache.putIfAbsent(canonicalUrl, () {
+      var result = importer.load(canonicalUrl);
+      if (result == null) return null;
+
+      if (importer is FilesystemImporter) {
+        _includedFiles.add(p.fromUri(canonicalUrl));
+      } else {
+        _includedFiles.add(url.toString());
+      }
+
+      // Use the canonicalized basename so that we display e.g.
+      // package:example/_example.scss rather than package:example/example in
+      // stack traces.
+      var displayUrl = url.resolve(p.basename(canonicalUrl.path));
+      return result.isIndented
+          ? new Stylesheet.parseSass(result.contents,
+              url: displayUrl, color: _color)
+          : new Stylesheet.parseScss(result.contents,
+              url: displayUrl, color: _color);
+    });
   }
 
   /// Adds a CSS import for [import].
@@ -1676,9 +1695,12 @@ class EvaluateResult {
   /// The CSS syntax tree.
   final CssStylesheet stylesheet;
 
-  /// The URLs that were loaded during the compilation, including the main
-  /// file's.
-  final Set<Uri> includedUrls;
+  /// The set that will eventually populate the JS API's
+  /// `result.stats.includedFiles` field.
+  ///
+  /// For filesystem imports, this contains the import path. For all other
+  /// imports, it contains the URL passed to the `@import`.
+  final Set<String> includedFiles;
 
-  EvaluateResult(this.stylesheet, this.includedUrls);
+  EvaluateResult(this.stylesheet, this.includedFiles);
 }
