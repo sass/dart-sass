@@ -23,7 +23,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("compiles a Sass file to CSS", () async {
     await d.file("test.scss", "a {b: 1 + 2}").create();
 
-    var sass = await runSass(["test.scss", "test.css"]);
+    var sass = await runSass(["test.scss"]);
     expect(
         sass.stdout,
         emitsInOrder([
@@ -82,7 +82,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     await d.dir("dir", [d.file("test.scss", "a {b: 1 + 2}")]).create();
 
-    var sass = await runSass(["test.scss", "test.css"]);
+    var sass = await runSass(["test.scss"]);
     expect(
         sass.stdout,
         emitsInOrder([
@@ -111,7 +111,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("from invalid syntax", () async {
       await d.file("test.scss", "a {b: }").create();
 
-      var sass = await runSass(["test.scss", "test.css"]);
+      var sass = await runSass(["test.scss"]);
       expect(
           sass.stderr,
           emitsInOrder([
@@ -126,7 +126,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("from the runtime", () async {
       await d.file("test.scss", "a {b: 1px + 1deg}").create();
 
-      var sass = await runSass(["test.scss", "test.css"]);
+      var sass = await runSass(["test.scss"]);
       expect(
           sass.stderr,
           emitsInOrder([
@@ -141,7 +141,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("with colors with --color", () async {
       await d.file("test.scss", "a {b: }").create();
 
-      var sass = await runSass(["--color", "test.scss", "test.css"]);
+      var sass = await runSass(["--color", "test.scss"]);
       expect(
           sass.stderr,
           emitsInOrder([
@@ -156,7 +156,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("with full stack traces with --trace", () async {
       await d.file("test.scss", "a {b: }").create();
 
-      var sass = await runSass(["--trace", "test.scss", "test.css"]);
+      var sass = await runSass(["--trace", "test.scss"]);
       expect(sass.stderr, emitsThrough(contains("\.dart")));
       await sass.shouldExit(65);
     });
@@ -164,7 +164,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("for package urls", () async {
       await d.file("test.scss", "@import 'package:nope/test';").create();
 
-      var sass = await runSass(["test.scss", "test.css"]);
+      var sass = await runSass(["test.scss"]);
       expect(
           sass.stderr,
           emitsInOrder([
