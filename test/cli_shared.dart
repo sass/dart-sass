@@ -48,6 +48,21 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(0);
   });
 
+  test("gracefully reports errors from stdin", () async {
+    var sass = await runSass(["-"]);
+    sass.stdin.writeln("a {b: 1 + }");
+    sass.stdin.close();
+    expect(
+        sass.stderr,
+        emitsInOrder([
+          "Error: Expected expression.",
+          "a {b: 1 + }",
+          "          ^",
+          "  - 1:11  root stylesheet",
+        ]));
+    await sass.shouldExit(65);
+  });
+
   test("supports relative imports", () async {
     await d.file("test.scss", "@import 'dir/test'").create();
 
