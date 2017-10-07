@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:js/js.dart';
 import 'package:source_span/source_span.dart';
 
@@ -18,6 +21,13 @@ class _FS {
 @JS()
 class _Stderr {
   external void write(String text);
+}
+
+@JS()
+class _Stdin {
+  external String read();
+
+  external void on(String event, void callback([object]));
 }
 
 @JS()
@@ -92,6 +102,33 @@ _readFile(String path, [String encoding]) {
   }
 }
 
+Future<String> readStdin() async {
+  var completer = new Completer<String>();
+  String contents;
+  var innerSink = new StringConversionSink.withCallback((String result) {
+    contents = result;
+    completer.complete(contents);
+  });
+  // Node defaults all buffers to 'utf8'.
+  var sink = UTF8.decoder.startChunkedConversion(innerSink);
+  _stdin.on('data', allowInterop(([chunk]) {
+    assert(chunk != null);
+    sink.add(chunk as List<int>);
+  }));
+  _stdin.on('end', allowInterop(([_]) {
+    // Callback for 'end' receives no args.
+    assert(_ == null);
+    sink.close();
+  }));
+  _stdin.on('error', allowInterop(([e]) {
+    assert(e != null);
+    stderr.writeln('Failed to read from stdin');
+    stderr.writeln(e);
+    completer.completeError(e);
+  }));
+  return completer.future;
+}
+
 /// Cleans up a Node system error's message.
 String _cleanErrorMessage(_SystemError error) {
   // The error message is of the form "$code: $text, $syscall '$path'". We just
@@ -108,6 +145,9 @@ bool dirExists(String path) => _fs.existsSync(path);
 external _Stderr get _stderr;
 
 final stderr = new Stderr(_stderr);
+
+@JS("process.stdin")
+external _Stdin get _stdin;
 
 bool get hasTerminal => _hasTerminal ?? false;
 

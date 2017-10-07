@@ -34,6 +34,49 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(0);
   });
 
+  test("compiles from stdin with the magic path -", () async {
+    var sass = await runSass(["-"]);
+    sass.stdin.writeln("a {b: 1 + 2}");
+    sass.stdin.close();
+    expect(
+        sass.stdout,
+        emitsInOrder([
+          "a {",
+          "  b: 3;",
+          "}",
+        ]));
+    await sass.shouldExit(0);
+  });
+
+  test("compiles from stdin with --stdin", () async {
+    var sass = await runSass(["--stdin"]);
+    sass.stdin.writeln("a {b: 1 + 2}");
+    sass.stdin.close();
+    expect(
+        sass.stdout,
+        emitsInOrder([
+          "a {",
+          "  b: 3;",
+          "}",
+        ]));
+    await sass.shouldExit(0);
+  });
+
+  test("gracefully reports errors from stdin", () async {
+    var sass = await runSass(["-"]);
+    sass.stdin.writeln("a {b: 1 + }");
+    sass.stdin.close();
+    expect(
+        sass.stderr,
+        emitsInOrder([
+          "Error: Expected expression.",
+          "a {b: 1 + }",
+          "          ^",
+          "  - 1:11  root stylesheet",
+        ]));
+    await sass.shouldExit(65);
+  });
+
   test("supports relative imports", () async {
     await d.file("test.scss", "@import 'dir/test'").create();
 

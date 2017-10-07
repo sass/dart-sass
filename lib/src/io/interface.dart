@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+
 /// An output sink that writes to this process's standard error.
 class Stderr {
   /// Writes the string representation of [object] to standard error.
@@ -40,6 +42,10 @@ String get currentPath => null;
 /// Throws a [FileSystemException] if reading fails, and a [SassException] if
 /// the file isn't valid UTF-8.
 String readFile(String path) => null;
+
+/// Reads from the standard input for the current process until it closes,
+/// returning the contents.
+Future<String> readStdin() async => null;
 
 /// Returns whether a file at [path] exists.
 bool fileExists(String path) => null;

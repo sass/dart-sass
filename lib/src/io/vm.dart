@@ -2,13 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../exception.dart';
-import '../util/path.dart';
 
 export 'dart:io' show exitCode, FileSystemException;
 
@@ -41,6 +42,12 @@ String readFile(String path) {
     // in case.
     rethrow;
   }
+}
+
+Future<String> readStdin() async {
+  var completer = new Completer<String>();
+  completer.complete(await io.SYSTEM_ENCODING.decodeStream(io.stdin));
+  return completer.future;
 }
 
 bool fileExists(String path) => new io.File(path).existsSync();

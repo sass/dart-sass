@@ -16,6 +16,7 @@ import 'util/path.dart';
 main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addOption('precision', hide: true)
+    ..addFlag('stdin', help: 'Read the stylesheet from stdin.')
     ..addOption('style',
         abbr: 's',
         help: 'Output style.',
@@ -45,7 +46,8 @@ main(List<String> args) async {
     return;
   }
 
-  if (options['help'] as bool || options.rest.isEmpty) {
+  var stdinFlag = options['stdin'] as bool;
+  if (options['help'] as bool || (options.rest.isEmpty && !stdinFlag)) {
     _printUsage(argParser, "Compile Sass to CSS.");
     exitCode = 64;
     return;
@@ -54,7 +56,16 @@ main(List<String> args) async {
   var color =
       options.wasParsed('color') ? options['color'] as bool : hasTerminal;
   try {
-    var css = compile(options.rest.first, color: color);
+    String css;
+    if (stdinFlag) {
+      css = compileString(await readStdin(), color: color);
+    } else {
+      var input = options.rest.first;
+      css = input == '-'
+          ? compileString(await readStdin(), color: color)
+          : compile(input, color: color);
+    }
+
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
     stderr.writeln(error.toString(color: color));
