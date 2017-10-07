@@ -27,11 +27,11 @@ export 'selector/universal.dart';
 /// Selectors have structural equality semantics.
 abstract class Selector {
   /// Whether this selector, and complex selectors containing it, should not be
-  /// rendered.
+  /// emitted.
   bool get isInvisible => false;
 
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(SelectorVisitor<T> visitor);
 
-  String toString() => selectorToCss(this, inspect: true);
+  String toString() => serializeSelector(this, inspect: true);
 }

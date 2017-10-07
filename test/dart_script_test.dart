@@ -2,13 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+@TestOn('vm')
+
 import 'package:package_resolver/package_resolver.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
+import 'package:sass/src/util/path.dart';
 
 main() {
   test("successfully imports a package URL", () async {
@@ -18,7 +20,8 @@ main() {
     var resolver = new SyncPackageResolver.config(
         {"fake_package": p.toUri(p.join(d.sandbox, 'subdir'))});
 
-    var css = render(p.join(d.sandbox, "test.scss"), packageResolver: resolver);
+    var css =
+        compile(p.join(d.sandbox, "test.scss"), packageResolver: resolver);
     expect(css, equals("a {\n  b: 3;\n}"));
   });
 
@@ -28,7 +31,7 @@ main() {
         .create();
     var resolver = new SyncPackageResolver.config({});
 
-    expect(() => render(d.sandbox + "/test.scss", packageResolver: resolver),
+    expect(() => compile(d.sandbox + "/test.scss", packageResolver: resolver),
         throwsA(new isInstanceOf<SassRuntimeException>()));
   });
 }

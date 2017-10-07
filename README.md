@@ -58,14 +58,13 @@ configuration to take effect.
 ### From npm
 
 Dart Sass is available, compiled to JavaScript, [as an npm package][npm]. You
-can install it globally using `npm install -g dart-sass`, or to your project
-using `npm install dart-sass`. This provides a `dart-sass` executable as well as
-a library:
+can install it globally using `npm install -g sass`, or to your project using
+`npm install sass`. This provides a `sass` executable as well as a library:
 
-[npm]: https://www.npmjs.com/package/dart-sass
+[npm]: https://www.npmjs.com/package/sass
 
 ```js
-var sass = require('dart-sass');
+var sass = require('sass');
 
 sass.render({file: scss_filename}, function(err, result) { /* ... */ });
 
@@ -89,7 +88,7 @@ also add it to your pubspec and use it as a library:
 import 'package:sass/sass.dart' as sass;
 
 void main(List<String> args) {
-  print(sass.render(args.first));
+  print(sass.compile(args.first));
 }
 ```
 
@@ -169,7 +168,7 @@ Sass to update the reference behavior.
     `@extend` defined outside that query. This isn't tracked explicitly, because
     it'll be irrelevant when [issue 1050][] is fixed.
 
-11. Some selector pseudos containing placeholder selectors will be rendered
+11. Some selector pseudos containing placeholder selectors will be compiled
     where they wouldn't be in Ruby Sass. This better matches the semantics of
     the selectors in question, and is more efficient. See [issue 2228][].
 

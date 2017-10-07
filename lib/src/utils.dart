@@ -8,10 +8,14 @@ import 'dart:math' as math;
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import 'ast/node.dart';
 import 'io.dart';
 import 'util/character.dart';
+
+/// The URL used in stack traces when no source URL is available.
+final _noSourceUrl = Uri.parse("-");
 
 /// Converts [iter] into a sentence, separating each word with [conjunction].
 String toSentence(Iterable iter, [String conjunction]) {
@@ -81,6 +85,13 @@ bool listEquals<T>(List<T> list1, List<T> list2) =>
 
 /// Returns a hash code for [list] that matches [listEquals].
 int listHash(List list) => const ListEquality().hash(list);
+
+/// Returns a stack frame for the given [span] with the given [member] name.
+Frame frameForSpan(SourceSpan span, String member) => new Frame(
+    span.sourceUrl ?? _noSourceUrl,
+    span.start.line + 1,
+    span.start.column + 1,
+    member);
 
 /// Returns a source span that covers the spans of both the first and last nodes
 /// in [nodes].

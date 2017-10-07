@@ -6,7 +6,6 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:tuple/tuple.dart';
@@ -23,12 +22,16 @@ import '../io.dart';
 import '../parse/keyframe_selector.dart';
 import '../sync_package_resolver.dart';
 import '../utils.dart';
+import '../util/path.dart';
 import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
 
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback(callback());
+
+/// The URL used in stack traces when no source URL is available.
+final _noSourceUrl = Uri.parse("-");
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
@@ -41,12 +44,12 @@ typedef _ScopeCallback(callback());
 /// If [color] is `true`, this will use terminal colors in warnings.
 ///
 /// Throws a [SassRuntimeException] if evaluation fails.
-CssStylesheet evaluate(Stylesheet stylesheet,
+EvaluateResult evaluate(Stylesheet stylesheet,
         {Iterable<String> loadPaths,
         Environment environment,
         bool color: false,
         SyncPackageResolver packageResolver}) =>
-    new _PerformVisitor(
+    new _EvaluateVisitor(
             loadPaths: loadPaths,
             environment: environment,
             color: color,
@@ -54,7 +57,7 @@ CssStylesheet evaluate(Stylesheet stylesheet,
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
-class _PerformVisitor
+class _EvaluateVisitor
     implements StatementVisitor<Value>, ExpressionVisitor<Value> {
   /// The paths to search for Sass files being imported.
   final List<String> _loadPaths;
@@ -125,7 +128,7 @@ class _PerformVisitor
   /// This is separate from [_importPaths] because multiple `@import` rules may
   /// import the same stylesheet, and we don't want to parse the same stylesheet
   /// multiple times.
-  final _importedFiles = <String, Stylesheet>{};
+  final _importedFiles = <Uri, Stylesheet>{};
 
   final _activeImports = new Set<Uri>();
 
@@ -139,7 +142,7 @@ class _PerformVisitor
   /// The resolver to use for `package:` URLs, or `null` if no resolver exists.
   final SyncPackageResolver _packageResolver;
 
-  _PerformVisitor(
+  _EvaluateVisitor(
       {Iterable<String> loadPaths,
       Environment environment,
       bool color: false,
@@ -203,10 +206,13 @@ class _PerformVisitor
     });
   }
 
-  CssStylesheet run(Stylesheet node) {
-    if (node.span != null) _activeImports.add(node.span.sourceUrl);
+  EvaluateResult run(Stylesheet node) {
+    if (node.span?.sourceUrl != null) {
+      _activeImports.add(node.span.sourceUrl);
+      _importedFiles[node.span.sourceUrl] = node;
+    }
     visitStylesheet(node);
-    return _root;
+    return new EvaluateResult(_root, new MapKeySet(_importedFiles));
   }
 
   // ## Statements
@@ -620,9 +626,12 @@ class _PerformVisitor
           ? _tryImportPath
           : _tryImportPathWithExtensions;
 
-      var base = p.dirname(p.fromUri(import.span.file.url));
-      var resolved = tryPath(p.join(base, path));
-      if (resolved != null) return resolved;
+      if (import.span.file.url != null) {
+        var base = p.dirname(p.fromUri(import.span.file.url));
+
+        var resolved = tryPath(p.join(base, path));
+        if (resolved != null) return resolved;
+      }
 
       for (var loadPath in _loadPaths) {
         var resolved = tryPath(p.join(loadPath, path));
@@ -634,7 +643,8 @@ class _PerformVisitor
       throw _exception("Can't find file to import.", import.span);
     }
 
-    return _importedFiles.putIfAbsent(path, () {
+    var url = p.toUri(path);
+    return _importedFiles.putIfAbsent(url, () {
       String contents;
       try {
         contents = readFile(path);
@@ -646,7 +656,6 @@ class _PerformVisitor
         throw _exception(error.message, import.span);
       }
 
-      var url = p.toUri(path);
       return p.extension(path) == '.sass'
           ? new Stylesheet.parseSass(contents, url: url, color: _color)
           : new Stylesheet.parseScss(contents, url: url, color: _color);
@@ -935,7 +944,7 @@ class _PerformVisitor
       var value = node.expression.accept(this);
       var string = value is SassString
           ? value.text
-          : _toCss(value, node.expression.span);
+          : _serialize(value, node.expression.span);
       stderr.writeln("WARNING: $string");
     });
 
@@ -1013,8 +1022,8 @@ class _PerformVisitor
           var right = node.right.accept(this);
           var result = left.dividedBy(right);
           if (node.allowsSlash && left is SassNumber && right is SassNumber) {
-            var leftSlash = left.asSlash ?? _toCss(left, node.left.span);
-            var rightSlash = right.asSlash ?? _toCss(right, node.left.span);
+            var leftSlash = left.asSlash ?? _serialize(left, node.left.span);
+            var rightSlash = right.asSlash ?? _serialize(right, node.left.span);
             return (result as SassNumber).withSlash("$leftSlash/$rightSlash");
           } else {
             return result;
@@ -1209,7 +1218,7 @@ class _PerformVisitor
       var rest = arguments.rest?.accept(this);
       if (rest != null) {
         if (!first) buffer.write(", ");
-        buffer.write(_toCss(rest, arguments.rest.span));
+        buffer.write(_serialize(rest, arguments.rest.span));
       }
       buffer.writeCharCode($rparen);
 
@@ -1458,7 +1467,7 @@ class _PerformVisitor
           var result = expression.accept(this);
           return result is SassString
               ? result.text
-              : _toCss(result, expression.span, quote: false);
+              : _serialize(result, expression.span, quote: false);
         }).join(),
         quotes: node.hasQuotes);
   }
@@ -1527,7 +1536,7 @@ class _PerformVisitor
             expression.span);
       }
 
-      return _toCss(result, expression.span, quote: false);
+      return _serialize(result, expression.span, quote: false);
     }).join();
   }
 
@@ -1538,11 +1547,11 @@ class _PerformVisitor
   /// Evaluates [expression] and calls `toCssString()` and wraps a
   /// [SassScriptException] to associate it with [span].
   String _evaluateToCss(Expression expression, {bool quote: true}) =>
-      _toCss(expression.accept(this), expression.span, quote: quote);
+      _serialize(expression.accept(this), expression.span, quote: quote);
 
   /// Calls `value.toCssString()` and wraps a [SassScriptException] to associate
   /// it with [span].
-  String _toCss(Value value, FileSpan span, {bool quote: true}) =>
+  String _serialize(Value value, FileSpan span, {bool quote: true}) =>
       _addExceptionSpan(span, () => value.toCssString(quote: quote));
 
   /// Adds [node] as a child of the current parent, then runs [callback] with
@@ -1614,8 +1623,7 @@ class _PerformVisitor
 
   /// Creates a new stack frame with location information from [span] and
   /// [_member].
-  Frame _stackFrame(FileSpan span) => new Frame(
-      span.sourceUrl, span.start.line + 1, span.start.column + 1, _member);
+  Frame _stackFrame(FileSpan span) => frameForSpan(span, _member);
 
   /// Returns a stack trace at the current point.
   ///
@@ -1643,8 +1651,9 @@ class _PerformVisitor
       var syntheticFile = span.file
           .getText(0)
           .replaceRange(span.start.offset, span.end.offset, errorText);
-      var syntheticSpan = new SourceFile(syntheticFile, url: span.file.url)
-          .span(span.start.offset + error.span.start.offset,
+      var syntheticSpan =
+          new SourceFile.fromString(syntheticFile, url: span.file.url).span(
+              span.start.offset + error.span.start.offset,
               span.start.offset + error.span.end.offset);
       throw _exception(error.message, syntheticSpan);
     }
@@ -1659,4 +1668,17 @@ class _PerformVisitor
       throw _exception(error.message, span);
     }
   }
+}
+
+/// The result of compiling a Sass document to a CSS tree, along with metadata
+/// about the compilation process.
+class EvaluateResult {
+  /// The CSS syntax tree.
+  final CssStylesheet stylesheet;
+
+  /// The URLs that were loaded during the compilation, including the main
+  /// file's.
+  final Set<Uri> includedUrls;
+
+  EvaluateResult(this.stylesheet, this.includedUrls);
 }

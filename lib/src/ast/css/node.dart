@@ -55,7 +55,7 @@ abstract class CssNode extends AstNode {
     _parent = null;
   }
 
-  String toString() => toCss(this, inspect: true);
+  String toString() => serialize(this, inspect: true);
 }
 
 // NOTE: New at-rule implementations should add themselves to [AtRootRule]'s

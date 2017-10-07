@@ -13,6 +13,9 @@ import 'parser.dart';
 final _selectorPseudoClasses = new Set<String>.from(
     ["not", "matches", "current", "any", "has", "host", "host-context"]);
 
+/// Pseudo-element selectors that take unadorned selectors as arguments.
+final _selectorPseudoElements = new Set<String>.from(["slotted"]);
+
 /// A parser for selectors.
 class SelectorParser extends Parser {
   /// Whether this parser allows the parent selector `&`.
@@ -276,7 +279,11 @@ class SelectorParser extends Parser {
     String argument;
     SelectorList selector;
     if (element) {
-      argument = declarationValue();
+      if (_selectorPseudoElements.contains(unvendored)) {
+        selector = _selectorList();
+      } else {
+        argument = declarationValue();
+      }
     } else if (_selectorPseudoClasses.contains(unvendored)) {
       selector = _selectorList();
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {

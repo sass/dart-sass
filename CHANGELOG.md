@@ -1,4 +1,40 @@
-## 1.0.0-alpha.10
+## 1.0.0-beta.3
+
+* Properly parse numbers with exponents.
+
+* Don't crash when evaluating CSS variables whose names are entirely
+  interpolated (for example, `#{--foo}: ...`).
+
+## 1.0.0-beta.2
+
+* Add support for the `::slotted()` pseudo-element.
+
+* Generated transparent colors will now be emitted as `rgba(0, 0, 0, 0)` rather
+  than `transparent`. This works around a bug wherein IE incorrectly handles the
+  latter format.
+
+### Command-Line Interface
+
+* Improve the logic for whether to use terminal colors by default.
+
+### Node JS API
+
+* Add support for `data`, `includePaths`, `indentedSyntax`, `lineFeed`,
+  `indentWidth`, and `indentType` options to `render()` and `renderSync()`.
+
+* The result object returned by `render()` and `renderSync()` now includes the
+  `stats` object which provides metadata about the compilation process.
+
+* The error object thrown by `render()` and `renderSync()` now includes `line`,
+  `column`, `file`, `status`, and `formatted` fields. The `message` field and
+  `toString()` also provide more information.
+
+### Dart API
+
+* Add a `renderString()` method for rendering Sass source that's not in a file
+  on disk.
+
+## 1.0.0-beta.1
 
 * Drop support for the reference combinator. This has been removed from the
   spec, and will be deprecated and eventually removed in other implementations.

@@ -4,13 +4,16 @@
 
 import 'package:js/js.dart';
 
+import 'compile.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
-import 'node/error.dart';
 import 'node/exports.dart';
-import 'node/options.dart';
-import 'node/result.dart';
-import 'render.dart';
+import 'node/render_error.dart';
+import 'node/render_options.dart';
+import 'node/render_result.dart';
+import 'node/utils.dart';
+import 'util/path.dart';
+import 'visitor/serialize.dart';
 
 /// The entrypoint for Node.js.
 ///
@@ -34,19 +37,14 @@ void main() {
 /// possible.
 ///
 /// [render]: https://github.com/sass/node-sass#options
-void _render(
-    NodeOptions options, void callback(NodeError error, NodeResult result)) {
+void _render(RenderOptions options,
+    void callback(RenderError error, RenderResult result)) {
   try {
-    var indentWidthValue = options.indentWidth;
-    var indentWidth = indentWidthValue is int
-        ? indentWidthValue
-        : int.parse(indentWidthValue.toString());
-    var result = newNodeResult(render(options.file,
-        useSpaces: options.indentType == 'space', indentWidth: indentWidth));
-    callback(null, result);
+    callback(null, _doRender(options));
   } on SassException catch (error) {
-    // TODO: populate the error more thoroughly if possible.
-    callback(new NodeError(message: error.message), null);
+    callback(_wrapException(error), null);
+  } catch (error) {
+    callback(newRenderError(error.toString(), status: 3), null);
   }
 }
 
@@ -56,16 +54,104 @@ void _render(
 /// as possible.
 ///
 /// [render]: https://github.com/sass/node-sass#options
-NodeResult _renderSync(NodeOptions options) {
+RenderResult _renderSync(RenderOptions options) {
   try {
-    var indentWidthValue = options.indentWidth;
-    var indentWidth = indentWidthValue is int
-        ? indentWidthValue
-        : int.parse(indentWidthValue.toString());
-    return newNodeResult(render(options.file,
-        useSpaces: options.indentType == 'space', indentWidth: indentWidth));
+    return _doRender(options);
   } on SassException catch (error) {
-    // TODO: populate the error more thoroughly if possible.
-    throw new NodeError(message: error.message);
+    jsThrow(_wrapException(error));
+  } catch (error) {
+    jsThrow(newRenderError(error.toString(), status: 3));
+  }
+  throw "unreachable";
+}
+
+/// Converts Sass to CSS.
+///
+/// Unlike [_render] and [_renderSync], this doesn't do any special handling for
+/// Dart exceptions.
+RenderResult _doRender(RenderOptions options) {
+  var start = new DateTime.now();
+  CompileResult result;
+  if (options.data != null) {
+    if (options.file != null) {
+      throw new ArgumentError(
+          "options.data and options.file may not both be set.");
+    }
+
+    result = compileString(options.data,
+        loadPaths: options.includePaths,
+        indented: options.indentedSyntax ?? false,
+        style: _parseOutputStyle(options.outputStyle),
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed));
+  } else if (options.file != null) {
+    result = compile(options.file,
+        loadPaths: options.includePaths,
+        indented: options.indentedSyntax,
+        style: _parseOutputStyle(options.outputStyle),
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed));
+  } else {
+    throw new ArgumentError("Either options.data or options.file must be set.");
+  }
+  var end = new DateTime.now();
+
+  return newRenderResult(result.css,
+      entry: options.file ?? 'data',
+      start: start.millisecondsSinceEpoch,
+      end: end.millisecondsSinceEpoch,
+      duration: end.difference(start).inMilliseconds,
+      includedFiles: result.includedUrls.map((url) => p.fromUri(url)).toList());
+}
+
+/// Converts a [SassException] to a [RenderError].
+RenderError _wrapException(SassException exception) {
+  var trace = exception is SassRuntimeException
+      ? "\n" +
+          exception.trace
+              .toString()
+              .trimRight()
+              .split("\n")
+              .map((frame) => "  $frame")
+              .join("\n")
+      : "\n  ${p.fromUri(exception.span.sourceUrl ?? '-')} "
+      "${exception.span.start.line + 1}:${exception.span.start.column + 1}  "
+      "root stylesheet";
+
+  return newRenderError(exception.message + trace,
+      formatted: exception.toString(),
+      line: exception.span.start.line + 1,
+      column: exception.span.start.column + 1,
+      file: exception.span.sourceUrl == null
+          ? 'stdin'
+          : p.fromUri(exception.span.sourceUrl),
+      status: 1);
+}
+
+/// Parse [style] into an [OutputStyle].
+OutputStyle _parseOutputStyle(String style) {
+  if (style == null || style == 'expanded') return OutputStyle.expanded;
+  throw new ArgumentError('Unsupported output style "$style".');
+}
+
+/// Parses the indentation width into an [int].
+int _parseIndentWidth(width) {
+  if (width == null) return null;
+  return width is int ? width : int.parse(width.toString());
+}
+
+/// Parses the name of a line feed type into a [LineFeed].
+LineFeed _parseLineFeed(String str) {
+  switch (str) {
+    case 'cr':
+      return LineFeed.cr;
+    case 'crlf':
+      return LineFeed.crlf;
+    case 'lfcr':
+      return LineFeed.lfcr;
+    default:
+      return LineFeed.lf;
   }
 }

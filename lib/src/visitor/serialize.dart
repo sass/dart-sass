@@ -28,16 +28,19 @@ import 'interface/value.dart';
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [node] contains any values
 /// that can't be represented in plain CSS, throws a [SassException].
-String toCss(CssNode node,
+String serialize(CssNode node,
     {OutputStyle style,
     bool inspect: false,
     bool useSpaces: true,
-    int indentWidth: 2}) {
-  var visitor = new _SerializeCssVisitor(
+    int indentWidth,
+    LineFeed lineFeed}) {
+  indentWidth ??= 2;
+  var visitor = new _SerializeVisitor(
       style: style,
       inspect: inspect,
       useSpaces: useSpaces,
-      indentWidth: indentWidth);
+      indentWidth: indentWidth,
+      lineFeed: lineFeed);
   node.accept(visitor);
   var result = visitor._buffer.toString();
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
@@ -54,8 +57,8 @@ String toCss(CssNode node,
 /// represented in plain CSS, throws a [SassScriptException].
 ///
 /// If [quote] is `false`, quoted strings are emitted without quotes.
-String valueToCss(Value value, {bool inspect: false, bool quote: true}) {
-  var visitor = new _SerializeCssVisitor(inspect: inspect, quote: quote);
+String serializeValue(Value value, {bool inspect: false, bool quote: true}) {
+  var visitor = new _SerializeVisitor(inspect: inspect, quote: quote);
   value.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -66,15 +69,14 @@ String valueToCss(Value value, {bool inspect: false, bool quote: true}) {
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [selector] can't be
 /// represented in plain CSS, throws a [SassScriptException].
-String selectorToCss(Selector selector, {bool inspect: false}) {
-  var visitor = new _SerializeCssVisitor(inspect: inspect);
+String serializeSelector(Selector selector, {bool inspect: false}) {
+  var visitor = new _SerializeVisitor(inspect: inspect);
   selector.accept(visitor);
   return visitor._buffer.toString();
 }
 
 /// A visitor that converts CSS syntax trees to plain strings.
-class _SerializeCssVisitor
-    implements CssVisitor, ValueVisitor, SelectorVisitor {
+class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// A buffer that contains the CSS produced so far.
   final _buffer = new StringBuffer();
 
@@ -94,16 +96,23 @@ class _SerializeCssVisitor
   /// The number of spaces or tabs to be used for indentation.
   final int _indentWidth;
 
-  _SerializeCssVisitor(
+  /// The characters to use for a line feed.
+  final LineFeed _lineFeed;
+
+  _SerializeVisitor(
       {OutputStyle style,
       bool inspect: false,
       bool quote: true,
       bool useSpaces: true,
-      int indentWidth: 2})
+      int indentWidth,
+      LineFeed lineFeed})
       : _inspect = inspect,
         _quote = quote,
         _indentCharacter = useSpaces ? $space : $tab,
-        _indentWidth = indentWidth;
+        _indentWidth = indentWidth ?? 2,
+        _lineFeed = lineFeed ?? LineFeed.lf {
+    RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
+  }
 
   void visitStylesheet(CssStylesheet node) {
     CssNode previous;
@@ -112,8 +121,8 @@ class _SerializeCssVisitor
       if (_isInvisible(child)) continue;
 
       if (previous != null) {
-        _buffer.writeln();
-        if (previous.isGroupEnd) _buffer.writeln();
+        _buffer.write(_lineFeed.text);
+        if (previous.isGroupEnd) _buffer.write(_lineFeed.text);
       }
       previous = child;
 
@@ -221,8 +230,8 @@ class _SerializeCssVisitor
     _writeIndentation();
     _buffer.write(node.name.value);
     _buffer.writeCharCode($colon);
-    if (node.isCustomProperty) {
-      _writeCustomPropertyValue(node);
+    if (_shouldReindentValue(node)) {
+      _writeReindentedValue(node);
     } else {
       _buffer.writeCharCode($space);
       _visitValue(node.value);
@@ -230,10 +239,22 @@ class _SerializeCssVisitor
     _buffer.writeCharCode($semicolon);
   }
 
-  /// Emits the value of [node] as a custom property value.
+  /// Returns whether [node]'s value should be re-indented when being written to
+  /// the stylesheet.
   ///
-  /// This re-indents [node]'s value relative to the current indentation.
-  void _writeCustomPropertyValue(CssDeclaration node) {
+  /// We only re-indent custom property values that were parsed as custom
+  /// properties, which we detect as unquoted strings. It's possible to have
+  /// false positives here, since someone could write `#{--foo}: unquoted`, but
+  /// that's unlikely enough that we can spare the extra time a no-op
+  /// reindenting will take.
+  bool _shouldReindentValue(CssDeclaration node) {
+    if (!node.name.value.startsWith("--")) return false;
+    var value = node.value.value;
+    return value is SassString && !value.hasQuotes;
+  }
+
+  /// Emits the value of [node], re-indented relative to the current indentation.
+  void _writeReindentedValue(CssDeclaration node) {
     var value = (node.value.value as SassString).text;
 
     var minimumIndentation = _minimumIndentation(value);
@@ -307,7 +328,10 @@ class _SerializeCssVisitor
   void visitColor(SassColor value) {
     if (value.original != null) {
       _buffer.write(value.original);
-    } else if (namesByColor.containsKey(value)) {
+    } else if (namesByColor.containsKey(value) &&
+        // Always emit generated transparent colors in rgba format. This works
+        // around an IE bug. See sass/sass#1782.
+        !fuzzyEquals(value.alpha, 0)) {
       _buffer.write(namesByColor[value]);
     } else if (value.alpha == 1) {
       _buffer.writeCharCode($hash);
@@ -738,7 +762,11 @@ class _SerializeCssVisitor
         first = false;
       } else {
         _buffer.writeCharCode($comma);
-        _buffer.writeCharCode(complex.lineBreak ? $lf : $space);
+        if (complex.lineBreak) {
+          _buffer.write(_lineFeed.text);
+        } else {
+          _buffer.writeCharCode($space);
+        }
       }
       visitComplexSelector(complex);
     }
@@ -798,7 +826,7 @@ class _SerializeCssVisitor
       return;
     }
 
-    _buffer.writeln();
+    _buffer.write(_lineFeed.text);
     _indent(() {
       CssNode previous;
       for (var i = 0; i < children.length; i++) {
@@ -806,15 +834,15 @@ class _SerializeCssVisitor
         if (_isInvisible(child)) continue;
 
         if (previous != null) {
-          _buffer.writeln();
-          if (previous.isGroupEnd) _buffer.writeln();
+          _buffer.write(_lineFeed.text);
+          if (previous.isGroupEnd) _buffer.write(_lineFeed.text);
         }
         previous = child;
 
         child.accept(this);
       }
     });
-    _buffer.writeln();
+    _buffer.write(_lineFeed.text);
     _writeIndentation();
     _buffer.writeCharCode($rbrace);
   }
@@ -918,4 +946,29 @@ class OutputStyle {
   const OutputStyle._(this._name);
 
   String toString() => _name;
+}
+
+/// An enum of line feed sequences.
+class LineFeed {
+  /// A single carriage return.
+  static const cr = const LineFeed._('cr', '\r');
+
+  /// A carriage return followed by a line feed.
+  static const crlf = const LineFeed._('crlf', '\r\n');
+
+  /// A single line feed.
+  static const lf = const LineFeed._('lf', '\n');
+
+  /// A line feed followed by a carriage return.
+  static const lfcr = const LineFeed._('lfcr', '\n\r');
+
+  /// The name of this sequence..
+  final String name;
+
+  /// The text to emit for this line feed.
+  final String text;
+
+  const LineFeed._(this.name, this.text);
+
+  String toString() => name;
 }

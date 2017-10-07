@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:js/js.dart';
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../exception.dart';
+import '../util/path.dart';
 
 @JS()
 class _FS {
@@ -38,10 +38,17 @@ class _SystemError {
   external String get path;
 }
 
+@JS()
+class _Process {
+  external String get platform;
+  external String cwd();
+}
+
 class FileSystemException {
   final String message;
+  final String path;
 
-  FileSystemException._(this.message);
+  FileSystemException._(this.message, this.path);
 }
 
 class Stderr {
@@ -63,6 +70,9 @@ external _FS _require(String name);
 
 final _fs = _require("fs");
 
+@JS("process")
+external _Process get _process;
+
 String readFile(String path) {
   // TODO(nweiz): explicitly decode the bytes as UTF-8 like we do in the VM when
   // it doesn't cause a substantial performance degradation for large files. See
@@ -70,7 +80,7 @@ String readFile(String path) {
   var contents = _readFile(path, 'utf8') as String;
   if (!contents.contains("�")) return contents;
 
-  var sourceFile = new SourceFile(contents, url: p.toUri(path));
+  var sourceFile = new SourceFile.fromString(contents, url: p.toUri(path));
   for (var i = 0; i < contents.length; i++) {
     if (contents.codeUnitAt(i) != 0xFFFD) continue;
     throw new SassException(
@@ -86,7 +96,9 @@ _readFile(String path, [String encoding]) {
   try {
     return _fs.readFileSync(path, encoding);
   } catch (error) {
-    throw new FileSystemException._(_cleanErrorMessage(error as _SystemError));
+    var systemError = error as _SystemError;
+    throw new FileSystemException._(
+        _cleanErrorMessage(systemError), systemError.path);
   }
 }
 
@@ -138,6 +150,10 @@ final stderr = new Stderr(_stderr);
 external _Stdin get _stdin;
 
 bool get hasTerminal => _hasTerminal ?? false;
+
+bool get isWindows => _process.platform == 'win32';
+
+String get currentPath => _process.cwd();
 
 @JS("process.stdout.isTTY")
 external bool get _hasTerminal;

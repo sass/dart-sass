@@ -7,11 +7,11 @@ import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:stack_trace/stack_trace.dart';
-import 'package:path/path.dart' as p;
 
 import '../sass.dart';
 import 'exception.dart';
 import 'io.dart';
+import 'util/path.dart';
 
 main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
@@ -27,7 +27,15 @@ main(List<String> args) async {
         abbr: 'h', help: 'Print this usage information.', negatable: false)
     ..addFlag('version',
         help: 'Print the version of Dart Sass.', negatable: false);
-  var options = argParser.parse(args);
+
+  ArgResults options;
+  try {
+    options = argParser.parse(args);
+  } on FormatException catch (error) {
+    _printUsage(argParser, error.message);
+    exitCode = 64;
+    return;
+  }
 
   if (options['version'] as bool) {
     _loadVersion().then((version) {
@@ -38,42 +46,21 @@ main(List<String> args) async {
   }
 
   if (options['help'] as bool || options.rest.isEmpty) {
-    print("Compile Sass to CSS.\n");
-    print("Usage: dart-sass <input>\n");
-    print(argParser.usage);
+    _printUsage(argParser, "Compile Sass to CSS.");
     exitCode = 64;
     return;
   }
 
-  var color = (options['color'] as bool) ?? hasTerminal;
+  var color =
+      options.wasParsed('color') ? options['color'] as bool : hasTerminal;
   try {
     var input = options.rest.first;
     var css = input == '-'
-        ? renderSource(await readStdin(), color: color)
-        : render(input, color: color);
+        ? compileString(await readStdin(), color: color)
+        : compile(input, color: color);
     if (css.isNotEmpty) print(css);
   } on SassException catch (error, stackTrace) {
-    stderr.writeln("Error: ${error.message}");
-    stderr.writeln(error.span.highlight(color: color));
-
-    var start = error.span.start;
-    if (error is SassRuntimeException) {
-      var firstFrame = error.trace.frames.first;
-      if (start.sourceUrl != firstFrame.uri ||
-          start.line + 1 != firstFrame.line ||
-          start.column + 1 != firstFrame.column) {
-        stderr.writeln(
-            "  ${start.sourceUrl} ${start.line + 1}:${start.column + 1}");
-      }
-
-      for (var frame in error.trace.toString().split("\n")) {
-        if (frame.isEmpty) continue;
-        stderr.writeln("  $frame");
-      }
-    } else {
-      stderr.writeln(
-          "  ${start.sourceUrl} ${start.line + 1}:${start.column + 1}");
-    }
+    stderr.writeln(error.toString(color: color));
 
     if (options['trace'] as bool) {
       stderr.writeln();
@@ -84,6 +71,18 @@ main(List<String> args) async {
     // Exit code 65 indicates invalid data per
     // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     exitCode = 65;
+  } on FileSystemException catch (error, stackTrace) {
+    stderr
+        .writeln("Error reading ${p.relative(error.path)}: ${error.message}.");
+
+    // Error 66 indicates no input.
+    exitCode = 66;
+
+    if (options['trace'] as bool) {
+      stderr.writeln();
+      stderr.write(new Trace.from(stackTrace).terse.toString());
+      stderr.flush();
+    }
   } catch (error, stackTrace) {
     if (color) stderr.write('\u001b[31m\u001b[1m');
     stderr.write('Unexpected exception:');
@@ -115,4 +114,11 @@ Future<String> _loadVersion() async {
       .firstWhere((line) => line.startsWith('version: '))
       .split(" ")
       .last;
+}
+
+/// Print the usage information for Sass, with [message] as a header.
+void _printUsage(ArgParser parser, String message) {
+  print("$message\n");
+  print("Usage: dart-sass <input>\n");
+  print(parser.usage);
 }

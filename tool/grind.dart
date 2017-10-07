@@ -7,12 +7,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
-import 'package:path/path.dart' as p;
 import 'package:xml/xml.dart' as xml;
 import 'package:yaml/yaml.dart';
+
+import 'package:sass/src/util/path.dart';
 
 /// The version of Dart Sass.
 final String _version =
@@ -57,13 +59,17 @@ package() async {
 js() {
   _ensureBuild();
   var destination = new File('build/sass.dart.js');
-  Dart2js.compile(new File('bin/sass.dart'), outFile: destination, extraArgs: [
-    '--minify',
+
+  var args = [
     '--trust-type-annotations',
     '-Dnode=true',
     '-Dversion=$_version',
     '-Ddart-version=$_dartVersion',
-  ]);
+  ];
+  if (Platform.environment["SASS_MINIFY_JS"] != "false") args.add("--minify");
+
+  Dart2js.compile(new File('bin/sass.dart'),
+      outFile: destination, extraArgs: args);
   var text = destination.readAsStringSync();
   destination.writeAsStringSync(preamble.getPreamble() + text);
 }
@@ -71,13 +77,23 @@ js() {
 @Task('Build a pure-JS npm package.')
 @Depends(js)
 npm_package() {
-  var dir = new Directory('build/npm');
+  var json = JSON.decode(new File('package/package.json').readAsStringSync())
+      as Map<String, dynamic>;
+  json['version'] = _version;
+
+  _writeNpmPackage('build/npm', json);
+  _writeNpmPackage('build/npm-old', json..addAll({"name": "dart-sass"}));
+}
+
+/// Writes a Dart Sass NPM package to the directory at [destination].
+///
+/// The [json] will be used as the package's package.json.
+void _writeNpmPackage(String destination, Map<String, dynamic> json) {
+  var dir = new Directory(destination);
   if (dir.existsSync()) dir.deleteSync(recursive: true);
   dir.createSync(recursive: true);
 
-  log("copying package/package.json to build/npm");
-  var json = JSON.decode(new File('package/package.json').readAsStringSync());
-  json['version'] = _version;
+  log("copying package/package.json to $destination");
   new File(p.join(dir.path, 'package.json'))
       .writeAsStringSync(JSON.encode(json));
 
@@ -136,8 +152,7 @@ xml.XmlDocument _nuspec() {
               "logos/logo-seal.png");
       builder.element("bugTrackerUrl",
           nest: "https://github.com/sass/dart-sass/issues");
-      builder.element("description",
-          nest: """
+      builder.element("description", nest: """
 **Sass makes CSS fun again**. Sass is an extension of CSS, adding nested rules, variables, mixins, selector inheritance, and more. It's translated to well-formatted, standard CSS using the command line tool or a web-framework plugin.
 
 This package is Dart Sass, the new Dart implementation of Sass.
@@ -219,7 +234,7 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
       .firstWhere((file) => os == 'windows'
           ? file.name.endsWith("/bin/dart.exe")
           : file.name.endsWith("/bin/dart"));
-  var executable = dartExecutable.content;
+  var executable = DelegatingList.typed<int>(dartExecutable.content as List);
   var archive = new Archive()
     ..addFile(_fileFromBytes(
         "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
