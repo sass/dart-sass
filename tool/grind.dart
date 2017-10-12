@@ -23,6 +23,9 @@ final String _version =
 /// The version of the current Dart executable.
 final String _dartVersion = Platform.version.split(" ").first;
 
+/// Whether we're using a dev Dart SDK.
+bool get _isDevSdk => _dartVersion.contains("-dev");
+
 /// The root of the Dart SDK.
 final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
 
@@ -105,6 +108,8 @@ void _writeNpmPackage(String destination, Map<String, dynamic> json) {
 @Task('Build a Chocolatey package.')
 @Depends(snapshot)
 chocolatey_package() {
+  if (_isDevSdk) throw "Chocolatey doesn't support dev SDKs.";
+
   _ensureBuild();
 
   var nuspec = _nuspec();
@@ -220,7 +225,8 @@ void _ensureBuild() {
 /// The [client] is used to download the corresponding Dart SDK.
 Future _buildPackage(http.Client client, String os, String architecture) async {
   // TODO: Compile a single executable that embeds the Dart VM and the snapshot.
-  var url = "https://storage.googleapis.com/dart-archive/channels/stable/"
+  var channel = _isDevSdk ? "dev" : "stable";
+  var url = "https://storage.googleapis.com/dart-archive/channels/$channel/"
       "release/$_dartVersion/sdk/dartsdk-$os-$architecture-release.zip";
   log("Downloading $url...");
   var response = await client.get(Uri.parse(url));
