@@ -23,7 +23,8 @@ dependencies:
   package_resolver: ^1.0.0
 
 dev_dependencies:
-  archive: "^1.0.0"
+  # TOOD(nweiz): Remove the upper bound when brendan-duncan/archive#41 is fixed.
+  archive: ">=1.0.0 <1.0.31"
   dart_style: "^1.0.0"
   grinder: "^0.8.0"
   http: "^0.11.0"
