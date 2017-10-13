@@ -7,7 +7,7 @@ branches:
 # supposed to be platform-independent.
 environment:
   matrix:
-  - {TASK: tests, NODE: false}
+  #- {TASK: tests, NODE: false}
   - {TASK: tests, NODE: true}
 
 install:
@@ -25,7 +25,7 @@ install:
 test_script:
 - ps: >-
     If ($env:NODE -eq "true") {
-      pub run test -p vm -t node
+      pub run test -p vm -t node -N "supports relative imports"
     } Else {
       pub run test -x node
     }
