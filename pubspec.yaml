@@ -15,6 +15,7 @@ dependencies:
   charcode: "^1.1.0"
   collection: "^1.8.0"
   convert: "^2.0.1"
+  meta: "^1.0.0"
   path: "^1.0.0"
   source_span: "^1.4.0"
   string_scanner: ">=0.1.5 <2.0.0"

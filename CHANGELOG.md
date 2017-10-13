@@ -5,6 +5,22 @@
 * Don't crash when evaluating CSS variables whose names are entirely
   interpolated (for example, `#{--foo}: ...`).
 
+### Dart API
+
+* Added an `Importer` class. This can be extended by users to provide support
+  for custom resolution for `@import` rules.
+
+* Added built-in `FilesystemImporter` and `PackageImporter` implementations that
+  support resolving `file:` and `package:` URLs, respectively.
+
+* Added an `importers` argument to the `compile()` and `compileString()`
+  functions that provides `Importer`s to use when resolving `@import` rules.
+
+* Added a `loadPaths` argument to the `compile()` and `compileString()`
+  functions that provides paths to search for stylesheets when resolving
+  `@import` rules. This is a shorthand for passing `FilesystemImporter`s to the
+  `importers` argument.
+
 ## 1.0.0-beta.2
 
 * Add support for the `::slotted()` pseudo-element.

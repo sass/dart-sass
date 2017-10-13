@@ -103,7 +103,7 @@ RenderResult _doRender(RenderOptions options) {
       start: start.millisecondsSinceEpoch,
       end: end.millisecondsSinceEpoch,
       duration: end.difference(start).inMilliseconds,
-      includedFiles: result.includedUrls.map((url) => p.fromUri(url)).toList());
+      includedFiles: result.includedFiles.toList());
 }
 
 /// Converts a [SassException] to a [RenderError].

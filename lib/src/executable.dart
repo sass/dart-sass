@@ -58,12 +58,10 @@ main(List<String> args) async {
   try {
     String css;
     if (stdinFlag) {
-      css = compileString(await readStdin(), color: color);
+      css = await _compileStdin();
     } else {
       var input = options.rest.first;
-      css = input == '-'
-          ? compileString(await readStdin(), color: color)
-          : compile(input, color: color);
+      css = input == '-' ? await _compileStdin() : compile(input, color: color);
     }
 
     if (css.isNotEmpty) print(css);
@@ -123,6 +121,11 @@ Future<String> _loadVersion() async {
       .split(" ")
       .last;
 }
+
+/// Compiles Sass from standard input and returns the result.
+Future<String> _compileStdin({bool color: false}) async =>
+    compileString(await readStdin(),
+        color: color, importer: new FilesystemImporter('.'));
 
 /// Print the usage information for Sass, with [message] as a header.
 void _printUsage(ArgParser parser, String message) {
