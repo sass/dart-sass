@@ -82,7 +82,7 @@ class Extender {
       SelectorList source, SelectorList targets, ExtendMode mode) {
     var extenders = new Map<ComplexSelector, Extension>.fromIterable(
         source.components,
-        value: (ComplexSelector complex) => new Extension.oneOff(complex));
+        value: (complex) => new Extension.oneOff(complex as ComplexSelector));
     for (var complex in targets.components) {
       if (complex.components.length != 1) {
         throw new SassScriptException(
