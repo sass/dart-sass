@@ -11,6 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:xml/xml.dart' as xml;
 import 'package:yaml/yaml.dart';
 
@@ -21,10 +22,11 @@ final String _version =
     loadYaml(new File('pubspec.yaml').readAsStringSync())['version'] as String;
 
 /// The version of the current Dart executable.
-final String _dartVersion = Platform.version.split(" ").first;
+final Version _dartVersion =
+    new Version.parse(Platform.version.split(" ").first);
 
 /// Whether we're using a dev Dart SDK.
-bool get _isDevSdk => _dartVersion.contains("-dev");
+bool get _isDevSdk => _dartVersion.isPreRelease;
 
 /// The root of the Dart SDK.
 final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
@@ -108,8 +110,6 @@ void _writeNpmPackage(String destination, Map<String, dynamic> json) {
 @Task('Build a Chocolatey package.')
 @Depends(snapshot)
 chocolatey_package() {
-  if (_isDevSdk) throw "Chocolatey doesn't support dev SDKs.";
-
   _ensureBuild();
 
   var nuspec = _nuspec();
@@ -137,6 +137,16 @@ chocolatey_package() {
 
 /// Creates a `sass.nuspec` file's contents.
 xml.XmlDocument _nuspec() {
+  String sdkVersion;
+  if (_isDevSdk) {
+    assert(_dartVersion.preRelease[0] == "dev");
+    assert(_dartVersion.preRelease[1] is int);
+    sdkVersion = "${_dartVersion.major}.${_dartVersion.minor}."
+        "${_dartVersion.patch}.${_dartVersion.preRelease[1]}";
+  } else {
+    sdkVersion = _dartVersion.toString();
+  }
+
   var builder = new xml.XmlBuilder();
   builder.processing("xml", 'version="1.0"');
   builder.element("package", nest: () {
@@ -168,11 +178,11 @@ This package is Dart Sass, the new Dart implementation of Sass.
           nest: "Copyright ${new DateTime.now().year} Google, Inc.");
       builder.element("dependencies", nest: () {
         builder.element("dependency", attributes: {
-          "id": "dart-sdk",
+          "id": _isDevSdk ? "dart-sdk-dev" : "dart-sdk",
           // Unfortunately we need the exact same Dart version as we built with,
           // since we ship a snapshot which isn't cross-version compatible. Once
           // we switch to native compilation this won't be an issue.
-          "version": "[$_dartVersion]",
+          "version": "[$sdkVersion]",
         });
       });
     });
