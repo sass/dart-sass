@@ -2,10 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:path/path.dart' as p;
-
 import '../importer.dart';
 import '../io.dart';
+import '../util/path.dart';
 import 'result.dart';
 
 /// An importer that loads files from a load path on the filesystem.
@@ -19,7 +18,6 @@ class FilesystemImporter extends Importer {
   Uri canonicalize(Uri url) {
     var urlPath = p.fromUri(url);
     var path = p.join(_loadPath, urlPath);
-    print("canonicalize: $url, $_loadPath, $urlPath, $path");
     var extension = p.extension(path);
     var resolved = extension == '.sass' || extension == '.scss'
         ? _tryPath(path)
@@ -43,11 +41,7 @@ class FilesystemImporter extends Importer {
   }
 
   ImporterResult load(Uri url) {
-    print("load $url");
     var path = p.fromUri(url);
-    print("path: $path");
-    print("style: ${p.context.style}");
-    return null;
     return new ImporterResult(readFile(path),
         sourceMapUrl: url, indented: p.extension(path) == '.sass');
   }
