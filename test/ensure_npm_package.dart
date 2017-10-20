@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 
 hybridMain(StreamChannel channel) async {
   if (!new Directory("build/npm").existsSync()) {
-    throw "NPM package is not build. Run pub run grinder npm_package.";
+    throw "NPM package is not built. Run pub run grinder npm_package.";
   }
 
   var lastModified = new DateTime(0);
@@ -35,8 +35,8 @@ hybridMain(StreamChannel channel) async {
 
 /// Ensures that the NPM package is compiled and up-to-date.
 ///
-/// This is safe to call even outside the Dart VM.k
+/// This is safe to call even outside the Dart VM.
 Future ensureNpmPackage() {
-  var channel = spawnHybridUri("ensure_npm_package.dart");
+  var channel = spawnHybridUri("/test/ensure_npm_package.dart");
   return channel.stream.toList();
 }
