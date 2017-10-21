@@ -55,6 +55,15 @@ a {
 }'''));
     });
 
+    test("supports absolute path imports", () async {
+      expect(
+          renderSync(new RenderOptions(
+              // Node Sass parses imports as paths, not as URLs, so the absolute
+              // path should work here.
+              data: '@import "${sassPath.replaceAll('\\', '\\\\')}"')),
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
     test("renders a string", () {
       expect(renderSync(new RenderOptions(data: "a {b: c}")), equals('''
 a {
@@ -79,23 +88,6 @@ a {
       expect(
           renderSync(new RenderOptions(
               data: "@import 'test'", includePaths: [sandbox])),
-          equals('''
-a {
-  b: c;
-}'''));
-    });
-
-    test("supports relative paths in preference to load paths", () async {
-      await createDirectory(p.join(sandbox, 'sub'));
-      var subPath = p.join(sandbox, 'sub/test.scss');
-      await writeTextFile(subPath, 'x {y: z}');
-
-      var importerPath = p.join(sandbox, 'importer.scss');
-      await writeTextFile(importerPath, '@import "test"');
-
-      expect(
-          renderSync(new RenderOptions(
-              file: importerPath, includePaths: [p.join(sandbox, 'sub')])),
           equals('''
 a {
   b: c;

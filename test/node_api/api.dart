@@ -9,16 +9,24 @@
 import 'package:sass/src/node/render_error.dart';
 import 'package:sass/src/node/render_options.dart';
 import 'package:sass/src/node/render_result.dart';
+import 'package:sass/src/util/path.dart';
 
 import 'package:js/js.dart';
 
+export 'package:sass/src/node/importer_result.dart';
+export 'package:sass/src/node/render_context.dart';
 export 'package:sass/src/node/render_error.dart';
 export 'package:sass/src/node/render_options.dart';
 export 'package:sass/src/node/render_result.dart';
-import 'package:sass/src/util/path.dart';
 
 /// The Sass module.
 final sass = _require(p.absolute("build/npm/sass.dart"));
+
+@JS()
+external Object get undefined;
+
+@JS("process.chdir")
+external void chdir(String directory);
 
 @JS("require")
 external Sass _require(String path);
@@ -28,4 +36,9 @@ class Sass {
   external RenderResult renderSync(RenderOptions args);
   external void render(RenderOptions args,
       void callback(RenderError error, RenderResult result));
+}
+
+@JS("Error")
+class JSError {
+  external JSError(String message);
 }

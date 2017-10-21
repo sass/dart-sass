@@ -4,11 +4,15 @@
 
 import 'package:js/js.dart';
 
+import 'render_context.dart';
+import 'render_result.dart';
+
 @JS()
 @anonymous
 class RenderOptions {
   external String get file;
   external String get data;
+  external dynamic get importer;
   external List<String> get includePaths;
   external bool get indentedSyntax;
   external String get outputStyle;
@@ -16,13 +20,24 @@ class RenderOptions {
   external dynamic get indentWidth;
   external String get linefeed;
 
+  // Only used in "this" in importer callbacks.
+  external int get precision;
+  external int get style;
+  external RenderContext get context;
+  external RenderResult get result;
+
   external factory RenderOptions(
       {String file,
       String data,
+      importer,
       List<String> includePaths,
       bool indentedSyntax,
       String outputStyle,
       String indentType,
       indentWidth,
-      String linefeed});
+      String linefeed,
+      int precision,
+      int style,
+      RenderContext context,
+      RenderResult result});
 }
