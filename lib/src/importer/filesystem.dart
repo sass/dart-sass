@@ -6,6 +6,7 @@ import '../importer.dart';
 import '../io.dart';
 import '../util/path.dart';
 import 'result.dart';
+import 'utils.dart';
 
 /// An importer that loads files from a load path on the filesystem.
 class FilesystemImporter extends Importer {
@@ -16,28 +17,8 @@ class FilesystemImporter extends Importer {
   FilesystemImporter(this._loadPath);
 
   Uri canonicalize(Uri url) {
-    var urlPath = p.fromUri(url);
-    var path = p.join(_loadPath, urlPath);
-    var extension = p.extension(path);
-    var resolved = extension == '.sass' || extension == '.scss'
-        ? _tryPath(path)
-        : _tryPathWithExtensions(path);
+    var resolved = resolveImportPath(p.join(_loadPath, p.fromUri(url)));
     return resolved == null ? null : p.toUri(p.canonicalize(resolved));
-  }
-
-  /// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
-  String _tryPathWithExtensions(String path) =>
-      _tryPath(path + '.sass') ?? _tryPath(path + '.scss');
-
-  /// If a file exists at [path], or a partial with the same name exists,
-  /// returns the resolved path.
-  ///
-  /// Otherwise, returns `null`.
-  String _tryPath(String path) {
-    var partial = p.join(p.dirname(path), "_${p.basename(path)}");
-    if (fileExists(partial)) return partial;
-    if (fileExists(path)) return path;
-    return null;
   }
 
   ImporterResult load(Uri url) {

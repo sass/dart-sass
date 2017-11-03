@@ -5,6 +5,7 @@
 import 'ast/sass.dart';
 import 'importer.dart';
 import 'importer/filesystem.dart';
+import 'importer/node.dart';
 import 'importer/package.dart';
 import 'io.dart';
 import 'sync_package_resolver.dart';
@@ -18,6 +19,7 @@ CompileResult compile(String path,
         {bool indented,
         bool color: false,
         Iterable<Importer> importers,
+        NodeImporter nodeImporter,
         SyncPackageResolver packageResolver,
         Iterable<String> loadPaths,
         OutputStyle style,
@@ -28,6 +30,7 @@ CompileResult compile(String path,
         indented: indented ?? p.extension(path) == '.sass',
         color: color,
         importers: importers,
+        nodeImporter: nodeImporter,
         packageResolver: packageResolver,
         loadPaths: loadPaths,
         importer: new FilesystemImporter('.'),
@@ -43,6 +46,7 @@ CompileResult compileString(String source,
     {bool indented: false,
     bool color: false,
     Iterable<Importer> importers,
+    NodeImporter nodeImporter,
     SyncPackageResolver packageResolver,
     Iterable<String> loadPaths,
     Importer importer,
@@ -64,7 +68,10 @@ CompileResult compileString(String source,
   }
 
   var evaluateResult = evaluate(sassTree,
-      importers: importerList, importer: importer, color: color);
+      importers: importerList,
+      nodeImporter: nodeImporter,
+      importer: importer,
+      color: color);
   var css = serialize(evaluateResult.stylesheet,
       style: style,
       useSpaces: useSpaces,

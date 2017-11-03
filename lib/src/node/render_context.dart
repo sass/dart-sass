@@ -4,10 +4,12 @@
 
 import 'package:js/js.dart';
 
-import 'render_options.dart';
+import 'render_context_options.dart';
 
 @JS()
 @anonymous
 class RenderContext {
-  external RenderOptions get options;
+  external RenderContextOptions get options;
+
+  external factory RenderContext({RenderContextOptions options});
 }

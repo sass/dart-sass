@@ -4,9 +4,6 @@
 
 import 'package:js/js.dart';
 
-import 'render_context.dart';
-import 'render_result.dart';
-
 @JS()
 @anonymous
 class RenderOptions {
@@ -20,12 +17,6 @@ class RenderOptions {
   external dynamic get indentWidth;
   external String get linefeed;
 
-  // Only used in "this" in importer callbacks.
-  external int get precision;
-  external int get style;
-  external RenderContext get context;
-  external RenderResult get result;
-
   external factory RenderOptions(
       {String file,
       String data,
@@ -35,9 +26,5 @@ class RenderOptions {
       String outputStyle,
       String indentType,
       indentWidth,
-      String linefeed,
-      int precision,
-      int style,
-      RenderContext context,
-      RenderResult result});
+      String linefeed});
 }

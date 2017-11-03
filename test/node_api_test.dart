@@ -279,7 +279,7 @@ a {
           expect(
               error,
               toStringAndMessageEqual("Expected expression.\n"
-                  "  - 1:7  root stylesheet"));
+                  "  stdin 1:7  root stylesheet"));
         });
 
         test("has a useful formatted message", () {
@@ -288,7 +288,7 @@ a {
               "Error: Expected expression.\n"
               "a {b: }\n"
               "      ^\n"
-              "  - 1:7  root stylesheet");
+              "  stdin 1:7  root stylesheet");
         });
 
         test("sets the line, column, and filename", () {
@@ -336,7 +336,7 @@ a {
           expect(
               error,
               toStringAndMessageEqual('Undefined operation "1 % a".\n'
-                  '  - 1:7  root stylesheet'));
+                  '  stdin 1:7  root stylesheet'));
         });
 
         test("has a useful formatted message", () {
@@ -345,7 +345,7 @@ a {
               'Error: Undefined operation "1 % a".\n'
               'a {b: 1 % a}\n'
               '      ^^^^^\n'
-              '  - 1:7  root stylesheet');
+              '  stdin 1:7  root stylesheet');
         });
 
         test("sets the line, column, and filename", () {

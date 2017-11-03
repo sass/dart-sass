@@ -1,0 +1,132 @@
+// Copyright 2017 Google Inc. Use of this source code is governed by an
+// MIT-style license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
+
+import 'package:tuple/tuple.dart';
+
+import '../../io.dart';
+import '../../node/importer_result.dart';
+import '../../node/utils.dart';
+import '../../util/path.dart';
+import '../utils.dart';
+
+typedef _Importer(String url, String prev);
+
+/// An importer that encapsulates Node Sass's import logic.
+///
+/// This isn't a normal [Importer] because Node Sass's import behavior isn't
+/// compatible with Dart Sass's. In particular:
+///
+/// * Rather than doing URL resolution for relative imports, the importer is
+///   passed the URL of the file that contains the import which it can then use
+///   to do its own relative resolution. It's passed this even if that file was
+///   imported by a different importer.
+///
+/// * Importers can return file paths rather than the contents of the imported
+///   file. These paths are made absolute before they're included in
+///   [EvaluateResult.includedFiles] or passed as the previous "URL" to other
+///   importers.
+///
+/// * The working directory is always implicitly an include path.
+///
+/// * The order of import precedence is as follows:
+///
+///   1. Filesystem imports relative to the base file.
+///   2. Filesystem imports relative to the working directory.
+///   3. Filesystem imports relative to an `includePaths` path.
+///   4. Custom importer imports.
+class NodeImporter {
+  /// The `this` context in which importer functions are invoked.
+  final Object _context;
+
+  /// The include paths passed in by the user.
+  final List<String> _includePaths;
+
+  /// The importer functions passed in by the user.
+  final List<_Importer> _importers;
+
+  NodeImporter(this._context, Iterable<String> includePaths,
+      Iterable<_Importer> importers)
+      : _includePaths = new List.unmodifiable(includePaths),
+        _importers = new List.unmodifiable(importers);
+
+  /// Loads the stylesheet at [url].
+  ///
+  /// The [previous] URL is the URL of the stylesheet in which the import
+  /// appeared. Returns the contents of the stylesheet and the URL to use as
+  /// [previous] for imports within the loaded stylesheet.
+  Tuple2<String, Uri> load(Uri url, Uri previous) {
+    if (url.scheme == '' || url.scheme == 'file') {
+      var result = _resolvePath(p.fromUri(url), previous);
+      if (result != null) return result;
+    }
+
+    // The previous URL is always an absolute file path for filesystem imports.
+    var urlString = url.toString();
+    var previousString =
+        previous.scheme == 'file' ? p.fromUri(previous) : previous.toString();
+    for (var importer in _importers) {
+      var value = call2(importer, _context, urlString, previousString);
+      if (value == null) continue;
+      if (isJSError(value)) throw value;
+
+      NodeImporterResult result;
+      try {
+        result = value as NodeImporterResult;
+      } on CastError {
+        // is reports a different result than as here. I can't find a minimal
+        // reproduction, but it seems likely to be related to sdk#26838.
+        return null;
+      }
+
+      if (result.file != null) {
+        var resolved = _resolvePath(result.file, previous);
+        if (resolved != null) return resolved;
+
+        throw "Can't find stylesheet to import.";
+      } else {
+        return new Tuple2(result.contents ?? '', url);
+      }
+    }
+
+    return null;
+  }
+
+  /// Tries to load a stylesheet at the given [path] using Node Sass's file path
+  /// resolution logic.
+  ///
+  /// Returns the stylesheet at that path and the URL used to load it, or `null`
+  /// if loading failed.
+  Tuple2<String, Uri> _resolvePath(String path, Uri previous) {
+    if (p.isAbsolute(path)) return _tryPath(path);
+
+    // 1: Filesystem imports relative to the base file.
+    if (previous.scheme == 'file') {
+      var result = _tryPath(p.join(p.dirname(p.fromUri(previous)), path));
+      if (result != null) return result;
+    }
+
+    // 2: Filesystem imports relative to the working directory.
+    var cwdResult = _tryPath(p.absolute(path));
+    if (cwdResult != null) return cwdResult;
+
+    // 3: Filesystem imports relative to [_includePaths].
+    for (var includePath in _includePaths) {
+      var result = _tryPath(p.join(includePath, path));
+      if (result != null) return result;
+    }
+
+    return null;
+  }
+
+  /// Tries to load a stylesheet at the given [path].
+  ///
+  /// Returns the stylesheet at that path and the URL used to load it, or `null`
+  /// if loading failed.
+  Tuple2<String, Uri> _tryPath(String path) {
+    var resolved = resolveImportPath(path);
+    return resolved == null
+        ? null
+        : new Tuple2(readFile(resolved), p.toUri(resolved));
+  }
+}
