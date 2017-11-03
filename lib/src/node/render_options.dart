@@ -9,6 +9,7 @@ import 'package:js/js.dart';
 class RenderOptions {
   external String get file;
   external String get data;
+  external dynamic get importer;
   external List<String> get includePaths;
   external bool get indentedSyntax;
   external String get outputStyle;
@@ -19,6 +20,7 @@ class RenderOptions {
   external factory RenderOptions(
       {String file,
       String data,
+      importer,
       List<String> includePaths,
       bool indentedSyntax,
       String outputStyle,

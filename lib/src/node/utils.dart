@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:js_util';
+
 import 'package:js/js.dart';
 
 import 'function.dart';
@@ -20,3 +22,14 @@ final _setToString =
 void jsThrow(error) => _jsThrow.call(error);
 
 final _jsThrow = new JSFunction("error", "throw error;");
+
+@JS("Error")
+external Function get _JSError;
+
+/// Returns whether [value] is a JS Error object.
+bool isJSError(value) => instanceof(value, _JSError) as bool;
+
+/// Invokes [function] with [thisArg] as `this`.
+R call2<R, A1, A2>(
+        R function(A1 arg1, A2 arg2), Object thisArg, A1 arg1, A2 arg2) =>
+    (function as JSFunction).apply(thisArg, [arg1, arg2]) as R;

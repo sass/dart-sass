@@ -2,18 +2,25 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:collection/collection.dart';
 import 'package:js/js.dart';
 
 import 'compile.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
+import 'importer/node.dart';
 import 'node/exports.dart';
+import 'node/render_context.dart';
+import 'node/render_context_options.dart';
 import 'node/render_error.dart';
 import 'node/render_options.dart';
 import 'node/render_result.dart';
 import 'node/utils.dart';
 import 'util/path.dart';
+import 'value/number.dart';
 import 'visitor/serialize.dart';
+
+typedef _Importer(String url, String prev);
 
 /// The entrypoint for Node.js.
 ///
@@ -79,15 +86,16 @@ RenderResult _doRender(RenderOptions options) {
     }
 
     result = compileString(options.data,
-        loadPaths: options.includePaths,
+        nodeImporter: _parseImporter(options, start),
         indented: options.indentedSyntax ?? false,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed));
+        lineFeed: _parseLineFeed(options.linefeed),
+        url: 'stdin');
   } else if (options.file != null) {
     result = compile(options.file,
-        loadPaths: options.includePaths,
+        nodeImporter: _parseImporter(options, start),
         indented: options.indentedSyntax,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
@@ -128,6 +136,41 @@ RenderError _wrapException(SassException exception) {
           ? 'stdin'
           : p.fromUri(exception.span.sourceUrl),
       status: 1);
+}
+
+/// Parses [importer] and [includePaths] from [RenderOptions] into a
+/// [NodeImporter].
+NodeImporter _parseImporter(RenderOptions options, DateTime start) {
+  List<_Importer> importers;
+  if (options.importer == null) {
+    importers = [];
+  } else if (options.importer is List) {
+    importers = DelegatingList.typed(options.importer as List);
+  } else {
+    importers = [options.importer as _Importer];
+  }
+
+  var includePaths = options.includePaths ?? [];
+
+  RenderContext context;
+  if (importers.isNotEmpty) {
+    context = new RenderContext(
+        options: new RenderContextOptions(
+            file: options.file,
+            data: options.data,
+            includePaths: ([p.current]..addAll(includePaths)).join(":"),
+            precision: SassNumber.precision,
+            style: 1,
+            indentType: options.indentType == 'tab' ? 1 : 0,
+            indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
+            linefeed: _parseLineFeed(options.linefeed).text,
+            result: newRenderResult(null,
+                start: start.millisecondsSinceEpoch,
+                entry: options.file ?? 'data')));
+    context.options.context = context;
+  }
+
+  return new NodeImporter(context, includePaths, importers);
 }
 
 /// Parse [style] into an [OutputStyle].

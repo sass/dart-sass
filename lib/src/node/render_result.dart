@@ -42,7 +42,7 @@ RenderResult newRenderResult(String css,
         int duration,
         List<String> includedFiles}) =>
     new RenderResult._(
-        css: _buffer(css, 'utf8'),
+        css: css == null ? null : _buffer(css, 'utf8'),
         stats: new RenderResultStats._(
             entry: entry,
             start: start,

@@ -19,7 +19,7 @@ import '../environment.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../importer.dart';
-import '../importer/filesystem.dart';
+import '../importer/node.dart';
 import '../io.dart';
 import '../parse/keyframe_selector.dart';
 import '../utils.dart';
@@ -34,10 +34,13 @@ typedef _ScopeCallback(callback());
 /// The URL used in stack traces when no source URL is available.
 final _noSourceUrl = Uri.parse("-");
 
+/// The default URL to pass in to Node importers for previous imports.
+final _defaultPrevious = new Uri(path: 'stdin');
+
 /// Converts [stylesheet] to a plain CSS tree.
 ///
-/// If [loadPaths] is passed, it's used to search for Sass files being imported.
-/// Earlier paths will be preferred.
+/// If [importers] (or, on Node.js, [nodeImporter]) is passed, it's used to
+/// resolve imports in the Sass files. Earlier importers will be preferred.
 ///
 /// If [environment] is passed, it's used as the lexical environment when
 /// evaluating [stylesheet]. It should only contain global definitions.
@@ -50,11 +53,13 @@ final _noSourceUrl = Uri.parse("-");
 /// Throws a [SassRuntimeException] if evaluation fails.
 EvaluateResult evaluate(Stylesheet stylesheet,
         {Iterable<Importer> importers,
+        NodeImporter nodeImporter,
         Importer importer,
         Environment environment,
         bool color: false}) =>
     new _EvaluateVisitor(
             importers: importers,
+            nodeImporter: nodeImporter,
             importer: importer,
             environment: environment,
             color: color)
@@ -65,6 +70,10 @@ class _EvaluateVisitor
     implements StatementVisitor<Value>, ExpressionVisitor<Value> {
   /// The importers to use when loading new Sass files.
   final List<Importer> _importers;
+
+  /// The Node Sass-compatible importer to use when loading new Sass files when
+  /// compiled to Node.js.
+  final NodeImporter _nodeImporter;
 
   /// Whether to use terminal colors in warnings.
   final bool _color;
@@ -149,13 +158,18 @@ class _EvaluateVisitor
   /// invocations, and imports surrounding the current context.
   final _stack = <Frame>[];
 
+  /// Whether we're running in Node Sass-compatibility mode.
+  bool get _asNodeSass => _nodeImporter != null;
+
   _EvaluateVisitor(
       {Iterable<Importer> importers,
+      NodeImporter nodeImporter,
       Importer importer,
       Environment environment,
       bool color: false})
       : _importers = importers == null ? const [] : importers.toList(),
         _importer = importer ?? Importer.noOp,
+        _nodeImporter = nodeImporter,
         _environment = environment ?? new Environment(),
         _color = color {
     _environment.defineFunction("variable-exists", r"$name", (arguments) {
@@ -216,10 +230,12 @@ class _EvaluateVisitor
   EvaluateResult run(Stylesheet node) {
     _baseUrl = node.span?.sourceUrl;
     if (_baseUrl != null) {
-      if (_importer is FilesystemImporter) {
-        _includedFiles.add(p.fromUri(_baseUrl));
-      } else {
-        _includedFiles.add(_baseUrl.toString());
+      if (_asNodeSass) {
+        if (_baseUrl.scheme == 'file') {
+          _includedFiles.add(p.fromUri(_baseUrl));
+        } else if (_baseUrl.toString() != 'stdin') {
+          _includedFiles.add(_baseUrl.toString());
+        }
       }
 
       var canonicalUrl = _importer?.canonicalize(_baseUrl);
@@ -632,16 +648,22 @@ class _EvaluateVisitor
   /// [SassRuntimeException] if loading fails.
   Tuple2<Importer, Stylesheet> _loadImport(DynamicImport import) {
     try {
-      // Try to resolve [import.url] relative to the current URL with the
-      // current importer.
-      if (import.url.scheme.isEmpty && _importer != null) {
-        var stylesheet = _tryImport(_importer, _baseUrl.resolveUri(import.url));
-        if (stylesheet != null) return new Tuple2(_importer, stylesheet);
-      }
+      if (_nodeImporter != null) {
+        var stylesheet = _importLikeNode(import);
+        if (stylesheet != null) return new Tuple2(null, stylesheet);
+      } else {
+        // Try to resolve [import.url] relative to the current URL with the
+        // current importer.
+        if (import.url.scheme.isEmpty && _importer != null) {
+          var stylesheet =
+              _tryImport(_importer, _baseUrl.resolveUri(import.url));
+          if (stylesheet != null) return new Tuple2(_importer, stylesheet);
+        }
 
-      for (var importer in _importers) {
-        var stylesheet = _tryImport(importer, import.url);
-        if (stylesheet != null) return new Tuple2(importer, stylesheet);
+        for (var importer in _importers) {
+          var stylesheet = _tryImport(importer, import.url);
+          if (stylesheet != null) return new Tuple2(importer, stylesheet);
+        }
       }
 
       if (import.url.scheme == 'package') {
@@ -668,6 +690,27 @@ class _EvaluateVisitor
     }
   }
 
+  /// Imports a stylesheet using [_nodeImporter].
+  ///
+  /// Returns the [Stylesheet], or `null` if the import failed.
+  Stylesheet _importLikeNode(DynamicImport import) {
+    var result = _nodeImporter.load(import.url, _baseUrl);
+    if (result == null) return null;
+
+    var contents = result.item1;
+    var url = result.item2;
+
+    if (url.scheme == 'file') {
+      _includedFiles.add(p.fromUri(url));
+    } else {
+      _includedFiles.add(url.toString());
+    }
+
+    return url.scheme == 'file' && pUrl.extension(url.path) == '.sass'
+        ? new Stylesheet.parseSass(contents, url: url, color: _color)
+        : new Stylesheet.parseScss(contents, url: url, color: _color);
+  }
+
   /// Parses the contents of [result] into a [Stylesheet].
   Stylesheet _tryImport(Importer importer, Uri url) {
     // TODO(nweiz): Measure to see if it's worth caching this, too.
@@ -677,12 +720,6 @@ class _EvaluateVisitor
     return _importCache.putIfAbsent(canonicalUrl, () {
       var result = importer.load(canonicalUrl);
       if (result == null) return null;
-
-      if (importer is FilesystemImporter) {
-        _includedFiles.add(p.fromUri(canonicalUrl));
-      } else {
-        _includedFiles.add(url.toString());
-      }
 
       // Use the canonicalized basename so that we display e.g.
       // package:example/_example.scss rather than package:example/example in
