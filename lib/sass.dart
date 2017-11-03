@@ -8,9 +8,6 @@ import 'src/importer.dart';
 import 'src/sync_package_resolver.dart';
 
 export 'src/importer.dart';
-export 'src/importer/filesystem.dart';
-export 'src/importer/package.dart';
-export 'src/importer/result.dart';
 
 /// Loads the Sass file at [path], compiles it to CSS, and returns the result.
 ///

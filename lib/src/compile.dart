@@ -4,9 +4,7 @@
 
 import 'ast/sass.dart';
 import 'importer.dart';
-import 'importer/filesystem.dart';
 import 'importer/node.dart';
-import 'importer/package.dart';
 import 'io.dart';
 import 'sync_package_resolver.dart';
 import 'util/path.dart';

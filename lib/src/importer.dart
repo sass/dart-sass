@@ -5,6 +5,10 @@
 import 'importer/no_op.dart';
 import 'importer/result.dart';
 
+export 'importer/filesystem.dart';
+export 'importer/package.dart';
+export 'importer/result.dart';
+
 /// An interface for importers that resolves URLs in `@import`s to the contents
 /// of Sass files.
 ///
