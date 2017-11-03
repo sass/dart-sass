@@ -5,6 +5,11 @@
 * Don't crash when evaluating CSS variables whose names are entirely
   interpolated (for example, `#{--foo}: ...`).
 
+### Node JS API
+
+* Add support for the `importer` option to `render()` and `renderSync()`.
+  Only synchronous importers are currently supported.
+
 ### Dart API
 
 * Added an `Importer` class. This can be extended by users to provide support
