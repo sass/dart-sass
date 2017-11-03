@@ -11,6 +11,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
   * [From npm](#from-npm)
   * [From Pub](#from-pub)
   * [From Source](#from-source)
+* [JavaScript API](#javascript-api)
 * [Goals](#goals)
 * [Behavioral Differences](#behavioral-differences)
 
@@ -73,10 +74,7 @@ sass.render({file: scss_filename}, function(err, result) { /* ... */ });
 var result = sass.renderSync({file: scss_filename});
 ```
 
-The `render()` and `renderSync()` functions will eventually support the same API
-as [node-sass's][render], but today they only supports the `file` option.
-
-[render]: https://github.com/sass/node-sass#options
+[See below](#javascript-api) for details on Dart Sass's JavaScript API.
 
 ### From Pub
 
@@ -109,6 +107,48 @@ Assuming you've already checked out this repository:
 3. Run `dart bin/sass.dart path/to/file.scss`.
 
 That's it!
+
+## JavaScript API
+
+When installed via NPM, Dart Sass supports a JavaScript API that aims to be
+compatible with [Node Sass](https://github.com/sass/node-sass#usage). Full
+compatibility is a work in progress, but Dart Sass currently supports the
+`render()` and `renderSync()` functions with the following options:
+
+* [`file`](https://github.com/sass/node-sass#file)
+* [`data`](https://github.com/sass/node-sass#data)
+* [`includePaths`](https://github.com/sass/node-sass#includepaths)
+* [`indentedSyntax`](https://github.com/sass/node-sass#indentedsyntax)
+* [`indentType`](https://github.com/sass/node-sass#indenttype)
+* [`indentWidth`](https://github.com/sass/node-sass#indentwidth)
+* [`linefeed`](https://github.com/sass/node-sass#linefeed)
+* Only the `"expanded"` value of
+  [`outputStyle`](https://github.com/sass/node-sass#outputstyle) is supported.
+* [`importer`][importer option] is supported, but only for importers that return
+  values synchronously. The `done()` callback is currently not passed to any
+  importers, even when running the asynchronous `render()` function.
+
+[importer option]: https://github.com/sass/node-sass#importer--v200---experimental
+
+The following options are not yet supported, but are intended:
+
+* [`functions`](https://github.com/sass/node-sass#functions--v300---experimental)
+* [`omitSourceMapUrl`](https://github.com/sass/node-sass#omitsourcemapurl)
+* [`outFile`](https://github.com/sass/node-sass#outfile)
+* [`sourceMap`](https://github.com/sass/node-sass#sourcemap)
+* [`sourceMapContents`](https://github.com/sass/node-sass#sourcemapcontents)
+* [`sourceMapEmbed`](https://github.com/sass/node-sass#sourcemapembed)
+* [`sourceMapRoot`](https://github.com/sass/node-sass#sourcemaproot)
+
+No support is intended for the following options:
+
+* [`precision`](https://github.com/sass/node-sass#precision). Dart Sass defaults
+  to a sufficiently high precision for all existing browsers, and making this
+  customizable would make the code substantially less efficient.
+
+* [`sourceComments`](https://github.com/sass/node-sass#sourcecomments). Once
+  Dart Sass supports source maps, that will be the recommended way of locating
+  the origin of generated selectors.
 
 ## Goals
 
