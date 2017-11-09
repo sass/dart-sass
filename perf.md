@@ -40,7 +40,7 @@ Running on a file containing 2^17 instances of `.foo {a: b}`:
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
-* identical to than libsass
+* identical to libsass
 * 2.7x faster than Dart Sass on Node
 * 6.9x faster than Ruby Sass
 
