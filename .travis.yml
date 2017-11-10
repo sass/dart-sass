@@ -4,6 +4,7 @@ env:
 # Language specs, defined in sass/sass-spec
 - TASK=specs   DART_CHANNEL=dev    DART_VERSION=latest
 - TASK=specs   DART_CHANNEL=stable DART_VERSION=latest
+- TASK=specs   DART_CHANNEL=stable DART_VERSION=latest ASYNC=true
 
 # Unit tests, defined in test/.
 - TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest
@@ -69,5 +70,8 @@ script:
     fi;
   else
     echo "${bold}Running sass-spec against $(dart --version &> /dev/stdout).$none";
-    (cd sass-spec; bundle exec sass-spec.rb --dart ..);
+    if [ "$ASYNC" = true ]; then
+      extra_args=--dart-args --async;
+    fi;
+    (cd sass-spec; bundle exec sass-spec.rb --dart .. $extra_args);
   fi
