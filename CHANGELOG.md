@@ -1,5 +1,12 @@
 ## 1.0.0-beta.4
 
+* Add `compileAsync()` and `compileStringAsync()` methods. These run
+  asynchronously, which allows them to take asynchronous importers (see below).
+
+* Add an `AsyncImporter` class. This allows imports to be resolved
+  asynchronously in case no synchronous APIs are available. `AsyncImporter`s are
+  only compatible with `compileAysnc()` and `compileStringAsync()`.
+
 * Fix a crash when `:not(...)` extends a selector that appears in
   `:not(:not(...))`.
 

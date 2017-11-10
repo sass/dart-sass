@@ -12,7 +12,11 @@ import '../value.dart';
 /// it may be passed between modules.
 class SassFunction extends Value {
   /// The callable that this function invokes.
-  final Callable callable;
+  ///
+  /// Note that this is typed as an [AsyncCallback] so that it will work with
+  /// both synchronous and asynchronous evaluate visitors, but in practice the
+  /// synchronous evaluate visitor will crash if this isn't a [Callback].
+  final AsyncCallable callable;
 
   SassFunction(this.callable);
 

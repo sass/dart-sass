@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 
@@ -271,6 +272,43 @@ void rotateSlice(List list, int start, int end) {
     list[i] = element;
     element = next;
   }
+}
+
+/// Like [Iterable.map] but for an asynchronous [callback].
+Future<Iterable<F>> mapAsync<E, F>(
+    Iterable<E> iterable, Future<F> callback(E value)) async {
+  var result = <F>[];
+  for (var element in iterable) {
+    result.add(await callback(element));
+  }
+  return result;
+}
+
+/// Like [Map.putIfAbsent], but for an asynchronous [ifAbsent].
+///
+/// Note that this is *not* safe to call in parallel on the same map with the
+/// same key.
+Future<V> putIfAbsentAsync<K, V>(
+    Map<K, V> map, K key, Future<V> ifAbsent()) async {
+  if (map.containsKey(key)) return map[key];
+  var value = await ifAbsent();
+  map[key] = value;
+  return value;
+}
+
+/// Like [normalizedMapMap], but for asynchronous [key] and [value].
+Future<Map<String, V2>> normalizedMapMapAsync<K, V1, V2>(Map<K, V1> map,
+    {Future<String> key(K key, V1 value),
+    Future<V2> value(K key, V1 value)}) async {
+  key ??= (mapKey, _) async => mapKey as String;
+  value ??= (_, mapValue) async => mapValue as V2;
+
+  var result = normalizedMap<V2>();
+  for (var mapKey in map.keys) {
+    var mapValue = map[mapKey];
+    result[await key(mapKey, mapValue)] = await value(mapKey, mapValue);
+  }
+  return result;
 }
 
 /// Prints a warning to standard error, associated with [span].

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+
 import 'src/compile.dart' as c;
 import 'src/exception.dart';
 import 'src/importer.dart';
@@ -77,6 +79,48 @@ String compileString(String source,
     Importer importer,
     url}) {
   var result = c.compileString(source,
+      indented: indented,
+      color: color,
+      importers: importers,
+      loadPaths: loadPaths,
+      packageResolver: packageResolver,
+      importer: importer,
+      url: url);
+  return result.css;
+}
+
+/// Like [compile], except it runs asynchronously.
+///
+/// Running asynchronously allows this to take [AsyncImporter]s rather than
+/// synchronous [Importer]s. However, running asynchronously is also somewhat
+/// slower, so [compile] should be preferred if possible.
+Future<String> compileAsync(String path,
+    {bool color: false,
+    Iterable<AsyncImporter> importers,
+    Iterable<String> loadPaths,
+    SyncPackageResolver packageResolver}) async {
+  var result = await c.compileAsync(path,
+      color: color,
+      importers: importers,
+      loadPaths: loadPaths,
+      packageResolver: packageResolver);
+  return result.css;
+}
+
+/// Like [compileString], except it runs asynchronously.
+///
+/// Running asynchronously allows this to take [AsyncImporter]s rather than
+/// synchronous [Importer]s. However, running asynchronously is also somewhat
+/// slower, so [compileString] should be preferred if possible.
+Future<String> compileStringAsync(String source,
+    {bool indented: false,
+    bool color: false,
+    Iterable<AsyncImporter> importers,
+    Iterable<String> loadPaths,
+    SyncPackageResolver packageResolver,
+    AsyncImporter importer,
+    url}) async {
+  var result = await c.compileStringAsync(source,
       indented: indented,
       color: color,
       importers: importers,
