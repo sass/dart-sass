@@ -57,11 +57,8 @@ void defineCoreFunctions(Environment environment) {
         fuzzyRound(_percentageOrUnitless(blue, 255, "blue")));
   });
 
-  environment.setFunction(new BuiltInCallable.overloaded("rgba", [
-    r"$red, $green, $blue, $alpha",
-    r"$color, $alpha",
-  ], [
-    (arguments) {
+  environment.setFunction(new BuiltInCallable.overloaded("rgba", {
+    r"$red, $green, $blue, $alpha": (arguments) {
       if (arguments[0].isSpecialNumber ||
           arguments[1].isSpecialNumber ||
           arguments[2].isSpecialNumber ||
@@ -80,7 +77,7 @@ void defineCoreFunctions(Environment environment) {
           fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
           _percentageOrUnitless(alpha, 1, "alpha"));
     },
-    (arguments) {
+    r"$color, $alpha": (arguments) {
       var color = arguments[0].assertColor("color");
 
       if (arguments[1].isSpecialNumber) {
@@ -92,7 +89,7 @@ void defineCoreFunctions(Environment environment) {
       var alpha = arguments[1].assertNumber("alpha");
       return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
     }
-  ]));
+  }));
 
   environment.defineFunction("red", r"$color", (arguments) {
     return new SassNumber(arguments.first.assertColor("color").red);
@@ -189,22 +186,19 @@ void defineCoreFunctions(Environment environment) {
             .clamp(0, 100));
   });
 
-  environment.setFunction(new BuiltInCallable.overloaded("saturate", [
-    r"$number",
-    r"$color, $amount",
-  ], [
-    (arguments) {
+  environment.setFunction(new BuiltInCallable.overloaded("saturate", {
+    r"$number": (arguments) {
       var number = arguments[0].assertNumber("number");
       return new SassString("saturate(${number.toCssString()})");
     },
-    (arguments) {
+    r"$color, $amount": (arguments) {
       var color = arguments[0].assertColor("color");
       var amount = arguments[1].assertNumber("amount");
       return color.changeHsl(
           saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
               .clamp(0, 100));
     }
-  ]));
+  }));
 
   environment.defineFunction("desaturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
@@ -246,11 +240,8 @@ void defineCoreFunctions(Environment environment) {
 
   // ### Opacity
 
-  environment.setFunction(new BuiltInCallable.overloaded("alpha", [
-    r"$color",
-    r"$args..."
-  ], [
-    (arguments) {
+  environment.setFunction(new BuiltInCallable.overloaded("alpha", {
+    r"$color": (arguments) {
       var argument = arguments[0];
       if (argument is SassString &&
           !argument.hasQuotes &&
@@ -262,7 +253,7 @@ void defineCoreFunctions(Environment environment) {
       var color = argument.assertColor("color");
       return new SassNumber(color.alpha);
     },
-    (arguments) {
+    r"$args...": (arguments) {
       if (arguments.every((argument) =>
           argument is SassString &&
           !argument.hasQuotes &&
@@ -275,7 +266,7 @@ void defineCoreFunctions(Environment environment) {
       throw new SassScriptException(
           "Only 1 argument allowed, but ${arguments.length} were passed.");
     }
-  ]));
+  }));
 
   environment.defineFunction("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
@@ -1051,9 +1042,9 @@ int _codepointForIndex(int index, int lengthInCodepoints,
   return result;
 }
 
-/// Returns a [BuiltInCallable] named [name] that transforms a number's value
+/// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
-BuiltInCallable _numberFunction(String name, num transform(num value)) {
+Callable _numberFunction(String name, num transform(num value)) {
   return new BuiltInCallable(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return new SassNumber.withUnits(transform(number.value),

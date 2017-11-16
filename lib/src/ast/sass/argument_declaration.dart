@@ -4,7 +4,9 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../exception.dart';
 import '../../parse/scss.dart';
+import '../../utils.dart';
 import 'argument.dart';
 import 'node.dart';
 
@@ -36,6 +38,62 @@ class ArgumentDeclaration implements SassNode {
   /// Throws a [SassFormatException] if parsing fails.
   factory ArgumentDeclaration.parse(String contents, {url}) =>
       new ScssParser("($contents)", url: url).parseArgumentDeclaration();
+
+  /// Throws a [SassScriptException] if [positional] and [names] aren't valid
+  /// for this argument declaration.
+  void verify(int positional, Set<String> names) {
+    var namedUsed = 0;
+    for (var i = 0; i < arguments.length; i++) {
+      var argument = arguments[i];
+      if (i < positional) {
+        if (names.contains(argument.name)) {
+          throw new SassScriptException(
+              "Argument \$${argument.name} was passed both by position and by "
+              "name.");
+        }
+      } else if (names.contains(argument.name)) {
+        namedUsed++;
+      } else if (argument.defaultValue == null) {
+        throw new SassScriptException("Missing argument \$${argument.name}.");
+      }
+    }
+
+    if (restArgument != null) return;
+
+    if (positional > arguments.length) {
+      throw new SassScriptException("Only ${arguments.length} "
+          "${pluralize('argument', arguments.length)} allowed, but "
+          "${positional} ${pluralize('was', positional, plural: 'were')} "
+          "passed.");
+    }
+
+    if (namedUsed < names.length) {
+      var unknownNames = normalizedSet(names)
+        ..removeAll(arguments.map((argument) => argument.name));
+      throw new SassScriptException(
+          "No ${pluralize('argument', unknownNames.length)} named "
+          "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.");
+    }
+  }
+
+  /// Returns whether [positional] and [names] are valid for this argument
+  /// declaration.
+  bool matches(int positional, Set<String> names) {
+    var namedUsed = 0;
+    for (var i = 0; i < arguments.length; i++) {
+      var argument = arguments[i];
+      if (i < positional) {
+        if (names.contains(argument.name)) return false;
+      } else if (names.contains(argument.name)) {
+        namedUsed++;
+      } else if (argument.defaultValue == null) return false;
+    }
+
+    if (restArgument != null) return true;
+    if (positional > arguments.length) return false;
+    if (namedUsed < names.length) return false;
+    return true;
+  }
 
   String toString() {
     var components = new List.from(arguments.map((arg) => arg.toString()));

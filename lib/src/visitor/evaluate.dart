@@ -1291,33 +1291,17 @@ class _EvaluateVisitor
     var triple = _evaluateArguments(arguments, span);
     var positional = triple.item1;
     var named = triple.item2;
-    var namedSet = named;
     var separator = triple.item3;
 
     var oldCallableSpan = _callableSpan;
     _callableSpan = span;
-    int overloadIndex;
-    // TODO(nweiz): Throwing and catching here profiles poorly on Susy's tests.
-    // We should be able to choose the overload to use based purely on number or
-    // name of arguments.
-    for (var i = 0; i < callable.overloads.length - 1; i++) {
-      try {
-        _verifyArguments(
-            positional.length, namedSet, callable.overloads[i], span);
-        overloadIndex = i;
-        break;
-      } on SassRuntimeException catch (_) {
-        continue;
-      }
-    }
-    if (overloadIndex == null) {
-      _verifyArguments(
-          positional.length, namedSet, callable.overloads.last, span);
-      overloadIndex = callable.overloads.length - 1;
-    }
 
-    var overload = callable.overloads[overloadIndex];
-    var callback = callable.callbacks[overloadIndex];
+    var namedSet = new MapKeySet(named);
+    var tuple = callable.callbackFor(positional.length, namedSet);
+    var overload = tuple.item1;
+    var callback = tuple.item2;
+    _addExceptionSpan(span, () => overload.verify(positional.length, namedSet));
+
     var declaredArguments = overload.arguments;
     for (var i = positional.length; i < declaredArguments.length; i++) {
       var argument = declaredArguments[i];
@@ -1469,44 +1453,9 @@ class _EvaluateVisitor
   /// Throws a [SassRuntimeException] if [positional] and [named] aren't valid
   /// when applied to [arguments].
   void _verifyArguments(int positional, Map<String, dynamic> named,
-      ArgumentDeclaration arguments, FileSpan span) {
-    var namedUsed = 0;
-    for (var i = 0; i < arguments.arguments.length; i++) {
-      var argument = arguments.arguments[i];
-      if (i < positional) {
-        if (named.containsKey(argument.name)) {
-          throw _exception(
-              "Argument \$${argument.name} was passed both by position and by "
-              "name.",
-              span);
-        }
-      } else if (named.containsKey(argument.name)) {
-        namedUsed++;
-      } else if (argument.defaultValue == null) {
-        throw _exception("Missing argument \$${argument.name}.", span);
-      }
-    }
-
-    if (arguments.restArgument != null) return;
-
-    if (positional > arguments.arguments.length) {
-      throw _exception(
-          "Only ${arguments.arguments.length} "
-          "${pluralize('argument', arguments.arguments.length)} allowed, but "
-          "${positional} ${pluralize('was', positional, plural: 'were')} "
-          "passed.",
-          span);
-    }
-
-    if (namedUsed < named.length) {
-      var unknownNames = normalizedSet(named.keys)
-        ..removeAll(arguments.arguments.map((argument) => argument.name));
-      throw _exception(
-          "No ${pluralize('argument', unknownNames.length)} named "
-          "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
-          span);
-    }
-  }
+          ArgumentDeclaration arguments, FileSpan span) =>
+      _addExceptionSpan(
+          span, () => arguments.verify(positional, new MapKeySet(named)));
 
   Value visitSelectorExpression(SelectorExpression node) {
     if (_styleRule == null) return sassNull;
