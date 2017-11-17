@@ -17,6 +17,10 @@ import 'package:yaml/yaml.dart';
 
 import 'package:sass/src/util/path.dart';
 
+import 'synchronize.dart';
+
+export 'synchronize.dart';
+
 /// The version of Dart Sass.
 final String _version =
     loadYaml(new File('pubspec.yaml').readAsStringSync())['version'] as String;
@@ -33,7 +37,13 @@ final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
 
 main(List<String> args) => grind(args);
 
-@DefaultTask('Run the Dart formatter.')
+@DefaultTask('Compile async code and reformat.')
+all() {
+  format();
+  synchronize();
+}
+
+@Task('Run the Dart formatter.')
 format() {
   Pub.run('dart_style',
       script: 'format',

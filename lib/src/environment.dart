@@ -2,6 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// DO NOT EDIT. This file was generated from async_environment.dart.
+// See tool/synchronize.dart for details.
+//
+// Checksum: 97410abbd78c3bbc9899f3ac460cc0736218bfe3
+
 import 'ast/sass.dart';
 import 'callable.dart';
 import 'functions.dart';

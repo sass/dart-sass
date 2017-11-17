@@ -2,6 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// DO NOT EDIT. This file was generated from async_evaluate.dart.
+// See tool/synchronize.dart for details.
+//
+// Checksum: ef8fa3966d7580d8511d8d8430a8f65cd9cb9018
+
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
@@ -13,9 +18,9 @@ import 'package:tuple/tuple.dart';
 import '../ast/css.dart';
 import '../ast/sass.dart';
 import '../ast/selector.dart';
+import '../environment.dart';
 import '../callable.dart';
 import '../color_names.dart';
-import '../environment.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../importer.dart';
@@ -29,7 +34,7 @@ import 'interface/statement.dart';
 import 'interface/expression.dart';
 
 /// A function that takes a callback with no arguments.
-typedef _ScopeCallback(callback());
+typedef void _ScopeCallback(void callback());
 
 /// The URL used in stack traces when no source URL is available.
 final _noSourceUrl = Uri.parse("-");
@@ -301,12 +306,12 @@ class _EvaluateVisitor
   }
 
   Value visitAtRootRule(AtRootRule node) {
-    var query = node.query == null
-        ? AtRootQuery.defaultQuery
-        : _adjustParseError(
-            node.query.span,
-            () => new AtRootQuery.parse(
-                _performInterpolation(node.query, warnForColor: true)));
+    var query = AtRootQuery.defaultQuery;
+    if (node.query != null) {
+      var resolved = _performInterpolation(node.query, warnForColor: true);
+      query = _adjustParseError(
+          node.query.span, () => new AtRootQuery.parse(resolved));
+    }
 
     var parent = _parent;
     var included = <CssParentNode>[];
@@ -384,7 +389,7 @@ class _EvaluateVisitor
   /// [_parent] to [newParent].
   _ScopeCallback _scopeForAtRoot(CssParentNode newParent, AtRootQuery query,
       List<CssParentNode> included) {
-    var scope = (callback()) {
+    var scope = (void callback()) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
       var oldParent = _parent;
@@ -623,11 +628,13 @@ class _EvaluateVisitor
   }
 
   Value visitIfRule(IfRule node) {
-    var clause = node.clauses
-            .firstWhere((pair) => pair.item1.accept(this).isTruthy,
-                orElse: () => null)
-            ?.item2 ??
-        node.lastClause;
+    var clause = node.lastClause;
+    for (var pair in node.clauses) {
+      if (pair.item1.accept(this).isTruthy) {
+        clause = pair.item2;
+        break;
+      }
+    }
     if (clause == null) return null;
 
     return _environment.scope(
@@ -802,18 +809,16 @@ class _EvaluateVisitor
       throw _exception("Mixin doesn't accept a content block.", node.span);
     }
 
-    Value callback() {
-      _environment.asMixin(() {
-        for (var statement in mixin.declaration.children) {
-          statement.accept(this);
-        }
-      });
-      return null;
-    }
-
     var environment = node.children == null ? null : _environment.closure();
     _runUserDefinedCallable(node.arguments, mixin, node.span, () {
-      _environment.withContent(node.children, environment, callback);
+      _environment.withContent(node.children, environment, () {
+        _environment.asMixin(() {
+          for (var statement in mixin.declaration.children) {
+            statement.accept(this);
+          }
+        });
+        return null;
+      });
     });
 
     return null;
@@ -876,11 +881,13 @@ class _EvaluateVisitor
 
   /// Evaluates [interpolation] and parses the result as a list of media
   /// queries.
-  List<CssMediaQuery> _visitMediaQueries(Interpolation interpolation) =>
-      _adjustParseError(
-          interpolation.span,
-          () => CssMediaQuery.parseList(
-              _performInterpolation(interpolation, warnForColor: true)));
+  List<CssMediaQuery> _visitMediaQueries(Interpolation interpolation) {
+    var resolved = _performInterpolation(interpolation, warnForColor: true);
+
+    // TODO(nweiz): Remove this type argument when sdk#31398 is fixed.
+    return _adjustParseError<List<CssMediaQuery>>(
+        interpolation.span, () => CssMediaQuery.parseList(resolved));
+  }
 
   /// Returns a list of queries that selects for platforms that match both
   /// [queries1] and [queries2].
@@ -1176,7 +1183,7 @@ class _EvaluateVisitor
   SassColor visitColorExpression(ColorExpression node) => node.value;
 
   SassList visitListExpression(ListExpression node) => new SassList(
-      node.contents.map((expression) => expression.accept(this)),
+      node.contents.map((Expression expression) => expression.accept(this)),
       node.separator,
       brackets: node.hasBrackets);
 
@@ -1375,7 +1382,7 @@ class _EvaluateVisitor
   Tuple3<List<Value>, Map<String, Value>, ListSeparator> _evaluateArguments(
       ArgumentInvocation arguments, FileSpan span) {
     var positional = arguments.positional
-        .map((expression) => expression.accept(this))
+        .map((Expression expression) => expression.accept(this))
         .toList();
     var named = normalizedMapMap<String, Expression, Value>(arguments.named,
         value: (_, expression) => expression.accept(this));
