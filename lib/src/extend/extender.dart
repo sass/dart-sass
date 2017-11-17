@@ -695,9 +695,10 @@ class Extender {
     // unless it originally contained a selector list.
     if (pseudo.normalizedName == 'not' &&
         pseudo.selector.components.length == 1) {
-      return complexes
+      var result = complexes
           .map((complex) => pseudo.withSelector(new SelectorList([complex])))
           .toList();
+      return result.isEmpty ? null : result;
     } else {
       return [pseudo.withSelector(new SelectorList(complexes))];
     }

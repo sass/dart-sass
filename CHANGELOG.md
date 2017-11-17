@@ -1,3 +1,8 @@
+## 1.0.0-beta.4
+
+* Fix a crash when `:not(...)` extends a selector that appears in
+  `:not(:not(...))`.
+
 ## 1.0.0-beta.3
 
 * Properly parse numbers with exponents.
