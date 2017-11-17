@@ -2,13 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 
 import 'ast/selector.dart';
 import 'callable.dart';
-import 'environment.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
 import 'util/character.dart';
@@ -35,12 +35,15 @@ final _random = new math.Random();
 // We use base-36 so we can use the (26-character) alphabet and all digits.
 var _uniqueID = _random.nextInt(math.pow(36, 6) as int);
 
-/// Adds all core-library function definitions to [environment].
-void defineCoreFunctions(Environment environment) {
+/// The functions that make up the Sass core library, indexed by name.
+///
+/// This excludes a few functions that need access to the evaluation context;
+/// these are defined in `_EvaluateVisitor`.
+final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   // ## Colors
   // ### RGB
 
-  environment.defineFunction("rgb", r"$red, $green, $blue", (arguments) {
+  new BuiltInCallable("rgb", r"$red, $green, $blue", (arguments) {
     if (arguments[0].isSpecialNumber ||
         arguments[1].isSpecialNumber ||
         arguments[2].isSpecialNumber) {
@@ -55,9 +58,9 @@ void defineCoreFunctions(Environment environment) {
         fuzzyRound(_percentageOrUnitless(red, 255, "red")),
         fuzzyRound(_percentageOrUnitless(green, 255, "green")),
         fuzzyRound(_percentageOrUnitless(blue, 255, "blue")));
-  });
+  }),
 
-  environment.setFunction(new BuiltInCallable.overloaded("rgba", {
+  new BuiltInCallable.overloaded("rgba", {
     r"$red, $green, $blue, $alpha": (arguments) {
       if (arguments[0].isSpecialNumber ||
           arguments[1].isSpecialNumber ||
@@ -89,32 +92,30 @@ void defineCoreFunctions(Environment environment) {
       var alpha = arguments[1].assertNumber("alpha");
       return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
     }
-  }));
+  }),
 
-  environment.defineFunction("red", r"$color", (arguments) {
+  new BuiltInCallable("red", r"$color", (arguments) {
     return new SassNumber(arguments.first.assertColor("color").red);
-  });
+  }),
 
-  environment.defineFunction("green", r"$color", (arguments) {
+  new BuiltInCallable("green", r"$color", (arguments) {
     return new SassNumber(arguments.first.assertColor("color").green);
-  });
+  }),
 
-  environment.defineFunction("blue", r"$color", (arguments) {
+  new BuiltInCallable("blue", r"$color", (arguments) {
     return new SassNumber(arguments.first.assertColor("color").blue);
-  });
+  }),
 
-  environment.defineFunction("mix", r"$color1, $color2, $weight: 50%",
-      (arguments) {
+  new BuiltInCallable("mix", r"$color1, $color2, $weight: 50%", (arguments) {
     var color1 = arguments[0].assertColor("color1");
     var color2 = arguments[1].assertColor("color2");
     var weight = arguments[2].assertNumber("weight");
     return _mix(color1, color2, weight);
-  });
+  }),
 
   // ### HSL
 
-  environment.defineFunction("hsl", r"$hue, $saturation, $lightness",
-      (arguments) {
+  new BuiltInCallable("hsl", r"$hue, $saturation, $lightness", (arguments) {
     if (arguments[0].isSpecialNumber ||
         arguments[1].isSpecialNumber ||
         arguments[2].isSpecialNumber) {
@@ -126,9 +127,9 @@ void defineCoreFunctions(Environment environment) {
     var lightness = arguments[2].assertNumber("lightness");
 
     return new SassColor.hsl(hue.value, saturation.value, lightness.value);
-  });
+  }),
 
-  environment.defineFunction("hsla", r"$hue, $saturation, $lightness, $alpha",
+  new BuiltInCallable("hsla", r"$hue, $saturation, $lightness, $alpha",
       (arguments) {
     if (arguments[0].isSpecialNumber ||
         arguments[1].isSpecialNumber ||
@@ -144,49 +145,49 @@ void defineCoreFunctions(Environment environment) {
 
     return new SassColor.hsl(hue.value, saturation.value, lightness.value,
         _percentageOrUnitless(alpha, 1, "alpha"));
-  });
+  }),
 
-  environment.defineFunction(
+  new BuiltInCallable(
       "hue",
       r"$color",
       (arguments) =>
-          new SassNumber(arguments.first.assertColor("color").hue, "deg"));
+          new SassNumber(arguments.first.assertColor("color").hue, "deg")),
 
-  environment.defineFunction(
+  new BuiltInCallable(
       "saturation",
       r"$color",
       (arguments) =>
-          new SassNumber(arguments.first.assertColor("color").saturation, "%"));
+          new SassNumber(arguments.first.assertColor("color").saturation, "%")),
 
-  environment.defineFunction(
+  new BuiltInCallable(
       "lightness",
       r"$color",
       (arguments) =>
-          new SassNumber(arguments.first.assertColor("color").lightness, "%"));
+          new SassNumber(arguments.first.assertColor("color").lightness, "%")),
 
-  environment.defineFunction("adjust-hue", r"$color, $degrees", (arguments) {
+  new BuiltInCallable("adjust-hue", r"$color, $degrees", (arguments) {
     var color = arguments[0].assertColor("color");
     var degrees = arguments[1].assertNumber("degrees");
     return color.changeHsl(hue: color.hue + degrees.value);
-  });
+  }),
 
-  environment.defineFunction("lighten", r"$color, $amount", (arguments) {
+  new BuiltInCallable("lighten", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
         lightness: (color.lightness + amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
-  });
+  }),
 
-  environment.defineFunction("darken", r"$color, $amount", (arguments) {
+  new BuiltInCallable("darken", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
         lightness: (color.lightness - amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
-  });
+  }),
 
-  environment.setFunction(new BuiltInCallable.overloaded("saturate", {
+  new BuiltInCallable.overloaded("saturate", {
     r"$number": (arguments) {
       var number = arguments[0].assertNumber("number");
       return new SassString("saturate(${number.toCssString()})");
@@ -198,31 +199,31 @@ void defineCoreFunctions(Environment environment) {
           saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
               .clamp(0, 100));
     }
-  }));
+  }),
 
-  environment.defineFunction("desaturate", r"$color, $amount", (arguments) {
+  new BuiltInCallable("desaturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
         saturation: (color.saturation - amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
-  });
+  }),
 
-  environment.defineFunction("grayscale", r"$color", (arguments) {
+  new BuiltInCallable("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       return _functionString('grayscale', arguments);
     }
 
     var color = arguments[0].assertColor("color");
     return color.changeHsl(saturation: 0);
-  });
+  }),
 
-  environment.defineFunction("complement", r"$color", (arguments) {
+  new BuiltInCallable("complement", r"$color", (arguments) {
     var color = arguments[0].assertColor("color");
     return color.changeHsl(hue: color.hue + 180);
-  });
+  }),
 
-  environment.defineFunction("invert", r"$color, $weight: 50%", (arguments) {
+  new BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
     if (arguments[0] is SassNumber) {
       // TODO: find some way of ensuring this is stringified using the right
       // options. We may need to resort to zones.
@@ -236,11 +237,11 @@ void defineCoreFunctions(Environment environment) {
     if (weight.value == 50) return inverse;
 
     return _mix(inverse, color, weight);
-  });
+  }),
 
   // ### Opacity
 
-  environment.setFunction(new BuiltInCallable.overloaded("alpha", {
+  new BuiltInCallable.overloaded("alpha", {
     r"$color": (arguments) {
       var argument = arguments[0];
       if (argument is SassString &&
@@ -266,27 +267,25 @@ void defineCoreFunctions(Environment environment) {
       throw new SassScriptException(
           "Only 1 argument allowed, but ${arguments.length} were passed.");
     }
-  }));
+  }),
 
-  environment.defineFunction("opacity", r"$color", (arguments) {
+  new BuiltInCallable("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       return _functionString("opacity", arguments);
     }
 
     var color = arguments[0].assertColor("color");
     return new SassNumber(color.alpha);
-  });
+  }),
 
-  environment.defineFunction("opacify", r"$color, $amount", _opacify);
-  environment.defineFunction("fade-in", r"$color, $amount", _opacify);
-  environment.defineFunction(
-      "transparentize", r"$color, $amount", _transparentize);
-  environment.defineFunction("fade-out", r"$color, $amount", _transparentize);
+  new BuiltInCallable("opacify", r"$color, $amount", _opacify),
+  new BuiltInCallable("fade-in", r"$color, $amount", _opacify),
+  new BuiltInCallable("transparentize", r"$color, $amount", _transparentize),
+  new BuiltInCallable("fade-out", r"$color, $amount", _transparentize),
 
   // ### Miscellaneous
 
-  environment.defineFunction("adjust-color", r"$color, $kwargs...",
-      (arguments) {
+  new BuiltInCallable("adjust-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.contents.isNotEmpty) {
@@ -337,9 +336,9 @@ void defineCoreFunctions(Environment environment) {
     } else {
       return color;
     }
-  });
+  }),
 
-  environment.defineFunction("scale-color", r"$color, $kwargs...", (arguments) {
+  new BuiltInCallable("scale-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.contents.isNotEmpty) {
@@ -398,10 +397,9 @@ void defineCoreFunctions(Environment environment) {
     } else {
       return color;
     }
-  });
+  }),
 
-  environment.defineFunction("change-color", r"$color, $kwargs...",
-      (arguments) {
+  new BuiltInCallable("change-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.contents.isNotEmpty) {
@@ -445,38 +443,37 @@ void defineCoreFunctions(Environment environment) {
     } else {
       return color;
     }
-  });
+  }),
 
-  environment.defineFunction("ie-hex-str", r"$color", (arguments) {
+  new BuiltInCallable("ie-hex-str", r"$color", (arguments) {
     var color = arguments[0].assertColor("color");
     hexString(int component) =>
         component.toRadixString(16).padLeft(2, '0').toUpperCase();
     return new SassString(
         "#${hexString(fuzzyRound(color.alpha * 255))}${hexString(color.red)}"
         "${hexString(color.green)}${hexString(color.blue)}");
-  });
+  }),
 
   // ## Strings
 
-  environment.defineFunction("unquote", r"$string", (arguments) {
+  new BuiltInCallable("unquote", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     if (!string.hasQuotes) return string;
     return new SassString(string.text);
-  });
+  }),
 
-  environment.defineFunction("quote", r"$string", (arguments) {
+  new BuiltInCallable("quote", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     if (string.hasQuotes) return string;
     return new SassString(string.text, quotes: true);
-  });
+  }),
 
-  environment.defineFunction("str-length", r"$string", (arguments) {
+  new BuiltInCallable("str-length", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     return new SassNumber(string.text.runes.length);
-  });
+  }),
 
-  environment.defineFunction("str-insert", r"$string, $insert, $index",
-      (arguments) {
+  new BuiltInCallable("str-insert", r"$string, $insert, $index", (arguments) {
     var string = arguments[0].assertString("string");
     var insert = arguments[1].assertString("insert");
     var index = arguments[2].assertNumber("index");
@@ -503,9 +500,9 @@ void defineCoreFunctions(Environment environment) {
     return new SassString(
         string.text.replaceRange(codeUnitIndex, codeUnitIndex, insert.text),
         quotes: string.hasQuotes);
-  });
+  }),
 
-  environment.defineFunction("str-index", r"$string, $substring", (arguments) {
+  new BuiltInCallable("str-index", r"$string, $substring", (arguments) {
     var string = arguments[0].assertString("string");
     var substring = arguments[1].assertString("substring");
 
@@ -514,9 +511,9 @@ void defineCoreFunctions(Environment environment) {
     var codepointIndex =
         codeUnitIndexToCodepointIndex(string.text, codeUnitIndex);
     return new SassNumber(codepointIndex + 1);
-  });
+  }),
 
-  environment.defineFunction("str-slice", r"$string, $start-at, $end-at: -1",
+  new BuiltInCallable("str-slice", r"$string, $start-at, $end-at: -1",
       (arguments) {
     var string = arguments[0].assertString("string");
     var start = arguments[1].assertNumber("start-at");
@@ -545,40 +542,40 @@ void defineCoreFunctions(Environment environment) {
             codepointIndexToCodeUnitIndex(string.text, startCodepoint),
             codepointIndexToCodeUnitIndex(string.text, endCodepoint) + 1),
         quotes: string.hasQuotes);
-  });
+  }),
 
-  environment.defineFunction("to-upper-case", r"$string", (arguments) {
+  new BuiltInCallable("to-upper-case", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     var buffer = new StringBuffer();
     for (var i = 0; i < string.text.length; i++) {
       buffer.writeCharCode(toUpperCase(string.text.codeUnitAt(i)));
     }
     return new SassString(buffer.toString(), quotes: string.hasQuotes);
-  });
+  }),
 
-  environment.defineFunction("to-lower-case", r"$string", (arguments) {
+  new BuiltInCallable("to-lower-case", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     var buffer = new StringBuffer();
     for (var i = 0; i < string.text.length; i++) {
       buffer.writeCharCode(toLowerCase(string.text.codeUnitAt(i)));
     }
     return new SassString(buffer.toString(), quotes: string.hasQuotes);
-  });
+  }),
 
   // ## Numbers
 
-  environment.defineFunction("percentage", r"$number", (arguments) {
+  new BuiltInCallable("percentage", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     number.assertNoUnits("number");
     return new SassNumber(number.value * 100, '%');
-  });
+  }),
 
-  environment.setFunction(_numberFunction("round", fuzzyRound));
-  environment.setFunction(_numberFunction("ceil", (value) => value.ceil()));
-  environment.setFunction(_numberFunction("floor", (value) => value.floor()));
-  environment.setFunction(_numberFunction("abs", (value) => value.abs()));
+  _numberFunction("round", fuzzyRound),
+  _numberFunction("ceil", (value) => value.ceil()),
+  _numberFunction("floor", (value) => value.floor()),
+  _numberFunction("abs", (value) => value.abs()),
 
-  environment.defineFunction("max", r"$numbers...", (arguments) {
+  new BuiltInCallable("max", r"$numbers...", (arguments) {
     SassNumber max;
     for (var value in arguments[0].asList) {
       var number = value.assertNumber();
@@ -586,9 +583,9 @@ void defineCoreFunctions(Environment environment) {
     }
     if (max != null) return max;
     throw new SassScriptException("At least one argument must be passed.");
-  });
+  }),
 
-  environment.defineFunction("min", r"$numbers...", (arguments) {
+  new BuiltInCallable("min", r"$numbers...", (arguments) {
     SassNumber min;
     for (var value in arguments[0].asList) {
       var number = value.assertNumber();
@@ -596,9 +593,9 @@ void defineCoreFunctions(Environment environment) {
     }
     if (min != null) return min;
     throw new SassScriptException("At least one argument must be passed.");
-  });
+  }),
 
-  environment.defineFunction("random", r"$limit: null", (arguments) {
+  new BuiltInCallable("random", r"$limit: null", (arguments) {
     if (arguments[0] == sassNull) return new SassNumber(_random.nextDouble());
     var limit = arguments[0].assertNumber("limit").assertInt("limit");
     if (limit < 1) {
@@ -606,29 +603,29 @@ void defineCoreFunctions(Environment environment) {
           "\$limit: Must be greater than 0, was $limit.");
     }
     return new SassNumber(_random.nextInt(limit) + 1);
-  });
+  }),
 
   // ## Lists
 
-  environment.defineFunction("length", r"$list",
-      (arguments) => new SassNumber(arguments[0].asList.length));
+  new BuiltInCallable("length", r"$list",
+      (arguments) => new SassNumber(arguments[0].asList.length)),
 
-  environment.defineFunction("nth", r"$list, $n", (arguments) {
+  new BuiltInCallable("nth", r"$list, $n", (arguments) {
     var list = arguments[0].asList;
     var index = arguments[1].assertNumber("n");
     return list[index.assertIndexFor(list, "n")];
-  });
+  }),
 
-  environment.defineFunction("set-nth", r"$list, $n, $value", (arguments) {
+  new BuiltInCallable("set-nth", r"$list, $n, $value", (arguments) {
     var list = arguments[0].asList;
     var index = arguments[1].assertNumber("n");
     var value = arguments[2];
     var newList = list.toList();
     newList[index.assertIndexFor(list, "n")] = value;
     return arguments[0].changeListContents(newList);
-  });
+  }),
 
-  environment.defineFunction(
+  new BuiltInCallable(
       "join", r"$list1, $list2, $separator: auto, $bracketed: auto",
       (arguments) {
     var list1 = arguments[0];
@@ -661,10 +658,9 @@ void defineCoreFunctions(Environment environment) {
 
     var newList = list1.asList.toList()..addAll(list2.asList);
     return new SassList(newList, separator, brackets: bracketed);
-  });
+  }),
 
-  environment.defineFunction("append", r"$list, $val, $separator: auto",
-      (arguments) {
+  new BuiltInCallable("append", r"$list, $val, $separator: auto", (arguments) {
     var list = arguments[0];
     var value = arguments[1];
     var separatorParam = arguments[2].assertString("separator");
@@ -685,9 +681,9 @@ void defineCoreFunctions(Environment environment) {
 
     var newList = list.asList.toList()..add(value);
     return list.changeListContents(newList, separator: separator);
-  });
+  }),
 
-  environment.defineFunction("zip", r"$lists...", (arguments) {
+  new BuiltInCallable("zip", r"$lists...", (arguments) {
     var lists = (arguments[0] as SassArgumentList)
         .contents
         .map((list) => list.asList)
@@ -700,41 +696,41 @@ void defineCoreFunctions(Environment environment) {
       i++;
     }
     return new SassList(results, ListSeparator.comma);
-  });
+  }),
 
-  environment.defineFunction("index", r"$list, $value", (arguments) {
+  new BuiltInCallable("index", r"$list, $value", (arguments) {
     var list = arguments[0].asList;
     var value = arguments[1];
 
     var index = list.indexOf(value);
     return index == -1 ? sassNull : new SassNumber(index + 1);
-  });
+  }),
 
-  environment.defineFunction(
+  new BuiltInCallable(
       "list-separator",
       r"$list",
       (arguments) => arguments[0].separator == ListSeparator.comma
           ? new SassString("comma")
-          : new SassString("space"));
+          : new SassString("space")),
 
-  environment.defineFunction("is-bracketed", r"$list",
-      (arguments) => new SassBoolean(arguments[0].hasBrackets));
+  new BuiltInCallable("is-bracketed", r"$list",
+      (arguments) => new SassBoolean(arguments[0].hasBrackets)),
 
   // ## Maps
 
-  environment.defineFunction("map-get", r"$map, $key", (arguments) {
+  new BuiltInCallable("map-get", r"$map, $key", (arguments) {
     var map = arguments[0].assertMap("map");
     var key = arguments[1];
     return map.contents[key] ?? sassNull;
-  });
+  }),
 
-  environment.defineFunction("map-merge", r"$map1, $map2", (arguments) {
+  new BuiltInCallable("map-merge", r"$map1, $map2", (arguments) {
     var map1 = arguments[0].assertMap("map1");
     var map2 = arguments[1].assertMap("map2");
     return new SassMap(new Map.from(map1.contents)..addAll(map2.contents));
-  });
+  }),
 
-  environment.defineFunction("map-remove", r"$map, $keys...", (arguments) {
+  new BuiltInCallable("map-remove", r"$map, $keys...", (arguments) {
     var map = arguments[0].assertMap("map");
     var keys = arguments[1] as SassArgumentList;
     var mutableMap = new Map<Value, Value>.from(map.contents);
@@ -742,27 +738,27 @@ void defineCoreFunctions(Environment environment) {
       mutableMap.remove(key);
     }
     return new SassMap(mutableMap);
-  });
+  }),
 
-  environment.defineFunction(
+  new BuiltInCallable(
       "map-keys",
       r"$map",
       (arguments) => new SassList(
-          arguments[0].assertMap("map").contents.keys, ListSeparator.comma));
+          arguments[0].assertMap("map").contents.keys, ListSeparator.comma)),
 
-  environment.defineFunction(
+  new BuiltInCallable(
       "map-values",
       r"$map",
       (arguments) => new SassList(
-          arguments[0].assertMap("map").contents.values, ListSeparator.comma));
+          arguments[0].assertMap("map").contents.values, ListSeparator.comma)),
 
-  environment.defineFunction("map-has-key", r"$map, $key", (arguments) {
+  new BuiltInCallable("map-has-key", r"$map, $key", (arguments) {
     var map = arguments[0].assertMap("map");
     var key = arguments[1];
     return new SassBoolean(map.contents.containsKey(key));
-  });
+  }),
 
-  environment.defineFunction("keywords", r"$args", (arguments) {
+  new BuiltInCallable("keywords", r"$args", (arguments) {
     var argumentList = arguments[0];
     if (argumentList is SassArgumentList) {
       return new SassMap(mapMap(argumentList.keywords,
@@ -771,11 +767,11 @@ void defineCoreFunctions(Environment environment) {
       throw new SassScriptException(
           "\$args: $argumentList is not an argument list.");
     }
-  });
+  }),
 
   // ## Selectors
 
-  environment.defineFunction("selector-nest", r"$selectors...", (arguments) {
+  new BuiltInCallable("selector-nest", r"$selectors...", (arguments) {
     var selectors = (arguments[0] as SassArgumentList).contents;
     if (selectors.isEmpty) {
       throw new SassScriptException(
@@ -786,9 +782,9 @@ void defineCoreFunctions(Environment environment) {
         .map((selector) => selector.assertSelector(allowParent: true))
         .reduce((parent, child) => child.resolveParentSelectors(parent))
         .asSassList;
-  });
+  }),
 
-  environment.defineFunction("selector-append", r"$selectors...", (arguments) {
+  new BuiltInCallable("selector-append", r"$selectors...", (arguments) {
     var selectors = (arguments[0] as SassArgumentList).contents;
     if (selectors.isEmpty) {
       throw new SassScriptException(
@@ -813,69 +809,63 @@ void defineCoreFunctions(Environment environment) {
         }
       })).resolveParentSelectors(parent);
     }).asSassList;
-  });
+  }),
 
-  environment.defineFunction(
-      "selector-extend", r"$selector, $extendee, $extender", (arguments) {
+  new BuiltInCallable("selector-extend", r"$selector, $extendee, $extender",
+      (arguments) {
     var selector = arguments[0].assertSelector(name: "selector");
     var target = arguments[1].assertSelector(name: "extendee");
     var source = arguments[2].assertSelector(name: "extender");
 
     return Extender.extend(selector, source, target).asSassList;
-  });
+  }),
 
-  environment.defineFunction(
-      "selector-replace", r"$selector, $original, $replacement", (arguments) {
+  new BuiltInCallable("selector-replace", r"$selector, $original, $replacement",
+      (arguments) {
     var selector = arguments[0].assertSelector(name: "selector");
     var target = arguments[1].assertSelector(name: "original");
     var source = arguments[2].assertSelector(name: "replacement");
 
     return Extender.replace(selector, source, target).asSassList;
-  });
+  }),
 
-  environment.defineFunction("selector-unify", r"$selector1, $selector2",
-      (arguments) {
+  new BuiltInCallable("selector-unify", r"$selector1, $selector2", (arguments) {
     var selector1 = arguments[0].assertSelector(name: "selector1");
     var selector2 = arguments[1].assertSelector(name: "selector2");
 
     var result = selector1.unify(selector2);
     return result == null ? sassNull : result.asSassList;
-  });
+  }),
 
-  environment.defineFunction("is-superselector", r"$super, $sub", (arguments) {
+  new BuiltInCallable("is-superselector", r"$super, $sub", (arguments) {
     var selector1 = arguments[0].assertSelector(name: "super");
     var selector2 = arguments[1].assertSelector(name: "sub");
 
     return new SassBoolean(selector1.isSuperselector(selector2));
-  });
+  }),
 
-  environment.defineFunction("simple-selectors", r"$selector", (arguments) {
+  new BuiltInCallable("simple-selectors", r"$selector", (arguments) {
     var selector = arguments[0].assertCompoundSelector(name: "selector");
 
     return new SassList(
         selector.components.map((simple) => new SassString(simple.toString())),
         ListSeparator.comma);
-  });
+  }),
 
-  environment.defineFunction("selector-parse", r"$selector",
-      (arguments) => arguments[0].assertSelector(name: "selector").asSassList);
+  new BuiltInCallable("selector-parse", r"$selector",
+      (arguments) => arguments[0].assertSelector(name: "selector").asSassList),
 
   // ## Introspection
 
-  environment.defineFunction("feature-exists", r"$feature", (arguments) {
+  new BuiltInCallable("feature-exists", r"$feature", (arguments) {
     var feature = arguments[0].assertString("feature");
     return new SassBoolean(_features.contains(feature.text));
-  });
+  }),
 
-  environment.defineFunction("global-variable-exists", r"$name", (arguments) {
-    var variable = arguments[0].assertString("name");
-    return new SassBoolean(environment.globalVariableExists(variable.text));
-  });
+  new BuiltInCallable("inspect", r"$value",
+      (arguments) => new SassString(arguments.first.toString())),
 
-  environment.defineFunction("inspect", r"$value",
-      (arguments) => new SassString(arguments.first.toString()));
-
-  environment.defineFunction("type-of", r"$value", (arguments) {
+  new BuiltInCallable("type-of", r"$value", (arguments) {
     var value = arguments[0];
     if (value is SassArgumentList) return new SassString("arglist");
     if (value is SassBoolean) return new SassString("bool");
@@ -887,36 +877,23 @@ void defineCoreFunctions(Environment environment) {
     if (value is SassFunction) return new SassString("function");
     assert(value is SassString);
     return new SassString("string");
-  });
+  }),
 
-  environment.defineFunction("unit", r"$number", (arguments) {
+  new BuiltInCallable("unit", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return new SassString(number.unitString, quotes: true);
-  });
+  }),
 
-  environment.defineFunction("unitless", r"$number", (arguments) {
+  new BuiltInCallable("unitless", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return new SassBoolean(!number.hasUnits);
-  });
+  }),
 
-  environment.defineFunction("comparable", r"$number1, $number2", (arguments) {
+  new BuiltInCallable("comparable", r"$number1, $number2", (arguments) {
     var number1 = arguments[0].assertNumber("number1");
     var number2 = arguments[1].assertNumber("number2");
     return new SassBoolean(number1.isComparableTo(number2));
-  });
-
-  environment.defineFunction("get-function", r"$name, $css: false",
-      (arguments) {
-    var name = arguments[0].assertString("name");
-    var css = arguments[1].isTruthy;
-
-    var callable = css
-        ? new PlainCssCallable(name.text)
-        : environment.getFunction(name.text);
-    if (callable != null) return new SassFunction(callable);
-
-    throw new SassScriptException("Function not found: $name");
-  });
+  }),
 
   // call() is defined in _PerformVisitor to provide it access to private APIs.
 
@@ -924,17 +901,17 @@ void defineCoreFunctions(Environment environment) {
 
   // This is only invoked using `call()`. Hand-authored `if()`s are parsed as
   // [IfExpression]s.
-  environment.defineFunction("if", r"$condition, $if-true, $if-false",
-      (arguments) => arguments[0].isTruthy ? arguments[1] : arguments[2]);
+  new BuiltInCallable("if", r"$condition, $if-true, $if-false",
+      (arguments) => arguments[0].isTruthy ? arguments[1] : arguments[2]),
 
-  environment.defineFunction("unique-id", "", (arguments) {
+  new BuiltInCallable("unique-id", "", (arguments) {
     // Make it difficult to guess the next ID by randomizing the increase.
     _uniqueID += _random.nextInt(36) + 1;
     if (_uniqueID > math.pow(36, 6)) _uniqueID %= math.pow(36, 6) as int;
     // The leading "u" ensures that the result is a valid identifier.
     return new SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}");
-  });
-}
+  })
+]);
 
 /// Returns a string representation of [name] called with [arguments], as though
 /// it were a plain CSS function.
@@ -1044,7 +1021,7 @@ int _codepointForIndex(int index, int lengthInCodepoints,
 
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
-Callable _numberFunction(String name, num transform(num value)) {
+BuiltInCallable _numberFunction(String name, num transform(num value)) {
   return new BuiltInCallable(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return new SassNumber.withUnits(transform(number.value),
