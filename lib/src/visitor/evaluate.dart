@@ -172,30 +172,54 @@ class _EvaluateVisitor
         _nodeImporter = nodeImporter,
         _environment = environment ?? new Environment(),
         _color = color {
-    _environment.defineFunction("variable-exists", r"$name", (arguments) {
+    _environment.setFunction(
+        new BuiltInCallable("global-variable-exists", r"$name", (arguments) {
+      var variable = arguments[0].assertString("name");
+      return new SassBoolean(_environment.globalVariableExists(variable.text));
+    }));
+
+    _environment.setFunction(
+        new BuiltInCallable("variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return new SassBoolean(_environment.variableExists(variable.text));
-    });
+    }));
 
-    _environment.defineFunction("function-exists", r"$name", (arguments) {
+    _environment.setFunction(
+        new BuiltInCallable("function-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return new SassBoolean(_environment.functionExists(variable.text));
-    });
+    }));
 
-    _environment.defineFunction("mixin-exists", r"$name", (arguments) {
+    _environment
+        .setFunction(new BuiltInCallable("mixin-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return new SassBoolean(_environment.mixinExists(variable.text));
-    });
+    }));
 
-    _environment.defineFunction("content-exists", "", (arguments) {
+    _environment
+        .setFunction(new BuiltInCallable("content-exists", "", (arguments) {
       if (!_environment.inMixin) {
         throw new SassScriptException(
             "content-exists() may only be called within a mixin.");
       }
       return new SassBoolean(_environment.contentBlock != null);
-    });
+    }));
 
-    _environment.defineFunction("call", r"$function, $args...", (arguments) {
+    _environment.setFunction(
+        new BuiltInCallable("get-function", r"$name, $css: false", (arguments) {
+      var name = arguments[0].assertString("name");
+      var css = arguments[1].isTruthy;
+
+      var callable = css
+          ? new PlainCssCallable(name.text)
+          : _environment.getFunction(name.text);
+      if (callable != null) return new SassFunction(callable);
+
+      throw new SassScriptException("Function not found: $name");
+    }));
+
+    _environment.setFunction(
+        new BuiltInCallable("call", r"$function, $args...", (arguments) {
       var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
 
@@ -224,7 +248,7 @@ class _EvaluateVisitor
 
       return _runFunctionCallable(invocation,
           function.assertFunction("function").callable, _callableSpan);
-    });
+    }));
   }
 
   EvaluateResult run(Stylesheet node) {

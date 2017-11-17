@@ -93,7 +93,7 @@ class Environment {
         _functionIndices = normalizedMap(),
         _mixins = [normalizedMap()],
         _mixinIndices = normalizedMap() {
-    defineCoreFunctions(this);
+    coreFunctions.forEach(setFunction);
   }
 
   Environment._(this._variables, this._functions, this._mixins,
@@ -218,11 +218,6 @@ class Environment {
     _functionIndices[callable.name] = index;
     _functions[index][callable.name] = callable;
   }
-
-  /// Shorthand for passing [new BuiltInCallable] to [setFunction].
-  void defineFunction(String name, String arguments,
-          Value callback(List<Value> arguments)) =>
-      setFunction(new BuiltInCallable(name, arguments, callback));
 
   /// Returns the value of the mixin named [name], or `null` if no such mixin is
   /// declared.
