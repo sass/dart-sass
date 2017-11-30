@@ -22,8 +22,20 @@ export 'package:sass/src/node/render_result.dart';
 /// The Sass module.
 final sass = _require(p.absolute("build/npm/sass.dart"));
 
+/// A `null` that's guaranteed to be represented by JavaScript's `undefined`
+/// value, not by `null`.
 @JS()
 external Object get undefined;
+
+/// A `null` that's guaranteed to be represented by JavaScript's `null` value,
+/// not by `undefined`.
+///
+/// We have to use eval here because otherwise dart2js will inline the null
+/// value and then optimize it away.
+final Object jsNull = _eval("null");
+
+@JS("eval")
+external Object _eval(String js);
 
 @JS("process.chdir")
 external void chdir(String directory);

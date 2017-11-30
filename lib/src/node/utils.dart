@@ -23,6 +23,11 @@ void jsThrow(error) => _jsThrow.call(error);
 
 final _jsThrow = new JSFunction("error", "throw error;");
 
+/// Returns whether or not [value] is the JS `undefined` value.
+bool isUndefined(value) => _isUndefined.call(value) as bool;
+
+final _isUndefined = new JSFunction("value", "return value === undefined;");
+
 @JS("Error")
 external Function get _JSError;
 
@@ -33,3 +38,8 @@ bool isJSError(value) => instanceof(value, _JSError) as bool;
 R call2<R, A1, A2>(
         R function(A1 arg1, A2 arg2), Object thisArg, A1 arg1, A2 arg2) =>
     (function as JSFunction).apply(thisArg, [arg1, arg2]) as R;
+
+/// Invokes [function] with [thisArg] as `this`.
+R call3<R, A1, A2, A3>(R function(A1 arg1, A2 arg2, A3 arg3), Object thisArg,
+        A1 arg1, A2 arg2, A3 arg3) =>
+    (function as JSFunction).apply(thisArg, [arg1, arg2, arg3]) as R;
