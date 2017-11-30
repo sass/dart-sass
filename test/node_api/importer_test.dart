@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
 import 'package:sass/src/util/path.dart';
+import 'package:sass/src/node/utils.dart';
 import 'package:sass/src/value/number.dart';
 
 import '../ensure_npm_package.dart';
@@ -532,6 +533,52 @@ void main() {
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
               "  stdin 1:9  root stylesheet"));
+    });
+  });
+
+  group("render()", () {
+    test("supports asynchronous importers", () {
+      expect(
+          render(new RenderOptions(
+              data: "@import 'foo'",
+              importer: allowInterop((_, __, done) {
+                new Future.delayed(Duration.ZERO).then((_) {
+                  done(new NodeImporterResult(contents: 'a {b: c}'));
+                });
+              }))),
+          completion(equalsIgnoringWhitespace('a { b: c; }')));
+    });
+
+    test("supports asynchronous errors", () {
+      expect(
+          renderError(new RenderOptions(
+              data: "@import 'foo'",
+              importer: allowInterop((_, __, done) {
+                new Future.delayed(Duration.ZERO).then((_) {
+                  done(new JSError('oh no'));
+                });
+              }))),
+          completion(toStringAndMessageEqual("oh no\n"
+              "  stdin 1:9  root stylesheet")));
+    });
+
+    test("supports synchronous importers", () {
+      expect(
+          render(new RenderOptions(
+              data: "@import 'foo'",
+              importer: allowInterop((_, __, ___) =>
+                  new NodeImporterResult(contents: 'a {b: c}')))),
+          completion(equalsIgnoringWhitespace('a { b: c; }')));
+    });
+
+    test("supports synchronous null returns", () {
+      expect(
+          renderError(new RenderOptions(
+              data: "@import 'foo'",
+              importer: allowInterop((_, __, ___) => jsNull))),
+          completion(
+              toStringAndMessageEqual("Can't find stylesheet to import.\n"
+                  "  stdin 1:9  root stylesheet")));
     });
   });
 }

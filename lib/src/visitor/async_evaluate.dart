@@ -737,7 +737,7 @@ class _EvaluateVisitor
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
   Future<Stylesheet> _importLikeNode(DynamicImport import) async {
-    var result = _nodeImporter.load(import.url, _baseUrl);
+    var result = await _nodeImporter.loadAsync(import.url, _baseUrl);
     if (result == null) return null;
 
     var contents = result.item1;
