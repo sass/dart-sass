@@ -580,5 +580,76 @@ void main() {
               toStringAndMessageEqual("Can't find stylesheet to import.\n"
                   "  stdin 1:9  root stylesheet")));
     });
+
+    group("with fibers", () {
+      setUpAll(() {
+        try {
+          fiber;
+        } catch (_) {
+          throw "Can't load fibers package.\n"
+              "Run pub run grinder before_test.";
+        }
+      });
+
+      test("supports asynchronous importers", () {
+        expect(
+            render(new RenderOptions(
+                data: "@import 'foo'",
+                importer: allowInterop((_, __, done) {
+                  new Future.delayed(Duration.ZERO).then((_) {
+                    done(new NodeImporterResult(contents: 'a {b: c}'));
+                  });
+                }),
+                fiber: fiber)),
+            completion(equalsIgnoringWhitespace('a { b: c; }')));
+      });
+
+      test("supports synchronous calls to done", () {
+        expect(
+            render(new RenderOptions(
+                data: "@import 'foo'",
+                importer: allowInterop((_, __, done) {
+                  done(new NodeImporterResult(contents: 'a {b: c}'));
+                }),
+                fiber: fiber)),
+            completion(equalsIgnoringWhitespace('a { b: c; }')));
+      });
+
+      test("supports synchronous importers", () {
+        expect(
+            render(new RenderOptions(
+                data: "@import 'foo'",
+                importer: allowInterop((_, __, ___) {
+                  return new NodeImporterResult(contents: 'a {b: c}');
+                }),
+                fiber: fiber)),
+            completion(equalsIgnoringWhitespace('a { b: c; }')));
+      });
+
+      test("supports asynchronous errors", () {
+        expect(
+            renderError(new RenderOptions(
+                data: "@import 'foo'",
+                importer: allowInterop((_, __, done) {
+                  new Future.delayed(Duration.ZERO).then((_) {
+                    done(new JSError('oh no'));
+                  });
+                }),
+                fiber: fiber)),
+            completion(toStringAndMessageEqual("oh no\n"
+                "  stdin 1:9  root stylesheet")));
+      });
+
+      test("supports synchronous null returns", () {
+        expect(
+            renderError(new RenderOptions(
+                data: "@import 'foo'",
+                importer: allowInterop((_, __, ___) => jsNull),
+                fiber: fiber)),
+            completion(
+                toStringAndMessageEqual("Can't find stylesheet to import.\n"
+                    "  stdin 1:9  root stylesheet")));
+      });
+    });
   });
 }

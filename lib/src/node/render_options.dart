@@ -4,6 +4,8 @@
 
 import 'package:js/js.dart';
 
+import 'fiber.dart';
+
 @JS()
 @anonymous
 class RenderOptions {
@@ -16,6 +18,7 @@ class RenderOptions {
   external String get indentType;
   external dynamic get indentWidth;
   external String get linefeed;
+  external FiberClass get fiber;
 
   external factory RenderOptions(
       {String file,
@@ -26,5 +29,6 @@ class RenderOptions {
       String outputStyle,
       String indentType,
       indentWidth,
-      String linefeed});
+      String linefeed,
+      FiberClass fiber});
 }
