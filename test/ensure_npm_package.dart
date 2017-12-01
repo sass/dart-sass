@@ -13,21 +13,28 @@ hybridMain(StreamChannel channel) async {
     throw "NPM package is not built. Run pub run grinder npm_package.";
   }
 
-  var lastModified = new DateTime(0);
-  var entriesToCheck = new Directory("lib").listSync(recursive: true).toList()
-    ..add(new File("pubspec.lock"));
+  var lastModified = new File("build/npm/package.json").lastModifiedSync();
+  var entriesToCheck = new Directory("lib").listSync(recursive: true).toList();
+
+  // If we have a dependency override, "pub run" will touch the lockfile to mark
+  // it as newer than the pubspec, which makes it unsuitable to use for
+  // freshness checking.
+  if (new File("pubspec.yaml")
+      .readAsStringSync()
+      .contains("dependency_overrides")) {
+    entriesToCheck.add(new File("pubspec.yaml"));
+  } else {
+    entriesToCheck.add(new File("pubspec.lock"));
+  }
+
   for (var entry in entriesToCheck) {
     if (entry is File) {
       var entryLastModified = entry.lastModifiedSync();
       if (lastModified.isBefore(entryLastModified)) {
-        lastModified = entryLastModified;
+        throw "${entry.path} was modified after NPM package was generated.\n"
+            "Run pub run grinder npm_package.";
       }
     }
-  }
-
-  if (lastModified
-      .isAfter(new File("build/npm/package.json").lastModifiedSync())) {
-    throw "NPM package is out-of-date. Run pub run grinder npm_package.";
   }
 
   channel.sink.close();
