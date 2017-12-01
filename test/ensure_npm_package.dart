@@ -32,7 +32,7 @@ hybridMain(StreamChannel channel) async {
       var entryLastModified = entry.lastModifiedSync();
       if (lastModified.isBefore(entryLastModified)) {
         throw "${entry.path} was modified after NPM package was generated.\n"
-            "Run pub run grinder npm_package.";
+            "Run pub run grinder before_test.";
       }
     }
   }
