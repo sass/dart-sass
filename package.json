@@ -1,0 +1,9 @@
+{
+  "//": [
+    "This isn't the official package.json for Dart Sass. It's just used to ",
+    "install dependencies used for testing the Node API."
+  ],
+  "devDependencies": {
+    "fibers": ">=1.0.0 <3.0.0"
+  }
+}

@@ -48,15 +48,25 @@ void main() {
 /// [render]: https://github.com/sass/node-sass#options
 void _render(RenderOptions options,
     void callback(RenderError error, RenderResult result)) {
-  _renderAsync(options).then((result) {
-    callback(null, result);
-  }, onError: (error, stackTrace) {
-    if (error is SassException) {
-      callback(_wrapException(error), null);
-    } else {
-      callback(newRenderError(error.toString(), status: 3), null);
-    }
-  });
+  if (options.fiber != null) {
+    options.fiber.call(allowInterop(() {
+      try {
+        callback(null, _renderSync(options));
+      } catch (error) {
+        callback(error as RenderError, null);
+      }
+    })).run();
+  } else {
+    _renderAsync(options).then((result) {
+      callback(null, result);
+    }, onError: (error, stackTrace) {
+      if (error is SassException) {
+        callback(_wrapException(error), null);
+      } else {
+        callback(newRenderError(error.toString(), status: 3), null);
+      }
+    });
+  }
 }
 
 /// Converts Sass to CSS asynchronously.
@@ -204,6 +214,23 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
                 start: start.millisecondsSinceEpoch,
                 entry: options.file ?? 'data')));
     context.options.context = context;
+  }
+
+  if (options.fiber != null) {
+    importers = importers.map((importer) {
+      return allowInteropCaptureThis((thisArg, String url, String previous,
+          [_]) {
+        var fiber = options.fiber.current;
+        var result =
+            call3(importer, thisArg, url, previous, allowInterop((result) {
+          // Schedule a microtask so we don't try to resume the running fiber if
+          // [importer] calls `done()` synchronously.
+          scheduleMicrotask(() => fiber.run(result));
+        }));
+        if (isUndefined(result)) return options.fiber.yield();
+        return result;
+      }) as _Importer;
+    }).toList();
   }
 
   return new NodeImporter(context, includePaths, importers);

@@ -38,10 +38,8 @@ final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
 main(List<String> args) => grind(args);
 
 @DefaultTask('Compile async code and reformat.')
-all() {
-  format();
-  synchronize();
-}
+@Depends(format, synchronize)
+all() {}
 
 @Task('Run the Dart formatter.')
 format() {
@@ -99,6 +97,13 @@ npm_package() {
   _writeNpmPackage('build/npm', json);
   _writeNpmPackage('build/npm-old', json..addAll({"name": "dart-sass"}));
 }
+
+@Task('Installs dependencies from npm.')
+npm_install() => run("npm", arguments: ["install"]);
+
+@Task('Runs the tasks that are required for running tests.')
+@Depends(npm_package, npm_install)
+before_test() {}
 
 /// Writes a Dart Sass NPM package to the directory at [destination].
 ///
