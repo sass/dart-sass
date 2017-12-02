@@ -6,6 +6,7 @@
 /// to Dart. This is kind of convoluted, but it allows us to test the API as it
 /// will be used in the real world without having to manually write any JS.
 
+import 'package:sass/src/node/fiber.dart';
 import 'package:sass/src/node/render_error.dart';
 import 'package:sass/src/node/render_options.dart';
 import 'package:sass/src/node/render_result.dart';
@@ -20,16 +21,34 @@ export 'package:sass/src/node/render_options.dart';
 export 'package:sass/src/node/render_result.dart';
 
 /// The Sass module.
-final sass = _require(p.absolute("build/npm/sass.dart"));
+final sass = _requireSass(p.absolute("build/npm/sass.dart"));
 
+/// The Fiber class.
+final fiber = _requireFiber("fibers");
+
+/// A `null` that's guaranteed to be represented by JavaScript's `undefined`
+/// value, not by `null`.
 @JS()
 external Object get undefined;
+
+/// A `null` that's guaranteed to be represented by JavaScript's `null` value,
+/// not by `undefined`.
+///
+/// We have to use eval here because otherwise dart2js will inline the null
+/// value and then optimize it away.
+final Object jsNull = _eval("null");
+
+@JS("eval")
+external Object _eval(String js);
 
 @JS("process.chdir")
 external void chdir(String directory);
 
 @JS("require")
-external Sass _require(String path);
+external Sass _requireSass(String path);
+
+@JS("require")
+external FiberClass _requireFiber(String path);
 
 @JS()
 class Sass {

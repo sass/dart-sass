@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:js/js.dart';
 
@@ -20,7 +22,7 @@ import 'util/path.dart';
 import 'value/number.dart';
 import 'visitor/serialize.dart';
 
-typedef _Importer(String url, String prev);
+typedef _Importer(String url, String prev, [void done(result)]);
 
 /// The entrypoint for Node.js.
 ///
@@ -46,37 +48,29 @@ void main() {
 /// [render]: https://github.com/sass/node-sass#options
 void _render(RenderOptions options,
     void callback(RenderError error, RenderResult result)) {
-  try {
-    callback(null, _doRender(options));
-  } on SassException catch (error) {
-    callback(_wrapException(error), null);
-  } catch (error) {
-    callback(newRenderError(error.toString(), status: 3), null);
+  if (options.fiber != null) {
+    options.fiber.call(allowInterop(() {
+      try {
+        callback(null, _renderSync(options));
+      } catch (error) {
+        callback(error as RenderError, null);
+      }
+    })).run();
+  } else {
+    _renderAsync(options).then((result) {
+      callback(null, result);
+    }, onError: (error, stackTrace) {
+      if (error is SassException) {
+        callback(_wrapException(error), null);
+      } else {
+        callback(newRenderError(error.toString(), status: 3), null);
+      }
+    });
   }
 }
 
-/// Converts Sass to CSS.
-///
-/// This attempts to match the [node-sass `renderSync()` API][render] as closely
-/// as possible.
-///
-/// [render]: https://github.com/sass/node-sass#options
-RenderResult _renderSync(RenderOptions options) {
-  try {
-    return _doRender(options);
-  } on SassException catch (error) {
-    jsThrow(_wrapException(error));
-  } catch (error) {
-    jsThrow(newRenderError(error.toString(), status: 3));
-  }
-  throw "unreachable";
-}
-
-/// Converts Sass to CSS.
-///
-/// Unlike [_render] and [_renderSync], this doesn't do any special handling for
-/// Dart exceptions.
-RenderResult _doRender(RenderOptions options) {
+/// Converts Sass to CSS asynchronously.
+Future<RenderResult> _renderAsync(RenderOptions options) async {
   var start = new DateTime.now();
   CompileResult result;
   if (options.data != null) {
@@ -85,7 +79,7 @@ RenderResult _doRender(RenderOptions options) {
           "options.data and options.file may not both be set.");
     }
 
-    result = compileString(options.data,
+    result = await compileStringAsync(options.data,
         nodeImporter: _parseImporter(options, start),
         indented: options.indentedSyntax ?? false,
         style: _parseOutputStyle(options.outputStyle),
@@ -94,7 +88,7 @@ RenderResult _doRender(RenderOptions options) {
         lineFeed: _parseLineFeed(options.linefeed),
         url: 'stdin');
   } else if (options.file != null) {
-    result = compile(options.file,
+    result = await compileAsync(options.file,
         nodeImporter: _parseImporter(options, start),
         indented: options.indentedSyntax,
         style: _parseOutputStyle(options.outputStyle),
@@ -112,6 +106,58 @@ RenderResult _doRender(RenderOptions options) {
       end: end.millisecondsSinceEpoch,
       duration: end.difference(start).inMilliseconds,
       includedFiles: result.includedFiles.toList());
+}
+
+/// Converts Sass to CSS.
+///
+/// This attempts to match the [node-sass `renderSync()` API][render] as closely
+/// as possible.
+///
+/// [render]: https://github.com/sass/node-sass#options
+RenderResult _renderSync(RenderOptions options) {
+  try {
+    var start = new DateTime.now();
+    CompileResult result;
+    if (options.data != null) {
+      if (options.file != null) {
+        throw new ArgumentError(
+            "options.data and options.file may not both be set.");
+      }
+
+      result = compileString(options.data,
+          nodeImporter: _parseImporter(options, start),
+          indented: options.indentedSyntax ?? false,
+          style: _parseOutputStyle(options.outputStyle),
+          useSpaces: options.indentType != 'tab',
+          indentWidth: _parseIndentWidth(options.indentWidth),
+          lineFeed: _parseLineFeed(options.linefeed),
+          url: 'stdin');
+    } else if (options.file != null) {
+      result = compile(options.file,
+          nodeImporter: _parseImporter(options, start),
+          indented: options.indentedSyntax,
+          style: _parseOutputStyle(options.outputStyle),
+          useSpaces: options.indentType != 'tab',
+          indentWidth: _parseIndentWidth(options.indentWidth),
+          lineFeed: _parseLineFeed(options.linefeed));
+    } else {
+      throw new ArgumentError(
+          "Either options.data or options.file must be set.");
+    }
+    var end = new DateTime.now();
+
+    return newRenderResult(result.css,
+        entry: options.file ?? 'data',
+        start: start.millisecondsSinceEpoch,
+        end: end.millisecondsSinceEpoch,
+        duration: end.difference(start).inMilliseconds,
+        includedFiles: result.includedFiles.toList());
+  } on SassException catch (error) {
+    jsThrow(_wrapException(error));
+  } catch (error) {
+    jsThrow(newRenderError(error.toString(), status: 3));
+  }
+  throw "unreachable";
 }
 
 /// Converts a [SassException] to a [RenderError].
@@ -168,6 +214,23 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
                 start: start.millisecondsSinceEpoch,
                 entry: options.file ?? 'data')));
     context.options.context = context;
+  }
+
+  if (options.fiber != null) {
+    importers = importers.map((importer) {
+      return allowInteropCaptureThis((thisArg, String url, String previous,
+          [_]) {
+        var fiber = options.fiber.current;
+        var result =
+            call3(importer, thisArg, url, previous, allowInterop((result) {
+          // Schedule a microtask so we don't try to resume the running fiber if
+          // [importer] calls `done()` synchronously.
+          scheduleMicrotask(() => fiber.run(result));
+        }));
+        if (isUndefined(result)) return options.fiber.yield();
+        return result;
+      }) as _Importer;
+    }).toList();
   }
 
   return new NodeImporter(context, includePaths, importers);

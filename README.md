@@ -113,7 +113,32 @@ That's it!
 When installed via NPM, Dart Sass supports a JavaScript API that aims to be
 compatible with [Node Sass](https://github.com/sass/node-sass#usage). Full
 compatibility is a work in progress, but Dart Sass currently supports the
-`render()` and `renderSync()` functions with the following options:
+`render()` and `renderSync()` functions. Note however that by default,
+**`renderSync()` is more than twice as fast as `render()`**, due to the overhead
+of asynchronous callbacks.
+
+To avoid this performance hit, `render()` can use the [`fibers`][fibers] package
+to call asynchronous importers from the synchronous code path. To enable this,
+pass the `Fiber` class to the `fiber` option:
+
+[fibers]: https://www.npmjs.com/package/fibers
+
+```js
+var sass = require("sass");
+var Fiber = require("fibers");
+
+render({
+  file: "input.scss",
+  importer: function(url, prev, done) {
+    // ...
+  },
+  fiber: Fiber
+}, function(err, result) {
+  // ...
+});
+```
+
+Both `render()` and `renderSync()` support the following options:
 
 * [`file`](https://github.com/sass/node-sass#file)
 * [`data`](https://github.com/sass/node-sass#data)
@@ -122,13 +147,9 @@ compatibility is a work in progress, but Dart Sass currently supports the
 * [`indentType`](https://github.com/sass/node-sass#indenttype)
 * [`indentWidth`](https://github.com/sass/node-sass#indentwidth)
 * [`linefeed`](https://github.com/sass/node-sass#linefeed)
+* [`importer`](https://github.com/sass/node-sass#importer--v200---experimental)
 * Only the `"expanded"` value of
   [`outputStyle`](https://github.com/sass/node-sass#outputstyle) is supported.
-* [`importer`][importer option] is supported, but only for importers that return
-  values synchronously. The `done()` callback is currently not passed to any
-  importers, even when running the asynchronous `render()` function.
-
-[importer option]: https://github.com/sass/node-sass#importer--v200---experimental
 
 The following options are not yet supported, but are intended:
 

@@ -27,7 +27,11 @@ main(List<String> args) async {
     ..addFlag('help',
         abbr: 'h', help: 'Print this usage information.', negatable: false)
     ..addFlag('version',
-        help: 'Print the version of Dart Sass.', negatable: false);
+        help: 'Print the version of Dart Sass.', negatable: false)
+
+    // This is used when testing to ensure that the asynchronous evaluator path
+    // works the same as the synchronous one.
+    ..addFlag('async', hide: true);
 
   ArgResults options;
   try {
@@ -55,13 +59,20 @@ main(List<String> args) async {
 
   var color =
       options.wasParsed('color') ? options['color'] as bool : hasTerminal;
+  var asynchronous = options['async'] as bool;
   try {
     String css;
     if (stdinFlag) {
-      css = await _compileStdin();
+      css = await _compileStdin(asynchronous: asynchronous);
     } else {
       var input = options.rest.first;
-      css = input == '-' ? await _compileStdin() : compile(input, color: color);
+      if (input == '-') {
+        css = await _compileStdin(asynchronous: asynchronous);
+      } else if (asynchronous) {
+        css = await compileAsync(input, color: color);
+      } else {
+        css = compile(input, color: color);
+      }
     }
 
     if (css.isNotEmpty) print(css);
@@ -123,9 +134,16 @@ Future<String> _loadVersion() async {
 }
 
 /// Compiles Sass from standard input and returns the result.
-Future<String> _compileStdin({bool color: false}) async =>
-    compileString(await readStdin(),
-        color: color, importer: new FilesystemImporter('.'));
+Future<String> _compileStdin(
+    {bool asynchronous: false, bool color: false}) async {
+  var text = await readStdin();
+  var importer = new FilesystemImporter('.');
+  if (asynchronous) {
+    return await compileStringAsync(text, color: color, importer: importer);
+  } else {
+    return compileString(text, color: color, importer: importer);
+  }
+}
 
 /// Print the usage information for Sass, with [message] as a header.
 void _printUsage(ArgParser parser, String message) {

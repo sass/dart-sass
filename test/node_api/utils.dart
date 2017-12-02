@@ -37,10 +37,11 @@ Matcher toStringAndMessageEqual(String text) => predicate((error) {
 /// Returns the result of rendering via [options] as a string.
 Future<String> render(RenderOptions options) {
   var completer = new Completer<String>();
-  sass.render(options, allowInterop((error, result) {
+  sass.render(options,
+      allowInterop(Zone.current.bindBinaryCallback((error, result) {
     expect(error, isNull);
     completer.complete(UTF8.decode(result.css));
-  }));
+  })));
   return completer.future;
 }
 
@@ -48,10 +49,11 @@ Future<String> render(RenderOptions options) {
 /// error.
 Future<RenderError> renderError(RenderOptions options) {
   var completer = new Completer<RenderError>();
-  sass.render(options, allowInterop((error, result) {
+  sass.render(options,
+      allowInterop(Zone.current.bindBinaryCallback((error, result) {
     expect(result, isNull);
     completer.complete(error);
-  }));
+  })));
   return completer.future;
 }
 

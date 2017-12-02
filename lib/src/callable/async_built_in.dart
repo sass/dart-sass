@@ -1,15 +1,17 @@
-// Copyright 2016 Google Inc. Use of this source code is governed by an
+// Copyright 2017 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
+
+import 'dart:async';
 
 import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
-import '../callable.dart';
 import '../value.dart';
-import 'async_built_in.dart';
+import 'async.dart';
 
-typedef Value _Callback(List<Value> arguments);
+/// An [AsyncBuiltInCallable]'s callback.
+typedef FutureOr<Value> _Callback(List<Value> arguments);
 
 /// A callable defined in Dart code.
 ///
@@ -17,7 +19,7 @@ typedef Value _Callback(List<Value> arguments);
 /// may declare multiple different callbacks with multiple different sets of
 /// arguments. When the callable is invoked, the first callback with matching
 /// arguments is invoked.
-class BuiltInCallable implements Callable, AsyncBuiltInCallable {
+class AsyncBuiltInCallable implements AsyncCallable {
   final String name;
 
   /// The overloads declared for this callable.
@@ -28,8 +30,8 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// The argument declaration is parsed from [arguments], which should not
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
-  BuiltInCallable(
-      this.name, String arguments, Value callback(List<Value> arguments)) {
+  AsyncBuiltInCallable(this.name, String arguments,
+      FutureOr<Value> callback(List<Value> arguments)) {
     _overloads
         .add(new Tuple2(new ArgumentDeclaration.parse(arguments), callback));
   }
@@ -40,7 +42,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// the overload (which should not include parentheses), and the callback to
   /// execute if that argument declaration matches. Throws a
   /// [SassFormatException] if parsing fails.
-  BuiltInCallable.overloaded(this.name, Map<String, _Callback> overloads) {
+  AsyncBuiltInCallable.overloaded(this.name, Map<String, _Callback> overloads) {
     overloads.forEach((arguments, callback) {
       _overloads
           .add(new Tuple2(new ArgumentDeclaration.parse(arguments), callback));

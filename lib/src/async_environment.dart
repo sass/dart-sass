@@ -2,10 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-// DO NOT EDIT. This file was generated from async_environment.dart.
-// See tool/synchronize.dart for details.
-//
-// Checksum: 97410abbd78c3bbc9899f3ac460cc0736218bfe3
+import 'dart:async';
 
 import 'ast/sass.dart';
 import 'callable.dart';
@@ -17,7 +14,7 @@ import 'utils.dart';
 ///
 /// This tracks lexically-scoped information, such as variables, functions, and
 /// mixins.
-class Environment {
+class AsyncEnvironment {
   /// A list of variables defined at each lexical scope level.
   ///
   /// Each scope maps the names of declared variables to their values. These
@@ -44,7 +41,7 @@ class Environment {
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
-  final List<Map<String, Callable>> _functions;
+  final List<Map<String, AsyncCallable>> _functions;
 
   /// A map of function names to their indices in [_functions].
   ///
@@ -62,7 +59,7 @@ class Environment {
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
-  final List<Map<String, Callable>> _mixins;
+  final List<Map<String, AsyncCallable>> _mixins;
 
   /// A map of mixin names to their indices in [_mixins].
   ///
@@ -78,8 +75,8 @@ class Environment {
   List<Statement> _contentBlock;
 
   /// The environment in which [_contentBlock] should be executed.
-  Environment get contentEnvironment => _contentEnvironment;
-  Environment _contentEnvironment;
+  AsyncEnvironment get contentEnvironment => _contentEnvironment;
+  AsyncEnvironment _contentEnvironment;
 
   /// Whether the environment is lexically within a mixin.
   bool get inMixin => _inMixin;
@@ -91,7 +88,7 @@ class Environment {
   /// them by default.
   var _inSemiGlobalScope = false;
 
-  Environment()
+  AsyncEnvironment()
       : _variables = [normalizedMap()],
         _variableIndices = normalizedMap(),
         _functions = [normalizedMap()],
@@ -101,7 +98,7 @@ class Environment {
     coreFunctions.forEach(setFunction);
   }
 
-  Environment._(this._variables, this._functions, this._mixins,
+  AsyncEnvironment._(this._variables, this._functions, this._mixins,
       this._contentBlock, this._contentEnvironment)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() and global() because the copying took a
@@ -116,7 +113,7 @@ class Environment {
   /// Any scope changes in this environment will not affect the closure.
   /// However, any new declarations or assignments in scopes that are visible
   /// when the closure was created will be reflected.
-  Environment closure() => new Environment._(
+  AsyncEnvironment closure() => new AsyncEnvironment._(
       _variables.toList(),
       _functions.toList(),
       _mixins.toList(),
@@ -127,7 +124,7 @@ class Environment {
   ///
   /// The returned environment shares this environment's global, but is
   /// otherwise independent.
-  Environment global() => new Environment._(
+  AsyncEnvironment global() => new AsyncEnvironment._(
       [_variables.first], [_functions.first], [_mixins.first], null, null);
 
   /// Returns the value of the variable named [name], or `null` if no such
@@ -194,7 +191,7 @@ class Environment {
 
   /// Returns the value of the function named [name], or `null` if no such
   /// function is declared.
-  Callable getFunction(String name) {
+  AsyncCallable getFunction(String name) {
     var index = _functionIndices[name];
     if (index != null) return _functions[index][name];
 
@@ -218,7 +215,7 @@ class Environment {
   bool functionExists(String name) => getFunction(name) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
-  void setFunction(Callable callable) {
+  void setFunction(AsyncCallable callable) {
     var index = _functions.length - 1;
     _functionIndices[callable.name] = index;
     _functions[index][callable.name] = callable;
@@ -226,7 +223,7 @@ class Environment {
 
   /// Returns the value of the mixin named [name], or `null` if no such mixin is
   /// declared.
-  Callable getMixin(String name) {
+  AsyncCallable getMixin(String name) {
     var index = _mixinIndices[name];
     if (index != null) return _mixins[index][name];
 
@@ -250,7 +247,7 @@ class Environment {
   bool mixinExists(String name) => getMixin(name) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
-  void setMixin(Callable callable) {
+  void setMixin(AsyncCallable callable) {
     var index = _mixins.length - 1;
     _mixinIndices[callable.name] = index;
     _mixins[index][callable.name] = callable;
@@ -258,22 +255,22 @@ class Environment {
 
   /// Sets [block] and [environment] as [contentBlock] and [contentEnvironment],
   /// respectively, for the duration of [callback].
-  void withContent(
-      List<Statement> block, Environment environment, void callback()) {
+  Future withContent(List<Statement> block, AsyncEnvironment environment,
+      Future callback()) async {
     var oldBlock = _contentBlock;
     var oldEnvironment = _contentEnvironment;
     _contentBlock = block;
     _contentEnvironment = environment;
-    callback();
+    await callback();
     _contentBlock = oldBlock;
     _contentEnvironment = oldEnvironment;
   }
 
   /// Sets [inMixin] to `true` for the duration of [callback].
-  void asMixin(void callback()) {
+  Future asMixin(void callback()) async {
     var oldInMixin = _inMixin;
     _inMixin = true;
-    callback();
+    await callback();
     _inMixin = oldInMixin;
   }
 
@@ -282,7 +279,7 @@ class Environment {
   /// Variables, functions, and mixins declared in a given scope are
   /// inaccessible outside of it. If [semiGlobal] is passed, this scope can
   /// assign to global variables without a `!global` declaration.
-  T scope<T>(T callback(), {bool semiGlobal: false}) {
+  Future<T> scope<T>(Future<T> callback(), {bool semiGlobal: false}) async {
     semiGlobal = semiGlobal && (_inSemiGlobalScope || _variables.length == 1);
 
     // TODO: avoid creating a new scope if no variables are declared.
@@ -292,7 +289,7 @@ class Environment {
     _functions.add(normalizedMap());
     _mixins.add(normalizedMap());
     try {
-      return callback();
+      return await callback();
     } finally {
       _inSemiGlobalScope = wasInSemiGlobalScope;
       for (var name in _variables.removeLast().keys) {

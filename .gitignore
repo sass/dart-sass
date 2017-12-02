@@ -8,3 +8,4 @@ packages
 .packages
 pubspec.lock
 /benchmark/source
+node_modules/

@@ -2,16 +2,22 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'callable/async.dart';
+
+export 'callable/async.dart';
+export 'callable/async_built_in.dart';
 export 'callable/built_in.dart';
 export 'callable/plain_css.dart';
 export 'callable/user_defined.dart';
 
 /// An interface for objects, such as functions and mixins, that can be invoked
 /// from Sass by passing in arguments.
-abstract class Callable {
-  /// The callable's name.
-  String get name;
-
+///
+/// This extends [AsyncCallable] because all synchronous callables are also
+/// usable in asynchronous contexts. [Callable]s are usable with both the
+/// synchronous and asynchronous `compile()` functions, and as such should be
+/// used in preference to [AsyncCallable]s if possible.
+abstract class Callable extends AsyncCallable {
   // TODO(nweiz): I'd like to include the argument declaration on this interface
   // as well, but supporting overloads for built-in callables makes that more
   // difficult. Ideally, we'd define overloads as purely an implementation
