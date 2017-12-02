@@ -249,7 +249,8 @@ void _ensureBuild() {
 ///
 /// The [client] is used to download the corresponding Dart SDK.
 Future _buildPackage(http.Client client, String os, String architecture) async {
-  // TODO: Compile a single executable that embeds the Dart VM and the snapshot.
+  // TODO: Compile a single executable that embeds the Dart VM and the snapshot
+  // when dart-lang/sdk#27596 is fixed.
   var channel = _isDevSdk ? "dev" : "stable";
   var url = "https://storage.googleapis.com/dart-archive/channels/$channel/"
       "release/$_dartVersion/sdk/dartsdk-$os-$architecture-release.zip";

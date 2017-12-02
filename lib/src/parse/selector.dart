@@ -135,7 +135,6 @@ class SelectorParser extends Parser {
       components.add(_simpleSelector(allowParent: false));
     }
 
-    // TODO: support "*E" (or talk to Chris about dropping support for hacks).
     return new CompoundSelector(components);
   }
 

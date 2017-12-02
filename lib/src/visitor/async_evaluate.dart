@@ -612,7 +612,6 @@ class _EvaluateVisitor
             .assertInt());
     var to = _addExceptionSpan(node.to.span, () => toNumber.assertInt());
 
-    // TODO: coerce units
     var direction = from > to ? -1 : 1;
     if (!node.isExclusive) to += direction;
     if (from == to) return null;
