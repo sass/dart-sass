@@ -634,16 +634,17 @@ class _EvaluateVisitor
 
   Future<Value> visitIfRule(IfRule node) async {
     var clause = node.lastClause;
-    for (var pair in node.clauses) {
-      if ((await pair.item1.accept(this)).isTruthy) {
-        clause = pair.item2;
+    for (var clauseToCheck in node.clauses) {
+      if ((await clauseToCheck.expression.accept(this)).isTruthy) {
+        clause = clauseToCheck;
         break;
       }
     }
     if (clause == null) return null;
 
     return await _environment.scope(
-        () => _handleReturn<Statement>(clause, (child) => child.accept(this)),
+        () => _handleReturn<Statement>(
+            clause.children, (child) => child.accept(this)),
         semiGlobal: true);
   }
 
