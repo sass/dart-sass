@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 33e96540f3e5999ed172d168221b27910e8672b1
+// Checksum: cdeeec2634c97638aef571043c0be1e99f22d7d5
 
 import 'dart:math' as math;
 
@@ -328,7 +328,7 @@ class _EvaluateVisitor
         for (var child in node.children) {
           child.accept(this);
         }
-      });
+      }, when: node.hasDeclarations);
       return null;
     }
 
@@ -342,7 +342,7 @@ class _EvaluateVisitor
     }
 
     if (outerCopy != null) root.addChild(outerCopy);
-    _scopeForAtRoot(innerCopy ?? root, query, included)(() {
+    _scopeForAtRoot(node, innerCopy ?? root, query, included)(() {
       for (var child in node.children) {
         child.accept(this);
       }
@@ -387,14 +387,14 @@ class _EvaluateVisitor
   /// This returns a callback that adjusts various instance variables for its
   /// duration, based on which rules are excluded by [query]. It always assigns
   /// [_parent] to [newParent].
-  _ScopeCallback _scopeForAtRoot(CssParentNode newParent, AtRootQuery query,
-      List<CssParentNode> included) {
+  _ScopeCallback _scopeForAtRoot(AtRootRule node, CssParentNode newParent,
+      AtRootQuery query, List<CssParentNode> included) {
     var scope = (void callback()) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
       var oldParent = _parent;
       _parent = newParent;
-      _environment.scope(callback);
+      _environment.scope(callback, when: node.hasDeclarations);
       _parent = oldParent;
     };
 
@@ -487,7 +487,7 @@ class _EvaluateVisitor
         for (var child in node.children) {
           child.accept(this);
         }
-      });
+      }, when: node.hasDeclarations);
       _declarationName = oldDeclarationName;
     }
 
@@ -583,9 +583,11 @@ class _EvaluateVisitor
           for (var child in node.children) {
             child.accept(this);
           }
-        });
+        }, scopeWhen: false);
       }
-    }, through: (node) => node is CssStyleRule);
+    },
+        through: (node) => node is CssStyleRule,
+        scopeWhen: node.hasDeclarations);
 
     _inUnknownAtRule = wasInUnknownAtRule;
     _inKeyframes = wasInKeyframes;
@@ -640,7 +642,8 @@ class _EvaluateVisitor
     return _environment.scope(
         () => _handleReturn<Statement>(
             clause.children, (child) => child.accept(this)),
-        semiGlobal: true);
+        semiGlobal: true,
+        when: clause.hasDeclarations);
   }
 
   Value visitImportRule(ImportRule node) {
@@ -872,10 +875,12 @@ class _EvaluateVisitor
             for (var child in node.children) {
               child.accept(this);
             }
-          });
+          }, scopeWhen: false);
         }
       });
-    }, through: (node) => node is CssStyleRule || node is CssMediaRule);
+    },
+        through: (node) => node is CssStyleRule || node is CssMediaRule,
+        scopeWhen: node.hasDeclarations);
 
     return null;
   }
@@ -922,7 +927,9 @@ class _EvaluateVisitor
         for (var child in node.children) {
           child.accept(this);
         }
-      }, through: (node) => node is CssStyleRule);
+      },
+          through: (node) => node is CssStyleRule,
+          scopeWhen: node.hasDeclarations);
       return null;
     }
 
@@ -946,7 +953,9 @@ class _EvaluateVisitor
           child.accept(this);
         }
       });
-    }, through: (node) => node is CssStyleRule);
+    },
+        through: (node) => node is CssStyleRule,
+        scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
     if (!_inStyleRule) {
@@ -983,7 +992,9 @@ class _EvaluateVisitor
           }
         });
       }
-    }, through: (node) => node is CssStyleRule);
+    },
+        through: (node) => node is CssStyleRule,
+        scopeWhen: node.hasDeclarations);
 
     return null;
   }
@@ -1058,7 +1069,7 @@ class _EvaluateVisitor
         if (result != null) return result;
       }
       return null;
-    }, semiGlobal: true);
+    }, semiGlobal: true, when: node.hasDeclarations);
   }
 
   // ## Expressions
@@ -1231,9 +1242,6 @@ class _EvaluateVisitor
           _verifyArguments(
               positional.length, named, callable.declaration.arguments, span);
 
-          // TODO: if we get here and there are no rest params involved, mark
-          // the callable as fast-path and don't do error checking or extra
-          // allocations for future calls.
           var declaredArguments = callable.declaration.arguments.arguments;
           var minLength = math.min(positional.length, declaredArguments.length);
           for (var i = 0; i < minLength; i++) {
@@ -1604,8 +1612,10 @@ class _EvaluateVisitor
   /// If [through] is passed, [node] is added as a child of the first parent for
   /// which [through] returns `false`. That parent is copied unless it's the
   /// lattermost child of its parent.
+  ///
+  /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   T _withParent<S extends CssParentNode, T>(S node, T callback(),
-      {bool through(CssNode node)}) {
+      {bool through(CssNode node), bool scopeWhen: true}) {
     var oldParent = _parent;
 
     // Go up through parents that match [through].
@@ -1627,7 +1637,7 @@ class _EvaluateVisitor
 
     parent.addChild(node);
     _parent = node;
-    var result = _environment.scope(callback);
+    var result = _environment.scope(callback, when: scopeWhen);
     _parent = oldParent;
 
     return result;

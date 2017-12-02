@@ -7,6 +7,9 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
+import 'function_rule.dart';
+import 'mixin_rule.dart';
+import 'variable_declaration.dart';
 
 /// An `@if` rule.
 ///
@@ -53,12 +56,20 @@ class IfClause {
   /// The statements to evaluate if this clause matches.
   final List<Statement> children;
 
-  IfClause(this.expression, Iterable<Statement> children)
-      : children = new List.unmodifiable(children);
+  /// Whether any of [children] is a variable, function, or mixin declaration.
+  final bool hasDeclarations;
+
+  IfClause(Expression expression, Iterable<Statement> children)
+      : this._(expression, new List.unmodifiable(children));
 
   IfClause.last(Iterable<Statement> children)
-      : expression = null,
-        children = new List.unmodifiable(children);
+      : this._(null, new List.unmodifiable(children));
+
+  IfClause._(this.expression, this.children)
+      : hasDeclarations = children.any((child) =>
+            child is VariableDeclaration ||
+            child is FunctionRule ||
+            child is MixinRule);
 
   String toString() =>
       (expression == null ? "@else" : "@if $expression") +

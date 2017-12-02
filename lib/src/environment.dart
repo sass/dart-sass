@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 97410abbd78c3bbc9899f3ac460cc0736218bfe3
+// Checksum: 4669f41a70664bd5f391c6b8627264a5d0ad8f6c
 
 import 'ast/sass.dart';
 import 'callable.dart';
@@ -85,11 +85,11 @@ class Environment {
   bool get inMixin => _inMixin;
   var _inMixin = false;
 
-  /// Whether the environment is currently in a semi-global scope.
+  /// Whether the environment is currently in a global or semi-global scope.
   ///
   /// A semi-global scope can assign to global variables, but it doesn't declare
   /// them by default.
-  var _inSemiGlobalScope = false;
+  var _inSemiGlobalScope = true;
 
   Environment()
       : _variables = [normalizedMap()],
@@ -282,10 +282,31 @@ class Environment {
   /// Variables, functions, and mixins declared in a given scope are
   /// inaccessible outside of it. If [semiGlobal] is passed, this scope can
   /// assign to global variables without a `!global` declaration.
-  T scope<T>(T callback(), {bool semiGlobal: false}) {
-    semiGlobal = semiGlobal && (_inSemiGlobalScope || _variables.length == 1);
+  ///
+  /// If [when] is false, this doesn't create a new scope and instead just
+  /// executes [callback] and returns its result.
+  T scope<T>(T callback(), {bool semiGlobal: false, bool when: true}) {
+    if (!when) {
+      // We still have to track semi-globalness so that
+      //
+      //     div {
+      //       @if ... {
+      //         $x: y;
+      //       }
+      //     }
+      //
+      // doesn't assign to the global scope.
+      var wasInSemiGlobalScope = _inSemiGlobalScope;
+      _inSemiGlobalScope = semiGlobal;
+      try {
+        return callback();
+      } finally {
+        _inSemiGlobalScope = wasInSemiGlobalScope;
+      }
+    }
 
-    // TODO: avoid creating a new scope if no variables are declared.
+    semiGlobal = semiGlobal && _inSemiGlobalScope;
+
     var wasInSemiGlobalScope = _inSemiGlobalScope;
     _inSemiGlobalScope = semiGlobal;
     _variables.add(normalizedMap());
