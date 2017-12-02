@@ -8,24 +8,21 @@ import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../interpolation.dart';
 import '../statement.dart';
+import 'parent.dart';
 
 /// A declaration (that is, a `name: value` pair).
-class Declaration implements Statement {
+class Declaration extends ParentStatement {
   /// The name of this declaration.
   final Interpolation name;
 
   /// The value of this declaration.
   final Expression value;
 
-  /// The children of this declaration.
-  ///
-  /// This is `null` if the declaration has no children.
-  final List<Statement> children;
-
   final FileSpan span;
 
   Declaration(this.name, this.span, {this.value, Iterable<Statement> children})
-      : children = children == null ? null : new List.unmodifiable(children);
+      : super(children =
+            children == null ? null : new List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
 

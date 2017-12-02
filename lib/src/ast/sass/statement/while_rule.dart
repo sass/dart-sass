@@ -7,22 +7,20 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
+import 'parent.dart';
 
 /// A `@while` rule.
 ///
 /// This repeatedly executes a block of code as long as a statement evaluates to
 /// `true`.
-class WhileRule implements Statement {
+class WhileRule extends ParentStatement {
   /// The condition that determines whether the block will be executed.
   final Expression condition;
-
-  /// The code to execute repeatedly.
-  final List<Statement> children;
 
   final FileSpan span;
 
   WhileRule(this.condition, Iterable<Statement> children, this.span)
-      : children = new List.unmodifiable(children);
+      : super(new List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitWhileRule(this);
 

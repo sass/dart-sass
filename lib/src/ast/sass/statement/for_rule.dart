@@ -7,11 +7,12 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
+import 'parent.dart';
 
 /// A `@for` rule.
 ///
 /// This iterates a set number of times.
-class ForRule implements Statement {
+class ForRule extends ParentStatement {
   /// The name of the variable that will contain the index value.
   final String variable;
 
@@ -24,16 +25,13 @@ class ForRule implements Statement {
   /// Whether [to] is exclusive.
   final bool isExclusive;
 
-  /// The child statements executed for each iteration.
-  final List<Statement> children;
-
   final FileSpan span;
 
   ForRule(this.variable, this.from, this.to, Iterable<Statement> children,
       this.span,
       {bool exclusive: true})
-      : children = new List.unmodifiable(children),
-        isExclusive = exclusive;
+      : isExclusive = exclusive,
+        super(new List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);
 
