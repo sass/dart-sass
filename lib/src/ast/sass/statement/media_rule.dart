@@ -7,21 +7,19 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
 import '../statement.dart';
+import 'parent.dart';
 
 /// A `@media` rule.
-class MediaRule implements Statement {
+class MediaRule extends ParentStatement {
   /// The query that determines on which platforms the styles will be in effect.
   ///
   /// This is only parsed after the interpolation has been resolved.
   final Interpolation query;
 
-  /// The contents of this rule.
-  final List<Statement> children;
-
   final FileSpan span;
 
   MediaRule(this.query, Iterable<Statement> children, this.span)
-      : children = new List.unmodifiable(children);
+      : super(new List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMediaRule(this);
 

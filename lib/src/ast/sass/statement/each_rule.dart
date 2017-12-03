@@ -7,26 +7,24 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
+import 'parent.dart';
 
 /// An `@each` rule.
 ///
 /// This iterates over values in a list or map.
-class EachRule implements Statement {
+class EachRule extends ParentStatement {
   /// The variables assigned for each iteration.
   final List<String> variables;
 
   /// The expression whose value this iterates through.
   final Expression list;
 
-  /// The child statements executed for each iteration.
-  final List<Statement> children;
-
   final FileSpan span;
 
   EachRule(Iterable<String> variables, this.list, Iterable<Statement> children,
       this.span)
       : variables = new List.unmodifiable(variables),
-        children = new List.unmodifiable(children);
+        super(new List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);
 

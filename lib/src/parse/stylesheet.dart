@@ -671,16 +671,16 @@ abstract class StylesheetParser extends Parser {
     var expression = _expression();
     var children = this.children(child);
 
-    var clauses = [new Tuple2(expression, children)];
-    List<Statement> lastClause;
+    var clauses = [new IfClause(expression, children)];
+    IfClause lastClause;
 
     while (scanElse(ifIndentation)) {
       whitespace();
       if (scanIdentifier("if")) {
         whitespace();
-        clauses.add(new Tuple2(_expression(), this.children(child)));
+        clauses.add(new IfClause(_expression(), this.children(child)));
       } else {
-        lastClause = this.children(child);
+        lastClause = new IfClause.last(this.children(child));
         break;
       }
     }

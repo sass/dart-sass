@@ -8,9 +8,10 @@ import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
 import '../statement.dart';
+import 'parent.dart';
 
 /// An unknown at-rule.
-class AtRule implements Statement {
+class AtRule extends ParentStatement {
   /// The name of this rule.
   final String name;
 
@@ -20,18 +21,12 @@ class AtRule implements Statement {
   /// The value of this rule.
   final Interpolation value;
 
-  /// The children of this rule.
-  ///
-  /// If [children] is empty, [this] was declared with empty brackets. If
-  /// [children] is null, it was declared without brackets.
-  final List<Statement> children;
-
   final FileSpan span;
 
   AtRule(String name, this.span, {this.value, Iterable<Statement> children})
       : name = name,
         normalizedName = unvendor(name),
-        children = children == null ? null : new List.unmodifiable(children);
+        super(children == null ? null : new List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);
 

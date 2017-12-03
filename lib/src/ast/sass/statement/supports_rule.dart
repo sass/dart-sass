@@ -7,19 +7,17 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../statement.dart';
 import '../supports_condition.dart';
+import 'parent.dart';
 
 /// A `@supports` rule.
-class SupportsRule implements Statement {
+class SupportsRule extends ParentStatement {
   /// The condition that selects what browsers this rule targets.
   final SupportsCondition condition;
-
-  /// The contents of this rule.
-  final List<Statement> children;
 
   final FileSpan span;
 
   SupportsRule(this.condition, Iterable<Statement> children, this.span)
-      : children = new List.from(children);
+      : super(new List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this);
 

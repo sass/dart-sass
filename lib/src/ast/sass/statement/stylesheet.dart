@@ -8,18 +8,16 @@ import '../../../visitor/interface/statement.dart';
 import '../../../parse/sass.dart';
 import '../../../parse/scss.dart';
 import '../statement.dart';
+import 'parent.dart';
 
 /// A Sass stylesheet.
 ///
 /// This is the root Sass node. It contains top-level statements.
-class Stylesheet implements Statement {
-  /// The top-level statements of this Sass stylesheet.
-  final List<Statement> children;
-
+class Stylesheet extends ParentStatement {
   final FileSpan span;
 
   Stylesheet(Iterable<Statement> children, this.span)
-      : children = new List.unmodifiable(children);
+      : super(new List.unmodifiable(children));
 
   /// Parses an indented-syntax stylesheet from [contents].
   ///

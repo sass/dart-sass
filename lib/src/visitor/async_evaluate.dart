@@ -327,7 +327,7 @@ class _EvaluateVisitor
         for (var child in node.children) {
           await child.accept(this);
         }
-      });
+      }, when: node.hasDeclarations);
       return null;
     }
 
@@ -341,7 +341,7 @@ class _EvaluateVisitor
     }
 
     if (outerCopy != null) root.addChild(outerCopy);
-    await _scopeForAtRoot(innerCopy ?? root, query, included)(() async {
+    await _scopeForAtRoot(node, innerCopy ?? root, query, included)(() async {
       for (var child in node.children) {
         await child.accept(this);
       }
@@ -386,14 +386,14 @@ class _EvaluateVisitor
   /// This returns a callback that adjusts various instance variables for its
   /// duration, based on which rules are excluded by [query]. It always assigns
   /// [_parent] to [newParent].
-  _ScopeCallback _scopeForAtRoot(CssParentNode newParent, AtRootQuery query,
-      List<CssParentNode> included) {
+  _ScopeCallback _scopeForAtRoot(AtRootRule node, CssParentNode newParent,
+      AtRootQuery query, List<CssParentNode> included) {
     var scope = (Future callback()) async {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
       var oldParent = _parent;
       _parent = newParent;
-      await _environment.scope(callback);
+      await _environment.scope(callback, when: node.hasDeclarations);
       _parent = oldParent;
     };
 
@@ -488,7 +488,7 @@ class _EvaluateVisitor
         for (var child in node.children) {
           await child.accept(this);
         }
-      });
+      }, when: node.hasDeclarations);
       _declarationName = oldDeclarationName;
     }
 
@@ -588,9 +588,11 @@ class _EvaluateVisitor
           for (var child in node.children) {
             await child.accept(this);
           }
-        });
+        }, scopeWhen: false);
       }
-    }, through: (node) => node is CssStyleRule);
+    },
+        through: (node) => node is CssStyleRule,
+        scopeWhen: node.hasDeclarations);
 
     _inUnknownAtRule = wasInUnknownAtRule;
     _inKeyframes = wasInKeyframes;
@@ -634,17 +636,19 @@ class _EvaluateVisitor
 
   Future<Value> visitIfRule(IfRule node) async {
     var clause = node.lastClause;
-    for (var pair in node.clauses) {
-      if ((await pair.item1.accept(this)).isTruthy) {
-        clause = pair.item2;
+    for (var clauseToCheck in node.clauses) {
+      if ((await clauseToCheck.expression.accept(this)).isTruthy) {
+        clause = clauseToCheck;
         break;
       }
     }
     if (clause == null) return null;
 
     return await _environment.scope(
-        () => _handleReturn<Statement>(clause, (child) => child.accept(this)),
-        semiGlobal: true);
+        () => _handleReturn<Statement>(
+            clause.children, (child) => child.accept(this)),
+        semiGlobal: true,
+        when: clause.hasDeclarations);
   }
 
   Future<Value> visitImportRule(ImportRule node) async {
@@ -877,10 +881,12 @@ class _EvaluateVisitor
             for (var child in node.children) {
               await child.accept(this);
             }
-          });
+          }, scopeWhen: false);
         }
       });
-    }, through: (node) => node is CssStyleRule || node is CssMediaRule);
+    },
+        through: (node) => node is CssStyleRule || node is CssMediaRule,
+        scopeWhen: node.hasDeclarations);
 
     return null;
   }
@@ -930,7 +936,9 @@ class _EvaluateVisitor
         for (var child in node.children) {
           await child.accept(this);
         }
-      }, through: (node) => node is CssStyleRule);
+      },
+          through: (node) => node is CssStyleRule,
+          scopeWhen: node.hasDeclarations);
       return null;
     }
 
@@ -954,7 +962,9 @@ class _EvaluateVisitor
           await child.accept(this);
         }
       });
-    }, through: (node) => node is CssStyleRule);
+    },
+        through: (node) => node is CssStyleRule,
+        scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
     if (!_inStyleRule) {
@@ -991,7 +1001,9 @@ class _EvaluateVisitor
           }
         });
       }
-    }, through: (node) => node is CssStyleRule);
+    },
+        through: (node) => node is CssStyleRule,
+        scopeWhen: node.hasDeclarations);
 
     return null;
   }
@@ -1067,7 +1079,7 @@ class _EvaluateVisitor
         if (result != null) return result;
       }
       return null;
-    }, semiGlobal: true);
+    }, semiGlobal: true, when: node.hasDeclarations);
   }
 
   // ## Expressions
@@ -1249,9 +1261,6 @@ class _EvaluateVisitor
           _verifyArguments(
               positional.length, named, callable.declaration.arguments, span);
 
-          // TODO: if we get here and there are no rest params involved, mark
-          // the callable as fast-path and don't do error checking or extra
-          // allocations for future calls.
           var declaredArguments = callable.declaration.arguments.arguments;
           var minLength = math.min(positional.length, declaredArguments.length);
           for (var i = 0; i < minLength; i++) {
@@ -1632,9 +1641,11 @@ class _EvaluateVisitor
   /// If [through] is passed, [node] is added as a child of the first parent for
   /// which [through] returns `false`. That parent is copied unless it's the
   /// lattermost child of its parent.
+  ///
+  /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   Future<T> _withParent<S extends CssParentNode, T>(
       S node, Future<T> callback(),
-      {bool through(CssNode node)}) async {
+      {bool through(CssNode node), bool scopeWhen: true}) async {
     var oldParent = _parent;
 
     // Go up through parents that match [through].
@@ -1656,7 +1667,7 @@ class _EvaluateVisitor
 
     parent.addChild(node);
     _parent = node;
-    var result = await _environment.scope(callback);
+    var result = await _environment.scope(callback, when: scopeWhen);
     _parent = oldParent;
 
     return result;
