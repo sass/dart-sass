@@ -26,21 +26,16 @@ String readFile(String path) {
 
   try {
     return UTF8.decode(bytes);
-  } on FormatException {
+  } on FormatException catch (error) {
+    var decodedUntilError =
+        UTF8.decode(bytes.sublist(0, error.offset), allowMalformed: true);
+    var stringOffset = decodedUntilError.length;
+    if (decodedUntilError.endsWith("�")) stringOffset--;
+
     var decoded = UTF8.decode(bytes, allowMalformed: true);
     var sourceFile = new SourceFile.fromString(decoded, url: p.toUri(path));
-
-    // TODO(nweiz): Use [FormatException.offset] instead when
-    // dart-lang/sdk#28293 is fixed.
-    for (var i = 0; i < bytes.length; i++) {
-      if (decoded.codeUnitAt(i) != 0xFFFD) continue;
-      throw new SassException(
-          "Invalid UTF-8.", sourceFile.location(i).pointSpan());
-    }
-
-    // This should be unreachable, but we'll rethrow the original exception just
-    // in case.
-    rethrow;
+    throw new SassException(
+        "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan());
   }
 }
 

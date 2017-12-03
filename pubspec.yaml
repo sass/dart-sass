@@ -8,7 +8,7 @@ executables:
   dart-sass: sass
 
 environment:
-  sdk: '>=1.21.0 <2.0.0'
+  sdk: '>=1.22.0 <2.0.0'
 
 dependencies:
   args: "^0.13.0"

@@ -217,8 +217,6 @@ List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
       list1.length, (_) => new List<T>(list2.length),
       growable: false);
 
-  // TODO(nweiz): Calling [select] here may be expensive. Can we use a memoizing
-  // approach to avoid calling it O(n*m) times in most cases?
   for (var i = 0; i < list1.length; i++) {
     for (var j = 0; j < list2.length; j++) {
       var selection = select(list1[i], list2[j]);

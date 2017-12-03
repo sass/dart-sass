@@ -17,11 +17,4 @@ export 'callable/user_defined.dart';
 /// usable in asynchronous contexts. [Callable]s are usable with both the
 /// synchronous and asynchronous `compile()` functions, and as such should be
 /// used in preference to [AsyncCallable]s if possible.
-abstract class Callable extends AsyncCallable {
-  // TODO(nweiz): I'd like to include the argument declaration on this interface
-  // as well, but supporting overloads for built-in callables makes that more
-  // difficult. Ideally, we'd define overloads as purely an implementation
-  // detail of functions, using a helper method. But that would need to
-  // duplicate a lot of the logic in _PerformVisitor, and I can't find an elegant
-  // way to do that.
-}
+abstract class Callable extends AsyncCallable {}

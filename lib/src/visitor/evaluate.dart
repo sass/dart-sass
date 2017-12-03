@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: cdeeec2634c97638aef571043c0be1e99f22d7d5
+// Checksum: d443af264c677b3e99b5b32511898d92b9b41291
 
 import 'dart:math' as math;
 
@@ -607,7 +607,6 @@ class _EvaluateVisitor
             .assertInt());
     var to = _addExceptionSpan(node.to.span, () => toNumber.assertInt());
 
-    // TODO: coerce units
     var direction = from > to ? -1 : 1;
     if (!node.isExclusive) to += direction;
     if (from == to) return null;

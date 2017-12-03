@@ -2008,7 +2008,6 @@ abstract class StylesheetParser extends Parser {
 
         var color = colorsByName[lower];
         if (color != null) {
-          // TODO(nweiz): Avoid copying the color in compressed mode.
           color = new SassColor.rgb(
               color.red, color.green, color.blue, color.alpha);
           setOriginalSpan(color, identifier.span);

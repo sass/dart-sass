@@ -225,8 +225,6 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   new BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
     if (arguments[0] is SassNumber) {
-      // TODO: find some way of ensuring this is stringified using the right
-      // options. We may need to resort to zones.
       return _functionString("invert", arguments.take(1));
     }
 

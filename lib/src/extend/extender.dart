@@ -28,8 +28,6 @@ class Extender {
   /// extensions.
   final _extensions = <SimpleSelector, Map<ComplexSelector, Extension>>{};
 
-  // TODO: Create a custom PairList class that's more efficient.
-
   /// A map from all simple selectors in extenders to the extensions that those
   /// extenders define.
   final _extensionsByExtender = <SimpleSelector, List<Extension>>{};
