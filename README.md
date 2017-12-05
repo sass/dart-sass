@@ -127,7 +127,7 @@ pass the `Fiber` class to the `fiber` option:
 var sass = require("sass");
 var Fiber = require("fibers");
 
-render({
+sass.render({
   file: "input.scss",
   importer: function(url, prev, done) {
     // ...
