@@ -34,6 +34,9 @@ bool get isWindows => false;
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => false;
 
+/// Whether we're running as Node.JS.
+bool get isNode => false;
+
 /// The current working directory.
 String get currentPath => null;
 

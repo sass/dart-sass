@@ -153,6 +153,8 @@ bool get hasTerminal => _hasTerminal ?? false;
 
 bool get isWindows => _process.platform == 'win32';
 
+bool get isNode => true;
+
 String get currentPath => _process.cwd();
 
 @JS("process.stdout.isTTY")

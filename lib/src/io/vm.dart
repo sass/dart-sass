@@ -19,6 +19,8 @@ bool get isWindows => io.Platform.isWindows;
 
 bool get hasTerminal => io.stdout.hasTerminal;
 
+bool get isNode => false;
+
 String get currentPath => io.Directory.current.path;
 
 String readFile(String path) {
