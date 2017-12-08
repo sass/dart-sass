@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -24,6 +25,7 @@ abstract class Parser {
   // ## Tokens
 
   /// Consumes whitespace, including any comments.
+  @protected
   void whitespace() {
     do {
       whitespaceWithoutComments();
@@ -31,6 +33,7 @@ abstract class Parser {
   }
 
   /// Like [whitespace], but returns whether any was consumed.
+  @protected
   bool scanWhitespace() {
     var start = scanner.position;
     whitespace();
@@ -38,6 +41,7 @@ abstract class Parser {
   }
 
   /// Consumes whitespace, but not comments.
+  @protected
   void whitespaceWithoutComments() {
     while (!scanner.isDone && isWhitespace(scanner.peekChar())) {
       scanner.readChar();
@@ -47,6 +51,7 @@ abstract class Parser {
   /// Consumes and ignores a comment if possible.
   ///
   /// Returns whether the comment was consumed.
+  @protected
   bool scanComment() {
     if (scanner.peekChar() != $slash) return false;
 
@@ -63,6 +68,7 @@ abstract class Parser {
   }
 
   /// Consumes and ignores a silent (Sass-style) comment.
+  @protected
   void silentComment() {
     scanner.expect("//");
     while (!scanner.isDone && !isNewline(scanner.peekChar())) {
@@ -71,6 +77,7 @@ abstract class Parser {
   }
 
   /// Consumes and ignores a loud (CSS-style) comment.
+  @protected
   void loudComment() {
     scanner.expect("/*");
     while (true) {
@@ -89,6 +96,7 @@ abstract class Parser {
   /// If [unit] is `true`, this doesn't parse a `-` followed by a digit. This
   /// ensures that `1px-2px` parses as subtraction rather than the unit
   /// `px-2px`.
+  @protected
   String identifier({bool unit: false}) {
     // NOTE: this logic is largely duplicated in ScssParser.identifier.
     // Most changes here should be mirrored there.
@@ -114,6 +122,7 @@ abstract class Parser {
   }
 
   /// Consumes a chunk of a plain CSS identifier after the name start.
+  @protected
   String identifierBody() {
     var text = new StringBuffer();
     _identifierBody(text);
@@ -146,6 +155,7 @@ abstract class Parser {
   ///
   /// This returns the parsed contents of the string—that is, it doesn't include
   /// quotes and its escapes are resolved.
+  @protected
   String string() {
     // NOTE: this logic is largely duplicated in ScssParser._interpolatedString.
     // Most changes here should be mirrored there.
@@ -181,6 +191,7 @@ abstract class Parser {
 
   /// Consumes tokens until it reaches a top-level `":"`, `"!"`, `")"`, `"]"`,
   /// or `"}"` and returns their contents as a string.
+  @protected
   String declarationValue() {
     // NOTE: this logic is largely duplicated in
     // StylesheetParser._interpolatedDeclarationValue. Most changes here should
@@ -281,6 +292,7 @@ abstract class Parser {
   }
 
   /// Consumes a `url()` token if possible, and returns `null` otherwise.
+  @protected
   String tryUrl() {
     // NOTE: this logic is largely duplicated in ScssParser._urlContents and
     // ScssParser._tryUrlContents. Most changes here should be mirrored there.
@@ -327,6 +339,7 @@ abstract class Parser {
 
   /// Consumes a Sass variable name, and returns its name without the dollar
   /// sign.
+  @protected
   String variableName() {
     scanner.expectChar($dollar);
     return identifier();
@@ -335,6 +348,7 @@ abstract class Parser {
   // ## Characters
 
   /// Consumes an escape sequence and returns the text that defines it.
+  @protected
   String escape() {
     // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
@@ -365,6 +379,7 @@ abstract class Parser {
   }
 
   /// Consumes an escape sequence and returns the character it represents.
+  @protected
   int escapeCharacter() {
     // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
@@ -399,6 +414,7 @@ abstract class Parser {
   // Consumes the next character if it matches [condition].
   //
   // Returns whether or not the character was consumed.
+  @protected
   bool scanCharIf(bool condition(int character)) {
     var next = scanner.peekChar();
     if (!condition(next)) return false;
@@ -408,6 +424,7 @@ abstract class Parser {
 
   /// Consumes the next character if it's equal to [letter], ignoring ASCII
   /// case.
+  @protected
   bool scanCharIgnoreCase(int letter) {
     if (!equalsLetterIgnoreCase(letter, scanner.peekChar())) return false;
     scanner.readChar();
@@ -416,6 +433,7 @@ abstract class Parser {
 
   /// Consumes the next character and asserts that it's equal to [letter],
   /// ignoring ASCII case.
+  @protected
   void expectCharIgnoreCase(int letter) {
     var actual = scanner.readChar();
     if (equalsLetterIgnoreCase(letter, actual)) return;
@@ -431,6 +449,7 @@ abstract class Parser {
   /// This follows [the CSS algorithm][].
   ///
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#starts-with-a-number
+  @protected
   bool lookingAtNumber() {
     var first = scanner.peekChar();
     if (first == null) return false;
@@ -460,6 +479,7 @@ abstract class Parser {
   /// start escapes.
   ///
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
+  @protected
   bool lookingAtIdentifier([int forward]) {
     // See also [ScssParser._lookingAtInterpolatedIdentifier].
 
@@ -480,6 +500,7 @@ abstract class Parser {
 
   /// Returns whether the scanner is immediately before a sequence of characters
   /// that could be part of a plain CSS identifier body.
+  @protected
   bool lookingAtIdentifierBody() {
     var next = scanner.peekChar();
     return next != null && (isName(next) || next == $backslash);
@@ -488,6 +509,7 @@ abstract class Parser {
   /// Consumes an identifier if its name exactly matches [text].
   ///
   /// If [ignoreCase] is `true`, does a case-insensitive match.
+  @protected
   bool scanIdentifier(String text, {bool ignoreCase: false}) {
     if (!lookingAtIdentifier()) return false;
 
@@ -507,6 +529,7 @@ abstract class Parser {
   /// Consumes an identifier and asserts that its name exactly matches [text].
   ///
   /// If [ignoreCase] is `true`, does a case-insensitive match.
+  @protected
   void expectIdentifier(String text, {String name, bool ignoreCase: false}) {
     name ??= '"$text"';
 
@@ -522,6 +545,7 @@ abstract class Parser {
   }
 
   /// Runs [consumer] and returns the source text that it consumes.
+  @protected
   String rawText(void consumer()) {
     var start = scanner.position;
     consumer();
@@ -532,6 +556,7 @@ abstract class Parser {
   ///
   /// If [message] is passed, prints that as well. This is intended for use when
   /// debugging parser failures.
+  @protected
   void debug([message]) {
     if (message == null) {
       print(scanner.emptySpan.highlight(color: true));
@@ -542,6 +567,7 @@ abstract class Parser {
 
   /// Runs [callback] and wraps any [SourceSpanFormatException] it throws in a
   /// [SassFormatException].
+  @protected
   T wrapSpanFormatException<T>(T callback()) {
     try {
       return callback();
