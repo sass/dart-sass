@@ -59,6 +59,40 @@ class SassParser extends StylesheetParser {
   bool lookingAtChildren() =>
       atEndOfStatement() && _peekIndentation() > currentIndentation;
 
+  Import importArgument() {
+    switch (scanner.peekChar()) {
+      case $u:
+      case $U:
+        var start = scanner.state;
+        if (scanIdentifier("url", ignoreCase: true)) {
+          if (scanner.scanChar($lparen)) {
+            scanner.state = start;
+            return super.importArgument();
+          } else {
+            scanner.state = start;
+          }
+        }
+        break;
+
+      case $single_quote:
+      case $double_quote:
+        return super.importArgument();
+    }
+
+    var start = scanner.state;
+    var next = scanner.peekChar();
+    while (next != null &&
+        next != $comma &&
+        next != $semicolon &&
+        !isNewline(next)) {
+      scanner.readChar();
+      next = scanner.peekChar();
+    }
+
+    return new DynamicImport(parseImportUrl(scanner.substring(start.position)),
+        scanner.spanFrom(start));
+  }
+
   bool scanElse(int ifIndentation) {
     if (_peekIndentation() != ifIndentation) return false;
     var start = scanner.state;

@@ -1,5 +1,7 @@
 ## 1.0.0-beta.4
 
+* Support unquoted imports in the indented syntax.
+
 * Fix a crash when `:not(...)` extends a selector that appears in
   `:not(:not(...))`.
 

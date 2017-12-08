@@ -698,7 +698,12 @@ abstract class StylesheetParser extends Parser {
     var imports = <Import>[];
     do {
       whitespace();
-      imports.add(_importArgument(start));
+      var argument = importArgument();
+      if ((_inControlDirective || _inMixin) && argument is DynamicImport) {
+        _disallowedAtRule(start);
+      }
+
+      imports.add(argument);
       whitespace();
     } while (scanner.scanChar($comma));
     expectStatementSeparator("@import rule");
@@ -709,7 +714,8 @@ abstract class StylesheetParser extends Parser {
   /// Consumes an argument to an `@import` rule.
   ///
   /// [ruleStart] should point before the `@`.
-  Import _importArgument(LineScannerState ruleStart) {
+  @protected
+  Import importArgument() {
     var start = scanner.state;
     var next = scanner.peekChar();
     if (next == $u || next == $U) {
@@ -729,12 +735,9 @@ abstract class StylesheetParser extends Parser {
       return new StaticImport(
           new Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
           supports: queries?.item1, media: queries?.item2);
-    } else if (_inControlDirective || _inMixin) {
-      _disallowedAtRule(ruleStart);
-      return null;
     } else {
       try {
-        return new DynamicImport(_parseImportUrl(url), urlSpan);
+        return new DynamicImport(parseImportUrl(url), urlSpan);
       } on FormatException catch (error) {
         throw new SassFormatException("Invalid URL: ${error.message}", urlSpan);
       }
@@ -742,7 +745,8 @@ abstract class StylesheetParser extends Parser {
   }
 
   /// Parses [url] as an import URL.
-  Uri _parseImportUrl(String url) {
+  @protected
+  Uri parseImportUrl(String url) {
     // Backwards-compatibility for implementations that allow absolute Windows
     // paths in imports.
     if (p.windows.isAbsolute(url)) return p.windows.toUri(url);
