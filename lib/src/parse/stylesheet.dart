@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
@@ -57,8 +58,7 @@ abstract class StylesheetParser extends Parser {
   var _inParentheses = false;
 
   /// Whether warnings should be emitted using terminal colors.
-  ///
-  /// This is protected and shouldn't be accessed except by subclasses.
+  @protected
   final bool color;
 
   StylesheetParser(String contents, {url, this.color: false})
@@ -114,6 +114,7 @@ abstract class StylesheetParser extends Parser {
   }
 
   /// Consumes a variable declaration.
+  @protected
   VariableDeclaration variableDeclaration() {
     var start = scanner.state;
     var name = variableName();
@@ -2713,12 +2714,14 @@ abstract class StylesheetParser extends Parser {
   // ## Abstract Methods
 
   /// Whether this is parsing the indented syntax.
+  @protected
   bool get indented;
 
   /// The indentation level at the current scanner position.
   ///
   /// This value isn't used directly by [StylesheetParser]; it's just passed to
   /// [scanElse].
+  @protected
   int get currentIndentation;
 
   /// Asserts that the scanner is positioned before a statement separator, or at
@@ -2727,13 +2730,16 @@ abstract class StylesheetParser extends Parser {
   /// If the [name] of the parent rule is passed, it's used for error reporting.
   ///
   /// This consumes whitespace, but nothing else, including comments.
+  @protected
   void expectStatementSeparator([String name]);
 
   /// Whether the scanner is positioned at the end of a statement.
+  @protected
   bool atEndOfStatement();
 
   /// Whether the scanner is positioned before a block of children that can be
   /// parsed with [children].
+  @protected
   bool lookingAtChildren();
 
   /// Tries to scan an `@else` rule after an `@if` block, and returns whether
@@ -2742,14 +2748,17 @@ abstract class StylesheetParser extends Parser {
   /// This should just scan the rule name, not anything afterwards.
   /// [ifIndentation] is the result of [currentIndentation] from before the
   /// corresponding `@if` was parsed.
+  @protected
   bool scanElse(int ifIndentation);
 
   /// Consumes a block of child statements.
+  @protected
   List<Statement> children(Statement child());
 
   /// Consumes top-level statements.
   ///
   /// The [statement] callback may return `null`, indicating that a statement
   /// was consumed that shouldn't be added to the AST.
+  @protected
   List<Statement> statements(Statement statement());
 }
