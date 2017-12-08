@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
+import 'package:path/path.dart' as p;
 import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
 
@@ -732,11 +733,20 @@ abstract class StylesheetParser extends Parser {
       return null;
     } else {
       try {
-        return new DynamicImport(Uri.parse(url), urlSpan);
+        return new DynamicImport(_parseImportUrl(url), urlSpan);
       } on FormatException catch (error) {
         throw new SassFormatException("Invalid URL: ${error.message}", urlSpan);
       }
     }
+  }
+
+  /// Parses [url] as an import URL.
+  Uri _parseImportUrl(String url) {
+    // Backwards-compatibility for implementations that allow absolute Windows
+    // paths in imports.
+    if (p.windows.isAbsolute(url)) return p.windows.toUri(url);
+
+    return Uri.parse(url);
   }
 
   /// Returns whether [url] indicates that an `@import` is a plain CSS import.

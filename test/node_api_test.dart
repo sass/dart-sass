@@ -9,6 +9,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:js/js.dart';
+// This is unsafe prior to sdk#30098, which landed in Dart 1.25.0-dev.7.0.
+import 'package:path/path.dart' as unsafePath;
 import 'package:test/test.dart';
 
 import 'package:sass/src/util/path.dart';
@@ -203,7 +205,7 @@ a {
         var result = sass.renderSync(new RenderOptions(file: sassPath));
         expect(result.stats.start, new isInstanceOf<int>());
         expect(result.stats.end, new isInstanceOf<int>());
-        expect(result.stats.start, lessThan(result.stats.end));
+        expect(result.stats.start, lessThanOrEqualTo(result.stats.end));
         expect(result.stats.duration,
             equals(result.stats.end - result.stats.start));
       });
@@ -260,7 +262,7 @@ a {
               "Error: Expected expression.\n"
               "a {b: }\n"
               "      ^\n"
-              "  $sassPath 1:7  root stylesheet");
+              "  ${tracePath(sassPath)} 1:7  root stylesheet");
         });
 
         test("sets the line, column, and filename", () {
@@ -308,7 +310,7 @@ a {
           expect(
               error,
               toStringAndMessageEqual('Undefined operation "1 % a".\n'
-                  '  $sassPath 1:7  root stylesheet'));
+                  '  ${tracePath(sassPath)} 1:7  root stylesheet'));
         });
 
         test("has a useful formatted message", () async {
@@ -317,7 +319,7 @@ a {
               'Error: Undefined operation "1 % a".\n'
               'a {b: 1 % a}\n'
               '      ^^^^^\n'
-              '  $sassPath 1:7  root stylesheet');
+              '  ${tracePath(sassPath)} 1:7  root stylesheet');
         });
 
         test("sets the line, column, and filename", () {
@@ -376,3 +378,9 @@ a {
     });
   });
 }
+
+/// Returns [path] in the format it appears in formatted stack traces.
+///
+/// Stack traces use the global `path` context, which is broken on Node prior to
+/// Dart 1.25.0-dev.7.0.
+String tracePath(String path) => unsafePath.prettyUri(p.toUri(path));

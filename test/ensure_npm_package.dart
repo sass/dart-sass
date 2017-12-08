@@ -8,6 +8,8 @@ import 'dart:io';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
+import 'package:sass/src/io.dart';
+
 hybridMain(StreamChannel channel) async {
   if (!new Directory("build/npm").existsSync()) {
     throw "NPM package is not built. Run pub run grinder npm_package.";
@@ -43,7 +45,11 @@ hybridMain(StreamChannel channel) async {
 /// Ensures that the NPM package is compiled and up-to-date.
 ///
 /// This is safe to call even outside the Dart VM.
-Future ensureNpmPackage() {
+Future ensureNpmPackage() async {
+  // spawnHybridUri() doesn't currently work on Windows and Node due to busted
+  // path handling in the SDK.
+  if (isNode && isWindows) return;
+
   var channel = spawnHybridUri("/test/ensure_npm_package.dart");
-  return channel.stream.toList();
+  await channel.stream.toList();
 }

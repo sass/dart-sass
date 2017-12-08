@@ -170,7 +170,7 @@ RenderError _wrapException(SassException exception) {
               .split("\n")
               .map((frame) => "  $frame")
               .join("\n")
-      : "\n  ${p.fromUri(exception.span.sourceUrl ?? '-')} "
+      : "\n  ${p.prettyUri(exception.span.sourceUrl ?? '-')} "
       "${exception.span.start.line + 1}:${exception.span.start.column + 1}  "
       "root stylesheet";
 

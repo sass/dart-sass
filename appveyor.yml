@@ -28,8 +28,7 @@ install:
 test_script:
 - ps: >-
     If ($env:NODE -eq "true") {
-      # TODO(nweiz): "-p node" is currently broken. Figure out why.
-      pub run test -p vm -t node
+      pub run test -t node
     } Else {
       pub run test -x node
     }
