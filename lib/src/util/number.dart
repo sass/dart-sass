@@ -54,8 +54,13 @@ int fuzzyAsInt(num number) => fuzzyIsInt(number) ? number.round() : null;
 int fuzzyRound(num number) {
   // If the number is within epsilon of X.5, round up (or down for negative
   // numbers).
-  if (fuzzyLessThan(number % 1, 0.5)) return number.round();
-  return number > 0 ? number.ceil() : number.floor();
+  if (number > 0) {
+    return fuzzyLessThan(number % 1, 0.5) ? number.floor() : number.ceil();
+  } else {
+    return fuzzyLessThanOrEquals(number % 1, 0.5)
+        ? number.floor()
+        : number.ceil();
+  }
 }
 
 /// Returns [number] if it's within [min] and [max], or `null` if it's not.

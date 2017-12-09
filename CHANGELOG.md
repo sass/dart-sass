@@ -1,3 +1,8 @@
+## 1.0.0-beta.5
+
+* `round()` now returns the correct results for negative numbers that should
+  round down.
+
 ## 1.0.0-beta.4
 
 * Support unquoted imports in the indented syntax.
