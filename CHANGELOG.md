@@ -2,6 +2,9 @@
 
 * Emit a warning when `&&` is used, since it's probably not what the user means.
 
+* `round()` now returns the correct results for negative numbers that should
+  round down.
+
 ## 1.0.0-beta.4
 
 * Support unquoted imports in the indented syntax.
