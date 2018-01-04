@@ -1947,6 +1947,15 @@ abstract class StylesheetParser extends Parser {
   SelectorExpression _selector() {
     var start = scanner.state;
     scanner.expectChar($ampersand);
+
+    if (scanner.scanChar($ampersand)) {
+      warn('In Sass, "&&" means two copies of the parent selector. You '
+          'probably want to use "and" instead.',
+          scanner.spanFrom(start),
+          color: color);
+      scanner.position--;
+    }
+
     return new SelectorExpression(scanner.spanFrom(start));
   }
 

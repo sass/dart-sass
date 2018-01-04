@@ -1,3 +1,7 @@
+## 1.0.0-beta.5
+
+* Emit a warning when `&&` is used, since it's probably not what the user means.
+
 ## 1.0.0-beta.4
 
 * Support unquoted imports in the indented syntax.
