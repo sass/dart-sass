@@ -8,6 +8,19 @@
 * `var()` may now be passed in place of multiple arguments to `rgb()`, `rgba()`,
   `hsl()` and `hsla()`.
 
+### Dart API
+
+* Add a `functions` parameter to `compile()`, `compleString()`,
+  `compileAsync()`, and `compileStringAsync()`. This allows users to define
+  custom functions in Dart that can be invoked from Sass stylesheets.
+
+* Expose the `Callable` and `AsyncCallable` types, which represent functions
+  that can be invoked from Sass.
+
+* Expose the `Value` type and its subclasses, as well as the top-level
+  `sassTrue`, `sassFalse`, and `sassNull` values, which represent Sass values
+  that may be passed into or returned from custom functions.
+
 ## 1.0.0-beta.4
 
 * Support unquoted imports in the indented syntax.

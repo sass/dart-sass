@@ -9,10 +9,13 @@ import '../value.dart';
 
 /// A SassScript argument list.
 ///
-/// An argument list comes from a rest argument, and may contain a keyword map
-/// as well as the positional arguments.
+/// An argument list comes from a rest argument. It's distinct from a normal
+/// [SassList] in that it may contain a keyword map as well as the positional
+/// arguments.
 class SassArgumentList extends SassList {
-  /// The keywords attached to this argument list.
+  /// The keyword arguments attached to this argument list.
+  ///
+  /// The argument names don't include `$`.
   Map<String, Value> get keywords {
     _wereKeywordsAccessed = true;
     return _keywords;
@@ -24,6 +27,9 @@ class SassArgumentList extends SassList {
   ///
   /// This is used to determine whether to throw an exception about passing
   /// unexpected keywords.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   bool get wereKeywordsAccessed => _wereKeywordsAccessed;
   var _wereKeywordsAccessed = false;
 

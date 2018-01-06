@@ -153,6 +153,11 @@ class SassNumber extends Value {
   static const precision = 10;
 
   /// The value of this number.
+  ///
+  /// Note that due to details of floating-point arithmetic, this may be a
+  /// [double] even if [this] represents an int from Sass's perspective. Use
+  /// [isInt] to determine whether this is an integer, [asInt] to get its
+  /// integer value, or [assertInt] to do both at once.
   final num value;
 
   /// This number's numerator units.
@@ -165,6 +170,10 @@ class SassNumber extends Value {
   final String asSlash;
 
   /// Whether [this] has any units.
+  ///
+  /// If a function expects a number to have no units, it should use
+  /// [assertNoUnits]. If it expects the number to have a particular unit, it
+  /// should use [assertUnit].
   bool get hasUnits => numeratorUnits.isNotEmpty || denominatorUnits.isNotEmpty;
 
   /// Whether [this] is an integer, according to [fuzzyEquals].
@@ -224,7 +233,7 @@ class SassNumber extends Value {
   ///
   /// Throws a [SassScriptException] if [value] isn't an integer. If this came
   /// from a function argument, [name] is the argument name (without the `$`).
-  /// It's used for debugging.
+  /// It's used for error reporting.
   int assertInt([String name]) {
     var integer = fuzzyAsInt(value);
     if (integer != null) return integer;
@@ -239,7 +248,7 @@ class SassNumber extends Value {
   ///
   /// Throws a [SassScriptException] if this isn't an integer or if it isn't a
   /// valid index for [list]. If this came from a function argument, [name] is
-  /// the argument name (without the `$`). It's used for debugging.
+  /// the argument name (without the `$`). It's used for error reporting.
   int assertIndexFor(List list, [String name]) {
     var sassIndex = assertInt(name);
     if (sassIndex == 0) throw _exception("List index may not be 0.");
@@ -256,7 +265,7 @@ class SassNumber extends Value {
   /// If [value] is [fuzzyEquals] to [min] or [max], it's clamped to the
   /// appropriate value. Otherwise, this throws a [SassScriptException]. If this
   /// came from a function argument, [name] is the argument name (without the
-  /// `$`). It's used for debugging.
+  /// `$`). It's used for error reporting.
   num valueInRange(num min, num max, [String name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
@@ -274,7 +283,7 @@ class SassNumber extends Value {
   /// (and as a numerator).
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
   void assertUnit(String unit, [String name]) {
     if (hasUnit(unit)) return;
     throw _exception('Expected $this to have unit "$unit".', name);
@@ -283,7 +292,7 @@ class SassNumber extends Value {
   /// Throws a [SassScriptException] unless [this] has no units.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
   void assertNoUnits([String name]) {
     if (!hasUnits) return;
     throw _exception('Expected $this to have no units.', name);
