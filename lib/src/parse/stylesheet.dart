@@ -1949,7 +1949,8 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($ampersand);
 
     if (scanner.scanChar($ampersand)) {
-      warn('In Sass, "&&" means two copies of the parent selector. You '
+      warn(
+          'In Sass, "&&" means two copies of the parent selector. You '
           'probably want to use "and" instead.',
           scanner.spanFrom(start),
           color: color);
