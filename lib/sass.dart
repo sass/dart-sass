@@ -4,12 +4,15 @@
 
 import 'dart:async';
 
+import 'src/callable.dart';
 import 'src/compile.dart' as c;
 import 'src/exception.dart';
 import 'src/importer.dart';
 import 'src/sync_package_resolver.dart';
 
+export 'src/callable.dart' show Callable, AsyncCallable;
 export 'src/importer.dart';
+export 'src/value.dart' hide SassNull;
 
 /// Loads the Sass file at [path], compiles it to CSS, and returns the result.
 ///
@@ -30,17 +33,23 @@ export 'src/importer.dart';
 ///
 /// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 ///
+/// Dart functions that can be called from Sass may be passed using [functions].
+/// Each [Callable] defines a top-level function that will be invoked when the
+/// given name is called from Sass.
+///
 /// Throws a [SassException] if conversion fails.
 String compile(String path,
     {bool color: false,
     Iterable<Importer> importers,
     Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver}) {
+    SyncPackageResolver packageResolver,
+    Iterable<Callable> functions}) {
   var result = c.compile(path,
       color: color,
       importers: importers,
       loadPaths: loadPaths,
-      packageResolver: packageResolver);
+      packageResolver: packageResolver,
+      functions: functions);
   return result.css;
 }
 
@@ -65,6 +74,10 @@ String compile(String path,
 ///
 /// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 ///
+/// Dart functions that can be called from Sass may be passed using [functions].
+/// Each [Callable] defines a top-level function that will be invoked when the
+/// given name is called from Sass.
+///
 /// The [url] indicates the location from which [source] was loaded. It may be a
 /// [String] or a [Uri]. If [importer] is passed, [url] must be passed as well
 /// and `importer.load(url)` should return `source`.
@@ -74,16 +87,18 @@ String compileString(String source,
     {bool indented: false,
     bool color: false,
     Iterable<Importer> importers,
-    Iterable<String> loadPaths,
     SyncPackageResolver packageResolver,
+    Iterable<String> loadPaths,
+    Iterable<Callable> functions,
     Importer importer,
     url}) {
   var result = c.compileString(source,
       indented: indented,
       color: color,
       importers: importers,
-      loadPaths: loadPaths,
       packageResolver: packageResolver,
+      loadPaths: loadPaths,
+      functions: functions,
       importer: importer,
       url: url);
   return result.css;
@@ -97,13 +112,15 @@ String compileString(String source,
 Future<String> compileAsync(String path,
     {bool color: false,
     Iterable<AsyncImporter> importers,
+    SyncPackageResolver packageResolver,
     Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver}) async {
+    Iterable<AsyncCallable> functions}) async {
   var result = await c.compileAsync(path,
       color: color,
       importers: importers,
       loadPaths: loadPaths,
-      packageResolver: packageResolver);
+      packageResolver: packageResolver,
+      functions: functions);
   return result.css;
 }
 
@@ -116,16 +133,18 @@ Future<String> compileStringAsync(String source,
     {bool indented: false,
     bool color: false,
     Iterable<AsyncImporter> importers,
-    Iterable<String> loadPaths,
     SyncPackageResolver packageResolver,
+    Iterable<String> loadPaths,
+    Iterable<AsyncCallable> functions,
     AsyncImporter importer,
     url}) async {
   var result = await c.compileStringAsync(source,
       indented: indented,
       color: color,
       importers: importers,
-      loadPaths: loadPaths,
       packageResolver: packageResolver,
+      loadPaths: loadPaths,
+      functions: functions,
       importer: importer,
       url: url);
   return result.css;

@@ -2,6 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+
+import '../value.dart';
+import 'async_built_in.dart';
+
 /// An interface for objects, such as functions and mixins, that can be invoked
 /// from Sass by passing in arguments.
 ///
@@ -11,4 +16,7 @@
 abstract class AsyncCallable {
   /// The callable's name.
   String get name;
+
+  factory AsyncCallable(String name, String arguments,
+      FutureOr<Value> callback(List<Value> arguments)) = AsyncBuiltInCallable;
 }

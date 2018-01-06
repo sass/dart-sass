@@ -3,6 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import 'callable/async.dart';
+import 'callable/built_in.dart';
+import 'value.dart';
 
 export 'callable/async.dart';
 export 'callable/async_built_in.dart';
@@ -17,4 +19,7 @@ export 'callable/user_defined.dart';
 /// usable in asynchronous contexts. [Callable]s are usable with both the
 /// synchronous and asynchronous `compile()` functions, and as such should be
 /// used in preference to [AsyncCallable]s if possible.
-abstract class Callable extends AsyncCallable {}
+abstract class Callable extends AsyncCallable {
+  factory Callable(String name, String arguments,
+      Value callback(List<Value> arguments)) = BuiltInCallable;
+}
