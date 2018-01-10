@@ -55,6 +55,16 @@ class SassString extends Value {
     }
   }
 
+  bool get isVar {
+    if (hasQuotes) return false;
+    if (text.length < "var(--_)".length) return false;
+
+    return equalsLetterIgnoreCase($v, text.codeUnitAt(0)) &&
+        equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
+        equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
+        text.codeUnitAt(3) == $lparen;
+  }
+
   bool get isBlank => !hasQuotes && text.isEmpty;
 
   factory SassString.empty({bool quotes: false}) =>
