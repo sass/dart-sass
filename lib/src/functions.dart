@@ -43,21 +43,39 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   // ## Colors
   // ### RGB
 
-  new BuiltInCallable("rgb", r"$red, $green, $blue", (arguments) {
-    if (arguments[0].isSpecialNumber ||
-        arguments[1].isSpecialNumber ||
-        arguments[2].isSpecialNumber) {
-      return _functionString('rgb', arguments);
+  new BuiltInCallable.overloaded("rgb", {
+    r"$red, $green, $blue": (arguments) {
+      if (arguments[0].isSpecialNumber ||
+          arguments[1].isSpecialNumber ||
+          arguments[2].isSpecialNumber) {
+        return _functionString('rgb', arguments);
+      }
+
+      var red = arguments[0].assertNumber("red");
+      var green = arguments[1].assertNumber("green");
+      var blue = arguments[2].assertNumber("blue");
+
+      return new SassColor.rgb(
+          fuzzyRound(_percentageOrUnitless(red, 255, "red")),
+          fuzzyRound(_percentageOrUnitless(green, 255, "green")),
+          fuzzyRound(_percentageOrUnitless(blue, 255, "blue")));
+    },
+    r"$red, $green": (arguments) {
+      // rgb(123, var(--foo)) is valid CSS because --foo might be `456, 789` and
+      // functions are parsed after variable substitution.
+      if (arguments[0].isVar || arguments[1].isVar) {
+        return _functionString('rgb', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $blue.");
+      }
+    },
+    r"$red": (arguments) {
+      if (arguments.first.isVar) {
+        return _functionString('rgb', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $green.");
+      }
     }
-
-    var red = arguments[0].assertNumber("red");
-    var green = arguments[1].assertNumber("green");
-    var blue = arguments[2].assertNumber("blue");
-
-    return new SassColor.rgb(
-        fuzzyRound(_percentageOrUnitless(red, 255, "red")),
-        fuzzyRound(_percentageOrUnitless(green, 255, "green")),
-        fuzzyRound(_percentageOrUnitless(blue, 255, "blue")));
   }),
 
   new BuiltInCallable.overloaded("rgba", {
@@ -81,16 +99,43 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
           _percentageOrUnitless(alpha, 1, "alpha"));
     },
     r"$color, $alpha": (arguments) {
-      var color = arguments[0].assertColor("color");
-
-      if (arguments[1].isSpecialNumber) {
+      // rgba(var(--foo), 0.5) is valid CSS because --foo might be `123, 456,
+      // 789` and functions are parsed after variable substitution.
+      if (arguments[0].isVar) {
+        return _functionString('rgba', arguments);
+      } else if (arguments[1].isVar) {
+        var first = arguments[0];
+        if (first is SassColor) {
+          return new SassString(
+              "rgba(${first.red}, ${first.green}, ${first.blue}, "
+              "${arguments[1].toCssString()})");
+        } else {
+          return _functionString('rgba', arguments);
+        }
+      } else if (arguments[1].isSpecialNumber) {
+        var color = arguments[0].assertColor("color");
         return new SassString(
             "rgba(${color.red}, ${color.green}, ${color.blue}, "
             "${arguments[1].toCssString()})");
       }
 
+      var color = arguments[0].assertColor("color");
       var alpha = arguments[1].assertNumber("alpha");
       return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
+    },
+    r"$red, $green, $blue": (arguments) {
+      if (arguments[0].isVar || arguments[1].isVar || arguments[2].isVar) {
+        return _functionString('rgba', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $alpha.");
+      }
+    },
+    r"$red": (arguments) {
+      if (arguments.first.isVar) {
+        return _functionString('rgba', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $green.");
+      }
     }
   }),
 
@@ -115,36 +160,78 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   // ### HSL
 
-  new BuiltInCallable("hsl", r"$hue, $saturation, $lightness", (arguments) {
-    if (arguments[0].isSpecialNumber ||
-        arguments[1].isSpecialNumber ||
-        arguments[2].isSpecialNumber) {
-      return _functionString("hsl", arguments);
+  new BuiltInCallable.overloaded("hsl", {
+    r"$hue, $saturation, $lightness": (arguments) {
+      if (arguments[0].isSpecialNumber ||
+          arguments[1].isSpecialNumber ||
+          arguments[2].isSpecialNumber) {
+        return _functionString("hsl", arguments);
+      }
+
+      var hue = arguments[0].assertNumber("hue");
+      var saturation = arguments[1].assertNumber("saturation");
+      var lightness = arguments[2].assertNumber("lightness");
+
+      return new SassColor.hsl(hue.value, saturation.value, lightness.value);
+    },
+    r"$hue, $saturation": (arguments) {
+      // hsl(123, var(--foo)) is valid CSS because --foo might be `10%, 20%` and
+      // functions are parsed after variable substitution.
+      if (arguments[0].isVar || arguments[1].isVar) {
+        return _functionString('hsl', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $lightness.");
+      }
+    },
+    r"$hue": (arguments) {
+      if (arguments.first.isVar) {
+        return _functionString('hsl', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $saturation.");
+      }
     }
-
-    var hue = arguments[0].assertNumber("hue");
-    var saturation = arguments[1].assertNumber("saturation");
-    var lightness = arguments[2].assertNumber("lightness");
-
-    return new SassColor.hsl(hue.value, saturation.value, lightness.value);
   }),
 
-  new BuiltInCallable("hsla", r"$hue, $saturation, $lightness, $alpha",
-      (arguments) {
-    if (arguments[0].isSpecialNumber ||
-        arguments[1].isSpecialNumber ||
-        arguments[2].isSpecialNumber ||
-        arguments[3].isSpecialNumber) {
-      return _functionString("hsla", arguments);
+  new BuiltInCallable.overloaded("hsla", {
+    r"$hue, $saturation, $lightness, $alpha": (arguments) {
+      if (arguments[0].isSpecialNumber ||
+          arguments[1].isSpecialNumber ||
+          arguments[2].isSpecialNumber ||
+          arguments[3].isSpecialNumber) {
+        return _functionString("hsla", arguments);
+      }
+
+      var hue = arguments[0].assertNumber("hue");
+      var saturation = arguments[1].assertNumber("saturation");
+      var lightness = arguments[2].assertNumber("lightness");
+      var alpha = arguments[3].assertNumber("alpha");
+
+      return new SassColor.hsl(hue.value, saturation.value, lightness.value,
+          _percentageOrUnitless(alpha, 1, "alpha"));
+    },
+    r"$hue, $saturation, $lightness": (arguments) {
+      // hsla(123, var(--foo)) is valid CSS because --foo might be `10%, 20%,
+      // 0.5` and functions are parsed after variable substitution.
+      if (arguments[0].isVar || arguments[1].isVar || arguments[2].isVar) {
+        return _functionString('hsla', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $alpha.");
+      }
+    },
+    r"$hue, $saturation": (arguments) {
+      if (arguments[0].isVar || arguments[1].isVar) {
+        return _functionString('hsla', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $lightness.");
+      }
+    },
+    r"$hue": (arguments) {
+      if (arguments.first.isVar) {
+        return _functionString('hsla', arguments);
+      } else {
+        throw new SassScriptException(r"Missing argument $saturation.");
+      }
     }
-
-    var hue = arguments[0].assertNumber("hue");
-    var saturation = arguments[1].assertNumber("saturation");
-    var lightness = arguments[2].assertNumber("lightness");
-    var alpha = arguments[3].assertNumber("alpha");
-
-    return new SassColor.hsl(hue.value, saturation.value, lightness.value,
-        _percentageOrUnitless(alpha, 1, "alpha"));
   }),
 
   new BuiltInCallable(

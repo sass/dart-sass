@@ -5,6 +5,9 @@
 * `round()` now returns the correct results for negative numbers that should
   round down.
 
+* `var()` may now be passed in place of multiple arguments to `rgb()`, `rgba()`,
+  `hsl()` and `hsla()`.
+
 ## 1.0.0-beta.4
 
 * Support unquoted imports in the indented syntax.
