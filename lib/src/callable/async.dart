@@ -4,7 +4,10 @@
 
 import 'dart:async';
 
+import 'package:async/async.dart';
+
 import '../value.dart';
+import '../value/external/value.dart' as ext;
 import 'async_built_in.dart';
 
 /// An interface functions and mixins that can be invoked from Sass by passing
@@ -27,5 +30,10 @@ abstract class AsyncCallable {
   ///
   /// See [new Callable] for more details.
   factory AsyncCallable(String name, String arguments,
-      FutureOr<Value> callback(List<Value> arguments)) = AsyncBuiltInCallable;
+          FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
+      new AsyncBuiltInCallable(name, arguments, (arguments) {
+        var result = callback(arguments);
+        if (result is ext.Value) return result as Value;
+        return DelegatingFuture.typed(result as Future);
+      });
 }

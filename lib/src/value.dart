@@ -6,6 +6,7 @@ import 'ast/selector.dart';
 import 'exception.dart';
 import 'value/boolean.dart';
 import 'value/color.dart';
+import 'value/external/value.dart' as ext;
 import 'value/function.dart';
 import 'value/list.dart';
 import 'value/map.dart';
@@ -16,7 +17,7 @@ import 'visitor/serialize.dart';
 
 export 'value/argument_list.dart';
 export 'value/boolean.dart';
-export 'value/color.dart' hide setOriginalSpan;
+export 'value/color.dart';
 export 'value/function.dart';
 export 'value/list.dart';
 export 'value/map.dart';
@@ -24,37 +25,19 @@ export 'value/null.dart';
 export 'value/number.dart';
 export 'value/string.dart';
 
-/// A SassScript value.
+// TODO(nweiz): Just mark members as @internal when sdk#28066 is fixed.
+/// The implementation of [ext.Value].
 ///
-/// All SassScript values are unmodifiable. New values can be constructed using
-/// subclass constructors like [new SassString]. Untyped values can be cast to
-/// particular types using `assert*()` functions like [assertString], which
-/// throw user-friendly error messages if they fail.
-abstract class Value {
+/// This is a separate class to avoid exposing more API surface than necessary
+/// to users outside this package.
+abstract class Value implements ext.Value {
+  bool get isTruthy => true;
+  ListSeparator get separator => ListSeparator.undecided;
+  bool get hasBrackets => false;
+  List<Value> get asList => [this];
+
   /// Whether the value will be represented in CSS as the empty string.
   bool get isBlank => false;
-
-  /// Whether the value counts as `true` in an `@if` statement and other
-  /// contexts.
-  bool get isTruthy => true;
-
-  /// The separator for this value as a list.
-  ///
-  /// All SassScript values can be used as lists. Maps count as lists of pairs,
-  /// and all other values count as single-value lists.
-  ListSeparator get separator => ListSeparator.undecided;
-
-  /// Whether this value as a list has brackets.
-  ///
-  /// All SassScript values can be used as lists. Maps count as lists of pairs,
-  /// and all other values count as single-value lists.
-  bool get hasBrackets => false;
-
-  /// This value as a list.
-  ///
-  /// All SassScript values can be used as lists. Maps count as lists of pairs,
-  /// and all other values count as single-value lists.
-  List<Value> get asList => [this];
 
   /// Whether this is a value that CSS may treat as a number, such as `calc()`
   /// or `var()`.
@@ -78,48 +61,21 @@ abstract class Value {
   /// It's not guaranteed to be stable across versions.
   T accept<T>(ValueVisitor<T> visitor);
 
-  /// Throws a [SassScriptException] if [this] isn't a boolean.
-  ///
-  /// Note that generally, functions should use [isTruthy] rather than requiring
-  /// a literal boolean.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
   SassBoolean assertBoolean([String name]) =>
       throw _exception("$this is not a boolean.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a color.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
   SassColor assertColor([String name]) =>
       throw _exception("$this is not a color.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a function reference.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
   SassFunction assertFunction([String name]) =>
       throw _exception("$this is not a function reference.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a map.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
   SassMap assertMap([String name]) =>
       throw _exception("$this is not a map.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a number.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
   SassNumber assertNumber([String name]) =>
       throw _exception("$this is not a number.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a string.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
   SassString assertString([String name]) =>
       throw _exception("$this is not a string.", name);
 
@@ -132,8 +88,6 @@ abstract class Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  ///
-  /// **Note:** this function should not be called outside the `sass` package.
   SelectorList assertSelector({String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
@@ -154,9 +108,6 @@ abstract class Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  ///
-  /// **Note:** this function should not be called outside the `sass` package.
-  /// It's not guaranteed to be stable across versions.
   SimpleSelector assertSimpleSelector({String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
@@ -177,9 +128,6 @@ abstract class Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  ///
-  /// **Note:** this function should not be called outside the `sass` package.
-  /// It's not guaranteed to be stable across versions.
   CompoundSelector assertCompoundSelector(
       {String name, bool allowParent: false}) {
     var string = _selectorString(name);
@@ -369,11 +317,6 @@ abstract class Value {
   /// If [quote] is `false`, quoted strings are emitted without quotes.
   String toCssString({bool quote: true}) => serializeValue(this, quote: quote);
 
-  /// Returns a string representation of [this].
-  ///
-  /// Note that this is equivalent to calling `inspect()` on the value, and thus
-  /// won't reflect the user's output settings. [toCssString] should be used
-  /// instead to convert [this] to CSS.
   String toString() => serializeValue(this, inspect: true);
 
   /// Throws a [SassScriptException] with the given [message].

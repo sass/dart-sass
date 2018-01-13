@@ -12,7 +12,8 @@ import 'src/sync_package_resolver.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
 export 'src/importer.dart';
-export 'src/value.dart' hide SassNull;
+export 'src/value.dart' show ListSeparator;
+export 'src/value/external/value.dart';
 
 /// Loads the Sass file at [path], compiles it to CSS, and returns the result.
 ///

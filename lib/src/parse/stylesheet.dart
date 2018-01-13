@@ -1704,20 +1704,14 @@ abstract class StylesheetParser extends Parser {
 
     var first = scanner.peekChar();
     if (first != null && isDigit(first)) {
-      var color = _hexColorContents();
-      var span = scanner.spanFrom(start);
-      setOriginalSpan(color, span);
-      return new ColorExpression(color, span);
+      return new ColorExpression(_hexColorContents(start));
     }
 
     var afterHash = scanner.state;
     var identifier = _interpolatedIdentifier();
     if (_isHexColor(identifier)) {
       scanner.state = afterHash;
-      var color = _hexColorContents();
-      var span = scanner.spanFrom(start);
-      setOriginalSpan(color, span);
-      return new ColorExpression(color, span);
+      return new ColorExpression(_hexColorContents(start));
     }
 
     var buffer = new InterpolationBuffer();
@@ -1727,7 +1721,7 @@ abstract class StylesheetParser extends Parser {
   }
 
   /// Consumes the contents of a hex color, after the `#`.
-  SassColor _hexColorContents() {
+  SassColor _hexColorContents(LineScannerState start) {
     var red = _hexDigit();
     var green = _hexDigit();
     var blue = _hexDigit();
@@ -1743,7 +1737,7 @@ abstract class StylesheetParser extends Parser {
       blue = (blue << 4) + blue;
     }
 
-    return new SassColor.rgb(red, green, blue);
+    return new SassColor.rgb(red, green, blue, 1, scanner.spanFrom(start));
   }
 
   /// Returns whether [interpolation] is a plain string that can be parsed as a
@@ -2034,9 +2028,8 @@ abstract class StylesheetParser extends Parser {
         var color = colorsByName[lower];
         if (color != null) {
           color = new SassColor.rgb(
-              color.red, color.green, color.blue, color.alpha);
-          setOriginalSpan(color, identifier.span);
-          return new ColorExpression(color, identifier.span);
+              color.red, color.green, color.blue, color.alpha, identifier.span);
+          return new ColorExpression(color);
         }
       }
 
