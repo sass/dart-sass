@@ -612,7 +612,7 @@ class SassNumber extends Value {
         var innerMap = _conversions[unit];
         return innerMap == null
             ? multiplier
-            : multiplier * innerMap.values.first;
+            : multiplier / innerMap.values.first;
       });
 
   /// Throws a [SassScriptException] with the given [message].

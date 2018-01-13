@@ -8,6 +8,9 @@
 * `var()` may now be passed in place of multiple arguments to `rgb()`, `rgba()`,
   `hsl()` and `hsla()`.
 
+* Fix some cases where equivalent numbers wouldn't count as the same keys in
+  maps.
+
 ### Dart API
 
 * Add a `functions` parameter to `compile()`, `compleString()`,
