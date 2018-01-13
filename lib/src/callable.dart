@@ -5,6 +5,7 @@
 import 'callable/async.dart';
 import 'callable/built_in.dart';
 import 'value.dart';
+import 'value/external/value.dart' as ext;
 
 export 'callable/async.dart';
 export 'callable/async_built_in.dart';
@@ -87,5 +88,7 @@ abstract class Callable extends AsyncCallable {
   /// which provides access to keyword arguments using
   /// [SassArgumentList.keywords].
   factory Callable(String name, String arguments,
-      Value callback(List<Value> arguments)) = BuiltInCallable;
+          ext.Value callback(List<ext.Value> arguments)) =>
+      new BuiltInCallable(
+          name, arguments, (arguments) => callback(arguments) as Value);
 }

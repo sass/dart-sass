@@ -7,6 +7,7 @@ import 'package:charcode/charcode.dart';
 import '../util/character.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
+import 'external/value.dart' as ext;
 
 /// A quoted empty string, returned by [SassString.empty].
 final _emptyQuoted = new SassString("", quotes: true);
@@ -14,26 +15,9 @@ final _emptyQuoted = new SassString("", quotes: true);
 /// An unquoted empty string, returned by [SassString.empty].
 final _emptyUnquoted = new SassString("", quotes: false);
 
-/// A SassScript string.
-///
-/// Strings can either be quoted or unquoted. Unquoted strings are usually CSS
-/// identifiers, but they may contain any text.
-class SassString extends Value {
-  /// The contents of the string.
-  ///
-  /// For quoted strings, this is the semantic content—any escape sequences that
-  /// were been written in the source text are resolved to their Unicode values.
-  /// For unquoted strings, though, escape sequences are preserved as literal
-  /// backslashes.
-  ///
-  /// This difference allows us to distinguish between identifiers with escapes,
-  /// such as `url\u28 http://example.com\u29`, and unquoted strings that
-  /// contain characters that aren't valid in identifiers, such as
-  /// `url(http://example.com)`. Unfortunately, it also means that we don't
-  /// consider `foo` and `f\6F\6F` the same string.
+class SassString extends Value implements ext.SassString {
   final String text;
 
-  /// Whether this string has quotes.
   final bool hasQuotes;
 
   bool get isSpecialNumber {

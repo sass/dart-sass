@@ -5,15 +5,9 @@
 import '../utils.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
+import 'external/value.dart' as ext;
 
-/// A SassScript list.
-class SassList extends Value {
-  // TODO(nweiz): Use persistent data structures rather than copying here. An
-  // RRB vector should fit our use-cases well.
-  //
-  // We may also want to fall back to a plain unmodifiable List for small lists
-  // (<32 items?).
-  /// The contents of the list.
+class SassList extends Value implements ext.SassList {
   final List<Value> contents;
 
   final ListSeparator separator;
@@ -24,7 +18,6 @@ class SassList extends Value {
 
   List<Value> get asList => contents;
 
-  /// Returns an empty list with the given [separator] and [brackets].
   const SassList.empty({ListSeparator separator, bool brackets: false})
       : contents = const [],
         separator = separator ?? ListSeparator.undecided,

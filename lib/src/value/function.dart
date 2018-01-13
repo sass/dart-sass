@@ -5,17 +5,9 @@
 import '../callable.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
+import 'external/value.dart' as internal;
 
-/// A SassScript function reference.
-///
-/// A function reference captures a function from the local environment so that
-/// it may be passed between modules.
-class SassFunction extends Value {
-  /// The callable that this function invokes.
-  ///
-  /// Note that this is typed as an [AsyncCallback] so that it will work with
-  /// both synchronous and asynchronous evaluate visitors, but in practice the
-  /// synchronous evaluate visitor will crash if this isn't a [Callback].
+class SassFunction extends Value implements internal.SassFunction {
   final AsyncCallable callable;
 
   SassFunction(this.callable);
