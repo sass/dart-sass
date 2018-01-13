@@ -26,7 +26,10 @@ export 'value/string.dart';
 
 /// A SassScript value.
 ///
-/// Note that all SassScript values are unmodifiable.
+/// All SassScript values are unmodifiable. New values can be constructed using
+/// subclass constructors like [new SassString]. Untyped values can be cast to
+/// particular types using `assert*()` functions like [assertString], which
+/// throw user-friendly error messages if they fail.
 abstract class Value {
   /// Whether the value will be represented in CSS as the empty string.
   bool get isBlank => false;
@@ -70,6 +73,9 @@ abstract class Value {
   const Value();
 
   /// Calls the appropriate visit method on [visitor].
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   T accept<T>(ValueVisitor<T> visitor);
 
   /// Throws a [SassScriptException] if [this] isn't a boolean.
@@ -78,42 +84,42 @@ abstract class Value {
   /// a literal boolean.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
   SassBoolean assertBoolean([String name]) =>
       throw _exception("$this is not a boolean.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a color.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
   SassColor assertColor([String name]) =>
       throw _exception("$this is not a color.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a function reference.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
   SassFunction assertFunction([String name]) =>
       throw _exception("$this is not a function reference.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a map.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
   SassMap assertMap([String name]) =>
       throw _exception("$this is not a map.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a number.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
   SassNumber assertNumber([String name]) =>
       throw _exception("$this is not a number.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a string.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
   SassString assertString([String name]) =>
       throw _exception("$this is not a string.", name);
 
@@ -125,7 +131,9 @@ abstract class Value {
   /// [ParentSelector]s. Otherwise, they're considered parse errors.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
   SelectorList assertSelector({String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
@@ -145,7 +153,10 @@ abstract class Value {
   /// [ParentSelector]s. Otherwise, they're considered parse errors.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   SimpleSelector assertSimpleSelector({String name, bool allowParent: false}) {
     var string = _selectorString(name);
     try {
@@ -165,7 +176,10 @@ abstract class Value {
   /// [ParentSelector]s. Otherwise, they're considered parse errors.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for debugging.
+  /// (without the `$`). It's used for error reporting.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   CompoundSelector assertCompoundSelector(
       {String name, bool allowParent: false}) {
     var string = _selectorString(name);
@@ -239,34 +253,58 @@ abstract class Value {
   }
 
   /// The SassScript `=` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value singleEquals(Value other) =>
       new SassString("${toCssString()}=${other.toCssString()}");
 
   /// The SassScript `>` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   SassBoolean greaterThan(Value other) =>
       throw new SassScriptException('Undefined operation "$this > $other".');
 
   /// The SassScript `>=` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   SassBoolean greaterThanOrEquals(Value other) =>
       throw new SassScriptException('Undefined operation "$this >= $other".');
 
   /// The SassScript `<` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   SassBoolean lessThan(Value other) =>
       throw new SassScriptException('Undefined operation "$this < $other".');
 
   /// The SassScript `<=` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   SassBoolean lessThanOrEquals(Value other) =>
       throw new SassScriptException('Undefined operation "$this <= $other".');
 
   /// The SassScript `*` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value times(Value other) =>
       throw new SassScriptException('Undefined operation "$this * $other".');
 
   /// The SassScript `%` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value modulo(Value other) =>
       throw new SassScriptException('Undefined operation "$this % $other".');
 
   /// The SassScript `+` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value plus(Value other) {
     if (other is SassString) {
       return new SassString(toCssString() + other.text,
@@ -277,28 +315,49 @@ abstract class Value {
   }
 
   /// The SassScript `-` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value minus(Value other) =>
       new SassString("${toCssString()}-${other.toCssString()}");
 
   /// The SassScript `/` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value dividedBy(Value other) =>
       new SassString("${toCssString()}/${other.toCssString()}");
 
   /// The SassScript unary `+` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value unaryPlus() => new SassString("+${toCssString()}");
 
   /// The SassScript unary `-` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value unaryMinus() => new SassString("-${toCssString()}");
 
   /// The SassScript unary `/` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value unaryDivide() => new SassString("/${toCssString()}");
 
   /// The SassScript unary `not` operation.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value unaryNot() => sassFalse;
 
   /// Returns a copy of [this] without [SassNumber.asSlash] set.
   ///
   /// If this isn't a [SassNumber], returns it as-is.
+  ///
+  /// **Note:** this function should not be called outside the `sass` package.
+  /// It's not guaranteed to be stable across versions.
   Value withoutSlash() => this;
 
   /// Returns a valid CSS representation of [this].

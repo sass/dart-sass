@@ -56,13 +56,13 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
         {Iterable<AsyncImporter> importers,
         NodeImporter nodeImporter,
         AsyncImporter importer,
-        AsyncEnvironment environment,
+        Iterable<AsyncCallable> functions,
         bool color: false}) =>
     new _EvaluateVisitor(
             importers: importers,
             nodeImporter: nodeImporter,
             importer: importer,
-            environment: environment,
+            functions: functions,
             color: color)
         .run(stylesheet);
 
@@ -82,7 +82,7 @@ class _EvaluateVisitor
   final bool _color;
 
   /// The current lexical environment.
-  AsyncEnvironment _environment;
+  var _environment = new AsyncEnvironment();
 
   /// The importer that's currently being used to resolve relative imports.
   ///
@@ -168,12 +168,11 @@ class _EvaluateVisitor
       {Iterable<AsyncImporter> importers,
       NodeImporter nodeImporter,
       AsyncImporter importer,
-      AsyncEnvironment environment,
+      Iterable<AsyncCallable> functions,
       bool color: false})
       : _importers = importers == null ? const [] : importers.toList(),
         _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
-        _environment = environment ?? new AsyncEnvironment(),
         _color = color {
     _environment.setFunction(
         new BuiltInCallable("global-variable-exists", r"$name", (arguments) {
@@ -258,6 +257,10 @@ class _EvaluateVisitor
             "This is probably caused by a bug in a Sass plugin.");
       }
     }));
+
+    for (var function in functions ?? const <AsyncCallable>[]) {
+      _environment.setFunction(function);
+    }
   }
 
   Future<EvaluateResult> run(Stylesheet node) async {
@@ -1394,8 +1397,19 @@ class _EvaluateVisitor
       positional.add(argumentList);
     }
 
-    var result = await _addExceptionSpanAsync(
-        span, () async => await callback(positional));
+    Value result;
+    try {
+      result = await callback(positional);
+      if (result == null) throw "Custom functions may not return Dart's null.";
+    } catch (error, stackTrace) {
+      String message;
+      try {
+        message = error.message as String;
+      } catch (_) {
+        message = error.toString();
+      }
+      throw _exception(message, span);
+    }
     _callableSpan = oldCallableSpan;
 
     if (argumentList == null) return result;

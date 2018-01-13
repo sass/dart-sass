@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: d443af264c677b3e99b5b32511898d92b9b41291
+// Checksum: 4d48952f8cd737f998fc1f67e801f4ea0ab69671
 
 import 'dart:math' as math;
 
@@ -60,13 +60,13 @@ EvaluateResult evaluate(Stylesheet stylesheet,
         {Iterable<Importer> importers,
         NodeImporter nodeImporter,
         Importer importer,
-        Environment environment,
+        Iterable<Callable> functions,
         bool color: false}) =>
     new _EvaluateVisitor(
             importers: importers,
             nodeImporter: nodeImporter,
             importer: importer,
-            environment: environment,
+            functions: functions,
             color: color)
         .run(stylesheet);
 
@@ -84,7 +84,7 @@ class _EvaluateVisitor
   final bool _color;
 
   /// The current lexical environment.
-  Environment _environment;
+  var _environment = new Environment();
 
   /// The importer that's currently being used to resolve relative imports.
   ///
@@ -170,12 +170,11 @@ class _EvaluateVisitor
       {Iterable<Importer> importers,
       NodeImporter nodeImporter,
       Importer importer,
-      Environment environment,
+      Iterable<Callable> functions,
       bool color: false})
       : _importers = importers == null ? const [] : importers.toList(),
         _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
-        _environment = environment ?? new Environment(),
         _color = color {
     _environment.setFunction(
         new BuiltInCallable("global-variable-exists", r"$name", (arguments) {
@@ -260,6 +259,10 @@ class _EvaluateVisitor
             "This is probably caused by a bug in a Sass plugin.");
       }
     }));
+
+    for (var function in functions ?? const <Callable>[]) {
+      _environment.setFunction(function);
+    }
   }
 
   EvaluateResult run(Stylesheet node) {
@@ -1372,7 +1375,19 @@ class _EvaluateVisitor
       positional.add(argumentList);
     }
 
-    var result = _addExceptionSpan(span, () => callback(positional));
+    Value result;
+    try {
+      result = callback(positional);
+      if (result == null) throw "Custom functions may not return Dart's null.";
+    } catch (error, stackTrace) {
+      String message;
+      try {
+        message = error.message as String;
+      } catch (_) {
+        message = error.toString();
+      }
+      throw _exception(message, span);
+    }
     _callableSpan = oldCallableSpan;
 
     if (argumentList == null) return result;
