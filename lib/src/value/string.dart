@@ -4,9 +4,11 @@
 
 import 'package:charcode/charcode.dart';
 
+import '../exception.dart';
 import '../util/character.dart';
-import '../visitor/interface/value.dart';
+import '../utils.dart';
 import '../value.dart';
+import '../visitor/interface/value.dart';
 import 'external/value.dart' as ext;
 
 /// A quoted empty string, returned by [SassString.empty].
@@ -19,6 +21,13 @@ class SassString extends Value implements ext.SassString {
   final String text;
 
   final bool hasQuotes;
+
+  int get sassLength {
+    _sassLength ??= text.runes.length;
+    return _sassLength;
+  }
+
+  int _sassLength;
 
   bool get isSpecialNumber {
     if (hasQuotes) return false;
@@ -56,6 +65,22 @@ class SassString extends Value implements ext.SassString {
 
   SassString(this.text, {bool quotes: false}) : hasQuotes = quotes;
 
+  int sassIndexToStringIndex(ext.Value sassIndex, [String name]) =>
+      codepointIndexToCodeUnitIndex(
+          text, sassIndexToRuneIndex(sassIndex, name));
+
+  int sassIndexToRuneIndex(ext.Value sassIndex, [String name]) {
+    var index = sassIndex.assertNumber(name).assertInt(name);
+    if (index == 0) throw _exception("String index may not be 0.", name);
+    if (index.abs() > sassLength) {
+      throw _exception(
+          "Invalid index $sassIndex for a string with $sassLength characters.",
+          name);
+    }
+
+    return index < 0 ? sassLength + index : index - 1;
+  }
+
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitString(this);
 
   SassString assertString([String name]) => this;
@@ -71,4 +96,8 @@ class SassString extends Value implements ext.SassString {
   bool operator ==(other) => other is SassString && text == other.text;
 
   int get hashCode => text.hashCode;
+
+  /// Throws a [SassScriptException] with the given [message].
+  SassScriptException _exception(String message, [String name]) =>
+      new SassScriptException(name == null ? message : "\$$name: $message");
 }

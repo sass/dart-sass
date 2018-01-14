@@ -555,7 +555,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   new BuiltInCallable("str-length", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
-    return new SassNumber(string.text.runes.length);
+    return new SassNumber(string.sassLength);
   }),
 
   new BuiltInCallable("str-insert", r"$string, $insert, $index", (arguments) {
@@ -572,7 +572,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     // negative.
     if (indexInt < 0) indexInt++;
 
-    var codepointIndex = _codepointForIndex(indexInt, string.text.runes.length);
+    var codepointIndex = _codepointForIndex(indexInt, string.sassLength);
 
     var codeUnitIndex =
         codepointIndexToCodeUnitIndex(string.text, codepointIndex);
@@ -600,7 +600,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     start.assertNoUnits("start");
     end.assertNoUnits("end");
 
-    var lengthInCodepoints = string.text.runes.length;
+    var lengthInCodepoints = string.sassLength;
 
     // No matter what the start index is, an end index of 0 will produce an
     // empty string.
