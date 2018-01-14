@@ -696,17 +696,17 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
       (arguments) => new SassNumber(arguments[0].asList.length)),
 
   new BuiltInCallable("nth", r"$list, $n", (arguments) {
-    var list = arguments[0].asList;
-    var index = arguments[1].assertNumber("n");
-    return list[index.assertIndexFor(list, "n")];
+    var list = arguments[0];
+    var index = arguments[1];
+    return list.asList[list.sassIndexToListIndex(index, "n")];
   }),
 
   new BuiltInCallable("set-nth", r"$list, $n, $value", (arguments) {
-    var list = arguments[0].asList;
-    var index = arguments[1].assertNumber("n");
+    var list = arguments[0];
+    var index = arguments[1];
     var value = arguments[2];
-    var newList = list.toList();
-    newList[index.assertIndexFor(list, "n")] = value;
+    var newList = list.asList.toList();
+    newList[list.sassIndexToListIndex(index, "n")] = value;
     return arguments[0].changeListContents(newList);
   }),
 

@@ -58,6 +58,18 @@ abstract class Value {
   /// and all other values count as single-value lists.
   List<Value> get asList;
 
+  /// Converts [sassIndex] into a Dart-style index into the list returned by
+  /// [asList].
+  ///
+  /// Sass indexes are one-based, while Dart indexes are zero-based. Sass
+  /// indexes may also be negative in order to index from the end of the list.
+  ///
+  /// Throws a [SassScriptException] if [sassIndex] isn't a number, if that
+  /// number isn't an integer, or if that integer isn't a valid index for
+  /// [asList]. If [sassIndex] came from a function argument, [name] is the
+  /// argument name (without the `$`). It's used for error reporting.
+  int sassIndexToListIndex(Value sassIndex, [String name]);
+
   /// Throws a [SassScriptException] if [this] isn't a boolean.
   ///
   /// Note that generally, functions should use [isTruthy] rather than requiring

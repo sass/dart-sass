@@ -21,6 +21,8 @@ class SassMap extends Value implements ext.SassMap {
     return result;
   }
 
+  int get lengthAsList => contents.length;
+
   /// Returns an empty map.
   const SassMap.empty() : contents = const {};
 

@@ -200,17 +200,6 @@ class SassNumber extends Value implements ext.SassNumber {
     throw _exception("$this is not an int.", name);
   }
 
-  int assertIndexFor(List list, [String name]) {
-    var sassIndex = assertInt(name);
-    if (sassIndex == 0) throw _exception("List index may not be 0.");
-    if (sassIndex.abs() > list.length) {
-      throw _exception(
-          "Invalid index $this for a list with ${list.length} elements.");
-    }
-
-    return sassIndex < 0 ? list.length + sassIndex : sassIndex - 1;
-  }
-
   num valueInRange(num min, num max, [String name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;

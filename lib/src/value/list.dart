@@ -18,6 +18,8 @@ class SassList extends Value implements ext.SassList {
 
   List<Value> get asList => contents;
 
+  int get lengthAsList => contents.length;
+
   const SassList.empty({ListSeparator separator, bool brackets: false})
       : contents = const [],
         separator = separator ?? ListSeparator.undecided,

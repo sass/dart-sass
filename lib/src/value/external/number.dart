@@ -69,17 +69,6 @@ abstract class SassNumber extends Value {
   /// It's used for error reporting.
   int assertInt([String name]);
 
-  /// Asserts that this is a valid Sass-style index for [list], and returns the
-  /// Dart-style index.
-  ///
-  /// A Sass-style index is one-based, and uses negative numbers to count
-  /// backwards from the end of the list.
-  ///
-  /// Throws a [SassScriptException] if this isn't an integer or if it isn't a
-  /// valid index for [list]. If this came from a function argument, [name] is
-  /// the argument name (without the `$`). It's used for error reporting.
-  int assertIndexFor(List list, [String name]);
-
   /// If [value] is between [min] and [max], returns it.
   ///
   /// If [value] is [fuzzyEquals] to [min] or [max], it's clamped to the

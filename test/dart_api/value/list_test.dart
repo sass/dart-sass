@@ -62,6 +62,39 @@ main() {
               ListSeparator.comma))));
     });
 
+    group("sassIndexToListIndex()", () {
+      test("converts a positive index to a Dart index", () {
+        expect(value.sassIndexToListIndex(new SassNumber(1)), equals(0));
+        expect(value.sassIndexToListIndex(new SassNumber(2)), equals(1));
+        expect(value.sassIndexToListIndex(new SassNumber(3)), equals(2));
+      });
+
+      test("converts a negative index to a Dart index", () {
+        expect(value.sassIndexToListIndex(new SassNumber(-1)), equals(2));
+        expect(value.sassIndexToListIndex(new SassNumber(-2)), equals(1));
+        expect(value.sassIndexToListIndex(new SassNumber(-3)), equals(0));
+      });
+
+      test("rejects a non-number", () {
+        expect(() => value.sassIndexToListIndex(new SassString("foo")),
+            throwsSassScriptException);
+      });
+
+      test("rejects a non-integer", () {
+        expect(() => value.sassIndexToListIndex(new SassNumber(1.1)),
+            throwsSassScriptException);
+      });
+
+      test("rejects invalid indices", () {
+        expect(() => value.sassIndexToListIndex(new SassNumber(0)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToListIndex(new SassNumber(4)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToListIndex(new SassNumber(-4)),
+            throwsSassScriptException);
+      });
+    });
+
     test("isn't any other type", () {
       expect(value.assertBoolean, throwsSassScriptException);
       expect(value.assertColor, throwsSassScriptException);
@@ -133,6 +166,15 @@ main() {
       expect(value.assertNumber, throwsSassScriptException);
       expect(value.assertString, throwsSassScriptException);
     });
+
+    test("sassIndexToListIndex() rejects invalid indices", () {
+      expect(() => value.sassIndexToListIndex(new SassNumber(0)),
+          throwsSassScriptException);
+      expect(() => value.sassIndexToListIndex(new SassNumber(1)),
+          throwsSassScriptException);
+      expect(() => value.sassIndexToListIndex(new SassNumber(-1)),
+          throwsSassScriptException);
+    });
   });
 
   group("a scalar value", () {
@@ -151,6 +193,25 @@ main() {
       var list = value.asList;
       expect(list, hasLength(1));
       expect(list.first, same(value));
+    });
+
+    group("sassIndexToListIndex()", () {
+      test("converts a positive index to a Dart index", () {
+        expect(value.sassIndexToListIndex(new SassNumber(1)), equals(0));
+      });
+
+      test("converts a negative index to a Dart index", () {
+        expect(value.sassIndexToListIndex(new SassNumber(-1)), equals(0));
+      });
+
+      test("rejects invalid indices", () {
+        expect(() => value.sassIndexToListIndex(new SassNumber(0)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToListIndex(new SassNumber(2)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToListIndex(new SassNumber(-2)),
+            throwsSassScriptException);
+      });
     });
   });
 
