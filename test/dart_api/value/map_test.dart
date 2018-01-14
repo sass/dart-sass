@@ -39,6 +39,27 @@ main() {
           ]));
     });
 
+    group("sassIndexToListIndex()", () {
+      test("converts a positive index to a Dart index", () {
+        expect(value.sassIndexToListIndex(new SassNumber(1)), equals(0));
+        expect(value.sassIndexToListIndex(new SassNumber(2)), equals(1));
+      });
+
+      test("converts a negative index to a Dart index", () {
+        expect(value.sassIndexToListIndex(new SassNumber(-1)), equals(1));
+        expect(value.sassIndexToListIndex(new SassNumber(-2)), equals(0));
+      });
+
+      test("rejects invalid indices", () {
+        expect(() => value.sassIndexToListIndex(new SassNumber(0)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToListIndex(new SassNumber(3)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToListIndex(new SassNumber(-3)),
+            throwsSassScriptException);
+      });
+    });
+
     test("equals the same map", () {
       expect(
           value,
@@ -127,6 +148,15 @@ main() {
 
     test("equals an empty list", () {
       expect(value, equalsWithHash(new SassList.empty()));
+    });
+
+    test("sassIndexToListIndex() rejects invalid indices", () {
+      expect(() => value.sassIndexToListIndex(new SassNumber(0)),
+          throwsSassScriptException);
+      expect(() => value.sassIndexToListIndex(new SassNumber(1)),
+          throwsSassScriptException);
+      expect(() => value.sassIndexToListIndex(new SassNumber(-1)),
+          throwsSassScriptException);
     });
   });
 

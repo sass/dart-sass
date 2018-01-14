@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import 'ast/selector.dart';
 import 'exception.dart';
 import 'value/boolean.dart';
@@ -36,6 +38,13 @@ abstract class Value implements ext.Value {
   bool get hasBrackets => false;
   List<Value> get asList => [this];
 
+  /// The length of [asList].
+  ///
+  /// This is used to compute [sassIndexToListIndex] without allocating a new
+  /// list.
+  @protected
+  int get lengthAsList => 1;
+
   /// Whether the value will be represented in CSS as the empty string.
   bool get isBlank => false;
 
@@ -60,6 +69,18 @@ abstract class Value implements ext.Value {
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   T accept<T>(ValueVisitor<T> visitor);
+
+  int sassIndexToListIndex(ext.Value sassIndex, [String name]) {
+    var index = sassIndex.assertNumber(name).assertInt(name);
+    if (index == 0) throw _exception("List index may not be 0.", name);
+    if (index.abs() > lengthAsList) {
+      throw _exception(
+          "Invalid index $sassIndex for a list with ${lengthAsList} elements.",
+          name);
+    }
+
+    return index < 0 ? lengthAsList + index : index - 1;
+  }
 
   SassBoolean assertBoolean([String name]) =>
       throw _exception("$this is not a boolean.", name);
