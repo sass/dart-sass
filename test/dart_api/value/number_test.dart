@@ -48,6 +48,19 @@ main() {
       expect(value.valueInUnits(["abc"], ["def"]), equals(123));
     });
 
+    group("valueInRange()", () {
+      test("returns its value within a given range", () {
+        expect(value.valueInRange(0, 123), equals(123));
+        expect(value.valueInRange(123, 123), equals(123));
+        expect(value.valueInRange(123, 1000), equals(123));
+      });
+
+      test("rejects a value outside the range", () {
+        expect(() => value.valueInRange(0, 122), throwsSassScriptException);
+        expect(() => value.valueInRange(124, 1000), throwsSassScriptException);
+      });
+    });
+
     test("equals the same number", () {
       expect(value, equalsWithHash(new SassNumber(123)));
     });
@@ -135,6 +148,19 @@ main() {
           value,
           equalsWithHash(
               new SassNumber(123 - math.pow(10, -SassNumber.precision - 1))));
+    });
+
+    group("valueInRange()", () {
+      test("clamps within the given range", () {
+        expect(value.valueInRange(0, 123), equals(123));
+        expect(value.valueInRange(123, 123), equals(123));
+        expect(value.valueInRange(123, 1000), equals(123));
+      });
+
+      test("rejects a value outside the range", () {
+        expect(() => value.valueInRange(0, 122), throwsSassScriptException);
+        expect(() => value.valueInRange(124, 1000), throwsSassScriptException);
+      });
     });
   });
 
