@@ -565,20 +565,14 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     index.assertNoUnits("index");
 
     var indexInt = index.assertInt("index");
-    var codepointIndex = _codepointForIndex(indexInt, string.text.runes.length,
-        allowNegative: true);
 
     // str-insert has unusual behavior for negative inputs. It guarantees that
-    // the $insert is at $index in the result, which means that we want to
-    // insert before that point if $index is positive and after if it's
+    // the `$insert` string is at `$index` in the result, which means that we
+    // want to insert before `$index` if it's positive and after if it's
     // negative.
-    if (indexInt < 0) {
-      if (codepointIndex < 0) {
-        codepointIndex = 0;
-      } else {
-        codepointIndex++;
-      }
-    }
+    if (indexInt < 0) indexInt++;
+
+    var codepointIndex = _codepointForIndex(indexInt, string.text.runes.length);
 
     var codeUnitIndex =
         codepointIndexToCodeUnitIndex(string.text, codepointIndex);
