@@ -981,7 +981,20 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 /// An enum of generated CSS styles.
 class OutputStyle {
   /// The standard CSS style, with each declaration on its own line.
+  ///
+  /// ```css
+  /// .sidebar {
+  ///   width: 100px;
+  /// }
+  /// ```
   static const expanded = const OutputStyle._("expanded");
+
+  /// A CSS style that produces as few bytes of output as possible.
+  ///
+  /// ```css
+  /// .sidebar{width:100px}
+  /// ```
+  static const compressed = const OutputStyle._("compressed");
 
   /// The name of the style.
   final String _name;

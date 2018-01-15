@@ -239,6 +239,7 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 /// Parse [style] into an [OutputStyle].
 OutputStyle _parseOutputStyle(String style) {
   if (style == null || style == 'expanded') return OutputStyle.expanded;
+  if (style == 'compressed') return OutputStyle.compressed;
   throw new ArgumentError('Unsupported output style "$style".');
 }
 

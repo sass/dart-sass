@@ -9,11 +9,13 @@ import 'src/compile.dart' as c;
 import 'src/exception.dart';
 import 'src/importer.dart';
 import 'src/sync_package_resolver.dart';
+import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
 export 'src/importer.dart';
 export 'src/value.dart' show ListSeparator;
 export 'src/value/external/value.dart';
+export 'src/visitor/serialize.dart' show OutputStyle;
 
 /// Loads the Sass file at [path], compiles it to CSS, and returns the result.
 ///
@@ -38,19 +40,23 @@ export 'src/value/external/value.dart';
 /// Each [Callable] defines a top-level function that will be invoked when the
 /// given name is called from Sass.
 ///
+/// The [style] parameter controls the style of the resulting CSS.
+///
 /// Throws a [SassException] if conversion fails.
 String compile(String path,
     {bool color: false,
     Iterable<Importer> importers,
     Iterable<String> loadPaths,
     SyncPackageResolver packageResolver,
-    Iterable<Callable> functions}) {
+    Iterable<Callable> functions,
+    OutputStyle style}) {
   var result = c.compile(path,
       color: color,
       importers: importers,
       loadPaths: loadPaths,
       packageResolver: packageResolver,
-      functions: functions);
+      functions: functions,
+      style: style);
   return result.css;
 }
 
@@ -79,6 +85,8 @@ String compile(String path,
 /// Each [Callable] defines a top-level function that will be invoked when the
 /// given name is called from Sass.
 ///
+/// The [style] parameter controls the style of the resulting CSS.
+///
 /// The [url] indicates the location from which [source] was loaded. It may be a
 /// [String] or a [Uri]. If [importer] is passed, [url] must be passed as well
 /// and `importer.load(url)` should return `source`.
@@ -91,6 +99,7 @@ String compileString(String source,
     SyncPackageResolver packageResolver,
     Iterable<String> loadPaths,
     Iterable<Callable> functions,
+    OutputStyle style,
     Importer importer,
     url}) {
   var result = c.compileString(source,
@@ -100,6 +109,7 @@ String compileString(String source,
       packageResolver: packageResolver,
       loadPaths: loadPaths,
       functions: functions,
+      style: style,
       importer: importer,
       url: url);
   return result.css;
@@ -115,13 +125,15 @@ Future<String> compileAsync(String path,
     Iterable<AsyncImporter> importers,
     SyncPackageResolver packageResolver,
     Iterable<String> loadPaths,
-    Iterable<AsyncCallable> functions}) async {
+    Iterable<AsyncCallable> functions,
+    OutputStyle style}) async {
   var result = await c.compileAsync(path,
       color: color,
       importers: importers,
       loadPaths: loadPaths,
       packageResolver: packageResolver,
-      functions: functions);
+      functions: functions,
+      style: style);
   return result.css;
 }
 
@@ -137,6 +149,7 @@ Future<String> compileStringAsync(String source,
     SyncPackageResolver packageResolver,
     Iterable<String> loadPaths,
     Iterable<AsyncCallable> functions,
+    OutputStyle style,
     AsyncImporter importer,
     url}) async {
   var result = await c.compileStringAsync(source,
@@ -146,6 +159,7 @@ Future<String> compileStringAsync(String source,
       packageResolver: packageResolver,
       loadPaths: loadPaths,
       functions: functions,
+      style: style,
       importer: importer,
       url: url);
   return result.css;
