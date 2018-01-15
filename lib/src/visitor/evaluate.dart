@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 5179f301f1c56e3690e6de5aa89be5c6ad03f6ff
+// Checksum: d4ffc2a9cc2c3e8e202705c44e03c7acb7822356
 
 import 'dart:math' as math;
 
@@ -775,8 +775,8 @@ class _EvaluateVisitor
     var url = _interpolationToValue(import.url);
     var supports = import.supports;
     var resolvedSupports = supports is SupportsDeclaration
-        ? "(${_evaluateToCss(supports.name)}: "
-            "${_evaluateToCss(supports.value)})"
+        ? "${_evaluateToCss(supports.name)}: "
+            "${_evaluateToCss(supports.value)}"
         : (supports == null ? null : _visitSupportsCondition(supports));
     var mediaQuery =
         import.media == null ? null : _visitMediaQueries(import.media);

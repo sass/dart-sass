@@ -781,8 +781,8 @@ class _EvaluateVisitor
     var url = await _interpolationToValue(import.url);
     var supports = import.supports;
     var resolvedSupports = supports is SupportsDeclaration
-        ? "(${await _evaluateToCss(supports.name)}: "
-            "${await _evaluateToCss(supports.value)})"
+        ? "${await _evaluateToCss(supports.name)}: "
+            "${await _evaluateToCss(supports.value)}"
         : (supports == null ? null : await _visitSupportsCondition(supports));
     var mediaQuery =
         import.media == null ? null : await _visitMediaQueries(import.media);

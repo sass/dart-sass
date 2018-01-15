@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/css.dart';
@@ -15,6 +16,10 @@ class CssComment extends CssNode {
   final String text;
 
   final FileSpan span;
+
+  /// Whether this comment starts with `/*!` and so should be preserved even in
+  /// compressed mode.
+  bool get isPreserved => text.codeUnitAt(2) == $exclamation;
 
   CssComment(this.text, this.span);
 

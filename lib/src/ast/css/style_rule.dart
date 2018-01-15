@@ -23,14 +23,6 @@ class CssStyleRule extends CssParentNode {
 
   final FileSpan span;
 
-  /// A style rule is invisible if it's empty, if all its children are
-  /// invisible, or if every complex selector in [selector] contains a
-  /// placeholder.
-  bool get isInvisible {
-    if (super.isInvisible) return true;
-    return selector.value.isInvisible;
-  }
-
   /// Creates a new [CssStyleRule].
   ///
   /// If [originalSelector] isn't passed, it defaults to [selector.value].
