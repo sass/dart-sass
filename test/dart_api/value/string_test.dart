@@ -11,7 +11,7 @@ import 'package:sass/sass.dart';
 import 'utils.dart';
 
 main() {
-  group("an unquoted string", () {
+  group("an unquoted ASCII string", () {
     SassString value;
     setUp(() => value = parseValue("foobar") as SassString);
 
@@ -39,9 +39,91 @@ main() {
       expect(value.assertMap, throwsSassScriptException);
       expect(value.assertNumber, throwsSassScriptException);
     });
+
+    test("sassLength returns the length", () {
+      expect(value.sassLength, equals(6));
+    });
+
+    group("sassIndexToStringIndex()", () {
+      test("converts a positive index to a Dart index", () {
+        expect(value.sassIndexToStringIndex(new SassNumber(1)), equals(0));
+        expect(value.sassIndexToStringIndex(new SassNumber(2)), equals(1));
+        expect(value.sassIndexToStringIndex(new SassNumber(3)), equals(2));
+        expect(value.sassIndexToStringIndex(new SassNumber(4)), equals(3));
+        expect(value.sassIndexToStringIndex(new SassNumber(5)), equals(4));
+        expect(value.sassIndexToStringIndex(new SassNumber(6)), equals(5));
+      });
+
+      test("converts a negative index to a Dart index", () {
+        expect(value.sassIndexToStringIndex(new SassNumber(-1)), equals(5));
+        expect(value.sassIndexToStringIndex(new SassNumber(-2)), equals(4));
+        expect(value.sassIndexToStringIndex(new SassNumber(-3)), equals(3));
+        expect(value.sassIndexToStringIndex(new SassNumber(-4)), equals(2));
+        expect(value.sassIndexToStringIndex(new SassNumber(-5)), equals(1));
+        expect(value.sassIndexToStringIndex(new SassNumber(-6)), equals(0));
+      });
+
+      test("rejects a non-number", () {
+        expect(() => value.sassIndexToStringIndex(new SassString("foo")),
+            throwsSassScriptException);
+      });
+
+      test("rejects a non-integer", () {
+        expect(() => value.sassIndexToStringIndex(new SassNumber(1.1)),
+            throwsSassScriptException);
+      });
+
+      test("rejects invalid indices", () {
+        expect(() => value.sassIndexToStringIndex(new SassNumber(0)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToStringIndex(new SassNumber(7)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToStringIndex(new SassNumber(-7)),
+            throwsSassScriptException);
+      });
+    });
+
+    group("sassIndexToRuneIndex()", () {
+      test("converts a positive index to a Dart index", () {
+        expect(value.sassIndexToRuneIndex(new SassNumber(1)), equals(0));
+        expect(value.sassIndexToRuneIndex(new SassNumber(2)), equals(1));
+        expect(value.sassIndexToRuneIndex(new SassNumber(3)), equals(2));
+        expect(value.sassIndexToRuneIndex(new SassNumber(4)), equals(3));
+        expect(value.sassIndexToRuneIndex(new SassNumber(5)), equals(4));
+        expect(value.sassIndexToRuneIndex(new SassNumber(6)), equals(5));
+      });
+
+      test("converts a negative index to a Dart index", () {
+        expect(value.sassIndexToRuneIndex(new SassNumber(-1)), equals(5));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-2)), equals(4));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-3)), equals(3));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-4)), equals(2));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-5)), equals(1));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-6)), equals(0));
+      });
+
+      test("rejects a non-number", () {
+        expect(() => value.sassIndexToRuneIndex(new SassString("foo")),
+            throwsSassScriptException);
+      });
+
+      test("rejects a non-integer", () {
+        expect(() => value.sassIndexToRuneIndex(new SassNumber(1.1)),
+            throwsSassScriptException);
+      });
+
+      test("rejects invalid indices", () {
+        expect(() => value.sassIndexToRuneIndex(new SassNumber(0)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToRuneIndex(new SassNumber(7)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToRuneIndex(new SassNumber(-7)),
+            throwsSassScriptException);
+      });
+    });
   });
 
-  group("a quoted string", () {
+  group("a quoted ASCII string", () {
     SassString value;
     setUp(() => value = parseValue('"foobar"') as SassString);
 
@@ -56,6 +138,69 @@ main() {
     test("equals the same string", () {
       expect(value, equalsWithHash(new SassString("foobar", quotes: false)));
       expect(value, equalsWithHash(new SassString("foobar", quotes: true)));
+    });
+  });
+
+  group("an unquoted Unicde", () {
+    SassString value;
+    setUp(() => value = parseValue("a👭b👬c") as SassString);
+
+    test("sassLength returns the length", () {
+      expect(value.sassLength, equals(5));
+    });
+
+    group("sassIndexToStringIndex()", () {
+      test("converts a positive index to a Dart index", () {
+        expect(value.sassIndexToStringIndex(new SassNumber(1)), equals(0));
+        expect(value.sassIndexToStringIndex(new SassNumber(2)), equals(1));
+        expect(value.sassIndexToStringIndex(new SassNumber(3)), equals(3));
+        expect(value.sassIndexToStringIndex(new SassNumber(4)), equals(4));
+        expect(value.sassIndexToStringIndex(new SassNumber(5)), equals(6));
+      });
+
+      test("converts a negative index to a Dart index", () {
+        expect(value.sassIndexToStringIndex(new SassNumber(-1)), equals(6));
+        expect(value.sassIndexToStringIndex(new SassNumber(-2)), equals(4));
+        expect(value.sassIndexToStringIndex(new SassNumber(-3)), equals(3));
+        expect(value.sassIndexToStringIndex(new SassNumber(-4)), equals(1));
+        expect(value.sassIndexToStringIndex(new SassNumber(-5)), equals(0));
+      });
+
+      test("rejects invalid indices", () {
+        expect(() => value.sassIndexToStringIndex(new SassNumber(0)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToStringIndex(new SassNumber(6)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToStringIndex(new SassNumber(-6)),
+            throwsSassScriptException);
+      });
+    });
+
+    group("sassIndexToRuneIndex()", () {
+      test("converts a positive index to a Dart index", () {
+        expect(value.sassIndexToRuneIndex(new SassNumber(1)), equals(0));
+        expect(value.sassIndexToRuneIndex(new SassNumber(2)), equals(1));
+        expect(value.sassIndexToRuneIndex(new SassNumber(3)), equals(2));
+        expect(value.sassIndexToRuneIndex(new SassNumber(4)), equals(3));
+        expect(value.sassIndexToRuneIndex(new SassNumber(5)), equals(4));
+      });
+
+      test("converts a negative index to a Dart index", () {
+        expect(value.sassIndexToRuneIndex(new SassNumber(-1)), equals(4));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-2)), equals(3));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-3)), equals(2));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-4)), equals(1));
+        expect(value.sassIndexToRuneIndex(new SassNumber(-5)), equals(0));
+      });
+
+      test("rejects invalid indices", () {
+        expect(() => value.sassIndexToRuneIndex(new SassNumber(0)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToRuneIndex(new SassNumber(6)),
+            throwsSassScriptException);
+        expect(() => value.sassIndexToRuneIndex(new SassNumber(-6)),
+            throwsSassScriptException);
+      });
     });
   });
 

@@ -45,6 +45,22 @@ export 'callable/user_defined.dart';
 ///
 /// * When in doubt, lists should default to comma-separated, strings should
 ///   default to quoted, and number should default to unitless.
+///
+/// * In Sass, lists and strings use one-based indexing and use negative indices
+///   to index from the end of value. Functions should follow these conventions.
+///   The [Value.sassIndexToListIndex] and [SassString.sassIndexToStringIndex]
+///   methods can be used to do this automatically.
+///
+/// * String indexes in Sass refer to Unicode code points while Dart string
+///   indices refer to UTF-16 code units. For example, the character U+1F60A,
+///   Smiling Face With Smiling Eyes, is a single Unicode code point but is
+///   represented in UTF-16 as two code units (`0xD83D` and `0xDE0A`). So in
+///   Dart, `"a😊b".codeUnitAt(1)` returns `0xD83D`, whereas in Sass
+///   `str-slice("a😊b", 1, 1)` returns `"😊"`. Functions should follow this
+///   convention. The [SassString.sassIndexToStringIndex] and
+///   [SassString.sassIndexToRuneIndex] methods can be used to do this
+///   automatically, and the [SassString.sassLength] getter can be used to
+///   access a string's length in code points.
 abstract class Callable extends AsyncCallable {
   /// Creates a callable with the given [name] and [arguments] that runs
   /// [callback] when called.
