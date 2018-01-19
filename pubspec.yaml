@@ -11,7 +11,7 @@ environment:
   sdk: '>=1.22.0 <2.0.0'
 
 dependencies:
-  args: "^0.13.0"
+  args: ">=0.13.0 <2.0.0"
   async: ">=1.10.0 <3.0.0"
   charcode: "^1.1.0"
   collection: "^1.8.0"
