@@ -5,10 +5,6 @@
 @TestOn('node')
 @Tags(const ['node'])
 
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:js/js.dart';
 // This is unsafe prior to sdk#30098, which landed in Dart 1.25.0-dev.7.0.
 import 'package:path/path.dart' as unsafePath;
 import 'package:test/test.dart';

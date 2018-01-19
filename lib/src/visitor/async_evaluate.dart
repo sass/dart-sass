@@ -32,12 +32,6 @@ import 'interface/expression.dart';
 /// A function that takes a callback with no arguments.
 typedef Future _ScopeCallback(Future callback());
 
-/// The URL used in stack traces when no source URL is available.
-final _noSourceUrl = Uri.parse("-");
-
-/// The default URL to pass in to Node importers for previous imports.
-final _defaultPrevious = new Uri(path: 'stdin');
-
 /// Converts [stylesheet] to a plain CSS tree.
 ///
 /// If [importers] (or, on Node.js, [nodeImporter]) is passed, it's used to
@@ -1401,7 +1395,7 @@ class _EvaluateVisitor
     try {
       result = await callback(positional);
       if (result == null) throw "Custom functions may not return Dart's null.";
-    } catch (error, stackTrace) {
+    } catch (error) {
       String message;
       try {
         message = error.message as String;

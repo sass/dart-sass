@@ -6,14 +6,12 @@
 @Tags(const ['node'])
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
 import 'package:sass/src/util/path.dart';
-import 'package:sass/src/node/utils.dart';
 import 'package:sass/src/value/number.dart';
 
 import '../ensure_npm_package.dart';
