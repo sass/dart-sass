@@ -8,9 +8,6 @@ import 'dart:convert';
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
-import 'package:sass/src/util/path.dart';
-
-import '../ensure_npm_package.dart';
 import '../hybrid.dart';
 import 'api.dart';
 

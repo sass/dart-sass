@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 4d48952f8cd737f998fc1f67e801f4ea0ab69671
+// Checksum: 5179f301f1c56e3690e6de5aa89be5c6ad03f6ff
 
 import 'dart:math' as math;
 
@@ -35,12 +35,6 @@ import 'interface/expression.dart';
 
 /// A function that takes a callback with no arguments.
 typedef void _ScopeCallback(void callback());
-
-/// The URL used in stack traces when no source URL is available.
-final _noSourceUrl = Uri.parse("-");
-
-/// The default URL to pass in to Node importers for previous imports.
-final _defaultPrevious = new Uri(path: 'stdin');
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
@@ -1379,7 +1373,7 @@ class _EvaluateVisitor
     try {
       result = callback(positional);
       if (result == null) throw "Custom functions may not return Dart's null.";
-    } catch (error, stackTrace) {
+    } catch (error) {
       String message;
       try {
         message = error.message as String;
