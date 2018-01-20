@@ -132,6 +132,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   void visitComment(CssComment node) {
     var minimumIndentation = _minimumIndentation(node.text);
+    assert(minimumIndentation != -1);
     if (minimumIndentation == null) {
       _writeIndentation();
       _buffer.write(node.text);
@@ -261,6 +262,10 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     if (minimumIndentation == null) {
       _buffer.write(value);
       return;
+    } else if (minimumIndentation == -1) {
+      _buffer.write(value.trimRight());
+      _buffer.writeCharCode($space);
+      return;
     }
 
     if (node.value.span != null) {
@@ -271,8 +276,11 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _writeWithIndent(value, minimumIndentation);
   }
 
-  /// Returns the indentation level of the least-indented, non-empty line in
-  /// [text].
+  /// Returns the indentation level of the least-indented non-empty line in
+  /// [text] after the first.
+  ///
+  /// Returns `null` if [text] contains no newlines, and -1 if it contains
+  /// newlines but no lines are indented.
   int _minimumIndentation(String text) {
     var scanner = new LineScanner(text);
     while (!scanner.isDone && scanner.readChar() != $lf) {}
@@ -290,23 +298,54 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
       while (!scanner.isDone && scanner.readChar() != $lf) {}
     }
 
-    return min;
+    return min ?? -1;
   }
 
-  /// Writes [text] to [_buffer], adding [minimumIndentation] to each non-empty
-  /// line.
+  /// Writes [text] to [_buffer], replacing [minimumIndentation] with
+  /// [_indentation] for each non-empty line after the first.
+  ///
+  /// Compresses trailing empty lines of [text] into a single trailing space.
   void _writeWithIndent(String text, int minimumIndentation) {
     var scanner = new LineScanner(text);
-    while (!scanner.isDone && scanner.peekChar() != $lf) {
-      _buffer.writeCharCode(scanner.readChar());
+
+    // Write the first line as-is.
+    while (!scanner.isDone) {
+      var next = scanner.readChar();
+      if (next == $lf) break;
+      _buffer.writeCharCode(next);
     }
 
-    while (!scanner.isDone) {
-      _buffer.writeCharCode(scanner.readChar());
-      for (var i = 0; i < minimumIndentation; i++) scanner.readChar();
+    while (true) {
+      assert(isWhitespace(scanner.peekChar(-1)));
+
+      // Scan forward until we hit non-whitespace or the end of [text].
+      var lineStart = scanner.position;
+      var newlines = 1;
+      while (true) {
+        // If we hit the end of [text], we still need to preserve the fact that
+        // whitespace exists because it could matter for custom properties.
+        if (scanner.isDone) {
+          _buffer.writeCharCode($space);
+          return;
+        }
+
+        var next = scanner.readChar();
+        if (next == $space || next == $tab) continue;
+        if (next != $lf) break;
+        lineStart = scanner.position;
+        newlines++;
+      }
+
+      _writeTimes($lf, newlines);
       _writeIndentation();
-      while (!scanner.isDone && scanner.peekChar() != $lf) {
-        _buffer.writeCharCode(scanner.readChar());
+      _buffer.write(scanner.substring(lineStart + minimumIndentation));
+
+      // Scan and write until we hit a newline or the end of [text].
+      while (true) {
+        if (scanner.isDone) return;
+        var next = scanner.readChar();
+        if (next == $lf) break;
+        _buffer.writeCharCode(next);
       }
     }
   }
@@ -848,9 +887,13 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   }
 
   /// Writes indentation based on [_indentation].
-  void _writeIndentation() {
-    for (var i = 0; i < _indentation * _indentWidth; i++) {
-      _buffer.writeCharCode(_indentCharacter);
+  void _writeIndentation() =>
+      _writeTimes(_indentCharacter, _indentation * _indentWidth);
+
+  /// Writes [char] to [_buffer] with [times] repetitions.
+  void _writeTimes(int char, int times) {
+    for (var i = 0; i < times; i++) {
+      _buffer.writeCharCode(char);
     }
   }
 
