@@ -284,7 +284,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   int _minimumIndentation(String text) {
     var scanner = new LineScanner(text);
     while (!scanner.isDone && scanner.readChar() != $lf) {}
-    if (scanner.isDone) return null;
+    if (scanner.isDone) return scanner.peekChar(-1) == $lf ? -1 : null;
 
     int min;
     while (!scanner.isDone) {
