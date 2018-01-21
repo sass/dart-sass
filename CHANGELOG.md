@@ -38,6 +38,8 @@
 
 ### Node JS API
 
+* Support the `functions` option.
+
 * Support the `"compressed"` value for the `outputStyle` option.
 
 ## 1.0.0-beta.4

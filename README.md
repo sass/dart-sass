@@ -148,12 +148,12 @@ Both `render()` and `renderSync()` support the following options:
 * [`indentWidth`](https://github.com/sass/node-sass#indentwidth)
 * [`linefeed`](https://github.com/sass/node-sass#linefeed)
 * [`importer`](https://github.com/sass/node-sass#importer--v200---experimental)
-* Only the `"expanded"` value of
-  [`outputStyle`](https://github.com/sass/node-sass#outputstyle) is supported.
+* [`functions`](https://github.com/sass/node-sass#functions--v300---experimental)
+* Only the `"expanded"` and `"compressed"` values of
+  [`outputStyle`](https://github.com/sass/node-sass#outputstyle) are supported.
 
 The following options are not yet supported, but are intended:
 
-* [`functions`](https://github.com/sass/node-sass#functions--v300---experimental)
 * [`omitSourceMapUrl`](https://github.com/sass/node-sass#omitsourcemapurl)
 * [`outFile`](https://github.com/sass/node-sass#outfile)
 * [`sourceMap`](https://github.com/sass/node-sass#sourcemap)

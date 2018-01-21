@@ -30,10 +30,15 @@ class AsyncBuiltInCallable implements AsyncCallable {
   ///
   /// The argument declaration is parsed from [arguments], which should not
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
-  AsyncBuiltInCallable(this.name, String arguments,
+  AsyncBuiltInCallable(String name, String arguments,
+      FutureOr<Value> callback(List<Value> arguments))
+      : this.parsed(name, new ArgumentDeclaration.parse(arguments), callback);
+
+  /// Creates a callable with a single [arguments] declaration and a single
+  /// [callback].
+  AsyncBuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
       FutureOr<Value> callback(List<Value> arguments)) {
-    _overloads
-        .add(new Tuple2(new ArgumentDeclaration.parse(arguments), callback));
+    _overloads.add(new Tuple2(arguments, callback));
   }
 
   /// Creates a callable with multiple implementations.
