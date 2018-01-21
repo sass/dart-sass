@@ -24,12 +24,6 @@ class CssAtRule extends CssParentNode {
 
   final FileSpan span;
 
-  /// An unknown at-rule is never invisible.
-  ///
-  /// Because we don't know the semantics of unknown rules, we can't guarantee
-  /// that (for example) `@foo {}` isn't meaningful.
-  bool get isInvisible => false;
-
   CssAtRule(this.name, this.span, {bool childless: false, this.value})
       : isChildless = childless;
 

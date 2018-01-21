@@ -1,5 +1,7 @@
 ## 1.0.0-beta.5
 
+* Add a `compressed` output style.
+
 * Emit a warning when `&&` is used, since it's probably not what the user means.
 
 * `round()` now returns the correct results for negative numbers that should
@@ -23,6 +25,14 @@
 * Expose the `Value` type and its subclasses, as well as the top-level
   `sassTrue`, `sassFalse`, and `sassNull` values, which represent Sass values
   that may be passed into or returned from custom functions.
+
+* Expose the `OutputStyle` enum, and add a `style` parameter to `compile()`,
+  `compleString()`, `compileAsync()`, and `compileStringAsync()` that allows
+  users to control the output style.
+
+### Node JS API
+
+* Support the `"compressed"` value for the `outputStyle` option.
 
 ## 1.0.0-beta.4
 

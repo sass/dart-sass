@@ -20,6 +20,9 @@ class CssMediaQuery {
   /// Feature queries, including parentheses.
   final List<String> features;
 
+  /// Whether this media query only specifies features.
+  bool get isCondition => modifier == null && type == null;
+
   /// Parses a media query from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.

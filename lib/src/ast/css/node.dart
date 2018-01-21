@@ -7,6 +7,8 @@ import 'dart:collection';
 import '../../visitor/interface/css.dart';
 import '../../visitor/serialize.dart';
 import '../node.dart';
+import 'at_rule.dart';
+import 'style_rule.dart';
 
 /// A statement in a plain CSS syntax tree.
 abstract class CssNode extends AstNode {
@@ -19,9 +21,6 @@ abstract class CssNode extends AstNode {
   /// This makes [remove] more efficient.
   int _indexInParent;
 
-  /// If `true`, this node should not be emitted to CSS.
-  bool get isInvisible => false;
-
   /// Whether this was generated from the last node in a nested Sass tree that
   /// got flattened during evaluation.
   var isGroupEnd = false;
@@ -32,9 +31,29 @@ abstract class CssNode extends AstNode {
     var siblings = _parent.children;
     for (var i = _indexInParent + 1; i < siblings.length; i++) {
       var sibling = siblings[i];
-      if (!sibling.isInvisible) return true;
+      if (!_isInvisible(sibling)) return true;
     }
     return false;
+  }
+
+  /// Returns whether [node] is invisible for the purposes of
+  /// [hasFollowingSibling].
+  ///
+  /// This can return a false negative for a comment node in compressed mode,
+  /// since the AST doesn't know the output style, but that's an extremely
+  /// narrow edge case so we don't worry about it.
+  bool _isInvisible(CssNode node) {
+    if (node is CssParentNode) {
+      // An unknown at-rule is never invisible. Because we don't know the
+      // semantics of unknown rules, we can't guarantee that (for example)
+      // `@foo {}` isn't meaningful.
+      if (node is CssAtRule) return false;
+
+      if (node is CssStyleRule && node.selector.value.isInvisible) return true;
+      return node.children.every(_isInvisible);
+    } else {
+      return false;
+    }
   }
 
   /// Calls the appropriate visit method on [visitor].
@@ -66,16 +85,12 @@ abstract class CssParentNode extends CssNode {
   final List<CssNode> children;
   final List<CssNode> _children;
 
-  /// By default, a parent node is invisible if it's empty or if all its
-  /// children are invisible.
-  bool get isInvisible {
-    if (_isInvisible == null) {
-      _isInvisible = children.every((child) => child.isInvisible);
-    }
-    return _isInvisible;
-  }
-
-  bool _isInvisible;
+  /// Whether the rule has no children and should be emitted without curly
+  /// braces.
+  ///
+  /// This implies `children.isEmpty`, but the reverse is not true—for a rule
+  /// like `@foo {}`, [children] is empty but [isChildless] is `false`.
+  bool get isChildless => false;
 
   CssParentNode() : this._([]);
 

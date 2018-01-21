@@ -20,7 +20,7 @@ main(List<String> args) async {
     ..addOption('style',
         abbr: 's',
         help: 'Output style.',
-        allowed: ['expanded'],
+        allowed: ['expanded', 'compressed'],
         defaultsTo: 'expanded')
     ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
     ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
@@ -59,19 +59,22 @@ main(List<String> args) async {
 
   var color =
       options.wasParsed('color') ? options['color'] as bool : hasTerminal;
+  var style = options['style'] == 'compressed'
+      ? OutputStyle.compressed
+      : OutputStyle.expanded;
   var asynchronous = options['async'] as bool;
   try {
     String css;
     if (stdinFlag) {
-      css = await _compileStdin(asynchronous: asynchronous);
+      css = await _compileStdin(style: style, asynchronous: asynchronous);
     } else {
       var input = options.rest.first;
       if (input == '-') {
-        css = await _compileStdin(asynchronous: asynchronous);
+        css = await _compileStdin(style: style, asynchronous: asynchronous);
       } else if (asynchronous) {
-        css = await compileAsync(input, color: color);
+        css = await compileAsync(input, color: color, style: style);
       } else {
-        css = compile(input, color: color);
+        css = compile(input, color: color, style: style);
       }
     }
 
@@ -135,13 +138,14 @@ Future<String> _loadVersion() async {
 
 /// Compiles Sass from standard input and returns the result.
 Future<String> _compileStdin(
-    {bool asynchronous: false, bool color: false}) async {
+    {bool color: false, OutputStyle style, bool asynchronous: false}) async {
   var text = await readStdin();
   var importer = new FilesystemImporter('.');
   if (asynchronous) {
-    return await compileStringAsync(text, color: color, importer: importer);
+    return await compileStringAsync(text,
+        color: color, style: style, importer: importer);
   } else {
-    return compileString(text, color: color, importer: importer);
+    return compileString(text, color: color, style: style, importer: importer);
   }
 }
 
