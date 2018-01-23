@@ -407,11 +407,11 @@ class SassNumber extends Value implements ext.SassNumber {
       List<String> denominators2) {
     // Short-circuit without allocating any new unit lists if possible.
     if (numerators1.isEmpty) {
-      if (denominators2.isEmpty) {
+      if (denominators2.isEmpty &&
+          !_areAnyConvertible(denominators1, numerators2)) {
         return new SassNumber.withUnits(value,
             numeratorUnits: numerators2, denominatorUnits: denominators1);
-      } else if (denominators1.isEmpty &&
-          !_areAnyConvertible(numerators1, denominators2)) {
+      } else if (denominators1.isEmpty) {
         return new SassNumber.withUnits(value,
             numeratorUnits: numerators2, denominatorUnits: denominators2);
       }
@@ -444,7 +444,7 @@ class SassNumber extends Value implements ext.SassNumber {
       removeFirstWhere<String>(mutableDenominators1, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
-        value *= factor;
+        value /= factor;
         return true;
       }, orElse: () {
         newNumerators.add(numerator);

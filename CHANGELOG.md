@@ -13,6 +13,12 @@
 * Fix some cases where equivalent numbers wouldn't count as the same keys in
   maps.
 
+* Fix a bug where multiplication like `(1/1px) * (1px/1)` wouldn't properly
+  cancel out units.
+
+* Fix a bug where dividing by a compatible unit would produce an invalid
+  result.
+
 ### Dart API
 
 * Add a `functions` parameter to `compile()`, `compleString()`,
