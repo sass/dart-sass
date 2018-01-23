@@ -444,7 +444,7 @@ class SassNumber extends Value implements ext.SassNumber {
       removeFirstWhere<String>(mutableDenominators1, (denominator) {
         var factor = _conversionFactor(numerator, denominator);
         if (factor == null) return false;
-        value *= factor;
+        value /= factor;
         return true;
       }, orElse: () {
         newNumerators.add(numerator);
