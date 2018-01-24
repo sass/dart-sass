@@ -7,13 +7,14 @@ import '../util/path.dart';
 
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///
-/// This tries to fill in extensions and partial prefixes. If no file can be
+/// This tries to fill in extensions and partial prefixes and check if a directory default. If no file can be
 /// found, it returns `null`.
 String resolveImportPath(String path) {
   var extension = p.extension(path);
-  return extension == '.sass' || extension == '.scss'
+  var file = extension == '.sass' || extension == '.scss'
       ? _tryPath(path)
       : _tryPathWithExtensions(path);
+  return file != null ? file : _tryPathAsDirectory(path);
 }
 
 /// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
@@ -29,4 +30,12 @@ String _tryPath(String path) {
   if (fileExists(partial)) return partial;
   if (fileExists(path)) return path;
   return null;
+}
+
+/// Checks if path given is a directory then searches for a index file using [_tryPathWithExtensions]
+/// returns the resolved path.
+///
+/// Otherwise, returns `null`.
+String _tryPathAsDirectory(String path) {
+  return dirExists(path) ? _tryPathWithExtensions(p.join(path, 'index')) : null;
 }
