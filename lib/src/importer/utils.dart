@@ -11,10 +11,12 @@ import '../util/path.dart';
 /// found, it returns `null`.
 String resolveImportPath(String path) {
   var extension = p.extension(path);
-  var file = extension == '.sass' || extension == '.scss'
-      ? _tryPath(path)
-      : _tryPathWithExtensions(path);
-  return file != null ? file : _tryPathAsDirectory(path);
+  if (extension == '.sass' || extension == '.scss') {
+    return _tryPath(path);
+  } else {
+    var file = _tryPathWithExtensions(path);
+    return file != null ? file : _tryPathAsDirectory(path);
+  }
 }
 
 /// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
