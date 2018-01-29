@@ -7,7 +7,7 @@
 # executable and a snapshot of Sass. It can be created with `pub run grinder
 # package`.
 
-function follow_links() {
+follow_links() {
   file="$1"
   while [ -h "$file" ]; do
     # On Mac OS, readlink -f doesn't work.

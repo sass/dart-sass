@@ -19,6 +19,8 @@
 * Fix a bug where dividing by a compatible unit would produce an invalid
   result.
 
+* Remove a non-`sh`-compatible idiom from the standalone shell script.
+
 ### Dart API
 
 * Add a `functions` parameter to `compile()`, `compleString()`,
