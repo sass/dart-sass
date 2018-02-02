@@ -1,0 +1,21 @@
+// This file is used to train application snapshots. It exercises the Sass value
+// types and the most common AST types so that they're already JIT-compiled when
+// the snapshot begins running.
+
+/* loud comment */
+
+@media screen {
+  type {
+    &.class#id[attr]%placeholder:pseudo {
+      number: 1.5px;
+      color: #abc;
+      list: 1 2 3;
+      map: map-get((1: 2), 1);
+      string: foo;
+      boolean: true;
+      null: null;
+    }
+  }
+}
+
+* {@extend %placeholder}
