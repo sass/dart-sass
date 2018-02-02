@@ -35,6 +35,9 @@ bool get _isDevSdk => _dartVersion.isPreRelease;
 /// The root of the Dart SDK.
 final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
 
+/// Whether we're using a 64-bit Dart SDK.
+bool get _is64Bit => Platform.version.contains("x64");
+
 main(List<String> args) => grind(args);
 
 @DefaultTask('Compile async code and reformat.')
@@ -49,22 +52,32 @@ format() {
         ..addAll(existingSourceDirs.map((dir) => dir.path)));
 }
 
-@Task('Build Dart snapshot.')
+@Task('Build Dart script snapshot.')
 snapshot() {
   _ensureBuild();
   Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
 }
 
+@Task('Build Dart application snapshot.')
+appSnapshot() {
+  _ensureBuild();
+  Dart.run('bin/sass.dart',
+      arguments: ['tool/app-snapshot-input.scss'],
+      vmArgs: [
+        '--snapshot=build/sass.dart.app.snapshot',
+        '--snapshot-kind=app-jit'
+      ],
+      quiet: true);
+}
+
 @Task('Build standalone packages for all OSes.')
-@Depends(snapshot)
+@Depends(snapshot, appSnapshot)
 package() async {
   var client = new http.Client();
-  await _buildPackage(client, "linux", "x64");
-  await _buildPackage(client, "linux", "ia32");
-  await _buildPackage(client, "macos", "x64");
-  await _buildPackage(client, "macos", "ia32");
-  await _buildPackage(client, "windows", "x64");
-  await _buildPackage(client, "windows", "ia32");
+  await Future.wait(["linux", "macos", "windows"].expand((os) => [
+        _buildPackage(client, os, x64: true),
+        _buildPackage(client, os, x64: false)
+      ]));
   client.close();
 }
 
@@ -245,10 +258,12 @@ void _ensureBuild() {
   new Directory('build').createSync(recursive: true);
 }
 
-/// Builds a standalone Sass package for the given [os] and [architecture].
+/// Builds a standalone Sass package for the given [os] and architecture.
 ///
 /// The [client] is used to download the corresponding Dart SDK.
-Future _buildPackage(http.Client client, String os, String architecture) async {
+Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
+  var architecture = x64 ? "x64" : "ia32";
+
   // TODO: Compile a single executable that embeds the Dart VM and the snapshot
   // when dart-lang/sdk#27596 is fixed.
   var channel = _isDevSdk ? "dev" : "stable";
@@ -267,13 +282,20 @@ Future _buildPackage(http.Client client, String os, String architecture) async {
           ? file.name.endsWith("/bin/dart.exe")
           : file.name.endsWith("/bin/dart"));
   var executable = DelegatingList.typed<int>(dartExecutable.content as List);
+
+  // Use the app snapshot when packaging for the current operating system.
+  //
+  // TODO: Use an app snapshot everywhere when dart-lang/sdk#28617 is fixed.
+  var snapshot = os == Platform.operatingSystem && x64 == _is64Bit
+      ? "build/sass.dart.app.snapshot"
+      : "build/sass.dart.snapshot";
+
   var archive = new Archive()
     ..addFile(_fileFromBytes(
         "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
         executable: true))
     ..addFile(_file("dart-sass/src/DART_LICENSE", p.join(_sdkDir, 'LICENSE')))
-    ..addFile(
-        _file("dart-sass/src/sass.dart.snapshot", "build/sass.dart.snapshot"))
+    ..addFile(_file("dart-sass/src/sass.dart.snapshot", snapshot))
     ..addFile(_file("dart-sass/src/SASS_LICENSE", "LICENSE"))
     ..addFile(_fileFromString(
         "dart-sass/dart-sass${os == 'windows' ? '.bat' : ''}",
