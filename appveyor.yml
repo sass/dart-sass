@@ -30,5 +30,5 @@ test_script:
     If ($env:NODE -eq "true") {
       pub run test -x dart2 -t node
     } Else {
-      pub run test -x dart2 -x node
+      pub run test -p vm -x dart2 -x node
     }
