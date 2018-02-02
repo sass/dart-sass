@@ -372,7 +372,10 @@ a {
           equals("Error: Expected expression.\n"
               "  $sassPath 1:7  root stylesheet"));
     });
-  });
+  },
+      // render() and renderError() use Zone.bindBinaryCallbackGuarded(), which
+      // is only available on Dart 2.
+      tags: "dart2");
 }
 
 /// Returns [path] in the format it appears in formatted stack traces.

@@ -63,10 +63,18 @@ script:
   elif [ "$TASK" = tests ]; then
     if [ -z "$NODE_VERSION" ]; then
       echo "${bold}Running Dart tests against $(dart --version &> /dev/stdout).$none";
-      pub run test -x node;
+      if [ "$DART_CHANNEL" = dev ]; then
+        pub run test -x node;
+      else
+        pub run test -x dart2 -x node;
+      fi
     else
       echo "${bold}Running Node tests against Node $(node --version).$none";
-      pub run test -t node;
+      if [ "$DART_CHANNEL" = dev ]; then
+        pub run test -t node;
+      else
+        pub run test -x dart2 -t node;
+      fi
     fi;
   else
     echo "${bold}Running sass-spec against $(dart --version &> /dev/stdout).$none";

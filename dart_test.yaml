@@ -2,4 +2,7 @@ tags:
   # Indicates tests that require Node.js.
   node:
 
+  # Indicates tests that only run on Dart 2.
+  dart2:
+
 platforms: [vm, node]
