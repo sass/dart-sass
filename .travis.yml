@@ -71,9 +71,9 @@ script:
     else
       echo "${bold}Running Node tests against Node $(node --version).$none";
       if [ "$DART_CHANNEL" = dev ]; then
-        pub run test -t node;
+        pub run test -j 2 -t node;
       else
-        pub run test -x dart2 -t node;
+        pub run test -j 2 -x dart2 -t node;
       fi
     fi;
   else
