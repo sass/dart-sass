@@ -12,6 +12,7 @@ class RenderOptions {
   external String get file;
   external String get data;
   external dynamic get importer;
+  external dynamic get functions;
   external List<String> get includePaths;
   external bool get indentedSyntax;
   external String get outputStyle;
@@ -24,6 +25,7 @@ class RenderOptions {
       {String file,
       String data,
       importer,
+      functions,
       List<String> includePaths,
       bool indentedSyntax,
       String outputStyle,

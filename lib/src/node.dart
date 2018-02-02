@@ -6,7 +6,10 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:js/js.dart';
+import 'package:tuple/tuple.dart';
 
+import 'ast/sass.dart';
+import 'callable.dart';
 import 'compile.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
@@ -17,9 +20,12 @@ import 'node/render_context_options.dart';
 import 'node/render_error.dart';
 import 'node/render_options.dart';
 import 'node/render_result.dart';
+import 'node/types.dart';
+import 'node/value.dart';
 import 'node/utils.dart';
+import 'parse/scss.dart';
 import 'util/path.dart';
-import 'value/number.dart';
+import 'value.dart';
 import 'visitor/serialize.dart';
 
 typedef _Importer(String url, String prev, [void done(result)]);
@@ -38,6 +44,15 @@ void main() {
       "[Dart]\n"
       "dart2js\t${const String.fromEnvironment('dart-version')}\t"
       "(Dart Compiler)\t[Dart]";
+
+  exports.types = new Types(
+      Boolean: booleanConstructor,
+      Color: colorConstructor,
+      List: listConstructor,
+      Map: mapConstructor,
+      Null: nullConstructor,
+      Number: numberConstructor,
+      String: stringConstructor);
 }
 
 /// Converts Sass to CSS.
@@ -81,6 +96,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
 
     result = await compileStringAsync(options.data,
         nodeImporter: _parseImporter(options, start),
+        functions: _parseFunctions(options, asynch: true),
         indented: options.indentedSyntax ?? false,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
@@ -90,6 +106,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   } else if (options.file != null) {
     result = await compileAsync(options.file,
         nodeImporter: _parseImporter(options, start),
+        functions: _parseFunctions(options, asynch: true),
         indented: options.indentedSyntax,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
@@ -126,6 +143,7 @@ RenderResult _renderSync(RenderOptions options) {
 
       result = compileString(options.data,
           nodeImporter: _parseImporter(options, start),
+          functions: DelegatingList.typed(_parseFunctions(options)),
           indented: options.indentedSyntax ?? false,
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
@@ -135,6 +153,7 @@ RenderResult _renderSync(RenderOptions options) {
     } else if (options.file != null) {
       result = compile(options.file,
           nodeImporter: _parseImporter(options, start),
+          functions: DelegatingList.typed(_parseFunctions(options)),
           indented: options.indentedSyntax,
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
@@ -182,6 +201,60 @@ RenderError _wrapException(SassException exception) {
           ? 'stdin'
           : p.fromUri(exception.span.sourceUrl),
       status: 1);
+}
+
+/// Parses `functions` from [RenderOptions] into a list of [Callable]s or
+/// [AsyncCallable]s.
+///
+/// This is typed to always return [AsyncCallable], but in practice it will
+/// return a `List<Callable>` if [asynch] is `false`.
+List<AsyncCallable> _parseFunctions(RenderOptions options,
+    {bool asynch: false}) {
+  if (options.functions == null) return const [];
+
+  var result = <AsyncCallable>[];
+  jsForEach(options.functions, (signature, callback) {
+    Tuple2<String, ArgumentDeclaration> tuple;
+    try {
+      tuple = new ScssParser(signature as String).parseSignature();
+    } on SassFormatException catch (error) {
+      throw new SassFormatException(
+          'Invalid signature "${signature}": ${error.message}', error.span);
+    }
+
+    if (options.fiber != null) {
+      result.add(
+          new BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
+        var fiber = options.fiber.current;
+        var jsArguments = arguments.map(wrapValue).toList()
+          ..add(allowInterop(([result]) {
+            // Schedule a microtask so we don't try to resume the running fiber
+            // if [importer] calls `done()` synchronously.
+            scheduleMicrotask(() => fiber.run(result));
+          }));
+        var result = Function.apply(callback as Function, jsArguments);
+        return unwrapValue(
+            isUndefined(result) ? options.fiber.yield() : result);
+      }));
+    } else if (!asynch) {
+      result.add(new BuiltInCallable.parsed(
+          tuple.item1,
+          tuple.item2,
+          (arguments) => unwrapValue(Function.apply(
+              callback as Function, arguments.map(wrapValue).toList()))));
+    } else {
+      result.add(new AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
+          (arguments) async {
+        var completer = new Completer();
+        var jsArguments = arguments.map(wrapValue).toList()
+          ..add(allowInterop(([result]) => completer.complete(result)));
+        var result = Function.apply(callback as Function, jsArguments);
+        return unwrapValue(
+            isUndefined(result) ? await completer.future : result);
+      }));
+    }
+  });
+  return result;
 }
 
 /// Parses [importer] and [includePaths] from [RenderOptions] into a

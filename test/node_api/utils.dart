@@ -35,7 +35,7 @@ Matcher toStringAndMessageEqual(String text) => predicate((error) {
 Future<String> render(RenderOptions options) {
   var completer = new Completer<String>();
   sass.render(options,
-      allowInterop(Zone.current.bindBinaryCallback((error, result) {
+      allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(error, isNull);
     completer.complete(UTF8.decode(result.css));
   })));
@@ -47,7 +47,7 @@ Future<String> render(RenderOptions options) {
 Future<RenderError> renderError(RenderOptions options) {
   var completer = new Completer<RenderError>();
   sass.render(options,
-      allowInterop(Zone.current.bindBinaryCallback((error, result) {
+      allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(result, isNull);
     completer.complete(error);
   })));

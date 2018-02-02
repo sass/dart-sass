@@ -55,9 +55,83 @@ class Sass {
   external RenderResult renderSync(RenderOptions args);
   external void render(RenderOptions args,
       void callback(RenderError error, RenderResult result));
+  external SassTypes get types;
 }
 
 @JS("Error")
 class JSError {
   external JSError(String message);
+}
+
+@JS()
+class SassTypes {
+  external NodeSassBooleanClass get Boolean;
+  external Function get Color;
+  external Function get List;
+  external Function get Map;
+  external NodeSassNullClass get Null;
+  external Function get Number;
+  external Function get String;
+}
+
+@JS()
+class NodeSassBooleanClass implements Function {
+  external call();
+  external get TRUE;
+  external get FALSE;
+}
+
+@JS()
+class NodeSassBoolean {
+  external bool getValue();
+}
+
+@JS()
+class NodeSassColor {
+  external int getR();
+  external void setR(num value);
+  external int getG();
+  external void setG(num value);
+  external int getB();
+  external void setB(num value);
+  external num getA();
+  external void setA(num value);
+}
+
+@JS()
+class NodeSassList {
+  external getValue(int index);
+  external void setValue(int index, value);
+  external bool getSeparator();
+  external void setSeparator(bool value);
+  external int getLength();
+}
+
+@JS()
+class NodeSassMap {
+  external getValue(int index);
+  external void setValue(int index, value);
+  external getKey(int index);
+  external void setKey(int index, value);
+  external int getLength();
+}
+
+@JS()
+class NodeSassNullClass implements Function {
+  external call();
+  external get NULL;
+}
+
+@JS()
+class NodeSassNumber {
+  external num getValue();
+  external void setValue(int value);
+  external String getUnit();
+  external void setUnit(String unit);
+}
+
+@JS()
+class NodeSassString {
+  external String getValue();
+  external void setValue(String value);
 }

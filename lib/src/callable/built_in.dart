@@ -29,9 +29,14 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// The argument declaration is parsed from [arguments], which should not
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   BuiltInCallable(
-      this.name, String arguments, Value callback(List<Value> arguments)) {
-    _overloads
-        .add(new Tuple2(new ArgumentDeclaration.parse(arguments), callback));
+      String name, String arguments, Value callback(List<Value> arguments))
+      : this.parsed(name, new ArgumentDeclaration.parse(arguments), callback);
+
+  /// Creates a callable with a single [arguments] declaration and a single
+  /// [callback].
+  BuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
+      Value callback(List<Value> arguments)) {
+    _overloads.add(new Tuple2(arguments, callback));
   }
 
   /// Creates a callable with multiple implementations.

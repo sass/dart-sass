@@ -28,7 +28,7 @@ install:
 test_script:
 - ps: >-
     If ($env:NODE -eq "true") {
-      pub run test -t node
+      pub run test -x dart2 -t node
     } Else {
-      pub run test -x node
+      pub run test -p vm -x dart2 -x node
     }
