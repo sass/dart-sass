@@ -1,6 +1,22 @@
 A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 
-[![Travis build status](https://api.travis-ci.org/sass/dart-sass.svg)](https://travis-ci.org/sass/dart-sass) [![Appveyor build status](https://ci.appveyor.com/api/projects/status/84rl9hvu8uoecgef?svg=true)](https://ci.appveyor.com/project/nex3/dart-sass)
+<table>
+  <tr>
+    <td>
+      <img width="118px" alt="Sass logo" src="https://rawgit.com/sass/sass-site/master/source/assets/img/logos/logo.svg" />
+    </td>
+    <td valign="middle">
+      <a href="https://www.npmjs.com/package/sass"><img width="100%" alt="npm statistics" src="https://nodei.co/npm/sass.png?downloads=true"></a>
+    </td>
+    <td valign="middle">
+      <a href="https://pub.dartlang.org/packages/sass"><img alt="Pub version" src="https://img.shields.io/pub/v/sass.svg"></a>
+      <br>
+      <a href="https://travis-ci.org/sass/dart-sass"><img alt="Travis build status" src="https://api.travis-ci.org/sass/dart-sass.svg"></a>
+      <br>
+      <a href="https://ci.appveyor.com/project/nex3/dart-sass"><img alt="Appveyor build status" src="https://ci.appveyor.com/api/projects/status/84rl9hvu8uoecgef?svg=true"></a>
+    </td>
+  </tr>
+</table>
 
 [dart]: https://www.dartlang.org
 [sass]: http://sass-lang.com/
