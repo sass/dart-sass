@@ -375,7 +375,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   new BuiltInCallable("adjust-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
-    if (argumentList.contents.isNotEmpty) {
+    if (argumentList.asList.isNotEmpty) {
       throw new SassScriptException(
           "Only only positional argument is allowed. All other arguments must "
           "be passed by name.");
@@ -428,7 +428,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   new BuiltInCallable("scale-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
-    if (argumentList.contents.isNotEmpty) {
+    if (argumentList.asList.isNotEmpty) {
       throw new SassScriptException(
           "Only only positional argument is allowed. All other arguments must "
           "be passed by name.");
@@ -489,7 +489,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   new BuiltInCallable("change-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
-    if (argumentList.contents.isNotEmpty) {
+    if (argumentList.asList.isNotEmpty) {
       throw new SassScriptException(
           "Only only positional argument is allowed. All other arguments must "
           "be passed by name.");
@@ -766,10 +766,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   }),
 
   new BuiltInCallable("zip", r"$lists...", (arguments) {
-    var lists = (arguments[0] as SassArgumentList)
-        .contents
-        .map((list) => list.asList)
-        .toList();
+    var lists = arguments[0].asList.map((list) => list.asList).toList();
     var i = 0;
     var results = <SassList>[];
     while (lists.every((list) => i != list.length)) {
@@ -814,9 +811,9 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   new BuiltInCallable("map-remove", r"$map, $keys...", (arguments) {
     var map = arguments[0].assertMap("map");
-    var keys = arguments[1] as SassArgumentList;
+    var keys = arguments[1];
     var mutableMap = new Map<Value, Value>.from(map.contents);
-    for (var key in keys.contents) {
+    for (var key in keys.asList) {
       mutableMap.remove(key);
     }
     return new SassMap(mutableMap);
@@ -854,7 +851,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   // ## Selectors
 
   new BuiltInCallable("selector-nest", r"$selectors...", (arguments) {
-    var selectors = (arguments[0] as SassArgumentList).contents;
+    var selectors = arguments[0].asList;
     if (selectors.isEmpty) {
       throw new SassScriptException(
           "\$selectors: At least one selector must be passed.");
@@ -867,7 +864,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   }),
 
   new BuiltInCallable("selector-append", r"$selectors...", (arguments) {
-    var selectors = (arguments[0] as SassArgumentList).contents;
+    var selectors = arguments[0].asList;
     if (selectors.isEmpty) {
       throw new SassScriptException(
           "\$selectors: At least one selector must be passed.");

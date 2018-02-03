@@ -185,11 +185,11 @@ abstract class Value implements ext.Value {
     if (this is SassString) return (this as SassString).text;
     if (this is! SassList) return null;
     var list = this as SassList;
-    if (list.contents.isEmpty) return null;
+    if (list.asList.isEmpty) return null;
 
     var result = <String>[];
     if (list.separator == ListSeparator.comma) {
-      for (var complex in list.contents) {
+      for (var complex in list.asList) {
         if (complex is SassString) {
           result.add(complex.text);
         } else if (complex is SassList &&
@@ -202,7 +202,7 @@ abstract class Value implements ext.Value {
         }
       }
     } else {
-      for (var compound in list.contents) {
+      for (var compound in list.asList) {
         if (compound is SassString) {
           result.add(compound.text);
         } else {
