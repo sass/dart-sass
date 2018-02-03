@@ -512,7 +512,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   void visitList(SassList value) {
     if (value.hasBrackets) {
       _buffer.writeCharCode($lbracket);
-    } else if (value.contents.isEmpty) {
+    } else if (value.asList.isEmpty) {
       if (!_inspect) {
         throw new SassScriptException("() isn't a valid CSS value");
       }
@@ -521,14 +521,14 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     }
 
     var singleton = _inspect &&
-        value.contents.length == 1 &&
+        value.asList.length == 1 &&
         value.separator == ListSeparator.comma;
     if (singleton && !value.hasBrackets) _buffer.writeCharCode($lparen);
 
     _writeBetween<Value>(
         _inspect
-            ? value.contents
-            : value.contents.where((element) => !element.isBlank),
+            ? value.asList
+            : value.asList.where((element) => !element.isBlank),
         value.separator == ListSeparator.space ? " " : _commaSeparator,
         _inspect
             ? (element) {
@@ -553,7 +553,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// given [separator].
   bool _elementNeedsParens(ListSeparator separator, Value value) {
     if (value is SassList) {
-      if (value.contents.length < 2) return false;
+      if (value.asList.length < 2) return false;
       if (value.hasBrackets) return false;
       return separator == ListSeparator.comma
           ? value.separator == ListSeparator.comma

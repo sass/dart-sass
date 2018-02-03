@@ -8,27 +8,32 @@ import '../value.dart';
 import 'external/value.dart' as ext;
 
 class SassList extends Value implements ext.SassList {
-  final List<Value> contents;
+  // TODO(nweiz): Use persistent data structures rather than copying here. An
+  // RRB vector should fit our use-cases well.
+  //
+  // We may also want to fall back to a plain unmodifiable List for small lists
+  // (<32 items?).
+  final List<Value> _contents;
 
   final ListSeparator separator;
 
   final bool hasBrackets;
 
-  bool get isBlank => contents.every((element) => element.isBlank);
+  bool get isBlank => asList.every((element) => element.isBlank);
 
-  List<Value> get asList => contents;
+  List<Value> get asList => _contents;
 
-  int get lengthAsList => contents.length;
+  int get lengthAsList => asList.length;
 
   const SassList.empty({ListSeparator separator, bool brackets: false})
-      : contents = const [],
+      : _contents = const [],
         separator = separator ?? ListSeparator.undecided,
         hasBrackets = brackets;
 
   SassList(Iterable<Value> contents, this.separator, {bool brackets: false})
-      : contents = new List.unmodifiable(contents),
+      : _contents = new List.unmodifiable(contents),
         hasBrackets = brackets {
-    if (separator == ListSeparator.undecided && contents.length > 1) {
+    if (separator == ListSeparator.undecided && asList.length > 1) {
       throw new ArgumentError(
           "A list with more than one element must have an explicit separator.");
     }
@@ -37,16 +42,16 @@ class SassList extends Value implements ext.SassList {
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitList(this);
 
   SassMap assertMap([String name]) =>
-      contents.isEmpty ? const SassMap.empty() : super.assertMap(name);
+      asList.isEmpty ? const SassMap.empty() : super.assertMap(name);
 
   bool operator ==(other) =>
       (other is SassList &&
           other.separator == separator &&
           other.hasBrackets == hasBrackets &&
-          listEquals(other.contents, contents)) ||
-      (contents.isEmpty && other is SassMap && other.contents.isEmpty);
+          listEquals(other.asList, asList)) ||
+      (asList.isEmpty && other is SassMap && other.asList.isEmpty);
 
-  int get hashCode => listHash(contents);
+  int get hashCode => listHash(asList);
 }
 
 /// An enum of list separator types.

@@ -493,8 +493,8 @@ class _EvaluateVisitor
     return null;
   }
 
-  /// Returns whether [value] is an empty [SassList].
-  bool _isEmptyList(Value value) => value is SassList && value.contents.isEmpty;
+  /// Returns whether [value] is an empty list.
+  bool _isEmptyList(Value value) => value.asList.isEmpty;
 
   Future<Value> visitEachRule(EachRule node) async {
     var list = await node.list.accept(this);

@@ -36,7 +36,7 @@ class SassMap extends Value implements ext.SassMap {
   bool operator ==(other) =>
       (other is SassMap &&
           const MapEquality().equals(other.contents, contents)) ||
-      (contents.isEmpty && other is SassList && other.contents.isEmpty);
+      (contents.isEmpty && other is SassList && other.asList.isEmpty);
 
   int get hashCode => contents.isEmpty
       ? const SassList.empty().hashCode

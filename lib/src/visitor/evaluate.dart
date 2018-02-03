@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 0d20d8293daaad022a0a20115cc88b80704e2ad7
+// Checksum: 199b3bd52a5c5c147444ee45c2f3d46ef8af2d28
 
 import 'dart:math' as math;
 
@@ -492,8 +492,8 @@ class _EvaluateVisitor
     return null;
   }
 
-  /// Returns whether [value] is an empty [SassList].
-  bool _isEmptyList(Value value) => value is SassList && value.contents.isEmpty;
+  /// Returns whether [value] is an empty list.
+  bool _isEmptyList(Value value) => value.asList.isEmpty;
 
   Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
