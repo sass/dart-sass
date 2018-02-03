@@ -120,6 +120,10 @@ void main() {
         expect(_compile("a {b: rgba(255, 0, 0, 0.5)}"),
             equals("a{b:rgba(255,0,0,.5)}"));
       });
+
+      test("don't error when there's no name", () {
+        expect(_compile("a {b: #cc3232}"), equals("a{b:#cc3232}"));
+      });
     });
   });
 

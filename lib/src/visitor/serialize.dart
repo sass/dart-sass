@@ -440,7 +440,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     if (_isCompressed && fuzzyEquals(value.alpha, 1)) {
       var name = namesByColor[value];
       var hexLength = _canUseShortHex(value) ? 4 : 7;
-      if (name.length <= hexLength) {
+      if (name != null && name.length <= hexLength) {
         _buffer.write(name);
       } else if (_canUseShortHex(value)) {
         _buffer.writeCharCode($hash);
