@@ -23,6 +23,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 
 * [Using Dart Sass](#using-dart-sass)
   * [From Chocolatey (Windows)](#from-chocolatey-windows)
+  * [From Homebrew (OS X)](#from-homebrew-os-x)
   * [Standalone](#standalone)
   * [From npm](#from-npm)
   * [From Pub](#from-pub)
@@ -43,6 +44,18 @@ Windows, you can install Dart Sass by running
 
 ```cmd
 choco install sass -prerelease
+```
+
+That'll give you a `sass` executable on your command line that will run Dart
+Sass.
+
+### From Homebrew (OS X)
+
+If you use [the Homebrew package manager](https://brew.sh/) for Mac OS X, you
+can install Dart Sass by running
+
+```sh
+brew install --devel sass/sass/sass
 ```
 
 That'll give you a `sass` executable on your command line that will run Dart

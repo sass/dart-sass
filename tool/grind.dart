@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
@@ -400,3 +401,61 @@ ArchiveFile _fileFromString(String path, String contents,
 ArchiveFile _file(String target, String source, {bool executable: false}) =>
     _fileFromBytes(target, new File(source).readAsBytesSync(),
         executable: executable);
+
+/// A regular expression for locating the URL and SHA256 hash of the Sass
+/// archive in the `homebrew-sass` formula.
+final _homebrewRegExp = new RegExp(r'\n( *)url "[^"]+"'
+    r'\n *sha256 "[^"]+"');
+
+@Task('Update the Homebrew formula for the current version.')
+update_homebrew() async {
+  _ensureBuild();
+
+  var process = await Process.start("git", [
+    "archive",
+    "--prefix=dart-sass-$_version/",
+    "--format=tar.gz",
+    _version
+  ]);
+  var digest = await sha256.bind(process.stdout).first;
+  var stderr = await UTF8.decodeStream(process.stderr);
+  if ((await process.exitCode) != 0) {
+    fail('git archive "$_version" failed:\n$stderr');
+  }
+
+  if (new Directory("build/homebrew-sass/.git").existsSync()) {
+    await runAsync("git",
+        arguments: ["fetch", "origin"],
+        workingDirectory: "build/homebrew-sass");
+    await runAsync("git",
+        arguments: ["reset", "--hard", "origin/master"],
+        workingDirectory: "build/homebrew-sass");
+  } else {
+    delete(new Directory("build/homebrew-sass"));
+    await runAsync("git", arguments: [
+      "clone",
+      "git@github.com:sass/homebrew-sass.git",
+      "build/homebrew-sass"
+    ]);
+  }
+
+  var formula = new File("build/homebrew-sass/sass.rb");
+  log("updating ${formula.path}");
+  formula.writeAsStringSync(formula.readAsStringSync().replaceFirstMapped(
+      _homebrewRegExp,
+      (match) =>
+          '\n${match[1]}url "https://github.com/sass/dart-sass/archive/$_version.tar.gz"'
+          '\n${match[1]}sha256 "$digest"'));
+
+  run("git",
+      arguments: [
+        "commit",
+        "--all",
+        "--message",
+        "Update Dart Sass to $_version"
+      ],
+      workingDirectory: "build/homebrew-sass");
+
+  await runAsync("git",
+      arguments: ["push"], workingDirectory: "build/homebrew-sass");
+}
