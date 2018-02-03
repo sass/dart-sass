@@ -206,7 +206,7 @@ main() {
 
   group("new SassString.empty()", () {
     test("creates an empty unquoted string", () {
-      var string = new SassString.empty();
+      var string = new SassString.empty(quotes: false);
       expect(string.text, isEmpty);
       expect(string.hasQuotes, isFalse);
     });
@@ -220,7 +220,7 @@ main() {
 
   group("new SassString()", () {
     test("creates an unquoted string with the given text", () {
-      var string = new SassString("a b c");
+      var string = new SassString("a b c", quotes: false);
       expect(string.text, equals("a b c"));
       expect(string.hasQuotes, isFalse);
     });

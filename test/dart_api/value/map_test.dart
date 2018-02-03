@@ -23,8 +23,10 @@ main() {
       expect(
           value.contents,
           equals({
-            new SassString("a"): new SassString("b"),
-            new SassString("c"): new SassString("d")
+            new SassString("a", quotes: false):
+                new SassString("b", quotes: false),
+            new SassString("c", quotes: false):
+                new SassString("d", quotes: false)
           }));
     });
 
@@ -32,10 +34,14 @@ main() {
       expect(
           value.asList,
           equals([
-            new SassList([new SassString("a"), new SassString("b")],
-                ListSeparator.space),
-            new SassList(
-                [new SassString("c"), new SassString("d")], ListSeparator.space)
+            new SassList([
+              new SassString("a", quotes: false),
+              new SassString("b", quotes: false)
+            ], ListSeparator.space),
+            new SassList([
+              new SassString("c", quotes: false),
+              new SassString("d", quotes: false)
+            ], ListSeparator.space)
           ]));
     });
 
@@ -64,8 +70,10 @@ main() {
       expect(
           value,
           equalsWithHash(new SassMap({
-            new SassString("a"): new SassString("b"),
-            new SassString("c"): new SassString("d")
+            new SassString("a", quotes: false):
+                new SassString("b", quotes: false),
+            new SassString("c", quotes: false):
+                new SassString("d", quotes: false)
           })));
     });
 
@@ -73,10 +81,14 @@ main() {
       expect(
           value,
           isNot(equals(new SassList([
-            new SassList([new SassString("a"), new SassString("b")],
-                ListSeparator.space),
-            new SassList(
-                [new SassString("c"), new SassString("d")], ListSeparator.space)
+            new SassList([
+              new SassString("a", quotes: false),
+              new SassString("b", quotes: false)
+            ], ListSeparator.space),
+            new SassList([
+              new SassString("c", quotes: false),
+              new SassString("d", quotes: false)
+            ], ListSeparator.space)
           ], ListSeparator.comma))));
     });
 
@@ -85,8 +97,10 @@ main() {
         expect(
             value,
             isNot(equals(new SassMap({
-              new SassString("a"): new SassString("x"),
-              new SassString("c"): new SassString("d")
+              new SassString("a", quotes: false):
+                  new SassString("x", quotes: false),
+              new SassString("c", quotes: false):
+                  new SassString("d", quotes: false)
             }))));
       });
 
@@ -94,25 +108,32 @@ main() {
         expect(
             value,
             isNot(equals(new SassMap({
-              new SassString("a"): new SassString("b"),
-              new SassString("x"): new SassString("d")
+              new SassString("a", quotes: false):
+                  new SassString("b", quotes: false),
+              new SassString("x", quotes: false):
+                  new SassString("d", quotes: false)
             }))));
       });
 
       test("a missing pair", () {
         expect(
             value,
-            isNot(equals(
-                new SassMap({new SassString("a"): new SassString("b")}))));
+            isNot(equals(new SassMap({
+              new SassString("a", quotes: false):
+                  new SassString("b", quotes: false)
+            }))));
       });
 
       test("an additional pair", () {
         expect(
             value,
             isNot(equals(new SassMap({
-              new SassString("a"): new SassString("b"),
-              new SassString("c"): new SassString("d"),
-              new SassString("e"): new SassString("f")
+              new SassString("a", quotes: false):
+                  new SassString("b", quotes: false),
+              new SassString("c", quotes: false):
+                  new SassString("d", quotes: false),
+              new SassString("e", quotes: false):
+                  new SassString("f", quotes: false)
             }))));
       });
     });
@@ -165,7 +186,13 @@ main() {
   });
 
   test("new SassMap() creates a map with the given contents", () {
-    var list = new SassMap({new SassString("a"): new SassString("b")});
-    expect(list.contents, equals({new SassString("a"): new SassString("b")}));
+    var list = new SassMap({
+      new SassString("a", quotes: false): new SassString("b", quotes: false)
+    });
+    expect(
+        list.contents,
+        equals({
+          new SassString("a", quotes: false): new SassString("b", quotes: false)
+        }));
   });
 }

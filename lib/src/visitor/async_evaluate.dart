@@ -225,7 +225,8 @@ class _EvaluateVisitor
               ? null
               : new ValueExpression(
                   new SassMap(mapMap(args.keywords,
-                      key: (String key, Value _) => new SassString(key),
+                      key: (String key, Value _) =>
+                          new SassString(key, quotes: false),
                       value: (String _, Value value) => value)),
                   _callableSpan));
 
@@ -1343,7 +1344,7 @@ class _EvaluateVisitor
       }
       buffer.writeCharCode($rparen);
 
-      return new SassString(buffer.toString());
+      return new SassString(buffer.toString(), quotes: false);
     } else {
       return null;
     }
