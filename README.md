@@ -129,8 +129,9 @@ See [the Dart API docs][api] for details.
 
 Assuming you've already checked out this repository:
 
-1. [Install Dart](https://www.dartlang.org/install). If you download it
-   manually, make sure the SDK's `bin` directory is on your `PATH`.
+1. [Install Dart](https://www.dartlang.org/install). If you download an archive
+   manually rather than using an installer, make sure the SDK's `bin` directory
+   is on your `PATH`.
 
 2. In this repository, run `pub get`. This will install Dart Sass's
    dependencies.
