@@ -32,8 +32,8 @@ class SelectorList extends Selector {
   SassList get asSassList {
     return new SassList(components.map((complex) {
       return new SassList(
-          complex.components
-              .map((component) => new SassString(component.toString())),
+          complex.components.map((component) =>
+              new SassString(component.toString(), quotes: false)),
           ListSeparator.space);
     }), ListSeparator.comma);
   }

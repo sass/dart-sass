@@ -22,7 +22,7 @@ Object newNodeSassString(SassString value) =>
 /// The JS constructor for the `sass.types.String` class.
 final Function stringConstructor = createClass(
     (_NodeSassString thisArg, String value, [SassString dartValue]) {
-  thisArg.dartValue = dartValue ?? new SassString(value);
+  thisArg.dartValue = dartValue ?? new SassString(value, quotes: false);
 }, {
   'getValue': (_NodeSassString thisArg) => thisArg.dartValue.text,
   'setValue': (_NodeSassString thisArg, String value) {

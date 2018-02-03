@@ -60,10 +60,10 @@ class SassString extends Value implements ext.SassString {
 
   bool get isBlank => !hasQuotes && text.isEmpty;
 
-  factory SassString.empty({bool quotes: false}) =>
+  factory SassString.empty({bool quotes: true}) =>
       quotes ? _emptyQuoted : _emptyUnquoted;
 
-  SassString(this.text, {bool quotes: false}) : hasQuotes = quotes;
+  SassString(this.text, {bool quotes: true}) : hasQuotes = quotes;
 
   int sassIndexToStringIndex(ext.Value sassIndex, [String name]) =>
       codepointIndexToCodeUnitIndex(

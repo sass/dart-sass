@@ -226,7 +226,7 @@ abstract class Value implements ext.Value {
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   Value singleEquals(Value other) =>
-      new SassString("${toCssString()}=${other.toCssString()}");
+      new SassString("${toCssString()}=${other.toCssString()}", quotes: false);
 
   /// The SassScript `>` operation.
   ///
@@ -279,7 +279,7 @@ abstract class Value implements ext.Value {
       return new SassString(toCssString() + other.text,
           quotes: other.hasQuotes);
     } else {
-      return new SassString(toCssString() + other.toCssString());
+      return new SassString(toCssString() + other.toCssString(), quotes: false);
     }
   }
 
@@ -288,32 +288,32 @@ abstract class Value implements ext.Value {
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   Value minus(Value other) =>
-      new SassString("${toCssString()}-${other.toCssString()}");
+      new SassString("${toCssString()}-${other.toCssString()}", quotes: false);
 
   /// The SassScript `/` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   Value dividedBy(Value other) =>
-      new SassString("${toCssString()}/${other.toCssString()}");
+      new SassString("${toCssString()}/${other.toCssString()}", quotes: false);
 
   /// The SassScript unary `+` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
-  Value unaryPlus() => new SassString("+${toCssString()}");
+  Value unaryPlus() => new SassString("+${toCssString()}", quotes: false);
 
   /// The SassScript unary `-` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
-  Value unaryMinus() => new SassString("-${toCssString()}");
+  Value unaryMinus() => new SassString("-${toCssString()}", quotes: false);
 
   /// The SassScript unary `/` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
-  Value unaryDivide() => new SassString("/${toCssString()}");
+  Value unaryDivide() => new SassString("/${toCssString()}", quotes: false);
 
   /// The SassScript unary `not` operation.
   ///

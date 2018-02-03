@@ -108,7 +108,8 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
         if (first is SassColor) {
           return new SassString(
               "rgba(${first.red}, ${first.green}, ${first.blue}, "
-              "${arguments[1].toCssString()})");
+              "${arguments[1].toCssString()})",
+              quotes: false);
         } else {
           return _functionString('rgba', arguments);
         }
@@ -116,7 +117,8 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
         var color = arguments[0].assertColor("color");
         return new SassString(
             "rgba(${color.red}, ${color.green}, ${color.blue}, "
-            "${arguments[1].toCssString()})");
+            "${arguments[1].toCssString()})",
+            quotes: false);
       }
 
       var color = arguments[0].assertColor("color");
@@ -277,7 +279,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   new BuiltInCallable.overloaded("saturate", {
     r"$number": (arguments) {
       var number = arguments[0].assertNumber("number");
-      return new SassString("saturate(${number.toCssString()})");
+      return new SassString("saturate(${number.toCssString()})", quotes: false);
     },
     r"$color, $amount": (arguments) {
       var color = arguments[0].assertColor("color");
@@ -536,7 +538,8 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
         component.toRadixString(16).padLeft(2, '0').toUpperCase();
     return new SassString(
         "#${hexString(fuzzyRound(color.alpha * 255))}${hexString(color.red)}"
-        "${hexString(color.green)}${hexString(color.blue)}");
+        "${hexString(color.green)}${hexString(color.blue)}",
+        quotes: false);
   }),
 
   // ## Strings
@@ -544,7 +547,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   new BuiltInCallable("unquote", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     if (!string.hasQuotes) return string;
-    return new SassString(string.text);
+    return new SassString(string.text, quotes: false);
   }),
 
   new BuiltInCallable("quote", r"$string", (arguments) {
@@ -789,8 +792,8 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
       "list-separator",
       r"$list",
       (arguments) => arguments[0].separator == ListSeparator.comma
-          ? new SassString("comma")
-          : new SassString("space")),
+          ? new SassString("comma", quotes: false)
+          : new SassString("space", quotes: false)),
 
   new BuiltInCallable("is-bracketed", r"$list",
       (arguments) => new SassBoolean(arguments[0].hasBrackets)),
@@ -841,7 +844,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var argumentList = arguments[0];
     if (argumentList is SassArgumentList) {
       return new SassMap(mapMap(argumentList.keywords,
-          key: (String key, Value _) => new SassString(key)));
+          key: (String key, Value _) => new SassString(key, quotes: false)));
     } else {
       throw new SassScriptException(
           "\$args: $argumentList is not an argument list.");
@@ -927,7 +930,8 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var selector = arguments[0].assertCompoundSelector(name: "selector");
 
     return new SassList(
-        selector.components.map((simple) => new SassString(simple.toString())),
+        selector.components
+            .map((simple) => new SassString(simple.toString(), quotes: false)),
         ListSeparator.comma);
   }),
 
@@ -942,20 +946,21 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   }),
 
   new BuiltInCallable("inspect", r"$value",
-      (arguments) => new SassString(arguments.first.toString())),
+      (arguments) => new SassString(arguments.first.toString(), quotes: false)),
 
   new BuiltInCallable("type-of", r"$value", (arguments) {
     var value = arguments[0];
-    if (value is SassArgumentList) return new SassString("arglist");
-    if (value is SassBoolean) return new SassString("bool");
-    if (value is SassColor) return new SassString("color");
-    if (value is SassList) return new SassString("list");
-    if (value is SassMap) return new SassString("map");
-    if (value is SassNull) return new SassString("null");
-    if (value is SassNumber) return new SassString("number");
-    if (value is SassFunction) return new SassString("function");
+    if (value is SassArgumentList)
+      return new SassString("arglist", quotes: false);
+    if (value is SassBoolean) return new SassString("bool", quotes: false);
+    if (value is SassColor) return new SassString("color", quotes: false);
+    if (value is SassList) return new SassString("list", quotes: false);
+    if (value is SassMap) return new SassString("map", quotes: false);
+    if (value is SassNull) return new SassString("null", quotes: false);
+    if (value is SassNumber) return new SassString("number", quotes: false);
+    if (value is SassFunction) return new SassString("function", quotes: false);
     assert(value is SassString);
-    return new SassString("string");
+    return new SassString("string", quotes: false);
   }),
 
   new BuiltInCallable("unit", r"$number", (arguments) {
@@ -988,16 +993,19 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     _uniqueID += _random.nextInt(36) + 1;
     if (_uniqueID > math.pow(36, 6)) _uniqueID %= math.pow(36, 6) as int;
     // The leading "u" ensures that the result is a valid identifier.
-    return new SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}");
+    return new SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}",
+        quotes: false);
   })
 ]);
 
 /// Returns a string representation of [name] called with [arguments], as though
 /// it were a plain CSS function.
 SassString _functionString(String name, Iterable<Value> arguments) =>
-    new SassString("$name(" +
-        arguments.map((argument) => argument.toCssString()).join(', ') +
-        ")");
+    new SassString(
+        "$name(" +
+            arguments.map((argument) => argument.toCssString()).join(', ') +
+            ")",
+        quotes: false);
 
 /// Asserts that [number] is a percentage or has no units, and normalizes the
 /// value.

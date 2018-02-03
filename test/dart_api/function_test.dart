@@ -29,7 +29,7 @@ main() {
       new Callable("foo", r"$arg", expectAsync1((arguments) {
         expect(arguments, hasLength(1));
         expect(arguments.first.assertString().text, equals("bar"));
-        return new SassString("result");
+        return new SassString("result", quotes: false);
       }))
     ]);
 
@@ -42,7 +42,7 @@ main() {
         expect(arguments, hasLength(1));
         expect(arguments.first.assertString().text, equals("bar"));
         await pumpEventQueue();
-        return new SassString("result");
+        return new SassString("result", quotes: false);
       }))
     ]);
 

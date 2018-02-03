@@ -26,40 +26,49 @@ main() {
     test("returns its contents as a list", () {
       expect(
           value.asList,
-          equals(
-              [new SassString("a"), new SassString("b"), new SassString("c")]));
+          equals([
+            new SassString("a", quotes: false),
+            new SassString("b", quotes: false),
+            new SassString("c", quotes: false)
+          ]));
     });
 
     test("equals the same list", () {
       expect(
           value,
-          equalsWithHash(new SassList(
-              [new SassString("a"), new SassString("b"), new SassString("c")],
-              ListSeparator.comma)));
+          equalsWithHash(new SassList([
+            new SassString("a", quotes: false),
+            new SassString("b", quotes: false),
+            new SassString("c", quotes: false)
+          ], ListSeparator.comma)));
     });
 
     test("doesn't equal a value with different metadata", () {
       expect(
           value,
-          isNot(equals(new SassList(
-              [new SassString("a"), new SassString("b"), new SassString("c")],
-              ListSeparator.space))));
+          isNot(equals(new SassList([
+            new SassString("a", quotes: false),
+            new SassString("b", quotes: false),
+            new SassString("c", quotes: false)
+          ], ListSeparator.space))));
 
       expect(
           value,
           isNot(equals(new SassList([
-            new SassString("a"),
-            new SassString("b"),
-            new SassString("c")
+            new SassString("a", quotes: false),
+            new SassString("b", quotes: false),
+            new SassString("c", quotes: false)
           ], ListSeparator.comma, brackets: true))));
     });
 
     test("doesn't equal a value with different contents", () {
       expect(
           value,
-          isNot(equals(new SassList(
-              [new SassString("a"), new SassString("x"), new SassString("c")],
-              ListSeparator.comma))));
+          isNot(equals(new SassList([
+            new SassString("a", quotes: false),
+            new SassString("x", quotes: false),
+            new SassString("c", quotes: false)
+          ], ListSeparator.comma))));
     });
 
     group("sassIndexToListIndex()", () {
@@ -76,7 +85,9 @@ main() {
       });
 
       test("rejects a non-number", () {
-        expect(() => value.sassIndexToListIndex(new SassString("foo")),
+        expect(
+            () => value
+                .sassIndexToListIndex(new SassString("foo", quotes: false)),
             throwsSassScriptException);
       });
 
@@ -233,15 +244,17 @@ main() {
 
   group("new SassList()", () {
     test("creates a list with the given contents and metadata", () {
-      var list = new SassList([new SassString("a")], ListSeparator.space);
-      expect(list.asList, equals([new SassString("a")]));
+      var list = new SassList(
+          [new SassString("a", quotes: false)], ListSeparator.space);
+      expect(list.asList, equals([new SassString("a", quotes: false)]));
       expect(list.separator, equals(ListSeparator.space));
       expect(list.hasBrackets, isFalse);
     });
 
     test("can create a bracketed list", () {
       expect(
-          new SassList([new SassString("a")], ListSeparator.space,
+          new SassList(
+                  [new SassString("a", quotes: false)], ListSeparator.space,
                   brackets: true)
               .hasBrackets,
           isTrue);
@@ -249,7 +262,8 @@ main() {
 
     test("can create a short list with an undecided separator", () {
       expect(
-          new SassList([new SassString("a")], ListSeparator.undecided)
+          new SassList(
+                  [new SassString("a", quotes: false)], ListSeparator.undecided)
               .separator,
           equals(ListSeparator.undecided));
       expect(new SassList([], ListSeparator.undecided).separator,
@@ -258,8 +272,10 @@ main() {
 
     test("can't create a long list with an undecided separator", () {
       expect(
-          () => new SassList([new SassString("a"), new SassString("b")],
-              ListSeparator.undecided),
+          () => new SassList([
+                new SassString("a", quotes: false),
+                new SassString("b", quotes: false)
+              ], ListSeparator.undecided),
           throwsArgumentError);
     });
   });
