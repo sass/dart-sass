@@ -13,7 +13,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
   * [From Source](#from-source)
 * [JavaScript API](#javascript-api)
 * [Goals](#goals)
-* [Behavioral Differences](#behavioral-differences)
+* [Behavioral Differences from Ruby Sass](#behavioral-differences-from-ruby-sass)
 
 ## Using Dart Sass
 
@@ -59,8 +59,10 @@ configuration to take effect.
 ### From npm
 
 Dart Sass is available, compiled to JavaScript, [as an npm package][npm]. You
-can install it globally using `npm install -g sass`, or to your project using
-`npm install sass`. This provides a `sass` executable as well as a library:
+can install it globally using `npm install -g sass` which will provide access to
+the `sass` executable. You can also add it to your project using
+`npm install --save-dev sass`. This provides the executable as well as a
+library:
 
 [npm]: https://www.npmjs.com/package/sass
 
@@ -192,7 +194,7 @@ implementation of the Sass language. It has a number of advantages:
 
 [perf]: https://github.com/sass/dart-sass/blob/master/perf.md
 
-## Behavioral Differences
+## Behavioral Differences from Ruby Sass
 
 There are a few intentional behavioral differences between Dart Sass and Ruby
 Sass. These are generally places where Ruby Sass has an undesired behavior, and
