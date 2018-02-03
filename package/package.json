@@ -1,6 +1,6 @@
 {
   "name": "sass",
-  "description": "A Dart implementation of Sass, compiled to JS.",
+  "description": "A pure JavaScript implementation of Sass.",
   "license": "MIT",
   "bugs": "https://github.com/sass/dart-sass/issues",
   "homepage": "https://github.com/sass/dart-sass",

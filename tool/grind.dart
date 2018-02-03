@@ -7,11 +7,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
 import 'package:pub_semver/pub_semver.dart';
+import 'package:source_span/source_span.dart';
 import 'package:xml/xml.dart' as xml;
 import 'package:yaml/yaml.dart';
 
@@ -127,12 +129,66 @@ void _writeNpmPackage(String destination, Map<String, dynamic> json) {
   dir.createSync(recursive: true);
 
   log("copying package/package.json to $destination");
-  new File(p.join(dir.path, 'package.json'))
+  new File(p.join(destination, 'package.json'))
       .writeAsStringSync(JSON.encode(json));
 
   copy(new File(p.join('package', 'sass.js')), dir);
   copy(new File(p.join('build', 'sass.dart.js')), dir);
-  copy(new File('README.md'), dir);
+
+  log("copying package/README.npm.md to $destination");
+  new File(p.join(destination, 'README.md'))
+      .writeAsStringSync(_readAndResolveMarkdown('package/README.npm.md'));
+}
+
+final _readAndResolveRegExp = new RegExp(
+    r"^<!-- +#include +([^\s]+) +"
+    '"([^"\n]+)"'
+    r" +-->$",
+    multiLine: true);
+
+/// Reads a Markdown file from [path] and resolves include directives.
+///
+/// Include directives have the syntax `"<!-- #include" PATH HEADER "-->"`,
+/// which must appear on its own line. PATH is a relative file: URL to another
+/// Markdown file, and HEADER is the name of a header in that file whose
+/// contents should be included as-is.
+String _readAndResolveMarkdown(String path) => new File(path)
+        .readAsStringSync()
+        .replaceAllMapped(_readAndResolveRegExp, (match) {
+      String included;
+      try {
+        included = new File(p.join(p.dirname(path), p.fromUri(match[1])))
+            .readAsStringSync();
+      } catch (error) {
+        _matchError(match, error.toString(), url: p.toUri(path));
+      }
+
+      Match headerMatch;
+      try {
+        headerMatch = "# ${match[2]}\n".allMatches(included).first;
+      } on StateError {
+        _matchError(match, "Could not find header.", url: p.toUri(path));
+      }
+
+      var headerLevel = 0;
+      var index = headerMatch.start;
+      while (index >= 0 && included.codeUnitAt(index) == $hash) {
+        headerLevel++;
+        index--;
+      }
+
+      // The section goes until the next header of the same level, or the end
+      // of the document.
+      var sectionEnd = included.indexOf("#" * headerLevel, headerMatch.end);
+      if (sectionEnd == -1) sectionEnd = included.length;
+
+      return included.substring(headerMatch.end, sectionEnd).trim();
+    });
+
+/// Throws a nice [SourceSpanException] associated with [match].
+void _matchError(Match match, String message, {url}) {
+  var file = new SourceFile.fromString(match.input, url: url);
+  throw new SourceSpanException(message, file.span(match.start, match.end));
 }
 
 @Task('Build a Chocolatey package.')
