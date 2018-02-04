@@ -91,7 +91,7 @@ script:
 jobs:
   include:
     - stage: deploy
-      if: type = push AND repo = sass/dart-sass AND branch = master AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
+      if: (type = push) AND (repo = sass/dart-sass) AND (tag =~ ^\d+\.\d+\.\d+([+-].*)?$)
       script: skip # Don't run tests
 
       before_deploy:
