@@ -1,3 +1,5 @@
+## Testing
+
 # Set the language to Ruby so that we can run sass-spec tests.
 language: ruby
 env:
@@ -83,3 +85,37 @@ script:
     fi;
     (cd sass-spec; bundle exec sass-spec.rb --dart .. $extra_args);
   fi
+
+## Deployment
+
+jobs:
+  include:
+    - stage: deploy
+      if: type = push AND repo = sass/dart-sass AND branch = master AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
+      script: skip # Don't run tests
+
+      before_deploy:
+      - rm -rf build/
+      - pub run grinder package npm_package
+      - export files_for_github=$(ls build/dart-sass-*)
+
+      deploy:
+        # Deploy standalone archives to GitHub releases.
+        - provider: releases
+          api_key:
+            secure: qD09TCT4wbFlmF0Kglo+Rl8S5YfqHaUpNYMKdHX8mXIznN0txjCTTLvCzqLV7hfXlybUBkSHecZ7lW27MK3gGq0cMotF+2/iC6r8Y0XenndBDZn4fkuK5k9ROwZ8fdxst8/iSXLcg575p16iMCuEDeexOaZXl6fioL0+RNfiTgkm1cH/eP/M6qzrjwf2X3tlJ/2FECgYzwSBJFlcHiIfyDNAgH5CO+ghUVO+D3ms6l5RPN25+uh0ihRmWj+rIeZc15IQyFQ0hFQDxc3WpQBTGReDmvk/6Lo3dn0IdANbT12hOvqp9/r9fOn1UjljPkIjXXarrs7QDOjD7oeisEQn2CY8M0LLu9wQIBvpQxu1G7V+y4D+1hsIzgVfck8+Wz96Qlg0Alq/LJQN+G0BxP4QnPjs/Yi+iMANTnrqrl+9rfAcfOkvGthFFvrYKYvLOtvObd1PnCOJNC8pG3PeI8Rm5v5PLb+5Sphz2tpPIOR/xpV4Qe4HRzuU9WQkwOiBXDOZxS82sdN5pIJQssGSBW9tPpBuI20khfrZHpVeoqN1zb8/uZnWFdsHxd7keWGfJD4OQsQAiEqnSnKoyyGPh/iUeQfRqnIt00gJCcwkUpSHWTihFqAAgwdOtIU9WyhDf7QMV0tsNERF6c1FRUhAO6Hw2Lzz6iTLdFR98Un24lszk6s=
+          file: "${files_for_github}"
+          skip_cleanup: true
+
+          # This is redundant with the "if" clause above, but according to
+          # https://github.com/travis-ci/beta-features/issues/28#issuecomment-358705563
+          # "if" resolution isn't totally solid yet.
+          on: &deploy_on
+            repo: sass/dart-sass
+            tags: true
+
+        # Deploy to npm, pub, and Homebrew.
+        # TODO: Deploy to Chocolatey as well.
+        - provider: script
+          script: tool/deploy.sh
+          on: *deploy_on
