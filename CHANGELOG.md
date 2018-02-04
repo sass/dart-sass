@@ -1,8 +1,8 @@
-## 1.0.0-beta.6
+## 1.0.0-beta.5.2
 
 * Fix a bug where some colors would crash `compressed` mode.
 
-## 1.0.0-beta.5
+## 1.0.0-beta.5.1
 
 * Add a `compressed` output style.
 
