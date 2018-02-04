@@ -4,19 +4,19 @@
 language: ruby
 env:
 # Language specs, defined in sass/sass-spec
-# - TASK=specs   DART_CHANNEL=dev    DART_VERSION=latest
-# - TASK=specs   DART_CHANNEL=stable DART_VERSION=latest
-# - TASK=specs   DART_CHANNEL=stable DART_VERSION=latest ASYNC=true
+- TASK=specs   DART_CHANNEL=dev    DART_VERSION=latest
+- TASK=specs   DART_CHANNEL=stable DART_VERSION=latest
+- TASK=specs   DART_CHANNEL=stable DART_VERSION=latest ASYNC=true
 
-# # Unit tests, defined in test/.
-# - TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest
-# - TASK=tests   DART_CHANNEL=stable DART_VERSION=latest
-# - TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=stable
-# - TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=v6.9.1
-# - TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=v4.6.2
+# Unit tests, defined in test/.
+- TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest
+- TASK=tests   DART_CHANNEL=stable DART_VERSION=latest
+- TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=stable
+- TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=v6.9.1
+- TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=v4.6.2
 
-# # Miscellaneous checks.
-# - TASK=analyze DART_CHANNEL=dev    DART_VERSION=latest
+# Miscellaneous checks.
+- TASK=analyze DART_CHANNEL=dev    DART_VERSION=latest
 - TASK=format  DART_CHANNEL=dev    DART_VERSION=latest
 
 rvm:
