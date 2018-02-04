@@ -283,7 +283,17 @@ String _chocolateyVersion() {
   var components = _version.split("-");
   if (components.length == 1) return components.first;
   assert(components.length == 2);
-  return "${components.first}-${components.last.replaceAll('.', '')}";
+
+  var first = true;
+  var prerelease = components.last.replaceAllMapped('.', (_) {
+    if (first) {
+      first = false;
+      return '';
+    } else {
+      return '-';
+    }
+  });
+  return "${components.first}-$prerelease";
 }
 
 /// Returns the contents of the `properties.psmdcp` file, computed from the
