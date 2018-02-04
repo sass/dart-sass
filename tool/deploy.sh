@@ -10,6 +10,7 @@ mkdir -p ~/.pub-cache
 tar xfO credentials.tar npm > ~/.npmrc
 tar xfO credentials.tar pub > ~/.pub-cache/credentials.json
 tar xfO credentials.tar git > ~/.npmrc
+tar xfO credentials.tar choco > choco
 
 function travis_cmd() {
   echo "\$ $@"
