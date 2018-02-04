@@ -15,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:node_preamble/preamble.dart' as preamble;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
+import 'package:string_scanner/string_scanner.dart';
 import 'package:xml/xml.dart' as xml;
 import 'package:yaml/yaml.dart';
 
@@ -458,4 +459,119 @@ update_homebrew() async {
 
   await runAsync("git",
       arguments: ["push"], workingDirectory: "build/homebrew-sass");
+}
+
+@Task('Release the current version as to GitHub.')
+@Depends(package)
+github_release() async {
+  var authorization = _loadAuthorization();
+
+  // We don't explicitly authenticate here, we just rely on Travis's .netrc.
+  var client = new http.Client();
+  var response = await client.post(
+      "https://api.github.com/repos/sass/dart-sass/releases",
+      headers: {
+        "content-type": "application/json",
+        "authorization": authorization
+      },
+      body: JSON.encode({
+        "tag_name": _version,
+        "name": "Dart Sass $_version",
+        "prerelease": new Version.parse(_version).isPreRelease,
+        "body": _lastChangelogSection()
+      }));
+
+  if (response.statusCode != 201) {
+    fail("${response.statusCode} error creating release:\n${response.body}");
+  } else {
+    log("Released Dart Sass $_version.");
+  }
+
+  var uploadUrl = JSON
+      .decode(response.body)["upload_url"]
+      // Remove the URL template.
+      .replaceFirst(new RegExp(r"\{[^}]+\}$"), "");
+
+  await Future.wait(["linux", "macos", "windows"].expand((os) {
+    return ["ia32", "x64"].map((architecture) async {
+      var format = os == "windows" ? "zip" : "tar.gz";
+      var package = "dart-sass-$_version-$os-$architecture.$format";
+      var response = await http.post("$uploadUrl?name=$package",
+          headers: {
+            "content-type":
+                os == "windows" ? "application/zip" : "application/gzip",
+            "authorization": authorization
+          },
+          body: new File(p.join("build", package)).readAsBytesSync());
+
+      if (response.statusCode != 201) {
+        fail("${response.statusCode} error uploading $package:\n"
+            "${response.body}");
+      } else {
+        log("Uploaded $package.");
+      }
+    });
+  }));
+
+  client.close();
+}
+
+/// A regular expression that matches a Markdown code block.
+final _codeBlock = new RegExp(" *```");
+
+/// Returns the most recent section in the CHANGELOG, reformatted to remove line
+/// breaks that will show up on GitHub.
+String _lastChangelogSection() {
+  var scanner = new StringScanner(new File("CHANGELOG.md").readAsStringSync(),
+      sourceUrl: "CHANGELOG.md");
+
+  // Scans the remainder of the current line and returns it. This consumes the
+  // trailing newline but doesn't return it.
+  String scanLine() {
+    var start = scanner.position;
+    while (scanner.readChar() != $lf) {}
+    return scanner.substring(start, scanner.position - 1);
+  }
+
+  scanner.expect("## $_version\n");
+
+  var buffer = new StringBuffer();
+  while (!scanner.isDone && !scanner.matches("## ")) {
+    if (scanner.matches(_codeBlock)) {
+      do {
+        buffer.writeln(scanLine());
+      } while (!scanner.matches(_codeBlock));
+      buffer.writeln(scanLine());
+    } else if (scanner.matches(new RegExp(" *\n"))) {
+      buffer.writeln();
+      buffer.writeln(scanLine());
+    } else if (scanner.matches(new RegExp(r" *([*-]|\d+\.)"))) {
+      buffer.write(scanLine());
+      buffer.writeCharCode($space);
+    } else {
+      buffer.write(scanLine());
+      buffer.writeCharCode($space);
+    }
+  }
+
+  return buffer.toString().trim();
+}
+
+/// A regular expression to match the api.github.com entry in a .netrc file.
+final _netrcRegExp = new RegExp(r"(?:^|\n) *machine api\.github\.com"
+    r"\n *login (.*)"
+    r"\n *password (.*)(?:\n|$)");
+
+/// Loads an HTTP basic authentication authorization header from the user's
+/// .netrc file.
+String _loadAuthorization() {
+  var netrc = new File(p.join(Platform.environment["HOME"], ".netrc"));
+  if (!netrc.existsSync()) fail("~/.netrc file not found.");
+
+  var match = _netrcRegExp.firstMatch(netrc.readAsStringSync());
+  if (match == null) {
+    fail(".netrc file didn't contain an entry for api.github.com.");
+  }
+
+  return "Basic ${BASE64.encode(UTF8.encode("${match[1]}:${match[2]}"))}";
 }
