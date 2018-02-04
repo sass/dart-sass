@@ -129,5 +129,6 @@ jobs:
         # Deploy to npm, pub, and Homebrew.
         # TODO: Deploy to Chocolatey as well.
         - provider: script
+          skip_cleanup: true
           script: tool/deploy.sh
           on: *deploy_on
