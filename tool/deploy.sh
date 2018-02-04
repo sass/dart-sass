@@ -28,11 +28,11 @@ travis_cmd npm publish build/npm-old
 travis_fold end npm
 
 travis_fold start pub
-travis_cmd pub lish
+travis_cmd pub lish --force
 travis_fold end pub
 
 travis_fold start homebrew
 git config --local user.name "Natalie Weizenbaum"
 git config --local user.email "nweiz@google.com"
-travis_cmd pub run grinder update-homebrew
+travis_cmd pub run grinder update_homebrew
 travis_fold end homebrew
