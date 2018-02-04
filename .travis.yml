@@ -24,7 +24,7 @@ rvm:
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
-  only: [master, /^feature\..*/]
+  only: [master, "/^feature\\..*/", "/^\\d+\\.\\d+\\.\\d+([+-].*)?$/"]
 
 cache:
   directories:
@@ -91,7 +91,8 @@ script:
 jobs:
   include:
     - stage: deploy
-      if: (type = push) AND (repo = sass/dart-sass) AND (tag =~ ^\d+\.\d+\.\d+([+-].*)?$)
+      if: (type in (push, api)) AND (repo = sass/dart-sass) AND (tag =~ ^\d+\.\d+\.\d+([+-].*)?$)
+      env: DART_CHANNEL=dev DART_VERSION=latest
       script: skip # Don't run tests
 
       before_deploy:
@@ -107,11 +108,17 @@ jobs:
           file: "${files_for_github}"
           skip_cleanup: true
 
-          # This is redundant with the "if" clause above, but according to
-          # https://github.com/travis-ci/beta-features/issues/28#issuecomment-358705563
-          # "if" resolution isn't totally solid yet.
+          # This causes the deploy to only be build when a tag is pushed. This
+          # is because the `tag` attribute in `if:` statements has a different
+          # understanding of the "current tag" than this, which uses the
+          # `TRAVIS_TAG` environment variable. `if:` statements check whether a
+          # tag exists that refers to the current commit, whereas `TRAVIS_TAG`
+          # checks whether the current build was caused by a tag.
+          #
+          # We check `if:` because it avoids unnecessary build steps, and
+          # `on: {tags: true}` ensures that we only deploy on the build caused
+          # by pushing a tag, not the build caused by pushing master.
           on: &deploy_on
-            repo: sass/dart-sass
             tags: true
 
         # Deploy to npm, pub, and Homebrew.
