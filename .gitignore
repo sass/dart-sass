@@ -9,3 +9,8 @@ packages
 pubspec.lock
 /benchmark/source
 node_modules/
+
+# These are downloaded as part of Travis builds, so we need to gitignore them to
+# make sure they aren't deployed when we "pub lish".
+/dart-sdk
+/dart.zip
