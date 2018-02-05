@@ -90,25 +90,25 @@ script:
 
 jobs:
   include:
-    - stage: deploy
-      if: (type in (push, api)) AND (repo = sass/dart-sass) AND (tag =~ ^\d+\.\d+\.\d+([+-].*)?$)
-      env: DART_CHANNEL=dev DART_VERSION=latest
-      script: skip # Don't run tests
+  - stage: deploy
+    if: (type in (push, api)) AND (repo = sass/dart-sass) AND (tag =~ ^\d+\.\d+\.\d+([+-].*)?$)
+    env: DART_CHANNEL=dev DART_VERSION=latest
+    script: skip # Don't run tests
 
-      deploy:
-        # Deploy to GitHub, npm, pub, and Homebrew.
-        # TODO: Deploy to Chocolatey as well.
-        provider: script
-        script: tool/deploy.sh
+    deploy:
+      # Deploy to GitHub, npm, pub, and Homebrew.
+      # TODO: Deploy to Chocolatey as well.
+      provider: script
+      script: tool/deploy.sh
 
-        # This causes the deploy to only be build when a tag is pushed. This
-        # is because the `tag` attribute in `if:` statements has a different
-        # understanding of the "current tag" than this, which uses the
-        # `TRAVIS_TAG` environment variable. `if:` statements check whether a
-        # tag exists that refers to the current commit, whereas `TRAVIS_TAG`
-        # checks whether the current build was caused by a tag.
-        #
-        # We check `if:` because it avoids unnecessary build steps, and
-        # `on: {tags: true}` ensures that we only deploy on the build caused
-        # by pushing a tag, not the build caused by pushing master.
-        on: {tags: true}
+      # This causes the deploy to only be build when a tag is pushed. This
+      # is because the `tag` attribute in `if:` statements has a different
+      # understanding of the "current tag" than this, which uses the
+      # `TRAVIS_TAG` environment variable. `if:` statements check whether a
+      # tag exists that refers to the current commit, whereas `TRAVIS_TAG`
+      # checks whether the current build was caused by a tag.
+      #
+      # We check `if:` because it avoids unnecessary build steps, and
+      # `on: {tags: true}` ensures that we only deploy on the build caused
+      # by pushing a tag, not the build caused by pushing master.
+      on: {tags: true}
