@@ -10,6 +10,7 @@ mkdir -p ~/.pub-cache
 tar xfO credentials.tar npm > ~/.npmrc
 tar xfO credentials.tar pub > ~/.pub-cache/credentials.json
 tar xfO credentials.tar git > ~/.npmrc
+tar xfO credentials.tar choco > choco
 
 function travis_cmd() {
   echo "\$ $@"
@@ -41,3 +42,7 @@ git config --local user.name "Natalie Weizenbaum"
 git config --local user.email "nweiz@google.com"
 travis_cmd pub run grinder update_homebrew
 travis_fold end homebrew
+
+travis_fold start chocolatey
+travis_cmd pub run grinder update_chocolatey
+travis_fold end chocolatey
