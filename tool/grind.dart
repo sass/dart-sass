@@ -277,6 +277,33 @@ This package is Dart Sass, the new Dart implementation of Sass.
   return builder.build() as xml.XmlDocument;
 }
 
+@Task('Upload the Chocolatey package to the current version.')
+@Depends(chocolatey_package)
+update_chocolatey() async {
+  // For some reason, although Chrome seems able to access it just fine,
+  // command-line tools don't seem to be able to verify the certificate for
+  // Chocolatey, so we need to manually add the intermediate GoDaddy certificate
+  // to the security context.
+  SecurityContext.defaultContext.setTrustedCertificates("tool/godaddy.pem");
+
+  var request = new http.MultipartRequest(
+      "PUT", Uri.parse("https://push.chocolatey.org/api/v2/package"));
+  request.headers["X-NuGet-Protocol-Version"] = "4.1.0";
+  request.headers["X-NuGet-ApiKey"] =
+      new File("choco").readAsStringSync().trim();
+  request.files.add(await http.MultipartFile
+      .fromPath("package", "build/sass.${_chocolateyVersion()}.nupkg"));
+
+  var response = await request.send();
+  if (response.statusCode ~/ 100 != 2) {
+    fail("${response.statusCode} error creating release:\n"
+        "${await response.stream.bytesToString()}");
+  } else {
+    log("Released Dart Sass ${_chocolateyVersion()} to Chocolatey.");
+    response.stream.listen(null).cancel();
+  }
+}
+
 /// The current Sass version, formatted for Chocolatey which doesn't allow dots
 /// in prerelease versions.
 String _chocolateyVersion() {
@@ -494,7 +521,7 @@ github_release() async {
   if (response.statusCode != 201) {
     fail("${response.statusCode} error creating release:\n${response.body}");
   } else {
-    log("Released Dart Sass $_version.");
+    log("Released Dart Sass $_version to GitHub.");
   }
 
   var uploadUrl = JSON

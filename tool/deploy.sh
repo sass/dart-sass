@@ -42,3 +42,7 @@ git config --local user.name "Natalie Weizenbaum"
 git config --local user.email "nweiz@google.com"
 travis_cmd pub run grinder update_homebrew
 travis_fold end homebrew
+
+travis_fold start chocolatey
+travis_cmd pub run grinder update_chocolatey
+travis_fold end chocolatey
