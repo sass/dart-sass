@@ -91,7 +91,7 @@ script:
 jobs:
   include:
   - stage: deploy
-    if: (type in (push, api)) AND (repo = sass/dart-sass) AND (tag =~ ^\d+\.\d+\.\d+([+-].*)?$)
+    if: (type IN (push, api)) AND (repo = sass/dart-sass) AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
     env: DART_CHANNEL=dev DART_VERSION=latest
     script: skip # Don't run tests
 
