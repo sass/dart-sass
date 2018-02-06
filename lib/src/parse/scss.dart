@@ -13,6 +13,7 @@ import 'stylesheet.dart';
 class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => null;
+  int peekIndentationOfNextLine() => null;
 
   ScssParser(String contents, {url, bool color: false})
       : super(contents, url: url, color: color);

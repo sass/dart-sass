@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
-
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
@@ -12,14 +11,14 @@ import 'package:sass/src/exception.dart';
 main() {
   test(
       "new Callable() throws a SassFormatException if the argument list is "
-      "invalid", () {
+          "invalid", () {
     expect(() => new Callable("foo", "arg", (_) => sassNull),
         throwsA(new isInstanceOf<SassFormatException>()));
   });
 
   test(
       "new AsyncCallable() throws a SassFormatException if the argument list "
-      "is invalid", () {
+          "is invalid", () {
     expect(() => new AsyncCallable("foo", "arg", (_) async => sassNull),
         throwsA(new isInstanceOf<SassFormatException>()));
   });
@@ -28,7 +27,9 @@ main() {
     var css = compileString('a {b: foo(bar)}', functions: [
       new Callable("foo", r"$arg", expectAsync1((arguments) {
         expect(arguments, hasLength(1));
-        expect(arguments.first.assertString().text, equals("bar"));
+        expect(arguments.first
+            .assertString()
+            .text, equals("bar"));
         return new SassString("result", quotes: false);
       }))
     ]);
@@ -40,7 +41,9 @@ main() {
     var css = await compileStringAsync('a {b: foo(bar)}', functions: [
       new AsyncCallable("foo", r"$arg", expectAsync1((arguments) async {
         expect(arguments, hasLength(1));
-        expect(arguments.first.assertString().text, equals("bar"));
+        expect(arguments.first
+            .assertString()
+            .text, equals("bar"));
         await pumpEventQueue();
         return new SassString("result", quotes: false);
       }))
@@ -65,9 +68,15 @@ main() {
         compileString('a {b: foo(x, y, z)}', functions: [
           new Callable("foo", r"$arg1, $arg2, $arg3", expectAsync1((arguments) {
             expect(arguments, hasLength(3));
-            expect(arguments[0].assertString().text, equals("x"));
-            expect(arguments[1].assertString().text, equals("y"));
-            expect(arguments[2].assertString().text, equals("z"));
+            expect(arguments[0]
+                .assertString()
+                .text, equals("x"));
+            expect(arguments[1]
+                .assertString()
+                .text, equals("y"));
+            expect(arguments[2]
+                .assertString()
+                .text, equals("z"));
             return sassNull;
           }))
         ]),
@@ -92,7 +101,9 @@ main() {
     var css = compileString('a {b: foo()}', functions: [
       new Callable("foo", r"$arg: 1", expectAsync1((arguments) {
         expect(arguments, hasLength(1));
-        expect(arguments.first.assertNumber().value, equals(1));
+        expect(arguments.first
+            .assertNumber()
+            .value, equals(1));
         return arguments.first;
       }))
     ]);
@@ -106,9 +117,15 @@ main() {
         expect(arguments, hasLength(1));
         var list = arguments[0] as SassArgumentList;
         expect(list.asList, hasLength(3));
-        expect(list.asList[0].assertNumber().value, equals(1));
-        expect(list.asList[1].assertNumber().value, equals(2));
-        expect(list.asList[2].assertNumber().value, equals(3));
+        expect(list.asList[0]
+            .assertNumber()
+            .value, equals(1));
+        expect(list.asList[1]
+            .assertNumber()
+            .value, equals(2));
+        expect(list.asList[2]
+            .assertNumber()
+            .value, equals(3));
         return arguments.first;
       }))
     ]);
@@ -123,11 +140,38 @@ main() {
         var list = arguments[0] as SassArgumentList;
         expect(list.asList, hasLength(0));
         expect(list.keywords, contains("bar"));
-        expect(list.keywords["bar"].assertNumber().value, equals(1));
+        expect(list.keywords["bar"]
+            .assertNumber()
+            .value, equals(1));
         return list.keywords["bar"];
       }))
     ]);
 
     expect(css, equalsIgnoringWhitespace("a { b: 1; }"));
+  });
+
+  test("can compile sass with selector list", () {
+    expect(compileString('''
+a,
+b
+  c: d''', indented: true),
+        equals('''
+a,
+b {
+  c: d;
+}'''));
+  });
+
+  test("can compile scss with selector list", () {
+    expect(compileString('''
+a,
+b{
+  c: d;
+}''', indented: false),
+        equals('''
+a,
+b {
+  c: d;
+}'''));
   });
 }
