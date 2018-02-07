@@ -353,18 +353,17 @@ class SassParser extends StylesheetParser {
     int indent = 0;
     int peekOffset = 1;
     bool peekIsIndent;
-    do{
+    do {
       var peek = scanner.peekChar(peekOffset);
       peekIsIndent = peek == $space || peek == $tab;
       if (peekIsIndent) {
         indent++;
         peekOffset++;
 
-        if(peek == $space) containsSpace = true;
-        if(peek == $tab) containsTab = true;
+        if (peek == $space) containsSpace = true;
+        if (peek == $tab) containsTab = true;
       }
-    }
-    while (peekIsIndent);
+    } while (peekIsIndent);
 
     _checkIndentationConsistency(containsTab, containsSpace);
 
