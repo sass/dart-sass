@@ -8,6 +8,8 @@
 * Improve the formatting of comments that don't start on the same line as the
   opening `/*`.
 
+* Preserve empty lines in `/*` comments in the indented syntax.
+
 ## 1.0.0-beta.5.2
 
 * Fix a bug where some colors would crash `compressed` mode.

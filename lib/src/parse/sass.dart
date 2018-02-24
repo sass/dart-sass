@@ -252,6 +252,14 @@ class SassParser extends StylesheetParser {
       }
 
       if (_peekIndentation() <= parentIndentation) break;
+
+      // Preserve empty lines.
+      while (isNewline(scanner.peekChar(1))) {
+        scanner.readChar();
+        buffer.writeln();
+        buffer.write(" *");
+      }
+
       _readIndentation();
     }
     if (!buffer.trailingString.trimRight().endsWith("*/")) buffer.write(" */");
