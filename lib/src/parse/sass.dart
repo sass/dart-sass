@@ -218,13 +218,14 @@ class SassParser extends StylesheetParser {
         buffer.writeCharCode($space);
       }
 
+      loop:
       while (!scanner.isDone) {
         var next = scanner.peekChar();
         switch (next) {
           case $lf:
           case $cr:
           case $ff:
-            break;
+            break loop;
 
           case $hash:
             if (scanner.peekChar(1) == $lbrace) {

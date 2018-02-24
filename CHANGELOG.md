@@ -1,3 +1,7 @@
+## 1.0.0-beta.5.3
+
+* Don't deadlock on `/*` comments in the indented syntax.
+
 ## 1.0.0-beta.5.2
 
 * Fix a bug where some colors would crash `compressed` mode.
