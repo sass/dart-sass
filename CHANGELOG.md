@@ -5,6 +5,9 @@
 * Don't add an extra `*/` to comments in the indented syntax that already have
   it.
 
+* Improve the formatting of comments that don't start on the same line as the
+  opening `/*`.
+
 ## 1.0.0-beta.5.2
 
 * Fix a bug where some colors would crash `compressed` mode.

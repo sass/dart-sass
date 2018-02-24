@@ -48,6 +48,14 @@ abstract class Parser {
     }
   }
 
+  /// Consumes spaces and tabs.
+  @protected
+  void spaces() {
+    while (!scanner.isDone && isSpaceOrTab(scanner.peekChar())) {
+      scanner.readChar();
+    }
+  }
+
   /// Consumes and ignores a comment if possible.
   ///
   /// Returns whether the comment was consumed.

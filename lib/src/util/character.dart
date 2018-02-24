@@ -12,11 +12,14 @@ const _asciiCaseBit = 0x20;
 
 /// Returns whether [character] is an ASCII whitespace character.
 bool isWhitespace(int character) =>
-    character == $space || character == $tab || isNewline(character);
+    isSpaceOrTab(character) || isNewline(character);
 
 /// Returns whether [character] is an ASCII newline.
 bool isNewline(int character) =>
     character == $lf || character == $cr || character == $ff;
+
+/// Returns whether [character] is a space or a tab character.
+bool isSpaceOrTab(int character) => character == $space || character == $tab;
 
 /// Returns whether [character] is a letter or number.
 bool isAlphanumeric(int character) =>

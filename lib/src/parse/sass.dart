@@ -208,7 +208,17 @@ class SassParser extends StylesheetParser {
     var buffer = new InterpolationBuffer()..write("/*");
     var parentIndentation = currentIndentation;
     while (true) {
-      if (!first) {
+      if (first) {
+        // If the first line is empty, ignore it.
+        var beginningOfComment = scanner.position;
+        spaces();
+        if (isNewline(scanner.peekChar())) {
+          _readIndentation();
+          buffer.writeCharCode($space);
+        } else {
+          buffer.write(scanner.substring(beginningOfComment));
+        }
+      } else {
         buffer.writeln();
         buffer.write(" * ");
       }
