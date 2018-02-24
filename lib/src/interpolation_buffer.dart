@@ -23,6 +23,9 @@ class InterpolationBuffer implements StringSink {
   /// Returns whether this buffer has no contents.
   bool get isEmpty => _contents.isEmpty && _text.isEmpty;
 
+  /// Returns the substring of the buffer string after the last interpolation.
+  String get trailingString => _text.toString();
+
   /// Empties this buffer.
   void clear() {
     _contents.clear();

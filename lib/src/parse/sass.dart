@@ -244,7 +244,7 @@ class SassParser extends StylesheetParser {
       if (_peekIndentation() <= parentIndentation) break;
       _readIndentation();
     }
-    buffer.write(" */");
+    if (!buffer.trailingString.trimRight().endsWith("*/")) buffer.write(" */");
 
     return new LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
