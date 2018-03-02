@@ -17,6 +17,8 @@ class ScssParser extends StylesheetParser {
   ScssParser(String contents, {url, bool color: false})
       : super(contents, url: url, color: color);
 
+  Interpolation styleRuleSelector() => almostAnyValue();
+
   void expectStatementSeparator([String name]) {
     whitespaceWithoutComments();
     if (scanner.isDone) return;

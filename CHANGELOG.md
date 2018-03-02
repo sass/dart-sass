@@ -2,17 +2,20 @@
 
 * Support hard tabs in the indented syntax.
 
-* Don't deadlock on `/*` comments in the indented syntax.
-
-* Don't add an extra `*/` to comments in the indented syntax that already have
-  it.
-
 * Improve the formatting of comments that don't start on the same line as the
   opening `/*`.
 
-* Preserve empty lines in `/*` comments in the indented syntax.
-
 * Preserve whitespace after `and` in media queries in compressed mode.
+
+### Indented Syntax
+
+* Properly parse multi-line selectors.
+
+* Don't deadlock on `/*` comments.
+
+* Don't add an extra `*/` to comments that already have it.
+
+* Preserve empty lines in `/*` comments.
 
 ## 1.0.0-beta.5.2
 
