@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
-
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
@@ -129,5 +128,28 @@ main() {
     ]);
 
     expect(css, equalsIgnoringWhitespace("a { b: 1; }"));
+  });
+
+  test("can compile sass with selector list", () {
+    expect(compileString('''
+a,
+b
+  c: d''', indented: true), equals('''
+a,
+b {
+  c: d;
+}'''));
+  });
+
+  test("can compile scss with selector list", () {
+    expect(compileString('''
+a,
+b{
+  c: d;
+}''', indented: false), equals('''
+a,
+b {
+  c: d;
+}'''));
   });
 }

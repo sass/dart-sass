@@ -2269,7 +2269,9 @@ abstract class StylesheetParser extends Parser {
         case $cr:
         case $lf:
         case $ff:
-          if (indented) break loop;
+          if (indented && peekIndentationOfNextLine() > currentIndentation)
+            break loop;
+
           buffer.writeCharCode(scanner.readChar());
           break;
 
@@ -2746,6 +2748,9 @@ abstract class StylesheetParser extends Parser {
   /// [scanElse].
   @protected
   int get currentIndentation;
+
+  @protected
+  int peekIndentationOfNextLine();
 
   /// Asserts that the scanner is positioned before a statement separator, or at
   /// the end of a list of statements.

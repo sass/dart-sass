@@ -362,6 +362,33 @@ class SassParser extends StylesheetParser {
     return _nextIndentation;
   }
 
+  int peekIndentationOfNextLine() {
+    if (!isNewline(scanner.peekChar())) {
+      scanner.error("Expected newline.", position: scanner.position);
+    }
+
+    bool containsTab = false;
+    bool containsSpace = false;
+    int indent = 0;
+    int peekOffset = 1;
+    bool peekIsIndent;
+    do {
+      var peek = scanner.peekChar(peekOffset);
+      peekIsIndent = peek == $space || peek == $tab;
+      if (peekIsIndent) {
+        indent++;
+        peekOffset++;
+
+        if (peek == $space) containsSpace = true;
+        if (peek == $tab) containsTab = true;
+      }
+    } while (peekIsIndent);
+
+    _checkIndentationConsistency(containsTab, containsSpace);
+
+    return indent;
+  }
+
   /// Ensures that the document uses consistent characters for indentation.
   ///
   /// The [containsTab] and [containsSpace] parameters refer to a single line of

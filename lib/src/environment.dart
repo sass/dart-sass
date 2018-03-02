@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 4669f41a70664bd5f391c6b8627264a5d0ad8f6c
+// Checksum: f281e1a3b1f8f2decbf2333caf79a3d99018402f
 
 import 'ast/sass.dart';
 import 'callable.dart';
