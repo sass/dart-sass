@@ -377,7 +377,7 @@ class SassParser extends StylesheetParser {
             position: scanner.position - scanner.column,
             length: scanner.column);
       }
-    } else if (_spaces == false) {
+    } else if (containsSpace && _spaces == false) {
       scanner.error("Expected tabs, was spaces.",
           position: scanner.position - scanner.column, length: scanner.column);
     }

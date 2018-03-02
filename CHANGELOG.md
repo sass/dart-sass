@@ -1,5 +1,7 @@
 ## 1.0.0-beta.5.3
 
+* Support hard tabs in the indented syntax.
+
 * Don't deadlock on `/*` comments in the indented syntax.
 
 * Don't add an extra `*/` to comments in the indented syntax that already have
