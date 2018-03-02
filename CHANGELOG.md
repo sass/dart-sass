@@ -12,6 +12,8 @@
 
 * Preserve empty lines in `/*` comments in the indented syntax.
 
+* Preserve whitespace after `and` in media queries in compressed mode.
+
 ## 1.0.0-beta.5.2
 
 * Fix a bug where some colors would crash `compressed` mode.

@@ -165,14 +165,16 @@ void main() {
           equals("@media screen{a{b:c}}"));
     });
 
-    test('removes whitespace around "and"', () {
+    // Removing whitespace after "and", "or", or "not" is forbidden because it
+    // would cause it to parse as a function token.
+    test('removes whitespace before "and" when possible', () {
       expect(
           _compile("""
         @media screen and (min-width: 900px) and (max-width: 100px) {
           a {b: c}
         }
       """),
-          equals("@media screen and(min-width: 900px)and(max-width: 100px)"
+          equals("@media screen and (min-width: 900px)and (max-width: 100px)"
               "{a{b:c}}"));
     });
 
