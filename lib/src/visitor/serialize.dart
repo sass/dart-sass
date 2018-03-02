@@ -248,13 +248,12 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     if (query.type != null) {
       _buffer.write(query.type);
       if (query.features.isNotEmpty) {
-        _buffer.write(" and");
-        _writeOptionalSpace();
+        _buffer.write(" and ");
       }
     }
 
     _writeBetween(
-        query.features, _isCompressed ? "and" : " and ", _buffer.write);
+        query.features, _isCompressed ? "and " : " and ", _buffer.write);
   }
 
   void visitStyleRule(CssStyleRule node) {
