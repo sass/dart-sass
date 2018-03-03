@@ -96,10 +96,12 @@ jobs:
     script: skip # Don't run tests
 
     deploy:
-      # Deploy to GitHub, npm, pub, and Homebrew.
-      # TODO: Deploy to Chocolatey as well.
+      # Deploy to GitHub, npm, pub, Homebrew, and Chocolatey.
       provider: script
       script: tool/deploy.sh
+
+      # Don't clean up the Dart SDK.
+      skip_cleanup: true
 
       # This causes the deploy to only be build when a tag is pushed. This
       # is because the `tag` attribute in `if:` statements has a different
