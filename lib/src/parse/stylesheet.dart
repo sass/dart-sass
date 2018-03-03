@@ -173,7 +173,7 @@ abstract class StylesheetParser extends Parser {
     if (indented) scanner.scanChar($backslash);
 
     var start = scanner.state;
-    var selector = _almostAnyValue();
+    var selector = styleRuleSelector();
     var children = this.children(_statement);
     var rule = new StyleRule(selector, children, scanner.spanFrom(start));
     _inStyleRule = wasInStyleRule;
@@ -218,7 +218,7 @@ abstract class StylesheetParser extends Parser {
     if (declarationOrBuffer is Declaration) return declarationOrBuffer;
 
     var buffer = declarationOrBuffer as InterpolationBuffer;
-    buffer.addInterpolation(_almostAnyValue());
+    buffer.addInterpolation(styleRuleSelector());
     var selectorSpan = scanner.spanFrom(start);
 
     var wasInStyleRule = _inStyleRule;
@@ -320,7 +320,7 @@ abstract class StylesheetParser extends Parser {
       // If the value would be followed by a semicolon, it's definitely supposed
       // to be a property, not a selector.
       scanner.state = beforeDeclaration;
-      var additional = _almostAnyValue();
+      var additional = almostAnyValue();
       if (!indented && scanner.peekChar() == $semicolon) rethrow;
 
       nameBuffer.write(midBuffer);
@@ -593,7 +593,7 @@ abstract class StylesheetParser extends Parser {
           position: start.position, length: "@extend".length);
     }
 
-    var value = _almostAnyValue();
+    var value = almostAnyValue();
     var optional = scanner.scanChar($exclamation);
     if (optional) expectIdentifier("optional");
     expectStatementSeparator("@extend rule");
@@ -983,7 +983,7 @@ abstract class StylesheetParser extends Parser {
 
     Interpolation value;
     var next = scanner.peekChar();
-    if (next != $exclamation && !atEndOfStatement()) value = _almostAnyValue();
+    if (next != $exclamation && !atEndOfStatement()) value = almostAnyValue();
 
     var children = lookingAtChildren() ? this.children(_statement) : null;
     if (children == null) expectStatementSeparator();
@@ -1000,7 +1000,7 @@ abstract class StylesheetParser extends Parser {
   /// This declares a return type of [Statement] so that it can be returned
   /// within case statements.
   Statement _disallowedAtRule(LineScannerState start) {
-    _almostAnyValue();
+    almostAnyValue();
     scanner.error("This at-rule is not allowed here.",
         position: start.position,
         length: scanner.state.position - start.position);
@@ -2228,7 +2228,8 @@ abstract class StylesheetParser extends Parser {
   /// * This supports Sass-style single-line comments.
   ///
   /// * This does not compress adjacent whitespace characters.
-  Interpolation _almostAnyValue() {
+  @protected
+  Interpolation almostAnyValue() {
     var start = scanner.state;
     var buffer = new InterpolationBuffer();
 
@@ -2746,6 +2747,10 @@ abstract class StylesheetParser extends Parser {
   /// [scanElse].
   @protected
   int get currentIndentation;
+
+  /// Parses and returns a selector used in a style rule.
+  @protected
+  Interpolation styleRuleSelector();
 
   /// Asserts that the scanner is positioned before a statement separator, or at
   /// the end of a list of statements.

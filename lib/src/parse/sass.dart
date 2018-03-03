@@ -39,6 +39,19 @@ class SassParser extends StylesheetParser {
   SassParser(String contents, {url, bool color: false})
       : super(contents, url: url, color: color);
 
+  Interpolation styleRuleSelector() {
+    var start = scanner.state;
+
+    var buffer = new InterpolationBuffer();
+    do {
+      buffer.addInterpolation(almostAnyValue());
+      buffer.writeCharCode($lf);
+    } while (buffer.trailingString.trimRight().endsWith(",") &&
+        scanCharIf(isNewline));
+
+    return buffer.interpolation(scanner.spanFrom(start));
+  }
+
   void expectStatementSeparator([String name]) {
     if (!atEndOfStatement()) scanner.expectChar($lf);
     if (_peekIndentation() <= currentIndentation) return;
