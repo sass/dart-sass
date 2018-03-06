@@ -38,8 +38,8 @@ travis_cmd pub lish --force
 travis_fold end pub
 
 travis_fold start homebrew
-git config --local user.name "Natalie Weizenbaum"
-git config --local user.email "nweiz@google.com"
+git config --local user.name "SassBot"
+git config --local user.email "sass.bot.beep.boop@gmail.com"
 travis_cmd pub run grinder update_homebrew
 travis_fold end homebrew
 
