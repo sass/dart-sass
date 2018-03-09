@@ -11,12 +11,10 @@ import '../util/path.dart';
 /// found, it returns `null`.
 String resolveImportPath(String path) {
   var extension = p.extension(path);
-  if (extension == '.sass' || extension == '.scss') {
-    return _tryPath(path);
-  } else {
-    var file = _tryPathWithExtensions(path);
-    return file != null ? file : _tryPathAsDirectory(path);
-  }
+  if (extension == '.sass' || extension == '.scss') return _tryPath(path);
+
+  var file = _tryPathWithExtensions(path);
+  return file != null ? file : _tryPathAsDirectory(path);
 }
 
 /// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
@@ -34,10 +32,9 @@ String _tryPath(String path) {
   return null;
 }
 
-/// Checks if path given is a directory then searches for a index file using [_tryPathWithExtensions]
-/// returns the resolved path.
+/// Returns the resolved index file for [path] if [path] is a directory and the
+/// index file exists.
 ///
 /// Otherwise, returns `null`.
-String _tryPathAsDirectory(String path) {
-  return dirExists(path) ? _tryPathWithExtensions(p.join(path, 'index')) : null;
-}
+String _tryPathAsDirectory(String path) =>
+    dirExists(path) ? _tryPathWithExtensions(p.join(path, 'index')) : null;
