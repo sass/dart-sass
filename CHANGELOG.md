@@ -1,3 +1,8 @@
+## 1.0.0-beta.6
+
+* Add support for importing an `_index.scss` or `_index.sass` file when
+  importing a directory.
+
 ## 1.0.0-beta.5.3
 
 * Support hard tabs in the indented syntax.
