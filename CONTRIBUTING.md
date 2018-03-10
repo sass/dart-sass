@@ -113,20 +113,20 @@ To create a new spec:
     with the output that should be produced. If you're testing an error, instead
     create an `error` file with the expected error message.
 
-  * If you're adding a new language feature, it probably won't be supported by
-    Ruby Sass or LibSass yet. You can indicate this and keep tests passing by
-    adding an `options.yml` file like this to the directory containing your
-    tests:
+* If you're adding a new language feature, it probably won't be supported by
+  Ruby Sass or LibSass yet. You can indicate this and keep tests passing by
+  adding an `options.yml` file like this to the directory containing your
+  tests:
 
-    ```yaml
-    ---
-    :todo:
-    - ruby-sass
-    - libsass
-    ```
+  ```yaml
+  ---
+  :todo:
+  - ruby-sass
+  - libsass
+  ```
 
-    If you're fixing a bug, you'll only need to do this if the bug also appears
-    in other Sass implementations.
+  If you're fixing a bug, you'll only need to do this if the bug also appears
+  in other Sass implementations.
 
 * Make sure all the language tests, including the new ones, are passing by
   running this within `sass-spec/`:
@@ -211,7 +211,7 @@ automating.
 All files in the project must start with the following header.
 
 ```dart
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 ```
