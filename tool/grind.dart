@@ -12,6 +12,7 @@ import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:node_preamble/preamble.dart' as preamble;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
@@ -85,18 +86,27 @@ package() async {
   client.close();
 }
 
-@Task('Compile to JS.')
-js() {
+@Task('Compile to JS in dev mode.')
+js() => _js(release: false);
+
+@Task('Compile to JS in release mode.')
+js_release() => _js(release: true);
+
+/// Compiles Sass to JS.
+///
+/// If [release] is `true`, this compiles minified with
+/// --trust-type-annotations. Otherwise, it compiles unminified with pessimistic
+/// type checks.
+void _js({@required bool release}) {
   _ensureBuild();
   var destination = new File('build/sass.dart.js');
 
   var args = [
-    '--trust-type-annotations',
     '-Dnode=true',
     '-Dversion=$_version',
     '-Ddart-version=$_dartVersion',
   ];
-  if (Platform.environment["SASS_MINIFY_JS"] != "false") args.add("--minify");
+  if (release) args..add("--minify")..add("--trust-type-annotations");
 
   Dart2js.compile(new File('bin/sass.dart'),
       outFile: destination, extraArgs: args);
@@ -104,15 +114,28 @@ js() {
   destination.writeAsStringSync(preamble.getPreamble() + text);
 }
 
-@Task('Build a pure-JS npm package.')
+@Task('Build a pure-JS dev-mode npm package.')
 @Depends(js)
-npm_package() {
+npm_package() => _npm(release: false);
+
+@Task('Build a pure-JS release-mode npm package.')
+@Depends(js_release)
+npm_release_package() => _npm(release: true);
+
+/// Builds a pure-JS npm package.
+///
+/// If [release] is `true`, this compiles minified with
+/// --trust-type-annotations. Otherwise, it compiles unminified with pessimistic
+/// type checks.
+void _npm({@required bool release}) {
   var json = JSON.decode(new File('package/package.json').readAsStringSync())
       as Map<String, dynamic>;
   json['version'] = _version;
 
   _writeNpmPackage('build/npm', json);
-  _writeNpmPackage('build/npm-old', json..addAll({"name": "dart-sass"}));
+  if (release) {
+    _writeNpmPackage('build/npm-old', json..addAll({"name": "dart-sass"}));
+  }
 }
 
 @Task('Installs dependencies from npm.')

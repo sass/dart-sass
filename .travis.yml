@@ -45,7 +45,7 @@ install:
 - if-node . "$HOME/.nvm/nvm.sh"
 - if-node nvm install "$NODE_VERSION"
 - if-node nvm use "$NODE_VERSION"
-- SASS_MINIFY_JS=false if-node pub run grinder before_test
+- if-node pub run grinder before_test
 
 # Download sass-spec and install its dependencies if we're running specs.
 - if-specs() { if [ "$TASK" = specs ]; then "$@"; fi }

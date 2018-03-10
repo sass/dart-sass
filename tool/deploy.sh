@@ -28,7 +28,7 @@ travis_cmd pub run grinder github_release
 travis_fold end github
 
 travis_fold start npm
-travis_cmd pub run grinder npm_package
+travis_cmd pub run grinder npm_release_package
 travis_cmd npm publish build/npm
 travis_cmd npm publish build/npm-old
 travis_fold end npm
