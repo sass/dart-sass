@@ -3,6 +3,12 @@
 * Add support for importing an `_index.scss` or `_index.sass` file when
   importing a directory.
 
+### Node JS API
+
+* Import URLs passed to importers are no longer normalized. For example, if a
+  stylesheet contains `@import "./foo.scss"`, importers will now receive
+  `"./foo.scss"` rather than `"foo.scss"`.
+
 ## 1.0.0-beta.5.3
 
 * Support hard tabs in the indented syntax.

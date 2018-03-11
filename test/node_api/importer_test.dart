@@ -266,6 +266,16 @@ void main() {
           }))));
     });
 
+    // Regression test for #246.
+    test("doesn't remove ./", () {
+      renderSync(new RenderOptions(
+          data: "@import './foo'",
+          importer: allowInterop(expectAsync2((url, _) {
+            expect(url, equals('./foo'));
+            return new NodeImporterResult(contents: '');
+          }))));
+    });
+
     test("isn't resolved relative to the current file", () {
       renderSync(new RenderOptions(
           data: "@import 'foo/bar'",

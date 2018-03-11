@@ -762,12 +762,14 @@ abstract class StylesheetParser extends Parser {
 
   /// Parses [url] as an import URL.
   @protected
-  Uri parseImportUrl(String url) {
+  String parseImportUrl(String url) {
     // Backwards-compatibility for implementations that allow absolute Windows
     // paths in imports.
-    if (p.windows.isAbsolute(url)) return p.windows.toUri(url);
+    if (p.windows.isAbsolute(url)) return p.windows.toUri(url).toString();
 
-    return Uri.parse(url);
+    // Throw a [FormatException] if [url] is invalid.
+    Uri.parse(url);
+    return url;
   }
 
   /// Returns whether [url] indicates that an `@import` is a plain CSS import.

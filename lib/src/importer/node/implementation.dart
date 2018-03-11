@@ -58,18 +58,18 @@ class NodeImporter {
   /// The [previous] URL is the URL of the stylesheet in which the import
   /// appeared. Returns the contents of the stylesheet and the URL to use as
   /// [previous] for imports within the loaded stylesheet.
-  Tuple2<String, Uri> load(Uri url, Uri previous) {
-    if (url.scheme == '' || url.scheme == 'file') {
-      var result = _resolvePath(p.fromUri(url), previous);
+  Tuple2<String, String> load(String url, Uri previous) {
+    var parsed = Uri.parse(url);
+    if (parsed.scheme == '' || parsed.scheme == 'file') {
+      var result = _resolvePath(p.fromUri(parsed), previous);
       if (result != null) return result;
     }
 
     // The previous URL is always an absolute file path for filesystem imports.
-    var urlString = url.toString();
     var previousString =
         previous.scheme == 'file' ? p.fromUri(previous) : previous.toString();
     for (var importer in _importers) {
-      var value = call2(importer, _context, urlString, previousString);
+      var value = call2(importer, _context, url, previousString);
       if (value != null) return _handleImportResult(url, previous, value);
     }
 
@@ -81,18 +81,18 @@ class NodeImporter {
   /// The [previous] URL is the URL of the stylesheet in which the import
   /// appeared. Returns the contents of the stylesheet and the URL to use as
   /// [previous] for imports within the loaded stylesheet.
-  Future<Tuple2<String, Uri>> loadAsync(Uri url, Uri previous) async {
-    if (url.scheme == '' || url.scheme == 'file') {
-      var result = _resolvePath(p.fromUri(url), previous);
+  Future<Tuple2<String, String>> loadAsync(String url, Uri previous) async {
+    var parsed = Uri.parse(url);
+    if (parsed.scheme == '' || parsed.scheme == 'file') {
+      var result = _resolvePath(p.fromUri(parsed), previous);
       if (result != null) return result;
     }
 
     // The previous URL is always an absolute file path for filesystem imports.
-    var urlString = url.toString();
     var previousString =
         previous.scheme == 'file' ? p.fromUri(previous) : previous.toString();
     for (var importer in _importers) {
-      var value = await _callImporterAsync(importer, urlString, previousString);
+      var value = await _callImporterAsync(importer, url, previousString);
       if (value != null) return _handleImportResult(url, previous, value);
     }
 
@@ -104,7 +104,7 @@ class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, Uri> _resolvePath(String path, Uri previous) {
+  Tuple2<String, String> _resolvePath(String path, Uri previous) {
     if (p.isAbsolute(path)) return _tryPath(path);
 
     // 1: Filesystem imports relative to the base file.
@@ -130,16 +130,17 @@ class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, Uri> _tryPath(String path) {
+  Tuple2<String, String> _tryPath(String path) {
     var resolved = resolveImportPath(path);
     return resolved == null
         ? null
-        : new Tuple2(readFile(resolved), p.toUri(resolved));
+        : new Tuple2(readFile(resolved), p.toUri(resolved).toString());
   }
 
   /// Converts an [_Importer]'s return [value] to a tuple that can be returned
   /// by [load].
-  Tuple2<String, Uri> _handleImportResult(Uri url, Uri previous, Object value) {
+  Tuple2<String, String> _handleImportResult(
+      String url, Uri previous, Object value) {
     if (isJSError(value)) throw value;
 
     NodeImporterResult result;
@@ -163,10 +164,10 @@ class NodeImporter {
 
   /// Calls an importer that may or may not be asynchronous.
   Future<Object> _callImporterAsync(
-      _Importer importer, String urlString, String previousString) async {
+      _Importer importer, String url, String previousString) async {
     var completer = new Completer();
 
-    var result = call3(importer, _context, urlString, previousString,
+    var result = call3(importer, _context, url, previousString,
         allowInterop(completer.complete));
     if (isUndefined(result)) return await completer.future;
     return result;
