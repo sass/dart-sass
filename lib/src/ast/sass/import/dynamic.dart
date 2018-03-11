@@ -9,14 +9,16 @@ import '../import.dart';
 
 /// An import that will load a Sass file at runtime.
 class DynamicImport implements Import {
+  // TODO(nweiz): Make this a [Url] when dart-lang/sdk#32490 is fixed, or when
+  // Node Sass imports no longer expose a leading `./`.
   /// The URI of the file to import.
   ///
   /// If this is relative, it's relative to the containing file.
-  final Uri url;
+  final String url;
 
   final FileSpan span;
 
   DynamicImport(this.url, this.span);
 
-  String toString() => StringExpression.quoteText(url.toString());
+  String toString() => StringExpression.quoteText(url);
 }

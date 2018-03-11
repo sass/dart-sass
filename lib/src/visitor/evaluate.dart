@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 199b3bd52a5c5c147444ee45c2f3d46ef8af2d28
+// Checksum: 53f8eb4f4e6ed2cad3fe359490a50e12911a278a
 
 import 'dart:math' as math;
 
@@ -690,21 +690,22 @@ class _EvaluateVisitor
         var stylesheet = _importLikeNode(import);
         if (stylesheet != null) return new Tuple2(null, stylesheet);
       } else {
+        var url = Uri.parse(import.url);
+
         // Try to resolve [import.url] relative to the current URL with the
         // current importer.
-        if (import.url.scheme.isEmpty && _importer != null) {
-          var stylesheet =
-              _tryImport(_importer, _baseUrl.resolveUri(import.url));
+        if (url.scheme.isEmpty && _importer != null) {
+          var stylesheet = _tryImport(_importer, _baseUrl.resolveUri(url));
           if (stylesheet != null) return new Tuple2(_importer, stylesheet);
         }
 
         for (var importer in _importers) {
-          var stylesheet = _tryImport(importer, import.url);
+          var stylesheet = _tryImport(importer, url);
           if (stylesheet != null) return new Tuple2(importer, stylesheet);
         }
       }
 
-      if (import.url.scheme == 'package') {
+      if (import.url.startsWith('package:')) {
         // Special-case this error message, since it's tripped people up in the
         // past.
         throw "\"package:\" URLs aren't supported on this platform.";
@@ -738,13 +739,13 @@ class _EvaluateVisitor
     var contents = result.item1;
     var url = result.item2;
 
-    if (url.scheme == 'file') {
+    if (url.startsWith('file:')) {
       _includedFiles.add(p.fromUri(url));
     } else {
-      _includedFiles.add(url.toString());
+      _includedFiles.add(url);
     }
 
-    return url.scheme == 'file' && pUrl.extension(url.path) == '.sass'
+    return url.startsWith('file') && pUrl.extension(url) == '.sass'
         ? new Stylesheet.parseSass(contents, url: url, color: _color)
         : new Stylesheet.parseScss(contents, url: url, color: _color);
   }
