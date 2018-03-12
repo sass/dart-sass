@@ -123,18 +123,34 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
   });
 
-  test("compiles from stdin with --stdin", () async {
-    var sass = await runSass(["--stdin"]);
-    sass.stdin.writeln("a {b: 1 + 2}");
-    sass.stdin.close();
-    expect(
-        sass.stdout,
-        emitsInOrder([
-          "a {",
-          "  b: 3;",
-          "}",
-        ]));
-    await sass.shouldExit(0);
+  group("with --stdin", () {
+    test("compiles from stdin", () async {
+      var sass = await runSass(["--stdin"]);
+      sass.stdin.writeln("a {b: 1 + 2}");
+      sass.stdin.close();
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            "a {",
+            "  b: 3;",
+            "}",
+          ]));
+      await sass.shouldExit(0);
+    });
+
+    test("uses the indented syntax with --indented", () async {
+      var sass = await runSass(["--stdin", "--indented"]);
+      sass.stdin.writeln("a\n  b: 1 + 2");
+      sass.stdin.close();
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            "a {",
+            "  b: 3;",
+            "}",
+          ]));
+      await sass.shouldExit(0);
+    });
   });
 
   test("gracefully reports errors from stdin", () async {

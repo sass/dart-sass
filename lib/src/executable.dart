@@ -17,6 +17,7 @@ main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addOption('precision', hide: true)
     ..addFlag('stdin', help: 'Read the stylesheet from stdin.')
+    ..addFlag('indented', help: 'Use the indented syntax for input from stdin.')
     ..addOption('load-path',
         abbr: 'I',
         valueHelp: 'PATH',
@@ -66,6 +67,8 @@ main(List<String> args) async {
     return;
   }
 
+  var indented =
+      options.wasParsed('indented') ? options['indented'] as bool : null;
   var color =
       options.wasParsed('color') ? options['color'] as bool : hasTerminal;
   var logger =
@@ -79,6 +82,7 @@ main(List<String> args) async {
     String css;
     if (stdinFlag) {
       css = await _compileStdin(
+          indented: indented,
           logger: logger,
           style: style,
           loadPaths: loadPaths,
@@ -87,6 +91,7 @@ main(List<String> args) async {
       var input = options.rest.first;
       if (input == '-') {
         css = await _compileStdin(
+            indented: indented,
             logger: logger,
             style: style,
             loadPaths: loadPaths,
@@ -160,7 +165,8 @@ Future<String> _loadVersion() async {
 
 /// Compiles Sass from standard input and returns the result.
 Future<String> _compileStdin(
-    {Logger logger,
+    {bool indented,
+    Logger logger,
     OutputStyle style,
     List<String> loadPaths,
     bool asynchronous: false}) async {
@@ -168,10 +174,18 @@ Future<String> _compileStdin(
   var importer = new FilesystemImporter('.');
   if (asynchronous) {
     return await compileStringAsync(text,
-        logger: logger, style: style, importer: importer, loadPaths: loadPaths);
+        indented: indented,
+        logger: logger,
+        style: style,
+        importer: importer,
+        loadPaths: loadPaths);
   } else {
     return compileString(text,
-        logger: logger, style: style, importer: importer, loadPaths: loadPaths);
+        indented: indented,
+        logger: logger,
+        style: style,
+        importer: importer,
+        loadPaths: loadPaths);
   }
 }
 

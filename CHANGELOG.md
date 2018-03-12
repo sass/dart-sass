@@ -8,6 +8,9 @@
 
 * Add a `--quiet` command-line option (alias `-q`) for silencing warnings.
 
+* Add an `--indented` command-line option for using the indented syntax with a
+  stylesheet from standard input.
+
 ### Dart API
 
 * Add a `Logger` class that allows users to control how messages are printed by
