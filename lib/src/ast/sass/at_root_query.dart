@@ -4,6 +4,7 @@
 
 import 'package:collection/collection.dart';
 
+import '../../logger.dart';
 import '../../parse/at_root_query.dart';
 import '../css.dart';
 
@@ -54,8 +55,8 @@ class AtRootQuery {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory AtRootQuery.parse(String contents, {url}) =>
-      new AtRootQueryParser(contents, url: url).parse();
+  factory AtRootQuery.parse(String contents, {url, Logger logger}) =>
+      new AtRootQueryParser(contents, url: url, logger: logger).parse();
 
   /// Returns whether [this] excludes [node].
   bool excludes(CssParentNode node) {

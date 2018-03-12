@@ -5,6 +5,7 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/selector.dart';
+import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import 'parser.dart';
@@ -21,9 +22,9 @@ class SelectorParser extends Parser {
   /// Whether this parser allows the parent selector `&`.
   final bool _allowParent;
 
-  SelectorParser(String contents, {url, bool allowParent: true})
+  SelectorParser(String contents, {url, Logger logger, bool allowParent: true})
       : _allowParent = allowParent,
-        super(contents, url: url);
+        super(contents, url: url, logger: logger);
 
   SelectorList parse() {
     return wrapSpanFormatException(() {

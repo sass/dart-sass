@@ -8,6 +8,7 @@ import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../exception.dart';
+import '../logger.dart';
 import '../util/character.dart';
 
 /// The abstract base class for all parsers.
@@ -19,8 +20,12 @@ abstract class Parser {
   /// The scanner that scans through the text being parsed.
   final SpanScanner scanner;
 
-  Parser(String contents, {url})
-      : scanner = new SpanScanner(contents, sourceUrl: url);
+  /// The logger to use when emitting warnings.
+  final Logger _logger;
+
+  Parser(String contents, {url, Logger logger})
+      : scanner = new SpanScanner(contents, sourceUrl: url),
+        _logger = logger ?? const Logger.stderr();
 
   // ## Tokens
 
@@ -559,6 +564,10 @@ abstract class Parser {
     consumer();
     return scanner.substring(start);
   }
+
+  /// Prints a warning to standard error, associated with [span].
+  @protected
+  void warn(String message, FileSpan span) => _logger.warn(message, span: span);
 
   /// Prints a source span highlight of the current location being scanned.
   ///

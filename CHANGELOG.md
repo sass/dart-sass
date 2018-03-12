@@ -6,6 +6,14 @@
 * Add a `--load-path` command-line option (alias `-I`) for passing additional
   paths to search for Sass files to import.
 
+### Dart API
+
+* Add a `Logger` class that allows users to control how messages are printed by
+  stylesheets.
+
+* Add a `logger` parameter to `compile()`, `compileAsync()`, `compileString()`,
+  and `compileStringAsync()`.
+
 ### Node JS API
 
 * Import URLs passed to importers are no longer normalized. For example, if a

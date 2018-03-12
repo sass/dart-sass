@@ -6,6 +6,7 @@ import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
 import '../interpolation_buffer.dart';
+import '../logger.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
 
@@ -14,8 +15,8 @@ class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => null;
 
-  ScssParser(String contents, {url, bool color: false})
-      : super(contents, url: url, color: color);
+  ScssParser(String contents, {url, Logger logger})
+      : super(contents, url: url, logger: logger);
 
   Interpolation styleRuleSelector() => almostAnyValue();
 

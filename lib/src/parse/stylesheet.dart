@@ -14,6 +14,7 @@ import '../ast/sass.dart';
 import '../exception.dart';
 import '../color_names.dart';
 import '../interpolation_buffer.dart';
+import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import '../value.dart';
@@ -57,12 +58,8 @@ abstract class StylesheetParser extends Parser {
   /// Whether the parser is currently within a parenthesized expression.
   var _inParentheses = false;
 
-  /// Whether warnings should be emitted using terminal colors.
-  @protected
-  final bool color;
-
-  StylesheetParser(String contents, {url, this.color: false})
-      : super(contents, url: url);
+  StylesheetParser(String contents, {url, Logger logger})
+      : super(contents, url: url, logger: logger);
 
   // ## Statements
 
@@ -227,8 +224,7 @@ abstract class StylesheetParser extends Parser {
     var children = this.children(_statement);
     if (indented && children.isEmpty) {
       warn("This selector doesn't have any properties and won't be rendered.",
-          selectorSpan,
-          color: color);
+          selectorSpan);
     }
 
     _inStyleRule = wasInStyleRule;
@@ -1964,8 +1960,7 @@ abstract class StylesheetParser extends Parser {
       warn(
           'In Sass, "&&" means two copies of the parent selector. You '
           'probably want to use "and" instead.',
-          scanner.spanFrom(start),
-          color: color);
+          scanner.spanFrom(start));
       scanner.position--;
     }
 
