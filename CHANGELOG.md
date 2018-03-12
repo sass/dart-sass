@@ -3,6 +3,9 @@
 * Add support for importing an `_index.scss` or `_index.sass` file when
   importing a directory.
 
+* Add a `--load-path` command-line option (alias `-I`) for passing additional
+  paths to search for Sass files to import.
+
 ### Node JS API
 
 * Import URLs passed to importers are no longer normalized. For example, if a
