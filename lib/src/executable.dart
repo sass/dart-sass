@@ -31,6 +31,7 @@ main(List<String> args) async {
         allowed: ['expanded', 'compressed'],
         defaultsTo: 'expanded')
     ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
+    ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
     ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
     ..addFlag('help',
         abbr: 'h', help: 'Print this usage information.', negatable: false)
@@ -67,6 +68,8 @@ main(List<String> args) async {
 
   var color =
       options.wasParsed('color') ? options['color'] as bool : hasTerminal;
+  var logger =
+      options['quiet'] as bool ? Logger.quiet : new Logger.stderr(color: color);
   var style = options['style'] == 'compressed'
       ? OutputStyle.compressed
       : OutputStyle.expanded;
@@ -76,17 +79,24 @@ main(List<String> args) async {
     String css;
     if (stdinFlag) {
       css = await _compileStdin(
-          style: style, loadPaths: loadPaths, asynchronous: asynchronous);
+          logger: logger,
+          style: style,
+          loadPaths: loadPaths,
+          asynchronous: asynchronous);
     } else {
       var input = options.rest.first;
       if (input == '-') {
         css = await _compileStdin(
-            style: style, loadPaths: loadPaths, asynchronous: asynchronous);
+            logger: logger,
+            style: style,
+            loadPaths: loadPaths,
+            asynchronous: asynchronous);
       } else if (asynchronous) {
         css = await compileAsync(input,
-            color: color, style: style, loadPaths: loadPaths);
+            logger: logger, style: style, loadPaths: loadPaths);
       } else {
-        css = compile(input, color: color, style: style, loadPaths: loadPaths);
+        css =
+            compile(input, logger: logger, style: style, loadPaths: loadPaths);
       }
     }
 
@@ -150,7 +160,7 @@ Future<String> _loadVersion() async {
 
 /// Compiles Sass from standard input and returns the result.
 Future<String> _compileStdin(
-    {bool color: false,
+    {Logger logger,
     OutputStyle style,
     List<String> loadPaths,
     bool asynchronous: false}) async {
@@ -158,10 +168,10 @@ Future<String> _compileStdin(
   var importer = new FilesystemImporter('.');
   if (asynchronous) {
     return await compileStringAsync(text,
-        color: color, style: style, importer: importer, loadPaths: loadPaths);
+        logger: logger, style: style, importer: importer, loadPaths: loadPaths);
   } else {
     return compileString(text,
-        color: color, style: style, importer: importer, loadPaths: loadPaths);
+        logger: logger, style: style, importer: importer, loadPaths: loadPaths);
   }
 }
 

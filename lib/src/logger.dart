@@ -13,6 +13,9 @@ import 'utils.dart';
 ///
 /// This may be implemented by user code.
 abstract class Logger {
+  /// A logger that silently ignores all messages.
+  static final Logger quiet = new _QuietLogger();
+
   /// Creates a logger that prints warnings to standard error, with terminal
   /// colors if [color] is `true` (default `false`).
   const factory Logger.stderr({bool color}) = _StderrLogger;
