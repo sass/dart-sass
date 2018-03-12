@@ -12,7 +12,6 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'ast/node.dart';
-import 'io.dart';
 import 'util/character.dart';
 
 /// The URL used in stack traces when no source URL is available.
@@ -24,6 +23,10 @@ String toSentence(Iterable iter, [String conjunction]) {
   if (iter.length == 1) return iter.first.toString();
   return iter.take(iter.length - 1).join(", ") + " $conjunction ${iter.last}";
 }
+
+/// Returns [string] with every line indented [indentation] spaces.
+String indent(String string, int indentation) =>
+    string.split("\n").map((line) => (" " * indentation) + line).join("\n");
 
 /// Returns [name] if [number] is 1, or the plural of [name] otherwise.
 ///
@@ -307,12 +310,4 @@ Future<Map<String, V2>> normalizedMapMapAsync<K, V1, V2>(Map<K, V1> map,
     result[await key(mapKey, mapValue)] = await value(mapKey, mapValue);
   }
   return result;
-}
-
-/// Prints a warning to standard error, associated with [span].
-///
-/// If [color] is `true`, this uses terminal colors.
-void warn(String message, FileSpan span, {bool color: false}) {
-  var warning = color ? '\u001b[33m\u001b[1mWarning\u001b[0m' : 'WARNING';
-  stderr.writeln("$warning on ${span.message("\n$message", color: color)}\n");
 }

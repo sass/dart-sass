@@ -168,6 +168,40 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(0);
   });
 
+  group("with --quiet", () {
+    test("doesn't emit @warn", () async {
+      await d.file("test.scss", "@warn heck").create();
+
+      var sass = await runSass(["--quiet", "test.scss"]);
+      expect(sass.stderr, emitsDone);
+      await sass.shouldExit(0);
+    });
+
+    test("doesn't emit @debug", () async {
+      await d.file("test.scss", "@debug heck").create();
+
+      var sass = await runSass(["--quiet", "test.scss"]);
+      expect(sass.stderr, emitsDone);
+      await sass.shouldExit(0);
+    });
+
+    test("doesn't emit parser warnings", () async {
+      await d.file("test.scss", "a {b: c && d}").create();
+
+      var sass = await runSass(["--quiet", "test.scss"]);
+      expect(sass.stderr, emitsDone);
+      await sass.shouldExit(0);
+    });
+
+    test("doesn't emit runner warnings", () async {
+      await d.file("test.scss", "#{blue} {x: y}").create();
+
+      var sass = await runSass(["--quiet", "test.scss"]);
+      expect(sass.stderr, emitsDone);
+      await sass.shouldExit(0);
+    });
+  });
+
   group("reports errors", () {
     test("from invalid arguments", () async {
       var sass = await runSass(["--asdf"]);

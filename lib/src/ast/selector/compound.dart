@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../extend/functions.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
@@ -57,8 +58,9 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory CompoundSelector.parse(String contents,
-          {url, bool allowParent: true}) =>
-      new SelectorParser(contents, url: url, allowParent: allowParent)
+          {url, Logger logger, bool allowParent: true}) =>
+      new SelectorParser(contents,
+              url: url, logger: logger, allowParent: allowParent)
           .parseCompoundSelector();
 
   T accept<T>(SelectorVisitor<T> visitor) =>

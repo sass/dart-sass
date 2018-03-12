@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 53f8eb4f4e6ed2cad3fe359490a50e12911a278a
+// Checksum: 441fccd1274e61316ec7403a381761fff3052706
 
 import 'dart:math' as math;
 
@@ -25,7 +25,7 @@ import '../exception.dart';
 import '../extend/extender.dart';
 import '../importer.dart';
 import '../importer/node.dart';
-import '../io.dart';
+import '../logger.dart';
 import '../parse/keyframe_selector.dart';
 import '../utils.dart';
 import '../util/path.dart';
@@ -44,10 +44,11 @@ typedef void _ScopeCallback(void callback());
 /// If [environment] is passed, it's used as the lexical environment when
 /// evaluating [stylesheet]. It should only contain global definitions.
 ///
-/// If [color] is `true`, this will use terminal colors in warnings.
-///
 /// If [importer] is passed, it's used to resolve relative imports in
 /// [stylesheet] relative to `stylesheet.span.sourceUrl`.
+///
+/// Warnings are emitted using [logger], or printed to standard error by
+/// default.
 ///
 /// Throws a [SassRuntimeException] if evaluation fails.
 EvaluateResult evaluate(Stylesheet stylesheet,
@@ -55,13 +56,13 @@ EvaluateResult evaluate(Stylesheet stylesheet,
         NodeImporter nodeImporter,
         Importer importer,
         Iterable<Callable> functions,
-        bool color: false}) =>
+        Logger logger}) =>
     new _EvaluateVisitor(
             importers: importers,
             nodeImporter: nodeImporter,
             importer: importer,
             functions: functions,
-            color: color)
+            logger: logger)
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
@@ -74,8 +75,8 @@ class _EvaluateVisitor
   /// compiled to Node.js.
   final NodeImporter _nodeImporter;
 
-  /// Whether to use terminal colors in warnings.
-  final bool _color;
+  /// The logger to use to print warnings.
+  final Logger _logger;
 
   /// The current lexical environment.
   var _environment = new Environment();
@@ -165,11 +166,11 @@ class _EvaluateVisitor
       NodeImporter nodeImporter,
       Importer importer,
       Iterable<Callable> functions,
-      bool color: false})
+      Logger logger})
       : _importers = importers == null ? const [] : importers.toList(),
         _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
-        _color = color {
+        _logger = logger {
     _environment.setFunction(
         new BuiltInCallable("global-variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
@@ -233,12 +234,11 @@ class _EvaluateVisitor
                   _callableSpan));
 
       if (function is SassString) {
-        warn(
-            "DEPRECATION WARNING: Passing a string to call() is deprecated and "
-            "will be illegal\n"
+        _warn(
+            "Passing a string to call() is deprecated and will be illegal\n"
             "in Sass 4.0. Use call(get-function($function)) instead.",
             _callableSpan,
-            color: _color);
+            deprecation: true);
 
         var expression = new FunctionExpression(
             new Interpolation([function.text], _callableSpan), invocation);
@@ -307,8 +307,8 @@ class _EvaluateVisitor
     var query = AtRootQuery.defaultQuery;
     if (node.query != null) {
       var resolved = _performInterpolation(node.query, warnForColor: true);
-      query = _adjustParseError(
-          node.query.span, () => new AtRootQuery.parse(resolved));
+      query = _adjustParseError(node.query.span,
+          () => new AtRootQuery.parse(resolved, logger: _logger));
     }
 
     var parent = _parent;
@@ -452,10 +452,9 @@ class _EvaluateVisitor
   }
 
   Value visitDebugRule(DebugRule node) {
-    var start = node.span.start;
     var value = node.expression.accept(this);
-    stderr.writeln("${p.prettyUri(start.sourceUrl)}:${start.line + 1} DEBUG: "
-        "${value is SassString ? value.text : value}");
+    _logger.debug(
+        value is SassString ? value.text : value.toString(), node.span);
     return null;
   }
 
@@ -538,7 +537,7 @@ class _EvaluateVisitor
     var target = _adjustParseError(
         targetText.span,
         () => new SimpleSelector.parse(targetText.value.trim(),
-            allowParent: false));
+            logger: _logger, allowParent: false));
     _extender.addExtension(_styleRule.selector, target, node, _mediaQueries);
     return null;
   }
@@ -746,8 +745,8 @@ class _EvaluateVisitor
     }
 
     return url.startsWith('file') && pUrl.extension(url) == '.sass'
-        ? new Stylesheet.parseSass(contents, url: url, color: _color)
-        : new Stylesheet.parseScss(contents, url: url, color: _color);
+        ? new Stylesheet.parseSass(contents, url: url, logger: _logger)
+        : new Stylesheet.parseScss(contents, url: url, logger: _logger);
   }
 
   /// Parses the contents of [result] into a [Stylesheet].
@@ -766,9 +765,9 @@ class _EvaluateVisitor
       var displayUrl = url.resolve(p.basename(canonicalUrl.path));
       return result.isIndented
           ? new Stylesheet.parseSass(result.contents,
-              url: displayUrl, color: _color)
+              url: displayUrl, logger: _logger)
           : new Stylesheet.parseScss(result.contents,
-              url: displayUrl, color: _color);
+              url: displayUrl, logger: _logger);
     });
   }
 
@@ -889,8 +888,8 @@ class _EvaluateVisitor
     var resolved = _performInterpolation(interpolation, warnForColor: true);
 
     // TODO(nweiz): Remove this type argument when sdk#31398 is fixed.
-    return _adjustParseError<List<CssMediaQuery>>(
-        interpolation.span, () => CssMediaQuery.parseList(resolved));
+    return _adjustParseError<List<CssMediaQuery>>(interpolation.span,
+        () => CssMediaQuery.parseList(resolved, logger: _logger));
   }
 
   /// Returns a list of queries that selects for platforms that match both
@@ -915,8 +914,10 @@ class _EvaluateVisitor
     var selectorText =
         _interpolationToValue(node.selector, trim: true, warnForColor: true);
     if (_inKeyframes) {
-      var parsedSelector = _adjustParseError(node.selector.span,
-          () => new KeyframeSelectorParser(selectorText.value).parse());
+      var parsedSelector = _adjustParseError(
+          node.selector.span,
+          () => new KeyframeSelectorParser(selectorText.value, logger: _logger)
+              .parse());
       var rule = new CssKeyframeBlock(
           new CssValue(
               new List.unmodifiable(parsedSelector), node.selector.span),
@@ -931,8 +932,8 @@ class _EvaluateVisitor
       return null;
     }
 
-    var parsedSelector = _adjustParseError(
-        node.selector.span, () => new SelectorList.parse(selectorText.value));
+    var parsedSelector = _adjustParseError(node.selector.span,
+        () => new SelectorList.parse(selectorText.value, logger: _logger));
     parsedSelector = _addExceptionSpan(
         node.selector.span,
         () => parsedSelector.resolveParentSelectors(
@@ -1044,18 +1045,13 @@ class _EvaluateVisitor
   }
 
   Value visitWarnRule(WarnRule node) {
-    _addExceptionSpan(node.span, () {
-      var value = node.expression.accept(this);
-      var string = value is SassString
-          ? value.text
-          : _serialize(value, node.expression.span);
-      stderr.writeln("WARNING: $string");
-    });
-
-    for (var line in _stackTrace(node.span).toString().split("\n")) {
-      stderr.writeln("         $line");
-    }
-
+    var value =
+        _addExceptionSpan(node.span, () => node.expression.accept(this));
+    _logger.warn(
+        value is SassString
+            ? value.text
+            : _serialize(value, node.expression.span),
+        trace: _stackTrace(node.span));
     return null;
   }
 
@@ -1587,14 +1583,14 @@ class _EvaluateVisitor
             BinaryOperator.plus,
             new StringExpression(new Interpolation([""], null), quotes: true),
             expression);
-        warn(
+        _warn(
             "You probably don't mean to use the color value "
             "${namesByColor[result]} in interpolation here.\n"
             "It may end up represented as $result, which will likely produce "
             "invalid CSS.\n"
             "Always quote color names when using them as strings or map keys "
             '(for example, "${namesByColor[result]}").\n'
-            "If you really want to use the color value here, use '$alternative'.\n",
+            "If you really want to use the color value here, use '$alternative'.",
             expression.span);
       }
 
@@ -1696,6 +1692,11 @@ class _EvaluateVisitor
     var frames = _stack.toList()..add(_stackFrame(span));
     return new Trace(frames.reversed);
   }
+
+  /// Emits a warning with the given [message] about the given [span].
+  void _warn(String message, FileSpan span, {bool deprecation: false}) =>
+      _logger.warn(message,
+          span: span, trace: _stackTrace(span), deprecation: deprecation);
 
   /// Throws a [SassRuntimeException] with the given [message] and [span].
   SassRuntimeException _exception(String message, FileSpan span) =>

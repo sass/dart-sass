@@ -9,6 +9,7 @@ import 'callable.dart';
 import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
+import 'logger.dart';
 import 'sync_package_resolver.dart';
 import 'util/path.dart';
 import 'visitor/async_evaluate.dart';
@@ -19,7 +20,7 @@ import 'visitor/serialize.dart';
 /// node-sass compatible API.
 CompileResult compile(String path,
         {bool indented,
-        bool color: false,
+        Logger logger,
         Iterable<Importer> importers,
         NodeImporter nodeImporter,
         SyncPackageResolver packageResolver,
@@ -31,7 +32,7 @@ CompileResult compile(String path,
         LineFeed lineFeed}) =>
     compileString(readFile(path),
         indented: indented ?? p.extension(path) == '.sass',
-        color: color,
+        logger: logger,
         functions: functions,
         importers: importers,
         nodeImporter: nodeImporter,
@@ -48,7 +49,7 @@ CompileResult compile(String path,
 /// the node-sass compatible API.
 CompileResult compileString(String source,
     {bool indented: false,
-    bool color: false,
+    Logger logger,
     Iterable<Importer> importers,
     NodeImporter nodeImporter,
     SyncPackageResolver packageResolver,
@@ -61,8 +62,8 @@ CompileResult compileString(String source,
     LineFeed lineFeed,
     url}) {
   var sassTree = indented
-      ? new Stylesheet.parseSass(source, url: url, color: color)
-      : new Stylesheet.parseScss(source, url: url, color: color);
+      ? new Stylesheet.parseSass(source, url: url, logger: logger)
+      : new Stylesheet.parseScss(source, url: url, logger: logger);
 
   var evaluateResult = evaluate(sassTree,
       importers: (importers?.toList() ?? [])
@@ -70,7 +71,7 @@ CompileResult compileString(String source,
       nodeImporter: nodeImporter,
       importer: importer,
       functions: functions,
-      color: color);
+      logger: logger);
   var css = serialize(evaluateResult.stylesheet,
       style: style,
       useSpaces: useSpaces,
@@ -84,7 +85,7 @@ CompileResult compileString(String source,
 /// the node-sass compatible API.
 Future<CompileResult> compileAsync(String path,
         {bool indented,
-        bool color: false,
+        Logger logger,
         Iterable<AsyncImporter> importers,
         NodeImporter nodeImporter,
         SyncPackageResolver packageResolver,
@@ -96,7 +97,7 @@ Future<CompileResult> compileAsync(String path,
         LineFeed lineFeed}) =>
     compileStringAsync(readFile(path),
         indented: indented ?? p.extension(path) == '.sass',
-        color: color,
+        logger: logger,
         importers: importers,
         nodeImporter: nodeImporter,
         packageResolver: packageResolver,
@@ -113,7 +114,7 @@ Future<CompileResult> compileAsync(String path,
 /// support the node-sass compatible API.
 Future<CompileResult> compileStringAsync(String source,
     {bool indented: false,
-    bool color: false,
+    Logger logger,
     Iterable<AsyncImporter> importers,
     NodeImporter nodeImporter,
     SyncPackageResolver packageResolver,
@@ -126,8 +127,8 @@ Future<CompileResult> compileStringAsync(String source,
     LineFeed lineFeed,
     url}) async {
   var sassTree = indented
-      ? new Stylesheet.parseSass(source, url: url, color: color)
-      : new Stylesheet.parseScss(source, url: url, color: color);
+      ? new Stylesheet.parseSass(source, url: url, logger: logger)
+      : new Stylesheet.parseScss(source, url: url, logger: logger);
 
   var evaluateResult = await evaluateAsync(sassTree,
       importers: (importers?.toList() ?? [])
@@ -135,7 +136,7 @@ Future<CompileResult> compileStringAsync(String source,
       nodeImporter: nodeImporter,
       importer: importer,
       functions: functions,
-      color: color);
+      logger: logger);
   var css = serialize(evaluateResult.stylesheet,
       style: style,
       useSpaces: useSpaces,

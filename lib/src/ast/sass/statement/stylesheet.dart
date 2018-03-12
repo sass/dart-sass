@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
+import '../../../logger.dart';
 import '../../../parse/sass.dart';
 import '../../../parse/scss.dart';
 import '../statement.dart';
@@ -21,21 +22,19 @@ class Stylesheet extends ParentStatement {
 
   /// Parses an indented-syntax stylesheet from [contents].
   ///
-  /// If passed, [url] is the name of the file from which [contents] comes. If
-  /// [color] is `true`, this will use terminal colors in warnings.
+  /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseSass(String contents, {url, bool color: false}) =>
-      new SassParser(contents, url: url, color: color).parse();
+  factory Stylesheet.parseSass(String contents, {url, Logger logger}) =>
+      new SassParser(contents, url: url, logger: logger).parse();
 
   /// Parses an SCSS stylesheet from [contents].
   ///
-  /// If passed, [url] is the name of the file from which [contents] comes. If
-  /// [color] is `true`, this will use terminal colors in warnings.
+  /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseScss(String contents, {url, bool color: false}) =>
-      new ScssParser(contents, url: url, color: color).parse();
+  factory Stylesheet.parseScss(String contents, {url, Logger logger}) =>
+      new ScssParser(contents, url: url, logger: logger).parse();
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);
 

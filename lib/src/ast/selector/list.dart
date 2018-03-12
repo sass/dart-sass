@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../extend/functions.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../exception.dart';
@@ -52,8 +53,11 @@ class SelectorList extends Selector {
   /// selector.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory SelectorList.parse(String contents, {url, bool allowParent: true}) =>
-      new SelectorParser(contents, url: url, allowParent: allowParent).parse();
+  factory SelectorList.parse(String contents,
+          {url, Logger logger, bool allowParent: true}) =>
+      new SelectorParser(contents,
+              url: url, logger: logger, allowParent: allowParent)
+          .parse();
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);
 
