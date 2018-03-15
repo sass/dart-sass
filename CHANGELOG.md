@@ -11,6 +11,8 @@
 * Add an `--indented` command-line option for using the indented syntax with a
   stylesheet from standard input.
 
+* Don't crash on `$x % 0`.
+
 ### Dart API
 
 * Add a `Logger` class that allows users to control how messages are printed by
