@@ -1,4 +1,4 @@
-## 1.0.0-beta.6
+## 1.0.0-rc.1
 
 * Add support for importing an `_index.scss` or `_index.sass` file when
   importing a directory.
