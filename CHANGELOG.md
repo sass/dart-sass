@@ -11,6 +11,8 @@
 * Add an `--indented` command-line option for using the indented syntax with a
   stylesheet from standard input.
 
+* Don't crash on `$x % 0`.
+
 * The standalone executable distributed on GitHub is now named `sass` rather
   than `dart-sass`. The `dart-sass` executable will remain, with a deprecation
   message, until 1.0.0 is released.
