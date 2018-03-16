@@ -58,21 +58,31 @@ class CssMediaQuery {
 
     String modifier;
     String type;
-    if (ourType == null) {
-      modifier = theirModifier;
-      type = theirType;
-    } else if (theirType == null) {
-      modifier = ourModifier;
-      type = ourType;
-    } else if ((ourModifier == 'not') != (theirModifier == 'not')) {
+    if ((ourModifier == 'not') != (theirModifier == 'not')) {
       if (ourType == theirType) return null;
-      modifier = ourModifier == 'not' ? theirModifier : ourModifier;
-      type = ourModifier == 'not' ? theirType : ourType;
+
+      if (ourModifier == 'not') {
+        // The "not" would apply to the other query's features, which is not
+        // what we want.
+        if (other.features.isNotEmpty) return null;
+        modifier = theirModifier;
+        type = theirType;
+      } else {
+        if (this.features.isNotEmpty) return null;
+        modifier = ourModifier;
+        type = ourType;
+      }
     } else if (ourModifier == 'not') {
       assert(theirModifier == 'not');
       // CSS has no way of representing "neither screen nor print".
       if (ourType == theirType) return null;
       modifier = ourModifier; // "not"
+      type = ourType;
+    } else if (ourType == null) {
+      modifier = theirModifier;
+      type = theirType;
+    } else if (theirType == null) {
+      modifier = ourModifier;
       type = ourType;
     } else if (ourType != theirType) {
       return null;

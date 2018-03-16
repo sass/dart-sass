@@ -59,8 +59,8 @@ class MediaQueryParser extends Parser {
       }
     }
 
-    // We've consumed either `IDENTIFIER "and"` or
-    // `IDENTIFIER IDENTIFIER "and"`.
+    // We've consumed either `IDENTIFIER "and"`, `IDENTIFIER IDENTIFIER "and"`,
+    // or no text.
 
     var features = <String>[];
     do {
