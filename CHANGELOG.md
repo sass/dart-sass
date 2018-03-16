@@ -11,6 +11,10 @@
 * Add an `--indented` command-line option for using the indented syntax with a
   stylesheet from standard input.
 
+* Don't merge the media queries `not type` and `(feature)`. We had previously
+  been generating `not type and (feature)`, but that's not actually the
+  intersection of the two queries.
+
 * Don't crash on `$x % 0`.
 
 * The standalone executable distributed on GitHub is now named `sass` rather
