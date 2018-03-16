@@ -142,7 +142,7 @@ That's it!
 
 ## JavaScript API
 
-When installed via NPM, Dart Sass supports a JavaScript API that aims to be
+When installed via npm, Dart Sass supports a JavaScript API that aims to be
 compatible with [Node Sass](https://github.com/sass/node-sass#usage). Full
 compatibility is a work in progress, but Dart Sass currently supports the
 `render()` and `renderSync()` functions. Note however that by default,
