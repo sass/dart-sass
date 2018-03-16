@@ -419,6 +419,11 @@ Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
         "dart-sass/dart-sass${os == 'windows' ? '.bat' : ''}",
         _readAndReplaceVersion(
             "package/dart-sass.${os == 'windows' ? 'bat' : 'sh'}"),
+        executable: true))
+    ..addFile(_fileFromString(
+        "dart-sass/sass${os == 'windows' ? '.bat' : ''}",
+        _readAndReplaceVersion(
+            "package/sass.${os == 'windows' ? 'bat' : 'sh'}"),
         executable: true));
 
   var prefix = 'build/dart-sass-$_version-$os-$architecture';
