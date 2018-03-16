@@ -16,10 +16,6 @@ follow_links() {
   echo "$file"
 }
 
-if [ -t 1 ]; then
-  echo -e "\e[1;33mWarning\e[0;0m: The \e[1;1mdart-sass\e[0;0m executable is deprecated, use \e[1;1msass\e[0;0m instead."
-fi
-
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 path=`dirname "$(follow_links "$BASH_SOURCE")"`
 exec "$path/src/dart" "-Dversion=SASS_VERSION" "$path/src/sass.dart.snapshot" "$@"
