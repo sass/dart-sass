@@ -110,8 +110,9 @@ var result = sass.renderSync({file: scss_filename});
 ### From Pub
 
 If you're a Dart user, you can install Dart Sass globally using `pub global
-activate sass ^1.0.0-alpha`, which will provide a `dart-sass` executable. You can
-also add it to your pubspec and use it as a library:
+activate sass ^1.0.0-alpha`, which will provide a `dart-sass` executable. You
+can also add it to your pubspec and use it as a library. We strongly recommend
+importing it with the prefix `sass`:
 
 ```dart
 import 'package:sass/sass.dart' as sass;
