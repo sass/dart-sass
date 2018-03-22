@@ -2309,7 +2309,7 @@ abstract class StylesheetParser extends Parser {
     return buffer.interpolation(scanner.spanFrom(start));
   }
 
-  /// Consumes tokens until it reaches a top-level `":"`, `"!"`, `")"`, `"]"`,
+  /// Consumes tokens until it reaches a top-level `":"`, `")"`, `"]"`,
   /// or `"}"` and returns their contents as a string.
   ///
   /// Unlike [declarationValue], this allows interpolation.
@@ -2392,7 +2392,6 @@ abstract class StylesheetParser extends Parser {
           wroteNewline = false;
           break;
 
-        case $exclamation:
         case $semicolon:
           if (brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());

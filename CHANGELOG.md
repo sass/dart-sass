@@ -1,3 +1,9 @@
+## 1.0.0-rc.2
+
+* Allow `!` in custom property values ([#260][]).
+
+[#260]: https://github.com/sass/dart-sass/issues/260
+
 ## 1.0.0-rc.1
 
 * Add support for importing an `_index.scss` or `_index.sass` file when
