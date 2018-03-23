@@ -4,4 +4,4 @@
 
 export 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
-    if (node) 'io/node.dart';
+    if (dart.library.js) 'io/node.dart';

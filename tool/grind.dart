@@ -102,6 +102,7 @@ void _js({@required bool release}) {
   var destination = new File('build/sass.dart.js');
 
   var args = [
+    '--categories=Server',
     '-Dnode=true',
     '-Dversion=$_version',
     '-Ddart-version=$_dartVersion',
