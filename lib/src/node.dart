@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:js_util';
 
 import 'package:collection/collection.dart';
 import 'package:js/js.dart';
@@ -14,10 +15,10 @@ import 'compile.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
 import 'importer/node.dart';
+import 'node/error.dart';
 import 'node/exports.dart';
 import 'node/render_context.dart';
 import 'node/render_context_options.dart';
-import 'node/render_error.dart';
 import 'node/render_options.dart';
 import 'node/render_result.dart';
 import 'node/types.dart';
@@ -61,14 +62,14 @@ void main() {
 /// possible.
 ///
 /// [render]: https://github.com/sass/node-sass#options
-void _render(RenderOptions options,
-    void callback(RenderError error, RenderResult result)) {
+void _render(
+    RenderOptions options, void callback(JSError error, RenderResult result)) {
   if (options.fiber != null) {
     options.fiber.call(allowInterop(() {
       try {
         callback(null, _renderSync(options));
       } catch (error) {
-        callback(error as RenderError, null);
+        callback(error as JSError, null);
       }
     })).run();
   } else {
@@ -78,7 +79,7 @@ void _render(RenderOptions options,
       if (error is SassException) {
         callback(_wrapException(error), null);
       } else {
-        callback(newRenderError(error.toString(), status: 3), null);
+        callback(_newRenderError(error.toString(), status: 3), null);
       }
     });
   }
@@ -166,33 +167,37 @@ RenderResult _renderSync(RenderOptions options) {
   } on SassException catch (error) {
     jsThrow(_wrapException(error));
   } catch (error) {
-    jsThrow(newRenderError(error.toString(), status: 3));
+    jsThrow(_newRenderError(error.toString(), status: 3));
   }
   throw "unreachable";
 }
 
-/// Converts a [SassException] to a [RenderError].
-RenderError _wrapException(SassException exception) {
-  var trace = exception is SassRuntimeException
-      ? "\n" +
-          exception.trace
-              .toString()
-              .trimRight()
-              .split("\n")
-              .map((frame) => "  $frame")
-              .join("\n")
-      : "\n  ${p.prettyUri(exception.span.sourceUrl ?? '-')} "
-      "${exception.span.start.line + 1}:${exception.span.start.column + 1}  "
-      "root stylesheet";
+/// Converts an exception to a [JSError].
+JSError _wrapException(exception) {
+  if (exception is SassException) {
+    var trace = exception is SassRuntimeException
+        ? "\n" +
+            exception.trace
+                .toString()
+                .trimRight()
+                .split("\n")
+                .map((frame) => "  $frame")
+                .join("\n")
+        : "\n  ${p.prettyUri(exception.span.sourceUrl ?? '-')} "
+        "${exception.span.start.line + 1}:${exception.span.start.column + 1}  "
+        "root stylesheet";
 
-  return newRenderError(exception.message + trace,
-      formatted: exception.toString(),
-      line: exception.span.start.line + 1,
-      column: exception.span.start.column + 1,
-      file: exception.span.sourceUrl == null
-          ? 'stdin'
-          : p.fromUri(exception.span.sourceUrl),
-      status: 1);
+    return _newRenderError(exception.message + trace,
+        formatted: exception.toString(),
+        line: exception.span.start.line + 1,
+        column: exception.span.start.column + 1,
+        file: exception.span.sourceUrl == null
+            ? 'stdin'
+            : p.fromUri(exception.span.sourceUrl),
+        status: 1);
+  } else {
+    return new JSError(exception.toString());
+  }
 }
 
 /// Parses `functions` from [RenderOptions] into a list of [Callable]s or
@@ -326,4 +331,17 @@ LineFeed _parseLineFeed(String str) {
     default:
       return LineFeed.lf;
   }
+}
+
+/// Creates a [JSError] with the given fields added to it so it acts like a Node
+/// Sass error.
+JSError _newRenderError(String message,
+    {String formatted, int line, int column, String file, int status}) {
+  var error = new JSError(message);
+  if (formatted != null) setProperty(error, 'formatted', formatted);
+  if (line != null) setProperty(error, 'line', line);
+  if (column != null) setProperty(error, 'column', column);
+  if (file != null) setProperty(error, 'file', file);
+  if (status != null) setProperty(error, 'status', status);
+  return error;
 }

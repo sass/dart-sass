@@ -10,6 +10,7 @@ import 'package:path/path.dart' as unsafePath;
 import 'package:test/test.dart';
 
 import 'package:sass/src/util/path.dart';
+import 'package:sass/src/node/utils.dart';
 
 import 'ensure_npm_package.dart';
 import 'hybrid.dart';
@@ -269,6 +270,10 @@ a {
           error = renderSyncError(new RenderOptions(file: sassPath));
         });
 
+        test("is a JS Error", () async {
+          expect(isJSError(error), isTrue);
+        });
+
         test("has a useful toString() and message", () async {
           expect(
               error,
@@ -295,6 +300,10 @@ a {
       group("for a parse error in a string", () {
         setUp(() {
           error = renderSyncError(new RenderOptions(data: "a {b: }"));
+        });
+
+        test("is a JS Error", () async {
+          expect(isJSError(error), isTrue);
         });
 
         test("has a useful toString() and message", () {

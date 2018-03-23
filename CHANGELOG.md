@@ -6,6 +6,8 @@
 
 ### Node API
 
+* Errors are now subtypes of the `Error` type.
+
 * Allow both the `data` and `file` options to be passed to `render()` and
   `renderSync()` at once. The `data` option will be used as the contents of the
   stylesheet, and the `file` option will be used as the path for error reporting
