@@ -89,11 +89,6 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   var start = new DateTime.now();
   CompileResult result;
   if (options.data != null) {
-    if (options.file != null) {
-      throw new ArgumentError(
-          "options.data and options.file may not both be set.");
-    }
-
     result = await compileStringAsync(options.data,
         nodeImporter: _parseImporter(options, start),
         functions: _parseFunctions(options, asynch: true),
@@ -102,7 +97,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed),
-        url: 'stdin');
+        url: options.file == null ? 'stdin' : p.toUri(options.file).toString());
   } else if (options.file != null) {
     result = await compileAsync(options.file,
         nodeImporter: _parseImporter(options, start),
@@ -136,11 +131,6 @@ RenderResult _renderSync(RenderOptions options) {
     var start = new DateTime.now();
     CompileResult result;
     if (options.data != null) {
-      if (options.file != null) {
-        throw new ArgumentError(
-            "options.data and options.file may not both be set.");
-      }
-
       result = compileString(options.data,
           nodeImporter: _parseImporter(options, start),
           functions: DelegatingList.typed(_parseFunctions(options)),
@@ -149,7 +139,9 @@ RenderResult _renderSync(RenderOptions options) {
           useSpaces: options.indentType != 'tab',
           indentWidth: _parseIndentWidth(options.indentWidth),
           lineFeed: _parseLineFeed(options.linefeed),
-          url: 'stdin');
+          url: options.file == null
+              ? 'stdin'
+              : p.toUri(options.file).toString());
     } else if (options.file != null) {
       result = compile(options.file,
           nodeImporter: _parseImporter(options, start),

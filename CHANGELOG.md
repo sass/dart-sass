@@ -4,6 +4,13 @@
 
 [#260]: https://github.com/sass/dart-sass/issues/260
 
+### Node API
+
+* Allow both the `data` and `file` options to be passed to `render()` and
+  `renderSync()` at once. The `data` option will be used as the contents of the
+  stylesheet, and the `file` option will be used as the path for error reporting
+  and relative imports. This matches Node Sass's behavior.
+
 ## 1.0.0-rc.1
 
 * Add support for importing an `_index.scss` or `_index.sass` file when
