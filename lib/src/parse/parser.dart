@@ -202,7 +202,7 @@ abstract class Parser {
     return buffer.toString();
   }
 
-  /// Consumes tokens until it reaches a top-level `":"`, `"!"`, `")"`, `"]"`,
+  /// Consumes tokens until it reaches a top-level `":"`, `")"`, `"]"`,
   /// or `"}"` and returns their contents as a string.
   @protected
   String declarationValue() {
@@ -270,7 +270,6 @@ abstract class Parser {
           wroteNewline = false;
           break;
 
-        case $exclamation:
         case $semicolon:
           if (brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
