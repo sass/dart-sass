@@ -7,16 +7,15 @@
 /// will be used in the real world without having to manually write any JS.
 
 import 'package:sass/src/node/fiber.dart';
-import 'package:sass/src/node/render_error.dart';
 import 'package:sass/src/node/render_options.dart';
 import 'package:sass/src/node/render_result.dart';
 import 'package:sass/src/util/path.dart';
 
 import 'package:js/js.dart';
 
+export 'package:sass/src/node/error.dart';
 export 'package:sass/src/node/importer_result.dart';
 export 'package:sass/src/node/render_context.dart';
-export 'package:sass/src/node/render_error.dart';
 export 'package:sass/src/node/render_options.dart';
 export 'package:sass/src/node/render_result.dart';
 
@@ -58,9 +57,14 @@ class Sass {
   external SassTypes get types;
 }
 
-@JS("Error")
-class JSError {
-  external JSError(String message);
+@JS()
+class RenderError {
+  external String get message;
+  external String get formatted;
+  external int get line;
+  external int get column;
+  external String get file;
+  external int get status;
 }
 
 @JS()

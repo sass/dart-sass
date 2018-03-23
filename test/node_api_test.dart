@@ -10,6 +10,7 @@ import 'package:path/path.dart' as unsafePath;
 import 'package:test/test.dart';
 
 import 'package:sass/src/util/path.dart';
+import 'package:sass/src/node/utils.dart';
 
 import 'ensure_npm_package.dart';
 import 'hybrid.dart';
@@ -67,13 +68,6 @@ a {
 a {
   b: c;
 }'''));
-    });
-
-    test("data and file may not both be set", () {
-      var error =
-          renderSyncError(new RenderOptions(data: "x {y: z}", file: sassPath));
-      expect(error.toString(),
-          contains('options.data and options.file may not both be set.'));
     });
 
     test("one of data and file must be set", () {
@@ -186,6 +180,37 @@ a {
       });
     });
 
+    group("with both data and file", () {
+      test("uses the data parameter as the source", () {
+        expect(renderSync(new RenderOptions(data: "x {y: z}", file: sassPath)),
+            equalsIgnoringWhitespace('x { y: z; }'));
+      });
+
+      test("doesn't require the file path to exist", () {
+        expect(
+            renderSync(new RenderOptions(
+                data: "x {y: z}", file: p.join(sandbox, 'non-existent.scss'))),
+            equalsIgnoringWhitespace('x { y: z; }'));
+      });
+
+      test("imports relative to the file path", () async {
+        await writeTextFile(p.join(sandbox, 'importee.scss'), 'x {y: z}');
+        expect(
+            renderSync(
+                new RenderOptions(data: "@import 'importee'", file: sassPath)),
+            equalsIgnoringWhitespace('x { y: z; }'));
+      });
+
+      test("reports errors from the file path", () {
+        var error =
+            renderSyncError(new RenderOptions(data: "x {y: }", file: sassPath));
+        expect(
+            error.toString(),
+            equals("Error: Expected expression.\n"
+                "  $sassPath 1:7  root stylesheet"));
+      });
+    });
+
     group("the result object", () {
       test("includes the filename", () {
         var result = sass.renderSync(new RenderOptions(file: sassPath));
@@ -245,6 +270,10 @@ a {
           error = renderSyncError(new RenderOptions(file: sassPath));
         });
 
+        test("is a JS Error", () async {
+          expect(isJSError(error), isTrue);
+        });
+
         test("has a useful toString() and message", () async {
           expect(
               error,
@@ -271,6 +300,10 @@ a {
       group("for a parse error in a string", () {
         setUp(() {
           error = renderSyncError(new RenderOptions(data: "a {b: }"));
+        });
+
+        test("is a JS Error", () async {
+          expect(isJSError(error), isTrue);
         });
 
         test("has a useful toString() and message", () {
