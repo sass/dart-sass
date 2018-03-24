@@ -4,6 +4,10 @@
 
 [#260]: https://github.com/sass/dart-sass/issues/260
 
+### Dart API
+
+* Remove the deprecated `render()` function.
+
 ### Node API
 
 * Errors are now subtypes of the `Error` type.
