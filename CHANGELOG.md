@@ -1,14 +1,18 @@
-## 1.0.0-rc.2
+## 1.0.0
+
+**Initial stable release.**
+
+### Changes Since 1.0.0-rc.1
 
 * Allow `!` in custom property values ([#260][]).
 
 [#260]: https://github.com/sass/dart-sass/issues/260
 
-### Dart API
+#### Dart API
 
 * Remove the deprecated `render()` function.
 
-### Node API
+#### Node API
 
 * Errors are now subtypes of the `Error` type.
 
