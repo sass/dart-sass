@@ -129,3 +129,28 @@ jobs:
       script: tool/deploy-to-chocolatey.sh
       skip_cleanup: true
       on: {tags: true}
+
+  # Redeploy sass-lang.com when a build succeeds.
+  - stage: site
+    if: *deploy-if
+    env:
+      # HEROKU_TOKEN="..."
+      - secure: "jF3TCL+k6xdXWfEh54K6KrZ3w0oljUpP0uy9Hx0BIM5gaqG6fUijUnNGCkWDZxufEpl68mGxNRNMB2Mv++UXHiT7ChFx8zZqEyc5FzhIu/nVO3CP3Sek7fuktYidtUvqJ6eHkI15990dWkUoE+TTXTc4/Z9vv1Lt3JX8Ni5VApGCmcLjRwW52EkCC49xo7cWE8/wBEm2ntOivLBIXEKq6hpncXTO4H5KYt042WAJ+MPmQZYE1ENJAObXWrGituRCT6DQnIJuTodOn24SU1KJuvEtfskEJQUajIIQw29uvmu4TP7dgaJw8QBt+hdgcCYrMhoq3RTNmD+vitLRloG4QMWHFYhzONVZ8S3vAhKeolL7nnIz150FpLVQiddSLsdGomqjCfYEJN7TVrwvunGgHxygcGBcq2AiydnxREnlW9Rj6m6g6TVlhdX7JtyePDQN7xEDdZF1UbGMA6CDjzFsi0GY2WNLSCAANUOXmst0kDIFHGc6WkIUXMIbfmkUZADKzF/JDtnEQqtU8Qxc8JfW6ODXqC/fowE3q4cr8NnJMtclyIL/DsWSx2ph3vUr/VH5MWXd4MDJ6ZRnSJHaY2E0IYcKU2JEpA8r7xrFK/+/B9qCMPnoegRFfuN+zHM9b84rNzaF8fmuWuMVKzncw/TvXttRFqoZVS2Ej1EfLY3SA3M="
+    install: skip
+    script: skip
+    deploy:
+      provider: script
+      # Heroku doesn't have a public API endpoint for this yet, so we use the
+      # private endpoint instead.
+      script: >
+        curl https://kolkrabbi.heroku.com/apps/98fc74a8-ff56-4a21-85f6-7a1fc8ba95c9/github/push
+          -H "Content-Type: application/json"
+          -H "Accept: application/json, text/javascript, */*; q=0.01"
+          -H "Authorization: Bearer $HEROKU_TOKEN"
+          -H "accept-encoding: gzip, deflate, br"
+          -H "accept-language: en-US,en;q=0.9"
+          -H "origin: https://dashboard.heroku.com"
+          -H "referer: https://dashboard.heroku.com/"
+          -d '{"branch":"master"}'
+          --fail --output -
+        
