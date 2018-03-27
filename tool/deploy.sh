@@ -10,7 +10,6 @@ mkdir -p ~/.pub-cache
 tar xfO credentials.tar npm > ~/.npmrc
 tar xfO credentials.tar pub > ~/.pub-cache/credentials.json
 tar xfO credentials.tar git > ~/.netrc
-tar xfO credentials.tar choco > choco
 
 function travis_cmd() {
   echo "\$ $@"
@@ -42,7 +41,3 @@ git config --local user.name "SassBot"
 git config --local user.email "sass.bot.beep.boop@gmail.com"
 travis_cmd pub run grinder update_homebrew
 travis_fold end homebrew
-
-travis_fold start chocolatey
-travis_cmd pub run grinder update_chocolatey
-travis_fold end chocolatey

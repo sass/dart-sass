@@ -543,7 +543,7 @@ github_release() async {
         "tag_name": _version,
         "name": "Dart Sass $_version",
         "prerelease": new Version.parse(_version).isPreRelease,
-        "body": _lastChangelogSection()
+        "body": _releaseMessage()
       }));
 
   if (response.statusCode != 201) {
@@ -579,6 +579,22 @@ github_release() async {
   }));
 
   client.close();
+}
+
+/// Returns the Markdown-formatted message to use for a GitHub release.
+String _releaseMessage() {
+  var changelogUrl =
+      "https://github.com/sass/dart-sass/blob/master/CHANGELOG.md#" +
+          _version.replaceAll(".", "");
+  return "To install Dart Sass $_version, download one of the packages above "
+      "and [add it to your PATH](https://katiek2.github.io/path-doc/), or see "
+      "[the Sass website](http://sass-lang.com/install) for full installation "
+      "instructions.\n\n"
+      "## Changes\n\n" +
+      _lastChangelogSection() +
+      "\n\n"
+      "See the [full changelog]($changelogUrl) for changes in earlier "
+      "releases.";
 }
 
 /// A regular expression that matches a Markdown code block.
