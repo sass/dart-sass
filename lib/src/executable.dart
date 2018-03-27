@@ -61,7 +61,10 @@ main(List<String> args) async {
   }
 
   var stdinFlag = options['stdin'] as bool;
-  if (options['help'] as bool || (options.rest.isEmpty && !stdinFlag)) {
+  if (options['help'] as bool ||
+      (stdinFlag
+          ? options.rest.length > 1
+          : options.rest.isEmpty || options.rest.length > 2)) {
     _printUsage(argParser, "Compile Sass to CSS.");
     exitCode = 64;
     return;
@@ -80,7 +83,9 @@ main(List<String> args) async {
   var asynchronous = options['async'] as bool;
   try {
     String css;
+    String destination;
     if (stdinFlag) {
+      if (options.rest.isNotEmpty) destination = options.rest.first;
       css = await _compileStdin(
           indented: indented,
           logger: logger,
@@ -88,8 +93,9 @@ main(List<String> args) async {
           loadPaths: loadPaths,
           asynchronous: asynchronous);
     } else {
-      var input = options.rest.first;
-      if (input == '-') {
+      var source = options.rest.first;
+      if (options.rest.length > 1) destination = options.rest.last;
+      if (source == '-') {
         css = await _compileStdin(
             indented: indented,
             logger: logger,
@@ -97,15 +103,19 @@ main(List<String> args) async {
             loadPaths: loadPaths,
             asynchronous: asynchronous);
       } else if (asynchronous) {
-        css = await compileAsync(input,
+        css = await compileAsync(source,
             logger: logger, style: style, loadPaths: loadPaths);
       } else {
         css =
-            compile(input, logger: logger, style: style, loadPaths: loadPaths);
+            compile(source, logger: logger, style: style, loadPaths: loadPaths);
       }
     }
 
-    if (css.isNotEmpty) print(css);
+    if (destination != null) {
+      writeFile(destination, css + "\n");
+    } else if (css.isNotEmpty) {
+      print(css);
+    }
   } on SassException catch (error, stackTrace) {
     stderr.writeln(error.toString(color: color));
 
@@ -192,6 +202,6 @@ Future<String> _compileStdin(
 /// Print the usage information for Sass, with [message] as a header.
 void _printUsage(ArgParser parser, String message) {
   print("$message\n");
-  print("Usage: dart-sass <input>\n");
+  print("Usage: sass <input> [output]\n");
   print(parser.usage);
 }

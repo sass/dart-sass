@@ -46,6 +46,11 @@ String get currentPath => null;
 /// the file isn't valid UTF-8.
 String readFile(String path) => null;
 
+/// Writes [contents] to the file at [path], encoded as UTF-8.
+///
+/// Throws a [FileSystemException] if writing fails.
+void writeFile(String path, String contents) => null;
+
 /// Reads from the standard input for the current process until it closes,
 /// returning the contents.
 Future<String> readStdin() async => null;

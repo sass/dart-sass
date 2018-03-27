@@ -1,3 +1,8 @@
+## 1.1.0
+
+* The command-line executable can now be used to write an output file to disk
+  using `sass input.scss output.css`.
+
 ## 1.0.0
 
 **Initial stable release.**
