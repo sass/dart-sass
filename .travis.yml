@@ -94,12 +94,13 @@ script:
 jobs:
   include:
   - stage: deploy
-    if: (type IN (push, api)) AND (repo = sass/dart-sass) AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
+    if: &deploy-if
+      (type IN (push, api)) AND (repo = sass/dart-sass) AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
     env: DART_CHANNEL=dev DART_VERSION=2.0.0-dev.36.0
     script: skip # Don't run tests
 
     deploy:
-      # Deploy to GitHub, npm, pub, Homebrew, and Chocolatey.
+      # Deploy to GitHub, npm, pub, Homebrew.
       provider: script
       script: tool/deploy.sh
 
@@ -116,4 +117,14 @@ jobs:
       # We check `if:` because it avoids unnecessary build steps, and
       # `on: {tags: true}` ensures that we only deploy on the build caused
       # by pushing a tag, not the build caused by pushing master.
+      on: {tags: true}
+
+  # Deploy to Chocolatey from stable because Chocolatey often doesn't support
+  # the latest dev channel SDK release.
+  - if: *deploy-if
+    env: DART_CHANNEL=stable DART_VERSION=latest
+    script: skip
+    deploy:
+      provider: script
+      script: tool/deploy-to-chocolatey.sh
       on: {tags: true}
