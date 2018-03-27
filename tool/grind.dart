@@ -312,8 +312,7 @@ update_chocolatey() async {
   var request = new http.MultipartRequest(
       "PUT", Uri.parse("https://push.chocolatey.org/api/v2/package"));
   request.headers["X-NuGet-Protocol-Version"] = "4.1.0";
-  request.headers["X-NuGet-ApiKey"] =
-      new File("choco").readAsStringSync().trim();
+  request.headers["X-NuGet-ApiKey"] = _environment("CHOCO_TOKEN");
   request.files.add(await http.MultipartFile
       .fromPath("package", "build/sass.${_chocolateyVersion()}.nupkg"));
 
@@ -529,9 +528,8 @@ update_homebrew() async {
 @Task('Release the current version as to GitHub.')
 @Depends(package)
 github_release() async {
-  var authorization = _loadAuthorization();
+  var authorization = _githubAuthorization();
 
-  // We don't explicitly authenticate here, we just rely on Travis's .netrc.
   var client = new http.Client();
   var response = await client.post(
       "https://api.github.com/repos/sass/dart-sass/releases",
@@ -638,21 +636,18 @@ String _lastChangelogSection() {
   return buffer.toString().trim();
 }
 
-/// A regular expression to match the api.github.com entry in a .netrc file.
-final _netrcRegExp = new RegExp(r"(?:^|\n) *machine api\.github\.com"
-    r"\n *login (.*)"
-    r"\n *password (.*)(?:\n|$)");
+/// Returns the HTTP basic authentication Authorization header from the
+/// environment.
+String _githubAuthorization() {
+  var username = _environment("GITHUB_USER");
+  var token = _environment("GITHUB_AUTH");
+  return "Basic ${BASE64.encode(UTF8.encode("$username:$token"))}";
+}
 
-/// Loads an HTTP basic authentication authorization header from the user's
-/// .netrc file.
-String _loadAuthorization() {
-  var netrc = new File(p.join(Platform.environment["HOME"], ".netrc"));
-  if (!netrc.existsSync()) fail("~/.netrc file not found.");
-
-  var match = _netrcRegExp.firstMatch(netrc.readAsStringSync());
-  if (match == null) {
-    fail(".netrc file didn't contain an entry for api.github.com.");
-  }
-
-  return "Basic ${BASE64.encode(UTF8.encode("${match[1]}:${match[2]}"))}";
+/// Returns the environment variable named [name], or throws an exception if it
+/// can't be found.
+String _environment(String name) {
+  var value = Platform.environment[name];
+  if (value == null) fail("Required environment variable $name not found.");
+  return value;
 }
