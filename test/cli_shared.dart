@@ -10,6 +10,14 @@ import 'package:test_process/test_process.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
+  /// Runs the executable on [arguments] plus an output file, then verifies that
+  /// the contents of the output file match [expected].
+  Future expectCompiles(List<String> arguments, expected) async {
+    var sass = await runSass(arguments.toList()..add("out.css"));
+    await sass.shouldExit(0);
+    await d.file("out.css", expected).validate();
+  }
+
   test("--help prints the usage documentation", () async {
     // Checking the entire output is brittle, so just do a sanity check to make
     // sure it's not totally busted.
@@ -34,6 +42,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(0);
   });
 
+  test("writes a CSS file to disk", () async {
+    await d.file("test.scss", "a {b: 1 + 2}").create();
+
+    var sass = await runSass(["test.scss", "out.css"]);
+    expect(sass.stdout, emitsDone);
+    await sass.shouldExit(0);
+    await d.file("out.css", equalsIgnoringWhitespace("a { b: 3; }")).validate();
+  });
+
   test("compiles from stdin with the magic path -", () async {
     var sass = await runSass(["-"]);
     sass.stdin.writeln("a {b: 1 + 2}");
@@ -54,15 +71,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       await d.dir("dir", [d.file("test.scss", "a {b: 1 + 2}")]).create();
 
-      var sass = await runSass(["test.scss", "test.css"]);
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: 3;",
-            "}",
-          ]));
-      await sass.shouldExit(0);
+      await expectCompiles(
+          ["test.scss"], equalsIgnoringWhitespace("a { b: 3; }"));
     });
 
     test("from the load path", () async {
@@ -70,15 +80,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       await d.dir("dir", [d.file("test2.scss", "a {b: c}")]).create();
 
-      var sass = await runSass(["--load-path", "dir", "test.scss", "test.css"]);
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: c;",
-            "}",
-          ]));
-      await sass.shouldExit(0);
+      await expectCompiles(["--load-path", "dir", "test.scss"],
+          equalsIgnoringWhitespace("a { b: c; }"));
     });
 
     test("relative in preference to from the load path", () async {
@@ -87,15 +90,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       await d.dir("dir", [d.file("test2.scss", "a {b: c}")]).create();
 
-      var sass = await runSass(["--load-path", "dir", "test.scss", "test.css"]);
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "x {",
-            "  y: z;",
-            "}",
-          ]));
-      await sass.shouldExit(0);
+      await expectCompiles(["--load-path", "dir", "test.scss"],
+          equalsIgnoringWhitespace("x { y: z; }"));
     });
 
     test("in load path order", () async {
@@ -104,22 +100,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.dir("dir1", [d.file("test2.scss", "a {b: c}")]).create();
       await d.dir("dir2", [d.file("test2.scss", "x {y: z}")]).create();
 
-      var sass = await runSass([
-        "--load-path",
-        "dir2",
-        "--load-path",
-        "dir1",
-        "test.scss",
-        "test.css"
-      ]);
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "x {",
-            "  y: z;",
-            "}",
-          ]));
-      await sass.shouldExit(0);
+      await expectCompiles(
+          ["--load-path", "dir2", "--load-path", "dir1", "test.scss"],
+          equalsIgnoringWhitespace("x { y: z; }"));
     });
   });
 
@@ -136,6 +119,18 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "}",
           ]));
       await sass.shouldExit(0);
+    });
+
+    test("writes a CSS file to disk", () async {
+      var sass = await runSass(["--stdin", "out.css"]);
+      sass.stdin.writeln("a {b: 1 + 2}");
+      sass.stdin.close();
+      expect(sass.stdout, emitsDone);
+
+      await sass.shouldExit(0);
+      await d
+          .file("out.css", equalsIgnoringWhitespace("a { b: 3; }"))
+          .validate();
     });
 
     test("uses the indented syntax with --indented", () async {
@@ -221,6 +216,20 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   group("reports errors", () {
     test("from invalid arguments", () async {
       var sass = await runSass(["--asdf"]);
+      expect(
+          sass.stdout, emitsThrough(contains("Print this usage information.")));
+      await sass.shouldExit(64);
+    });
+
+    test("from too many positional arguments", () async {
+      var sass = await runSass(["abc", "def", "ghi"]);
+      expect(
+          sass.stdout, emitsThrough(contains("Print this usage information.")));
+      await sass.shouldExit(64);
+    });
+
+    test("from too many positional arguments with --stdin", () async {
+      var sass = await runSass(["--stdin", "abc", "def"]);
       expect(
           sass.stdout, emitsThrough(contains("Print this usage information.")));
       await sass.shouldExit(64);

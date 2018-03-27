@@ -14,7 +14,7 @@ import '../util/path.dart';
 @JS()
 class _FS {
   external readFileSync(String path, [String encoding]);
-
+  external void writeFileSync(String path, String data);
   external bool existsSync(String path);
 }
 
@@ -95,6 +95,16 @@ String readFile(String path) {
 _readFile(String path, [String encoding]) {
   try {
     return _fs.readFileSync(path, encoding);
+  } catch (error) {
+    var systemError = error as _SystemError;
+    throw new FileSystemException._(
+        _cleanErrorMessage(systemError), systemError.path);
+  }
+}
+
+void writeFile(String path, String contents) {
+  try {
+    return _fs.writeFileSync(path, contents);
   } catch (error) {
     var systemError = error as _SystemError;
     throw new FileSystemException._(

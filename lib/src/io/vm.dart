@@ -41,6 +41,9 @@ String readFile(String path) {
   }
 }
 
+void writeFile(String path, String contents) =>
+    new io.File(path).writeAsStringSync(contents);
+
 Future<String> readStdin() async {
   var completer = new Completer<String>();
   completer.complete(await io.SYSTEM_ENCODING.decodeStream(io.stdin));
