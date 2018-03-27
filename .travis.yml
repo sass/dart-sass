@@ -127,4 +127,5 @@ jobs:
     deploy:
       provider: script
       script: tool/deploy-to-chocolatey.sh
+      skip_cleanup: true
       on: {tags: true}
