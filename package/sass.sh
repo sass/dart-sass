@@ -17,5 +17,5 @@ follow_links() {
 }
 
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
-path=`dirname "$(follow_links "$BASH_SOURCE")"`
+path=`dirname "$(follow_links "$0")"`
 exec "$path/src/dart" "-Dversion=SASS_VERSION" "$path/src/sass.dart.snapshot" "$@"
