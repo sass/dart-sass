@@ -3,13 +3,12 @@
 # license that can be found in the LICENSE file or at
 # https://opensource.org/licenses/MIT.
 
-openssl aes-256-cbc -K $encrypted_d18df560dfb2_key -iv $encrypted_d18df560dfb2_iv -in tool/encrypted/credentials.tar.enc \
+openssl aes-256-cbc -K $encrypted_d472b0f964cc_key -iv $encrypted_d472b0f964cc_iv -in tool/encrypted/credentials.tar.enc \
     -out credentials.tar -d
 
 mkdir -p ~/.pub-cache
 tar xfO credentials.tar npm > ~/.npmrc
 tar xfO credentials.tar pub > ~/.pub-cache/credentials.json
-tar xfO credentials.tar git > ~/.netrc
 
 function travis_cmd() {
   echo "\$ $@"
