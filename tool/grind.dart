@@ -92,12 +92,19 @@ js() => _js(release: false);
 @Task('Compile to JS in release mode.')
 js_release() => _js(release: true);
 
+/// The constraint on Dart versions for which Dart Sass supports JS compilation.
+final _jsConstraint = new VersionConstraint.parse(">=2.0.0-dev.42.0");
+
 /// Compiles Sass to JS.
 ///
 /// If [release] is `true`, this compiles minified with
 /// --trust-type-annotations. Otherwise, it compiles unminified with pessimistic
 /// type checks.
 void _js({@required bool release}) {
+  if (!_jsConstraint.allows(_dartVersion)) {
+    fail("JS compilation is only supported for Dart $_jsConstraint.");
+  }
+
   _ensureBuild();
   var destination = new File('build/sass.dart.js');
 
