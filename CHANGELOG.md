@@ -1,3 +1,7 @@
+## 1.1.2
+
+* Internal changes only.
+
 ## 1.1.1
 
 * Add a commit that was accidentally left out of 1.1.0.

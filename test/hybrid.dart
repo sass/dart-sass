@@ -3,7 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:convert';
+
+import 'package:dart2_constant/convert.dart' as convert;
 
 import 'package:test/test.dart';
 
@@ -29,14 +30,15 @@ Future deleteDirectory(String path) =>
 Future runHybridExpression(String expression, [message]) async {
   var channel = spawnHybridCode('''
     import 'dart:async';
-    import 'dart:convert';
     import 'dart:io';
+
+    import 'package:dart2_constant/convert.dart' as convert;
 
     import 'package:stream_channel/stream_channel.dart';
 
     hybridMain(StreamChannel channel, message) async {
       var result = await ${expression};
-      channel.sink.add(_isJsonSafe(result) ? JSON.encode(result) : 'null');
+      channel.sink.add(_isJsonSafe(result) ? convert.json.encode(result) : 'null');
       channel.sink.close();
     }
 
@@ -54,5 +56,5 @@ Future runHybridExpression(String expression, [message]) async {
     }
   ''', message: message);
 
-  return JSON.decode((await channel.stream.first) as String);
+  return convert.json.decode((await channel.stream.first) as String);
 }
