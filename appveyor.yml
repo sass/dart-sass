@@ -8,7 +8,11 @@ branches:
 environment:
   matrix:
   - {TASK: tests, NODE: false}
-  - {TASK: tests, NODE: true}
+
+  # We only support running Node tests with Dart >=2.0.0-dev.42.0, and the most
+  # recent version on Chocolatey is (at time of writing) 2.0.0-dev.5. Once it's
+  # updated, we should re-enable these tests.
+  # - {TASK: tests, NODE: true}
 
 install:
 - choco install dart-sdk

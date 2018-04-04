@@ -3,4 +3,4 @@
 // https://opensource.org/licenses/MIT.
 
 export 'package:sass/src/executable.dart'
-    if (node) 'package:sass/src/node.dart';
+    if (dart.library.js) 'package:sass/src/node.dart';
