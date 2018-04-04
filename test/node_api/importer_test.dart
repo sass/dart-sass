@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:dart2_constant/core.dart' as core;
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
@@ -550,7 +551,7 @@ void main() {
           render(new RenderOptions(
               data: "@import 'foo'",
               importer: allowInterop((_, __, done) {
-                new Future.delayed(Duration.ZERO).then((_) {
+                new Future.delayed(core.Duration.zero).then((_) {
                   done(new NodeImporterResult(contents: 'a {b: c}'));
                 });
               }))),
@@ -562,7 +563,7 @@ void main() {
           renderError(new RenderOptions(
               data: "@import 'foo'",
               importer: allowInterop((_, __, done) {
-                new Future.delayed(Duration.ZERO).then((_) {
+                new Future.delayed(core.Duration.zero).then((_) {
                   done(new JSError('oh no'));
                 });
               }))),
@@ -604,7 +605,7 @@ void main() {
             render(new RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, done) {
-                  new Future.delayed(Duration.ZERO).then((_) {
+                  new Future.delayed(core.Duration.zero).then((_) {
                     done(new NodeImporterResult(contents: 'a {b: c}'));
                   });
                 }),
@@ -639,7 +640,7 @@ void main() {
             renderError(new RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, done) {
-                  new Future.delayed(Duration.ZERO).then((_) {
+                  new Future.delayed(core.Duration.zero).then((_) {
                     done(new JSError('oh no'));
                   });
                 }),

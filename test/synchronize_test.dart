@@ -4,10 +4,10 @@
 
 @TestOn('vm')
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:dart2_constant/convert.dart' as convert;
 import 'package:test/test.dart';
 
 void main() {
@@ -19,7 +19,7 @@ void main() {
       var source = new File(sourcePath).readAsStringSync();
       var target = new File(targetPath).readAsStringSync();
 
-      var hash = sha1.convert(UTF8.encode(source));
+      var hash = sha1.convert(convert.utf8.encode(source));
       if (!target.contains("Checksum: $hash")) {
         fail("$targetPath is out-of-date.\n"
             "Run pub run grinder to update it.");

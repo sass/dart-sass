@@ -3,8 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
@@ -37,7 +37,7 @@ Future<String> render(RenderOptions options) {
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(error, isNull);
-    completer.complete(UTF8.decode(result.css));
+    completer.complete(convert.utf8.decode(result.css));
   })));
   return completer.future;
 }
@@ -56,7 +56,7 @@ Future<RenderError> renderError(RenderOptions options) {
 
 /// Returns the result of rendering via [options] as a string.
 String renderSync(RenderOptions options) =>
-    UTF8.decode(sass.renderSync(options).css);
+    convert.utf8.decode(sass.renderSync(options).css);
 
 /// Asserts that rendering via [options] produces an error, and returns that
 /// error.

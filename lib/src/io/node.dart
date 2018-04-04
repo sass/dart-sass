@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
 import 'package:source_span/source_span.dart';
 
@@ -120,7 +121,7 @@ Future<String> readStdin() async {
     completer.complete(contents);
   });
   // Node defaults all buffers to 'utf8'.
-  var sink = UTF8.decoder.startChunkedConversion(innerSink);
+  var sink = convert.utf8.decoder.startChunkedConversion(innerSink);
   _stdin.on('data', allowInterop(([chunk]) {
     assert(chunk != null);
     sink.add(chunk as List<int>);

@@ -3,13 +3,13 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
+import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -136,8 +136,9 @@ npm_release_package() => _npm(release: true);
 /// --trust-type-annotations. Otherwise, it compiles unminified with pessimistic
 /// type checks.
 void _npm({@required bool release}) {
-  var json = JSON.decode(new File('package/package.json').readAsStringSync())
-      as Map<String, dynamic>;
+  var json =
+      convert.json.decode(new File('package/package.json').readAsStringSync())
+          as Map<String, dynamic>;
   json['version'] = _version;
 
   _writeNpmPackage('build/npm', json);
@@ -163,7 +164,7 @@ void _writeNpmPackage(String destination, Map<String, dynamic> json) {
 
   log("copying package/package.json to $destination");
   new File(p.join(destination, 'package.json'))
-      .writeAsStringSync(JSON.encode(json));
+      .writeAsStringSync(convert.json.encode(json));
 
   copy(new File(p.join('package', 'sass.js')), dir);
   copy(new File(p.join('build', 'sass.dart.js')), dir);
@@ -465,7 +466,7 @@ ArchiveFile _fileFromBytes(String path, List<int> data,
 /// If [executable] is `true`, this marks the file as executable.
 ArchiveFile _fileFromString(String path, String contents,
         {bool executable: false}) =>
-    _fileFromBytes(path, UTF8.encode(contents), executable: executable);
+    _fileFromBytes(path, convert.utf8.encode(contents), executable: executable);
 
 /// Creates an [ArchiveFile] at the archive path [target] from the local file at
 /// [source].
@@ -491,7 +492,7 @@ update_homebrew() async {
     _version
   ]);
   var digest = await sha256.bind(process.stdout).first;
-  var stderr = await UTF8.decodeStream(process.stderr);
+  var stderr = await convert.utf8.decodeStream(process.stderr);
   if ((await process.exitCode) != 0) {
     fail('git archive "$_version" failed:\n$stderr');
   }
@@ -545,7 +546,7 @@ github_release() async {
         "content-type": "application/json",
         "authorization": authorization
       },
-      body: JSON.encode({
+      body: convert.json.encode({
         "tag_name": _version,
         "name": "Dart Sass $_version",
         "prerelease": new Version.parse(_version).isPreRelease,
@@ -558,7 +559,7 @@ github_release() async {
     log("Released Dart Sass $_version to GitHub.");
   }
 
-  var uploadUrl = JSON
+  var uploadUrl = convert.json
       .decode(response.body)["upload_url"]
       // Remove the URL template.
       .replaceFirst(new RegExp(r"\{[^}]+\}$"), "");
@@ -649,7 +650,7 @@ String _lastChangelogSection() {
 String _githubAuthorization() {
   var username = _environment("GITHUB_USER");
   var token = _environment("GITHUB_AUTH");
-  return "Basic ${BASE64.encode(UTF8.encode("$username:$token"))}";
+  return "Basic ${convert.base64.encode(convert.utf8.encode("$username:$token"))}";
 }
 
 /// Returns the environment variable named [name], or throws an exception if it
