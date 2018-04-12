@@ -1,6 +1,7 @@
-## 1.1.2
+## 1.2.0
 
-* Internal changes only.
+* The command-line executable will now create the directory for the resulting
+  CSS if that directory doesn't exist.
 
 ## 1.1.1
 

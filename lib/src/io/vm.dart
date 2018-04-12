@@ -53,3 +53,6 @@ Future<String> readStdin() async {
 bool fileExists(String path) => new io.File(path).existsSync();
 
 bool dirExists(String path) => new io.Directory(path).existsSync();
+
+void ensureDir(String path) =>
+    new io.Directory(path).createSync(recursive: true);
