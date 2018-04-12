@@ -51,6 +51,17 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d.file("out.css", equalsIgnoringWhitespace("a { b: 3; }")).validate();
   });
 
+  test("creates directories if necessary", () async {
+    await d.file("test.scss", "a {b: 1 + 2}").create();
+
+    var sass = await runSass(["test.scss", "some/new/dir/out.css"]);
+    expect(sass.stdout, emitsDone);
+    await sass.shouldExit(0);
+    await d
+        .file("some/new/dir/out.css", equalsIgnoringWhitespace("a { b: 3; }"))
+        .validate();
+  });
+
   test("compiles from stdin with the magic path -", () async {
     var sass = await runSass(["-"]);
     sass.stdin.writeln("a {b: 1 + 2}");

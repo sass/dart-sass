@@ -61,5 +61,9 @@ bool fileExists(String path) => null;
 /// Returns whether a dir at [path] exists.
 bool dirExists(String path) => null;
 
+/// Ensures that a directory exists at [path], creating it and its ancestors if
+/// necessary.
+void ensureDir(String path) => null;
+
 /// Gets and sets the exit code that the process will use when it exits.
 int exitCode;

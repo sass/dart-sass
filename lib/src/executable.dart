@@ -111,6 +111,7 @@ main(List<String> args) async {
     }
 
     if (destination != null) {
+      ensureDir(p.dirname(destination));
       writeFile(destination, css + "\n");
     } else if (css.isNotEmpty) {
       print(css);

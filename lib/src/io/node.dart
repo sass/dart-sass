@@ -17,6 +17,7 @@ class _FS {
   external readFileSync(String path, [String encoding]);
   external void writeFileSync(String path, String data);
   external bool existsSync(String path);
+  external void mkdirSync(String path);
 }
 
 @JS()
@@ -93,25 +94,11 @@ String readFile(String path) {
 }
 
 /// Wraps `fs.readFileSync` to throw a [FileSystemException].
-_readFile(String path, [String encoding]) {
-  try {
-    return _fs.readFileSync(path, encoding);
-  } catch (error) {
-    var systemError = error as _SystemError;
-    throw new FileSystemException._(
-        _cleanErrorMessage(systemError), systemError.path);
-  }
-}
+_readFile(String path, [String encoding]) =>
+    _systemErrorToFileSystemException(() => _fs.readFileSync(path, encoding));
 
-void writeFile(String path, String contents) {
-  try {
-    return _fs.writeFileSync(path, contents);
-  } catch (error) {
-    var systemError = error as _SystemError;
-    throw new FileSystemException._(
-        _cleanErrorMessage(systemError), systemError.path);
-  }
-}
+void writeFile(String path, String contents) =>
+    _systemErrorToFileSystemException(() => _fs.writeFileSync(path, contents));
 
 Future<String> readStdin() async {
   var completer = new Completer<String>();
@@ -151,6 +138,32 @@ String _cleanErrorMessage(_SystemError error) {
 bool fileExists(String path) => _fs.existsSync(path);
 
 bool dirExists(String path) => _fs.existsSync(path);
+
+void ensureDir(String path) {
+  return _systemErrorToFileSystemException(() {
+    try {
+      _fs.mkdirSync(path);
+    } catch (error) {
+      var systemError = error as _SystemError;
+      if (systemError.code == 'EEXIST') return;
+      if (systemError.code != 'ENOENT') rethrow;
+      ensureDir(p.dirname(path));
+      _fs.mkdirSync(path);
+    }
+  });
+}
+
+/// Runs callback and converts any [_SystemError]s it throws into
+/// [FileSystemException]s.
+T _systemErrorToFileSystemException<T>(T callback()) {
+  try {
+    return callback();
+  } catch (error) {
+    var systemError = error as _SystemError;
+    throw new FileSystemException._(
+        _cleanErrorMessage(systemError), systemError.path);
+  }
+}
 
 @JS("process.stderr")
 external _Stderr get _stderr;
