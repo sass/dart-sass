@@ -1338,7 +1338,7 @@ abstract class StylesheetParser extends Parser {
               (singleExpression == null ||
                   isWhitespace(scanner.peekChar(-1)))) {
             addSingleExpression(_number(), number: true);
-          } else if (lookingAtIdentifier()) {
+          } else if (_lookingAtInterpolatedIdentifier()) {
             addSingleExpression(_identifierLike());
           } else if (singleExpression == null) {
             addSingleExpression(_unaryOperation());
