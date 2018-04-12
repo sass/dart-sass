@@ -37,11 +37,11 @@ typedef Future _ScopeCallback(Future callback());
 /// If [importers] (or, on Node.js, [nodeImporter]) is passed, it's used to
 /// resolve imports in the Sass files. Earlier importers will be preferred.
 ///
-/// If [environment] is passed, it's used as the lexical environment when
-/// evaluating [stylesheet]. It should only contain global definitions.
-///
 /// If [importer] is passed, it's used to resolve relative imports in
 /// [stylesheet] relative to `stylesheet.span.sourceUrl`.
+///
+/// The [functions] are available as global functions when evaluating
+/// [stylesheet].
 ///
 /// Warnings are emitted using [logger], or printed to standard error by
 /// default.
