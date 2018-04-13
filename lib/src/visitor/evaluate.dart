@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 9b5790272f09f8932a01ef9bfa0fd4ebc6b75eaa
+// Checksum: 3360e4065a1e1ceeabcaad34f5c09066e7d0c1d2
 
 import 'dart:math' as math;
 
@@ -534,10 +534,28 @@ class _EvaluateVisitor
 
     var targetText = _interpolationToValue(node.selector, warnForColor: true);
 
-    var target = _adjustParseError(
-        targetText.span,
-        () => new SimpleSelector.parse(targetText.value.trim(),
-            logger: _logger, allowParent: false));
+    var target = _adjustParseError(targetText.span, () {
+      try {
+        return new SimpleSelector.parse(targetText.value.trim(),
+            logger: _logger, allowParent: false);
+      } on SassFormatException catch (error) {
+        CompoundSelector compound;
+        try {
+          compound = new CompoundSelector.parse(targetText.value.trim(),
+              logger: _logger, allowParent: false);
+        } on SassFormatException {
+          throw error;
+        }
+
+        // If the selector was a compound selector but not a simple
+        // selector, emit a more explicit error.
+        throw new SassFormatException(
+            "compound selectors may longer be extended.\n"
+            "Consider `@extend ${compound.components.join(', ')}` instead.\n"
+            "See http://bit.ly/ExtendCompound for details.\n",
+            error.span);
+      }
+    });
     _extender.addExtension(_styleRule.selector, target, node, _mediaQueries);
     return null;
   }
