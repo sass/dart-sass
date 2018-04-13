@@ -3,6 +3,9 @@
 * The command-line executable will now create the directory for the resulting
   CSS if that directory doesn't exist.
 
+* Properly parse `#{$var} -#{$var}` as two separate values in a list rather than
+  one value being subtracted from another.
+
 ## 1.1.1
 
 * Add a commit that was accidentally left out of 1.1.0.
