@@ -4,6 +4,8 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../../logger.dart';
+import '../../../parse/scss.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
@@ -34,6 +36,15 @@ class VariableDeclaration implements Statement {
       {bool guarded: false, bool global: false})
       : isGuarded = guarded,
         isGlobal = global;
+
+  /// Parses a variable declaration from [contents].
+  ///
+  /// If passed, [url] is the name of the file from which [contents] comes.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  factory VariableDeclaration.parse(String contents, {url, Logger logger}) =>
+      new ScssParser(contents, url: url, logger: logger)
+          .parseVariableDeclaration();
 
   T accept<T>(StatementVisitor<T> visitor) =>
       visitor.visitVariableDeclaration(this);

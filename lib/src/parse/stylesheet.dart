@@ -80,6 +80,22 @@ abstract class StylesheetParser extends Parser {
     });
   }
 
+  Expression parseExpression() {
+    return wrapSpanFormatException(() {
+      var expression = _expression();
+      scanner.expectDone();
+      return expression;
+    });
+  }
+
+  VariableDeclaration parseVariableDeclaration() {
+    return wrapSpanFormatException(() {
+      var declaration = variableDeclaration();
+      scanner.expectDone();
+      return declaration;
+    });
+  }
+
   /// Parses a function signature of the format allowed by Node Sass's functions
   /// option and returns its name and declaration.
   ///
