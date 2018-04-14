@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 9b5790272f09f8932a01ef9bfa0fd4ebc6b75eaa
+// Checksum: 4eb54f9170b6c2a337afb7c86502a1a78a0e280f
 
 import 'dart:math' as math;
 
@@ -64,6 +64,13 @@ EvaluateResult evaluate(Stylesheet stylesheet,
             functions: functions,
             logger: logger)
         .run(stylesheet);
+
+/// Evaluates a single [expression] in [environment]
+Value evaluateExpression(Expression expression, Environment environment) {
+  var evaluator = new _EvaluateVisitor();
+  return evaluator._withEnvironment(
+      environment, () => expression.accept(evaluator));
+}
 
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor

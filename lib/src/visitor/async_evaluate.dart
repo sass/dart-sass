@@ -61,6 +61,14 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
             logger: logger)
         .run(stylesheet);
 
+/// Evaluates a single [expression] in [environment]
+Future<Value> evaluateExpressionAsync(
+    Expression expression, AsyncEnvironment environment) {
+  var evaluator = new _EvaluateVisitor();
+  return evaluator._withEnvironment(
+      environment, () => expression.accept(evaluator));
+}
+
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
     implements
