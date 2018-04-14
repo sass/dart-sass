@@ -14,6 +14,7 @@ dependencies:
   args: ">=1.4.0 <2.0.0"
   async: ">=1.10.0 <3.0.0"
   charcode: "^1.1.0"
+  cli_repl: "^0.1.1"
   collection: "^1.8.0"
   convert: "^2.0.1"
   dart2_constant: "^1.0.0"

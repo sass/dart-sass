@@ -321,4 +321,38 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await sass.shouldExit(65);
     });
   });
+
+  group("--interactive works", () {
+    test("with no input", () async {
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.close();
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+    });
+    test("for expressions", () async {
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln("4 + 5");
+      sass.stdin.close();
+      expect(sass.stdout, emitsInOrder([">> 4 + 5", "9"]));
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+    });
+    test("for declarations", () async {
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln(r"$x: 6");
+      sass.stdin.close();
+      expect(sass.stdout, emitsInOrder([r">> $x: 6", "6"]));
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+    });
+    test("for variable usage", () async {
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln(r"$x: 4");
+      sass.stdin.writeln(r"$x * 2");
+      sass.stdin.close();
+      expect(sass.stdout, emitsInOrder([r">> $x: 4", "4", r">> $x * 2", "8"]));
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+    });
+  });
 }

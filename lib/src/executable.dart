@@ -6,12 +6,17 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:args/args.dart';
+import 'package:cli_repl/cli_repl.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../sass.dart';
+import 'ast/sass/expression.dart';
+import 'ast/sass/statement/variable_declaration.dart';
+import 'environment.dart';
 import 'exception.dart';
 import 'io.dart';
 import 'util/path.dart';
+import 'visitor/evaluate.dart';
 
 main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
@@ -33,6 +38,8 @@ main(List<String> args) async {
     ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
     ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
     ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
+    ..addFlag('interactive',
+        abbr: 'i', help: 'Run an interactive SassScript shell.')
     ..addFlag('help',
         abbr: 'h', help: 'Print this usage information.', negatable: false)
     ..addFlag('version',
@@ -56,6 +63,11 @@ main(List<String> args) async {
       print(version);
       exitCode = 0;
     });
+    return;
+  }
+
+  if (options['interactive'] as bool) {
+    _repl();
     return;
   }
 
@@ -204,4 +216,36 @@ void _printUsage(ArgParser parser, String message) {
   print("$message\n");
   print("Usage: sass <input> [output]\n");
   print(parser.usage);
+}
+
+/// Runs an interactive SassScript shell.
+_repl() {
+  var repl = new Repl(prompt: '>> ');
+  var environment = new Environment();
+  for (String line in repl.run()) {
+    try {
+      _runLine(line, environment);
+    } on SassFormatException catch (e) {
+      print(e);
+    } on SassRuntimeException catch (e) {
+      print(e);
+    }
+  }
+}
+
+/// Runs a [line] of SassScript in [environment] and prints the result
+_runLine(String line, Environment environment) {
+  Expression expression;
+  VariableDeclaration declaration;
+  try {
+    declaration = new VariableDeclaration.parse(line);
+    expression = declaration.expression;
+  } on SassFormatException {
+    expression = new Expression.parse(line);
+  }
+  var result = evaluateExpression(expression, environment);
+  if (declaration != null) {
+    environment.setVariable(declaration.name, result);
+  }
+  print(result);
 }
