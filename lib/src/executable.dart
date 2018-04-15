@@ -219,10 +219,10 @@ void _printUsage(ArgParser parser, String message) {
 }
 
 /// Runs an interactive SassScript shell.
-_repl() {
+_repl() async {
   var repl = new Repl(prompt: '>> ');
   var environment = new Environment();
-  for (String line in repl.run()) {
+  await for (String line in repl.runAsync()) {
     try {
       _runLine(line, environment);
     } on SassFormatException catch (e) {
