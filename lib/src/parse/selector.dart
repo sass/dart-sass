@@ -45,7 +45,7 @@ class SelectorParser extends Parser {
   SimpleSelector parseSimpleSelector() {
     return wrapSpanFormatException(() {
       var simple = _simpleSelector();
-      if (!scanner.isDone) scanner.error("expected selector.");
+      if (!scanner.isDone) scanner.error("unexpected token.");
       return simple;
     });
   }

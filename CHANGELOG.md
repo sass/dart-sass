@@ -6,6 +6,8 @@
 * Properly parse `#{$var} -#{$var}` as two separate values in a list rather than
   one value being subtracted from another.
 
+* Improve the error message for extending compound selectors.
+
 ## 1.1.1
 
 * Add a commit that was accidentally left out of 1.1.0.
