@@ -530,8 +530,14 @@ update_homebrew() async {
       ],
       workingDirectory: "build/homebrew-sass");
 
+  var username = _environment('GITHUB_USER');
+  var password = _environment('GITHUB_AUTH');
   await runAsync("git",
-      arguments: ["push"], workingDirectory: "build/homebrew-sass");
+      arguments: [
+        "push",
+        "https://$username:$password@github.com/sass/homebrew-sass.git"
+      ],
+      workingDirectory: "build/homebrew-sass");
 }
 
 @Task('Release the current version as to GitHub.')
