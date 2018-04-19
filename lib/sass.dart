@@ -7,6 +7,8 @@ library sass;
 
 import 'dart:async';
 
+import 'package:source_maps/source_maps.dart';
+
 import 'src/callable.dart';
 import 'src/compile.dart' as c;
 import 'src/exception.dart';
@@ -51,6 +53,23 @@ export 'src/visitor/serialize.dart' show OutputStyle;
 ///
 /// The [style] parameter controls the style of the resulting CSS.
 ///
+/// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
+/// sections of the source file(s) correspond to which in the resulting CSS.
+/// It's called immediately before this method returns, and only if compilation
+/// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
+/// using the [SourceMap] API should be sure to add the [`source_maps`][]
+/// package to their pubspec.
+///
+/// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
+///
+/// This parameter is meant to be used as an out parameter, so that users who
+/// want access to the source map can get it. For example:
+///
+/// ```dart
+/// SingleMapping sourceMap;
+/// var css = compile(sassPath, sourceMap: (map) => sourceMap = map);
+/// ```
+///
 /// Throws a [SassException] if conversion fails.
 String compile(String path,
     {bool color: false,
@@ -59,14 +78,16 @@ String compile(String path,
     Iterable<String> loadPaths,
     SyncPackageResolver packageResolver,
     Iterable<Callable> functions,
-    OutputStyle style}) {
+    OutputStyle style,
+    void sourceMap(SingleMapping map)}) {
   var result = c.compile(path,
       logger: logger ?? new Logger.stderr(color: color),
       importers: importers,
       loadPaths: loadPaths,
       packageResolver: packageResolver,
       functions: functions,
-      style: style);
+      style: style,
+      sourceMap: sourceMap);
   return result.css;
 }
 
@@ -106,6 +127,23 @@ String compile(String path,
 /// [String] or a [Uri]. If [importer] is passed, [url] must be passed as well
 /// and `importer.load(url)` should return `source`.
 ///
+/// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
+/// sections of the source file(s) correspond to which in the resulting CSS.
+/// It's called immediately before this method returns, and only if compilation
+/// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
+/// using the [SourceMap] API should be sure to add the [`source_maps`][]
+/// package to their pubspec.
+///
+/// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
+///
+/// This parameter is meant to be used as an out parameter, so that users who
+/// want access to the source map can get it. For example:
+///
+/// ```dart
+/// SingleMapping sourceMap;
+/// var css = compile(sassPath, sourceMap: (map) => sourceMap = map);
+/// ```
+///
 /// Throws a [SassException] if conversion fails.
 String compileString(String source,
     {bool indented: false,
@@ -117,7 +155,8 @@ String compileString(String source,
     Iterable<Callable> functions,
     OutputStyle style,
     Importer importer,
-    url}) {
+    url,
+    void sourceMap(SingleMapping map)}) {
   var result = c.compileString(source,
       indented: indented,
       logger: logger ?? new Logger.stderr(color: color),
@@ -127,7 +166,8 @@ String compileString(String source,
       functions: functions,
       style: style,
       importer: importer,
-      url: url);
+      url: url,
+      sourceMap: sourceMap);
   return result.css;
 }
 
@@ -143,14 +183,16 @@ Future<String> compileAsync(String path,
     SyncPackageResolver packageResolver,
     Iterable<String> loadPaths,
     Iterable<AsyncCallable> functions,
-    OutputStyle style}) async {
+    OutputStyle style,
+    void sourceMap(SingleMapping map)}) async {
   var result = await c.compileAsync(path,
       logger: logger ?? new Logger.stderr(color: color),
       importers: importers,
       loadPaths: loadPaths,
       packageResolver: packageResolver,
       functions: functions,
-      style: style);
+      style: style,
+      sourceMap: sourceMap);
   return result.css;
 }
 
@@ -169,7 +211,8 @@ Future<String> compileStringAsync(String source,
     Iterable<AsyncCallable> functions,
     OutputStyle style,
     AsyncImporter importer,
-    url}) async {
+    url,
+    void sourceMap(SingleMapping map)}) async {
   var result = await c.compileStringAsync(source,
       indented: indented,
       logger: logger ?? new Logger.stderr(color: color),
@@ -179,6 +222,7 @@ Future<String> compileStringAsync(String source,
       functions: functions,
       style: style,
       importer: importer,
-      url: url);
+      url: url,
+      sourceMap: sourceMap);
   return result.css;
 }

@@ -1,3 +1,14 @@
+## 1.3.0
+
+### Dart API
+
+* Add a `sourceMap` parameter to `compile()`, `compileString()`,
+  `compileAsync()`, and `compileStringAsync()`. This takes a callback that's
+  called with a [`SingleMapping`][] that contains the source map information for
+  the compiled CSS file.
+
+[`SingleMapping`]: https://www.dartdocs.org/documentation/source_maps/latest/source_maps.parser/SingleMapping-class.html
+
 ## 1.2.1
 
 * Always emit units in compressed mode for `0` dimensions other than lengths and

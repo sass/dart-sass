@@ -38,6 +38,15 @@ String pluralize(String name, int number, {String plural}) {
   return '${name}s';
 }
 
+/// Returns the number of times [codeUnit] appears in [string].
+int countOccurrences(String string, int codeUnit) {
+  var count = 0;
+  for (var i = 0; i < string.length; i++) {
+    if (string.codeUnitAt(i) == codeUnit) count++;
+  }
+  return count;
+}
+
 /// Flattens the first level of nested arrays in [iterable].
 ///
 /// The return value is ordered first by index in the nested iterable, then by

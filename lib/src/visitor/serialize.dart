@@ -6,14 +6,18 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
+import 'package:source_maps/source_maps.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/css.dart';
+import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../color_names.dart';
 import '../exception.dart';
 import '../util/character.dart';
+import '../util/no_source_map_buffer.dart';
 import '../util/number.dart';
+import '../util/source_map_buffer.dart';
 import '../value.dart';
 import 'interface/css.dart';
 import 'interface/selector.dart';
@@ -41,19 +45,26 @@ final _compressibleUnits = new Set.from([
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [node] contains any values
 /// that can't be represented in plain CSS, throws a [SassException].
+///
+/// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
+/// sections of the source file(s) correspond to which in the resulting CSS.
+/// It's called immediately before this method returns, and only if compilation
+/// succeeds. Note that [SingleMapping.targetUrl] will always be `null`.
 String serialize(CssNode node,
     {OutputStyle style,
     bool inspect: false,
     bool useSpaces: true,
     int indentWidth,
-    LineFeed lineFeed}) {
+    LineFeed lineFeed,
+    void sourceMap(SingleMapping map)}) {
   indentWidth ??= 2;
   var visitor = new _SerializeVisitor(
       style: style,
       inspect: inspect,
       useSpaces: useSpaces,
       indentWidth: indentWidth,
-      lineFeed: lineFeed);
+      lineFeed: lineFeed,
+      sourceMap: sourceMap != null);
   node.accept(visitor);
   var result = visitor._buffer.toString();
   if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
@@ -63,6 +74,8 @@ String serialize(CssNode node,
       result = '@charset "UTF-8";\n$result';
     }
   }
+
+  if (sourceMap != null) sourceMap(visitor._buffer.buildSourceMap());
   return result;
 }
 
@@ -75,7 +88,8 @@ String serialize(CssNode node,
 ///
 /// If [quote] is `false`, quoted strings are emitted without quotes.
 String serializeValue(Value value, {bool inspect: false, bool quote: true}) {
-  var visitor = new _SerializeVisitor(inspect: inspect, quote: quote);
+  var visitor =
+      new _SerializeVisitor(inspect: inspect, quote: quote, sourceMap: false);
   value.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -87,7 +101,7 @@ String serializeValue(Value value, {bool inspect: false, bool quote: true}) {
 /// may not be valid CSS. If [inspect] is `false` and [selector] can't be
 /// represented in plain CSS, throws a [SassScriptException].
 String serializeSelector(Selector selector, {bool inspect: false}) {
-  var visitor = new _SerializeVisitor(inspect: inspect);
+  var visitor = new _SerializeVisitor(inspect: inspect, sourceMap: false);
   selector.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -95,7 +109,7 @@ String serializeSelector(Selector selector, {bool inspect: false}) {
 /// A visitor that converts CSS syntax trees to plain strings.
 class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// A buffer that contains the CSS produced so far.
-  final _buffer = new StringBuffer();
+  final SourceMapBuffer _buffer;
 
   /// The current indentation of the CSS output.
   var _indentation = 0;
@@ -128,8 +142,10 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
       bool quote: true,
       bool useSpaces: true,
       int indentWidth,
-      LineFeed lineFeed})
-      : _style = style ?? OutputStyle.expanded,
+      LineFeed lineFeed,
+      bool sourceMap: true})
+      : _buffer = sourceMap ? new SourceMapBuffer() : new NoSourceMapBuffer(),
+        _style = style ?? OutputStyle.expanded,
         _inspect = inspect,
         _quote = quote,
         _indentCharacter = useSpaces ? $space : $tab,
@@ -160,34 +176,40 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   }
 
   void visitComment(CssComment node) {
-    // Preserve comments that start with `/*!`.
-    if (_isCompressed && !node.isPreserved) return;
+    _for(node, () {
+      // Preserve comments that start with `/*!`.
+      if (_isCompressed && !node.isPreserved) return;
 
-    var minimumIndentation = _minimumIndentation(node.text);
-    assert(minimumIndentation != -1);
-    if (minimumIndentation == null) {
+      var minimumIndentation = _minimumIndentation(node.text);
+      assert(minimumIndentation != -1);
+      if (minimumIndentation == null) {
+        _writeIndentation();
+        _buffer.write(node.text);
+        return;
+      }
+
+      if (node.span != null) {
+        minimumIndentation =
+            math.min(minimumIndentation, node.span.start.column);
+      }
+
       _writeIndentation();
-      _buffer.write(node.text);
-      return;
-    }
-
-    if (node.span != null) {
-      minimumIndentation = math.min(minimumIndentation, node.span.start.column);
-    }
-
-    _writeIndentation();
-    _writeWithIndent(node.text, minimumIndentation);
+      _writeWithIndent(node.text, minimumIndentation);
+    });
   }
 
   void visitAtRule(CssAtRule node) {
     _writeIndentation();
-    _buffer.writeCharCode($at);
-    _buffer.write(node.name);
 
-    if (node.value != null) {
-      _buffer.writeCharCode($space);
-      _buffer.write(node.value.value);
-    }
+    _for(node, () {
+      _buffer.writeCharCode($at);
+      _buffer.write(node.name);
+
+      if (node.value != null) {
+        _buffer.writeCharCode($space);
+        _write(node.value);
+      }
+    });
 
     if (!node.isChildless) {
       _writeOptionalSpace();
@@ -197,32 +219,39 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   void visitMediaRule(CssMediaRule node) {
     _writeIndentation();
-    _buffer.write("@media");
 
-    if (!_isCompressed || !node.queries.first.isCondition) {
-      _buffer.writeCharCode($space);
-    }
+    _for(node, () {
+      _buffer.write("@media");
 
-    _writeBetween(node.queries, _commaSeparator, _visitMediaQuery);
+      if (!_isCompressed || !node.queries.first.isCondition) {
+        _buffer.writeCharCode($space);
+      }
+
+      _writeBetween(node.queries, _commaSeparator, _visitMediaQuery);
+    });
+
     _writeOptionalSpace();
     _visitChildren(node.children);
   }
 
   void visitImport(CssImport node) {
     _writeIndentation();
-    _buffer.write("@import");
-    _writeOptionalSpace();
-    _writeImportUrl(node.url.value);
 
-    if (node.supports != null) {
+    _for(node, () {
+      _buffer.write("@import");
       _writeOptionalSpace();
-      _buffer.write(node.supports.value);
-    }
+      _for(node.url, () => _writeImportUrl(node.url.value));
 
-    if (node.media != null) {
-      _writeOptionalSpace();
-      _writeBetween(node.media, _commaSeparator, _visitMediaQuery);
-    }
+      if (node.supports != null) {
+        _writeOptionalSpace();
+        _write(node.supports);
+      }
+
+      if (node.media != null) {
+        _writeOptionalSpace();
+        _writeBetween(node.media, _commaSeparator, _visitMediaQuery);
+      }
+    });
   }
 
   /// Writes [url], which is an import's URL, to the buffer.
@@ -247,7 +276,11 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   void visitKeyframeBlock(CssKeyframeBlock node) {
     _writeIndentation();
-    _writeBetween(node.selector.value, _commaSeparator, _buffer.write);
+
+    _for(
+        node.selector,
+        () =>
+            _writeBetween(node.selector.value, _commaSeparator, _buffer.write));
     _writeOptionalSpace();
     _visitChildren(node.children);
   }
@@ -271,35 +304,43 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   void visitStyleRule(CssStyleRule node) {
     _writeIndentation();
-    node.selector.value.accept(this);
+
+    _for(node.selector, () => node.selector.value.accept(this));
     _writeOptionalSpace();
     _visitChildren(node.children);
   }
 
   void visitSupportsRule(CssSupportsRule node) {
     _writeIndentation();
-    _buffer.write("@supports");
 
-    if (!(_isCompressed && node.condition.value.codeUnitAt(0) == $lparen)) {
-      _buffer.writeCharCode($space);
-    }
+    _for(node, () {
+      _buffer.write("@supports");
 
-    _buffer.write(node.condition.value);
+      if (!(_isCompressed && node.condition.value.codeUnitAt(0) == $lparen)) {
+        _buffer.writeCharCode($space);
+      }
+
+      _write(node.condition);
+    });
+
     _writeOptionalSpace();
     _visitChildren(node.children);
   }
 
   void visitDeclaration(CssDeclaration node) {
     _writeIndentation();
-    _buffer.write(node.name.value);
+
+    _write(node.name);
     _buffer.writeCharCode($colon);
 
     if (_isParsedCustomProperty(node)) {
-      if (_isCompressed) {
-        _writeFoldedValue(node);
-      } else {
-        _writeReindentedValue(node);
-      }
+      _for(node.value, () {
+        if (_isCompressed) {
+          _writeFoldedValue(node);
+        } else {
+          _writeReindentedValue(node);
+        }
+      });
     } else {
       _writeOptionalSpace();
       _visitValue(node.value);
@@ -439,7 +480,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// [SassScriptException]s to [SassException]s.
   void _visitValue(CssValue<Value> value) {
     try {
-      value.value.accept(this);
+      _for(value, () => value.value.accept(this));
     } on SassScriptException catch (error) {
       throw new SassException(error.message, value.span);
     }
@@ -986,6 +1027,14 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   }
 
   // ## Utilities
+
+  /// Runs [callback] and associates all text written within it with
+  /// [node.span].
+  T _for<T>(AstNode node, T callback()) => _buffer.forSpan(node.span, callback);
+
+  /// Writes [value]'s value with the associated source span.
+  void _write(CssValue<String> value) =>
+      _for(value, () => _buffer.write(value.value));
 
   /// Emits [children] in a block.
   void _visitChildren(List<CssNode> children) {

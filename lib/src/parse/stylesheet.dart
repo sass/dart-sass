@@ -261,6 +261,7 @@ abstract class StylesheetParser extends Parser {
 
     var midBuffer = new StringBuffer();
     midBuffer.write(rawText(whitespace));
+    var beforeColon = scanner.state;
     if (!scanner.scanChar($colon)) {
       if (midBuffer.isNotEmpty) nameBuffer.writeCharCode($space);
       return nameBuffer;
@@ -268,7 +269,7 @@ abstract class StylesheetParser extends Parser {
     midBuffer.writeCharCode($colon);
 
     // Parse custom properties as declarations no matter what.
-    var name = nameBuffer.interpolation(scanner.spanFrom(start));
+    var name = nameBuffer.interpolation(scanner.spanFrom(start, beforeColon));
     if (name.initialPlain.startsWith('--')) {
       var value = _interpolatedDeclarationValue();
       expectStatementSeparator("custom property");
@@ -2114,7 +2115,6 @@ abstract class StylesheetParser extends Parser {
     // NOTE: this logic is largely duplicated in [_tryUrlContents] and
     // Parser.tryUrl. Most changes here should be mirrored there.
 
-    var start = scanner.state;
     scanner.expectChar($lparen);
     whitespaceWithoutComments();
 
@@ -2159,7 +2159,7 @@ abstract class StylesheetParser extends Parser {
     // NOTE: this logic is largely duplicated in [_urlContents] and
     // Parser.tryUrl. Most changes here should be mirrored there.
 
-    var start = scanner.state;
+    var beginningOfContents = scanner.state;
     if (!scanner.scanChar($lparen)) return null;
     whitespaceWithoutComments();
 
@@ -2194,7 +2194,7 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    scanner.state = start;
+    scanner.state = beginningOfContents;
     return null;
   }
 

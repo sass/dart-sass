@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:source_maps/source_maps.dart';
+
 import 'ast/sass.dart';
 import 'callable.dart';
 import 'importer.dart';
@@ -29,7 +31,8 @@ CompileResult compile(String path,
         OutputStyle style,
         bool useSpaces: true,
         int indentWidth,
-        LineFeed lineFeed}) =>
+        LineFeed lineFeed,
+        void sourceMap(SingleMapping map)}) =>
     compileString(readFile(path),
         indented: indented ?? p.extension(path) == '.sass',
         logger: logger,
@@ -43,7 +46,8 @@ CompileResult compile(String path,
         useSpaces: useSpaces,
         indentWidth: indentWidth,
         lineFeed: lineFeed,
-        url: p.toUri(path));
+        url: p.toUri(path),
+        sourceMap: sourceMap);
 
 /// Like [compileString] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API.
@@ -60,7 +64,8 @@ CompileResult compileString(String source,
     bool useSpaces: true,
     int indentWidth,
     LineFeed lineFeed,
-    url}) {
+    url,
+    void sourceMap(SingleMapping map)}) {
   var sassTree = indented
       ? new Stylesheet.parseSass(source, url: url, logger: logger)
       : new Stylesheet.parseScss(source, url: url, logger: logger);
@@ -76,7 +81,8 @@ CompileResult compileString(String source,
       style: style,
       useSpaces: useSpaces,
       indentWidth: indentWidth,
-      lineFeed: lineFeed);
+      lineFeed: lineFeed,
+      sourceMap: sourceMap);
 
   return new CompileResult(css, evaluateResult.includedFiles);
 }
@@ -94,7 +100,8 @@ Future<CompileResult> compileAsync(String path,
         OutputStyle style,
         bool useSpaces: true,
         int indentWidth,
-        LineFeed lineFeed}) =>
+        LineFeed lineFeed,
+        void sourceMap(SingleMapping map)}) =>
     compileStringAsync(readFile(path),
         indented: indented ?? p.extension(path) == '.sass',
         logger: logger,
@@ -108,7 +115,8 @@ Future<CompileResult> compileAsync(String path,
         useSpaces: useSpaces,
         indentWidth: indentWidth,
         lineFeed: lineFeed,
-        url: p.toUri(path));
+        url: p.toUri(path),
+        sourceMap: sourceMap);
 
 /// Like [compileStringAsync] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
@@ -125,7 +133,8 @@ Future<CompileResult> compileStringAsync(String source,
     bool useSpaces: true,
     int indentWidth,
     LineFeed lineFeed,
-    url}) async {
+    url,
+    void sourceMap(SingleMapping map)}) async {
   var sassTree = indented
       ? new Stylesheet.parseSass(source, url: url, logger: logger)
       : new Stylesheet.parseScss(source, url: url, logger: logger);
@@ -141,7 +150,8 @@ Future<CompileResult> compileStringAsync(String source,
       style: style,
       useSpaces: useSpaces,
       indentWidth: indentWidth,
-      lineFeed: lineFeed);
+      lineFeed: lineFeed,
+      sourceMap: sourceMap);
 
   return new CompileResult(css, evaluateResult.includedFiles);
 }
