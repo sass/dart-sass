@@ -9,6 +9,11 @@
 
 [`SingleMapping`]: https://www.dartdocs.org/documentation/source_maps/latest/source_maps.parser/SingleMapping-class.html
 
+## 1.2.1
+
+* Always emit units in compressed mode for `0` dimensions other than lengths and
+  angles.
+
 ## 1.2.0
 
 * The command-line executable will now create the directory for the resulting

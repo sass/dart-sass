@@ -157,4 +157,4 @@ jobs:
           -H "referer: https://dashboard.heroku.com/"
           -d '{"branch":"master"}'
           --fail --output -
-        
+      on: {tags: true}
