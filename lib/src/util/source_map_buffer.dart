@@ -53,8 +53,6 @@ class SourceMapBuffer implements StringBuffer {
 
       _inSpan = wasInSpan;
     }
-
-    return result;
   }
 
   /// Adds an entry to [_entries] unless it's redundant with the last entry.
@@ -78,8 +76,6 @@ class SourceMapBuffer implements StringBuffer {
 
     _entries.add(new Entry(source, target, null));
   }
-
-  String _s(SourceLocation location) => "${location.line}:${location.column}";
 
   void clear() =>
       throw new UnsupportedError("SourceMapBuffer.clear() is not supported.");
