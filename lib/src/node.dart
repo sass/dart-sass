@@ -90,6 +90,7 @@ void _render(
 /// Converts Sass to CSS asynchronously.
 Future<RenderResult> _renderAsync(RenderOptions options) async {
   var start = new DateTime.now();
+  var file = options.file == null ? null : p.absolute(options.file);
   CompileResult result;
   if (options.data != null) {
     result = await compileStringAsync(options.data,
@@ -100,10 +101,10 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed),
-        url: options.file == null ? 'stdin' : p.toUri(options.file).toString(),
+        url: options.file == null ? 'stdin' : p.toUri(file).toString(),
         sourceMap: _enableSourceMaps(options));
   } else if (options.file != null) {
-    result = await compileAsync(options.file,
+    result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
         functions: _parseFunctions(options, asynch: true),
         indented: options.indentedSyntax,
@@ -128,6 +129,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
 RenderResult _renderSync(RenderOptions options) {
   try {
     var start = new DateTime.now();
+    var file = options.file == null ? null : p.absolute(options.file);
     CompileResult result;
     if (options.data != null) {
       result = compileString(options.data,
@@ -138,11 +140,10 @@ RenderResult _renderSync(RenderOptions options) {
           useSpaces: options.indentType != 'tab',
           indentWidth: _parseIndentWidth(options.indentWidth),
           lineFeed: _parseLineFeed(options.linefeed),
-          url:
-              options.file == null ? 'stdin' : p.toUri(options.file).toString(),
+          url: options.file == null ? 'stdin' : p.toUri(file).toString(),
           sourceMap: _enableSourceMaps(options));
     } else if (options.file != null) {
-      result = compile(options.file,
+      result = compile(file,
           nodeImporter: _parseImporter(options, start),
           functions: DelegatingList.typed(_parseFunctions(options)),
           indented: options.indentedSyntax,

@@ -24,10 +24,6 @@ String sassPath;
 
 void main() {
   setUpAll(ensureNpmPackage);
-  setUpAll(() {
-    // Make sure the module is loaded before we change the working directory.
-    sass;
-  });
   useSandbox();
 
   setUp(() async {
@@ -73,13 +69,7 @@ void main() {
 
   group("import precedence:", () {
     group("in sandbox dir", () {
-      String oldWorkingDirectory;
-      setUp(() {
-        oldWorkingDirectory = currentPath;
-        chdir(sandbox);
-      });
-
-      tearDown(() => chdir(oldWorkingDirectory));
+      setUp(runTestInSandbox);
 
       test("relative file is #1", () async {
         var subDir = p.join(sandbox, 'sub');

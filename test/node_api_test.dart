@@ -34,6 +34,12 @@ void main() {
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
+    test("renders a file from a relative path", () {
+      runTestInSandbox();
+      expect(renderSync(new RenderOptions(file: 'test.scss')),
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
     test("renders a file with the indented syntax", () async {
       var indentedPath = p.join(sandbox, 'test.sass');
       await writeTextFile(indentedPath, 'a\n  b: c');
@@ -45,6 +51,18 @@ void main() {
       var importerPath = p.join(sandbox, 'importer.scss');
       await writeTextFile(importerPath, '@import "test"');
       expect(renderSync(new RenderOptions(file: importerPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
+    // Regression test for #284
+    test("supports relative imports for a file from a relative path", () async {
+      await createDirectory(p.join(sandbox, 'subdir'));
+
+      var importerPath = p.join(sandbox, 'subdir/importer.scss');
+      await writeTextFile(importerPath, '@import "../test"');
+
+      runTestInSandbox();
+      expect(renderSync(new RenderOptions(file: 'subdir/importer.scss')),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
