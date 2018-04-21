@@ -9,6 +9,12 @@
 
 [`SingleMapping`]: https://www.dartdocs.org/documentation/source_maps/latest/source_maps.parser/SingleMapping-class.html
 
+### Node API
+
+* Added support for the `sourceMap`, `omitSourceMapUrl`, `outFile`,
+  `sourceMapContents`, `sourceMapEmbed`, and `sourceMapRoot` options to
+  `render()` and `renderSync()`.
+
 ## 1.2.1
 
 * Always emit units in compressed mode for `0` dimensions other than lengths and

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:collection/collection.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 
@@ -15,6 +16,13 @@ class SourceMapBuffer implements StringBuffer {
 
   /// The source map entries that map the source files to [_buffer].
   final _entries = <Entry>[];
+
+  /// A map from source file URLs to the corresponding [SourceFile]s.
+  ///
+  /// This is of a form that can be passed to [Mapping.spanFor].
+  Map<String, SourceFile> get sourceFiles => new UnmodifiableMapView(
+      mapMap(_sourceFiles, key: (url, _) => url.toString()));
+  final _sourceFiles = <Uri, SourceFile>{};
 
   /// The index of the current line in [_buffer].
   var _line = 0;
@@ -39,7 +47,7 @@ class SourceMapBuffer implements StringBuffer {
   /// Specifically, this associates the point at the beginning of the written
   /// text with [span.start] and the point at the end of the written text with
   /// [span.end].
-  T forSpan<T>(SourceSpan span, T callback()) {
+  T forSpan<T>(FileSpan span, T callback()) {
     var wasInSpan = _inSpan;
     _inSpan = true;
     _addEntry(span.start, _targetLocation);
@@ -56,7 +64,7 @@ class SourceMapBuffer implements StringBuffer {
   }
 
   /// Adds an entry to [_entries] unless it's redundant with the last entry.
-  void _addEntry(SourceLocation source, SourceLocation target) {
+  void _addEntry(FileLocation source, SourceLocation target) {
     if (_entries.isNotEmpty) {
       var entry = _entries.last;
 
@@ -74,6 +82,7 @@ class SourceMapBuffer implements StringBuffer {
       if (entry.target.offset == target.offset) return;
     }
 
+    _sourceFiles.putIfAbsent(source.sourceUrl, () => source.file);
     _entries.add(new Entry(source, target, null));
   }
 

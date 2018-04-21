@@ -73,6 +73,14 @@ class _Visitor extends RecursiveAstVisitor {
 //
 // Checksum: ${sha1.convert(convert.utf8.encode(_source))}
 """);
+
+    if (p.basename(path) == 'async_evaluate.dart') {
+      _buffer.writeln();
+      _buffer.writeln("import 'async_evaluate.dart' show EvaluateResult;");
+      _buffer.writeln("export 'async_evaluate.dart' show EvaluateResult;");
+      _buffer.writeln();
+    }
+
     _position = afterHeader;
   }
 
@@ -97,6 +105,14 @@ class _Visitor extends RecursiveAstVisitor {
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _skip(node.keyword);
     node.visitChildren(this);
+  }
+
+  void visitClassDeclaration(ClassDeclaration node) {
+    if (node.name.name == 'EvaluateResult') {
+      _skipNode(node);
+    } else {
+      super.visitClassDeclaration(node);
+    }
   }
 
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
