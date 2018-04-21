@@ -4,6 +4,7 @@
     "install dependencies used for testing the Node API."
   ],
   "devDependencies": {
+    "node-sass": "4.8.3",
     "fibers": ">=1.0.0 <3.0.0"
   }
 }

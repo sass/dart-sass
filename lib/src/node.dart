@@ -4,8 +4,10 @@
 
 import 'dart:async';
 import 'dart:js_util';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
+import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
 import 'package:tuple/tuple.dart';
 
@@ -93,12 +95,13 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
     result = await compileStringAsync(options.data,
         nodeImporter: _parseImporter(options, start),
         functions: _parseFunctions(options, asynch: true),
-        indented: options.indentedSyntax ?? false,
+        indented: isTruthy(options.indentedSyntax),
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed),
-        url: options.file == null ? 'stdin' : p.toUri(options.file).toString());
+        url: options.file == null ? 'stdin' : p.toUri(options.file).toString(),
+        sourceMap: _enableSourceMaps(options));
   } else if (options.file != null) {
     result = await compileAsync(options.file,
         nodeImporter: _parseImporter(options, start),
@@ -107,18 +110,13 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed));
+        lineFeed: _parseLineFeed(options.linefeed),
+        sourceMap: _enableSourceMaps(options));
   } else {
     throw new ArgumentError("Either options.data or options.file must be set.");
   }
-  var end = new DateTime.now();
 
-  return newRenderResult(result.css,
-      entry: options.file ?? 'data',
-      start: start.millisecondsSinceEpoch,
-      end: end.millisecondsSinceEpoch,
-      duration: end.difference(start).inMilliseconds,
-      includedFiles: result.includedFiles.toList());
+  return _newRenderResult(options, result, start);
 }
 
 /// Converts Sass to CSS.
@@ -135,14 +133,14 @@ RenderResult _renderSync(RenderOptions options) {
       result = compileString(options.data,
           nodeImporter: _parseImporter(options, start),
           functions: DelegatingList.typed(_parseFunctions(options)),
-          indented: options.indentedSyntax ?? false,
+          indented: isTruthy(options.indentedSyntax),
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
           indentWidth: _parseIndentWidth(options.indentWidth),
           lineFeed: _parseLineFeed(options.linefeed),
-          url: options.file == null
-              ? 'stdin'
-              : p.toUri(options.file).toString());
+          url:
+              options.file == null ? 'stdin' : p.toUri(options.file).toString(),
+          sourceMap: _enableSourceMaps(options));
     } else if (options.file != null) {
       result = compile(options.file,
           nodeImporter: _parseImporter(options, start),
@@ -151,19 +149,14 @@ RenderResult _renderSync(RenderOptions options) {
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
           indentWidth: _parseIndentWidth(options.indentWidth),
-          lineFeed: _parseLineFeed(options.linefeed));
+          lineFeed: _parseLineFeed(options.linefeed),
+          sourceMap: _enableSourceMaps(options));
     } else {
       throw new ArgumentError(
           "Either options.data or options.file must be set.");
     }
-    var end = new DateTime.now();
 
-    return newRenderResult(result.css,
-        entry: options.file ?? 'data',
-        start: start.millisecondsSinceEpoch,
-        end: end.millisecondsSinceEpoch,
-        duration: end.difference(start).inMilliseconds,
-        includedFiles: result.includedFiles.toList());
+    return _newRenderResult(options, result, start);
   } on SassException catch (error) {
     jsThrow(_wrapException(error));
   } catch (error) {
@@ -280,9 +273,10 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
             indentType: options.indentType == 'tab' ? 1 : 0,
             indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
             linefeed: _parseLineFeed(options.linefeed).text,
-            result: newRenderResult(null,
-                start: start.millisecondsSinceEpoch,
-                entry: options.file ?? 'data')));
+            result: new RenderResult(
+                stats: new RenderResultStats(
+                    start: start.millisecondsSinceEpoch,
+                    entry: options.file ?? 'data'))));
     context.options.context = context;
   }
 
@@ -332,6 +326,64 @@ LineFeed _parseLineFeed(String str) {
       return LineFeed.lf;
   }
 }
+
+/// Creates a [RenderResult] that exposes [result] in the Node Sass API format.
+RenderResult _newRenderResult(
+    RenderOptions options, CompileResult result, DateTime start) {
+  var end = new DateTime.now();
+
+  var css = result.css;
+  Uint8List sourceMapBytes;
+  if (_enableSourceMaps(options)) {
+    var sourceMapPath = options.sourceMap is String
+        ? options.sourceMap as String
+        : options.outFile + '.map';
+    var sourceMapDir = p.dirname(sourceMapPath);
+
+    result.sourceMap.sourceRoot = options.sourceMapRoot;
+    result.sourceMap.targetUrl =
+        p.toUri(p.relative(options.outFile, from: sourceMapDir)).toString();
+
+    var sourcesContent = options.sourceMapContents ? <String>[] : null;
+    var sourceMapDirUrl = p.toUri(sourceMapDir).toString();
+    for (var i = 0; i < result.sourceMap.urls.length; i++) {
+      var source = result.sourceMap.urls[i];
+
+      if (sourcesContent != null) {
+        sourcesContent.add(result.sourceFiles[source].getText(0));
+      }
+
+      if (source == "stdin") continue;
+      result.sourceMap.urls[i] = pUrl.relative(source, from: sourceMapDirUrl);
+    }
+
+    var json = result.sourceMap.toJson();
+    if (sourcesContent != null) json['sourcesContent'] = sourcesContent;
+    sourceMapBytes = utf8Encode(convert.json.encode(json));
+
+    if (!isTruthy(options.omitSourceMapUrl)) {
+      var url = options.sourceMapEmbed
+          ? new Uri.dataFromBytes(sourceMapBytes, mimeType: "application/json")
+          : p.toUri(
+              p.relative(sourceMapPath, from: p.dirname(options.outFile)));
+      css += "\n\n/*# sourceMappingURL=$url */";
+    }
+  }
+
+  return new RenderResult(
+      css: utf8Encode(css),
+      map: sourceMapBytes,
+      stats: new RenderResultStats(
+          entry: options.file ?? 'data',
+          start: start.millisecondsSinceEpoch,
+          end: end.millisecondsSinceEpoch,
+          duration: end.difference(start).inMilliseconds,
+          includedFiles: result.includedFiles.toList()));
+}
+
+/// Returns whether source maps are enabled by [options].
+bool _enableSourceMaps(RenderOptions options) =>
+    isTruthy(options.sourceMap) && options.outFile != null;
 
 /// Creates a [JSError] with the given fields added to it so it acts like a Node
 /// Sass error.

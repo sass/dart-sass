@@ -87,7 +87,8 @@ String compile(String path,
       packageResolver: packageResolver,
       functions: functions,
       style: style,
-      sourceMap: sourceMap);
+      sourceMap: sourceMap != null);
+  if (sourceMap != null) sourceMap(result.sourceMap);
   return result.css;
 }
 
@@ -167,7 +168,8 @@ String compileString(String source,
       style: style,
       importer: importer,
       url: url,
-      sourceMap: sourceMap);
+      sourceMap: sourceMap != null);
+  if (sourceMap != null) sourceMap(result.sourceMap);
   return result.css;
 }
 
@@ -192,7 +194,8 @@ Future<String> compileAsync(String path,
       packageResolver: packageResolver,
       functions: functions,
       style: style,
-      sourceMap: sourceMap);
+      sourceMap: sourceMap != null);
+  if (sourceMap != null) sourceMap(result.sourceMap);
   return result.css;
 }
 
@@ -223,6 +226,7 @@ Future<String> compileStringAsync(String source,
       style: style,
       importer: importer,
       url: url,
-      sourceMap: sourceMap);
+      sourceMap: sourceMap != null);
+  if (sourceMap != null) sourceMap(result.sourceMap);
   return result.css;
 }

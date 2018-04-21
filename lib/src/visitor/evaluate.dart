@@ -7,6 +7,9 @@
 //
 // Checksum: 3360e4065a1e1ceeabcaad34f5c09066e7d0c1d2
 
+import 'async_evaluate.dart' show EvaluateResult;
+export 'async_evaluate.dart' show EvaluateResult;
+
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
@@ -1751,20 +1754,4 @@ class _EvaluateVisitor
       throw _exception(error.message, span);
     }
   }
-}
-
-/// The result of compiling a Sass document to a CSS tree, along with metadata
-/// about the compilation process.
-class EvaluateResult {
-  /// The CSS syntax tree.
-  final CssStylesheet stylesheet;
-
-  /// The set that will eventually populate the JS API's
-  /// `result.stats.includedFiles` field.
-  ///
-  /// For filesystem imports, this contains the import path. For all other
-  /// imports, it contains the URL passed to the `@import`.
-  final Set<String> includedFiles;
-
-  EvaluateResult(this.stylesheet, this.includedFiles);
 }

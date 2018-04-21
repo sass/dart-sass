@@ -4,6 +4,7 @@
 
 import 'dart:js';
 import 'dart:js_util';
+import 'dart:typed_data';
 
 import 'package:js/js.dart';
 
@@ -89,3 +90,15 @@ void injectSuperclass(object, Function constructor) {
   }
   _setPrototypeOf(prototype, _create(getProperty(constructor, 'prototype')));
 }
+
+/// Returns whether [value] is truthy according to JavaScript.
+bool isTruthy(Object value) => value != false && value != null;
+
+@JS('Buffer.from')
+external Uint8List _buffer(String text, String encoding);
+
+/// Encodes [text] as a UTF-8 byte buffer.
+///
+/// We could do this using Dart's native UTF-8 support, but it's much less
+/// efficient in Node.
+Uint8List utf8Encode(String text) => _buffer(text, 'utf8');

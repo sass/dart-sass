@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
 import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/css.dart';
@@ -46,17 +47,15 @@ final _compressibleUnits = new Set.from([
 /// may not be valid CSS. If [inspect] is `false` and [node] contains any values
 /// that can't be represented in plain CSS, throws a [SassException].
 ///
-/// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
-/// sections of the source file(s) correspond to which in the resulting CSS.
-/// It's called immediately before this method returns, and only if compilation
-/// succeeds. Note that [SingleMapping.targetUrl] will always be `null`.
-String serialize(CssNode node,
+/// If [sourceMap] is `true`, the returned [SerializeResult] will contain a
+/// source map indicating how the original Sass files map to the compiled CSS.
+SerializeResult serialize(CssNode node,
     {OutputStyle style,
     bool inspect: false,
     bool useSpaces: true,
     int indentWidth,
     LineFeed lineFeed,
-    void sourceMap(SingleMapping map)}) {
+    bool sourceMap: false}) {
   indentWidth ??= 2;
   var visitor = new _SerializeVisitor(
       style: style,
@@ -64,19 +63,20 @@ String serialize(CssNode node,
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed,
-      sourceMap: sourceMap != null);
+      sourceMap: sourceMap);
   node.accept(visitor);
-  var result = visitor._buffer.toString();
-  if (result.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
+  var css = visitor._buffer.toString();
+  if (css.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
     if (style == OutputStyle.compressed) {
-      result = '\uFEFF$result';
+      css = '\uFEFF$css';
     } else {
-      result = '@charset "UTF-8";\n$result';
+      css = '@charset "UTF-8";\n$css';
     }
   }
 
-  if (sourceMap != null) sourceMap(visitor._buffer.buildSourceMap());
-  return result;
+  return new SerializeResult(css,
+      sourceMap: sourceMap ? visitor._buffer.buildSourceMap() : null,
+      sourceFiles: sourceMap ? visitor._buffer.sourceFiles : null);
 }
 
 /// Converts [value] to a CSS string.
@@ -1244,4 +1244,23 @@ class LineFeed {
   const LineFeed._(this.name, this.text);
 
   String toString() => name;
+}
+
+/// The result of converting a CSS AST to CSS text.
+class SerializeResult {
+  /// The serialized CSS.
+  final String css;
+
+  /// The source map indicating how the source files map to [css].
+  ///
+  /// This is `null` if source mapping was disabled for this compilation.
+  final SingleMapping sourceMap;
+
+  /// A map from source file URLs to the corresponding [SourceFile]s.
+  ///
+  /// This can be passed to [sourceMap]'s [Mapping.spanFor] method. It's `null`
+  /// if source mapping was disabled for this compilation.
+  final Map<String, SourceFile> sourceFiles;
+
+  SerializeResult(this.css, {this.sourceMap, this.sourceFiles});
 }

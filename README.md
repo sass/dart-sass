@@ -173,26 +173,23 @@ sass.render({
 
 Both `render()` and `renderSync()` support the following options:
 
-* [`file`](https://github.com/sass/node-sass#file)
 * [`data`](https://github.com/sass/node-sass#data)
+* [`file`](https://github.com/sass/node-sass#file)
+* [`functions`](https://github.com/sass/node-sass#functions--v300---experimental)
+* [`importer`](https://github.com/sass/node-sass#importer--v200---experimental)
 * [`includePaths`](https://github.com/sass/node-sass#includepaths)
-* [`indentedSyntax`](https://github.com/sass/node-sass#indentedsyntax)
 * [`indentType`](https://github.com/sass/node-sass#indenttype)
 * [`indentWidth`](https://github.com/sass/node-sass#indentwidth)
+* [`indentedSyntax`](https://github.com/sass/node-sass#indentedsyntax)
 * [`linefeed`](https://github.com/sass/node-sass#linefeed)
-* [`importer`](https://github.com/sass/node-sass#importer--v200---experimental)
-* [`functions`](https://github.com/sass/node-sass#functions--v300---experimental)
-* Only the `"expanded"` and `"compressed"` values of
-  [`outputStyle`](https://github.com/sass/node-sass#outputstyle) are supported.
-
-The following options are not yet supported, but are intended:
-
 * [`omitSourceMapUrl`](https://github.com/sass/node-sass#omitsourcemapurl)
 * [`outFile`](https://github.com/sass/node-sass#outfile)
-* [`sourceMap`](https://github.com/sass/node-sass#sourcemap)
 * [`sourceMapContents`](https://github.com/sass/node-sass#sourcemapcontents)
 * [`sourceMapEmbed`](https://github.com/sass/node-sass#sourcemapembed)
 * [`sourceMapRoot`](https://github.com/sass/node-sass#sourcemaproot)
+* [`sourceMap`](https://github.com/sass/node-sass#sourcemap)
+* Only the `"expanded"` and `"compressed"` values of
+  [`outputStyle`](https://github.com/sass/node-sass#outputstyle) are supported.
 
 No support is intended for the following options:
 
