@@ -30,28 +30,40 @@ void main() {
 
   group("renderSync()", () {
     test("renders a file", () {
-      expect(renderSync(new RenderOptions(file: sassPath)), equals('''
-a {
-  b: c;
-}'''));
+      expect(renderSync(new RenderOptions(file: sassPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
+    test("renders a file from a relative path", () {
+      runTestInSandbox();
+      expect(renderSync(new RenderOptions(file: 'test.scss')),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("renders a file with the indented syntax", () async {
       var indentedPath = p.join(sandbox, 'test.sass');
       await writeTextFile(indentedPath, 'a\n  b: c');
-      expect(renderSync(new RenderOptions(file: indentedPath)), equals('''
-a {
-  b: c;
-}'''));
+      expect(renderSync(new RenderOptions(file: indentedPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports relative imports for a file", () async {
       var importerPath = p.join(sandbox, 'importer.scss');
       await writeTextFile(importerPath, '@import "test"');
-      expect(renderSync(new RenderOptions(file: importerPath)), equals('''
-a {
-  b: c;
-}'''));
+      expect(renderSync(new RenderOptions(file: importerPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
+    // Regression test for #284
+    test("supports relative imports for a file from a relative path", () async {
+      await createDirectory(p.join(sandbox, 'subdir'));
+
+      var importerPath = p.join(sandbox, 'subdir/importer.scss');
+      await writeTextFile(importerPath, '@import "../test"');
+
+      runTestInSandbox();
+      expect(renderSync(new RenderOptions(file: 'subdir/importer.scss')),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports absolute path imports", () async {
@@ -64,10 +76,8 @@ a {
     });
 
     test("renders a string", () {
-      expect(renderSync(new RenderOptions(data: "a {b: c}")), equals('''
-a {
-  b: c;
-}'''));
+      expect(renderSync(new RenderOptions(data: "a {b: c}")),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("one of data and file must be set", () {
@@ -80,20 +90,14 @@ a {
       expect(
           renderSync(new RenderOptions(
               data: "@import 'test'", includePaths: [sandbox])),
-          equals('''
-a {
-  b: c;
-}'''));
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("can render the indented syntax", () {
       expect(
           renderSync(
               new RenderOptions(data: "a\n  b: c", indentedSyntax: true)),
-          equals('''
-a {
-  b: c;
-}'''));
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("the indented syntax flag takes precedence over the file extension",
@@ -102,20 +106,14 @@ a {
       await writeTextFile(scssPath, 'a\n  b: c');
       expect(
           renderSync(new RenderOptions(file: scssPath, indentedSyntax: true)),
-          equals('''
-a {
-  b: c;
-}'''));
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports the expanded output style", () {
       expect(
           renderSync(
               new RenderOptions(file: sassPath, outputStyle: 'expanded')),
-          equals('''
-a {
-  b: c;
-}'''));
+          equals('a {\n  b: c;\n}'));
     });
 
     test("doesn't support other output styles", () {
@@ -390,10 +388,8 @@ a {
 
   group("render()", () {
     test("renders a file", () async {
-      expect(await render(new RenderOptions(file: sassPath)), equals('''
-a {
-  b: c;
-}'''));
+      expect(await render(new RenderOptions(file: sassPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("throws an error that has a useful toString", () async {
