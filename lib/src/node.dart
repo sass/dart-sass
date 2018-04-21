@@ -345,21 +345,15 @@ RenderResult _newRenderResult(
     result.sourceMap.targetUrl =
         p.toUri(p.relative(options.outFile, from: sourceMapDir)).toString();
 
-    var sourcesContent = options.sourceMapContents ? <String>[] : null;
     var sourceMapDirUrl = p.toUri(sourceMapDir).toString();
     for (var i = 0; i < result.sourceMap.urls.length; i++) {
       var source = result.sourceMap.urls[i];
-
-      if (sourcesContent != null) {
-        sourcesContent.add(result.sourceFiles[source].getText(0));
-      }
-
       if (source == "stdin") continue;
       result.sourceMap.urls[i] = pUrl.relative(source, from: sourceMapDirUrl);
     }
 
-    var json = result.sourceMap.toJson();
-    if (sourcesContent != null) json['sourcesContent'] = sourcesContent;
+    var json = result.sourceMap
+        .toJson(includeSourceContents: options.sourceMapContents);
     sourceMapBytes = utf8Encode(convert.json.encode(json));
 
     if (!isTruthy(options.omitSourceMapUrl)) {

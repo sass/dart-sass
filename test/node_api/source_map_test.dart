@@ -17,6 +17,7 @@ import 'package:sass/src/util/path.dart';
 
 import '../ensure_npm_package.dart';
 import '../hybrid.dart';
+import '../utils.dart';
 import 'api.dart';
 import 'utils.dart';
 
@@ -240,12 +241,9 @@ void main() {
         sourceMap: true,
         outFile: "out.css",
         sourceMapEmbed: true));
-    expect(
-        convert.utf8.decode(result.css),
-        endsWith("\n\n/*# sourceMappingURL=" +
-            new Uri.dataFromBytes(result.map, mimeType: "application/json")
-                .toString() +
-            " */"));
+
+    var map = embeddedSourceMap(convert.utf8.decode(result.css));
+    expect(map, equals(_jsonUtf8.decode(result.map)));
   });
 
   group("with sourceMapRoot", () {
