@@ -184,14 +184,14 @@ Future<String> _compileStdin(
   var importer = new FilesystemImporter('.');
   if (asynchronous) {
     return await compileStringAsync(text,
-        indented: indented,
+        indented: indented ?? false,
         logger: logger,
         style: style,
         importer: importer,
         loadPaths: loadPaths);
   } else {
     return compileString(text,
-        indented: indented,
+        indented: indented ?? false,
         logger: logger,
         style: style,
         importer: importer,
