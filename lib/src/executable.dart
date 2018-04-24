@@ -24,35 +24,27 @@ main(List<String> args) async {
     }
 
     try {
+      var text =
+          options.readFromStdin ? await readStdin() : readFile(options.source);
+      var url = options.readFromStdin ? null : p.toUri(options.source);
+      var importer = new FilesystemImporter('.');
       String css;
-      if (options.readFromStdin) {
-        var text = await readStdin();
-        var importer = new FilesystemImporter('.');
-        if (options.asynchronous) {
-          css = await compileStringAsync(text,
-              indented: options.indented,
-              logger: options.logger,
-              style: options.style,
-              importer: importer,
-              loadPaths: options.loadPaths);
-        } else {
-          css = compileString(text,
-              indented: options.indented,
-              logger: options.logger,
-              style: options.style,
-              importer: importer,
-              loadPaths: options.loadPaths);
-        }
-      } else if (options.asynchronous) {
-        css = await compileAsync(options.source,
+      if (options.asynchronous) {
+        css = await compileStringAsync(text,
+            indented: options.indented,
             logger: options.logger,
             style: options.style,
-            loadPaths: options.loadPaths);
+            importer: importer,
+            loadPaths: options.loadPaths,
+            url: url);
       } else {
-        css = compile(options.source,
+        css = compileString(text,
+            indented: options.indented,
             logger: options.logger,
             style: options.style,
-            loadPaths: options.loadPaths);
+            importer: importer,
+            loadPaths: options.loadPaths,
+            url: url);
       }
 
       if (options.writeToStdout) {
