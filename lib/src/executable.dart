@@ -13,9 +13,18 @@ import 'exception.dart';
 import 'io.dart';
 import 'util/path.dart';
 
+/// The bar character to use in help separators.
+final _separatorBar = isWindows ? '=' : '━';
+
+/// The total length of help separators, including text.
+final _separatorLength = 40;
+
 main(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
-    ..addOption('precision', hide: true)
+    ..addOption('precision', hide: true);
+
+  argParser
+    ..addSeparator(_separator('Input and Output'))
     ..addFlag('stdin', help: 'Read the stylesheet from stdin.')
     ..addFlag('indented', help: 'Use the indented syntax for input from stdin.')
     ..addMultiOption('load-path',
@@ -29,7 +38,10 @@ main(List<String> args) async {
         valueHelp: 'NAME',
         help: 'Output style.',
         allowed: ['expanded', 'compressed'],
-        defaultsTo: 'expanded')
+        defaultsTo: 'expanded');
+
+  argParser
+    ..addSeparator(_separator('Other'))
     ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
     ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
     ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
@@ -198,6 +210,17 @@ Future<String> _compileStdin(
         loadPaths: loadPaths);
   }
 }
+
+/// Creates a styled separator with the given [text].
+String _separator(String text) =>
+    _separatorBar * 3 +
+    " " +
+    (hasTerminal ? '\u001b[1m' : '') +
+    text +
+    (hasTerminal ? '\u001b[0m' : '') +
+    ' ' +
+    // Three separators + two spaces = 5
+    _separatorBar * (_separatorLength - 5 - text.length);
 
 /// Print the usage information for Sass, with [message] as a header.
 void _printUsage(ArgParser parser, String message) {
