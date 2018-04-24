@@ -17,7 +17,7 @@ dependencies:
   collection: "^1.8.0"
   convert: "^2.0.1"
   dart2_constant: "^1.0.0"
-  meta: "^1.0.0"
+  meta: "^1.1.0"
   path: "^1.0.0"
   source_maps: "^0.10.0"
   source_span: "^1.4.0"
