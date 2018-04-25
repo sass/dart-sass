@@ -51,6 +51,19 @@ class ExecutableOptions {
           defaultsTo: 'expanded');
 
     parser
+      ..addSeparator(_separator('Source Maps'))
+      ..addFlag('source-map',
+          help: 'Whether to generate source maps.', defaultsTo: true)
+      ..addOption('source-map-urls',
+          defaultsTo: 'relative',
+          help: 'How to link from source maps to source files.',
+          allowed: ['relative', 'absolute'])
+      ..addFlag('embed-sources',
+          help: 'Embed source file contents in source maps.', defaultsTo: false)
+      ..addFlag('embed-source-map',
+          help: 'Embed source map contents in CSS.', defaultsTo: false);
+
+    parser
       ..addSeparator(_separator('Other'))
       ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
       ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
@@ -142,6 +155,47 @@ class ExecutableOptions {
   /// Whether [_source] and [_destination] have been parsed from [_options] yet.
   var _parsedSourceAndDestination = false;
 
+  /// Whether to emit a source map file.
+  bool get emitSourceMap {
+    if (!(_options['source-map'] as bool)) {
+      if (_options.wasParsed('source-map-urls')) {
+        _fail("--source-map-urls isn't allowed with --no-source-map.");
+      } else if (_options.wasParsed('embed-sources')) {
+        _fail("--embed-sources isn't allowed with --no-source-map.");
+      } else if (_options.wasParsed('embed-source-map')) {
+        _fail("--embed-source-map isn't allowed with --no-source-map.");
+      }
+    }
+
+    if (destination != null) return _options['source-map'] as bool;
+
+    if (_ifParsed('source-map-urls') == 'relative') {
+      _fail(
+          "--source-map-urls=relative isn't allowed when printing to stdout.");
+    }
+
+    if (_options['embed-source-map'] as bool) {
+      return _options['source-map'] as bool;
+    } else if (_ifParsed('source-map') == true) {
+      _fail(
+          "When printing to stdout, --source-map requires --embed-source-map.");
+    } else if (_options.wasParsed('source-map-urls')) {
+      _fail("When printing to stdout, --source-map-urls requires "
+          "--embed-source-map.");
+    } else if (_options['embed-sources'] as bool) {
+      _fail("When printing to stdout, --embed-sources requires "
+          "--embed-source-map.");
+    } else {
+      return false;
+    }
+  }
+
+  /// Whether to embed the generated source map as a data URL in the output CSS.
+  bool get embedSourceMap => _options['embed-source-map'] as bool;
+
+  /// Whether to embed the source files in the generated source map.
+  bool get embedSources => _options['embed-sources'] as bool;
+
   /// Parses options from [args].
   ///
   /// Throws a [UsageException] if parsing fails.
@@ -174,6 +228,15 @@ class ExecutableOptions {
       _source = _options.rest.first;
       if (_options.rest.length > 1) _destination = _options.rest.last;
     }
+  }
+
+  /// Makes [url] absolute or relative (to [dir]) according to the
+  /// `source-map-urls` option.
+  Uri sourceMapUrl(Uri url) {
+    var path = p.fromUri(url);
+    return p.toUri(_options['source-map-urls'] == 'relative'
+        ? p.relative(path, from: p.dirname(destination))
+        : p.absolute(path));
   }
 
   /// Returns the value of [name] in [options] if it was explicitly provided by

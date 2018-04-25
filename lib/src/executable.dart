@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:dart2_constant/convert.dart' as convert;
+import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../sass.dart';
@@ -24,6 +26,10 @@ main(List<String> args) async {
     }
 
     try {
+      SingleMapping sourceMap;
+      var sourceMapCallback =
+          options.emitSourceMap ? (SingleMapping map) => sourceMap = map : null;
+
       var text =
           options.readFromStdin ? await readStdin() : readFile(options.source);
       var url = options.readFromStdin ? null : p.toUri(options.source);
@@ -36,7 +42,8 @@ main(List<String> args) async {
             style: options.style,
             importer: importer,
             loadPaths: options.loadPaths,
-            url: url);
+            url: url,
+            sourceMap: sourceMapCallback);
       } else {
         css = compileString(text,
             indented: options.indented,
@@ -44,9 +51,11 @@ main(List<String> args) async {
             style: options.style,
             importer: importer,
             loadPaths: options.loadPaths,
-            url: url);
+            url: url,
+            sourceMap: sourceMapCallback);
       }
 
+      css += _writeSourceMap(options, sourceMap);
       if (options.writeToStdout) {
         if (css.isNotEmpty) print(css);
       } else {
@@ -114,4 +123,40 @@ Future<String> _loadVersion() async {
       .firstWhere((line) => line.startsWith('version: '))
       .split(" ")
       .last;
+}
+
+/// Writes the source map given by [mapping] to disk (if necessary) according to [options].
+///
+/// Returns the source map comment to add to the end of the CSS file.
+String _writeSourceMap(ExecutableOptions options, SingleMapping sourceMap) {
+  if (sourceMap == null) return "";
+
+  if (!options.writeToStdout) {
+    sourceMap.targetUrl = p.toUri(p.basename(options.destination)).toString();
+  }
+
+  for (var i = 0; i < sourceMap.urls.length; i++) {
+    var url = sourceMap.urls[i];
+
+    // The special URL "" indicates a file that came from stdin.
+    if (url == "") continue;
+
+    sourceMap.urls[i] = options.sourceMapUrl(Uri.parse(url)).toString();
+  }
+  var sourceMapText = convert.json
+      .encode(sourceMap.toJson(includeSourceContents: options.embedSources));
+
+  Uri url;
+  if (options.embedSourceMap) {
+    url = new Uri.dataFromString(sourceMapText, mimeType: 'application/json');
+  } else {
+    var sourceMapPath = options.destination + '.map';
+    ensureDir(p.dirname(sourceMapPath));
+    writeFile(sourceMapPath, sourceMapText);
+
+    url = p.toUri(sourceMapPath);
+  }
+
+  return (options.style == OutputStyle.compressed ? '' : '\n\n') +
+      '/*# sourceMappingURL=$url */';
 }
