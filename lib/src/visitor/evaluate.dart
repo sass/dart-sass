@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 3360e4065a1e1ceeabcaad34f5c09066e7d0c1d2
+// Checksum: 0763e32e8abdc19a8b8d3c6ae1b45d1281391037
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -173,7 +173,7 @@ class _EvaluateVisitor
       : _importers = importers == null ? const [] : importers.toList(),
         _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
-        _logger = logger {
+        _logger = logger ?? const Logger.stderr() {
     _environment.setFunction(
         new BuiltInCallable("global-variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");

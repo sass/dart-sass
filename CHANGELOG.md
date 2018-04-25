@@ -18,6 +18,9 @@
 * Fix a bug where passing a relative path to `render()` or `renderSync()` would
   cause relative imports to break.
 
+* Fix a crash when printing warnings in stylesheets compiled using `render()` or
+  `renderSync()`.
+
 ## 1.2.1
 
 * Always emit units in compressed mode for `0` dimensions other than lengths and

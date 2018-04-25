@@ -168,7 +168,7 @@ class _EvaluateVisitor
       : _importers = importers == null ? const [] : importers.toList(),
         _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
-        _logger = logger {
+        _logger = logger ?? const Logger.stderr() {
     _environment.setFunction(
         new BuiltInCallable("global-variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");

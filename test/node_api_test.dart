@@ -5,6 +5,8 @@
 @TestOn('node')
 @Tags(const ['node'])
 
+import 'dart:convert';
+
 // This is unsafe prior to sdk#30098, which landed in Dart 1.25.0-dev.7.0.
 import 'package:path/path.dart' as unsafePath;
 import 'package:test/test.dart';
@@ -15,6 +17,7 @@ import 'package:sass/src/node/utils.dart';
 import 'ensure_npm_package.dart';
 import 'hybrid.dart';
 import 'node_api/api.dart';
+import 'node_api/intercept_stdout.dart';
 import 'node_api/utils.dart';
 
 String sassPath;
@@ -176,6 +179,25 @@ a {
  b: c;
 }'''));
       });
+    });
+
+    test("emits warnings on stderr", () {
+      expect(
+          const LineSplitter().bind(interceptStderr()),
+          emitsInOrder([
+            "WARNING: aw beans",
+            "    stdin 1:1  root stylesheet",
+          ]));
+
+      expect(renderSync(new RenderOptions(data: "@warn 'aw beans'")), isEmpty);
+    });
+
+    test("emits debug messages on stderr", () {
+      expect(const LineSplitter().bind(interceptStderr()),
+          emits("stdin:1 DEBUG: what the heck"));
+
+      expect(renderSync(new RenderOptions(data: "@debug 'what the heck'")),
+          isEmpty);
     });
 
     group("with both data and file", () {
