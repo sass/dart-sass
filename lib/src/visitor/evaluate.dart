@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 0763e32e8abdc19a8b8d3c6ae1b45d1281391037
+// Checksum: d594e2efcd5a8c390197f4933f6a544b419f78ab
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -1244,7 +1244,7 @@ class _EvaluateVisitor
   /// invokes [run] in a scope with those arguments defined.
   Value _runUserDefinedCallable(ArgumentInvocation arguments,
       UserDefinedCallable<Environment> callable, FileSpan span, Value run()) {
-    var triple = _evaluateArguments(arguments, span);
+    var triple = _evaluateArguments(arguments);
     var positional = triple.item1;
     var named = triple.item2;
     var separator = triple.item3;
@@ -1350,7 +1350,7 @@ class _EvaluateVisitor
   /// body.
   Value _runBuiltInCallable(
       ArgumentInvocation arguments, BuiltInCallable callable, FileSpan span) {
-    var triple = _evaluateArguments(arguments, span);
+    var triple = _evaluateArguments(arguments);
     var positional = triple.item1;
     var named = triple.item2;
     var separator = triple.item3;
@@ -1416,7 +1416,7 @@ class _EvaluateVisitor
   /// named arguments, as well as the [ListSeparator] for the rest argument
   /// list, if any.
   Tuple3<List<Value>, Map<String, Value>, ListSeparator> _evaluateArguments(
-      ArgumentInvocation arguments, FileSpan span) {
+      ArgumentInvocation arguments) {
     var positional = arguments.positional
         .map((Expression expression) => expression.accept(this))
         .toList();
@@ -1430,7 +1430,7 @@ class _EvaluateVisitor
     var rest = arguments.rest.accept(this);
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
-      _addRestMap(named, rest, span);
+      _addRestMap(named, rest, arguments.rest.span);
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
       separator = rest.separator;
@@ -1449,11 +1449,12 @@ class _EvaluateVisitor
 
     var keywordRest = arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, span);
+      _addRestMap(named, keywordRest, arguments.keywordRest.span);
       return new Tuple3(positional, named, separator);
     } else {
       throw _exception(
-          "Variable keyword arguments must be a map (was $keywordRest).", span);
+          "Variable keyword arguments must be a map (was $keywordRest).",
+          arguments.keywordRest.span);
     }
   }
 

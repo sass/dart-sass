@@ -1261,7 +1261,7 @@ class _EvaluateVisitor
       UserDefinedCallable<AsyncEnvironment> callable,
       FileSpan span,
       Future<Value> run()) async {
-    var triple = await _evaluateArguments(arguments, span);
+    var triple = await _evaluateArguments(arguments);
     var positional = triple.item1;
     var named = triple.item2;
     var separator = triple.item3;
@@ -1370,7 +1370,7 @@ class _EvaluateVisitor
   /// body.
   Future<Value> _runBuiltInCallable(ArgumentInvocation arguments,
       AsyncBuiltInCallable callable, FileSpan span) async {
-    var triple = await _evaluateArguments(arguments, span);
+    var triple = await _evaluateArguments(arguments);
     var positional = triple.item1;
     var named = triple.item2;
     var separator = triple.item3;
@@ -1436,7 +1436,7 @@ class _EvaluateVisitor
   /// named arguments, as well as the [ListSeparator] for the rest argument
   /// list, if any.
   Future<Tuple3<List<Value>, Map<String, Value>, ListSeparator>>
-      _evaluateArguments(ArgumentInvocation arguments, FileSpan span) async {
+      _evaluateArguments(ArgumentInvocation arguments) async {
     var positional = (await mapAsync(arguments.positional,
             (Expression expression) => expression.accept(this)))
         .toList();
@@ -1451,7 +1451,7 @@ class _EvaluateVisitor
     var rest = await arguments.rest.accept(this);
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
-      _addRestMap(named, rest, span);
+      _addRestMap(named, rest, arguments.rest.span);
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
       separator = rest.separator;
@@ -1470,11 +1470,12 @@ class _EvaluateVisitor
 
     var keywordRest = await arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, span);
+      _addRestMap(named, keywordRest, arguments.keywordRest.span);
       return new Tuple3(positional, named, separator);
     } else {
       throw _exception(
-          "Variable keyword arguments must be a map (was $keywordRest).", span);
+          "Variable keyword arguments must be a map (was $keywordRest).",
+          arguments.keywordRest.span);
     }
   }
 
