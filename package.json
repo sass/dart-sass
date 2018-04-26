@@ -4,6 +4,7 @@
     "install dependencies used for testing the Node API."
   ],
   "devDependencies": {
-    "fibers": ">=1.0.0 <3.0.0"
+    "fibers": ">=1.0.0 <3.0.0",
+    "intercept-stdout": "^0.1.2"
   }
 }

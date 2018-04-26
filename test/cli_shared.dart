@@ -200,6 +200,29 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(0);
   });
 
+  test("emits warnings on standard error", () async {
+    await d.file("test.scss", "@warn 'aw beans'").create();
+
+    var sass = await runSass(["test.scss"]);
+    expect(sass.stdout, emitsDone);
+    expect(
+        sass.stderr,
+        emitsInOrder([
+          "WARNING: aw beans",
+          "    test.scss 1:1  root stylesheet",
+        ]));
+    await sass.shouldExit(0);
+  });
+
+  test("emits debug messages on standard error", () async {
+    await d.file("test.scss", "@debug 'what the heck'").create();
+
+    var sass = await runSass(["test.scss"]);
+    expect(sass.stdout, emitsDone);
+    expect(sass.stderr, emits("test.scss:1 DEBUG: what the heck"));
+    await sass.shouldExit(0);
+  });
+
   group("with --quiet", () {
     test("doesn't emit @warn", () async {
       await d.file("test.scss", "@warn heck").create();

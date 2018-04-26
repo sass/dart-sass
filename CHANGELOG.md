@@ -32,6 +32,9 @@
 * Fix a bug where passing a relative path to `render()` or `renderSync()` would
   cause relative imports to break.
 
+* Fix a crash when printing warnings in stylesheets compiled using `render()` or
+  `renderSync()`.
+
 * Fix a bug where format errors were reported badly on Windows.
 
 ## 1.2.1
