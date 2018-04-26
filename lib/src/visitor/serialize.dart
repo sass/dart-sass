@@ -343,7 +343,12 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
       });
     } else {
       _writeOptionalSpace();
-      _visitValue(node.value);
+      try {
+        _buffer.forSpan(
+            node.valueSpanForMap, () => node.value.value.accept(this));
+      } on SassScriptException catch (error) {
+        throw new SassException(error.message, node.value.span);
+      }
     }
   }
 
@@ -475,16 +480,6 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   }
 
   // ## Values
-
-  /// Converts [value] to a plain CSS string, converting any
-  /// [SassScriptException]s to [SassException]s.
-  void _visitValue(CssValue<Value> value) {
-    try {
-      _for(value, () => value.value.accept(this));
-    } on SassScriptException catch (error) {
-      throw new SassException(error.message, value.span);
-    }
-  }
 
   void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 

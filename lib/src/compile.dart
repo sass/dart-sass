@@ -77,7 +77,8 @@ CompileResult compileString(String source,
       nodeImporter: nodeImporter,
       importer: importer,
       functions: functions,
-      logger: logger);
+      logger: logger,
+      sourceMap: sourceMap);
 
   var serializeResult = serialize(evaluateResult.stylesheet,
       style: style,
@@ -103,7 +104,7 @@ Future<CompileResult> compileAsync(String path,
         bool useSpaces: true,
         int indentWidth,
         LineFeed lineFeed,
-        bool sourceMap}) =>
+        bool sourceMap: false}) =>
     compileStringAsync(readFile(path),
         indented: indented ?? p.extension(path) == '.sass',
         logger: logger,
@@ -136,7 +137,7 @@ Future<CompileResult> compileStringAsync(String source,
     int indentWidth,
     LineFeed lineFeed,
     url,
-    bool sourceMap}) async {
+    bool sourceMap: false}) async {
   var sassTree = indented
       ? new Stylesheet.parseSass(source, url: url, logger: logger)
       : new Stylesheet.parseScss(source, url: url, logger: logger);
@@ -147,7 +148,8 @@ Future<CompileResult> compileStringAsync(String source,
       nodeImporter: nodeImporter,
       importer: importer,
       functions: functions,
-      logger: logger);
+      logger: logger,
+      sourceMap: sourceMap);
 
   var serializeResult = serialize(evaluateResult.stylesheet,
       style: style,

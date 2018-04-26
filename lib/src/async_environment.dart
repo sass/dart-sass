@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:source_span/source_span.dart';
+
 import 'ast/sass.dart';
 import 'callable.dart';
 import 'functions.dart';
@@ -24,6 +26,11 @@ class AsyncEnvironment {
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
   final List<Map<String, Value>> _variables;
+
+  /// The spans where each variable in [_variables] was defined.
+  ///
+  /// This is `null` if source mapping is disabled.
+  final List<Map<String, FileSpan>> _variableSpans;
 
   /// A map of variable names to their indices in [_variables].
   ///
@@ -88,8 +95,21 @@ class AsyncEnvironment {
   /// them by default.
   var _inSemiGlobalScope = true;
 
-  AsyncEnvironment()
+  /// The name of the last variable that was accessed.
+  ///
+  /// This is cached to speed up repeated references to the same variable, as
+  /// well as references to the last variable's [FileSpan].
+  String _lastVariableName;
+
+  /// The index in [_variables] of the last variable that was accessed.
+  int _lastVariableIndex;
+
+  /// Creates an [AsyncEnvironment].
+  ///
+  /// If [sourceMap] is `true`, this tracks variables' source locations
+  AsyncEnvironment({bool sourceMap: false})
       : _variables = [normalizedMap()],
+        _variableSpans = sourceMap ? [normalizedMap()] : null,
         _variableIndices = normalizedMap(),
         _functions = [normalizedMap()],
         _functionIndices = normalizedMap(),
@@ -98,8 +118,8 @@ class AsyncEnvironment {
     coreFunctions.forEach(setFunction);
   }
 
-  AsyncEnvironment._(this._variables, this._functions, this._mixins,
-      this._contentBlock, this._contentEnvironment)
+  AsyncEnvironment._(this._variables, this._variableSpans, this._functions,
+      this._mixins, this._contentBlock, this._contentEnvironment)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() and global() because the copying took a
       // lot of time and was rarely helpful. This saves a bunch of time on Susy's
@@ -115,6 +135,7 @@ class AsyncEnvironment {
   /// when the closure was created will be reflected.
   AsyncEnvironment closure() => new AsyncEnvironment._(
       _variables.toList(),
+      _variableSpans?.toList(),
       _functions.toList(),
       _mixins.toList(),
       _contentBlock,
@@ -125,19 +146,55 @@ class AsyncEnvironment {
   /// The returned environment shares this environment's global, but is
   /// otherwise independent.
   AsyncEnvironment global() => new AsyncEnvironment._(
-      [_variables.first], [_functions.first], [_mixins.first], null, null);
+      [_variables.first],
+      _variableSpans == null ? null : [_variableSpans.first],
+      [_functions.first],
+      [_mixins.first],
+      null,
+      null);
 
   /// Returns the value of the variable named [name], or `null` if no such
   /// variable is declared.
   Value getVariable(String name) {
+    if (_lastVariableName == name) return _variables[_lastVariableIndex][name];
+
     var index = _variableIndices[name];
-    if (index != null) return _variables[index][name];
+    if (index != null) {
+      _lastVariableName = name;
+      _lastVariableIndex = index;
+      return _variables[index][name];
+    }
 
     index = _variableIndex(name);
     if (index == null) return null;
 
+    _lastVariableName = name;
+    _lastVariableIndex = index;
     _variableIndices[name] = index;
     return _variables[index][name];
+  }
+
+  /// Returns the source span for the variable named [name], or `null` if no
+  /// such variable is declared.
+  FileSpan getVariableSpan(String name) {
+    if (_lastVariableName == name) {
+      return _variableSpans[_lastVariableIndex][name];
+    }
+
+    var index = _variableIndices[name];
+    if (index != null) {
+      _lastVariableName = name;
+      _lastVariableIndex = index;
+      return _variableSpans[index][name];
+    }
+
+    index = _variableIndex(name);
+    if (index == null) return null;
+
+    _lastVariableName = name;
+    _lastVariableIndex = index;
+    _variableIndices[name] = index;
+    return _variableSpans[index][name];
   }
 
   /// Returns whether a variable named [name] exists.
@@ -155,38 +212,53 @@ class AsyncEnvironment {
     return null;
   }
 
-  /// Sets the variable named [name] to [value].
+  /// Sets the variable named [name] to [value], associated with the given [span].
   ///
   /// If [global] is `true`, this sets the variable at the top-level scope.
   /// Otherwise, if the variable was already defined, it'll set it in the
   /// previous scope. If it's undefined, it'll set it in the current scope.
-  void setVariable(String name, Value value, {bool global: false}) {
+  void setVariable(String name, Value value, FileSpan span,
+      {bool global: false}) {
     if (global || _variables.length == 1) {
       // Don't set the index if there's already a variable with the given name,
       // since local accesses should still return the local variable.
-      _variableIndices.putIfAbsent(name, () => 0);
+      _variableIndices.putIfAbsent(name, () {
+        _lastVariableName = name;
+        _lastVariableIndex = 0;
+        return 0;
+      });
+
       _variables.first[name] = value;
+      if (_variableSpans != null) _variableSpans.first[name] = span;
       return;
     }
 
-    var index = _variableIndices.putIfAbsent(
-        name, () => _variableIndex(name) ?? _variables.length - 1);
+    var index = _lastVariableName == name
+        ? _lastVariableIndex
+        : _variableIndices.putIfAbsent(
+            name, () => _variableIndex(name) ?? _variables.length - 1);
     if (!_inSemiGlobalScope && index == 0) {
       index = _variables.length - 1;
       _variableIndices[name] = index;
     }
 
+    _lastVariableName = name;
+    _lastVariableIndex = index;
     _variables[index][name] = value;
+    if (_variableSpans != null) _variableSpans[index][name] = span;
   }
 
-  /// Sets the variable named [name] to [value] in the current scope.
+  /// Sets the variable named [name] to [value] in the current scope, associated with the given [span].
   ///
   /// Unlike [setVariable], this will declare the variable in the current scope
   /// even if a declaration already exists in an outer scope.
-  void setLocalVariable(String name, Value value) {
+  void setLocalVariable(String name, Value value, FileSpan span) {
     var index = _variables.length - 1;
+    _lastVariableName = name;
+    _lastVariableIndex = index;
     _variableIndices[name] = index;
     _variables[index][name] = value;
+    if (_variableSpans != null) _variableSpans[index][name] = span;
   }
 
   /// Returns the value of the function named [name], or `null` if no such
@@ -304,16 +376,19 @@ class AsyncEnvironment {
     }
 
     semiGlobal = semiGlobal && _inSemiGlobalScope;
-
     var wasInSemiGlobalScope = _inSemiGlobalScope;
     _inSemiGlobalScope = semiGlobal;
+
     _variables.add(normalizedMap());
+    _variableSpans?.add(normalizedMap());
     _functions.add(normalizedMap());
     _mixins.add(normalizedMap());
     try {
       return await callback();
     } finally {
       _inSemiGlobalScope = wasInSemiGlobalScope;
+      _lastVariableName = null;
+      _lastVariableIndex = null;
       for (var name in _variables.removeLast().keys) {
         _variableIndices.remove(name);
       }
