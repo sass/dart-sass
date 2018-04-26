@@ -1,5 +1,19 @@
 ## 1.3.0
 
+### Command-Line Interface
+
+* Generate source map files by default when writing to disk. This can be
+  disabled by passing `--no-source-map`.
+
+* Add a `--source-map-urls` option to control whether the source file URLs in
+  the generated source map are relative or absolute.
+
+* Add an `--embed-sources` option to embed the contents of all source files in
+  the generated source map.
+
+* Add an `--embed-source-map` option to embed the generated source map as a
+  `data:` URL in the generated CSS.
+
 ### Dart API
 
 * Add a `sourceMap` parameter to `compile()`, `compileString()`,
