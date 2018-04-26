@@ -18,6 +18,8 @@
 * Fix a bug where passing a relative path to `render()` or `renderSync()` would
   cause relative imports to break.
 
+* Fix a bug where format errors were reported badly on Windows.
+
 ## 1.2.1
 
 * Always emit units in compressed mode for `0` dimensions other than lengths and
