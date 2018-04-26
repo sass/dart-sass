@@ -17,9 +17,17 @@ class CssDeclaration extends CssNode {
   /// The value of this declaration.
   final CssValue<Value> value;
 
+  /// The span for [value] that should be emitted to the source map.
+  ///
+  /// When the declaration's expression is just a variable, this is the span
+  /// where that variable was declared whereas [value.span] is the span where
+  /// the variable was used. Otherwise, this is identical to [value.span].
+  final FileSpan valueSpanForMap;
+
   final FileSpan span;
 
-  CssDeclaration(this.name, this.value, this.span);
+  CssDeclaration(this.name, this.value, this.span, {FileSpan valueSpanForMap})
+      : valueSpanForMap = valueSpanForMap ?? span;
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitDeclaration(this);
 }

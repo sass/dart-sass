@@ -365,6 +365,276 @@ main() {
         """);
       });
     });
+
+    group("a value from a variable defined", () {
+      group("in", () {
+        test("a variable declaration", () {
+          _expectScssSourceMap(r"""
+            $var: {{1}}value;
+
+            {{2}}a {
+              {{3}}b: $var;
+            }
+          """, """
+            {{2}}a {
+              {{3}}b: {{1}}value;
+            }
+          """);
+        });
+
+        test("an @each rule", () {
+          _expectScssSourceMap(r"""
+            @each $var in {{1}}1 2 {
+              {{2}}a {
+                {{3}}b: $var;
+              }
+            }
+          """, """
+            {{2}}a {
+              {{3}}b: {{1}}1;
+            }
+
+            {{2}}a {
+              {{3}}b: {{1}}2;
+            }
+          """);
+        });
+
+        test("a @for rule", () {
+          _expectScssSourceMap(r"""
+            @for $var from {{1}}1 through 2 {
+              {{2}}a {
+                {{3}}b: $var;
+              }
+            }
+          """, """
+            {{2}}a {
+              {{3}}b: {{1}}1;
+            }
+
+            {{2}}a {
+              {{3}}b: {{1}}2;
+            }
+          """);
+        });
+
+        group("a mixin argument that is", () {
+          test("the default value", () {
+            _expectScssSourceMap(r"""
+              @mixin foo($var: {{1}}1) {
+                {{2}}b: $var;
+              }
+
+              {{3}}a {
+                @include foo();
+              }
+            """, """
+              {{3}}a {
+                {{2}}b: {{1}}1;
+              }
+            """);
+          });
+
+          test("passed by position", () {
+            _expectScssSourceMap(r"""
+              @mixin foo($var) {
+                {{1}}b: $var;
+              }
+
+              {{2}}a {
+                @include foo({{3}}1);
+              }
+            """, """
+              {{2}}a {
+                {{1}}b: {{3}}1;
+              }
+            """);
+          });
+
+          test("passed by name", () {
+            _expectScssSourceMap(r"""
+              @mixin foo($var) {
+                {{1}}b: $var;
+              }
+
+              {{2}}a {
+                @include foo($var: {{3}}1);
+              }
+            """, """
+              {{2}}a {
+                {{1}}b: {{3}}1;
+              }
+            """);
+          });
+
+          test("passed by arglist", () {
+            _expectScssSourceMap(r"""
+              @mixin foo($var) {
+                {{1}}b: $var;
+              }
+
+              {{2}}a {
+                @include foo({{3}}(1,)...);
+              }
+            """, """
+              {{2}}a {
+                {{1}}b: {{3}}1;
+              }
+            """);
+          });
+        });
+      });
+
+      group("in a variable which is referenced by", () {
+        test("a variable rename", () {
+          _expectScssSourceMap(r"""
+            $var1: {{1}}value;
+            $var2: $var1;
+
+            {{2}}a {
+              {{3}}b: $var2;
+            }
+          """, """
+            {{2}}a {
+              {{3}}b: {{1}}value;
+            }
+          """);
+        });
+
+        test("an @each rule from a variable", () {
+          _expectScssSourceMap(r"""
+            $list: {{1}}1 2;
+
+            @each $var in $list {
+              {{2}}a {
+                {{3}}b: $var;
+              }
+            }
+          """, """
+            {{2}}a {
+              {{3}}b: {{1}}1;
+            }
+
+            {{2}}a {
+              {{3}}b: {{1}}2;
+            }
+          """);
+        });
+
+        test("a @for rule from a variable", () {
+          _expectScssSourceMap(r"""
+            $start: {{1}}1;
+            $end: 2;
+
+            @for $var from $start through $end {
+              {{2}}a {
+                {{3}}b: $var;
+              }
+            }
+          """, """
+            {{2}}a {
+              {{3}}b: {{1}}1;
+            }
+
+            {{2}}a {
+              {{3}}b: {{1}}2;
+            }
+          """);
+        });
+
+        group("a mixin argument that is", () {
+          test("the default value", () {
+            _expectScssSourceMap(r"""
+              $original: {{1}}1;
+
+              @mixin foo($var: $original) {
+                {{2}}b: $var;
+              }
+
+              {{3}}a {
+                @include foo();
+              }
+            """, """
+              {{3}}a {
+                {{2}}b: {{1}}1;
+              }
+            """);
+          });
+
+          test("passed by position", () {
+            _expectScssSourceMap(r"""
+              $original: {{1}}1;
+
+              @mixin foo($var) {
+                {{2}}b: $var;
+              }
+
+              {{3}}a {
+                @include foo($original);
+              }
+            """, """
+              {{3}}a {
+                {{2}}b: {{1}}1;
+              }
+            """);
+          });
+
+          test("passed by name", () {
+            _expectScssSourceMap(r"""
+              $original: {{1}}1;
+
+              @mixin foo($var) {
+                {{2}}b: $var;
+              }
+
+              {{3}}a {
+                @include foo($var: $original);
+              }
+            """, """
+              {{3}}a {
+                {{2}}b: {{1}}1;
+              }
+            """);
+          });
+
+          test("passed by arglist", () {
+            _expectScssSourceMap(r"""
+              $original: {{1}}1;
+
+              @mixin foo($var) {
+                {{2}}b: $var;
+              }
+
+              {{3}}a {
+                @include foo($original...);
+              }
+            """, """
+              {{3}}a {
+                {{2}}b: {{1}}1;
+              }
+            """);
+          });
+        });
+      });
+    });
+  });
+
+  test("doesn't use the source map location for variable errors", () {
+    // When source maps are enabled (by passing a callback to sourceMap), Sass
+    // tracks the original location where each variable was declared so that
+    // browsers can link to variable declarations rather than just usages.
+    // However, we want to refer to the usages when reporting errors because
+    // they have more context.
+    expect(() {
+      compileString(r"""
+        $map: (a: b);
+        x {y: $map}
+      """, sourceMap: (_) {});
+    }, throwsA(predicate((untypedError) {
+      var error = untypedError as SourceSpanException;
+      expect(error.span.text, equals(r"$map"));
+      return true;
+    })));
   });
 }
 

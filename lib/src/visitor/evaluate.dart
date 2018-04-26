@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 0763e32e8abdc19a8b8d3c6ae1b45d1281391037
+// Checksum: c590ff5db477a9e1ba10ba9d23c0974a1cf475eb
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -53,19 +53,24 @@ typedef void _ScopeCallback(void callback());
 /// Warnings are emitted using [logger], or printed to standard error by
 /// default.
 ///
+/// If [sourceMap] is `true`, this will track the source locations of variable
+/// declarations.
+///
 /// Throws a [SassRuntimeException] if evaluation fails.
 EvaluateResult evaluate(Stylesheet stylesheet,
         {Iterable<Importer> importers,
         NodeImporter nodeImporter,
         Importer importer,
         Iterable<Callable> functions,
-        Logger logger}) =>
+        Logger logger,
+        bool sourceMap: false}) =>
     new _EvaluateVisitor(
             importers: importers,
             nodeImporter: nodeImporter,
             importer: importer,
             functions: functions,
-            logger: logger)
+            logger: logger,
+            sourceMap: sourceMap)
         .run(stylesheet);
 
 /// A visitor that executes Sass code to produce a CSS tree.
@@ -81,8 +86,11 @@ class _EvaluateVisitor
   /// The logger to use to print warnings.
   final Logger _logger;
 
+  /// Whether to track source map information.
+  final bool _sourceMap;
+
   /// The current lexical environment.
-  var _environment = new Environment();
+  Environment _environment;
 
   /// The importer that's currently being used to resolve relative imports.
   ///
@@ -169,11 +177,14 @@ class _EvaluateVisitor
       NodeImporter nodeImporter,
       Importer importer,
       Iterable<Callable> functions,
-      Logger logger})
+      Logger logger,
+      bool sourceMap})
       : _importers = importers == null ? const [] : importers.toList(),
         _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
-        _logger = logger ?? const Logger.stderr() {
+        _logger = logger ?? const Logger.stderr(),
+        _sourceMap = sourceMap,
+        _environment = new Environment(sourceMap: sourceMap) {
     _environment.setFunction(
         new BuiltInCallable("global-variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
@@ -471,13 +482,16 @@ class _EvaluateVisitor
     if (_declarationName != null) {
       name = new CssValue("$_declarationName-${name.value}", name.span);
     }
-    var cssValue = node.value == null ? null : _performExpression(node.value);
+    var cssValue = node.value == null
+        ? null
+        : new CssValue(node.value.accept(this), node.value.span);
 
     // If the value is an empty list, preserve it, because converting it to CSS
     // will throw an error that we want the user to see.
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
-      _parent.addChild(new CssDeclaration(name, cssValue, node.span));
+      _parent.addChild(new CssDeclaration(name, cssValue, node.span,
+          valueSpanForMap: _expressionSpan(node.value)));
     }
 
     if (node.children != null) {
@@ -499,10 +513,11 @@ class _EvaluateVisitor
 
   Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
+    var span = _expressionSpan(node.list);
     var setVariables = node.variables.length == 1
         ? (Value value) => _environment.setLocalVariable(
-            node.variables.first, value.withoutSlash())
-        : (Value value) => _setMultipleVariables(node.variables, value);
+            node.variables.first, value.withoutSlash(), span)
+        : (Value value) => _setMultipleVariables(node.variables, value, span);
     return _environment.scope(() {
       return _handleReturn<Value>(list.asList, (element) {
         setVariables(element);
@@ -514,14 +529,15 @@ class _EvaluateVisitor
 
   /// Destructures [value] and assigns it to [variables], as in an `@each`
   /// statement.
-  void _setMultipleVariables(List<String> variables, Value value) {
+  void _setMultipleVariables(
+      List<String> variables, Value value, FileSpan span) {
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
-      _environment.setLocalVariable(variables[i], list[i].withoutSlash());
+      _environment.setLocalVariable(variables[i], list[i].withoutSlash(), span);
     }
     for (var i = minLength; i < variables.length; i++) {
-      _environment.setLocalVariable(variables[i], sassNull);
+      _environment.setLocalVariable(variables[i], sassNull, span);
     }
   }
 
@@ -630,8 +646,9 @@ class _EvaluateVisitor
     if (from == to) return null;
 
     return _environment.scope(() {
+      var span = _expressionSpan(node.from);
       for (var i = from; i != to; i += direction) {
-        _environment.setLocalVariable(node.variable, new SassNumber(i));
+        _environment.setLocalVariable(node.variable, new SassNumber(i), span);
         var result = _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;
@@ -1060,7 +1077,9 @@ class _EvaluateVisitor
     }
 
     _environment.setVariable(
-        node.name, node.expression.accept(this).withoutSlash(),
+        node.name,
+        node.expression.accept(this).withoutSlash(),
+        _expressionSpan(node.expression),
         global: node.isGlobal);
     return null;
   }
@@ -1244,56 +1263,68 @@ class _EvaluateVisitor
   /// invokes [run] in a scope with those arguments defined.
   Value _runUserDefinedCallable(ArgumentInvocation arguments,
       UserDefinedCallable<Environment> callable, FileSpan span, Value run()) {
-    var triple = _evaluateArguments(arguments, span);
-    var positional = triple.item1;
-    var named = triple.item2;
-    var separator = triple.item3;
+    var evaluated = _evaluateArguments(arguments);
 
     return _withStackFrame(callable.name + "()", span, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {
         return _environment.scope(() {
-          _verifyArguments(
-              positional.length, named, callable.declaration.arguments, span);
+          _verifyArguments(evaluated.positional.length, evaluated.named,
+              callable.declaration.arguments, span);
 
           var declaredArguments = callable.declaration.arguments.arguments;
-          var minLength = math.min(positional.length, declaredArguments.length);
+          var minLength =
+              math.min(evaluated.positional.length, declaredArguments.length);
           for (var i = 0; i < minLength; i++) {
             _environment.setLocalVariable(
-                declaredArguments[i].name, positional[i].withoutSlash());
+                declaredArguments[i].name,
+                evaluated.positional[i].withoutSlash(),
+                _sourceMap ? evaluated.positionalSpans[i] : null);
           }
 
-          for (var i = positional.length; i < declaredArguments.length; i++) {
+          for (var i = evaluated.positional.length;
+              i < declaredArguments.length;
+              i++) {
             var argument = declaredArguments[i];
-            var value = named.remove(argument.name) ??
-                argument.defaultValue?.accept(this);
-            _environment.setLocalVariable(argument.name, value?.withoutSlash());
+            var value = evaluated.named.remove(argument.name) ??
+                argument.defaultValue.accept(this);
+            _environment.setLocalVariable(
+                argument.name,
+                value.withoutSlash(),
+                _sourceMap
+                    ? evaluated.namedSpans[argument.name] ??
+                        _expressionSpan(argument.defaultValue)
+                    : null);
           }
 
           SassArgumentList argumentList;
           if (callable.declaration.arguments.restArgument != null) {
-            var rest = positional.length > declaredArguments.length
-                ? positional.sublist(declaredArguments.length)
+            var rest = evaluated.positional.length > declaredArguments.length
+                ? evaluated.positional.sublist(declaredArguments.length)
                 : const <Value>[];
             argumentList = new SassArgumentList(
                 rest,
-                named,
-                separator == ListSeparator.undecided
+                evaluated.named,
+                evaluated.separator == ListSeparator.undecided
                     ? ListSeparator.comma
-                    : separator);
+                    : evaluated.separator);
             _environment.setLocalVariable(
-                callable.declaration.arguments.restArgument, argumentList);
+                callable.declaration.arguments.restArgument,
+                argumentList,
+                span);
           }
 
           var result = run();
 
           if (argumentList == null) return result;
-          if (named.isEmpty) return result;
+          if (evaluated.named.isEmpty) return result;
           if (argumentList.wereKeywordsAccessed) return result;
           throw _exception(
-              "No ${pluralize('argument', named.keys.length)} named "
-              "${toSentence(named.keys.map((name) => "\$$name"), 'or')}.",
+              "No ${pluralize('argument', evaluated.named.keys.length)} named " +
+                  toSentence(
+                      evaluated.named.keys.map((name) => "\$$name"), 'or') +
+                  ".",
               span);
         });
       });
@@ -1350,47 +1381,48 @@ class _EvaluateVisitor
   /// body.
   Value _runBuiltInCallable(
       ArgumentInvocation arguments, BuiltInCallable callable, FileSpan span) {
-    var triple = _evaluateArguments(arguments, span);
-    var positional = triple.item1;
-    var named = triple.item2;
-    var separator = triple.item3;
+    var evaluated = _evaluateArguments(arguments, trackSpans: false);
 
     var oldCallableSpan = _callableSpan;
     _callableSpan = span;
 
-    var namedSet = new MapKeySet(named);
-    var tuple = callable.callbackFor(positional.length, namedSet);
+    var namedSet = new MapKeySet(evaluated.named);
+    var tuple = callable.callbackFor(evaluated.positional.length, namedSet);
     var overload = tuple.item1;
     var callback = tuple.item2;
-    _addExceptionSpan(span, () => overload.verify(positional.length, namedSet));
+    _addExceptionSpan(
+        span, () => overload.verify(evaluated.positional.length, namedSet));
 
     var declaredArguments = overload.arguments;
-    for (var i = positional.length; i < declaredArguments.length; i++) {
+    for (var i = evaluated.positional.length;
+        i < declaredArguments.length;
+        i++) {
       var argument = declaredArguments[i];
-      positional.add(
-          named.remove(argument.name) ?? argument.defaultValue?.accept(this));
+      evaluated.positional.add(evaluated.named.remove(argument.name) ??
+          argument.defaultValue?.accept(this));
     }
 
     SassArgumentList argumentList;
     if (overload.restArgument != null) {
       var rest = const <Value>[];
-      if (positional.length > declaredArguments.length) {
-        rest = positional.sublist(declaredArguments.length);
-        positional.removeRange(declaredArguments.length, positional.length);
+      if (evaluated.positional.length > declaredArguments.length) {
+        rest = evaluated.positional.sublist(declaredArguments.length);
+        evaluated.positional
+            .removeRange(declaredArguments.length, evaluated.positional.length);
       }
 
       argumentList = new SassArgumentList(
           rest,
-          named,
-          separator == ListSeparator.undecided
+          evaluated.named,
+          evaluated.separator == ListSeparator.undecided
               ? ListSeparator.comma
-              : separator);
-      positional.add(argumentList);
+              : evaluated.separator);
+      evaluated.positional.add(argumentList);
     }
 
     Value result;
     try {
-      result = callback(positional);
+      result = callback(evaluated.positional);
       if (result == null) throw "Custom functions may not return Dart's null.";
     } catch (error) {
       String message;
@@ -1404,56 +1436,83 @@ class _EvaluateVisitor
     _callableSpan = oldCallableSpan;
 
     if (argumentList == null) return result;
-    if (named.isEmpty) return result;
+    if (evaluated.named.isEmpty) return result;
     if (argumentList.wereKeywordsAccessed) return result;
     throw _exception(
-        "No ${pluralize('argument', named.keys.length)} named "
-        "${toSentence(named.keys.map((name) => "\$$name"), 'or')}.",
+        "No ${pluralize('argument', evaluated.named.keys.length)} named "
+        "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
         span);
   }
 
-  /// Evaluates the arguments in [arguments] and returns the positional and
-  /// named arguments, as well as the [ListSeparator] for the rest argument
-  /// list, if any.
-  Tuple3<List<Value>, Map<String, Value>, ListSeparator> _evaluateArguments(
-      ArgumentInvocation arguments, FileSpan span) {
+  /// Returns the evaluated values of the given [arguments].
+  ///
+  /// If [trackSpans] is `true`, this tracks the source spans of the arguments
+  /// being passed in. It defaults to [_sourceMap].
+  _ArgumentResults _evaluateArguments(ArgumentInvocation arguments,
+      {bool trackSpans}) {
+    trackSpans ??= _sourceMap;
+
     var positional = arguments.positional
         .map((Expression expression) => expression.accept(this))
         .toList();
     var named = normalizedMapMap<String, Expression, Value>(arguments.named,
         value: (_, expression) => expression.accept(this));
 
+    var positionalSpans =
+        trackSpans ? arguments.positional.map(_expressionSpan).toList() : null;
+    var namedSpans = trackSpans
+        ? mapMap<String, Expression, String, FileSpan>(arguments.named,
+            value: (_, expression) => _expressionSpan(expression))
+        : null;
+
     if (arguments.rest == null) {
-      return new Tuple3(positional, named, ListSeparator.undecided);
+      return new _ArgumentResults(positional, named, ListSeparator.undecided,
+          positionalSpans: positionalSpans, namedSpans: namedSpans);
     }
 
     var rest = arguments.rest.accept(this);
+    var restSpan = trackSpans ? _expressionSpan(arguments.rest) : null;
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
-      _addRestMap(named, rest, span);
+      _addRestMap(named, rest, arguments.rest.span);
+      namedSpans?.addAll(mapMap(rest.contents,
+          key: (key, _) => (key as SassString).text,
+          value: (_, __) => restSpan));
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
+      positionalSpans?.addAll(new List.filled(rest.lengthAsList, restSpan));
       separator = rest.separator;
+
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
           named[key] = value;
+          if (namedSpans != null) namedSpans[key] = restSpan;
         });
       }
     } else {
       positional.add(rest);
+      positionalSpans?.add(restSpan);
     }
 
     if (arguments.keywordRest == null) {
-      return new Tuple3(positional, named, separator);
+      return new _ArgumentResults(positional, named, separator,
+          positionalSpans: positionalSpans, namedSpans: namedSpans);
     }
 
     var keywordRest = arguments.keywordRest.accept(this);
+    var keywordRestSpan =
+        trackSpans ? _expressionSpan(arguments.keywordRest) : null;
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, span);
-      return new Tuple3(positional, named, separator);
+      _addRestMap(named, keywordRest, arguments.keywordRest.span);
+      namedSpans?.addAll(mapMap(keywordRest.contents,
+          key: (key, _) => (key as SassString).text,
+          value: (_, __) => keywordRestSpan));
+      return new _ArgumentResults(positional, named, separator,
+          positionalSpans: positionalSpans, namedSpans: namedSpans);
     } else {
       throw _exception(
-          "Variable keyword arguments must be a map (was $keywordRest).", span);
+          "Variable keyword arguments must be a map (was $keywordRest).",
+          arguments.keywordRest.span);
     }
   }
 
@@ -1619,10 +1678,6 @@ class _EvaluateVisitor
     }).join();
   }
 
-  /// Evaluates [expression] and wraps the result in a [CssValue].
-  CssValue<Value> _performExpression(Expression expression) =>
-      new CssValue(expression.accept(this), expression.span);
-
   /// Evaluates [expression] and calls `toCssString()` and wraps a
   /// [SassScriptException] to associate it with [span].
   String _evaluateToCss(Expression expression, {bool quote: true}) =>
@@ -1632,6 +1687,19 @@ class _EvaluateVisitor
   /// it with [span].
   String _serialize(Value value, FileSpan span, {bool quote: true}) =>
       _addExceptionSpan(span, () => value.toCssString(quote: quote));
+
+  /// Returns the span for [expression], or if [expression] is just a variable
+  /// reference for the span where it was declared.
+  ///
+  /// Returns `null` if [_sourceMap] is `false`.
+  FileSpan _expressionSpan(Expression expression) {
+    if (!_sourceMap) return null;
+    if (expression is VariableExpression) {
+      return _environment.getVariableSpan(expression.name);
+    } else {
+      return expression.span;
+    }
+  }
 
   /// Adds [node] as a child of the current parent, then runs [callback] with
   /// [node] as the current parent.
@@ -1754,4 +1822,27 @@ class _EvaluateVisitor
       throw _exception(error.message, span);
     }
   }
+}
+
+/// The result of evaluating arguments to a function or mixin.
+class _ArgumentResults {
+  /// Arguments passed by position.
+  final List<Value> positional;
+
+  /// The spans for each [positional] argument, or `null` if source span
+  /// tracking is disabled.
+  final List<FileSpan> positionalSpans;
+
+  /// Arguments passed by name.
+  final Map<String, Value> named;
+
+  /// The spans for each [named] argument, or `null` if source span tracking is
+  /// disabled.
+  final Map<String, FileSpan> namedSpans;
+
+  /// The separator used for the rest argument list, if any.
+  final ListSeparator separator;
+
+  _ArgumentResults(this.positional, this.named, this.separator,
+      {this.positionalSpans, this.namedSpans});
 }
