@@ -21,6 +21,8 @@
 * Fix a crash when printing warnings in stylesheets compiled using `render()` or
   `renderSync()`.
 
+* Fix a bug where format errors were reported badly on Windows.
+
 ## 1.2.1
 
 * Always emit units in compressed mode for `0` dimensions other than lengths and

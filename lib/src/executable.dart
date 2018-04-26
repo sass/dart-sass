@@ -5,145 +5,97 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:args/args.dart';
+import 'package:dart2_constant/convert.dart' as convert;
+import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../sass.dart';
 import 'exception.dart';
+import 'executable_options.dart';
 import 'io.dart';
 import 'util/path.dart';
 
 main(List<String> args) async {
-  var argParser = new ArgParser(allowTrailingOptions: true)
-    ..addOption('precision', hide: true)
-    ..addFlag('stdin', help: 'Read the stylesheet from stdin.')
-    ..addFlag('indented', help: 'Use the indented syntax for input from stdin.')
-    ..addMultiOption('load-path',
-        abbr: 'I',
-        valueHelp: 'PATH',
-        help: 'A path to use when resolving imports.\n'
-            'May be passed multiple times.',
-        splitCommas: false)
-    ..addOption('style',
-        abbr: 's',
-        valueHelp: 'NAME',
-        help: 'Output style.',
-        allowed: ['expanded', 'compressed'],
-        defaultsTo: 'expanded')
-    ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
-    ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
-    ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
-    ..addFlag('help',
-        abbr: 'h', help: 'Print this usage information.', negatable: false)
-    ..addFlag('version',
-        help: 'Print the version of Dart Sass.', negatable: false)
-
-    // This is used when testing to ensure that the asynchronous evaluator path
-    // works the same as the synchronous one.
-    ..addFlag('async', hide: true);
-
-  ArgResults options;
+  ExecutableOptions options;
   try {
-    options = argParser.parse(args);
-  } on FormatException catch (error) {
-    _printUsage(argParser, error.message);
-    exitCode = 64;
-    return;
-  }
-
-  if (options['version'] as bool) {
-    _loadVersion().then((version) {
-      print(version);
+    options = new ExecutableOptions.parse(args);
+    if (options.version) {
+      print(await _loadVersion());
       exitCode = 0;
-    });
-    return;
-  }
+      return;
+    }
 
-  var stdinFlag = options['stdin'] as bool;
-  if (options['help'] as bool ||
-      (stdinFlag
-          ? options.rest.length > 1
-          : options.rest.isEmpty || options.rest.length > 2)) {
-    _printUsage(argParser, "Compile Sass to CSS.");
-    exitCode = 64;
-    return;
-  }
+    try {
+      SingleMapping sourceMap;
+      var sourceMapCallback =
+          options.emitSourceMap ? (SingleMapping map) => sourceMap = map : null;
 
-  var indented =
-      options.wasParsed('indented') ? options['indented'] as bool : null;
-  var color =
-      options.wasParsed('color') ? options['color'] as bool : hasTerminal;
-  var logger =
-      options['quiet'] as bool ? Logger.quiet : new Logger.stderr(color: color);
-  var style = options['style'] == 'compressed'
-      ? OutputStyle.compressed
-      : OutputStyle.expanded;
-  var loadPaths = options['load-path'] as List<String>;
-  var asynchronous = options['async'] as bool;
-  try {
-    String css;
-    String destination;
-    if (stdinFlag) {
-      if (options.rest.isNotEmpty) destination = options.rest.first;
-      css = await _compileStdin(
-          indented: indented,
-          logger: logger,
-          style: style,
-          loadPaths: loadPaths,
-          asynchronous: asynchronous);
-    } else {
-      var source = options.rest.first;
-      if (options.rest.length > 1) destination = options.rest.last;
-      if (source == '-') {
-        css = await _compileStdin(
-            indented: indented,
-            logger: logger,
-            style: style,
-            loadPaths: loadPaths,
-            asynchronous: asynchronous);
-      } else if (asynchronous) {
-        css = await compileAsync(source,
-            logger: logger, style: style, loadPaths: loadPaths);
+      var text =
+          options.readFromStdin ? await readStdin() : readFile(options.source);
+      var url = options.readFromStdin ? null : p.toUri(options.source);
+      var importer = new FilesystemImporter('.');
+      String css;
+      if (options.asynchronous) {
+        css = await compileStringAsync(text,
+            indented: options.indented,
+            logger: options.logger,
+            style: options.style,
+            importer: importer,
+            loadPaths: options.loadPaths,
+            url: url,
+            sourceMap: sourceMapCallback);
       } else {
-        css =
-            compile(source, logger: logger, style: style, loadPaths: loadPaths);
+        css = compileString(text,
+            indented: options.indented,
+            logger: options.logger,
+            style: options.style,
+            importer: importer,
+            loadPaths: options.loadPaths,
+            url: url,
+            sourceMap: sourceMapCallback);
+      }
+
+      css += _writeSourceMap(options, sourceMap);
+      if (options.writeToStdout) {
+        if (css.isNotEmpty) print(css);
+      } else {
+        ensureDir(p.dirname(options.destination));
+        writeFile(options.destination, css + "\n");
+      }
+    } on SassException catch (error, stackTrace) {
+      stderr.writeln(error.toString(color: options.color));
+
+      if (options.trace) {
+        stderr.writeln();
+        stderr.write(new Trace.from(stackTrace).terse.toString());
+        stderr.flush();
+      }
+
+      // Exit code 65 indicates invalid data per
+      // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+      exitCode = 65;
+    } on FileSystemException catch (error, stackTrace) {
+      stderr.writeln(
+          "Error reading ${p.relative(error.path)}: ${error.message}.");
+
+      // Error 66 indicates no input.
+      exitCode = 66;
+
+      if (options.trace) {
+        stderr.writeln();
+        stderr.write(new Trace.from(stackTrace).terse.toString());
+        stderr.flush();
       }
     }
-
-    if (destination != null) {
-      ensureDir(p.dirname(destination));
-      writeFile(destination, css + "\n");
-    } else if (css.isNotEmpty) {
-      print(css);
-    }
-  } on SassException catch (error, stackTrace) {
-    stderr.writeln(error.toString(color: color));
-
-    if (options['trace'] as bool) {
-      stderr.writeln();
-      stderr.write(new Trace.from(stackTrace).terse.toString());
-      stderr.flush();
-    }
-
-    // Exit code 65 indicates invalid data per
-    // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
-    exitCode = 65;
-  } on FileSystemException catch (error, stackTrace) {
-    stderr
-        .writeln("Error reading ${p.relative(error.path)}: ${error.message}.");
-
-    // Error 66 indicates no input.
-    exitCode = 66;
-
-    if (options['trace'] as bool) {
-      stderr.writeln();
-      stderr.write(new Trace.from(stackTrace).terse.toString());
-      stderr.flush();
-    }
+  } on UsageException catch (error) {
+    print("${error.message}\n");
+    print("Usage: sass <input> [output]\n");
+    print(ExecutableOptions.usage);
+    exitCode = 64;
   } catch (error, stackTrace) {
-    if (color) stderr.write('\u001b[31m\u001b[1m');
+    if (options != null && options.color) stderr.write('\u001b[31m\u001b[1m');
     stderr.write('Unexpected exception:');
-    if (color) stderr.write('\u001b[0m');
+    if (options != null && options.color) stderr.write('\u001b[0m');
     stderr.writeln();
 
     stderr.writeln(error);
@@ -173,35 +125,38 @@ Future<String> _loadVersion() async {
       .last;
 }
 
-/// Compiles Sass from standard input and returns the result.
-Future<String> _compileStdin(
-    {bool indented,
-    Logger logger,
-    OutputStyle style,
-    List<String> loadPaths,
-    bool asynchronous: false}) async {
-  var text = await readStdin();
-  var importer = new FilesystemImporter('.');
-  if (asynchronous) {
-    return await compileStringAsync(text,
-        indented: indented ?? false,
-        logger: logger,
-        style: style,
-        importer: importer,
-        loadPaths: loadPaths);
-  } else {
-    return compileString(text,
-        indented: indented ?? false,
-        logger: logger,
-        style: style,
-        importer: importer,
-        loadPaths: loadPaths);
-  }
-}
+/// Writes the source map given by [mapping] to disk (if necessary) according to [options].
+///
+/// Returns the source map comment to add to the end of the CSS file.
+String _writeSourceMap(ExecutableOptions options, SingleMapping sourceMap) {
+  if (sourceMap == null) return "";
 
-/// Print the usage information for Sass, with [message] as a header.
-void _printUsage(ArgParser parser, String message) {
-  print("$message\n");
-  print("Usage: sass <input> [output]\n");
-  print(parser.usage);
+  if (!options.writeToStdout) {
+    sourceMap.targetUrl = p.toUri(p.basename(options.destination)).toString();
+  }
+
+  for (var i = 0; i < sourceMap.urls.length; i++) {
+    var url = sourceMap.urls[i];
+
+    // The special URL "" indicates a file that came from stdin.
+    if (url == "") continue;
+
+    sourceMap.urls[i] = options.sourceMapUrl(Uri.parse(url)).toString();
+  }
+  var sourceMapText = convert.json
+      .encode(sourceMap.toJson(includeSourceContents: options.embedSources));
+
+  Uri url;
+  if (options.embedSourceMap) {
+    url = new Uri.dataFromString(sourceMapText, mimeType: 'application/json');
+  } else {
+    var sourceMapPath = options.destination + '.map';
+    ensureDir(p.dirname(sourceMapPath));
+    writeFile(sourceMapPath, sourceMapText);
+
+    url = p.toUri(sourceMapPath);
+  }
+
+  return (options.style == OutputStyle.compressed ? '' : '\n\n') +
+      '/*# sourceMappingURL=$url */';
 }
