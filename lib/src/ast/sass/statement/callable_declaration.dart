@@ -4,24 +4,22 @@
 
 import 'package:source_span/source_span.dart';
 
-import 'argument_declaration.dart';
-import 'statement.dart';
+import '../argument_declaration.dart';
+import '../statement.dart';
+import 'parent.dart';
 
 /// An abstract class for callables (functions or mixins) that are declared in
 /// user code.
-abstract class CallableDeclaration implements Statement {
+abstract class CallableDeclaration extends ParentStatement {
   /// The name of this callable.
   final String name;
 
   /// The declared arguments this callable accepts.
   final ArgumentDeclaration arguments;
 
-  /// The child statements that are executed when this callable is invoked.
-  final List<Statement> children;
-
   final FileSpan span;
 
   CallableDeclaration(
       this.name, this.arguments, Iterable<Statement> children, this.span)
-      : children = new List.unmodifiable(children);
+      : super(new List.unmodifiable(children));
 }
