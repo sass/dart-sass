@@ -15,7 +15,14 @@ import 'package:path/path.dart' as p;
 /// The files to compile to synchronous versions.
 final _sources = {
   'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
-  'lib/src/async_environment.dart': 'lib/src/environment.dart'
+  'lib/src/async_environment.dart': 'lib/src/environment.dart',
+  'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart'
+};
+
+/// A map from source file basenames to imports which should be removed when
+/// generating the output files.
+final _removeImports = {
+  'async_import_cache.dart': ['utils.dart']
 };
 
 /// This is how we support both synchronous and asynchronous compilation modes.
@@ -51,6 +58,9 @@ class _Visitor extends RecursiveAstVisitor {
   /// The source of the original asynchronous file.
   final String _source;
 
+  /// The path to the original asynchronous file.
+  final String _sourcePath;
+
   /// The current position in [_source].
   var _position = 0;
 
@@ -64,17 +74,17 @@ class _Visitor extends RecursiveAstVisitor {
     return _buffer.toString();
   }
 
-  _Visitor(this._source, String path) {
+  _Visitor(this._source, this._sourcePath) {
     var afterHeader = "\n".allMatches(_source).skip(3).first.end;
     _buffer.writeln(_source.substring(0, afterHeader));
     _buffer.writeln("""
-// DO NOT EDIT. This file was generated from ${p.basename(path)}.
+// DO NOT EDIT. This file was generated from ${p.basename(_sourcePath)}.
 // See tool/synchronize.dart for details.
 //
 // Checksum: ${sha1.convert(convert.utf8.encode(_source))}
 """);
 
-    if (p.basename(path) == 'async_evaluate.dart') {
+    if (p.basename(_sourcePath) == 'async_evaluate.dart') {
       _buffer.writeln();
       _buffer.writeln("import 'async_evaluate.dart' show EvaluateResult;");
       _buffer.writeln("export 'async_evaluate.dart' show EvaluateResult;");
@@ -132,10 +142,13 @@ class _Visitor extends RecursiveAstVisitor {
 
   void visitImportDirective(ImportDirective node) {
     _skipNode(node);
-    var text = node.toString();
-    if (!text.contains("dart:async")) {
-      _buffer.write(text.replaceAll("async_", ""));
-    }
+    var url = node.uri.stringValue;
+    if (url == "dart:async") return;
+
+    var removeImports = _removeImports[p.basename(_sourcePath)];
+    if (removeImports != null && removeImports.contains(url)) return;
+
+    _buffer.write(node.toString().replaceAll("async_", ""));
   }
 
   void visitMethodInvocation(MethodInvocation node) {

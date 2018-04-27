@@ -42,10 +42,10 @@ export 'src/visitor/serialize.dart' show OutputStyle;
 ///   [FilesystemImporter]s to [importers].
 ///
 /// * `package:` resolution using [packageResolver], which is a
-///   [SyncPackageResolver][] from the `package_resolver` package. Note that
+///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
 ///   this is a shorthand for adding a [PackageImporter] to [importers].
 ///
-/// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+/// [`SyncPackageResolver`]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 ///
 /// Dart functions that can be called from Sass may be passed using [functions].
 /// Each [Callable] defines a top-level function that will be invoked when the
@@ -113,10 +113,10 @@ String compile(String path,
 ///   [FilesystemImporter]s to [importers].
 ///
 /// * `package:` resolution using [packageResolver], which is a
-///   [SyncPackageResolver][] from the `package_resolver` package. Note that
+///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
 ///   this is a shorthand for adding a [PackageImporter] to [importers].
 ///
-/// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+/// [`SyncPackageResolver`]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
 ///
 /// Dart functions that can be called from Sass may be passed using [functions].
 /// Each [Callable] defines a top-level function that will be invoked when the
