@@ -48,7 +48,9 @@ class ExecutableOptions {
           valueHelp: 'NAME',
           help: 'Output style.',
           allowed: ['expanded', 'compressed'],
-          defaultsTo: 'expanded');
+          defaultsTo: 'expanded')
+      ..addFlag('update',
+          help: 'Only compile out-of-date stylesheets.', negatable: false);
 
     parser
       ..addSeparator(_separator('Source Maps'))
@@ -110,10 +112,11 @@ class ExecutableOptions {
   bool get color =>
       _options.wasParsed('color') ? _options['color'] as bool : hasTerminal;
 
+  /// Whether to silence normal output.
+  bool get quiet => _options['quiet'] as bool;
+
   /// The logger to use to emit messages from Sass.
-  Logger get logger => _options['quiet'] as bool
-      ? Logger.quiet
-      : new Logger.stderr(color: color);
+  Logger get logger => quiet ? Logger.quiet : new Logger.stderr(color: color);
 
   /// The style to use for the generated CSS.
   OutputStyle get style => _options['style'] == 'compressed'
@@ -128,6 +131,9 @@ class ExecutableOptions {
 
   /// Whether to print the full Dart stack trace on exceptions.
   bool get trace => _options['trace'] as bool;
+
+  /// Whether to update only files that have changed since the last compilation.
+  bool get update => _options['update'] as bool;
 
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.
@@ -165,6 +171,8 @@ class ExecutableOptions {
       } else if (stdin) {
         if (_options.rest.length > 1) {
           _fail("Only one argument is allowed with --stdin.");
+        } else if (update) {
+          _fail("--update is not allowed with --stdin.");
         }
         return {null: _options.rest.isEmpty ? null : _options.rest.first};
       } else if (_options.rest.length > 2) {
@@ -172,6 +180,10 @@ class ExecutableOptions {
       } else {
         var source = _options.rest.first == '-' ? null : _options.rest.first;
         var destination = _options.rest.length == 1 ? null : _options.rest.last;
+        if (update && destination == null) {
+          _fail("--update is not allowed when printing to stdout.");
+        }
+
         return {source: destination};
       }
     }

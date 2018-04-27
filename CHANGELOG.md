@@ -14,6 +14,9 @@
   `sass templates/stylesheets:public/css` compiles all non-partial Sass files
   in `templates/stylesheets` to CSS files in `public/css`.
 
+* Add an `--update` flag that tells Sass to compile only stylesheets that have
+  been (transitively) modified since the CSS file was generated.
+
 ### Dart API
 
 * Add `Importer.modificationTime()` and `AsyncImporter.modificationTime()` which
