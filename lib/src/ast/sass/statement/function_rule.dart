@@ -6,8 +6,8 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
 import '../argument_declaration.dart';
-import '../callable_declaration.dart';
 import '../statement.dart';
+import 'callable_declaration.dart';
 
 /// A function declaration.
 ///
