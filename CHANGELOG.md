@@ -1,3 +1,10 @@
+## 1.3.1
+
+### Node API
+
+* Fix loading imports relative to stylesheets that were themselves imported
+  though relative include paths.
+
 ## 1.3.0
 
 ### Command-Line Interface
