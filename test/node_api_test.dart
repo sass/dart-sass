@@ -96,6 +96,22 @@ void main() {
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
+    // Regression test for #314
+    test(
+        "a file imported through a relative load path supports relative "
+        "imports", () async {
+      var subDir = p.join(sandbox, 'sub');
+      await createDirectory(subDir);
+      await writeTextFile(p.join(subDir, '_test.scss'), '@import "other"');
+
+      await writeTextFile(p.join(subDir, '_other.scss'), 'x {y: z}');
+
+      expect(
+          renderSync(new RenderOptions(
+              data: "@import 'sub/test'", includePaths: [p.relative(sandbox)])),
+          equalsIgnoringWhitespace('x { y: z; }'));
+    });
+
     test("can render the indented syntax", () {
       expect(
           renderSync(

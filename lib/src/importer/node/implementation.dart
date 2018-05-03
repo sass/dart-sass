@@ -119,7 +119,7 @@ class NodeImporter {
 
     // 3: Filesystem imports relative to [_includePaths].
     for (var includePath in _includePaths) {
-      var result = _tryPath(p.join(includePath, path));
+      var result = _tryPath(p.absolute(p.join(includePath, path)));
       if (result != null) return result;
     }
 
