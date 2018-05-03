@@ -40,3 +40,7 @@ git config --local user.name "SassBot"
 git config --local user.email "sass.bot.beep.boop@gmail.com"
 travis_cmd pub run grinder update_homebrew
 travis_fold end homebrew
+
+travis_fold start chocolatey
+travis_cmd pub run grinder update_chocolatey
+travis_fold end chocolatey

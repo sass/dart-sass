@@ -260,7 +260,7 @@ xml.XmlDocument _nuspec() {
     assert(_dartVersion.preRelease[0] == "dev");
     assert(_dartVersion.preRelease[1] is int);
     sdkVersion = "${_dartVersion.major}.${_dartVersion.minor}."
-        "${_dartVersion.patch}.${_dartVersion.preRelease[1]}";
+        "${_dartVersion.patch}.${_dartVersion.preRelease[1]}-dev";
   } else {
     sdkVersion = _dartVersion.toString();
   }
@@ -296,7 +296,7 @@ This package is Dart Sass, the new Dart implementation of Sass.
           nest: "Copyright ${new DateTime.now().year} Google, Inc.");
       builder.element("dependencies", nest: () {
         builder.element("dependency", attributes: {
-          "id": _isDevSdk ? "dart-sdk-dev" : "dart-sdk",
+          "id": "dart-sdk",
           // Unfortunately we need the exact same Dart version as we built with,
           // since we ship a snapshot which isn't cross-version compatible. Once
           // we switch to native compilation this won't be an issue.

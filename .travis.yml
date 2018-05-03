@@ -98,6 +98,8 @@ jobs:
       - DART_CHANNEL=dev DART_VERSION=latest GITHUB_USER=sassbot
       # GITHUB_AUTH="..."
       - secure: "AAP74aT+8SQmwGeHrCsZ7GgppvCCkDAZXszivocMy3Fi9gfMCLABBCh67pGINJX4VlLW7ftPF3xivlvgGu+e4ncXz9m9jIPZ9Iza3cW5jCnCgyRGZD98gwabIDFWiv4X9V2xnJA2p1ZuYBf8Sh3TTipUFBKMjlnxVxYkIOTud4rUss/htFhxVA/oFTo0ThTZwXuxJ+GRGTM4PcuHPJvPf18iRPs2AHFV6ZP51xgc3AsXC6Zyom5EJeX0yGj9zWQ0XCjnuFdGsI6G9jmkrmqgAXuUipgqAn0tjxPYp9R/1HqnBLD3Zbrvyi5pCiSFclU6CS6kTDbefzPOc5+zrnlkaolVeF8tQ+EhZiZqtLnpLYUz9bgknoFUapUN4N0R36sKBStdRv54+sMeoOzpQ8ep3PeZW5nWbak12wcrDx38ToWs6hQ4ycb0SQDZZatHsASpSu2nX8HwzZSDAZmsAdB+epPmgA0CBjWVG1ycmVnT6l3OopUmbaY3pXBNzFUXq5Fcd7Q39/MfrmHpyxSc3QVf8xNtUx9ggYtK0Kwx6dgykhNMVzFGZRVyQgwpaiyDqgMGEU2GQzzcJhgKo9+y1fDtdfj/cctmvJ2Fo1fkk+DMkEPUHGOVo6uKFnartky9iLm1WiHDMruJ6SIOJzAnb+TMBWQTSwI+F4wyEiRVR8Zv4uA="
+      # CHOCO_TOKEN="..."
+      - secure: "cW11kQYBBEElfVsc1pJfVEHOMYwt0ZK+9STZHwSPbAISlplIRnsimMN7TqCY2aLnkWXyUMU7DphIl9uQ86M4BT1bJopsHbapj27bFSlKWHlBSDB/xylFHywV41Yk5lMlr8DLMbsSzVahasyR34xS6HYIRlDpZ9TFiQuDQNJxQmqTZJg/FC+3nqCI7tyMKGkWc48ikTcmqDMHsG9CudG2u+Q3S9sLNXArh9T4tSnAyWkTvSrS05mvFx5tC83PcG9/VkioTId+VRSJchwTmCxDFDROrTikTXZMtYn8wMAQ2wQ34TQXNZMZ9uiHA6W0IuJV2EnYerJbqV2lrJq9xqZywKu6HW6i4GhrCvizALNFZx/N7s/10xuf3UcuWizYml/e0MYT+6t4ojTYBMKv+Cx+H2Y2Jdpvdn2ZAIl6LaU3pLw4OIPJ7aXjDwZd63MPxtwGwVLHbH7Zu+oUv1erIq5LtatuocGWipD8WdiMBQvyCuDRMowpLPoAbj+mevOf+xlY2Eym4tOXpxM7iY3lXFHROo5dQbhsARfVF9J1gl5PuYXvCjxqTfK/ef9t3ZoDbi57+yAJUWlZfWa5r1zKE8OS0pA8GfQRLom/Lt0wKVw4Xiofgolzd9pEHi4JpsYIQb8O+u1ACQU6nBCS87CGrQ+ylnzKfGUs0aW2K3gvbkg0LUg="
     script: skip # Don't run tests
 
     deploy:
@@ -118,20 +120,6 @@ jobs:
       # We check `if:` because it avoids unnecessary build steps, and
       # `on: {tags: true}` ensures that we only deploy on the build caused
       # by pushing a tag, not the build caused by pushing master.
-      on: {tags: true}
-
-  # Deploy to Chocolatey from stable because Chocolatey often doesn't support
-  # the latest dev channel SDK release.
-  - if: *deploy-if
-    env:
-      - DART_CHANNEL=stable DART_VERSION=latest
-      # CHOCO_TOKEN="..."
-      - secure: "cW11kQYBBEElfVsc1pJfVEHOMYwt0ZK+9STZHwSPbAISlplIRnsimMN7TqCY2aLnkWXyUMU7DphIl9uQ86M4BT1bJopsHbapj27bFSlKWHlBSDB/xylFHywV41Yk5lMlr8DLMbsSzVahasyR34xS6HYIRlDpZ9TFiQuDQNJxQmqTZJg/FC+3nqCI7tyMKGkWc48ikTcmqDMHsG9CudG2u+Q3S9sLNXArh9T4tSnAyWkTvSrS05mvFx5tC83PcG9/VkioTId+VRSJchwTmCxDFDROrTikTXZMtYn8wMAQ2wQ34TQXNZMZ9uiHA6W0IuJV2EnYerJbqV2lrJq9xqZywKu6HW6i4GhrCvizALNFZx/N7s/10xuf3UcuWizYml/e0MYT+6t4ojTYBMKv+Cx+H2Y2Jdpvdn2ZAIl6LaU3pLw4OIPJ7aXjDwZd63MPxtwGwVLHbH7Zu+oUv1erIq5LtatuocGWipD8WdiMBQvyCuDRMowpLPoAbj+mevOf+xlY2Eym4tOXpxM7iY3lXFHROo5dQbhsARfVF9J1gl5PuYXvCjxqTfK/ef9t3ZoDbi57+yAJUWlZfWa5r1zKE8OS0pA8GfQRLom/Lt0wKVw4Xiofgolzd9pEHi4JpsYIQb8O+u1ACQU6nBCS87CGrQ+ylnzKfGUs0aW2K3gvbkg0LUg="
-    script: skip
-    deploy:
-      provider: script
-      script: pub run grinder update_chocolatey
-      skip_cleanup: true
       on: {tags: true}
 
   # Redeploy sass-lang.com when a build succeeds.
