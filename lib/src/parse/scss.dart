@@ -41,7 +41,20 @@ class ScssParser extends StylesheetParser {
   bool scanElse(int _) {
     var start = scanner.state;
     whitespace();
-    if (scanner.scanChar($at) && scanIdentifier('else')) return true;
+    var beforeAt = scanner.state;
+    if (scanner.scanChar($at)) {
+      if (scanIdentifier('else')) return true;
+      if (scanIdentifier('elseif')) {
+        logger.warn(
+            '@elseif is deprecated and will not be supported in future Sass '
+            'versions.\n'
+            'Use "@else if" instead.',
+            span: scanner.spanFrom(beforeAt),
+            deprecation: true);
+        scanner.position -= 2;
+        return true;
+      }
+    }
     scanner.state = start;
     return false;
   }

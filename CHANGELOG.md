@@ -1,3 +1,9 @@
+## 1.3.2
+
+* Add support for `@elseif` as an alias of `@else if`. This is not an
+  intentional feature, so using it will cause a deprecation warning. It will be
+  removed at some point in the future.
+
 ## 1.3.1
 
 ### Node API
