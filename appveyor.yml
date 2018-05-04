@@ -8,14 +8,10 @@ branches:
 environment:
   matrix:
   - {TASK: tests, NODE: false}
-
-  # We only support running Node tests with Dart >=2.0.0-dev.42.0, and the most
-  # recent version on Chocolatey is (at time of writing) 2.0.0-dev.5. Once it's
-  # updated, we should re-enable these tests.
-  # - {TASK: tests, NODE: true}
+  - {TASK: tests, NODE: true}
 
 install:
-- choco install dart-sdk
+- choco install --pre dart-sdk
 - refreshenv
 - pub get
 - ps: >-
@@ -27,11 +23,10 @@ install:
 # Run this as CMD because npm's stderr will cause PowerShell to think it failed.
 - IF "%NODE%"=="true" npm install
 
-# Don't run Node tests on Windows until dart-lang/sdk#30098 lands.
 test_script:
 - ps: >-
     If ($env:NODE -eq "true") {
-      pub run test -x dart2 -t node
+      pub run test -t node
     } Else {
-      pub run test -p vm -x dart2 -x node
+      pub run test -p vm -x node
     }
