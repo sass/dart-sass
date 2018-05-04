@@ -21,11 +21,12 @@ abstract class Parser {
   final SpanScanner scanner;
 
   /// The logger to use when emitting warnings.
-  final Logger _logger;
+  @protected
+  final Logger logger;
 
   Parser(String contents, {url, Logger logger})
       : scanner = new SpanScanner(contents, sourceUrl: url),
-        _logger = logger ?? const Logger.stderr();
+        logger = logger ?? const Logger.stderr();
 
   // ## Tokens
 
@@ -566,7 +567,7 @@ abstract class Parser {
 
   /// Prints a warning to standard error, associated with [span].
   @protected
-  void warn(String message, FileSpan span) => _logger.warn(message, span: span);
+  void warn(String message, FileSpan span) => logger.warn(message, span: span);
 
   /// Prints a source span highlight of the current location being scanned.
   ///
