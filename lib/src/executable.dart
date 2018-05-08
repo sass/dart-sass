@@ -39,7 +39,9 @@ main(List<String> args) async {
     ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
     ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
     ..addFlag('interactive',
-        abbr: 'i', help: 'Run an interactive SassScript shell.')
+        abbr: 'i',
+        help: 'Run an interactive SassScript shell.',
+        negatable: false)
     ..addFlag('help',
         abbr: 'h', help: 'Print this usage information.', negatable: false)
     ..addFlag('version',
@@ -67,6 +69,16 @@ main(List<String> args) async {
   }
 
   if (options['interactive'] as bool) {
+    if (options.wasParsed('stdin') ||
+        options.wasParsed('indented') ||
+        options.wasParsed('load-path') ||
+        options.wasParsed('style') ||
+        options.wasParsed('quiet') ||
+        options.wasParsed('help')) {
+      _printUsage(argParser, "Option not supported with --interactive.");
+      exitCode = 64;
+      return;
+    }
     _repl();
     return;
   }

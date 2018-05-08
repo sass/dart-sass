@@ -246,6 +246,24 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await sass.shouldExit(64);
     });
 
+    test("from invalid arguments with --interactive", () async {
+      var invalidArgs = [
+        '--stdin',
+        '--indented',
+        '--style=compressed',
+        '--quiet',
+        '--load-path=a',
+        '--help'
+      ];
+      for (var arg in invalidArgs) {
+        var sass = await runSass(["--interactive", arg]);
+        expect(sass.stdout,
+            emitsThrough(contains("Print this usage information.")));
+        sass.stdin.close();
+        await sass.shouldExit(64);
+      }
+    });
+
     test("from a file that doesn't exist", () async {
       var sass = await runSass(["asdf"]);
       expect(sass.stderr, emits(startsWith("Error reading asdf:")));
