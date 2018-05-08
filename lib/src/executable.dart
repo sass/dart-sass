@@ -236,28 +236,23 @@ _repl() async {
   var environment = new Environment();
   await for (String line in repl.runAsync()) {
     try {
-      _runLine(line, environment);
+      Expression expression;
+      VariableDeclaration declaration;
+      try {
+        declaration = new VariableDeclaration.parse(line);
+        expression = declaration.expression;
+      } on SassFormatException {
+        expression = new Expression.parse(line);
+      }
+      var result = evaluateExpression(expression, environment);
+      if (declaration != null) {
+        environment.setVariable(declaration.name, result);
+      }
+      print(result);
     } on SassFormatException catch (e) {
       print(e);
     } on SassRuntimeException catch (e) {
       print(e);
     }
   }
-}
-
-/// Runs a [line] of SassScript in [environment] and prints the result
-_runLine(String line, Environment environment) {
-  Expression expression;
-  VariableDeclaration declaration;
-  try {
-    declaration = new VariableDeclaration.parse(line);
-    expression = declaration.expression;
-  } on SassFormatException {
-    expression = new Expression.parse(line);
-  }
-  var result = evaluateExpression(expression, environment);
-  if (declaration != null) {
-    environment.setVariable(declaration.name, result);
-  }
-  print(result);
 }
