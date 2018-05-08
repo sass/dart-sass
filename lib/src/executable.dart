@@ -12,7 +12,6 @@ import 'package:stack_trace/stack_trace.dart';
 import '../sass.dart';
 import 'ast/sass/expression.dart';
 import 'ast/sass/statement/variable_declaration.dart';
-import 'environment.dart';
 import 'exception.dart';
 import 'io.dart';
 import 'util/path.dart';
@@ -69,6 +68,9 @@ main(List<String> args) async {
     return;
   }
 
+  var color =
+      options.wasParsed('color') ? options['color'] as bool : hasTerminal;
+
   if (options['interactive'] as bool) {
     if (options.wasParsed('stdin') ||
         options.wasParsed('indented') ||
@@ -80,7 +82,7 @@ main(List<String> args) async {
       exitCode = 64;
       return;
     }
-    _repl();
+    _repl(color, options['trace'] as bool);
     return;
   }
 
@@ -96,8 +98,6 @@ main(List<String> args) async {
 
   var indented =
       options.wasParsed('indented') ? options['indented'] as bool : null;
-  var color =
-      options.wasParsed('color') ? options['color'] as bool : hasTerminal;
   var logger =
       options['quiet'] as bool ? Logger.quiet : new Logger.stderr(color: color);
   var style = options['style'] == 'compressed'
@@ -232,7 +232,7 @@ void _printUsage(ArgParser parser, String message) {
 }
 
 /// Runs an interactive SassScript shell.
-_repl() async {
+_repl(bool color, bool trace) async {
   var repl = new Repl(prompt: '>> ');
   var variables = <String, internal.Value>{};
   await for (String line in repl.runAsync()) {
@@ -250,10 +250,26 @@ _repl() async {
         variables[declaration.name] = result;
       }
       print(result);
-    } on SassFormatException catch (e) {
-      print(e);
-    } on SassRuntimeException catch (e) {
-      print(e);
+    } on SassException catch (error, stackTrace) {
+      var highlighted = error.span.highlight();
+      var arrows = highlighted.split('\n').last.trimRight();
+      var buffer = new StringBuffer();
+      if (color) {
+        int start = arrows.length - arrows.trimLeft().length;
+        buffer.write("\u001b[1F"); // move to start of input line
+        buffer.write("\u001b[${start + 3}C"); // move to start of error
+        buffer.write("\u001b[31m"); // set color to red
+        buffer.write(line.substring(start, arrows.length)); // write bad input
+        buffer.write("\n"); // move to start of output line
+      }
+      buffer.write("   "); // align with start of input
+      buffer.writeln(arrows);
+      if (color) buffer.write("\u001b[0m");
+      buffer.writeln("Error: ${error.message}");
+      if (trace) {
+        buffer.write(new Trace.from(stackTrace).terse.toString());
+      }
+      print(buffer.toString().trimRight());
     }
   }
 }

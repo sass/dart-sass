@@ -340,14 +340,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
   });
 
-  group("--interactive works", () {
-    test("with no input", () async {
+  group("--interactive", () {
+    test("works with no input", () async {
       var sass = await runSass(["--interactive"]);
       sass.stdin.close();
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(0);
     });
-    test("for expressions", () async {
+    test("works for expressions", () async {
       var sass = await runSass(["--interactive"]);
       sass.stdin.writeln("4 + 5");
       sass.stdin.close();
@@ -355,7 +355,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(0);
     });
-    test("for declarations", () async {
+    test("works for declarations", () async {
       var sass = await runSass(["--interactive"]);
       sass.stdin.writeln(r"$x: 6");
       sass.stdin.close();
@@ -363,12 +363,59 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(0);
     });
-    test("for variable usage", () async {
+    test("works for variable usage", () async {
       var sass = await runSass(["--interactive"]);
       sass.stdin.writeln(r"$x: 4");
       sass.stdin.writeln(r"$x * 2");
       sass.stdin.close();
       expect(sass.stdout, emitsInOrder([r">> $x: 4", "4", r">> $x * 2", "8"]));
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+    });
+    test("logs proper errors", () async {
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln("1 + 2;");
+      sass.stdin.writeln("max(2, 1 + blue)");
+      sass.stdin.writeln(r"1 + $x + 3");
+      sass.stdin.close();
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            ">> 1 + 2;",
+            "        ^",
+            "Error: expected no more input.",
+            ">> max(2, 1 + blue)",
+            "          ^^^^^^^^",
+            'Error: Undefined operation "1 + blue".',
+            r">> 1 + $x + 3",
+            r"       ^^",
+            "Error: Undefined variable."
+          ]));
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+    });
+    test("logs proper errors with color", () async {
+      var sass = await runSass(["--interactive", "--color"]);
+      sass.stdin.writeln("1 + 2;");
+      sass.stdin.writeln("max(2, 1 + blue)");
+      sass.stdin.writeln(r"1 + $x + 3");
+      sass.stdin.close();
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            ">> 1 + 2;",
+            "\u001b[1F\u001b[8C\u001b[31m;",
+            "        ^",
+            "\u001b[0mError: expected no more input.",
+            ">> max(2, 1 + blue)",
+            "\u001b[1F\u001b[10C\u001b[31m1 + blue",
+            "          ^^^^^^^^",
+            '\u001b[0mError: Undefined operation "1 + blue".',
+            r">> 1 + $x + 3",
+            "\u001b[1F\u001b[7C\u001b[31m\$x",
+            r"       ^^",
+            "\u001b[0mError: Undefined variable."
+          ]));
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(0);
     });
