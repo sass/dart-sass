@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 6853f090ba925c445687ea776dd5c94095aa6806
+// Checksum: 0343b8130ff1fc62990d9a527a9263210ade96fb
 
 import 'dart:math' as math;
 
@@ -65,11 +65,26 @@ EvaluateResult evaluate(Stylesheet stylesheet,
             logger: logger)
         .run(stylesheet);
 
-/// Evaluates a single [expression] in [environment]
-Value evaluateExpression(Expression expression, Environment environment) {
-  var evaluator = new _EvaluateVisitor();
-  return evaluator._withEnvironment(
-      environment, () => expression.accept(evaluator));
+/// Evaluates a single [expression]
+///
+/// The [variables] are available when evaluating [expression]
+///
+/// The [functions] are available as global functions when evaluating
+/// [expression].
+///
+/// Warnings are emitted using [logger], or printed to standard error by
+/// default.
+///
+/// Throws a [SassRuntimeException] if evaluation fails.
+Value evaluateExpression(Expression expression,
+    {Map<String, Value> variables,
+    Iterable<Callable> functions,
+    Logger logger}) {
+  var evaluator = new _EvaluateVisitor(functions: functions, logger: logger);
+  for (var name in variables.keys) {
+    evaluator._environment.setVariable(name, variables[name]);
+  }
+  return expression.accept(evaluator);
 }
 
 /// A visitor that executes Sass code to produce a CSS tree.

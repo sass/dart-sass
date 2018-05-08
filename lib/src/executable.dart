@@ -16,6 +16,7 @@ import 'environment.dart';
 import 'exception.dart';
 import 'io.dart';
 import 'util/path.dart';
+import 'value.dart' as internal;
 import 'visitor/evaluate.dart';
 
 main(List<String> args) async {
@@ -233,7 +234,7 @@ void _printUsage(ArgParser parser, String message) {
 /// Runs an interactive SassScript shell.
 _repl() async {
   var repl = new Repl(prompt: '>> ');
-  var environment = new Environment();
+  var variables = <String, internal.Value>{};
   await for (String line in repl.runAsync()) {
     try {
       Expression expression;
@@ -244,9 +245,9 @@ _repl() async {
       } on SassFormatException {
         expression = new Expression.parse(line);
       }
-      var result = evaluateExpression(expression, environment);
+      var result = evaluateExpression(expression, variables: variables);
       if (declaration != null) {
-        environment.setVariable(declaration.name, result);
+        variables[declaration.name] = result;
       }
       print(result);
     } on SassFormatException catch (e) {
