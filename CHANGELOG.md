@@ -1,3 +1,60 @@
+## 1.3.2
+
+* Add support for `@elseif` as an alias of `@else if`. This is not an
+  intentional feature, so using it will cause a deprecation warning. It will be
+  removed at some point in the future.
+
+## 1.3.1
+
+### Node API
+
+* Fix loading imports relative to stylesheets that were themselves imported
+  though relative include paths.
+
+## 1.3.0
+
+### Command-Line Interface
+
+* Generate source map files by default when writing to disk. This can be
+  disabled by passing `--no-source-map`.
+
+* Add a `--source-map-urls` option to control whether the source file URLs in
+  the generated source map are relative or absolute.
+
+* Add an `--embed-sources` option to embed the contents of all source files in
+  the generated source map.
+
+* Add an `--embed-source-map` option to embed the generated source map as a
+  `data:` URL in the generated CSS.
+
+### Dart API
+
+* Add a `sourceMap` parameter to `compile()`, `compileString()`,
+  `compileAsync()`, and `compileStringAsync()`. This takes a callback that's
+  called with a [`SingleMapping`][] that contains the source map information for
+  the compiled CSS file.
+
+[`SingleMapping`]: https://www.dartdocs.org/documentation/source_maps/latest/source_maps.parser/SingleMapping-class.html
+
+### Node API
+
+* Added support for the `sourceMap`, `omitSourceMapUrl`, `outFile`,
+  `sourceMapContents`, `sourceMapEmbed`, and `sourceMapRoot` options to
+  `render()` and `renderSync()`.
+
+* Fix a bug where passing a relative path to `render()` or `renderSync()` would
+  cause relative imports to break.
+
+* Fix a crash when printing warnings in stylesheets compiled using `render()` or
+  `renderSync()`.
+
+* Fix a bug where format errors were reported badly on Windows.
+
+## 1.2.1
+
+* Always emit units in compressed mode for `0` dimensions other than lengths and
+  angles.
+
 ## 1.2.0
 
 * The command-line executable will now create the directory for the resulting

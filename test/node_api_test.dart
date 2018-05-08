@@ -5,6 +5,8 @@
 @TestOn('node')
 @Tags(const ['node'])
 
+import 'dart:convert';
+
 // This is unsafe prior to sdk#30098, which landed in Dart 1.25.0-dev.7.0.
 import 'package:path/path.dart' as unsafePath;
 import 'package:test/test.dart';
@@ -15,6 +17,7 @@ import 'package:sass/src/node/utils.dart';
 import 'ensure_npm_package.dart';
 import 'hybrid.dart';
 import 'node_api/api.dart';
+import 'node_api/intercept_stdout.dart';
 import 'node_api/utils.dart';
 
 String sassPath;
@@ -30,28 +33,40 @@ void main() {
 
   group("renderSync()", () {
     test("renders a file", () {
-      expect(renderSync(new RenderOptions(file: sassPath)), equals('''
-a {
-  b: c;
-}'''));
+      expect(renderSync(new RenderOptions(file: sassPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
+    test("renders a file from a relative path", () {
+      runTestInSandbox();
+      expect(renderSync(new RenderOptions(file: 'test.scss')),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("renders a file with the indented syntax", () async {
       var indentedPath = p.join(sandbox, 'test.sass');
       await writeTextFile(indentedPath, 'a\n  b: c');
-      expect(renderSync(new RenderOptions(file: indentedPath)), equals('''
-a {
-  b: c;
-}'''));
+      expect(renderSync(new RenderOptions(file: indentedPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports relative imports for a file", () async {
       var importerPath = p.join(sandbox, 'importer.scss');
       await writeTextFile(importerPath, '@import "test"');
-      expect(renderSync(new RenderOptions(file: importerPath)), equals('''
-a {
-  b: c;
-}'''));
+      expect(renderSync(new RenderOptions(file: importerPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
+    // Regression test for #284
+    test("supports relative imports for a file from a relative path", () async {
+      await createDirectory(p.join(sandbox, 'subdir'));
+
+      var importerPath = p.join(sandbox, 'subdir/importer.scss');
+      await writeTextFile(importerPath, '@import "../test"');
+
+      runTestInSandbox();
+      expect(renderSync(new RenderOptions(file: 'subdir/importer.scss')),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports absolute path imports", () async {
@@ -64,10 +79,8 @@ a {
     });
 
     test("renders a string", () {
-      expect(renderSync(new RenderOptions(data: "a {b: c}")), equals('''
-a {
-  b: c;
-}'''));
+      expect(renderSync(new RenderOptions(data: "a {b: c}")),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("one of data and file must be set", () {
@@ -80,20 +93,30 @@ a {
       expect(
           renderSync(new RenderOptions(
               data: "@import 'test'", includePaths: [sandbox])),
-          equals('''
-a {
-  b: c;
-}'''));
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
+    // Regression test for #314
+    test(
+        "a file imported through a relative load path supports relative "
+        "imports", () async {
+      var subDir = p.join(sandbox, 'sub');
+      await createDirectory(subDir);
+      await writeTextFile(p.join(subDir, '_test.scss'), '@import "other"');
+
+      await writeTextFile(p.join(subDir, '_other.scss'), 'x {y: z}');
+
+      expect(
+          renderSync(new RenderOptions(
+              data: "@import 'sub/test'", includePaths: [p.relative(sandbox)])),
+          equalsIgnoringWhitespace('x { y: z; }'));
     });
 
     test("can render the indented syntax", () {
       expect(
           renderSync(
               new RenderOptions(data: "a\n  b: c", indentedSyntax: true)),
-          equals('''
-a {
-  b: c;
-}'''));
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("the indented syntax flag takes precedence over the file extension",
@@ -102,20 +125,14 @@ a {
       await writeTextFile(scssPath, 'a\n  b: c');
       expect(
           renderSync(new RenderOptions(file: scssPath, indentedSyntax: true)),
-          equals('''
-a {
-  b: c;
-}'''));
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports the expanded output style", () {
       expect(
           renderSync(
               new RenderOptions(file: sassPath, outputStyle: 'expanded')),
-          equals('''
-a {
-  b: c;
-}'''));
+          equals('a {\n  b: c;\n}'));
     });
 
     test("doesn't support other output styles", () {
@@ -178,6 +195,25 @@ a {
  b: c;
 }'''));
       });
+    });
+
+    test("emits warnings on stderr", () {
+      expect(
+          const LineSplitter().bind(interceptStderr()),
+          emitsInOrder([
+            "WARNING: aw beans",
+            "    stdin 1:1  root stylesheet",
+          ]));
+
+      expect(renderSync(new RenderOptions(data: "@warn 'aw beans'")), isEmpty);
+    });
+
+    test("emits debug messages on stderr", () {
+      expect(const LineSplitter().bind(interceptStderr()),
+          emits("stdin:1 DEBUG: what the heck"));
+
+      expect(renderSync(new RenderOptions(data: "@debug 'what the heck'")),
+          isEmpty);
     });
 
     group("with both data and file", () {
@@ -390,10 +426,8 @@ a {
 
   group("render()", () {
     test("renders a file", () async {
-      expect(await render(new RenderOptions(file: sassPath)), equals('''
-a {
-  b: c;
-}'''));
+      expect(await render(new RenderOptions(file: sassPath)),
+          equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("throws an error that has a useful toString", () async {

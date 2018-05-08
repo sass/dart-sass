@@ -8,6 +8,8 @@ import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
+import 'package:sass/src/io.dart';
+
 import '../hybrid.dart';
 import 'api.dart';
 
@@ -68,4 +70,15 @@ RenderError renderSyncError(RenderOptions options) {
   }
 
   throw "Expected renderSync() to throw an error.";
+}
+
+/// Runs the rest of the test with the working directory in the sandbox
+/// directory.
+void runTestInSandbox() {
+  // Make sure the module is loaded before we change the working directory.
+  sass;
+
+  var oldWorkingDirectory = currentPath;
+  chdir(sandbox);
+  addTearDown(() => chdir(oldWorkingDirectory));
 }
