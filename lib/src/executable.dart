@@ -25,67 +25,9 @@ main(List<String> args) async {
       return;
     }
 
-    try {
-      SingleMapping sourceMap;
-      var sourceMapCallback =
-          options.emitSourceMap ? (SingleMapping map) => sourceMap = map : null;
-
-      var text =
-          options.readFromStdin ? await readStdin() : readFile(options.source);
-      var url = options.readFromStdin ? null : p.toUri(options.source);
-      var importer = new FilesystemImporter('.');
-      String css;
-      if (options.asynchronous) {
-        css = await compileStringAsync(text,
-            indented: options.indented,
-            logger: options.logger,
-            style: options.style,
-            importer: importer,
-            loadPaths: options.loadPaths,
-            url: url,
-            sourceMap: sourceMapCallback);
-      } else {
-        css = compileString(text,
-            indented: options.indented,
-            logger: options.logger,
-            style: options.style,
-            importer: importer,
-            loadPaths: options.loadPaths,
-            url: url,
-            sourceMap: sourceMapCallback);
-      }
-
-      css += _writeSourceMap(options, sourceMap);
-      if (options.writeToStdout) {
-        if (css.isNotEmpty) print(css);
-      } else {
-        ensureDir(p.dirname(options.destination));
-        writeFile(options.destination, css + "\n");
-      }
-    } on SassException catch (error, stackTrace) {
-      stderr.writeln(error.toString(color: options.color));
-
-      if (options.trace) {
-        stderr.writeln();
-        stderr.write(new Trace.from(stackTrace).terse.toString());
-        stderr.flush();
-      }
-
-      // Exit code 65 indicates invalid data per
-      // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
-      exitCode = 65;
-    } on FileSystemException catch (error, stackTrace) {
-      stderr.writeln(
-          "Error reading ${p.relative(error.path)}: ${error.message}.");
-
-      // Error 66 indicates no input.
-      exitCode = 66;
-
-      if (options.trace) {
-        stderr.writeln();
-        stderr.write(new Trace.from(stackTrace).terse.toString());
-        stderr.flush();
-      }
+    for (var source in options.sourcesToDestinations.keys) {
+      var destination = options.sourcesToDestinations[source];
+      await _compileStylesheet(options, source, destination);
     }
   } on UsageException catch (error) {
     print("${error.message}\n");
@@ -125,14 +67,92 @@ Future<String> _loadVersion() async {
       .last;
 }
 
-/// Writes the source map given by [mapping] to disk (if necessary) according to [options].
+/// Compiles the stylesheet at [source] to [destination].
+///
+/// If [source] is `null`, that indicates that the stylesheet should be read
+/// from stdin. If [destination] is `null`, that indicates that the stylesheet
+/// should be emitted to stdout.
+Future _compileStylesheet(
+    ExecutableOptions options, String source, String destination) async {
+  try {
+    SingleMapping sourceMap;
+    var sourceMapCallback =
+        options.emitSourceMap ? (SingleMapping map) => sourceMap = map : null;
+
+    var indented =
+        options.indented ?? (source != null && p.extension(source) == '.sass');
+    var text = source == null ? await readStdin() : readFile(source);
+    var url = source == null ? null : p.toUri(source);
+    var importer = new FilesystemImporter('.');
+    String css;
+    if (options.asynchronous) {
+      css = await compileStringAsync(text,
+          indented: indented,
+          logger: options.logger,
+          style: options.style,
+          importer: importer,
+          loadPaths: options.loadPaths,
+          url: url,
+          sourceMap: sourceMapCallback);
+    } else {
+      css = compileString(text,
+          indented: indented,
+          logger: options.logger,
+          style: options.style,
+          importer: importer,
+          loadPaths: options.loadPaths,
+          url: url,
+          sourceMap: sourceMapCallback);
+    }
+
+    css += _writeSourceMap(options, sourceMap, destination);
+    if (destination == null) {
+      if (css.isNotEmpty) print(css);
+    } else {
+      ensureDir(p.dirname(destination));
+      writeFile(destination, css + "\n");
+    }
+  } on SassException catch (error, stackTrace) {
+    stderr.writeln(error.toString(color: options.color));
+
+    if (options.trace) {
+      stderr.writeln();
+      stderr.write(new Trace.from(stackTrace).terse.toString());
+      stderr.flush();
+    }
+
+    // Exit code 65 indicates invalid data per
+    // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+    exitCode = 65;
+  } on FileSystemException catch (error, stackTrace) {
+    stderr
+        .writeln("Error reading ${p.relative(error.path)}: ${error.message}.");
+
+    // Error 66 indicates no input.
+    exitCode = 66;
+
+    if (options.trace) {
+      stderr.writeln();
+      stderr.write(new Trace.from(stackTrace).terse.toString());
+      stderr.flush();
+    }
+  }
+}
+
+/// Writes the source map given by [mapping] to disk (if necessary) according to
+/// [options].
+///
+/// The [destination] is the path where the CSS file associated with this source
+/// map will be written. If it's `null`, that indicates that the CSS will be
+/// printed to stdout.
 ///
 /// Returns the source map comment to add to the end of the CSS file.
-String _writeSourceMap(ExecutableOptions options, SingleMapping sourceMap) {
+String _writeSourceMap(
+    ExecutableOptions options, SingleMapping sourceMap, String destination) {
   if (sourceMap == null) return "";
 
-  if (!options.writeToStdout) {
-    sourceMap.targetUrl = p.toUri(p.basename(options.destination)).toString();
+  if (destination != null) {
+    sourceMap.targetUrl = p.toUri(p.basename(destination)).toString();
   }
 
   for (var i = 0; i < sourceMap.urls.length; i++) {
@@ -141,7 +161,8 @@ String _writeSourceMap(ExecutableOptions options, SingleMapping sourceMap) {
     // The special URL "" indicates a file that came from stdin.
     if (url == "") continue;
 
-    sourceMap.urls[i] = options.sourceMapUrl(Uri.parse(url)).toString();
+    sourceMap.urls[i] =
+        options.sourceMapUrl(Uri.parse(url), destination).toString();
   }
   var sourceMapText = convert.json
       .encode(sourceMap.toJson(includeSourceContents: options.embedSources));
@@ -150,7 +171,7 @@ String _writeSourceMap(ExecutableOptions options, SingleMapping sourceMap) {
   if (options.embedSourceMap) {
     url = new Uri.dataFromString(sourceMapText, mimeType: 'application/json');
   } else {
-    var sourceMapPath = options.destination + '.map';
+    var sourceMapPath = destination + '.map';
     ensureDir(p.dirname(sourceMapPath));
     writeFile(sourceMapPath, sourceMapText);
 
