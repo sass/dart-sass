@@ -135,23 +135,65 @@ class ExecutableOptions {
   /// A `null` source indicates that a stylesheet should be read from standard
   /// input. A `null` destination indicates that a stylesheet should be written
   /// to standard output.
+  ///
+  /// A source path may refer to either a single stylesheet file, in which case
+  /// the destination is the file where the resulting CSS should be written; or
+  /// to a directory containing stylesheets, in which case the destination is a
+  /// directory in which the compiled CSS should be written in the same
+  /// structure.
   Map<String, String> get sourcesToDestinations {
     if (_sourcesToDestinations != null) return _sourcesToDestinations;
 
-    String source;
-    String destination;
-    if (_options['stdin'] as bool) {
-      if (_options.rest.length > 1) _fail("Compile Sass to CSS.");
-      if (_options.rest.isNotEmpty) destination = _options.rest.first;
-    } else if (_options.rest.isEmpty || _options.rest.length > 2) {
-      _fail("Compile Sass to CSS.");
-    } else if (_options.rest.first == '-') {
-      if (_options.rest.length > 1) destination = _options.rest.last;
-    } else {
-      source = _options.rest.first;
-      if (_options.rest.length > 1) destination = _options.rest.last;
+    var stdin = _options['stdin'] as bool;
+    if (_options.rest.isEmpty && !stdin) _fail("Compile Sass to CSS.");
+
+    var colonArgs = false;
+    var positionalArgs = false;
+    for (var argument in _options.rest) {
+      if (argument.isEmpty) {
+        _fail('Invalid argument "".');
+      } else if (argument.contains(":")) {
+        colonArgs = true;
+      } else {
+        positionalArgs = true;
+      }
     }
-    _sourcesToDestinations = new Map.unmodifiable({source: destination});
+
+    if (positionalArgs || _options.rest.isEmpty) {
+      if (colonArgs) {
+        _fail('Positional and ":" arguments may not both be used.');
+      } else if (stdin) {
+        if (_options.rest.length > 1) {
+          _fail("Only one argument is allowed with --stdin.");
+        }
+        return {null: _options.rest.isEmpty ? null : _options.rest.first};
+      } else if (_options.rest.length > 2) {
+        _fail("Only two positional args may be passed.");
+      } else {
+        var source = _options.rest.first == '-' ? null : _options.rest.first;
+        var destination = _options.rest.length == 1 ? null : _options.rest.last;
+        return {source: destination};
+      }
+    }
+
+    if (stdin) _fail('--stdin may not be used with ":" arguments.');
+
+    var sourcesToDestinations = <String, String>{};
+    for (var argument in _options.rest) {
+      var components = argument.split(":");
+      if (components.length > 2) {
+        _fail('"$argument" may only contain one ":".');
+      }
+      assert(components.length == 2);
+
+      var source = components.first == '-' ? null : components.first;
+      if (sourcesToDestinations.containsKey(source)) {
+        _fail('Duplicate source "${components.first}".');
+      }
+
+      sourcesToDestinations[source] = components.last;
+    }
+    _sourcesToDestinations = new Map.unmodifiable(sourcesToDestinations);
     return _sourcesToDestinations;
   }
 

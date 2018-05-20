@@ -1,3 +1,11 @@
+## 1.4.0
+
+### Command-Line Interface
+
+* Add support for compiling multiple files at once by writing
+  `sass input.scss:output.css`. Note that unlike Ruby Sass, this *always*
+  compiles files by default regardless of when they were modified.
+
 ## 1.3.2
 
 * Add support for `@elseif` as an alias of `@else if`. This is not an

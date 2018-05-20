@@ -16,6 +16,23 @@ import 'io.dart';
 import 'util/path.dart';
 
 main(List<String> args) async {
+  var printedError = false;
+
+  // Prints [error] to stderr, along with a preceding newline if anything else
+  // has been printed to stderr.
+  //
+  // If [trace] is passed, its terse representation is printed after the error.
+  void printError(String error, StackTrace stackTrace) {
+    if (printedError) stderr.writeln();
+    printedError = true;
+    stderr.writeln(error);
+
+    if (stackTrace != null) {
+      stderr.writeln();
+      stderr.writeln(new Trace.from(stackTrace).terse.toString().trimRight());
+    }
+  }
+
   ExecutableOptions options;
   try {
     options = new ExecutableOptions.parse(args);
@@ -27,23 +44,40 @@ main(List<String> args) async {
 
     for (var source in options.sourcesToDestinations.keys) {
       var destination = options.sourcesToDestinations[source];
-      await _compileStylesheet(options, source, destination);
+      try {
+        await _compileStylesheet(options, source, destination);
+      } on SassException catch (error, stackTrace) {
+        printError(error.toString(color: options.color),
+            options.trace ? stackTrace : null);
+
+        // Exit code 65 indicates invalid data per
+        // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+        //
+        // We let exitCode 66 take precedence for deterministic behavior.
+        if (exitCode != 66) exitCode = 65;
+      } on FileSystemException catch (error, stackTrace) {
+        printError("Error reading ${p.relative(error.path)}: ${error.message}.",
+            options.trace ? stackTrace : null);
+
+        // Error 66 indicates no input.
+        exitCode = 66;
+      }
     }
   } on UsageException catch (error) {
     print("${error.message}\n");
-    print("Usage: sass <input> [output]\n");
+    print("Usage: sass <input> [output]\n"
+        "       sass <input>:<output> <input>:<output>\n");
     print(ExecutableOptions.usage);
     exitCode = 64;
   } catch (error, stackTrace) {
-    if (options != null && options.color) stderr.write('\u001b[31m\u001b[1m');
-    stderr.write('Unexpected exception:');
-    if (options != null && options.color) stderr.write('\u001b[0m');
-    stderr.writeln();
+    var buffer = new StringBuffer();
+    if (options != null && options.color) buffer.write('\u001b[31m\u001b[1m');
+    buffer.write('Unexpected exception:');
+    if (options != null && options.color) buffer.write('\u001b[0m');
+    buffer.writeln();
+    buffer.writeln(error);
 
-    stderr.writeln(error);
-    stderr.writeln();
-    stderr.write(new Trace.from(stackTrace).terse.toString());
-    await stderr.flush();
+    printError(buffer.toString(), stackTrace);
     exitCode = 255;
   }
 }
@@ -74,68 +108,42 @@ Future<String> _loadVersion() async {
 /// should be emitted to stdout.
 Future _compileStylesheet(
     ExecutableOptions options, String source, String destination) async {
-  try {
-    SingleMapping sourceMap;
-    var sourceMapCallback =
-        options.emitSourceMap ? (SingleMapping map) => sourceMap = map : null;
+  SingleMapping sourceMap;
+  var sourceMapCallback =
+      options.emitSourceMap ? (SingleMapping map) => sourceMap = map : null;
 
-    var indented =
-        options.indented ?? (source != null && p.extension(source) == '.sass');
-    var text = source == null ? await readStdin() : readFile(source);
-    var url = source == null ? null : p.toUri(source);
-    var importer = new FilesystemImporter('.');
-    String css;
-    if (options.asynchronous) {
-      css = await compileStringAsync(text,
-          indented: indented,
-          logger: options.logger,
-          style: options.style,
-          importer: importer,
-          loadPaths: options.loadPaths,
-          url: url,
-          sourceMap: sourceMapCallback);
-    } else {
-      css = compileString(text,
-          indented: indented,
-          logger: options.logger,
-          style: options.style,
-          importer: importer,
-          loadPaths: options.loadPaths,
-          url: url,
-          sourceMap: sourceMapCallback);
-    }
+  var indented =
+      options.indented ?? (source != null && p.extension(source) == '.sass');
+  var text = source == null ? await readStdin() : readFile(source);
+  var url = source == null ? null : p.toUri(source);
+  var importer = new FilesystemImporter('.');
+  String css;
+  if (options.asynchronous) {
+    css = await compileStringAsync(text,
+        indented: indented,
+        logger: options.logger,
+        style: options.style,
+        importer: importer,
+        loadPaths: options.loadPaths,
+        url: url,
+        sourceMap: sourceMapCallback);
+  } else {
+    css = compileString(text,
+        indented: indented,
+        logger: options.logger,
+        style: options.style,
+        importer: importer,
+        loadPaths: options.loadPaths,
+        url: url,
+        sourceMap: sourceMapCallback);
+  }
 
-    css += _writeSourceMap(options, sourceMap, destination);
-    if (destination == null) {
-      if (css.isNotEmpty) print(css);
-    } else {
-      ensureDir(p.dirname(destination));
-      writeFile(destination, css + "\n");
-    }
-  } on SassException catch (error, stackTrace) {
-    stderr.writeln(error.toString(color: options.color));
-
-    if (options.trace) {
-      stderr.writeln();
-      stderr.write(new Trace.from(stackTrace).terse.toString());
-      stderr.flush();
-    }
-
-    // Exit code 65 indicates invalid data per
-    // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
-    exitCode = 65;
-  } on FileSystemException catch (error, stackTrace) {
-    stderr
-        .writeln("Error reading ${p.relative(error.path)}: ${error.message}.");
-
-    // Error 66 indicates no input.
-    exitCode = 66;
-
-    if (options.trace) {
-      stderr.writeln();
-      stderr.write(new Trace.from(stackTrace).terse.toString());
-      stderr.flush();
-    }
+  css += _writeSourceMap(options, sourceMap, destination);
+  if (destination == null) {
+    if (css.isNotEmpty) print(css);
+  } else {
+    ensureDir(p.dirname(destination));
+    writeFile(destination, css + "\n");
   }
 }
 
