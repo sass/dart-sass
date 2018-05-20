@@ -6,6 +6,10 @@
   `sass input.scss:output.css`. Note that unlike Ruby Sass, this *always*
   compiles files by default regardless of when they were modified.
 
+  This syntax also supports compiling entire directories at once. For example,
+  `sass templates/stylesheets:public/css` compiles all non-partial Sass files
+  in `templates/stylesheets` to CSS files in `public/css`.
+
 ## 1.3.2
 
 * Add support for `@elseif` as an alias of `@else if`. This is not an

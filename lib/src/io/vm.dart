@@ -56,3 +56,8 @@ bool dirExists(String path) => new io.Directory(path).existsSync();
 
 void ensureDir(String path) =>
     new io.Directory(path).createSync(recursive: true);
+
+Iterable<String> listDir(String path) => new io.Directory(path)
+    .listSync(recursive: true)
+    .where((entity) => entity is io.File)
+    .map((entity) => entity.path);

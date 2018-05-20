@@ -213,6 +213,72 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("out2.css.map", contains("test2.scss")).validate();
     });
 
+    group("with a directory argument", () {
+      test("compiles all the stylesheets in the directory", () async {
+        await d.dir("in", [
+          d.file("test1.scss", "a {b: c}"),
+          d.file("test2.sass", "x\n  y: z")
+        ]).create();
+
+        var sass = await runSass(["--no-source-map", "in:out"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(0);
+
+        await d.dir("out", [
+          d.file("test1.css", equalsIgnoringWhitespace("a { b: c; }")),
+          d.file("test2.css", equalsIgnoringWhitespace("x { y: z; }"))
+        ]).validate();
+      });
+
+      test("creates subdirectories in the destination", () async {
+        await d.dir("in", [
+          d.dir("sub", [d.file("test.scss", "a {b: c}")])
+        ]).create();
+
+        var sass = await runSass(["--no-source-map", "in:out"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(0);
+
+        await d.dir("out", [
+          d.dir("sub",
+              [d.file("test.css", equalsIgnoringWhitespace("a { b: c; }"))])
+        ]).validate();
+      });
+
+      test("ignores partials", () async {
+        await d.dir("in", [
+          d.file("_fake.scss", "a {b:"),
+          d.file("real.scss", "x {y: z}")
+        ]).create();
+
+        var sass = await runSass(["--no-source-map", "in:out"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(0);
+
+        await d.dir("out", [
+          d.file("real.css", equalsIgnoringWhitespace("x { y: z; }")),
+          d.nothing("fake.css"),
+          d.nothing("_fake.css")
+        ]).validate();
+      });
+
+      test("ignores files without a Sass extension", () async {
+        await d.dir("in", [
+          d.file("fake.szss", "a {b:"),
+          d.file("real.scss", "x {y: z}")
+        ]).create();
+
+        var sass = await runSass(["--no-source-map", "in:out"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(0);
+
+        await d.dir("out", [
+          d.file("real.css", equalsIgnoringWhitespace("x { y: z; }")),
+          d.nothing("fake.css")
+        ]).validate();
+      });
+    });
+
     group("reports all", () {
       test("file-not-found errors", () async {
         var sass =
