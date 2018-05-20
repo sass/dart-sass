@@ -34,4 +34,6 @@ abstract class Importer extends AsyncImporter {
   Uri canonicalize(Uri url);
 
   ImporterResult load(Uri url);
+
+  DateTime modificationTime(Uri url) => new DateTime.now();
 }

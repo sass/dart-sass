@@ -40,5 +40,8 @@ class PackageImporter extends Importer {
 
   ImporterResult load(Uri url) => _filesystemImporter.load(url);
 
+  DateTime modificationTime(Uri url) =>
+      _filesystemImporter.modificationTime(url);
+
   String toString() => "package:...";
 }

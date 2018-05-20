@@ -14,6 +14,11 @@
   `sass templates/stylesheets:public/css` compiles all non-partial Sass files
   in `templates/stylesheets` to CSS files in `public/css`.
 
+### Dart API
+
+* Add `Importer.modificationTime()` and `AsyncImporter.modificationTime()` which
+  report the last time a stylesheet was modified.
+
 ### Node API
 
 * Generate source maps when the `sourceMaps` option is set to a string and the
