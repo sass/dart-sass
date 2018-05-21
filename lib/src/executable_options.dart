@@ -101,9 +101,10 @@ class ExecutableOptions {
   bool get version => _options['version'] as bool;
 
   /// Whether to parse the source file with the indented syntax.
-  bool get indented =>
-      _ifParsed('indented') as bool ??
-      (source != null && p.extension(source) == '.sass');
+  ///
+  /// This may be `null`, indicating that this should be determined by each
+  /// stylesheet's extension.
+  bool get indented => _ifParsed('indented') as bool;
 
   /// Whether to use ANSI terminal colors.
   bool get color =>
@@ -128,32 +129,75 @@ class ExecutableOptions {
   /// Whether to print the full Dart stack trace on exceptions.
   bool get trace => _options['trace'] as bool;
 
-  /// The entrypoint Sass file, or `null` if the source should be read from
-  /// stdin.
-  String get source {
-    _ensureSourceAndDestination();
-    return _source;
+  /// A map from source paths to the destination paths where the compiled CSS
+  /// should be written.
+  ///
+  /// A `null` source indicates that a stylesheet should be read from standard
+  /// input. A `null` destination indicates that a stylesheet should be written
+  /// to standard output.
+  ///
+  /// A source path may refer to either a single stylesheet file, in which case
+  /// the destination is the file where the resulting CSS should be written; or
+  /// to a directory containing stylesheets, in which case the destination is a
+  /// directory in which the compiled CSS should be written in the same
+  /// structure.
+  Map<String, String> get sourcesToDestinations {
+    if (_sourcesToDestinations != null) return _sourcesToDestinations;
+
+    var stdin = _options['stdin'] as bool;
+    if (_options.rest.isEmpty && !stdin) _fail("Compile Sass to CSS.");
+
+    var colonArgs = false;
+    var positionalArgs = false;
+    for (var argument in _options.rest) {
+      if (argument.isEmpty) {
+        _fail('Invalid argument "".');
+      } else if (argument.contains(":")) {
+        colonArgs = true;
+      } else {
+        positionalArgs = true;
+      }
+    }
+
+    if (positionalArgs || _options.rest.isEmpty) {
+      if (colonArgs) {
+        _fail('Positional and ":" arguments may not both be used.');
+      } else if (stdin) {
+        if (_options.rest.length > 1) {
+          _fail("Only one argument is allowed with --stdin.");
+        }
+        return {null: _options.rest.isEmpty ? null : _options.rest.first};
+      } else if (_options.rest.length > 2) {
+        _fail("Only two positional args may be passed.");
+      } else {
+        var source = _options.rest.first == '-' ? null : _options.rest.first;
+        var destination = _options.rest.length == 1 ? null : _options.rest.last;
+        return {source: destination};
+      }
+    }
+
+    if (stdin) _fail('--stdin may not be used with ":" arguments.');
+
+    var sourcesToDestinations = <String, String>{};
+    for (var argument in _options.rest) {
+      var components = argument.split(":");
+      if (components.length > 2) {
+        _fail('"$argument" may only contain one ":".');
+      }
+      assert(components.length == 2);
+
+      var source = components.first == '-' ? null : components.first;
+      if (sourcesToDestinations.containsKey(source)) {
+        _fail('Duplicate source "${components.first}".');
+      }
+
+      sourcesToDestinations[source] = components.last;
+    }
+    _sourcesToDestinations = new Map.unmodifiable(sourcesToDestinations);
+    return _sourcesToDestinations;
   }
 
-  String _source;
-
-  /// Whether to read the source file from stdin rather than a file on disk.
-  bool get readFromStdin => source == null;
-
-  /// The path to which to write the CSS, or `null` if the CSS should be printed
-  /// to stdout.
-  String get destination {
-    _ensureSourceAndDestination();
-    return _destination;
-  }
-
-  String _destination;
-
-  /// Whether to write the output CSS to stdout rather than a file on disk.
-  bool get writeToStdout => destination == null;
-
-  /// Whether [_source] and [_destination] have been parsed from [_options] yet.
-  var _parsedSourceAndDestination = false;
+  Map<String, String> _sourcesToDestinations;
 
   /// Whether to emit a source map file.
   bool get emitSourceMap {
@@ -167,7 +211,9 @@ class ExecutableOptions {
       }
     }
 
-    if (destination != null) return _options['source-map'] as bool;
+    var writeToStdout = sourcesToDestinations.length == 1 &&
+        sourcesToDestinations.values.single == null;
+    if (!writeToStdout) return _options['source-map'] as bool;
 
     if (_ifParsed('source-map-urls') == 'relative') {
       _fail(
@@ -211,28 +257,9 @@ class ExecutableOptions {
 
   ExecutableOptions._(this._options);
 
-  /// Parses [source] and [destination] from [_options] if they haven't been
-  /// parsed yet.
-  void _ensureSourceAndDestination() {
-    if (_parsedSourceAndDestination) return;
-    _parsedSourceAndDestination = true;
-
-    if (_options['stdin'] as bool) {
-      if (_options.rest.length > 1) _fail("Compile Sass to CSS.");
-      if (_options.rest.isNotEmpty) _destination = _options.rest.first;
-    } else if (_options.rest.isEmpty || _options.rest.length > 2) {
-      _fail("Compile Sass to CSS.");
-    } else if (_options.rest.first == '-') {
-      if (_options.rest.length > 1) _destination = _options.rest.last;
-    } else {
-      _source = _options.rest.first;
-      if (_options.rest.length > 1) _destination = _options.rest.last;
-    }
-  }
-
-  /// Makes [url] absolute or relative (to [dir]) according to the
-  /// `source-map-urls` option.
-  Uri sourceMapUrl(Uri url) {
+  /// Makes [url] absolute or relative (to the directory containing
+  /// [destination]) according to the `source-map-urls` option.
+  Uri sourceMapUrl(Uri url, String destination) {
     var path = p.fromUri(url);
     return p.toUri(_options['source-map-urls'] == 'relative'
         ? p.relative(path, from: p.dirname(destination))

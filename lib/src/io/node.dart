@@ -61,7 +61,7 @@ class Stderr {
   void write(object) => _stderr.write(object.toString());
 
   void writeln([object]) {
-    if (object != null) _stderr.write("$object\n");
+    _stderr.write("${object ?? ''}\n");
   }
 
   void flush() {}
