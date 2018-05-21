@@ -10,10 +10,16 @@ import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../sass.dart';
+import 'ast/sass.dart';
+import 'async_import_cache.dart';
 import 'exception.dart';
 import 'executable_options.dart';
+import 'import_cache.dart';
 import 'io.dart';
 import 'util/path.dart';
+import 'visitor/async_evaluate.dart';
+import 'visitor/evaluate.dart';
+import 'visitor/serialize.dart';
 
 main(List<String> args) async {
   var printedError = false;
@@ -42,10 +48,12 @@ main(List<String> args) async {
       return;
     }
 
+    var importCache = new ImportCache([],
+        loadPaths: options.loadPaths, logger: options.logger);
     for (var source in options.sourcesToDestinations.keys) {
       var destination = options.sourcesToDestinations[source];
       try {
-        await _compileStylesheet(options, source, destination);
+        await _compileStylesheet(options, importCache, source, destination);
       } on SassException catch (error, stackTrace) {
         printError(error.toString(color: options.color),
             options.trace ? stackTrace : null);
@@ -103,48 +111,59 @@ Future<String> _loadVersion() async {
 
 /// Compiles the stylesheet at [source] to [destination].
 ///
+/// Loads files from [importCache] when possible.
+///
 /// If [source] is `null`, that indicates that the stylesheet should be read
 /// from stdin. If [destination] is `null`, that indicates that the stylesheet
 /// should be emitted to stdout.
-Future _compileStylesheet(
-    ExecutableOptions options, String source, String destination) async {
-  SingleMapping sourceMap;
-  var sourceMapCallback =
-      options.emitSourceMap ? (SingleMapping map) => sourceMap = map : null;
-
-  var indented =
-      options.indented ?? (source != null && p.extension(source) == '.sass');
-  var text = source == null ? await readStdin() : readFile(source);
-  var url = source == null ? null : p.toUri(source);
+Future _compileStylesheet(ExecutableOptions options, ImportCache importCache,
+    String source, String destination) async {
+  var stylesheet = await _parseStylesheet(options, importCache, source);
   var importer = new FilesystemImporter('.');
-  String css;
-  if (options.asynchronous) {
-    css = await compileStringAsync(text,
-        indented: indented,
-        logger: options.logger,
-        style: options.style,
-        importer: importer,
-        loadPaths: options.loadPaths,
-        url: url,
-        sourceMap: sourceMapCallback);
-  } else {
-    css = compileString(text,
-        indented: indented,
-        logger: options.logger,
-        style: options.style,
-        importer: importer,
-        loadPaths: options.loadPaths,
-        url: url,
-        sourceMap: sourceMapCallback);
-  }
+  var evaluateResult = options.asynchronous
+      ? await evaluateAsync(stylesheet,
+          importCache: new AsyncImportCache([],
+              loadPaths: options.loadPaths, logger: options.logger),
+          importer: importer,
+          logger: options.logger,
+          sourceMap: options.emitSourceMap)
+      : await evaluate(stylesheet,
+          importCache: importCache,
+          importer: importer,
+          logger: options.logger,
+          sourceMap: options.emitSourceMap);
 
-  css += _writeSourceMap(options, sourceMap, destination);
+  var serializeResult = serialize(evaluateResult.stylesheet,
+      style: options.style, sourceMap: options.emitSourceMap);
+
+  var css = serializeResult.css;
+  css += _writeSourceMap(options, serializeResult.sourceMap, destination);
   if (destination == null) {
     if (css.isNotEmpty) print(css);
   } else {
     ensureDir(p.dirname(destination));
     writeFile(destination, css + "\n");
   }
+}
+
+/// Parses [source] according to [options], loading it from [importCache] if
+/// possible.
+///
+/// Returns the parsed [Stylesheet].
+Future<Stylesheet> _parseStylesheet(
+    ExecutableOptions options, ImportCache importCache, String source) async {
+  // Import from the cache if possible so it caches the file in case anything
+  // else imports it.
+  if (source != null && options.indented == null) {
+    return importCache.importCanonical(new FilesystemImporter('.'),
+        p.toUri(p.absolute(source)), p.toUri(source));
+  }
+
+  var text = source == null ? await readStdin() : readFile(source);
+  var url = source == null ? null : p.toUri(source);
+  return options.indented ?? (source != null && p.extension(source) == '.sass')
+      ? new Stylesheet.parseSass(text, url: url, logger: options.logger)
+      : new Stylesheet.parseScss(text, url: url, logger: options.logger);
 }
 
 /// Writes the source map given by [mapping] to disk (if necessary) according to
