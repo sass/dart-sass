@@ -26,10 +26,15 @@ import 'options.dart';
 /// If [source] is `null`, that indicates that the stylesheet should be read
 /// from stdin. If [destination] is `null`, that indicates that the stylesheet
 /// should be emitted to stdout.
+///
+/// If [ifModified] is `true`, only recompiles if [source]'s modification time
+/// or that of a file it imports is more recent than [destination]'s
+/// modification time. Note that these modification times are cached by [graph].
 Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
-    String source, String destination) async {
+    String source, String destination,
+    {bool ifModified: false}) async {
   var importer = new FilesystemImporter('.');
-  if (options.update) {
+  if (ifModified) {
     try {
       if (source != null &&
           destination != null &&
@@ -50,7 +55,7 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
           importer: importer,
           logger: options.logger,
           sourceMap: options.emitSourceMap)
-      : await evaluate(stylesheet,
+      : evaluate(stylesheet,
           importCache: graph.importCache,
           importer: importer,
           logger: options.logger,
@@ -68,10 +73,12 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
     writeFile(destination, css + "\n");
   }
 
-  if (!options.update || options.quiet) return;
+  if (options.quiet || (!options.update && !options.watch)) return;
   var buffer = new StringBuffer();
   if (options.color) buffer.write('\u001b[32m');
-  buffer.write('Compiled ${source ?? 'stdin'} to $destination.');
+
+  var sourceName = source == null ? 'stdin' : p.prettyUri(p.toUri(source));
+  buffer.write('Compiled $sourceName to $destination.');
   if (options.color) buffer.write('\u001b[0m');
   print(buffer);
 }

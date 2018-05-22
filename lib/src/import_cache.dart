@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 90302aba01c574ffbc07e75a34606406e48df7fc
+// Checksum: 411ad1e666d5a138e69b51d9bdb58e9b22e88632
 
 import 'package:tuple/tuple.dart';
 
@@ -152,6 +152,13 @@ class ImportCache {
           : new Stylesheet.parseScss(result.contents,
               url: displayUrl, logger: _logger);
     });
+  }
+
+  /// Clears the cached canonical version of the given [url].
+  ///
+  /// Has no effect if the canonical version of [url] has not been cached.
+  void clearCanonicalize(Uri url) {
+    _canonicalizeCache.remove(url);
   }
 
   /// Clears the cached parse tree for the stylesheet with the given

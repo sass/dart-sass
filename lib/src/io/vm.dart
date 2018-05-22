@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:async/async.dart';
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
+import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
 
@@ -70,4 +72,17 @@ DateTime modificationTime(String path) {
     throw new io.FileSystemException("File not found.", path);
   }
   return stat.modified;
+}
+
+Future<Stream<WatchEvent>> watchDir(String path) async {
+  var watcher = new DirectoryWatcher(path);
+
+  // Wrap [stream] in a [SubscriptionStream] so that its `onListen` event
+  // triggers but the caller can still listen at their leisure.
+  var stream = new SubscriptionStream<WatchEvent>(watcher.events
+      .transform(const SingleSubscriptionTransformer<WatchEvent, WatchEvent>())
+      .listen((e) => print(e)));
+  await watcher.ready;
+
+  return stream;
 }

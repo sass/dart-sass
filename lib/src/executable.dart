@@ -11,6 +11,7 @@ import 'exception.dart';
 import 'executable/compile_stylesheet.dart';
 import 'executable/options.dart';
 import 'executable/repl.dart';
+import 'executable/watch.dart';
 import 'import_cache.dart';
 import 'io.dart';
 import 'stylesheet_graph.dart';
@@ -50,10 +51,16 @@ main(List<String> args) async {
 
     var graph = new StylesheetGraph(new ImportCache([],
         loadPaths: options.loadPaths, logger: options.logger));
+    if (options.watch) {
+      await watch(options, graph);
+      return;
+    }
+
     for (var source in options.sourcesToDestinations.keys) {
       var destination = options.sourcesToDestinations[source];
       try {
-        await compileStylesheet(options, graph, source, destination);
+        await compileStylesheet(options, graph, source, destination,
+            ifModified: options.update);
       } on SassException catch (error, stackTrace) {
         // This is an immediately-invoked function expression to work around
         // dart-lang/sdk#33400.

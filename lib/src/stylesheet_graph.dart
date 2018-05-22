@@ -130,6 +130,7 @@ class StylesheetGraph {
       remove(canonicalUrl);
       return null;
     }
+    node._stylesheet = stylesheet;
 
     node._stylesheet = stylesheet;
     node._replaceUpstream(
@@ -189,6 +190,17 @@ class StylesheetGraph {
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;
     return node;
+  }
+
+  /// Clears the cached canonical version of the given [url] in [importCache].
+  ///
+  /// Also resets the cached modification times for stylesheets in the graph.
+  void clearCanonicalize(Uri url) {
+    // Rather than spending time computing exactly which modification times
+    // should be updated, just clear the cache and let it be computed again
+    // later.
+    _transitiveModificationTimes.clear();
+    importCache.clearCanonicalize(url);
   }
 
   /// Runs [callback] and returns its result.

@@ -151,6 +151,13 @@ class AsyncImportCache {
     });
   }
 
+  /// Clears the cached canonical version of the given [url].
+  ///
+  /// Has no effect if the canonical version of [url] has not been cached.
+  void clearCanonicalize(Uri url) {
+    _canonicalizeCache.remove(url);
+  }
+
   /// Clears the cached parse tree for the stylesheet with the given
   /// [canonicalUrl].
   ///
