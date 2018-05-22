@@ -18,6 +18,14 @@ class _FS {
   external void writeFileSync(String path, String data);
   external bool existsSync(String path);
   external void mkdirSync(String path);
+  external _Stat statSync(String path);
+  external List<String> readdirSync(String path);
+}
+
+@JS()
+class _Stat {
+  external bool isFile();
+  external bool isDirectory();
 }
 
 @JS()
@@ -135,9 +143,25 @@ String _cleanErrorMessage(_SystemError error) {
       error.message.length - ", ${error.syscall} '${error.path}'".length);
 }
 
-bool fileExists(String path) => _fs.existsSync(path);
+bool fileExists(String path) {
+  try {
+    return _fs.statSync(path).isFile();
+  } catch (error) {
+    var systemError = error as _SystemError;
+    if (systemError.code == 'ENOENT') return false;
+    rethrow;
+  }
+}
 
-bool dirExists(String path) => _fs.existsSync(path);
+bool dirExists(String path) {
+  try {
+    return _fs.statSync(path).isDirectory();
+  } catch (error) {
+    var systemError = error as _SystemError;
+    if (systemError.code == 'ENOENT') return false;
+    rethrow;
+  }
+}
 
 void ensureDir(String path) {
   return _systemErrorToFileSystemException(() {
@@ -151,6 +175,16 @@ void ensureDir(String path) {
       _fs.mkdirSync(path);
     }
   });
+}
+
+Iterable<String> listDir(String path) {
+  Iterable<String> list(String parent) =>
+      _fs.readdirSync(parent).expand((child) {
+        var path = p.join(parent, child);
+        return dirExists(path) ? listDir(path) : [path];
+      });
+
+  return _systemErrorToFileSystemException(() => list(path));
 }
 
 /// Runs callback and converts any [_SystemError]s it throws into

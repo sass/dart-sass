@@ -178,6 +178,10 @@ class ExecutableOptions {
 
     if (stdin) _fail('--stdin may not be used with ":" arguments.');
 
+    // Track [seen] separately from `sourcesToDestinations.keys` because we want
+    // to report errors for sources as users entered them, rather than after
+    // directories have been resolved.
+    var seen = new Set<String>();
     var sourcesToDestinations = <String, String>{};
     for (var argument in _options.rest) {
       var components = argument.split(":");
@@ -186,18 +190,42 @@ class ExecutableOptions {
       }
       assert(components.length == 2);
 
-      var source = components.first == '-' ? null : components.first;
-      if (sourcesToDestinations.containsKey(source)) {
-        _fail('Duplicate source "${components.first}".');
+      var source = components.first;
+      var destination = components.last;
+      if (!seen.add(source)) {
+        _fail('Duplicate source "${source}".');
       }
 
-      sourcesToDestinations[source] = components.last;
+      if (source == '-') {
+        sourcesToDestinations[null] = destination;
+      } else if (dirExists(source)) {
+        sourcesToDestinations.addAll(_listSourceDirectory(source, destination));
+      } else {
+        sourcesToDestinations[source] = destination;
+      }
     }
     _sourcesToDestinations = new Map.unmodifiable(sourcesToDestinations);
     return _sourcesToDestinations;
   }
 
   Map<String, String> _sourcesToDestinations;
+
+  /// Returns the sub-map of [sourcesToDestinations] for the given [source] and
+  /// [destination] directories.
+  Map<String, String> _listSourceDirectory(String source, String destination) {
+    var map = <String, String>{};
+    for (var path in listDir(source)) {
+      var basename = p.basename(path);
+      if (basename.startsWith("_")) continue;
+
+      var extension = p.extension(path);
+      if (extension != ".scss" && extension != ".sass") continue;
+
+      map[path] = p.join(
+          destination, p.setExtension(p.relative(path, from: source), '.css'));
+    }
+    return map;
+  }
 
   /// Whether to emit a source map file.
   bool get emitSourceMap {
