@@ -44,10 +44,10 @@ abstract class AsyncImporter {
   ///   * `"$url.scss"`
   ///
   /// * Finally, the importer should check for a directory default index.
-  ///   * `"$url<File System Delimiter>_index.sass"`
-  ///   * `"$url<File System Delimiter>index.sass"`
-  ///   * `"$url<File System Delimiter>_index.scss"`
-  ///   * `"$url<File System Delimiter>index.scss"`
+  ///   * `"$url/_index.sass"`
+  ///   * `"$url/index.sass"`
+  ///   * `"$url/_index.scss"`
+  ///   * `"$url/index.scss"`
   ///
   /// If none are found, it should return `null`.
   ///
