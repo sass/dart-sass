@@ -304,12 +304,12 @@ abstract class StylesheetParser extends Parser {
         // Properties that are ambiguous with selectors can't have additional
         // properties nested beneath them, so we force an error. This will be
         // caught below and cause the text to be reparsed as a selector.
-        if (couldBeSelector) scanner.expectChar($semicolon);
+        if (couldBeSelector) expectStatementSeparator();
       } else if (!atEndOfStatement()) {
         // Force an exception if there isn't a valid end-of-property character
         // but don't consume that character. This will also cause the text to be
         // reparsed.
-        scanner.expectChar($semicolon);
+        expectStatementSeparator();
       }
     } on FormatException catch (_) {
       if (!couldBeSelector) rethrow;

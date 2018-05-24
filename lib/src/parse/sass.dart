@@ -54,15 +54,11 @@ class SassParser extends StylesheetParser {
   }
 
   void expectStatementSeparator([String name]) {
-    if (!atEndOfStatement()) scanner.expectChar($lf);
+    if (!atEndOfStatement()) _expectNewline();
     if (_peekIndentation() <= currentIndentation) return;
     scanner.error(
         "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
         position: _nextIndentationEnd.position);
-  }
-
-  void expectSemicolon(String name) {
-    if (!atEndOfStatement()) scanner.expectChar($lf);
   }
 
   bool atEndOfStatement() {
@@ -292,6 +288,20 @@ class SassParser extends StylesheetParser {
 
     if (scanner.peekChar() == $slash && scanner.peekChar(1) == $slash) {
       silentComment();
+    }
+  }
+
+  /// Expect and consume a single newline character.
+  void _expectNewline() {
+    switch (scanner.peekChar()) {
+      case $semicolon:
+        scanner.error("semicolons aren't allowed in the indented syntax.");
+        return;
+      case $lf:
+        scanner.readChar();
+        return;
+      default:
+        scanner.error("expected newline.");
     }
   }
 

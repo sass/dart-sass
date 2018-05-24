@@ -1,5 +1,9 @@
 ## 1.4.0
 
+* Improve the error message for invalid semicolons in the indented syntax.
+
+* Properly disallow semicolons after declarations in the indented syntax.
+
 ### Command-Line Interface
 
 * Add support for compiling multiple files at once by writing
