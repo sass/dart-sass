@@ -154,6 +154,14 @@ void main() {
     });
   });
 
+  test("emits a source map with a string sourceMap and no outFile", () {
+    var result = sass.renderSync(
+        new RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
+    var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+    expect(map, containsPair("sources", ["stdin"]));
+    expect(map, isNot(contains("targetUrl")));
+  });
+
   test("with omitSourceMapUrl, doesn't include a source map comment", () {
     var result = sass.renderSync(new RenderOptions(
         data: "a {b: c}",

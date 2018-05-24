@@ -342,8 +342,10 @@ RenderResult _newRenderResult(
     var sourceMapDir = p.dirname(sourceMapPath);
 
     result.sourceMap.sourceRoot = options.sourceMapRoot;
-    result.sourceMap.targetUrl =
-        p.toUri(p.relative(options.outFile, from: sourceMapDir)).toString();
+    if (options.outFile != null) {
+      result.sourceMap.targetUrl =
+          p.toUri(p.relative(options.outFile, from: sourceMapDir)).toString();
+    }
 
     var sourceMapDirUrl = p.toUri(sourceMapDir).toString();
     for (var i = 0; i < result.sourceMap.urls.length; i++) {
@@ -359,8 +361,9 @@ RenderResult _newRenderResult(
     if (!isTruthy(options.omitSourceMapUrl)) {
       var url = options.sourceMapEmbed
           ? new Uri.dataFromBytes(sourceMapBytes, mimeType: "application/json")
-          : p.toUri(
-              p.relative(sourceMapPath, from: p.dirname(options.outFile)));
+          : p.toUri(options.outFile == null
+              ? sourceMapPath
+              : p.relative(sourceMapPath, from: p.dirname(options.outFile)));
       css += "\n\n/*# sourceMappingURL=$url */";
     }
   }
@@ -378,7 +381,8 @@ RenderResult _newRenderResult(
 
 /// Returns whether source maps are enabled by [options].
 bool _enableSourceMaps(RenderOptions options) =>
-    isTruthy(options.sourceMap) && options.outFile != null;
+    options.sourceMap is String ||
+    (isTruthy(options.sourceMap) && options.outFile != null);
 
 /// Creates a [JSError] with the given fields added to it so it acts like a Node
 /// Sass error.
