@@ -522,8 +522,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         expect(
             _readJson("out.css.map"),
             containsPair("sources", [
-              p.toUri(p.join(d.sandbox, "dir/other.scss")).toString(),
-              p.toUri(p.join(d.sandbox, "test.scss")).toString()
+              p
+                  .toUri(p.normalize(p.join(d.sandbox, "dir/other.scss")))
+                  .toString(),
+              p.toUri(p.normalize(p.join(d.sandbox, "test.scss"))).toString()
             ]));
       });
 
