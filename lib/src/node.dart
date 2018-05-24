@@ -342,7 +342,14 @@ RenderResult _newRenderResult(
     var sourceMapDir = p.dirname(sourceMapPath);
 
     result.sourceMap.sourceRoot = options.sourceMapRoot;
-    if (options.outFile != null) {
+    if (options.outFile == null) {
+      if (options.file == null) {
+        result.sourceMap.targetUrl = 'stdin.css';
+      } else {
+        result.sourceMap.targetUrl =
+            p.toUri(p.setExtension(options.file, '.css')).toString();
+      }
+    } else {
       result.sourceMap.targetUrl =
           p.toUri(p.relative(options.outFile, from: sourceMapDir)).toString();
     }
