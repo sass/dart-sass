@@ -10,6 +10,11 @@
   `sass templates/stylesheets:public/css` compiles all non-partial Sass files
   in `templates/stylesheets` to CSS files in `public/css`.
 
+### Node API
+
+* Generate source maps when the `sourceMaps` option is set to a string and the
+  `outFile` option is not set.
+
 ## 1.3.2
 
 * Add support for `@elseif` as an alias of `@else if`. This is not an
