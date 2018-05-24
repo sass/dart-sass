@@ -288,7 +288,7 @@ class ExecutableOptions {
   /// Makes [url] absolute or relative (to the directory containing
   /// [destination]) according to the `source-map-urls` option.
   Uri sourceMapUrl(Uri url, String destination) {
-    var path = p.normalize(p.fromUri(url));
+    var path = p.canonicalize(p.fromUri(url));
     return p.toUri(_options['source-map-urls'] == 'relative'
         ? p.relative(path, from: p.dirname(destination))
         : p.absolute(path));

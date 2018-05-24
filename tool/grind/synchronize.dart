@@ -15,7 +15,8 @@ import 'package:path/path.dart' as p;
 /// The files to compile to synchronous versions.
 final _sources = {
   'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
-  'lib/src/async_environment.dart': 'lib/src/environment.dart'
+  'lib/src/async_environment.dart': 'lib/src/environment.dart',
+  'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart'
 };
 
 /// This is how we support both synchronous and asynchronous compilation modes.
