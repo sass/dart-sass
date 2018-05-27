@@ -107,17 +107,20 @@ class ExecutableOptions {
   /// Whether to run an interactive shell.
   bool get interactive {
     if (!(_options['interactive'] as bool)) return false;
-    if (_options.wasParsed('stdin') ||
-        _options.wasParsed('indented') ||
-        _options.wasParsed('load-path') ||
-        _options.wasParsed('style') ||
-        _options.wasParsed('quiet') ||
-        _options.wasParsed('help') ||
-        _options.wasParsed('source-map') ||
-        _options.wasParsed('source-map-urls') ||
-        _options.wasParsed('embed-sources') ||
-        _options.wasParsed('embed-source-map')) {
-      throw new UsageException("Option not supported with --interactive.");
+    var invalidOptions = [
+      'stdin',
+      'indented',
+      'load-path',
+      'style',
+      'source-map',
+      'source-map-urls',
+      'embed-sources',
+      'embed-source-map'
+    ];
+    for (var option in invalidOptions) {
+      if (_options.wasParsed(option)) {
+        throw new UsageException('--$option not supported with --interactive.');
+      }
     }
     return true;
   }

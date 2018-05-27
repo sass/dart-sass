@@ -228,12 +228,14 @@ _repl(ExecutableOptions options) async {
       Expression expression;
       VariableDeclaration declaration;
       try {
-        declaration = new VariableDeclaration.parse(line);
+        declaration =
+            new VariableDeclaration.parse(line, logger: options.logger);
         expression = declaration.expression;
       } on SassFormatException {
-        expression = new Expression.parse(line);
+        expression = new Expression.parse(line, logger: options.logger);
       }
-      var result = evaluateExpression(expression, variables: variables);
+      var result = evaluateExpression(expression,
+          variables: variables, logger: options.logger);
       if (declaration != null) {
         variables[declaration.name] = result;
       }

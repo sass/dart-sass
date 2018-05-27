@@ -763,15 +763,17 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       var invalidArgs = [
         '--stdin',
         '--indented',
+        '--load-path=x',
         '--style=compressed',
-        '--quiet',
-        '--load-path=a',
-        '--help'
+        '--source-map',
+        '--source-map-urls=absolute',
+        '--embed-sources',
+        '--embed-source-map'
       ];
       for (var arg in invalidArgs) {
         var sass = await runSass(["--interactive", arg]);
         expect(sass.stdout,
-            emitsThrough(contains("Print this usage information.")));
+            emitsThrough(contains("not supported with --interactive")));
         sass.stdin.close();
         await sass.shouldExit(64);
       }
