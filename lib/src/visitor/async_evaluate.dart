@@ -44,6 +44,9 @@ typedef Future _ScopeCallback(Future callback());
 /// The [functions] are available as global functions when evaluating
 /// [stylesheet].
 ///
+/// The [variables] are available as global variables when evaluating
+/// [stylesheet].
+///
 /// Warnings are emitted using [logger], or printed to standard error by
 /// default.
 ///
@@ -56,6 +59,7 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
         NodeImporter nodeImporter,
         AsyncImporter importer,
         Iterable<AsyncCallable> functions,
+        Map<String, Value> variables,
         Logger logger,
         bool sourceMap: false}) =>
     new _EvaluateVisitor(
@@ -63,15 +67,17 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
             nodeImporter: nodeImporter,
             importer: importer,
             functions: functions,
+            variables: variables,
             logger: logger,
             sourceMap: sourceMap)
         .run(stylesheet);
 
 /// Evaluates a single [expression]
 ///
-/// The [variables] are available when evaluating [expression]
-///
 /// The [functions] are available as global functions when evaluating
+/// [expression].
+///
+/// The [variables] are available as global variables when evaluating
 /// [expression].
 ///
 /// Warnings are emitted using [logger], or printed to standard error by
@@ -79,17 +85,14 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
 ///
 /// Throws a [SassRuntimeException] if evaluation fails.
 Future<Value> evaluateExpressionAsync(Expression expression,
-    {Map<String, Value> variables,
-    Iterable<AsyncCallable> functions,
-    Logger logger}) {
-  var evaluator = new _EvaluateVisitor(
-      functions: functions, logger: logger, sourceMap: false);
-  for (var name in variables.keys) {
-    evaluator._environment
-        .setVariable(name, variables[name], null, global: true);
-  }
-  return expression.accept(evaluator);
-}
+        {Iterable<AsyncCallable> functions,
+        Map<String, Value> variables,
+        Logger logger}) =>
+    expression.accept(new _EvaluateVisitor(
+        functions: functions,
+        variables: variables,
+        logger: logger,
+        sourceMap: false));
 
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
@@ -194,6 +197,7 @@ class _EvaluateVisitor
       NodeImporter nodeImporter,
       AsyncImporter importer,
       Iterable<AsyncCallable> functions,
+      Map<String, Value> variables,
       Logger logger,
       bool sourceMap})
       : _importCache = importCache ?? AsyncImportCache.none,
@@ -288,6 +292,10 @@ class _EvaluateVisitor
 
     for (var function in functions ?? const <AsyncCallable>[]) {
       _environment.setFunction(function);
+    }
+
+    for (var name in variables?.keys ?? const <String>[]) {
+      _environment.setVariable(name, variables[name], null, global: true);
     }
   }
 

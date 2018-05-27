@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: c24a81d7e627d58976112aa89f95377a30b20afa
+// Checksum: ff6c50c58c86529e7fed4247a7381649cec1900c
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -51,6 +51,9 @@ typedef void _ScopeCallback(void callback());
 /// The [functions] are available as global functions when evaluating
 /// [stylesheet].
 ///
+/// The [variables] are available as global variables when evaluating
+/// [stylesheet].
+///
 /// Warnings are emitted using [logger], or printed to standard error by
 /// default.
 ///
@@ -63,6 +66,7 @@ EvaluateResult evaluate(Stylesheet stylesheet,
         NodeImporter nodeImporter,
         Importer importer,
         Iterable<Callable> functions,
+        Map<String, Value> variables,
         Logger logger,
         bool sourceMap: false}) =>
     new _EvaluateVisitor(
@@ -70,15 +74,17 @@ EvaluateResult evaluate(Stylesheet stylesheet,
             nodeImporter: nodeImporter,
             importer: importer,
             functions: functions,
+            variables: variables,
             logger: logger,
             sourceMap: sourceMap)
         .run(stylesheet);
 
 /// Evaluates a single [expression]
 ///
-/// The [variables] are available when evaluating [expression]
-///
 /// The [functions] are available as global functions when evaluating
+/// [expression].
+///
+/// The [variables] are available as global variables when evaluating
 /// [expression].
 ///
 /// Warnings are emitted using [logger], or printed to standard error by
@@ -86,17 +92,14 @@ EvaluateResult evaluate(Stylesheet stylesheet,
 ///
 /// Throws a [SassRuntimeException] if evaluation fails.
 Value evaluateExpression(Expression expression,
-    {Map<String, Value> variables,
-    Iterable<Callable> functions,
-    Logger logger}) {
-  var evaluator = new _EvaluateVisitor(
-      functions: functions, logger: logger, sourceMap: false);
-  for (var name in variables.keys) {
-    evaluator._environment
-        .setVariable(name, variables[name], null, global: true);
-  }
-  return expression.accept(evaluator);
-}
+        {Iterable<Callable> functions,
+        Map<String, Value> variables,
+        Logger logger}) =>
+    expression.accept(new _EvaluateVisitor(
+        functions: functions,
+        variables: variables,
+        logger: logger,
+        sourceMap: false));
 
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
@@ -199,6 +202,7 @@ class _EvaluateVisitor
       NodeImporter nodeImporter,
       Importer importer,
       Iterable<Callable> functions,
+      Map<String, Value> variables,
       Logger logger,
       bool sourceMap})
       : _importCache = importCache ?? ImportCache.none,
@@ -293,6 +297,10 @@ class _EvaluateVisitor
 
     for (var function in functions ?? const <Callable>[]) {
       _environment.setFunction(function);
+    }
+
+    for (var name in variables?.keys ?? const <String>[]) {
+      _environment.setVariable(name, variables[name], null, global: true);
     }
   }
 
