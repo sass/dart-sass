@@ -8,7 +8,9 @@ import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/sass.dart';
+import 'async_import_cache.dart';
 import 'callable.dart';
+import 'import_cache.dart';
 import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
@@ -72,8 +74,10 @@ CompileResult compileString(String source,
       : new Stylesheet.parseScss(source, url: url, logger: logger);
 
   var evaluateResult = evaluate(sassTree,
-      importers: (importers?.toList() ?? [])
-        ..addAll(_toImporters(loadPaths, packageResolver)),
+      importCache: new ImportCache(importers,
+          loadPaths: loadPaths,
+          packageResolver: packageResolver,
+          logger: logger),
       nodeImporter: nodeImporter,
       importer: importer,
       functions: functions,
@@ -143,8 +147,10 @@ Future<CompileResult> compileStringAsync(String source,
       : new Stylesheet.parseScss(source, url: url, logger: logger);
 
   var evaluateResult = await evaluateAsync(sassTree,
-      importers: (importers?.toList() ?? [])
-        ..addAll(_toImporters(loadPaths, packageResolver)),
+      importCache: new AsyncImportCache(importers,
+          loadPaths: loadPaths,
+          packageResolver: packageResolver,
+          logger: logger),
       nodeImporter: nodeImporter,
       importer: importer,
       functions: functions,
@@ -159,20 +165,6 @@ Future<CompileResult> compileStringAsync(String source,
       sourceMap: sourceMap);
 
   return new CompileResult(evaluateResult, serializeResult);
-}
-
-/// Converts the user's [loadPaths] and [packageResolver] options into
-/// importers.
-List<Importer> _toImporters(
-    Iterable<String> loadPaths, SyncPackageResolver packageResolver) {
-  var list = <Importer>[];
-  if (loadPaths != null) {
-    list.addAll(loadPaths.map((path) => new FilesystemImporter(path)));
-  }
-  if (packageResolver != null) {
-    list.add(new PackageImporter(packageResolver));
-  }
-  return list;
 }
 
 /// The result of compiling a Sass document to CSS, along with metadata about

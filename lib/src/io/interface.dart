@@ -65,5 +65,9 @@ bool dirExists(String path) => null;
 /// necessary.
 void ensureDir(String path) => null;
 
+/// Recursively lists the files (not sub-directories) of the directory at
+/// [path].
+Iterable<String> listDir(String path) => null;
+
 /// Gets and sets the exit code that the process will use when it exits.
 int exitCode;

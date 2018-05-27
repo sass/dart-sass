@@ -11,16 +11,38 @@ import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../sass.dart';
+import 'ast/sass.dart';
 import 'ast/sass/expression.dart';
 import 'ast/sass/statement/variable_declaration.dart';
+import 'async_import_cache.dart';
 import 'exception.dart';
 import 'executable_options.dart';
+import 'import_cache.dart';
 import 'io.dart';
 import 'util/path.dart';
 import 'value.dart' as internal;
+import 'visitor/async_evaluate.dart';
 import 'visitor/evaluate.dart';
+import 'visitor/serialize.dart';
 
 main(List<String> args) async {
+  var printedError = false;
+
+  // Prints [error] to stderr, along with a preceding newline if anything else
+  // has been printed to stderr.
+  //
+  // If [trace] is passed, its terse representation is printed after the error.
+  void printError(String error, StackTrace stackTrace) {
+    if (printedError) stderr.writeln();
+    printedError = true;
+    stderr.writeln(error);
+
+    if (stackTrace != null) {
+      stderr.writeln();
+      stderr.writeln(new Trace.from(stackTrace).terse.toString().trimRight());
+    }
+  }
+
   ExecutableOptions options;
   try {
     options = new ExecutableOptions.parse(args);
@@ -35,83 +57,44 @@ main(List<String> args) async {
       return;
     }
 
-    try {
-      SingleMapping sourceMap;
-      var sourceMapCallback =
-          options.emitSourceMap ? (SingleMapping map) => sourceMap = map : null;
+    var importCache = new ImportCache([],
+        loadPaths: options.loadPaths, logger: options.logger);
+    for (var source in options.sourcesToDestinations.keys) {
+      var destination = options.sourcesToDestinations[source];
+      try {
+        await _compileStylesheet(options, importCache, source, destination);
+      } on SassException catch (error, stackTrace) {
+        printError(error.toString(color: options.color),
+            options.trace ? stackTrace : null);
 
-      var text =
-          options.readFromStdin ? await readStdin() : readFile(options.source);
-      var url = options.readFromStdin ? null : p.toUri(options.source);
-      var importer = new FilesystemImporter('.');
-      String css;
-      if (options.asynchronous) {
-        css = await compileStringAsync(text,
-            indented: options.indented,
-            logger: options.logger,
-            style: options.style,
-            importer: importer,
-            loadPaths: options.loadPaths,
-            url: url,
-            sourceMap: sourceMapCallback);
-      } else {
-        css = compileString(text,
-            indented: options.indented,
-            logger: options.logger,
-            style: options.style,
-            importer: importer,
-            loadPaths: options.loadPaths,
-            url: url,
-            sourceMap: sourceMapCallback);
-      }
+        // Exit code 65 indicates invalid data per
+        // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+        //
+        // We let exitCode 66 take precedence for deterministic behavior.
+        if (exitCode != 66) exitCode = 65;
+      } on FileSystemException catch (error, stackTrace) {
+        printError("Error reading ${p.relative(error.path)}: ${error.message}.",
+            options.trace ? stackTrace : null);
 
-      css += _writeSourceMap(options, sourceMap);
-      if (options.writeToStdout) {
-        if (css.isNotEmpty) print(css);
-      } else {
-        ensureDir(p.dirname(options.destination));
-        writeFile(options.destination, css + "\n");
-      }
-    } on SassException catch (error, stackTrace) {
-      stderr.writeln(error.toString(color: options.color));
-
-      if (options.trace) {
-        stderr.writeln();
-        stderr.write(new Trace.from(stackTrace).terse.toString());
-        stderr.flush();
-      }
-
-      // Exit code 65 indicates invalid data per
-      // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
-      exitCode = 65;
-    } on FileSystemException catch (error, stackTrace) {
-      stderr.writeln(
-          "Error reading ${p.relative(error.path)}: ${error.message}.");
-
-      // Error 66 indicates no input.
-      exitCode = 66;
-
-      if (options.trace) {
-        stderr.writeln();
-        stderr.write(new Trace.from(stackTrace).terse.toString());
-        stderr.flush();
+        // Error 66 indicates no input.
+        exitCode = 66;
       }
     }
   } on UsageException catch (error) {
     print("${error.message}\n");
-    print("Usage: sass <input> [output]\n");
+    print("Usage: sass <input.scss> [output.css]\n"
+        "       sass <input.scss>:<output.css> <input/>:<output/>\n");
     print(ExecutableOptions.usage);
     exitCode = 64;
   } catch (error, stackTrace) {
-    if (options != null && options.color) stderr.write('\u001b[31m\u001b[1m');
-    stderr.write('Unexpected exception:');
-    if (options != null && options.color) stderr.write('\u001b[0m');
-    stderr.writeln();
+    var buffer = new StringBuffer();
+    if (options != null && options.color) buffer.write('\u001b[31m\u001b[1m');
+    buffer.write('Unexpected exception:');
+    if (options != null && options.color) buffer.write('\u001b[0m');
+    buffer.writeln();
+    buffer.writeln(error);
 
-    stderr.writeln(error);
-    stderr.writeln();
-    stderr.write(new Trace.from(stackTrace).terse.toString());
-    await stderr.flush();
+    printError(buffer.toString(), stackTrace);
     exitCode = 255;
   }
 }
@@ -135,14 +118,77 @@ Future<String> _loadVersion() async {
       .last;
 }
 
-/// Writes the source map given by [mapping] to disk (if necessary) according to [options].
+/// Compiles the stylesheet at [source] to [destination].
+///
+/// Loads files from [importCache] when possible.
+///
+/// If [source] is `null`, that indicates that the stylesheet should be read
+/// from stdin. If [destination] is `null`, that indicates that the stylesheet
+/// should be emitted to stdout.
+Future _compileStylesheet(ExecutableOptions options, ImportCache importCache,
+    String source, String destination) async {
+  var stylesheet = await _parseStylesheet(options, importCache, source);
+  var importer = new FilesystemImporter('.');
+  var evaluateResult = options.asynchronous
+      ? await evaluateAsync(stylesheet,
+          importCache: new AsyncImportCache([],
+              loadPaths: options.loadPaths, logger: options.logger),
+          importer: importer,
+          logger: options.logger,
+          sourceMap: options.emitSourceMap)
+      : await evaluate(stylesheet,
+          importCache: importCache,
+          importer: importer,
+          logger: options.logger,
+          sourceMap: options.emitSourceMap);
+
+  var serializeResult = serialize(evaluateResult.stylesheet,
+      style: options.style, sourceMap: options.emitSourceMap);
+
+  var css = serializeResult.css;
+  css += _writeSourceMap(options, serializeResult.sourceMap, destination);
+  if (destination == null) {
+    if (css.isNotEmpty) print(css);
+  } else {
+    ensureDir(p.dirname(destination));
+    writeFile(destination, css + "\n");
+  }
+}
+
+/// Parses [source] according to [options], loading it from [importCache] if
+/// possible.
+///
+/// Returns the parsed [Stylesheet].
+Future<Stylesheet> _parseStylesheet(
+    ExecutableOptions options, ImportCache importCache, String source) async {
+  // Import from the cache if possible so it caches the file in case anything
+  // else imports it.
+  if (source != null && options.indented == null) {
+    return importCache.importCanonical(new FilesystemImporter('.'),
+        p.toUri(p.absolute(source)), p.toUri(source));
+  }
+
+  var text = source == null ? await readStdin() : readFile(source);
+  var url = source == null ? null : p.toUri(source);
+  return options.indented ?? (source != null && p.extension(source) == '.sass')
+      ? new Stylesheet.parseSass(text, url: url, logger: options.logger)
+      : new Stylesheet.parseScss(text, url: url, logger: options.logger);
+}
+
+/// Writes the source map given by [mapping] to disk (if necessary) according to
+/// [options].
+///
+/// The [destination] is the path where the CSS file associated with this source
+/// map will be written. If it's `null`, that indicates that the CSS will be
+/// printed to stdout.
 ///
 /// Returns the source map comment to add to the end of the CSS file.
-String _writeSourceMap(ExecutableOptions options, SingleMapping sourceMap) {
+String _writeSourceMap(
+    ExecutableOptions options, SingleMapping sourceMap, String destination) {
   if (sourceMap == null) return "";
 
-  if (!options.writeToStdout) {
-    sourceMap.targetUrl = p.toUri(p.basename(options.destination)).toString();
+  if (destination != null) {
+    sourceMap.targetUrl = p.toUri(p.basename(destination)).toString();
   }
 
   for (var i = 0; i < sourceMap.urls.length; i++) {
@@ -151,7 +197,8 @@ String _writeSourceMap(ExecutableOptions options, SingleMapping sourceMap) {
     // The special URL "" indicates a file that came from stdin.
     if (url == "") continue;
 
-    sourceMap.urls[i] = options.sourceMapUrl(Uri.parse(url)).toString();
+    sourceMap.urls[i] =
+        options.sourceMapUrl(Uri.parse(url), destination).toString();
   }
   var sourceMapText = convert.json
       .encode(sourceMap.toJson(includeSourceContents: options.embedSources));
@@ -160,7 +207,7 @@ String _writeSourceMap(ExecutableOptions options, SingleMapping sourceMap) {
   if (options.embedSourceMap) {
     url = new Uri.dataFromString(sourceMapText, mimeType: 'application/json');
   } else {
-    var sourceMapPath = options.destination + '.map';
+    var sourceMapPath = destination + '.map';
     ensureDir(p.dirname(sourceMapPath));
     writeFile(sourceMapPath, sourceMapText);
 

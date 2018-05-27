@@ -154,6 +154,49 @@ void main() {
     });
   });
 
+  group("with a string sourceMap and no outFile", () {
+    test("emits a source map", () {
+      var result = sass.renderSync(
+          new RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
+      var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+      expect(map, containsPair("sources", ["stdin"]));
+    });
+
+    test("derives the target URL from the input file", () async {
+      var path = p.join(sandbox, 'test.scss');
+      await writeTextFile(path, 'a {b: c}');
+
+      var result = sass.renderSync(new RenderOptions(
+          file: p.join(sandbox, "test.scss"), sourceMap: "out.css.map"));
+      var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+      expect(
+          map,
+          containsPair(
+              "file", p.toUri(p.join(sandbox, "test.css")).toString()));
+    });
+
+    test("derives the target URL from the input file without an extension",
+        () async {
+      var path = p.join(sandbox, 'test');
+      await writeTextFile(path, 'a {b: c}');
+
+      var result = sass.renderSync(new RenderOptions(
+          file: p.join(sandbox, "test"), sourceMap: "out.css.map"));
+      var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+      expect(
+          map,
+          containsPair(
+              "file", p.toUri(p.join(sandbox, "test.css")).toString()));
+    });
+
+    test("derives the target URL from stdin", () {
+      var result = sass.renderSync(
+          new RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
+      var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+      expect(map, containsPair("file", "stdin.css"));
+    });
+  });
+
   test("with omitSourceMapUrl, doesn't include a source map comment", () {
     var result = sass.renderSync(new RenderOptions(
         data: "a {b: c}",

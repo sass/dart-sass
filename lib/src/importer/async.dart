@@ -35,9 +35,21 @@ abstract class AsyncImporter {
   /// * If the [url] ends in `.sass` or `.scss`, the importer should look for
   ///   a stylesheet with that exact URL and return `null` if it's not found.
   ///
-  /// * Otherwise, the importer should look for a stylesheet at `"$url.sass"` or
-  ///   one at `"$url.scss"`, in that order. If neither is found, it should
-  ///   return `null`.
+  /// * Otherwise, the importer should look for a stylesheet by filling in
+  ///   extensions and partial prefixes. The extension `.sass` before `.scss`,
+  ///   and using the partial prefix before without the prefix:
+  ///   * `"_$url.sass"`
+  ///   * `"$url.sass"`
+  ///   * `"_$url.scss"`
+  ///   * `"$url.scss"`
+  ///
+  /// * Finally, the importer should check for a directory default index.
+  ///   * `"$url/_index.sass"`
+  ///   * `"$url/index.sass"`
+  ///   * `"$url/_index.scss"`
+  ///   * `"$url/index.scss"`
+  ///
+  /// If none are found, it should return `null`.
   ///
   /// Sass assumes that calling [canonicalize] multiple times with the same URL
   /// will return the same result.

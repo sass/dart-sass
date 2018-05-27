@@ -17,6 +17,7 @@ class FilesystemImporter extends Importer {
   FilesystemImporter(this._loadPath);
 
   Uri canonicalize(Uri url) {
+    if (url.scheme != 'file' && url.scheme != '') return null;
     var resolved = resolveImportPath(p.join(_loadPath, p.fromUri(url)));
     return resolved == null ? null : p.toUri(p.canonicalize(resolved));
   }

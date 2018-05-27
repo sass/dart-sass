@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 36efd8cb544193898d379f367960d21298f65145
+// Checksum: c24a81d7e627d58976112aa89f95377a30b20afa
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -22,6 +22,7 @@ import '../ast/css.dart';
 import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../environment.dart';
+import '../import_cache.dart';
 import '../callable.dart';
 import '../color_names.dart';
 import '../exception.dart';
@@ -41,8 +42,8 @@ typedef void _ScopeCallback(void callback());
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
-/// If [importers] (or, on Node.js, [nodeImporter]) is passed, it's used to
-/// resolve imports in the Sass files. Earlier importers will be preferred.
+/// If [importCache] (or, on Node.js, [nodeImporter]) is passed, it's used to
+/// resolve imports in the Sass files.
 ///
 /// If [importer] is passed, it's used to resolve relative imports in
 /// [stylesheet] relative to `stylesheet.span.sourceUrl`.
@@ -58,14 +59,14 @@ typedef void _ScopeCallback(void callback());
 ///
 /// Throws a [SassRuntimeException] if evaluation fails.
 EvaluateResult evaluate(Stylesheet stylesheet,
-        {Iterable<Importer> importers,
+        {ImportCache importCache,
         NodeImporter nodeImporter,
         Importer importer,
         Iterable<Callable> functions,
         Logger logger,
         bool sourceMap: false}) =>
     new _EvaluateVisitor(
-            importers: importers,
+            importCache: importCache,
             nodeImporter: nodeImporter,
             importer: importer,
             functions: functions,
@@ -100,8 +101,8 @@ Value evaluateExpression(Expression expression,
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
     implements StatementVisitor<Value>, ExpressionVisitor<Value> {
-  /// The importers to use when loading new Sass files.
-  final List<Importer> _importers;
+  /// The import cache used to import other stylesheets.
+  final ImportCache _importCache;
 
   /// The Node Sass-compatible importer to use when loading new Sass files when
   /// compiled to Node.js.
@@ -174,9 +175,6 @@ class _EvaluateVisitor
   /// the stylesheet has been fully performed.
   var _outOfOrderImports = <CssImport>[];
 
-  /// The parsed stylesheets for each canonicalized import URL.
-  final _importCache = <Uri, Stylesheet>{};
-
   /// The set that will eventually populate the JS API's
   /// `result.stats.includedFiles` field.
   ///
@@ -197,13 +195,13 @@ class _EvaluateVisitor
   bool get _asNodeSass => _nodeImporter != null;
 
   _EvaluateVisitor(
-      {Iterable<Importer> importers,
+      {ImportCache importCache,
       NodeImporter nodeImporter,
       Importer importer,
       Iterable<Callable> functions,
       Logger logger,
       bool sourceMap})
-      : _importers = importers == null ? const [] : importers.toList(),
+      : _importCache = importCache ?? ImportCache.none,
         _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
@@ -310,12 +308,8 @@ class _EvaluateVisitor
       }
 
       var canonicalUrl = _importer?.canonicalize(_baseUrl);
-      if (canonicalUrl != null) {
-        _activeImports.add(canonicalUrl);
-        _importCache[canonicalUrl] = node;
-      }
+      if (canonicalUrl != null) _activeImports.add(canonicalUrl);
     }
-    _baseUrl ??= new Uri(path: '.');
 
     visitStylesheet(node);
 
@@ -751,19 +745,9 @@ class _EvaluateVisitor
         var stylesheet = _importLikeNode(import);
         if (stylesheet != null) return new Tuple2(null, stylesheet);
       } else {
-        var url = Uri.parse(import.url);
-
-        // Try to resolve [import.url] relative to the current URL with the
-        // current importer.
-        if (url.scheme.isEmpty && _importer != null) {
-          var stylesheet = _tryImport(_importer, _baseUrl.resolveUri(url));
-          if (stylesheet != null) return new Tuple2(_importer, stylesheet);
-        }
-
-        for (var importer in _importers) {
-          var stylesheet = _tryImport(importer, url);
-          if (stylesheet != null) return new Tuple2(importer, stylesheet);
-        }
+        var tuple =
+            _importCache.import(Uri.parse(import.url), _importer, _baseUrl);
+        if (tuple != null) return tuple;
       }
 
       if (import.url.startsWith('package:')) {
@@ -809,28 +793,6 @@ class _EvaluateVisitor
     return url.startsWith('file') && pUrl.extension(url) == '.sass'
         ? new Stylesheet.parseSass(contents, url: url, logger: _logger)
         : new Stylesheet.parseScss(contents, url: url, logger: _logger);
-  }
-
-  /// Parses the contents of [result] into a [Stylesheet].
-  Stylesheet _tryImport(Importer importer, Uri url) {
-    // TODO(nweiz): Measure to see if it's worth caching this, too.
-    var canonicalUrl = importer.canonicalize(url);
-    if (canonicalUrl == null) return null;
-
-    return _importCache.putIfAbsent(canonicalUrl, () {
-      var result = importer.load(canonicalUrl);
-      if (result == null) return null;
-
-      // Use the canonicalized basename so that we display e.g.
-      // package:example/_example.scss rather than package:example/example in
-      // stack traces.
-      var displayUrl = url.resolve(p.basename(canonicalUrl.path));
-      return result.isIndented
-          ? new Stylesheet.parseSass(result.contents,
-              url: displayUrl, logger: _logger)
-          : new Stylesheet.parseScss(result.contents,
-              url: displayUrl, logger: _logger);
-    });
   }
 
   /// Adds a CSS import for [import].

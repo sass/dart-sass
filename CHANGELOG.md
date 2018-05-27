@@ -1,3 +1,24 @@
+## 1.4.0
+
+* Improve the error message for invalid semicolons in the indented syntax.
+
+* Properly disallow semicolons after declarations in the indented syntax.
+
+### Command-Line Interface
+
+* Add support for compiling multiple files at once by writing
+  `sass input.scss:output.css`. Note that unlike Ruby Sass, this *always*
+  compiles files by default regardless of when they were modified.
+
+  This syntax also supports compiling entire directories at once. For example,
+  `sass templates/stylesheets:public/css` compiles all non-partial Sass files
+  in `templates/stylesheets` to CSS files in `public/css`.
+
+### Node API
+
+* Generate source maps when the `sourceMaps` option is set to a string and the
+  `outFile` option is not set.
+
 ## 1.3.2
 
 * Add support for `@elseif` as an alias of `@else if`. This is not an
