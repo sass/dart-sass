@@ -176,6 +176,7 @@ _repl(ExecutableOptions options) async {
   var repl = new Repl(prompt: '>> ');
   var variables = <String, internal.Value>{};
   await for (String line in repl.runAsync()) {
+    if (line.trim().isEmpty) continue;
     try {
       Expression expression;
       VariableDeclaration declaration;
@@ -194,20 +195,20 @@ _repl(ExecutableOptions options) async {
       var highlighted = error.span.highlight();
       var arrows = highlighted.split('\n').last.trimRight();
       var buffer = new StringBuffer();
-      if (options.color) {
+      if (options.color) buffer.write("\u001b[31m"); // set color to red
+      if (options.color && arrows.length <= line.length) {
         int start = arrows.length - arrows.trimLeft().length;
         buffer.write("\u001b[1F"); // move to start of input line
         buffer.write("\u001b[${start + 3}C"); // move to start of error
-        buffer.write("\u001b[31m"); // set color to red
         buffer.write(line.substring(start, arrows.length)); // write bad input
         buffer.write("\n"); // move to start of output line
       }
-      buffer.write("   "); // align with start of input
+      buffer.write(" " * repl.prompt.length); // align with start of input
       buffer.writeln(arrows);
-      if (options.color) buffer.write("\u001b[0m");
+      if (options.color) buffer.write("\u001b[0m"); // clear color
       buffer.writeln("Error: ${error.message}");
       if (options.trace) {
-        buffer.write(new Trace.from(stackTrace).terse.toString());
+        buffer.write(new Trace.from(stackTrace).terse);
       }
       print(buffer.toString().trimRight());
     }
