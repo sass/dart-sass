@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:dart2_constant/convert.dart' as convert;
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -16,7 +17,6 @@ import 'exception.dart';
 import 'executable_options.dart';
 import 'import_cache.dart';
 import 'io.dart';
-import 'util/path.dart';
 import 'visitor/async_evaluate.dart';
 import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';

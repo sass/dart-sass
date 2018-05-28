@@ -2,11 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'io.dart';
-import 'util/path.dart';
 import 'utils.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.

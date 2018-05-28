@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dart2_constant/convert.dart' as convert;
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -12,7 +13,6 @@ import 'package:test_process/test_process.dart';
 
 import 'package:sass/sass.dart' as sass;
 import 'package:sass/src/io.dart';
-import 'package:sass/src/util/path.dart';
 
 import 'utils.dart';
 
