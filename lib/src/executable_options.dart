@@ -4,10 +4,10 @@
 
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 import '../sass.dart';
 import 'io.dart';
-import 'util/path.dart';
 
 /// The parsed and processed command-line options for the Sass executable.
 ///

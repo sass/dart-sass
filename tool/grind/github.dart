@@ -9,10 +9,9 @@ import 'package:charcode/charcode.dart';
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:string_scanner/string_scanner.dart';
-
-import 'package:sass/src/util/path.dart';
 
 import '../grind.dart';
 import 'utils.dart';
