@@ -61,3 +61,11 @@ Iterable<String> listDir(String path) => new io.Directory(path)
     .listSync(recursive: true)
     .where((entity) => entity is io.File)
     .map((entity) => entity.path);
+
+DateTime modificationTime(String path) {
+  var stat = io.FileStat.statSync(path);
+  if (stat.type == io.FileSystemEntityType.NOT_FOUND) {
+    throw new io.FileSystemException("File not found.", path);
+  }
+  return stat.modified;
+}

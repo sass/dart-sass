@@ -26,6 +26,12 @@ class _FS {
 class _Stat {
   external bool isFile();
   external bool isDirectory();
+  external _Date get mtime;
+}
+
+@JS()
+class _Date {
+  external int getTime();
 }
 
 @JS()
@@ -186,6 +192,10 @@ Iterable<String> listDir(String path) {
 
   return _systemErrorToFileSystemException(() => list(path));
 }
+
+DateTime modificationTime(String path) => _systemErrorToFileSystemException(
+    () => new DateTime.fromMillisecondsSinceEpoch(
+        _fs.statSync(path).mtime.getTime()));
 
 /// Runs callback and converts any [_SystemError]s it throws into
 /// [FileSystemException]s.

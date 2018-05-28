@@ -28,7 +28,7 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
 
   T visitAtRule(AtRule node) {
     visitInterpolation(node.value);
-    return visitChildren(node);
+    return node.children == null ? null : visitChildren(node);
   }
 
   T visitContentRule(ContentRule node) => null;
@@ -41,7 +41,7 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
   T visitDeclaration(Declaration node) {
     visitInterpolation(node.name);
     visitExpression(node.value);
-    return visitChildren(node);
+    return node.children == null ? null : visitChildren(node);
   }
 
   T visitEachRule(EachRule node) {

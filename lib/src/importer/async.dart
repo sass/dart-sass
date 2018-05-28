@@ -75,4 +75,17 @@ abstract class AsyncImporter {
   /// object's `toString()` will be used. This means it's safe for importers to
   /// throw plain strings.
   FutureOr<ImporterResult> load(Uri url);
+
+  /// Returns the time that the Sass file at [url] was last modified.
+  ///
+  /// The [url] comes from a call to [canonicalize] for this importer.
+  ///
+  /// By default, this returns the current time, indicating that [url] should be
+  /// reloaded on every compilation. If implementations override this to provide
+  /// a more accurate time, Sass will be better able to avoid recompiling it
+  /// unnecessarily.
+  ///
+  /// If this throws an exception, the exception is ignored and the current time
+  /// is used as the modification time.
+  FutureOr<DateTime> modificationTime(Uri url) => new DateTime.now();
 }

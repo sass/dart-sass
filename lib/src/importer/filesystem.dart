@@ -5,7 +5,7 @@
 import 'package:path/path.dart' as p;
 
 import '../importer.dart';
-import '../io.dart';
+import '../io.dart' as io;
 import 'result.dart';
 import 'utils.dart';
 
@@ -25,9 +25,11 @@ class FilesystemImporter extends Importer {
 
   ImporterResult load(Uri url) {
     var path = p.fromUri(url);
-    return new ImporterResult(readFile(path),
+    return new ImporterResult(io.readFile(path),
         sourceMapUrl: url, indented: p.extension(path) == '.sass');
   }
+
+  DateTime modificationTime(Uri url) => io.modificationTime(p.fromUri(url));
 
   String toString() => _loadPath;
 }
