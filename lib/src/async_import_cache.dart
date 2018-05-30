@@ -116,7 +116,8 @@ class AsyncImportCache {
       [AsyncImporter baseImporter, Uri baseUrl]) async {
     var tuple = await canonicalize(url, baseImporter, baseUrl);
     if (tuple == null) return null;
-    var stylesheet = await importCanonical(tuple.item1, tuple.item2);
+    var stylesheet = await importCanonical(tuple.item1, tuple.item2,
+        baseUrl != null ? baseUrl.resolveUri(url) : url);
     return new Tuple2(tuple.item1, stylesheet);
   }
 

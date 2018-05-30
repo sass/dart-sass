@@ -52,6 +52,35 @@ main() {
 }"""));
   });
 
+  test("resolves URLs relative to the pre-canonicalized URL", () {
+    var times = 0;
+    var css = compileString('@import "foo:bar/baz";', importers: [
+      new _TestImporter(
+          expectAsync1((url) {
+            times++;
+            if (times == 1) return new Uri(path: 'first');
+
+            expect(url, equals(Uri.parse('foo:bar/bang')));
+            return new Uri(path: 'second');
+          }, count: 2),
+          expectAsync1((url) {
+            return new ImporterResult(
+                times == 1
+                    ? '''
+                        .first {url: "$url"}
+                        @import "bang";
+                      '''
+                    : '.second {url: "$url"}',
+                indented: false);
+          }, count: 2))
+    ]);
+
+    expect(css, equalsIgnoringWhitespace('''
+      .first { url: "first"; }
+      .second { url: "second"; }
+    '''));
+  });
+
   test("wraps an error in canonicalize()", () {
     expect(() {
       compileString('@import "orange";', importers: [
