@@ -108,16 +108,13 @@ class ExecutableOptions {
 
   /// Whether to run an interactive shell.
   bool get interactive {
-    if (!(_options['interactive'] as bool)) return false;
+    if (_interactive != null) return _interactive;
+    _interactive = _options['interactive'] as bool;
+    if (!_interactive) return false;
+
     var invalidOptions = [
-      'stdin',
-      'indented',
-      'load-path',
-      'style',
-      'source-map',
-      'source-map-urls',
-      'embed-sources',
-      'embed-source-map'
+      'stdin', 'indented', 'load-path', 'style', 'source-map', //
+      'source-map-urls', 'embed-sources', 'embed-source-map'
     ];
     for (var option in invalidOptions) {
       if (_options.wasParsed(option)) {
@@ -126,6 +123,8 @@ class ExecutableOptions {
     }
     return true;
   }
+
+  bool _interactive;
 
   /// Whether to parse the source file with the indented syntax.
   ///
