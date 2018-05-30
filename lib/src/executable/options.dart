@@ -6,8 +6,8 @@ import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import '../sass.dart';
-import 'io.dart';
+import '../../sass.dart';
+import '../io.dart';
 
 /// The parsed and processed command-line options for the Sass executable.
 ///
@@ -67,6 +67,10 @@ class ExecutableOptions {
 
     parser
       ..addSeparator(_separator('Other'))
+      ..addFlag('interactive',
+          abbr: 'i',
+          help: 'Run an interactive SassScript shell.',
+          negatable: false)
       ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
       ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
       ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
@@ -101,6 +105,26 @@ class ExecutableOptions {
 
   /// Whether to print the version of Sass and exit.
   bool get version => _options['version'] as bool;
+
+  /// Whether to run an interactive shell.
+  bool get interactive {
+    if (_interactive != null) return _interactive;
+    _interactive = _options['interactive'] as bool;
+    if (!_interactive) return false;
+
+    var invalidOptions = [
+      'stdin', 'indented', 'load-path', 'style', 'source-map', //
+      'source-map-urls', 'embed-sources', 'embed-source-map'
+    ];
+    for (var option in invalidOptions) {
+      if (_options.wasParsed(option)) {
+        throw new UsageException("--$option isn't allowed with --interactive.");
+      }
+    }
+    return true;
+  }
+
+  bool _interactive;
 
   /// Whether to parse the source file with the indented syntax.
   ///

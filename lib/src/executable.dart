@@ -14,7 +14,8 @@ import '../sass.dart';
 import 'ast/sass.dart';
 import 'async_import_cache.dart';
 import 'exception.dart';
-import 'executable_options.dart';
+import 'executable/options.dart';
+import 'executable/repl.dart';
 import 'import_cache.dart';
 import 'io.dart';
 import 'stylesheet_graph.dart';
@@ -46,6 +47,11 @@ main(List<String> args) async {
     if (options.version) {
       print(await _loadVersion());
       exitCode = 0;
+      return;
+    }
+
+    if (options.interactive) {
+      await repl(options);
       return;
     }
 
