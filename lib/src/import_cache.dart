@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: f499c5bf2076dd934ae3df7d133912401282c5c5
+// Checksum: fd88387ce5993289dae18840be7ff05edfc1a611
 
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
@@ -119,7 +119,8 @@ class ImportCache {
       [Importer baseImporter, Uri baseUrl]) {
     var tuple = canonicalize(url, baseImporter, baseUrl);
     if (tuple == null) return null;
-    var stylesheet = importCanonical(tuple.item1, tuple.item2, url);
+    var stylesheet = importCanonical(tuple.item1, tuple.item2,
+        baseUrl != null ? baseUrl.resolveUri(url) : url);
     return new Tuple2(tuple.item1, stylesheet);
   }
 
