@@ -773,7 +773,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       for (var arg in invalidArgs) {
         var sass = await runSass(["--interactive", arg]);
         expect(sass.stdout,
-            emitsThrough(contains("not supported with --interactive")));
+            emitsThrough(contains("isn't allowed with --interactive")));
         sass.stdin.close();
         await sass.shouldExit(64);
       }
@@ -907,6 +907,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       sass.stdin.writeln("max(2, 1 + blue)");
       sass.stdin.writeln(r"1 + $x + 3");
       sass.stdin.writeln("foo(");
+      sass.stdin.writeln("call('max', 1, 2) + blue");
       sass.stdin.close();
       expect(
           sass.stdout,
@@ -922,9 +923,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "Error: Undefined variable.",
             ">> foo(",
             "       ^",
-            'Error: expected ")".'
+            'Error: expected ")".',
+            ">> call('max', 1, 2) + blue",
+            'Error: Undefined operation "2 + blue".',
+            "call('max', 1, 2) + blue",
+            "^^^^^^^^^^^^^^^^^^^^^^^^"
           ]));
       expect(sass.stdout, emitsDone);
+      expect(sass.stderr, emitsThrough(contains("DEPRECATION WARNING")));
       await sass.shouldExit(0);
     });
 

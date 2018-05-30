@@ -119,7 +119,7 @@ class ExecutableOptions {
     ];
     for (var option in invalidOptions) {
       if (_options.wasParsed(option)) {
-        throw new UsageException('--$option not supported with --interactive.');
+        throw new UsageException("--$option isn't allowed with --interactive.");
       }
     }
     return true;

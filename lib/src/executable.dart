@@ -17,6 +17,7 @@ import 'ast/sass/statement/variable_declaration.dart';
 import 'async_import_cache.dart';
 import 'exception.dart';
 import 'executable_options.dart';
+import 'logger/tracking.dart';
 import 'import_cache.dart';
 import 'io.dart';
 import 'util/path.dart';
@@ -224,42 +225,59 @@ _repl(ExecutableOptions options) async {
   var variables = <String, internal.Value>{};
   await for (String line in repl.runAsync()) {
     if (line.trim().isEmpty) continue;
+    var logger = new TrackingLogger(options.logger);
     try {
       Expression expression;
       VariableDeclaration declaration;
       try {
-        declaration =
-            new VariableDeclaration.parse(line, logger: options.logger);
+        declaration = new VariableDeclaration.parse(line, logger: logger);
         expression = declaration.expression;
       } on SassFormatException {
-        expression = new Expression.parse(line, logger: options.logger);
+        expression = new Expression.parse(line, logger: logger);
       }
-      var result = evaluateExpression(expression,
-          variables: variables, logger: options.logger);
+      var result =
+          evaluateExpression(expression, variables: variables, logger: logger);
       if (declaration != null) {
         variables[declaration.name] = result;
       }
       print(result);
     } on SassException catch (error, stackTrace) {
-      var highlighted = error.span.highlight();
-      var arrows = highlighted.split('\n').last.trimRight();
-      var buffer = new StringBuffer();
-      if (options.color) buffer.write("\u001b[31m"); // set color to red
-      if (options.color && arrows.length <= line.length) {
-        int start = arrows.length - arrows.trimLeft().length;
-        buffer.write("\u001b[1F"); // move to start of input line
-        buffer.write("\u001b[${start + 3}C"); // move to start of error
-        buffer.write(line.substring(start, arrows.length)); // write bad input
-        buffer.write("\n"); // move to start of output line
-      }
-      buffer.write(" " * repl.prompt.length); // align with start of input
-      buffer.writeln(arrows);
-      if (options.color) buffer.write("\u001b[0m"); // clear color
-      buffer.writeln("Error: ${error.message}");
-      if (options.trace) {
-        buffer.write(new Trace.from(stackTrace).terse);
-      }
-      print(buffer.toString().trimRight());
+      _logError(error, stackTrace, line, repl, options, logger);
     }
   }
+}
+
+/// Logs an error from the interactive shell.
+_logError(SassException error, StackTrace stackTrace, String line, Repl repl,
+    ExecutableOptions options, TrackingLogger logger) {
+  // If something was logged after the input, just print the error.
+  if (options.logger != Logger.quiet &&
+      (logger.emittedDebug || logger.emittedWarning)) {
+    print("Error: ${error.message}");
+    print(error.span.highlight(color: options.color));
+    return;
+  }
+
+  // Otherwise, highlight the bad input from the previous line.
+  var arrows = error.span.highlight().split('\n').last.trimRight();
+  var buffer = new StringBuffer();
+  if (options.color) buffer.write("\u001b[31m");
+  if (options.color && arrows.length <= line.length) {
+    int start = arrows.length - arrows.trimLeft().length;
+    // Position cursor.
+    buffer.write("\u001b[1F\u001b[${start + 3}C");
+    // Write bad input.
+    buffer.writeln(line.substring(start, arrows.length));
+  }
+  // Align arrows to start of input.
+  buffer.write(" " * repl.prompt.length);
+  buffer.writeln(arrows);
+  // Reset color.
+  if (options.color) buffer.write("\u001b[0m");
+
+  buffer.writeln("Error: ${error.message}");
+  if (options.trace) {
+    buffer.write(new Trace.from(stackTrace).terse);
+  }
+  print(buffer.toString().trimRight());
 }
