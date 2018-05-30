@@ -119,7 +119,7 @@ class ImportCache {
       [Importer baseImporter, Uri baseUrl]) {
     var tuple = canonicalize(url, baseImporter, baseUrl);
     if (tuple == null) return null;
-    var stylesheet = importCanonical(tuple.item1, tuple.item2);
+    var stylesheet = importCanonical(tuple.item1, tuple.item2, url);
     return new Tuple2(tuple.item1, stylesheet);
   }
 

@@ -1,3 +1,8 @@
+## 1.4.1
+
+* Fix a bug where an importer would be passed an incorrectly-resolved URL when
+  handling a relative import.
+
 ## 1.4.0
 
 * Improve the error message for invalid semicolons in the indented syntax.
