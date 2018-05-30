@@ -12,19 +12,19 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
-import 'cli_shared.dart';
+import 'shared.dart';
 
 void main() {
-  sharedTests(_runSass);
+  sharedTests(runSass);
 
   test("--version prints the Sass version", () async {
-    var sass = await _runSass(["--version"]);
+    var sass = await runSass(["--version"]);
     expect(sass.stdout, emits(matches(new RegExp(r"^\d+\.\d+\.\d+"))));
     await sass.shouldExit(0);
   });
 }
 
-Future<TestProcess> _runSass(Iterable<String> arguments) => TestProcess.start(
+Future<TestProcess> runSass(Iterable<String> arguments) => TestProcess.start(
     Platform.executable,
     ["--checked", p.absolute("bin/sass.dart")]..addAll(arguments),
     workingDirectory: d.sandbox,
