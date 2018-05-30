@@ -9,10 +9,10 @@ import 'dart:async';
 
 import 'package:dart2_constant/core.dart' as core;
 import 'package:js/js.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
-import 'package:sass/src/util/path.dart';
 import 'package:sass/src/value/number.dart';
 
 import '../ensure_npm_package.dart';

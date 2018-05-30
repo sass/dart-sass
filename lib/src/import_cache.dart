@@ -5,8 +5,9 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 96900c6ee52e9e0c0881066db2d5917adc36f18d
+// Checksum: cc71af242380acde8a8e8c2bd57b384a747ff991
 
+import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
@@ -14,7 +15,6 @@ import 'importer.dart';
 import 'logger.dart';
 import 'sync_package_resolver.dart';
 import 'utils.dart'; // ignore: unused_import
-import 'util/path.dart';
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
 class ImportCache {
@@ -144,7 +144,7 @@ class ImportCache {
       // stack traces.
       var displayUrl = originalUrl == null
           ? canonicalUrl
-          : originalUrl.resolve(pUrl.basename(canonicalUrl.path));
+          : originalUrl.resolve(p.url.basename(canonicalUrl.path));
       return result.isIndented
           ? new Stylesheet.parseSass(result.contents,
               url: displayUrl, logger: _logger)

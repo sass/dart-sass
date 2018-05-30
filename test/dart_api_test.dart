@@ -5,12 +5,12 @@
 @TestOn('vm')
 
 import 'package:package_resolver/package_resolver.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
-import 'package:sass/src/util/path.dart';
 
 main() {
   group("importers", () {

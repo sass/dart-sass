@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:cli_repl/cli_repl.dart';
 import 'package:dart2_constant/convert.dart' as convert;
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -20,8 +21,8 @@ import 'executable_options.dart';
 import 'logger/tracking.dart';
 import 'import_cache.dart';
 import 'io.dart';
-import 'util/path.dart';
 import 'value.dart' as internal;
+import 'stylesheet_graph.dart';
 import 'visitor/async_evaluate.dart';
 import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
@@ -58,12 +59,12 @@ main(List<String> args) async {
       return;
     }
 
-    var importCache = new ImportCache([],
-        loadPaths: options.loadPaths, logger: options.logger);
+    var graph = new StylesheetGraph(new ImportCache([],
+        loadPaths: options.loadPaths, logger: options.logger));
     for (var source in options.sourcesToDestinations.keys) {
       var destination = options.sourcesToDestinations[source];
       try {
-        await _compileStylesheet(options, importCache, source, destination);
+        await _compileStylesheet(options, graph, source, destination);
       } on SassException catch (error, stackTrace) {
         printError(error.toString(color: options.color),
             options.trace ? stackTrace : null);
@@ -121,15 +122,28 @@ Future<String> _loadVersion() async {
 
 /// Compiles the stylesheet at [source] to [destination].
 ///
-/// Loads files from [importCache] when possible.
+/// Loads files using `graph.importCache` when possible.
 ///
 /// If [source] is `null`, that indicates that the stylesheet should be read
 /// from stdin. If [destination] is `null`, that indicates that the stylesheet
 /// should be emitted to stdout.
-Future _compileStylesheet(ExecutableOptions options, ImportCache importCache,
+Future _compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
     String source, String destination) async {
-  var stylesheet = await _parseStylesheet(options, importCache, source);
   var importer = new FilesystemImporter('.');
+  if (options.update) {
+    try {
+      if (source != null &&
+          destination != null &&
+          !graph.modifiedSince(
+              p.toUri(source), modificationTime(destination), importer)) {
+        return;
+      }
+    } on FileSystemException catch (_) {
+      // Compile as normal if the destination file doesn't exist.
+    }
+  }
+
+  var stylesheet = await _parseStylesheet(options, graph.importCache, source);
   var evaluateResult = options.asynchronous
       ? await evaluateAsync(stylesheet,
           importCache: new AsyncImportCache([],
@@ -138,7 +152,7 @@ Future _compileStylesheet(ExecutableOptions options, ImportCache importCache,
           logger: options.logger,
           sourceMap: options.emitSourceMap)
       : await evaluate(stylesheet,
-          importCache: importCache,
+          importCache: graph.importCache,
           importer: importer,
           logger: options.logger,
           sourceMap: options.emitSourceMap);
@@ -154,9 +168,16 @@ Future _compileStylesheet(ExecutableOptions options, ImportCache importCache,
     ensureDir(p.dirname(destination));
     writeFile(destination, css + "\n");
   }
+
+  if (!options.update || options.quiet) return;
+  var buffer = new StringBuffer();
+  if (options.color) buffer.write('\u001b[32m');
+  buffer.write('Compiled ${source ?? 'stdin'} to $destination.');
+  if (options.color) buffer.write('\u001b[0m');
+  print(buffer);
 }
 
-/// Parses [source] according to [options], loading it from [importCache] if
+/// Parses [source] according to [options], loading it from [graph] if
 /// possible.
 ///
 /// Returns the parsed [Stylesheet].

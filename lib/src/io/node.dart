@@ -7,10 +7,10 @@ import 'dart:convert';
 
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../exception.dart';
-import '../util/path.dart';
 
 @JS()
 class _FS {
@@ -26,6 +26,12 @@ class _FS {
 class _Stat {
   external bool isFile();
   external bool isDirectory();
+  external _Date get mtime;
+}
+
+@JS()
+class _Date {
+  external int getTime();
 }
 
 @JS()
@@ -186,6 +192,10 @@ Iterable<String> listDir(String path) {
 
   return _systemErrorToFileSystemException(() => list(path));
 }
+
+DateTime modificationTime(String path) => _systemErrorToFileSystemException(
+    () => new DateTime.fromMillisecondsSinceEpoch(
+        _fs.statSync(path).mtime.getTime()));
 
 /// Runs callback and converts any [_SystemError]s it throws into
 /// [FileSystemException]s.

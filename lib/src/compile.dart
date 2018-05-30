@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 
@@ -16,7 +17,6 @@ import 'importer/node.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'sync_package_resolver.dart';
-import 'util/path.dart';
 import 'visitor/async_evaluate.dart';
 import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
