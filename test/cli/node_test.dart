@@ -12,16 +12,16 @@ import 'package:test_process/test_process.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test/test.dart';
 
-import 'cli_shared.dart';
-import 'ensure_npm_package.dart';
+import '../ensure_npm_package.dart';
+import 'shared.dart';
 
 void main() {
   setUpAll(ensureNpmPackage);
 
-  sharedTests(_runSass);
+  sharedTests(runSass);
 
   test("--version prints the Sass and dart2js versions", () async {
-    var sass = await _runSass(["--version"]);
+    var sass = await runSass(["--version"]);
     expect(
         sass.stdout,
         emits(matches(new RegExp(
@@ -30,6 +30,6 @@ void main() {
   });
 }
 
-Future<TestProcess> _runSass(Iterable<String> arguments) => TestProcess.start(
+Future<TestProcess> runSass(Iterable<String> arguments) => TestProcess.start(
     "node", [p.absolute("build/npm/sass.js")]..addAll(arguments),
     workingDirectory: d.sandbox, description: "sass");

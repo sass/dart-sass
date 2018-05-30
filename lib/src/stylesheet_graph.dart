@@ -60,7 +60,7 @@ class StylesheetGraph {
     var canonicalUrl = tuple.item2;
 
     return _nodes.putIfAbsent(canonicalUrl, () {
-      var stylesheet = importCache.importCanonical(importer, canonicalUrl);
+      var stylesheet = importCache.importCanonical(importer, canonicalUrl, url);
       if (stylesheet == null) return null;
 
       var active = new Set<Uri>.from([canonicalUrl]);
@@ -98,7 +98,7 @@ class StylesheetGraph {
     /// error will be produced during compilation.
     if (active.contains(canonicalUrl)) return null;
 
-    var stylesheet = importCache.importCanonical(importer, canonicalUrl);
+    var stylesheet = importCache.importCanonical(importer, canonicalUrl, url);
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);
