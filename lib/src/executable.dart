@@ -17,7 +17,7 @@ import 'ast/sass/expression.dart';
 import 'ast/sass/statement/variable_declaration.dart';
 import 'async_import_cache.dart';
 import 'exception.dart';
-import 'executable_options.dart';
+import 'executable/options.dart';
 import 'logger/tracking.dart';
 import 'import_cache.dart';
 import 'io.dart';
