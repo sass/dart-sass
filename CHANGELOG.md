@@ -1,7 +1,14 @@
-## 1.4.1
+## 1.5.0
 
 * Fix a bug where an importer would be passed an incorrectly-resolved URL when
   handling a relative import.
+
+### Command-Line Interface
+
+* Add an `--interactive` flag that supports interactively running Sass
+  expressions (thanks to [Jen Thakar][]!).
+
+[Jen Thakar]: https://github.com/jathak
 
 ## 1.4.0
 
