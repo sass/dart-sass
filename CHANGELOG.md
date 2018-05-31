@@ -1,3 +1,8 @@
+## 1.5.1
+
+* Fix a bug where an absolute Windows path would be considered an `input:output`
+  pair.
+
 ## 1.5.0
 
 * Fix a bug where an importer would be passed an incorrectly-resolved URL when

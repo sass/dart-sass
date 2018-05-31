@@ -6,7 +6,6 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'logger/stderr.dart';
-import 'util/path.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.
 ///

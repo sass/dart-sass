@@ -8,6 +8,8 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
+import 'package:sass/src/util/path.dart';
+
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("compiles multiple sources to multiple destinations", () async {
@@ -25,6 +27,20 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d
         .file("out2.css", equalsIgnoringWhitespace("x { y: z; }"))
         .validate();
+  });
+
+  // On Windows, this verifies that we don't consider the colon after a drive
+  // letter to be an `input:output` separator.
+  test("compiles an absolute source to an absolute destination", () async {
+    await d.file("test.scss", "a {b: c}").create();
+
+    var input = p.absolute(p.join(d.sandbox, 'test.scss'));
+    var output = p.absolute(p.join(d.sandbox, 'out.css'));
+    var sass = await runSass(["--no-source-map", "$input:$output"]);
+    expect(sass.stdout, emitsDone);
+    await sass.shouldExit(0);
+
+    await d.file("out.css", equalsIgnoringWhitespace("a { b: c; }")).validate();
   });
 
   test("creates destination directories", () async {

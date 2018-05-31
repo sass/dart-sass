@@ -3,10 +3,12 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:args/args.dart';
+import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 
 import '../../sass.dart';
 import '../io.dart';
+import '../util/character.dart';
 import '../util/path.dart';
 
 /// The parsed and processed command-line options for the Sass executable.
@@ -180,12 +182,18 @@ class ExecutableOptions {
     var colonArgs = false;
     var positionalArgs = false;
     for (var argument in _options.rest) {
-      if (argument.isEmpty) {
-        _fail('Invalid argument "".');
-      } else if (argument.contains(":")) {
-        colonArgs = true;
-      } else {
+      if (argument.isEmpty) _fail('Invalid argument "".');
+
+      // If the colon appears at position 1, treat it as a Windows drive
+      // letter.
+      if (!argument.contains(":") ||
+          (_isWindowsPath(argument, 0) &&
+              // Look for colons after index 1, since that's where the drive
+              // letter is on Windows paths.
+              argument.indexOf(":", 2) == -1)) {
         positionalArgs = true;
+      } else {
+        colonArgs = true;
       }
     }
 
@@ -220,14 +228,26 @@ class ExecutableOptions {
     var seen = new Set<String>();
     var sourcesToDestinations = <String, String>{};
     for (var argument in _options.rest) {
-      var components = argument.split(":");
-      if (components.length > 2) {
-        _fail('"$argument" may only contain one ":".');
-      }
-      assert(components.length == 2);
+      String source;
+      String destination;
+      for (var i = 0; i < argument.length; i++) {
+        // A colon at position 1 may be a Windows drive letter and not a
+        // separator.
+        if (i == 1 && _isWindowsPath(argument, i - 1)) continue;
 
-      var source = components.first;
-      var destination = components.last;
+        if (argument.codeUnitAt(i) == $colon) {
+          if (source == null) {
+            source = argument.substring(0, i);
+            destination = argument.substring(i + 1);
+          } else if (i != source.length + 2 ||
+              !_isWindowsPath(argument, i - 1)) {
+            // A colon 2 character after the separator may also be a Windows
+            // drive letter.
+            _fail('"$argument" may only contain one ":".');
+          }
+        }
+      }
+
       if (!seen.add(source)) {
         _fail('Duplicate source "${source}".');
       }
@@ -245,6 +265,12 @@ class ExecutableOptions {
   }
 
   Map<String, String> _sourcesToDestinations;
+
+  /// Returns whether [string] contains an absolute Windows path at [index].
+  bool _isWindowsPath(String string, int index) =>
+      string.length > index + 2 &&
+      isAlphabetic(string.codeUnitAt(index)) &&
+      string.codeUnitAt(index + 1) == $colon;
 
   /// Returns the sub-map of [sourcesToDestinations] for the given [source] and
   /// [destination] directories.
