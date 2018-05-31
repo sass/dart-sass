@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
@@ -12,6 +11,7 @@ import 'importer.dart';
 import 'logger.dart';
 import 'sync_package_resolver.dart';
 import 'utils.dart'; // ignore: unused_import
+import 'util/path.dart';
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
 class AsyncImportCache {
@@ -142,7 +142,7 @@ class AsyncImportCache {
       // stack traces.
       var displayUrl = originalUrl == null
           ? canonicalUrl
-          : originalUrl.resolve(p.url.basename(canonicalUrl.path));
+          : originalUrl.resolve(pUrl.basename(canonicalUrl.path));
       return result.isIndented
           ? new Stylesheet.parseSass(result.contents,
               url: displayUrl, logger: _logger)

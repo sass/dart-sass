@@ -5,12 +5,12 @@
 import 'dart:async';
 
 import 'package:js/js.dart';
-import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import '../../io.dart';
 import '../../node/importer_result.dart';
 import '../../node/utils.dart';
+import '../../util/path.dart';
 import '../utils.dart';
 
 typedef _Importer(String url, String prev, [void done(result)]);

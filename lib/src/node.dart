@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
-import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
@@ -28,6 +27,7 @@ import 'node/types.dart';
 import 'node/value.dart';
 import 'node/utils.dart';
 import 'parse/scss.dart';
+import 'util/path.dart';
 import 'value.dart';
 import 'visitor/serialize.dart';
 
@@ -358,7 +358,7 @@ RenderResult _newRenderResult(
     for (var i = 0; i < result.sourceMap.urls.length; i++) {
       var source = result.sourceMap.urls[i];
       if (source == "stdin") continue;
-      result.sourceMap.urls[i] = p.url.relative(source, from: sourceMapDirUrl);
+      result.sourceMap.urls[i] = pUrl.relative(source, from: sourceMapDirUrl);
     }
 
     var json = result.sourceMap

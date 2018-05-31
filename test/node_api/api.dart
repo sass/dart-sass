@@ -6,17 +6,18 @@
 /// to Dart. This is kind of convoluted, but it allows us to test the API as it
 /// will be used in the real world without having to manually write any JS.
 
+import 'package:sass/src/node/fiber.dart';
+import 'package:sass/src/node/render_options.dart';
+import 'package:sass/src/node/render_result.dart';
+import 'package:sass/src/util/path.dart';
+
 import 'package:js/js.dart';
-import 'package:path/path.dart' as p;
 
 export 'package:sass/src/node/error.dart';
 export 'package:sass/src/node/importer_result.dart';
 export 'package:sass/src/node/render_context.dart';
 export 'package:sass/src/node/render_options.dart';
 export 'package:sass/src/node/render_result.dart';
-import 'package:sass/src/node/fiber.dart';
-import 'package:sass/src/node/render_options.dart';
-import 'package:sass/src/node/render_result.dart';
 
 /// The Sass module.
 final sass = _requireSass(p.absolute("build/npm/sass.dart"));

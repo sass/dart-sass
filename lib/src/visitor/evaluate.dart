@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 44efde158d897ad67b2cc6a199d6338b20f4feb9
+// Checksum: ff6c50c58c86529e7fed4247a7381649cec1900c
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -14,7 +14,6 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:tuple/tuple.dart';
@@ -33,6 +32,7 @@ import '../importer/node.dart';
 import '../logger.dart';
 import '../parse/keyframe_selector.dart';
 import '../utils.dart';
+import '../util/path.dart';
 import '../value.dart';
 import 'interface/statement.dart';
 import 'interface/expression.dart';
@@ -798,7 +798,7 @@ class _EvaluateVisitor
       _includedFiles.add(url);
     }
 
-    return url.startsWith('file') && p.url.extension(url) == '.sass'
+    return url.startsWith('file') && pUrl.extension(url) == '.sass'
         ? new Stylesheet.parseSass(contents, url: url, logger: _logger)
         : new Stylesheet.parseScss(contents, url: url, logger: _logger);
   }
