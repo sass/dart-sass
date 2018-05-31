@@ -3,6 +3,10 @@
 * Fix a bug where an importer would be passed an incorrectly-resolved URL when
   handling a relative import.
 
+* Throw an error when an import is ambiguous due to a partial and a non-partial
+  with the same name, or multiple files with different extensions. This matches
+  the standard Sass behavior.
+
 ### Command-Line Interface
 
 * Add an `--interactive` flag that supports interactively running Sass

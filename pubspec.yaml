@@ -1,5 +1,5 @@
 name: sass
-version: 1.5.0-dev
+version: 1.5.0
 description: A Sass implementation in Dart.
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/sass/dart-sass
@@ -8,7 +8,7 @@ executables:
   dart-sass: sass
 
 environment:
-  sdk: '>=1.25.0-dev.7.0 <2.0.0'
+  sdk: '>=1.25.0-dev.29.0 <2.0.0'
 
 dependencies:
   args: ">=1.4.0 <2.0.0"

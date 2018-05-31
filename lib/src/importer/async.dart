@@ -32,24 +32,35 @@ abstract class AsyncImporter {
   /// If this importer's URL format supports file extensions, it should
   /// canonicalize them the same way as the default filesystem importer:
   ///
-  /// * If the [url] ends in `.sass` or `.scss`, the importer should look for
-  ///   a stylesheet with that exact URL and return `null` if it's not found.
+  /// * The importer should look for stylesheets by adding the prefix `_` to the
+  ///   URL's basename, and by adding the extensions `.sass` and `.scss` if the
+  ///   URL doesn't already have one of those extensions. For example, if the
+  ///   URL was `foo/bar/baz`, the importer would look for:
+  ///   * `foo/bar/baz.sass`
+  ///   * `foo/bar/baz.scss`
+  ///   * `foo/bar/_baz.sass`
+  ///   * `foo/bar/_baz.scss`
   ///
-  /// * Otherwise, the importer should look for a stylesheet by filling in
-  ///   extensions and partial prefixes. The extension `.sass` before `.scss`,
-  ///   and using the partial prefix before without the prefix:
-  ///   * `"_$url.sass"`
-  ///   * `"$url.sass"`
-  ///   * `"_$url.scss"`
-  ///   * `"$url.scss"`
+  ///   If the URL was `foo/bar/baz.scss`, the importer would just look for:
+  ///   * `foo/bar/baz.scss`
+  ///   * `foo/bar/_baz.scss`
   ///
-  /// * Finally, the importer should check for a directory default index.
-  ///   * `"$url/_index.sass"`
-  ///   * `"$url/index.sass"`
-  ///   * `"$url/_index.scss"`
-  ///   * `"$url/index.scss"`
+  ///   If the importer finds a stylesheet at more than one of these URLs, it
+  ///   should throw an exception indicating that the import is ambiguous.
   ///
-  /// If none are found, it should return `null`.
+  /// * If none of the possible paths is valid, the importer should perform the
+  ///   same resolution on the URL followed by `/index`. In the example above,
+  ///   it would look for:
+  ///   * `foo/bar/baz/_index.sass`
+  ///   * `foo/bar/baz/index.sass`
+  ///   * `foo/bar/baz/_index.scss`
+  ///   * `foo/bar/baz/index.scss`
+  ///
+  ///   As above, if the importer finds a stylesheet at more than one of these
+  ///   URLs, it should throw an exception indicating that the import is
+  ///   ambiguous.
+  ///
+  /// If no stylesheets are found, the importer should return `null`.
   ///
   /// Sass assumes that calling [canonicalize] multiple times with the same URL
   /// will return the same result.
