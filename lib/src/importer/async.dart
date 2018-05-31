@@ -46,7 +46,9 @@ abstract class AsyncImporter {
   ///   * `foo/bar/_baz.scss`
   ///
   ///   If the importer finds a stylesheet at more than one of these URLs, it
-  ///   should throw an exception indicating that the import is ambiguous.
+  ///   should throw an exception indicating that the import is ambiguous. Note
+  ///   that if the extension is explicitly specified, a stylesheet with the
+  ///   opposite extension may exist.
   ///
   /// * If none of the possible paths is valid, the importer should perform the
   ///   same resolution on the URL followed by `/index`. In the example above,
