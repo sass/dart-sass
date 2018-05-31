@@ -12,30 +12,45 @@ import '../io.dart';
 /// found, it returns `null`.
 String resolveImportPath(String path) {
   var extension = p.extension(path);
-  if (extension == '.sass' || extension == '.scss') return _tryPath(path);
+  if (extension == '.sass' || extension == '.scss') {
+    return _exactlyOne(_tryPath(path));
+  }
 
-  var file = _tryPathWithExtensions(path);
-  return file != null ? file : _tryPathAsDirectory(path);
+  return _exactlyOne(_tryPathWithExtensions(path)) ?? _tryPathAsDirectory(path);
 }
 
 /// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
-String _tryPathWithExtensions(String path) =>
-    _tryPath(path + '.sass') ?? _tryPath(path + '.scss');
+List<String> _tryPathWithExtensions(String path) =>
+    _tryPath(path + '.sass') + _tryPath(path + '.scss');
 
-/// If a file exists at [path], or a partial with the same name exists,
-/// returns the resolved path.
+/// Returns the [path] and/or the partial with the same name, if either or both
+/// exists.
 ///
-/// Otherwise, returns `null`.
-String _tryPath(String path) {
+/// If neither exists, returns an empty list.
+List<String> _tryPath(String path) {
+  var paths = <String>[];
   var partial = p.join(p.dirname(path), "_${p.basename(path)}");
-  if (fileExists(partial)) return partial;
-  if (fileExists(path)) return path;
-  return null;
+  if (fileExists(partial)) paths.add(partial);
+  if (fileExists(path)) paths.add(path);
+  return paths;
 }
 
 /// Returns the resolved index file for [path] if [path] is a directory and the
 /// index file exists.
 ///
 /// Otherwise, returns `null`.
-String _tryPathAsDirectory(String path) =>
-    dirExists(path) ? _tryPathWithExtensions(p.join(path, 'index')) : null;
+String _tryPathAsDirectory(String path) => dirExists(path)
+    ? _exactlyOne(_tryPathWithExtensions(p.join(path, 'index')))
+    : null;
+
+/// If [paths] contains exactly one path, returns that path.
+///
+/// If it contains no paths, returns `null`. If it contains more than one,
+/// throws an exception.
+String _exactlyOne(List<String> paths) {
+  if (paths.isEmpty) return null;
+  if (paths.length == 1) return paths.first;
+
+  throw "It's not clear which file to import. Found:\n" +
+      paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n");
+}
