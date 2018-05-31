@@ -20,7 +20,7 @@ String resolveImportPath(String path) {
 
 /// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
 List<String> _tryPathWithExtensions(String path) =>
-    _tryPath(path + '.sass') + _tryPath(path + '.scss');
+    _tryPath(path + '.sass')..addAll(_tryPath(path + '.scss'));
 
 /// Returns the [path] and/or the partial with the same name, if either or both
 /// exists.
