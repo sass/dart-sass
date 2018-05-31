@@ -9,9 +9,10 @@ import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
 import 'package:meta/meta.dart';
 import 'package:node_preamble/preamble.dart' as preamble;
-import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
+
+import 'package:sass/src/util/path.dart';
 
 import 'utils.dart';
 

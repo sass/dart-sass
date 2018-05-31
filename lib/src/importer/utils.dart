@@ -2,9 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:path/path.dart' as p;
-
 import '../io.dart';
+import '../util/path.dart';
 
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///
@@ -21,7 +20,7 @@ String resolveImportPath(String path) {
 
 /// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
 List<String> _tryPathWithExtensions(String path) =>
-    _tryPath(path + '.sass') + _tryPath(path + '.scss');
+    _tryPath(path + '.sass')..addAll(_tryPath(path + '.scss'));
 
 /// Returns the [path] and/or the partial with the same name, if either or both
 /// exists.

@@ -9,11 +9,11 @@ import 'dart:convert';
 
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
-import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart' as dartSass;
+import 'package:sass/src/util/path.dart';
 
 import '../ensure_npm_package.dart';
 import '../hybrid.dart';

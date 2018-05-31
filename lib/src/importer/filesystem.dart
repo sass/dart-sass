@@ -2,10 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:path/path.dart' as p;
-
 import '../importer.dart';
 import '../io.dart' as io;
+import '../util/path.dart';
 import 'result.dart';
 import 'utils.dart';
 
