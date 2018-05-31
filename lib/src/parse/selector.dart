@@ -282,7 +282,7 @@ class SelectorParser extends Parser {
       if (_selectorPseudoElements.contains(unvendored)) {
         selector = _selectorList();
       } else {
-        argument = declarationValue();
+        argument = declarationValue(allowEmpty: true);
       }
     } else if (_selectorPseudoClasses.contains(unvendored)) {
       selector = _selectorList();
@@ -297,7 +297,7 @@ class SelectorParser extends Parser {
         selector = _selectorList();
       }
     } else {
-      argument = declarationValue().trimRight();
+      argument = declarationValue(allowEmpty: true).trimRight();
     }
     scanner.expectChar($rparen);
 

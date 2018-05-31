@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: ff6c50c58c86529e7fed4247a7381649cec1900c
+// Checksum: bb333ed7c02c663af1977b3eb6c666b7bed92c1a
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -518,6 +518,9 @@ class _EvaluateVisitor
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
       _parent.addChild(new CssDeclaration(name, cssValue, node.span,
           valueSpanForMap: _expressionSpan(node.value)));
+    } else if (name.value.startsWith('--')) {
+      throw _exception(
+          "Custom property values may not be empty.", node.value.span);
     }
 
     if (node.children != null) {
