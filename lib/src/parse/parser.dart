@@ -140,7 +140,7 @@ abstract class Parser {
   String identifierBody() {
     var text = new StringBuffer();
     _identifierBody(text);
-    if (text.isEmpty) scanner.error("expected identifier body.");
+    if (text.isEmpty) scanner.error("Expected identifier body.");
     return text.toString();
   }
 
@@ -592,7 +592,38 @@ abstract class Parser {
     try {
       return callback();
     } on SourceSpanFormatException catch (error) {
-      throw new SassFormatException(error.message, error.span as FileSpan);
+      var span = error.span as FileSpan;
+      if (error.message.startsWith("Expected") && span.length == 0) {
+        var startPosition = _firstNewlineBefore(span.start.offset);
+        if (startPosition != span.start.offset) {
+          span = span.file.span(startPosition, startPosition);
+        }
+      }
+
+      throw new SassFormatException(error.message, span);
     }
+  }
+
+  /// If [position] is separated from the previous non-whitespace character in
+  /// `scanner.string` by one or more newlines, returns the offset of the last
+  /// separating newline.
+  ///
+  /// Otherwise returns [position].
+  ///
+  /// This helps avoid missing token errors pointing at the next closing bracket
+  /// rather than the line where the problem actually occurred.
+  int _firstNewlineBefore(int position) {
+    var index = position - 1;
+    int lastNewline;
+    while (index >= 0) {
+      var codeUnit = scanner.string.codeUnitAt(index);
+      if (!isWhitespace(codeUnit)) return lastNewline ?? position;
+      if (isNewline(codeUnit)) lastNewline = index;
+      index--;
+    }
+
+    // If the document *only* contains whitespace before [position], always
+    // return [position].
+    return position;
   }
 }
