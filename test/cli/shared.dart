@@ -8,6 +8,8 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
+import 'package:sass/src/util/path.dart';
+
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   /// Runs the executable on [arguments] plus an output file, then verifies that
@@ -33,6 +35,22 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d.file("test.scss", "a {b: 1 + 2}").create();
 
     var sass = await runSass(["test.scss"]);
+    expect(
+        sass.stdout,
+        emitsInOrder([
+          "a {",
+          "  b: 3;",
+          "}",
+        ]));
+    await sass.shouldExit(0);
+  });
+
+  // On Windows, this verifies that we don't consider the colon after a drive
+  // letter to be an `input:output` separator.
+  test("compiles an absolute Sass file to CSS", () async {
+    await d.file("test.scss", "a {b: 1 + 2}").create();
+
+    var sass = await runSass([p.absolute(p.join(d.sandbox, "test.scss"))]);
     expect(
         sass.stdout,
         emitsInOrder([
