@@ -515,6 +515,9 @@ class _EvaluateVisitor
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
       _parent.addChild(new CssDeclaration(name, cssValue, node.span,
           valueSpanForMap: _expressionSpan(node.value)));
+    } else if (name.value.startsWith('--')) {
+      throw _exception(
+          "Custom property values may not be empty.", node.value.span);
     }
 
     if (node.children != null) {

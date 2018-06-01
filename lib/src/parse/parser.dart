@@ -205,8 +205,10 @@ abstract class Parser {
 
   /// Consumes tokens until it reaches a top-level `":"`, `")"`, `"]"`,
   /// or `"}"` and returns their contents as a string.
+  ///
+  /// If [allowEmpty] is `false` (the default), this requires at least one token.
   @protected
-  String declarationValue() {
+  String declarationValue({bool allowEmpty: false}) {
     // NOTE: this logic is largely duplicated in
     // StylesheetParser._interpolatedDeclarationValue. Most changes here should
     // be mirrored there.
@@ -301,6 +303,7 @@ abstract class Parser {
     }
 
     if (brackets.isNotEmpty) scanner.expectChar(brackets.last);
+    if (!allowEmpty && buffer.isEmpty) scanner.error("Expected token.");
     return buffer.toString();
   }
 

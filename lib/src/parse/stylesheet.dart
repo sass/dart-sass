@@ -2119,7 +2119,8 @@ abstract class StylesheetParser extends Parser {
         return null;
     }
 
-    buffer.addInterpolation(_interpolatedDeclarationValue().text);
+    buffer
+        .addInterpolation(_interpolatedDeclarationValue(allowEmpty: true).text);
     scanner.expectChar($rparen);
     buffer.writeCharCode($rparen);
 
@@ -2331,8 +2332,10 @@ abstract class StylesheetParser extends Parser {
   /// Consumes tokens until it reaches a top-level `":"`, `")"`, `"]"`,
   /// or `"}"` and returns their contents as a string.
   ///
+  /// If [allowEmpty] is `false` (the default), this requires at least one token.
+  ///
   /// Unlike [declarationValue], this allows interpolation.
-  StringExpression _interpolatedDeclarationValue() {
+  StringExpression _interpolatedDeclarationValue({bool allowEmpty: false}) {
     // NOTE: this logic is largely duplicated in Parser.declarationValue. Most
     // changes here should be mirrored there.
 
@@ -2449,6 +2452,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     if (brackets.isNotEmpty) scanner.expectChar(brackets.last);
+    if (!allowEmpty && buffer.isEmpty) scanner.error("Expected token.");
     return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
   }
 
