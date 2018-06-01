@@ -1,5 +1,8 @@
 ## 1.5.1
 
+* Fix a bug where an absolute Windows path would be considered an `input:output`
+  pair.
+
 * Forbid custom properties that have no values, like `--foo:;`, since they're
   forbidden by the CSS spec.
 
