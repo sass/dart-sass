@@ -1,3 +1,7 @@
+## 1.5.2
+
+* Produce better errors when expected tokens are missing before a closing brace.
+
 ## 1.5.1
 
 * Fix a bug where an absolute Windows path would be considered an `input:output`
