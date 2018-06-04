@@ -12,12 +12,14 @@ import '../../utils.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
+  Future<TestProcess> update(Iterable<String> arguments) =>
+      runSass(["--no-source-map", "--update"]..addAll(arguments));
+
   group("updates CSS", () {
     test("that doesn't exist yet", () async {
       await d.file("test.scss", "a {b: c}").create();
 
-      var sass =
-          await runSass(["--no-source-map", "--update", "test.scss:out.css"]);
+      var sass = await update(["test.scss:out.css"]);
       expect(sass.stdout, emits('Compiled test.scss to out.css.'));
       await sass.shouldExit(0);
 
@@ -31,8 +33,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await tick;
       await d.file("test.scss", "a {b: c}").create();
 
-      var sass =
-          await runSass(["--no-source-map", "--update", "test.scss:out.css"]);
+      var sass = await update(["test.scss:out.css"]);
       expect(sass.stdout, emits('Compiled test.scss to out.css.'));
       await sass.shouldExit(0);
 
@@ -45,16 +46,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("other.scss", "a {b: c}").create();
       await d.file("test.scss", "@import 'other'").create();
 
-      var sass =
-          await runSass(["--no-source-map", "--update", "test.scss:out.css"]);
+      var sass = await update(["test.scss:out.css"]);
       expect(sass.stdout, emits('Compiled test.scss to out.css.'));
       await sass.shouldExit(0);
 
       await tick;
       await d.file("other.scss", "x {y: z}").create();
 
-      sass =
-          await runSass(["--no-source-map", "--update", "test.scss:out.css"]);
+      sass = await update(["test.scss:out.css"]);
       expect(sass.stdout, emits('Compiled test.scss to out.css.'));
       await sass.shouldExit(0);
 
@@ -68,12 +67,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test1.scss", r"$var: 1; @import 'other'").create();
       await d.file("test2.scss", r"$var: 2; @import 'other'").create();
 
-      var sass = await runSass([
-        "--no-source-map",
-        "--update",
-        "test1.scss:out1.css",
-        "test2.scss:out2.css"
-      ]);
+      var sass = await update(["test1.scss:out1.css", "test2.scss:out2.css"]);
       expect(sass.stdout, emits('Compiled test1.scss to out1.css.'));
       expect(sass.stdout, emits('Compiled test2.scss to out2.css.'));
       await sass.shouldExit(0);
@@ -81,12 +75,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await tick;
       await d.file("other.scss", r"x {y: $var}").create();
 
-      sass = await runSass([
-        "--no-source-map",
-        "--update",
-        "test1.scss:out1.css",
-        "test2.scss:out2.css"
-      ]);
+      sass = await update(["test1.scss:out1.css", "test2.scss:out2.css"]);
       expect(sass.stdout, emits('Compiled test1.scss to out1.css.'));
       expect(sass.stdout, emits('Compiled test2.scss to out2.css.'));
       await sass.shouldExit(0);
@@ -100,7 +89,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("from stdin", () async {
-      var sass = await runSass(["--no-source-map", "--update", "-:out.css"]);
+      var sass = await update(["-:out.css"]);
       sass.stdin.writeln("a {b: c}");
       sass.stdin.close();
       expect(sass.stdout, emits('Compiled stdin to out.css.'));
@@ -110,7 +99,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           .file("out.css", equalsIgnoringWhitespace("a { b: c; }"))
           .validate();
 
-      sass = await runSass(["--no-source-map", "--update", "-:out.css"]);
+      sass = await update(["-:out.css"]);
       sass.stdin.writeln("x {y: z}");
       sass.stdin.close();
       expect(sass.stdout, emits('Compiled stdin to out.css.'));
@@ -124,8 +113,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("without printing anything if --quiet is passed", () async {
       await d.file("test.scss", "a {b: c}").create();
 
-      var sass = await runSass(
-          ["--no-source-map", "--update", "--quiet", "test.scss:out.css"]);
+      var sass = await update(["--quiet", "test.scss:out.css"]);
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(0);
 
@@ -140,8 +128,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test.scss", "a {b: c}").create();
       await d.file("out.css", "x {y: z}").create();
 
-      var sass =
-          await runSass(["--no-source-map", "--update", "test.scss:out.css"]);
+      var sass = await update(["test.scss:out.css"]);
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(0);
 
@@ -156,12 +143,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await tick;
       await d.file("test2.scss", "d {e: f}").create();
 
-      var sass = await runSass([
-        "--no-source-map",
-        "--update",
-        "test1.scss:out1.css",
-        "test2.scss:out2.css"
-      ]);
+      var sass = await update(["test1.scss:out1.css", "test2.scss:out2.css"]);
       expect(sass.stdout, emits('Compiled test2.scss to out2.css.'));
       await sass.shouldExit(0);
 
@@ -171,14 +153,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
   group("doesn't allow", () {
     test("--stdin", () async {
-      var sass = await runSass(
-          ["--no-source-map", "--stdin", "--update", "test.scss"]);
+      var sass = await update(["--stdin", "test.scss"]);
       expect(sass.stdout, emits('--update is not allowed with --stdin.'));
       await sass.shouldExit(64);
     });
 
     test("printing to stderr", () async {
-      var sass = await runSass(["--no-source-map", "--update", "test.scss"]);
+      var sass = await update(["test.scss"]);
       expect(sass.stdout,
           emits('--update is not allowed when printing to stdout.'));
       await sass.shouldExit(64);
