@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
+
 import 'package:args/args.dart';
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
@@ -164,15 +166,11 @@ class ExecutableOptions {
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.
   ///
+  /// Considers keys to be the same if they represent the same path on disk.
+  ///
   /// A `null` source indicates that a stylesheet should be read from standard
   /// input. A `null` destination indicates that a stylesheet should be written
   /// to standard output.
-  ///
-  /// A source path may refer to either a single stylesheet file, in which case
-  /// the destination is the file where the resulting CSS should be written; or
-  /// to a directory containing stylesheets, in which case the destination is a
-  /// directory in which the compiled CSS should be written in the same
-  /// structure.
   Map<String, String> get sourcesToDestinations {
     if (_sourcesToDestinations != null) return _sourcesToDestinations;
 
@@ -206,7 +204,8 @@ class ExecutableOptions {
         } else if (update) {
           _fail("--update is not allowed with --stdin.");
         }
-        return {null: _options.rest.isEmpty ? null : _options.rest.first};
+        _sourcesToDestinations = new Map.unmodifiable(
+            {null: _options.rest.isEmpty ? null : _options.rest.first});
       } else if (_options.rest.length > 2) {
         _fail("Only two positional args may be passed.");
       } else {
@@ -215,9 +214,10 @@ class ExecutableOptions {
         if (update && destination == null) {
           _fail("--update is not allowed when printing to stdout.");
         }
-
-        return {source: destination};
+        _sourcesToDestinations =
+            new UnmodifiableMapView(newPathMap({source: destination}));
       }
+      return _sourcesToDestinations;
     }
 
     if (stdin) _fail('--stdin may not be used with ":" arguments.');
@@ -226,7 +226,7 @@ class ExecutableOptions {
     // to report errors for sources as users entered them, rather than after
     // directories have been resolved.
     var seen = new Set<String>();
-    var sourcesToDestinations = <String, String>{};
+    var sourcesToDestinations = newPathMap<String>();
     for (var argument in _options.rest) {
       String source;
       String destination;
@@ -260,7 +260,7 @@ class ExecutableOptions {
         sourcesToDestinations[source] = destination;
       }
     }
-    _sourcesToDestinations = new Map.unmodifiable(sourcesToDestinations);
+    _sourcesToDestinations = new UnmodifiableMapView(sourcesToDestinations);
     return _sourcesToDestinations;
   }
 
