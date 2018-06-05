@@ -38,9 +38,6 @@ cache:
   - $HOME/.pub-cache
 
 install:
-- bold=$(tput bold)
-- none=$(tput sgr0)
-
 # Install the Dart SDK.
 - curl -o dart.zip "https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-linux-x64-release.zip"
 - unzip dart.zip
@@ -62,36 +59,7 @@ install:
 - if-specs git -C sass-spec checkout FETCH_HEAD
 - if-specs bundle install --gemfile=sass-spec/Gemfile --jobs=3 --retry=3
 
-script:
-- if [ "$TASK" = analyze ]; then
-    echo "${bold}Analzing Dart code.$none";
-    dartanalyzer --fatal-warnings lib/ test/ tool/;
-  elif [ "$TASK" = format ]; then
-    echo "${bold}Ensuring Dart code is formatted.$none";
-    ./tool/assert-formatted.sh;
-  elif [ "$TASK" = tests ]; then
-    if [ -z "$NODE_VERSION" ]; then
-      echo "${bold}Running Dart tests against $(dart --version &> /dev/stdout).$none";
-      if [ "$DART_CHANNEL" = dev ]; then
-        pub run test -p vm -x node;
-      else
-        pub run test -p vm -x dart2 -x node;
-      fi
-    else
-      echo "${bold}Running Node tests against Node $(node --version).$none";
-      if [ "$DART_CHANNEL" = dev ]; then
-        pub run test -j 2 -t node;
-      else
-        pub run test -j 2 -x dart2 -t node;
-      fi
-    fi;
-  else
-    echo "${bold}Running sass-spec against $(dart --version &> /dev/stdout).$none";
-    if [ "$ASYNC" = true ]; then
-      extra_args=--dart-args --async;
-    fi;
-    (cd sass-spec; bundle exec sass-spec.rb --dart .. $extra_args);
-  fi
+script: tool/travis/test.sh
 
 ## Deployment
 
