@@ -56,7 +56,7 @@ install:
 
 # Download sass-spec and install its dependencies if we're running specs.
 - if-specs() { if [ "$TASK" = specs ]; then "$@"; fi }
-- if-specs export sass_spec_ref=`tool/sass-spec-ref.sh`
+- if-specs export sass_spec_ref=`tool/travis/sass-spec-ref.sh`
 - if-specs git init sass-spec
 - if-specs git -C sass-spec fetch git://github.com/sass/sass-spec "$sass_spec_ref" --depth 1
 - if-specs git -C sass-spec checkout FETCH_HEAD
@@ -111,7 +111,7 @@ jobs:
     deploy:
       # Deploy to GitHub, npm, pub, Homebrew.
       provider: script
-      script: tool/deploy.sh
+      script: tool/travis/deploy.sh
 
       # Don't clean up the Dart SDK.
       skip_cleanup: true
@@ -140,5 +140,5 @@ jobs:
       provider: script
       # Heroku doesn't have a public API endpoint for this yet, so we use the
       # private endpoint instead.
-      script: tool/deploy-heroku.sh
+      script: tool/travis/deploy/heroku.sh
       on: {tags: true}

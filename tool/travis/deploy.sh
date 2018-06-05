@@ -3,7 +3,7 @@
 # license that can be found in the LICENSE file or at
 # https://opensource.org/licenses/MIT.
 
-openssl aes-256-cbc -K $encrypted_d472b0f964cc_key -iv $encrypted_d472b0f964cc_iv -in tool/encrypted/credentials.tar.enc \
+openssl aes-256-cbc -K $encrypted_d472b0f964cc_key -iv $encrypted_d472b0f964cc_iv -in tool/travis/credentials.tar.enc \
     -out credentials.tar -d
 
 mkdir -p ~/.pub-cache
