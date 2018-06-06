@@ -36,8 +36,11 @@ class StylesheetGraph {
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
         for (var upstream in node.upstream.values) {
-          if (upstream == null) continue;
-          var upstreamTime = transitiveModificationTime(upstream);
+          // If an import is missing, always recompile so we show the user the
+          // error.
+          var upstreamTime = upstream == null
+              ? new DateTime.now()
+              : transitiveModificationTime(upstream);
           if (upstreamTime.isAfter(latest)) latest = upstreamTime;
         }
         return latest;
@@ -57,13 +60,15 @@ class StylesheetGraph {
   ///
   /// Returns `null` if the import cache can't find a stylesheet at [url].
   _StylesheetNode _add(Uri url, [Importer baseImporter, Uri baseUrl]) {
-    var tuple = importCache.canonicalize(url, baseImporter, baseUrl);
+    var tuple = _ignoreErrors(
+        () => importCache.canonicalize(url, baseImporter, baseUrl));
     if (tuple == null) return null;
     var importer = tuple.item1;
     var canonicalUrl = tuple.item2;
 
     return _nodes.putIfAbsent(canonicalUrl, () {
-      var stylesheet = importCache.importCanonical(importer, canonicalUrl, url);
+      var stylesheet = _ignoreErrors(
+          () => importCache.importCanonical(importer, canonicalUrl, url));
       if (stylesheet == null) return null;
 
       return new _StylesheetNode(stylesheet, importer, canonicalUrl,
@@ -91,7 +96,8 @@ class StylesheetGraph {
   /// being imported. It's used to detect circular imports.
   _StylesheetNode _nodeFor(
       Uri url, Importer baseImporter, Uri baseUrl, Set<Uri> active) {
-    var tuple = importCache.canonicalize(url, baseImporter, baseUrl);
+    var tuple = _ignoreErrors(
+        () => importCache.canonicalize(url, baseImporter, baseUrl));
 
     // If an import fails, let the evaluator surface that error rather than
     // surfacing it here.
@@ -107,7 +113,8 @@ class StylesheetGraph {
     /// error will be produced during compilation.
     if (active.contains(canonicalUrl)) return null;
 
-    var stylesheet = importCache.importCanonical(importer, canonicalUrl, url);
+    var stylesheet = _ignoreErrors(
+        () => importCache.importCanonical(importer, canonicalUrl, url));
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);
@@ -116,6 +123,19 @@ class StylesheetGraph {
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;
     return node;
+  }
+
+  /// Runs [callback] and returns its result.
+  ///
+  /// If [callback] throws any errors, ignores them and returns `null`. This is
+  /// used to wrap calls to the import cache, since importer errors should be
+  /// surfaced by the compilation process rather than the graph.
+  T _ignoreErrors<T>(T callback()) {
+    try {
+      return callback();
+    } catch (_) {
+      return null;
+    }
   }
 }
 

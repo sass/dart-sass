@@ -51,6 +51,11 @@ String readFile(String path) => null;
 /// Throws a [FileSystemException] if writing fails.
 void writeFile(String path, String contents) => null;
 
+/// Deletes the file at [path].
+///
+/// Throws a [FileSystemException] if deletion fails.
+void deleteFile(String path) => null;
+
 /// Reads from the standard input for the current process until it closes,
 /// returning the contents.
 Future<String> readStdin() async => null;

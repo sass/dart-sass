@@ -62,6 +62,12 @@ main(List<String> args) async {
       try {
         await _compileStylesheet(options, graph, source, destination);
       } on SassException catch (error, stackTrace) {
+        try {
+          if (destination != null) deleteFile(destination);
+        } on FileSystemException {
+          // If the file doesn't exist, that's fine.
+        }
+
         printError(error.toString(color: options.color),
             options.trace ? stackTrace : null);
 

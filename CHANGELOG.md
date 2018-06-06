@@ -2,6 +2,14 @@
 
 * Produce better errors when expected tokens are missing before a closing brace.
 
+### Command-Line Interface
+
+* When using `--update`, surface errors when an import doesn't exist even if the
+  file containing the import hasn't been modified.
+
+* When compilation fails, delete the output file rather than leaving an outdated
+  version.
+
 ## 1.5.1
 
 * Fix a bug where an absolute Windows path would be considered an `input:output`
