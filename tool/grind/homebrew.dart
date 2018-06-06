@@ -58,7 +58,13 @@ update_homebrew() async {
         "--message",
         "Update Dart Sass to $version"
       ],
-      workingDirectory: "build/homebrew-sass");
+      workingDirectory: "build/homebrew-sass",
+      runOptions: new RunOptions(environment: {
+        "GIT_AUTHOR_NAME": "Sass Bot",
+        "GIT_AUTHOR_EMAIL": "sass.bot.beep.boop@gmail.com",
+        "GIT_COMMITTER_NAME": "Sass Bot",
+        "GIT_COMMITTER_EMAIL": "sass.bot.beep.boop@gmail.com"
+      }));
 
   var username = environment('GITHUB_USER');
   var password = environment('GITHUB_AUTH');
