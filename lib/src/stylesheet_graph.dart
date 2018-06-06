@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
+
 import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'importer.dart';
@@ -33,7 +35,8 @@ class StylesheetGraph {
     DateTime transitiveModificationTime(_StylesheetNode node) {
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
-        for (var upstream in node.upstream) {
+        for (var upstream in node.upstream.values) {
+          if (upstream == null) continue;
           var upstreamTime = transitiveModificationTime(upstream);
           if (upstreamTime.isAfter(latest)) latest = upstreamTime;
         }
@@ -63,16 +66,22 @@ class StylesheetGraph {
       var stylesheet = importCache.importCanonical(importer, canonicalUrl, url);
       if (stylesheet == null) return null;
 
-      var active = new Set<Uri>.from([canonicalUrl]);
-      return new _StylesheetNode(
-          stylesheet,
-          importer,
-          canonicalUrl,
-          findImports(stylesheet)
-              .map((import) => _nodeFor(
-                  Uri.parse(import.url), importer, canonicalUrl, active))
-              .where((node) => node != null));
+      return new _StylesheetNode(stylesheet, importer, canonicalUrl,
+          _upstreamNodes(stylesheet, importer, canonicalUrl));
     });
+  }
+
+  /// Returns a map from non-canonicalized imported URLs in [stylesheet], which
+  /// appears within [baseUrl] imported by [baseImporter].
+  Map<Uri, _StylesheetNode> _upstreamNodes(
+      Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
+    var active = new Set<Uri>.from([baseUrl]);
+    var upstream = <Uri, _StylesheetNode>{};
+    for (var import in findImports(stylesheet)) {
+      var url = Uri.parse(import.url);
+      upstream[url] = _nodeFor(url, baseImporter, baseUrl, active);
+    }
+    return upstream;
   }
 
   /// Returns the [StylesheetNode] for the stylesheet at the given [url], which
@@ -102,14 +111,8 @@ class StylesheetGraph {
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);
-    var node = new _StylesheetNode(
-        stylesheet,
-        importer,
-        canonicalUrl,
-        findImports(stylesheet)
-            .map((import) =>
-                _nodeFor(Uri.parse(import.url), importer, canonicalUrl, active))
-            .where((node) => node != null));
+    var node = new _StylesheetNode(stylesheet, importer, canonicalUrl,
+        _upstreamNodes(stylesheet, importer, canonicalUrl));
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;
     return node;
@@ -132,8 +135,11 @@ class _StylesheetNode {
   /// The canonical URL of [stylesheet].
   final Uri canonicalUrl;
 
-  /// The stylesheets that [stylesheet] imports.
-  final List<_StylesheetNode> upstream;
+  /// A map from non-canonicalized import URLs in [stylesheet] to the
+  /// stylesheets those imports refer to.
+  ///
+  /// This may have `null` values, which indicate failed imports.
+  final Map<Uri, _StylesheetNode> upstream;
 
   /// The stylesheets that import [stylesheet].
   ///
@@ -142,17 +148,17 @@ class _StylesheetNode {
   final downstream = new Set<_StylesheetNode>();
 
   _StylesheetNode(this.stylesheet, this.importer, this.canonicalUrl,
-      Iterable<_StylesheetNode> upstream)
-      : upstream = new List.unmodifiable(upstream) {
-    for (var node in upstream) {
-      node.downstream.add(this);
+      Map<Uri, _StylesheetNode> upstream)
+      : upstream = new Map.unmodifiable(upstream) {
+    for (var node in upstream.values) {
+      if (node != null) node.downstream.add(this);
     }
   }
 
   /// Removes [this] as a downstream node from all the upstream nodes that it
   /// imports.
   void remove() {
-    for (var node in upstream) {
+    for (var node in upstream.values) {
       var wasRemoved = node.downstream.remove(this);
       assert(wasRemoved);
     }
