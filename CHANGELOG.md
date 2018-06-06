@@ -2,6 +2,9 @@
 
 * Produce better errors when expected tokens are missing before a closing brace.
 
+* Avoid crashing when compiling a non-partial stylesheet that exists on the
+  filesystem next to a partial with the same name.
+
 ### Command-Line Interface
 
 * When using `--update`, surface errors when an import doesn't exist even if the
