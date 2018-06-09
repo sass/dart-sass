@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
+
 import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'importer.dart';
@@ -33,8 +35,12 @@ class StylesheetGraph {
     DateTime transitiveModificationTime(_StylesheetNode node) {
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
-        for (var upstream in node.upstream) {
-          var upstreamTime = transitiveModificationTime(upstream);
+        for (var upstream in node.upstream.values) {
+          // If an import is missing, always recompile so we show the user the
+          // error.
+          var upstreamTime = upstream == null
+              ? new DateTime.now()
+              : transitiveModificationTime(upstream);
           if (upstreamTime.isAfter(latest)) latest = upstreamTime;
         }
         return latest;
@@ -54,25 +60,33 @@ class StylesheetGraph {
   ///
   /// Returns `null` if the import cache can't find a stylesheet at [url].
   _StylesheetNode _add(Uri url, [Importer baseImporter, Uri baseUrl]) {
-    var tuple = importCache.canonicalize(url, baseImporter, baseUrl);
+    var tuple = _ignoreErrors(
+        () => importCache.canonicalize(url, baseImporter, baseUrl));
     if (tuple == null) return null;
     var importer = tuple.item1;
     var canonicalUrl = tuple.item2;
 
     return _nodes.putIfAbsent(canonicalUrl, () {
-      var stylesheet = importCache.importCanonical(importer, canonicalUrl, url);
+      var stylesheet = _ignoreErrors(
+          () => importCache.importCanonical(importer, canonicalUrl, url));
       if (stylesheet == null) return null;
 
-      var active = new Set<Uri>.from([canonicalUrl]);
-      return new _StylesheetNode(
-          stylesheet,
-          importer,
-          canonicalUrl,
-          findImports(stylesheet)
-              .map((import) => _nodeFor(
-                  Uri.parse(import.url), importer, canonicalUrl, active))
-              .where((node) => node != null));
+      return new _StylesheetNode(stylesheet, importer, canonicalUrl,
+          _upstreamNodes(stylesheet, importer, canonicalUrl));
     });
+  }
+
+  /// Returns a map from non-canonicalized imported URLs in [stylesheet], which
+  /// appears within [baseUrl] imported by [baseImporter].
+  Map<Uri, _StylesheetNode> _upstreamNodes(
+      Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
+    var active = new Set<Uri>.from([baseUrl]);
+    var upstream = <Uri, _StylesheetNode>{};
+    for (var import in findImports(stylesheet)) {
+      var url = Uri.parse(import.url);
+      upstream[url] = _nodeFor(url, baseImporter, baseUrl, active);
+    }
+    return upstream;
   }
 
   /// Returns the [StylesheetNode] for the stylesheet at the given [url], which
@@ -82,7 +96,8 @@ class StylesheetGraph {
   /// being imported. It's used to detect circular imports.
   _StylesheetNode _nodeFor(
       Uri url, Importer baseImporter, Uri baseUrl, Set<Uri> active) {
-    var tuple = importCache.canonicalize(url, baseImporter, baseUrl);
+    var tuple = _ignoreErrors(
+        () => importCache.canonicalize(url, baseImporter, baseUrl));
 
     // If an import fails, let the evaluator surface that error rather than
     // surfacing it here.
@@ -98,21 +113,29 @@ class StylesheetGraph {
     /// error will be produced during compilation.
     if (active.contains(canonicalUrl)) return null;
 
-    var stylesheet = importCache.importCanonical(importer, canonicalUrl, url);
+    var stylesheet = _ignoreErrors(
+        () => importCache.importCanonical(importer, canonicalUrl, url));
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);
-    var node = new _StylesheetNode(
-        stylesheet,
-        importer,
-        canonicalUrl,
-        findImports(stylesheet)
-            .map((import) =>
-                _nodeFor(Uri.parse(import.url), importer, canonicalUrl, active))
-            .where((node) => node != null));
+    var node = new _StylesheetNode(stylesheet, importer, canonicalUrl,
+        _upstreamNodes(stylesheet, importer, canonicalUrl));
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;
     return node;
+  }
+
+  /// Runs [callback] and returns its result.
+  ///
+  /// If [callback] throws any errors, ignores them and returns `null`. This is
+  /// used to wrap calls to the import cache, since importer errors should be
+  /// surfaced by the compilation process rather than the graph.
+  T _ignoreErrors<T>(T callback()) {
+    try {
+      return callback();
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -132,8 +155,11 @@ class _StylesheetNode {
   /// The canonical URL of [stylesheet].
   final Uri canonicalUrl;
 
-  /// The stylesheets that [stylesheet] imports.
-  final List<_StylesheetNode> upstream;
+  /// A map from non-canonicalized import URLs in [stylesheet] to the
+  /// stylesheets those imports refer to.
+  ///
+  /// This may have `null` values, which indicate failed imports.
+  final Map<Uri, _StylesheetNode> upstream;
 
   /// The stylesheets that import [stylesheet].
   ///
@@ -142,17 +168,17 @@ class _StylesheetNode {
   final downstream = new Set<_StylesheetNode>();
 
   _StylesheetNode(this.stylesheet, this.importer, this.canonicalUrl,
-      Iterable<_StylesheetNode> upstream)
-      : upstream = new List.unmodifiable(upstream) {
-    for (var node in upstream) {
-      node.downstream.add(this);
+      Map<Uri, _StylesheetNode> upstream)
+      : upstream = new Map.unmodifiable(upstream) {
+    for (var node in upstream.values) {
+      if (node != null) node.downstream.add(this);
     }
   }
 
   /// Removes [this] as a downstream node from all the upstream nodes that it
   /// imports.
   void remove() {
-    for (var node in upstream) {
+    for (var node in upstream.values) {
       var wasRemoved = node.downstream.remove(this);
       assert(wasRemoved);
     }

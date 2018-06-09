@@ -19,6 +19,7 @@ class _FS {
   external bool existsSync(String path);
   external void mkdirSync(String path);
   external _Stat statSync(String path);
+  external void unlinkSync(String path);
   external List<String> readdirSync(String path);
 }
 
@@ -113,6 +114,9 @@ _readFile(String path, [String encoding]) =>
 
 void writeFile(String path, String contents) =>
     _systemErrorToFileSystemException(() => _fs.writeFileSync(path, contents));
+
+void deleteFile(String path) =>
+    _systemErrorToFileSystemException(() => _fs.unlinkSync(path));
 
 Future<String> readStdin() async {
   var completer = new Completer<String>();

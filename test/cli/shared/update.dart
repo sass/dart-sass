@@ -3,10 +3,13 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
+
+import 'package:sass/src/util/path.dart';
 
 import '../../utils.dart';
 
@@ -148,6 +151,62 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await sass.shouldExit(0);
 
       await d.file("out1.css", "x {y: z}").validate();
+    });
+
+    test("with a missing import", () async {
+      await d.file("test.scss", "@import 'other'").create();
+
+      var sass = await update(["test.scss:out.css"]);
+      expect(sass.stderr, emits("Error: Can't find stylesheet to import."));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
+      await sass.shouldExit(65);
+
+      await d.nothing("out.css").validate();
+    });
+
+    test("with a conflicting import", () async {
+      await d.file("test.scss", "@import 'other'").create();
+      await d.file("other.scss", "a {b: c}").create();
+      await d.file("_other.scss", "x {y: z}").create();
+
+      var sass = await update(["test.scss:out.css"]);
+      expect(sass.stderr,
+          emits("Error: It's not clear which file to import. Found:"));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
+      await sass.shouldExit(65);
+
+      await d.nothing("out.css").validate();
+    });
+  });
+
+  group("removes a CSS file", () {
+    test("when a file has an error", () async {
+      await d.file("test.scss", "a {b: c}").create();
+      await (await update(["test.scss:out.css"])).shouldExit(0);
+      await d.file("out.css", anything).validate();
+
+      await d.file("test.scss", "a {b: }").create();
+      var sass = await update(["test.scss:out.css"]);
+      expect(sass.stderr, emits("Error: Expected expression."));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:7")));
+      await sass.shouldExit(65);
+
+      await d.nothing("out.css").validate();
+    });
+
+    test("when an import is removed", () async {
+      await d.file("test.scss", "@import 'other'").create();
+      await d.file("_other.scss", "a {b: c}").create();
+      await (await update(["test.scss:out.css"])).shouldExit(0);
+      await d.file("out.css", anything).validate();
+
+      new File(p.join(d.sandbox, "_other.scss")).deleteSync();
+      var sass = await update(["test.scss:out.css"]);
+      expect(sass.stderr, emits("Error: Can't find stylesheet to import."));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
+      await sass.shouldExit(65);
+
+      await d.nothing("out.css").validate();
     });
   });
 

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: bb333ed7c02c663af1977b3eb6c666b7bed92c1a
+// Checksum: dff931bdeda830c46fb13eac40e1d783f86c7aec
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -314,9 +314,6 @@ class _EvaluateVisitor
           _includedFiles.add(_baseUrl.toString());
         }
       }
-
-      var canonicalUrl = _importer?.canonicalize(_baseUrl);
-      if (canonicalUrl != null) _activeImports.add(canonicalUrl);
     }
 
     visitStylesheet(node);

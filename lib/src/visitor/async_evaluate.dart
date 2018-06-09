@@ -309,9 +309,6 @@ class _EvaluateVisitor
           _includedFiles.add(_baseUrl.toString());
         }
       }
-
-      var canonicalUrl = await _importer?.canonicalize(_baseUrl);
-      if (canonicalUrl != null) _activeImports.add(canonicalUrl);
     }
 
     await visitStylesheet(node);

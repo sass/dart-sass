@@ -194,6 +194,21 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(65);
   });
 
+  test("gracefully handles a non-partial next to a partial", () async {
+    await d.file("test.scss", "a {b: c}").create();
+    await d.file("_test.scss", "x {y: z}").create();
+
+    var sass = await runSass(["test.scss"]);
+    expect(
+        sass.stdout,
+        emitsInOrder([
+          "a {",
+          "  b: c;",
+          "}",
+        ]));
+    await sass.shouldExit(0);
+  });
+
   test("emits warnings on standard error", () async {
     await d.file("test.scss", "@warn 'aw beans'").create();
 
