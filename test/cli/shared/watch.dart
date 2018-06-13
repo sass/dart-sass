@@ -68,12 +68,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       var sass = await watch(["dir:out"]);
       await expectLater(
-          sass.stdout, emits('Compiled dir/test.scss to out/test.css.'));
+          sass.stdout, emits(_compiled('dir/test.scss', 'out/test.css')));
       await expectLater(sass.stdout, _watchingForChanges);
 
       await d.dir("dir", [d.file("test.scss", "x {y: z}")]).create();
       await expectLater(
-          sass.stdout, emits('Compiled dir/test.scss to out/test.css.'));
+          sass.stdout, emits(_compiled('dir/test.scss', 'out/test.css')));
       await sass.kill();
 
       await d.dir("out", [
@@ -223,13 +223,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           var sass = await watch(["-I", "dir2", "dir1:out"]);
           await expectLater(
               sass.stderr, emits("Error: Can't find stylesheet to import."));
-          await expectLater(
-              sass.stderr, emitsThrough(contains("dir1/test.scss 1:9")));
+          await expectLater(sass.stderr,
+              emitsThrough(contains("${p.join('dir1', 'test.scss')} 1:9")));
           await expectLater(sass.stdout, _watchingForChanges);
 
           await d.dir("dir2", [d.file("_other.scss", "a {b: c}")]).create();
           await expectLater(
-              sass.stdout, emits('Compiled dir1/test.scss to out/test.css.'));
+              sass.stdout, emits(_compiled('dir1/test.scss', 'out/test.css')));
           await sass.kill();
 
           await d
@@ -340,16 +340,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await expectLater(
           sass.stdout,
           emitsInAnyOrder([
-            'Compiled dir/test1.scss to out/test1.css.',
-            'Compiled dir/test2.scss to out/test2.css.'
+            _compiled('dir/test1.scss', 'out/test1.css'),
+            _compiled('dir/test2.scss', 'out/test2.css')
           ]));
       await expectLater(sass.stdout, _watchingForChanges);
 
       await d.dir("dir", [d.file("test2.scss", "x {y: z}")]).create();
       await expectLater(
-          sass.stdout, emits('Compiled dir/test2.scss to out/test2.css.'));
-      expect(
-          sass.stdout, neverEmits('Compiled dir/test1.scss to out/test1.css.'));
+          sass.stdout, emits(_compiled('dir/test2.scss', 'out/test2.css')));
+      expect(sass.stdout,
+          neverEmits(_compiled('dir/test1.scss', 'out/test1.css')));
       await tick;
       await sass.kill();
     });
@@ -395,11 +395,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       var sass = await watch(["dir:out"]);
       await expectLater(
-          sass.stdout, emits('Compiled dir/test.scss to out/test.css.'));
+          sass.stdout, emits(_compiled('dir/test.scss', 'out/test.css')));
       await expectLater(sass.stdout, _watchingForChanges);
 
       new File(p.join(d.sandbox, "dir", "test.scss")).deleteSync();
-      await expectLater(sass.stdout, emits('Deleted out/test.css.'));
+      await expectLater(
+          sass.stdout, emits('Deleted ${p.join('out', 'test.css')}.'));
       await sass.kill();
 
       await d.dir("dir", [d.nothing("out.css")]).validate();
@@ -414,7 +415,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     await d.dir("dir", [d.file("test.scss", "a {b: c}")]).create();
     await expectLater(
-        sass.stdout, emits('Compiled dir/test.scss to out/test.css.'));
+        sass.stdout, emits(_compiled('dir/test.scss', 'out/test.css')));
     await sass.kill();
 
     await d.dir("out", [
@@ -429,7 +430,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await expectLater(sass.stdout, _watchingForChanges);
 
     await d.dir("dir", [d.file("_test.scss", "a {b: c}")]).create();
-    expect(sass.stdout, neverEmits('Compiled dir/test.scss to out/test.css.'));
+    expect(sass.stdout, neverEmits(_compiled('dir/test.scss', 'out/test.css')));
     await tick;
     await sass.kill();
 
@@ -451,6 +452,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
   });
 }
+
+/// Returns the message that Sass prints indicating that [from] was compiled to
+/// [to], with path separators normalized for the current operating system.
+String _compiled(String from, String to) =>
+    'Compiled ${p.normalize(from)} to ${p.normalize(to)}.';
 
 /// Matches the output that indicates that Sass is watching for changes.
 final _watchingForChanges =
