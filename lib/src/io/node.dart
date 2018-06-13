@@ -7,12 +7,12 @@ import 'dart:convert';
 
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
 import '../node/chokidar.dart';
-import '../util/path.dart';
 
 @JS()
 class _FS {

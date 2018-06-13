@@ -8,11 +8,11 @@ import 'package:args/args.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 import '../../sass.dart';
 import '../io.dart';
 import '../util/character.dart';
-import '../util/path.dart';
 
 /// The parsed and processed command-line options for the Sass executable.
 ///
@@ -248,7 +248,7 @@ class ExecutableOptions {
           }
         }
         _sourcesToDestinations =
-            new UnmodifiableMapView(new PathMap.of({source: destination}));
+            new UnmodifiableMapView(new p.PathMap.of({source: destination}));
       }
       _sourceDirectoriesToDestinations = const {};
       return;
@@ -260,8 +260,8 @@ class ExecutableOptions {
     // to report errors for sources as users entered them, rather than after
     // directories have been resolved.
     var seen = new Set<String>();
-    var sourcesToDestinations = new PathMap<String>();
-    var sourceDirectoriesToDestinations = new PathMap<String>();
+    var sourcesToDestinations = new p.PathMap<String>();
+    var sourceDirectoriesToDestinations = new p.PathMap<String>();
     for (var argument in _options.rest) {
       String source;
       String destination;

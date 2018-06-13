@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
@@ -14,7 +15,6 @@ import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../util/multi_dir_watcher.dart';
-import '../util/path.dart';
 import 'compile_stylesheet.dart';
 import 'options.dart';
 
@@ -157,7 +157,7 @@ class _Watcher {
     return events
         .transform(debounceBuffer(new Duration(milliseconds: 25)))
         .expand((buffer) {
-      var typeForPath = new PathMap<ChangeType>();
+      var typeForPath = new p.PathMap<ChangeType>();
       for (var event in buffer) {
         var oldType = typeForPath[event.path];
         if (oldType == null) {
@@ -229,7 +229,7 @@ class _Watcher {
     for (var node in _graph.nodes.values) {
       var importChanged = false;
       for (var url in node.upstream.keys) {
-        if (_name(pUrl.basename(url.path)) != name) continue;
+        if (_name(p.url.basename(url.path)) != name) continue;
         _graph.clearCanonicalize(url);
 
         // If the import produces a different canonicalized URL than it did

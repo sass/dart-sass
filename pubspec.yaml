@@ -8,7 +8,7 @@ executables:
   dart-sass: sass
 
 environment:
-  sdk: '>=1.22.0 <2.0.0'
+  sdk: '>=1.25.0-dev.29.0 <2.0.0'
 
 dependencies:
   args: ">=1.4.0 <2.0.0"
@@ -20,7 +20,7 @@ dependencies:
   dart2_constant: "^1.0.0"
   meta: "^1.1.0"
   package_resolver: "^1.0.0"
-  path: "^1.0.0"
+  path: "^1.6.0"
   source_maps: "^0.10.5"
   source_span: "^1.4.0"
   stack_trace: ">=0.9.0 <2.0.0"

@@ -7,11 +7,10 @@
 
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:test_process/test_process.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test/test.dart';
-
-import 'package:sass/src/util/path.dart';
 
 import '../ensure_npm_package.dart';
 import 'shared.dart';
