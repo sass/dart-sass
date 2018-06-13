@@ -140,9 +140,9 @@ class _Watcher {
           var destination = _destinationFor(event.path);
           if (destination != null) _delete(destination);
 
-          var node = _graph.nodes[url];
+          var downstream = _graph.nodes[url].downstream;
           _graph.remove(url);
-          await _recompileDownstream([node]);
+          await _recompileDownstream(downstream);
           break;
       }
     }
