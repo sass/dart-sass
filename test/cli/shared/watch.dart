@@ -108,6 +108,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       new File(p.join(d.sandbox, "test.scss")).deleteSync();
       await expectLater(sass.stdout, emits('Deleted out.css.'));
 
+      // Windows gets confused at the OS level if we don't wait a bit here.
+      await tick;
+
       await d.file("test.scss", "x {y: z}").create();
       await expectLater(sass.stdout, emits('Compiled test.scss to out.css.'));
       await sass.kill();
