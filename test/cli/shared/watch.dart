@@ -21,7 +21,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   group("when started", () {
     test("updates a CSS file whose source was modified", () async {
       await d.file("out.css", "x {y: z}").create();
-      await new Future.delayed(new Duration(milliseconds: 10));
+      await tick;
       await d.file("test.scss", "a {b: c}").create();
 
       var sass = await watch(["test.scss:out.css"]);
