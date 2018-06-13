@@ -248,7 +248,7 @@ class ExecutableOptions {
           }
         }
         _sourcesToDestinations =
-            new UnmodifiableMapView(newPathMap({source: destination}));
+            new UnmodifiableMapView(new PathMap.of({source: destination}));
       }
       _sourceDirectoriesToDestinations = const {};
       return;
@@ -260,8 +260,8 @@ class ExecutableOptions {
     // to report errors for sources as users entered them, rather than after
     // directories have been resolved.
     var seen = new Set<String>();
-    var sourcesToDestinations = newPathMap<String>();
-    var sourceDirectoriesToDestinations = newPathMap<String>();
+    var sourcesToDestinations = new PathMap<String>();
+    var sourceDirectoriesToDestinations = new PathMap<String>();
     for (var argument in _options.rest) {
       String source;
       String destination;

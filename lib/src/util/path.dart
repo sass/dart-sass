@@ -6,6 +6,8 @@ import 'package:path/path.dart' as path;
 
 import '../io.dart';
 
+export 'path_map.dart';
+
 /// A path context for the current operating system.
 ///
 /// We define our own context rather than using the default one to work around
@@ -22,10 +24,3 @@ path.Context _p;
 
 /// A path context for working with URLs.
 path.Context get pUrl => path.url;
-
-/// Creates a [PathMap] using [p] as the context.
-///
-/// If [map] is passed, it's used as the initial contents of the map.
-Map<String, V> newPathMap<V>([Map<String, V> map]) => map == null
-    ? new path.PathMap(context: p)
-    : new path.PathMap.of(map, context: p);
