@@ -21,7 +21,7 @@ import 'options.dart';
 Future watch(ExecutableOptions options, StylesheetGraph graph) async {
   var directoriesToWatch = <String>[]
     ..addAll(options.sourceDirectoriesToDestinations.keys)
-    ..addAll(options.sourcesToDestinations.keys.map((path) => p.dirname(path)))
+    ..addAll(options.sourcesToDestinations.keys.map(p.dirname))
     ..addAll(options.loadPaths);
 
   var dirWatcher = new MultiDirWatcher();
@@ -64,8 +64,8 @@ class _Watcher {
       await compileStylesheet(_options, _graph, source, destination,
           ifModified: ifModified);
     } on SassException catch (error, stackTrace) {
-      _printError(error.toString(color: _options.color), stackTrace);
       _delete(destination);
+      _printError(error.toString(color: _options.color), stackTrace);
     } on FileSystemException catch (error, stackTrace) {
       _printError("Error reading ${p.relative(error.path)}: ${error.message}.",
           stackTrace);
@@ -113,8 +113,12 @@ class _Watcher {
         case ChangeType.MODIFY:
           if (!_graph.nodes.containsKey(url)) continue loop;
 
+          // Access the node ahead-of-time because it's possible that
+          // `_graph.reload()` notices the file has been deleted and removes it
+          // from the graph.
+          var node = _graph.nodes[url];
           _graph.reload(url);
-          await _recompileDownstream([_graph.nodes[url]]);
+          await _recompileDownstream([node]);
           break;
 
         case ChangeType.ADD:
@@ -136,8 +140,9 @@ class _Watcher {
           var destination = _destinationFor(event.path);
           if (destination != null) _delete(destination);
 
+          var node = _graph.nodes[url];
           _graph.remove(url);
-          await _recompileDownstream([_graph.nodes[url]]);
+          await _recompileDownstream([node]);
           break;
       }
     }

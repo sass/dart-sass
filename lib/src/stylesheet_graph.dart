@@ -142,7 +142,7 @@ class StylesheetGraph {
   ///
   /// Throws a [StateError] if [canonicalUrl] isn't already in the dependency graph.
   void remove(Uri canonicalUrl) {
-    var node = _nodes[canonicalUrl];
+    var node = _nodes.remove(canonicalUrl);
     if (node == null) {
       throw new StateError("$canonicalUrl is not in the dependency graph.");
     }
