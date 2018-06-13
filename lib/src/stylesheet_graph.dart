@@ -255,8 +255,10 @@ class StylesheetNode {
   /// Sets [newUpstream] as the new value of [upstream] and adjusts upstream
   /// nodes' [downstream] fields accordingly.
   void _replaceUpstream(Map<Uri, StylesheetNode> newUpstream) {
-    var oldUpstream = new Set.of(upstream.values)..remove(null);
-    var newUpstreamSet = new Set.of(newUpstream.values)..remove(null);
+    var oldUpstream = new Set<StylesheetNode>.from(upstream.values)
+      ..remove(null);
+    var newUpstreamSet = new Set<StylesheetNode>.from(newUpstream.values)
+      ..remove(null);
 
     for (var removed in oldUpstream.difference(newUpstreamSet)) {
       var wasRemoved = removed._downstream.remove(this);
