@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:stack_trace/stack_trace.dart';
+import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
@@ -104,7 +105,7 @@ class _Watcher {
   /// Returns a future that will only complete if an unexpected error occurs.
   Future watch(MultiDirWatcher watcher) async {
     loop:
-    await for (var event in watcher.events) {
+    await for (var event in _debounceEvents(watcher.events)) {
       var extension = p.extension(event.path);
       if (extension != '.sass' && extension != '.scss') continue;
       var url = p.toUri(p.canonicalize(event.path));
@@ -146,6 +147,31 @@ class _Watcher {
           break;
       }
     }
+  }
+
+  /// Combine [WatchEvent]s that happen in quick succession.
+  ///
+  /// Otherwise, if a file is erased and then rewritten, we can end up reading
+  /// the intermediate erased version.
+  Stream<WatchEvent> _debounceEvents(Stream<WatchEvent> events) {
+    return events
+        .transform(debounceBuffer(new Duration(milliseconds: 25)))
+        .expand((buffer) {
+      var typeForPath = new PathMap<ChangeType>();
+      for (var event in buffer) {
+        var oldType = typeForPath[event.path];
+        if (oldType == null) {
+          typeForPath[event.path] = event.type;
+        } else if (event.type == ChangeType.REMOVE) {
+          typeForPath[event.path] = ChangeType.REMOVE;
+        } else if (oldType != ChangeType.ADD) {
+          typeForPath[event.path] = ChangeType.MODIFY;
+        }
+      }
+
+      return typeForPath.keys
+          .map((path) => new WatchEvent(typeForPath[path], path));
+    });
   }
 
   /// Recompiles [nodes] and everything that transitively imports them, if
