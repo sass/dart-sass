@@ -178,7 +178,7 @@ class _Watcher {
   /// necessary.
   Future _recompileDownstream(Iterable<StylesheetNode> nodes) async {
     var seen = new Set<StylesheetNode>();
-    var toRecompile = new Queue<StylesheetNode>.from(nodes);
+    var toRecompile = new Queue.of(nodes);
 
     while (!toRecompile.isEmpty) {
       var node = toRecompile.removeFirst();
