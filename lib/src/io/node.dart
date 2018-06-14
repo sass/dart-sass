@@ -8,8 +8,11 @@ import 'dart:convert';
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
 import 'package:source_span/source_span.dart';
+import 'package:stream_transform/stream_transform.dart';
+import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
+import '../node/chokidar.dart';
 import '../util/path.dart';
 
 @JS()
@@ -237,3 +240,55 @@ external int get exitCode;
 
 @JS("process.exitCode")
 external set exitCode(int code);
+
+Future<Stream<WatchEvent>> watchDir(String path) {
+  var watcher =
+      chokidar.watch(path, new ChokidarOptions(disableGlobbing: true));
+
+  // Don't assign the controller until after the ready event fires. Otherwise,
+  // Chokidar will give us a bunch of add events for files that already exist.
+  StreamController<WatchEvent> controller;
+  watcher
+    ..on(
+        'add',
+        allowInterop((String path, _) =>
+            controller?.add(new WatchEvent(ChangeType.ADD, path))))
+    ..on(
+        'change',
+        allowInterop((String path, _) =>
+            controller?.add(new WatchEvent(ChangeType.MODIFY, path))))
+    ..on(
+        'unlink',
+        allowInterop((String path) =>
+            controller?.add(new WatchEvent(ChangeType.REMOVE, path))))
+    ..on('error', allowInterop((error) => controller?.addError(error)));
+
+  var completer = new Completer<Stream<WatchEvent>>();
+  watcher.on('ready', allowInterop(() {
+    controller = new StreamController<WatchEvent>();
+
+    // Buffer events that happen in quick succession because otherwise, if a
+    // file is erased and then rewritten, we can end up reading the intermediate
+    // erased version.
+    completer.complete(controller.stream
+        .transform(debounceBuffer(new Duration(milliseconds: 25)))
+        .expand((buffer) {
+      var typeForPath = new PathMap<ChangeType>();
+      for (var event in buffer) {
+        var oldType = typeForPath[event.path];
+        if (oldType == null) {
+          typeForPath[event.path] = event.type;
+        } else if (event.type == ChangeType.REMOVE) {
+          typeForPath[event.path] = ChangeType.REMOVE;
+        } else if (oldType != ChangeType.ADD) {
+          typeForPath[event.path] = ChangeType.MODIFY;
+        }
+      }
+
+      return typeForPath.keys
+          .map((path) => new WatchEvent(typeForPath[path], path));
+    }));
+  }));
+
+  return completer.future;
+}

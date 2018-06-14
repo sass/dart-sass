@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:watcher/watcher.dart';
+
 /// An output sink that writes to this process's standard error.
 class Stderr {
   /// Writes the string representation of [object] to standard error.
@@ -79,3 +81,10 @@ DateTime modificationTime(String path) => null;
 
 /// Gets and sets the exit code that the process will use when it exits.
 int exitCode;
+
+/// Recursively watches the directory at [path] for modifications.
+///
+/// Returns a future that completes with a single-subscription stream once the
+/// directory has been scanned initially. The watch is canceled when the stream
+/// is closed.
+Future<Stream<WatchEvent>> watchDir(String path) => null;

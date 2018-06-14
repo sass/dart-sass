@@ -18,7 +18,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       '--source-map',
       '--source-map-urls=absolute',
       '--embed-sources',
-      '--embed-source-map'
+      '--embed-source-map',
+      '--update',
+      '--watch'
     ];
     for (var arg in invalidArgs) {
       test(arg, () async {

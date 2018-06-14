@@ -2,8 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
+
 import 'package:args/args.dart';
 import 'package:charcode/charcode.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../../sass.dart';
@@ -69,6 +72,9 @@ class ExecutableOptions {
 
     parser
       ..addSeparator(_separator('Other'))
+      ..addFlag('watch',
+          help: 'Watch stylesheets and recompile when they change.',
+          negatable: false)
       ..addFlag('interactive',
           abbr: 'i',
           help: 'Run an interactive SassScript shell.',
@@ -116,7 +122,7 @@ class ExecutableOptions {
 
     var invalidOptions = [
       'stdin', 'indented', 'load-path', 'style', 'source-map', //
-      'source-map-urls', 'embed-sources', 'embed-source-map'
+      'source-map-urls', 'embed-sources', 'embed-source-map', 'update', 'watch'
     ];
     for (var option in invalidOptions) {
       if (_options.wasParsed(option)) {
@@ -161,20 +167,39 @@ class ExecutableOptions {
   /// Whether to update only files that have changed since the last compilation.
   bool get update => _options['update'] as bool;
 
+  /// Whether to continuously watch the filesystem for changes.
+  bool get watch => _options['watch'] as bool;
+
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.
+  ///
+  /// Considers keys to be the same if they represent the same path on disk.
   ///
   /// A `null` source indicates that a stylesheet should be read from standard
   /// input. A `null` destination indicates that a stylesheet should be written
   /// to standard output.
-  ///
-  /// A source path may refer to either a single stylesheet file, in which case
-  /// the destination is the file where the resulting CSS should be written; or
-  /// to a directory containing stylesheets, in which case the destination is a
-  /// directory in which the compiled CSS should be written in the same
-  /// structure.
   Map<String, String> get sourcesToDestinations {
-    if (_sourcesToDestinations != null) return _sourcesToDestinations;
+    _ensureSources();
+    return _sourcesToDestinations;
+  }
+
+  Map<String, String> _sourcesToDestinations;
+
+  /// A map from source directories to the destination directories where the
+  /// compiled CSS for stylesheets in the source directories should be written.
+  ///
+  /// Considers keys to be the same if they represent the same path on disk.
+  Map<String, String> get sourceDirectoriesToDestinations {
+    _ensureSources();
+    return _sourceDirectoriesToDestinations;
+  }
+
+  Map<String, String> _sourceDirectoriesToDestinations;
+
+  /// Ensure that both [sourcesToDestinations] and [sourceDirectories] have been
+  /// computed.
+  void _ensureSources() {
+    if (_sourcesToDestinations != null) return;
 
     var stdin = _options['stdin'] as bool;
     if (_options.rest.isEmpty && !stdin) _fail("Compile Sass to CSS.");
@@ -205,19 +230,28 @@ class ExecutableOptions {
           _fail("Only one argument is allowed with --stdin.");
         } else if (update) {
           _fail("--update is not allowed with --stdin.");
+        } else if (watch) {
+          _fail("--watch is not allowed with --stdin.");
         }
-        return {null: _options.rest.isEmpty ? null : _options.rest.first};
+        _sourcesToDestinations = new Map.unmodifiable(
+            {null: _options.rest.isEmpty ? null : _options.rest.first});
       } else if (_options.rest.length > 2) {
         _fail("Only two positional args may be passed.");
       } else {
         var source = _options.rest.first == '-' ? null : _options.rest.first;
         var destination = _options.rest.length == 1 ? null : _options.rest.last;
-        if (update && destination == null) {
-          _fail("--update is not allowed when printing to stdout.");
+        if (destination == null) {
+          if (update) {
+            _fail("--update is not allowed when printing to stdout.");
+          } else if (watch) {
+            _fail("--watch is not allowed when printing to stdout.");
+          }
         }
-
-        return {source: destination};
+        _sourcesToDestinations =
+            new UnmodifiableMapView(new PathMap.of({source: destination}));
       }
+      _sourceDirectoriesToDestinations = const {};
+      return;
     }
 
     if (stdin) _fail('--stdin may not be used with ":" arguments.');
@@ -226,7 +260,8 @@ class ExecutableOptions {
     // to report errors for sources as users entered them, rather than after
     // directories have been resolved.
     var seen = new Set<String>();
-    var sourcesToDestinations = <String, String>{};
+    var sourcesToDestinations = new PathMap<String>();
+    var sourceDirectoriesToDestinations = new PathMap<String>();
     for (var argument in _options.rest) {
       String source;
       String destination;
@@ -255,16 +290,16 @@ class ExecutableOptions {
       if (source == '-') {
         sourcesToDestinations[null] = destination;
       } else if (dirExists(source)) {
+        sourceDirectoriesToDestinations[source] = destination;
         sourcesToDestinations.addAll(_listSourceDirectory(source, destination));
       } else {
         sourcesToDestinations[source] = destination;
       }
     }
-    _sourcesToDestinations = new Map.unmodifiable(sourcesToDestinations);
-    return _sourcesToDestinations;
+    _sourcesToDestinations = new UnmodifiableMapView(sourcesToDestinations);
+    _sourceDirectoriesToDestinations =
+        new UnmodifiableMapView(sourceDirectoriesToDestinations);
   }
-
-  Map<String, String> _sourcesToDestinations;
 
   /// Returns whether [string] contains an absolute Windows path at [index].
   bool _isWindowsPath(String string, int index) =>

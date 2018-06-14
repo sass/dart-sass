@@ -6,6 +6,8 @@ import 'package:path/path.dart' as path;
 
 import '../io.dart';
 
+export 'path_map.dart';
+
 /// A path context for the current operating system.
 ///
 /// We define our own context rather than using the default one to work around
