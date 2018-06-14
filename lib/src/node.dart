@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:js_util';
 import 'dart:typed_data';
 
-import 'package:collection/collection.dart';
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
@@ -134,7 +133,7 @@ RenderResult _renderSync(RenderOptions options) {
     if (options.data != null) {
       result = compileString(options.data,
           nodeImporter: _parseImporter(options, start),
-          functions: DelegatingList.typed(_parseFunctions(options)),
+          functions: _parseFunctions(options).cast(),
           indented: isTruthy(options.indentedSyntax),
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
@@ -145,7 +144,7 @@ RenderResult _renderSync(RenderOptions options) {
     } else if (options.file != null) {
       result = compile(file,
           nodeImporter: _parseImporter(options, start),
-          functions: DelegatingList.typed(_parseFunctions(options)),
+          functions: _parseFunctions(options).cast(),
           indented: options.indentedSyntax,
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
@@ -255,7 +254,7 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
   if (options.importer == null) {
     importers = [];
   } else if (options.importer is List) {
-    importers = DelegatingList.typed(options.importer as List);
+    importers = (options.importer as List).cast();
   } else {
     importers = [options.importer as _Importer];
   }

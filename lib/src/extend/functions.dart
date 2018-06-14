@@ -789,8 +789,12 @@ bool _selectorPseudoIsSuperselector(
 /// and that have the given [name].
 Iterable<PseudoSelector> _selectorPseudosNamed(
         CompoundSelector compound, String name) =>
-    DelegatingIterable.typed(compound.components.where((simple) =>
-        simple is PseudoSelector &&
-        simple.isClass &&
-        simple.selector != null &&
-        simple.name == name));
+    // TODO(nweiz): Use whereType() when we only have to support Dart 2 runtime
+    // semantics.
+    compound.components
+        .where((pseudo) =>
+            pseudo is PseudoSelector &&
+            pseudo.isClass &&
+            pseudo.selector != null &&
+            pseudo.name == name)
+        .cast();

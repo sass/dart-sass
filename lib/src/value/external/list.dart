@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:collection/collection.dart';
-
 import '../../value.dart' as internal;
 import '../../value.dart' show ListSeparator;
 import 'value.dart';
@@ -23,6 +21,5 @@ abstract class SassList extends Value {
   /// Returns an empty list with the given [separator] and [brackets].
   factory SassList(Iterable<Value> contents, ListSeparator separator,
           {bool brackets: false}) =>
-      new internal.SassList(DelegatingIterable.typed(contents), separator,
-          brackets: brackets);
+      new internal.SassList(contents.cast(), separator, brackets: brackets);
 }
