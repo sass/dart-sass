@@ -93,7 +93,7 @@ Future<Stylesheet> _parseStylesheet(
   // else imports it.
   if (source != null && options.indented == null) {
     return importCache.importCanonical(new FilesystemImporter('.'),
-        p.toUri(p.absolute(source)), p.toUri(source));
+        p.toUri(p.canonicalize(source)), p.toUri(source));
   }
 
   var text = source == null ? await readStdin() : readFile(source);
