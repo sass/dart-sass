@@ -1,4 +1,4 @@
-## 1.5.2
+## 1.6.0
 
 * Produce better errors when expected tokens are missing before a closing brace.
 
@@ -6,6 +6,9 @@
   filesystem next to a partial with the same name.
 
 ### Command-Line Interface
+
+* Add support for the `--watch`, which watches for changes in Sass files on the
+  filesystem and ensures that the compiled CSS is up-to-date.
 
 * When using `--update`, surface errors when an import doesn't exist even if the
   file containing the import hasn't been modified.
