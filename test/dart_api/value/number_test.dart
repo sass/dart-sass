@@ -19,7 +19,7 @@ main() {
 
     test("has the correct value", () {
       expect(value.value, equals(123));
-      expect(value.value, new isInstanceOf<int>());
+      expect(value.value, const TypeMatcher<int>());
     });
 
     test("has no units", () {

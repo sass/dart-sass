@@ -110,7 +110,7 @@ main() {
       var resolver = new SyncPackageResolver.config({});
 
       expect(() => compile(d.sandbox + "/test.scss", packageResolver: resolver),
-          throwsA(new isInstanceOf<SassRuntimeException>()));
+          throwsA(const TypeMatcher<SassRuntimeException>()));
     });
   });
 
