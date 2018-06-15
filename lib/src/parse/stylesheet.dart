@@ -6,8 +6,7 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
-// This is unsafe prior to sdk#30098, which landed in Dart 1.25.0-dev.7.0.
-import 'package:path/path.dart' as unsafePath;
+import 'package:path/path.dart' as p;
 import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
 
@@ -779,9 +778,7 @@ abstract class StylesheetParser extends Parser {
   String parseImportUrl(String url) {
     // Backwards-compatibility for implementations that allow absolute Windows
     // paths in imports.
-    if (unsafePath.windows.isAbsolute(url)) {
-      return unsafePath.windows.toUri(url).toString();
-    }
+    if (p.windows.isAbsolute(url)) return p.windows.toUri(url).toString();
 
     // Throw a [FormatException] if [url] is invalid.
     Uri.parse(url);

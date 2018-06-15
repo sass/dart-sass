@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'exception.dart';
@@ -15,7 +16,6 @@ import 'executable/watch.dart';
 import 'import_cache.dart';
 import 'io.dart';
 import 'stylesheet_graph.dart';
-import 'util/path.dart';
 
 main(List<String> args) async {
   var printedError = false;

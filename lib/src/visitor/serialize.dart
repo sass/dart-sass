@@ -32,7 +32,7 @@ import 'interface/value.dart';
 /// Normally we avoid encoding this much information about CSS semantics, but
 /// since this is just for an optimization it won't cause user pain if it takes
 /// us a while to add new units.
-final _compressibleUnits = new Set.from([
+final _compressibleUnits = new Set.of([
   "em", "ex", "ch", "rem", "vw", "wh", "vmin", "vmax", "cm", "mm", "q", "in", //
   "pt", "pc", "px", "deg", "rad", "turn"
 ]);

@@ -7,11 +7,9 @@
 
 import 'dart:convert';
 
-// This is unsafe prior to sdk#30098, which landed in Dart 1.25.0-dev.7.0.
-import 'package:path/path.dart' as unsafePath;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'package:sass/src/util/path.dart';
 import 'package:sass/src/node/utils.dart';
 
 import 'ensure_npm_package.dart';
@@ -323,7 +321,7 @@ a {
               "Error: Expected expression.\n"
               "a {b: }\n"
               "      ^\n"
-              "  ${tracePath(sassPath)} 1:7  root stylesheet");
+              "  $sassPath 1:7  root stylesheet");
         });
 
         test("sets the line, column, and filename", () {
@@ -375,7 +373,7 @@ a {
           expect(
               error,
               toStringAndMessageEqual('Undefined operation "1 % a".\n'
-                  '  ${tracePath(sassPath)} 1:7  root stylesheet'));
+                  '  $sassPath 1:7  root stylesheet'));
         });
 
         test("has a useful formatted message", () async {
@@ -384,7 +382,7 @@ a {
               'Error: Undefined operation "1 % a".\n'
               'a {b: 1 % a}\n'
               '      ^^^^^\n'
-              '  ${tracePath(sassPath)} 1:7  root stylesheet');
+              '  $sassPath 1:7  root stylesheet');
         });
 
         test("sets the line, column, and filename", () {
@@ -444,9 +442,3 @@ a {
       // is only available on Dart 2.
       tags: "dart2");
 }
-
-/// Returns [path] in the format it appears in formatted stack traces.
-///
-/// Stack traces use the global `path` context, which is broken on Node prior to
-/// Dart 1.25.0-dev.7.0.
-String tracePath(String path) => unsafePath.prettyUri(p.toUri(path));

@@ -8,9 +8,8 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
+import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
-
-import 'package:sass/src/util/path.dart';
 
 import 'utils.dart';
 
@@ -69,7 +68,7 @@ Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
       .firstWhere((file) => os == 'windows'
           ? file.name.endsWith("/bin/dart.exe")
           : file.name.endsWith("/bin/dart"));
-  var executable = DelegatingList.typed<int>(dartExecutable.content as List);
+  var executable = dartExecutable.content as List<int>;
 
   // Use the app snapshot when packaging for the current operating system.
   //

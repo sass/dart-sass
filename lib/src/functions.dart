@@ -21,7 +21,7 @@ import 'value.dart';
 final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
 
 /// Feature names supported by Dart sass.
-final _features = new Set<String>.from([
+final _features = new Set.of([
   "global-variable-shadowing",
   "extend-selector-pseudoclass",
   "units-level-3",
@@ -806,13 +806,13 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   new BuiltInCallable("map-merge", r"$map1, $map2", (arguments) {
     var map1 = arguments[0].assertMap("map1");
     var map2 = arguments[1].assertMap("map2");
-    return new SassMap(new Map.from(map1.contents)..addAll(map2.contents));
+    return new SassMap(new Map.of(map1.contents)..addAll(map2.contents));
   }),
 
   new BuiltInCallable("map-remove", r"$map, $keys...", (arguments) {
     var map = arguments[0].assertMap("map");
     var keys = arguments[1];
-    var mutableMap = new Map<Value, Value>.from(map.contents);
+    var mutableMap = new Map.of(map.contents);
     for (var key in keys.asList) {
       mutableMap.remove(key);
     }

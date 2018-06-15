@@ -22,7 +22,7 @@ import '../utils.dart';
 ///
 /// For example, `.foo` is a superselector of `:matches(.foo)`.
 final _subselectorPseudos =
-    new Set<String>.from(['matches', 'any', 'nth-child', 'nth-last-child']);
+    new Set.of(['matches', 'any', 'nth-child', 'nth-last-child']);
 
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by both [complex1] and [complex2].
@@ -183,8 +183,8 @@ List<List<ComplexSelectorComponent>> weave(
 Iterable<List<ComplexSelectorComponent>> _weaveParents(
     List<ComplexSelectorComponent> parents1,
     List<ComplexSelectorComponent> parents2) {
-  var queue1 = new Queue<ComplexSelectorComponent>.from(parents1);
-  var queue2 = new Queue<ComplexSelectorComponent>.from(parents2);
+  var queue1 = new Queue.of(parents1);
+  var queue2 = new Queue.of(parents2);
 
   var initialCombinators = _mergeInitialCombinators(queue1, queue2);
   if (initialCombinators == null) return null;
@@ -316,9 +316,9 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     // is a supersequence of the other, use that, otherwise give up.
     var lcs = longestCommonSubsequence(combinators1, combinators2);
     if (listEquals(lcs, combinators1)) {
-      result.addFirst([new List.from(combinators2.reversed)]);
+      result.addFirst([new List.of(combinators2.reversed)]);
     } else if (listEquals(lcs, combinators2)) {
-      result.addFirst([new List.from(combinators1.reversed)]);
+      result.addFirst([new List.of(combinators1.reversed)]);
     } else {
       return null;
     }
@@ -789,8 +789,12 @@ bool _selectorPseudoIsSuperselector(
 /// and that have the given [name].
 Iterable<PseudoSelector> _selectorPseudosNamed(
         CompoundSelector compound, String name) =>
-    DelegatingIterable.typed(compound.components.where((simple) =>
-        simple is PseudoSelector &&
-        simple.isClass &&
-        simple.selector != null &&
-        simple.name == name));
+    // TODO(nweiz): Use whereType() when we only have to support Dart 2 runtime
+    // semantics.
+    compound.components
+        .where((pseudo) =>
+            pseudo is PseudoSelector &&
+            pseudo.isClass &&
+            pseudo.selector != null &&
+            pseudo.name == name)
+        .cast();

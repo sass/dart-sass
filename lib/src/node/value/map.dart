@@ -57,7 +57,7 @@ final Function mapConstructor =
   'setValue': (_NodeSassMap thisArg, int index, value) {
     var key = thisArg.dartValue.contents.keys.elementAt(index);
 
-    var mutable = new Map<Value, Value>.from(thisArg.dartValue.contents);
+    var mutable = new Map.of(thisArg.dartValue.contents);
     mutable[key] = unwrapValue(value);
     thisArg.dartValue = new SassMap(mutable);
   },

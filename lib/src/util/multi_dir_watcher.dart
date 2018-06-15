@@ -5,10 +5,10 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
+import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
 import '../io.dart';
-import 'path.dart';
 
 /// Watches multiple directories which may change over time recursively for changes.
 ///

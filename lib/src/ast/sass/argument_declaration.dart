@@ -98,7 +98,7 @@ class ArgumentDeclaration implements SassNode {
   }
 
   String toString() {
-    var components = new List.from(arguments.map((arg) => arg.toString()));
+    var components = new List.of(arguments.map((arg) => arg.toString()));
     if (restArgument != null) components.add('$restArgument...');
     return components.join(', ');
   }

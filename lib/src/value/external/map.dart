@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:collection/collection.dart';
-
 import '../../value.dart' as internal;
 import 'value.dart';
 
@@ -22,5 +20,5 @@ abstract class SassMap extends Value {
   const factory SassMap.empty() = internal.SassMap.empty;
 
   factory SassMap(Map<Value, Value> contents) =>
-      new internal.SassMap(DelegatingMap.typed(contents));
+      new internal.SassMap(contents.cast());
 }

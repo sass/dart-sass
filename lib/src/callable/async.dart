@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:async/async.dart';
-
 import '../value.dart';
 import '../value/external/value.dart' as ext;
 import 'async_built_in.dart';
@@ -34,6 +32,6 @@ abstract class AsyncCallable {
       new AsyncBuiltInCallable(name, arguments, (arguments) {
         var result = callback(arguments);
         if (result is ext.Value) return result as Value;
-        return DelegatingFuture.typed(result as Future);
+        return (result as Future).then((value) => value as Value);
       });
 }
