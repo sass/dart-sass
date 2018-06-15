@@ -7,6 +7,7 @@ import 'package:grinder/grinder.dart';
 import 'grind/npm.dart';
 import 'grind/synchronize.dart';
 
+export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
 export 'grind/chocolatey.dart';
 export 'grind/github.dart';
