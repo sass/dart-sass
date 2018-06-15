@@ -3,10 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:async/async.dart';
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
@@ -29,14 +29,14 @@ String readFile(String path) {
   var bytes = new io.File(path).readAsBytesSync();
 
   try {
-    return convert.utf8.decode(bytes);
+    return utf8.decode(bytes);
   } on FormatException catch (error) {
-    var decodedUntilError = convert.utf8
-        .decode(bytes.sublist(0, error.offset), allowMalformed: true);
+    var decodedUntilError =
+        utf8.decode(bytes.sublist(0, error.offset), allowMalformed: true);
     var stringOffset = decodedUntilError.length;
     if (decodedUntilError.endsWith("�")) stringOffset--;
 
-    var decoded = convert.utf8.decode(bytes, allowMalformed: true);
+    var decoded = utf8.decode(bytes, allowMalformed: true);
     var sourceFile = new SourceFile.fromString(decoded, url: p.toUri(path));
     throw new SassException(
         "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan());
@@ -50,7 +50,7 @@ void deleteFile(String path) => new io.File(path).deleteSync();
 
 Future<String> readStdin() async {
   var completer = new Completer<String>();
-  completer.complete(await io.SYSTEM_ENCODING.decodeStream(io.stdin));
+  completer.complete(await io.systemEncoding.decodeStream(io.stdin));
   return completer.future;
 }
 
@@ -68,7 +68,7 @@ Iterable<String> listDir(String path) => new io.Directory(path)
 
 DateTime modificationTime(String path) {
   var stat = io.FileStat.statSync(path);
-  if (stat.type == io.FileSystemEntityType.NOT_FOUND) {
+  if (stat.type == io.FileSystemEntityType.notFound) {
     throw new io.FileSystemException("File not found.", path);
   }
   return stat.modified;

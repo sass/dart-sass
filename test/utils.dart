@@ -3,8 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
@@ -30,5 +30,5 @@ Map<String, Object> embeddedSourceMap(String css) {
   var match = _sourceMapCommentRegExp.firstMatch(css);
   var data = Uri.parse(match[1]).data;
   expect(data.mimeType, equals("application/json"));
-  return convert.json.decode(data.contentAsString()) as Map<String, Object>;
+  return jsonDecode(data.contentAsString()) as Map<String, Object>;
 }

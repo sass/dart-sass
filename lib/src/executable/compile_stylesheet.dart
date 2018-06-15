@@ -3,8 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 
@@ -128,8 +128,8 @@ String _writeSourceMap(
     sourceMap.urls[i] =
         options.sourceMapUrl(Uri.parse(url), destination).toString();
   }
-  var sourceMapText = convert.json
-      .encode(sourceMap.toJson(includeSourceContents: options.embedSources));
+  var sourceMapText =
+      jsonEncode(sourceMap.toJson(includeSourceContents: options.embedSources));
 
   Uri url;
   if (options.embedSourceMap) {

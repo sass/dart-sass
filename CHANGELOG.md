@@ -1,3 +1,7 @@
+## 1.6.1
+
+* No user-visible changes.
+
 ## 1.6.0
 
 * Produce better errors when expected tokens are missing before a closing brace.

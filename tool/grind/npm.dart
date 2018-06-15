@@ -2,10 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:charcode/charcode.dart';
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
 import 'package:meta/meta.dart';
 import 'package:node_preamble/preamble.dart' as preamble;
@@ -65,9 +65,8 @@ npm_release_package() => _npm(release: true);
 /// --trust-type-annotations. Otherwise, it compiles unminified with pessimistic
 /// type checks.
 void _npm({@required bool release}) {
-  var json =
-      convert.json.decode(new File('package/package.json').readAsStringSync())
-          as Map<String, dynamic>;
+  var json = jsonDecode(new File('package/package.json').readAsStringSync())
+      as Map<String, dynamic>;
   json['version'] = version;
 
   _writeNpmPackage('build/npm', json);
@@ -86,7 +85,7 @@ void _writeNpmPackage(String destination, Map<String, dynamic> json) {
 
   log("copying package/package.json to $destination");
   new File(p.join(destination, 'package.json'))
-      .writeAsStringSync(convert.json.encode(json));
+      .writeAsStringSync(jsonEncode(json));
 
   copy(new File(p.join('package', 'sass.js')), dir);
   copy(new File(p.join('build', 'sass.dart.js')), dir);
