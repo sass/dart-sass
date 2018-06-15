@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
+import 'package:path/path.dart' as p;
 
 import 'utils.dart';
 
@@ -27,23 +28,9 @@ update_homebrew() async {
     fail('git archive "$version" failed:\n$stderr');
   }
 
-  if (new Directory("build/homebrew-sass/.git").existsSync()) {
-    await runAsync("git",
-        arguments: ["fetch", "origin"],
-        workingDirectory: "build/homebrew-sass");
-    await runAsync("git",
-        arguments: ["reset", "--hard", "origin/master"],
-        workingDirectory: "build/homebrew-sass");
-  } else {
-    delete(new Directory("build/homebrew-sass"));
-    await runAsync("git", arguments: [
-      "clone",
-      "https://github.com/sass/homebrew-sass.git",
-      "build/homebrew-sass"
-    ]);
-  }
+  var repo = await cloneOrPull("https://github.com/sass/homebrew-sass.git");
 
-  var formula = new File("build/homebrew-sass/sass.rb");
+  var formula = new File(p.join(repo, "sass.rb"));
   log("updating ${formula.path}");
   formula.writeAsStringSync(formula.readAsStringSync().replaceFirstMapped(
       _homebrewRegExp,
@@ -58,7 +45,7 @@ update_homebrew() async {
         "--message",
         "Update Dart Sass to $version"
       ],
-      workingDirectory: "build/homebrew-sass",
+      workingDirectory: repo,
       runOptions: new RunOptions(environment: {
         "GIT_AUTHOR_NAME": "Sass Bot",
         "GIT_AUTHOR_EMAIL": "sass.bot.beep.boop@gmail.com",
@@ -73,5 +60,5 @@ update_homebrew() async {
         "push",
         "https://$username:$password@github.com/sass/homebrew-sass.git"
       ],
-      workingDirectory: "build/homebrew-sass");
+      workingDirectory: repo);
 }

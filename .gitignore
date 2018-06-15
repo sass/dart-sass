@@ -4,6 +4,7 @@
 .pub/
 .dart_tool/
 .settings/
+.sass-cache/
 build/
 packages
 .packages
