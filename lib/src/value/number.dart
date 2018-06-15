@@ -2,8 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:dart2_constant/core.dart' as core;
-import 'package:dart2_constant/math.dart' as math;
+import 'dart:math';
 
 import '../exception.dart';
 import '../util/number.dart';
@@ -85,25 +84,25 @@ final _conversions = {
   "deg": {
     "deg": 1,
     "grad": 9 / 10,
-    "rad": 180 / math.pi,
+    "rad": 180 / pi,
     "turn": 360,
   },
   "grad": {
     "deg": 10 / 9,
     "grad": 1,
-    "rad": 200 / math.pi,
+    "rad": 200 / pi,
     "turn": 400,
   },
   "rad": {
-    "deg": math.pi / 180,
-    "grad": math.pi / 200,
+    "deg": pi / 180,
+    "grad": pi / 200,
     "rad": 1,
-    "turn": 2 * math.pi,
+    "turn": 2 * pi,
   },
   "turn": {
     "deg": 1 / 360,
     "grad": 1 / 400,
-    "rad": 1 / (2 * math.pi),
+    "rad": 1 / (2 * pi),
     "turn": 1,
   },
 
@@ -319,7 +318,7 @@ class SassNumber extends Value implements ext.SassNumber {
     if (other is SassNumber) {
       return _coerceNumber(other, (num1, num2) {
         if (num2 > 0) return num1 % num2;
-        if (num2 == 0) return core.double.nan;
+        if (num2 == 0) return double.nan;
 
         // Dart has different mod-negative semantics than Ruby, and thus than
         // Sass.

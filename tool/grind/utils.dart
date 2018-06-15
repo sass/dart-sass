@@ -3,10 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -55,7 +55,7 @@ ArchiveFile fileFromBytes(String path, List<int> data,
 /// If [executable] is `true`, this marks the file as executable.
 ArchiveFile fileFromString(String path, String contents,
         {bool executable: false}) =>
-    fileFromBytes(path, convert.utf8.encode(contents), executable: executable);
+    fileFromBytes(path, utf8.encode(contents), executable: executable);
 
 /// Creates an [ArchiveFile] at the archive path [target] from the local file at
 /// [source].

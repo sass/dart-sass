@@ -37,7 +37,7 @@ final _isUndefined = new JSFunction("value", "return value === undefined;");
 external Function get _JSError;
 
 /// Returns whether [value] is a JS Error object.
-bool isJSError(value) => instanceof(value, _JSError) as bool;
+bool isJSError(value) => instanceof(value, _JSError);
 
 /// Invokes [function] with [thisArg] as `this`.
 R call2<R, A1, A2>(

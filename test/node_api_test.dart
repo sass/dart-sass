@@ -258,8 +258,8 @@ a {
 
       test("includes timing information", () {
         var result = sass.renderSync(new RenderOptions(file: sassPath));
-        expect(result.stats.start, new isInstanceOf<int>());
-        expect(result.stats.end, new isInstanceOf<int>());
+        expect(result.stats.start, const TypeMatcher<int>());
+        expect(result.stats.end, const TypeMatcher<int>());
         expect(result.stats.start, lessThanOrEqualTo(result.stats.end));
         expect(result.stats.duration,
             equals(result.stats.end - result.stats.start));

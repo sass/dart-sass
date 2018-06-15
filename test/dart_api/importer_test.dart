@@ -89,7 +89,7 @@ main() {
         }, expectAsync1((_) => null, count: 0))
       ]);
     }, throwsA(predicate((error) {
-      expect(error, new isInstanceOf<SassException>());
+      expect(error, const TypeMatcher<SassException>());
       expect(
           error.toString(), startsWith("Error: this import is bad actually"));
       return true;
@@ -104,7 +104,7 @@ main() {
         })
       ]);
     }, throwsA(predicate((error) {
-      expect(error, new isInstanceOf<SassException>());
+      expect(error, const TypeMatcher<SassException>());
       expect(
           error.toString(), startsWith("Error: this import is bad actually"));
       return true;
@@ -119,7 +119,7 @@ main() {
         })
       ]);
     }, throwsA(predicate((error) {
-      expect(error, new isInstanceOf<SassException>());
+      expect(error, const TypeMatcher<SassException>());
       // FormatException.toString() starts with "FormatException:", but
       // the error message should not.
       expect(error.toString(), startsWith("Error: bad format somehow"));

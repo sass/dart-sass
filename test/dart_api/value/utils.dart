@@ -22,7 +22,7 @@ Value parseValue(String source) {
 
 /// A matcher that asserts that a function throws a [SassScriptException].
 final throwsSassScriptException =
-    throwsA(new isInstanceOf<SassScriptException>());
+    throwsA(const TypeMatcher<SassScriptException>());
 
 /// Like [equals], but asserts that the hash codes of the values are the same as
 /// well.

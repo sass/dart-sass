@@ -3,10 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js_util';
 import 'dart:typed_data';
 
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
@@ -362,7 +362,7 @@ RenderResult _newRenderResult(
 
     var json = result.sourceMap
         .toJson(includeSourceContents: options.sourceMapContents);
-    sourceMapBytes = utf8Encode(convert.json.encode(json));
+    sourceMapBytes = utf8Encode(jsonEncode(json));
 
     if (!isTruthy(options.omitSourceMapUrl)) {
       var url = options.sourceMapEmbed

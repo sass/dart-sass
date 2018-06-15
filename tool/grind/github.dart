@@ -3,10 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:charcode/charcode.dart';
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -28,7 +28,7 @@ github_release() async {
         "content-type": "application/json",
         "authorization": authorization
       },
-      body: convert.json.encode({
+      body: jsonEncode({
         "tag_name": version,
         "name": "Dart Sass $version",
         "prerelease": new Version.parse(version).isPreRelease,
@@ -41,7 +41,7 @@ github_release() async {
     log("Released Dart Sass $version to GitHub.");
   }
 
-  var uploadUrl = convert.json
+  var uploadUrl = json
       .decode(response.body)["upload_url"]
       // Remove the URL template.
       .replaceFirst(new RegExp(r"\{[^}]+\}$"), "");
@@ -132,5 +132,5 @@ String _lastChangelogSection() {
 String _githubAuthorization() {
   var username = environment("GITHUB_USER");
   var token = environment("GITHUB_AUTH");
-  return "Basic ${convert.base64.encode(convert.utf8.encode("$username:$token"))}";
+  return "Basic ${base64.encode(utf8.encode("$username:$token"))}";
 }

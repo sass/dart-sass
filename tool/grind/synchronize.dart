@@ -2,12 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:crypto/crypto.dart';
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:dart_style/dart_style.dart';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
@@ -72,7 +72,7 @@ class _Visitor extends RecursiveAstVisitor {
 // DO NOT EDIT. This file was generated from ${p.basename(path)}.
 // See tool/synchronize.dart for details.
 //
-// Checksum: ${sha1.convert(convert.utf8.encode(_source))}
+// Checksum: ${sha1.convert(utf8.encode(_source))}
 """);
 
     if (p.basename(path) == 'async_evaluate.dart') {

@@ -7,7 +7,6 @@
 
 import 'dart:convert';
 
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
@@ -22,7 +21,7 @@ import 'api.dart';
 import 'utils.dart';
 
 /// A [Codec] that encodes and decodes UTF-8-encoded JSON.
-var _jsonUtf8 = convert.json.fuse(convert.utf8);
+var _jsonUtf8 = json.fuse(utf8);
 
 void main() {
   setUpAll(ensureNpmPackage);
@@ -34,7 +33,7 @@ void main() {
     setUp(() {
       var result = sass.renderSync(new RenderOptions(
           data: "a {b: c}", sourceMap: true, outFile: "out.css"));
-      css = convert.utf8.decode(result.css);
+      css = utf8.decode(result.css);
       map = _jsonUtf8.decode(result.map) as Map<String, Object>;
     });
 
@@ -136,21 +135,21 @@ void main() {
       var result = sass
           .renderSync(new RenderOptions(data: "a {b: c}", outFile: "out.css"));
       expect(result.map, isNull);
-      expect(convert.utf8.decode(result.css), isNot(contains("/*#")));
+      expect(utf8.decode(result.css), isNot(contains("/*#")));
     });
 
     test("with sourceMap: false", () {
       var result = sass.renderSync(new RenderOptions(
           data: "a {b: c}", sourceMap: false, outFile: "out.css"));
       expect(result.map, isNull);
-      expect(convert.utf8.decode(result.css), isNot(contains("/*#")));
+      expect(utf8.decode(result.css), isNot(contains("/*#")));
     });
 
     test("without outFile", () {
       var result =
           sass.renderSync(new RenderOptions(data: "a {b: c}", sourceMap: true));
       expect(result.map, isNull);
-      expect(convert.utf8.decode(result.css), isNot(contains("/*#")));
+      expect(utf8.decode(result.css), isNot(contains("/*#")));
     });
   });
 
@@ -204,7 +203,7 @@ void main() {
         outFile: "out.css",
         omitSourceMapUrl: true));
     expect(result.map, isNotNull);
-    expect(convert.utf8.decode(result.css), isNot(contains("/*#")));
+    expect(utf8.decode(result.css), isNot(contains("/*#")));
   });
 
   group("with a string sourceMap", () {
@@ -212,15 +211,15 @@ void main() {
       var result = sass.renderSync(new RenderOptions(
           data: "a {b: c}", sourceMap: "map", outFile: "out.css"));
       expect(result.map, isNotNull);
-      expect(convert.utf8.decode(result.css),
-          endsWith("\n\n/*# sourceMappingURL=map */"));
+      expect(
+          utf8.decode(result.css), endsWith("\n\n/*# sourceMappingURL=map */"));
     });
 
     test("makes the source map comment relative to the outfile", () {
       var result = sass.renderSync(new RenderOptions(
           data: "a {b: c}", sourceMap: "map", outFile: "dir/out.css"));
       expect(result.map, isNotNull);
-      expect(convert.utf8.decode(result.css),
+      expect(utf8.decode(result.css),
           endsWith("\n\n/*# sourceMappingURL=../map */"));
     });
 
@@ -235,8 +234,8 @@ void main() {
       var result = sass.renderSync(new RenderOptions(
           data: "a {b: c}", sourceMap: p.absolute("map"), outFile: "out.css"));
       expect(result.map, isNotNull);
-      expect(convert.utf8.decode(result.css),
-          endsWith("\n\n/*# sourceMappingURL=map */"));
+      expect(
+          utf8.decode(result.css), endsWith("\n\n/*# sourceMappingURL=map */"));
     });
 
     test("makes the sources list relative to the map location", () async {
@@ -285,7 +284,7 @@ void main() {
         outFile: "out.css",
         sourceMapEmbed: true));
 
-    var map = embeddedSourceMap(convert.utf8.decode(result.css));
+    var map = embeddedSourceMap(utf8.decode(result.css));
     expect(map, equals(_jsonUtf8.decode(result.map)));
   });
 

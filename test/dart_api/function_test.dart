@@ -14,14 +14,14 @@ main() {
       "new Callable() throws a SassFormatException if the argument list is "
       "invalid", () {
     expect(() => new Callable("foo", "arg", (_) => sassNull),
-        throwsA(new isInstanceOf<SassFormatException>()));
+        throwsA(const TypeMatcher<SassFormatException>()));
   });
 
   test(
       "new AsyncCallable() throws a SassFormatException if the argument list "
       "is invalid", () {
     expect(() => new AsyncCallable("foo", "arg", (_) async => sassNull),
-        throwsA(new isInstanceOf<SassFormatException>()));
+        throwsA(const TypeMatcher<SassFormatException>()));
   });
 
   test("passes an argument to a custom function and uses its return value", () {
@@ -78,14 +78,14 @@ main() {
     expect(() {
       compileString('a {b: foo()}',
           functions: [new Callable("foo", "", (arguments) => throw "heck")]);
-    }, throwsA(new isInstanceOf<SassException>()));
+    }, throwsA(const TypeMatcher<SassException>()));
   });
 
   test("gracefuly handles a custom function returning null", () {
     expect(() {
       compileString('a {b: foo()}',
           functions: [new Callable("foo", "", (arguments) => null)]);
-    }, throwsA(new isInstanceOf<SassException>()));
+    }, throwsA(const TypeMatcher<SassException>()));
   });
 
   test("supports default argument values", () {

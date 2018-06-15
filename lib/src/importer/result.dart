@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:dart2_constant/convert.dart' as convert;
+import 'dart:convert';
 
 import 'package:meta/meta.dart';
 
@@ -20,7 +20,7 @@ class ImporterResult {
   /// acceptable as well. If no URL is supplied, a `data:` URL is generated
   /// automatically from [contents].
   Uri get sourceMapUrl =>
-      _sourceMapUrl ?? new Uri.dataFromString(contents, encoding: convert.utf8);
+      _sourceMapUrl ?? new Uri.dataFromString(contents, encoding: utf8);
   final Uri _sourceMapUrl;
 
   /// Whether the stylesheet uses the indented syntax.

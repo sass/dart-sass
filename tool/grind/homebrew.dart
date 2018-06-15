@@ -3,9 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 
@@ -23,7 +23,7 @@ update_homebrew() async {
   var process = await Process.start("git",
       ["archive", "--prefix=dart-sass-$version/", "--format=tar.gz", version]);
   var digest = await sha256.bind(process.stdout).first;
-  var stderr = await convert.utf8.decodeStream(process.stderr);
+  var stderr = await utf8.decodeStream(process.stderr);
   if ((await process.exitCode) != 0) {
     fail('git archive "$version" failed:\n$stderr');
   }

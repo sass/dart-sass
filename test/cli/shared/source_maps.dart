@@ -3,8 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:test/test.dart';
@@ -289,5 +289,4 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
 /// Reads the file at [path] within [d.sandbox] and JSON-decodes it.
 Map<String, Object> _readJson(String path) =>
-    convert.json.decode(readFile(p.join(d.sandbox, path)))
-        as Map<String, Object>;
+    jsonDecode(readFile(p.join(d.sandbox, path))) as Map<String, Object>;
