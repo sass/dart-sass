@@ -3,7 +3,9 @@
 # license that can be found in the LICENSE file or at
 # https://opensource.org/licenses/MIT.
 
-source tool/travis/util.sh
+echo 'Deploying to pub.'
+
+source tool/travis/utils.sh
 
 decrypt_credentials
 mkdir -p ~/.pub-cache
