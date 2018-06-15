@@ -2,11 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:dart2_constant/convert.dart' as convert;
 import 'package:grinder/grinder.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
@@ -62,3 +64,29 @@ ArchiveFile fileFromString(String path, String contents,
 ArchiveFile file(String target, String source, {bool executable: false}) =>
     fileFromBytes(target, new File(source).readAsBytesSync(),
         executable: executable);
+
+/// Ensure that the repository at [url] is cloned into the build directory and
+/// pointing to the latest master revision.
+///
+/// Returns the path to the repository.
+Future<String> cloneOrPull(String url) async {
+  var name = p.url.basename(url);
+  if (p.url.extension(name) == ".git") name = p.url.withoutExtension(name);
+
+  var path = p.join("build", name);
+
+  if (new Directory(p.join(path, '.git')).existsSync()) {
+    log("Updating $url");
+    await runAsync("git",
+        arguments: ["fetch", "origin"], workingDirectory: path);
+    await runAsync("git",
+        arguments: ["reset", "--hard", "origin/master"],
+        workingDirectory: path);
+    log("");
+  } else {
+    delete(new Directory(path));
+    await runAsync("git", arguments: ["clone", url, path]);
+  }
+
+  return path;
+}
