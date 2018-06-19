@@ -20,6 +20,14 @@ final String version =
 final Version dartVersion =
     new Version.parse(Platform.version.split(" ").first);
 
+/// Options for [run] that tell Git to commit using SassBot's name and email.
+final sassBotEnvironment = new RunOptions(environment: {
+  "GIT_AUTHOR_NAME": "Sass Bot",
+  "GIT_AUTHOR_EMAIL": "sass.bot.beep.boop@gmail.com",
+  "GIT_COMMITTER_NAME": "Sass Bot",
+  "GIT_COMMITTER_EMAIL": "sass.bot.beep.boop@gmail.com"
+});
+
 /// Whether we're using a dev Dart SDK.
 bool get isDevSdk => dartVersion.isPreRelease;
 
