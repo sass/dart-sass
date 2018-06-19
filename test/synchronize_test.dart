@@ -15,7 +15,8 @@ void main() {
     ({
       'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
       'lib/src/async_environment.dart': 'lib/src/environment.dart'
-    }).forEach((sourcePath, targetPath) {
+    })
+        .forEach((sourcePath, targetPath) {
       var source = new File(sourcePath).readAsStringSync();
       var target = new File(targetPath).readAsStringSync();
 
