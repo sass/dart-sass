@@ -162,8 +162,8 @@ Future<Duration> _benchmark(String executable, List<String> arguments) async {
 
 Future<Duration> _benchmarkOnce(
     String executable, List<String> arguments) async {
-  var result = await Process
-      .run("sh", ["-c", "time $executable ${arguments.join(' ')}"]);
+  var result = await Process.run(
+      "sh", ["-c", "time $executable ${arguments.join(' ')}"]);
   var match =
       new RegExp(r"(\d+)m(\d+)\.(\d+)s").firstMatch(result.stderr as String);
   return new Duration(
