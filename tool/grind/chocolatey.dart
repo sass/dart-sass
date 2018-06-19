@@ -109,8 +109,8 @@ update_chocolatey() async {
       "PUT", Uri.parse("https://push.chocolatey.org/api/v2/package"));
   request.headers["X-NuGet-Protocol-Version"] = "4.1.0";
   request.headers["X-NuGet-ApiKey"] = environment("CHOCO_TOKEN");
-  request.files.add(await http.MultipartFile
-      .fromPath("package", "build/sass.${_chocolateyVersion()}.nupkg"));
+  request.files.add(await http.MultipartFile.fromPath(
+      "package", "build/sass.${_chocolateyVersion()}.nupkg"));
 
   var response = await request.send();
   if (response.statusCode ~/ 100 != 2) {
