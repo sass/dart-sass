@@ -1,6 +1,9 @@
 ## 1.6.2
 
-* No user-visible changes.
+### Command-Line Interface
+
+* Fix a bug where the source map comment in the generated CSS could refer to the
+  source map file using an incorrect URL.
 
 ## 1.6.1
 
