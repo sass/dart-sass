@@ -39,7 +39,7 @@ dev_dependencies:
   node_preamble: "^1.1.0"
   pub_semver: "^1.0.0"
   stream_channel: "^1.0.0"
-  test_descriptor: "^1.0.0"
+  test_descriptor: "^1.1.0"
   test_process: "^1.0.0-rc.1"
   test: "^0.12.42"
   xml: ">=2.4.0 <4.0.0"

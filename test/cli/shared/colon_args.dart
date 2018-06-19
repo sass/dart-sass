@@ -33,8 +33,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("compiles an absolute source to an absolute destination", () async {
     await d.file("test.scss", "a {b: c}").create();
 
-    var input = p.absolute(p.join(d.sandbox, 'test.scss'));
-    var output = p.absolute(p.join(d.sandbox, 'out.css'));
+    var input = p.absolute(d.path('test.scss'));
+    var output = p.absolute(d.path('out.css'));
     var sass = await runSass(["--no-source-map", "$input:$output"]);
     expect(sass.stdout, emitsDone);
     await sass.shouldExit(0);
