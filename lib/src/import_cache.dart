@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 54b85f8332b3a15f1a786b7481bace90d2535608
+// Checksum: b76ccc1b4de05a239f04d77fe0034795c68498f7
 
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
@@ -29,9 +29,11 @@ class ImportCache {
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
+  /// This map's values are the same as the return value of [canonicalize].
+  ///
   /// This cache isn't used for relative imports, because they're
   /// context-dependent.
-  final Map<Uri, Tuple2<Importer, Uri>> _canonicalizeCache;
+  final Map<Uri, Tuple3<Importer, Uri, Uri>> _canonicalizeCache;
 
   /// The parsed stylesheets for each canonicalized import URL.
   final Map<Uri, Stylesheet> _importCache;
@@ -80,26 +82,33 @@ class ImportCache {
         _canonicalizeCache = const {},
         _importCache = const {};
 
-  /// Returns the canonical form of [url] according to one of this cache's
-  /// importers.
+  /// Canonicalizes [url] according to one of this cache's importers.
+  ///
+  /// Returns the importer that was used to canonicalize [url], the canonical
+  /// URL, and the URL that was passed to the importer (which may be resolved
+  /// relative to [baseUrl] if it's passed).
   ///
   /// If [baseImporter] is non-`null`, this first tries to use [baseImporter] to
   /// canonicalize [url] (resolved relative to [baseUrl] if it's passed).
   ///
   /// If any importers understand [url], returns that importer as well as the
   /// canonicalized URL. Otherwise, returns `null`.
-  Tuple2<Importer, Uri> canonicalize(Uri url,
+  Tuple3<Importer, Uri, Uri> canonicalize(Uri url,
       [Importer baseImporter, Uri baseUrl]) {
     if (baseImporter != null) {
-      var canonicalUrl = baseImporter
-          .canonicalize(baseUrl != null ? baseUrl.resolveUri(url) : url);
-      if (canonicalUrl != null) return new Tuple2(baseImporter, canonicalUrl);
+      var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
+      var canonicalUrl = baseImporter.canonicalize(resolvedUrl);
+      if (canonicalUrl != null) {
+        return new Tuple3(baseImporter, canonicalUrl, resolvedUrl);
+      }
     }
 
     return _canonicalizeCache.putIfAbsent(url, () {
       for (var importer in _importers) {
         var canonicalUrl = importer.canonicalize(url);
-        if (canonicalUrl != null) return new Tuple2(importer, canonicalUrl);
+        if (canonicalUrl != null) {
+          return new Tuple3(importer, canonicalUrl, url);
+        }
       }
 
       return null;
@@ -119,7 +128,7 @@ class ImportCache {
       [Importer baseImporter, Uri baseUrl]) {
     var tuple = canonicalize(url, baseImporter, baseUrl);
     if (tuple == null) return null;
-    var stylesheet = importCanonical(tuple.item1, tuple.item2, url);
+    var stylesheet = importCanonical(tuple.item1, tuple.item2, tuple.item3);
     return new Tuple2(tuple.item1, stylesheet);
   }
 
