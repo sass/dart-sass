@@ -114,6 +114,23 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           equalsIgnoringWhitespace("a { b: c; }"));
     });
 
+    // Regression test for #369
+    test("from within a directory, relative to a file on the load path",
+        () async {
+      await d.dir(
+          "dir1", [d.file("test.scss", "@import 'subdir/test2'")]).create();
+
+      await d.dir("dir2", [
+        d.dir("subdir", [
+          d.file("test2.scss", "@import 'test3'"),
+          d.file("test3.scss", "a {b: c}")
+        ])
+      ]).create();
+
+      await expectCompiles(["--load-path", "dir2", "dir1/test.scss"],
+          equalsIgnoringWhitespace("a { b: c; }"));
+    });
+
     test("relative in preference to from the load path", () async {
       await d.file("test.scss", "@import 'test2'").create();
       await d.file("test2.scss", "x {y: z}").create();

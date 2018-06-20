@@ -14,7 +14,8 @@ void main() {
   test("synchronized files are up-to-date", () {
     ({
       'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
-      'lib/src/async_environment.dart': 'lib/src/environment.dart'
+      'lib/src/async_environment.dart': 'lib/src/environment.dart',
+      'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart'
     })
         .forEach((sourcePath, targetPath) {
       var source = new File(sourcePath).readAsStringSync();
