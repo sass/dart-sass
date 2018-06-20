@@ -91,19 +91,31 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
   });
 
-  test("refers to a source in another directory", () async {
-    await d.dir("in", [d.file("test.scss", "x {y: z}")]).create();
-    await (await runSass(["in/test.scss", "out/test.css"])).shouldExit(0);
-    expect(_readJson("out/test.css.map"),
-        containsPair("sources", ["../in/test.scss"]));
-  });
-
   test("includes a source map comment", () async {
     await d.file("test.scss", "a {b: c}").create();
     await (await runSass(["test.scss", "out.css"])).shouldExit(0);
     await d
         .file("out.css", endsWith("\n\n/*# sourceMappingURL=out.css.map */\n"))
         .validate();
+  });
+
+  group("in another directory", () {
+    setUp(() async {
+      await d.dir("in", [d.file("test.scss", "x {y: z}")]).create();
+      await (await runSass(["in/test.scss", "out/test.css"])).shouldExit(0);
+    });
+
+    test("refers to a source", () {
+      expect(_readJson("out/test.css.map"),
+          containsPair("sources", ["../in/test.scss"]));
+    });
+
+    test("includes a source map comment", () async {
+      await d
+          .file("out/test.css",
+              endsWith("\n\n/*# sourceMappingURL=test.css.map */\n"))
+          .validate();
+    });
   });
 
   test("with --stdin uses an empty string", () async {

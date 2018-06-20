@@ -139,7 +139,7 @@ String _writeSourceMap(
     ensureDir(p.dirname(sourceMapPath));
     writeFile(sourceMapPath, sourceMapText);
 
-    url = p.toUri(sourceMapPath);
+    url = p.toUri(p.relative(sourceMapPath, from: p.dirname(destination)));
   }
 
   return (options.style == OutputStyle.compressed ? '' : '\n\n') +
