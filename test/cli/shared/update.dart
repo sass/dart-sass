@@ -3,9 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
@@ -199,7 +197,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await (await update(["test.scss:out.css"])).shouldExit(0);
       await d.file("out.css", anything).validate();
 
-      new File(p.join(d.sandbox, "_other.scss")).deleteSync();
+      d.file("_other.scss").io.deleteSync();
       var sass = await update(["test.scss:out.css"]);
       expect(sass.stderr, emits("Error: Can't find stylesheet to import."));
       expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));

@@ -18,8 +18,8 @@ main() {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();
       await d.file("test.scss", '@import "subtest.scss";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
-          importers: [new FilesystemImporter(p.join(d.sandbox, 'subdir'))]);
+      var css = compile(d.path("test.scss"),
+          importers: [new FilesystemImporter(d.path('subdir'))]);
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -30,9 +30,9 @@ main() {
           .dir("second", [d.file("other.scss", "a {b: from-second}")]).create();
       await d.file("test.scss", '@import "other";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"), importers: [
-        new FilesystemImporter(p.join(d.sandbox, 'first')),
-        new FilesystemImporter(p.join(d.sandbox, 'second'))
+      var css = compile(d.path("test.scss"), importers: [
+        new FilesystemImporter(d.path('first')),
+        new FilesystemImporter(d.path('second'))
       ]);
       expect(css, equals("a {\n  b: from-first;\n}"));
     });
@@ -43,8 +43,7 @@ main() {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();
       await d.file("test.scss", '@import "subtest.scss";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
-          loadPaths: [p.join(d.sandbox, 'subdir')]);
+      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -52,8 +51,7 @@ main() {
       await d.dir("subdir", [d.file("_subtest.scss", "a {b: c}")]).create();
       await d.file("test.scss", '@import "subtest.scss";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
-          loadPaths: [p.join(d.sandbox, 'subdir')]);
+      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -61,8 +59,7 @@ main() {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();
       await d.file("test.scss", '@import "subtest";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
-          loadPaths: [p.join(d.sandbox, 'subdir')]);
+      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -70,8 +67,7 @@ main() {
       await d.dir("subdir", [d.file("subtest.sass", "a\n  b: c")]).create();
       await d.file("test.scss", '@import "subtest";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
-          loadPaths: [p.join(d.sandbox, 'subdir')]);
+      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -82,8 +78,8 @@ main() {
           .dir("second", [d.file("other.scss", "a {b: from-second}")]).create();
       await d.file("test.scss", '@import "other";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
-          loadPaths: [p.join(d.sandbox, 'first'), p.join(d.sandbox, 'second')]);
+      var css = compile(d.path("test.scss"),
+          loadPaths: [d.path('first'), d.path('second')]);
       expect(css, equals("a {\n  b: from-first;\n}"));
     });
   });
@@ -96,10 +92,9 @@ main() {
           .file("test.scss", '@import "package:fake_package/test";')
           .create();
       var resolver = new SyncPackageResolver.config(
-          {"fake_package": p.toUri(p.join(d.sandbox, 'subdir'))});
+          {"fake_package": p.toUri(d.path('subdir'))});
 
-      var css =
-          compile(p.join(d.sandbox, "test.scss"), packageResolver: resolver);
+      var css = compile(d.path("test.scss"), packageResolver: resolver);
       expect(css, equals("a {\n  b: 3;\n}"));
     });
 
@@ -109,7 +104,7 @@ main() {
           .create();
       var resolver = new SyncPackageResolver.config({});
 
-      expect(() => compile(d.sandbox + "/test.scss", packageResolver: resolver),
+      expect(() => compile(d.path("test.scss"), packageResolver: resolver),
           throwsA(const TypeMatcher<SassRuntimeException>()));
     });
   });
@@ -121,8 +116,8 @@ main() {
       await d.file("other.scss", "a {b: from-relative}").create();
       await d.file("test.scss", '@import "other";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
-          importers: [new FilesystemImporter(p.join(d.sandbox, 'subdir'))]);
+      var css = compile(d.path("test.scss"),
+          importers: [new FilesystemImporter(d.path('subdir'))]);
       expect(css, equals("a {\n  b: from-relative;\n}"));
     });
 
@@ -134,9 +129,9 @@ main() {
           .dir("other", [d.file("other.scss", "a {b: from-other}")]).create();
 
       var css = compileString('@import "other";',
-          importer: new FilesystemImporter(p.join(d.sandbox, 'original')),
-          url: p.toUri(p.join(d.sandbox, 'original', 'test.scss')),
-          importers: [new FilesystemImporter(p.join(d.sandbox, 'other'))]);
+          importer: new FilesystemImporter(d.path('original')),
+          url: p.toUri(d.path('original/test.scss')),
+          importers: [new FilesystemImporter(d.path('other'))]);
       expect(css, equals("a {\n  b: from-original;\n}"));
     });
 
@@ -147,9 +142,9 @@ main() {
           "importer", [d.file("other.scss", "a {b: from-importer}")]).create();
       await d.file("test.scss", '@import "other";').create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
-          importers: [new FilesystemImporter(p.join(d.sandbox, 'importer'))],
-          loadPaths: [p.join(d.sandbox, 'load-path')]);
+      var css = compile(d.path("test.scss"),
+          importers: [new FilesystemImporter(d.path('importer'))],
+          loadPaths: [d.path('load-path')]);
       expect(css, equals("a {\n  b: from-importer;\n}"));
     });
 
@@ -162,13 +157,13 @@ main() {
           .file("test.scss", '@import "package:fake_package/other";')
           .create();
 
-      var css = compile(p.join(d.sandbox, "test.scss"),
+      var css = compile(d.path("test.scss"),
           importers: [
             new PackageImporter(new SyncPackageResolver.config(
-                {"fake_package": p.toUri(p.join(d.sandbox, 'importer'))}))
+                {"fake_package": p.toUri(d.path('importer'))}))
           ],
           packageResolver: new SyncPackageResolver.config(
-              {"fake_package": p.toUri(p.join(d.sandbox, 'package'))}));
+              {"fake_package": p.toUri(d.path('package'))}));
       expect(css, equals("a {\n  b: from-importer;\n}"));
     });
   });

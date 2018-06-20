@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -104,7 +103,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await expectLater(sass.stdout, emits('Compiled test.scss to out.css.'));
       await expectLater(sass.stdout, _watchingForChanges);
 
-      new File(p.join(d.sandbox, "test.scss")).deleteSync();
+      d.file("test.scss").io.deleteSync();
       await expectLater(sass.stdout, emits('Deleted out.css.'));
 
       // Windows gets confused at the OS level if we don't wait a bit here.
@@ -128,7 +127,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         await expectLater(sass.stdout, emits('Compiled test.scss to out.css.'));
         await expectLater(sass.stdout, _watchingForChanges);
 
-        new File(p.join(d.sandbox, "_other.scss")).deleteSync();
+        d.file("_other.scss").io.deleteSync();
         await expectLater(
             sass.stderr, emits("Error: Can't find stylesheet to import."));
         await expectLater(sass.stderr, emitsThrough(contains('test.scss 1:9')));
@@ -146,7 +145,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         await expectLater(sass.stdout, emits('Compiled test.scss to out.css.'));
         await expectLater(sass.stdout, _watchingForChanges);
 
-        new File(p.join(d.sandbox, "_other.scss")).deleteSync();
+        d.file("_other.scss").io.deleteSync();
         await expectLater(sass.stdout, emits('Compiled test.scss to out.css.'));
         await sass.kill();
 
@@ -165,7 +164,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             emits("Error: It's not clear which file to import. Found:"));
         await expectLater(sass.stdout, _watchingForChanges);
 
-        new File(p.join(d.sandbox, "_other.sass")).deleteSync();
+        d.file("_other.sass").io.deleteSync();
         await expectLater(sass.stdout, emits('Compiled test.scss to out.css.'));
         await sass.kill();
 
@@ -385,7 +384,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await expectLater(sass.stdout, emits('Compiled test.scss to out.css.'));
       await expectLater(sass.stdout, _watchingForChanges);
 
-      new File(p.join(d.sandbox, "test.scss")).deleteSync();
+      d.file("test.scss").io.deleteSync();
       await expectLater(sass.stdout, emits('Deleted out.css.'));
       await sass.kill();
 
@@ -400,7 +399,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           sass.stdout, emits(_compiled('dir/test.scss', 'out/test.css')));
       await expectLater(sass.stdout, _watchingForChanges);
 
-      new File(p.join(d.sandbox, "dir", "test.scss")).deleteSync();
+      d.file("dir/test.scss").io.deleteSync();
       await expectLater(
           sass.stdout, emits('Deleted ${p.join('out', 'test.css')}.'));
       await sass.kill();

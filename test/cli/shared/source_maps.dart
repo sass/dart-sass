@@ -74,10 +74,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       expect(
           _readJson("out.css.map"),
           containsPair("sources", [
-            p
-                .toUri(p.canonicalize(p.join(d.sandbox, "dir/other.scss")))
-                .toString(),
-            p.toUri(p.canonicalize(p.join(d.sandbox, "test.scss"))).toString()
+            p.toUri(p.canonicalize(d.path("dir/other.scss"))).toString(),
+            p.toUri(p.canonicalize(d.path("test.scss"))).toString()
           ]));
     });
 
@@ -87,7 +85,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       expect(
           _readJson("out.css.map"),
           containsPair("sourcesContent",
-              ["a {b: 1 + 2}", readFile(p.join(d.sandbox, "test.scss"))]));
+              ["a {b: 1 + 2}", readFile(d.path("test.scss"))]));
     });
   });
 
@@ -255,7 +253,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       setUp(() async {
         await (await runSass(["--embed-source-map", "test.scss", "out.css"]))
             .shouldExit(0);
-        var css = readFile(p.join(d.sandbox, "out.css"));
+        var css = readFile(d.path("out.css"));
         map = embeddedSourceMap(css);
       });
 
@@ -280,11 +278,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     group("with the target in a different directory", () {
       setUp(() async {
-        await ensureDir(p.join(d.sandbox, "dir"));
+        await ensureDir(d.path("dir"));
         await (await runSass(
                 ["--embed-source-map", "test.scss", "dir/out.css"]))
             .shouldExit(0);
-        var css = readFile(p.join(d.sandbox, "dir/out.css"));
+        var css = readFile(d.path("dir/out.css"));
         map = embeddedSourceMap(css);
       });
 
@@ -301,4 +299,4 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
 /// Reads the file at [path] within [d.sandbox] and JSON-decodes it.
 Map<String, Object> _readJson(String path) =>
-    jsonDecode(readFile(p.join(d.sandbox, path))) as Map<String, Object>;
+    jsonDecode(readFile(d.path(path))) as Map<String, Object>;

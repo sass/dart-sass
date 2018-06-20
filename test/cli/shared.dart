@@ -49,7 +49,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("compiles an absolute Sass file to CSS", () async {
     await d.file("test.scss", "a {b: 1 + 2}").create();
 
-    var sass = await runSass([p.absolute(p.join(d.sandbox, "test.scss"))]);
+    var sass = await runSass([p.absolute(d.path("test.scss"))]);
     expect(
         sass.stdout,
         emitsInOrder([
