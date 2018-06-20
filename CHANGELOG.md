@@ -1,4 +1,10 @@
-## 1.6.3
+## 1.7.0
+
+* Emit deprecation warnings for tokens such as `#abcd` that are ambiguous
+  between ID strings and hex colors with alpha channels. These will be
+  interpreted as colors in a release on or after 19 September 2018.
+
+* Parse unambiguous hex colors with alpha channels as colors.
 
 * Fix a bug where relative imports from files on the load path could look in the
   incorrect location.

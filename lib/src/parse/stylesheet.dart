@@ -1742,7 +1742,20 @@ abstract class StylesheetParser extends Parser {
     var identifier = _interpolatedIdentifier();
     if (_isHexColor(identifier)) {
       scanner.state = afterHash;
-      return new ColorExpression(_hexColorContents(start));
+      var color = _hexColorContents(start);
+
+      var plain = identifier.asPlain;
+      if (plain.length == 4 || plain.length == 8) {
+        logger.warn('''
+The value "$color" is currently parsed as a string, but it will be parsed as a
+color in a release on or after 19 September 2018.
+
+To continue parsing it as a string, use "unquote('$color')".
+To parse it as a color, use "${color.toStringAsRgb()}".
+''', span: color.originalSpan, deprecation: true);
+      } else {
+        return new ColorExpression(color);
+      }
     }
 
     var buffer = new InterpolationBuffer();
@@ -1753,22 +1766,39 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes the contents of a hex color, after the `#`.
   SassColor _hexColorContents(LineScannerState start) {
-    var red = _hexDigit();
-    var green = _hexDigit();
-    var blue = _hexDigit();
+    var digit1 = _hexDigit();
+    var digit2 = _hexDigit();
+    var digit3 = _hexDigit();
 
-    var next = scanner.peekChar();
-    if (next != null && isHex(next)) {
-      red = (red << 4) + green;
-      green = (blue << 4) + _hexDigit();
-      blue = (_hexDigit() << 4) + _hexDigit();
+    int red;
+    int green;
+    int blue;
+    num alpha = 1;
+    if (!isHex(scanner.peekChar())) {
+      // #abc
+      red = (digit1 << 4) + digit1;
+      green = (digit2 << 4) + digit2;
+      blue = (digit3 << 4) + digit3;
     } else {
-      red = (red << 4) + red;
-      green = (green << 4) + green;
-      blue = (blue << 4) + blue;
+      var digit4 = _hexDigit();
+      if (!isHex(scanner.peekChar())) {
+        // #abcd
+        red = (digit1 << 4) + digit1;
+        green = (digit2 << 4) + digit2;
+        blue = (digit3 << 4) + digit3;
+        alpha = ((digit4 << 4) + digit4) / 0xff;
+      } else {
+        red = (digit1 << 4) + digit2;
+        green = (digit3 << 4) + digit4;
+        blue = (_hexDigit() << 4) + _hexDigit();
+
+        if (isHex(scanner.peekChar())) {
+          alpha = ((_hexDigit() << 4) + _hexDigit()) / 0xff;
+        }
+      }
     }
 
-    return new SassColor.rgb(red, green, blue, 1, scanner.spanFrom(start));
+    return new SassColor.rgb(red, green, blue, alpha, scanner.spanFrom(start));
   }
 
   /// Returns whether [interpolation] is a plain string that can be parsed as a
@@ -1776,7 +1806,12 @@ abstract class StylesheetParser extends Parser {
   bool _isHexColor(Interpolation interpolation) {
     var plain = interpolation.asPlain;
     if (plain == null) return false;
-    if (plain.length != 3 && plain.length != 6) return false;
+    if (plain.length != 3 &&
+        plain.length != 4 &&
+        plain.length != 6 &&
+        plain.length != 8) {
+      return false;
+    }
     return plain.codeUnits.every(isHex);
   }
 

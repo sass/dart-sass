@@ -201,4 +201,20 @@ class SassColor extends Value implements ext.SassColor {
 
     return fuzzyRound(result * 255);
   }
+
+  /// Returns an `rgb()` or `rgba()` function call that will evaluate to this
+  /// color.
+  String toStringAsRgb() {
+    var isOpaque = fuzzyEquals(alpha, 1);
+    var buffer = new StringBuffer(isOpaque ? "rgb" : "rgba")
+      ..write("($red, $green, $blue");
+
+    if (!isOpaque) {
+      // Write the alpha as a SassNumber to ensure it's valid CSS.
+      buffer.write(", ${new SassNumber(alpha)}");
+    }
+
+    buffer.write(")");
+    return buffer.toString();
+  }
 }

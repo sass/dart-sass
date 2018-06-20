@@ -43,10 +43,13 @@ bool isName(int character) =>
     isNameStart(character) || isDigit(character) || character == $minus;
 
 /// Returns whether [character] is a hexadeicmal digit.
-bool isHex(int character) =>
-    isDigit(character) ||
-    (character >= $a && character <= $f) ||
-    (character >= $A && character <= $F);
+bool isHex(int character) {
+  if (character == null) return false;
+  if (isDigit(character)) return true;
+  if (character >= $a && character <= $f) return true;
+  if (character >= $A && character <= $F) return true;
+  return false;
+}
 
 /// Returns whether [character] is the beginning of a UTF-16 surrogate pair.
 bool isHighSurrogate(int character) =>
