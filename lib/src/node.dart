@@ -38,7 +38,8 @@ typedef _Importer(String url, String prev, [void done(result)]);
 /// export that runs the normal `main()`, which is called from `package/sass.js`
 /// to run the executable when installed from npm.
 void main() {
-  exports.run_ = allowInterop(executable.main);
+  exports.run_ =
+      allowInterop((args) => executable.main(new List.from(args as List)));
   exports.render = allowInterop(_render);
   exports.renderSync = allowInterop(_renderSync);
   exports.info =
