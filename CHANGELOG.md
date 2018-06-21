@@ -1,3 +1,8 @@
+## 1.6.3
+
+* Fix a bug where relative imports from files on the load path could look in the
+  incorrect location.
+
 ## 1.6.2
 
 ### Command-Line Interface

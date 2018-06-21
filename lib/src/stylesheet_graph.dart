@@ -67,10 +67,7 @@ class StylesheetGraph {
     var tuple = _ignoreErrors(
         () => importCache.canonicalize(url, baseImporter, baseUrl));
     if (tuple == null) return null;
-    var importer = tuple.item1;
-    var canonicalUrl = tuple.item2;
-
-    return addCanonical(importer, canonicalUrl, url);
+    return addCanonical(tuple.item1, tuple.item2, tuple.item3);
   }
 
   /// Adds the stylesheet at the canonicalized [canonicalUrl] and all the
@@ -171,6 +168,7 @@ class StylesheetGraph {
     if (tuple == null) return null;
     var importer = tuple.item1;
     var canonicalUrl = tuple.item2;
+    var resolvedUrl = tuple.item3;
 
     // Don't use [putIfAbsent] here because we want to avoid adding an entry if
     // the import fails.
@@ -181,7 +179,7 @@ class StylesheetGraph {
     if (active.contains(canonicalUrl)) return null;
 
     var stylesheet = _ignoreErrors(
-        () => importCache.importCanonical(importer, canonicalUrl, url));
+        () => importCache.importCanonical(importer, canonicalUrl, resolvedUrl));
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);
