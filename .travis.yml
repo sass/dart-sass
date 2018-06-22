@@ -74,6 +74,9 @@ jobs:
     env: &github-env
       - DART_CHANNEL=dev DART_VERSION=latest GITHUB_USER=sassbot
       # GITHUB_AUTH="..."
+      #
+      # Note that this overrides the read-only auth token that's set for all
+      # builds.
       - secure: "AAP74aT+8SQmwGeHrCsZ7GgppvCCkDAZXszivocMy3Fi9gfMCLABBCh67pGINJX4VlLW7ftPF3xivlvgGu+e4ncXz9m9jIPZ9Iza3cW5jCnCgyRGZD98gwabIDFWiv4X9V2xnJA2p1ZuYBf8Sh3TTipUFBKMjlnxVxYkIOTud4rUss/htFhxVA/oFTo0ThTZwXuxJ+GRGTM4PcuHPJvPf18iRPs2AHFV6ZP51xgc3AsXC6Zyom5EJeX0yGj9zWQ0XCjnuFdGsI6G9jmkrmqgAXuUipgqAn0tjxPYp9R/1HqnBLD3Zbrvyi5pCiSFclU6CS6kTDbefzPOc5+zrnlkaolVeF8tQ+EhZiZqtLnpLYUz9bgknoFUapUN4N0R36sKBStdRv54+sMeoOzpQ8ep3PeZW5nWbak12wcrDx38ToWs6hQ4ycb0SQDZZatHsASpSu2nX8HwzZSDAZmsAdB+epPmgA0CBjWVG1ycmVnT6l3OopUmbaY3pXBNzFUXq5Fcd7Q39/MfrmHpyxSc3QVf8xNtUx9ggYtK0Kwx6dgykhNMVzFGZRVyQgwpaiyDqgMGEU2GQzzcJhgKo9+y1fDtdfj/cctmvJ2Fo1fkk+DMkEPUHGOVo6uKFnartky9iLm1WiHDMruJ6SIOJzAnb+TMBWQTSwI+F4wyEiRVR8Zv4uA="
     script: skip # Don't run tests
     deploy:
