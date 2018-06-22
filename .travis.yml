@@ -4,25 +4,29 @@
 language: ruby
 
 env:
-# Language specs, defined in sass/sass-spec
-- TASK=specs   DART_CHANNEL=dev DART_VERSION=latest
-- TASK=specs   DART_CHANNEL=dev DART_VERSION=latest ASYNC=true
+  global:
+  - DART_CHANNEL=dev
+  - DART_VERSION=2.0.0-dev.63.0
+  matrix:
+  # Language specs, defined in sass/sass-spec
+  - TASK=specs
+  - TASK=specs ASYNC=true
 
-# Unit tests, defined in test/.
-- TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest
+  # Unit tests, defined in test/.
+  - TASK=tests
 
-# This should be NODE_VERSION=latest, but that's breaking due to
-# laverdet/node-fibers#378.
-- TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=v10.1.0
+  # This should be NODE_VERSION=latest, but that's breaking due to
+  # laverdet/node-fibers#378.
+  - TASK=tests NODE_VERSION=v10.1.0
 
-# Keep these up-to-date with the latest LTA Node releases. They next need to be
-# rotated October 2018. See https://github.com/nodejs/Release.
-- TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=lts/boron
-- TASK=tests   DART_CHANNEL=dev    DART_VERSION=latest NODE_VERSION=lts/carbon
+  # Keep these up-to-date with the latest LTA Node releases. They next need to be
+  # rotated October 2018. See https://github.com/nodejs/Release.
+  - TASK=tests NODE_VERSION=lts/boron
+  - TASK=tests NODE_VERSION=lts/carbon
 
-# Miscellaneous checks.
-- TASK=analyze DART_CHANNEL=dev DART_VERSION=latest
-- TASK=format  DART_CHANNEL=dev DART_VERSION=latest
+  # Miscellaneous checks.
+  - TASK=analyze
+  - TASK=format
 
 rvm:
 - 2.3.1
