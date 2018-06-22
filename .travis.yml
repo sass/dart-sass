@@ -123,16 +123,6 @@ jobs:
       skip_cleanup: true
       on: {tags: true}
 
-  # Deploy to Bazel.
-  - if: *deploy-if
-    env: *github-env
-    script: skip
-    deploy:
-      provider: script
-      script: pub run grinder update_bazel
-      skip_cleanup: true
-      on: {tags: true}
-
   # Deploy to Chocolatey.
   - if: *deploy-if
     env:
