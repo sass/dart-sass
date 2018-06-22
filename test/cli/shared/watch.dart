@@ -118,6 +118,21 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           .validate();
     });
 
+    test("when it gets a parse error", () async {
+      await d.file("test.scss", "a {b: c}").create();
+
+      var sass = await watch(["test.scss:out.css"]);
+      await expectLater(sass.stdout, emits('Compiled test.scss to out.css.'));
+      await expectLater(sass.stdout, _watchingForChanges);
+
+      await d.file("test.scss", "a {b: }").create();
+      await expectLater(sass.stderr, emits('Error: Expected expression.'));
+      await expectLater(sass.stderr, emitsThrough(contains('test.scss 1:7')));
+      await sass.kill();
+
+      await d.nothing("out.css").validate();
+    });
+
     group("when its dependency is deleted", () {
       test("and removes the output", () async {
         await d.file("_other.scss", "a {b: c}").create();

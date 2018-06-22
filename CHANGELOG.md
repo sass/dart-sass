@@ -1,3 +1,9 @@
+## 1.7.1
+
+### Command-Line Interface
+
+* Don't crash when a syntax error is added to a watched file.
+
 ## 1.7.0
 
 * Emit deprecation warnings for tokens such as `#abcd` that are ambiguous
