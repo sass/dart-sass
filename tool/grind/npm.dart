@@ -10,7 +10,6 @@ import 'package:grinder/grinder.dart';
 import 'package:meta/meta.dart';
 import 'package:node_preamble/preamble.dart' as preamble;
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 
 import 'utils.dart';
@@ -21,19 +20,12 @@ js() => _js(release: false);
 @Task('Compile to JS in release mode.')
 js_release() => _js(release: true);
 
-/// The constraint on Dart versions for which Dart Sass supports JS compilation.
-final _jsConstraint = new VersionConstraint.parse(">=2.0.0-dev.42.0");
-
 /// Compiles Sass to JS.
 ///
 /// If [release] is `true`, this compiles minified with
 /// --trust-type-annotations. Otherwise, it compiles unminified with pessimistic
 /// type checks.
 void _js({@required bool release}) {
-  if (!_jsConstraint.allows(dartVersion)) {
-    fail("JS compilation is only supported for Dart $_jsConstraint.");
-  }
-
   ensureBuild();
   var destination = new File('build/sass.dart.js');
 
