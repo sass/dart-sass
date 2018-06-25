@@ -19,6 +19,10 @@ install:
       Install-Product node ''
       pub run grinder npm_package
     }
+- ps: >-
+    If ($env:NODE -eq "false") {
+      pub run grinder app-snapshot
+    }
 
 # Run this as CMD because npm's stderr will cause PowerShell to think it failed.
 - IF "%NODE%"=="true" npm install

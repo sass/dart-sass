@@ -10,5 +10,6 @@ import '../dart_test.dart';
 import '../shared/source_maps.dart';
 
 void main() {
+  setUpAll(ensureSnapshotUpToDate);
   sharedTests(runSass);
 }

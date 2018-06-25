@@ -13,7 +13,7 @@ import 'standalone.dart';
 import 'utils.dart';
 
 @Task('Run benchmarks for Sass compilation speed.')
-@Depends(snapshot, appSnapshot, npm_package)
+@Depends(snapshot, releaseAppSnapshot, npm_package)
 benchmark() async {
   var libsass = await cloneOrPull('https://github.com/sass/libsass');
   var sassc = await cloneOrPull('https://github.com/sass/sassc');

@@ -10,5 +10,6 @@ import '../dart_test.dart';
 import '../shared/errors.dart';
 
 void main() {
+  setUpAll(ensureSnapshotUpToDate);
   sharedTests(runSass);
 }
