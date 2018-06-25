@@ -9,11 +9,10 @@ import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import '../../io.dart';
+import '../../node/function.dart';
 import '../../node/importer_result.dart';
 import '../../node/utils.dart';
 import '../utils.dart';
-
-typedef _Importer(String url, String prev, [void done(result)]);
 
 /// An importer that encapsulates Node Sass's import logic.
 ///
@@ -46,10 +45,9 @@ class NodeImporter {
   final List<String> _includePaths;
 
   /// The importer functions passed in by the user.
-  final List<_Importer> _importers;
+  final List<JSFunction> _importers;
 
-  NodeImporter(this._context, Iterable<String> includePaths,
-      Iterable<_Importer> importers)
+  NodeImporter(this._context, Iterable<String> includePaths, Iterable importers)
       : _includePaths = new List.unmodifiable(includePaths),
         _importers = new List.unmodifiable(importers);
 
@@ -137,8 +135,8 @@ class NodeImporter {
         : new Tuple2(readFile(resolved), p.toUri(resolved).toString());
   }
 
-  /// Converts an [_Importer]'s return [value] to a tuple that can be returned
-  /// by [load].
+  /// Converts an importer's return [value] to a tuple that can be returned by
+  /// [load].
   Tuple2<String, String> _handleImportResult(
       String url, Uri previous, Object value) {
     if (isJSError(value)) throw value;
@@ -164,7 +162,7 @@ class NodeImporter {
 
   /// Calls an importer that may or may not be asynchronous.
   Future<Object> _callImporterAsync(
-      _Importer importer, String url, String previousString) async {
+      JSFunction importer, String url, String previousString) async {
     var completer = new Completer();
 
     var result = call3(importer, _context, url, previousString,

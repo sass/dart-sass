@@ -40,14 +40,13 @@ external Function get _JSError;
 bool isJSError(value) => instanceof(value, _JSError);
 
 /// Invokes [function] with [thisArg] as `this`.
-R call2<R, A1, A2>(
-        R function(A1 arg1, A2 arg2), Object thisArg, A1 arg1, A2 arg2) =>
-    (function as JSFunction).apply(thisArg, [arg1, arg2]) as R;
+Object call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
+    function.apply(thisArg, [arg1, arg2]);
 
 /// Invokes [function] with [thisArg] as `this`.
-R call3<R, A1, A2, A3>(R function(A1 arg1, A2 arg2, A3 arg3), Object thisArg,
-        A1 arg1, A2 arg2, A3 arg3) =>
-    (function as JSFunction).apply(thisArg, [arg1, arg2, arg3]) as R;
+Object call3(JSFunction function, Object thisArg, Object arg1, Object arg2,
+        Object arg3) =>
+    function.apply(thisArg, [arg1, arg2, arg3]);
 
 @JS("Object.keys")
 external List<String> _keys(Object object);
