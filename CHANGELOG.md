@@ -1,3 +1,7 @@
+## 1.7.1
+
+* Fix crashes in released binaries.
+
 ## 1.7.0
 
 * Emit deprecation warnings for tokens such as `#abcd` that are ambiguous
