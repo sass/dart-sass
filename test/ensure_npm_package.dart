@@ -12,7 +12,7 @@ import 'package:sass/src/io.dart';
 
 hybridMain(StreamChannel channel) async {
   if (!new Directory("build/npm").existsSync()) {
-    throw "NPM package is not built. Run pub run grinder npm_package.";
+    throw "NPM package is not built. Run pub run grinder npm-package.";
   }
 
   var lastModified = new File("build/npm/package.json").lastModifiedSync();
@@ -34,7 +34,7 @@ hybridMain(StreamChannel channel) async {
       var entryLastModified = entry.lastModifiedSync();
       if (lastModified.isBefore(entryLastModified)) {
         throw "${entry.path} was modified after NPM package was generated.\n"
-            "Run pub run grinder before_test.";
+            "Run pub run grinder before-test.";
       }
     }
   }

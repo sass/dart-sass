@@ -18,7 +18,7 @@ import 'utils.dart';
 js() => _js(release: false);
 
 @Task('Compile to JS in release mode.')
-js_release() => _js(release: true);
+jsRelease() => _js(release: true);
 
 /// Compiles Sass to JS.
 ///
@@ -45,11 +45,11 @@ void _js({@required bool release}) {
 
 @Task('Build a pure-JS dev-mode npm package.')
 @Depends(js)
-npm_package() => _npm(release: false);
+npmPackage() => _npm(release: false);
 
 @Task('Build a pure-JS release-mode npm package.')
-@Depends(js_release)
-npm_release_package() => _npm(release: true);
+@Depends(jsRelease)
+npmReleasePackage() => _npm(release: true);
 
 /// Builds a pure-JS npm package.
 ///

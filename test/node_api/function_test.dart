@@ -246,7 +246,7 @@ void main() {
           fiber;
         } catch (_) {
           throw "Can't load fibers package.\n"
-              "Run pub run grinder before_test.";
+              "Run pub run grinder before-test.";
         }
       });
 

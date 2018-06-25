@@ -51,7 +51,7 @@ install:
 - if-node . "$HOME/.nvm/nvm.sh"
 - if-node nvm install "$NODE_VERSION"
 - if-node nvm use "$NODE_VERSION"
-- if-node pub run grinder before_test
+- if-node pub run grinder before-test
 
 # Download sass-spec and install its dependencies if we're running specs.
 - if-specs() { if [ "$TASK" = specs ]; then "$@"; fi }
@@ -81,7 +81,7 @@ jobs:
     script: skip # Don't run tests
     deploy:
       provider: script
-      script: pub run grinder github_release
+      script: pub run grinder github-release
       skip_cleanup: true # Don't clean up the Dart SDK.
 
       # This causes the deploy to only be build when a tag is pushed. This
@@ -120,7 +120,7 @@ jobs:
     script: skip
     deploy:
       provider: script
-      script: pub run grinder update_homebrew
+      script: pub run grinder update-homebrew
       skip_cleanup: true
       on: {tags: true}
 
@@ -132,7 +132,7 @@ jobs:
     script: skip
     deploy:
       provider: script
-      script: pub run grinder update_chocolatey
+      script: pub run grinder update-chocolatey
       skip_cleanup: true
       on: {tags: true}
 
