@@ -17,7 +17,7 @@ install:
 - ps: >-
     If ($env:NODE -eq "true") {
       Install-Product node ''
-      pub run grinder npm_package
+      pub run grinder npm-package
     }
 
 # Run this as CMD because npm's stderr will cause PowerShell to think it failed.

@@ -18,7 +18,7 @@ import 'utils.dart';
 
 @Task('Release the current version as to GitHub.')
 @Depends(package)
-github_release() async {
+githubRelease() async {
   var authorization = _githubAuthorization();
 
   var client = new http.Client();

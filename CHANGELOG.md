@@ -1,4 +1,4 @@
-## 1.7.1
+## 1.7.2
 
 * Add a deprecation warning for `@-moz-document`, except for cases where only an
   empty `url-prefix()` is used. Support is [being removed from Firefox][] and
@@ -8,6 +8,10 @@
 
 * Fix a bug where `@-moz-document` functions with string arguments weren't being
   parsed.
+  
+## 1.7.1
+
+* Fix crashes in released binaries.
 
 ## 1.7.0
 
