@@ -50,7 +50,16 @@ Future<TestProcess> runSass(Iterable<String> arguments) {
       (path) => new File(path).existsSync(),
       orElse: () => p.absolute("bin/sass.dart"));
 
+  var args = ["--checked"];
+
+  // Work around dart-lang/sdk#33622.
+  if (Platform.isWindows) args.add("--packages=${p.absolute('.packages')}");
+
   return TestProcess.start(
-      Platform.executable, ["--checked", executable]..addAll(arguments),
-      workingDirectory: d.sandbox, description: "sass");
+      Platform.executable,
+      args
+        ..add(executable)
+        ..addAll(arguments),
+      workingDirectory: d.sandbox,
+      description: "sass");
 }
