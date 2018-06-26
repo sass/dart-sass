@@ -10,7 +10,7 @@ import 'package:path/path.dart' as p;
 import 'utils.dart';
 
 @Task('Update the Bazel rules for the current version.')
-update_bazel() async {
+updateBazel() async {
   ensureBuild();
 
   var repo = await cloneOrPull("https://github.com/bazelbuild/rules_sass.git");
