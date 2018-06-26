@@ -1,8 +1,12 @@
-## 1.7.1
+## 1.7.2
 
 ### Command-Line Interface
 
 * Don't crash when a syntax error is added to a watched file.
+
+## 1.7.1
+
+* Fix crashes in released binaries.
 
 ## 1.7.0
 
