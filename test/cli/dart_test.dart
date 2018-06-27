@@ -12,9 +12,19 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
+import '../io.dart';
 import 'shared.dart';
 
+/// Paths where snapshots of the Sass binary might exist, in order of
+/// preference.
+final _snapshotPaths = [
+  p.absolute("build/sass.dart.app.snapshot"),
+  p.absolute("build/sass.dart.snapshot")
+];
+
 void main() {
+  setUpAll(ensureSnapshotUpToDate);
+
   sharedTests(runSass);
 
   test("--version prints the Sass version", () async {
@@ -24,8 +34,32 @@ void main() {
   });
 }
 
-Future<TestProcess> runSass(Iterable<String> arguments) => TestProcess.start(
-    Platform.executable,
-    ["--checked", p.absolute("bin/sass.dart")]..addAll(arguments),
-    workingDirectory: d.sandbox,
-    description: "sass");
+/// Ensures that the snapshot of the Dart executable used by [runSass] is
+/// up-to-date, if one has been generated.
+void ensureSnapshotUpToDate() {
+  for (var path in _snapshotPaths) {
+    if (new File(path).existsSync()) {
+      ensureUpToDate(path, "pub run grinder app-snapshot");
+      return;
+    }
+  }
+}
+
+Future<TestProcess> runSass(Iterable<String> arguments) {
+  var executable = _snapshotPaths.firstWhere(
+      (path) => new File(path).existsSync(),
+      orElse: () => p.absolute("bin/sass.dart"));
+
+  var args = ["--checked"];
+
+  // Work around dart-lang/sdk#33622.
+  if (Platform.isWindows) args.add("--packages=${p.absolute('.packages')}");
+
+  return TestProcess.start(
+      Platform.executable,
+      args
+        ..add(executable)
+        ..addAll(arguments),
+      workingDirectory: d.sandbox,
+      description: "sass");
+}

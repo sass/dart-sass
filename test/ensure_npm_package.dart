@@ -3,42 +3,16 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
 
+import 'io.dart';
+
 hybridMain(StreamChannel channel) async {
-  if (!new Directory("build/npm").existsSync()) {
-    throw "NPM package is not built. Run pub run grinder npm-package.";
-  }
-
-  var lastModified = new File("build/npm/package.json").lastModifiedSync();
-  var entriesToCheck = new Directory("lib").listSync(recursive: true).toList();
-
-  // If we have a dependency override, "pub run" will touch the lockfile to mark
-  // it as newer than the pubspec, which makes it unsuitable to use for
-  // freshness checking.
-  if (new File("pubspec.yaml")
-      .readAsStringSync()
-      .contains("dependency_overrides")) {
-    entriesToCheck.add(new File("pubspec.yaml"));
-  } else {
-    entriesToCheck.add(new File("pubspec.lock"));
-  }
-
-  for (var entry in entriesToCheck) {
-    if (entry is File) {
-      var entryLastModified = entry.lastModifiedSync();
-      if (lastModified.isBefore(entryLastModified)) {
-        throw "${entry.path} was modified after NPM package was generated.\n"
-            "Run pub run grinder before-test.";
-      }
-    }
-  }
-
+  ensureUpToDate("build/npm/sass.dart.js", "pub run grinder npm-package");
   channel.sink.close();
 }
 

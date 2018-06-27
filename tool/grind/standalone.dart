@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:grinder/grinder.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
 
@@ -21,20 +22,32 @@ snapshot() {
   Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
 }
 
-@Task('Build Dart application snapshot.')
-appSnapshot() {
+@Task('Build a dev-mode Dart application snapshot.')
+appSnapshot() => _appSnapshot(release: false);
+
+@Task('Build a release-mode Dart application snapshot.')
+releaseAppSnapshot() => _appSnapshot(release: true);
+
+/// Compiles Sass to an application snapshot.
+///
+/// If [release] is `true`, this compiles in checked mode. Otherwise, it
+/// compiles in unchecked mode.
+void _appSnapshot({@required bool release}) {
+  var args = [
+    '--snapshot=build/sass.dart.app.snapshot',
+    '--snapshot-kind=app-jit'
+  ];
+  // TODO(nweiz): Once we're building with Dart 2 runtime semantics, pass a flag
+  // to enable assertions rather than a flag to enable checked mode.
+  if (!release) args..add('--checked');
+
   ensureBuild();
   Dart.run('bin/sass.dart',
-      arguments: ['tool/app-snapshot-input.scss'],
-      vmArgs: [
-        '--snapshot=build/sass.dart.app.snapshot',
-        '--snapshot-kind=app-jit'
-      ],
-      quiet: true);
+      arguments: ['tool/app-snapshot-input.scss'], vmArgs: args, quiet: true);
 }
 
 @Task('Build standalone packages for all OSes.')
-@Depends(snapshot, appSnapshot)
+@Depends(snapshot, releaseAppSnapshot)
 package() async {
   var client = new http.Client();
   await Future.wait(["linux", "macos", "windows"].expand((os) => [

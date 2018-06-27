@@ -61,6 +61,8 @@ install:
 - if-specs git -C sass-spec checkout FETCH_HEAD
 - if-specs bundle install --gemfile=sass-spec/Gemfile --jobs=3 --retry=3
 
+- if [ "$TASK" = tests ]; then pub run grinder app-snapshot; fi
+
 script: tool/travis/test.sh
 
 ## Deployment
