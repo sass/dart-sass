@@ -8,7 +8,11 @@
 
 * Fix a bug where `@-moz-document` functions with string arguments weren't being
   parsed.
-  
+
+### Command-Line Interface
+
+* Don't crash when a syntax error is added to a watched file.
+
 ## 1.7.1
 
 * Fix crashes in released binaries.
