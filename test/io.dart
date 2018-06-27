@@ -38,7 +38,7 @@ void ensureUpToDate(String path, String commandToRun) {
       if (lastModified.isBefore(entryLastModified)) {
         throw "${entry.path} was modified after ${p.prettyUri(p.toUri(path))} "
             "was generated.\n"
-            "Run pub run grinder before_test.";
+            "Run pub run grinder before-test.";
       }
     }
   }
