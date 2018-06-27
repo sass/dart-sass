@@ -1,5 +1,14 @@
 ## 1.7.2
 
+* Add a deprecation warning for `@-moz-document`, except for cases where only an
+  empty `url-prefix()` is used. Support is [being removed from Firefox][] and
+  will eventually be removed from Sass as well.
+
+[being removed from Firefox]: https://www.fxsitecompat.com/en-CA/docs/2018/moz-document-support-has-been-dropped-except-for-empty-url-prefix/
+
+* Fix a bug where `@-moz-document` functions with string arguments weren't being
+  parsed.
+
 ### Command-Line Interface
 
 * Don't crash when a syntax error is added to a watched file.
