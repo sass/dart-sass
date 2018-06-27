@@ -310,8 +310,8 @@ abstract class Parser {
   /// Consumes a `url()` token if possible, and returns `null` otherwise.
   @protected
   String tryUrl() {
-    // NOTE: this logic is largely duplicated in ScssParser._urlContents and
-    // ScssParser._tryUrlContents. Most changes here should be mirrored there.
+    // NOTE: this logic is largely duplicated in ScssParser._tryUrlContents.
+    // Most changes here should be mirrored there.
 
     var start = scanner.state;
     if (!scanIdentifier("url", ignoreCase: true)) return null;

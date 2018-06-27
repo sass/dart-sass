@@ -122,7 +122,8 @@ class StylesheetGraph {
     _transitiveModificationTimes.clear();
 
     importCache.clearImport(canonicalUrl);
-    var stylesheet = importCache.importCanonical(node.importer, canonicalUrl);
+    var stylesheet = _ignoreErrors(
+        () => importCache.importCanonical(node.importer, canonicalUrl));
     if (stylesheet == null) {
       remove(canonicalUrl);
       return null;

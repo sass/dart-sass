@@ -169,7 +169,7 @@ which it will be used in the real world.
 [JS interop]: https://pub.dartlang.org/packages/js
 
 The tests for the Node API live in `test/node_api`. Before running them, and any
-time you make a change to Dart Sass, run `pub run grinder before_test` to
+time you make a change to Dart Sass, run `pub run grinder before-test` to
 compile the Dart code to JavaScript (note that you don't need to recompile if
 you've only changed the test code). To run Node tests, just run
 `pub run test -t node`.

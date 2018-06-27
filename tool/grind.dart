@@ -31,8 +31,8 @@ format() {
 }
 
 @Task('Installs dependencies from npm.')
-npm_install() => run("npm", arguments: ["install"]);
+npmInstall() => run("npm", arguments: ["install"]);
 
 @Task('Runs the tasks that are required for running tests.')
-@Depends(format, synchronize, npm_package, npm_install)
-before_test() {}
+@Depends(format, synchronize, npmPackage, npmInstall)
+beforeTest() {}

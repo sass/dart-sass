@@ -12,7 +12,7 @@ import 'package:sass/src/io.dart';
 import 'io.dart';
 
 hybridMain(StreamChannel channel) async {
-  ensureUpToDate("build/npm/sass.dart.js", "pub run grinder npm_package");
+  ensureUpToDate("build/npm/sass.dart.js", "pub run grinder npm-package");
   channel.sink.close();
 }
 

@@ -17,7 +17,7 @@ install:
 - ps: >-
     If ($env:NODE -eq "true") {
       Install-Product node ''
-      pub run grinder npm_package
+      pub run grinder npm-package
     }
 - ps: >-
     If ($env:NODE -eq "false") {

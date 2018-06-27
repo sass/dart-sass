@@ -907,9 +907,11 @@ abstract class StylesheetParser extends Parser {
   AtRule _mozDocumentRule(LineScannerState start) {
     var valueStart = scanner.state;
     var buffer = new InterpolationBuffer();
+    var needsDeprecationWarning = false;
     while (true) {
       if (scanner.peekChar() == $hash) {
         buffer.add(singleInterpolation());
+        needsDeprecationWarning = true;
       } else {
         var identifierStart = scanner.state;
         var identifier = this.identifier();
@@ -917,8 +919,30 @@ abstract class StylesheetParser extends Parser {
           case "url":
           case "url-prefix":
           case "domain":
-            buffer.addInterpolation(
-                _urlContents(identifierStart, name: identifier));
+            var contents = _tryUrlContents(identifierStart, name: identifier);
+            if (contents != null) {
+              buffer.addInterpolation(contents);
+            } else {
+              scanner.expectChar($lparen);
+              whitespace();
+              var argument = interpolatedString();
+              scanner.expectChar($rparen);
+
+              buffer
+                ..write(identifier)
+                ..writeCharCode($lparen)
+                ..addInterpolation(argument.asInterpolation())
+                ..writeCharCode($rparen);
+            }
+
+            // A url-prefix with no argument, or with an empty string as an
+            // argument, is not (yet) deprecated.
+            var trailing = buffer.trailingString;
+            if (!trailing.endsWith("url-prefix()") &&
+                !trailing.endsWith("url-prefix('')") &&
+                !trailing.endsWith('url-prefix("")')) {
+              needsDeprecationWarning = true;
+            }
             break;
 
           case "regexp":
@@ -927,6 +951,7 @@ abstract class StylesheetParser extends Parser {
             buffer.addInterpolation(interpolatedString().asInterpolation());
             scanner.expectChar($rparen);
             buffer.writeCharCode($rparen);
+            needsDeprecationWarning = true;
             break;
 
           default:
@@ -944,8 +969,16 @@ abstract class StylesheetParser extends Parser {
 
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
     var children = this.children(_statement);
-    return new AtRule("-moz-document", scanner.spanFrom(start),
-        value: value, children: children);
+    var span = scanner.spanFrom(start);
+
+    if (needsDeprecationWarning) {
+      logger.warn("""
+@-moz-document is deprecated and support will be removed from Sass in a future
+relase. For details, see http://bit.ly/moz-document.
+""", span: span, deprecation: true);
+    }
+
+    return new AtRule("-moz-document", span, value: value, children: children);
   }
 
   /// Consumes a `@return` rule.
@@ -2159,57 +2192,13 @@ To parse it as a color, use "${color.toStringAsRgb()}".
     return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
   }
 
-  /// Consumes the contents of a `url()` token (after the name).
+  /// Like [_urlContents], but returns `null` if the URL fails to parse.
   ///
   /// [start] is the position before the beginning of the name. [name] is the
   /// function's name; it defaults to `"url"`.
-  Interpolation _urlContents(LineScannerState start, {String name}) {
-    // NOTE: this logic is largely duplicated in [_tryUrlContents] and
-    // Parser.tryUrl. Most changes here should be mirrored there.
-
-    scanner.expectChar($lparen);
-    whitespaceWithoutComments();
-
-    // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
-    // backtrack and re-parse as a function expression.
-    var buffer = new InterpolationBuffer()..write("${name ?? 'url'}(");
-    while (true) {
-      var next = scanner.peekChar();
-      if (next == null) {
-        break;
-      } else if (next == $percent ||
-          next == $ampersand ||
-          (next >= $asterisk && next <= $tilde) ||
-          next >= 0x0080) {
-        buffer.writeCharCode(scanner.readChar());
-      } else if (next == $backslash) {
-        buffer.write(escape());
-      } else if (next == $hash) {
-        if (scanner.peekChar(1) == $lbrace) {
-          buffer.add(singleInterpolation());
-        } else {
-          buffer.writeCharCode(scanner.readChar());
-        }
-      } else if (isWhitespace(next)) {
-        whitespaceWithoutComments();
-        scanner.expectChar($rparen);
-        buffer.writeCharCode($rparen);
-        break;
-      } else if (next == $rparen) {
-        buffer.writeCharCode(scanner.readChar());
-        break;
-      } else {
-        scanner.expectChar($rparen);
-      }
-    }
-
-    return buffer.interpolation(scanner.spanFrom(start));
-  }
-
-  /// Like [_urlContents], but returns `null` if the URL fails to parse.
-  Interpolation _tryUrlContents(LineScannerState start) {
-    // NOTE: this logic is largely duplicated in [_urlContents] and
-    // Parser.tryUrl. Most changes here should be mirrored there.
+  Interpolation _tryUrlContents(LineScannerState start, {String name}) {
+    // NOTE: this logic is largely duplicated in Parser.tryUrl. Most changes
+    // here should be mirrored there.
 
     var beginningOfContents = scanner.state;
     if (!scanner.scanChar($lparen)) return null;
@@ -2217,7 +2206,9 @@ To parse it as a color, use "${color.toStringAsRgb()}".
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
-    var buffer = new InterpolationBuffer()..write("url(");
+    var buffer = new InterpolationBuffer()
+      ..write(name ?? 'url')
+      ..writeCharCode($lparen);
     while (true) {
       var next = scanner.peekChar();
       if (next == null) {
