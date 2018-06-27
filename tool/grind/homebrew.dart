@@ -34,8 +34,8 @@ updateHomebrew() async {
   log("updating ${formula.path}");
   formula.writeAsStringSync(formula.readAsStringSync().replaceFirstMapped(
       _homebrewRegExp,
-      (match) =>
-          '\n${match[1]}url "https://github.com/sass/dart-sass/archive/$version.tar.gz"'
+      (match) => '\n${match[1]}url '
+          '"https://github.com/sass/dart-sass/archive/$version.tar.gz"'
           '\n${match[1]}sha256 "$digest"'));
 
   run("git",

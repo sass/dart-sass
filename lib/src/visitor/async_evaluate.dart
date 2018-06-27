@@ -1329,12 +1329,11 @@ class _EvaluateVisitor
           if (argumentList == null) return result;
           if (evaluated.named.isEmpty) return result;
           if (argumentList.wereKeywordsAccessed) return result;
-          throw _exception(
-              "No ${pluralize('argument', evaluated.named.keys.length)} named " +
-                  toSentence(
-                      evaluated.named.keys.map((name) => "\$$name"), 'or') +
-                  ".",
-              span);
+
+          var argumentWord = pluralize('argument', evaluated.named.keys.length);
+          var argumentNames =
+              toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
+          throw _exception("No $argumentWord named $argumentNames.", span);
         });
       });
     });
