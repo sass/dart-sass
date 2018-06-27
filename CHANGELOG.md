@@ -1,3 +1,7 @@
+## 1.7.3
+
+* No user-visible changes.
+
 ## 1.7.2
 
 * Add a deprecation warning for `@-moz-document`, except for cases where only an
