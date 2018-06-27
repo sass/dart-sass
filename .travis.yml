@@ -6,7 +6,7 @@ language: ruby
 env:
   global:
   - DART_CHANNEL=dev
-  - DART_VERSION=2.0.0-dev.63.0
+  - DART_VERSION=latest
   matrix:
   # Language specs, defined in sass/sass-spec
   - TASK=specs
