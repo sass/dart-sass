@@ -19,7 +19,8 @@ bool get _is64Bit => Platform.version.contains("x64");
 @Task('Build Dart script snapshot.')
 snapshot() {
   ensureBuild();
-  Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
+  Dart.run('bin/sass.dart',
+      vmArgs: ['--no-preview-dart-2', '--snapshot=build/sass.dart.snapshot']);
 }
 
 @Task('Build a dev-mode Dart application snapshot.')
@@ -34,6 +35,9 @@ releaseAppSnapshot() => _appSnapshot(release: true);
 /// compiles in unchecked mode.
 void _appSnapshot({@required bool release}) {
   var args = [
+    // Don't build in Dart 2 runtime mode for now because it's substantially
+    // slower than Dart 1 mode. See dart-lang/sdk#33257.
+    '--no-preview-dart-2',
     '--snapshot=build/sass.dart.app.snapshot',
     '--snapshot-kind=app-jit'
   ];

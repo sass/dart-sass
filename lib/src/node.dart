@@ -19,6 +19,7 @@ import 'executable.dart' as executable;
 import 'importer/node.dart';
 import 'node/error.dart';
 import 'node/exports.dart';
+import 'node/function.dart';
 import 'node/render_context.dart';
 import 'node/render_context_options.dart';
 import 'node/render_options.dart';
@@ -30,15 +31,14 @@ import 'parse/scss.dart';
 import 'value.dart';
 import 'visitor/serialize.dart';
 
-typedef _Importer(String url, String prev, [void done(result)]);
-
 /// The entrypoint for Node.js.
 ///
 /// This sets up exports that can be called from JS. These include a private
 /// export that runs the normal `main()`, which is called from `package/sass.js`
 /// to run the executable when installed from npm.
 void main() {
-  exports.run_ = allowInterop(executable.main);
+  exports.run_ =
+      allowInterop((args) => executable.main(new List.from(args as List)));
   exports.render = allowInterop(_render);
   exports.renderSync = allowInterop(_renderSync);
   exports.info =
@@ -250,13 +250,13 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
 /// Parses [importer] and [includePaths] from [RenderOptions] into a
 /// [NodeImporter].
 NodeImporter _parseImporter(RenderOptions options, DateTime start) {
-  List<_Importer> importers;
+  List<JSFunction> importers;
   if (options.importer == null) {
     importers = [];
   } else if (options.importer is List) {
     importers = (options.importer as List).cast();
   } else {
-    importers = [options.importer as _Importer];
+    importers = [options.importer as JSFunction];
   }
 
   var includePaths = options.includePaths ?? [];
@@ -293,7 +293,7 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
         }));
         if (isUndefined(result)) return options.fiber.yield();
         return result;
-      }) as _Importer;
+      }) as JSFunction;
     }).toList();
   }
 

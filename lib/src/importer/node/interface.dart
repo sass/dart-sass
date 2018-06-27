@@ -6,11 +6,9 @@ import 'dart:async';
 
 import 'package:tuple/tuple.dart';
 
-typedef _Importer(String url, String prev, [void done(result)]);
-
 class NodeImporter {
-  NodeImporter(Object context, Iterable<String> includePaths,
-      Iterable<_Importer> importers);
+  NodeImporter(
+      Object context, Iterable<String> includePaths, Iterable importers);
 
   Tuple2<String, String> load(String url, Uri previous) => null;
 

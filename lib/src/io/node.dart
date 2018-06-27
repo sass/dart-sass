@@ -21,7 +21,7 @@ class _FS {
   external void mkdirSync(String path);
   external _Stat statSync(String path);
   external void unlinkSync(String path);
-  external List<String> readdirSync(String path);
+  external List readdirSync(String path);
 }
 
 @JS()
@@ -191,7 +191,7 @@ void ensureDir(String path) {
 Iterable<String> listDir(String path) {
   Iterable<String> list(String parent) =>
       _fs.readdirSync(parent).expand((child) {
-        var path = p.join(parent, child);
+        var path = p.join(parent, child as String);
         return dirExists(path) ? listDir(path) : [path];
       });
 
