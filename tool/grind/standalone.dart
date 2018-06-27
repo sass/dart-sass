@@ -37,6 +37,8 @@ void _appSnapshot({@required bool release}) {
     '--snapshot=build/sass.dart.app.snapshot',
     '--snapshot-kind=app-jit'
   ];
+  // TODO(nweiz): Once we're building with Dart 2 runtime semantics, pass a flag
+  // to enable assertions rather than a flag to enable checked mode.
   if (!release) args..add('--checked');
 
   ensureBuild();
