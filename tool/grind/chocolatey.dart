@@ -47,7 +47,8 @@ xml.XmlDocument _nuspec() {
     assert(dartVersion.preRelease[0] == "dev");
     assert(dartVersion.preRelease[1] is int);
     sdkVersion = "${dartVersion.major}.${dartVersion.minor}."
-        "${dartVersion.patch}.${dartVersion.preRelease[1]}-dev";
+        "${dartVersion.patch}.${dartVersion.preRelease[1]}-dev-"
+        "${dartVersion.preRelease[2]}";
   } else {
     sdkVersion = dartVersion.toString();
   }
