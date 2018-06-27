@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 7d76dcbd7c035c8bde0e3083a8b0dfc0c00d9662
+// Checksum: e9558d77111c693319f39af55da8ce3797fe1807
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -1314,12 +1314,11 @@ class _EvaluateVisitor
           if (argumentList == null) return result;
           if (evaluated.named.isEmpty) return result;
           if (argumentList.wereKeywordsAccessed) return result;
-          throw _exception(
-              "No ${pluralize('argument', evaluated.named.keys.length)} named " +
-                  toSentence(
-                      evaluated.named.keys.map((name) => "\$$name"), 'or') +
-                  ".",
-              span);
+
+          var argumentWord = pluralize('argument', evaluated.named.keys.length);
+          var argumentNames =
+              toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
+          throw _exception("No $argumentWord named $argumentNames.", span);
         });
       });
     });
