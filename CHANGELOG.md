@@ -1,3 +1,10 @@
+## 1.8.0
+
+### Command-Line Interface
+
+* Add a `--poll` flag to make `--watch` mode repeatedly check the filesystem for
+  updates rather than relying on native filesystem notifications.
+
 ## 1.7.3
 
 * No user-visible changes.

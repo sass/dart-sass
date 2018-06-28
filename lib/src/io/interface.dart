@@ -87,4 +87,7 @@ int exitCode;
 /// Returns a future that completes with a single-subscription stream once the
 /// directory has been scanned initially. The watch is canceled when the stream
 /// is closed.
-Future<Stream<WatchEvent>> watchDir(String path) => null;
+///
+/// If [poll] is `true`, this manually checks the filesystem for changes
+/// periodically rather than using a native filesystem monitoring API.
+Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) => null;
