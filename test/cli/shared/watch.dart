@@ -217,6 +217,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           await expectLater(
               sass.stdout, emits('Compiled test.scss to out.css.'));
           await expectLater(sass.stdout, _watchingForChanges);
+          await tickIfPoll();
 
           await d.file("test.scss", "a {b: }").create();
           await expectLater(
