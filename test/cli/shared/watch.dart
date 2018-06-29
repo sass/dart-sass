@@ -77,6 +77,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           await expectLater(
               sass.stdout, emitsThrough('Compiled test2.scss to out2.css.'));
           await expectLater(sass.stdout, _watchingForChanges);
+          await sass.kill();
 
           await d.nothing("out1.css").validate();
           await d

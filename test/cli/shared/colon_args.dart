@@ -72,11 +72,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d.file("test1.scss", "a {b: }").create();
     await d.file("test2.scss", "x {y: z}").create();
 
-    var sass = await runSass(["test1.scss:out1.css", "test2.scss:out2.css"]);
+    var sass = await runSass(
+        ["--no-source-map", "test1.scss:out1.css", "test2.scss:out2.css"]);
     await expectLater(sass.stderr, emits('Error: Expected expression.'));
     await expectLater(sass.stderr, emitsThrough(contains('test1.scss 1:7')));
-    await expectLater(
-        sass.stdout, emitsThrough('Compiled test2.scss to out2.css.'));
     await sass.shouldExit(65);
 
     await d.nothing("out1.css").validate();
