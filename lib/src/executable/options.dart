@@ -79,6 +79,8 @@ class ExecutableOptions {
           help: 'Manually check for changes rather than using a native '
               'watcher.\n'
               'Only valid with --watch.')
+      ..addFlag('stop-on-error',
+          help: "Don't compile more files once an error is encountered.")
       ..addFlag('interactive',
           abbr: 'i',
           help: 'Run an interactive SassScript shell.',
@@ -176,6 +178,10 @@ class ExecutableOptions {
 
   /// Whether to manually poll for changes when watching.
   bool get poll => _options['poll'] as bool;
+
+  /// Whether to stop compiling additional files once one file produces an
+  /// error.
+  bool get stopOnError => _options['stop-on-error'] as bool;
 
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.

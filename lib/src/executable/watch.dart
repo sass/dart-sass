@@ -41,7 +41,11 @@ Future watch(ExecutableOptions options, StylesheetGraph graph) async {
     var destination = options.sourcesToDestinations[source];
     graph.addCanonical(new FilesystemImporter('.'),
         p.toUri(p.canonicalize(source)), p.toUri(source));
-    await watcher.compile(source, destination, ifModified: true);
+    var success = await watcher.compile(source, destination, ifModified: true);
+    if (!success && options.stopOnError) {
+      dirWatcher.events.listen(null).cancel();
+      return;
+    }
   }
 
   print("Sass is watching for changes. Press Ctrl-C to stop.\n");
@@ -51,25 +55,34 @@ Future watch(ExecutableOptions options, StylesheetGraph graph) async {
 /// Holds state that's shared across functions that react to changes on the
 /// filesystem.
 class _Watcher {
+  /// The options for the Sass executable.
   final ExecutableOptions _options;
 
+  /// The graph of stylesheets being compiled.
   final StylesheetGraph _graph;
 
   _Watcher(this._options, this._graph);
 
   /// Compiles the stylesheet at [source] to [destination], and prints any
   /// errors that occur.
-  Future compile(String source, String destination,
+  ///
+  /// Returns whether or not compilation succeeded.
+  Future<bool> compile(String source, String destination,
       {bool ifModified: false}) async {
     try {
       await compileStylesheet(_options, _graph, source, destination,
           ifModified: ifModified);
+      return true;
     } on SassException catch (error, stackTrace) {
       _delete(destination);
       _printError(error.toString(color: _options.color), stackTrace);
+      exitCode = 65;
+      return false;
     } on FileSystemException catch (error, stackTrace) {
       _printError("Error reading ${p.relative(error.path)}: ${error.message}.",
           stackTrace);
+      exitCode = 66;
+      return false;
     }
   }
 
@@ -97,7 +110,7 @@ class _Watcher {
       stderr.writeln(new Trace.from(stackTrace).terse.toString().trimRight());
     }
 
-    stderr.writeln();
+    if (!_options.stopOnError) stderr.writeln();
   }
 
   /// Listens to `watcher.events` and updates the filesystem accordingly.
@@ -119,11 +132,13 @@ class _Watcher {
           // from the graph.
           var node = _graph.nodes[url];
           _graph.reload(url);
-          await _recompileDownstream([node]);
+          var success = await _recompileDownstream([node]);
+          if (!success && _options.stopOnError) return;
           break;
 
         case ChangeType.ADD:
-          await _retryPotentialImports(event.path);
+          var success = await _retryPotentialImports(event.path);
+          if (!success && _options.stopOnError) return;
 
           var destination = _destinationFor(event.path);
           if (destination == null) continue loop;
@@ -131,11 +146,13 @@ class _Watcher {
           _graph.addCanonical(
               new FilesystemImporter('.'), url, p.toUri(event.path));
 
-          await compile(event.path, destination);
+          success = await compile(event.path, destination);
+          if (!success && _options.stopOnError) return;
           break;
 
         case ChangeType.REMOVE:
-          await _retryPotentialImports(event.path);
+          var success = await _retryPotentialImports(event.path);
+          if (!success && _options.stopOnError) return;
           if (!_graph.nodes.containsKey(url)) continue loop;
 
           var destination = _destinationFor(event.path);
@@ -143,7 +160,8 @@ class _Watcher {
 
           var downstream = _graph.nodes[url].downstream;
           _graph.remove(url);
-          await _recompileDownstream(downstream);
+          success = await _recompileDownstream(downstream);
+          if (!success && _options.stopOnError) return;
           break;
       }
     }
@@ -176,29 +194,38 @@ class _Watcher {
 
   /// Recompiles [nodes] and everything that transitively imports them, if
   /// necessary.
-  Future _recompileDownstream(Iterable<StylesheetNode> nodes) async {
+  ///
+  /// Returns whether all recompilations succeeded.
+  Future<bool> _recompileDownstream(Iterable<StylesheetNode> nodes) async {
     var seen = new Set<StylesheetNode>();
     var toRecompile = new Queue.of(nodes);
 
+    var allSucceeded = true;
     while (!toRecompile.isEmpty) {
       var node = toRecompile.removeFirst();
       if (!seen.add(node)) continue;
 
-      await _compileIfEntrypoint(node.canonicalUrl);
+      var success = await _compileIfEntrypoint(node.canonicalUrl);
+      allSucceeded = allSucceeded && success;
+      if (!success && _options.stopOnError) return false;
+
       toRecompile.addAll(node.downstream);
     }
+    return allSucceeded;
   }
 
   /// Compiles the stylesheet at [url] to CSS if it's an entrypoint that's being
   /// watched.
-  Future _compileIfEntrypoint(Uri url) async {
-    if (url.scheme != 'file') return;
+  ///
+  /// Returns `false` if compilation failed, `true` otherwise.
+  Future<bool> _compileIfEntrypoint(Uri url) async {
+    if (url.scheme != 'file') return true;
 
     var source = p.fromUri(url);
     var destination = _destinationFor(source);
-    if (destination == null) return;
+    if (destination == null) return true;
 
-    await compile(source, destination);
+    return await compile(source, destination);
   }
 
   /// If a Sass file at [source] should be compiled to CSS, returns the path to
@@ -223,7 +250,9 @@ class _Watcher {
   /// Re-runs all imports in [_graph] that might refer to [path], and recompiles
   /// the files that contain those imports if they end up importing new
   /// stylesheets.
-  Future _retryPotentialImports(String path) async {
+  ///
+  /// Returns whether all recompilations succeeded.
+  Future<bool> _retryPotentialImports(String path) async {
     var name = _name(p.basename(path));
     var changed = <StylesheetNode>[];
     for (var node in _graph.nodes.values) {
@@ -250,7 +279,7 @@ class _Watcher {
       if (importChanged) changed.add(node);
     }
 
-    await _recompileDownstream(changed);
+    return await _recompileDownstream(changed);
   }
 
   /// Removes an extension from [extension], and a leading underscore if it has one.
