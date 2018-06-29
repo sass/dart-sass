@@ -339,7 +339,7 @@ class AsyncEnvironment {
   }
 
   /// Sets [inMixin] to `true` for the duration of [callback].
-  Future asMixin(void callback()) async {
+  Future asMixin(Future callback()) async {
     var oldInMixin = _inMixin;
     _inMixin = true;
     await callback();
