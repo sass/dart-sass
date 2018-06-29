@@ -239,9 +239,9 @@ external int get exitCode;
 @JS("process.exitCode")
 external set exitCode(int code);
 
-Future<Stream<WatchEvent>> watchDir(String path) {
-  var watcher =
-      chokidar.watch(path, new ChokidarOptions(disableGlobbing: true));
+Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) {
+  var watcher = chokidar.watch(
+      path, new ChokidarOptions(disableGlobbing: true, usePolling: poll));
 
   // Don't assign the controller until after the ready event fires. Otherwise,
   // Chokidar will give us a bunch of add events for files that already exist.

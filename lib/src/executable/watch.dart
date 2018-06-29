@@ -25,7 +25,7 @@ Future watch(ExecutableOptions options, StylesheetGraph graph) async {
     ..addAll(options.sourcesToDestinations.keys.map(p.dirname))
     ..addAll(options.loadPaths);
 
-  var dirWatcher = new MultiDirWatcher();
+  var dirWatcher = new MultiDirWatcher(poll: options.poll);
   await Future.wait(directoriesToWatch.map((dir) {
     // If a directory doesn't exist, watch its parent directory so that we're
     // notified once it starts existing.

@@ -75,6 +75,10 @@ class ExecutableOptions {
       ..addFlag('watch',
           help: 'Watch stylesheets and recompile when they change.',
           negatable: false)
+      ..addFlag('poll',
+          help: 'Manually check for changes rather than using a native '
+              'watcher.\n'
+              'Only valid with --watch.')
       ..addFlag('interactive',
           abbr: 'i',
           help: 'Run an interactive SassScript shell.',
@@ -169,6 +173,9 @@ class ExecutableOptions {
 
   /// Whether to continuously watch the filesystem for changes.
   bool get watch => _options['watch'] as bool;
+
+  /// Whether to manually poll for changes when watching.
+  bool get poll => _options['poll'] as bool;
 
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.
@@ -380,7 +387,11 @@ class ExecutableOptions {
     }
   }
 
-  ExecutableOptions._(this._options);
+  ExecutableOptions._(this._options) {
+    if (_options.wasParsed('poll') && !watch) {
+      _fail("--poll may not be passed without --watch.");
+    }
+  }
 
   /// Makes [url] absolute or relative (to the directory containing
   /// [destination]) according to the `source-map-urls` option.

@@ -74,8 +74,9 @@ DateTime modificationTime(String path) {
   return stat.modified;
 }
 
-Future<Stream<WatchEvent>> watchDir(String path) async {
-  var watcher = new DirectoryWatcher(path);
+Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) async {
+  var watcher =
+      poll ? new PollingDirectoryWatcher(path) : new DirectoryWatcher(path);
 
   // Wrap [stream] in a [SubscriptionStream] so that its `onListen` event
   // triggers but the caller can still listen at their leisure.

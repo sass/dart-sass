@@ -24,6 +24,15 @@ class MultiDirWatcher {
   Stream<WatchEvent> get events => _group.stream;
   final _group = new StreamGroup<WatchEvent>();
 
+  /// Whether to manually check the filesystem for changes periodically.
+  final bool _poll;
+
+  /// Creates a [MultiDirWatcher].
+  ///
+  /// If [poll] is `true`, this manually checks the filesystem for changes
+  /// periodically rather than using a native filesystem monitoring API.
+  MultiDirWatcher({bool poll: false}) : _poll = poll;
+
   /// Watches [directory] for changes.
   ///
   /// Returns a [Future] that completes when [events] is ready to emit events
@@ -43,7 +52,7 @@ class MultiDirWatcher {
       }
     }
 
-    var future = watchDir(directory);
+    var future = watchDir(directory, poll: _poll);
     var stream = StreamCompleter.fromFuture(future);
     _watchers[directory] = stream;
     _group.add(stream);
