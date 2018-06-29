@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 09ec65a907dc0d104f8d65be803428dd99fcb1c8
+// Checksum: 5489295cd8e8ae8e80deb3b5941285263863b15f
 
 import 'package:source_span/source_span.dart';
 

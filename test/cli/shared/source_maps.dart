@@ -278,7 +278,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     group("with the target in a different directory", () {
       setUp(() async {
-        await ensureDir(d.path("dir"));
+        ensureDir(d.path("dir"));
         await (await runSass(
                 ["--embed-source-map", "test.scss", "dir/out.css"]))
             .shouldExit(0);
