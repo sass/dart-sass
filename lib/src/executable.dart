@@ -80,12 +80,14 @@ main(List<String> args) async {
         //
         // We let exitCode 66 take precedence for deterministic behavior.
         if (exitCode != 66) exitCode = 65;
+        if (options.stopOnError) return;
       } on FileSystemException catch (error, stackTrace) {
         printError("Error reading ${p.relative(error.path)}: ${error.message}.",
             options.trace ? stackTrace : null);
 
         // Error 66 indicates no input.
         exitCode = 66;
+        if (options.stopOnError) return;
       }
     }
   } on UsageException catch (error) {

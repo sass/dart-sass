@@ -68,6 +68,41 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d.file("out2.css.map", contains("test2.scss")).validate();
   });
 
+  test("continues compiling after an error", () async {
+    await d.file("test1.scss", "a {b: }").create();
+    await d.file("test2.scss", "x {y: z}").create();
+
+    var sass = await runSass(
+        ["--no-source-map", "test1.scss:out1.css", "test2.scss:out2.css"]);
+    await expectLater(sass.stderr, emits('Error: Expected expression.'));
+    await expectLater(sass.stderr, emitsThrough(contains('test1.scss 1:7')));
+    await sass.shouldExit(65);
+
+    await d.nothing("out1.css").validate();
+    await d
+        .file("out2.css", equalsIgnoringWhitespace("x { y: z; }"))
+        .validate();
+  });
+
+  test("stops compiling after an error with --stop-on-error", () async {
+    await d.file("test1.scss", "a {b: }").create();
+    await d.file("test2.scss", "x {y: z}").create();
+
+    var sass = await runSass(
+        ["--stop-on-error", "test1.scss:out1.css", "test2.scss:out2.css"]);
+    await expectLater(
+        sass.stderr,
+        emitsInOrder([
+          'Error: Expected expression.',
+          emitsThrough(contains('test1.scss 1:7')),
+          emitsDone
+        ]));
+    await sass.shouldExit(65);
+
+    await d.nothing("out1.css").validate();
+    await d.nothing("out2.css").validate();
+  });
+
   group("with a directory argument", () {
     test("compiles all the stylesheets in the directory", () async {
       await d.dir("in", [

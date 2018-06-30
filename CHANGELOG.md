@@ -5,6 +5,9 @@
 * Add a `--poll` flag to make `--watch` mode repeatedly check the filesystem for
   updates rather than relying on native filesystem notifications.
 
+* Add a `--stop-on-error` flag to stop compiling additional files once an error
+  is encountered.
+
 ## 1.7.3
 
 * No user-visible changes.

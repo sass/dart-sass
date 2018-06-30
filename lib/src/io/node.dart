@@ -263,7 +263,9 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) {
 
   var completer = new Completer<Stream<WatchEvent>>();
   watcher.on('ready', allowInterop(() {
-    controller = new StreamController<WatchEvent>();
+    controller = new StreamController<WatchEvent>(onCancel: () {
+      watcher.close();
+    });
     completer.complete(controller.stream);
   }));
 
