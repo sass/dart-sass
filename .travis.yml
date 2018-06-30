@@ -132,7 +132,7 @@ jobs:
     script: skip
     deploy:
       provider: script
-      script: pub run grinder update_bazel
+      script: pub run grinder update-bazel
       skip_cleanup: true
       on: {tags: true}
 
