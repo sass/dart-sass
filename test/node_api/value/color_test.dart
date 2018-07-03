@@ -113,12 +113,12 @@ void main() {
     });
 
     test("with an ARGB hex value, is a color with the given channels", () {
-        var color = callConstructor(sass.types.Color, [0x12345678]);
-        expect(color, isJSInstanceOf(sass.types.Color));
-        expect(color.getR(), equals(0x34));
-        expect(color.getG(), equals(0x56));
-        expect(color.getB(), equals(0x78));
-        expect(color.getA(), equals(0x12/0xff));
+      var color = callConstructor(sass.types.Color, [0x12345678]);
+      expect(color, isJSInstanceOf(sass.types.Color));
+      expect(color.getR(), equals(0x34));
+      expect(color.getG(), equals(0x56));
+      expect(color.getB(), equals(0x78));
+      expect(color.getA(), equals(0x12 / 0xff));
     });
   });
 }
