@@ -96,18 +96,29 @@ void main() {
   });
 
   group("from a constructor", () {
-    test("is a color with the given channels", () {
-      var color = callConstructor(sass.types.Color, [11, 12, 13, 0.42]);
-      expect(color, isJSInstanceOf(sass.types.Color));
-      expect(color.getR(), equals(11));
-      expect(color.getG(), equals(12));
-      expect(color.getB(), equals(13));
-      expect(color.getA(), equals(0.42));
+    group("with individual channels", () {
+      test("is a color with the given channels", () {
+        var color = callConstructor(sass.types.Color, [11, 12, 13, 0.42]);
+        expect(color, isJSInstanceOf(sass.types.Color));
+        expect(color.getR(), equals(11));
+        expect(color.getG(), equals(12));
+        expect(color.getB(), equals(13));
+        expect(color.getA(), equals(0.42));
+      });
+
+      test("the alpha channel defaults to 1", () {
+        var color = callConstructor(sass.types.Color, [11, 12, 13]);
+        expect(color.getA(), equals(1.0));
+      });
     });
 
-    test("the alpha channel defaults to 1", () {
-      var color = callConstructor(sass.types.Color, [11, 12, 13]);
-      expect(color.getA(), equals(1.0));
+    test("with an ARGB hex value, is a color with the given channels", () {
+      var color = callConstructor(sass.types.Color, [0x12345678]);
+      expect(color, isJSInstanceOf(sass.types.Color));
+      expect(color.getR(), equals(0x34));
+      expect(color.getG(), equals(0x56));
+      expect(color.getB(), equals(0x78));
+      expect(color.getA(), equals(0x12 / 0xff));
     });
   });
 }

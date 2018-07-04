@@ -1,3 +1,11 @@
+## 1.9.0
+
+### Node API
+
+* Add support for `new sass.types.Color(argb)` for creating colors from ARGB hex
+  numbers. This was overlooked when initially adding support for Node Sass's
+  JavaScript API.
+
 ## 1.8.0
 
 ### Command-Line Interface

@@ -21,11 +21,32 @@ Object newNodeSassColor(SassColor value) =>
 
 /// The JS constructor for the `sass.types.Color` class.
 final Function colorConstructor = createClass(
-    (_NodeSassColor thisArg, num red, num green, num blue,
-        [num alpha, SassColor dartValue]) {
-  thisArg.dartValue = dartValue ??
-      new SassColor.rgb(
-          _clamp(red), _clamp(green), _clamp(blue), alpha?.clamp(0, 1) ?? 1);
+    (_NodeSassColor thisArg, num redOrArgb,
+        [num green, num blue, num alpha, SassColor dartValue]) {
+  if (dartValue != null) {
+    thisArg.dartValue = dartValue;
+    return;
+  }
+
+  // This has two signatures:
+  //
+  // * `new sass.types.Color(red, green, blue, [alpha])`
+  // * `new sass.types.Color(argb)`
+  //
+  // The latter takes an integer that's interpreted as the hex value 0xAARRGGBB.
+  num red;
+  if (green == null) {
+    var argb = redOrArgb as int;
+    alpha = (argb >> 24) / 0xff;
+    red = (argb >> 16) % 0x100;
+    green = (argb >> 8) % 0x100;
+    blue = argb % 0x100;
+  } else {
+    red = redOrArgb;
+  }
+
+  thisArg.dartValue = new SassColor.rgb(
+      _clamp(red), _clamp(green), _clamp(blue), alpha?.clamp(0, 1) ?? 1);
 }, {
   'getR': (_NodeSassColor thisArg) => thisArg.dartValue.red,
   'getG': (_NodeSassColor thisArg) => thisArg.dartValue.green,
