@@ -252,11 +252,11 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) {
   watcher
     ..on(
         'add',
-        allowInterop((String path, _) =>
+        allowInterop((String path, [_]) =>
             controller?.add(new WatchEvent(ChangeType.ADD, path))))
     ..on(
         'change',
-        allowInterop((String path, _) =>
+        allowInterop((String path, [_]) =>
             controller?.add(new WatchEvent(ChangeType.MODIFY, path))))
     ..on(
         'unlink',
