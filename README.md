@@ -29,7 +29,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
   * [From Pub](#from-pub)
   * [From Source](#from-source)
 * [JavaScript API](#javascript-api)
-* [Goals](#goals)
+* [Why Dart?](#why-dart)
 * [Behavioral Differences from Ruby Sass](#behavioral-differences-from-ruby-sass)
 
 ## Using Dart Sass
@@ -197,24 +197,28 @@ No support is intended for the following options:
   to a sufficiently high precision for all existing browsers, and making this
   customizable would make the code substantially less efficient.
 
-* [`sourceComments`](https://github.com/sass/node-sass#sourcecomments). Once
-  Dart Sass supports source maps, that will be the recommended way of locating
-  the origin of generated selectors.
+* [`sourceComments`](https://github.com/sass/node-sass#sourcecomments). Source
+  maps are the recommended way of locating the origin of generated selectors.
 
-## Goals
+## Why Dart?
 
-Dart Sass is intended to eventually replace Ruby Sass as the canonical
-implementation of the Sass language. It has a number of advantages:
+Dart Sass has replaced Ruby Sass as the canonical implementation of the Sass
+language. We chose Dart because it presented a number of advantages:
 
 * It's fast. The Dart VM is highly optimized, and getting faster all the time
   (for the latest performance numbers, see [`perf.md`][perf]). It's much faster
-  than Ruby, and not too far away from C.
+  than Ruby, and close to par with C++.
 
 * It's portable. The Dart VM has no external dependencies and can compile
-  applications into standalone snapshot files, so a fully-functional Dart Sass
-  could be distributed as only three files (the VM, the snapshot, and a wrapper
-  script). Dart can also be compiled to JavaScript, which would make it easy to
-  distribute Sass through npm or other JS package managers.
+  applications into standalone snapshot files, so we can distribute Dart Sass as
+  only three files (the VM, the snapshot, and a wrapper script). Dart can also
+  be compiled to JavaScript, which makes it easy to distribute Sass through npm,
+  which the majority of our users use already.
+
+* It's easy to write. Dart is a higher-level language than C++, which means it
+  doesn't require lots of hassle with memory management and build systems. It's
+  also statically typed, which makes it easier to confidently make large
+  refactors than with Ruby.
 
 * It's friendlier to contributors. Dart is substantially easier to learn than
   Ruby, and many Sass users in Google in particular are already familiar with
