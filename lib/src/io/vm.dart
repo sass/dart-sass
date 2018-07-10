@@ -23,6 +23,15 @@ bool get hasTerminal => io.stdout.hasTerminal;
 
 bool get isNode => false;
 
+bool get supportsAnsiEscapes {
+  if (!hasTerminal) return false;
+
+  // We don't trust [io.stdout.supportsAnsiEscapes] except on Windows because it
+  // relies on the TERM environment variable which has many false negatives.
+  if (!isWindows) return true;
+  return io.stdout.supportsAnsiEscapes;
+}
+
 String get currentPath => io.Directory.current.path;
 
 String readFile(String path) {

@@ -147,8 +147,9 @@ class ExecutableOptions {
   bool get indented => _ifParsed('indented') as bool;
 
   /// Whether to use ANSI terminal colors.
-  bool get color =>
-      _options.wasParsed('color') ? _options['color'] as bool : hasTerminal;
+  bool get color => _options.wasParsed('color')
+      ? _options['color'] as bool
+      : supportsAnsiEscapes;
 
   /// Whether to silence normal output.
   bool get quiet => _options['quiet'] as bool;

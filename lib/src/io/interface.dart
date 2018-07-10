@@ -39,6 +39,10 @@ bool get hasTerminal => false;
 /// Whether we're running as Node.JS.
 bool get isNode => false;
 
+/// Whether this process is connected to a terminal that supports ANSI escape
+/// sequences.
+bool get supportsAnsiEscapes => false;
+
 /// The current working directory.
 String get currentPath => null;
 
