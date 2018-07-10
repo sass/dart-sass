@@ -228,6 +228,9 @@ bool get isWindows => _process.platform == 'win32';
 
 bool get isNode => true;
 
+// Node seems to support ANSI escapes on all terminals.
+bool get supportsAnsiEscapes => hasTerminal;
+
 String get currentPath => _process.cwd();
 
 @JS("process.stdout.isTTY")

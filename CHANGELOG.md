@@ -1,3 +1,7 @@
+## 1.9.1
+
+* Don't emit ANSI codes to Windows terminals that don't support them.
+
 ## 1.9.0
 
 ### Node API
