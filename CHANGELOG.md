@@ -1,10 +1,8 @@
-## 1.9.2-dev
-
-* Fix a bug where `--watch` crashed on Mac OS.
-
 ## 1.9.1
 
 * Don't emit ANSI codes to Windows terminals that don't support them.
+
+* Fix a bug where `--watch` crashed on Mac OS.
 
 ## 1.9.0
 
