@@ -13,6 +13,8 @@ import 'utils.dart';
 updateBazel() async {
   ensureBuild();
 
+  run("npm", arguments: ["install", "-g", "yarn"]);
+
   var repo = await cloneOrPull("https://github.com/bazelbuild/rules_sass.git");
 
   var packageFile = new File(p.join(repo, "sass", "package.json"));
@@ -20,6 +22,8 @@ updateBazel() async {
   packageFile.writeAsStringSync(packageFile
       .readAsStringSync()
       .replaceFirst(new RegExp(r'"sass": "[^"]+"'), '"sass": "$version"'));
+
+  run("yarn", workingDirectory: p.join(repo, "sass"));
 
   run("git",
       arguments: [
