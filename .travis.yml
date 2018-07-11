@@ -70,7 +70,7 @@ script: tool/travis/test.sh
 jobs:
   include:
   # Deploy to GitHub.
-  - stage: deploy
+  - stage: deploy 1
     if: &deploy-if
       (type IN (push, api)) AND (repo = sass/dart-sass) AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
     env: &github-env
@@ -126,16 +126,6 @@ jobs:
       skip_cleanup: true
       on: {tags: true}
 
-  # Deploy to Bazel.
-  - if: *deploy-if
-    env: *github-env
-    script: skip
-    deploy:
-      provider: script
-      script: pub run grinder update-bazel
-      skip_cleanup: true
-      on: {tags: true}
-
   # Deploy to Chocolatey.
   - if: *deploy-if
     env:
@@ -148,9 +138,8 @@ jobs:
       skip_cleanup: true
       on: {tags: true}
 
-  # Redeploy sass-lang.com when a build succeeds.
-  - stage: site
-    if: *deploy-if
+  # Redeploy sass-lang.com.
+  - if: *deploy-if
     env:
       # HEROKU_TOKEN="..."
       - secure: "jF3TCL+k6xdXWfEh54K6KrZ3w0oljUpP0uy9Hx0BIM5gaqG6fUijUnNGCkWDZxufEpl68mGxNRNMB2Mv++UXHiT7ChFx8zZqEyc5FzhIu/nVO3CP3Sek7fuktYidtUvqJ6eHkI15990dWkUoE+TTXTc4/Z9vv1Lt3JX8Ni5VApGCmcLjRwW52EkCC49xo7cWE8/wBEm2ntOivLBIXEKq6hpncXTO4H5KYt042WAJ+MPmQZYE1ENJAObXWrGituRCT6DQnIJuTodOn24SU1KJuvEtfskEJQUajIIQw29uvmu4TP7dgaJw8QBt+hdgcCYrMhoq3RTNmD+vitLRloG4QMWHFYhzONVZ8S3vAhKeolL7nnIz150FpLVQiddSLsdGomqjCfYEJN7TVrwvunGgHxygcGBcq2AiydnxREnlW9Rj6m6g6TVlhdX7JtyePDQN7xEDdZF1UbGMA6CDjzFsi0GY2WNLSCAANUOXmst0kDIFHGc6WkIUXMIbfmkUZADKzF/JDtnEQqtU8Qxc8JfW6ODXqC/fowE3q4cr8NnJMtclyIL/DsWSx2ph3vUr/VH5MWXd4MDJ6ZRnSJHaY2E0IYcKU2JEpA8r7xrFK/+/B9qCMPnoegRFfuN+zHM9b84rNzaF8fmuWuMVKzncw/TvXttRFqoZVS2Ej1EfLY3SA3M="
@@ -161,4 +150,16 @@ jobs:
       # Heroku doesn't have a public API endpoint for this yet, so we use the
       # private endpoint instead.
       script: tool/travis/deploy/heroku.sh
+      on: {tags: true}
+
+  # Deploy to Bazel. This is in a separate deploy stage because it needs to
+  # install the npm package.
+  - stage: deploy 2
+    if: *deploy-if
+    env: *github-env
+    script: skip
+    deploy:
+      provider: script
+      script: pub run grinder update-bazel
+      skip_cleanup: true
       on: {tags: true}
