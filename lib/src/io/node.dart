@@ -67,6 +67,8 @@ class FileSystemException {
   final String path;
 
   FileSystemException._(this.message, this.path);
+
+  String toString() => "${p.prettyUri(p.toUri(path))}: $message";
 }
 
 class Stderr {
