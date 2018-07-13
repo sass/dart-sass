@@ -1,4 +1,12 @@
+## 1.9.2
+
+### Node JS API
+
+* Produce more readable filesystem errors, such as when a file doesn't exist.
+
 ## 1.9.1
+
+### Command-Line Interface
 
 * Don't emit ANSI codes to Windows terminals that don't support them.
 
