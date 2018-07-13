@@ -260,6 +260,20 @@ warnings for any stylesheets whose behavior will change. Then, at least three
 months after the release of a version with these deprecation warnings, we will
 release a minor version with the breaking change to the Sass language semantics.
 
+### Browser Compatibility
+
+In general, we consider any change to Dart Sass's CSS output that would cause
+that CSS to stop working in a real browser to be a breaking change. However,
+there are some cases where such a change would have substantial benefits and
+would only negatively affect a small minority of rarely-used browsers. We don't
+want to have to block such a change on a major version release.
+
+As such, if a change would break compatibility with less than 2% of the global
+market share of browser according to [StatCounter GlobalStats][], we may release
+a minor version of Dart Sass with that change.
+
+[StatCounter GlobalStats]: http://gs.statcounter.com/
+
 ## Behavioral Differences from Ruby Sass
 
 There are a few intentional behavioral differences between Dart Sass and Ruby
