@@ -5,8 +5,8 @@
 # Decrypts the encrypted credentials using Travis's private key and saves them
 # to credentials.tar.
 function decrypt_credentials() {
-    openssl aes-256-cbc -K $encrypted_d472b0f964cc_key \
-            -iv $encrypted_d472b0f964cc_iv \
+    openssl aes-256-cbc -K $encrypted_d18df560dfb2_key \
+            -iv $encrypted_d18df560dfb2_iv \
             -in tool/travis/credentials.tar.enc \
             -out credentials.tar -d
 }
