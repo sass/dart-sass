@@ -1,3 +1,7 @@
+## 1.9.3
+
+* Fix a typo in an error message.
+
 ## 1.9.2
 
 ### Node JS API
