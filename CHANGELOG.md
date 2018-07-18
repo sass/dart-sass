@@ -1,3 +1,8 @@
+## 1.10.0
+
+* When two `@media` rules' queries can't be merged, leave nested rules in place
+  for browsers that support them.
+
 ## 1.9.2
 
 ### Node JS API

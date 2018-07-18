@@ -45,55 +45,94 @@ class CssMediaQuery {
 
   /// Merges this with [other] to return a query that matches the intersection
   /// of both inputs.
-  CssMediaQuery merge(CssMediaQuery other) {
+  MediaQueryMergeResult merge(CssMediaQuery other) {
     var ourModifier = this.modifier?.toLowerCase();
     var ourType = this.type?.toLowerCase();
     var theirModifier = other.modifier?.toLowerCase();
     var theirType = other.type?.toLowerCase();
 
     if (ourType == null && theirType == null) {
-      return new CssMediaQuery.condition(
-          features.toList()..addAll(other.features));
+      return new MediaQuerySuccessfulMergeResult._(new CssMediaQuery.condition(
+          this.features.toList()..addAll(other.features)));
     }
 
     String modifier;
     String type;
+    List<String> features;
     if ((ourModifier == 'not') != (theirModifier == 'not')) {
-      if (ourType == theirType) return null;
+      if (ourType == theirType) {
+        var negativeFeatures =
+            ourModifier == 'not' ? this.features : other.features;
+        var positiveFeatures =
+            ourModifier == 'not' ? other.features : this.features;
+
+        // If the negative features are a subset of the positive features, the
+        // query is empty. For example, `not screen and (color)` has no
+        // intersection with `screen and (color) and (grid)`.
+        //
+        // However, `not screen and (color)` *does* intersect with `screen and
+        // (grid)`, because it means `not (screen and (color))` and so it allows
+        // a screen with no color but with a grid.
+        if (negativeFeatures.every(positiveFeatures.contains)) {
+          return MediaQueryMergeResult.empty;
+        } else {
+          return MediaQueryMergeResult.unrepresentable;
+        }
+      } else if (ourType == null || theirType == null) {
+        return MediaQueryMergeResult.unrepresentable;
+      }
 
       if (ourModifier == 'not') {
-        // The "not" would apply to the other query's features, which is not
-        // what we want.
-        if (other.features.isNotEmpty) return null;
         modifier = theirModifier;
         type = theirType;
+        features = other.features;
       } else {
-        if (this.features.isNotEmpty) return null;
         modifier = ourModifier;
         type = ourType;
+        features = this.features;
       }
     } else if (ourModifier == 'not') {
       assert(theirModifier == 'not');
       // CSS has no way of representing "neither screen nor print".
-      if (ourType == theirType) return null;
-      modifier = ourModifier; // "not"
-      type = ourType;
+      if (ourType != theirType) return MediaQueryMergeResult.unrepresentable;
+
+      var moreFeatures = this.features.length > other.features.length
+          ? this.features
+          : other.features;
+      var fewerFeatures = this.features.length > other.features.length
+          ? other.features
+          : this.features;
+
+      // If one set of features is a superset of the other, use those features
+      // because they're strictly narrower.
+      if (fewerFeatures.every(moreFeatures.contains)) {
+        modifier = ourModifier; // "not"
+        type = ourType;
+        features = moreFeatures;
+      } else {
+        // Otherwise, there's no way to represent the intersection.
+        return MediaQueryMergeResult.unrepresentable;
+      }
     } else if (ourType == null) {
       modifier = theirModifier;
       type = theirType;
+      features = this.features.toList()..addAll(other.features);
     } else if (theirType == null) {
       modifier = ourModifier;
       type = ourType;
+      features = this.features.toList()..addAll(other.features);
     } else if (ourType != theirType) {
-      return null;
+      return MediaQueryMergeResult.empty;
     } else {
       modifier = ourModifier ?? theirModifier;
       type = ourType;
+      features = this.features.toList()..addAll(other.features);
     }
 
-    return new CssMediaQuery(type == ourType ? this.type : other.type,
+    return new MediaQuerySuccessfulMergeResult._(new CssMediaQuery(
+        type == ourType ? this.type : other.type,
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
-        features: features.toList()..addAll(other.features));
+        features: features));
   }
 
   bool operator ==(other) =>
@@ -114,4 +153,37 @@ class CssMediaQuery {
     buffer.write(features.join(" and "));
     return buffer.toString();
   }
+}
+
+/// The interface of possible return values of [CssMediaQuery.merge].
+///
+/// This is either the singleton values [empty] or [unrepresentable], or an
+/// instance of [MediaQuerySuccessfulMergeResult].
+abstract class MediaQueryMergeResult {
+  /// A singleton value indicating that there are no contexts that match both
+  /// input queries.
+  static const empty = const _SingletonCssMediaQueryMergeResult("empty");
+
+  /// A singleton value indicating that the contexts that match both input
+  /// queries can't be represented by a Level 3 media query.
+  static const unrepresentable =
+      const _SingletonCssMediaQueryMergeResult("unrepresentable");
+}
+
+/// The subclass [MediaQueryMergeResult] that represents singleton enum values.
+class _SingletonCssMediaQueryMergeResult implements MediaQueryMergeResult {
+  /// The name of the result type.
+  final String _name;
+
+  const _SingletonCssMediaQueryMergeResult(this._name);
+
+  String toString() => _name;
+}
+
+/// A successful result of [CssMediaQuery.merge].
+class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
+  /// The merged media query.
+  final CssMediaQuery query;
+
+  MediaQuerySuccessfulMergeResult._(this.query);
 }
