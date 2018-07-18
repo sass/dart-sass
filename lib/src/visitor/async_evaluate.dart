@@ -885,13 +885,14 @@ class _EvaluateVisitor
     }
 
     var queries = await _visitMediaQueries(node.query);
-    if (_mediaQueries != null) {
-      queries = _mergeMediaQueries(_mediaQueries, queries);
-      if (queries.isEmpty) return null;
-    }
+    var mergedQueries = _mediaQueries == null
+        ? null
+        : _mergeMediaQueries(_mediaQueries, queries);
+    if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
-    await _withParent(new CssMediaRule(queries, node.span), () async {
-      await _withMediaQueries(queries, () async {
+    await _withParent(new CssMediaRule(mergedQueries ?? queries, node.span),
+        () async {
+      await _withMediaQueries(mergedQueries ?? queries, () async {
         if (!_inStyleRule) {
           for (var child in node.children) {
             await child.accept(this);
@@ -910,7 +911,9 @@ class _EvaluateVisitor
         }
       });
     },
-        through: (node) => node is CssStyleRule || node is CssMediaRule,
+        through: (node) =>
+            node is CssStyleRule ||
+            (mergedQueries != null && node is CssMediaRule),
         scopeWhen: node.hasDeclarations);
 
     return null;
@@ -928,13 +931,24 @@ class _EvaluateVisitor
         () => CssMediaQuery.parseList(resolved, logger: _logger));
   }
 
-  /// Returns a list of queries that selects for platforms that match both
+  /// Returns a list of queries that selects for contexts that match both
   /// [queries1] and [queries2].
+  ///
+  /// Returns the empty list if there are no contexts that match both [queries1]
+  /// and [queries2], or `null` if there are contexts that can't be represented
+  /// by media queries.
   List<CssMediaQuery> _mergeMediaQueries(
       Iterable<CssMediaQuery> queries1, Iterable<CssMediaQuery> queries2) {
-    return new List.unmodifiable(queries1.expand((query1) {
-      return queries2.map((query2) => query1.merge(query2));
-    }).where((query) => query != null));
+    var queries = <CssMediaQuery>[];
+    for (var query1 in queries1) {
+      for (var query2 in queries2) {
+        var result = query1.merge(query2);
+        if (result == MediaQueryMergeResult.empty) continue;
+        if (result == MediaQueryMergeResult.unrepresentable) return null;
+        queries.add((result as MediaQuerySuccessfulMergeResult).query);
+      }
+    }
+    return queries;
   }
 
   Future<Value> visitReturnRule(ReturnRule node) =>

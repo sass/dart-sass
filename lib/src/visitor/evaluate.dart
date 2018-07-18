@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: e9558d77111c693319f39af55da8ce3797fe1807
+// Checksum: b774b5c88da1ce98a48ce71a245357a11b047ec3
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -883,13 +883,13 @@ class _EvaluateVisitor
     }
 
     var queries = _visitMediaQueries(node.query);
-    if (_mediaQueries != null) {
-      queries = _mergeMediaQueries(_mediaQueries, queries);
-      if (queries.isEmpty) return null;
-    }
+    var mergedQueries = _mediaQueries == null
+        ? null
+        : _mergeMediaQueries(_mediaQueries, queries);
+    if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
-    _withParent(new CssMediaRule(queries, node.span), () {
-      _withMediaQueries(queries, () {
+    _withParent(new CssMediaRule(mergedQueries ?? queries, node.span), () {
+      _withMediaQueries(mergedQueries ?? queries, () {
         if (!_inStyleRule) {
           for (var child in node.children) {
             child.accept(this);
@@ -908,7 +908,9 @@ class _EvaluateVisitor
         }
       });
     },
-        through: (node) => node is CssStyleRule || node is CssMediaRule,
+        through: (node) =>
+            node is CssStyleRule ||
+            (mergedQueries != null && node is CssMediaRule),
         scopeWhen: node.hasDeclarations);
 
     return null;
@@ -924,13 +926,24 @@ class _EvaluateVisitor
         () => CssMediaQuery.parseList(resolved, logger: _logger));
   }
 
-  /// Returns a list of queries that selects for platforms that match both
+  /// Returns a list of queries that selects for contexts that match both
   /// [queries1] and [queries2].
+  ///
+  /// Returns the empty list if there are no contexts that match both [queries1]
+  /// and [queries2], or `null` if there are contexts that can't be represented
+  /// by media queries.
   List<CssMediaQuery> _mergeMediaQueries(
       Iterable<CssMediaQuery> queries1, Iterable<CssMediaQuery> queries2) {
-    return new List.unmodifiable(queries1.expand((query1) {
-      return queries2.map((query2) => query1.merge(query2));
-    }).where((query) => query != null));
+    var queries = <CssMediaQuery>[];
+    for (var query1 in queries1) {
+      for (var query2 in queries2) {
+        var result = query1.merge(query2);
+        if (result == MediaQueryMergeResult.empty) continue;
+        if (result == MediaQueryMergeResult.unrepresentable) return null;
+        queries.add((result as MediaQuerySuccessfulMergeResult).query);
+      }
+    }
+    return queries;
   }
 
   Value visitReturnRule(ReturnRule node) => node.expression.accept(this);
