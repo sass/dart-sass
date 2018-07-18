@@ -377,7 +377,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.asList.isNotEmpty) {
       throw new SassScriptException(
-          "Only only positional argument is allowed. All other arguments must "
+          "Only one positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
 
@@ -430,7 +430,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.asList.isNotEmpty) {
       throw new SassScriptException(
-          "Only only positional argument is allowed. All other arguments must "
+          "Only one positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
 
@@ -491,7 +491,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.asList.isNotEmpty) {
       throw new SassScriptException(
-          "Only only positional argument is allowed. All other arguments must "
+          "Only one positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
 
