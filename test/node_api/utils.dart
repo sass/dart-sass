@@ -4,11 +4,13 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_util';
 
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
+import 'package:sass/src/node/function.dart';
 
 import '../hybrid.dart';
 import 'api.dart';
@@ -59,6 +61,17 @@ Future<RenderError> renderError(RenderOptions options) {
 /// Returns the result of rendering via [options] as a string.
 String renderSync(RenderOptions options) =>
     utf8.decode(sass.renderSync(options).css);
+
+/// Like [renderSync], but goes through the untyped JS API.
+///
+/// This lets us test that we properly cast untyped collections without throwing
+/// type errors.
+String renderSyncJS(Map<String, Object> options) {
+  var result = _renderSyncJS.call(sass, jsify(options)) as RenderResult;
+  return utf8.decode(result.css);
+}
+
+final _renderSyncJS = new JSFunction("sass", "args", "return sass.renderSync(args);");
 
 /// Asserts that rendering via [options] produces an error, and returns that
 /// error.

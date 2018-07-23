@@ -6,6 +6,7 @@
 @Tags(const ['node'])
 
 import 'dart:convert';
+import 'dart:js';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -418,6 +419,28 @@ a {
           expect(error.column, equals(7));
           expect(error.file, equals("stdin"));
         });
+      });
+    });
+
+    group("when called with a raw JS collection", () {
+      test("for includePaths", () {
+        expect(
+            renderSyncJS({
+                "data": "@import 'test'",
+                "includePaths": [sandbox]
+            }),
+            equalsIgnoringWhitespace('a { b: c; }'));
+      });
+
+      // Regression test for #412
+      test("for includePaths with an importer", () {
+        expect(
+            renderSyncJS({
+                "data": "@import 'test'",
+                "includePaths": [sandbox],
+                "importer": allowInterop((url, prev) => null)
+            }),
+            equalsIgnoringWhitespace('a { b: c; }'));
       });
     });
   });

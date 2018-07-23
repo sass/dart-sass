@@ -259,7 +259,7 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
     importers = [options.importer as JSFunction];
   }
 
-  var includePaths = options.includePaths ?? [];
+  var includePaths = new List<String>.from(options.includePaths ?? []);
 
   RenderContext context;
   if (importers.isNotEmpty) {
