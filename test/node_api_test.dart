@@ -426,8 +426,8 @@ a {
       test("for includePaths", () {
         expect(
             renderSyncJS({
-                "data": "@import 'test'",
-                "includePaths": [sandbox]
+              "data": "@import 'test'",
+              "includePaths": [sandbox]
             }),
             equalsIgnoringWhitespace('a { b: c; }'));
       });
@@ -436,9 +436,9 @@ a {
       test("for includePaths with an importer", () {
         expect(
             renderSyncJS({
-                "data": "@import 'test'",
-                "includePaths": [sandbox],
-                "importer": allowInterop((url, prev) => null)
+              "data": "@import 'test'",
+              "includePaths": [sandbox],
+              "importer": allowInterop((url, prev) => null)
             }),
             equalsIgnoringWhitespace('a { b: c; }'));
       });

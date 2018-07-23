@@ -71,7 +71,8 @@ String renderSyncJS(Map<String, Object> options) {
   return utf8.decode(result.css);
 }
 
-final _renderSyncJS = new JSFunction("sass", "args", "return sass.renderSync(args);");
+final _renderSyncJS =
+    new JSFunction("sass", "args", "return sass.renderSync(args);");
 
 /// Asserts that rendering via [options] produces an error, and returns that
 /// error.
