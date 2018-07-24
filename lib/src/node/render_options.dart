@@ -13,7 +13,7 @@ class RenderOptions {
   external String get data;
   external dynamic get importer;
   external dynamic get functions;
-  external List<String> get includePaths;
+  external List get includePaths; // contains Strings
   external bool get indentedSyntax;
   external bool get omitSourceMapUrl;
   external String get outFile;

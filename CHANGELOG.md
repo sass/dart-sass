@@ -1,3 +1,9 @@
+## 1.10.1
+
+### Node JS API
+
+* Don't crash when passing both `includePaths` and `importer`.
+
 ## 1.10.0
 
 * When two `@media` rules' queries can't be merged, leave nested rules in place
