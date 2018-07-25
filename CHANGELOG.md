@@ -1,3 +1,7 @@
+## 1.11.0
+
+* Add support for range-format media features like `(10px < width < 100px)`.
+
 ## 1.10.1
 
 ### Node JS API
