@@ -2400,7 +2400,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
       var next = scanner.peekChar();
       switch (next) {
         case $backslash:
-          buffer.write(escape());
+          buffer.write(escape(identifierStart: true));
           wroteNewline = false;
           break;
 
@@ -2522,7 +2522,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
     } else if (isNameStart(first)) {
       buffer.writeCharCode(scanner.readChar());
     } else if (first == $backslash) {
-      buffer.write(escape());
+      buffer.write(escape(identifierStart: true));
     } else if (first == $hash && scanner.peekChar(1) == $lbrace) {
       buffer.add(singleInterpolation());
     }

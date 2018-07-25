@@ -126,7 +126,7 @@ abstract class Parser {
     } else if (isNameStart(first)) {
       text.writeCharCode(scanner.readChar());
     } else if (first == $backslash) {
-      text.write(escape());
+      text.write(escape(identifierStart: true));
     } else {
       scanner.error("Expected identifier.");
     }
@@ -221,7 +221,7 @@ abstract class Parser {
       var next = scanner.peekChar();
       switch (next) {
         case $backslash:
-          buffer.write(escape());
+          buffer.write(escape(identifierStart: true));
           wroteNewline = false;
           break;
 
@@ -364,16 +364,18 @@ abstract class Parser {
   // ## Characters
 
   /// Consumes an escape sequence and returns the text that defines it.
+  ///
+  /// If [identifierStart] is true, this normalizes the escape sequence as
+  /// though it were at the beginning of an identifier.
   @protected
-  String escape() {
+  String escape({bool identifierStart: false}) {
     // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
-    var buffer = new StringBuffer();
     scanner.expectChar($backslash);
-    buffer.writeCharCode($backslash);
+    var value = 0;
     var first = scanner.peekChar();
     if (first == null) {
-      // Do nothing.
+      return "";
     } else if (isNewline(first)) {
       scanner.error("Expected escape sequence.");
       return null;
@@ -381,17 +383,29 @@ abstract class Parser {
       for (var i = 0; i < 6; i++) {
         var next = scanner.peekChar();
         if (next == null || !isHex(next)) break;
-        buffer.writeCharCode(scanner.readChar());
+        value *= 16;
+        value += asHex(scanner.readChar());
       }
 
-      if (isWhitespace(scanner.peekChar())) {
-        buffer.writeCharCode(scanner.readChar());
-      }
+      scanCharIf(isWhitespace);
     } else {
-      buffer.writeCharCode(scanner.readChar());
+      value = scanner.readChar();
     }
 
-    return buffer.toString();
+    if (identifierStart ? isNameStart(value) : isName(value)) {
+      return new String.fromCharCode(value);
+    } else if (value < 0x1F || value == 0x7F) {
+      var buffer = new StringBuffer()..writeCharCode($backslash);
+      if (value > 0xF) buffer.writeCharCode(hexCharFor(value >> 4));
+      buffer.writeCharCode(hexCharFor(value & 0xF));
+      buffer.writeCharCode($space);
+      return buffer.toString();
+    } else {
+      var buffer = new StringBuffer()
+        ..writeCharCode($backslash)
+        ..writeCharCode(value);
+      return buffer.toString();
+    }
   }
 
   /// Consumes an escape sequence and returns the character it represents.

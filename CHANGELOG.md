@@ -1,6 +1,14 @@
 ## 1.11.0
 
-* Add support for range-format media features like `(10px < width < 100px)`.
+* Add support for range-format media features like `(10px < width < 100px)`. See
+  [the proposal][media-ranges] for details.
+
+* Normalize escape codes in identifiers so that, for example, `éclair` and
+  `\E9clair` are parsed to the same value. See
+  [the proposal][identifier-escapes] for details.
+
+[media-ranges]: https://github.com/sass/language/blob/master/accepted/media-ranges.md
+[identifier-escapes]: https://github.com/sass/language/blob/master/accepted/identifier-escapes.md
 
 ## 1.10.1
 
