@@ -526,7 +526,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   AtRootRule _atRootRule(LineScannerState start) {
     if (scanner.peekChar() == $lparen) {
-      var query = _queryExpression();
+      var query = _atRootQuery();
       whitespace();
       return new AtRootRule(children(_statement), scanner.spanFrom(start),
           query: query);
@@ -536,6 +536,34 @@ abstract class StylesheetParser extends Parser {
       var child = _styleRule();
       return new AtRootRule([child], scanner.spanFrom(start));
     }
+  }
+
+  /// Consumes a query expression of the form `(foo: bar)`.
+  Interpolation _atRootQuery() {
+    if (scanner.peekChar() == $hash) {
+      var interpolation = singleInterpolation();
+      return new Interpolation([interpolation], interpolation.span);
+    }
+
+    var start = scanner.state;
+    var buffer = new InterpolationBuffer();
+    scanner.expectChar($lparen);
+    buffer.writeCharCode($lparen);
+    whitespace();
+
+    buffer.add(_expression());
+    if (scanner.scanChar($colon)) {
+      whitespace();
+      buffer.writeCharCode($colon);
+      buffer.writeCharCode($space);
+      buffer.add(_expression());
+    }
+
+    scanner.expectChar($rparen);
+    whitespace();
+    buffer.writeCharCode($rparen);
+
+    return buffer.interpolation(scanner.spanFrom(start));
   }
 
   /// Consumes a `@content` rule.
@@ -1152,11 +1180,11 @@ relase. For details, see http://bit.ly/moz-document.
 
   /// Consumes an expression.
   ///
-  /// If [bracketList] is true, this parses this expression as the contents of a
+  /// If [bracketList] is true, parses this expression as the contents of a
   /// bracketed list.
   ///
-  /// If [singleEquals] is true, this will allow the Microsoft-style `=`
-  /// operator at the top level.
+  /// If [singleEquals] is true, allows the Microsoft-style `=` operator at the
+  /// top level.
   ///
   /// If [until] is passed, it's called each time the expression could end and
   /// still be a valid expression. When it returns `true`, this returns the
@@ -2529,34 +2557,6 @@ To parse it as a color, use "${color.toStringAsRgb()}".
     return expression;
   }
 
-  /// Consumes a query expression of the form `(foo: bar)`.
-  Interpolation _queryExpression() {
-    if (scanner.peekChar() == $hash) {
-      var interpolation = singleInterpolation();
-      return new Interpolation([interpolation], interpolation.span);
-    }
-
-    var start = scanner.state;
-    var buffer = new InterpolationBuffer();
-    scanner.expectChar($lparen);
-    buffer.writeCharCode($lparen);
-    whitespace();
-
-    buffer.add(_expression());
-    if (scanner.scanChar($colon)) {
-      whitespace();
-      buffer.writeCharCode($colon);
-      buffer.writeCharCode($space);
-      buffer.add(_expression());
-    }
-
-    scanner.expectChar($rparen);
-    whitespace();
-    buffer.writeCharCode($rparen);
-
-    return buffer.interpolation(scanner.spanFrom(start));
-  }
-
   // ## Media Queries
 
   /// Consumes a list of media queries.
@@ -2610,12 +2610,70 @@ To parse it as a color, use "${color.toStringAsRgb()}".
 
     while (true) {
       whitespace();
-      buffer.addInterpolation(_queryExpression());
+      buffer.addInterpolation(_mediaFeature());
       whitespace();
       if (!scanIdentifier("and", ignoreCase: true)) break;
       buffer.write(" and ");
     }
   }
+
+  /// Consumes a media query feature.
+  Interpolation _mediaFeature() {
+    if (scanner.peekChar() == $hash) {
+      var interpolation = singleInterpolation();
+      return new Interpolation([interpolation], interpolation.span);
+    }
+
+    var start = scanner.state;
+    var buffer = new InterpolationBuffer();
+    scanner.expectChar($lparen);
+    buffer.writeCharCode($lparen);
+    whitespace();
+
+    buffer.add(_expressionUntilComparison());
+    if (scanner.scanChar($colon)) {
+      whitespace();
+      buffer.writeCharCode($colon);
+      buffer.writeCharCode($space);
+      buffer.add(_expression());
+    } else {
+      var next = scanner.peekChar();
+      var isAngle = next == $langle || next == $rangle;
+      if (isAngle || next == $equal) {
+        buffer.writeCharCode($space);
+        buffer.writeCharCode(scanner.readChar());
+        if (isAngle && scanner.scanChar($equal)) buffer.writeCharCode($equal);
+        buffer.writeCharCode($space);
+
+        whitespace();
+        buffer.add(_expressionUntilComparison());
+
+        if (isAngle && scanner.scanChar(next)) {
+          buffer.writeCharCode($space);
+          buffer.writeCharCode(next);
+          if (scanner.scanChar($equal)) buffer.writeCharCode($equal);
+          buffer.writeCharCode($space);
+
+          whitespace();
+          buffer.add(_expressionUntilComparison());
+        }
+      }
+    }
+
+    scanner.expectChar($rparen);
+    whitespace();
+    buffer.writeCharCode($rparen);
+
+    return buffer.interpolation(scanner.spanFrom(start));
+  }
+
+  /// Consumes an expression until it reaches a top-level `<`, `>`, or a `=`
+  /// that's not `==`.
+  Expression _expressionUntilComparison() => _expression(until: () {
+        var next = scanner.peekChar();
+        if (next == $equal) return scanner.peekChar(1) != $equal;
+        return next == $langle || next == $rangle;
+      });
 
   // ## Supports Conditions
 
