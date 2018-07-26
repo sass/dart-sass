@@ -112,8 +112,9 @@ abstract class Parser {
   /// `px-2px`.
   @protected
   String identifier({bool unit: false}) {
-    // NOTE: this logic is largely duplicated in ScssParser.identifier.
-    // Most changes here should be mirrored there.
+    // NOTE: this logic is largely duplicated in
+    // StylesheetParser._interpolatedIdentifier. Most changes here should be
+    // mirrored there.
 
     var text = new StringBuffer();
     while (scanner.scanChar($dash)) {
@@ -401,10 +402,7 @@ abstract class Parser {
       buffer.writeCharCode($space);
       return buffer.toString();
     } else {
-      var buffer = new StringBuffer()
-        ..writeCharCode($backslash)
-        ..writeCharCode(value);
-      return buffer.toString();
+      return new String.fromCharCodes([$backslash, value]);
     }
   }
 
