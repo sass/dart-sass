@@ -1,5 +1,12 @@
 ## 1.11.0
 
+* Add support for CSS's `min()` and `max()` [math functions][]. A `min()` and
+  `max()` call will continue to be parsed as a Sass function if it involves any
+  Sass-specific features like variables or function calls, but if it's valid
+  plain CSS (optionally with interpolation) it will be emitted as plain CSS instead.
+
+  See [the proposal][css-min-max] for details.
+
 * Add support for range-format media features like `(10px < width < 100px)`. See
   [the proposal][media-ranges] for details.
 
@@ -7,6 +14,8 @@
   `\E9clair` are parsed to the same value. See
   [the proposal][identifier-escapes] for details.
 
+[math functions]: https://drafts.csswg.org/css-values/#math-function
+[css-min-max]: https://github.com/sass/language/blob/master/accepted/min-max.md
 [media-ranges]: https://github.com/sass/language/blob/master/accepted/media-ranges.md
 [identifier-escapes]: https://github.com/sass/language/blob/master/accepted/identifier-escapes.md
 
