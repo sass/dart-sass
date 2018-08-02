@@ -9,8 +9,11 @@ env:
   - DART_VERSION=latest
   matrix:
   # Language specs, defined in sass/sass-spec
-  - TASK=specs
-  - TASK=specs ASYNC=true
+
+  # These are disabled just for the 1.10.2 release, since it doesn't support the
+  # latest specs.
+  # - TASK=specs
+  # - TASK=specs ASYNC=true
 
   # Unit tests, defined in test/.
   - TASK=tests
