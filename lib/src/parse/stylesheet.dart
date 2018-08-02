@@ -569,8 +569,8 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   ContentRule _contentRule(LineScannerState start) {
     if (!_inMixin) {
-    error("@content is only allowed within mixin declarations.",
-        scanner.spanFrom(start));
+      error("@content is only allowed within mixin declarations.",
+          scanner.spanFrom(start));
     }
 
     _mixinHasContent = true;
