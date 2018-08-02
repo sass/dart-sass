@@ -14,6 +14,7 @@ import '../async_import_cache.dart';
 import '../import_cache.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
+import '../syntax.dart';
 import '../visitor/async_evaluate.dart';
 import '../visitor/evaluate.dart';
 import '../visitor/serialize.dart';
@@ -98,9 +99,17 @@ Future<Stylesheet> _parseStylesheet(
 
   var text = source == null ? await readStdin() : readFile(source);
   var url = source == null ? null : p.toUri(source);
-  return options.indented ?? (source != null && p.extension(source) == '.sass')
-      ? new Stylesheet.parseSass(text, url: url, logger: options.logger)
-      : new Stylesheet.parseScss(text, url: url, logger: options.logger);
+
+  Syntax syntax;
+  if (options.indented == true) {
+    syntax = Syntax.sass;
+  } else if (source != null) {
+    syntax = Syntax.forPath(source);
+  } else {
+    syntax = Syntax.scss;
+  }
+
+  return new Stylesheet.parse(text, syntax, url: url, logger: options.logger);
 }
 
 /// Writes the source map given by [mapping] to disk (if necessary) according to

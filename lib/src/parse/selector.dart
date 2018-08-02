@@ -22,8 +22,13 @@ class SelectorParser extends Parser {
   /// Whether this parser allows the parent selector `&`.
   final bool _allowParent;
 
-  SelectorParser(String contents, {url, Logger logger, bool allowParent: true})
+  /// Whether this parser allows placeholder selectors beginning with `%`.
+  final bool _allowPlaceholder;
+
+  SelectorParser(String contents,
+      {url, Logger logger, bool allowParent: true, bool allowPlaceholder: true})
       : _allowParent = allowParent,
+        _allowPlaceholder = allowPlaceholder,
         super(contents, url: url, logger: logger);
 
   SelectorList parse() {
@@ -144,6 +149,7 @@ class SelectorParser extends Parser {
   /// If [allowParent] is passed, it controls whether the parent selector `&` is
   /// allowed. Otherwise, it defaults to [_allowParent].
   SimpleSelector _simpleSelector({bool allowParent}) {
+    var start = scanner.state;
     allowParent ??= _allowParent;
     switch (scanner.peekChar()) {
       case $lbracket:
@@ -153,12 +159,21 @@ class SelectorParser extends Parser {
       case $hash:
         return _idSelector();
       case $percent:
-        return _placeholderSelector();
+        var selector = _placeholderSelector();
+        if (!_allowPlaceholder) {
+          error("Placeholder selectors aren't allowed here.",
+              scanner.spanFrom(start));
+        }
+        return selector;
       case $colon:
         return _pseudoSelector();
       case $ampersand:
-        if (!allowParent) return _typeOrUniversalSelector();
-        return _parentSelector();
+        var selector = _parentSelector();
+        if (!allowParent) {
+          error(
+              "Parent selectors aren't allowed here.", scanner.spanFrom(start));
+        }
+        return selector;
 
       default:
         return _typeOrUniversalSelector();

@@ -49,14 +49,20 @@ class SelectorList extends Selector {
   /// Parses a selector list from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
-  /// [allowParent] controls whether a [ParentSelector] is allowed in this
-  /// selector.
+  /// [allowParent] and [allowPlaceholder] control whether [ParentSelector]s or
+  /// [PlaceholderSelector]s are allowed in this selector, respectively.
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SelectorList.parse(String contents,
-          {url, Logger logger, bool allowParent: true}) =>
+          {url,
+          Logger logger,
+          bool allowParent: true,
+          bool allowPlaceholder: true}) =>
       new SelectorParser(contents,
-              url: url, logger: logger, allowParent: allowParent)
+              url: url,
+              logger: logger,
+              allowParent: allowParent,
+              allowPlaceholder: allowPlaceholder)
           .parse();
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);

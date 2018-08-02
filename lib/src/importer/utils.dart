@@ -12,7 +12,7 @@ import '../io.dart';
 /// found, it returns `null`.
 String resolveImportPath(String path) {
   var extension = p.extension(path);
-  if (extension == '.sass' || extension == '.scss') {
+  if (extension == '.sass' || extension == '.scss' || extension == '.css') {
     return _exactlyOne(_tryPath(path));
   }
 
@@ -20,8 +20,10 @@ String resolveImportPath(String path) {
 }
 
 /// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
-List<String> _tryPathWithExtensions(String path) =>
-    _tryPath(path + '.sass')..addAll(_tryPath(path + '.scss'));
+List<String> _tryPathWithExtensions(String path) {
+  var result = _tryPath(path + '.sass')..addAll(_tryPath(path + '.scss'));
+  return result.isNotEmpty ? result : _tryPath(path + '.css');
+}
 
 /// Returns the [path] and/or the partial with the same name, if either or both
 /// exists.

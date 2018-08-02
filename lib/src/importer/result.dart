@@ -4,9 +4,8 @@
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
-
 import '../importer.dart';
+import '../syntax.dart';
 
 /// The result of importing a Sass stylesheet, as returned by [Importer.load].
 class ImporterResult {
@@ -23,15 +22,30 @@ class ImporterResult {
       _sourceMapUrl ?? new Uri.dataFromString(contents, encoding: utf8);
   final Uri _sourceMapUrl;
 
-  /// Whether the stylesheet uses the indented syntax.
-  final bool isIndented;
+  /// The syntax to use to parse the stylesheet.
+  final Syntax syntax;
 
-  ImporterResult(this.contents, {Uri sourceMapUrl, @required bool indented})
+  @Deprecated("Use syntax instead.")
+  bool get isIndented => syntax == Syntax.sass;
+
+  /// Creates a new [ImporterResult].
+  ///
+  /// The [syntax] parameter must be passed. It's not marked as required only
+  /// because old clients may still be passing the deprecated [indented]
+  /// parameter instead.
+  ImporterResult(this.contents,
+      {Uri sourceMapUrl,
+      Syntax syntax,
+      @Deprecated("Use the syntax parameter instead.") bool indented})
       : _sourceMapUrl = sourceMapUrl,
-        isIndented = indented {
+        syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
     if (sourceMapUrl?.scheme == '') {
       throw new ArgumentError.value(
           sourceMapUrl, 'sourceMapUrl', 'must be absolute');
+    } else if (syntax == null && indented == null) {
+      throw new ArgumentError("The syntax parameter must be passed.");
+    } else if (syntax != null && indented != null) {
+      throw new ArgumentError("Only one of syntax and indented may be passed.");
     }
   }
 }

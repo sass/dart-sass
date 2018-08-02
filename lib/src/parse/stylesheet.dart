@@ -67,7 +67,8 @@ abstract class StylesheetParser extends Parser {
       var start = scanner.state;
       var statements = this.statements(() => _statement(root: true));
       scanner.expectDone();
-      return new Stylesheet(statements, scanner.spanFrom(start));
+      return new Stylesheet(statements, scanner.spanFrom(start),
+          plainCss: plainCss);
     });
   }
 
@@ -81,9 +82,9 @@ abstract class StylesheetParser extends Parser {
 
   Expression parseExpression() {
     return wrapSpanFormatException(() {
-      var expression = _expression();
+      var result = expression();
       scanner.expectDone();
-      return expression;
+      return result;
     });
   }
 
@@ -119,7 +120,7 @@ abstract class StylesheetParser extends Parser {
   Statement _statement({bool root: false}) {
     switch (scanner.peekChar()) {
       case $at:
-        return _atRule(() => _statement(), root: root);
+        return atRule(() => _statement(), root: root);
 
       case $plus:
         if (!indented || !lookingAtIdentifier(1)) return _styleRule();
@@ -146,11 +147,17 @@ abstract class StylesheetParser extends Parser {
   VariableDeclaration variableDeclaration() {
     var start = scanner.state;
     var name = variableName();
+
+    if (plainCss) {
+      error("Sass variables aren't allowed in plain CSS.",
+          scanner.spanFrom(start));
+    }
+
     whitespace();
     scanner.expectChar($colon);
     whitespace();
 
-    var expression = _expression();
+    var value = expression();
 
     var guarded = false;
     var global = false;
@@ -169,7 +176,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     expectStatementSeparator("variable declaration");
-    return new VariableDeclaration(name, expression, scanner.spanFrom(start),
+    return new VariableDeclaration(name, value, scanner.spanFrom(start),
         guarded: guarded, global: global);
   }
 
@@ -218,6 +225,8 @@ abstract class StylesheetParser extends Parser {
   ///   parsed as a selector and never as a property with nested properties
   ///   beneath it.
   Statement _declarationOrStyleRule() {
+    if (plainCss && _inStyleRule && !_inUnknownAtRule) return _declaration();
+
     // The indented syntax allows a single backslash to distinguish a style rule
     // from old-style property syntax. We don't support old property syntax, but
     // we do support the backslash because it's easy to do.
@@ -270,7 +279,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     if (!_lookingAtInterpolatedIdentifier()) return nameBuffer;
-    nameBuffer.addInterpolation(_interpolatedIdentifier());
+    nameBuffer.addInterpolation(interpolatedIdentifier());
     if (scanner.matches("/*")) nameBuffer.write(rawText(loudComment));
 
     var midBuffer = new StringBuffer();
@@ -313,7 +322,11 @@ abstract class StylesheetParser extends Parser {
     var beforeDeclaration = scanner.state;
     Expression value;
     try {
-      value = _declarationExpression();
+      value = lookingAtChildren()
+          ? new StringExpression(new Interpolation([], scanner.emptySpan),
+              quotes: true)
+          : expression();
+
       if (lookingAtChildren()) {
         // Properties that are ambiguous with selectors can't have additional
         // properties nested beneath them, so we force an error. This will be
@@ -352,37 +365,34 @@ abstract class StylesheetParser extends Parser {
   /// This is only used in contexts where declarations are allowed but style
   /// rules are not, such as nested declarations. Otherwise,
   /// [_declarationOrStyleRule] is used instead.
+  @protected
   Declaration _declaration() {
     var start = scanner.state;
-    var name = _interpolatedIdentifier();
+    var name = interpolatedIdentifier();
     whitespace();
     scanner.expectChar($colon);
     whitespace();
 
     if (lookingAtChildren()) {
+      if (plainCss) {
+        scanner.error("Nested declarations aren't allowed in plain CSS.");
+      }
       return new Declaration(name, scanner.spanFrom(start),
           children: this.children(_declarationChild));
     }
 
-    var value = _declarationExpression();
-    var children =
-        lookingAtChildren() ? this.children(_declarationChild) : null;
+    var value = expression();
+    List<Statement> children;
+    if (lookingAtChildren()) {
+      if (plainCss) {
+        scanner.error("Nested declarations aren't allowed in plain CSS.");
+      }
+      children = this.children(_declarationChild);
+    }
+
     if (children == null) expectStatementSeparator();
     return new Declaration(name, scanner.spanFrom(start),
         value: value, children: children);
-  }
-
-  /// Consumes an expression after a property declaration.
-  ///
-  /// This parses an empty identifier expression if the declaration has no value
-  /// but has children.
-  Expression _declarationExpression() {
-    if (lookingAtChildren()) {
-      return new StringExpression(new Interpolation([], scanner.emptySpan),
-          quotes: true);
-    }
-
-    return _expression();
   }
 
   /// Consumes a statement that's allowed within a declaration.
@@ -401,9 +411,13 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [root] is `true`, this parses at-rules that are allowed only at the
   /// root of the stylesheet.
-  Statement _atRule(Statement child(), {bool root: false}) {
+  @protected
+  Statement atRule(Statement child(), {bool root: false}) {
+    // NOTE: this logic is largely duplicated in CssParser.atRule. Most changes
+    // here should be mirrored there.
+
     var start = scanner.state;
-    var name = _atRuleName();
+    var name = atRuleName();
 
     switch (name) {
       case "at-root":
@@ -435,28 +449,28 @@ abstract class StylesheetParser extends Parser {
       case "include":
         return _includeRule(start);
       case "media":
-        return _mediaRule(start);
+        return mediaRule(start);
       case "mixin":
         return _mixinRule(start);
       case "-moz-document":
-        return _mozDocumentRule(start);
+        return mozDocumentRule(start);
       case "return":
         return _disallowedAtRule(start);
       case "supports":
-        return _supportsRule(start);
+        return supportsRule(start);
       case "warn":
         return _warnRule(start);
       case "while":
         return _whileRule(start, child);
       default:
-        return _unknownAtRule(start, name);
+        return unknownAtRule(start, name);
     }
   }
 
   /// Consumes an at-rule allowed within a property declaration.
   Statement _declarationAtRule() {
     var start = scanner.state;
-    var name = _atRuleName();
+    var name = atRuleName();
 
     switch (name) {
       case "content":
@@ -487,7 +501,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes an at-rule allowed within a function.
   Statement _functionAtRule() {
     var start = scanner.state;
-    switch (_atRuleName()) {
+    switch (atRuleName()) {
       case "debug":
         return _debugRule(start);
       case "each":
@@ -512,7 +526,8 @@ abstract class StylesheetParser extends Parser {
   }
 
   /// Consumes an at-rule's name.
-  String _atRuleName() {
+  @protected
+  String atRuleName() {
     scanner.expectChar($at);
     var name = identifier();
     whitespace();
@@ -549,12 +564,12 @@ abstract class StylesheetParser extends Parser {
     buffer.writeCharCode($lparen);
     whitespace();
 
-    buffer.add(_expression());
+    buffer.add(expression());
     if (scanner.scanChar($colon)) {
       whitespace();
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
-      buffer.add(_expression());
+      buffer.add(expression());
     }
 
     scanner.expectChar($rparen);
@@ -582,9 +597,9 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   DebugRule _debugRule(LineScannerState start) {
-    var expression = _expression();
+    var value = expression();
     expectStatementSeparator("@debug rule");
-    return new DebugRule(expression, scanner.spanFrom(start));
+    return new DebugRule(value, scanner.spanFrom(start));
   }
 
   /// Consumes an `@each` rule.
@@ -606,7 +621,7 @@ abstract class StylesheetParser extends Parser {
     expectIdentifier("in");
     whitespace();
 
-    var list = _expression();
+    var list = expression();
     var children = this.children(child);
     _inControlDirective = wasInControlDirective;
 
@@ -617,9 +632,9 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) {
-    var expression = _expression();
+    var value = expression();
     expectStatementSeparator("@error rule");
-    return new ErrorRule(expression, scanner.spanFrom(start));
+    return new ErrorRule(value, scanner.spanFrom(start));
   }
 
   /// Consumes an `@extend` rule.
@@ -686,7 +701,7 @@ abstract class StylesheetParser extends Parser {
     whitespace();
 
     bool exclusive;
-    var from = _expression(until: () {
+    var from = expression(until: () {
       if (!lookingAtIdentifier()) return false;
       if (scanIdentifier("to")) {
         exclusive = true;
@@ -701,7 +716,7 @@ abstract class StylesheetParser extends Parser {
     if (exclusive == null) scanner.error('Expected "to" or "through".');
 
     whitespace();
-    var to = _expression();
+    var to = expression();
 
     var children = this.children(child);
     _inControlDirective = wasInControlDirective;
@@ -718,17 +733,17 @@ abstract class StylesheetParser extends Parser {
     var ifIndentation = currentIndentation;
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
-    var expression = _expression();
+    var condition = expression();
     var children = this.children(child);
 
-    var clauses = [new IfClause(expression, children)];
+    var clauses = [new IfClause(condition, children)];
     IfClause lastClause;
 
     while (scanElse(ifIndentation)) {
       whitespace();
       if (scanIdentifier("if")) {
         whitespace();
-        clauses.add(new IfClause(_expression(), this.children(child)));
+        clauses.add(new IfClause(expression(), this.children(child)));
       } else {
         lastClause = new IfClause.last(this.children(child));
         break;
@@ -767,9 +782,9 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var next = scanner.peekChar();
     if (next == $u || next == $U) {
-      var url = _dynamicUrl();
+      var url = dynamicUrl();
       whitespace();
-      var queries = _tryImportQueries();
+      var queries = tryImportQueries();
       return new StaticImport(new Interpolation([url], scanner.spanFrom(start)),
           scanner.spanFrom(start),
           supports: queries?.item1, media: queries?.item2);
@@ -778,7 +793,7 @@ abstract class StylesheetParser extends Parser {
     var url = string();
     var urlSpan = scanner.spanFrom(start);
     whitespace();
-    var queries = _tryImportQueries();
+    var queries = tryImportQueries();
     if (_isPlainImportUrl(url) || queries != null) {
       return new StaticImport(
           new Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
@@ -818,7 +833,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a supports condition and/or a media query after an `@import`.
   ///
   /// Returns `null` if neither type of query can be found.
-  Tuple2<SupportsCondition, Interpolation> _tryImportQueries() {
+  Tuple2<SupportsCondition, Interpolation> tryImportQueries() {
     SupportsCondition supports;
     if (scanIdentifier("supports", ignoreCase: true)) {
       scanner.expectChar($lparen);
@@ -830,10 +845,10 @@ abstract class StylesheetParser extends Parser {
       } else if (scanner.peekChar() == $lparen) {
         supports = _supportsCondition();
       } else {
-        var name = _expression();
+        var name = expression();
         scanner.expectChar($colon);
         whitespace();
-        var value = _expression();
+        var value = expression();
         supports =
             new SupportsDeclaration(name, value, scanner.spanFrom(start));
       }
@@ -876,7 +891,8 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a `@media` rule.
   ///
   /// [start] should point before the `@`.
-  MediaRule _mediaRule(LineScannerState start) {
+  @protected
+  MediaRule mediaRule(LineScannerState start) {
     var query = _mediaQueryList();
     var children = this.children(_statement);
     return new MediaRule(query, children, scanner.spanFrom(start));
@@ -919,7 +935,8 @@ abstract class StylesheetParser extends Parser {
   /// the standard.
   ///
   /// [the specificiation]: http://www.w3.org/TR/css3-conditional/
-  AtRule _mozDocumentRule(LineScannerState start) {
+  @protected
+  AtRule mozDocumentRule(LineScannerState start) {
     var valueStart = scanner.state;
     var buffer = new InterpolationBuffer();
     var needsDeprecationWarning = false;
@@ -999,15 +1016,16 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// [start] should point before the `@`.
   ReturnRule _returnRule(LineScannerState start) {
-    var expression = _expression();
+    var value = expression();
     expectStatementSeparator("@return rule");
-    return new ReturnRule(expression, scanner.spanFrom(start));
+    return new ReturnRule(value, scanner.spanFrom(start));
   }
 
   /// Consumes a `@supports` rule.
   ///
   /// [start] should point before the `@`.
-  SupportsRule _supportsRule(LineScannerState start) {
+  @protected
+  SupportsRule supportsRule(LineScannerState start) {
     var condition = _supportsCondition();
     whitespace();
     return new SupportsRule(
@@ -1018,9 +1036,9 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// [start] should point before the `@`.
   WarnRule _warnRule(LineScannerState start) {
-    var expression = _expression();
+    var value = expression();
     expectStatementSeparator("@warn rule");
-    return new WarnRule(expression, scanner.spanFrom(start));
+    return new WarnRule(value, scanner.spanFrom(start));
   }
 
   /// Consumes a `@while` rule.
@@ -1030,16 +1048,17 @@ relase. For details, see http://bit.ly/moz-document.
   WhileRule _whileRule(LineScannerState start, Statement child()) {
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
-    var expression = _expression();
+    var condition = expression();
     var children = this.children(child);
     _inControlDirective = wasInControlDirective;
-    return new WhileRule(expression, children, scanner.spanFrom(start));
+    return new WhileRule(condition, children, scanner.spanFrom(start));
   }
 
   /// Consumes an at-rule that's not explicitly supported by Sass.
   ///
   /// [start] should point before the `@`. [name] is the name of the at-rule.
-  AtRule _unknownAtRule(LineScannerState start, String name) {
+  @protected
+  AtRule unknownAtRule(LineScannerState start, String name) {
     var wasInUnknownAtRule = _inUnknownAtRule;
     _inUnknownAtRule = true;
 
@@ -1168,7 +1187,8 @@ relase. For details, see http://bit.ly/moz-document.
   /// If [until] is passed, it's called each time the expression could end and
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
-  Expression _expression(
+  @protected
+  Expression expression(
       {bool bracketList: false, bool singleEquals: false, bool until()}) {
     if (until != null && until()) scanner.error("Expected expression.");
 
@@ -1267,6 +1287,12 @@ relase. For details, see http://bit.ly/moz-document.
     }
 
     addOperator(BinaryOperator operator) {
+      if (plainCss && operator != BinaryOperator.dividedBy) {
+        scanner.error("Operators aren't allowed in plain CSS.",
+            position: scanner.position - operator.operator.length,
+            length: operator.operator.length);
+      }
+
       operators ??= [];
       operands ??= [];
       while (operators.isNotEmpty &&
@@ -1313,7 +1339,7 @@ relase. For details, see http://bit.ly/moz-document.
           break;
 
         case $lbracket:
-          addSingleExpression(_expression(bracketList: true));
+          addSingleExpression(expression(bracketList: true));
           break;
 
         case $dollar:
@@ -1396,7 +1422,7 @@ relase. For details, see http://bit.ly/moz-document.
                   isWhitespace(scanner.peekChar(-1)))) {
             addSingleExpression(_number(), number: true);
           } else if (_lookingAtInterpolatedIdentifier()) {
-            addSingleExpression(_identifierLike());
+            addSingleExpression(identifierLike());
           } else if (singleExpression == null) {
             addSingleExpression(_unaryOperation());
           } else {
@@ -1438,18 +1464,18 @@ relase. For details, see http://bit.ly/moz-document.
           break;
 
         case $a:
-          if (scanIdentifier("and")) {
+          if (!plainCss && scanIdentifier("and")) {
             addOperator(BinaryOperator.and);
           } else {
-            addSingleExpression(_identifierLike());
+            addSingleExpression(identifierLike());
           }
           break;
 
         case $o:
-          if (scanIdentifier("or")) {
+          if (!plainCss && scanIdentifier("or")) {
             addOperator(BinaryOperator.or);
           } else {
-            addSingleExpression(_identifierLike());
+            addSingleExpression(identifierLike());
           }
           break;
 
@@ -1458,7 +1484,7 @@ relase. For details, see http://bit.ly/moz-document.
           if (scanner.peekChar(1) == $plus) {
             addSingleExpression(_unicodeRange());
           } else {
-            addSingleExpression(_identifierLike());
+            addSingleExpression(identifierLike());
           }
           break;
 
@@ -1512,7 +1538,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $Z:
         case $_:
         case $backslash:
-          addSingleExpression(_identifierLike());
+          addSingleExpression(identifierLike());
           break;
 
         case $comma:
@@ -1540,7 +1566,7 @@ relase. For details, see http://bit.ly/moz-document.
 
         default:
           if (first != null && first >= 0x80) {
-            addSingleExpression(_identifierLike());
+            addSingleExpression(identifierLike());
             break;
           } else {
             break loop;
@@ -1578,7 +1604,7 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// If [singleEquals] is true, this will allow the Microsoft-style `=`
   /// operator at the top level.
-  Expression _expressionUntilComma({bool singleEquals: false}) => _expression(
+  Expression _expressionUntilComma({bool singleEquals: false}) => expression(
       singleEquals: singleEquals, until: () => scanner.peekChar() == $comma);
 
   /// Consumes an expression that doesn't contain any top-level whitespace.
@@ -1594,7 +1620,7 @@ relase. For details, see http://bit.ly/moz-document.
       case $dot:
         return _number();
       case $lbracket:
-        return _expression(bracketList: true);
+        return expression(bracketList: true);
       case $dollar:
         return _variable();
       case $ampersand:
@@ -1621,7 +1647,7 @@ relase. For details, see http://bit.ly/moz-document.
         if (scanner.peekChar(1) == $plus) {
           return _unicodeRange();
         } else {
-          return _identifierLike();
+          return identifierLike();
         }
         break;
 
@@ -1690,11 +1716,11 @@ relase. For details, see http://bit.ly/moz-document.
       case $Z:
       case $_:
       case $backslash:
-        return _identifierLike();
+        return identifierLike();
         break;
 
       default:
-        if (first != null && first >= 0x80) return _identifierLike();
+        if (first != null && first >= 0x80) return identifierLike();
         scanner.error("Expected expression.");
         return null;
     }
@@ -1702,6 +1728,10 @@ relase. For details, see http://bit.ly/moz-document.
 
   /// Consumes a parenthesized expression.
   Expression _parentheses() {
+    if (plainCss) {
+      scanner.error("Parentheses aren't allowed in plain CSS.", length: 1);
+    }
+
     var wasInParentheses = _inParentheses;
     _inParentheses = true;
     try {
@@ -1768,7 +1798,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes an expression that starts with a `#`.
   Expression _hashExpression() {
     assert(scanner.peekChar() == $hash);
-    if (scanner.peekChar(1) == $lbrace) return _identifierLike();
+    if (scanner.peekChar(1) == $lbrace) return identifierLike();
 
     var start = scanner.state;
     scanner.expectChar($hash);
@@ -1779,7 +1809,7 @@ relase. For details, see http://bit.ly/moz-document.
     }
 
     var afterHash = scanner.state;
-    var identifier = _interpolatedIdentifier();
+    var identifier = interpolatedIdentifier();
     if (_isHexColor(identifier)) {
       scanner.state = afterHash;
       var color = _hexColorContents(start);
@@ -1874,7 +1904,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
     assert(scanner.peekChar() == $minus);
     var next = scanner.peekChar(1);
     if (isDigit(next) || next == $dot) return _number();
-    if (_lookingAtInterpolatedIdentifier()) return _identifierLike();
+    if (_lookingAtInterpolatedIdentifier()) return identifierLike();
     return _unaryOperation();
   }
 
@@ -1894,7 +1924,10 @@ To parse it as a color, use "${color.toStringAsRgb()}".
     var start = scanner.state;
     var operator = _unaryOperatorFor(scanner.readChar());
     if (operator == null) {
-      scanner.error("Expected unary operator", position: scanner.position - 1);
+      scanner.error("Expected unary operator.", position: scanner.position - 1);
+    } else if (plainCss && operator != UnaryOperator.divide) {
+      scanner.error("Operators aren't allowed in plain CSS.",
+          position: scanner.position - 1, length: 1);
     }
 
     whitespace();
@@ -2040,11 +2073,20 @@ To parse it as a color, use "${color.toStringAsRgb()}".
   /// Consumes a variable expression.
   VariableExpression _variable() {
     var start = scanner.state;
-    return new VariableExpression(variableName(), scanner.spanFrom(start));
+    var name = variableName();
+    if (!plainCss) return new VariableExpression(name, scanner.spanFrom(start));
+
+    error(
+        "Sass variables aren't allowed in plain CSS.", scanner.spanFrom(start));
   }
 
   /// Consumes a selector expression.
   SelectorExpression _selector() {
+    if (plainCss) {
+      scanner.error("The parent selector isn't allowed in plain CSS.",
+          length: 1);
+    }
+
     var start = scanner.state;
     scanner.expectChar($ampersand);
 
@@ -2104,9 +2146,10 @@ To parse it as a color, use "${color.toStringAsRgb()}".
   }
 
   /// Consumes an expression that starts like an identifier.
-  Expression _identifierLike() {
+  @protected
+  Expression identifierLike() {
     var start = scanner.state;
-    var identifier = _interpolatedIdentifier();
+    var identifier = interpolatedIdentifier();
     var plain = identifier.asPlain;
     if (plain != null) {
       if (plain == "if") {
@@ -2138,7 +2181,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
         }
       }
 
-      var specialFunction = _trySpecialFunction(lower, start);
+      var specialFunction = trySpecialFunction(lower, start);
       if (specialFunction != null) return specialFunction;
     }
 
@@ -2151,7 +2194,8 @@ To parse it as a color, use "${color.toStringAsRgb()}".
   ///
   /// Otherwise, returns `null`. [start] is the location before the beginning of
   /// [name].
-  Expression _trySpecialFunction(String name, LineScannerState start) {
+  @protected
+  Expression trySpecialFunction(String name, LineScannerState start) {
     var normalized = unvendor(name);
 
     InterpolationBuffer buffer;
@@ -2390,7 +2434,8 @@ To parse it as a color, use "${color.toStringAsRgb()}".
   }
 
   /// Consumes a [url] token that's allowed to contain SassScript.
-  Expression _dynamicUrl() {
+  @protected
+  Expression dynamicUrl() {
     var start = scanner.state;
     expectIdentifier("url", ignoreCase: true);
     var contents = _tryUrlContents(start);
@@ -2449,7 +2494,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
           if (scanner.peekChar(1) == $lbrace) {
             // Add a full interpolated identifier to handle cases like
             // "#{...}--1", since "--1" isn't a valid identifier on its own.
-            buffer.addInterpolation(_interpolatedIdentifier());
+            buffer.addInterpolation(interpolatedIdentifier());
           } else {
             buffer.writeCharCode(scanner.readChar());
           }
@@ -2543,7 +2588,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
           if (scanner.peekChar(1) == $lbrace) {
             // Add a full interpolated identifier to handle cases like
             // "#{...}--1", since "--1" isn't a valid identifier on its own.
-            buffer.addInterpolation(_interpolatedIdentifier());
+            buffer.addInterpolation(interpolatedIdentifier());
           } else {
             buffer.writeCharCode(scanner.readChar());
           }
@@ -2628,7 +2673,8 @@ To parse it as a color, use "${color.toStringAsRgb()}".
   }
 
   /// Consumes an identifier that may contain interpolation.
-  Interpolation _interpolatedIdentifier() {
+  @protected
+  Interpolation interpolatedIdentifier() {
     var start = scanner.state;
     var buffer = new InterpolationBuffer();
 
@@ -2669,12 +2715,20 @@ To parse it as a color, use "${color.toStringAsRgb()}".
   }
 
   /// Consumes interpolation.
+  @protected
   Expression singleInterpolation() {
+    var start = scanner.state;
     scanner.expect('#{');
     whitespace();
-    var expression = _expression();
+    var contents = expression();
     scanner.expectChar($rbrace);
-    return expression;
+
+    if (plainCss) {
+      error(
+          "Interpolation isn't allowed in plain CSS.", scanner.spanFrom(start));
+    }
+
+    return contents;
   }
 
   // ## Media Queries
@@ -2697,7 +2751,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
   void _mediaQuery(InterpolationBuffer buffer) {
     // This is somewhat duplicated in MediaQueryParser._mediaQuery.
     if (scanner.peekChar() != $lparen) {
-      buffer.addInterpolation(_interpolatedIdentifier());
+      buffer.addInterpolation(interpolatedIdentifier());
       whitespace();
 
       if (!_lookingAtInterpolatedIdentifier()) {
@@ -2706,7 +2760,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
       }
 
       buffer.writeCharCode($space);
-      var identifier = _interpolatedIdentifier();
+      var identifier = interpolatedIdentifier();
       whitespace();
 
       if (equalsIgnoreCase(identifier.asPlain, "and")) {
@@ -2755,7 +2809,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
       whitespace();
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
-      buffer.add(_expression());
+      buffer.add(expression());
     } else {
       var next = scanner.peekChar();
       var isAngle = next == $langle || next == $rangle;
@@ -2789,7 +2843,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
 
   /// Consumes an expression until it reaches a top-level `<`, `>`, or a `=`
   /// that's not `==`.
-  Expression _expressionUntilComparison() => _expression(until: () {
+  Expression _expressionUntilComparison() => expression(until: () {
         var next = scanner.peekChar();
         if (next == $equal) return scanner.peekChar(1) != $equal;
         return next == $langle || next == $rangle;
@@ -2855,10 +2909,10 @@ To parse it as a color, use "${color.toStringAsRgb()}".
       }
     }
 
-    var name = _expression();
+    var name = expression();
     scanner.expectChar($colon);
     whitespace();
-    var value = _expression();
+    var value = expression();
     scanner.expectChar($rparen);
     return new SupportsDeclaration(name, value, scanner.spanFrom(start));
   }
@@ -2960,6 +3014,10 @@ To parse it as a color, use "${color.toStringAsRgb()}".
   /// Whether this is parsing the indented syntax.
   @protected
   bool get indented;
+
+  /// Whether this is a plain CSS stylesheet.
+  @protected
+  bool get plainCss => false;
 
   /// The indentation level at the current scanner position.
   ///
