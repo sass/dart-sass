@@ -121,51 +121,76 @@ class _Watcher {
     await for (var event in _debounceEvents(watcher.events)) {
       var extension = p.extension(event.path);
       if (extension != '.sass' && extension != '.scss') continue;
-      var url = p.toUri(p.canonicalize(event.path));
 
       switch (event.type) {
         case ChangeType.MODIFY:
-          if (!_graph.nodes.containsKey(url)) continue loop;
-
-          // Access the node ahead-of-time because it's possible that
-          // `_graph.reload()` notices the file has been deleted and removes it
-          // from the graph.
-          var node = _graph.nodes[url];
-          _graph.reload(url);
-          var success = await _recompileDownstream([node]);
+          var success = await _handleModify(event.path);
           if (!success && _options.stopOnError) return;
           break;
 
         case ChangeType.ADD:
-          var success = await _retryPotentialImports(event.path);
-          if (!success && _options.stopOnError) return;
-
-          var destination = _destinationFor(event.path);
-          if (destination == null) continue loop;
-
-          _graph.addCanonical(
-              new FilesystemImporter('.'), url, p.toUri(event.path));
-
-          success = await compile(event.path, destination);
+          var success = await _handleAdd(event.path);
           if (!success && _options.stopOnError) return;
           break;
 
         case ChangeType.REMOVE:
-          var success = await _retryPotentialImports(event.path);
-          if (!success && _options.stopOnError) return;
-          if (!_graph.nodes.containsKey(url)) continue loop;
-
-          var destination = _destinationFor(event.path);
-          if (destination != null) _delete(destination);
-
-          var downstream = _graph.nodes[url].downstream;
-          _graph.remove(url);
-          success = await _recompileDownstream(downstream);
+          var success = await _handleRemove(event.path);
           if (!success && _options.stopOnError) return;
           break;
       }
     }
   }
+
+  /// Handles a modify event for the stylesheet at [path].
+  ///
+  /// Returns whether all necessary recompilations succeeded.
+  Future<bool> _handleModify(String path) async {
+    var url = _canonicalize(path);
+    if (!_graph.nodes.containsKey(url)) return _handleAdd(path);
+
+    // Access the node ahead-of-time because it's possible that
+    // `_graph.reload()` notices the file has been deleted and removes it from
+    // the graph.
+    var node = _graph.nodes[url];
+    _graph.reload(url);
+    return await _recompileDownstream([node]);
+  }
+
+  /// Handles an add event for the stylesheet at [url].
+  ///
+  /// Returns whether all necessary recompilations succeeded.
+  Future<bool> _handleAdd(String path) async {
+    var success = await _retryPotentialImports(path);
+    if (!success && _options.stopOnError) return false;
+
+    var destination = _destinationFor(path);
+    if (destination == null) return true;
+
+    _graph.addCanonical(
+        new FilesystemImporter('.'), _canonicalize(path), p.toUri(path));
+
+    return await compile(path, destination);
+  }
+
+  /// Handles a remove event for the stylesheet at [url].
+  ///
+  /// Returns whether all necessary recompilations succeeded.
+  Future<bool> _handleRemove(String path) async {
+    var url = _canonicalize(path);
+    var success = await _retryPotentialImports(path);
+    if (!success && _options.stopOnError) return false;
+    if (!_graph.nodes.containsKey(url)) return true;
+
+    var destination = _destinationFor(path);
+    if (destination != null) _delete(destination);
+
+    var downstream = _graph.nodes[url].downstream;
+    _graph.remove(url);
+    return await _recompileDownstream(downstream);
+  }
+
+  /// Returns the canonical URL for the stylesheet path [path].
+  Uri _canonicalize(String path) => p.toUri(p.canonicalize(path));
 
   /// Combine [WatchEvent]s that happen in quick succession.
   ///

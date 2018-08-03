@@ -458,7 +458,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             await d.dir("dir", [d.file("test.scss", "a {b: }")]).create();
             await expectLater(
                 sass.stderr, emits('Error: Expected expression.'));
+            await tickIfPoll();
+
+            await d.dir("dir", [d.file("test.scss", "a {b: c}")]).create();
+            await expectLater(
+                sass.stdout, emits('Compiled dir/test.scss to out/test.css.'));
             await sass.kill();
+
+            await d.dir("out", [
+              d.file("test.css", equalsIgnoringWhitespace("a { b: c; }"))
+            ]).validate();
           });
         });
       });

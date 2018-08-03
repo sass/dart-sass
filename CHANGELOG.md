@@ -10,6 +10,11 @@
 [media-ranges]: https://github.com/sass/language/blob/master/accepted/media-ranges.md
 [identifier-escapes]: https://github.com/sass/language/blob/master/accepted/identifier-escapes.md
 
+### Command-Line Interface
+
+* The `--watch` command now continues to recompile a file after a syntax error
+  has been detected.
+
 ## 1.10.2
 
 * No user-visible changes.
