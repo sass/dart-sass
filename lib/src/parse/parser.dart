@@ -584,6 +584,12 @@ abstract class Parser {
   @protected
   void warn(String message, FileSpan span) => logger.warn(message, span: span);
 
+  /// Throws an error associated with [span].
+  @protected
+  @alwaysThrows
+  void error(String message, FileSpan span) =>
+      throw new StringScannerException(message, span, scanner.string);
+
   /// Prints a source span highlight of the current location being scanned.
   ///
   /// If [message] is passed, prints that as well. This is intended for use when

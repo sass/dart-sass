@@ -11,7 +11,6 @@ import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
-import '../exception.dart';
 import '../color_names.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
@@ -156,15 +155,14 @@ abstract class StylesheetParser extends Parser {
     var guarded = false;
     var global = false;
     while (scanner.scanChar($exclamation)) {
-      var flagStart = scanner.position - 1;
+      var flagStart = scanner.state;
       var flag = identifier();
       if (flag == 'default') {
         guarded = true;
       } else if (flag == 'global') {
         global = true;
       } else {
-        scanner.error("Invalid flag name.",
-            position: flagStart, length: scanner.position - flagStart);
+        error("Invalid flag name.", scanner.spanFrom(flagStart));
       }
 
       whitespace();
@@ -570,15 +568,14 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ContentRule _contentRule(LineScannerState start) {
-    if (_inMixin) {
-      _mixinHasContent = true;
-      expectStatementSeparator("@content rule");
-      return new ContentRule(scanner.spanFrom(start));
+    if (!_inMixin) {
+      error("@content is only allowed within mixin declarations.",
+          scanner.spanFrom(start));
     }
 
-    scanner.error("@content is only allowed within mixin declarations.",
-        position: start.position, length: "@content".length);
-    return null;
+    _mixinHasContent = true;
+    expectStatementSeparator("@content rule");
+    return new ContentRule(scanner.spanFrom(start));
   }
 
   /// Consumes a `@debug` rule.
@@ -630,8 +627,8 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   ExtendRule _extendRule(LineScannerState start) {
     if (!_inStyleRule && !_inMixin && !_inContentBlock) {
-      scanner.error("@extend may only be used within style rules.",
-          position: start.position, length: "@extend".length);
+      error("@extend may only be used within style rules.",
+          scanner.spanFrom(start));
     }
 
     var value = almostAnyValue();
@@ -650,15 +647,11 @@ abstract class StylesheetParser extends Parser {
     var arguments = _argumentDeclaration();
 
     if (_inMixin || _inContentBlock) {
-      throw new StringScannerException(
-          "Mixins may not contain function declarations.",
-          scanner.spanFrom(start),
-          scanner.string);
+      error("Mixins may not contain function declarations.",
+          scanner.spanFrom(start));
     } else if (_inControlDirective) {
-      throw new StringScannerException(
-          "Functions may not be declared in control directives.",
-          scanner.spanFrom(start),
-          scanner.string);
+      error("Functions may not be declared in control directives.",
+          scanner.spanFrom(start));
     }
 
     switch (unvendor(name)) {
@@ -669,9 +662,7 @@ abstract class StylesheetParser extends Parser {
       case "and":
       case "or":
       case "not":
-        scanner.error("Invalid function name.",
-            position: start.position,
-            length: scanner.position - start.position);
+        error("Invalid function name.", scanner.spanFrom(start));
         break;
     }
 
@@ -795,8 +786,8 @@ abstract class StylesheetParser extends Parser {
     } else {
       try {
         return new DynamicImport(parseImportUrl(url), urlSpan);
-      } on FormatException catch (error) {
-        throw new SassFormatException("Invalid URL: ${error.message}", urlSpan);
+      } on FormatException catch (innerError) {
+        error("Invalid URL: ${innerError.message}", urlSpan);
       }
     }
   }
@@ -902,15 +893,11 @@ abstract class StylesheetParser extends Parser {
         : new ArgumentDeclaration.empty(span: scanner.emptySpan);
 
     if (_inMixin || _inContentBlock) {
-      throw new StringScannerException(
-          "Mixins may not contain mixin declarations.",
-          scanner.spanFrom(start),
-          scanner.string);
+      error("Mixins may not contain mixin declarations.",
+          scanner.spanFrom(start));
     } else if (_inControlDirective) {
-      throw new StringScannerException(
-          "Mixins may not be declared in control directives.",
-          scanner.spanFrom(start),
-          scanner.string);
+      error("Mixins may not be declared in control directives.",
+          scanner.spanFrom(start));
     }
 
     whitespace();
@@ -983,8 +970,7 @@ abstract class StylesheetParser extends Parser {
             break;
 
           default:
-            scanner.error("Invalid function name.",
-                position: identifierStart.position, length: identifier.length);
+            error("Invalid function name.", scanner.spanFrom(identifierStart));
         }
       }
 
@@ -1077,10 +1063,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// within case statements.
   Statement _disallowedAtRule(LineScannerState start) {
     almostAnyValue();
-    scanner.error("This at-rule is not allowed here.",
-        position: start.position,
-        length: scanner.state.position - start.position);
-    return null;
+    error("This at-rule is not allowed here.", scanner.spanFrom(start));
   }
 
   /// Consumes an argument declaration.
@@ -1111,9 +1094,7 @@ relase. For details, see http://bit.ly/moz-document.
       arguments.add(new Argument(name,
           span: scanner.spanFrom(variableStart), defaultValue: defaultValue));
       if (!named.add(name)) {
-        scanner.error("Duplicate argument.",
-            position: arguments.last.span.start.offset,
-            length: arguments.last.span.length);
+        error("Duplicate argument.", arguments.last.span);
       }
 
       if (!scanner.scanChar($comma)) break;
@@ -1147,9 +1128,7 @@ relase. For details, see http://bit.ly/moz-document.
       if (expression is VariableExpression && scanner.scanChar($colon)) {
         whitespace();
         if (named.containsKey(expression.name)) {
-          scanner.error("Duplicate argument.",
-              position: expression.span.start.offset,
-              length: expression.span.length);
+          error("Duplicate argument.", expression.span);
         }
         named[expression.name] = _expressionUntilComma(singleEquals: !mixin);
       } else if (scanner.scanChar($dot)) {
