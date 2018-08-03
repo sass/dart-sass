@@ -10,6 +10,10 @@
 [media-ranges]: https://github.com/sass/language/blob/master/accepted/media-ranges.md
 [identifier-escapes]: https://github.com/sass/language/blob/master/accepted/identifier-escapes.md
 
+## 1.10.2
+
+* No user-visible changes.
+
 ## 1.10.1
 
 ### Node JS API
