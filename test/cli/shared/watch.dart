@@ -462,7 +462,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
             await d.dir("dir", [d.file("test.scss", "a {b: c}")]).create();
             await expectLater(
-                sass.stdout, emits('Compiled dir/test.scss to out/test.css.'));
+                sass.stdout,
+                emits('Compiled ${p.join('dir', 'test.scss')} to '
+                    '${p.join('out', 'test.css')}.'));
             await sass.kill();
 
             await d.dir("out", [
