@@ -2186,6 +2186,26 @@ To parse it as a color, use "${color.toStringAsRgb()}".
           ..writeCharCode($lparen);
         break;
 
+      case "min":
+      case "max":
+        // min() and max() are parsed as the plain CSS mathematical functions if
+        // possible, and otherwise are parsed as normal Sass functions.
+        var beginningOfContents = scanner.state;
+        if (!scanner.scanChar($lparen)) return null;
+        whitespace();
+
+        var buffer = new InterpolationBuffer()
+          ..write(name)
+          ..writeCharCode($lparen);
+
+        if (!_tryMinMaxContents(buffer)) {
+          scanner.state = beginningOfContents;
+          return null;
+        }
+
+        return new StringExpression(
+            buffer.interpolation(scanner.spanFrom(start)));
+
       case "progid":
         if (!scanner.scanChar($colon)) return null;
         buffer = new InterpolationBuffer()
@@ -2202,11 +2222,7 @@ To parse it as a color, use "${color.toStringAsRgb()}".
 
       case "url":
         var contents = _tryUrlContents(start);
-        if (contents != null) return new StringExpression(contents);
-        if (scanner.peekChar() != $lparen) return null;
-        return new FunctionExpression(
-            new Interpolation(["url"], scanner.spanFrom(start)),
-            _argumentInvocation());
+        return contents == null ? null : new StringExpression(contents);
 
       default:
         return null;
@@ -2218,6 +2234,131 @@ To parse it as a color, use "${color.toStringAsRgb()}".
     buffer.writeCharCode($rparen);
 
     return new StringExpression(buffer.interpolation(scanner.spanFrom(start)));
+  }
+
+  /// Consumes the contents of a plain-CSS `min()` or `max()` function into
+  /// [buffer] if one is available.
+  ///
+  /// Returns whether this succeeded.
+  ///
+  /// If [allowComma] is `true` (the default), this allows `CalcValue`
+  /// productions separated by commas.
+  bool _tryMinMaxContents(InterpolationBuffer buffer, {bool allowComma: true}) {
+    // The number of open parentheses that need to be closed.
+    while (true) {
+      var next = scanner.peekChar();
+      switch (next) {
+        case $minus:
+        case $plus:
+        case $0:
+        case $1:
+        case $2:
+        case $3:
+        case $4:
+        case $5:
+        case $6:
+        case $7:
+        case $8:
+        case $9:
+          try {
+            buffer.write(rawText(_number));
+          } on FormatException catch (_) {
+            return false;
+          }
+          break;
+
+        case $hash:
+          if (scanner.peekChar(1) != $lbrace) return false;
+          buffer.add(singleInterpolation());
+          break;
+
+        case $c:
+        case $C:
+          if (!_tryMinMaxFunction(buffer, "calc")) return false;
+          break;
+
+        case $e:
+        case $E:
+          if (!_tryMinMaxFunction(buffer, "env")) return false;
+          break;
+
+        case $v:
+        case $V:
+          if (!_tryMinMaxFunction(buffer, "var")) return false;
+          break;
+
+        case $lparen:
+          buffer.writeCharCode(scanner.readChar());
+          if (!_tryMinMaxContents(buffer, allowComma: false)) return false;
+          break;
+
+        case $m:
+        case $M:
+          scanner.readChar();
+          if (scanCharIgnoreCase($i)) {
+            if (!scanCharIgnoreCase($n)) return false;
+            buffer.write("min(");
+          } else if (scanCharIgnoreCase($a)) {
+            if (!scanCharIgnoreCase($x)) return false;
+            buffer.write("max(");
+          } else {
+            return false;
+          }
+          if (!scanner.scanChar($lparen)) return false;
+
+          if (!_tryMinMaxContents(buffer)) return false;
+          break;
+
+        default:
+          return false;
+      }
+
+      whitespace();
+
+      next = scanner.peekChar();
+      switch (next) {
+        case $rparen:
+          buffer.writeCharCode(scanner.readChar());
+          return true;
+
+        case $plus:
+        case $minus:
+        case $asterisk:
+        case $slash:
+          buffer.writeCharCode($space);
+          buffer.writeCharCode(scanner.readChar());
+          buffer.writeCharCode($space);
+          break;
+
+        case $comma:
+          if (!allowComma) return false;
+          buffer.writeCharCode(scanner.readChar());
+          buffer.writeCharCode($space);
+          break;
+
+        default:
+          return false;
+      }
+
+      whitespace();
+    }
+  }
+
+  /// Consumes a function named [name] containing an
+  /// `InterpolatedDeclarationValue` if possible, and adds its text to [buffer].
+  ///
+  /// Returns whether such a function could be consumed.
+  bool _tryMinMaxFunction(InterpolationBuffer buffer, String name) {
+    if (!scanIdentifier(name, ignoreCase: true)) return false;
+    if (!scanner.scanChar($lparen)) return false;
+    buffer
+      ..write(name)
+      ..writeCharCode($lparen)
+      ..addInterpolation(
+          _interpolatedDeclarationValue(allowEmpty: true).asInterpolation())
+      ..writeCharCode($rparen);
+    if (!scanner.scanChar($rparen)) return false;
+    return true;
   }
 
   /// Like [_urlContents], but returns `null` if the URL fails to parse.
