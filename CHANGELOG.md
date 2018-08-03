@@ -24,6 +24,12 @@
 * The `--watch` command now continues to recompile a file after a syntax error
   has been detected.
 
+## 1.10.3
+
+### Command-Line Interface
+
+* Run the Chocolatey script with the correct arguments so it doesn't crash.
+
 ## 1.10.2
 
 * No user-visible changes.
