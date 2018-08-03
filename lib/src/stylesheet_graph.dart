@@ -80,14 +80,14 @@ class StylesheetGraph {
   /// is in turn used in error reporting.
   StylesheetNode addCanonical(Importer importer, Uri canonicalUrl,
       [Uri originalUrl]) {
-    return _nodes.putIfAbsent(canonicalUrl, () {
-      var stylesheet = _ignoreErrors(() =>
-          importCache.importCanonical(importer, canonicalUrl, originalUrl));
-      if (stylesheet == null) return null;
+    var stylesheet = _ignoreErrors(
+        () => importCache.importCanonical(importer, canonicalUrl, originalUrl));
+    if (stylesheet == null) return null;
 
-      return new StylesheetNode._(stylesheet, importer, canonicalUrl,
-          _upstreamNodes(stylesheet, importer, canonicalUrl));
-    });
+    return _nodes.putIfAbsent(
+        canonicalUrl,
+        () => new StylesheetNode._(stylesheet, importer, canonicalUrl,
+            _upstreamNodes(stylesheet, importer, canonicalUrl)));
   }
 
   /// Returns a map from non-canonicalized imported URLs in [stylesheet], which
