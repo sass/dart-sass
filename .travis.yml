@@ -14,10 +14,7 @@ env:
 
   # Unit tests, defined in test/.
   - TASK=tests
-
-  # This should be NODE_VERSION=latest, but that's breaking due to
-  # laverdet/node-fibers#378.
-  - TASK=tests NODE_VERSION=v10.1.0
+  - TASK=tests NODE_VERSION=stable
 
   # Keep these up-to-date with the latest LTA Node releases. They next need to be
   # rotated October 2018. See https://github.com/nodejs/Release.
