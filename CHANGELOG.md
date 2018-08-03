@@ -1,3 +1,9 @@
+## 1.10.3
+
+### Command-Line Interface
+
+* Run the Chocolatey script with the correct arguments so it doesn't crash.
+
 ## 1.10.2
 
 * No user-visible changes.
