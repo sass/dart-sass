@@ -1,3 +1,9 @@
+## 1.10.4
+
+### Command-Line Interface
+
+* Fix a Homebrew installation failure.
+
 ## 1.10.3
 
 ### Command-Line Interface
