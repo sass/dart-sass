@@ -5,38 +5,44 @@ language: ruby
 
 env:
   global:
-  - DART_CHANNEL=dev
   - DART_VERSION=latest
   matrix:
   # Language specs, defined in sass/sass-spec
 
-  # These are disabled just for the 1.10.2 release, since it doesn't support the
+  # These are disabled just for the 1.10.x branch, since it doesn't support the
   # latest specs.
-  # - TASK=specs
-  # - TASK=specs ASYNC=true
+  # - DART_CHANNEL=dev TASK=specs
+  # - DART_CHANNEL=stable TASK=specs
+  # - DART_CHANNEL=stable TASK=specs ASYNC=true
 
   # Unit tests, defined in test/.
-  - TASK=tests
+  - DART_CHANNEL=dev TASK=tests
+  - DART_CHANNEL=stable TASK=tests
 
   # This should be NODE_VERSION=latest, but that's breaking due to
   # laverdet/node-fibers#378.
-  - TASK=tests NODE_VERSION=v10.1.0
+  - DART_CHANNEL=stable TASK=tests NODE_VERSION=v10.1.0
 
   # Keep these up-to-date with the latest LTA Node releases. They next need to be
   # rotated October 2018. See https://github.com/nodejs/Release.
-  - TASK=tests NODE_VERSION=lts/boron
-  - TASK=tests NODE_VERSION=lts/carbon
+  - DART_CHANNEL=stable TASK=tests NODE_VERSION=lts/boron
+  - DART_CHANNEL=stable TASK=tests NODE_VERSION=lts/carbon
 
   # Miscellaneous checks.
-  - TASK=analyze
-  - TASK=format
+  - DART_CHANNEL=stable TASK=analyze
+  - DART_CHANNEL=stable TASK=format
 
 rvm:
 - 2.3.1
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
-  only: [master, "/^feature\\..*/", "/^\\d+\\.\\d+\\.\\d+([+-].*)?$/"]
+  only:
+    - master
+    # Feature branches beginning with "feature."
+    - "/^feature\\..*/"
+    # Semantic version tags and legacy branches of the form "1.2.x".
+    - "/^\\d+\\.\\d+\\.(\\d+([+-].*)?|x)$/"
 
 cache:
   directories:
