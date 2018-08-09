@@ -11,7 +11,7 @@ environment:
   - {TASK: tests, NODE: true}
 
 install:
-- choco install --pre dart-sdk
+- choco install dart-sdk
 - refreshenv
 - pub get
 - ps: >-
