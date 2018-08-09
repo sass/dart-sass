@@ -37,7 +37,12 @@ rvm:
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
-  only: [master, "/^feature\\..*/", "/^\\d+\\.\\d+\\.(\\d+([+-].*)?|x)$/"]
+  only:
+    - master
+    # Feature branches beginning with "feature."
+    - "/^feature\\..*/"
+    # Semantic version tags and legacy branches of the form "1.2.x".
+    - "/^\\d+\\.\\d+\\.(\\d+([+-].*)?|x)$/"
 
 cache:
   directories:
