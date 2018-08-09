@@ -1,7 +1,7 @@
 build: off
 
 branches:
-  only: [master, /^features\..*]
+  only: [master, "/^feature\\..*/", "/^\\d+\\.\\d+\\.(\\d+([+-].*)?|x)$/"]
 
 # Don't run specs because sass-spec doesn't support Windows. They're also
 # supposed to be platform-independent.
