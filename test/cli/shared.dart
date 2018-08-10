@@ -50,9 +50,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d.file("test.scss", "\uFEFF\$color: red;").create();
 
     var sass = await runSass(["test.scss"]);
-    expect(
-        sass.stdout,
-        emitsDone);
+    expect(sass.stdout, emitsDone);
     await sass.shouldExit(0);
   });
 
