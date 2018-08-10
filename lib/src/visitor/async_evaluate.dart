@@ -25,6 +25,7 @@ import '../importer.dart';
 import '../importer/node.dart';
 import '../logger.dart';
 import '../parse/keyframe_selector.dart';
+import '../syntax.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'interface/statement.dart';
@@ -121,8 +122,8 @@ class _EvaluateVisitor
   /// stylesheet.
   AsyncImporter _importer;
 
-  /// The base URL to use for resolving relative imports.
-  Uri _baseUrl;
+  /// The stylesheet that's currently being evaluated.
+  Stylesheet _stylesheet;
 
   /// The style rule that defines the current parent selector, if any.
   CssStyleRule _styleRule;
@@ -300,13 +301,13 @@ class _EvaluateVisitor
   }
 
   Future<EvaluateResult> run(Stylesheet node) async {
-    _baseUrl = node.span?.sourceUrl;
-    if (_baseUrl != null) {
+    var url = node.span?.sourceUrl;
+    if (url != null) {
       if (_asNodeSass) {
-        if (_baseUrl.scheme == 'file') {
-          _includedFiles.add(p.fromUri(_baseUrl));
-        } else if (_baseUrl.toString() != 'stdin') {
-          _includedFiles.add(_baseUrl.toString());
+        if (url.scheme == 'file') {
+          _includedFiles.add(p.fromUri(url));
+        } else if (url.toString() != 'stdin') {
+          _includedFiles.add(url.toString());
         }
       }
     }
@@ -319,6 +320,7 @@ class _EvaluateVisitor
   // ## Statements
 
   Future<Value> visitStylesheet(Stylesheet node) async {
+    _stylesheet = node;
     _root = new CssStylesheet(node.span);
     _parent = _root;
     for (var child in node.children) {
@@ -733,14 +735,14 @@ class _EvaluateVisitor
     await _withStackFrame("@import", import.span, () async {
       await _withEnvironment(_environment.global(), () async {
         var oldImporter = _importer;
-        var oldBaseUrl = _baseUrl;
+        var oldStylesheet = _stylesheet;
         _importer = importer;
-        _baseUrl = url;
+        _stylesheet = stylesheet;
         for (var statement in stylesheet.children) {
           await statement.accept(this);
         }
         _importer = oldImporter;
-        _baseUrl = oldBaseUrl;
+        _stylesheet = oldStylesheet;
       });
     });
     _activeImports.remove(url);
@@ -756,7 +758,7 @@ class _EvaluateVisitor
         if (stylesheet != null) return new Tuple2(null, stylesheet);
       } else {
         var tuple = await _importCache.import(
-            Uri.parse(import.url), _importer, _baseUrl);
+            Uri.parse(import.url), _importer, _stylesheet.span?.sourceUrl);
         if (tuple != null) return tuple;
       }
 
@@ -788,21 +790,18 @@ class _EvaluateVisitor
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
   Future<Stylesheet> _importLikeNode(DynamicImport import) async {
-    var result = await _nodeImporter.loadAsync(import.url, _baseUrl);
+    var result =
+        await _nodeImporter.loadAsync(import.url, _stylesheet.span?.sourceUrl);
     if (result == null) return null;
 
     var contents = result.item1;
     var url = result.item2;
 
-    if (url.startsWith('file:')) {
-      _includedFiles.add(p.fromUri(url));
-    } else {
-      _includedFiles.add(url);
-    }
+    _includedFiles.add(url.startsWith('file:') ? p.fromUri(url) : url);
 
-    return url.startsWith('file') && p.url.extension(url) == '.sass'
-        ? new Stylesheet.parseSass(contents, url: url, logger: _logger)
-        : new Stylesheet.parseScss(contents, url: url, logger: _logger);
+    return new Stylesheet.parse(
+        contents, url.startsWith('file') ? Syntax.forPath(url) : Syntax.scss,
+        url: url, logger: _logger);
   }
 
   /// Adds a CSS import for [import].
@@ -983,8 +982,12 @@ class _EvaluateVisitor
       return null;
     }
 
-    var parsedSelector = _adjustParseError(node.selector.span,
-        () => new SelectorList.parse(selectorText.value, logger: _logger));
+    var parsedSelector = _adjustParseError(
+        node.selector.span,
+        () => new SelectorList.parse(selectorText.value,
+            allowParent: !_stylesheet.plainCss,
+            allowPlaceholder: !_stylesheet.plainCss,
+            logger: _logger));
     parsedSelector = _addExceptionSpan(
         node.selector.span,
         () => parsedSelector.resolveParentSelectors(

@@ -125,6 +125,18 @@ void main() {
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
+    test("supports plain CSS", () async {
+      // An import in plain CSS is only ever interpreted as a plain CSS import.
+      await writeTextFile(p.join(sandbox, 'target.css'), "@import 'bar'");
+
+      expect(
+          renderSync(new RenderOptions(
+              data: "@import 'foo'",
+              importer: allowInterop((_, __) => new NodeImporterResult(
+                  file: p.join(sandbox, 'target.css'))))),
+          equalsIgnoringWhitespace('@import "bar";'));
+    });
+
     test("supports partials", () async {
       await writeTextFile(p.join(sandbox, '_target.scss'), 'a {b: c}');
 

@@ -153,6 +153,11 @@ class ScssParser extends StylesheetParser {
       whitespaceWithoutComments();
     } while (scanner.scan("//"));
 
+    if (plainCss) {
+      error("Silent comments arne't allowed in plain CSS.",
+          scanner.spanFrom(start));
+    }
+
     return new SilentComment(
         scanner.substring(start.position), scanner.spanFrom(start));
   }

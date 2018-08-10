@@ -15,11 +15,13 @@ import 'src/exception.dart';
 import 'src/importer.dart';
 import 'src/logger.dart';
 import 'src/sync_package_resolver.dart';
+import 'src/syntax.dart';
 import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
 export 'src/importer.dart';
 export 'src/logger.dart';
+export 'src/syntax.dart';
 export 'src/value.dart' show ListSeparator;
 export 'src/value/external/value.dart';
 export 'src/visitor/serialize.dart' show OutputStyle;
@@ -94,8 +96,7 @@ String compile(String path,
 
 /// Compiles [source] to CSS and returns the result.
 ///
-/// If [indented] is `true`, this parses [source] using indented syntax;
-/// otherwise (and by default) it uses SCSS.
+/// This parses the stylesheet as [syntax], which defaults to [Syntax.scss].
 ///
 /// If [color] is `true`, this will use terminal colors in warnings. It's
 /// ignored if [logger] is passed.
@@ -147,7 +148,7 @@ String compile(String path,
 ///
 /// Throws a [SassException] if conversion fails.
 String compileString(String source,
-    {bool indented: false,
+    {Syntax syntax,
     bool color: false,
     Logger logger,
     Iterable<Importer> importers,
@@ -157,9 +158,10 @@ String compileString(String source,
     OutputStyle style,
     Importer importer,
     url,
-    void sourceMap(SingleMapping map)}) {
+    void sourceMap(SingleMapping map),
+    @Deprecated("Use syntax instead.") bool indented: false}) {
   var result = c.compileString(source,
-      indented: indented,
+      syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger ?? new Logger.stderr(color: color),
       importers: importers,
       packageResolver: packageResolver,
@@ -205,7 +207,7 @@ Future<String> compileAsync(String path,
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compileString] should be preferred if possible.
 Future<String> compileStringAsync(String source,
-    {bool indented: false,
+    {Syntax syntax,
     bool color: false,
     Logger logger,
     Iterable<AsyncImporter> importers,
@@ -215,9 +217,10 @@ Future<String> compileStringAsync(String source,
     OutputStyle style,
     AsyncImporter importer,
     url,
-    void sourceMap(SingleMapping map)}) async {
+    void sourceMap(SingleMapping map),
+    @Deprecated("Use syntax instead.") bool indented: false}) async {
   var result = await c.compileStringAsync(source,
-      indented: indented,
+      syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger ?? new Logger.stderr(color: color),
       importers: importers,
       packageResolver: packageResolver,

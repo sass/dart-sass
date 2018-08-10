@@ -152,11 +152,8 @@ class AsyncImportCache {
       var displayUrl = originalUrl == null
           ? canonicalUrl
           : originalUrl.resolve(p.url.basename(canonicalUrl.path));
-      return result.isIndented
-          ? new Stylesheet.parseSass(result.contents,
-              url: displayUrl, logger: _logger)
-          : new Stylesheet.parseScss(result.contents,
-              url: displayUrl, logger: _logger);
+      return new Stylesheet.parse(result.contents, result.syntax,
+          url: displayUrl, logger: _logger);
     });
   }
 

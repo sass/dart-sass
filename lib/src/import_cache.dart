@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: b76ccc1b4de05a239f04d77fe0034795c68498f7
+// Checksum: 172219d313175ec88ce1ced2c37ca4b60348a4d2
 
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
@@ -154,11 +154,8 @@ class ImportCache {
       var displayUrl = originalUrl == null
           ? canonicalUrl
           : originalUrl.resolve(p.url.basename(canonicalUrl.path));
-      return result.isIndented
-          ? new Stylesheet.parseSass(result.contents,
-              url: displayUrl, logger: _logger)
-          : new Stylesheet.parseScss(result.contents,
-              url: displayUrl, logger: _logger);
+      return new Stylesheet.parse(result.contents, result.syntax,
+          url: displayUrl, logger: _logger);
     });
   }
 

@@ -17,6 +17,7 @@ import 'importer/node.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'sync_package_resolver.dart';
+import 'syntax.dart';
 import 'visitor/async_evaluate.dart';
 import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
@@ -24,7 +25,7 @@ import 'visitor/serialize.dart';
 /// Like [compile] in `lib/sass.dart`, but provides more options to support the
 /// node-sass compatible API.
 CompileResult compile(String path,
-        {bool indented,
+        {Syntax syntax,
         Logger logger,
         Iterable<Importer> importers,
         NodeImporter nodeImporter,
@@ -37,7 +38,7 @@ CompileResult compile(String path,
         LineFeed lineFeed,
         bool sourceMap: false}) =>
     compileString(readFile(path),
-        indented: indented ?? p.extension(path) == '.sass',
+        syntax: syntax ?? Syntax.forPath(path),
         logger: logger,
         functions: functions,
         importers: importers,
@@ -55,7 +56,7 @@ CompileResult compile(String path,
 /// Like [compileString] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API.
 CompileResult compileString(String source,
-    {bool indented: false,
+    {Syntax syntax,
     Logger logger,
     Iterable<Importer> importers,
     NodeImporter nodeImporter,
@@ -69,11 +70,10 @@ CompileResult compileString(String source,
     LineFeed lineFeed,
     url,
     bool sourceMap: false}) {
-  var sassTree = indented
-      ? new Stylesheet.parseSass(source, url: url, logger: logger)
-      : new Stylesheet.parseScss(source, url: url, logger: logger);
+  var stylesheet = new Stylesheet.parse(source, syntax ?? Syntax.scss,
+      url: url, logger: logger);
 
-  var evaluateResult = evaluate(sassTree,
+  var evaluateResult = evaluate(stylesheet,
       importCache: new ImportCache(importers,
           loadPaths: loadPaths,
           packageResolver: packageResolver,
@@ -97,7 +97,7 @@ CompileResult compileString(String source,
 /// Like [compileAsync] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API.
 Future<CompileResult> compileAsync(String path,
-        {bool indented,
+        {Syntax syntax,
         Logger logger,
         Iterable<AsyncImporter> importers,
         NodeImporter nodeImporter,
@@ -110,7 +110,7 @@ Future<CompileResult> compileAsync(String path,
         LineFeed lineFeed,
         bool sourceMap: false}) =>
     compileStringAsync(readFile(path),
-        indented: indented ?? p.extension(path) == '.sass',
+        syntax: syntax ?? Syntax.forPath(path),
         logger: logger,
         importers: importers,
         nodeImporter: nodeImporter,
@@ -128,7 +128,7 @@ Future<CompileResult> compileAsync(String path,
 /// Like [compileStringAsync] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
 Future<CompileResult> compileStringAsync(String source,
-    {bool indented: false,
+    {Syntax syntax,
     Logger logger,
     Iterable<AsyncImporter> importers,
     NodeImporter nodeImporter,
@@ -142,11 +142,10 @@ Future<CompileResult> compileStringAsync(String source,
     LineFeed lineFeed,
     url,
     bool sourceMap: false}) async {
-  var sassTree = indented
-      ? new Stylesheet.parseSass(source, url: url, logger: logger)
-      : new Stylesheet.parseScss(source, url: url, logger: logger);
+  var stylesheet = new Stylesheet.parse(source, syntax ?? Syntax.scss,
+      url: url, logger: logger);
 
-  var evaluateResult = await evaluateAsync(sassTree,
+  var evaluateResult = await evaluateAsync(stylesheet,
       importCache: new AsyncImportCache(importers,
           loadPaths: loadPaths,
           packageResolver: packageResolver,

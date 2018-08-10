@@ -28,6 +28,7 @@ import 'node/types.dart';
 import 'node/value.dart';
 import 'node/utils.dart';
 import 'parse/scss.dart';
+import 'syntax.dart';
 import 'value.dart';
 import 'visitor/serialize.dart';
 
@@ -95,7 +96,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
     result = await compileStringAsync(options.data,
         nodeImporter: _parseImporter(options, start),
         functions: _parseFunctions(options, asynch: true),
-        indented: isTruthy(options.indentedSyntax),
+        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
@@ -106,7 +107,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
         functions: _parseFunctions(options, asynch: true),
-        indented: options.indentedSyntax,
+        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
@@ -134,7 +135,7 @@ RenderResult _renderSync(RenderOptions options) {
       result = compileString(options.data,
           nodeImporter: _parseImporter(options, start),
           functions: _parseFunctions(options).cast(),
-          indented: isTruthy(options.indentedSyntax),
+          syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
           indentWidth: _parseIndentWidth(options.indentWidth),
@@ -145,7 +146,7 @@ RenderResult _renderSync(RenderOptions options) {
       result = compile(file,
           nodeImporter: _parseImporter(options, start),
           functions: _parseFunctions(options).cast(),
-          indented: options.indentedSyntax,
+          syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
           indentWidth: _parseIndentWidth(options.indentWidth),

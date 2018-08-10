@@ -1,5 +1,12 @@
 ## 1.11.0
 
+* Add support for importing plain CSS files. They can only be imported *without*
+  an extension—for example, `@import "style"` will import `style.css`. Plain CSS
+  files imported this way only support standard CSS features, not Sass
+  extensions.
+
+  See [the proposal][css-import] for details.
+
 * Add support for CSS's `min()` and `max()` [math functions][]. A `min()` and
   `max()` call will continue to be parsed as a Sass function if it involves any
   Sass-specific features like variables or function calls, but if it's valid
@@ -15,6 +22,7 @@
   [the proposal][identifier-escapes] for details.
 
 [math functions]: https://drafts.csswg.org/css-values/#math-function
+[css-import]: https://github.com/sass/language/blob/master/accepted/css-imports.md
 [css-min-max]: https://github.com/sass/language/blob/master/accepted/min-max.md
 [media-ranges]: https://github.com/sass/language/blob/master/accepted/media-ranges.md
 [identifier-escapes]: https://github.com/sass/language/blob/master/accepted/identifier-escapes.md
@@ -23,6 +31,23 @@
 
 * The `--watch` command now continues to recompile a file after a syntax error
   has been detected.
+
+### Dart API
+
+* Added a `Syntax` enum to indicate syntaxes for Sass source files.
+
+* The `compile()` and `compileAsync()` functions now parse files with the `.css`
+  extension as plain CSS.
+
+* Added a `syntax` parameter to `compileString()` and `compileStringAsync()`.
+
+* Deprecated the `indented` parameter to `compileString()` and `compileStringAsync()`.
+
+* Added a `syntax` parameter to `new ImporterResult()` and a
+  `ImporterResult.syntax` getter to set the syntax of the source file.
+
+* Deprecated the `indented` parameter to `new ImporterResult()` and the
+  `ImporterResult.indented` getter in favor of `syntax`.
 
 ## 1.10.4
 
