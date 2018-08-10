@@ -65,6 +65,8 @@ abstract class StylesheetParser extends Parser {
   Stylesheet parse() {
     return wrapSpanFormatException(() {
       var start = scanner.state;
+      // Allow a byte-order mark at the beginning of the document.
+      scanner.scanChar(0xFEFF);
       var statements = this.statements(() => _statement(root: true));
       scanner.expectDone();
       return new Stylesheet(statements, scanner.spanFrom(start),
