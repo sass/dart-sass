@@ -5,15 +5,17 @@ language: ruby
 
 env:
   global:
-  - DART_CHANNEL=dev
+  - DART_CHANNEL=stable
   - DART_VERSION=latest
   matrix:
   # Language specs, defined in sass/sass-spec
   - TASK=specs
+  - TASK=specs DART_CHANNEL=dev
   - TASK=specs ASYNC=true
 
   # Unit tests, defined in test/.
   - TASK=tests
+  - TASK=tests DART_CHANNEL=dev
   - TASK=tests NODE_VERSION=stable
 
   # Keep these up-to-date with the latest LTA Node releases. They next need to be
@@ -30,7 +32,12 @@ rvm:
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
-  only: [master, "/^feature\\..*/", "/^\\d+\\.\\d+\\.\\d+([+-].*)?$/"]
+  only:
+    - master
+    # Feature branches beginning with "feature."
+    - "/^feature\\..*/"
+    # Semantic version tags and legacy branches of the form "1.2.x".
+    - "/^\\d+\\.\\d+\\.(\\d+([+-].*)?|x)$/"
 
 cache:
   directories:

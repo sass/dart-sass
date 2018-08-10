@@ -28,6 +28,12 @@
 * The `--watch` command now continues to recompile a file after a syntax error
   has been detected.
 
+## 1.10.4
+
+### Command-Line Interface
+
+* Fix a Homebrew installation failure.
+
 ## 1.10.3
 
 ### Command-Line Interface
