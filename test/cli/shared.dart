@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -41,6 +42,17 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "  b: 3;",
           "}",
         ]));
+    await sass.shouldExit(0);
+  });
+
+  // Regression test for #437.
+  test("compiles a Sass file with a BOM to CSS", () async {
+    await d.file("test.scss", "\uFEFF\$color: red;").create();
+
+    var sass = await runSass(["test.scss"]);
+    expect(
+        sass.stdout,
+        emitsDone);
     await sass.shouldExit(0);
   });
 

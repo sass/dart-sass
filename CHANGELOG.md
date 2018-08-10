@@ -14,10 +14,14 @@
   `\E9clair` are parsed to the same value. See
   [the proposal][identifier-escapes] for details.
 
+* Don't choke on a [byte-order mark][] at the beginning of a document when
+  running in JavaScript.
+
 [math functions]: https://drafts.csswg.org/css-values/#math-function
 [css-min-max]: https://github.com/sass/language/blob/master/accepted/min-max.md
 [media-ranges]: https://github.com/sass/language/blob/master/accepted/media-ranges.md
 [identifier-escapes]: https://github.com/sass/language/blob/master/accepted/identifier-escapes.md
+[byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark
 
 ### Command-Line Interface
 
