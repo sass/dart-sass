@@ -5,32 +5,33 @@ language: ruby
 
 env:
   global:
+  - DART_CHANNEL=stable
   - DART_VERSION=latest
   matrix:
   # Language specs, defined in sass/sass-spec
 
   # These are disabled just for the 1.10.x branch, since it doesn't support the
   # latest specs.
-  # - DART_CHANNEL=dev TASK=specs
-  # - DART_CHANNEL=stable TASK=specs
-  # - DART_CHANNEL=stable TASK=specs ASYNC=true
+  # - TASK=specs
+  # - TASK=specs DART_CHANNEL=dev
+  # - TASK=specs ASYNC=true
 
   # Unit tests, defined in test/.
-  - DART_CHANNEL=dev TASK=tests
-  - DART_CHANNEL=stable TASK=tests
+  - TASK=tests
+  - TASK=tests DART_CHANNEL=dev
 
   # This should be NODE_VERSION=latest, but that's breaking due to
   # laverdet/node-fibers#378.
-  - DART_CHANNEL=stable TASK=tests NODE_VERSION=v10.1.0
+  - TASK=tests NODE_VERSION=v10.1.0
 
   # Keep these up-to-date with the latest LTA Node releases. They next need to be
   # rotated October 2018. See https://github.com/nodejs/Release.
-  - DART_CHANNEL=stable TASK=tests NODE_VERSION=lts/boron
-  - DART_CHANNEL=stable TASK=tests NODE_VERSION=lts/carbon
+  - TASK=tests NODE_VERSION=lts/boron
+  - TASK=tests NODE_VERSION=lts/carbon
 
   # Miscellaneous checks.
-  - DART_CHANNEL=stable TASK=analyze
-  - DART_CHANNEL=stable TASK=format
+  - TASK=analyze
+  - TASK=format
 
 rvm:
 - 2.3.1
