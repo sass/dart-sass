@@ -850,6 +850,7 @@ class _EvaluateVisitor
         });
         return null;
       });
+      return null;
     });
 
     return null;
