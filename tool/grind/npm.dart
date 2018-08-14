@@ -40,6 +40,13 @@ void _js({@required bool release}) {
   Dart2js.compile(new File('bin/sass.dart'),
       outFile: destination, extraArgs: args);
   var text = destination.readAsStringSync();
+
+  if (release) {
+    // We don't ship the source map, so remove the source map comment.
+    text = text.replaceFirst(
+        new RegExp(r"\n*//# sourceMappingURL=[^\n]+\n*$"), "\n");
+  }
+
   destination.writeAsStringSync(preamble.getPreamble() + text);
 }
 

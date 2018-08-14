@@ -5,6 +5,11 @@
 * Add a `SassException` type that provides information about Sass compilation
   failures.
 
+### JS API
+
+* Remove the source map comment from the compiled JS. We don't ship with the
+  source map, so this pointed to nothing.
+
 ## 1.11.0
 
 * Add support for importing plain CSS files. They can only be imported *without*
