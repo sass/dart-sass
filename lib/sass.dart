@@ -19,6 +19,7 @@ import 'src/syntax.dart';
 import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
+export 'src/exception.dart' show SassException;
 export 'src/importer.dart';
 export 'src/logger.dart';
 export 'src/syntax.dart';

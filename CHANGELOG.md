@@ -1,3 +1,10 @@
+## 1.12.0
+
+### Dart API
+
+* Add a `SassException` type that provides information about Sass compilation
+  failures.
+
 ## 1.11.0
 
 * Add support for importing plain CSS files. They can only be imported *without*
