@@ -733,7 +733,7 @@ class _EvaluateVisitor
 
     _activeImports.add(url);
     await _withStackFrame("@import", import.span, () async {
-      await _withEnvironment(_environment.global(), () async {
+      await _withEnvironment(_environment.closure(), () async {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
         _importer = importer;
