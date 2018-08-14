@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 9b2665421aee79971cb68712e877d5c76e395eb5
+// Checksum: 79bb19171b8f5f162f86e3892eddae2c2dad5fbb
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -850,6 +850,7 @@ class _EvaluateVisitor
         });
         return null;
       });
+      return null;
     });
 
     return null;

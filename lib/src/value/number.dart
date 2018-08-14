@@ -437,6 +437,7 @@ class SassNumber extends Value implements ext.SassNumber {
         return true;
       }, orElse: () {
         newNumerators.add(numerator);
+        return null;
       });
     }
 
@@ -449,6 +450,7 @@ class SassNumber extends Value implements ext.SassNumber {
         return true;
       }, orElse: () {
         newNumerators.add(numerator);
+        return null;
       });
     }
 
