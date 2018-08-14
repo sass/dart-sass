@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: dc6fe04e787c9f74e54e0b6dcc31ba7ba95de786
+// Checksum: 79bb19171b8f5f162f86e3892eddae2c2dad5fbb
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -732,7 +732,7 @@ class _EvaluateVisitor
 
     _activeImports.add(url);
     _withStackFrame("@import", import.span, () {
-      _withEnvironment(_environment.global(), () {
+      _withEnvironment(_environment.closure(), () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
         _importer = importer;

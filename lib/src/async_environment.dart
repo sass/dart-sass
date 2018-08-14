@@ -121,8 +121,8 @@ class AsyncEnvironment {
   AsyncEnvironment._(this._variables, this._variableSpans, this._functions,
       this._mixins, this._contentBlock, this._contentEnvironment)
       // Lazily fill in the indices rather than eagerly copying them from the
-      // existing environment in closure() and global() because the copying took a
-      // lot of time and was rarely helpful. This saves a bunch of time on Susy's
+      // existing environment in closure() because the copying took a lot of
+      // time and was rarely helpful. This saves a bunch of time on Susy's
       // tests.
       : _variableIndices = normalizedMap(),
         _functionIndices = normalizedMap(),
@@ -140,18 +140,6 @@ class AsyncEnvironment {
       _mixins.toList(),
       _contentBlock,
       _contentEnvironment);
-
-  /// Returns a new environment.
-  ///
-  /// The returned environment shares this environment's global, but is
-  /// otherwise independent.
-  AsyncEnvironment global() => new AsyncEnvironment._(
-      [_variables.first],
-      _variableSpans == null ? null : [_variableSpans.first],
-      [_functions.first],
-      [_mixins.first],
-      null,
-      null);
 
   /// Returns the value of the variable named [name], or `null` if no such
   /// variable is declared.
