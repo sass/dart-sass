@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
