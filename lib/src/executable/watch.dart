@@ -117,7 +117,6 @@ class _Watcher {
   ///
   /// Returns a future that will only complete if an unexpected error occurs.
   Future watch(MultiDirWatcher watcher) async {
-    loop:
     await for (var event in _debounceEvents(watcher.events)) {
       var extension = p.extension(event.path);
       if (extension != '.sass' && extension != '.scss') continue;
