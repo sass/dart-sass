@@ -580,29 +580,33 @@ class _EvaluateVisitor
     var targetText =
         await _interpolationToValue(node.selector, warnForColor: true);
 
-    var target = _adjustParseError(targetText.span, () {
-      try {
-        return new SimpleSelector.parse(targetText.value.trim(),
-            logger: _logger, allowParent: false);
-      } on SassFormatException catch (error) {
-        CompoundSelector compound;
-        try {
-          compound = new CompoundSelector.parse(targetText.value.trim(),
-              logger: _logger, allowParent: false);
-        } on SassFormatException {
-          throw error;
-        }
+    var list = _adjustParseError(
+        targetText.span,
+        () => new SelectorList.parse(targetText.value.trim(),
+            logger: _logger, allowParent: false));
 
+    for (var complex in list.components) {
+      if (complex.components.length != 1 ||
+          complex.components.first is! CompoundSelector) {
         // If the selector was a compound selector but not a simple
         // selector, emit a more explicit error.
+        throw new SassFormatException(
+            "complex selectors may not be extended.", targetText.span);
+      }
+
+      var compound = complex.components.first as CompoundSelector;
+      if (compound.components.length != 1) {
         throw new SassFormatException(
             "compound selectors may longer be extended.\n"
             "Consider `@extend ${compound.components.join(', ')}` instead.\n"
             "See http://bit.ly/ExtendCompound for details.\n",
-            error.span);
+            targetText.span);
       }
-    });
-    _extender.addExtension(_styleRule.selector, target, node, _mediaQueries);
+
+      _extender.addExtension(
+          _styleRule.selector, compound.components.first, node, _mediaQueries);
+    }
+
     return null;
   }
 

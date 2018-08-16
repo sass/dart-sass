@@ -1,3 +1,9 @@
+## 1.13.0
+
+* Allow `@extend` to be used with multiple comma-separated simple selectors.
+  This is already supported by other implementations, but fell through the
+  cracks for Dart Sass until now.
+
 ## 1.12.0
 
 ### Dart API
