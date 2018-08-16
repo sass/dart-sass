@@ -1,3 +1,8 @@
+## 1.12.1
+
+* Don't crash when a media rule contains another media rule followed by a style
+  rule.
+
 ## 1.12.0
 
 ### Dart API

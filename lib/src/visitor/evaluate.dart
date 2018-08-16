@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 79bb19171b8f5f162f86e3892eddae2c2dad5fbb
+// Checksum: 2bf89d853d3acfa3d7215dc7a6d43aefe0397519
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -1005,7 +1005,7 @@ class _EvaluateVisitor
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    if (!_inStyleRule) {
+    if (!_inStyleRule && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
       lastChild.isGroupEnd = true;
     }
