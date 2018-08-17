@@ -1012,7 +1012,7 @@ class _EvaluateVisitor
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    if (!_inStyleRule) {
+    if (!_inStyleRule && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
       lastChild.isGroupEnd = true;
     }
