@@ -1,4 +1,8 @@
-## 1.12.1
+## 1.13.0
+
+* Allow `@extend` to be used with multiple comma-separated simple selectors.
+  This is already supported by other implementations, but fell through the
+  cracks for Dart Sass until now.
 
 * Don't crash when a media rule contains another media rule followed by a style
   rule.

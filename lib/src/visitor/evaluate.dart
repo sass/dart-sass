@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 2bf89d853d3acfa3d7215dc7a6d43aefe0397519
+// Checksum: 11e77e1df658d69b4ecab6447225f79c358db535
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -581,29 +581,33 @@ class _EvaluateVisitor
 
     var targetText = _interpolationToValue(node.selector, warnForColor: true);
 
-    var target = _adjustParseError(targetText.span, () {
-      try {
-        return new SimpleSelector.parse(targetText.value.trim(),
-            logger: _logger, allowParent: false);
-      } on SassFormatException catch (error) {
-        CompoundSelector compound;
-        try {
-          compound = new CompoundSelector.parse(targetText.value.trim(),
-              logger: _logger, allowParent: false);
-        } on SassFormatException {
-          throw error;
-        }
+    var list = _adjustParseError(
+        targetText.span,
+        () => new SelectorList.parse(targetText.value.trim(),
+            logger: _logger, allowParent: false));
 
+    for (var complex in list.components) {
+      if (complex.components.length != 1 ||
+          complex.components.first is! CompoundSelector) {
         // If the selector was a compound selector but not a simple
         // selector, emit a more explicit error.
+        throw new SassFormatException(
+            "complex selectors may not be extended.", targetText.span);
+      }
+
+      var compound = complex.components.first as CompoundSelector;
+      if (compound.components.length != 1) {
         throw new SassFormatException(
             "compound selectors may longer be extended.\n"
             "Consider `@extend ${compound.components.join(', ')}` instead.\n"
             "See http://bit.ly/ExtendCompound for details.\n",
-            error.span);
+            targetText.span);
       }
-    });
-    _extender.addExtension(_styleRule.selector, target, node, _mediaQueries);
+
+      _extender.addExtension(
+          _styleRule.selector, compound.components.first, node, _mediaQueries);
+    }
+
     return null;
   }
 
