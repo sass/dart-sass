@@ -4,6 +4,9 @@
   This is already supported by other implementations, but fell through the
   cracks for Dart Sass until now.
 
+* Don't crash when a media rule contains another media rule followed by a style
+  rule.
+
 ## 1.12.0
 
 ### Dart API
