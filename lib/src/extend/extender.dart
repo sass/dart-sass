@@ -94,7 +94,9 @@ class Extender {
       }
 
       var extender = new Extender._(mode);
-      extender._originals.addAll(selector.components);
+      if (!selector.isInvisible) {
+        extender._originals.addAll(selector.components);
+      }
       selector = extender._extendList(selector, extensions, null);
     }
 
@@ -116,8 +118,10 @@ class Extender {
   CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span,
       [List<CssMediaQuery> mediaContext]) {
     var originalSelector = selector.value;
-    for (var complex in originalSelector.components) {
-      _originals.add(complex);
+    if (!originalSelector.isInvisible) {
+      for (var complex in originalSelector.components) {
+        _originals.add(complex);
+      }
     }
 
     if (_extensions.isNotEmpty) {
@@ -236,11 +240,11 @@ class Extender {
       var sources = _extensions[extension.target];
 
       // [_extendExistingStyleRules] would have thrown already.
-      List<List<ComplexSelector>> lists;
+      List<ComplexSelector> selectors;
       try {
-        lists = _extendComplex(extension.extender, {newTarget: newExtensions},
-            extension.mediaContext);
-        if (lists == null) continue;
+        selectors = _extendComplex(extension.extender,
+            {newTarget: newExtensions}, extension.mediaContext);
+        if (selectors == null) continue;
       } on SassException catch (error) {
         throw new SassException(
             "From ${extension.extenderSpan.message('')}\n"
@@ -248,44 +252,42 @@ class Extender {
             error.span);
       }
 
-      var containsExtension = lists.first.first == extension.extender;
+      var containsExtension = selectors.first == extension.extender;
       var first = false;
-      for (var list in lists) {
-        for (var complex in list) {
-          // If the output contains the original complex selector, there's no
-          // need to recreate it.
-          if (containsExtension && first) {
-            first = false;
-            continue;
-          }
+      for (var complex in selectors) {
+        // If the output contains the original complex selector, there's no
+        // need to recreate it.
+        if (containsExtension && first) {
+          first = false;
+          continue;
+        }
 
-          var existingExtension = sources[complex];
-          if (existingExtension != null) {
-            existingExtension.addSource(extension.span, extension.mediaContext,
-                optional: extension.isOptional);
-          } else {
-            var withExtender = extension.withExtender(complex);
-            sources[complex] = withExtender;
+        var existingExtension = sources[complex];
+        if (existingExtension != null) {
+          existingExtension.addSource(extension.span, extension.mediaContext,
+              optional: extension.isOptional);
+        } else {
+          var withExtender = extension.withExtender(complex);
+          sources[complex] = withExtender;
 
-            for (var component in complex.components) {
-              if (component is CompoundSelector) {
-                for (var simple in component.components) {
-                  _extensionsByExtender
-                      .putIfAbsent(simple, () => [])
-                      .add(withExtender);
-                }
+          for (var component in complex.components) {
+            if (component is CompoundSelector) {
+              for (var simple in component.components) {
+                _extensionsByExtender
+                    .putIfAbsent(simple, () => [])
+                    .add(withExtender);
               }
             }
+          }
 
-            if (extension.target == newTarget) {
-              additionalExtensions ??= {};
-              additionalExtensions[complex] = withExtender;
-            }
+          if (extension.target == newTarget) {
+            additionalExtensions ??= {};
+            additionalExtensions[complex] = withExtender;
           }
         }
       }
 
-      // If [lists] doesn't contain [extension.extender], for example if it
+      // If [selectors] doesn't contain [extension.extender], for example if it
       // was replaced due to :not() expansion, we must get rid of the old
       // version.
       if (!containsExtension) sources.remove(extension.extender);
@@ -340,14 +342,14 @@ class Extender {
       List<CssMediaQuery> mediaQueryContext) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
-    List<List<ComplexSelector>> extended;
+    List<ComplexSelector> extended;
     for (var i = 0; i < list.components.length; i++) {
       var complex = list.components[i];
       var result = _extendComplex(complex, extensions, mediaQueryContext);
       if (result == null) {
-        if (extended != null) extended.add([complex]);
+        if (extended != null) extended.add(complex);
       } else {
-        extended ??= i == 0 ? [] : [list.components.sublist(0, i).toList()];
+        extended ??= i == 0 ? [] : list.components.sublist(0, i).toList();
         extended.addAll(result);
       }
     }
@@ -359,7 +361,7 @@ class Extender {
 
   /// Extends [complex] using [extensions], and returns the contents of a
   /// [SelectorList].
-  List<List<ComplexSelector>> _extendComplex(
+  List<ComplexSelector> _extendComplex(
       ComplexSelector complex,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery> mediaQueryContext) {
@@ -410,7 +412,7 @@ class Extender {
     if (extendedNotExpanded == null) return null;
 
     var first = true;
-    return paths(extendedNotExpanded).map((path) {
+    return paths(extendedNotExpanded).expand((path) {
       return weave(path.map((complex) => complex.components).toList())
           .map((components) {
         var outputComplex = new ComplexSelector(components,
@@ -426,7 +428,7 @@ class Extender {
         first = false;
 
         return outputComplex;
-      }).toList();
+      });
     }).toList();
   }
 
@@ -559,16 +561,10 @@ class Extender {
           .toList();
     });
 
-    // If we're preserving the original selector, mark the first unification as
-    // such so [_trim] doesn't get rid of it.
-    var isOriginal = (ComplexSelector _) => false;
-    if (inOriginal && _mode != ExtendMode.replace) {
-      var original = unifiedPaths.first.first;
-      isOriginal = (complex) => complex == original;
-    }
-
-    return _trim(unifiedPaths.where((complexes) => complexes != null).toList(),
-        isOriginal);
+    return unifiedPaths
+        .where((complexes) => complexes != null)
+        .expand((l) => l)
+        .toList();
   }
 
   Iterable<List<Extension>> _extendSimple(
@@ -702,25 +698,19 @@ class Extender {
     }
   }
 
-  // Removes redundant selectors from [lists].
-  //
-  // Each individual list in [lists] is assumed to have no redundancy within
-  // itself. A selector is only removed if it's redundant with a selector in
-  // another list. "Redundant" here means that one selector is a superselector
-  // of the other. The more specific selector is removed.
+  // Removes elements from [selectors] if they're subselectors of other
+  // elements.
   //
   // The [isOriginal] callback indicates which selectors are original to the
   // document, and thus should never be trimmed.
-  List<ComplexSelector> _trim(List<List<ComplexSelector>> lists,
+  List<ComplexSelector> _trim(List<ComplexSelector> selectors,
       bool isOriginal(ComplexSelector complex)) {
     // Avoid truly horrific quadratic behavior.
     //
     // TODO(nweiz): I think there may be a way to get perfect trimming without
     // going quadratic by building some sort of trie-like data structure that
     // can be used to look up superselectors.
-    if (lists.length > 100) {
-      return lists.expand((selectors) => selectors).toList();
-    }
+    if (selectors.length > 100) return selectors;
 
     // This is n² on the sequences, but only comparing between separate
     // sequences should limit the quadratic behavior. We iterate from last to
@@ -728,58 +718,54 @@ class Extender {
     // keep the first one.
     var result = new QueueList<ComplexSelector>();
     var numOriginals = 0;
-    for (var i = lists.length - 1; i >= 0; i--) {
-      middle:
-      for (var complex1 in lists[i].reversed) {
-        if (isOriginal(complex1)) {
-          // Make sure we don't include duplicate originals, which could happen
-          // if a style rule extends a component of its own selector.
-          for (var j = 0; j < numOriginals; j++) {
-            if (result[j] == complex1) {
-              rotateSlice(result, 0, j + 1);
-              continue middle;
-            }
-          }
-
-          numOriginals++;
-          result.addFirst(complex1);
-          continue;
-        }
-
-        // The maximum specificity of the sources that caused [complex1] to be
-        // generated. In order for [complex1] to be removed, there must be
-        // another selector that's a superselector of it *and* that has
-        // specificity greater or equal to this.
-        var maxSpecificity = 0;
-        for (var component in complex1.components) {
-          if (component is CompoundSelector) {
-            maxSpecificity =
-                math.max(maxSpecificity, _sourceSpecificityFor(component));
+    outer:
+    for (var i = selectors.length - 1; i >= 0; i--) {
+      var complex1 = selectors[i];
+      if (isOriginal(complex1)) {
+        // Make sure we don't include duplicate originals, which could happen if
+        // a style rule extends a component of its own selector.
+        for (var j = 0; j < numOriginals; j++) {
+          if (result[j] == complex1) {
+            rotateSlice(result, 0, j + 1);
+            continue outer;
           }
         }
 
-        // Look in [result] rather than [lists] for selectors after [i]. This
-        // ensures that we aren't comparing against a selector that's already
-        // been trimmed, and thus that if there are two identical selectors only
-        // one is trimmed.
-        if (result.any((complex2) =>
-            complex2.minSpecificity >= maxSpecificity &&
-            complex2.isSuperselector(complex1))) {
-          continue;
-        }
-
-        // We intentionally don't compare [complex1] against other selectors in
-        // `lists[i]`, since they come from the same source.
-        if (lists.take(i).any((list) => list.any((complex2) =>
-            complex2.minSpecificity >= maxSpecificity &&
-            complex2.isSuperselector(complex1)))) {
-          continue;
-        }
-
+        numOriginals++;
         result.addFirst(complex1);
+        continue;
       }
-    }
 
+      // The maximum specificity of the sources that caused [complex1] to be
+      // generated. In order for [complex1] to be removed, there must be another
+      // selector that's a superselector of it *and* that has specificity
+      // greater or equal to this.
+      var maxSpecificity = 0;
+      for (var component in complex1.components) {
+        if (component is CompoundSelector) {
+          maxSpecificity =
+              math.max(maxSpecificity, _sourceSpecificityFor(component));
+        }
+      }
+
+      // Look in [result] rather than [selectors] for selectors after [i]. This
+      // ensures that we aren't comparing against a selector that's already been
+      // trimmed, and thus that if there are two identical selectors only one is
+      // trimmed.
+      if (result.any((complex2) =>
+          complex2.minSpecificity >= maxSpecificity &&
+          complex2.isSuperselector(complex1))) {
+        continue;
+      }
+
+      if (selectors.take(i).any((complex2) =>
+          complex2.minSpecificity >= maxSpecificity &&
+          complex2.isSuperselector(complex1))) {
+        continue;
+      }
+
+      result.addFirst(complex1);
+    }
     return result;
   }
 
