@@ -1,3 +1,7 @@
+## 1.13.1
+
+* Allow an IE-style single equals operator in plain CSS imports.
+
 ## 1.13.0
 
 * Allow `@extend` to be used with multiple comma-separated simple selectors.

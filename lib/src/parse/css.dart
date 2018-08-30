@@ -122,7 +122,7 @@ class CssParser extends ScssParser {
     if (!scanner.scanChar($rparen)) {
       do {
         whitespace();
-        arguments.add(expression());
+        arguments.add(expression(singleEquals: true));
         whitespace();
       } while (scanner.scanChar($comma));
       scanner.expectChar($rparen);
