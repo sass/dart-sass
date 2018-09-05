@@ -1,3 +1,7 @@
+## 1.13.2
+
+* Fix support for CSS hacks in plain CSS mode.
+
 ## 1.13.1
 
 * Allow an IE-style single equals operator in plain CSS imports.
