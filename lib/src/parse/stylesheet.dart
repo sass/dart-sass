@@ -370,7 +370,24 @@ abstract class StylesheetParser extends Parser {
   @protected
   Declaration _declaration() {
     var start = scanner.state;
-    var name = interpolatedIdentifier();
+
+    Interpolation name;
+    // Allow the "*prop: val", ":prop: val", "#prop: val", and ".prop: val"
+    // hacks.
+    var first = scanner.peekChar();
+    if (first == $colon ||
+        first == $asterisk ||
+        first == $dot ||
+        (first == $hash && scanner.peekChar(1) != $lbrace)) {
+      var nameBuffer = new InterpolationBuffer();
+      nameBuffer.writeCharCode(scanner.readChar());
+      nameBuffer.write(rawText(whitespace));
+      nameBuffer.addInterpolation(interpolatedIdentifier());
+      name = nameBuffer.interpolation(scanner.spanFrom(start));
+    } else {
+      name = interpolatedIdentifier();
+    }
+
     whitespace();
     scanner.expectChar($colon);
     whitespace();
