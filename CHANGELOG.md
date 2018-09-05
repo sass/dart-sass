@@ -1,5 +1,11 @@
 ## 1.13.2
 
+* Properly parse `:nth-child()` and `:nth-last-child()` selectors with
+  whitespace around the argument.
+  
+* Don't emit extra whitespace in the arguments for `:nth-child()` and
+  `:nth-last-child()` selectors.
+
 * Fix support for CSS hacks in plain CSS mode.
 
 ## 1.13.1

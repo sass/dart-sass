@@ -302,11 +302,11 @@ class SelectorParser extends Parser {
     } else if (_selectorPseudoClasses.contains(unvendored)) {
       selector = _selectorList();
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
-      argument = rawText(_aNPlusB);
+      argument = _aNPlusB();
       whitespace();
-      if (isWhitespace(scanner.peekChar(-1))) {
+      if (isWhitespace(scanner.peekChar(-1)) && scanner.peekChar() != $rparen) {
         expectIdentifier("of", ignoreCase: true);
-        argument += "of";
+        argument += " of";
         whitespace();
 
         selector = _selectorList();
@@ -320,49 +320,52 @@ class SelectorParser extends Parser {
         element: element, argument: argument, selector: selector);
   }
 
-  /// Consumes an [`An+B` production][An+B].
+  /// Consumes an [`An+B` production][An+B] and returns its text.
   ///
   /// [An+B]: https://drafts.csswg.org/css-syntax-3/#anb-microsyntax
-  void _aNPlusB() {
+  String _aNPlusB() {
+    var buffer = new StringBuffer();
     switch (scanner.peekChar()) {
       case $e:
       case $E:
         expectIdentifier("even", ignoreCase: true);
-        return;
+        return "even";
 
       case $o:
       case $O:
         expectIdentifier("odd", ignoreCase: true);
-        return;
+        return "odd";
 
       case $plus:
       case $minus:
-        scanner.readChar();
+        buffer.writeCharCode(scanner.readChar());
         break;
     }
 
     var first = scanner.peekChar();
     if (first != null && isDigit(first)) {
       while (isDigit(scanner.peekChar())) {
-        scanner.readChar();
+        buffer.writeCharCode(scanner.readChar());
       }
       whitespace();
-      if (!scanCharIgnoreCase($n)) return;
+      if (!scanCharIgnoreCase($n)) return buffer.toString();
     } else {
       expectCharIgnoreCase($n);
     }
+    buffer.writeCharCode($n);
     whitespace();
 
     var next = scanner.peekChar();
-    if (next != $plus && next != $minus) return;
-    scanner.readChar();
+    if (next != $plus && next != $minus) return buffer.toString();
+    buffer.writeCharCode(scanner.readChar());
     whitespace();
 
     var last = scanner.peekChar();
     if (last == null || !isDigit(last)) scanner.error("Expected a number.");
     while (isDigit(scanner.peekChar())) {
-      scanner.readChar();
+      buffer.writeCharCode(scanner.readChar());
     }
+    return buffer.toString();
   }
 
   /// Consumes a type selector or a universal selector.
