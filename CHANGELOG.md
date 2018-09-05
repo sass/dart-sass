@@ -6,6 +6,8 @@
 * Don't emit extra whitespace in the arguments for `:nth-child()` and
   `:nth-last-child()` selectors.
 
+* Fix support for CSS hacks in plain CSS mode.
+
 ## 1.13.1
 
 * Allow an IE-style single equals operator in plain CSS imports.
