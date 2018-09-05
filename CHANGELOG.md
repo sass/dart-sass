@@ -1,3 +1,11 @@
+## 1.13.2
+
+* Properly parse `:nth-child()` and `:nth-last-child()` selectors with
+  whitespace around the argument.
+  
+* Don't emit extra whitespace in the arguments for `:nth-child()` and
+  `:nth-last-child()` selectors.
+
 ## 1.13.1
 
 * Allow an IE-style single equals operator in plain CSS imports.
