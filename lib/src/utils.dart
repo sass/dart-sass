@@ -47,6 +47,42 @@ int countOccurrences(String string, int codeUnit) {
   return count;
 }
 
+/// Like [String.trim], but only trims ASCII whitespace.
+String trimAscii(String string) {
+  var start = _firstNonWhitespace(string);
+  return start == null ? "" : string.substring(start, _lastNonWhitespace(string) + 1);
+}
+
+/// Like [String.trimLeft], but only trims ASCII whitespace.
+String trimAsciiLeft(String string) {
+  var start = _firstNonWhitespace(string);
+  return start == null ? "" : string.substring(start);
+}
+
+/// Like [String.trimRight], but only trims ASCII whitespace.
+String trimAsciiRight(String string) {
+  var end = _lastNonWhitespace(string);
+  return end == null ? "" : string.substring(0, end + 1);
+}
+
+/// Returns the index of the first character in [string] that's not ASCII
+/// whitepsace, or [null] if [string] is entirely spaces.
+int _firstNonWhitespace(String string) {
+  for (var i = 0; i < string.length; i++) {
+    if (!isWhitespace(string.codeUnitAt(i))) return i;
+  }
+  return null;
+}
+
+/// Returns the index of the last character in [string] that's not ASCII
+/// whitespace, or [null] if [string] is entirely spaces.
+int _lastNonWhitespace(String string) {
+  for (var i = string.length - 1; i >= 0; i--) {
+    if (!isWhitespace(string.codeUnitAt(i))) return i;
+  }
+  return null;
+}
+
 /// Flattens the first level of nested arrays in [iterable].
 ///
 /// The return value is ordered first by index in the nested iterable, then by

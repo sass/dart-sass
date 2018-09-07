@@ -154,6 +154,35 @@ class SourceMapBuffer implements StringBuffer {
 
   /// Returns the source map for the file being written.
   ///
+  /// If [prefix] is passed, all the entries in the source map will be moved
+  /// forward by the number of characters and lines in [prefix].
+  ///
   /// [SingleMapping.targetUrl] will be `null`.
-  SingleMapping buildSourceMap() => new SingleMapping.fromEntries(_entries);
+  SingleMapping buildSourceMap({String prefix}) {
+    if (prefix == null || prefix.isEmpty) {
+      return new SingleMapping.fromEntries(_entries);
+    }
+
+    var prefixLength = prefix.length;
+    var prefixLines = 0;
+    var prefixColumn = 0;
+    for (var i = 0; i < prefix.length; i++) {
+      if (prefix.codeUnitAt(i) == $lf) {
+        prefixLines++;
+        prefixColumn = 0;
+      } else {
+        prefixColumn++;
+      }
+    }
+
+    return new SingleMapping.fromEntries(_entries.map((entry) => new Entry(
+        entry.source,
+        new SourceLocation(entry.target.offset + prefixLength,
+            line: entry.target.line + prefixLines,
+            // Only adjust the column for entries that are on the same line as
+            // the last chunk of the prefix.
+            column: entry.target.column +
+                (entry.target.line == 0 ? prefixColumn : 0)),
+        entry.identifierName)));
+  }
 }

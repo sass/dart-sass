@@ -1,3 +1,8 @@
+## 1.13.3
+
+* Properly generate source maps for stylesheets that emit `@charset`
+  declarations.
+
 ## 1.13.2
 
 * Properly parse `:nth-child()` and `:nth-last-child()` selectors with
