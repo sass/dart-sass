@@ -66,16 +66,20 @@ SerializeResult serialize(CssNode node,
       sourceMap: sourceMap);
   node.accept(visitor);
   var css = visitor._buffer.toString();
+  String prefix;
   if (css.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
     if (style == OutputStyle.compressed) {
-      css = '\uFEFF$css';
+      prefix = '\uFEFF';
     } else {
-      css = '@charset "UTF-8";\n$css';
+      prefix = '@charset "UTF-8";\n';
     }
+  } else {
+    prefix = '';
   }
 
-  return new SerializeResult(css,
-      sourceMap: sourceMap ? visitor._buffer.buildSourceMap() : null,
+  return new SerializeResult(prefix + css,
+      sourceMap:
+          sourceMap ? visitor._buffer.buildSourceMap(prefix: prefix) : null,
       sourceFiles: sourceMap ? visitor._buffer.sourceFiles : null);
 }
 

@@ -28,6 +28,6 @@ class NoSourceMapBuffer implements SourceMapBuffer {
   void clear() =>
       throw new UnsupportedError("SourceMapBuffer.clear() is not supported.");
 
-  SingleMapping buildSourceMap() =>
-      throw new UnsupportedError("NoSourceMapBuffer.clear() is not supported.");
+  SingleMapping buildSourceMap({String prefix}) => throw new UnsupportedError(
+      "NoSourceMapBuffer.buildSourceMap() is not supported.");
 }

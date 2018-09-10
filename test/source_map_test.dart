@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:sass/sass.dart';
+import 'package:sass/src/utils.dart';
 
 main() {
   group("maps source to target for", () {
@@ -617,6 +618,35 @@ main() {
         });
       });
     });
+
+    group("a stylesheet with Unicode characters", () {
+      test("in expanded mode", () {
+        _expectSourceMap("""
+        {{1}}föö
+          {{2}}bär: bäz
+      """, """
+        {{1}}föö {
+          {{2}}bär: bäz;
+        }
+      """, """
+        @charset "UTF-8";
+        {{1}}föö {
+          {{2}}bär: bäz;
+        }
+      """);
+      });
+
+      test("in compressed mode", () {
+        _expectSourceMap("""
+        {{1}}föö
+          {{2}}bär: bäz
+      """, """
+        {{1}}föö {
+          {{2}}bär: bäz;
+        }
+      """, "\uFEFF{{1}}föö{{{2}}bär:bäz}", style: OutputStyle.compressed);
+      });
+    });
   });
 
   test("doesn't use the source map location for variable errors", () {
@@ -658,13 +688,14 @@ main() {
 /// target locations.
 ///
 /// This also re-indents the input strings with [_reindent].
-void _expectSourceMap(String sass, String scss, String css) {
-  _expectSassSourceMap(sass, css);
-  _expectScssSourceMap(scss, css);
+void _expectSourceMap(String sass, String scss, String css,
+    {OutputStyle style}) {
+  _expectSassSourceMap(sass, css, style: style);
+  _expectScssSourceMap(scss, css, style: style);
 }
 
 /// Like [_expectSourceMap], but with only SCSS source.
-void _expectScssSourceMap(String scss, String css) {
+void _expectScssSourceMap(String scss, String css, {OutputStyle style}) {
   var scssTuple = _extractLocations(_reindent(scss));
   var scssText = scssTuple.item1;
   var scssLocations = _tuplesToMap(scssTuple.item2);
@@ -674,13 +705,14 @@ void _expectScssSourceMap(String scss, String css) {
   var cssLocations = cssTuple.item2;
 
   SingleMapping scssMap;
-  var scssOutput = compileString(scssText, sourceMap: (map) => scssMap = map);
+  var scssOutput =
+      compileString(scssText, sourceMap: (map) => scssMap = map, style: style);
   expect(scssOutput, equals(cssText));
   _expectMapMatches(scssMap, scssText, cssText, scssLocations, cssLocations);
 }
 
 /// Like [_expectSourceMap], but with only indented source.
-void _expectSassSourceMap(String sass, String css) {
+void _expectSassSourceMap(String sass, String css, {OutputStyle style}) {
   var sassTuple = _extractLocations(_reindent(sass));
   var sassText = sassTuple.item1;
   var sassLocations = _tuplesToMap(sassTuple.item2);
@@ -691,7 +723,7 @@ void _expectSassSourceMap(String sass, String css) {
 
   SingleMapping sassMap;
   var sassOutput = compileString(sassText,
-      indented: true, sourceMap: (map) => sassMap = map);
+      indented: true, sourceMap: (map) => sassMap = map, style: style);
   expect(sassOutput, equals(cssText));
   _expectMapMatches(sassMap, sassText, cssText, sassLocations, cssLocations);
 }
@@ -699,13 +731,13 @@ void _expectSassSourceMap(String sass, String css) {
 /// Returns [string] with leading whitepsace stripped from each line so that the
 /// least-indented line has zero indentation.
 String _reindent(String string) {
-  var lines = string.trimRight().split("\n");
+  var lines = trimAsciiRight(string).split("\n");
   var minIndent = lines
-      .where((line) => line.trim().isNotEmpty)
-      .map((line) => line.length - line.trimLeft().length)
+      .where((line) => trimAscii(line).isNotEmpty)
+      .map((line) => line.length - trimAsciiLeft(line).length)
       .reduce((length1, length2) => length1 < length2 ? length1 : length2);
   return lines
-      .map((line) => line.trim().isEmpty ? "" : line.substring(minIndent))
+      .map((line) => trimAscii(line).isEmpty ? "" : line.substring(minIndent))
       .join("\n");
 }
 
@@ -720,7 +752,8 @@ Tuple2<String, List<Tuple2<String, SourceLocation>>> _extractLocations(
   var line = 0;
   var column = 0;
   while (!scanner.isDone) {
-    if (scanner.scan("{{")) {
+    if (scanner.matches(new RegExp(r"{{[^{]"))) {
+      scanner.expect("{{");
       var start = scanner.position;
       while (!scanner.scan("}}")) {
         scanner.readChar();
