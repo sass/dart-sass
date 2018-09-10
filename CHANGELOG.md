@@ -3,6 +3,11 @@
 * Properly generate source maps for stylesheets that emit `@charset`
   declarations.
 
+### Command-Line Interface
+
+* Don't error out when passing `--embed-source-maps` along with
+  `--embed-sources` for stylesheets that contain non-ASCII characters.
+
 ## 1.13.2
 
 * Properly parse `:nth-child()` and `:nth-last-child()` selectors with

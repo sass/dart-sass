@@ -274,6 +274,23 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       test("doesn't generate a source map file", () async {
         await d.nothing("out.css.map").validate();
       });
+
+      // Regression test for #457.
+      test("--embed-sources works with non-ASCII characters", () async {
+        await d.file("test.scss", "a {b: '▼'}").create();
+        await (await runSass([
+          "--embed-source-map",
+          "--embed-sources",
+          "test.scss",
+          "out.css"
+        ]))
+            .shouldExit(0);
+        var css = readFile(d.path("out.css"));
+        map = embeddedSourceMap(css);
+
+        expect(map, containsPair("sources", ["test.scss"]));
+        expect(map, containsPair("sourcesContent", ["a {b: '▼'}"]));
+      });
     });
 
     group("with the target in a different directory", () {
