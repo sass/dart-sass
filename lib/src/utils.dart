@@ -50,7 +50,9 @@ int countOccurrences(String string, int codeUnit) {
 /// Like [String.trim], but only trims ASCII whitespace.
 String trimAscii(String string) {
   var start = _firstNonWhitespace(string);
-  return start == null ? "" : string.substring(start, _lastNonWhitespace(string) + 1);
+  return start == null
+      ? ""
+      : string.substring(start, _lastNonWhitespace(string) + 1);
 }
 
 /// Like [String.trimLeft], but only trims ASCII whitespace.

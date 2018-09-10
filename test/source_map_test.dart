@@ -620,8 +620,8 @@ main() {
     });
 
     group("a stylesheet with Unicode characters", () {
-    test("in expanded mode", () {
-      _expectSourceMap("""
+      test("in expanded mode", () {
+        _expectSourceMap("""
         {{1}}föö
           {{2}}bär: bäz
       """, """
@@ -634,10 +634,10 @@ main() {
           {{2}}bär: bäz;
         }
       """);
-    });
+      });
 
-    test("in compressed mode", () {
-      _expectSourceMap("""
+      test("in compressed mode", () {
+        _expectSourceMap("""
         {{1}}föö
           {{2}}bär: bäz
       """, """
@@ -645,7 +645,7 @@ main() {
           {{2}}bär: bäz;
         }
       """, "\uFEFF{{1}}föö{{{2}}bär:bäz}", style: OutputStyle.compressed);
-    });
+      });
     });
   });
 
@@ -695,8 +695,7 @@ void _expectSourceMap(String sass, String scss, String css,
 }
 
 /// Like [_expectSourceMap], but with only SCSS source.
-void _expectScssSourceMap(String scss, String css,
-    {OutputStyle style}) {
+void _expectScssSourceMap(String scss, String css, {OutputStyle style}) {
   var scssTuple = _extractLocations(_reindent(scss));
   var scssText = scssTuple.item1;
   var scssLocations = _tuplesToMap(scssTuple.item2);
@@ -706,14 +705,14 @@ void _expectScssSourceMap(String scss, String css,
   var cssLocations = cssTuple.item2;
 
   SingleMapping scssMap;
-  var scssOutput = compileString(scssText, sourceMap: (map) => scssMap = map, style: style);
+  var scssOutput =
+      compileString(scssText, sourceMap: (map) => scssMap = map, style: style);
   expect(scssOutput, equals(cssText));
   _expectMapMatches(scssMap, scssText, cssText, scssLocations, cssLocations);
 }
 
 /// Like [_expectSourceMap], but with only indented source.
-void _expectSassSourceMap(String sass, String css,
-    {OutputStyle style}) {
+void _expectSassSourceMap(String sass, String css, {OutputStyle style}) {
   var sassTuple = _extractLocations(_reindent(sass));
   var sassText = sassTuple.item1;
   var sassLocations = _tuplesToMap(sassTuple.item2);
