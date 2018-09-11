@@ -1,3 +1,9 @@
+## 1.13.4
+
+### Node JS
+
+* Tweak JS compilation options to substantially improve performance.
+
 ## 1.13.3
 
 * Properly generate source maps for stylesheets that emit `@charset`
@@ -38,7 +44,7 @@
 * Add a `SassException` type that provides information about Sass compilation
   failures.
 
-### JS API
+### Node JS API
 
 * Remove the source map comment from the compiled JS. We don't ship with the
   source map, so this pointed to nothing.

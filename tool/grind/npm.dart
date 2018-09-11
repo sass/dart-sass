@@ -35,7 +35,7 @@ void _js({@required bool release}) {
     '-Dversion=$version',
     '-Ddart-version=$dartVersion',
   ];
-  if (release) args..add("--minify")..add("--trust-type-annotations");
+  if (release) args..add("--minify")..add("--omit-implicit-checks");
 
   Dart2js.compile(new File('bin/sass.dart'),
       outFile: destination, extraArgs: args);
