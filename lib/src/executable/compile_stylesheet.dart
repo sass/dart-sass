@@ -142,7 +142,8 @@ String _writeSourceMap(
 
   Uri url;
   if (options.embedSourceMap) {
-    url = new Uri.dataFromString(sourceMapText, mimeType: 'application/json');
+    url = new Uri.dataFromString(sourceMapText,
+        mimeType: 'application/json', encoding: utf8);
   } else {
     var sourceMapPath = destination + '.map';
     ensureDir(p.dirname(sourceMapPath));
