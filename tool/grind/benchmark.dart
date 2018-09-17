@@ -90,7 +90,8 @@ Future _writeNTimes(String path, String text, num times,
 }
 
 @Task('Run benchmarks for Sass compilation speed.')
-@Depends(benchmarkGenerate, snapshot, releaseAppSnapshot, npmReleasePackage)
+@Depends(benchmarkGenerate, snapshot, releaseAppSnapshot, snapshotDart2,
+    releaseDart2AppSnapshot, npmReleasePackage)
 benchmark() async {
   var libsass = await cloneOrPull('https://github.com/sass/libsass');
   var sassc = await cloneOrPull('https://github.com/sass/sassc');
@@ -185,7 +186,7 @@ I ran five instances of each configuration and recorded the fastest time.
 
     var scriptSnapshotTime = await _benchmark(Platform.executable,
         ['--no-preview-dart-2', p.join('build', 'sass.dart.snapshot'), path]);
-    buffer.writeln("* Dart Sass from a script snapshot: "
+    buffer.writeln("* Dart Sass from a Dart 1 script snapshot: "
         "${_formatTime(scriptSnapshotTime)}");
 
     var appSnapshotTime = await _benchmark(Platform.executable, [
@@ -195,7 +196,23 @@ I ran five instances of each configuration and recorded the fastest time.
       path
     ]);
     buffer.writeln(
-        "* Dart Sass from an app snapshot: ${_formatTime(appSnapshotTime)}");
+        "* Dart Sass from a Dart 1 app snapshot: ${_formatTime(appSnapshotTime)}");
+
+    var dart2ScriptSnapshotTime = await _benchmark(Platform.executable, [
+      '--no-enable-asserts',
+      p.join('build', 'sass.dart.dart2.snapshot'),
+      path
+    ]);
+    buffer.writeln("* Dart Sass from a Dart 2 script snapshot: "
+        "${_formatTime(dart2ScriptSnapshotTime)}");
+
+    var dart2AppSnapshotTime = await _benchmark(Platform.executable, [
+      '--no-enable-asserts',
+      p.join('build', 'sass.dart.app.dart2.snapshot'),
+      path
+    ]);
+    buffer.writeln("* Dart Sass from a Dart 2 app snapshot: "
+        "${_formatTime(dart2AppSnapshotTime)}");
 
     var nodeTime =
         await _benchmark("node", [p.join('build', 'npm', 'sass.js'), path]);
@@ -211,8 +228,13 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln();
     buffer.writeln('* ${_compare(appSnapshotTime, sasscTime)} libsass');
     buffer
+        .writeln('* ${_compare(appSnapshotTime, dart2AppSnapshotTime)} Dart 2');
+    buffer
         .writeln('* ${_compare(appSnapshotTime, nodeTime)} Dart Sass on Node');
     buffer.writeln('* ${_compare(appSnapshotTime, rubyTime)} Ruby Sass');
+    buffer.writeln();
+    buffer.writeln('A Dart 1 script snapshot is approximately '
+        '${_compare(scriptSnapshotTime, dart2ScriptSnapshotTime)} Dart 2.');
     buffer.writeln();
     log('');
   }
