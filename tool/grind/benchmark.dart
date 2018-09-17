@@ -219,7 +219,7 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("* Dart Sass on Node.js: ${_formatTime(nodeTime)}");
 
     var rubyTime = await _benchmark(
-        "ruby", [p.join('build', 'ruby-sass', 'bin', 'sass'), path]);
+        "ruby", ["-I", p.join(ruby, 'lib'), p.join(ruby, 'bin', 'sass'), path]);
     buffer.writeln("* Ruby Sass with a hot cache: ${_formatTime(rubyTime)}");
 
     buffer.writeln();
