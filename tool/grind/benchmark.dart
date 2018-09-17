@@ -33,6 +33,34 @@ benchmarkGenerate() async {
   await _writeNTimes("${sources.path}/following_dense_extend.scss",
       ".foo {a: b}", math.pow(2, 17),
       footer: '.bar {@extend .foo}');
+
+  await cloneOrCheckout("https://github.com/twbs/bootstrap", "v4.1.3");
+  await _writeNTimes("${sources.path}/bootstrap.scss",
+      "@import '../bootstrap/scss/bootstrap';", 16);
+
+  await cloneOrCheckout("https://github.com/alex-page/sass-a11ycolor",
+      "2e7ef93ec06f8bbec80b632863e4b2811618af89");
+  new File("${sources.path}/a11ycolor.scss").writeAsStringSync("""
+    @import '../sass-a11ycolor/dist';
+
+    x {
+      // Adapted from a11ycolor's test1.scss, which at one point was much slower
+      // in JS than in the Dart VM.
+      y: AU-a11ycolor(red, blue)
+         AU-a11ycolor(#646464, #E0E0E0)
+         AU-a11ycolor(green, blue)
+         AU-a11ycolor(pink, blue)
+         AU-a11ycolor(blue, blue)
+         AU-a11ycolor(#c0c0c0, #c0c0c0)
+         AU-a11ycolor(#231284, #ccc)
+         AU-a11ycolor(#fff, #fff);
+    }
+  """);
+
+  var susy = await cloneOrCheckout("https://github.com/oddbird/susy", "v3.0.5");
+  await runAsync("npm", arguments: ["install"], workingDirectory: susy);
+  new File("${sources.path}/susy.scss")
+      .writeAsStringSync("@import '../susy/test/scss/test.scss'");
 }
 
 /// Writes [times] instances of [text] to [path].
@@ -124,7 +152,22 @@ I ran five instances of each configuration and recorded the fastest time.
       "following_dense_extend.scss",
       "Following Dense `@extend`",
       "2^17 instances of `.foo {a: b}` followed by `.bar {@extend .foo}`"
-    ]
+    ],
+    [
+      "bootstrap.scss",
+      "Bootstrap",
+      "16 instances of importing the Bootstrap framework"
+    ],
+    [
+      "a11ycolor.scss",
+      "a11ycolor",
+      "test cases for a computation-intensive color-processing library"
+    ],
+    [
+      "susy.scss",
+      "Susy",
+      "test cases for the computation-intensive Susy grid framework"
+    ],
   ];
 
   for (var info in benchmarks) {

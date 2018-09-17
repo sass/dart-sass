@@ -77,7 +77,14 @@ ArchiveFile file(String target, String source, {bool executable: false}) =>
 /// pointing to the latest master revision.
 ///
 /// Returns the path to the repository.
-Future<String> cloneOrPull(String url) async {
+Future<String> cloneOrPull(String url) async =>
+    cloneOrCheckout(url, "origin/master");
+
+/// Ensure that the repository at [url] is cloned into the build directory and
+/// pointing to [ref].
+///
+/// Returns the path to the repository.
+Future<String> cloneOrCheckout(String url, String ref) async {
   var name = p.url.basename(url);
   if (p.url.extension(name) == ".git") name = p.url.withoutExtension(name);
 
@@ -87,14 +94,15 @@ Future<String> cloneOrPull(String url) async {
     log("Updating $url");
     await runAsync("git",
         arguments: ["fetch", "origin"], workingDirectory: path);
-    await runAsync("git",
-        arguments: ["reset", "--hard", "origin/master"],
-        workingDirectory: path);
-    log("");
   } else {
     delete(new Directory(path));
     await runAsync("git", arguments: ["clone", url, path]);
+    await runAsync("git",
+        arguments: ["config", "advice.detachedHead", "false"],
+        workingDirectory: path);
   }
+  await runAsync("git", arguments: ["checkout", ref], workingDirectory: path);
+  log("");
 
   return path;
 }
