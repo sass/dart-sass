@@ -90,7 +90,7 @@ Future _writeNTimes(String path, String text, num times,
 }
 
 @Task('Run benchmarks for Sass compilation speed.')
-@Depends(benchmarkGenerate, snapshot, releaseAppSnapshot, npmPackage)
+@Depends(benchmarkGenerate, snapshot, releaseAppSnapshot, npmReleasePackage)
 benchmark() async {
   var libsass = await cloneOrPull('https://github.com/sass/libsass');
   var sassc = await cloneOrPull('https://github.com/sass/sassc');
