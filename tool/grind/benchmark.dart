@@ -183,13 +183,17 @@ I ran five instances of each configuration and recorded the fastest time.
     var sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [path]);
     buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
 
-    var scriptSnapshotTime = await _benchmark(
-        Platform.executable, [p.join('build', 'sass.dart.snapshot'), path]);
+    var scriptSnapshotTime = await _benchmark(Platform.executable,
+        ['--no-preview-dart-2', p.join('build', 'sass.dart.snapshot'), path]);
     buffer.writeln("* Dart Sass from a script snapshot: "
         "${_formatTime(scriptSnapshotTime)}");
 
-    var appSnapshotTime = await _benchmark(
-        Platform.executable, [p.join('build', 'sass.dart.app.snapshot'), path]);
+    var appSnapshotTime = await _benchmark(Platform.executable, [
+      '--no-preview-dart-2',
+      '--no-checked',
+      p.join('build', 'sass.dart.app.snapshot'),
+      path
+    ]);
     buffer.writeln(
         "* Dart Sass from an app snapshot: ${_formatTime(appSnapshotTime)}");
 
