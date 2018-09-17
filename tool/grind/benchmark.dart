@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
@@ -12,8 +13,56 @@ import 'npm.dart';
 import 'standalone.dart';
 import 'utils.dart';
 
+@Task('Generate benchmark files.')
+benchmarkGenerate() async {
+  var sources = new Directory("build/benchmark");
+  if (!await sources.exists()) await sources.create(recursive: true);
+
+  await _writeNTimes("${sources.path}/small_plain.scss", ".foo {a: b}", 4);
+  await _writeNTimes(
+      "${sources.path}/large_plain.scss", ".foo {a: b}", math.pow(2, 17));
+  await _writeNTimes("${sources.path}/preceding_sparse_extend.scss",
+      ".foo {a: b}", math.pow(2, 17),
+      header: '.x {@extend .y}', footer: '.y {a: b}');
+  await _writeNTimes("${sources.path}/following_sparse_extend.scss",
+      ".foo {a: b}", math.pow(2, 17),
+      header: '.y {a: b}', footer: '.x {@extend .y}');
+  await _writeNTimes("${sources.path}/preceding_dense_extend.scss",
+      ".foo {a: b}", math.pow(2, 17),
+      header: '.bar {@extend .foo}');
+  await _writeNTimes("${sources.path}/following_dense_extend.scss",
+      ".foo {a: b}", math.pow(2, 17),
+      footer: '.bar {@extend .foo}');
+}
+
+/// Writes [times] instances of [text] to [path].
+///
+/// If [header] is passed, it's written before [text]. If [footer] is passed,
+/// it's written after [text]. If the file already exists and is the expected
+/// length, it's not written.
+Future _writeNTimes(String path, String text, num times,
+    {String header, String footer}) async {
+  var file = new File(path);
+  var expectedLength = (header == null ? 0 : header.length + 1) +
+      (text.length + 1) * times +
+      (footer == null ? 0 : footer.length + 1);
+  if (file.existsSync() && file.lengthSync() == expectedLength) {
+    log("$path already exists.");
+    return;
+  }
+
+  log("Generating $path...");
+  var sink = file.openWrite();
+  if (header != null) sink.writeln(header);
+  for (var i = 0; i < times; i++) {
+    sink.writeln(text);
+  }
+  if (footer != null) sink.writeln(footer);
+  await sink.close();
+}
+
 @Task('Run benchmarks for Sass compilation speed.')
-@Depends(snapshot, releaseAppSnapshot, npmPackage)
+@Depends(benchmarkGenerate, snapshot, releaseAppSnapshot, npmPackage)
 benchmark() async {
   var libsass = await cloneOrPull('https://github.com/sass/libsass');
   var sassc = await cloneOrPull('https://github.com/sass/sassc');
@@ -25,9 +74,6 @@ benchmark() async {
   log("");
 
   var ruby = await cloneOrPull('https://github.com/sass/ruby-sass');
-  log("");
-
-  await Dart.runAsync("benchmark/generate.dart");
   log("");
 
   var libsassRevision = await _revision(libsass);
@@ -82,7 +128,7 @@ I ran five instances of each configuration and recorded the fastest time.
   ];
 
   for (var info in benchmarks) {
-    var path = p.join('benchmark/source', info[0]);
+    var path = p.join('build/benchmark', info[0]);
     var title = info[1];
     var description = info[2];
 
