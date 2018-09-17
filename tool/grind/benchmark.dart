@@ -217,7 +217,7 @@ I ran five instances of each configuration and recorded the fastest time.
     log('');
   }
 
-  buffer.write("# Conclusions");
+  buffer.write("# Prior Measurements");
   perf = perf.replaceFirst(
       new RegExp(r"# Measurements\n[^]*# Prior Measurements"),
       buffer.toString());
