@@ -257,6 +257,11 @@ Future<Duration> _benchmarkOnce(
     String executable, List<String> arguments) async {
   var result = await Process.run(
       "sh", ["-c", "time $executable ${arguments.join(' ')}"]);
+
+  if (result.exitCode != 0) {
+    fail("Process failed with exit code ${result.exitCode}\n${result.stderr}");
+  }
+
   var match =
       new RegExp(r"(\d+)m(\d+)\.(\d+)s").firstMatch(result.stderr as String);
   return new Duration(
