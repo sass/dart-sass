@@ -23,27 +23,44 @@ snapshot() {
       vmArgs: ['--no-preview-dart-2', '--snapshot=build/sass.dart.snapshot']);
 }
 
+@Task('Build Dart 2 script snapshot.')
+snapshotDart2() {
+  ensureBuild();
+  Dart.run('bin/sass.dart',
+      vmArgs: ['--snapshot=build/sass.dart.dart2.snapshot']);
+}
+
 @Task('Build a dev-mode Dart application snapshot.')
 appSnapshot() => _appSnapshot(release: false);
 
+// Don't build in Dart 2 runtime mode for now because it's substantially slower
+// than Dart 1 mode. See dart-lang/sdk#33257.
 @Task('Build a release-mode Dart application snapshot.')
 releaseAppSnapshot() => _appSnapshot(release: true);
+
+@Task('Build a release-mode Dart 2 application snapshot.')
+releaseDart2AppSnapshot() => _appSnapshot(release: true, dart2: true);
 
 /// Compiles Sass to an application snapshot.
 ///
 /// If [release] is `true`, this compiles in checked mode. Otherwise, it
-/// compiles in unchecked mode.
-void _appSnapshot({@required bool release}) {
+/// compiles in unchecked mode. If [dart2] is `true`, this compiles in Dart 2
+/// mode. Otherwise, it compiles in Dart 1 mode.
+void _appSnapshot({@required bool release, bool dart2: false}) {
   var args = [
-    // Don't build in Dart 2 runtime mode for now because it's substantially
-    // slower than Dart 1 mode. See dart-lang/sdk#33257.
-    '--no-preview-dart-2',
-    '--snapshot=build/sass.dart.app.snapshot',
+    '--snapshot=build/sass.dart.app${dart2 ? '.dart2' : ''}.snapshot',
     '--snapshot-kind=app-jit'
   ];
-  // TODO(nweiz): Once we're building with Dart 2 runtime semantics, pass a flag
-  // to enable assertions rather than a flag to enable checked mode.
-  if (!release) args..add('--checked');
+
+  if (!dart2) args.add('--no-preview-dart-2');
+
+  if (!release) {
+    if (dart2) {
+      args.add('--enable-asserts');
+    } else {
+      args.add('--checked');
+    }
+  }
 
   ensureBuild();
   Dart.run('bin/sass.dart',
