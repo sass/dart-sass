@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node', 'dart2'])
+@Tags(const ['node'])
 
 import 'dart:convert';
 
