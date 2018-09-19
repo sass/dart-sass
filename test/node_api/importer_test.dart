@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node', 'dart2'])
+@Tags(const ['node'])
 
 import 'dart:async';
 
@@ -661,8 +661,5 @@ void main() {
                     "  stdin 1:9  root stylesheet")));
       });
     });
-  },
-      // render() and renderError() use Zone.bindBinaryCallbackGuarded(), which
-      // is only available on Dart 2.
-      tags: "dart2");
+  });
 }

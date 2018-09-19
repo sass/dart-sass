@@ -15,18 +15,10 @@ elif [ "$TASK" = format ]; then
 elif [ "$TASK" = tests ]; then
   if [ -z "$NODE_VERSION" ]; then
     echo "${bold}Running Dart tests against $(dart --version &> /dev/stdout).$none"
-    if [ "$DART_CHANNEL" = dev ]; then
-      pub run test -p vm -x node
-    else
-      pub run test -p vm -x dart2 -x node
-    fi
+    pub run test -p vm -x node
   else
     echo "${bold}Running Node tests against Node $(node --version).$none"
-    if [ "$DART_CHANNEL" = dev ]; then
-      pub run test -j 2 -t node
-    else
-      pub run test -j 2 -x dart2 -t node
-    fi
+    pub run test -j 2 -t node
   fi;
 else
   echo "${bold}Running sass-spec against $(dart --version &> /dev/stdout).$none"

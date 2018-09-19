@@ -327,10 +327,7 @@ void main() {
         expect(error.toString(), contains('must be a Sass value type'));
       });
     });
-  },
-      // render() and renderError() use Zone.bindBinaryCallbackGuarded(), which
-      // is only available on Dart 2.
-      tags: "dart2");
+  });
 
   // Node Sass currently doesn't provide any representation of first-class
   // functions, but they shouldn't crash or be corrupted.
