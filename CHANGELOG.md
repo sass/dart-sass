@@ -1,3 +1,16 @@
+## 1.14.0
+
+### BREAKING CHANGE
+
+In accordance with our [compatibility policy][], breaking changes made for CSS
+compatibility reasons are released as minor version revision after a three-month
+deprecation period.
+
+[compatibility policy]: README.md#compatibility-policy
+
+* Tokens such as `#abcd` that are now interpreted as hex colors with alpha
+  channels, rather than unquoted ID strings.
+
 ## 1.13.4
 
 ### Node JS

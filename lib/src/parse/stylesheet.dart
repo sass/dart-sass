@@ -1831,20 +1831,7 @@ relase. For details, see http://bit.ly/moz-document.
     var identifier = interpolatedIdentifier();
     if (_isHexColor(identifier)) {
       scanner.state = afterHash;
-      var color = _hexColorContents(start);
-
-      var plain = identifier.asPlain;
-      if (plain.length == 4 || plain.length == 8) {
-        logger.warn('''
-The value "$color" is currently parsed as a string, but it will be parsed as a
-color in a release on or after 19 September 2018.
-
-To continue parsing it as a string, use "unquote('$color')".
-To parse it as a color, use "${color.toStringAsRgb()}".
-''', span: color.originalSpan, deprecation: true);
-      } else {
-        return new ColorExpression(color);
-      }
+      return new ColorExpression(_hexColorContents(start));
     }
 
     var buffer = new InterpolationBuffer();
