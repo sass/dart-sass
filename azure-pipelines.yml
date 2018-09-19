@@ -1,0 +1,18 @@
+pool:
+  vmImage: 'Ubuntu 16.04'
+
+steps:
+- script: |
+    curl -o dart.zip "https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip"
+    unzip dart.zip
+    echo "##vso[task.prependpath]`pwd`/dart-sdk/bin"
+  displayName: Install Dart
+
+- script: pub get
+  displayName: pub get
+
+- script: pub run grinder app-snapshot
+  displayName: Build snapshot
+
+- script: pub run test --no-color -r expanded -p vm -x node
+  displayName: Test

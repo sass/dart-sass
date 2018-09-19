@@ -36,6 +36,7 @@ dev_dependencies:
   grinder: "^0.8.0"
   http: "^0.11.0"
   js: "^0.6.0"
+  junitreport: "^0.3.0"
   node_preamble: "^1.1.0"
   pub_semver: "^1.0.0"
   stream_channel: "^1.0.0"
