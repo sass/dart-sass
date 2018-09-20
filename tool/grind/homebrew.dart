@@ -53,7 +53,8 @@ updateHomebrew() async {
   await runAsync("git",
       arguments: [
         "push",
-        "https://$username:$password@github.com/sass/homebrew-sass.git"
+        "https://$username:$password@github.com/sass/homebrew-sass.git",
+        "HEAD:master"
       ],
       workingDirectory: repo);
 }
