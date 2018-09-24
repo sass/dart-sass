@@ -1,3 +1,9 @@
+## 1.14.1
+
+### Dart API
+
+* Add DartDoc categories to various classes to help organize the documentation.
+
 ## 1.14.0
 
 ### BREAKING CHANGE

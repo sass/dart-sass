@@ -6,12 +6,18 @@ import '../../value.dart' as internal;
 import 'value.dart';
 
 /// The SassScript `true` value.
+///
+/// {@category Values}
 SassBoolean get sassTrue => internal.sassTrue;
 
 /// The SassScript `false` value.
+///
+/// {@category Values}
 SassBoolean get sassFalse => internal.sassFalse;
 
 /// A SassScript boolean value.
+///
+/// {@category Values}
 abstract class SassBoolean extends Value {
   /// Whether this value is `true` or `false`.
   bool get value;

@@ -21,6 +21,8 @@ export 'number.dart';
 export 'string.dart';
 
 /// The SassScript `null` value.
+///
+/// {@category Values}
 Value get sassNull => internal.sassNull;
 
 // TODO(nweiz): Just mark members as @internal when sdk#28066 is fixed.
@@ -35,6 +37,8 @@ Value get sassNull => internal.sassNull;
 /// subclass constructors like [new SassString]. Untyped values can be cast to
 /// particular types using `assert*()` functions like [assertString], which
 /// throw user-friendly error messages if they fail.
+///
+/// {@category Values}
 abstract class Value {
   /// Whether the value counts as `true` in an `@if` statement and other
   /// contexts.

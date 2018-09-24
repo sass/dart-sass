@@ -9,6 +9,8 @@ import 'value.dart';
 ///
 /// Strings can either be quoted or unquoted. Unquoted strings are usually CSS
 /// identifiers, but they may contain any text.
+///
+/// {@category Values}
 abstract class SassString extends Value {
   /// The contents of the string.
   ///

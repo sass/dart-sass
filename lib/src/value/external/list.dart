@@ -7,6 +7,8 @@ import '../../value.dart' show ListSeparator;
 import 'value.dart';
 
 /// A SassScript list.
+///
+/// {@category Values}
 abstract class SassList extends Value {
   ListSeparator get separator;
 

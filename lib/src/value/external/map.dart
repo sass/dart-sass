@@ -6,6 +6,8 @@ import '../../value.dart' as internal;
 import 'value.dart';
 
 /// A SassScript map.
+///
+/// {@category Values}
 abstract class SassMap extends Value {
   // TODO(nweiz): Use persistent data structures rather than copying here. We
   // need to preserve the order, which can be done by tracking an RRB vector of

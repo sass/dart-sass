@@ -55,6 +55,8 @@ class SassList extends Value implements ext.SassList {
 }
 
 /// An enum of list separator types.
+///
+/// {@category Values}
 class ListSeparator {
   /// A space-separated list.
   static const space = const ListSeparator._("space", " ");

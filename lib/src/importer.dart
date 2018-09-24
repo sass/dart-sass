@@ -24,6 +24,8 @@ export 'importer/result.dart';
 /// [AsyncImporter] if possible.
 ///
 /// Subclasses should extend [Importer], not implement it.
+///
+/// {@category Importers}
 abstract class Importer extends AsyncImporter {
   /// An importer that never imports any stylesheets.
   ///

@@ -10,6 +10,8 @@ import 'value.dart';
 ///
 /// A function reference captures a function from the local environment so that
 /// it may be passed between modules.
+///
+/// {@category Values}
 abstract class SassFunction extends Value {
   /// The callable that this function invokes.
   ///

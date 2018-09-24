@@ -6,6 +6,8 @@ import '../../value.dart' as internal;
 import 'value.dart';
 
 /// A SassScript color.
+///
+/// {@category Values}
 abstract class SassColor extends Value {
   /// This color's red channel, between `0` and `255`.
   int get red;

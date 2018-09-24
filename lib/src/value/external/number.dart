@@ -11,6 +11,8 @@ import 'value.dart';
 /// support scientific-style numerator and denominator units (for example,
 /// `miles/hour`). These are expected to be resolved before being emitted to
 /// CSS.
+///
+/// {@category Values}
 abstract class SassNumber extends Value {
   /// The number of distinct digits that are emitted when converting a number to
   /// CSS.

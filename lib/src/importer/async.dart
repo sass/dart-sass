@@ -19,6 +19,8 @@ import 'result.dart';
 /// instead.
 ///
 /// Subclasses should extend [AsyncImporter], not implement it.
+///
+/// {@category Importers}
 abstract class AsyncImporter {
   /// If [url] is recognized by this importer, returns its canonical format.
   ///

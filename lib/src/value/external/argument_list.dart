@@ -11,6 +11,8 @@ import 'value.dart';
 /// An argument list comes from a rest argument. It's distinct from a normal
 /// [SassList] in that it may contain a keyword map as well as the positional
 /// arguments.
+///
+/// {@category Values}
 abstract class SassArgumentList extends SassList {
   /// The keyword arguments attached to this argument list.
   ///

@@ -14,6 +14,8 @@ import 'result.dart';
 final _filesystemImporter = new FilesystemImporter('.');
 
 /// An importer that loads stylesheets from `package:` imports.
+///
+/// {@category Importers}
 class PackageImporter extends Importer {
   /// The resolver that converts `package:` imports to `file:`.
   final SyncPackageResolver _packageResolver;
