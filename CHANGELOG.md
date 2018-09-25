@@ -1,3 +1,9 @@
+## 1.14.1
+
+### Command-Line Interface
+
+* Print more readable paths in `--watch` mode.
+
 ## 1.14.0
 
 ### BREAKING CHANGE
