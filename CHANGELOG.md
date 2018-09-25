@@ -1,3 +1,8 @@
+## 1.14.1
+
+* Properly parse property declarations that are both *in* content blocks and
+  written *after* content blocks.
+
 ## 1.14.0
 
 ### BREAKING CHANGE

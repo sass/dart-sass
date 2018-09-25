@@ -896,9 +896,10 @@ abstract class StylesheetParser extends Parser {
 
     List<Statement> children;
     if (lookingAtChildren()) {
+      var wasInContentBlock = _inContentBlock; 
       _inContentBlock = true;
       children = this.children(_statement);
-      _inContentBlock = false;
+      _inContentBlock = wasInContentBlock;
     } else {
       expectStatementSeparator();
     }
