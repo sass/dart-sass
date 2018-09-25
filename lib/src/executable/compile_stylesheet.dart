@@ -79,8 +79,8 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   if (options.color) buffer.write('\u001b[32m');
 
   var sourceName = source == null ? 'stdin' : p.prettyUri(p.toUri(source));
-  destination = p.prettyUri(destination);
-  buffer.write('Compiled $sourceName to $destination.');
+  var destinationName = p.prettyUri(destination);
+  buffer.write('Compiled $sourceName to $destinationName.');
   if (options.color) buffer.write('\u001b[0m');
   print(buffer);
 }
