@@ -3,6 +3,10 @@
 * Properly parse property declarations that are both *in* content blocks and
   written *after* content blocks.
 
+### Command-Line Interface
+
+* Print more readable paths in `--watch` mode.
+
 ## 1.14.0
 
 ### BREAKING CHANGE
