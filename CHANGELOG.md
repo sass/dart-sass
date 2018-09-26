@@ -1,5 +1,7 @@
 ## 1.14.1
 
+* Canonicalize escaped digits at the beginning of identifiers as hex escapes.
+
 * Properly parse property declarations that are both *in* content blocks and
   written *after* content blocks.
 
