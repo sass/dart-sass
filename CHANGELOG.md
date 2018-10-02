@@ -1,3 +1,7 @@
+## 1.14.2
+
+* Properly escape U+001F INFORMATION SEPARATOR ONE in unquoted strings.
+
 ## 1.14.1
 
 * Canonicalize escaped digits at the beginning of identifiers as hex escapes.
