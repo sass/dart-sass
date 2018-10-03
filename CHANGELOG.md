@@ -1,3 +1,8 @@
+## 1.14.2
+
+* Fix a bug where loading the same stylesheet from two different import paths
+  could cause its imports to fail to resolve.
+
 ## 1.14.1
 
 * Canonicalize escaped digits at the beginning of identifiers as hex escapes.

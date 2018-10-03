@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 11e77e1df658d69b4ecab6447225f79c358db535
+// Checksum: fb47d76b7f9b646926e3973ba73f6634af256279
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -193,7 +193,10 @@ class _EvaluateVisitor
 
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
-  final _stack = <Frame>[];
+  ///
+  /// Each member is a tuple of the span where the stack trace starts and the
+  /// name of the member being invoked.
+  final _stack = <Tuple2<String, FileSpan>>[];
 
   /// Whether we're running in Node Sass-compatibility mode.
   bool get _asNodeSass => _nodeImporter != null;
@@ -773,8 +776,7 @@ class _EvaluateVisitor
       }
     } on SassException catch (error) {
       var frames = error.trace.frames.toList()
-        ..add(_stackFrame(import.span))
-        ..addAll(_stack.toList());
+        ..addAll(_stackTrace(import.span).frames);
       throw new SassRuntimeException(
           error.message, error.span, new Trace(frames));
     } catch (error) {
@@ -1774,7 +1776,7 @@ class _EvaluateVisitor
   ///
   /// Runs [callback] with the new stack.
   T _withStackFrame<T>(String member, FileSpan span, T callback()) {
-    _stack.add(_stackFrame(span));
+    _stack.add(new Tuple2(member, span));
     var oldMember = _member;
     _member = member;
     var result = callback();
@@ -1783,15 +1785,21 @@ class _EvaluateVisitor
     return result;
   }
 
-  /// Creates a new stack frame with location information from [span] and
-  /// [_member].
-  Frame _stackFrame(FileSpan span) => frameForSpan(span, _member);
+  /// Creates a new stack frame with location information from [member] and
+  /// [span].
+  Frame _stackFrame(String member, FileSpan span) => frameForSpan(span, member,
+      url: span.sourceUrl == null
+          ? null
+          : _importCache.humanize(span.sourceUrl));
 
   /// Returns a stack trace at the current point.
   ///
   /// [span] is the current location, used for the bottom-most stack frame.
   Trace _stackTrace(FileSpan span) {
-    var frames = _stack.toList()..add(_stackFrame(span));
+    var frames = _stack
+        .map((tuple) => _stackFrame(tuple.item1, tuple.item2))
+        .toList()
+          ..add(_stackFrame(_member, span));
     return new Trace(frames.reversed);
   }
 
