@@ -44,8 +44,9 @@ class StderrLogger implements Logger {
   }
 
   void debug(String message, SourceSpan span) {
-    stderr
-        .write('${p.prettyUri(span.start.sourceUrl)}:${span.start.line + 1} ');
+    var url =
+        span.start.sourceUrl == null ? '-' : p.prettyUri(span.start.sourceUrl);
+    stderr.write('$url:${span.start.line + 1} ');
     stderr.write(color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG');
     stderr.writeln(': $message');
   }
