@@ -1,5 +1,7 @@
 ## 1.14.2
 
+* Properly escape U+001F INFORMATION SEPARATOR ONE in unquoted strings.
+
 ### Command-Line Interface
 
 * Don't crash when using `@debug` in a stylesheet passed on standard input.
