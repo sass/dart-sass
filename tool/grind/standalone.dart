@@ -16,6 +16,10 @@ import 'utils.dart';
 /// Whether we're using a 64-bit Dart SDK.
 bool get _is64Bit => Platform.version.contains("x64");
 
+/// The path to the Dart executable to use to build snapshots in Dart 2 runtime
+/// mode.
+final dart2Executable = "dart-2.1.0-dev.7.0";
+
 @Task('Build Dart script snapshot.')
 snapshot() {
   ensureBuild();
@@ -26,8 +30,10 @@ snapshot() {
 @Task('Build Dart 2 script snapshot.')
 snapshotDart2() {
   ensureBuild();
-  Dart.run('bin/sass.dart',
-      vmArgs: ['--snapshot=build/sass.dart.dart2.snapshot']);
+  run(dart2Executable, arguments: [
+    '--snapshot=build/sass.dart.dart2.snapshot',
+    'bin/sass.dart'
+  ]);
 }
 
 @Task('Build a dev-mode Dart application snapshot.')
@@ -63,8 +69,15 @@ void _appSnapshot({@required bool release, bool dart2: false}) {
   }
 
   ensureBuild();
-  Dart.run('bin/sass.dart',
-      arguments: ['tool/app-snapshot-input.scss'], vmArgs: args, quiet: true);
+  if (dart2) {
+    args..addAll(['bin/sass.dart', 'tool/app-snapshot-input.scss']);
+    run(dart2Executable,
+        arguments: args,
+        quiet: true);
+  } else {
+    Dart.run('bin/sass.dart',
+        arguments: ['tool/app-snapshot-input.scss'], vmArgs: args, quiet: true);
+  }
 }
 
 @Task('Build standalone packages for all OSes.')

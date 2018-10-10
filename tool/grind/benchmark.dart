@@ -112,6 +112,7 @@ benchmark() async {
   var gPlusPlusVersion = await _version("g++");
   var nodeVersion = await _version("node");
   var rubyVersion = await _version("ruby");
+  var dart2Version = await _version(dart2Executable);
 
   var perf = new File("perf.md").readAsStringSync();
   perf = perf
@@ -119,7 +120,7 @@ benchmark() async {
 This was tested against:
 
 * libsass $libsassRevision and sassc $sasscRevision compiled with $gPlusPlusVersion.
-* Dart Sass $dartSassRevision on Dart $dartVersion and Node $nodeVersion.
+* Dart Sass $dartSassRevision on Dart $dartVersion and $dart2Version and Node $nodeVersion.
 * Ruby Sass $rubySassRevision on $rubyVersion.
 
 """);
@@ -198,7 +199,7 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln(
         "* Dart Sass from a Dart 1 app snapshot: ${_formatTime(appSnapshotTime)}");
 
-    var dart2ScriptSnapshotTime = await _benchmark(Platform.executable, [
+    var dart2ScriptSnapshotTime = await _benchmark(dart2Executable, [
       '--no-enable-asserts',
       p.join('build', 'sass.dart.dart2.snapshot'),
       path
@@ -206,7 +207,7 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("* Dart Sass from a Dart 2 script snapshot: "
         "${_formatTime(dart2ScriptSnapshotTime)}");
 
-    var dart2AppSnapshotTime = await _benchmark(Platform.executable, [
+    var dart2AppSnapshotTime = await _benchmark(dart2Executable, [
       '--no-enable-asserts',
       p.join('build', 'sass.dart.app.dart2.snapshot'),
       path
