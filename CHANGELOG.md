@@ -1,3 +1,9 @@
+## 1.14.2
+
+### Command-Line Interface
+
+* Don't crash when using `@debug` in a stylesheet passed on standard input.
+
 ## 1.14.1
 
 * Canonicalize escaped digits at the beginning of identifiers as hex escapes.
