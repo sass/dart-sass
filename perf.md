@@ -4,8 +4,8 @@ the benefit Dart Sass could provide relative to other implementations.
 This was tested against:
 
 * libsass 0331b61b and sassc 43c4000 compiled with g++ (Debian 7.3.0-5) 7.3.0.
-* Dart Sass c0df461 on Dart 2.0.0 and Node v10.5.0.
-* Ruby Sass 5dfe001a on ruby 2.4.1p111 (2017-03-22 revision 58053) [x86_64-linux].
+* Dart Sass ff3cea5 on Dart 2.0.0 and  and Node v10.5.0.
+* Ruby Sass 4cf46cc4 on ruby 2.4.1p111 (2017-03-22 revision 58053) [x86_64-linux].
 
 on Debian x64 with Intel Xeon E5-1650 v3 @ 3.50GHz. The Dart Sass
 [application snapshot][] was trained on the `tool/app-snapshot-input.scss` file.
@@ -21,189 +21,189 @@ I ran five instances of each configuration and recorded the fastest time.
 Running on a file containing 4 instances of `.foo {a: b}`:
 
 * sassc: 0.004s
-* Dart Sass from a Dart 1 script snapshot: 0.243s
-* Dart Sass from a Dart 1 app snapshot: 0.076s
-* Dart Sass from a Dart 2 script snapshot: 0.247s
-* Dart Sass from a Dart 2 app snapshot: 0.128s
-* Dart Sass on Node.js: 0.210s
-* Ruby Sass with a hot cache: 0.147s
+* Dart Sass from a Dart 1 script snapshot: 0.238s
+* Dart Sass from a Dart 1 app snapshot: 0.080s
+* Dart Sass from a Dart 2 script snapshot: 0.221s
+* Dart Sass from a Dart 2 app snapshot: 0.112s
+* Dart Sass on Node.js: 0.179s
+* Ruby Sass with a hot cache: 0.150s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
-* 19.0x slower than libsass
-* 1.7x faster than Dart 2
-* 2.8x faster than Dart Sass on Node
+* 20.0x slower than libsass
+* 1.4x faster than Dart 2
+* 2.2x faster than Dart Sass on Node
 * 1.9x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately identical to Dart 2.
+A Dart 1 script snapshot is approximately 1.1x slower than Dart 2.
 
 ## Large Plain CSS
 
 Running on a file containing 2^17 instances of `.foo {a: b}`:
 
-* sassc: 2.125s
-* Dart Sass from a Dart 1 script snapshot: 1.935s
-* Dart Sass from a Dart 1 app snapshot: 1.816s
-* Dart Sass from a Dart 2 script snapshot: 2.019s
-* Dart Sass from a Dart 2 app snapshot: 1.954s
-* Dart Sass on Node.js: 3.341s
-* Ruby Sass with a hot cache: 12.179s
+* sassc: 2.150s
+* Dart Sass from a Dart 1 script snapshot: 2.000s
+* Dart Sass from a Dart 1 app snapshot: 1.888s
+* Dart Sass from a Dart 2 script snapshot: 1.783s
+* Dart Sass from a Dart 2 app snapshot: 1.802s
+* Dart Sass on Node.js: 3.511s
+* Ruby Sass with a hot cache: 12.397s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
-* 1.2x faster than libsass
-* 1.1x faster than Dart 2
-* 1.8x faster than Dart Sass on Node
-* 6.7x faster than Ruby Sass
+* 1.1x faster than libsass
+* identical to Dart 2
+* 1.9x faster than Dart Sass on Node
+* 6.6x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately identical to Dart 2.
+A Dart 1 script snapshot is approximately 1.1x slower than Dart 2.
 
 ## Preceding Sparse `@extend`
 
 Running on a file containing `.x {@extend .y}`, 2^17 instances of `.foo {a: b}`, and then `.y {a: b}`:
 
-* sassc: 2.200s
-* Dart Sass from a Dart 1 script snapshot: 2.015s
-* Dart Sass from a Dart 1 app snapshot: 1.896s
-* Dart Sass from a Dart 2 script snapshot: 2.076s
-* Dart Sass from a Dart 2 app snapshot: 2.009s
-* Dart Sass on Node.js: 3.413s
-* Ruby Sass with a hot cache: 18.670s
+* sassc: 2.282s
+* Dart Sass from a Dart 1 script snapshot: 2.034s
+* Dart Sass from a Dart 1 app snapshot: 1.932s
+* Dart Sass from a Dart 2 script snapshot: 1.819s
+* Dart Sass from a Dart 2 app snapshot: 1.768s
+* Dart Sass on Node.js: 3.752s
+* Ruby Sass with a hot cache: 18.894s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
 * 1.2x faster than libsass
-* 1.1x faster than Dart 2
-* 1.8x faster than Dart Sass on Node
+* 1.1x slower than Dart 2
+* 1.9x faster than Dart Sass on Node
 * 9.8x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately identical to Dart 2.
+A Dart 1 script snapshot is approximately 1.1x slower than Dart 2.
 
 ## Following Sparse `@extend`
 
 Running on a file containing `.y {a: b}`, 2^17 instances of `.foo {a: b}`, and then `.x {@extend .y}`:
 
-* sassc: 2.136s
-* Dart Sass from a Dart 1 script snapshot: 1.993s
-* Dart Sass from a Dart 1 app snapshot: 1.858s
-* Dart Sass from a Dart 2 script snapshot: 2.039s
-* Dart Sass from a Dart 2 app snapshot: 1.966s
-* Dart Sass on Node.js: 3.531s
-* Ruby Sass with a hot cache: 18.524s
+* sassc: 2.156s
+* Dart Sass from a Dart 1 script snapshot: 1.966s
+* Dart Sass from a Dart 1 app snapshot: 1.826s
+* Dart Sass from a Dart 2 script snapshot: 1.769s
+* Dart Sass from a Dart 2 app snapshot: 1.737s
+* Dart Sass on Node.js: 3.446s
+* Ruby Sass with a hot cache: 18.356s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
-* 1.1x faster than libsass
-* 1.1x faster than Dart 2
+* 1.2x faster than libsass
+* 1.1x slower than Dart 2
 * 1.9x faster than Dart Sass on Node
-* 10.0x faster than Ruby Sass
+* 10.1x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately identical to Dart 2.
+A Dart 1 script snapshot is approximately 1.1x slower than Dart 2.
 
 ## Preceding Dense `@extend`
 
 Running on a file containing `.bar {@extend .foo}` followed by 2^17 instances of `.foo {a: b}`:
 
-* sassc: 2.264s
-* Dart Sass from a Dart 1 script snapshot: 2.905s
-* Dart Sass from a Dart 1 app snapshot: 2.848s
-* Dart Sass from a Dart 2 script snapshot: 3.089s
-* Dart Sass from a Dart 2 app snapshot: 3.076s
-* Dart Sass on Node.js: 7.822s
-* Ruby Sass with a hot cache: 33.592s
+* sassc: 2.270s
+* Dart Sass from a Dart 1 script snapshot: 2.850s
+* Dart Sass from a Dart 1 app snapshot: 2.813s
+* Dart Sass from a Dart 2 script snapshot: 2.684s
+* Dart Sass from a Dart 2 app snapshot: 2.714s
+* Dart Sass on Node.js: 8.050s
+* Ruby Sass with a hot cache: 32.530s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
-* 1.3x slower than libsass
-* 1.1x faster than Dart 2
-* 2.7x faster than Dart Sass on Node
-* 11.8x faster than Ruby Sass
+* 1.2x slower than libsass
+* identical to Dart 2
+* 2.9x faster than Dart Sass on Node
+* 11.6x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately 1.1x faster than Dart 2.
+A Dart 1 script snapshot is approximately 1.1x slower than Dart 2.
 
 ## Following Dense `@extend`
 
 Running on a file containing 2^17 instances of `.foo {a: b}` followed by `.bar {@extend .foo}`:
 
-* sassc: 2.203s
-* Dart Sass from a Dart 1 script snapshot: 2.848s
-* Dart Sass from a Dart 1 app snapshot: 2.654s
-* Dart Sass from a Dart 2 script snapshot: 3.047s
-* Dart Sass from a Dart 2 app snapshot: 3.014s
-* Dart Sass on Node.js: 7.820s
-* Ruby Sass with a hot cache: 32.730s
+* sassc: 2.195s
+* Dart Sass from a Dart 1 script snapshot: 2.836s
+* Dart Sass from a Dart 1 app snapshot: 2.691s
+* Dart Sass from a Dart 2 script snapshot: 2.613s
+* Dart Sass from a Dart 2 app snapshot: 2.617s
+* Dart Sass on Node.js: 7.855s
+* Ruby Sass with a hot cache: 33.249s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
 * 1.2x slower than libsass
-* 1.1x faster than Dart 2
+* identical to Dart 2
 * 2.9x faster than Dart Sass on Node
-* 12.3x faster than Ruby Sass
+* 12.4x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately 1.1x faster than Dart 2.
+A Dart 1 script snapshot is approximately 1.1x slower than Dart 2.
 
 ## Bootstrap
 
 Running on a file containing 16 instances of importing the Bootstrap framework:
 
-* sassc: 1.086s
-* Dart Sass from a Dart 1 script snapshot: 1.576s
-* Dart Sass from a Dart 1 app snapshot: 1.356s
-* Dart Sass from a Dart 2 script snapshot: 1.841s
-* Dart Sass from a Dart 2 app snapshot: 1.653s
-* Dart Sass on Node.js: 3.743s
-* Ruby Sass with a hot cache: 13.321s
+* sassc: 1.089s
+* Dart Sass from a Dart 1 script snapshot: 1.564s
+* Dart Sass from a Dart 1 app snapshot: 1.399s
+* Dart Sass from a Dart 2 script snapshot: 1.691s
+* Dart Sass from a Dart 2 app snapshot: 1.620s
+* Dart Sass on Node.js: 3.747s
+* Ruby Sass with a hot cache: 13.222s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
-* 1.2x slower than libsass
+* 1.3x slower than libsass
 * 1.2x faster than Dart 2
-* 2.8x faster than Dart Sass on Node
-* 9.8x faster than Ruby Sass
+* 2.7x faster than Dart Sass on Node
+* 9.5x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately 1.2x faster than Dart 2.
+A Dart 1 script snapshot is approximately 1.1x faster than Dart 2.
 
 ## a11ycolor
 
 Running on a file containing test cases for a computation-intensive color-processing library:
 
-* sassc: 0.402s
-* Dart Sass from a Dart 1 script snapshot: 0.755s
-* Dart Sass from a Dart 1 app snapshot: 0.597s
-* Dart Sass from a Dart 2 script snapshot: 0.838s
-* Dart Sass from a Dart 2 app snapshot: 0.718s
-* Dart Sass on Node.js: 2.339s
-* Ruby Sass with a hot cache: 5.832s
+* sassc: 0.385s
+* Dart Sass from a Dart 1 script snapshot: 0.790s
+* Dart Sass from a Dart 1 app snapshot: 0.592s
+* Dart Sass from a Dart 2 script snapshot: 0.782s
+* Dart Sass from a Dart 2 app snapshot: 0.680s
+* Dart Sass on Node.js: 2.438s
+* Ruby Sass with a hot cache: 5.804s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
 * 1.5x slower than libsass
-* 1.2x faster than Dart 2
-* 3.9x faster than Dart Sass on Node
+* 1.1x faster than Dart 2
+* 4.1x faster than Dart Sass on Node
 * 9.8x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately 1.1x faster than Dart 2.
+A Dart 1 script snapshot is approximately identical to Dart 2.
 
 ## Susy
 
 Running on a file containing test cases for the computation-intensive Susy grid framework:
 
-* sassc: 0.319s
-* Dart Sass from a Dart 1 script snapshot: 0.685s
-* Dart Sass from a Dart 1 app snapshot: 0.521s
-* Dart Sass from a Dart 2 script snapshot: 0.801s
-* Dart Sass from a Dart 2 app snapshot: 0.628s
-* Dart Sass on Node.js: 1.389s
-* Ruby Sass with a hot cache: 1.738s
+* sassc: 0.320s
+* Dart Sass from a Dart 1 script snapshot: 0.688s
+* Dart Sass from a Dart 1 app snapshot: 0.522s
+* Dart Sass from a Dart 2 script snapshot: 0.741s
+* Dart Sass from a Dart 2 app snapshot: 0.640s
+* Dart Sass on Node.js: 1.479s
+* Ruby Sass with a hot cache: 1.730s
 
 Based on these numbers, Dart Sass from an app snapshot is approximately:
 
 * 1.6x slower than libsass
 * 1.2x faster than Dart 2
-* 2.7x faster than Dart Sass on Node
+* 2.8x faster than Dart Sass on Node
 * 3.3x faster than Ruby Sass
 
-A Dart 1 script snapshot is approximately 1.2x faster than Dart 2.
+A Dart 1 script snapshot is approximately 1.1x faster than Dart 2.
 
 # Prior Measurements
 
