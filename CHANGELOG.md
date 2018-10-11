@@ -1,3 +1,8 @@
+## 1.14.3
+
+* Treat `:before`, `:after`, `:first-line`, and `:first-letter` as
+  pseudo-elements for the purposes of `@extend`.
+
 ## 1.14.2
 
 * Fix a bug where loading the same stylesheet from two different import paths

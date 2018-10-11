@@ -1000,7 +1000,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     }
 
     _buffer.writeCharCode($colon);
-    if (pseudo.isElement) _buffer.writeCharCode($colon);
+    if (pseudo.isSyntacticElement) _buffer.writeCharCode($colon);
     _buffer.write(pseudo.name);
     if (pseudo.argument == null && pseudo.selector == null) return;
 
