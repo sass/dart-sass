@@ -25,6 +25,12 @@ void main() {
         expect(_compile("a,\nb,\n.c {x: y}"), equals("a,b,.c{x:y}"));
       });
 
+      test("removes whitespace around combinators", () {
+        expect(_compile("a > b {x: y}"), equals("a>b{x:y}"));
+        expect(_compile("a + b {x: y}"), equals("a+b{x:y}"));
+        expect(_compile("a ~ b {x: y}"), equals("a~b{x:y}"));
+      });
+
       group("in prefixed pseudos", () {
         test("preserves whitespace", () {
           expect(_compile("a:nth-child(2n of b) {x: y}"),

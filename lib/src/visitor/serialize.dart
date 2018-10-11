@@ -934,13 +934,22 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   }
 
   void visitComplexSelector(ComplexSelector complex) {
-    _writeBetween(complex.components, " ", (component) {
+    omitSpacesAround(ComplexSelectorComponent component) {
+      return _isCompressed && component is Combinator;
+    }
+
+    bool spaceAfterLast = false;
+    for (var component in complex.components) {
+      if (spaceAfterLast && !omitSpacesAround(component)) _buffer.write(" ");
+
       if (component is CompoundSelector) {
         visitCompoundSelector(component);
       } else {
         _buffer.write(component);
       }
-    });
+
+      spaceAfterLast = !omitSpacesAround(component);
+    }
   }
 
   void visitCompoundSelector(CompoundSelector compound) {
