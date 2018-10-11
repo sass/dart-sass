@@ -115,7 +115,7 @@ class AsyncImportCache {
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
   /// returns a relative URL.
-  void _canonicalize(AsyncImporter importer, Uri url) async {
+  Future<Uri> _canonicalize(AsyncImporter importer, Uri url) async {
     var result = await importer.canonicalize(url);
     if (result?.scheme == '') {
       _logger.warn("""

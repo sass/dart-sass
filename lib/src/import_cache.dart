@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 09ad5f694ab3b542f0a961502906e8deb67ae229
+// Checksum: ceb41be9992077bf36e5797c5e4a8ee3838e1bdf
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
@@ -118,7 +118,7 @@ class ImportCache {
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
   /// returns a relative URL.
-  void _canonicalize(Importer importer, Uri url) {
+  Uri _canonicalize(Importer importer, Uri url) {
     var result = importer.canonicalize(url);
     if (result?.scheme == '') {
       _logger.warn("""
@@ -173,8 +173,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
 
   /// Return a human-friendly URL for [canonicalUrl] to use in a stack trace.
   ///
-  /// If the stylesheet for [canonicalUrl] hasn't been loaded by this cache,
-  /// returns it as-is.
+  /// Throws a [StateError] if the stylesheet for [canonicalUrl] hasn't been
+  /// loaded by this cache.
   Uri humanize(Uri canonicalUrl) {
     // Display the URL with the shortest path length.
     var url = minBy(
@@ -182,7 +182,12 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
             .where((tuple) => tuple?.item2 == canonicalUrl)
             .map((tuple) => tuple.item3),
         (url) => url.path.length);
-    if (url == null) return canonicalUrl;
+    if (url == null) {
+      if (_importCache.containsKey(canonicalUrl)) return canonicalUrl;
+
+      throw new StateError(
+          "URL $canonicalUrl hasn't been loaded by this import cache.");
+    }
 
     // Use the canonicalized basename so that we display e.g.
     // package:example/_example.scss rather than package:example/example in
