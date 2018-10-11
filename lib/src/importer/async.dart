@@ -22,6 +22,10 @@ import 'result.dart';
 abstract class AsyncImporter {
   /// If [url] is recognized by this importer, returns its canonical format.
   ///
+  /// Note that canonical URLs *must* be absolute, including a scheme. Returning
+  /// `file:` URLs is encouraged if the imported stylesheet comes from a file on
+  /// disk.
+  ///
   /// If Sass has already loaded a stylesheet with the returned canonical URL,
   /// it re-uses the existing parse tree. This means that importers **must
   /// ensure** that the same canonical URL always refers to the same stylesheet,

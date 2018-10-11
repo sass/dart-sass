@@ -9,6 +9,12 @@
 
 * Don't crash when using `@debug` in a stylesheet passed on standard input.
 
+### Dart API
+
+* `AsyncImporter.canonicalize()` and `Importer.canonicalize()` must now return
+  absolute URLs. Relative URLs are still supported, but are deprecated and will
+  be removed in a future release.
+
 ## 1.14.1
 
 * Canonicalize escaped digits at the beginning of identifiers as hex escapes.

@@ -95,7 +95,7 @@ class AsyncImportCache {
       [AsyncImporter baseImporter, Uri baseUrl]) async {
     if (baseImporter != null) {
       var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
-      var canonicalUrl = await baseImporter.canonicalize(resolvedUrl);
+      var canonicalUrl = await _canonicalize(baseImporter, resolvedUrl);
       if (canonicalUrl != null) {
         return new Tuple3(baseImporter, canonicalUrl, resolvedUrl);
       }
@@ -103,7 +103,7 @@ class AsyncImportCache {
 
     return await putIfAbsentAsync(_canonicalizeCache, url, () async {
       for (var importer in _importers) {
-        var canonicalUrl = await importer.canonicalize(url);
+        var canonicalUrl = await _canonicalize(importer, url);
         if (canonicalUrl != null) {
           return new Tuple3(importer, canonicalUrl, url);
         }
@@ -111,6 +111,19 @@ class AsyncImportCache {
 
       return null;
     });
+  }
+
+  /// Calls [importer.canonicalize] and prints a deprecation warning if it
+  /// returns a relative URL.
+  void _canonicalize(AsyncImporter importer, Uri url) async {
+    var result = await importer.canonicalize(url);
+    if (result?.scheme == '') {
+      _logger.warn("""
+Importer $importer canonicalized $url to $result.
+Relative canonical URLs are deprecated and will eventually be disallowed.
+""", deprecation: true);
+    }
+    return result;
   }
 
   /// Tries to import [url] using one of this cache's importers.
@@ -147,7 +160,12 @@ class AsyncImportCache {
       var result = await importer.load(canonicalUrl);
       if (result == null) return null;
       return new Stylesheet.parse(result.contents, result.syntax,
-          url: canonicalUrl, logger: _logger);
+          // For backwards-compatibility, relative canonical URLs are resolved
+          // relative to [originalUrl].
+          url: originalUrl == null
+              ? canonicalUrl
+              : originalUrl.resolveUri(canonicalUrl),
+          logger: _logger);
     });
   }
 

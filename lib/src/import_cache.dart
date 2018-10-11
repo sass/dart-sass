@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: e0246f6f5449da5d299405cd5529ac71079b0f4d
+// Checksum: 09ad5f694ab3b542f0a961502906e8deb67ae229
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
@@ -98,7 +98,7 @@ class ImportCache {
       [Importer baseImporter, Uri baseUrl]) {
     if (baseImporter != null) {
       var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
-      var canonicalUrl = baseImporter.canonicalize(resolvedUrl);
+      var canonicalUrl = _canonicalize(baseImporter, resolvedUrl);
       if (canonicalUrl != null) {
         return new Tuple3(baseImporter, canonicalUrl, resolvedUrl);
       }
@@ -106,7 +106,7 @@ class ImportCache {
 
     return _canonicalizeCache.putIfAbsent(url, () {
       for (var importer in _importers) {
-        var canonicalUrl = importer.canonicalize(url);
+        var canonicalUrl = _canonicalize(importer, url);
         if (canonicalUrl != null) {
           return new Tuple3(importer, canonicalUrl, url);
         }
@@ -114,6 +114,19 @@ class ImportCache {
 
       return null;
     });
+  }
+
+  /// Calls [importer.canonicalize] and prints a deprecation warning if it
+  /// returns a relative URL.
+  void _canonicalize(Importer importer, Uri url) {
+    var result = importer.canonicalize(url);
+    if (result?.scheme == '') {
+      _logger.warn("""
+Importer $importer canonicalized $url to $result.
+Relative canonical URLs are deprecated and will eventually be disallowed.
+""", deprecation: true);
+    }
+    return result;
   }
 
   /// Tries to import [url] using one of this cache's importers.
@@ -149,7 +162,12 @@ class ImportCache {
       var result = importer.load(canonicalUrl);
       if (result == null) return null;
       return new Stylesheet.parse(result.contents, result.syntax,
-          url: canonicalUrl, logger: _logger);
+          // For backwards-compatibility, relative canonical URLs are resolved
+          // relative to [originalUrl].
+          url: originalUrl == null
+              ? canonicalUrl
+              : originalUrl.resolveUri(canonicalUrl),
+          logger: _logger);
     });
   }
 
