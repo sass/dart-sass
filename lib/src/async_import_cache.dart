@@ -180,12 +180,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
             .where((tuple) => tuple?.item2 == canonicalUrl)
             .map((tuple) => tuple.item3),
         (url) => url.path.length);
-    if (url == null) {
-      if (_importCache.containsKey(canonicalUrl)) return canonicalUrl;
-
-      throw new StateError(
-          "URL $canonicalUrl hasn't been loaded by this import cache.");
-    }
+    if (url == null) return canonicalUrl;
 
     // Use the canonicalized basename so that we display e.g.
     // package:example/_example.scss rather than package:example/example in

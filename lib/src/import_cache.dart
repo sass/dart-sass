@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: ceb41be9992077bf36e5797c5e4a8ee3838e1bdf
+// Checksum: 57c42546fb8e0b68e29ea841ba106ee99127bede
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
@@ -182,12 +182,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
             .where((tuple) => tuple?.item2 == canonicalUrl)
             .map((tuple) => tuple.item3),
         (url) => url.path.length);
-    if (url == null) {
-      if (_importCache.containsKey(canonicalUrl)) return canonicalUrl;
-
-      throw new StateError(
-          "URL $canonicalUrl hasn't been loaded by this import cache.");
-    }
+    if (url == null) return canonicalUrl;
 
     // Use the canonicalized basename so that we display e.g.
     // package:example/_example.scss rather than package:example/example in
