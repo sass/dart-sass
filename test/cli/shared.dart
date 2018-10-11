@@ -227,6 +227,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           ]));
       await sass.shouldExit(0);
     });
+
+    // Regression test.
+    test("supports @debug", () async {
+      var sass = await runSass(["--no-source-map", "--stdin"]);
+      sass.stdin.writeln("@debug foo");
+      sass.stdin.close();
+      expect(sass.stderr, emitsInOrder(["-:1 DEBUG: foo"]));
+      await sass.shouldExit(0);
+    });
   });
 
   test("gracefully reports errors from stdin", () async {

@@ -3,6 +3,12 @@
 * Fix a bug where loading the same stylesheet from two different import paths
   could cause its imports to fail to resolve.
 
+* Properly escape U+001F INFORMATION SEPARATOR ONE in unquoted strings.
+
+### Command-Line Interface
+
+* Don't crash when using `@debug` in a stylesheet passed on standard input.
+
 ## 1.14.1
 
 * Canonicalize escaped digits at the beginning of identifiers as hex escapes.
