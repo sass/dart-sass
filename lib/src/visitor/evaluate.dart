@@ -1776,7 +1776,7 @@ class _EvaluateVisitor
   ///
   /// Runs [callback] with the new stack.
   T _withStackFrame<T>(String member, FileSpan span, T callback()) {
-    _stack.add(new Tuple2(member, span));
+    _stack.add(new Tuple2(_member, span));
     var oldMember = _member;
     _member = member;
     var result = callback();
