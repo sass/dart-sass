@@ -1,10 +1,19 @@
 ## 1.14.2
 
+* Fix a bug where loading the same stylesheet from two different import paths
+  could cause its imports to fail to resolve.
+
 * Properly escape U+001F INFORMATION SEPARATOR ONE in unquoted strings.
 
 ### Command-Line Interface
 
 * Don't crash when using `@debug` in a stylesheet passed on standard input.
+
+### Dart API
+
+* `AsyncImporter.canonicalize()` and `Importer.canonicalize()` must now return
+  absolute URLs. Relative URLs are still supported, but are deprecated and will
+  be removed in a future release.
 
 ## 1.14.1
 

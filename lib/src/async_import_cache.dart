@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
@@ -94,7 +95,7 @@ class AsyncImportCache {
       [AsyncImporter baseImporter, Uri baseUrl]) async {
     if (baseImporter != null) {
       var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
-      var canonicalUrl = await baseImporter.canonicalize(resolvedUrl);
+      var canonicalUrl = await _canonicalize(baseImporter, resolvedUrl);
       if (canonicalUrl != null) {
         return new Tuple3(baseImporter, canonicalUrl, resolvedUrl);
       }
@@ -102,7 +103,7 @@ class AsyncImportCache {
 
     return await putIfAbsentAsync(_canonicalizeCache, url, () async {
       for (var importer in _importers) {
-        var canonicalUrl = await importer.canonicalize(url);
+        var canonicalUrl = await _canonicalize(importer, url);
         if (canonicalUrl != null) {
           return new Tuple3(importer, canonicalUrl, url);
         }
@@ -110,6 +111,19 @@ class AsyncImportCache {
 
       return null;
     });
+  }
+
+  /// Calls [importer.canonicalize] and prints a deprecation warning if it
+  /// returns a relative URL.
+  Future<Uri> _canonicalize(AsyncImporter importer, Uri url) async {
+    var result = await importer.canonicalize(url);
+    if (result?.scheme == '') {
+      _logger.warn("""
+Importer $importer canonicalized $url to $result.
+Relative canonical URLs are deprecated and will eventually be disallowed.
+""", deprecation: true);
+    }
+    return result;
   }
 
   /// Tries to import [url] using one of this cache's importers.
@@ -145,16 +159,33 @@ class AsyncImportCache {
     return await putIfAbsentAsync(_importCache, canonicalUrl, () async {
       var result = await importer.load(canonicalUrl);
       if (result == null) return null;
-
-      // Use the canonicalized basename so that we display e.g.
-      // package:example/_example.scss rather than package:example/example in
-      // stack traces.
-      var displayUrl = originalUrl == null
-          ? canonicalUrl
-          : originalUrl.resolve(p.url.basename(canonicalUrl.path));
       return new Stylesheet.parse(result.contents, result.syntax,
-          url: displayUrl, logger: _logger);
+          // For backwards-compatibility, relative canonical URLs are resolved
+          // relative to [originalUrl].
+          url: originalUrl == null
+              ? canonicalUrl
+              : originalUrl.resolveUri(canonicalUrl),
+          logger: _logger);
     });
+  }
+
+  /// Return a human-friendly URL for [canonicalUrl] to use in a stack trace.
+  ///
+  /// Throws a [StateError] if the stylesheet for [canonicalUrl] hasn't been
+  /// loaded by this cache.
+  Uri humanize(Uri canonicalUrl) {
+    // Display the URL with the shortest path length.
+    var url = minBy(
+        _canonicalizeCache.values
+            .where((tuple) => tuple?.item2 == canonicalUrl)
+            .map((tuple) => tuple.item3),
+        (url) => url.path.length);
+    if (url == null) return canonicalUrl;
+
+    // Use the canonicalized basename so that we display e.g.
+    // package:example/_example.scss rather than package:example/example in
+    // stack traces.
+    return url.resolve(p.url.basename(canonicalUrl.path));
   }
 
   /// Clears the cached canonical version of the given [url].

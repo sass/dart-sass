@@ -160,6 +160,31 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           ["--load-path", "dir2", "--load-path", "dir1", "test.scss"],
           equalsIgnoringWhitespace("x { y: z; }"));
     });
+
+    // Regression test for an internal Google issue.
+    test("multiple times from different load paths", () async {
+      await d.file("test.scss", """
+        @import 'parent/child/test2';
+        @import 'child/test2';
+      """).create();
+
+      await d.dir("grandparent", [
+        d.dir("parent", [
+          d.dir("child", [
+            d.file("test2.scss", "@import 'test3';"),
+            d.file("test3.scss", "a {b: c};")
+          ])
+        ])
+      ]).create();
+
+      await expectCompiles([
+        "--load-path",
+        "grandparent",
+        "--load-path",
+        "grandparent/parent",
+        "test.scss"
+      ], equalsIgnoringWhitespace("a { b: c; } a { b: c; }"));
+    });
   });
 
   group("with --stdin", () {

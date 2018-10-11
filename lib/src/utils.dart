@@ -138,8 +138,11 @@ bool listEquals<T>(List<T> list1, List<T> list2) =>
 int listHash(List list) => const ListEquality().hash(list);
 
 /// Returns a stack frame for the given [span] with the given [member] name.
-Frame frameForSpan(SourceSpan span, String member) => new Frame(
-    span.sourceUrl ?? _noSourceUrl,
+///
+/// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
+/// passed, it's used instead.
+Frame frameForSpan(SourceSpan span, String member, {Uri url}) => new Frame(
+    url ?? span.sourceUrl ?? _noSourceUrl,
     span.start.line + 1,
     span.start.column + 1,
     member);
