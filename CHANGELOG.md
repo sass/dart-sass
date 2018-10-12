@@ -1,3 +1,8 @@
+## 1.14.3
+
+* When running in compressed mode, remove spaces around combinators in complex
+selectors, so a selector like `a > b` is output as `a>b`.
+
 ## 1.14.2
 
 * Fix a bug where loading the same stylesheet from two different import paths
@@ -59,7 +64,7 @@ deprecation period.
 
 * Properly parse `:nth-child()` and `:nth-last-child()` selectors with
   whitespace around the argument.
-  
+
 * Don't emit extra whitespace in the arguments for `:nth-child()` and
   `:nth-last-child()` selectors.
 
