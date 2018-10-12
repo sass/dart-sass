@@ -4,6 +4,8 @@
 
 import 'dart:math' as math;
 
+import 'package:charcode/charcode.dart';
+
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -30,6 +32,20 @@ class PseudoSelector extends SimpleSelector {
   ///
   /// This is `true` if and only if [isClass] is `false`.
   bool get isElement => !isClass;
+
+  /// Whether this is syntactically a pseudo-class selector.
+  ///
+  /// This is the same as [isClass] unless this selector is a pseudo-element
+  /// that was written syntactically as a pseudo-class (`:before`, `:after`,
+  /// `:first-line`, or `:first-letter`).
+  ///
+  /// This is `true` if and only if [isSyntacticElement] is `false`.
+  final bool isSyntacticClass;
+
+  /// Whether this is syntactically a pseudo-element selector.
+  ///
+  /// This is `true` if and only if [isSyntacticClass] is `false`.
+  bool get isSyntacticElement => !isSyntacticClass;
 
   /// The non-selector argument passed to this selector.
   ///
@@ -69,9 +85,33 @@ class PseudoSelector extends SimpleSelector {
 
   PseudoSelector(String name,
       {bool element: false, this.argument, this.selector})
-      : isClass = !element,
+      : isClass = !element && !_isFakePseudoElement(name),
+        isSyntacticClass = !element,
         name = name,
         normalizedName = unvendor(name);
+
+  /// Returns whether [name] is the name of a pseudo-element that can be written
+  /// with pseudo-class syntax (`:before`, `:after`, `:first-line`, or
+  /// `:first-letter`)
+  static bool _isFakePseudoElement(String name) {
+    switch (name.codeUnitAt(0)) {
+      case $a:
+      case $A:
+        return equalsIgnoreCase(name, "after");
+
+      case $b:
+      case $B:
+        return equalsIgnoreCase(name, "before");
+
+      case $f:
+      case $F:
+        return equalsIgnoreCase(name, "first-line") ||
+            equalsIgnoreCase(name, "first-letter");
+
+      default:
+        return false;
+    }
+  }
 
   /// Returns a new [PseudoSelector] based on this, but with the selector
   /// replaced with [selector].

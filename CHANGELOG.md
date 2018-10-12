@@ -1,7 +1,10 @@
 ## 1.14.3
 
+* Treat `:before`, `:after`, `:first-line`, and `:first-letter` as
+  pseudo-elements for the purposes of `@extend`.
+
 * When running in compressed mode, remove spaces around combinators in complex
-selectors, so a selector like `a > b` is output as `a>b`.
+  selectors, so a selector like `a > b` is output as `a>b`.
 
 ## 1.14.2
 
