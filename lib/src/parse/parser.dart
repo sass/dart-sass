@@ -204,7 +204,7 @@ abstract class Parser {
     return buffer.toString();
   }
 
-  /// Consumes tokens until it reaches a top-level `":"`, `")"`, `"]"`,
+  /// Consumes tokens until it reaches a top-level `";"`, `")"`, `"]"`,
   /// or `"}"` and returns their contents as a string.
   ///
   /// If [allowEmpty] is `false` (the default), this requires at least one token.
