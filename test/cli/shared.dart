@@ -253,6 +253,24 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(65);
   });
 
+  // Regression test for an issue mentioned in sass/linter#15
+  test(
+      "gracefully reports errors for binary operations with parentheized "
+      "operands", () async {
+    var sass = await runSass(["-"]);
+    sass.stdin.writeln("a {b: (#123) + (#456)}");
+    sass.stdin.close();
+    expect(
+        sass.stderr,
+        emitsInOrder([
+          'Error: Undefined operation "#123 + #456".',
+          "a {b: (#123) + (#456)}",
+          "      ^^^^^^^^^^^^^^^",
+          "  - 1:7  root stylesheet",
+        ]));
+    await sass.shouldExit(65);
+  });
+
   test("gracefully handles a non-partial next to a partial", () async {
     await d.file("test.scss", "a {b: c}").create();
     await d.file("_test.scss", "x {y: z}").create();

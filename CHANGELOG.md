@@ -6,6 +6,9 @@
 * When running in compressed mode, remove spaces around combinators in complex
   selectors, so a selector like `a > b` is output as `a>b`.
 
+* Properly indicate the source span for errors involving binary operation
+  expressions whose operands are parenthesized.
+
 ## 1.14.2
 
 * Fix a bug where loading the same stylesheet from two different import paths

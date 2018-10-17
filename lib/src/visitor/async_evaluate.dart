@@ -1252,6 +1252,9 @@ class _EvaluateVisitor
   Future<SassNumber> visitNumberExpression(NumberExpression node) async =>
       new SassNumber(node.value, node.unit);
 
+  Future<Value> visitParenthesizedExpression(ParenthesizedExpression node) =>
+      node.expression.accept(this);
+
   Future<SassColor> visitColorExpression(ColorExpression node) async =>
       node.value;
 

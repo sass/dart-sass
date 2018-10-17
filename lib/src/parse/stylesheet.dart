@@ -1772,7 +1772,7 @@ relase. For details, see http://bit.ly/moz-document.
 
       if (!scanner.scanChar($comma)) {
         scanner.expectChar($rparen);
-        return first;
+        return new ParenthesizedExpression(first, scanner.spanFrom(start));
       }
       whitespace();
 

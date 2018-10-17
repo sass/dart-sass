@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: f20e0967bae462f7d1728053fa0a41c09bcc0e03
+// Checksum: ce258987d3496f06c82ca1f31df4a0ac778fe326
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -1241,6 +1241,9 @@ class _EvaluateVisitor
 
   SassNumber visitNumberExpression(NumberExpression node) =>
       new SassNumber(node.value, node.unit);
+
+  Value visitParenthesizedExpression(ParenthesizedExpression node) =>
+      node.expression.accept(this);
 
   SassColor visitColorExpression(ColorExpression node) => node.value;
 
