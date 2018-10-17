@@ -254,7 +254,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   });
 
   // Regression test for an issue mentioned in sass/linter#15
-  test("gracefully reports errors for binary operations with parentheized ""operands", () async {
+  test(
+      "gracefully reports errors for binary operations with parentheized "
+      "operands", () async {
     var sass = await runSass(["-"]);
     sass.stdin.writeln("a {b: (#123) + (#456)}");
     sass.stdin.close();
