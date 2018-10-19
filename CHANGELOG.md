@@ -1,3 +1,7 @@
+## 1.14.4
+
+* Properly escape U+0009 CHARACTER TABULATION in unquoted strings.
+
 ## 1.14.3
 
 * Treat `:before`, `:after`, `:first-line`, and `:first-letter` as

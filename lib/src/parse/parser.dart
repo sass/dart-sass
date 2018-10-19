@@ -395,7 +395,7 @@ abstract class Parser {
 
     if (identifierStart ? isNameStart(value) : isName(value)) {
       return new String.fromCharCode(value);
-    } else if (value <= 0x1F ||
+    } else if ((value <= 0x1F && value != $tab) ||
         value == 0x7F ||
         (identifierStart && isDigit(value))) {
       var buffer = new StringBuffer()..writeCharCode($backslash);
