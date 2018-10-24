@@ -47,6 +47,12 @@ updateBazel() async {
         "push",
         "--tags",
         "https://$username:$password@github.com/bazelbuild/rules_sass.git",
+      ],
+      workingDirectory: repo);
+  await runAsync("git",
+      arguments: [
+        "push",
+        "https://$username:$password@github.com/bazelbuild/rules_sass.git",
         "master:master"
       ],
       workingDirectory: repo);
