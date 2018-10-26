@@ -4,7 +4,6 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../interpolation.dart';
 import '../statement.dart';
@@ -13,20 +12,15 @@ import 'parent.dart';
 /// An unknown at-rule.
 class AtRule extends ParentStatement {
   /// The name of this rule.
-  final String name;
-
-  /// Like [name], but without any vendor prefixes.
-  final String normalizedName;
+  final Interpolation name;
 
   /// The value of this rule.
   final Interpolation value;
 
   final FileSpan span;
 
-  AtRule(String name, this.span, {this.value, Iterable<Statement> children})
-      : name = name,
-        normalizedName = unvendor(name),
-        super(children == null ? null : new List.unmodifiable(children));
+  AtRule(this.name, this.span, {this.value, Iterable<Statement> children})
+      : super(children == null ? null : new List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);
 

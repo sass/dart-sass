@@ -207,7 +207,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
     _for(node, () {
       _buffer.writeCharCode($at);
-      _buffer.write(node.name);
+      _write(node.name);
 
       if (node.value != null) {
         _buffer.writeCharCode($space);

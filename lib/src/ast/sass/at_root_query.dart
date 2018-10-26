@@ -72,7 +72,7 @@ class AtRootQuery {
   String _nameFor(CssParentNode node) {
     if (node is CssMediaRule) return "media";
     if (node is CssSupportsRule) return "supports";
-    if (node is CssAtRule) return node.name.toLowerCase();
+    if (node is CssAtRule) return node.name.value.toLowerCase();
     return null;
   }
 }

@@ -1,3 +1,10 @@
+## 1.15.0
+
+* Add support for interpolation in at-rule names. See [the
+  proposal][at-rule-interpolation] for details.
+
+[at-rule-interpolation]: https://github.com/sass/language/blob/master/accepted/at-rule-interpolation.md
+
 ## 1.14.4
 
 * Properly escape U+0009 CHARACTER TABULATION in unquoted strings.
