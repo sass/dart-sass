@@ -169,7 +169,7 @@ RenderResult _renderSync(RenderOptions options) {
 /// Converts an exception to a [JSError].
 JSError _wrapException(exception) {
   if (exception is SassException) {
-    return _newRenderError(exception.toString(),
+    return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
         line: exception.span.start.line + 1,
         column: exception.span.start.column + 1,
         file: exception.span.sourceUrl == null
@@ -383,7 +383,7 @@ bool _enableSourceMaps(RenderOptions options) =>
 JSError _newRenderError(String message,
     {int line, int column, String file, int status}) {
   var error = new JSError(message);
-  setProperty(error, 'formatted', message);
+  setProperty(error, 'formatted', 'Error: $message');
   if (line != null) setProperty(error, 'line', line);
   if (column != null) setProperty(error, 'column', column);
   if (file != null) setProperty(error, 'file', file);
