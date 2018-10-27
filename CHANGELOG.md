@@ -1,3 +1,9 @@
+## 1.14.5
+
+### JavaScript API
+
+* Always include the error location in error messages.
+
 ## 1.14.4
 
 * Properly escape U+0009 CHARACTER TABULATION in unquoted strings.
