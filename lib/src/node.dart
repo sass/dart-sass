@@ -169,20 +169,7 @@ RenderResult _renderSync(RenderOptions options) {
 /// Converts an exception to a [JSError].
 JSError _wrapException(exception) {
   if (exception is SassException) {
-    var trace = exception is SassRuntimeException
-        ? "\n" +
-            exception.trace
-                .toString()
-                .trimRight()
-                .split("\n")
-                .map((frame) => "  $frame")
-                .join("\n")
-        : "\n  ${p.prettyUri(exception.span.sourceUrl ?? '-')} "
-        "${exception.span.start.line + 1}:${exception.span.start.column + 1}  "
-        "root stylesheet";
-
-    return _newRenderError(exception.message + trace,
-        formatted: exception.toString(),
+    return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
         line: exception.span.start.line + 1,
         column: exception.span.start.column + 1,
         file: exception.span.sourceUrl == null
@@ -394,9 +381,9 @@ bool _enableSourceMaps(RenderOptions options) =>
 /// Creates a [JSError] with the given fields added to it so it acts like a Node
 /// Sass error.
 JSError _newRenderError(String message,
-    {String formatted, int line, int column, String file, int status}) {
+    {int line, int column, String file, int status}) {
   var error = new JSError(message);
-  if (formatted != null) setProperty(error, 'formatted', formatted);
+  setProperty(error, 'formatted', 'Error: $message');
   if (line != null) setProperty(error, 'line', line);
   if (column != null) setProperty(error, 'column', column);
   if (file != null) setProperty(error, 'file', file);

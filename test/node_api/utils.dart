@@ -32,6 +32,7 @@ void useSandbox() {
 Matcher toStringAndMessageEqual(String text) => predicate((error) {
       expect(error.toString(), equals("Error: $text"));
       expect(error.message, equals(text));
+      expect(error.formatted, equals("Error: $text"));
       return true;
     });
 
