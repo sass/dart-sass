@@ -947,8 +947,9 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   new BuiltInCallable("type-of", r"$value", (arguments) {
     var value = arguments[0];
-    if (value is SassArgumentList)
+    if (value is SassArgumentList) {
       return new SassString("arglist", quotes: false);
+    }
     if (value is SassBoolean) return new SassString("bool", quotes: false);
     if (value is SassColor) return new SassString("color", quotes: false);
     if (value is SassList) return new SassString("list", quotes: false);
