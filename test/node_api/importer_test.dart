@@ -501,6 +501,8 @@ void main() {
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
+              "@import 'foo'\n"
+              "        ^^^^^\n"
               "  stdin 1:9  root stylesheet"));
     });
 
@@ -512,6 +514,8 @@ void main() {
       expect(
           error,
           toStringAndMessageEqual("oh no\n"
+              "@import 'foo'\n"
+              "        ^^^^^\n"
               "  stdin 1:9  root stylesheet"));
     });
 
@@ -524,6 +528,8 @@ void main() {
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
+              "@import 'foo'\n"
+              "        ^^^^^\n"
               "  stdin 1:9  root stylesheet"));
     });
 
@@ -533,6 +539,8 @@ void main() {
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
+              "@import 'foo'\n"
+              "        ^^^^^\n"
               "  stdin 1:9  root stylesheet"));
     });
 
@@ -542,6 +550,8 @@ void main() {
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
+              "@import 'foo'\n"
+              "        ^^^^^\n"
               "  stdin 1:9  root stylesheet"));
     });
   });
@@ -569,6 +579,8 @@ void main() {
                 });
               }))),
           completion(toStringAndMessageEqual("oh no\n"
+              "@import 'foo'\n"
+              "        ^^^^^\n"
               "  stdin 1:9  root stylesheet")));
     });
 
@@ -588,6 +600,8 @@ void main() {
               importer: allowInterop((_, __, ___) => jsNull))),
           completion(
               toStringAndMessageEqual("Can't find stylesheet to import.\n"
+                  "@import 'foo'\n"
+                  "        ^^^^^\n"
                   "  stdin 1:9  root stylesheet")));
     });
 
@@ -647,6 +661,8 @@ void main() {
                 }),
                 fiber: fiber)),
             completion(toStringAndMessageEqual("oh no\n"
+                "@import 'foo'\n"
+                "        ^^^^^\n"
                 "  stdin 1:9  root stylesheet")));
       });
 
@@ -658,6 +674,8 @@ void main() {
                 fiber: fiber)),
             completion(
                 toStringAndMessageEqual("Can't find stylesheet to import.\n"
+                    "@import 'foo'\n"
+                    "        ^^^^^\n"
                     "  stdin 1:9  root stylesheet")));
       });
     });

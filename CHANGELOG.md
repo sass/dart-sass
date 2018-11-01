@@ -5,6 +5,10 @@
 
 [at-rule-interpolation]: https://github.com/sass/language/blob/master/accepted/at-rule-interpolation.md
 
+### JavaScript API
+
+* Always include the error location in error messages.
+
 ## 1.14.4
 
 * Properly escape U+0009 CHARACTER TABULATION in unquoted strings.

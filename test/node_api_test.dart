@@ -242,6 +242,8 @@ a {
         expect(
             error.toString(),
             equals("Error: Expected expression.\n"
+                "x {y: }\n"
+                "      ^\n"
                 "  $sassPath 1:7  root stylesheet"));
       });
     });
@@ -313,16 +315,9 @@ a {
           expect(
               error,
               toStringAndMessageEqual("Expected expression.\n"
+                  "a {b: }\n"
+                  "      ^\n"
                   "  $sassPath 1:7  root stylesheet"));
-        });
-
-        test("has a useful formatted message", () async {
-          expect(
-              error.formatted,
-              "Error: Expected expression.\n"
-              "a {b: }\n"
-              "      ^\n"
-              "  $sassPath 1:7  root stylesheet");
         });
 
         test("sets the line, column, and filename", () {
@@ -345,16 +340,9 @@ a {
           expect(
               error,
               toStringAndMessageEqual("Expected expression.\n"
+                  "a {b: }\n"
+                  "      ^\n"
                   "  stdin 1:7  root stylesheet"));
-        });
-
-        test("has a useful formatted message", () {
-          expect(
-              error.formatted,
-              "Error: Expected expression.\n"
-              "a {b: }\n"
-              "      ^\n"
-              "  stdin 1:7  root stylesheet");
         });
 
         test("sets the line, column, and filename", () {
@@ -374,16 +362,9 @@ a {
           expect(
               error,
               toStringAndMessageEqual('Undefined operation "1 % a".\n'
+                  'a {b: 1 % a}\n'
+                  '      ^^^^^\n'
                   '  $sassPath 1:7  root stylesheet'));
-        });
-
-        test("has a useful formatted message", () async {
-          expect(
-              error.formatted,
-              'Error: Undefined operation "1 % a".\n'
-              'a {b: 1 % a}\n'
-              '      ^^^^^\n'
-              '  $sassPath 1:7  root stylesheet');
         });
 
         test("sets the line, column, and filename", () {
@@ -402,16 +383,9 @@ a {
           expect(
               error,
               toStringAndMessageEqual('Undefined operation "1 % a".\n'
+                  'a {b: 1 % a}\n'
+                  '      ^^^^^\n'
                   '  stdin 1:7  root stylesheet'));
-        });
-
-        test("has a useful formatted message", () {
-          expect(
-              error.formatted,
-              'Error: Undefined operation "1 % a".\n'
-              'a {b: 1 % a}\n'
-              '      ^^^^^\n'
-              '  stdin 1:7  root stylesheet');
         });
 
         test("sets the line, column, and filename", () {
@@ -458,6 +432,8 @@ a {
       expect(
           error.toString(),
           equals("Error: Expected expression.\n"
+              "a {b: }\n"
+              "      ^\n"
               "  $sassPath 1:7  root stylesheet"));
     });
   });
