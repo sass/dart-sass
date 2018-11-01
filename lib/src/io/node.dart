@@ -206,7 +206,8 @@ DateTime modificationTime(String path) => _systemErrorToFileSystemException(
     () => new DateTime.fromMillisecondsSinceEpoch(
         _fs.statSync(path).mtime.getTime()));
 
-String getEnvironmentVariable(String name) => getProperty(_process.env, name) as String;
+String getEnvironmentVariable(String name) =>
+    getProperty(_process.env, name) as String;
 
 /// Runs callback and converts any [_SystemError]s it throws into
 /// [FileSystemException]s.
