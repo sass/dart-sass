@@ -12,6 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'package:sass/src/node/utils.dart';
+import 'package:sass/src/io.dart';
 
 import 'ensure_npm_package.dart';
 import 'hybrid.dart';
@@ -93,6 +94,45 @@ void main() {
           renderSync(new RenderOptions(
               data: "@import 'test'", includePaths: [sandbox])),
           equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
+    test("supports SASS_PATH", () async {
+      await createDirectory(p.join(sandbox, 'dir1'));
+      await createDirectory(p.join(sandbox, 'dir2'));
+      await writeTextFile(p.join(sandbox, 'dir1', 'test1.scss'), 'a {b: c}');
+      await writeTextFile(p.join(sandbox, 'dir2', 'test2.scss'), 'x {y: z}');
+
+      var separator = isWindows ? ';' : ':';
+      setEnvironmentVariable("SASS_PATH",
+          p.join(sandbox, 'dir1') + separator + p.join(sandbox, 'dir2'));
+
+      try {
+        expect(renderSync(new RenderOptions(data: """
+              @import 'test1';
+              @import 'test2';
+            """)), equalsIgnoringWhitespace('a { b: c; } x { y: z; }'));
+      } finally {
+        setEnvironmentVariable("SASS_PATH", null);
+      }
+    });
+
+    test("load path takes precedence over SASS_PATH", () async {
+      await createDirectory(p.join(sandbox, 'dir1'));
+      await createDirectory(p.join(sandbox, 'dir2'));
+      await writeTextFile(p.join(sandbox, 'dir1', 'test.scss'), 'a {b: c}');
+      await writeTextFile(p.join(sandbox, 'dir2', 'test.scss'), 'x {y: z}');
+
+      setEnvironmentVariable("SASS_PATH", p.join(sandbox, 'dir1'));
+
+      try {
+        expect(
+            renderSync(new RenderOptions(
+                data: "@import 'test'",
+                includePaths: [p.join(sandbox, 'dir2')])),
+            equalsIgnoringWhitespace('x { y: z; }'));
+      } finally {
+        setEnvironmentVariable("SASS_PATH", null);
+      }
     });
 
     // Regression test for #314

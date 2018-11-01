@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -10,12 +11,16 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
-void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
+void sharedTests(
+    Future<TestProcess> runSass(Iterable<String> arguments,
+        {Map<String, String> environment})) {
   /// Runs the executable on [arguments] plus an output file, then verifies that
   /// the contents of the output file match [expected].
-  Future expectCompiles(List<String> arguments, expected) async {
+  Future expectCompiles(List<String> arguments, expected,
+      {Map<String, String> environment}) async {
     var sass = await runSass(
-        arguments.toList()..add("out.css")..add("--no-source-map"));
+        arguments.toList()..add("out.css")..add("--no-source-map"),
+        environment: environment);
     await sass.shouldExit(0);
     await d.file("out.css", expected).validate();
   }
@@ -123,6 +128,21 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           equalsIgnoringWhitespace("a { b: c; }"));
     });
 
+    test("from SASS_PATH", () async {
+      await d.file("test.scss", """
+        @import 'test2';
+        @import 'test3';
+      """).create();
+
+      await d.dir("dir2", [d.file("test2.scss", "a {b: c}")]).create();
+      await d.dir("dir3", [d.file("test3.scss", "x {y: z}")]).create();
+
+      var separator = Platform.isWindows ? ';' : ':';
+      await expectCompiles(
+          ["test.scss"], equalsIgnoringWhitespace("a { b: c; } x { y: z; }"),
+          environment: {"SASS_PATH": "dir2${separator}dir3"});
+    });
+
     // Regression test for #369
     test("from within a directory, relative to a file on the load path",
         () async {
@@ -159,6 +179,29 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await expectCompiles(
           ["--load-path", "dir2", "--load-path", "dir1", "test.scss"],
           equalsIgnoringWhitespace("x { y: z; }"));
+    });
+
+    test("from the load path in preference to from SASS_PATH", () async {
+      await d.file("test.scss", "@import 'test2'").create();
+
+      await d.dir("dir1", [d.file("test2.scss", "a {b: c}")]).create();
+      await d.dir("dir2", [d.file("test2.scss", "x {y: z}")]).create();
+
+      await expectCompiles(["--load-path", "dir2", "test.scss"],
+          equalsIgnoringWhitespace("x { y: z; }"),
+          environment: {"SASS_PATH": "dir1"});
+    });
+
+    test("in SASS_PATH order", () async {
+      await d.file("test.scss", "@import 'test2'").create();
+
+      await d.dir("dir1", [d.file("test2.scss", "a {b: c}")]).create();
+      await d.dir("dir2", [d.file("test2.scss", "x {y: z}")]).create();
+
+      var separator = Platform.isWindows ? ';' : ':';
+      await expectCompiles(
+          ["test.scss"], equalsIgnoringWhitespace("x { y: z; }"),
+          environment: {"SASS_PATH": "dir2${separator}dir3"});
     });
 
     // Regression test for an internal Google issue.

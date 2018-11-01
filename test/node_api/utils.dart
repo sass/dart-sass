@@ -15,6 +15,9 @@ import 'package:sass/src/node/function.dart';
 import '../hybrid.dart';
 import 'api.dart';
 
+@JS('process.env')
+external Object get _environment;
+
 String sandbox;
 
 void useSandbox() {
@@ -95,4 +98,9 @@ void runTestInSandbox() {
   var oldWorkingDirectory = currentPath;
   chdir(sandbox);
   addTearDown(() => chdir(oldWorkingDirectory));
+}
+
+/// Sets the environment variable [name] to [value] within this process.
+void setEnvironmentVariable(String name, String value) {
+  setProperty(_environment, name, value);
 }

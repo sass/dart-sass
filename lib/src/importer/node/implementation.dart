@@ -36,6 +36,7 @@ import '../utils.dart';
 ///   1. Filesystem imports relative to the base file.
 ///   2. Filesystem imports relative to the working directory.
 ///   3. Filesystem imports relative to an `includePaths` path.
+///   3. Filesystem imports relative to a `SASS_PATH` path.
 ///   4. Custom importer imports.
 class NodeImporter {
   /// The `this` context in which importer functions are invoked.
@@ -48,8 +49,17 @@ class NodeImporter {
   final List<JSFunction> _importers;
 
   NodeImporter(this._context, Iterable<String> includePaths, Iterable importers)
-      : _includePaths = new List.unmodifiable(includePaths),
+      : _includePaths = new List.unmodifiable(_addSassPath(includePaths)),
         _importers = new List.unmodifiable(importers);
+
+  /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
+  /// environment variable.
+  static Iterable<String> _addSassPath(Iterable<String> includePaths) sync* {
+    yield* includePaths;
+    var sassPath = getEnvironmentVariable("SASS_PATH");
+    if (sassPath == null) return;
+    yield* sassPath.split(isWindows ? ';' : ':');
+  }
 
   /// Loads the stylesheet at [url].
   ///

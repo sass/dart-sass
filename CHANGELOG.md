@@ -1,3 +1,9 @@
+## 1.15.0
+
+* Add paths from the `SASS_PATH` environment variable to the load paths in the
+  command-line interface, Dart API, and JS API. These load paths are checked
+  just after the load paths explicitly passed by the user.
+
 ## 1.14.4
 
 * Properly escape U+0009 CHARACTER TABULATION in unquoted strings.

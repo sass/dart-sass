@@ -2,6 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'io/interface.dart'
+    if (dart.library.io) 'io/vm.dart'
+    if (dart.library.js) 'io/node.dart';
+
 export 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
     if (dart.library.js) 'io/node.dart';

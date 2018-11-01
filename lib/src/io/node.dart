@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_util';
 
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
@@ -59,6 +60,7 @@ class _SystemError {
 @JS()
 class _Process {
   external String get platform;
+  external Object get env;
   external String cwd();
 }
 
@@ -203,6 +205,8 @@ Iterable<String> listDir(String path) {
 DateTime modificationTime(String path) => _systemErrorToFileSystemException(
     () => new DateTime.fromMillisecondsSinceEpoch(
         _fs.statSync(path).mtime.getTime()));
+
+String getEnvironmentVariable(String name) => getProperty(_process.env, name);
 
 /// Runs callback and converts any [_SystemError]s it throws into
 /// [FileSystemException]s.

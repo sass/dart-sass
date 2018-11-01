@@ -83,6 +83,10 @@ Iterable<String> listDir(String path) => null;
 /// Returns the modification time of the file at [path].
 DateTime modificationTime(String path) => null;
 
+/// Returns the value of the environment variable with the given [name], or
+/// `null` if it's not set.
+String getEnvironmentVariable(String name) => null;
+
 /// Gets and sets the exit code that the process will use when it exits.
 int exitCode;
 
