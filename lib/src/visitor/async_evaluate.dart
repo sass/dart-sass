@@ -619,6 +619,8 @@ class _EvaluateVisitor
           "At-rules may not be used within nested declarations.", node.span);
     }
 
+    var name = await _interpolationToValue(node.name);
+
     var value = node.value == null
         ? null
         : await _interpolationToValue(node.value,
@@ -626,20 +628,19 @@ class _EvaluateVisitor
 
     if (node.children == null) {
       _parent.addChild(
-          new CssAtRule(node.name, node.span, childless: true, value: value));
+          new CssAtRule(name, node.span, childless: true, value: value));
       return null;
     }
 
     var wasInKeyframes = _inKeyframes;
     var wasInUnknownAtRule = _inUnknownAtRule;
-    if (node.normalizedName == 'keyframes') {
+    if (unvendor(name.value) == 'keyframes') {
       _inKeyframes = true;
     } else {
       _inUnknownAtRule = true;
     }
 
-    await _withParent(new CssAtRule(node.name, node.span, value: value),
-        () async {
+    await _withParent(new CssAtRule(name, node.span, value: value), () async {
       if (!_inStyleRule) {
         for (var child in node.children) {
           await child.accept(this);

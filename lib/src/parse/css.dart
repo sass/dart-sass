@@ -41,9 +41,11 @@ class CssParser extends ScssParser {
     // here should be mirrored there.
 
     var start = scanner.state;
-    var name = atRuleName();
+    scanner.expectChar($at);
+    var name = interpolatedIdentifier();
+    whitespace();
 
-    switch (name) {
+    switch (name.asPlain) {
       case "at-root":
       case "content":
       case "debug":
@@ -74,7 +76,7 @@ class CssParser extends ScssParser {
       case "media":
         return mediaRule(start);
       case "-moz-document":
-        return mozDocumentRule(start);
+        return mozDocumentRule(start, name);
       case "supports":
         return supportsRule(start);
       default:
