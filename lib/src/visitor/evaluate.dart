@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: ce258987d3496f06c82ca1f31df4a0ac778fe326
+// Checksum: e1af2918e6bfbf4b4d281b9f98756cd0ec910a28
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -620,25 +620,27 @@ class _EvaluateVisitor
           "At-rules may not be used within nested declarations.", node.span);
     }
 
+    var name = _interpolationToValue(node.name);
+
     var value = node.value == null
         ? null
         : _interpolationToValue(node.value, trim: true, warnForColor: true);
 
     if (node.children == null) {
       _parent.addChild(
-          new CssAtRule(node.name, node.span, childless: true, value: value));
+          new CssAtRule(name, node.span, childless: true, value: value));
       return null;
     }
 
     var wasInKeyframes = _inKeyframes;
     var wasInUnknownAtRule = _inUnknownAtRule;
-    if (node.normalizedName == 'keyframes') {
+    if (unvendor(name.value) == 'keyframes') {
       _inKeyframes = true;
     } else {
       _inUnknownAtRule = true;
     }
 
-    _withParent(new CssAtRule(node.name, node.span, value: value), () {
+    _withParent(new CssAtRule(name, node.span, value: value), () {
       if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);

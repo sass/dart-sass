@@ -436,9 +436,11 @@ abstract class StylesheetParser extends Parser {
     // here should be mirrored there.
 
     var start = scanner.state;
-    var name = atRuleName();
+    scanner.expectChar($at);
+    var name = interpolatedIdentifier();
+    whitespace();
 
-    switch (name) {
+    switch (name.asPlain) {
       case "at-root":
         return _atRootRule(start);
       case "charset":
@@ -472,7 +474,7 @@ abstract class StylesheetParser extends Parser {
       case "mixin":
         return _mixinRule(start);
       case "-moz-document":
-        return mozDocumentRule(start);
+        return mozDocumentRule(start, name);
       case "return":
         return _disallowedAtRule(start);
       case "supports":
@@ -489,7 +491,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes an at-rule allowed within a property declaration.
   Statement _declarationAtRule() {
     var start = scanner.state;
-    var name = atRuleName();
+    var name = _plainAtRuleName();
 
     switch (name) {
       case "content":
@@ -520,7 +522,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes an at-rule allowed within a function.
   Statement _functionAtRule() {
     var start = scanner.state;
-    switch (atRuleName()) {
+    switch (_plainAtRuleName()) {
       case "debug":
         return _debugRule(start);
       case "each":
@@ -544,9 +546,8 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
-  /// Consumes an at-rule's name.
-  @protected
-  String atRuleName() {
+  /// Consumes an at-rule's name, with interpolation disallowed.
+  String _plainAtRuleName() {
     scanner.expectChar($at);
     var name = identifier();
     whitespace();
@@ -956,7 +957,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [the specificiation]: http://www.w3.org/TR/css3-conditional/
   @protected
-  AtRule mozDocumentRule(LineScannerState start) {
+  AtRule mozDocumentRule(LineScannerState start, Interpolation name) {
     var valueStart = scanner.state;
     var buffer = new InterpolationBuffer();
     var needsDeprecationWarning = false;
@@ -1029,7 +1030,7 @@ relase. For details, see http://bit.ly/moz-document.
 """, span: span, deprecation: true);
     }
 
-    return new AtRule("-moz-document", span, value: value, children: children);
+    return new AtRule(name, span, value: value, children: children);
   }
 
   /// Consumes a `@return` rule.
@@ -1078,7 +1079,7 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// [start] should point before the `@`. [name] is the name of the at-rule.
   @protected
-  AtRule unknownAtRule(LineScannerState start, String name) {
+  AtRule unknownAtRule(LineScannerState start, Interpolation name) {
     var wasInUnknownAtRule = _inUnknownAtRule;
     _inUnknownAtRule = true;
 
@@ -2698,6 +2699,8 @@ relase. For details, see http://bit.ly/moz-document.
       buffer.write(escape(identifierStart: true));
     } else if (first == $hash && scanner.peekChar(1) == $lbrace) {
       buffer.add(singleInterpolation());
+    } else {
+      scanner.error("Expected identifier.");
     }
 
     while (true) {

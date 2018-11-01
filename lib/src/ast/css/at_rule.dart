@@ -11,7 +11,7 @@ import 'value.dart';
 /// An unknown plain CSS at-rule.
 class CssAtRule extends CssParentNode {
   /// The name of this rule.
-  final String name;
+  final CssValue<String> name;
 
   /// The value of this rule.
   final CssValue<String> value;

@@ -1,4 +1,9 @@
-## 1.14.5
+## 1.15.0
+
+* Add support for interpolation in at-rule names. See [the
+  proposal][at-rule-interpolation] for details.
+
+[at-rule-interpolation]: https://github.com/sass/language/blob/master/accepted/at-rule-interpolation.md
 
 ### JavaScript API
 
