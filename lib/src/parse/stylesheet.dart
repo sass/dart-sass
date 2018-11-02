@@ -855,10 +855,10 @@ abstract class StylesheetParser extends Parser {
   /// Returns `null` if neither type of query can be found.
   Tuple2<SupportsCondition, Interpolation> tryImportQueries() {
     SupportsCondition supports;
-    if (scanIdentifier("supports", ignoreCase: true)) {
+    if (scanIdentifier("supports")) {
       scanner.expectChar($lparen);
       var start = scanner.state;
-      if (scanIdentifier("not", ignoreCase: true)) {
+      if (scanIdentifier("not")) {
         whitespace();
         supports = new SupportsNegation(
             _supportsConditionInParens(), scanner.spanFrom(start));
@@ -1923,7 +1923,7 @@ relase. For details, see http://bit.ly/moz-document.
     var start = scanner.state;
     scanner.readChar();
     whitespace();
-    expectIdentifier("important", ignoreCase: true);
+    expectIdentifier("important");
     return new StringExpression.plain("!important", scanner.spanFrom(start));
   }
 
@@ -2380,7 +2380,7 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// Returns whether such a function could be consumed.
   bool _tryMinMaxFunction(InterpolationBuffer buffer, String name) {
-    if (!scanIdentifier(name, ignoreCase: true)) return false;
+    if (!scanIdentifier(name)) return false;
     if (!scanner.scanChar($lparen)) return false;
     buffer
       ..write(name)
@@ -2445,7 +2445,7 @@ relase. For details, see http://bit.ly/moz-document.
   @protected
   Expression dynamicUrl() {
     var start = scanner.state;
-    expectIdentifier("url", ignoreCase: true);
+    expectIdentifier("url");
     var contents = _tryUrlContents(start);
     if (contents != null) return new StringExpression(contents);
 
@@ -2524,7 +2524,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $u:
         case $U:
           var beforeUrl = scanner.state;
-          if (!scanIdentifier("url", ignoreCase: true)) {
+          if (!scanIdentifier("url")) {
             buffer.writeCharCode(scanner.readChar());
             break;
           }
@@ -2646,7 +2646,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $u:
         case $U:
           var beforeUrl = scanner.state;
-          if (!scanIdentifier("url", ignoreCase: true)) {
+          if (!scanIdentifier("url")) {
             buffer.writeCharCode(scanner.readChar());
             wroteNewline = false;
             break;
@@ -2778,7 +2778,7 @@ relase. For details, see http://bit.ly/moz-document.
         buffer.write(" and ");
       } else {
         buffer.addInterpolation(identifier);
-        if (scanIdentifier("and", ignoreCase: true)) {
+        if (scanIdentifier("and")) {
           // For example, "@media only screen and ..."
           whitespace();
           buffer.write(" and ");
@@ -2796,7 +2796,7 @@ relase. For details, see http://bit.ly/moz-document.
       whitespace();
       buffer.addInterpolation(_mediaFeature());
       whitespace();
-      if (!scanIdentifier("and", ignoreCase: true)) break;
+      if (!scanIdentifier("and")) break;
       buffer.write(" and ");
     }
   }
@@ -2867,7 +2867,7 @@ relase. For details, see http://bit.ly/moz-document.
     var first = scanner.peekChar();
     if (first != $lparen && first != $hash) {
       var start = scanner.state;
-      expectIdentifier("not", ignoreCase: true);
+      expectIdentifier("not");
       whitespace();
       return new SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
@@ -2877,10 +2877,10 @@ relase. For details, see http://bit.ly/moz-document.
     whitespace();
     while (lookingAtIdentifier()) {
       String operator;
-      if (scanIdentifier("or", ignoreCase: true)) {
+      if (scanIdentifier("or")) {
         operator = "or";
       } else {
-        expectIdentifier("and", ignoreCase: true);
+        expectIdentifier("and");
         operator = "and";
       }
 
@@ -2932,7 +2932,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Returns `null` if it fails.
   SupportsNegation _trySupportsNegation() {
     var start = scanner.state;
-    if (!scanIdentifier("not", ignoreCase: true) || scanner.isDone) {
+    if (!scanIdentifier("not") || scanner.isDone) {
       scanner.state = start;
       return null;
     }

@@ -57,7 +57,7 @@ class KeyframeSelectorParser extends Parser {
       }
     }
 
-    if (scanIdentifier("e", ignoreCase: true)) {
+    if (scanIdentifier("e")) {
       buffer.write(scanner.readChar());
       var next = scanner.peekChar();
       if (next == $plus || next == $minus) buffer.write(scanner.readChar());

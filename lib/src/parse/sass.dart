@@ -74,7 +74,7 @@ class SassParser extends StylesheetParser {
       case $u:
       case $U:
         var start = scanner.state;
-        if (scanIdentifier("url", ignoreCase: true)) {
+        if (scanIdentifier("url")) {
           if (scanner.scanChar($lparen)) {
             scanner.state = start;
             return super.importArgument();
