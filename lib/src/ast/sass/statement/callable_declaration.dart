@@ -12,6 +12,8 @@ import 'parent.dart';
 /// user code.
 abstract class CallableDeclaration extends ParentStatement {
   /// The name of this callable.
+  ///
+  /// This may be `null` for callables without names.
   final String name;
 
   /// The declared arguments this callable accepts.

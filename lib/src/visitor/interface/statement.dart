@@ -10,6 +10,7 @@ import '../../ast/sass.dart';
 abstract class StatementVisitor<T> {
   T visitAtRootRule(AtRootRule node);
   T visitAtRule(AtRule node);
+  T visitContentBlock(ContentBlock node);
   T visitContentRule(ContentRule node);
   T visitDebugRule(DebugRule node);
   T visitDeclaration(Declaration node);

@@ -240,7 +240,7 @@ class _EvaluateVisitor
         throw new SassScriptException(
             "content-exists() may only be called within a mixin.");
       }
-      return new SassBoolean(_environment.contentBlock != null);
+      return new SassBoolean(_environment.content != null);
     }));
 
     _environment.setFunction(
@@ -472,19 +472,18 @@ class _EvaluateVisitor
     return scope;
   }
 
-  Future<Value> visitContentRule(ContentRule node) async {
-    var block = _environment.contentBlock;
-    if (block == null) return null;
+  Future<Value> visitContentBlock(ContentBlock node) =>
+      throw new UnsupportedError(
+          "Evaluation handles @include and its content block together.");
 
-    await _withStackFrame("@content", node.span, () async {
-      // Add an extra closure() call so that modifications to the environment
-      // don't affect the underlying environment closure.
-      await _withEnvironment(_environment.contentEnvironment.closure(),
-          () async {
-        for (var statement in block) {
-          await statement.accept(this);
-        }
-      });
+  Future<Value> visitContentRule(ContentRule node) async {
+    var content = _environment.content;
+    if (content == null) return null;
+
+    await _runUserDefinedCallable(node.arguments, content, node.span, () async {
+      for (var statement in content.declaration.children) {
+        await statement.accept(this);
+      }
     });
 
     return null;
@@ -846,13 +845,15 @@ class _EvaluateVisitor
       throw _exception("Undefined mixin.", node.span);
     }
 
-    if (node.children != null && !(mixin.declaration as MixinRule).hasContent) {
+    if (node.content != null && !(mixin.declaration as MixinRule).hasContent) {
       throw _exception("Mixin doesn't accept a content block.", node.span);
     }
 
-    var environment = node.children == null ? null : _environment.closure();
+    var contentCallable = node.content == null
+        ? null
+        : new UserDefinedCallable(node.content, _environment.closure());
     await _runUserDefinedCallable(node.arguments, mixin, node.span, () async {
-      await _environment.withContent(node.children, environment, () async {
+      await _environment.withContent(contentCallable, () async {
         await _environment.asMixin(() async {
           for (var statement in mixin.declaration.children) {
             await statement.accept(this);
@@ -1302,7 +1303,8 @@ class _EvaluateVisitor
       Future<Value> run()) async {
     var evaluated = await _evaluateArguments(arguments);
 
-    return await _withStackFrame(callable.name + "()", span, () {
+    var name = callable.name == null ? "@content" : callable.name + "()";
+    return await _withStackFrame(name, span, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {

@@ -14,6 +14,7 @@ import 'interface/statement.dart';
 /// of AST nodes:
 ///
 /// * [visitCallableDeclaration]
+/// * [visitArgumentInvocation]
 /// * [visitSupportsCondition]
 /// * [visitChildren]
 /// * [visitInterpolation]
@@ -31,7 +32,12 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
     return node.children == null ? null : visitChildren(node);
   }
 
-  T visitContentRule(ContentRule node) => null;
+  T visitContentBlock(ContentBlock node) => visitCallableDeclaration(node);
+
+  T visitContentRule(ContentRule node) {
+    visitArgumentInvocation(node.arguments);
+    return null;
+  }
 
   T visitDebugRule(DebugRule node) {
     visitExpression(node.expression);
@@ -95,20 +101,8 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
   }
 
   T visitIncludeRule(IncludeRule node) {
-    for (var expression in node.arguments.positional) {
-      visitExpression(expression);
-    }
-    for (var expression in node.arguments.named.values) {
-      visitExpression(expression);
-    }
-    if (node.arguments.rest != null) {
-      visitExpression(node.arguments.rest);
-    }
-    if (node.arguments.keywordRest != null) {
-      visitExpression(node.arguments.keywordRest);
-    }
-
-    return node.children == null ? null : visitChildren(node);
+    visitArgumentInvocation(node.arguments);
+    return node.content == null ? null : visitContentBlock(node.content);
   }
 
   T visitLoudComment(LoudComment node) {
@@ -167,6 +161,26 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
       if (argument.defaultValue != null) visitExpression(argument.defaultValue);
     }
     return visitChildren(node);
+  }
+
+  /// Visits each expression in an [invocation].
+  ///
+  /// The default implementation of the visit methods calls this to visit any
+  /// argument invocation in a statement.
+  @protected
+  void visitArgumentInvocation(ArgumentInvocation invocation) {
+    for (var expression in invocation.positional) {
+      visitExpression(expression);
+    }
+    for (var expression in invocation.named.values) {
+      visitExpression(expression);
+    }
+    if (invocation.rest != null) {
+      visitExpression(invocation.rest);
+    }
+    if (invocation.keywordRest != null) {
+      visitExpression(invocation.keywordRest);
+    }
   }
 
   /// Visits each expression in [condition].
