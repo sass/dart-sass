@@ -10,6 +10,7 @@ import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
 import 'importer.dart';
+import 'io.dart';
 import 'logger.dart';
 import 'sync_package_resolver.dart';
 import 'utils.dart'; // ignore: unused_import
@@ -45,6 +46,9 @@ class AsyncImportCache {
   /// * Each load path in [loadPaths]. Note that this is a shorthand for adding
   ///   [FilesystemImporter]s to [importers].
   ///
+  /// * Each load path specified in the `SASS_PATH` environment variable, which
+  ///   should be semicolon-separated on Windows and colon-separated elsewhere.
+  ///
   /// * `package:` resolution using [packageResolver], which is a
   ///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
   ///   this is a shorthand for adding a [PackageImporter] to [importers].
@@ -64,12 +68,22 @@ class AsyncImportCache {
   static List<AsyncImporter> _toImporters(Iterable<AsyncImporter> importers,
       Iterable<String> loadPaths, SyncPackageResolver packageResolver) {
     var list = importers?.toList() ?? [];
+
     if (loadPaths != null) {
       list.addAll(loadPaths.map((path) => new FilesystemImporter(path)));
     }
+
+    var sassPath = getEnvironmentVariable('SASS_PATH');
+    if (sassPath != null) {
+      list.addAll(sassPath
+          .split(isWindows ? ';' : ':')
+          .map((path) => new FilesystemImporter(path)));
+    }
+
     if (packageResolver != null) {
       list.add(new PackageImporter(packageResolver));
     }
+
     return list;
   }
 

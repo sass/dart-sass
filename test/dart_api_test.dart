@@ -13,6 +13,8 @@ import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
 main() {
+  // TODO(nweiz): test SASS_PATH when dart-lang/sdk#28160 is fixed.
+
   group("importers", () {
     test("is used to resolve imports", () async {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();

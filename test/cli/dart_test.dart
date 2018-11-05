@@ -45,7 +45,8 @@ void ensureSnapshotUpToDate() {
   }
 }
 
-Future<TestProcess> runSass(Iterable<String> arguments) {
+Future<TestProcess> runSass(Iterable<String> arguments,
+    {Map<String, String> environment}) {
   var executable = _snapshotPaths.firstWhere(
       (path) => new File(path).existsSync(),
       orElse: () => p.absolute("bin/sass.dart"));
@@ -61,5 +62,6 @@ Future<TestProcess> runSass(Iterable<String> arguments) {
         ..add(executable)
         ..addAll(arguments),
       workingDirectory: d.sandbox,
+      environment: environment,
       description: "sass");
 }
