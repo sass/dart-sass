@@ -3,6 +3,10 @@
 * Add support for interpolation in at-rule names. See [the
   proposal][at-rule-interpolation] for details.
 
+* Add paths from the `SASS_PATH` environment variable to the load paths in the
+  command-line interface, Dart API, and JS API. These load paths are checked
+  just after the load paths explicitly passed by the user.
+
 [at-rule-interpolation]: https://github.com/sass/language/blob/master/accepted/at-rule-interpolation.md
 
 ### JavaScript API

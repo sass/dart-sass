@@ -83,6 +83,9 @@ DateTime modificationTime(String path) {
   return stat.modified;
 }
 
+String getEnvironmentVariable(String name) =>
+    io.Platform.environment['SASS_PATH'];
+
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) async {
   var watcher =
       poll ? new PollingDirectoryWatcher(path) : new DirectoryWatcher(path);

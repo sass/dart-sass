@@ -44,6 +44,9 @@ export 'src/visitor/serialize.dart' show OutputStyle;
 /// * Each load path in [loadPaths]. Note that this is a shorthand for adding
 ///   [FilesystemImporter]s to [importers].
 ///
+/// * Each load path specified in the `SASS_PATH` environment variable, which
+///   should be semicolon-separated on Windows and colon-separated elsewhere.
+///
 /// * `package:` resolution using [packageResolver], which is a
 ///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
 ///   this is a shorthand for adding a [PackageImporter] to [importers].
@@ -113,6 +116,9 @@ String compile(String path,
 ///
 /// * Each load path in [loadPaths]. Note that this is a shorthand for adding
 ///   [FilesystemImporter]s to [importers].
+///
+/// * Each load path specified in the `SASS_PATH` environment variable, which
+///   should be semicolon-separated on Windows and colon-separated elsewhere.
 ///
 /// * `package:` resolution using [packageResolver], which is a
 ///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
