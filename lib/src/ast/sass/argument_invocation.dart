@@ -23,6 +23,9 @@ class ArgumentInvocation implements SassNode {
 
   final FileSpan span;
 
+  /// Returns whether this invocation passes no arguments.
+  bool get isEmpty => positional.isEmpty && named.isEmpty && rest == null;
+
   ArgumentInvocation(
       Iterable<Expression> positional, Map<String, Expression> named, this.span,
       {this.rest, this.keywordRest})

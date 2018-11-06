@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
+import '../argument_invocation.dart';
 import '../statement.dart';
 
 /// A `@content` rule.
@@ -14,9 +15,12 @@ import '../statement.dart';
 class ContentRule implements Statement {
   final FileSpan span;
 
-  ContentRule(this.span);
+  final ArgumentInvocation arguments;
+
+  ContentRule(this.arguments, this.span);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentRule(this);
 
-  String toString() => "@content;";
+  String toString() =>
+      arguments.isEmpty ? "@content;" : "@content($arguments);";
 }

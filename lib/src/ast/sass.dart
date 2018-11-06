@@ -32,6 +32,7 @@ export 'sass/statement.dart';
 export 'sass/statement/at_root_rule.dart';
 export 'sass/statement/at_rule.dart';
 export 'sass/statement/callable_declaration.dart';
+export 'sass/statement/content_block.dart';
 export 'sass/statement/content_rule.dart';
 export 'sass/statement/debug_rule.dart';
 export 'sass/statement/declaration.dart';

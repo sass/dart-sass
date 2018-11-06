@@ -8,25 +8,30 @@ import '../../../visitor/interface/statement.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
 import '../statement.dart';
-import 'parent.dart';
+import 'content_block.dart';
 
 /// A mixin invocation.
-class IncludeRule extends ParentStatement implements CallableInvocation {
+class IncludeRule implements Statement, CallableInvocation {
   /// The name of the mixin being invoked.
   final String name;
 
   /// The arguments to pass to the mixin.
   final ArgumentInvocation arguments;
 
+  /// The block that will be invoked for [ContentRule]s in the mixin being
+  /// invoked, or `null` if this doesn't pass a content block.
+  final ContentBlock content;
+
   final FileSpan span;
 
-  IncludeRule(this.name, this.arguments, this.span,
-      {Iterable<Statement> children})
-      : super(children == null ? null : new List.unmodifiable(children));
+  IncludeRule(this.name, this.arguments, this.span, {this.content});
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 
-  String toString() =>
-      "@include $name($arguments)" +
-      (children == null ? ";" : " {${children.join(' ')}}");
+  String toString() {
+    var buffer = new StringBuffer("@include $name");
+    if (!arguments.isEmpty) buffer.write("($arguments)");
+    buffer.write(content == null ? ";" : " $content");
+    return buffer.toString();
+  }
 }

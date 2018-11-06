@@ -1,5 +1,8 @@
 ## 1.15.0
 
+* Add support for passing arguments to `@content` blocks. See [the
+  proposal][content-args] for details.
+
 * Add support for interpolation in at-rule names. See [the
   proposal][at-rule-interpolation] for details.
 
@@ -7,6 +10,7 @@
   command-line interface, Dart API, and JS API. These load paths are checked
   just after the load paths explicitly passed by the user.
 
+[content-args]: https://github.com/sass/language/blob/master/accepted/content-args.md
 [at-rule-interpolation]: https://github.com/sass/language/blob/master/accepted/at-rule-interpolation.md
 
 ### JavaScript API

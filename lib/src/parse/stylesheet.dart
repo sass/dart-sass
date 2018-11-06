@@ -608,9 +608,14 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
+    whitespace();
+    var arguments = scanner.peekChar() == $lparen
+        ? _argumentInvocation(mixin: true)
+        : new ArgumentInvocation.empty(scanner.emptySpan);
+
     _mixinHasContent = true;
     expectStatementSeparator("@content rule");
-    return new ContentRule(scanner.spanFrom(start));
+    return new ContentRule(arguments, scanner.spanFrom(start));
   }
 
   /// Consumes a `@debug` rule.
@@ -895,18 +900,29 @@ abstract class StylesheetParser extends Parser {
         : new ArgumentInvocation.empty(scanner.emptySpan);
     whitespace();
 
-    List<Statement> children;
-    if (lookingAtChildren()) {
+    ArgumentDeclaration contentArguments;
+    if (scanIdentifier("using")) {
+      whitespace();
+      contentArguments = _argumentDeclaration();
+      whitespace();
+    }
+
+    ContentBlock content;
+    if (contentArguments != null || lookingAtChildren()) {
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
-      children = this.children(_statement);
+      content = new ContentBlock(
+          contentArguments ??
+              new ArgumentDeclaration.empty(span: scanner.emptySpan),
+          this.children(_statement),
+          scanner.spanFrom(start));
       _inContentBlock = wasInContentBlock;
     } else {
       expectStatementSeparator();
     }
 
     return new IncludeRule(name, arguments, scanner.spanFrom(start),
-        children: children);
+        content: content);
   }
 
   /// Consumes a `@media` rule.

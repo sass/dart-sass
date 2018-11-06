@@ -28,5 +28,10 @@ class MixinRule extends CallableDeclaration {
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
 
-  String toString() => "@mixin $name($arguments) {${children.join(' ')}}";
+  String toString() {
+    var buffer = new StringBuffer("@mixin $name");
+    if (!arguments.isEmpty) buffer.write("($arguments)");
+    buffer.write(" {${children.join(' ')}}");
+    return buffer.toString();
+  }
 }

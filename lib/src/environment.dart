@@ -5,11 +5,10 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 302f38bd0b4f860d17374a959a0cd6ea16ae1dd1
+// Checksum: dbfd080cd2deac4a6584ef74ffe402b72c23fb27
 
 import 'package:source_span/source_span.dart';
 
-import 'ast/sass.dart';
 import 'callable.dart';
 import 'functions.dart';
 import 'value.dart';
@@ -79,14 +78,10 @@ class Environment {
   /// This map is filled in as-needed, and may not be complete.
   final Map<String, int> _mixinIndices;
 
-  /// The content block passed to the lexically-enclosing mixin, or `null` if this is not
-  /// in a mixin, or if no content block was passed.
-  List<Statement> get contentBlock => _contentBlock;
-  List<Statement> _contentBlock;
-
-  /// The environment in which [_contentBlock] should be executed.
-  Environment get contentEnvironment => _contentEnvironment;
-  Environment _contentEnvironment;
+  /// The content block passed to the lexically-enclosing mixin, or `null` if
+  /// this is not in a mixin, or if no content block was passed.
+  UserDefinedCallable<Environment> get content => _content;
+  UserDefinedCallable<Environment> _content;
 
   /// Whether the environment is lexically within a mixin.
   bool get inMixin => _inMixin;
@@ -122,7 +117,7 @@ class Environment {
   }
 
   Environment._(this._variables, this._variableSpans, this._functions,
-      this._mixins, this._contentBlock, this._contentEnvironment)
+      this._mixins, this._content)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() because the copying took a lot of
       // time and was rarely helpful. This saves a bunch of time on Susy's
@@ -141,8 +136,7 @@ class Environment {
       _variableSpans?.toList(),
       _functions.toList(),
       _mixins.toList(),
-      _contentBlock,
-      _contentEnvironment);
+      _content);
 
   /// Returns the value of the variable named [name], or `null` if no such
   /// variable is declared.
@@ -316,17 +310,12 @@ class Environment {
     _mixins[index][callable.name] = callable;
   }
 
-  /// Sets [block] and [environment] as [contentBlock] and [contentEnvironment],
-  /// respectively, for the duration of [callback].
-  void withContent(
-      List<Statement> block, Environment environment, void callback()) {
-    var oldBlock = _contentBlock;
-    var oldEnvironment = _contentEnvironment;
-    _contentBlock = block;
-    _contentEnvironment = environment;
+  /// Sets [content] as [this.content] for the duration of [callback].
+  void withContent(UserDefinedCallable<Environment> content, void callback()) {
+    var oldContent = _content;
+    _content = content;
     callback();
-    _contentBlock = oldBlock;
-    _contentEnvironment = oldEnvironment;
+    _content = oldContent;
   }
 
   /// Sets [inMixin] to `true` for the duration of [callback].

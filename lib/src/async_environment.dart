@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:source_span/source_span.dart';
 
-import 'ast/sass.dart';
 import 'callable.dart';
 import 'functions.dart';
 import 'value.dart';
@@ -76,14 +75,10 @@ class AsyncEnvironment {
   /// This map is filled in as-needed, and may not be complete.
   final Map<String, int> _mixinIndices;
 
-  /// The content block passed to the lexically-enclosing mixin, or `null` if this is not
-  /// in a mixin, or if no content block was passed.
-  List<Statement> get contentBlock => _contentBlock;
-  List<Statement> _contentBlock;
-
-  /// The environment in which [_contentBlock] should be executed.
-  AsyncEnvironment get contentEnvironment => _contentEnvironment;
-  AsyncEnvironment _contentEnvironment;
+  /// The content block passed to the lexically-enclosing mixin, or `null` if
+  /// this is not in a mixin, or if no content block was passed.
+  UserDefinedCallable<AsyncEnvironment> get content => _content;
+  UserDefinedCallable<AsyncEnvironment> _content;
 
   /// Whether the environment is lexically within a mixin.
   bool get inMixin => _inMixin;
@@ -119,7 +114,7 @@ class AsyncEnvironment {
   }
 
   AsyncEnvironment._(this._variables, this._variableSpans, this._functions,
-      this._mixins, this._contentBlock, this._contentEnvironment)
+      this._mixins, this._content)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() because the copying took a lot of
       // time and was rarely helpful. This saves a bunch of time on Susy's
@@ -138,8 +133,7 @@ class AsyncEnvironment {
       _variableSpans?.toList(),
       _functions.toList(),
       _mixins.toList(),
-      _contentBlock,
-      _contentEnvironment);
+      _content);
 
   /// Returns the value of the variable named [name], or `null` if no such
   /// variable is declared.
@@ -313,17 +307,13 @@ class AsyncEnvironment {
     _mixins[index][callable.name] = callable;
   }
 
-  /// Sets [block] and [environment] as [contentBlock] and [contentEnvironment],
-  /// respectively, for the duration of [callback].
-  Future withContent(List<Statement> block, AsyncEnvironment environment,
-      Future callback()) async {
-    var oldBlock = _contentBlock;
-    var oldEnvironment = _contentEnvironment;
-    _contentBlock = block;
-    _contentEnvironment = environment;
+  /// Sets [content] as [this.content] for the duration of [callback].
+  Future withContent(
+      UserDefinedCallable<AsyncEnvironment> content, Future callback()) async {
+    var oldContent = _content;
+    _content = content;
     await callback();
-    _contentBlock = oldBlock;
-    _contentEnvironment = oldEnvironment;
+    _content = oldContent;
   }
 
   /// Sets [inMixin] to `true` for the duration of [callback].

@@ -22,6 +22,9 @@ class ArgumentDeclaration implements SassNode {
 
   final FileSpan span;
 
+  /// Returns whether this declaration takes no arguments.
+  bool get isEmpty => arguments.isEmpty && restArgument == null;
+
   ArgumentDeclaration(Iterable<Argument> arguments,
       {this.restArgument, this.span})
       : arguments = new List.unmodifiable(arguments);

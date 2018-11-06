@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: e1af2918e6bfbf4b4d281b9f98756cd0ec910a28
+// Checksum: 0dc10210feef4db5d092a631d32ee93dd5a12907
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -245,7 +245,7 @@ class _EvaluateVisitor
         throw new SassScriptException(
             "content-exists() may only be called within a mixin.");
       }
-      return new SassBoolean(_environment.contentBlock != null);
+      return new SassBoolean(_environment.content != null);
     }));
 
     _environment.setFunction(
@@ -476,18 +476,17 @@ class _EvaluateVisitor
     return scope;
   }
 
-  Value visitContentRule(ContentRule node) {
-    var block = _environment.contentBlock;
-    if (block == null) return null;
+  Value visitContentBlock(ContentBlock node) => throw new UnsupportedError(
+      "Evaluation handles @include and its content block together.");
 
-    _withStackFrame("@content", node.span, () {
-      // Add an extra closure() call so that modifications to the environment
-      // don't affect the underlying environment closure.
-      _withEnvironment(_environment.contentEnvironment.closure(), () {
-        for (var statement in block) {
-          statement.accept(this);
-        }
-      });
+  Value visitContentRule(ContentRule node) {
+    var content = _environment.content;
+    if (content == null) return null;
+
+    _runUserDefinedCallable(node.arguments, content, node.span, () {
+      for (var statement in content.declaration.children) {
+        statement.accept(this);
+      }
     });
 
     return null;
@@ -844,13 +843,15 @@ class _EvaluateVisitor
       throw _exception("Undefined mixin.", node.span);
     }
 
-    if (node.children != null && !(mixin.declaration as MixinRule).hasContent) {
+    if (node.content != null && !(mixin.declaration as MixinRule).hasContent) {
       throw _exception("Mixin doesn't accept a content block.", node.span);
     }
 
-    var environment = node.children == null ? null : _environment.closure();
+    var contentCallable = node.content == null
+        ? null
+        : new UserDefinedCallable(node.content, _environment.closure());
     _runUserDefinedCallable(node.arguments, mixin, node.span, () {
-      _environment.withContent(node.children, environment, () {
+      _environment.withContent(contentCallable, () {
         _environment.asMixin(() {
           for (var statement in mixin.declaration.children) {
             statement.accept(this);
@@ -1286,7 +1287,8 @@ class _EvaluateVisitor
       UserDefinedCallable<Environment> callable, FileSpan span, Value run()) {
     var evaluated = _evaluateArguments(arguments);
 
-    return _withStackFrame(callable.name + "()", span, () {
+    var name = callable.name == null ? "@content" : callable.name + "()";
+    return _withStackFrame(name, span, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {
