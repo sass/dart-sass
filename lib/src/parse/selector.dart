@@ -305,7 +305,7 @@ class SelectorParser extends Parser {
       argument = _aNPlusB();
       whitespace();
       if (isWhitespace(scanner.peekChar(-1)) && scanner.peekChar() != $rparen) {
-        expectIdentifier("of", ignoreCase: true);
+        expectIdentifier("of");
         argument += " of";
         whitespace();
 
@@ -328,12 +328,12 @@ class SelectorParser extends Parser {
     switch (scanner.peekChar()) {
       case $e:
       case $E:
-        expectIdentifier("even", ignoreCase: true);
+        expectIdentifier("even");
         return "even";
 
       case $o:
       case $O:
-        expectIdentifier("odd", ignoreCase: true);
+        expectIdentifier("odd");
         return "odd";
 
       case $plus:

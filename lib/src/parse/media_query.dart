@@ -49,7 +49,7 @@ class MediaQueryParser extends Parser {
       } else {
         modifier = identifier1;
         type = identifier2;
-        if (scanIdentifier("and", ignoreCase: true)) {
+        if (scanIdentifier("and")) {
           // For example, "@media only screen and ..."
           whitespace();
         } else {
@@ -69,7 +69,7 @@ class MediaQueryParser extends Parser {
       features.add("(${declarationValue()})");
       scanner.expectChar($rparen);
       whitespace();
-    } while (scanIdentifier("and", ignoreCase: true));
+    } while (scanIdentifier("and"));
 
     if (type == null) {
       return new CssMediaQuery.condition(features);

@@ -315,7 +315,7 @@ abstract class Parser {
     // Most changes here should be mirrored there.
 
     var start = scanner.state;
-    if (!scanIdentifier("url", ignoreCase: true)) return null;
+    if (!scanIdentifier("url")) return null;
 
     if (!scanner.scanChar($lparen)) {
       scanner.state = start;
@@ -537,10 +537,8 @@ abstract class Parser {
   }
 
   /// Consumes an identifier if its name exactly matches [text].
-  ///
-  /// If [ignoreCase] is `true`, does a case-insensitive match.
   @protected
-  bool scanIdentifier(String text, {bool ignoreCase: false}) {
+  bool scanIdentifier(String text) {
     if (!lookingAtIdentifier()) return false;
 
     var start = scanner.state;
@@ -557,10 +555,8 @@ abstract class Parser {
   }
 
   /// Consumes an identifier and asserts that its name exactly matches [text].
-  ///
-  /// If [ignoreCase] is `true`, does a case-insensitive match.
   @protected
-  void expectIdentifier(String text, {String name, bool ignoreCase: false}) {
+  void expectIdentifier(String text, {String name}) {
     name ??= '"$text"';
 
     var start = scanner.position;
