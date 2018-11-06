@@ -644,7 +644,9 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   void visitNumber(SassNumber value) {
     if (value.asSlash != null) {
-      _buffer.write(value.asSlash);
+      visitNumber(value.asSlash.item1);
+      _buffer.writeCharCode($slash);
+      visitNumber(value.asSlash.item2);
       return;
     }
 

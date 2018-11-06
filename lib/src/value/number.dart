@@ -4,6 +4,8 @@
 
 import 'dart:math';
 
+import 'package:tuple/tuple.dart';
+
 import '../exception.dart';
 import '../util/number.dart';
 import '../utils.dart';
@@ -151,8 +153,9 @@ class SassNumber extends Value implements ext.SassNumber {
 
   final List<String> denominatorUnits;
 
-  /// The slash-separated representation of this number, if it has one.
-  final String asSlash;
+  /// The representation of this number as two slash-separated numbers, if it
+  /// has one.
+  final Tuple2<SassNumber, SassNumber> asSlash;
 
   bool get hasUnits => numeratorUnits.isNotEmpty || denominatorUnits.isNotEmpty;
 
@@ -188,9 +191,11 @@ class SassNumber extends Value implements ext.SassNumber {
     return new SassNumber._(value, numeratorUnits, denominatorUnits);
   }
 
-  /// Returns a copy of [this] with [this.asSlash] set to [asSlash].
-  SassNumber withSlash(String asSlash) =>
-      new SassNumber._(value, numeratorUnits, denominatorUnits, asSlash);
+  /// Returns a copy of [this] with [this.asSlash] set to a tuple containing
+  /// [numerator] and [denominator].
+  SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
+      new SassNumber._(value, numeratorUnits, denominatorUnits,
+          new Tuple2(numerator, denominator));
 
   SassNumber assertNumber([String name]) => this;
 

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: abeba8d186777d0dc1eedf9f9d29e4514bcd7619
+// Checksum: 6da6661213e8c929ae91a0a993a6cf2827f033f5
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -1183,9 +1183,7 @@ class _EvaluateVisitor
           var right = node.right.accept(this);
           var result = left.dividedBy(right);
           if (node.allowsSlash && left is SassNumber && right is SassNumber) {
-            var leftSlash = left.asSlash ?? _serialize(left, node.left.span);
-            var rightSlash = right.asSlash ?? _serialize(right, node.left.span);
-            return (result as SassNumber).withSlash("$leftSlash/$rightSlash");
+            return (result as SassNumber).withSlash(left, right);
           } else {
             return result;
           }
