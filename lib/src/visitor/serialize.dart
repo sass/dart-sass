@@ -15,6 +15,7 @@ import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../color_names.dart';
 import '../exception.dart';
+import '../utils.dart';
 import '../util/character.dart';
 import '../util/no_source_map_buffer.dart';
 import '../util/number.dart';
@@ -396,7 +397,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
       _buffer.write(value);
       return;
     } else if (minimumIndentation == -1) {
-      _buffer.write(value.trimRight());
+      _buffer.write(trimAsciiRight(value, excludeEscape: true));
       _buffer.writeCharCode($space);
       return;
     }
