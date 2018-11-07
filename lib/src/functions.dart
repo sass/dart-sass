@@ -174,7 +174,8 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
       var saturation = arguments[1].assertNumber("saturation");
       var lightness = arguments[2].assertNumber("lightness");
 
-      return new SassColor.hsl(hue.value, saturation.value, lightness.value);
+      return new SassColor.hsl(hue.value, saturation.value.clamp(0, 100),
+          lightness.value.clamp(0, 100));
     },
     r"$hue, $saturation": (arguments) {
       // hsl(123, var(--foo)) is valid CSS because --foo might be `10%, 20%` and
@@ -208,7 +209,10 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
       var lightness = arguments[2].assertNumber("lightness");
       var alpha = arguments[3].assertNumber("alpha");
 
-      return new SassColor.hsl(hue.value, saturation.value, lightness.value,
+      return new SassColor.hsl(
+          hue.value,
+          saturation.value.clamp(0, 100),
+          lightness.value.clamp(0, 100),
           _percentageOrUnitless(alpha, 1, "alpha"));
     },
     r"$hue, $saturation, $lightness": (arguments) {
