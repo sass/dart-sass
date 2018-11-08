@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 0dc10210feef4db5d092a631d32ee93dd5a12907
+// Checksum: abeba8d186777d0dc1eedf9f9d29e4514bcd7619
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -585,8 +585,10 @@ class _EvaluateVisitor
 
     var list = _adjustParseError(
         targetText.span,
-        () => new SelectorList.parse(targetText.value.trim(),
-            logger: _logger, allowParent: false));
+        () => new SelectorList.parse(
+            trimAscii(targetText.value, excludeEscape: true),
+            logger: _logger,
+            allowParent: false));
 
     for (var complex in list.components) {
       if (complex.components.length != 1 ||
@@ -1664,7 +1666,8 @@ class _EvaluateVisitor
       {bool trim: false, bool warnForColor: false}) {
     var result =
         _performInterpolation(interpolation, warnForColor: warnForColor);
-    return new CssValue(trim ? result.trim() : result, interpolation.span);
+    return new CssValue(trim ? trimAscii(result, excludeEscape: true) : result,
+        interpolation.span);
   }
 
   /// Evaluates [interpolation].

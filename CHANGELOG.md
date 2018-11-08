@@ -10,6 +10,8 @@
   command-line interface, Dart API, and JS API. These load paths are checked
   just after the load paths explicitly passed by the user.
 
+* Properly compile selectors that end in escaped whitespace.
+
 [content-args]: https://github.com/sass/language/blob/master/accepted/content-args.md
 [at-rule-interpolation]: https://github.com/sass/language/blob/master/accepted/at-rule-interpolation.md
 

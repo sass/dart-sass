@@ -48,11 +48,15 @@ int countOccurrences(String string, int codeUnit) {
 }
 
 /// Like [String.trim], but only trims ASCII whitespace.
-String trimAscii(String string) {
+///
+/// If [excludeEscape] is `true`, this doesn't trim whitespace included in a CSS
+/// escape.
+String trimAscii(String string, {bool excludeEscape: false}) {
   var start = _firstNonWhitespace(string);
   return start == null
       ? ""
-      : string.substring(start, _lastNonWhitespace(string) + 1);
+      : string.substring(
+          start, _lastNonWhitespace(string, excludeEscape: excludeEscape) + 1);
 }
 
 /// Like [String.trimLeft], but only trims ASCII whitespace.
@@ -62,13 +66,16 @@ String trimAsciiLeft(String string) {
 }
 
 /// Like [String.trimRight], but only trims ASCII whitespace.
-String trimAsciiRight(String string) {
-  var end = _lastNonWhitespace(string);
+///
+/// If [excludeEscape] is `true`, this doesn't trim whitespace included in a CSS
+/// escape.
+String trimAsciiRight(String string, {bool excludeEscape: false}) {
+  var end = _lastNonWhitespace(string, excludeEscape: excludeEscape);
   return end == null ? "" : string.substring(0, end + 1);
 }
 
 /// Returns the index of the first character in [string] that's not ASCII
-/// whitepsace, or [null] if [string] is entirely spaces.
+/// whitespace, or [null] if [string] is entirely spaces.
 int _firstNonWhitespace(String string) {
   for (var i = 0; i < string.length; i++) {
     if (!isWhitespace(string.codeUnitAt(i))) return i;
@@ -78,9 +85,22 @@ int _firstNonWhitespace(String string) {
 
 /// Returns the index of the last character in [string] that's not ASCII
 /// whitespace, or [null] if [string] is entirely spaces.
-int _lastNonWhitespace(String string) {
+///
+/// If [excludeEscape] is `true`, this doesn't move past whitespace that's
+/// included in a CSS escape.
+int _lastNonWhitespace(String string, {bool excludeEscape: false}) {
   for (var i = string.length - 1; i >= 0; i--) {
-    if (!isWhitespace(string.codeUnitAt(i))) return i;
+    var codeUnit = string.codeUnitAt(i);
+    if (!isWhitespace(codeUnit)) {
+      if (excludeEscape &&
+          i != 0 &&
+          i != string.length &&
+          codeUnit == $backslash) {
+        return i + 1;
+      } else {
+        return i;
+      }
+    }
   }
   return null;
 }
