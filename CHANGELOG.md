@@ -10,6 +10,10 @@
   command-line interface, Dart API, and JS API. These load paths are checked
   just after the load paths explicitly passed by the user.
 
+* Allow saturation and lightness values outside of the `0%` to `100%` range in
+  the `hsl()` and `hsla()` functions. They're now clamped to be within that
+  range rather than producing an error if they're outside it.
+
 * Properly compile selectors that end in escaped whitespace.
 
 [content-args]: https://github.com/sass/language/blob/master/accepted/content-args.md
