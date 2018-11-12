@@ -44,100 +44,26 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   // ### RGB
 
   new BuiltInCallable.overloaded("rgb", {
-    r"$red, $green, $blue": (arguments) {
-      if (arguments[0].isSpecialNumber ||
-          arguments[1].isSpecialNumber ||
-          arguments[2].isSpecialNumber) {
-        return _functionString('rgb', arguments);
-      }
-
-      var red = arguments[0].assertNumber("red");
-      var green = arguments[1].assertNumber("green");
-      var blue = arguments[2].assertNumber("blue");
-
-      return new SassColor.rgb(
-          fuzzyRound(_percentageOrUnitless(red, 255, "red")),
-          fuzzyRound(_percentageOrUnitless(green, 255, "green")),
-          fuzzyRound(_percentageOrUnitless(blue, 255, "blue")));
-    },
-    r"$red, $green": (arguments) {
-      // rgb(123, var(--foo)) is valid CSS because --foo might be `456, 789` and
-      // functions are parsed after variable substitution.
-      if (arguments[0].isVar || arguments[1].isVar) {
-        return _functionString('rgb', arguments);
-      } else {
-        throw new SassScriptException(r"Missing argument $blue.");
-      }
-    },
-    r"$red": (arguments) {
-      if (arguments.first.isVar) {
-        return _functionString('rgb', arguments);
-      } else {
-        throw new SassScriptException(r"Missing argument $green.");
-      }
+    r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgb", arguments),
+    r"$red, $green, $blue": (arguments) => _rgb("rgb", arguments),
+    r"$color, $alpha": (arguments) => _rgbTwoArg("rgb", arguments),
+    r"$channels": (arguments) {
+      var parsed = _parseChannels(
+          "rgb", [r"$red", r"$green", r"$blue"], arguments.first);
+      return parsed is SassString ? parsed : _rgb("rgb", parsed as List<Value>);
     }
   }),
 
   new BuiltInCallable.overloaded("rgba", {
-    r"$red, $green, $blue, $alpha": (arguments) {
-      if (arguments[0].isSpecialNumber ||
-          arguments[1].isSpecialNumber ||
-          arguments[2].isSpecialNumber ||
-          arguments[3].isSpecialNumber) {
-        return _functionString('rgba', arguments);
-      }
-
-      var red = arguments[0].assertNumber("red");
-      var green = arguments[1].assertNumber("green");
-      var blue = arguments[2].assertNumber("blue");
-      var alpha = arguments[3].assertNumber("alpha");
-
-      return new SassColor.rgb(
-          fuzzyRound(_percentageOrUnitless(red, 255, "red")),
-          fuzzyRound(_percentageOrUnitless(green, 255, "green")),
-          fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
-          _percentageOrUnitless(alpha, 1, "alpha"));
-    },
-    r"$color, $alpha": (arguments) {
-      // rgba(var(--foo), 0.5) is valid CSS because --foo might be `123, 456,
-      // 789` and functions are parsed after variable substitution.
-      if (arguments[0].isVar) {
-        return _functionString('rgba', arguments);
-      } else if (arguments[1].isVar) {
-        var first = arguments[0];
-        if (first is SassColor) {
-          return new SassString(
-              "rgba(${first.red}, ${first.green}, ${first.blue}, "
-              "${arguments[1].toCssString()})",
-              quotes: false);
-        } else {
-          return _functionString('rgba', arguments);
-        }
-      } else if (arguments[1].isSpecialNumber) {
-        var color = arguments[0].assertColor("color");
-        return new SassString(
-            "rgba(${color.red}, ${color.green}, ${color.blue}, "
-            "${arguments[1].toCssString()})",
-            quotes: false);
-      }
-
-      var color = arguments[0].assertColor("color");
-      var alpha = arguments[1].assertNumber("alpha");
-      return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
-    },
-    r"$red, $green, $blue": (arguments) {
-      if (arguments[0].isVar || arguments[1].isVar || arguments[2].isVar) {
-        return _functionString('rgba', arguments);
-      } else {
-        throw new SassScriptException(r"Missing argument $alpha.");
-      }
-    },
-    r"$red": (arguments) {
-      if (arguments.first.isVar) {
-        return _functionString('rgba', arguments);
-      } else {
-        throw new SassScriptException(r"Missing argument $green.");
-      }
+    r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgba", arguments),
+    r"$red, $green, $blue": (arguments) => _rgb("rgba", arguments),
+    r"$color, $alpha": (arguments) => _rgbTwoArg("rgba", arguments),
+    r"$channels": (arguments) {
+      var parsed = _parseChannels(
+          "rgba", [r"$red", r"$green", r"$blue"], arguments.first);
+      return parsed is SassString
+          ? parsed
+          : _rgb("rgba", parsed as List<Value>);
     }
   }),
 
@@ -163,20 +89,9 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   // ### HSL
 
   new BuiltInCallable.overloaded("hsl", {
-    r"$hue, $saturation, $lightness": (arguments) {
-      if (arguments[0].isSpecialNumber ||
-          arguments[1].isSpecialNumber ||
-          arguments[2].isSpecialNumber) {
-        return _functionString("hsl", arguments);
-      }
-
-      var hue = arguments[0].assertNumber("hue");
-      var saturation = arguments[1].assertNumber("saturation");
-      var lightness = arguments[2].assertNumber("lightness");
-
-      return new SassColor.hsl(hue.value, saturation.value.clamp(0, 100),
-          lightness.value.clamp(0, 100));
-    },
+    r"$hue, $saturation, $lightness, $alpha": (arguments) =>
+        _hsl("hsl", arguments),
+    r"$hue, $saturation, $lightness": (arguments) => _hsl("hsl", arguments),
     r"$hue, $saturation": (arguments) {
       // hsl(123, var(--foo)) is valid CSS because --foo might be `10%, 20%` and
       // functions are parsed after variable substitution.
@@ -186,44 +101,17 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
         throw new SassScriptException(r"Missing argument $lightness.");
       }
     },
-    r"$hue": (arguments) {
-      if (arguments.first.isVar) {
-        return _functionString('hsl', arguments);
-      } else {
-        throw new SassScriptException(r"Missing argument $saturation.");
-      }
+    r"$channels": (arguments) {
+      var parsed = _parseChannels(
+          "hsl", [r"$hue", r"$saturation", r"$lightness"], arguments.first);
+      return parsed is SassString ? parsed : _hsl("hsl", parsed as List<Value>);
     }
   }),
 
   new BuiltInCallable.overloaded("hsla", {
-    r"$hue, $saturation, $lightness, $alpha": (arguments) {
-      if (arguments[0].isSpecialNumber ||
-          arguments[1].isSpecialNumber ||
-          arguments[2].isSpecialNumber ||
-          arguments[3].isSpecialNumber) {
-        return _functionString("hsla", arguments);
-      }
-
-      var hue = arguments[0].assertNumber("hue");
-      var saturation = arguments[1].assertNumber("saturation");
-      var lightness = arguments[2].assertNumber("lightness");
-      var alpha = arguments[3].assertNumber("alpha");
-
-      return new SassColor.hsl(
-          hue.value,
-          saturation.value.clamp(0, 100),
-          lightness.value.clamp(0, 100),
-          _percentageOrUnitless(alpha, 1, "alpha"));
-    },
-    r"$hue, $saturation, $lightness": (arguments) {
-      // hsla(123, var(--foo)) is valid CSS because --foo might be `10%, 20%,
-      // 0.5` and functions are parsed after variable substitution.
-      if (arguments[0].isVar || arguments[1].isVar || arguments[2].isVar) {
-        return _functionString('hsla', arguments);
-      } else {
-        throw new SassScriptException(r"Missing argument $alpha.");
-      }
-    },
+    r"$hue, $saturation, $lightness, $alpha": (arguments) =>
+        _hsl("hsla", arguments),
+    r"$hue, $saturation, $lightness": (arguments) => _hsl("hsla", arguments),
     r"$hue, $saturation": (arguments) {
       if (arguments[0].isVar || arguments[1].isVar) {
         return _functionString('hsla', arguments);
@@ -231,12 +119,12 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
         throw new SassScriptException(r"Missing argument $lightness.");
       }
     },
-    r"$hue": (arguments) {
-      if (arguments.first.isVar) {
-        return _functionString('hsla', arguments);
-      } else {
-        throw new SassScriptException(r"Missing argument $saturation.");
-      }
+    r"$channels": (arguments) {
+      var parsed = _parseChannels(
+          "hsla", [r"$hue", r"$saturation", r"$lightness"], arguments.first);
+      return parsed is SassString
+          ? parsed
+          : _hsl("hsla", parsed as List<Value>);
     }
   }),
 
@@ -1008,6 +896,135 @@ SassString _functionString(String name, Iterable<Value> arguments) =>
             arguments.map((argument) => argument.toCssString()).join(', ') +
             ")",
         quotes: false);
+
+Value _rgb(String name, List<Value> arguments) {
+  var alpha = arguments.length > 3 ? arguments[3] : null;
+  if (arguments[0].isSpecialNumber ||
+      arguments[1].isSpecialNumber ||
+      arguments[2].isSpecialNumber ||
+      (alpha?.isSpecialNumber ?? false)) {
+    return _functionString(name, arguments);
+  }
+
+  var red = arguments[0].assertNumber("red");
+  var green = arguments[1].assertNumber("green");
+  var blue = arguments[2].assertNumber("blue");
+
+  return new SassColor.rgb(
+      fuzzyRound(_percentageOrUnitless(red, 255, "red")),
+      fuzzyRound(_percentageOrUnitless(green, 255, "green")),
+      fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
+      alpha == null
+          ? null
+          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+}
+
+Value _rgbTwoArg(String name, List<Value> arguments) {
+  // rgba(var(--foo), 0.5) is valid CSS because --foo might be `123, 456, 789`
+  // and functions are parsed after variable substitution.
+  if (arguments[0].isVar) {
+    return _functionString(name, arguments);
+  } else if (arguments[1].isVar) {
+    var first = arguments[0];
+    if (first is SassColor) {
+      return new SassString(
+          "$name(${first.red}, ${first.green}, ${first.blue}, "
+          "${arguments[1].toCssString()})",
+          quotes: false);
+    } else {
+      return _functionString(name, arguments);
+    }
+  } else if (arguments[1].isSpecialNumber) {
+    var color = arguments[0].assertColor("color");
+    return new SassString(
+        "$name(${color.red}, ${color.green}, ${color.blue}, "
+        "${arguments[1].toCssString()})",
+        quotes: false);
+  }
+
+  var color = arguments[0].assertColor("color");
+  var alpha = arguments[1].assertNumber("alpha");
+  return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
+}
+
+Value _hsl(String name, List<Value> arguments) {
+  var alpha = arguments.length > 3 ? arguments[3] : null;
+  if (arguments[0].isSpecialNumber ||
+      arguments[1].isSpecialNumber ||
+      arguments[2].isSpecialNumber ||
+      (alpha?.isSpecialNumber ?? false)) {
+    return _functionString(name, arguments);
+  }
+
+  var hue = arguments[0].assertNumber("hue");
+  var saturation = arguments[1].assertNumber("saturation");
+  var lightness = arguments[2].assertNumber("lightness");
+
+  return new SassColor.hsl(
+      hue.value,
+      saturation.value.clamp(0, 100),
+      lightness.value.clamp(0, 100),
+      alpha == null
+          ? null
+          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+}
+
+/* SassString | List<Value> */ _parseChannels(
+    String name, List<String> argumentNames, Value channels) {
+  if (channels.isVar) return _functionString(name, [channels]);
+
+  var isCommaSeparated = channels.separator == ListSeparator.comma;
+  var isBracketed = channels.hasBrackets;
+  if (isCommaSeparated || isBracketed) {
+    var buffer = new StringBuffer(r"$channels must be");
+    if (isBracketed) buffer.write(" an unbracketed");
+    if (isCommaSeparated) {
+      buffer.write(isBracketed ? "," : " a");
+      buffer.write(" space-separated");
+    }
+    buffer.write(" list.");
+    throw new SassScriptException(buffer.toString());
+  }
+
+  var list = channels.asList;
+  if (list.length > 3) {
+    throw new SassScriptException(
+        "Only 3 elements allowed, but ${list.length} were passed.");
+  } else if (list.length < 3) {
+    if (list.any((value) => value.isVar) ||
+        (list.isNotEmpty && _isVarSlash(list.last))) {
+      return _functionString(name, [channels]);
+    } else {
+      var argument = argumentNames[list.length];
+      throw new SassScriptException("Missing element $argument.");
+    }
+  }
+
+  var maybeSlashSeparated = list[2];
+  if (maybeSlashSeparated is SassNumber &&
+      maybeSlashSeparated.asSlash != null) {
+    return [
+      list[0],
+      list[1],
+      maybeSlashSeparated.asSlash.item1,
+      maybeSlashSeparated.asSlash.item2
+    ];
+  } else if (maybeSlashSeparated is SassString &&
+      !maybeSlashSeparated.hasQuotes &&
+      maybeSlashSeparated.text.contains("/")) {
+    return _functionString(name, [channels]);
+  } else {
+    return list;
+  }
+}
+
+/// Returns whether [value] is an unquoted string that start with `var(` and
+/// contains `/`.
+bool _isVarSlash(Value value) =>
+    value is SassString &&
+    value.hasQuotes &&
+    startsWithIgnoreCase(value.text, "var(") &&
+    value.text.contains("/");
 
 /// Asserts that [number] is a percentage or has no units, and normalizes the
 /// value.

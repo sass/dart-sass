@@ -236,6 +236,18 @@ bool equalsIgnoreCase(String string1, String string2) {
   return string1.toUpperCase() == string2.toUpperCase();
 }
 
+/// Returns whether [string] starts with [prefix], ignoring ASCII case.
+bool startsWithIgnoreCase(String string, String prefix) {
+  if (string.length < prefix.length) return false;
+  for (var i = 0; i < prefix.length; i++) {
+    if (!characterEqualsIgnoreCase(
+        string.codeUnitAt(i), prefix.codeUnitAt(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /// Returns an empty map that uses [equalsIgnoreSeparator] for key equality.
 ///
 /// If [source] is passed, copies it into the map.
