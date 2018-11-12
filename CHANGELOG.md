@@ -14,6 +14,8 @@
   the `hsl()` and `hsla()` functions. They're now clamped to be within that
   range rather than producing an error if they're outside it.
 
+* Properly compile selectors that end in escaped whitespace.
+
 [content-args]: https://github.com/sass/language/blob/master/accepted/content-args.md
 [at-rule-interpolation]: https://github.com/sass/language/blob/master/accepted/at-rule-interpolation.md
 
