@@ -1190,9 +1190,7 @@ class _EvaluateVisitor
           var right = await node.right.accept(this);
           var result = left.dividedBy(right);
           if (node.allowsSlash && left is SassNumber && right is SassNumber) {
-            var leftSlash = left.asSlash ?? _serialize(left, node.left.span);
-            var rightSlash = right.asSlash ?? _serialize(right, node.left.span);
-            return (result as SassNumber).withSlash("$leftSlash/$rightSlash");
+            return (result as SassNumber).withSlash(left, right);
           } else {
             return result;
           }

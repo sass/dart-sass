@@ -3,6 +3,10 @@
 * Add support for passing arguments to `@content` blocks. See [the
   proposal][content-args] for details.
 
+* Add support for the new `rgb()` and `hsl()` syntax introduced in CSS Colors
+  Level 4, such as `rgb(0% 100% 0% / 0.5)`. See [the proposal][color-4-rgb-hsl]
+  for more details.
+
 * Add support for interpolation in at-rule names. See [the
   proposal][at-rule-interpolation] for details.
 
@@ -17,6 +21,7 @@
 * Properly compile selectors that end in escaped whitespace.
 
 [content-args]: https://github.com/sass/language/blob/master/accepted/content-args.md
+[color-4-rgb-hsl]: https://github.com/sass/language/blob/master/accepted/color-4-rgb-hsl.md
 [at-rule-interpolation]: https://github.com/sass/language/blob/master/accepted/at-rule-interpolation.md
 
 ### JavaScript API
