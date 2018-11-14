@@ -51,7 +51,7 @@ Future<TestProcess> runSass(Iterable<String> arguments,
       (path) => new File(path).existsSync(),
       orElse: () => p.absolute("bin/sass.dart"));
 
-  var args = ["--no-preview-dart-2", "--checked"];
+  var args = ["--enable-asserts"];
 
   // Work around dart-lang/sdk#33622.
   if (Platform.isWindows) args.add("--packages=${p.absolute('.packages')}");
