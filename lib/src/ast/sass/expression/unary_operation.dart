@@ -24,7 +24,7 @@ class UnaryOperationExpression implements Expression {
       visitor.visitUnaryOperationExpression(this);
 
   String toString() {
-    var buffer = new StringBuffer(operator.operator);
+    var buffer = StringBuffer(operator.operator);
     if (operator == UnaryOperator.not) buffer.writeCharCode($space);
     buffer.write(operand);
     return buffer.toString();
@@ -34,18 +34,18 @@ class UnaryOperationExpression implements Expression {
 /// A unary operator constant.
 class UnaryOperator {
   /// The numeric identity operator, `+`.
-  static const plus = const UnaryOperator._("plus", "+");
+  static const plus = UnaryOperator._("plus", "+");
 
   /// The numeric negation operator, `-`.
-  static const minus = const UnaryOperator._("minus", "-");
+  static const minus = UnaryOperator._("minus", "-");
 
   /// The leading slash operator, `/`.
   ///
   /// This is a historical artifact.
-  static const divide = const UnaryOperator._("divide", "/");
+  static const divide = UnaryOperator._("divide", "/");
 
   /// The boolean negation operator, `not`.
-  static const not = const UnaryOperator._("not", "not");
+  static const not = UnaryOperator._("not", "not");
 
   /// The English name of [this].
   final String name;

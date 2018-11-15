@@ -25,7 +25,7 @@ Future watch(ExecutableOptions options, StylesheetGraph graph) async {
     ..addAll(options.sourcesToDestinations.keys.map(p.dirname))
     ..addAll(options.loadPaths);
 
-  var dirWatcher = new MultiDirWatcher(poll: options.poll);
+  var dirWatcher = MultiDirWatcher(poll: options.poll);
   await Future.wait(directoriesToWatch.map((dir) {
     // If a directory doesn't exist, watch its parent directory so that we're
     // notified once it starts existing.
@@ -36,11 +36,11 @@ Future watch(ExecutableOptions options, StylesheetGraph graph) async {
   // Before we start paying attention to changes, compile all the stylesheets as
   // they currently exist. This ensures that changes that come in update a
   // known-good state.
-  var watcher = new _Watcher(options, graph);
+  var watcher = _Watcher(options, graph);
   for (var source in options.sourcesToDestinations.keys) {
     var destination = options.sourcesToDestinations[source];
-    graph.addCanonical(new FilesystemImporter('.'),
-        p.toUri(p.canonicalize(source)), p.toUri(source));
+    graph.addCanonical(FilesystemImporter('.'), p.toUri(p.canonicalize(source)),
+        p.toUri(source));
     var success = await watcher.compile(source, destination, ifModified: true);
     if (!success && options.stopOnError) {
       dirWatcher.events.listen(null).cancel();
@@ -68,7 +68,7 @@ class _Watcher {
   ///
   /// Returns whether or not compilation succeeded.
   Future<bool> compile(String source, String destination,
-      {bool ifModified: false}) async {
+      {bool ifModified = false}) async {
     try {
       await compileStylesheet(_options, _graph, source, destination,
           ifModified: ifModified);
@@ -90,7 +90,7 @@ class _Watcher {
   void _delete(String path) {
     try {
       deleteFile(path);
-      var buffer = new StringBuffer();
+      var buffer = StringBuffer();
       if (_options.color) buffer.write("\u001b[33m");
       buffer.write("Deleted $path.");
       if (_options.color) buffer.write("\u001b[0m");
@@ -107,7 +107,7 @@ class _Watcher {
 
     if (_options.trace) {
       stderr.writeln();
-      stderr.writeln(new Trace.from(stackTrace).terse.toString().trimRight());
+      stderr.writeln(Trace.from(stackTrace).terse.toString().trimRight());
     }
 
     if (!_options.stopOnError) stderr.writeln();
@@ -166,7 +166,7 @@ class _Watcher {
     if (destination == null) return true;
 
     _graph.addCanonical(
-        new FilesystemImporter('.'), _canonicalize(path), p.toUri(path));
+        FilesystemImporter('.'), _canonicalize(path), p.toUri(path));
 
     return await compile(path, destination);
   }
@@ -197,9 +197,9 @@ class _Watcher {
   /// the intermediate erased version.
   Stream<WatchEvent> _debounceEvents(Stream<WatchEvent> events) {
     return events
-        .transform(debounceBuffer(new Duration(milliseconds: 25)))
+        .transform(debounceBuffer(Duration(milliseconds: 25)))
         .expand((buffer) {
-      var typeForPath = new p.PathMap<ChangeType>();
+      var typeForPath = p.PathMap<ChangeType>();
       for (var event in buffer) {
         var oldType = typeForPath[event.path];
         if (oldType == null) {
@@ -212,7 +212,7 @@ class _Watcher {
       }
 
       return typeForPath.keys
-          .map((path) => new WatchEvent(typeForPath[path], path));
+          .map((path) => WatchEvent(typeForPath[path], path));
     });
   }
 
@@ -221,8 +221,8 @@ class _Watcher {
   ///
   /// Returns whether all recompilations succeeded.
   Future<bool> _recompileDownstream(Iterable<StylesheetNode> nodes) async {
-    var seen = new Set<StylesheetNode>();
-    var toRecompile = new Queue.of(nodes);
+    var seen = Set<StylesheetNode>();
+    var toRecompile = Queue.of(nodes);
 
     var allSucceeded = true;
     while (!toRecompile.isEmpty) {

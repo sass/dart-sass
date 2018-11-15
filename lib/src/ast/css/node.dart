@@ -64,7 +64,7 @@ abstract class CssNode extends AstNode {
   /// Throws a [StateError] if [parent] is `null`.
   void remove() {
     if (_parent == null) {
-      throw new StateError("Can't remove a node without a parent.");
+      throw StateError("Can't remove a node without a parent.");
     }
 
     _parent._children.removeAt(_indexInParent);
@@ -98,7 +98,7 @@ abstract class CssParentNode extends CssNode {
   /// for [this.children].
   CssParentNode._(List<CssNode> children)
       : _children = children,
-        children = new UnmodifiableListView<CssNode>(children);
+        children = UnmodifiableListView<CssNode>(children);
 
   /// Returns a copy of [this] with an empty [children] list.
   CssParentNode copyWithoutChildren();

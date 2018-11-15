@@ -19,7 +19,7 @@ class MapExpression implements Expression {
   final FileSpan span;
 
   MapExpression(Iterable<Tuple2<Expression, Expression>> pairs, this.span)
-      : pairs = new List.unmodifiable(pairs);
+      : pairs = List.unmodifiable(pairs);
 
   T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitMapExpression(this);
 

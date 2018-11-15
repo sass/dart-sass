@@ -45,7 +45,7 @@ final Function colorConstructor = createClass(
     red = redOrArgb;
   }
 
-  thisArg.dartValue = new SassColor.rgb(
+  thisArg.dartValue = SassColor.rgb(
       _clamp(red), _clamp(green), _clamp(blue), alpha?.clamp(0, 1) ?? 1);
 }, {
   'getR': (_NodeSassColor thisArg) => thisArg.dartValue.red,

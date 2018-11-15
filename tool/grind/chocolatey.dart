@@ -18,7 +18,7 @@ chocolateyPackage() {
   ensureBuild();
 
   var nuspec = _nuspec();
-  var archive = new Archive()
+  var archive = Archive()
     ..addFile(fileFromString("sass.nuspec", nuspec.toString()))
     ..addFile(
         file("[Content_Types].xml", "package/chocolatey/[Content_Types].xml"))
@@ -37,7 +37,7 @@ chocolateyPackage() {
 
   var output = "build/sass.${_chocolateyVersion()}.nupkg";
   log("Creating $output...");
-  new File(output).writeAsBytesSync(new ZipEncoder().encode(archive));
+  File(output).writeAsBytesSync(ZipEncoder().encode(archive));
 }
 
 /// Creates a `sass.nuspec` file's contents.
@@ -53,7 +53,7 @@ xml.XmlDocument _nuspec() {
     sdkVersion = dartVersion.toString();
   }
 
-  var builder = new xml.XmlBuilder();
+  var builder = xml.XmlBuilder();
   builder.processing("xml", 'version="1.0"');
   builder.element("package", nest: () {
     builder
@@ -81,7 +81,7 @@ This package is Dart Sass, the new Dart implementation of Sass.
       builder.element("summary", nest: "Sass makes CSS fun again.");
       builder.element("tags", nest: "css preprocessor style sass");
       builder.element("copyright",
-          nest: "Copyright ${new DateTime.now().year} Google, Inc.");
+          nest: "Copyright ${DateTime.now().year} Google, Inc.");
       builder.element("dependencies", nest: () {
         builder.element("dependency", attributes: {
           "id": "dart-sdk",
@@ -106,7 +106,7 @@ updateChocolatey() async {
   // to the security context.
   SecurityContext.defaultContext.setTrustedCertificates("tool/godaddy.pem");
 
-  var request = new http.MultipartRequest(
+  var request = http.MultipartRequest(
       "PUT", Uri.parse("https://push.chocolatey.org/api/v2/package"));
   request.headers["X-NuGet-Protocol-Version"] = "4.1.0";
   request.headers["X-NuGet-ApiKey"] = environment("CHOCO_TOKEN");
@@ -145,7 +145,7 @@ String _chocolateyVersion() {
 /// Returns the contents of the `properties.psmdcp` file, computed from the
 /// nuspec's XML.
 String _nupkgProperties(xml.XmlDocument nuspec) {
-  var builder = new xml.XmlBuilder();
+  var builder = xml.XmlBuilder();
   builder.processing("xml", 'version="1.0"');
   builder.element("coreProperties", nest: () {
     builder.namespace(

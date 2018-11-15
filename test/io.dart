@@ -14,22 +14,22 @@ import 'package:path/path.dart' as p;
 void ensureUpToDate(String path, String commandToRun) {
   // Ensure path is relative so the error messages are more readable.
   path = p.relative(path);
-  if (!new File(path).existsSync()) {
+  if (!File(path).existsSync()) {
     throw "$path does not exist. Run $commandToRun.";
   }
 
-  var lastModified = new File(path).lastModifiedSync();
-  var entriesToCheck = new Directory("lib").listSync(recursive: true).toList();
+  var lastModified = File(path).lastModifiedSync();
+  var entriesToCheck = Directory("lib").listSync(recursive: true).toList();
 
   // If we have a dependency override, "pub run" will touch the lockfile to mark
   // it as newer than the pubspec, which makes it unsuitable to use for
   // freshness checking.
-  if (new File("pubspec.yaml")
+  if (File("pubspec.yaml")
       .readAsStringSync()
       .contains("dependency_overrides")) {
-    entriesToCheck.add(new File("pubspec.yaml"));
+    entriesToCheck.add(File("pubspec.yaml"));
   } else {
-    entriesToCheck.add(new File("pubspec.lock"));
+    entriesToCheck.add(File("pubspec.lock"));
   }
 
   for (var entry in entriesToCheck) {

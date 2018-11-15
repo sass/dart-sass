@@ -39,7 +39,7 @@ import 'visitor/serialize.dart';
 /// to run the executable when installed from npm.
 void main() {
   exports.run_ =
-      allowInterop((args) => executable.main(new List.from(args as List)));
+      allowInterop((args) => executable.main(List.from(args as List)));
   exports.render = allowInterop(_render);
   exports.renderSync = allowInterop(_renderSync);
   exports.info =
@@ -48,7 +48,7 @@ void main() {
       "dart2js\t${const String.fromEnvironment('dart-version')}\t"
       "(Dart Compiler)\t[Dart]";
 
-  exports.types = new Types(
+  exports.types = Types(
       Boolean: booleanConstructor,
       Color: colorConstructor,
       List: listConstructor,
@@ -89,7 +89,7 @@ void _render(
 
 /// Converts Sass to CSS asynchronously.
 Future<RenderResult> _renderAsync(RenderOptions options) async {
-  var start = new DateTime.now();
+  var start = DateTime.now();
   var file = options.file == null ? null : p.absolute(options.file);
   CompileResult result;
   if (options.data != null) {
@@ -114,7 +114,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         lineFeed: _parseLineFeed(options.linefeed),
         sourceMap: _enableSourceMaps(options));
   } else {
-    throw new ArgumentError("Either options.data or options.file must be set.");
+    throw ArgumentError("Either options.data or options.file must be set.");
   }
 
   return _newRenderResult(options, result, start);
@@ -128,7 +128,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
 /// [render]: https://github.com/sass/node-sass#options
 RenderResult _renderSync(RenderOptions options) {
   try {
-    var start = new DateTime.now();
+    var start = DateTime.now();
     var file = options.file == null ? null : p.absolute(options.file);
     CompileResult result;
     if (options.data != null) {
@@ -153,8 +153,7 @@ RenderResult _renderSync(RenderOptions options) {
           lineFeed: _parseLineFeed(options.linefeed),
           sourceMap: _enableSourceMaps(options));
     } else {
-      throw new ArgumentError(
-          "Either options.data or options.file must be set.");
+      throw ArgumentError("Either options.data or options.file must be set.");
     }
 
     return _newRenderResult(options, result, start);
@@ -177,7 +176,7 @@ JSError _wrapException(exception) {
             : p.fromUri(exception.span.sourceUrl),
         status: 1);
   } else {
-    return new JSError(exception.toString());
+    return JSError(exception.toString());
   }
 }
 
@@ -187,22 +186,21 @@ JSError _wrapException(exception) {
 /// This is typed to always return [AsyncCallable], but in practice it will
 /// return a `List<Callable>` if [asynch] is `false`.
 List<AsyncCallable> _parseFunctions(RenderOptions options,
-    {bool asynch: false}) {
+    {bool asynch = false}) {
   if (options.functions == null) return const [];
 
   var result = <AsyncCallable>[];
   jsForEach(options.functions, (signature, callback) {
     Tuple2<String, ArgumentDeclaration> tuple;
     try {
-      tuple = new ScssParser(signature as String).parseSignature();
+      tuple = ScssParser(signature as String).parseSignature();
     } on SassFormatException catch (error) {
-      throw new SassFormatException(
+      throw SassFormatException(
           'Invalid signature "${signature}": ${error.message}', error.span);
     }
 
     if (options.fiber != null) {
-      result.add(
-          new BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
+      result.add(BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
         var fiber = options.fiber.current;
         var jsArguments = arguments.map(wrapValue).toList()
           ..add(allowInterop(([result]) {
@@ -215,15 +213,15 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
             isUndefined(result) ? options.fiber.yield() : result);
       }));
     } else if (!asynch) {
-      result.add(new BuiltInCallable.parsed(
+      result.add(BuiltInCallable.parsed(
           tuple.item1,
           tuple.item2,
           (arguments) => unwrapValue(Function.apply(
               callback as Function, arguments.map(wrapValue).toList()))));
     } else {
-      result.add(new AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
+      result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
           (arguments) async {
-        var completer = new Completer();
+        var completer = Completer();
         var jsArguments = arguments.map(wrapValue).toList()
           ..add(allowInterop(([result]) => completer.complete(result)));
         var result = Function.apply(callback as Function, jsArguments);
@@ -247,12 +245,12 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
     importers = [options.importer as JSFunction];
   }
 
-  var includePaths = new List<String>.from(options.includePaths ?? []);
+  var includePaths = List<String>.from(options.includePaths ?? []);
 
   RenderContext context;
   if (importers.isNotEmpty) {
-    context = new RenderContext(
-        options: new RenderContextOptions(
+    context = RenderContext(
+        options: RenderContextOptions(
             file: options.file,
             data: options.data,
             includePaths: ([p.current]..addAll(includePaths)).join(":"),
@@ -261,8 +259,8 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
             indentType: options.indentType == 'tab' ? 1 : 0,
             indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
             linefeed: _parseLineFeed(options.linefeed).text,
-            result: new RenderResult(
-                stats: new RenderResultStats(
+            result: RenderResult(
+                stats: RenderResultStats(
                     start: start.millisecondsSinceEpoch,
                     entry: options.file ?? 'data'))));
     context.options.context = context;
@@ -285,14 +283,14 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
     }).toList();
   }
 
-  return new NodeImporter(context, includePaths, importers);
+  return NodeImporter(context, includePaths, importers);
 }
 
 /// Parse [style] into an [OutputStyle].
 OutputStyle _parseOutputStyle(String style) {
   if (style == null || style == 'expanded') return OutputStyle.expanded;
   if (style == 'compressed') return OutputStyle.compressed;
-  throw new ArgumentError('Unsupported output style "$style".');
+  throw ArgumentError('Unsupported output style "$style".');
 }
 
 /// Parses the indentation width into an [int].
@@ -318,7 +316,7 @@ LineFeed _parseLineFeed(String str) {
 /// Creates a [RenderResult] that exposes [result] in the Node Sass API format.
 RenderResult _newRenderResult(
     RenderOptions options, CompileResult result, DateTime start) {
-  var end = new DateTime.now();
+  var end = DateTime.now();
 
   var css = result.css;
   Uint8List sourceMapBytes;
@@ -354,7 +352,7 @@ RenderResult _newRenderResult(
 
     if (!isTruthy(options.omitSourceMapUrl)) {
       var url = options.sourceMapEmbed
-          ? new Uri.dataFromBytes(sourceMapBytes, mimeType: "application/json")
+          ? Uri.dataFromBytes(sourceMapBytes, mimeType: "application/json")
           : p.toUri(options.outFile == null
               ? sourceMapPath
               : p.relative(sourceMapPath, from: p.dirname(options.outFile)));
@@ -362,10 +360,10 @@ RenderResult _newRenderResult(
     }
   }
 
-  return new RenderResult(
+  return RenderResult(
       css: utf8Encode(css),
       map: sourceMapBytes,
-      stats: new RenderResultStats(
+      stats: RenderResultStats(
           entry: options.file ?? 'data',
           start: start.millisecondsSinceEpoch,
           end: end.millisecondsSinceEpoch,
@@ -382,7 +380,7 @@ bool _enableSourceMaps(RenderOptions options) =>
 /// Sass error.
 JSError _newRenderError(String message,
     {int line, int column, String file, int status}) {
-  var error = new JSError(message);
+  var error = JSError(message);
   setProperty(error, 'formatted', 'Error: $message');
   if (line != null) setProperty(error, 'line', line);
   if (column != null) setProperty(error, 'column', column);

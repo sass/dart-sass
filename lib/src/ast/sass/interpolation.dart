@@ -34,17 +34,17 @@ class Interpolation implements SassNode {
   }
 
   Interpolation(Iterable /*(String|Expression)*/ contents, this.span)
-      : contents = new List.unmodifiable(contents) {
+      : contents = List.unmodifiable(contents) {
     for (var i = 0; i < this.contents.length; i++) {
       if (this.contents[i] is! String && this.contents[i] is! Expression) {
-        throw new ArgumentError.value(this.contents, "contents",
+        throw ArgumentError.value(this.contents, "contents",
             "May only contains Strings or Expressions.");
       }
 
       if (i != 0 &&
           this.contents[i - 1] is String &&
           this.contents[i] is String) {
-        throw new ArgumentError.value(
+        throw ArgumentError.value(
             this.contents, "contents", "May not contain adjacent Strings.");
       }
     }

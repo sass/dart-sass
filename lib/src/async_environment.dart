@@ -102,7 +102,7 @@ class AsyncEnvironment {
   /// Creates an [AsyncEnvironment].
   ///
   /// If [sourceMap] is `true`, this tracks variables' source locations
-  AsyncEnvironment({bool sourceMap: false})
+  AsyncEnvironment({bool sourceMap = false})
       : _variables = [normalizedMap()],
         _variableSpans = sourceMap ? [normalizedMap()] : null,
         _variableIndices = normalizedMap(),
@@ -128,7 +128,7 @@ class AsyncEnvironment {
   /// Any scope changes in this environment will not affect the closure.
   /// However, any new declarations or assignments in scopes that are visible
   /// when the closure was created will be reflected.
-  AsyncEnvironment closure() => new AsyncEnvironment._(
+  AsyncEnvironment closure() => AsyncEnvironment._(
       _variables.toList(),
       _variableSpans?.toList(),
       _functions.toList(),
@@ -200,7 +200,7 @@ class AsyncEnvironment {
   /// Otherwise, if the variable was already defined, it'll set it in the
   /// previous scope. If it's undefined, it'll set it in the current scope.
   void setVariable(String name, Value value, FileSpan span,
-      {bool global: false}) {
+      {bool global = false}) {
     if (global || _variables.length == 1) {
       // Don't set the index if there's already a variable with the given name,
       // since local accesses should still return the local variable.
@@ -333,7 +333,7 @@ class AsyncEnvironment {
   /// If [when] is false, this doesn't create a new scope and instead just
   /// executes [callback] and returns its result.
   Future<T> scope<T>(Future<T> callback(),
-      {bool semiGlobal: false, bool when: true}) async {
+      {bool semiGlobal = false, bool when = true}) async {
     if (!when) {
       // We still have to track semi-globalness so that
       //

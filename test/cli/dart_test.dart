@@ -29,7 +29,7 @@ void main() {
 
   test("--version prints the Sass version", () async {
     var sass = await runSass(["--version"]);
-    expect(sass.stdout, emits(matches(new RegExp(r"^\d+\.\d+\.\d+"))));
+    expect(sass.stdout, emits(matches(RegExp(r"^\d+\.\d+\.\d+"))));
     await sass.shouldExit(0);
   });
 }
@@ -38,7 +38,7 @@ void main() {
 /// up-to-date, if one has been generated.
 void ensureSnapshotUpToDate() {
   for (var path in _snapshotPaths) {
-    if (new File(path).existsSync()) {
+    if (File(path).existsSync()) {
       ensureUpToDate(path, "pub run grinder app-snapshot");
       return;
     }
@@ -47,8 +47,7 @@ void ensureSnapshotUpToDate() {
 
 Future<TestProcess> runSass(Iterable<String> arguments,
     {Map<String, String> environment}) {
-  var executable = _snapshotPaths.firstWhere(
-      (path) => new File(path).existsSync(),
+  var executable = _snapshotPaths.firstWhere((path) => File(path).existsSync(),
       orElse: () => p.absolute("bin/sass.dart"));
 
   var args = ["--enable-asserts"];

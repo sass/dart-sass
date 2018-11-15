@@ -158,7 +158,7 @@ class ScssParser extends StylesheetParser {
           scanner.spanFrom(start));
     }
 
-    return new SilentComment(
+    return SilentComment(
         scanner.substring(start.position), scanner.spanFrom(start));
   }
 
@@ -166,7 +166,7 @@ class ScssParser extends StylesheetParser {
   LoudComment _loudComment() {
     var start = scanner.state;
     scanner.expect("/*");
-    var buffer = new InterpolationBuffer()..write("/*");
+    var buffer = InterpolationBuffer()..write("/*");
     while (true) {
       switch (scanner.peekChar()) {
         case $hash:
@@ -182,7 +182,7 @@ class ScssParser extends StylesheetParser {
           if (scanner.peekChar() != $slash) break;
 
           buffer.writeCharCode(scanner.readChar());
-          return new LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+          return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
 
         default:
           buffer.writeCharCode(scanner.readChar());

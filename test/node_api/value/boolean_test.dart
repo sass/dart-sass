@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:js_util';
 

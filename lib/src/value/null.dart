@@ -6,7 +6,7 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 /// The SassScript `null` value.
-const sassNull = const SassNull._();
+const sassNull = SassNull._();
 
 /// A SassScript null value.
 ///

@@ -41,7 +41,7 @@ Matcher toStringAndMessageEqual(String text) => predicate((error) {
 
 /// Returns the result of rendering via [options] as a string.
 Future<String> render(RenderOptions options) {
-  var completer = new Completer<String>();
+  var completer = Completer<String>();
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(error, isNull);
@@ -53,7 +53,7 @@ Future<String> render(RenderOptions options) {
 /// Asserts that rendering via [options] produces an error, and returns that
 /// error.
 Future<RenderError> renderError(RenderOptions options) {
-  var completer = new Completer<RenderError>();
+  var completer = Completer<RenderError>();
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(result, isNull);
@@ -76,7 +76,7 @@ String renderSyncJS(Map<String, Object> options) {
 }
 
 final _renderSyncJS =
-    new JSFunction("sass", "args", "return sass.renderSync(args);");
+    JSFunction("sass", "args", "return sass.renderSync(args);");
 
 /// Asserts that rendering via [options] produces an error, and returns that
 /// error.

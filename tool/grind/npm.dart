@@ -27,7 +27,7 @@ jsRelease() => _js(release: true);
 /// type checks.
 void _js({@required bool release}) {
   ensureBuild();
-  var destination = new File('build/sass.dart.js');
+  var destination = File('build/sass.dart.js');
 
   var args = [
     '--categories=Server',
@@ -39,14 +39,13 @@ void _js({@required bool release}) {
     args..add("--minify")..add("--omit-implicit-checks")..add("--fast-startup");
   }
 
-  Dart2js.compile(new File('bin/sass.dart'),
-      outFile: destination, extraArgs: args);
+  Dart2js.compile(File('bin/sass.dart'), outFile: destination, extraArgs: args);
   var text = destination.readAsStringSync();
 
   if (release) {
     // We don't ship the source map, so remove the source map comment.
-    text = text.replaceFirst(
-        new RegExp(r"\n*//# sourceMappingURL=[^\n]+\n*$"), "\n");
+    text =
+        text.replaceFirst(RegExp(r"\n*//# sourceMappingURL=[^\n]+\n*$"), "\n");
   }
 
   destination.writeAsStringSync(preamble.getPreamble() + text);
@@ -66,7 +65,7 @@ npmReleasePackage() => _npm(release: true);
 /// --trust-type-annotations. Otherwise, it compiles unminified with pessimistic
 /// type checks.
 void _npm({@required bool release}) {
-  var json = jsonDecode(new File('package/package.json').readAsStringSync())
+  var json = jsonDecode(File('package/package.json').readAsStringSync())
       as Map<String, dynamic>;
   json['version'] = version;
 
@@ -80,23 +79,22 @@ void _npm({@required bool release}) {
 ///
 /// The [json] will be used as the package's package.json.
 void _writeNpmPackage(String destination, Map<String, dynamic> json) {
-  var dir = new Directory(destination);
+  var dir = Directory(destination);
   if (dir.existsSync()) dir.deleteSync(recursive: true);
   dir.createSync(recursive: true);
 
   log("copying package/package.json to $destination");
-  new File(p.join(destination, 'package.json'))
-      .writeAsStringSync(jsonEncode(json));
+  File(p.join(destination, 'package.json')).writeAsStringSync(jsonEncode(json));
 
-  copy(new File(p.join('package', 'sass.js')), dir);
-  copy(new File(p.join('build', 'sass.dart.js')), dir);
+  copy(File(p.join('package', 'sass.js')), dir);
+  copy(File(p.join('build', 'sass.dart.js')), dir);
 
   log("copying package/README.npm.md to $destination");
-  new File(p.join(destination, 'README.md'))
+  File(p.join(destination, 'README.md'))
       .writeAsStringSync(_readAndResolveMarkdown('package/README.npm.md'));
 }
 
-final _readAndResolveRegExp = new RegExp(
+final _readAndResolveRegExp = RegExp(
     r"^<!-- +#include +([^\s]+) +"
     '"([^"\n]+)"'
     r" +-->$",
@@ -108,12 +106,12 @@ final _readAndResolveRegExp = new RegExp(
 /// which must appear on its own line. PATH is a relative file: URL to another
 /// Markdown file, and HEADER is the name of a header in that file whose
 /// contents should be included as-is.
-String _readAndResolveMarkdown(String path) => new File(path)
+String _readAndResolveMarkdown(String path) => File(path)
         .readAsStringSync()
         .replaceAllMapped(_readAndResolveRegExp, (match) {
       String included;
       try {
-        included = new File(p.join(p.dirname(path), p.fromUri(match[1])))
+        included = File(p.join(p.dirname(path), p.fromUri(match[1])))
             .readAsStringSync();
       } catch (error) {
         _matchError(match, error.toString(), url: p.toUri(path));
@@ -143,6 +141,6 @@ String _readAndResolveMarkdown(String path) => new File(path)
 
 /// Throws a nice [SourceSpanException] associated with [match].
 void _matchError(Match match, String message, {url}) {
-  var file = new SourceFile.fromString(match.input, url: url);
-  throw new SourceSpanException(message, file.span(match.start, match.end));
+  var file = SourceFile.fromString(match.input, url: url);
+  throw SourceSpanException(message, file.span(match.start, match.end));
 }

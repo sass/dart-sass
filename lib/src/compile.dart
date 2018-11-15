@@ -33,10 +33,10 @@ CompileResult compile(String path,
         Iterable<String> loadPaths,
         Iterable<Callable> functions,
         OutputStyle style,
-        bool useSpaces: true,
+        bool useSpaces = true,
         int indentWidth,
         LineFeed lineFeed,
-        bool sourceMap: false}) =>
+        bool sourceMap = false}) =>
     compileString(readFile(path),
         syntax: syntax ?? Syntax.forPath(path),
         logger: logger,
@@ -45,7 +45,7 @@ CompileResult compile(String path,
         nodeImporter: nodeImporter,
         packageResolver: packageResolver,
         loadPaths: loadPaths,
-        importer: new FilesystemImporter('.'),
+        importer: FilesystemImporter('.'),
         style: style,
         useSpaces: useSpaces,
         indentWidth: indentWidth,
@@ -65,16 +65,16 @@ CompileResult compileString(String source,
     Importer importer,
     Iterable<Callable> functions,
     OutputStyle style,
-    bool useSpaces: true,
+    bool useSpaces = true,
     int indentWidth,
     LineFeed lineFeed,
     url,
-    bool sourceMap: false}) {
-  var stylesheet = new Stylesheet.parse(source, syntax ?? Syntax.scss,
-      url: url, logger: logger);
+    bool sourceMap = false}) {
+  var stylesheet =
+      Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 
   var evaluateResult = evaluate(stylesheet,
-      importCache: new ImportCache(importers,
+      importCache: ImportCache(importers,
           loadPaths: loadPaths,
           packageResolver: packageResolver,
           logger: logger),
@@ -91,7 +91,7 @@ CompileResult compileString(String source,
       lineFeed: lineFeed,
       sourceMap: sourceMap);
 
-  return new CompileResult(evaluateResult, serializeResult);
+  return CompileResult(evaluateResult, serializeResult);
 }
 
 /// Like [compileAsync] in `lib/sass.dart`, but provides more options to support
@@ -105,10 +105,10 @@ Future<CompileResult> compileAsync(String path,
         Iterable<String> loadPaths,
         Iterable<AsyncCallable> functions,
         OutputStyle style,
-        bool useSpaces: true,
+        bool useSpaces = true,
         int indentWidth,
         LineFeed lineFeed,
-        bool sourceMap: false}) =>
+        bool sourceMap = false}) =>
     compileStringAsync(readFile(path),
         syntax: syntax ?? Syntax.forPath(path),
         logger: logger,
@@ -116,7 +116,7 @@ Future<CompileResult> compileAsync(String path,
         nodeImporter: nodeImporter,
         packageResolver: packageResolver,
         loadPaths: loadPaths,
-        importer: new FilesystemImporter('.'),
+        importer: FilesystemImporter('.'),
         functions: functions,
         style: style,
         useSpaces: useSpaces,
@@ -137,16 +137,16 @@ Future<CompileResult> compileStringAsync(String source,
     AsyncImporter importer,
     Iterable<AsyncCallable> functions,
     OutputStyle style,
-    bool useSpaces: true,
+    bool useSpaces = true,
     int indentWidth,
     LineFeed lineFeed,
     url,
-    bool sourceMap: false}) async {
-  var stylesheet = new Stylesheet.parse(source, syntax ?? Syntax.scss,
-      url: url, logger: logger);
+    bool sourceMap = false}) async {
+  var stylesheet =
+      Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 
   var evaluateResult = await evaluateAsync(stylesheet,
-      importCache: new AsyncImportCache(importers,
+      importCache: AsyncImportCache(importers,
           loadPaths: loadPaths,
           packageResolver: packageResolver,
           logger: logger),
@@ -163,7 +163,7 @@ Future<CompileResult> compileStringAsync(String source,
       lineFeed: lineFeed,
       sourceMap: sourceMap);
 
-  return new CompileResult(evaluateResult, serializeResult);
+  return CompileResult(evaluateResult, serializeResult);
 }
 
 /// The result of compiling a Sass document to CSS, along with metadata about

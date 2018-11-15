@@ -34,10 +34,10 @@ final _sources = {
 @Task('Compile async code to synchronous code.')
 synchronize() {
   _sources.forEach((source, target) {
-    var visitor = new _Visitor(new File(source).readAsStringSync(), source);
+    var visitor = _Visitor(File(source).readAsStringSync(), source);
     parseDartFile(source).accept(visitor);
-    var formatted = new DartFormatter().format(visitor.result);
-    new File(target).writeAsStringSync(formatted);
+    var formatted = DartFormatter().format(visitor.result);
+    File(target).writeAsStringSync(formatted);
   });
 }
 
@@ -56,7 +56,7 @@ class _Visitor extends RecursiveAstVisitor {
   var _position = 0;
 
   /// The buffer in which the text of the synchronous file is built up.
-  final _buffer = new StringBuffer();
+  final _buffer = StringBuffer();
 
   /// The synchronous text.
   String get result {

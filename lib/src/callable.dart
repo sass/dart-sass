@@ -105,6 +105,6 @@ abstract class Callable extends AsyncCallable {
   /// [SassArgumentList.keywords].
   factory Callable(String name, String arguments,
           ext.Value callback(List<ext.Value> arguments)) =>
-      new BuiltInCallable(
+      BuiltInCallable(
           name, arguments, (arguments) => callback(arguments) as Value);
 }

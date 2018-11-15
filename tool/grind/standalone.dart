@@ -19,8 +19,7 @@ bool get _is64Bit => Platform.version.contains("x64");
 @Task('Build Dart script snapshot.')
 snapshot() {
   ensureBuild();
-  Dart.run('bin/sass.dart',
-      vmArgs: ['--snapshot=build/sass.dart.snapshot']);
+  Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
 }
 
 @Task('Build a dev-mode Dart application snapshot.')
@@ -51,7 +50,7 @@ void _appSnapshot({@required bool release}) {
 @Task('Build standalone packages for all OSes.')
 @Depends(snapshot, releaseAppSnapshot)
 package() async {
-  var client = new http.Client();
+  var client = http.Client();
   await Future.wait(["linux", "macos", "windows"].expand((os) => [
         _buildPackage(client, os, x64: true),
         _buildPackage(client, os, x64: false)
@@ -62,7 +61,7 @@ package() async {
 /// Builds a standalone Sass package for the given [os] and architecture.
 ///
 /// The [client] is used to download the corresponding Dart SDK.
-Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
+Future _buildPackage(http.Client client, String os, {bool x64 = true}) async {
   var architecture = x64 ? "x64" : "ia32";
 
   // TODO: Compile a single executable that embeds the Dart VM and the snapshot
@@ -77,9 +76,8 @@ Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
         "${response.reasonPhrase}.";
   }
 
-  var dartExecutable = new ZipDecoder()
-      .decodeBytes(response.bodyBytes)
-      .firstWhere((file) => os == 'windows'
+  var dartExecutable = ZipDecoder().decodeBytes(response.bodyBytes).firstWhere(
+      (file) => os == 'windows'
           ? file.name.endsWith("/bin/dart.exe")
           : file.name.endsWith("/bin/dart"));
   var executable = dartExecutable.content as List<int>;
@@ -91,7 +89,7 @@ Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
       ? "build/sass.dart.app.snapshot"
       : "build/sass.dart.snapshot";
 
-  var archive = new Archive()
+  var archive = Archive()
     ..addFile(fileFromBytes(
         "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
         executable: true))
@@ -112,11 +110,11 @@ Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
   if (os == 'windows') {
     var output = "$prefix.zip";
     log("Creating $output...");
-    new File(output).writeAsBytesSync(new ZipEncoder().encode(archive));
+    File(output).writeAsBytesSync(ZipEncoder().encode(archive));
   } else {
     var output = "$prefix.tar.gz";
     log("Creating $output...");
-    new File(output).writeAsBytesSync(
-        new GZipEncoder().encode(new TarEncoder().encode(archive)));
+    File(output)
+        .writeAsBytesSync(GZipEncoder().encode(TarEncoder().encode(archive)));
   }
 }

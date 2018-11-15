@@ -24,7 +24,7 @@ Object newNodeSassList(SassList value) =>
 final Function listConstructor = createClass((_NodeSassList thisArg, int length,
     [bool commaSeparator, SassList dartValue]) {
   thisArg.dartValue = dartValue ??
-      new SassList(new Iterable.generate(length, (_) => sassNull),
+      SassList(Iterable.generate(length, (_) => sassNull),
           (commaSeparator ?? true) ? ListSeparator.comma : ListSeparator.space);
 }, {
   'getValue': (_NodeSassList thisArg, int index) =>
@@ -37,7 +37,7 @@ final Function listConstructor = createClass((_NodeSassList thisArg, int length,
   'getSeparator': (_NodeSassList thisArg) =>
       thisArg.dartValue.separator == ListSeparator.comma,
   'setSeparator': (_NodeSassList thisArg, bool isComma) {
-    thisArg.dartValue = new SassList(thisArg.dartValue.asList,
+    thisArg.dartValue = SassList(thisArg.dartValue.asList,
         isComma ? ListSeparator.comma : ListSeparator.space,
         brackets: thisArg.dartValue.hasBrackets);
   },

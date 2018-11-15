@@ -33,7 +33,7 @@ import 'interface/value.dart';
 /// Normally we avoid encoding this much information about CSS semantics, but
 /// since this is just for an optimization it won't cause user pain if it takes
 /// us a while to add new units.
-final _compressibleUnits = new Set.of([
+final _compressibleUnits = Set.of([
   "em", "ex", "ch", "rem", "vw", "wh", "vmin", "vmax", "cm", "mm", "q", "in", //
   "pt", "pc", "px", "deg", "rad", "turn"
 ]);
@@ -52,13 +52,13 @@ final _compressibleUnits = new Set.of([
 /// source map indicating how the original Sass files map to the compiled CSS.
 SerializeResult serialize(CssNode node,
     {OutputStyle style,
-    bool inspect: false,
-    bool useSpaces: true,
+    bool inspect = false,
+    bool useSpaces = true,
     int indentWidth,
     LineFeed lineFeed,
-    bool sourceMap: false}) {
+    bool sourceMap = false}) {
   indentWidth ??= 2;
-  var visitor = new _SerializeVisitor(
+  var visitor = _SerializeVisitor(
       style: style,
       inspect: inspect,
       useSpaces: useSpaces,
@@ -78,7 +78,7 @@ SerializeResult serialize(CssNode node,
     prefix = '';
   }
 
-  return new SerializeResult(prefix + css,
+  return SerializeResult(prefix + css,
       sourceMap:
           sourceMap ? visitor._buffer.buildSourceMap(prefix: prefix) : null,
       sourceFiles: sourceMap ? visitor._buffer.sourceFiles : null);
@@ -92,9 +92,9 @@ SerializeResult serialize(CssNode node,
 /// represented in plain CSS, throws a [SassScriptException].
 ///
 /// If [quote] is `false`, quoted strings are emitted without quotes.
-String serializeValue(Value value, {bool inspect: false, bool quote: true}) {
+String serializeValue(Value value, {bool inspect = false, bool quote = true}) {
   var visitor =
-      new _SerializeVisitor(inspect: inspect, quote: quote, sourceMap: false);
+      _SerializeVisitor(inspect: inspect, quote: quote, sourceMap: false);
   value.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -105,8 +105,8 @@ String serializeValue(Value value, {bool inspect: false, bool quote: true}) {
 /// source structure. Note however that, although this will be valid SCSS, it
 /// may not be valid CSS. If [inspect] is `false` and [selector] can't be
 /// represented in plain CSS, throws a [SassScriptException].
-String serializeSelector(Selector selector, {bool inspect: false}) {
-  var visitor = new _SerializeVisitor(inspect: inspect, sourceMap: false);
+String serializeSelector(Selector selector, {bool inspect = false}) {
+  var visitor = _SerializeVisitor(inspect: inspect, sourceMap: false);
   selector.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -143,13 +143,13 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   _SerializeVisitor(
       {OutputStyle style,
-      bool inspect: false,
-      bool quote: true,
-      bool useSpaces: true,
+      bool inspect = false,
+      bool quote = true,
+      bool useSpaces = true,
       int indentWidth,
       LineFeed lineFeed,
-      bool sourceMap: true})
-      : _buffer = sourceMap ? new SourceMapBuffer() : new NoSourceMapBuffer(),
+      bool sourceMap = true})
+      : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
         _style = style ?? OutputStyle.expanded,
         _inspect = inspect,
         _quote = quote,
@@ -352,7 +352,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
         _buffer.forSpan(
             node.valueSpanForMap, () => node.value.value.accept(this));
       } on SassScriptException catch (error) {
-        throw new SassException(error.message, node.value.span);
+        throw SassException(error.message, node.value.span);
       }
     }
   }
@@ -373,7 +373,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   /// Emits the value of [node], with all newlines followed by whitespace
   void _writeFoldedValue(CssDeclaration node) {
-    var scanner = new StringScanner((node.value.value as SassString).text);
+    var scanner = StringScanner((node.value.value as SassString).text);
     while (!scanner.isDone) {
       var next = scanner.readChar();
       if (next != $lf) {
@@ -416,7 +416,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// Returns `null` if [text] contains no newlines, and -1 if it contains
   /// newlines but no lines are indented.
   int _minimumIndentation(String text) {
-    var scanner = new LineScanner(text);
+    var scanner = LineScanner(text);
     while (!scanner.isDone && scanner.readChar() != $lf) {}
     if (scanner.isDone) return scanner.peekChar(-1) == $lf ? -1 : null;
 
@@ -440,7 +440,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   ///
   /// Compresses trailing empty lines of [text] into a single trailing space.
   void _writeWithIndent(String text, int minimumIndentation) {
-    var scanner = new LineScanner(text);
+    var scanner = LineScanner(text);
 
     // Write the first line as-is.
     while (!scanner.isDone) {
@@ -554,7 +554,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   void visitFunction(SassFunction function) {
     if (!_inspect) {
-      throw new SassScriptException("$function isn't a valid CSS value.");
+      throw SassScriptException("$function isn't a valid CSS value.");
     }
 
     _buffer.write("get-function(");
@@ -567,7 +567,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
       _buffer.writeCharCode($lbracket);
     } else if (value.asList.isEmpty) {
       if (!_inspect) {
-        throw new SassScriptException("() isn't a valid CSS value");
+        throw SassScriptException("() isn't a valid CSS value");
       }
       _buffer.write("()");
       return;
@@ -617,7 +617,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   void visitMap(SassMap map) {
     if (!_inspect) {
-      throw new SassScriptException("$map isn't a valid CSS value.");
+      throw SassScriptException("$map isn't a valid CSS value.");
     }
     _buffer.writeCharCode($lparen);
     _writeBetween<Value>(map.contents.keys, ", ", (key) {
@@ -664,7 +664,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     if (!_inspect) {
       if (value.numeratorUnits.length > 1 ||
           value.denominatorUnits.isNotEmpty) {
-        throw new SassScriptException("$value isn't a valid CSS value.");
+        throw SassScriptException("$value isn't a valid CSS value.");
       }
 
       if (value.numeratorUnits.isNotEmpty) {
@@ -705,7 +705,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// Assuming [text] is a double written in exponent notation, returns a string
   /// representation of that double without exponent notation.
   String _removeExponent(String text) {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     int exponent;
     for (var i = 0; i < text.length; i++) {
       var codeUnit = text.codeUnitAt(i);
@@ -723,7 +723,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
       }
       return buffer.toString();
     } else {
-      var result = new StringBuffer();
+      var result = StringBuffer();
       var negative = text.codeUnitAt(0) == $minus;
       if (negative) result.writeCharCode($minus);
       result.write("0.");
@@ -753,7 +753,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     // after the decimal point, and that we round appropriately if necessary. To
     // do this, we maintain an intermediate buffer of decimal digits, which we
     // then convert to text.
-    var digits = new Uint8List(SassNumber.precision);
+    var digits = Uint8List(SassNumber.precision);
     var digitsIndex = 0;
     while (textIndex < text.length && digitsIndex < digits.length) {
       digits[digitsIndex++] = asDecimal(text.codeUnitAt(textIndex++));
@@ -794,11 +794,11 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// By default, this detects which type of quote to use based on the contents
   /// of the string. If [forceDoubleQuote] is `true`, this always uses a double
   /// quote.
-  void _visitQuotedString(String string, {bool forceDoubleQuote: false}) {
+  void _visitQuotedString(String string, {bool forceDoubleQuote = false}) {
     var includesSingleQuote = false;
     var includesDoubleQuote = false;
 
-    var buffer = forceDoubleQuote ? _buffer : new StringBuffer();
+    var buffer = forceDoubleQuote ? _buffer : StringBuffer();
     if (forceDoubleQuote) buffer.writeCharCode($double_quote);
     for (var i = 0; i < string.length; i++) {
       var char = string.codeUnitAt(i);
@@ -1155,7 +1155,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
   /// Returns whether [text] is a valid identifier.
   bool _isIdentifier(String text) {
-    var scanner = new StringScanner(text);
+    var scanner = StringScanner(text);
     while (scanner.scanChar($dash)) {}
 
     if (scanner.isDone) return false;
@@ -1218,14 +1218,14 @@ class OutputStyle {
   ///   width: 100px;
   /// }
   /// ```
-  static const expanded = const OutputStyle._("expanded");
+  static const expanded = OutputStyle._("expanded");
 
   /// A CSS style that produces as few bytes of output as possible.
   ///
   /// ```css
   /// .sidebar{width:100px}
   /// ```
-  static const compressed = const OutputStyle._("compressed");
+  static const compressed = OutputStyle._("compressed");
 
   /// The name of the style.
   final String _name;
@@ -1238,16 +1238,16 @@ class OutputStyle {
 /// An enum of line feed sequences.
 class LineFeed {
   /// A single carriage return.
-  static const cr = const LineFeed._('cr', '\r');
+  static const cr = LineFeed._('cr', '\r');
 
   /// A carriage return followed by a line feed.
-  static const crlf = const LineFeed._('crlf', '\r\n');
+  static const crlf = LineFeed._('crlf', '\r\n');
 
   /// A single line feed.
-  static const lf = const LineFeed._('lf', '\n');
+  static const lf = LineFeed._('lf', '\n');
 
   /// A line feed followed by a carriage return.
-  static const lfcr = const LineFeed._('lfcr', '\n\r');
+  static const lfcr = LineFeed._('lfcr', '\n\r');
 
   /// The name of this sequence..
   final String name;

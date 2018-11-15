@@ -11,11 +11,11 @@ import '../utils.dart';
 import 'parser.dart';
 
 /// Pseudo-class selectors that take unadorned selectors as arguments.
-final _selectorPseudoClasses = new Set.of(
-    ["not", "matches", "current", "any", "has", "host", "host-context"]);
+final _selectorPseudoClasses =
+    Set.of(["not", "matches", "current", "any", "has", "host", "host-context"]);
 
 /// Pseudo-element selectors that take unadorned selectors as arguments.
-final _selectorPseudoElements = new Set.of(["slotted"]);
+final _selectorPseudoElements = Set.of(["slotted"]);
 
 /// A parser for selectors.
 class SelectorParser extends Parser {
@@ -26,7 +26,10 @@ class SelectorParser extends Parser {
   final bool _allowPlaceholder;
 
   SelectorParser(String contents,
-      {url, Logger logger, bool allowParent: true, bool allowPlaceholder: true})
+      {url,
+      Logger logger,
+      bool allowParent = true,
+      bool allowPlaceholder = true})
       : _allowParent = allowParent,
         _allowPlaceholder = allowPlaceholder,
         super(contents, url: url, logger: logger);
@@ -72,14 +75,14 @@ class SelectorParser extends Parser {
       components.add(_complexSelector(lineBreak: lineBreak));
     }
 
-    return new SelectorList(components);
+    return SelectorList(components);
   }
 
   /// Consumes a complex selector.
   ///
   /// If [lineBreak] is `true`, that indicates that there was a line break
   /// before this selector.
-  ComplexSelector _complexSelector({bool lineBreak: false}) {
+  ComplexSelector _complexSelector({bool lineBreak = false}) {
     var components = <ComplexSelectorComponent>[];
 
     loop:
@@ -130,7 +133,7 @@ class SelectorParser extends Parser {
     }
 
     if (components.isEmpty) scanner.error("expected selector.");
-    return new ComplexSelector(components, lineBreak: lineBreak);
+    return ComplexSelector(components, lineBreak: lineBreak);
   }
 
   /// Consumes a compound selector.
@@ -141,7 +144,7 @@ class SelectorParser extends Parser {
       components.add(_simpleSelector(allowParent: false));
     }
 
-    return new CompoundSelector(components);
+    return CompoundSelector(components);
   }
 
   /// Consumes a simple selector.
@@ -187,7 +190,7 @@ class SelectorParser extends Parser {
 
     var name = _attributeName();
     whitespace();
-    if (scanner.scanChar($rbracket)) return new AttributeSelector(name);
+    if (scanner.scanChar($rbracket)) return AttributeSelector(name);
 
     var operator = _attributeOperator();
     whitespace();
@@ -199,23 +202,23 @@ class SelectorParser extends Parser {
     whitespace();
 
     scanner.expectChar($rbracket);
-    return new AttributeSelector.withOperator(name, operator, value);
+    return AttributeSelector.withOperator(name, operator, value);
   }
 
   /// Consumes a qualified name as part of an attribute selector.
   QualifiedName _attributeName() {
     if (scanner.scanChar($asterisk)) {
       scanner.expectChar($pipe);
-      return new QualifiedName(identifier(), namespace: "*");
+      return QualifiedName(identifier(), namespace: "*");
     }
 
     var nameOrNamespace = identifier();
     if (scanner.peekChar() != $pipe || scanner.peekChar(1) == $equal) {
-      return new QualifiedName(nameOrNamespace);
+      return QualifiedName(nameOrNamespace);
     }
 
     scanner.readChar();
-    return new QualifiedName(identifier(), namespace: nameOrNamespace);
+    return QualifiedName(identifier(), namespace: nameOrNamespace);
   }
 
   /// Consumes an attribute selector's operator.
@@ -255,28 +258,28 @@ class SelectorParser extends Parser {
   ClassSelector _classSelector() {
     scanner.expectChar($dot);
     var name = identifier();
-    return new ClassSelector(name);
+    return ClassSelector(name);
   }
 
   /// Consumes an ID selector.
   IDSelector _idSelector() {
     scanner.expectChar($hash);
     var name = identifier();
-    return new IDSelector(name);
+    return IDSelector(name);
   }
 
   /// Consumes a placeholder selector.
   PlaceholderSelector _placeholderSelector() {
     scanner.expectChar($percent);
     var name = identifier();
-    return new PlaceholderSelector(name);
+    return PlaceholderSelector(name);
   }
 
   /// Consumes a parent selector.
   ParentSelector _parentSelector() {
     scanner.expectChar($ampersand);
     var suffix = lookingAtIdentifierBody() ? identifierBody() : null;
-    return new ParentSelector(suffix: suffix);
+    return ParentSelector(suffix: suffix);
   }
 
   /// Consumes a pseudo selector.
@@ -286,7 +289,7 @@ class SelectorParser extends Parser {
     var name = identifier();
 
     if (!scanner.scanChar($lparen)) {
-      return new PseudoSelector(name, element: element);
+      return PseudoSelector(name, element: element);
     }
     whitespace();
 
@@ -316,7 +319,7 @@ class SelectorParser extends Parser {
     }
     scanner.expectChar($rparen);
 
-    return new PseudoSelector(name,
+    return PseudoSelector(name,
         element: element, argument: argument, selector: selector);
   }
 
@@ -324,7 +327,7 @@ class SelectorParser extends Parser {
   ///
   /// [An+B]: https://drafts.csswg.org/css-syntax-3/#anb-microsyntax
   String _aNPlusB() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     switch (scanner.peekChar()) {
       case $e:
       case $E:
@@ -375,30 +378,29 @@ class SelectorParser extends Parser {
     var first = scanner.peekChar();
     if (first == $asterisk) {
       scanner.readChar();
-      if (!scanner.scanChar($pipe)) return new UniversalSelector();
+      if (!scanner.scanChar($pipe)) return UniversalSelector();
       if (scanner.scanChar($asterisk)) {
-        return new UniversalSelector(namespace: "*");
+        return UniversalSelector(namespace: "*");
       } else {
-        return new TypeSelector(
-            new QualifiedName(identifier(), namespace: "*"));
+        return TypeSelector(QualifiedName(identifier(), namespace: "*"));
       }
     } else if (first == $pipe) {
       scanner.readChar();
       if (scanner.scanChar($asterisk)) {
-        return new UniversalSelector(namespace: "");
+        return UniversalSelector(namespace: "");
       } else {
-        return new TypeSelector(new QualifiedName(identifier(), namespace: ""));
+        return TypeSelector(QualifiedName(identifier(), namespace: ""));
       }
     }
 
     var nameOrNamespace = identifier();
     if (!scanner.scanChar($pipe)) {
-      return new TypeSelector(new QualifiedName(nameOrNamespace));
+      return TypeSelector(QualifiedName(nameOrNamespace));
     } else if (scanner.scanChar($asterisk)) {
-      return new UniversalSelector(namespace: nameOrNamespace);
+      return UniversalSelector(namespace: nameOrNamespace);
     } else {
-      return new TypeSelector(
-          new QualifiedName(identifier(), namespace: nameOrNamespace));
+      return TypeSelector(
+          QualifiedName(identifier(), namespace: nameOrNamespace));
     }
   }
 }

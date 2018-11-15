@@ -24,13 +24,13 @@ class CssAtRule extends CssParentNode {
 
   final FileSpan span;
 
-  CssAtRule(this.name, this.span, {bool childless: false, this.value})
+  CssAtRule(this.name, this.span, {bool childless = false, this.value})
       : isChildless = childless;
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitAtRule(this);
 
   CssAtRule copyWithoutChildren() =>
-      new CssAtRule(name, span, childless: isChildless, value: value);
+      CssAtRule(name, span, childless: isChildless, value: value);
 
   void addChild(CssNode child) {
     assert(!isChildless);

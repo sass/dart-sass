@@ -23,10 +23,8 @@ main() {
       expect(
           value.contents,
           equals({
-            new SassString("a", quotes: false):
-                new SassString("b", quotes: false),
-            new SassString("c", quotes: false):
-                new SassString("d", quotes: false)
+            SassString("a", quotes: false): SassString("b", quotes: false),
+            SassString("c", quotes: false): SassString("d", quotes: false)
           }));
     });
 
@@ -34,34 +32,34 @@ main() {
       expect(
           value.asList,
           equals([
-            new SassList([
-              new SassString("a", quotes: false),
-              new SassString("b", quotes: false)
+            SassList([
+              SassString("a", quotes: false),
+              SassString("b", quotes: false)
             ], ListSeparator.space),
-            new SassList([
-              new SassString("c", quotes: false),
-              new SassString("d", quotes: false)
+            SassList([
+              SassString("c", quotes: false),
+              SassString("d", quotes: false)
             ], ListSeparator.space)
           ]));
     });
 
     group("sassIndexToListIndex()", () {
       test("converts a positive index to a Dart index", () {
-        expect(value.sassIndexToListIndex(new SassNumber(1)), equals(0));
-        expect(value.sassIndexToListIndex(new SassNumber(2)), equals(1));
+        expect(value.sassIndexToListIndex(SassNumber(1)), equals(0));
+        expect(value.sassIndexToListIndex(SassNumber(2)), equals(1));
       });
 
       test("converts a negative index to a Dart index", () {
-        expect(value.sassIndexToListIndex(new SassNumber(-1)), equals(1));
-        expect(value.sassIndexToListIndex(new SassNumber(-2)), equals(0));
+        expect(value.sassIndexToListIndex(SassNumber(-1)), equals(1));
+        expect(value.sassIndexToListIndex(SassNumber(-2)), equals(0));
       });
 
       test("rejects invalid indices", () {
-        expect(() => value.sassIndexToListIndex(new SassNumber(0)),
+        expect(() => value.sassIndexToListIndex(SassNumber(0)),
             throwsSassScriptException);
-        expect(() => value.sassIndexToListIndex(new SassNumber(3)),
+        expect(() => value.sassIndexToListIndex(SassNumber(3)),
             throwsSassScriptException);
-        expect(() => value.sassIndexToListIndex(new SassNumber(-3)),
+        expect(() => value.sassIndexToListIndex(SassNumber(-3)),
             throwsSassScriptException);
       });
     });
@@ -69,25 +67,23 @@ main() {
     test("equals the same map", () {
       expect(
           value,
-          equalsWithHash(new SassMap({
-            new SassString("a", quotes: false):
-                new SassString("b", quotes: false),
-            new SassString("c", quotes: false):
-                new SassString("d", quotes: false)
+          equalsWithHash(SassMap({
+            SassString("a", quotes: false): SassString("b", quotes: false),
+            SassString("c", quotes: false): SassString("d", quotes: false)
           })));
     });
 
     test("doesn't equal the equivalent list", () {
       expect(
           value,
-          isNot(equals(new SassList([
-            new SassList([
-              new SassString("a", quotes: false),
-              new SassString("b", quotes: false)
+          isNot(equals(SassList([
+            SassList([
+              SassString("a", quotes: false),
+              SassString("b", quotes: false)
             ], ListSeparator.space),
-            new SassList([
-              new SassString("c", quotes: false),
-              new SassString("d", quotes: false)
+            SassList([
+              SassString("c", quotes: false),
+              SassString("d", quotes: false)
             ], ListSeparator.space)
           ], ListSeparator.comma))));
     });
@@ -96,44 +92,36 @@ main() {
       test("a different value", () {
         expect(
             value,
-            isNot(equals(new SassMap({
-              new SassString("a", quotes: false):
-                  new SassString("x", quotes: false),
-              new SassString("c", quotes: false):
-                  new SassString("d", quotes: false)
+            isNot(equals(SassMap({
+              SassString("a", quotes: false): SassString("x", quotes: false),
+              SassString("c", quotes: false): SassString("d", quotes: false)
             }))));
       });
 
       test("a different key", () {
         expect(
             value,
-            isNot(equals(new SassMap({
-              new SassString("a", quotes: false):
-                  new SassString("b", quotes: false),
-              new SassString("x", quotes: false):
-                  new SassString("d", quotes: false)
+            isNot(equals(SassMap({
+              SassString("a", quotes: false): SassString("b", quotes: false),
+              SassString("x", quotes: false): SassString("d", quotes: false)
             }))));
       });
 
       test("a missing pair", () {
         expect(
             value,
-            isNot(equals(new SassMap({
-              new SassString("a", quotes: false):
-                  new SassString("b", quotes: false)
+            isNot(equals(SassMap({
+              SassString("a", quotes: false): SassString("b", quotes: false)
             }))));
       });
 
       test("an additional pair", () {
         expect(
             value,
-            isNot(equals(new SassMap({
-              new SassString("a", quotes: false):
-                  new SassString("b", quotes: false),
-              new SassString("c", quotes: false):
-                  new SassString("d", quotes: false),
-              new SassString("e", quotes: false):
-                  new SassString("f", quotes: false)
+            isNot(equals(SassMap({
+              SassString("a", quotes: false): SassString("b", quotes: false),
+              SassString("c", quotes: false): SassString("d", quotes: false),
+              SassString("e", quotes: false): SassString("f", quotes: false)
             }))));
       });
     });
@@ -168,31 +156,29 @@ main() {
     });
 
     test("equals an empty list", () {
-      expect(value, equalsWithHash(new SassList.empty()));
+      expect(value, equalsWithHash(SassList.empty()));
     });
 
     test("sassIndexToListIndex() rejects invalid indices", () {
-      expect(() => value.sassIndexToListIndex(new SassNumber(0)),
+      expect(() => value.sassIndexToListIndex(SassNumber(0)),
           throwsSassScriptException);
-      expect(() => value.sassIndexToListIndex(new SassNumber(1)),
+      expect(() => value.sassIndexToListIndex(SassNumber(1)),
           throwsSassScriptException);
-      expect(() => value.sassIndexToListIndex(new SassNumber(-1)),
+      expect(() => value.sassIndexToListIndex(SassNumber(-1)),
           throwsSassScriptException);
     });
   });
 
   test("new SassMap.empty() creates an empty map with default metadata", () {
-    expect(new SassMap.empty().contents, isEmpty);
+    expect(SassMap.empty().contents, isEmpty);
   });
 
   test("new SassMap() creates a map with the given contents", () {
-    var list = new SassMap({
-      new SassString("a", quotes: false): new SassString("b", quotes: false)
-    });
+    var list = SassMap(
+        {SassString("a", quotes: false): SassString("b", quotes: false)});
     expect(
         list.contents,
-        equals({
-          new SassString("a", quotes: false): new SassString("b", quotes: false)
-        }));
+        equals(
+            {SassString("a", quotes: false): SassString("b", quotes: false)}));
   });
 }

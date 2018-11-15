@@ -36,7 +36,7 @@ class CssParser extends ScssParser {
         scanner.spanFrom(start));
   }
 
-  Statement atRule(Statement child(), {bool root: false}) {
+  Statement atRule(Statement child(), {bool root = false}) {
     // NOTE: this logic is largely duplicated in CssParser.atRule. Most changes
     // here should be mirrored there.
 
@@ -94,17 +94,16 @@ class CssParser extends ScssParser {
     if (next == $u || next == $U) {
       url = dynamicUrl();
     } else {
-      url = new StringExpression(
-          interpolatedString().asInterpolation(static: true));
+      url =
+          StringExpression(interpolatedString().asInterpolation(static: true));
     }
     var urlSpan = scanner.spanFrom(urlStart);
 
     whitespace();
     var queries = tryImportQueries();
     expectStatementSeparator("@import rule");
-    return new ImportRule([
-      new StaticImport(
-          new Interpolation([url], urlSpan), scanner.spanFrom(urlStart),
+    return ImportRule([
+      StaticImport(Interpolation([url], urlSpan), scanner.spanFrom(urlStart),
           supports: queries?.item1, media: queries?.item2)
     ], scanner.spanFrom(start));
   }
@@ -118,7 +117,7 @@ class CssParser extends ScssParser {
     if (specialFunction != null) return specialFunction;
 
     var beforeArguments = scanner.state;
-    if (!scanner.scanChar($lparen)) return new StringExpression(identifier);
+    if (!scanner.scanChar($lparen)) return StringExpression(identifier);
 
     var arguments = <Expression>[];
     if (!scanner.scanChar($rparen)) {
@@ -135,11 +134,11 @@ class CssParser extends ScssParser {
           "This function isn't allowed in plain CSS.", scanner.spanFrom(start));
     }
 
-    return new FunctionExpression(
+    return FunctionExpression(
         // Create a fake interpolation to force the function to be interpreted
         // as plain CSS, rather than calling a user-defined function.
-        new Interpolation([new StringExpression(identifier)], identifier.span),
-        new ArgumentInvocation(
+        Interpolation([StringExpression(identifier)], identifier.span),
+        ArgumentInvocation(
             arguments, const {}, scanner.spanFrom(beforeArguments)));
   }
 }

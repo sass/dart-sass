@@ -25,7 +25,7 @@ abstract class Parser {
   final Logger logger;
 
   Parser(String contents, {url, Logger logger})
-      : scanner = new SpanScanner(contents, sourceUrl: url),
+      : scanner = SpanScanner(contents, sourceUrl: url),
         logger = logger ?? const Logger.stderr();
 
   // ## Tokens
@@ -111,12 +111,12 @@ abstract class Parser {
   /// ensures that `1px-2px` parses as subtraction rather than the unit
   /// `px-2px`.
   @protected
-  String identifier({bool unit: false}) {
+  String identifier({bool unit = false}) {
     // NOTE: this logic is largely duplicated in
     // StylesheetParser._interpolatedIdentifier. Most changes here should be
     // mirrored there.
 
-    var text = new StringBuffer();
+    var text = StringBuffer();
     while (scanner.scanChar($dash)) {
       text.writeCharCode($dash);
     }
@@ -139,14 +139,14 @@ abstract class Parser {
   /// Consumes a chunk of a plain CSS identifier after the name start.
   @protected
   String identifierBody() {
-    var text = new StringBuffer();
+    var text = StringBuffer();
     _identifierBody(text);
     if (text.isEmpty) scanner.error("Expected identifier body.");
     return text.toString();
   }
 
   /// Like [_identifierBody], but parses the body into the [text] buffer.
-  void _identifierBody(StringBuffer text, {bool unit: false}) {
+  void _identifierBody(StringBuffer text, {bool unit = false}) {
     while (true) {
       var next = scanner.peekChar();
       if (next == null) {
@@ -181,14 +181,14 @@ abstract class Parser {
           position: quote == null ? scanner.position : scanner.position - 1);
     }
 
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     while (true) {
       var next = scanner.peekChar();
       if (next == quote) {
         scanner.readChar();
         break;
       } else if (next == null || isNewline(next)) {
-        scanner.error("Expected ${new String.fromCharCode(quote)}.");
+        scanner.error("Expected ${String.fromCharCode(quote)}.");
       } else if (next == $backslash) {
         if (isNewline(scanner.peekChar(1))) {
           scanner.readChar();
@@ -209,12 +209,12 @@ abstract class Parser {
   ///
   /// If [allowEmpty] is `false` (the default), this requires at least one token.
   @protected
-  String declarationValue({bool allowEmpty: false}) {
+  String declarationValue({bool allowEmpty = false}) {
     // NOTE: this logic is largely duplicated in
     // StylesheetParser._interpolatedDeclarationValue. Most changes here should
     // be mirrored there.
 
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     var brackets = <int>[];
     var wroteNewline = false;
     loop:
@@ -326,7 +326,7 @@ abstract class Parser {
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
-    var buffer = new StringBuffer()..write("url(");
+    var buffer = StringBuffer()..write("url(");
     while (true) {
       var next = scanner.peekChar();
       if (next == null) {
@@ -369,7 +369,7 @@ abstract class Parser {
   /// If [identifierStart] is true, this normalizes the escape sequence as
   /// though it were at the beginning of an identifier.
   @protected
-  String escape({bool identifierStart: false}) {
+  String escape({bool identifierStart = false}) {
     // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
     scanner.expectChar($backslash);
@@ -394,17 +394,17 @@ abstract class Parser {
     }
 
     if (identifierStart ? isNameStart(value) : isName(value)) {
-      return new String.fromCharCode(value);
+      return String.fromCharCode(value);
     } else if ((value <= 0x1F && value != $tab) ||
         value == 0x7F ||
         (identifierStart && isDigit(value))) {
-      var buffer = new StringBuffer()..writeCharCode($backslash);
+      var buffer = StringBuffer()..writeCharCode($backslash);
       if (value > 0xF) buffer.writeCharCode(hexCharFor(value >> 4));
       buffer.writeCharCode(hexCharFor(value & 0xF));
       buffer.writeCharCode($space);
       return buffer.toString();
     } else {
-      return new String.fromCharCodes([$backslash, value]);
+      return String.fromCharCodes([$backslash, value]);
     }
   }
 
@@ -468,7 +468,7 @@ abstract class Parser {
     var actual = scanner.readChar();
     if (equalsLetterIgnoreCase(letter, actual)) return;
 
-    scanner.error('Expected "${new String.fromCharCode(letter)}".',
+    scanner.error('Expected "${String.fromCharCode(letter)}".',
         position: actual == null ? scanner.position : scanner.position - 1);
   }
 
@@ -586,7 +586,7 @@ abstract class Parser {
   @protected
   @alwaysThrows
   void error(String message, FileSpan span) =>
-      throw new StringScannerException(message, span, scanner.string);
+      throw StringScannerException(message, span, scanner.string);
 
   /// Prints a source span highlight of the current location being scanned.
   ///
@@ -616,7 +616,7 @@ abstract class Parser {
         }
       }
 
-      throw new SassFormatException(error.message, span);
+      throw SassFormatException(error.message, span);
     }
   }
 

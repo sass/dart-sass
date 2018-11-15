@@ -30,18 +30,17 @@ class CssMediaQuery {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   static List<CssMediaQuery> parseList(String contents, {url, Logger logger}) =>
-      new MediaQueryParser(contents, url: url, logger: logger).parse();
+      MediaQueryParser(contents, url: url, logger: logger).parse();
 
   /// Creates a media query specifies a type and, optionally, features.
   CssMediaQuery(this.type, {this.modifier, Iterable<String> features})
-      : features =
-            features == null ? const [] : new List.unmodifiable(features);
+      : features = features == null ? const [] : List.unmodifiable(features);
 
   /// Creates a media query that only specifies features.
   CssMediaQuery.condition(Iterable<String> features)
       : modifier = null,
         type = null,
-        features = new List.unmodifiable(features);
+        features = List.unmodifiable(features);
 
   /// Merges this with [other] to return a query that matches the intersection
   /// of both inputs.
@@ -52,7 +51,7 @@ class CssMediaQuery {
     var theirType = other.type?.toLowerCase();
 
     if (ourType == null && theirType == null) {
-      return new MediaQuerySuccessfulMergeResult._(new CssMediaQuery.condition(
+      return MediaQuerySuccessfulMergeResult._(CssMediaQuery.condition(
           this.features.toList()..addAll(other.features)));
     }
 
@@ -129,7 +128,7 @@ class CssMediaQuery {
       features = this.features.toList()..addAll(other.features);
     }
 
-    return new MediaQuerySuccessfulMergeResult._(new CssMediaQuery(
+    return MediaQuerySuccessfulMergeResult._(CssMediaQuery(
         type == ourType ? this.type : other.type,
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
         features: features));
@@ -144,7 +143,7 @@ class CssMediaQuery {
   int get hashCode => modifier.hashCode ^ type.hashCode ^ listHash(features);
 
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     if (modifier != null) buffer.write("$modifier ");
     if (type != null) {
       buffer.write(type);
@@ -162,12 +161,12 @@ class CssMediaQuery {
 abstract class MediaQueryMergeResult {
   /// A singleton value indicating that there are no contexts that match both
   /// input queries.
-  static const empty = const _SingletonCssMediaQueryMergeResult("empty");
+  static const empty = _SingletonCssMediaQueryMergeResult("empty");
 
   /// A singleton value indicating that the contexts that match both input
   /// queries can't be represented by a Level 3 media query.
   static const unrepresentable =
-      const _SingletonCssMediaQueryMergeResult("unrepresentable");
+      _SingletonCssMediaQueryMergeResult("unrepresentable");
 }
 
 /// The subclass [MediaQueryMergeResult] that represents singleton enum values.

@@ -31,18 +31,18 @@ class SelectorList extends Selector {
   ///
   /// This has the same format as a list returned by `selector-parse()`.
   SassList get asSassList {
-    return new SassList(components.map((complex) {
-      return new SassList(
-          complex.components.map((component) =>
-              new SassString(component.toString(), quotes: false)),
+    return SassList(components.map((complex) {
+      return SassList(
+          complex.components.map(
+              (component) => SassString(component.toString(), quotes: false)),
           ListSeparator.space);
     }), ListSeparator.comma);
   }
 
   SelectorList(Iterable<ComplexSelector> components)
-      : components = new List.unmodifiable(components) {
+      : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
-      throw new ArgumentError("components may not be empty.");
+      throw ArgumentError("components may not be empty.");
     }
   }
 
@@ -56,9 +56,9 @@ class SelectorList extends Selector {
   factory SelectorList.parse(String contents,
           {url,
           Logger logger,
-          bool allowParent: true,
-          bool allowPlaceholder: true}) =>
-      new SelectorParser(contents,
+          bool allowParent = true,
+          bool allowPlaceholder = true}) =>
+      SelectorParser(contents,
               url: url,
               logger: logger,
               allowParent: allowParent,
@@ -76,11 +76,11 @@ class SelectorList extends Selector {
       return other.components.expand((complex2) {
         var unified = unifyComplex([complex1.components, complex2.components]);
         if (unified == null) return const <ComplexSelector>[];
-        return unified.map((complex) => new ComplexSelector(complex));
+        return unified.map((complex) => ComplexSelector(complex));
       });
     }).toList();
 
-    return contents.isEmpty ? null : new SelectorList(contents);
+    return contents.isEmpty ? null : SelectorList(contents);
   }
 
   /// Returns a new list with all [ParentSelector]s replaced with [parent].
@@ -92,17 +92,17 @@ class SelectorList extends Selector {
   /// so, this list is returned as-is if it doesn't contain any explicit
   /// [ParentSelector]s. If it does, this throws a [SassScriptException].
   SelectorList resolveParentSelectors(SelectorList parent,
-      {bool implicitParent: true}) {
+      {bool implicitParent = true}) {
     if (parent == null) {
       if (!_containsParentSelector) return this;
-      throw new SassScriptException(
+      throw SassScriptException(
           'Top-level selectors may not contain the parent selector "&".');
     }
 
-    return new SelectorList(flattenVertically(components.map((complex) {
+    return SelectorList(flattenVertically(components.map((complex) {
       if (!_complexContainsParentSelector(complex)) {
         if (!implicitParent) return [complex];
-        return parent.components.map((parentComplex) => new ComplexSelector(
+        return parent.components.map((parentComplex) => ComplexSelector(
             parentComplex.components.toList()..addAll(complex.components),
             lineBreak: complex.lineBreak || parentComplex.lineBreak));
       }
@@ -141,7 +141,7 @@ class SelectorList extends Selector {
 
       var i = 0;
       return newComplexes.map((newComplex) =>
-          new ComplexSelector(newComplex, lineBreak: lineBreaks[i++]));
+          ComplexSelector(newComplex, lineBreak: lineBreaks[i++]));
     })));
   }
 
@@ -190,30 +190,30 @@ class SelectorList extends Selector {
       }
     } else {
       return [
-        new ComplexSelector([new CompoundSelector(resolvedMembers)])
+        ComplexSelector([CompoundSelector(resolvedMembers)])
       ];
     }
 
     return parent.components.map((complex) {
       var lastComponent = complex.components.last;
       if (lastComponent is! CompoundSelector) {
-        throw new SassScriptException(
+        throw SassScriptException(
             'Parent "$complex" is incompatible with this selector.');
       }
 
       var last = lastComponent as CompoundSelector;
       var suffix = (compound.components.first as ParentSelector).suffix;
       if (suffix != null) {
-        last = new CompoundSelector(
+        last = CompoundSelector(
             last.components.take(last.components.length - 1).toList()
               ..add(last.components.last.addSuffix(suffix))
               ..addAll(resolvedMembers.skip(1)));
       } else {
-        last = new CompoundSelector(
+        last = CompoundSelector(
             last.components.toList()..addAll(resolvedMembers.skip(1)));
       }
 
-      return new ComplexSelector(
+      return ComplexSelector(
           complex.components.take(complex.components.length - 1).toList()
             ..add(last),
           lineBreak: complex.lineBreak);

@@ -10,7 +10,7 @@ import 'source_map_buffer.dart';
 /// A [SourceMapBuffer] that doesn't actually build a source map.
 class NoSourceMapBuffer implements SourceMapBuffer {
   /// The buffer that contains the text of the target file.
-  final _buffer = new StringBuffer();
+  final _buffer = StringBuffer();
 
   bool get isEmpty => _buffer.isEmpty;
   bool get isNotEmpty => _buffer.isNotEmpty;
@@ -26,8 +26,8 @@ class NoSourceMapBuffer implements SourceMapBuffer {
   String toString() => _buffer.toString();
 
   void clear() =>
-      throw new UnsupportedError("SourceMapBuffer.clear() is not supported.");
+      throw UnsupportedError("SourceMapBuffer.clear() is not supported.");
 
-  SingleMapping buildSourceMap({String prefix}) => throw new UnsupportedError(
+  SingleMapping buildSourceMap({String prefix}) => throw UnsupportedError(
       "NoSourceMapBuffer.buildSourceMap() is not supported.");
 }

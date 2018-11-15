@@ -21,6 +21,5 @@ class CssKeyframeBlock extends CssParentNode {
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitKeyframeBlock(this);
 
-  CssKeyframeBlock copyWithoutChildren() =>
-      new CssKeyframeBlock(selector, span);
+  CssKeyframeBlock copyWithoutChildren() => CssKeyframeBlock(selector, span);
 }

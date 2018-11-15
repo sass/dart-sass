@@ -29,7 +29,7 @@ class IncludeRule implements Statement, CallableInvocation {
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 
   String toString() {
-    var buffer = new StringBuffer("@include $name");
+    var buffer = StringBuffer("@include $name");
     if (!arguments.isEmpty) buffer.write("($arguments)");
     buffer.write(content == null ? ";" : " $content");
     return buffer.toString();

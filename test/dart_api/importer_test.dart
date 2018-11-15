@@ -12,9 +12,9 @@ import 'package:sass/src/exception.dart';
 main() {
   test("uses an importer to resolve an @import", () {
     var css = compileString('@import "orange";', importers: [
-      new _TestImporter((url) => Uri.parse("u:$url"), (url) {
+      _TestImporter((url) => Uri.parse("u:$url"), (url) {
         var color = url.path;
-        return new ImporterResult('.$color {color: $color}', indented: false);
+        return ImporterResult('.$color {color: $color}', indented: false);
       })
     ]);
 
@@ -23,9 +23,9 @@ main() {
 
   test("passes the canonicalized URL to the importer", () {
     var css = compileString('@import "orange";', importers: [
-      new _TestImporter((url) => Uri.parse('u:blue'), (url) {
+      _TestImporter((url) => Uri.parse('u:blue'), (url) {
         var color = url.path;
-        return new ImporterResult('.$color {color: $color}', indented: false);
+        return ImporterResult('.$color {color: $color}', indented: false);
       })
     ]);
 
@@ -37,12 +37,11 @@ main() {
       @import "orange";
       @import "orange";
     """, importers: [
-      new _TestImporter(
+      _TestImporter(
           (url) => Uri.parse('u:blue'),
           expectAsync1((url) {
             var color = url.path;
-            return new ImporterResult('.$color {color: $color}',
-                indented: false);
+            return ImporterResult('.$color {color: $color}', indented: false);
           }, count: 1))
     ]);
 
@@ -60,16 +59,16 @@ main() {
     var times = 0;
     var css = compileString('@import "foo:bar/baz";',
         importers: [
-          new _TestImporter(
+          _TestImporter(
               expectAsync1((url) {
                 times++;
-                if (times == 1) return new Uri(path: 'first');
+                if (times == 1) return Uri(path: 'first');
 
                 expect(url, equals(Uri.parse('foo:bar/bang')));
-                return new Uri(path: 'second');
+                return Uri(path: 'second');
               }, count: 2),
               expectAsync1((url) {
-                return new ImporterResult(
+                return ImporterResult(
                     times == 1
                         ? '''
                         .first {url: "$url"}
@@ -90,7 +89,7 @@ main() {
   test("wraps an error in canonicalize()", () {
     expect(() {
       compileString('@import "orange";', importers: [
-        new _TestImporter((url) {
+        _TestImporter((url) {
           throw "this import is bad actually";
         }, expectAsync1((_) => null, count: 0))
       ]);
@@ -105,7 +104,7 @@ main() {
   test("wraps an error in load()", () {
     expect(() {
       compileString('@import "orange";', importers: [
-        new _TestImporter((url) => Uri.parse("u:$url"), (url) {
+        _TestImporter((url) => Uri.parse("u:$url"), (url) {
           throw "this import is bad actually";
         })
       ]);
@@ -120,8 +119,8 @@ main() {
   test("prefers .message to .toString() for an importer error", () {
     expect(() {
       compileString('@import "orange";', importers: [
-        new _TestImporter((url) => Uri.parse("u:$url"), (url) {
-          throw new FormatException("bad format somehow");
+        _TestImporter((url) => Uri.parse("u:$url"), (url) {
+          throw FormatException("bad format somehow");
         })
       ]);
     }, throwsA(predicate((error) {

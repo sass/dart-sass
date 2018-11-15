@@ -20,5 +20,5 @@ abstract class SassMap extends Value {
   const factory SassMap.empty() = internal.SassMap.empty;
 
   factory SassMap(Map<Value, Value> contents) =>
-      new internal.SassMap(contents.cast());
+      internal.SassMap(contents.cast());
 }

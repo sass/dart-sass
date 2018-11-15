@@ -26,7 +26,7 @@ class FilesystemImporter extends Importer {
 
   ImporterResult load(Uri url) {
     var path = p.fromUri(url);
-    return new ImporterResult(io.readFile(path),
+    return ImporterResult(io.readFile(path),
         sourceMapUrl: url, syntax: Syntax.forPath(path));
   }
 

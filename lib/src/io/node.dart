@@ -102,11 +102,10 @@ String readFile(String path) {
   var contents = _readFile(path, 'utf8') as String;
   if (!contents.contains("�")) return contents;
 
-  var sourceFile = new SourceFile.fromString(contents, url: p.toUri(path));
+  var sourceFile = SourceFile.fromString(contents, url: p.toUri(path));
   for (var i = 0; i < contents.length; i++) {
     if (contents.codeUnitAt(i) != 0xFFFD) continue;
-    throw new SassException(
-        "Invalid UTF-8.", sourceFile.location(i).pointSpan());
+    throw SassException("Invalid UTF-8.", sourceFile.location(i).pointSpan());
   }
 
   // This should be unreachable.
@@ -124,9 +123,9 @@ void deleteFile(String path) =>
     _systemErrorToFileSystemException(() => _fs.unlinkSync(path));
 
 Future<String> readStdin() async {
-  var completer = new Completer<String>();
+  var completer = Completer<String>();
   String contents;
-  var innerSink = new StringConversionSink.withCallback((String result) {
+  var innerSink = StringConversionSink.withCallback((String result) {
     contents = result;
     completer.complete(contents);
   });
@@ -202,8 +201,8 @@ Iterable<String> listDir(String path) {
   return _systemErrorToFileSystemException(() => list(path));
 }
 
-DateTime modificationTime(String path) => _systemErrorToFileSystemException(
-    () => new DateTime.fromMillisecondsSinceEpoch(
+DateTime modificationTime(String path) =>
+    _systemErrorToFileSystemException(() => DateTime.fromMillisecondsSinceEpoch(
         _fs.statSync(path).mtime.getTime()));
 
 String getEnvironmentVariable(String name) =>
@@ -216,7 +215,7 @@ T _systemErrorToFileSystemException<T>(T callback()) {
     return callback();
   } catch (error) {
     var systemError = error as _SystemError;
-    throw new FileSystemException._(
+    throw FileSystemException._(
         _cleanErrorMessage(systemError), systemError.path);
   }
 }
@@ -224,7 +223,7 @@ T _systemErrorToFileSystemException<T>(T callback()) {
 @JS("process.stderr")
 external _Stderr get _stderr;
 
-final stderr = new Stderr(_stderr);
+final stderr = Stderr(_stderr);
 
 @JS("process.stdin")
 external _Stdin get _stdin;
@@ -249,9 +248,9 @@ external int get exitCode;
 @JS("process.exitCode")
 external set exitCode(int code);
 
-Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) {
+Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
   var watcher = chokidar.watch(
-      path, new ChokidarOptions(disableGlobbing: true, usePolling: poll));
+      path, ChokidarOptions(disableGlobbing: true, usePolling: poll));
 
   // Don't assign the controller until after the ready event fires. Otherwise,
   // Chokidar will give us a bunch of add events for files that already exist.
@@ -260,20 +259,20 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) {
     ..on(
         'add',
         allowInterop((String path, [_]) =>
-            controller?.add(new WatchEvent(ChangeType.ADD, path))))
+            controller?.add(WatchEvent(ChangeType.ADD, path))))
     ..on(
         'change',
         allowInterop((String path, [_]) =>
-            controller?.add(new WatchEvent(ChangeType.MODIFY, path))))
+            controller?.add(WatchEvent(ChangeType.MODIFY, path))))
     ..on(
         'unlink',
         allowInterop((String path) =>
-            controller?.add(new WatchEvent(ChangeType.REMOVE, path))))
+            controller?.add(WatchEvent(ChangeType.REMOVE, path))))
     ..on('error', allowInterop((error) => controller?.addError(error)));
 
-  var completer = new Completer<Stream<WatchEvent>>();
+  var completer = Completer<Stream<WatchEvent>>();
   watcher.on('ready', allowInterop(() {
-    controller = new StreamController<WatchEvent>(onCancel: () {
+    controller = StreamController<WatchEvent>(onCancel: () {
       watcher.close();
     });
     completer.complete(controller.stream);

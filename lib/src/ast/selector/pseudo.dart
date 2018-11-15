@@ -84,7 +84,7 @@ class PseudoSelector extends SimpleSelector {
   }
 
   PseudoSelector(String name,
-      {bool element: false, this.argument, this.selector})
+      {bool element = false, this.argument, this.selector})
       : isClass = !element && !_isFakePseudoElement(name),
         isSyntacticClass = !element,
         name = name,
@@ -115,12 +115,12 @@ class PseudoSelector extends SimpleSelector {
 
   /// Returns a new [PseudoSelector] based on this, but with the selector
   /// replaced with [selector].
-  PseudoSelector withSelector(SelectorList selector) => new PseudoSelector(name,
+  PseudoSelector withSelector(SelectorList selector) => PseudoSelector(name,
       element: isElement, argument: argument, selector: selector);
 
   PseudoSelector addSuffix(String suffix) {
     if (argument != null || selector != null) super.addSuffix(suffix);
-    return new PseudoSelector(name + suffix, element: isElement);
+    return PseudoSelector(name + suffix, element: isElement);
   }
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {

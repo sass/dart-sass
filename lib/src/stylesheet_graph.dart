@@ -15,7 +15,7 @@ import 'visitor/find_imports.dart';
 /// [nodes].
 class StylesheetGraph {
   /// A map from canonical URLs to the stylesheet nodes for those URLs.
-  Map<Uri, StylesheetNode> get nodes => new UnmodifiableMapView(_nodes);
+  Map<Uri, StylesheetNode> get nodes => UnmodifiableMapView(_nodes);
   final _nodes = <Uri, StylesheetNode>{};
 
   /// The import cache used to load stylesheets.
@@ -43,7 +43,7 @@ class StylesheetGraph {
           // If an import is missing, always recompile so we show the user the
           // error.
           var upstreamTime = upstream == null
-              ? new DateTime.now()
+              ? DateTime.now()
               : transitiveModificationTime(upstream);
           if (upstreamTime.isAfter(latest)) latest = upstreamTime;
         }
@@ -86,7 +86,7 @@ class StylesheetGraph {
 
     return _nodes.putIfAbsent(
         canonicalUrl,
-        () => new StylesheetNode._(stylesheet, importer, canonicalUrl,
+        () => StylesheetNode._(stylesheet, importer, canonicalUrl,
             _upstreamNodes(stylesheet, importer, canonicalUrl)));
   }
 
@@ -94,7 +94,7 @@ class StylesheetGraph {
   /// appears within [baseUrl] imported by [baseImporter].
   Map<Uri, StylesheetNode> _upstreamNodes(
       Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
-    var active = new Set.of([baseUrl]);
+    var active = Set.of([baseUrl]);
     var upstream = <Uri, StylesheetNode>{};
     for (var import in findImports(stylesheet)) {
       var url = Uri.parse(import.url);
@@ -113,7 +113,7 @@ class StylesheetGraph {
   StylesheetNode reload(Uri canonicalUrl) {
     var node = _nodes[canonicalUrl];
     if (node == null) {
-      throw new StateError("$canonicalUrl is not in the dependency graph.");
+      throw StateError("$canonicalUrl is not in the dependency graph.");
     }
 
     // Rather than spending time computing exactly which modification times
@@ -142,7 +142,7 @@ class StylesheetGraph {
   void remove(Uri canonicalUrl) {
     var node = _nodes.remove(canonicalUrl);
     if (node == null) {
-      throw new StateError("$canonicalUrl is not in the dependency graph.");
+      throw StateError("$canonicalUrl is not in the dependency graph.");
     }
 
     // Rather than spending time computing exactly which modification times
@@ -184,7 +184,7 @@ class StylesheetGraph {
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);
-    var node = new StylesheetNode._(stylesheet, importer, canonicalUrl,
+    var node = StylesheetNode._(stylesheet, importer, canonicalUrl,
         _upstreamNodes(stylesheet, importer, canonicalUrl));
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;
@@ -237,12 +237,12 @@ class StylesheetNode {
   /// stylesheets those imports refer to.
   ///
   /// This may have `null` values, which indicate failed imports.
-  Map<Uri, StylesheetNode> get upstream => new UnmodifiableMapView(_upstream);
+  Map<Uri, StylesheetNode> get upstream => UnmodifiableMapView(_upstream);
   Map<Uri, StylesheetNode> _upstream;
 
   /// The stylesheets that import [stylesheet].
-  Set<StylesheetNode> get downstream => new UnmodifiableSetView(_downstream);
-  final _downstream = new Set<StylesheetNode>();
+  Set<StylesheetNode> get downstream => UnmodifiableSetView(_downstream);
+  final _downstream = Set<StylesheetNode>();
 
   StylesheetNode._(
       this._stylesheet, this.importer, this.canonicalUrl, this._upstream) {
@@ -254,8 +254,8 @@ class StylesheetNode {
   /// Sets [newUpstream] as the new value of [upstream] and adjusts upstream
   /// nodes' [downstream] fields accordingly.
   void _replaceUpstream(Map<Uri, StylesheetNode> newUpstream) {
-    var oldUpstream = new Set.of(upstream.values)..remove(null);
-    var newUpstreamSet = new Set.of(newUpstream.values)..remove(null);
+    var oldUpstream = Set.of(upstream.values)..remove(null);
+    var newUpstreamSet = Set.of(newUpstream.values)..remove(null);
 
     for (var removed in oldUpstream.difference(newUpstreamSet)) {
       var wasRemoved = removed._downstream.remove(this);

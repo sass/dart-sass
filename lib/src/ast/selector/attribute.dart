@@ -52,24 +52,24 @@ class AttributeSelector extends SimpleSelector {
 /// An operator that defines the semantics of an [AttributeSelector].
 class AttributeOperator {
   /// The attribute value exactly equals the given value.
-  static const equal = const AttributeOperator._("=");
+  static const equal = AttributeOperator._("=");
 
   /// The attribute value is a whitespace-separated list of words, one of which
   /// is the given value.
-  static const include = const AttributeOperator._("~=");
+  static const include = AttributeOperator._("~=");
 
   /// The attribute value is either exactly the given value, or starts with the
   /// given value followed by a dash.
-  static const dash = const AttributeOperator._("|=");
+  static const dash = AttributeOperator._("|=");
 
   /// The attribute value begins with the given value.
-  static const prefix = const AttributeOperator._("^=");
+  static const prefix = AttributeOperator._("^=");
 
   /// The attribute value ends with the given value.
-  static const suffix = const AttributeOperator._("\$=");
+  static const suffix = AttributeOperator._("\$=");
 
   /// The attribute value contains the given value.
-  static const substring = const AttributeOperator._("*=");
+  static const substring = AttributeOperator._("*=");
 
   /// The operator's token text.
   final String _text;

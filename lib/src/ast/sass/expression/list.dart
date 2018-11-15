@@ -25,8 +25,8 @@ class ListExpression implements Expression {
   final FileSpan span;
 
   ListExpression(Iterable<Expression> contents, ListSeparator separator,
-      {bool brackets: false, FileSpan span})
-      : this._(new List.unmodifiable(contents), separator, brackets, span);
+      {bool brackets = false, FileSpan span})
+      : this._(List.unmodifiable(contents), separator, brackets, span);
 
   ListExpression._(List<Expression> contents, this.separator, this.hasBrackets,
       FileSpan span)
@@ -37,7 +37,7 @@ class ListExpression implements Expression {
       visitor.visitListExpression(this);
 
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     if (hasBrackets) buffer.writeCharCode($lbracket);
     buffer.write(contents
         .map((element) =>

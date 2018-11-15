@@ -29,11 +29,11 @@ abstract class Importer extends AsyncImporter {
   ///
   /// This is used for stylesheets which don't support relative imports, such as
   /// those created from Dart code with plain strings.
-  static final Importer noOp = new NoOpImporter();
+  static final Importer noOp = NoOpImporter();
 
   Uri canonicalize(Uri url);
 
   ImporterResult load(Uri url);
 
-  DateTime modificationTime(Uri url) => new DateTime.now();
+  DateTime modificationTime(Uri url) => DateTime.now();
 }

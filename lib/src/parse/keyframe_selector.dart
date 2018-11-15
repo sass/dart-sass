@@ -37,7 +37,7 @@ class KeyframeSelectorParser extends Parser {
   }
 
   String _percentage() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     if (scanner.scanChar($plus)) buffer.writeCharCode($plus);
 
     var second = scanner.peekChar();

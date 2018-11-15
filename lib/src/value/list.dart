@@ -25,16 +25,16 @@ class SassList extends Value implements ext.SassList {
 
   int get lengthAsList => asList.length;
 
-  const SassList.empty({ListSeparator separator, bool brackets: false})
+  const SassList.empty({ListSeparator separator, bool brackets = false})
       : _contents = const [],
         separator = separator ?? ListSeparator.undecided,
         hasBrackets = brackets;
 
-  SassList(Iterable<Value> contents, this.separator, {bool brackets: false})
-      : _contents = new List.unmodifiable(contents),
+  SassList(Iterable<Value> contents, this.separator, {bool brackets = false})
+      : _contents = List.unmodifiable(contents),
         hasBrackets = brackets {
     if (separator == ListSeparator.undecided && asList.length > 1) {
-      throw new ArgumentError(
+      throw ArgumentError(
           "A list with more than one element must have an explicit separator.");
     }
   }
@@ -57,16 +57,16 @@ class SassList extends Value implements ext.SassList {
 /// An enum of list separator types.
 class ListSeparator {
   /// A space-separated list.
-  static const space = const ListSeparator._("space", " ");
+  static const space = ListSeparator._("space", " ");
 
   /// A comma-separated list.
-  static const comma = const ListSeparator._("comma", ",");
+  static const comma = ListSeparator._("comma", ",");
 
   /// A separator that hasn't yet been determined.
   ///
   /// Singleton lists and empty lists don't have separators defiend. This means
   /// that list functions will prefer other lists' separators if possible.
-  static const undecided = const ListSeparator._("undecided", null);
+  static const undecided = ListSeparator._("undecided", null);
 
   final String _name;
 

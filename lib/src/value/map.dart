@@ -16,7 +16,7 @@ class SassMap extends Value implements ext.SassMap {
   List<Value> get asList {
     var result = <Value>[];
     contents.forEach((key, value) {
-      result.add(new SassList([key, value], ListSeparator.space));
+      result.add(SassList([key, value], ListSeparator.space));
     });
     return result;
   }
@@ -26,8 +26,7 @@ class SassMap extends Value implements ext.SassMap {
   /// Returns an empty map.
   const SassMap.empty() : contents = const {};
 
-  SassMap(Map<Value, Value> contents)
-      : contents = new Map.unmodifiable(contents);
+  SassMap(Map<Value, Value> contents) : contents = Map.unmodifiable(contents);
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitMap(this);
 

@@ -22,7 +22,7 @@ class PlaceholderSelector extends SimpleSelector {
       visitor.visitPlaceholderSelector(this);
 
   PlaceholderSelector addSuffix(String suffix) =>
-      new PlaceholderSelector(name + suffix);
+      PlaceholderSelector(name + suffix);
 
   bool operator ==(other) => other is PlaceholderSelector && other.name == name;
 

@@ -6,7 +6,7 @@ import 'dart:async';
 
 class SyncPackageResolver {
   static final _error =
-      new UnsupportedError('SyncPackageResolver is not supported in JS.');
+      UnsupportedError('SyncPackageResolver is not supported in JS.');
 
   static Future<SyncPackageResolver> get current => throw _error;
 

@@ -21,7 +21,7 @@ class StyleRule extends ParentStatement {
   final FileSpan span;
 
   StyleRule(this.selector, Iterable<Statement> children, this.span)
-      : super(new List.unmodifiable(children));
+      : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this);
 

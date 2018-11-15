@@ -13,7 +13,7 @@ import 'ast/sass.dart';
 /// Once that's done, call [interpolation] to build the result.
 class InterpolationBuffer implements StringSink {
   /// The buffer that accumulates plain text.
-  final _text = new StringBuffer();
+  final _text = StringBuffer();
 
   /// The contents of the [Interpolation] so far.
   ///
@@ -72,11 +72,11 @@ class InterpolationBuffer implements StringSink {
   Interpolation interpolation(FileSpan span) {
     var contents = _contents.toList();
     if (_text.isNotEmpty) contents.add(_text.toString());
-    return new Interpolation(contents, span);
+    return Interpolation(contents, span);
   }
 
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     for (var element in _contents) {
       if (element is String) {
         buffer.write(element);

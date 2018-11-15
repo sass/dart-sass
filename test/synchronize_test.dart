@@ -18,8 +18,8 @@ void main() {
       'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart'
     })
         .forEach((sourcePath, targetPath) {
-      var source = new File(sourcePath).readAsStringSync();
-      var target = new File(targetPath).readAsStringSync();
+      var source = File(sourcePath).readAsStringSync();
+      var target = File(targetPath).readAsStringSync();
 
       var hash = sha1.convert(utf8.encode(source));
       if (!target.contains("Checksum: $hash")) {

@@ -29,8 +29,8 @@ class ArgumentInvocation implements SassNode {
   ArgumentInvocation(
       Iterable<Expression> positional, Map<String, Expression> named, this.span,
       {this.rest, this.keywordRest})
-      : positional = new List.unmodifiable(positional),
-        named = new Map.unmodifiable(named) {
+      : positional = List.unmodifiable(positional),
+        named = Map.unmodifiable(named) {
     assert(rest != null || keywordRest == null);
   }
 
@@ -42,7 +42,7 @@ class ArgumentInvocation implements SassNode {
         keywordRest = null;
 
   String toString() {
-    var components = new List<Object>.from(positional)
+    var components = List<Object>.from(positional)
       ..addAll(named.keys.map((name) => "$name: ${named[name]}"));
     if (rest != null) components.add("$rest...");
     if (keywordRest != null) components.add("$keywordRest...");

@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:convert';
 
@@ -31,8 +31,8 @@ void main() {
     String css;
     Map<String, Object> map;
     setUp(() {
-      var result = sass.renderSync(new RenderOptions(
-          data: "a {b: c}", sourceMap: true, outFile: "out.css"));
+      var result = sass.renderSync(
+          RenderOptions(data: "a {b: c}", sourceMap: true, outFile: "out.css"));
       css = utf8.decode(result.css);
       map = _jsonUtf8.decode(result.map) as Map<String, Object>;
     });
@@ -63,7 +63,7 @@ void main() {
       var path = p.join(sandbox, 'test.scss');
       await writeTextFile(path, 'a {b: c}');
 
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           file: path, sourceMap: true, outFile: p.join(sandbox, 'out.css')));
       expect(map, containsPair("sources", ["test.scss"]));
     });
@@ -72,7 +72,7 @@ void main() {
       var path = p.join(sandbox, 'test.scss');
       await writeTextFile(path, 'a {b: c}');
 
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           file: path,
           sourceMap: true,
           outFile: p.join(p.dirname(sandbox), 'dir/out.css')));
@@ -92,7 +92,7 @@ void main() {
 
       await writeTextFile(p.join(sandbox, 'other.scss'), 'x {y: z}');
 
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           file: path, sourceMap: true, outFile: p.join(sandbox, 'out.css')));
       expect(map, containsPair("sources", ["other.scss", "test.scss"]));
     });
@@ -108,7 +108,7 @@ void main() {
       await createDirectory(p.join(sandbox, 'subdir'));
       await writeTextFile(p.join(sandbox, 'subdir/other.scss'), 'x {y: z}');
 
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           file: path,
           sourceMap: true,
           includePaths: [p.join(sandbox, 'subdir')],
@@ -117,13 +117,13 @@ void main() {
     });
 
     test("contains a URL handled by an importer", () {
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           data: '''
         @import "other";
         a {b: c}
       ''',
-          importer: allowInterop(
-              (_, __) => new NodeImporterResult(contents: 'x {y: z}')),
+          importer:
+              allowInterop((_, __) => NodeImporterResult(contents: 'x {y: z}')),
           sourceMap: true,
           outFile: 'out.css'));
       expect(map, containsPair("sources", ["other", "stdin"]));
@@ -132,14 +132,14 @@ void main() {
 
   group("doesn't emit the source map", () {
     test("without sourceMap", () {
-      var result = sass
-          .renderSync(new RenderOptions(data: "a {b: c}", outFile: "out.css"));
+      var result =
+          sass.renderSync(RenderOptions(data: "a {b: c}", outFile: "out.css"));
       expect(result.map, isNull);
       expect(utf8.decode(result.css), isNot(contains("/*#")));
     });
 
     test("with sourceMap: false", () {
-      var result = sass.renderSync(new RenderOptions(
+      var result = sass.renderSync(RenderOptions(
           data: "a {b: c}", sourceMap: false, outFile: "out.css"));
       expect(result.map, isNull);
       expect(utf8.decode(result.css), isNot(contains("/*#")));
@@ -147,7 +147,7 @@ void main() {
 
     test("without outFile", () {
       var result =
-          sass.renderSync(new RenderOptions(data: "a {b: c}", sourceMap: true));
+          sass.renderSync(RenderOptions(data: "a {b: c}", sourceMap: true));
       expect(result.map, isNull);
       expect(utf8.decode(result.css), isNot(contains("/*#")));
     });
@@ -156,7 +156,7 @@ void main() {
   group("with a string sourceMap and no outFile", () {
     test("emits a source map", () {
       var result = sass.renderSync(
-          new RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
+          RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
       var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
       expect(map, containsPair("sources", ["stdin"]));
     });
@@ -165,7 +165,7 @@ void main() {
       var path = p.join(sandbox, 'test.scss');
       await writeTextFile(path, 'a {b: c}');
 
-      var result = sass.renderSync(new RenderOptions(
+      var result = sass.renderSync(RenderOptions(
           file: p.join(sandbox, "test.scss"), sourceMap: "out.css.map"));
       var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
       expect(
@@ -179,7 +179,7 @@ void main() {
       var path = p.join(sandbox, 'test');
       await writeTextFile(path, 'a {b: c}');
 
-      var result = sass.renderSync(new RenderOptions(
+      var result = sass.renderSync(RenderOptions(
           file: p.join(sandbox, "test"), sourceMap: "out.css.map"));
       var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
       expect(
@@ -190,14 +190,14 @@ void main() {
 
     test("derives the target URL from stdin", () {
       var result = sass.renderSync(
-          new RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
+          RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
       var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
       expect(map, containsPair("file", "stdin.css"));
     });
   });
 
   test("with omitSourceMapUrl, doesn't include a source map comment", () {
-    var result = sass.renderSync(new RenderOptions(
+    var result = sass.renderSync(RenderOptions(
         data: "a {b: c}",
         sourceMap: true,
         outFile: "out.css",
@@ -208,7 +208,7 @@ void main() {
 
   group("with a string sourceMap", () {
     test("uses it in the source map comment", () {
-      var result = sass.renderSync(new RenderOptions(
+      var result = sass.renderSync(RenderOptions(
           data: "a {b: c}", sourceMap: "map", outFile: "out.css"));
       expect(result.map, isNotNull);
       expect(
@@ -216,7 +216,7 @@ void main() {
     });
 
     test("makes the source map comment relative to the outfile", () {
-      var result = sass.renderSync(new RenderOptions(
+      var result = sass.renderSync(RenderOptions(
           data: "a {b: c}", sourceMap: "map", outFile: "dir/out.css"));
       expect(result.map, isNotNull);
       expect(utf8.decode(result.css),
@@ -224,14 +224,14 @@ void main() {
     });
 
     test("makes the file field relative to the source map location", () {
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           data: "a {b: c}", sourceMap: "dir/map", outFile: "out.css"));
       expect(map, containsPair("file", "../out.css"));
     });
 
     test("makes the source map comment relative even if the path is absolute",
         () {
-      var result = sass.renderSync(new RenderOptions(
+      var result = sass.renderSync(RenderOptions(
           data: "a {b: c}", sourceMap: p.absolute("map"), outFile: "out.css"));
       expect(result.map, isNotNull);
       expect(
@@ -242,7 +242,7 @@ void main() {
       var path = p.join(sandbox, 'test.scss');
       await writeTextFile(path, 'a {b: c}');
 
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           file: path, sourceMap: p.join(sandbox, 'map'), outFile: 'out.css'));
       expect(map, containsPair("sources", ["test.scss"]));
     });
@@ -250,7 +250,7 @@ void main() {
 
   group("with sourceMapContents", () {
     test("includes the source contents in the source map", () {
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           data: "a {b: c}",
           sourceMap: true,
           outFile: "out.css",
@@ -268,7 +268,7 @@ void main() {
 
       await writeTextFile(p.join(sandbox, 'other.scss'), 'x {y: z}');
 
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           file: path,
           sourceMap: true,
           outFile: 'out.css',
@@ -278,7 +278,7 @@ void main() {
   });
 
   test("with sourceMapEmbed includes the source map in the CSS", () {
-    var result = sass.renderSync(new RenderOptions(
+    var result = sass.renderSync(RenderOptions(
         data: "a {b: c}",
         sourceMap: true,
         outFile: "out.css",
@@ -290,7 +290,7 @@ void main() {
 
   group("with sourceMapRoot", () {
     test("includes the root as-is in the map", () {
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           data: "a {b: c}",
           sourceMap: true,
           outFile: 'out.css',
@@ -303,7 +303,7 @@ void main() {
       await writeTextFile(path, 'a {b: c}');
 
       var root = p.toUri(p.dirname(sandbox)).toString();
-      var map = _renderSourceMap(new RenderOptions(
+      var map = _renderSourceMap(RenderOptions(
           file: path,
           sourceMap: true,
           outFile: p.join(sandbox, 'out.css'),

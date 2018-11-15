@@ -15,10 +15,10 @@ class StderrLogger implements Logger {
   /// Whether to use terminal colors in messages.
   final bool color;
 
-  const StderrLogger({this.color: false});
+  const StderrLogger({this.color = false});
 
   void warn(String message,
-      {FileSpan span, Trace trace, bool deprecation: false}) {
+      {FileSpan span, Trace trace, bool deprecation = false}) {
     if (color) {
       // Bold yellow.
       stderr.write('\u001b[33m\u001b[1m');
