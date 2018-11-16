@@ -1154,9 +1154,12 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   }
 
   /// Returns whether [text] is a valid identifier.
+  ///
+  /// This *doesn't* consider identifiers beginning with `--` to be valid,
+  /// because IE 11 doesn't.
   bool _isIdentifier(String text) {
     var scanner = StringScanner(text);
-    while (scanner.scanChar($dash)) {}
+    scanner.scanChar($dash);
 
     if (scanner.isDone) return false;
     var first = scanner.readChar();

@@ -1,3 +1,8 @@
+## 1.15.1
+
+* Always add quotes to attribute selector values that begin with `--`, since IE
+  11 doesn't consider them to be identifiers.
+
 ## 1.15.0
 
 * Add support for passing arguments to `@content` blocks. See [the
