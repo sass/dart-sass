@@ -31,13 +31,13 @@ main(List<String> args) async {
 
     if (stackTrace != null) {
       stderr.writeln();
-      stderr.writeln(new Trace.from(stackTrace).terse.toString().trimRight());
+      stderr.writeln(Trace.from(stackTrace).terse.toString().trimRight());
     }
   }
 
   ExecutableOptions options;
   try {
-    options = new ExecutableOptions.parse(args);
+    options = ExecutableOptions.parse(args);
     if (options.version) {
       print(await _loadVersion());
       exitCode = 0;
@@ -49,8 +49,8 @@ main(List<String> args) async {
       return;
     }
 
-    var graph = new StylesheetGraph(new ImportCache([],
-        loadPaths: options.loadPaths, logger: options.logger));
+    var graph = StylesheetGraph(
+        ImportCache([], loadPaths: options.loadPaths, logger: options.logger));
     if (options.watch) {
       await watch(options, graph);
       return;
@@ -97,7 +97,7 @@ main(List<String> args) async {
     print(ExecutableOptions.usage);
     exitCode = 64;
   } catch (error, stackTrace) {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     if (options != null && options.color) buffer.write('\u001b[31m\u001b[1m');
     buffer.write('Unexpected exception:');
     if (options != null && options.color) buffer.write('\u001b[0m');

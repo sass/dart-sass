@@ -24,9 +24,8 @@ Object newNodeSassMap(SassMap value) =>
 final Function mapConstructor =
     createClass((_NodeSassMap thisArg, int length, [SassMap dartValue]) {
   thisArg.dartValue = dartValue ??
-      new SassMap(new Map.fromIterables(
-          new Iterable.generate(length, (i) => new SassNumber(i)),
-          new Iterable.generate(length, (_) => sassNull)));
+      SassMap(Map.fromIterables(Iterable.generate(length, (i) => SassNumber(i)),
+          Iterable.generate(length, (_) => sassNull)));
 }, {
   'getKey': (_NodeSassMap thisArg, int index) =>
       wrapValue(thisArg.dartValue.contents.keys.elementAt(index)),
@@ -45,21 +44,21 @@ final Function mapConstructor =
         newMap[newKey] = oldMap[oldKey];
       } else {
         if (newKey == oldKey) {
-          throw new ArgumentError.value(key, 'key', "is already in the map");
+          throw ArgumentError.value(key, 'key', "is already in the map");
         }
         newMap[oldKey] = oldMap[oldKey];
       }
       i++;
     }
 
-    thisArg.dartValue = new SassMap(newMap);
+    thisArg.dartValue = SassMap(newMap);
   },
   'setValue': (_NodeSassMap thisArg, int index, value) {
     var key = thisArg.dartValue.contents.keys.elementAt(index);
 
-    var mutable = new Map.of(thisArg.dartValue.contents);
+    var mutable = Map.of(thisArg.dartValue.contents);
     mutable[key] = unwrapValue(value);
-    thisArg.dartValue = new SassMap(mutable);
+    thisArg.dartValue = SassMap(mutable);
   },
   'toString': (_NodeSassMap thisArg) => thisArg.dartValue.toString()
 });

@@ -34,5 +34,5 @@ class CssStyleRule extends CssParentNode {
   T accept<T>(CssVisitor<T> visitor) => visitor.visitStyleRule(this);
 
   CssStyleRule copyWithoutChildren() =>
-      new CssStyleRule(selector, span, originalSelector: originalSelector);
+      CssStyleRule(selector, span, originalSelector: originalSelector);
 }

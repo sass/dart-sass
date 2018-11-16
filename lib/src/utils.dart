@@ -51,7 +51,7 @@ int countOccurrences(String string, int codeUnit) {
 ///
 /// If [excludeEscape] is `true`, this doesn't trim whitespace included in a CSS
 /// escape.
-String trimAscii(String string, {bool excludeEscape: false}) {
+String trimAscii(String string, {bool excludeEscape = false}) {
   var start = _firstNonWhitespace(string);
   return start == null
       ? ""
@@ -69,7 +69,7 @@ String trimAsciiLeft(String string) {
 ///
 /// If [excludeEscape] is `true`, this doesn't trim whitespace included in a CSS
 /// escape.
-String trimAsciiRight(String string, {bool excludeEscape: false}) {
+String trimAsciiRight(String string, {bool excludeEscape = false}) {
   var end = _lastNonWhitespace(string, excludeEscape: excludeEscape);
   return end == null ? "" : string.substring(0, end + 1);
 }
@@ -88,7 +88,7 @@ int _firstNonWhitespace(String string) {
 ///
 /// If [excludeEscape] is `true`, this doesn't move past whitespace that's
 /// included in a CSS escape.
-int _lastNonWhitespace(String string, {bool excludeEscape: false}) {
+int _lastNonWhitespace(String string, {bool excludeEscape = false}) {
   for (var i = string.length - 1; i >= 0; i--) {
     var codeUnit = string.codeUnitAt(i);
     if (!isWhitespace(codeUnit)) {
@@ -112,7 +112,7 @@ int _lastNonWhitespace(String string, {bool excludeEscape: false}) {
 /// `flattenVertically([["1a", "1b"], ["2a", "2b"]])` returns `["1a", "2a",
 /// "1b", "2b"]`.
 List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
-  var queues = iterable.map((inner) => new QueueList.from(inner)).toList();
+  var queues = iterable.map((inner) => QueueList.from(inner)).toList();
   if (queues.length == 1) return queues.first;
 
   var result = <T>[];
@@ -161,7 +161,7 @@ int listHash(List list) => const ListEquality().hash(list);
 ///
 /// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
 /// passed, it's used instead.
-Frame frameForSpan(SourceSpan span, String member, {Uri url}) => new Frame(
+Frame frameForSpan(SourceSpan span, String member, {Uri url}) => Frame(
     url ?? span.sourceUrl ?? _noSourceUrl,
     span.start.line + 1,
     span.start.column + 1,
@@ -252,7 +252,7 @@ bool startsWithIgnoreCase(String string, String prefix) {
 ///
 /// If [source] is passed, copies it into the map.
 Map<String, V> normalizedMap<V>([Map<String, V> source]) {
-  var map = new LinkedHashMap<String, V>(
+  var map = LinkedHashMap<String, V>(
       equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
   if (source != null) map.addAll(source);
   return map;
@@ -262,7 +262,7 @@ Map<String, V> normalizedMap<V>([Map<String, V> source]) {
 ///
 /// If [source] is passed, copies it into the set.
 Set<String> normalizedSet([Iterable<String> source]) {
-  var set = new LinkedHashSet(
+  var set = LinkedHashSet(
       equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
   if (source != null) set.addAll(source);
   return set;
@@ -294,12 +294,12 @@ List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
     {T select(T element1, T element2)}) {
   select ??= (element1, element2) => element1 == element2 ? element1 : null;
 
-  var lengths = new List.generate(
-      list1.length + 1, (_) => new List.filled(list2.length + 1, 0),
+  var lengths = List.generate(
+      list1.length + 1, (_) => List.filled(list2.length + 1, 0),
       growable: false);
 
-  var selections = new List<List<T>>.generate(
-      list1.length, (_) => new List<T>(list2.length),
+  var selections = List<List<T>>.generate(
+      list1.length, (_) => List<T>(list2.length),
       growable: false);
 
   for (var i = 0; i < list1.length; i++) {
@@ -339,7 +339,7 @@ T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
 
   if (toRemove == null) {
     if (orElse != null) return orElse();
-    throw new StateError("No such element.");
+    throw StateError("No such element.");
   } else {
     list.remove(toRemove);
     return toRemove;

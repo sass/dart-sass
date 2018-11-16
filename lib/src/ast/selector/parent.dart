@@ -22,5 +22,5 @@ class ParentSelector extends SimpleSelector {
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitParentSelector(this);
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) =>
-      throw new UnsupportedError("& doesn't support unification.");
+      throw UnsupportedError("& doesn't support unification.");
 }

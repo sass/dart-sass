@@ -19,15 +19,7 @@ bool get _is64Bit => Platform.version.contains("x64");
 @Task('Build Dart script snapshot.')
 snapshot() {
   ensureBuild();
-  Dart.run('bin/sass.dart',
-      vmArgs: ['--no-preview-dart-2', '--snapshot=build/sass.dart.snapshot']);
-}
-
-@Task('Build Dart 2 script snapshot.')
-snapshotDart2() {
-  ensureBuild();
-  Dart.run('bin/sass.dart',
-      vmArgs: ['--snapshot=build/sass.dart.dart2.snapshot']);
+  Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
 }
 
 @Task('Build a dev-mode Dart application snapshot.')
@@ -38,29 +30,17 @@ appSnapshot() => _appSnapshot(release: false);
 @Task('Build a release-mode Dart application snapshot.')
 releaseAppSnapshot() => _appSnapshot(release: true);
 
-@Task('Build a release-mode Dart 2 application snapshot.')
-releaseDart2AppSnapshot() => _appSnapshot(release: true, dart2: true);
-
 /// Compiles Sass to an application snapshot.
 ///
 /// If [release] is `true`, this compiles in checked mode. Otherwise, it
-/// compiles in unchecked mode. If [dart2] is `true`, this compiles in Dart 2
-/// mode. Otherwise, it compiles in Dart 1 mode.
-void _appSnapshot({@required bool release, bool dart2: false}) {
+/// compiles in unchecked mode.
+void _appSnapshot({@required bool release}) {
   var args = [
-    '--snapshot=build/sass.dart.app${dart2 ? '.dart2' : ''}.snapshot',
+    '--snapshot=build/sass.dart.app.snapshot',
     '--snapshot-kind=app-jit'
   ];
 
-  if (!dart2) args.add('--no-preview-dart-2');
-
-  if (!release) {
-    if (dart2) {
-      args.add('--enable-asserts');
-    } else {
-      args.add('--checked');
-    }
-  }
+  if (!release) args.add('--enable-asserts');
 
   ensureBuild();
   Dart.run('bin/sass.dart',
@@ -70,7 +50,7 @@ void _appSnapshot({@required bool release, bool dart2: false}) {
 @Task('Build standalone packages for all OSes.')
 @Depends(snapshot, releaseAppSnapshot)
 package() async {
-  var client = new http.Client();
+  var client = http.Client();
   await Future.wait(["linux", "macos", "windows"].expand((os) => [
         _buildPackage(client, os, x64: true),
         _buildPackage(client, os, x64: false)
@@ -81,7 +61,7 @@ package() async {
 /// Builds a standalone Sass package for the given [os] and architecture.
 ///
 /// The [client] is used to download the corresponding Dart SDK.
-Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
+Future _buildPackage(http.Client client, String os, {bool x64 = true}) async {
   var architecture = x64 ? "x64" : "ia32";
 
   // TODO: Compile a single executable that embeds the Dart VM and the snapshot
@@ -96,9 +76,8 @@ Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
         "${response.reasonPhrase}.";
   }
 
-  var dartExecutable = new ZipDecoder()
-      .decodeBytes(response.bodyBytes)
-      .firstWhere((file) => os == 'windows'
+  var dartExecutable = ZipDecoder().decodeBytes(response.bodyBytes).firstWhere(
+      (file) => os == 'windows'
           ? file.name.endsWith("/bin/dart.exe")
           : file.name.endsWith("/bin/dart"));
   var executable = dartExecutable.content as List<int>;
@@ -110,7 +89,7 @@ Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
       ? "build/sass.dart.app.snapshot"
       : "build/sass.dart.snapshot";
 
-  var archive = new Archive()
+  var archive = Archive()
     ..addFile(fileFromBytes(
         "dart-sass/src/dart${os == 'windows' ? '.exe' : ''}", executable,
         executable: true))
@@ -131,11 +110,11 @@ Future _buildPackage(http.Client client, String os, {bool x64: true}) async {
   if (os == 'windows') {
     var output = "$prefix.zip";
     log("Creating $output...");
-    new File(output).writeAsBytesSync(new ZipEncoder().encode(archive));
+    File(output).writeAsBytesSync(ZipEncoder().encode(archive));
   } else {
     var output = "$prefix.tar.gz";
     log("Creating $output...");
-    new File(output).writeAsBytesSync(
-        new GZipEncoder().encode(new TarEncoder().encode(archive)));
+    File(output)
+        .writeAsBytesSync(GZipEncoder().encode(TarEncoder().encode(archive)));
   }
 }

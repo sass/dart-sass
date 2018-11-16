@@ -20,7 +20,7 @@ class IDSelector extends SimpleSelector {
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitIDSelector(this);
 
-  IDSelector addSuffix(String suffix) => new IDSelector(name + suffix);
+  IDSelector addSuffix(String suffix) => IDSelector(name + suffix);
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     // A given compound selector may only contain one ID.

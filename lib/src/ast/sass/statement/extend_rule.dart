@@ -23,7 +23,7 @@ class ExtendRule implements Statement {
 
   final FileSpan span;
 
-  ExtendRule(this.selector, this.span, {bool optional: false})
+  ExtendRule(this.selector, this.span, {bool optional = false})
       : isOptional = optional;
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitExtendRule(this);

@@ -27,7 +27,7 @@ class ExecutableOptions {
 
   /// The parser that defines the arguments the executable allows.
   static final ArgParser _parser = () {
-    var parser = new ArgParser(allowTrailingOptions: true)
+    var parser = ArgParser(allowTrailingOptions: true)
 
       // This is used for compatibility with sass-spec, even though we don't
       // support setting the precision.
@@ -112,7 +112,7 @@ class ExecutableOptions {
 
   /// Shorthand for throwing a [UsageException] with the given [message].
   @alwaysThrows
-  static void _fail(String message) => throw new UsageException(message);
+  static void _fail(String message) => throw UsageException(message);
 
   /// The parsed options passed by the user to the executable.
   final ArgResults _options;
@@ -132,7 +132,7 @@ class ExecutableOptions {
     ];
     for (var option in invalidOptions) {
       if (_options.wasParsed(option)) {
-        throw new UsageException("--$option isn't allowed with --interactive.");
+        throw UsageException("--$option isn't allowed with --interactive.");
       }
     }
     return true;
@@ -155,7 +155,7 @@ class ExecutableOptions {
   bool get quiet => _options['quiet'] as bool;
 
   /// The logger to use to emit messages from Sass.
-  Logger get logger => quiet ? Logger.quiet : new Logger.stderr(color: color);
+  Logger get logger => quiet ? Logger.quiet : Logger.stderr(color: color);
 
   /// The style to use for the generated CSS.
   OutputStyle get style => _options['style'] == 'compressed'
@@ -247,7 +247,7 @@ class ExecutableOptions {
         } else if (watch) {
           _fail("--watch is not allowed with --stdin.");
         }
-        _sourcesToDestinations = new Map.unmodifiable(
+        _sourcesToDestinations = Map.unmodifiable(
             {null: _options.rest.isEmpty ? null : _options.rest.first});
       } else if (_options.rest.length > 2) {
         _fail("Only two positional args may be passed.");
@@ -262,7 +262,7 @@ class ExecutableOptions {
           }
         }
         _sourcesToDestinations =
-            new UnmodifiableMapView(new p.PathMap.of({source: destination}));
+            UnmodifiableMapView(p.PathMap.of({source: destination}));
       }
       _sourceDirectoriesToDestinations = const {};
       return;
@@ -273,9 +273,9 @@ class ExecutableOptions {
     // Track [seen] separately from `sourcesToDestinations.keys` because we want
     // to report errors for sources as users entered them, rather than after
     // directories have been resolved.
-    var seen = new Set<String>();
-    var sourcesToDestinations = new p.PathMap<String>();
-    var sourceDirectoriesToDestinations = new p.PathMap<String>();
+    var seen = Set<String>();
+    var sourcesToDestinations = p.PathMap<String>();
+    var sourceDirectoriesToDestinations = p.PathMap<String>();
     for (var argument in _options.rest) {
       String source;
       String destination;
@@ -310,9 +310,9 @@ class ExecutableOptions {
         sourcesToDestinations[source] = destination;
       }
     }
-    _sourcesToDestinations = new UnmodifiableMapView(sourcesToDestinations);
+    _sourcesToDestinations = UnmodifiableMapView(sourcesToDestinations);
     _sourceDirectoriesToDestinations =
-        new UnmodifiableMapView(sourceDirectoriesToDestinations);
+        UnmodifiableMapView(sourceDirectoriesToDestinations);
   }
 
   /// Returns whether [string] contains an absolute Windows path at [index].
@@ -386,7 +386,7 @@ class ExecutableOptions {
   /// Throws a [UsageException] if parsing fails.
   factory ExecutableOptions.parse(List<String> args) {
     try {
-      var options = new ExecutableOptions._(_parser.parse(args));
+      var options = ExecutableOptions._(_parser.parse(args));
       if (options._options['help'] as bool) _fail("Compile Sass to CSS.");
       return options;
     } on FormatException catch (error) {

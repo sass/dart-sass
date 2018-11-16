@@ -7,7 +7,7 @@ import 'recursive_statement.dart';
 
 /// Returns a list of all [DynamicImport]s in [stylesheet].
 List<DynamicImport> findImports(Stylesheet stylesheet) =>
-    new _FindImportsVisitor().run(stylesheet);
+    _FindImportsVisitor().run(stylesheet);
 
 /// A visitor that traverses a stylesheet and records all the [DynamicImport]s
 /// it contains.

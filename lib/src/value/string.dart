@@ -12,10 +12,10 @@ import '../visitor/interface/value.dart';
 import 'external/value.dart' as ext;
 
 /// A quoted empty string, returned by [SassString.empty].
-final _emptyQuoted = new SassString("", quotes: true);
+final _emptyQuoted = SassString("", quotes: true);
 
 /// An unquoted empty string, returned by [SassString.empty].
-final _emptyUnquoted = new SassString("", quotes: false);
+final _emptyUnquoted = SassString("", quotes: false);
 
 class SassString extends Value implements ext.SassString {
   final String text;
@@ -60,10 +60,10 @@ class SassString extends Value implements ext.SassString {
 
   bool get isBlank => !hasQuotes && text.isEmpty;
 
-  factory SassString.empty({bool quotes: true}) =>
+  factory SassString.empty({bool quotes = true}) =>
       quotes ? _emptyQuoted : _emptyUnquoted;
 
-  SassString(this.text, {bool quotes: true}) : hasQuotes = quotes;
+  SassString(this.text, {bool quotes = true}) : hasQuotes = quotes;
 
   int sassIndexToStringIndex(ext.Value sassIndex, [String name]) =>
       codepointIndexToCodeUnitIndex(
@@ -87,9 +87,9 @@ class SassString extends Value implements ext.SassString {
 
   Value plus(Value other) {
     if (other is SassString) {
-      return new SassString(text + other.text, quotes: hasQuotes);
+      return SassString(text + other.text, quotes: hasQuotes);
     } else {
-      return new SassString(text + other.toCssString(), quotes: hasQuotes);
+      return SassString(text + other.toCssString(), quotes: hasQuotes);
     }
   }
 
@@ -99,5 +99,5 @@ class SassString extends Value implements ext.SassString {
 
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String name]) =>
-      new SassScriptException(name == null ? message : "\$$name: $message");
+      SassScriptException(name == null ? message : "\$$name: $message");
 }

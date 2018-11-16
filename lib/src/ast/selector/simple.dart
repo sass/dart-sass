@@ -35,8 +35,8 @@ abstract class SimpleSelector extends Selector {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SimpleSelector.parse(String contents,
-          {url, Logger logger, bool allowParent: true}) =>
-      new SelectorParser(contents,
+          {url, Logger logger, bool allowParent = true}) =>
+      SelectorParser(contents,
               url: url, logger: logger, allowParent: allowParent)
           .parseSimpleSelector();
 
@@ -46,7 +46,7 @@ abstract class SimpleSelector extends Selector {
   /// Assumes [suffix] is a valid identifier suffix. If this wouldn't produce a
   /// valid [SimpleSelector], throws a [SassScriptException].
   SimpleSelector addSuffix(String suffix) =>
-      throw new SassScriptException('Invalid parent selector "$this"');
+      throw SassScriptException('Invalid parent selector "$this"');
 
   /// Returns the compoments of a [CompoundSelector] that matches only elements
   /// matched by both this and [compound].

@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:js_util';
 
@@ -45,7 +45,7 @@ void main() {
 
     test("the value can be set without affecting the underlying number", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {$number: 1px; b: foo($number); c: $number}",
               functions: jsify({
                 r"foo($number)":
@@ -60,7 +60,7 @@ void main() {
 
     test("the unit can be set without affecting the underlying number", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {$number: 1px; b: foo($number); c: $number}",
               functions: jsify({
                 r"foo($number)":
@@ -75,7 +75,7 @@ void main() {
 
     test("the unit can be set to a complex unit", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {b: foo(1)*1ms*1dpi/1rad}",
               functions: jsify({
                 r"foo($number)":
@@ -90,7 +90,7 @@ void main() {
 
     test("the unit can be set to denominator-only", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {b: foo(1)*1em}",
               functions: jsify({
                 r"foo($number)":
@@ -105,7 +105,7 @@ void main() {
 
     test("the unit can be set to a complex unit", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {b: foo(1)*1ms*1dpi/1rad}",
               functions: jsify({
                 r"foo($number)":
@@ -120,7 +120,7 @@ void main() {
 
     test("the unit can be unset", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {b: unitless(foo(1px))}",
               functions: jsify({
                 r"foo($number)":
@@ -158,7 +158,7 @@ void main() {
 
     test("allows complex units", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {b: foo()*1ms*1dpi/1rad}",
               functions: jsify({
                 "foo()": allowInterop(expectAsync0(() {

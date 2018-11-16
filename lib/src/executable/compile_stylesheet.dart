@@ -33,8 +33,8 @@ import 'options.dart';
 /// modification time. Note that these modification times are cached by [graph].
 Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
     String source, String destination,
-    {bool ifModified: false}) async {
-  var importer = new FilesystemImporter('.');
+    {bool ifModified = false}) async {
+  var importer = FilesystemImporter('.');
   if (ifModified) {
     try {
       if (source != null &&
@@ -51,7 +51,7 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   var stylesheet = await _parseStylesheet(options, graph.importCache, source);
   var evaluateResult = options.asynchronous
       ? await evaluateAsync(stylesheet,
-          importCache: new AsyncImportCache([],
+          importCache: AsyncImportCache([],
               loadPaths: options.loadPaths, logger: options.logger),
           importer: importer,
           logger: options.logger,
@@ -75,7 +75,7 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   }
 
   if (options.quiet || (!options.update && !options.watch)) return;
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   if (options.color) buffer.write('\u001b[32m');
 
   var sourceName = source == null ? 'stdin' : p.prettyUri(p.toUri(source));
@@ -94,7 +94,7 @@ Future<Stylesheet> _parseStylesheet(
   // Import from the cache if possible so it caches the file in case anything
   // else imports it.
   if (source != null && options.indented == null) {
-    return importCache.importCanonical(new FilesystemImporter('.'),
+    return importCache.importCanonical(FilesystemImporter('.'),
         p.toUri(p.canonicalize(source)), p.toUri(source));
   }
 
@@ -110,7 +110,7 @@ Future<Stylesheet> _parseStylesheet(
     syntax = Syntax.scss;
   }
 
-  return new Stylesheet.parse(text, syntax, url: url, logger: options.logger);
+  return Stylesheet.parse(text, syntax, url: url, logger: options.logger);
 }
 
 /// Writes the source map given by [mapping] to disk (if necessary) according to
@@ -143,7 +143,7 @@ String _writeSourceMap(
 
   Uri url;
   if (options.embedSourceMap) {
-    url = new Uri.dataFromString(sourceMapText,
+    url = Uri.dataFromString(sourceMapText,
         mimeType: 'application/json', encoding: utf8);
   } else {
     var sourceMapPath = destination + '.map';

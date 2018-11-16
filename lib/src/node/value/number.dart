@@ -26,7 +26,7 @@ final Function numberConstructor = createClass(
 }, {
   'getValue': (_NodeSassNumber thisArg) => thisArg.dartValue.value,
   'setValue': (_NodeSassNumber thisArg, num value) {
-    thisArg.dartValue = new SassNumber.withUnits(value,
+    thisArg.dartValue = SassNumber.withUnits(value,
         numeratorUnits: thisArg.dartValue.numeratorUnits,
         denominatorUnits: thisArg.dartValue.denominatorUnits);
   },
@@ -43,12 +43,12 @@ final Function numberConstructor = createClass(
 /// Parses a [SassNumber] from [value] and [unit], using Node Sass's unit
 /// format.
 SassNumber _parseNumber(num value, String unit) {
-  if (unit == null || unit.isEmpty) return new SassNumber(value);
+  if (unit == null || unit.isEmpty) return SassNumber(value);
   if (!unit.contains("*") && !unit.contains("/")) {
-    return new SassNumber(value, unit);
+    return SassNumber(value, unit);
   }
 
-  var invalidUnit = new ArgumentError.value(unit, 'unit', 'is invalid.');
+  var invalidUnit = ArgumentError.value(unit, 'unit', 'is invalid.');
 
   var operands = unit.split('/');
   if (operands.length > 2) throw invalidUnit;
@@ -63,6 +63,6 @@ SassNumber _parseNumber(num value, String unit) {
       denominator == null ? <String>[] : denominator.split('*');
   if (denominatorUnits.any((unit) => unit.isEmpty)) throw invalidUnit;
 
-  return new SassNumber.withUnits(value,
+  return SassNumber.withUnits(value,
       numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
 }

@@ -29,9 +29,9 @@ class ForRule extends ParentStatement {
 
   ForRule(this.variable, this.from, this.to, Iterable<Statement> children,
       this.span,
-      {bool exclusive: true})
+      {bool exclusive = true})
       : isExclusive = exclusive,
-        super(new List.unmodifiable(children));
+        super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);
 

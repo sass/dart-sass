@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 3fd08a2b9ad7226a0e3b34057eede0595b6d5aa4
+// Checksum: 54045771e1267d445a733a83d9fb7e40439d886e
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
@@ -21,7 +21,7 @@ import 'utils.dart'; // ignore: unused_import
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
 class ImportCache {
   /// A cache that contains no importers.
-  static const none = const ImportCache._none();
+  static const none = ImportCache._none();
 
   /// The importers to use when loading new Sass files.
   final List<Importer> _importers;
@@ -73,18 +73,18 @@ class ImportCache {
     var list = importers?.toList() ?? [];
 
     if (loadPaths != null) {
-      list.addAll(loadPaths.map((path) => new FilesystemImporter(path)));
+      list.addAll(loadPaths.map((path) => FilesystemImporter(path)));
     }
 
     var sassPath = getEnvironmentVariable('SASS_PATH');
     if (sassPath != null) {
       list.addAll(sassPath
           .split(isWindows ? ';' : ':')
-          .map((path) => new FilesystemImporter(path)));
+          .map((path) => FilesystemImporter(path)));
     }
 
     if (packageResolver != null) {
-      list.add(new PackageImporter(packageResolver));
+      list.add(PackageImporter(packageResolver));
     }
 
     return list;
@@ -114,7 +114,7 @@ class ImportCache {
       var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
       var canonicalUrl = _canonicalize(baseImporter, resolvedUrl);
       if (canonicalUrl != null) {
-        return new Tuple3(baseImporter, canonicalUrl, resolvedUrl);
+        return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
       }
     }
 
@@ -122,7 +122,7 @@ class ImportCache {
       for (var importer in _importers) {
         var canonicalUrl = _canonicalize(importer, url);
         if (canonicalUrl != null) {
-          return new Tuple3(importer, canonicalUrl, url);
+          return Tuple3(importer, canonicalUrl, url);
         }
       }
 
@@ -157,7 +157,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     var tuple = canonicalize(url, baseImporter, baseUrl);
     if (tuple == null) return null;
     var stylesheet = importCanonical(tuple.item1, tuple.item2, tuple.item3);
-    return new Tuple2(tuple.item1, stylesheet);
+    return Tuple2(tuple.item1, stylesheet);
   }
 
   /// Tries to load the canonicalized [canonicalUrl] using [importer].
@@ -175,7 +175,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     return _importCache.putIfAbsent(canonicalUrl, () {
       var result = importer.load(canonicalUrl);
       if (result == null) return null;
-      return new Stylesheet.parse(result.contents, result.syntax,
+      return Stylesheet.parse(result.contents, result.syntax,
           // For backwards-compatibility, relative canonical URLs are resolved
           // relative to [originalUrl].
           url: originalUrl == null

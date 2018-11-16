@@ -30,13 +30,13 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   BuiltInCallable(
       String name, String arguments, Value callback(List<Value> arguments))
-      : this.parsed(name, new ArgumentDeclaration.parse(arguments), callback);
+      : this.parsed(name, ArgumentDeclaration.parse(arguments), callback);
 
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
   BuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
       Value callback(List<Value> arguments)) {
-    _overloads.add(new Tuple2(arguments, callback));
+    _overloads.add(Tuple2(arguments, callback));
   }
 
   /// Creates a callable with multiple implementations.
@@ -47,8 +47,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// [SassFormatException] if parsing fails.
   BuiltInCallable.overloaded(this.name, Map<String, _Callback> overloads) {
     overloads.forEach((arguments, callback) {
-      _overloads
-          .add(new Tuple2(new ArgumentDeclaration.parse(arguments), callback));
+      _overloads.add(Tuple2(ArgumentDeclaration.parse(arguments), callback));
     });
   }
 

@@ -90,35 +90,35 @@ class SassColor extends Value implements ext.SassColor {
   SassColor assertColor([String name]) => this;
 
   SassColor changeRgb({int red, int green, int blue, num alpha}) =>
-      new SassColor.rgb(red ?? this.red, green ?? this.green, blue ?? this.blue,
+      SassColor.rgb(red ?? this.red, green ?? this.green, blue ?? this.blue,
           alpha ?? this.alpha);
 
   SassColor changeHsl({num hue, num saturation, num lightness, num alpha}) =>
-      new SassColor.hsl(hue ?? this.hue, saturation ?? this.saturation,
+      SassColor.hsl(hue ?? this.hue, saturation ?? this.saturation,
           lightness ?? this.lightness, alpha ?? this.alpha);
 
-  SassColor changeAlpha(num alpha) => new SassColor._(_red, _green, _blue, _hue,
+  SassColor changeAlpha(num alpha) => SassColor._(_red, _green, _blue, _hue,
       _saturation, _lightness, fuzzyAssertRange(alpha, 0, 1, "alpha"));
 
   Value plus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.plus(other);
-    throw new SassScriptException('Undefined operation "$this + $other".');
+    throw SassScriptException('Undefined operation "$this + $other".');
   }
 
   Value minus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.minus(other);
-    throw new SassScriptException('Undefined operation "$this - $other".');
+    throw SassScriptException('Undefined operation "$this - $other".');
   }
 
   Value dividedBy(Value other) {
     if (other is! SassNumber && other is! SassColor) {
       return super.dividedBy(other);
     }
-    throw new SassScriptException('Undefined operation "$this / $other".');
+    throw SassScriptException('Undefined operation "$this / $other".');
   }
 
   Value modulo(Value other) =>
-      throw new SassScriptException('Undefined operation "$this % $other".');
+      throw SassScriptException('Undefined operation "$this % $other".');
 
   bool operator ==(other) =>
       other is SassColor &&
@@ -206,12 +206,12 @@ class SassColor extends Value implements ext.SassColor {
   /// color.
   String toStringAsRgb() {
     var isOpaque = fuzzyEquals(alpha, 1);
-    var buffer = new StringBuffer(isOpaque ? "rgb" : "rgba")
+    var buffer = StringBuffer(isOpaque ? "rgb" : "rgba")
       ..write("($red, $green, $blue");
 
     if (!isOpaque) {
       // Write the alpha as a SassNumber to ensure it's valid CSS.
-      buffer.write(", ${new SassNumber(alpha)}");
+      buffer.write(", ${SassNumber(alpha)}");
     }
 
     buffer.write(")");

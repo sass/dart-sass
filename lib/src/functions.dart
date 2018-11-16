@@ -18,10 +18,10 @@ import 'value.dart';
 
 /// A regular expression matching the beginning of a proprietary Microsoft
 /// filter declaration.
-final _microsoftFilterStart = new RegExp(r'^[a-zA-Z]+\s*=');
+final _microsoftFilterStart = RegExp(r'^[a-zA-Z]+\s*=');
 
 /// Feature names supported by Dart sass.
-final _features = new Set.of([
+final _features = Set.of([
   "global-variable-shadowing",
   "extend-selector-pseudoclass",
   "units-level-3",
@@ -30,7 +30,7 @@ final _features = new Set.of([
 ]);
 
 /// A random number generator.
-final _random = new math.Random();
+final _random = math.Random();
 
 // We use base-36 so we can use the (26-character) alphabet and all digits.
 var _uniqueID = _random.nextInt(math.pow(36, 6) as int);
@@ -39,11 +39,11 @@ var _uniqueID = _random.nextInt(math.pow(36, 6) as int);
 ///
 /// This excludes a few functions that need access to the evaluation context;
 /// these are defined in `_EvaluateVisitor`.
-final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
+final List<BuiltInCallable> coreFunctions = UnmodifiableListView([
   // ## Colors
   // ### RGB
 
-  new BuiltInCallable.overloaded("rgb", {
+  BuiltInCallable.overloaded("rgb", {
     r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgb", arguments),
     r"$red, $green, $blue": (arguments) => _rgb("rgb", arguments),
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgb", arguments),
@@ -54,7 +54,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     }
   }),
 
-  new BuiltInCallable.overloaded("rgba", {
+  BuiltInCallable.overloaded("rgba", {
     r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgba", arguments),
     r"$red, $green, $blue": (arguments) => _rgb("rgba", arguments),
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgba", arguments),
@@ -67,19 +67,19 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     }
   }),
 
-  new BuiltInCallable("red", r"$color", (arguments) {
-    return new SassNumber(arguments.first.assertColor("color").red);
+  BuiltInCallable("red", r"$color", (arguments) {
+    return SassNumber(arguments.first.assertColor("color").red);
   }),
 
-  new BuiltInCallable("green", r"$color", (arguments) {
-    return new SassNumber(arguments.first.assertColor("color").green);
+  BuiltInCallable("green", r"$color", (arguments) {
+    return SassNumber(arguments.first.assertColor("color").green);
   }),
 
-  new BuiltInCallable("blue", r"$color", (arguments) {
-    return new SassNumber(arguments.first.assertColor("color").blue);
+  BuiltInCallable("blue", r"$color", (arguments) {
+    return SassNumber(arguments.first.assertColor("color").blue);
   }),
 
-  new BuiltInCallable("mix", r"$color1, $color2, $weight: 50%", (arguments) {
+  BuiltInCallable("mix", r"$color1, $color2, $weight: 50%", (arguments) {
     var color1 = arguments[0].assertColor("color1");
     var color2 = arguments[1].assertColor("color2");
     var weight = arguments[2].assertNumber("weight");
@@ -88,7 +88,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   // ### HSL
 
-  new BuiltInCallable.overloaded("hsl", {
+  BuiltInCallable.overloaded("hsl", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
         _hsl("hsl", arguments),
     r"$hue, $saturation, $lightness": (arguments) => _hsl("hsl", arguments),
@@ -98,7 +98,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
       if (arguments[0].isVar || arguments[1].isVar) {
         return _functionString('hsl', arguments);
       } else {
-        throw new SassScriptException(r"Missing argument $lightness.");
+        throw SassScriptException(r"Missing argument $lightness.");
       }
     },
     r"$channels": (arguments) {
@@ -108,7 +108,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     }
   }),
 
-  new BuiltInCallable.overloaded("hsla", {
+  BuiltInCallable.overloaded("hsla", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
         _hsl("hsla", arguments),
     r"$hue, $saturation, $lightness": (arguments) => _hsl("hsla", arguments),
@@ -116,7 +116,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
       if (arguments[0].isVar || arguments[1].isVar) {
         return _functionString('hsla', arguments);
       } else {
-        throw new SassScriptException(r"Missing argument $lightness.");
+        throw SassScriptException(r"Missing argument $lightness.");
       }
     },
     r"$channels": (arguments) {
@@ -128,31 +128,31 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     }
   }),
 
-  new BuiltInCallable(
+  BuiltInCallable(
       "hue",
       r"$color",
       (arguments) =>
-          new SassNumber(arguments.first.assertColor("color").hue, "deg")),
+          SassNumber(arguments.first.assertColor("color").hue, "deg")),
 
-  new BuiltInCallable(
+  BuiltInCallable(
       "saturation",
       r"$color",
       (arguments) =>
-          new SassNumber(arguments.first.assertColor("color").saturation, "%")),
+          SassNumber(arguments.first.assertColor("color").saturation, "%")),
 
-  new BuiltInCallable(
+  BuiltInCallable(
       "lightness",
       r"$color",
       (arguments) =>
-          new SassNumber(arguments.first.assertColor("color").lightness, "%")),
+          SassNumber(arguments.first.assertColor("color").lightness, "%")),
 
-  new BuiltInCallable("adjust-hue", r"$color, $degrees", (arguments) {
+  BuiltInCallable("adjust-hue", r"$color, $degrees", (arguments) {
     var color = arguments[0].assertColor("color");
     var degrees = arguments[1].assertNumber("degrees");
     return color.changeHsl(hue: color.hue + degrees.value);
   }),
 
-  new BuiltInCallable("lighten", r"$color, $amount", (arguments) {
+  BuiltInCallable("lighten", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
@@ -160,7 +160,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
             .clamp(0, 100));
   }),
 
-  new BuiltInCallable("darken", r"$color, $amount", (arguments) {
+  BuiltInCallable("darken", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
@@ -168,10 +168,10 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
             .clamp(0, 100));
   }),
 
-  new BuiltInCallable.overloaded("saturate", {
+  BuiltInCallable.overloaded("saturate", {
     r"$number": (arguments) {
       var number = arguments[0].assertNumber("number");
-      return new SassString("saturate(${number.toCssString()})", quotes: false);
+      return SassString("saturate(${number.toCssString()})", quotes: false);
     },
     r"$color, $amount": (arguments) {
       var color = arguments[0].assertColor("color");
@@ -182,7 +182,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     }
   }),
 
-  new BuiltInCallable("desaturate", r"$color, $amount", (arguments) {
+  BuiltInCallable("desaturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
@@ -190,7 +190,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
             .clamp(0, 100));
   }),
 
-  new BuiltInCallable("grayscale", r"$color", (arguments) {
+  BuiltInCallable("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       return _functionString('grayscale', arguments);
     }
@@ -199,12 +199,12 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     return color.changeHsl(saturation: 0);
   }),
 
-  new BuiltInCallable("complement", r"$color", (arguments) {
+  BuiltInCallable("complement", r"$color", (arguments) {
     var color = arguments[0].assertColor("color");
     return color.changeHsl(hue: color.hue + 180);
   }),
 
-  new BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
+  BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
     if (arguments[0] is SassNumber) {
       return _functionString("invert", arguments.take(1));
     }
@@ -220,7 +220,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   // ### Opacity
 
-  new BuiltInCallable.overloaded("alpha", {
+  BuiltInCallable.overloaded("alpha", {
     r"$color": (arguments) {
       var argument = arguments[0];
       if (argument is SassString &&
@@ -231,7 +231,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
       }
 
       var color = argument.assertColor("color");
-      return new SassNumber(color.alpha);
+      return SassNumber(color.alpha);
     },
     r"$args...": (arguments) {
       if (arguments.every((argument) =>
@@ -243,32 +243,32 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
       }
 
       assert(arguments.length != 1);
-      throw new SassScriptException(
+      throw SassScriptException(
           "Only 1 argument allowed, but ${arguments.length} were passed.");
     }
   }),
 
-  new BuiltInCallable("opacity", r"$color", (arguments) {
+  BuiltInCallable("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       return _functionString("opacity", arguments);
     }
 
     var color = arguments[0].assertColor("color");
-    return new SassNumber(color.alpha);
+    return SassNumber(color.alpha);
   }),
 
-  new BuiltInCallable("opacify", r"$color, $amount", _opacify),
-  new BuiltInCallable("fade-in", r"$color, $amount", _opacify),
-  new BuiltInCallable("transparentize", r"$color, $amount", _transparentize),
-  new BuiltInCallable("fade-out", r"$color, $amount", _transparentize),
+  BuiltInCallable("opacify", r"$color, $amount", _opacify),
+  BuiltInCallable("fade-in", r"$color, $amount", _opacify),
+  BuiltInCallable("transparentize", r"$color, $amount", _transparentize),
+  BuiltInCallable("fade-out", r"$color, $amount", _transparentize),
 
   // ### Miscellaneous
 
-  new BuiltInCallable("adjust-color", r"$color, $kwargs...", (arguments) {
+  BuiltInCallable("adjust-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.asList.isNotEmpty) {
-      throw new SassScriptException(
+      throw SassScriptException(
           "Only one positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
@@ -286,7 +286,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var alpha = getInRange("alpha", -1, 1);
 
     if (keywords.isNotEmpty) {
-      throw new SassScriptException(
+      throw SassScriptException(
           "No ${pluralize('argument', keywords.length)} named "
           "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
     }
@@ -295,7 +295,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var hasHsl = hue != null || saturation != null || lightness != null;
     if (hasRgb) {
       if (hasHsl) {
-        throw new SassScriptException(
+        throw SassScriptException(
             "RGB parameters may not be passed along with HSL parameters.");
       }
 
@@ -317,11 +317,11 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     }
   }),
 
-  new BuiltInCallable("scale-color", r"$color, $kwargs...", (arguments) {
+  BuiltInCallable("scale-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.asList.isNotEmpty) {
-      throw new SassScriptException(
+      throw SassScriptException(
           "Only one positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
@@ -348,7 +348,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var alpha = getScale("alpha");
 
     if (keywords.isNotEmpty) {
-      throw new SassScriptException(
+      throw SassScriptException(
           "No ${pluralize('argument', keywords.length)} named "
           "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
     }
@@ -357,7 +357,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var hasHsl = saturation != null || lightness != null;
     if (hasRgb) {
       if (hasHsl) {
-        throw new SassScriptException(
+        throw SassScriptException(
             "RGB parameters may not be passed along with HSL parameters.");
       }
 
@@ -378,11 +378,11 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     }
   }),
 
-  new BuiltInCallable("change-color", r"$color, $kwargs...", (arguments) {
+  BuiltInCallable("change-color", r"$color, $kwargs...", (arguments) {
     var color = arguments[0].assertColor("color");
     var argumentList = arguments[1] as SassArgumentList;
     if (argumentList.asList.isNotEmpty) {
-      throw new SassScriptException(
+      throw SassScriptException(
           "Only one positional argument is allowed. All other arguments must "
           "be passed by name.");
     }
@@ -400,7 +400,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var alpha = getInRange("alpha", 0, 1);
 
     if (keywords.isNotEmpty) {
-      throw new SassScriptException(
+      throw SassScriptException(
           "No ${pluralize('argument', keywords.length)} named "
           "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
     }
@@ -409,7 +409,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     var hasHsl = hue != null || saturation != null || lightness != null;
     if (hasRgb) {
       if (hasHsl) {
-        throw new SassScriptException(
+        throw SassScriptException(
             "RGB parameters may not be passed along with HSL parameters.");
       }
 
@@ -424,11 +424,11 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     }
   }),
 
-  new BuiltInCallable("ie-hex-str", r"$color", (arguments) {
+  BuiltInCallable("ie-hex-str", r"$color", (arguments) {
     var color = arguments[0].assertColor("color");
     hexString(int component) =>
         component.toRadixString(16).padLeft(2, '0').toUpperCase();
-    return new SassString(
+    return SassString(
         "#${hexString(fuzzyRound(color.alpha * 255))}${hexString(color.red)}"
         "${hexString(color.green)}${hexString(color.blue)}",
         quotes: false);
@@ -436,24 +436,24 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   // ## Strings
 
-  new BuiltInCallable("unquote", r"$string", (arguments) {
+  BuiltInCallable("unquote", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     if (!string.hasQuotes) return string;
-    return new SassString(string.text, quotes: false);
+    return SassString(string.text, quotes: false);
   }),
 
-  new BuiltInCallable("quote", r"$string", (arguments) {
+  BuiltInCallable("quote", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
     if (string.hasQuotes) return string;
-    return new SassString(string.text, quotes: true);
+    return SassString(string.text, quotes: true);
   }),
 
-  new BuiltInCallable("str-length", r"$string", (arguments) {
+  BuiltInCallable("str-length", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
-    return new SassNumber(string.sassLength);
+    return SassNumber(string.sassLength);
   }),
 
-  new BuiltInCallable("str-insert", r"$string, $insert, $index", (arguments) {
+  BuiltInCallable("str-insert", r"$string, $insert, $index", (arguments) {
     var string = arguments[0].assertString("string");
     var insert = arguments[1].assertString("insert");
     var index = arguments[2].assertNumber("index");
@@ -471,12 +471,12 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
     var codeUnitIndex =
         codepointIndexToCodeUnitIndex(string.text, codepointIndex);
-    return new SassString(
+    return SassString(
         string.text.replaceRange(codeUnitIndex, codeUnitIndex, insert.text),
         quotes: string.hasQuotes);
   }),
 
-  new BuiltInCallable("str-index", r"$string, $substring", (arguments) {
+  BuiltInCallable("str-index", r"$string, $substring", (arguments) {
     var string = arguments[0].assertString("string");
     var substring = arguments[1].assertString("substring");
 
@@ -484,11 +484,10 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     if (codeUnitIndex == -1) return sassNull;
     var codepointIndex =
         codeUnitIndexToCodepointIndex(string.text, codeUnitIndex);
-    return new SassNumber(codepointIndex + 1);
+    return SassNumber(codepointIndex + 1);
   }),
 
-  new BuiltInCallable("str-slice", r"$string, $start-at, $end-at: -1",
-      (arguments) {
+  BuiltInCallable("str-slice", r"$string, $start-at, $end-at: -1", (arguments) {
     var string = arguments[0].assertString("string");
     var start = arguments[1].assertNumber("start-at");
     var end = arguments[2].assertNumber("end-at");
@@ -500,7 +499,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     // No matter what the start index is, an end index of 0 will produce an
     // empty string.
     var endInt = end.assertInt();
-    if (endInt == 0) return new SassString.empty(quotes: string.hasQuotes);
+    if (endInt == 0) return SassString.empty(quotes: string.hasQuotes);
 
     var startCodepoint =
         _codepointForIndex(start.assertInt(), lengthInCodepoints);
@@ -508,40 +507,40 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
         _codepointForIndex(endInt, lengthInCodepoints, allowNegative: true);
     if (endCodepoint == lengthInCodepoints) endCodepoint -= 1;
     if (endCodepoint < startCodepoint) {
-      return new SassString.empty(quotes: string.hasQuotes);
+      return SassString.empty(quotes: string.hasQuotes);
     }
 
-    return new SassString(
+    return SassString(
         string.text.substring(
             codepointIndexToCodeUnitIndex(string.text, startCodepoint),
             codepointIndexToCodeUnitIndex(string.text, endCodepoint) + 1),
         quotes: string.hasQuotes);
   }),
 
-  new BuiltInCallable("to-upper-case", r"$string", (arguments) {
+  BuiltInCallable("to-upper-case", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     for (var i = 0; i < string.text.length; i++) {
       buffer.writeCharCode(toUpperCase(string.text.codeUnitAt(i)));
     }
-    return new SassString(buffer.toString(), quotes: string.hasQuotes);
+    return SassString(buffer.toString(), quotes: string.hasQuotes);
   }),
 
-  new BuiltInCallable("to-lower-case", r"$string", (arguments) {
+  BuiltInCallable("to-lower-case", r"$string", (arguments) {
     var string = arguments[0].assertString("string");
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     for (var i = 0; i < string.text.length; i++) {
       buffer.writeCharCode(toLowerCase(string.text.codeUnitAt(i)));
     }
-    return new SassString(buffer.toString(), quotes: string.hasQuotes);
+    return SassString(buffer.toString(), quotes: string.hasQuotes);
   }),
 
   // ## Numbers
 
-  new BuiltInCallable("percentage", r"$number", (arguments) {
+  BuiltInCallable("percentage", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     number.assertNoUnits("number");
-    return new SassNumber(number.value * 100, '%');
+    return SassNumber(number.value * 100, '%');
   }),
 
   _numberFunction("round", fuzzyRound),
@@ -549,48 +548,47 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
   _numberFunction("floor", (value) => value.floor()),
   _numberFunction("abs", (value) => value.abs()),
 
-  new BuiltInCallable("max", r"$numbers...", (arguments) {
+  BuiltInCallable("max", r"$numbers...", (arguments) {
     SassNumber max;
     for (var value in arguments[0].asList) {
       var number = value.assertNumber();
       if (max == null || max.lessThan(number).isTruthy) max = number;
     }
     if (max != null) return max;
-    throw new SassScriptException("At least one argument must be passed.");
+    throw SassScriptException("At least one argument must be passed.");
   }),
 
-  new BuiltInCallable("min", r"$numbers...", (arguments) {
+  BuiltInCallable("min", r"$numbers...", (arguments) {
     SassNumber min;
     for (var value in arguments[0].asList) {
       var number = value.assertNumber();
       if (min == null || min.greaterThan(number).isTruthy) min = number;
     }
     if (min != null) return min;
-    throw new SassScriptException("At least one argument must be passed.");
+    throw SassScriptException("At least one argument must be passed.");
   }),
 
-  new BuiltInCallable("random", r"$limit: null", (arguments) {
-    if (arguments[0] == sassNull) return new SassNumber(_random.nextDouble());
+  BuiltInCallable("random", r"$limit: null", (arguments) {
+    if (arguments[0] == sassNull) return SassNumber(_random.nextDouble());
     var limit = arguments[0].assertNumber("limit").assertInt("limit");
     if (limit < 1) {
-      throw new SassScriptException(
-          "\$limit: Must be greater than 0, was $limit.");
+      throw SassScriptException("\$limit: Must be greater than 0, was $limit.");
     }
-    return new SassNumber(_random.nextInt(limit) + 1);
+    return SassNumber(_random.nextInt(limit) + 1);
   }),
 
   // ## Lists
 
-  new BuiltInCallable("length", r"$list",
-      (arguments) => new SassNumber(arguments[0].asList.length)),
+  BuiltInCallable("length", r"$list",
+      (arguments) => SassNumber(arguments[0].asList.length)),
 
-  new BuiltInCallable("nth", r"$list, $n", (arguments) {
+  BuiltInCallable("nth", r"$list, $n", (arguments) {
     var list = arguments[0];
     var index = arguments[1];
     return list.asList[list.sassIndexToListIndex(index, "n")];
   }),
 
-  new BuiltInCallable("set-nth", r"$list, $n, $value", (arguments) {
+  BuiltInCallable("set-nth", r"$list, $n, $value", (arguments) {
     var list = arguments[0];
     var index = arguments[1];
     var value = arguments[2];
@@ -599,8 +597,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     return arguments[0].changeListContents(newList);
   }),
 
-  new BuiltInCallable(
-      "join", r"$list1, $list2, $separator: auto, $bracketed: auto",
+  BuiltInCallable("join", r"$list1, $list2, $separator: auto, $bracketed: auto",
       (arguments) {
     var list1 = arguments[0];
     var list2 = arguments[1];
@@ -621,7 +618,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     } else if (separatorParam.text == "comma") {
       separator = ListSeparator.comma;
     } else {
-      throw new SassScriptException(
+      throw SassScriptException(
           '\$$separator: Must be "space", "comma", or "auto".');
     }
 
@@ -631,10 +628,10 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
             : bracketedParam.isTruthy;
 
     var newList = list1.asList.toList()..addAll(list2.asList);
-    return new SassList(newList, separator, brackets: bracketed);
+    return SassList(newList, separator, brackets: bracketed);
   }),
 
-  new BuiltInCallable("append", r"$list, $val, $separator: auto", (arguments) {
+  BuiltInCallable("append", r"$list, $val, $separator: auto", (arguments) {
     var list = arguments[0];
     var value = arguments[1];
     var separatorParam = arguments[2].assertString("separator");
@@ -649,7 +646,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     } else if (separatorParam.text == "comma") {
       separator = ListSeparator.comma;
     } else {
-      throw new SassScriptException(
+      throw SassScriptException(
           '\$$separator: Must be "space", "comma", or "auto".');
     }
 
@@ -657,95 +654,94 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     return list.changeListContents(newList, separator: separator);
   }),
 
-  new BuiltInCallable("zip", r"$lists...", (arguments) {
+  BuiltInCallable("zip", r"$lists...", (arguments) {
     var lists = arguments[0].asList.map((list) => list.asList).toList();
     var i = 0;
     var results = <SassList>[];
     while (lists.every((list) => i != list.length)) {
-      results
-          .add(new SassList(lists.map((list) => list[i]), ListSeparator.space));
+      results.add(SassList(lists.map((list) => list[i]), ListSeparator.space));
       i++;
     }
-    return new SassList(results, ListSeparator.comma);
+    return SassList(results, ListSeparator.comma);
   }),
 
-  new BuiltInCallable("index", r"$list, $value", (arguments) {
+  BuiltInCallable("index", r"$list, $value", (arguments) {
     var list = arguments[0].asList;
     var value = arguments[1];
 
     var index = list.indexOf(value);
-    return index == -1 ? sassNull : new SassNumber(index + 1);
+    return index == -1 ? sassNull : SassNumber(index + 1);
   }),
 
-  new BuiltInCallable(
+  BuiltInCallable(
       "list-separator",
       r"$list",
       (arguments) => arguments[0].separator == ListSeparator.comma
-          ? new SassString("comma", quotes: false)
-          : new SassString("space", quotes: false)),
+          ? SassString("comma", quotes: false)
+          : SassString("space", quotes: false)),
 
-  new BuiltInCallable("is-bracketed", r"$list",
-      (arguments) => new SassBoolean(arguments[0].hasBrackets)),
+  BuiltInCallable("is-bracketed", r"$list",
+      (arguments) => SassBoolean(arguments[0].hasBrackets)),
 
   // ## Maps
 
-  new BuiltInCallable("map-get", r"$map, $key", (arguments) {
+  BuiltInCallable("map-get", r"$map, $key", (arguments) {
     var map = arguments[0].assertMap("map");
     var key = arguments[1];
     return map.contents[key] ?? sassNull;
   }),
 
-  new BuiltInCallable("map-merge", r"$map1, $map2", (arguments) {
+  BuiltInCallable("map-merge", r"$map1, $map2", (arguments) {
     var map1 = arguments[0].assertMap("map1");
     var map2 = arguments[1].assertMap("map2");
-    return new SassMap(new Map.of(map1.contents)..addAll(map2.contents));
+    return SassMap(Map.of(map1.contents)..addAll(map2.contents));
   }),
 
-  new BuiltInCallable("map-remove", r"$map, $keys...", (arguments) {
+  BuiltInCallable("map-remove", r"$map, $keys...", (arguments) {
     var map = arguments[0].assertMap("map");
     var keys = arguments[1];
-    var mutableMap = new Map.of(map.contents);
+    var mutableMap = Map.of(map.contents);
     for (var key in keys.asList) {
       mutableMap.remove(key);
     }
-    return new SassMap(mutableMap);
+    return SassMap(mutableMap);
   }),
 
-  new BuiltInCallable(
+  BuiltInCallable(
       "map-keys",
       r"$map",
-      (arguments) => new SassList(
+      (arguments) => SassList(
           arguments[0].assertMap("map").contents.keys, ListSeparator.comma)),
 
-  new BuiltInCallable(
+  BuiltInCallable(
       "map-values",
       r"$map",
-      (arguments) => new SassList(
+      (arguments) => SassList(
           arguments[0].assertMap("map").contents.values, ListSeparator.comma)),
 
-  new BuiltInCallable("map-has-key", r"$map, $key", (arguments) {
+  BuiltInCallable("map-has-key", r"$map, $key", (arguments) {
     var map = arguments[0].assertMap("map");
     var key = arguments[1];
-    return new SassBoolean(map.contents.containsKey(key));
+    return SassBoolean(map.contents.containsKey(key));
   }),
 
-  new BuiltInCallable("keywords", r"$args", (arguments) {
+  BuiltInCallable("keywords", r"$args", (arguments) {
     var argumentList = arguments[0];
     if (argumentList is SassArgumentList) {
-      return new SassMap(mapMap(argumentList.keywords,
-          key: (String key, Value _) => new SassString(key, quotes: false)));
+      return SassMap(mapMap(argumentList.keywords,
+          key: (String key, Value _) => SassString(key, quotes: false)));
     } else {
-      throw new SassScriptException(
+      throw SassScriptException(
           "\$args: $argumentList is not an argument list.");
     }
   }),
 
   // ## Selectors
 
-  new BuiltInCallable("selector-nest", r"$selectors...", (arguments) {
+  BuiltInCallable("selector-nest", r"$selectors...", (arguments) {
     var selectors = arguments[0].asList;
     if (selectors.isEmpty) {
-      throw new SassScriptException(
+      throw SassScriptException(
           "\$selectors: At least one selector must be passed.");
     }
 
@@ -755,34 +751,34 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
         .asSassList;
   }),
 
-  new BuiltInCallable("selector-append", r"$selectors...", (arguments) {
+  BuiltInCallable("selector-append", r"$selectors...", (arguments) {
     var selectors = arguments[0].asList;
     if (selectors.isEmpty) {
-      throw new SassScriptException(
+      throw SassScriptException(
           "\$selectors: At least one selector must be passed.");
     }
 
     return selectors
         .map((selector) => selector.assertSelector())
         .reduce((parent, child) {
-      return new SelectorList(child.components.map((complex) {
+      return SelectorList(child.components.map((complex) {
         var compound = complex.components.first;
         if (compound is CompoundSelector) {
           var newCompound = _prependParent(compound);
           if (newCompound == null) {
-            throw new SassScriptException("Can't append $complex to $parent.");
+            throw SassScriptException("Can't append $complex to $parent.");
           }
 
-          return new ComplexSelector(<ComplexSelectorComponent>[newCompound]
+          return ComplexSelector(<ComplexSelectorComponent>[newCompound]
             ..addAll(complex.components.skip(1)));
         } else {
-          throw new SassScriptException("Can't append $complex to $parent.");
+          throw SassScriptException("Can't append $complex to $parent.");
         }
       })).resolveParentSelectors(parent);
     }).asSassList;
   }),
 
-  new BuiltInCallable("selector-extend", r"$selector, $extendee, $extender",
+  BuiltInCallable("selector-extend", r"$selector, $extendee, $extender",
       (arguments) {
     var selector = arguments[0].assertSelector(name: "selector");
     var target = arguments[1].assertSelector(name: "extendee");
@@ -791,7 +787,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     return Extender.extend(selector, source, target).asSassList;
   }),
 
-  new BuiltInCallable("selector-replace", r"$selector, $original, $replacement",
+  BuiltInCallable("selector-replace", r"$selector, $original, $replacement",
       (arguments) {
     var selector = arguments[0].assertSelector(name: "selector");
     var target = arguments[1].assertSelector(name: "original");
@@ -800,7 +796,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     return Extender.replace(selector, source, target).asSassList;
   }),
 
-  new BuiltInCallable("selector-unify", r"$selector1, $selector2", (arguments) {
+  BuiltInCallable("selector-unify", r"$selector1, $selector2", (arguments) {
     var selector1 = arguments[0].assertSelector(name: "selector1");
     var selector2 = arguments[1].assertSelector(name: "selector2");
 
@@ -808,65 +804,65 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
     return result == null ? sassNull : result.asSassList;
   }),
 
-  new BuiltInCallable("is-superselector", r"$super, $sub", (arguments) {
+  BuiltInCallable("is-superselector", r"$super, $sub", (arguments) {
     var selector1 = arguments[0].assertSelector(name: "super");
     var selector2 = arguments[1].assertSelector(name: "sub");
 
-    return new SassBoolean(selector1.isSuperselector(selector2));
+    return SassBoolean(selector1.isSuperselector(selector2));
   }),
 
-  new BuiltInCallable("simple-selectors", r"$selector", (arguments) {
+  BuiltInCallable("simple-selectors", r"$selector", (arguments) {
     var selector = arguments[0].assertCompoundSelector(name: "selector");
 
-    return new SassList(
+    return SassList(
         selector.components
-            .map((simple) => new SassString(simple.toString(), quotes: false)),
+            .map((simple) => SassString(simple.toString(), quotes: false)),
         ListSeparator.comma);
   }),
 
-  new BuiltInCallable("selector-parse", r"$selector",
+  BuiltInCallable("selector-parse", r"$selector",
       (arguments) => arguments[0].assertSelector(name: "selector").asSassList),
 
   // ## Introspection
 
-  new BuiltInCallable("feature-exists", r"$feature", (arguments) {
+  BuiltInCallable("feature-exists", r"$feature", (arguments) {
     var feature = arguments[0].assertString("feature");
-    return new SassBoolean(_features.contains(feature.text));
+    return SassBoolean(_features.contains(feature.text));
   }),
 
-  new BuiltInCallable("inspect", r"$value",
-      (arguments) => new SassString(arguments.first.toString(), quotes: false)),
+  BuiltInCallable("inspect", r"$value",
+      (arguments) => SassString(arguments.first.toString(), quotes: false)),
 
-  new BuiltInCallable("type-of", r"$value", (arguments) {
+  BuiltInCallable("type-of", r"$value", (arguments) {
     var value = arguments[0];
     if (value is SassArgumentList) {
-      return new SassString("arglist", quotes: false);
+      return SassString("arglist", quotes: false);
     }
-    if (value is SassBoolean) return new SassString("bool", quotes: false);
-    if (value is SassColor) return new SassString("color", quotes: false);
-    if (value is SassList) return new SassString("list", quotes: false);
-    if (value is SassMap) return new SassString("map", quotes: false);
-    if (value is SassNull) return new SassString("null", quotes: false);
-    if (value is SassNumber) return new SassString("number", quotes: false);
-    if (value is SassFunction) return new SassString("function", quotes: false);
+    if (value is SassBoolean) return SassString("bool", quotes: false);
+    if (value is SassColor) return SassString("color", quotes: false);
+    if (value is SassList) return SassString("list", quotes: false);
+    if (value is SassMap) return SassString("map", quotes: false);
+    if (value is SassNull) return SassString("null", quotes: false);
+    if (value is SassNumber) return SassString("number", quotes: false);
+    if (value is SassFunction) return SassString("function", quotes: false);
     assert(value is SassString);
-    return new SassString("string", quotes: false);
+    return SassString("string", quotes: false);
   }),
 
-  new BuiltInCallable("unit", r"$number", (arguments) {
+  BuiltInCallable("unit", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
-    return new SassString(number.unitString, quotes: true);
+    return SassString(number.unitString, quotes: true);
   }),
 
-  new BuiltInCallable("unitless", r"$number", (arguments) {
+  BuiltInCallable("unitless", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
-    return new SassBoolean(!number.hasUnits);
+    return SassBoolean(!number.hasUnits);
   }),
 
-  new BuiltInCallable("comparable", r"$number1, $number2", (arguments) {
+  BuiltInCallable("comparable", r"$number1, $number2", (arguments) {
     var number1 = arguments[0].assertNumber("number1");
     var number2 = arguments[1].assertNumber("number2");
-    return new SassBoolean(number1.isComparableTo(number2));
+    return SassBoolean(number1.isComparableTo(number2));
   }),
 
   // call() is defined in _PerformVisitor to provide it access to private APIs.
@@ -875,15 +871,15 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 
   // This is only invoked using `call()`. Hand-authored `if()`s are parsed as
   // [IfExpression]s.
-  new BuiltInCallable("if", r"$condition, $if-true, $if-false",
+  BuiltInCallable("if", r"$condition, $if-true, $if-false",
       (arguments) => arguments[0].isTruthy ? arguments[1] : arguments[2]),
 
-  new BuiltInCallable("unique-id", "", (arguments) {
+  BuiltInCallable("unique-id", "", (arguments) {
     // Make it difficult to guess the next ID by randomizing the increase.
     _uniqueID += _random.nextInt(36) + 1;
     if (_uniqueID > math.pow(36, 6)) _uniqueID %= math.pow(36, 6) as int;
     // The leading "u" ensures that the result is a valid identifier.
-    return new SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}",
+    return SassString("u${_uniqueID.toRadixString(36).padLeft(6, '0')}",
         quotes: false);
   })
 ]);
@@ -891,7 +887,7 @@ final List<BuiltInCallable> coreFunctions = new UnmodifiableListView([
 /// Returns a string representation of [name] called with [arguments], as though
 /// it were a plain CSS function.
 SassString _functionString(String name, Iterable<Value> arguments) =>
-    new SassString(
+    SassString(
         "$name(" +
             arguments.map((argument) => argument.toCssString()).join(', ') +
             ")",
@@ -910,7 +906,7 @@ Value _rgb(String name, List<Value> arguments) {
   var green = arguments[1].assertNumber("green");
   var blue = arguments[2].assertNumber("blue");
 
-  return new SassColor.rgb(
+  return SassColor.rgb(
       fuzzyRound(_percentageOrUnitless(red, 255, "red")),
       fuzzyRound(_percentageOrUnitless(green, 255, "green")),
       fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
@@ -927,7 +923,7 @@ Value _rgbTwoArg(String name, List<Value> arguments) {
   } else if (arguments[1].isVar) {
     var first = arguments[0];
     if (first is SassColor) {
-      return new SassString(
+      return SassString(
           "$name(${first.red}, ${first.green}, ${first.blue}, "
           "${arguments[1].toCssString()})",
           quotes: false);
@@ -936,7 +932,7 @@ Value _rgbTwoArg(String name, List<Value> arguments) {
     }
   } else if (arguments[1].isSpecialNumber) {
     var color = arguments[0].assertColor("color");
-    return new SassString(
+    return SassString(
         "$name(${color.red}, ${color.green}, ${color.blue}, "
         "${arguments[1].toCssString()})",
         quotes: false);
@@ -960,7 +956,7 @@ Value _hsl(String name, List<Value> arguments) {
   var saturation = arguments[1].assertNumber("saturation");
   var lightness = arguments[2].assertNumber("lightness");
 
-  return new SassColor.hsl(
+  return SassColor.hsl(
       hue.value,
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
@@ -976,19 +972,19 @@ Value _hsl(String name, List<Value> arguments) {
   var isCommaSeparated = channels.separator == ListSeparator.comma;
   var isBracketed = channels.hasBrackets;
   if (isCommaSeparated || isBracketed) {
-    var buffer = new StringBuffer(r"$channels must be");
+    var buffer = StringBuffer(r"$channels must be");
     if (isBracketed) buffer.write(" an unbracketed");
     if (isCommaSeparated) {
       buffer.write(isBracketed ? "," : " a");
       buffer.write(" space-separated");
     }
     buffer.write(" list.");
-    throw new SassScriptException(buffer.toString());
+    throw SassScriptException(buffer.toString());
   }
 
   var list = channels.asList;
   if (list.length > 3) {
-    throw new SassScriptException(
+    throw SassScriptException(
         "Only 3 elements allowed, but ${list.length} were passed.");
   } else if (list.length < 3) {
     if (list.any((value) => value.isVar) ||
@@ -996,7 +992,7 @@ Value _hsl(String name, List<Value> arguments) {
       return _functionString(name, [channels]);
     } else {
       var argument = argumentNames[list.length];
-      throw new SassScriptException("Missing element $argument.");
+      throw SassScriptException("Missing element $argument.");
     }
   }
 
@@ -1041,7 +1037,7 @@ num _percentageOrUnitless(SassNumber number, num max, String name) {
   } else if (number.hasUnit("%")) {
     value = max * number.value / 100;
   } else {
-    throw new SassScriptException(
+    throw SassScriptException(
         '\$$name: Expected $number to have no units or "%".');
   }
 
@@ -1081,7 +1077,7 @@ SassColor _mix(SassColor color1, SassColor color2, SassNumber weight) {
   var weight1 = (combinedWeight1 + 1) / 2;
   var weight2 = 1 - weight1;
 
-  return new SassColor.rgb(
+  return SassColor.rgb(
       fuzzyRound(color1.red * weight1 + color2.red * weight2),
       fuzzyRound(color1.green * weight1 + color2.green * weight2),
       fuzzyRound(color1.blue * weight1 + color2.blue * weight2),
@@ -1117,7 +1113,7 @@ SassColor _transparentize(List<Value> arguments) {
 /// [lengthInCodepoints], this will return `0` if [allowNegative] is `false` and
 /// the index if it's `true`.
 int _codepointForIndex(int index, int lengthInCodepoints,
-    {bool allowNegative: false}) {
+    {bool allowNegative = false}) {
   if (index == 0) return 0;
   if (index > 0) return math.min(index - 1, lengthInCodepoints);
   var result = lengthInCodepoints + index;
@@ -1128,9 +1124,9 @@ int _codepointForIndex(int index, int lengthInCodepoints,
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
 BuiltInCallable _numberFunction(String name, num transform(num value)) {
-  return new BuiltInCallable(name, r"$number", (arguments) {
+  return BuiltInCallable(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
-    return new SassNumber.withUnits(transform(number.value),
+    return SassNumber.withUnits(transform(number.value),
         numeratorUnits: number.numeratorUnits,
         denominatorUnits: number.denominatorUnits);
   });
@@ -1143,12 +1139,12 @@ CompoundSelector _prependParent(CompoundSelector compound) {
   if (first is UniversalSelector) return null;
   if (first is TypeSelector) {
     if (first.name.namespace != null) return null;
-    return new CompoundSelector(<SimpleSelector>[
-      new ParentSelector(suffix: first.name.name)
+    return CompoundSelector(<SimpleSelector>[
+      ParentSelector(suffix: first.name.name)
     ]..addAll(compound.components.skip(1)));
   } else {
-    return new CompoundSelector(
-        <SimpleSelector>[new ParentSelector()]..addAll(compound.components));
+    return CompoundSelector(
+        <SimpleSelector>[ParentSelector()]..addAll(compound.components));
   }
 }
 

@@ -37,7 +37,7 @@ class MediaQueryParser extends Parser {
 
       if (!lookingAtIdentifier()) {
         // For example, "@media screen {"
-        return new CssMediaQuery(identifier1);
+        return CssMediaQuery(identifier1);
       }
 
       var identifier2 = identifier();
@@ -54,7 +54,7 @@ class MediaQueryParser extends Parser {
           whitespace();
         } else {
           // For example, "@media only screen {"
-          return new CssMediaQuery(type, modifier: modifier);
+          return CssMediaQuery(type, modifier: modifier);
         }
       }
     }
@@ -72,9 +72,9 @@ class MediaQueryParser extends Parser {
     } while (scanIdentifier("and"));
 
     if (type == null) {
-      return new CssMediaQuery.condition(features);
+      return CssMediaQuery.condition(features);
     } else {
-      return new CssMediaQuery(type, modifier: modifier, features: features);
+      return CssMediaQuery(type, modifier: modifier, features: features);
     }
   }
 }

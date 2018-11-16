@@ -23,5 +23,5 @@ abstract class CallableDeclaration extends ParentStatement {
 
   CallableDeclaration(
       this.name, this.arguments, Iterable<Statement> children, this.span)
-      : super(new List.unmodifiable(children));
+      : super(List.unmodifiable(children));
 }

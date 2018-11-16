@@ -13,7 +13,7 @@ import '../utils.dart';
 /// Parses [source] by way of a function call.
 T parseValue<T>(String source) {
   T value;
-  renderSync(new RenderOptions(
+  renderSync(RenderOptions(
       data: "a {b: foo(($source))}",
       functions: jsify({
         r"foo($value)": allowInterop(expectAsync1((T value_) {

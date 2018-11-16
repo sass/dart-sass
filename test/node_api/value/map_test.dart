@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:js_util';
 
@@ -53,7 +53,7 @@ void main() {
 
     test("values can be set without affecting the underlying map", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"""
                   a {
                     $map: (a: b, c: d, e: f);
@@ -74,7 +74,7 @@ void main() {
 
     test("keys can be set without affecting the underlying map", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"""
                   a {
                     $map: (a: b, c: d, e: f);

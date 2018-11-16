@@ -19,7 +19,7 @@ class ImporterResult {
   /// acceptable as well. If no URL is supplied, a `data:` URL is generated
   /// automatically from [contents].
   Uri get sourceMapUrl =>
-      _sourceMapUrl ?? new Uri.dataFromString(contents, encoding: utf8);
+      _sourceMapUrl ?? Uri.dataFromString(contents, encoding: utf8);
   final Uri _sourceMapUrl;
 
   /// The syntax to use to parse the stylesheet.
@@ -40,12 +40,12 @@ class ImporterResult {
       : _sourceMapUrl = sourceMapUrl,
         syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
     if (sourceMapUrl?.scheme == '') {
-      throw new ArgumentError.value(
+      throw ArgumentError.value(
           sourceMapUrl, 'sourceMapUrl', 'must be absolute');
     } else if (syntax == null && indented == null) {
-      throw new ArgumentError("The syntax parameter must be passed.");
+      throw ArgumentError("The syntax parameter must be passed.");
     } else if (syntax != null && indented != null) {
-      throw new ArgumentError("Only one of syntax and indented may be passed.");
+      throw ArgumentError("Only one of syntax and indented may be passed.");
     }
   }
 }

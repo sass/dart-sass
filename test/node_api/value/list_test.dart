@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:js_util';
 
@@ -18,7 +18,7 @@ void main() {
   group("an argument list", () {
     NodeSassList args;
     setUp(() {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: "a {b: foo(1, 'a', blue)}",
           functions: jsify({
             r"foo($args...)": allowInterop(expectAsync1((NodeSassList args_) {
@@ -74,7 +74,7 @@ void main() {
 
       test("values can be set without affecting the underlying list", () {
         expect(
-            renderSync(new RenderOptions(
+            renderSync(RenderOptions(
                 data: r"a {$list: 1 2 3; b: foo($list); c: $list}",
                 functions: jsify({
                   r"foo($list)": allowInterop(expectAsync1((NodeSassList list) {
@@ -89,7 +89,7 @@ void main() {
       test("the separator can be set without affecting the underlying list",
           () {
         expect(
-            renderSync(new RenderOptions(
+            renderSync(RenderOptions(
                 data: r"a {$list: 1 2 3; b: foo($list); c: $list}",
                 functions: jsify({
                   r"foo($list)": allowInterop(expectAsync1((NodeSassList list) {

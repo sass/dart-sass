@@ -33,7 +33,7 @@ class VariableDeclaration implements Statement {
   final FileSpan span;
 
   VariableDeclaration(this.name, this.expression, this.span,
-      {bool guarded: false, bool global: false})
+      {bool guarded = false, bool global = false})
       : isGuarded = guarded,
         isGlobal = global;
 
@@ -43,8 +43,7 @@ class VariableDeclaration implements Statement {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory VariableDeclaration.parse(String contents, {url, Logger logger}) =>
-      new ScssParser(contents, url: url, logger: logger)
-          .parseVariableDeclaration();
+      ScssParser(contents, url: url, logger: logger).parseVariableDeclaration();
 
   T accept<T>(StatementVisitor<T> visitor) =>
       visitor.visitVariableDeclaration(this);

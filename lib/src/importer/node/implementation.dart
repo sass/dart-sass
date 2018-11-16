@@ -49,8 +49,8 @@ class NodeImporter {
   final List<JSFunction> _importers;
 
   NodeImporter(this._context, Iterable<String> includePaths, Iterable importers)
-      : _includePaths = new List.unmodifiable(_addSassPath(includePaths)),
-        _importers = new List.unmodifiable(importers);
+      : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
+        _importers = List.unmodifiable(importers);
 
   /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
   /// environment variable.
@@ -142,7 +142,7 @@ class NodeImporter {
     var resolved = resolveImportPath(path);
     return resolved == null
         ? null
-        : new Tuple2(readFile(resolved), p.toUri(resolved).toString());
+        : Tuple2(readFile(resolved), p.toUri(resolved).toString());
   }
 
   /// Converts an importer's return [value] to a tuple that can be returned by
@@ -166,14 +166,14 @@ class NodeImporter {
 
       throw "Can't find stylesheet to import.";
     } else {
-      return new Tuple2(result.contents ?? '', url);
+      return Tuple2(result.contents ?? '', url);
     }
   }
 
   /// Calls an importer that may or may not be asynchronous.
   Future<Object> _callImporterAsync(
       JSFunction importer, String url, String previousString) async {
-    var completer = new Completer();
+    var completer = Completer();
 
     var result = call3(importer, _context, url, previousString,
         allowInterop(completer.complete));

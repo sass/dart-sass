@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:convert';
 import 'dart:js';
@@ -33,27 +33,27 @@ void main() {
 
   group("renderSync()", () {
     test("renders a file", () {
-      expect(renderSync(new RenderOptions(file: sassPath)),
+      expect(renderSync(RenderOptions(file: sassPath)),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("renders a file from a relative path", () {
       runTestInSandbox();
-      expect(renderSync(new RenderOptions(file: 'test.scss')),
+      expect(renderSync(RenderOptions(file: 'test.scss')),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("renders a file with the indented syntax", () async {
       var indentedPath = p.join(sandbox, 'test.sass');
       await writeTextFile(indentedPath, 'a\n  b: c');
-      expect(renderSync(new RenderOptions(file: indentedPath)),
+      expect(renderSync(RenderOptions(file: indentedPath)),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports relative imports for a file", () async {
       var importerPath = p.join(sandbox, 'importer.scss');
       await writeTextFile(importerPath, '@import "test"');
-      expect(renderSync(new RenderOptions(file: importerPath)),
+      expect(renderSync(RenderOptions(file: importerPath)),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -65,13 +65,13 @@ void main() {
       await writeTextFile(importerPath, '@import "../test"');
 
       runTestInSandbox();
-      expect(renderSync(new RenderOptions(file: 'subdir/importer.scss')),
+      expect(renderSync(RenderOptions(file: 'subdir/importer.scss')),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports absolute path imports", () async {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               // Node Sass parses imports as paths, not as URLs, so the absolute
               // path should work here.
               data: '@import "${sassPath.replaceAll('\\', '\\\\')}"')),
@@ -79,20 +79,20 @@ void main() {
     });
 
     test("renders a string", () {
-      expect(renderSync(new RenderOptions(data: "a {b: c}")),
+      expect(renderSync(RenderOptions(data: "a {b: c}")),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("one of data and file must be set", () {
-      var error = renderSyncError(new RenderOptions());
+      var error = renderSyncError(RenderOptions());
       expect(error.toString(),
           contains('Either options.data or options.file must be set.'));
     });
 
     test("supports load paths", () {
       expect(
-          renderSync(new RenderOptions(
-              data: "@import 'test'", includePaths: [sandbox])),
+          renderSync(
+              RenderOptions(data: "@import 'test'", includePaths: [sandbox])),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -107,7 +107,7 @@ void main() {
           p.join(sandbox, 'dir1') + separator + p.join(sandbox, 'dir2'));
 
       try {
-        expect(renderSync(new RenderOptions(data: """
+        expect(renderSync(RenderOptions(data: """
               @import 'test1';
               @import 'test2';
             """)), equalsIgnoringWhitespace('a { b: c; } x { y: z; }'));
@@ -126,7 +126,7 @@ void main() {
 
       try {
         expect(
-            renderSync(new RenderOptions(
+            renderSync(RenderOptions(
                 data: "@import 'test'",
                 includePaths: [p.join(sandbox, 'dir2')])),
             equalsIgnoringWhitespace('x { y: z; }'));
@@ -146,15 +146,13 @@ void main() {
       await writeTextFile(p.join(subDir, '_other.scss'), 'x {y: z}');
 
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: "@import 'sub/test'", includePaths: [p.relative(sandbox)])),
           equalsIgnoringWhitespace('x { y: z; }'));
     });
 
     test("can render the indented syntax", () {
-      expect(
-          renderSync(
-              new RenderOptions(data: "a\n  b: c", indentedSyntax: true)),
+      expect(renderSync(RenderOptions(data: "a\n  b: c", indentedSyntax: true)),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -162,26 +160,23 @@ void main() {
         () async {
       var scssPath = p.join(sandbox, 'test.scss');
       await writeTextFile(scssPath, 'a\n  b: c');
-      expect(
-          renderSync(new RenderOptions(file: scssPath, indentedSyntax: true)),
+      expect(renderSync(RenderOptions(file: scssPath, indentedSyntax: true)),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("supports the expanded output style", () {
-      expect(
-          renderSync(
-              new RenderOptions(file: sassPath, outputStyle: 'expanded')),
+      expect(renderSync(RenderOptions(file: sassPath, outputStyle: 'expanded')),
           equals('a {\n  b: c;\n}'));
     });
 
     test("doesn't support other output styles", () {
-      var error = renderSyncError(
-          new RenderOptions(file: sassPath, outputStyle: 'nested'));
+      var error =
+          renderSyncError(RenderOptions(file: sassPath, outputStyle: 'nested'));
       expect(error.toString(), contains('Unsupported output style "nested".'));
     });
 
     test("allows tab indentation", () {
-      expect(renderSync(new RenderOptions(file: sassPath, indentType: 'tab')),
+      expect(renderSync(RenderOptions(file: sassPath, indentType: 'tab')),
           equals('''
 a {
 \t\tb: c;
@@ -189,7 +184,7 @@ a {
     });
 
     test("allows unknown indentation names", () {
-      expect(renderSync(new RenderOptions(file: sassPath, indentType: 'asdf')),
+      expect(renderSync(RenderOptions(file: sassPath, indentType: 'asdf')),
           equals('''
 a {
   b: c;
@@ -198,29 +193,29 @@ a {
 
     group("linefeed allows", () {
       test("cr", () {
-        expect(renderSync(new RenderOptions(file: sassPath, linefeed: 'cr')),
+        expect(renderSync(RenderOptions(file: sassPath, linefeed: 'cr')),
             equals('a {\r  b: c;\r}'));
       });
 
       test("crlf", () {
-        expect(renderSync(new RenderOptions(file: sassPath, linefeed: 'crlf')),
+        expect(renderSync(RenderOptions(file: sassPath, linefeed: 'crlf')),
             equals('a {\r\n  b: c;\r\n}'));
       });
 
       test("lfcr", () {
-        expect(renderSync(new RenderOptions(file: sassPath, linefeed: 'lfcr')),
+        expect(renderSync(RenderOptions(file: sassPath, linefeed: 'lfcr')),
             equals('a {\n\r  b: c;\n\r}'));
       });
 
       test("unknown names", () {
-        expect(renderSync(new RenderOptions(file: sassPath, linefeed: 'asdf')),
+        expect(renderSync(RenderOptions(file: sassPath, linefeed: 'asdf')),
             equals('a {\n  b: c;\n}'));
       });
     });
 
     group("indentWidth allows", () {
       test("a number", () {
-        expect(renderSync(new RenderOptions(file: sassPath, indentWidth: 10)),
+        expect(renderSync(RenderOptions(file: sassPath, indentWidth: 10)),
             equals('''
 a {
           b: c;
@@ -228,7 +223,7 @@ a {
       });
 
       test("a string", () {
-        expect(renderSync(new RenderOptions(file: sassPath, indentWidth: '1')),
+        expect(renderSync(RenderOptions(file: sassPath, indentWidth: '1')),
             equals('''
 a {
  b: c;
@@ -244,26 +239,26 @@ a {
             "    stdin 1:1  root stylesheet",
           ]));
 
-      expect(renderSync(new RenderOptions(data: "@warn 'aw beans'")), isEmpty);
+      expect(renderSync(RenderOptions(data: "@warn 'aw beans'")), isEmpty);
     });
 
     test("emits debug messages on stderr", () {
       expect(const LineSplitter().bind(interceptStderr()),
           emits("stdin:1 DEBUG: what the heck"));
 
-      expect(renderSync(new RenderOptions(data: "@debug 'what the heck'")),
-          isEmpty);
+      expect(
+          renderSync(RenderOptions(data: "@debug 'what the heck'")), isEmpty);
     });
 
     group("with both data and file", () {
       test("uses the data parameter as the source", () {
-        expect(renderSync(new RenderOptions(data: "x {y: z}", file: sassPath)),
+        expect(renderSync(RenderOptions(data: "x {y: z}", file: sassPath)),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
 
       test("doesn't require the file path to exist", () {
         expect(
-            renderSync(new RenderOptions(
+            renderSync(RenderOptions(
                 data: "x {y: z}", file: p.join(sandbox, 'non-existent.scss'))),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
@@ -272,13 +267,13 @@ a {
         await writeTextFile(p.join(sandbox, 'importee.scss'), 'x {y: z}');
         expect(
             renderSync(
-                new RenderOptions(data: "@import 'importee'", file: sassPath)),
+                RenderOptions(data: "@import 'importee'", file: sassPath)),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
 
       test("reports errors from the file path", () {
         var error =
-            renderSyncError(new RenderOptions(data: "x {y: }", file: sassPath));
+            renderSyncError(RenderOptions(data: "x {y: }", file: sassPath));
         expect(
             error.toString(),
             equals("Error: Expected expression.\n"
@@ -290,17 +285,17 @@ a {
 
     group("the result object", () {
       test("includes the filename", () {
-        var result = sass.renderSync(new RenderOptions(file: sassPath));
+        var result = sass.renderSync(RenderOptions(file: sassPath));
         expect(result.stats.entry, equals(sassPath));
       });
 
       test("includes data without a filename", () {
-        var result = sass.renderSync(new RenderOptions(data: 'a {b: c}'));
+        var result = sass.renderSync(RenderOptions(data: 'a {b: c}'));
         expect(result.stats.entry, equals('data'));
       });
 
       test("includes timing information", () {
-        var result = sass.renderSync(new RenderOptions(file: sassPath));
+        var result = sass.renderSync(RenderOptions(file: sassPath));
         expect(result.stats.start, const TypeMatcher<int>());
         expect(result.stats.end, const TypeMatcher<int>());
         expect(result.stats.start, lessThanOrEqualTo(result.stats.end));
@@ -310,12 +305,12 @@ a {
 
       group("has includedFiles which", () {
         test("contains the root path if available", () {
-          var result = sass.renderSync(new RenderOptions(file: sassPath));
+          var result = sass.renderSync(RenderOptions(file: sassPath));
           expect(result.stats.includedFiles, equals([sassPath]));
         });
 
         test("doesn't contain the root path if it's not available", () {
-          var result = sass.renderSync(new RenderOptions(data: 'a {b: c}'));
+          var result = sass.renderSync(RenderOptions(data: 'a {b: c}'));
           expect(result.stats.includedFiles, isEmpty);
         });
 
@@ -323,7 +318,7 @@ a {
           var importerPath = p.join(sandbox, 'importer.scss');
           await writeTextFile(importerPath, '@import "test"');
 
-          var result = sass.renderSync(new RenderOptions(file: importerPath));
+          var result = sass.renderSync(RenderOptions(file: importerPath));
           expect(result.stats.includedFiles,
               unorderedEquals([importerPath, sassPath]));
         });
@@ -332,7 +327,7 @@ a {
           var importerPath = p.join(sandbox, 'importer.scss');
           await writeTextFile(importerPath, '@import "test"; @import "test";');
 
-          var result = sass.renderSync(new RenderOptions(file: importerPath));
+          var result = sass.renderSync(RenderOptions(file: importerPath));
           expect(result.stats.includedFiles,
               unorderedEquals([importerPath, sassPath]));
         });
@@ -344,7 +339,7 @@ a {
       group("for a parse error in a file", () {
         setUp(() async {
           await writeTextFile(sassPath, "a {b: }");
-          error = renderSyncError(new RenderOptions(file: sassPath));
+          error = renderSyncError(RenderOptions(file: sassPath));
         });
 
         test("is a JS Error", () async {
@@ -369,7 +364,7 @@ a {
 
       group("for a parse error in a string", () {
         setUp(() {
-          error = renderSyncError(new RenderOptions(data: "a {b: }"));
+          error = renderSyncError(RenderOptions(data: "a {b: }"));
         });
 
         test("is a JS Error", () async {
@@ -395,7 +390,7 @@ a {
       group("for a runtime error in a file", () {
         setUp(() async {
           await writeTextFile(sassPath, "a {b: 1 % a}");
-          error = renderSyncError(new RenderOptions(file: sassPath));
+          error = renderSyncError(RenderOptions(file: sassPath));
         });
 
         test("has a useful toString() and message", () {
@@ -416,7 +411,7 @@ a {
 
       group("for a runtime error in a string", () {
         setUp(() {
-          error = renderSyncError(new RenderOptions(data: "a {b: 1 % a}"));
+          error = renderSyncError(RenderOptions(data: "a {b: 1 % a}"));
         });
 
         test("has a useful toString() and message", () {
@@ -461,14 +456,14 @@ a {
 
   group("render()", () {
     test("renders a file", () async {
-      expect(await render(new RenderOptions(file: sassPath)),
+      expect(await render(RenderOptions(file: sassPath)),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("throws an error that has a useful toString", () async {
       await writeTextFile(sassPath, 'a {b: }');
 
-      var error = await renderError(new RenderOptions(file: sassPath));
+      var error = await renderError(RenderOptions(file: sassPath));
       expect(
           error.toString(),
           equals("Error: Expected expression.\n"

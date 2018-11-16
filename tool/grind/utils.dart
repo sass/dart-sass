@@ -14,14 +14,13 @@ import 'package:yaml/yaml.dart';
 
 /// The version of Dart Sass.
 final String version =
-    loadYaml(new File('pubspec.yaml').readAsStringSync())['version'] as String;
+    loadYaml(File('pubspec.yaml').readAsStringSync())['version'] as String;
 
 /// The version of the current Dart executable.
-final Version dartVersion =
-    new Version.parse(Platform.version.split(" ").first);
+final Version dartVersion = Version.parse(Platform.version.split(" ").first);
 
 /// Options for [run] that tell Git to commit using SassBot's name and email.
-final sassBotEnvironment = new RunOptions(environment: {
+final sassBotEnvironment = RunOptions(environment: {
   "GIT_AUTHOR_NAME": "Sass Bot",
   "GIT_AUTHOR_EMAIL": "sass.bot.beep.boop@gmail.com",
   "GIT_COMMITTER_NAME": "Sass Bot",
@@ -33,13 +32,13 @@ bool get isDevSdk => dartVersion.isPreRelease;
 
 /// Ensure that the `build/` directory exists.
 void ensureBuild() {
-  new Directory('build').createSync(recursive: true);
+  Directory('build').createSync(recursive: true);
 }
 
 /// Reads [file], replaces all instances of SASS_VERSION with the actual
 /// version, and returns its contents.
 String readAndReplaceVersion(String file) =>
-    new File(file).readAsStringSync().replaceAll("SASS_VERSION", version);
+    File(file).readAsStringSync().replaceAll("SASS_VERSION", version);
 
 /// Returns the environment variable named [name], or throws an exception if it
 /// can't be found.
@@ -53,24 +52,24 @@ String environment(String name) {
 ///
 /// If [executable] is `true`, this marks the file as executable.
 ArchiveFile fileFromBytes(String path, List<int> data,
-        {bool executable: false}) =>
-    new ArchiveFile(path, data.length, data)
+        {bool executable = false}) =>
+    ArchiveFile(path, data.length, data)
       ..mode = executable ? 495 : 428
-      ..lastModTime = new DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      ..lastModTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
 /// Creates a UTF-8-encoded [ArchiveFile] with the given [path] and [contents].
 ///
 /// If [executable] is `true`, this marks the file as executable.
 ArchiveFile fileFromString(String path, String contents,
-        {bool executable: false}) =>
+        {bool executable = false}) =>
     fileFromBytes(path, utf8.encode(contents), executable: executable);
 
 /// Creates an [ArchiveFile] at the archive path [target] from the local file at
 /// [source].
 ///
 /// If [executable] is `true`, this marks the file as executable.
-ArchiveFile file(String target, String source, {bool executable: false}) =>
-    fileFromBytes(target, new File(source).readAsBytesSync(),
+ArchiveFile file(String target, String source, {bool executable = false}) =>
+    fileFromBytes(target, File(source).readAsBytesSync(),
         executable: executable);
 
 /// Ensure that the repository at [url] is cloned into the build directory and
@@ -90,12 +89,12 @@ Future<String> cloneOrCheckout(String url, String ref) async {
 
   var path = p.join("build", name);
 
-  if (new Directory(p.join(path, '.git')).existsSync()) {
+  if (Directory(p.join(path, '.git')).existsSync()) {
     log("Updating $url");
     await runAsync("git",
         arguments: ["fetch", "origin"], workingDirectory: path);
   } else {
-    delete(new Directory(path));
+    delete(Directory(path));
     await runAsync("git", arguments: ["clone", url, path]);
     await runAsync("git",
         arguments: ["config", "advice.detachedHead", "false"],

@@ -43,7 +43,7 @@ class SassParser extends StylesheetParser {
   Interpolation styleRuleSelector() {
     var start = scanner.state;
 
-    var buffer = new InterpolationBuffer();
+    var buffer = InterpolationBuffer();
     do {
       buffer.addInterpolation(almostAnyValue());
       buffer.writeCharCode($lf);
@@ -99,7 +99,7 @@ class SassParser extends StylesheetParser {
       next = scanner.peekChar();
     }
 
-    return new DynamicImport(parseImportUrl(scanner.substring(start.position)),
+    return DynamicImport(parseImportUrl(scanner.substring(start.position)),
         scanner.spanFrom(start));
   }
 
@@ -186,7 +186,7 @@ class SassParser extends StylesheetParser {
     var start = scanner.state;
     scanner.expect("//");
 
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     var parentIndentation = currentIndentation;
     while (true) {
       buffer.write("//");
@@ -206,7 +206,7 @@ class SassParser extends StylesheetParser {
       _readIndentation();
     }
 
-    return new SilentComment(buffer.toString(), scanner.spanFrom(start));
+    return SilentComment(buffer.toString(), scanner.spanFrom(start));
   }
 
   /// Consumes an indented-style loud context.
@@ -215,7 +215,7 @@ class SassParser extends StylesheetParser {
     scanner.expect("/*");
 
     var first = true;
-    var buffer = new InterpolationBuffer()..write("/*");
+    var buffer = InterpolationBuffer()..write("/*");
     var parentIndentation = currentIndentation;
     while (true) {
       if (first) {
@@ -274,7 +274,7 @@ class SassParser extends StylesheetParser {
     }
     if (!buffer.trailingString.trimRight().endsWith("*/")) buffer.write(" */");
 
-    return new LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+    return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
   void whitespace() {

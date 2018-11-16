@@ -63,11 +63,11 @@ main() {
 
   group("new SassBoolean()", () {
     test("returns sassTrue", () {
-      expect(new SassBoolean(true), equals(sassTrue));
+      expect(SassBoolean(true), equals(sassTrue));
     });
 
     test("returns sassFalse", () {
-      expect(new SassBoolean(false), equals(sassFalse));
+      expect(SassBoolean(false), equals(sassFalse));
     });
   });
 }

@@ -20,12 +20,12 @@ class AtRootRule extends ParentStatement {
   final FileSpan span;
 
   AtRootRule(Iterable<Statement> children, this.span, {this.query})
-      : super(new List.unmodifiable(children));
+      : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRootRule(this);
 
   String toString() {
-    var buffer = new StringBuffer("@at-root ");
+    var buffer = StringBuffer("@at-root ");
     if (query != null) buffer.write("$query ");
     return "$buffer {${children.join(' ')}}";
   }

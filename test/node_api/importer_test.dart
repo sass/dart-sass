@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:async';
 
@@ -32,27 +32,27 @@ void main() {
 
   test("can import a file by contents", () {
     expect(
-        renderSync(new RenderOptions(
+        renderSync(RenderOptions(
             data: "@import 'foo'",
             importer: allowInterop(
-                (_, __) => new NodeImporterResult(contents: 'a {b: c}')))),
+                (_, __) => NodeImporterResult(contents: 'a {b: c}')))),
         equalsIgnoringWhitespace('a { b: c; }'));
   });
 
   test("imports cascade through importers", () {
     expect(
-        renderSync(new RenderOptions(data: "@import 'foo'", importer: [
+        renderSync(RenderOptions(data: "@import 'foo'", importer: [
           allowInterop((url, __) {
             if (url != "foo") return null;
-            return new NodeImporterResult(contents: '@import "bar"');
+            return NodeImporterResult(contents: '@import "bar"');
           }),
           allowInterop((url, __) {
             if (url != "bar") return null;
-            return new NodeImporterResult(contents: '@import "baz"');
+            return NodeImporterResult(contents: '@import "baz"');
           }),
           allowInterop((url, __) {
             if (url != "baz") return null;
-            return new NodeImporterResult(contents: 'a {b: c}');
+            return NodeImporterResult(contents: 'a {b: c}');
           })
         ])),
         equalsIgnoringWhitespace('a { b: c; }'));
@@ -60,9 +60,9 @@ void main() {
 
   test("an empty object means an empty file", () {
     expect(
-        renderSync(new RenderOptions(
+        renderSync(RenderOptions(
             data: "@import 'foo'",
-            importer: allowInterop((_, __) => new NodeImporterResult()))),
+            importer: allowInterop((_, __) => NodeImporterResult()))),
         equalsIgnoringWhitespace(''));
   });
 
@@ -78,7 +78,7 @@ void main() {
         var basePath = p.join(subDir, 'base.scss');
         await writeTextFile(basePath, '@import "test"');
 
-        expect(renderSync(new RenderOptions(file: basePath)),
+        expect(renderSync(RenderOptions(file: basePath)),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
 
@@ -88,15 +88,15 @@ void main() {
         await writeTextFile(p.join(subDir, 'test.scss'), 'x {y: z}');
 
         expect(
-            renderSync(new RenderOptions(
-                data: '@import "test"', includePaths: [subDir])),
+            renderSync(
+                RenderOptions(data: '@import "test"', includePaths: [subDir])),
             equalsIgnoringWhitespace('a { b: c; }'));
       });
     });
 
     test("include path is #3", () async {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: '@import "test"',
               includePaths: [sandbox],
               importer: allowInterop(expectAsync2((_, __) {}, count: 0)))),
@@ -107,10 +107,10 @@ void main() {
   group("with a file redirect", () {
     test("imports the chosen file", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop(
-                  (_, __) => new NodeImporterResult(file: sassPath)))),
+              importer:
+                  allowInterop((_, __) => NodeImporterResult(file: sassPath)))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -118,10 +118,10 @@ void main() {
       await writeTextFile(p.join(sandbox, 'target.sass'), 'a\n  b: c');
 
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __) => new NodeImporterResult(
-                  file: p.join(sandbox, 'target.sass'))))),
+              importer: allowInterop((_, __) =>
+                  NodeImporterResult(file: p.join(sandbox, 'target.sass'))))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -130,10 +130,10 @@ void main() {
       await writeTextFile(p.join(sandbox, 'target.css'), "@import 'bar'");
 
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __) => new NodeImporterResult(
-                  file: p.join(sandbox, 'target.css'))))),
+              importer: allowInterop((_, __) =>
+                  NodeImporterResult(file: p.join(sandbox, 'target.css'))))),
           equalsIgnoringWhitespace('@import "bar";'));
     });
 
@@ -141,19 +141,19 @@ void main() {
       await writeTextFile(p.join(sandbox, '_target.scss'), 'a {b: c}');
 
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __) => new NodeImporterResult(
-                  file: p.join(sandbox, 'target.scss'))))),
+              importer: allowInterop((_, __) =>
+                  NodeImporterResult(file: p.join(sandbox, 'target.scss'))))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
     test("may be extensionless", () async {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: "@import 'foo'",
               importer: allowInterop((_, __) =>
-                  new NodeImporterResult(file: p.withoutExtension(sassPath))))),
+                  NodeImporterResult(file: p.withoutExtension(sassPath))))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -162,10 +162,10 @@ void main() {
       await writeTextFile(basePath, '@import "foo"');
 
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               file: basePath,
               importer: allowInterop(
-                  (_, __) => new NodeImporterResult(file: 'test.scss')))),
+                  (_, __) => NodeImporterResult(file: 'test.scss')))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -173,20 +173,19 @@ void main() {
       var basePath = p.join(sandbox, 'base.scss');
       await writeTextFile(basePath, '@import "foo"');
 
-      var result = sass.renderSync(new RenderOptions(
+      var result = sass.renderSync(RenderOptions(
           file: basePath,
-          importer:
-              allowInterop((_, __) => new NodeImporterResult(file: 'test'))));
+          importer: allowInterop((_, __) => NodeImporterResult(file: 'test'))));
       expect(result.stats.includedFiles, equals([basePath, sassPath]));
     });
 
     test("is resolved relative to include paths", () async {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: "@import 'foo'",
               includePaths: [sandbox],
-              importer: allowInterop(
-                  (_, __) => new NodeImporterResult(file: 'test')))),
+              importer:
+                  allowInterop((_, __) => NodeImporterResult(file: 'test')))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -200,11 +199,11 @@ void main() {
       await writeTextFile(p.join(subDir, 'test.scss'), 'x {y: z}');
 
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               file: basePath,
               includePaths: [subDir],
-              importer: allowInterop(
-                  (_, __) => new NodeImporterResult(file: 'test')))),
+              importer:
+                  allowInterop((_, __) => NodeImporterResult(file: 'test')))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -219,10 +218,10 @@ void main() {
 
       test("is resolved relative to the CWD", () {
         expect(
-            renderSync(new RenderOptions(
+            renderSync(RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop(
-                    (_, __) => new NodeImporterResult(file: 'test.scss')))),
+                    (_, __) => NodeImporterResult(file: 'test.scss')))),
             equalsIgnoringWhitespace('a { b: c; }'));
       });
 
@@ -233,10 +232,10 @@ void main() {
         await writeTextFile(p.join(sandbox, 'sub', 'test.scss'), 'x {y: z}');
 
         expect(
-            renderSync(new RenderOptions(
+            renderSync(RenderOptions(
                 file: basePath,
                 importer: allowInterop(
-                    (_, __) => new NodeImporterResult(file: 'test.scss')))),
+                    (_, __) => NodeImporterResult(file: 'test.scss')))),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
 
@@ -248,11 +247,11 @@ void main() {
         await writeTextFile(p.join(subDir, 'test.scss'), 'x {y: z}');
 
         expect(
-            renderSync(new RenderOptions(
+            renderSync(RenderOptions(
                 file: basePath,
                 includePaths: [subDir],
                 importer: allowInterop(
-                    (_, __) => new NodeImporterResult(file: 'test.scss')))),
+                    (_, __) => NodeImporterResult(file: 'test.scss')))),
             equalsIgnoringWhitespace('a { b: c; }'));
       });
     });
@@ -260,42 +259,42 @@ void main() {
 
   group("the imported URL", () {
     test("is the exact imported text", () {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: "@import 'foo'",
           importer: allowInterop(expectAsync2((url, _) {
             expect(url, equals('foo'));
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
     // Regression test for #246.
     test("doesn't remove ./", () {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: "@import './foo'",
           importer: allowInterop(expectAsync2((url, _) {
             expect(url, equals('./foo'));
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
     test("isn't resolved relative to the current file", () {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: "@import 'foo/bar'",
           importer: allowInterop(expectAsync2((url, _) {
             if (url == 'foo/bar') {
-              return new NodeImporterResult(contents: "@import 'baz'");
+              return NodeImporterResult(contents: "@import 'baz'");
             } else {
               expect(url, equals('baz'));
-              return new NodeImporterResult(contents: "");
+              return NodeImporterResult(contents: "");
             }
           }, count: 2))));
     });
 
     test("is added to includedFiles", () {
-      var result = sass.renderSync(new RenderOptions(
+      var result = sass.renderSync(RenderOptions(
           data: "@import 'foo'",
           importer: allowInterop(expectAsync2((_, __) {
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
       expect(result.stats.includedFiles, equals(['foo']));
     });
@@ -306,11 +305,11 @@ void main() {
       var importPath = p.join(sandbox, 'import.scss');
       await writeTextFile(importPath, "@import 'foo'");
 
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           file: importPath,
           importer: allowInterop(expectAsync2((_, prev) {
             expect(prev, equals(p.absolute(importPath)));
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
@@ -322,38 +321,38 @@ void main() {
       var import2Path = p.join(sandbox, 'import2.scss');
       await writeTextFile(import2Path, "@import 'baz'");
 
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           file: import1Path,
           importer: allowInterop(expectAsync2((url, prev) {
             if (url == 'foo') {
-              return new NodeImporterResult(file: 'import2');
+              return NodeImporterResult(file: 'import2');
             } else {
               expect(url, equals('baz'));
               expect(prev, equals(import2Path));
-              return new NodeImporterResult(contents: "");
+              return NodeImporterResult(contents: "");
             }
           }, count: 2))));
     });
 
     test('is "stdin" for string stylesheets', () async {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: '@import "foo"',
           importer: allowInterop(expectAsync2((_, prev) {
             expect(prev, equals('stdin'));
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
     test("is the imported string for imports from importers", () async {
-      renderSync(new RenderOptions(data: '@import "foo"', importer: [
+      renderSync(RenderOptions(data: '@import "foo"', importer: [
         allowInterop(expectAsync2((url, _) {
           if (url != "foo") return null;
-          return new NodeImporterResult(contents: '@import "bar"');
+          return NodeImporterResult(contents: '@import "bar"');
         }, count: 2)),
         allowInterop(expectAsync2((url, prev) {
           expect(url, equals("bar"));
           expect(prev, equals("foo"));
-          return new NodeImporterResult(contents: '');
+          return NodeImporterResult(contents: '');
         }))
       ]));
     });
@@ -361,7 +360,7 @@ void main() {
 
   group("this", () {
     test('includes default option values', () {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: '@import "foo"',
           importer: allowInteropCaptureThis(
               expectAsync3((RenderContext this_, _, __) {
@@ -373,120 +372,120 @@ void main() {
             expect(options.indentWidth, equals(2));
             expect(options.linefeed, equals('\n'));
 
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
     test('includes the data when rendering via data', () {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: '@import "foo"',
           importer: allowInteropCaptureThis(
               expectAsync3((RenderContext this_, _, __) {
             expect(this_.options.data, equals('@import "foo"'));
             expect(this_.options.file, isNull);
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
     test('includes the filename when rendering via file', () async {
       await writeTextFile(sassPath, '@import "foo"');
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           file: sassPath,
           importer: allowInteropCaptureThis(
               expectAsync3((RenderContext this_, _, __) {
             expect(this_.options.data, isNull);
             expect(this_.options.file, equals(sassPath));
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
     test('includes other include paths', () {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: '@import "foo"',
           includePaths: [sandbox],
           importer: allowInteropCaptureThis(
               expectAsync3((RenderContext this_, _, __) {
             expect(this_.options.includePaths, equals("${p.current}:$sandbox"));
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
     group('can override', () {
       test('indentWidth', () {
-        renderSync(new RenderOptions(
+        renderSync(RenderOptions(
             data: '@import "foo"',
             indentWidth: 5,
             importer: allowInteropCaptureThis(
                 expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.indentWidth, equals(5));
-              return new NodeImporterResult(contents: '');
+              return NodeImporterResult(contents: '');
             }))));
       });
 
       test('indentType', () {
-        renderSync(new RenderOptions(
+        renderSync(RenderOptions(
             data: '@import "foo"',
             indentType: 'tab',
             importer: allowInteropCaptureThis(
                 expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.indentType, equals(1));
-              return new NodeImporterResult(contents: '');
+              return NodeImporterResult(contents: '');
             }))));
       });
 
       test('linefeed', () {
-        renderSync(new RenderOptions(
+        renderSync(RenderOptions(
             data: '@import "foo"',
             linefeed: 'cr',
             importer: allowInteropCaptureThis(
                 expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.linefeed, equals('\r'));
-              return new NodeImporterResult(contents: '');
+              return NodeImporterResult(contents: '');
             }))));
       });
     });
 
     test('has a circular reference', () {
-      renderSync(new RenderOptions(
+      renderSync(RenderOptions(
           data: '@import "foo"',
           importer: allowInteropCaptureThis(
               expectAsync3((RenderContext this_, _, __) {
             expect(this_.options.context, same(this_));
-            return new NodeImporterResult(contents: '');
+            return NodeImporterResult(contents: '');
           }))));
     });
 
     group("includes render stats with", () {
       test('a start time', () {
-        var start = new DateTime.now();
-        renderSync(new RenderOptions(
+        var start = DateTime.now();
+        renderSync(RenderOptions(
             data: '@import "foo"',
             importer: allowInteropCaptureThis(
                 expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.result.stats.start,
                   greaterThanOrEqualTo(start.millisecondsSinceEpoch));
-              return new NodeImporterResult(contents: '');
+              return NodeImporterResult(contents: '');
             }))));
       });
 
       test('a data entry', () {
-        renderSync(new RenderOptions(
+        renderSync(RenderOptions(
             data: '@import "foo"',
             importer: allowInteropCaptureThis(
                 expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.result.stats.entry, equals('data'));
-              return new NodeImporterResult(contents: '');
+              return NodeImporterResult(contents: '');
             }))));
       });
 
       test('a file entry', () async {
         await writeTextFile(sassPath, '@import "foo"');
-        renderSync(new RenderOptions(
+        renderSync(RenderOptions(
             file: sassPath,
             importer: allowInteropCaptureThis(
                 expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.result.stats.entry, equals(sassPath));
-              return new NodeImporterResult(contents: '');
+              return NodeImporterResult(contents: '');
             }))));
       });
     });
@@ -494,10 +493,10 @@ void main() {
 
   group("gracefully handles an error when", () {
     test("an importer redirects to a non-existent file", () {
-      var error = renderSyncError(new RenderOptions(
+      var error = renderSyncError(RenderOptions(
           data: "@import 'foo'",
           importer: allowInterop(
-              (_, __) => new NodeImporterResult(file: '_does_not_exist'))));
+              (_, __) => NodeImporterResult(file: '_does_not_exist'))));
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
@@ -507,9 +506,9 @@ void main() {
     });
 
     test("an error is returned", () {
-      var error = renderSyncError(new RenderOptions(
+      var error = renderSyncError(RenderOptions(
           data: "@import 'foo'",
-          importer: allowInterop((_, __) => new JSError("oh no"))));
+          importer: allowInterop((_, __) => JSError("oh no"))));
 
       expect(
           error,
@@ -523,7 +522,7 @@ void main() {
     // fixed.
 
     test("null is returned", () {
-      var error = renderSyncError(new RenderOptions(
+      var error = renderSyncError(RenderOptions(
           data: "@import 'foo'", importer: allowInterop((_, __) => null)));
       expect(
           error,
@@ -534,7 +533,7 @@ void main() {
     });
 
     test("undefined is returned", () {
-      var error = renderSyncError(new RenderOptions(
+      var error = renderSyncError(RenderOptions(
           data: "@import 'foo'", importer: allowInterop((_, __) => undefined)));
       expect(
           error,
@@ -545,7 +544,7 @@ void main() {
     });
 
     test("an unrecognized value is returned", () {
-      var error = renderSyncError(new RenderOptions(
+      var error = renderSyncError(RenderOptions(
           data: "@import 'foo'", importer: allowInterop((_, __) => 10)));
       expect(
           error,
@@ -559,11 +558,11 @@ void main() {
   group("render()", () {
     test("supports asynchronous importers", () {
       expect(
-          render(new RenderOptions(
+          render(RenderOptions(
               data: "@import 'foo'",
               importer: allowInterop((_, __, done) {
-                new Future.delayed(Duration.zero).then((_) {
-                  done(new NodeImporterResult(contents: 'a {b: c}'));
+                Future.delayed(Duration.zero).then((_) {
+                  done(NodeImporterResult(contents: 'a {b: c}'));
                 });
               }))),
           completion(equalsIgnoringWhitespace('a { b: c; }')));
@@ -571,11 +570,11 @@ void main() {
 
     test("supports asynchronous errors", () {
       expect(
-          renderError(new RenderOptions(
+          renderError(RenderOptions(
               data: "@import 'foo'",
               importer: allowInterop((_, __, done) {
-                new Future.delayed(Duration.zero).then((_) {
-                  done(new JSError('oh no'));
+                Future.delayed(Duration.zero).then((_) {
+                  done(JSError('oh no'));
                 });
               }))),
           completion(toStringAndMessageEqual("oh no\n"
@@ -586,16 +585,16 @@ void main() {
 
     test("supports synchronous importers", () {
       expect(
-          render(new RenderOptions(
+          render(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __, ___) =>
-                  new NodeImporterResult(contents: 'a {b: c}')))),
+              importer: allowInterop(
+                  (_, __, ___) => NodeImporterResult(contents: 'a {b: c}')))),
           completion(equalsIgnoringWhitespace('a { b: c; }')));
     });
 
     test("supports synchronous null returns", () {
       expect(
-          renderError(new RenderOptions(
+          renderError(RenderOptions(
               data: "@import 'foo'",
               importer: allowInterop((_, __, ___) => jsNull))),
           completion(
@@ -617,11 +616,11 @@ void main() {
 
       test("supports asynchronous importers", () {
         expect(
-            render(new RenderOptions(
+            render(RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, done) {
-                  new Future.delayed(Duration.zero).then((_) {
-                    done(new NodeImporterResult(contents: 'a {b: c}'));
+                  Future.delayed(Duration.zero).then((_) {
+                    done(NodeImporterResult(contents: 'a {b: c}'));
                   });
                 }),
                 fiber: fiber)),
@@ -630,10 +629,10 @@ void main() {
 
       test("supports synchronous calls to done", () {
         expect(
-            render(new RenderOptions(
+            render(RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, done) {
-                  done(new NodeImporterResult(contents: 'a {b: c}'));
+                  done(NodeImporterResult(contents: 'a {b: c}'));
                 }),
                 fiber: fiber)),
             completion(equalsIgnoringWhitespace('a { b: c; }')));
@@ -641,10 +640,10 @@ void main() {
 
       test("supports synchronous importers", () {
         expect(
-            render(new RenderOptions(
+            render(RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, ___) {
-                  return new NodeImporterResult(contents: 'a {b: c}');
+                  return NodeImporterResult(contents: 'a {b: c}');
                 }),
                 fiber: fiber)),
             completion(equalsIgnoringWhitespace('a { b: c; }')));
@@ -652,11 +651,11 @@ void main() {
 
       test("supports asynchronous errors", () {
         expect(
-            renderError(new RenderOptions(
+            renderError(RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, done) {
-                  new Future.delayed(Duration.zero).then((_) {
-                    done(new JSError('oh no'));
+                  Future.delayed(Duration.zero).then((_) {
+                    done(JSError('oh no'));
                   });
                 }),
                 fiber: fiber)),
@@ -668,7 +667,7 @@ void main() {
 
       test("supports synchronous null returns", () {
         expect(
-            renderError(new RenderOptions(
+            renderError(RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, ___) => jsNull),
                 fiber: fiber)),

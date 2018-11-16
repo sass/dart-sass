@@ -12,14 +12,14 @@ class SassException extends SourceSpanException {
   /// The Sass stack trace at the point this exception was thrown.
   ///
   /// This includes [span].
-  Trace get trace => new Trace([frameForSpan(span, "root stylesheet")]);
+  Trace get trace => Trace([frameForSpan(span, "root stylesheet")]);
 
   FileSpan get span => super.span as FileSpan;
 
   SassException(String message, FileSpan span) : super(message, span);
 
   String toString({color}) {
-    var buffer = new StringBuffer()
+    var buffer = StringBuffer()
       ..writeln("Error: $message")
       ..write(span.highlight(color: color));
 

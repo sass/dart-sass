@@ -29,7 +29,7 @@ class StaticImport implements Import {
   StaticImport(this.url, this.span, {this.supports, this.media});
 
   String toString() {
-    var buffer = new StringBuffer(url);
+    var buffer = StringBuffer(url);
     if (supports != null) buffer.write(" supports($supports)");
     if (media != null) buffer.write(" $media");
     buffer.writeCharCode($semicolon);

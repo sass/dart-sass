@@ -26,12 +26,12 @@ void forwardToString(Function klass) {
 /// Throws [error] like JS would, without any Dart wrappers.
 void jsThrow(error) => _jsThrow.call(error);
 
-final _jsThrow = new JSFunction("error", "throw error;");
+final _jsThrow = JSFunction("error", "throw error;");
 
 /// Returns whether or not [value] is the JS `undefined` value.
 bool isUndefined(value) => _isUndefined.call(value) as bool;
 
-final _isUndefined = new JSFunction("value", "return value === undefined;");
+final _isUndefined = JSFunction("value", "return value === undefined;");
 
 @JS("Error")
 external Function get _JSError;

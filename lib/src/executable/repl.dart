@@ -16,21 +16,21 @@ import '../visitor/evaluate.dart';
 
 /// Runs an interactive SassScript shell according to [options].
 Future repl(ExecutableOptions options) async {
-  var repl = new Repl(prompt: '>> ');
+  var repl = Repl(prompt: '>> ');
   var variables = <String, internal.Value>{};
   await for (String line in repl.runAsync()) {
     if (line.trim().isEmpty) continue;
-    var logger = new TrackingLogger(options.logger);
+    var logger = TrackingLogger(options.logger);
     try {
       Expression expression;
       VariableDeclaration declaration;
       try {
-        declaration = new VariableDeclaration.parse(line, logger: logger);
+        declaration = VariableDeclaration.parse(line, logger: logger);
         expression = declaration.expression;
       } on SassFormatException {
         // TODO(nweiz): If [line] looks like a variable assignment, rethrow the
         // original exception.
-        expression = new Expression.parse(line, logger: logger);
+        expression = Expression.parse(line, logger: logger);
       }
 
       var result =
@@ -55,7 +55,7 @@ void _logError(SassException error, StackTrace stackTrace, String line,
 
   // Otherwise, highlight the bad input from the previous line.
   var arrows = error.span.highlight().split('\n').last.trimRight();
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   if (options.color) buffer.write("\u001b[31m");
 
   if (options.color && arrows.length <= line.length) {
@@ -72,6 +72,6 @@ void _logError(SassException error, StackTrace stackTrace, String line,
   if (options.color) buffer.write("\u001b[0m");
 
   buffer.writeln("Error: ${error.message}");
-  if (options.trace) buffer.write(new Trace.from(stackTrace).terse);
+  if (options.trace) buffer.write(Trace.from(stackTrace).terse);
   print(buffer.toString().trimRight());
 }

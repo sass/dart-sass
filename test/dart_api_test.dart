@@ -21,7 +21,7 @@ main() {
       await d.file("test.scss", '@import "subtest.scss";').create();
 
       var css = compile(d.path("test.scss"),
-          importers: [new FilesystemImporter(d.path('subdir'))]);
+          importers: [FilesystemImporter(d.path('subdir'))]);
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -33,8 +33,8 @@ main() {
       await d.file("test.scss", '@import "other";').create();
 
       var css = compile(d.path("test.scss"), importers: [
-        new FilesystemImporter(d.path('first')),
-        new FilesystemImporter(d.path('second'))
+        FilesystemImporter(d.path('first')),
+        FilesystemImporter(d.path('second'))
       ]);
       expect(css, equals("a {\n  b: from-first;\n}"));
     });
@@ -93,7 +93,7 @@ main() {
       await d
           .file("test.scss", '@import "package:fake_package/test";')
           .create();
-      var resolver = new SyncPackageResolver.config(
+      var resolver = SyncPackageResolver.config(
           {"fake_package": p.toUri(d.path('subdir'))});
 
       var css = compile(d.path("test.scss"), packageResolver: resolver);
@@ -104,7 +104,7 @@ main() {
       await d
           .file("test.scss", '@import "package:fake_package/test_aux";')
           .create();
-      var resolver = new SyncPackageResolver.config({});
+      var resolver = SyncPackageResolver.config({});
 
       expect(() => compile(d.path("test.scss"), packageResolver: resolver),
           throwsA(const TypeMatcher<SassRuntimeException>()));
@@ -119,7 +119,7 @@ main() {
       await d.file("test.scss", '@import "other";').create();
 
       var css = compile(d.path("test.scss"),
-          importers: [new FilesystemImporter(d.path('subdir'))]);
+          importers: [FilesystemImporter(d.path('subdir'))]);
       expect(css, equals("a {\n  b: from-relative;\n}"));
     });
 
@@ -131,9 +131,9 @@ main() {
           .dir("other", [d.file("other.scss", "a {b: from-other}")]).create();
 
       var css = compileString('@import "other";',
-          importer: new FilesystemImporter(d.path('original')),
+          importer: FilesystemImporter(d.path('original')),
           url: p.toUri(d.path('original/test.scss')),
-          importers: [new FilesystemImporter(d.path('other'))]);
+          importers: [FilesystemImporter(d.path('other'))]);
       expect(css, equals("a {\n  b: from-original;\n}"));
     });
 
@@ -145,7 +145,7 @@ main() {
       await d.file("test.scss", '@import "other";').create();
 
       var css = compile(d.path("test.scss"),
-          importers: [new FilesystemImporter(d.path('importer'))],
+          importers: [FilesystemImporter(d.path('importer'))],
           loadPaths: [d.path('load-path')]);
       expect(css, equals("a {\n  b: from-importer;\n}"));
     });
@@ -161,10 +161,10 @@ main() {
 
       var css = compile(d.path("test.scss"),
           importers: [
-            new PackageImporter(new SyncPackageResolver.config(
+            PackageImporter(SyncPackageResolver.config(
                 {"fake_package": p.toUri(d.path('importer'))}))
           ],
-          packageResolver: new SyncPackageResolver.config(
+          packageResolver: SyncPackageResolver.config(
               {"fake_package": p.toUri(d.path('package'))}));
       expect(css, equals("a {\n  b: from-importer;\n}"));
     });

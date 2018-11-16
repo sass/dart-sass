@@ -38,12 +38,9 @@ main() {
 
   test("can return a new function", () {
     var css = compileString("a {b: call(foo(), 12)}", functions: [
-      new Callable("foo", "", (_) {
-        return new SassFunction(new Callable(
-            "bar",
-            r"$arg",
-            (arguments) =>
-                new SassNumber(arguments[0].assertNumber().value + 1)));
+      Callable("foo", "", (_) {
+        return SassFunction(Callable("bar", r"$arg",
+            (arguments) => SassNumber(arguments[0].assertNumber().value + 1)));
       })
     ]);
 

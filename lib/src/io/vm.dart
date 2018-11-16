@@ -35,7 +35,7 @@ bool get supportsAnsiEscapes {
 String get currentPath => io.Directory.current.path;
 
 String readFile(String path) {
-  var bytes = new io.File(path).readAsBytesSync();
+  var bytes = io.File(path).readAsBytesSync();
 
   try {
     return utf8.decode(bytes);
@@ -46,31 +46,30 @@ String readFile(String path) {
     if (decodedUntilError.endsWith("�")) stringOffset--;
 
     var decoded = utf8.decode(bytes, allowMalformed: true);
-    var sourceFile = new SourceFile.fromString(decoded, url: p.toUri(path));
-    throw new SassException(
+    var sourceFile = SourceFile.fromString(decoded, url: p.toUri(path));
+    throw SassException(
         "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan());
   }
 }
 
 void writeFile(String path, String contents) =>
-    new io.File(path).writeAsStringSync(contents);
+    io.File(path).writeAsStringSync(contents);
 
-void deleteFile(String path) => new io.File(path).deleteSync();
+void deleteFile(String path) => io.File(path).deleteSync();
 
 Future<String> readStdin() async {
-  var completer = new Completer<String>();
+  var completer = Completer<String>();
   completer.complete(await io.systemEncoding.decodeStream(io.stdin));
   return completer.future;
 }
 
-bool fileExists(String path) => new io.File(path).existsSync();
+bool fileExists(String path) => io.File(path).existsSync();
 
-bool dirExists(String path) => new io.Directory(path).existsSync();
+bool dirExists(String path) => io.Directory(path).existsSync();
 
-void ensureDir(String path) =>
-    new io.Directory(path).createSync(recursive: true);
+void ensureDir(String path) => io.Directory(path).createSync(recursive: true);
 
-Iterable<String> listDir(String path) => new io.Directory(path)
+Iterable<String> listDir(String path) => io.Directory(path)
     .listSync(recursive: true)
     .where((entity) => entity is io.File)
     .map((entity) => entity.path);
@@ -78,7 +77,7 @@ Iterable<String> listDir(String path) => new io.Directory(path)
 DateTime modificationTime(String path) {
   var stat = io.FileStat.statSync(path);
   if (stat.type == io.FileSystemEntityType.notFound) {
-    throw new io.FileSystemException("File not found.", path);
+    throw io.FileSystemException("File not found.", path);
   }
   return stat.modified;
 }
@@ -86,13 +85,12 @@ DateTime modificationTime(String path) {
 String getEnvironmentVariable(String name) =>
     io.Platform.environment['SASS_PATH'];
 
-Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) async {
-  var watcher =
-      poll ? new PollingDirectoryWatcher(path) : new DirectoryWatcher(path);
+Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
+  var watcher = poll ? PollingDirectoryWatcher(path) : DirectoryWatcher(path);
 
   // Wrap [stream] in a [SubscriptionStream] so that its `onListen` event
   // triggers but the caller can still listen at their leisure.
-  var stream = new SubscriptionStream<WatchEvent>(watcher.events
+  var stream = SubscriptionStream<WatchEvent>(watcher.events
       .transform(const SingleSubscriptionTransformer<WatchEvent, WatchEvent>())
       .listen((e) => print(e)));
   await watcher.ready;
