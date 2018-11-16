@@ -17,8 +17,7 @@ main() {
       compileString('''
         @mixin foo {@warn heck}
         @include foo;
-      ''', logger:
-              new _TestLogger.withWarn((message, {span, trace, deprecation}) {
+      ''', logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
         expect(message, equals("heck"));
         expect(span, isNull);
         expect(trace.frames.first.member, equals('foo()'));
@@ -29,8 +28,8 @@ main() {
 
     test("stringifies the argument", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString('@warn #abc', logger:
-          new _TestLogger.withWarn((message, {span, trace, deprecation}) {
+      compileString('@warn #abc',
+          logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
         expect(message, equals("#abc"));
         mustBeCalled();
       }));
@@ -38,8 +37,8 @@ main() {
 
     test("doesn't inspect the argument", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString('@warn null', logger:
-          new _TestLogger.withWarn((message, {span, trace, deprecation}) {
+      compileString('@warn null',
+          logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
         expect(message, isEmpty);
         mustBeCalled();
       }));
@@ -49,7 +48,7 @@ main() {
   group("with @debug", () {
     test("passes the message and span to the logger", () {
       compileString('@debug heck',
-          logger: new _TestLogger.withDebug(expectAsync2((message, span) {
+          logger: _TestLogger.withDebug(expectAsync2((message, span) {
         expect(message, equals("heck"));
         expect(span.start.line, equals(0));
         expect(span.start.column, equals(0));
@@ -60,14 +59,14 @@ main() {
 
     test("stringifies the argument", () {
       compileString('@debug #abc',
-          logger: new _TestLogger.withDebug(expectAsync2((message, span) {
+          logger: _TestLogger.withDebug(expectAsync2((message, span) {
         expect(message, equals("#abc"));
       })));
     });
 
     test("inspects the argument", () {
       compileString('@debug null',
-          logger: new _TestLogger.withDebug(expectAsync2((message, span) {
+          logger: _TestLogger.withDebug(expectAsync2((message, span) {
         expect(message, equals("null"));
       })));
     });
@@ -76,7 +75,7 @@ main() {
   test("with a parser warning passes the message and span", () {
     var mustBeCalled = expectAsync0(() {});
     compileString('a {b: c && d}',
-        logger: new _TestLogger.withWarn((message, {span, trace, deprecation}) {
+        logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
       expect(message, contains('"&&" means two copies'));
 
       expect(span.start.line, equals(0));
@@ -95,8 +94,7 @@ main() {
     compileString('''
         @mixin foo {#{blue} {x: y}}
         @include foo;
-      ''',
-        logger: new _TestLogger.withWarn((message, {span, trace, deprecation}) {
+      ''', logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
       expect(message, contains("color value blue"));
 
       expect(span.start.line, equals(0));
@@ -122,7 +120,7 @@ class _TestLogger implements Logger {
   _TestLogger.withDebug(this._debug) : _warn = const Logger.stderr().warn;
 
   void warn(String message,
-          {FileSpan span, Trace trace, bool deprecation: false}) =>
+          {FileSpan span, Trace trace, bool deprecation = false}) =>
       _warn(message, span: span, trace: trace, deprecation: deprecation);
   void debug(String message, SourceSpan span) => _debug(message, span);
 }

@@ -30,7 +30,7 @@ class IfRule implements Statement {
   final FileSpan span;
 
   IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
-      : clauses = new List.unmodifiable(clauses) {
+      : clauses = List.unmodifiable(clauses) {
     assert(clauses.every((clause) => clause.expression != null));
     assert(lastClause?.expression == null);
   }
@@ -60,10 +60,10 @@ class IfClause {
   final bool hasDeclarations;
 
   IfClause(Expression expression, Iterable<Statement> children)
-      : this._(expression, new List.unmodifiable(children));
+      : this._(expression, List.unmodifiable(children));
 
   IfClause.last(Iterable<Statement> children)
-      : this._(null, new List.unmodifiable(children));
+      : this._(null, List.unmodifiable(children));
 
   IfClause._(this.expression, this.children)
       : hasDeclarations = children.any((child) =>

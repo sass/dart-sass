@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:js_util';
 
@@ -32,7 +32,7 @@ void main() {
 
     test("the value can be set without affecting the underlying string", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {$string: foo; b: foo($string); c: $string}",
               functions: jsify({
                 r"foo($string)":
@@ -47,7 +47,7 @@ void main() {
 
     test("a quoted string preserves quoting, even when its value is set", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {b: foo('foo')}",
               functions: jsify({
                 r"foo($string)":
@@ -70,7 +70,7 @@ void main() {
 
     test("is unquoted", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {b: foo()}",
               functions: jsify({
                 "foo()": allowInterop(expectAsync0(() {

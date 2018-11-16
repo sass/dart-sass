@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('node')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:js_util';
 
@@ -36,7 +36,7 @@ void main() {
 
     test("each channel can be set without affecting the underlying color", () {
       expect(
-          renderSync(new RenderOptions(
+          renderSync(RenderOptions(
               data: r"a {$color: #abc; b: foo($color); c: $color}",
               functions: jsify({
                 r"foo($color)":

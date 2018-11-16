@@ -104,5 +104,5 @@ abstract class AsyncImporter {
   ///
   /// If this throws an exception, the exception is ignored and the current time
   /// is used as the modification time.
-  FutureOr<DateTime> modificationTime(Uri url) => new DateTime.now();
+  FutureOr<DateTime> modificationTime(Uri url) => DateTime.now();
 }

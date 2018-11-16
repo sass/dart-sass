@@ -11,7 +11,7 @@ import 'result.dart';
 ///
 /// This allows us to avoid duplicating the logic for choosing an extension and
 /// looking for partials.
-final _filesystemImporter = new FilesystemImporter('.');
+final _filesystemImporter = FilesystemImporter('.');
 
 /// An importer that loads stylesheets from `package:` imports.
 class PackageImporter extends Importer {

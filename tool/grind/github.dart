@@ -21,7 +21,7 @@ import 'utils.dart';
 githubRelease() async {
   var authorization = _githubAuthorization();
 
-  var client = new http.Client();
+  var client = http.Client();
   var response = await client.post(
       "https://api.github.com/repos/sass/dart-sass/releases",
       headers: {
@@ -31,7 +31,7 @@ githubRelease() async {
       body: jsonEncode({
         "tag_name": version,
         "name": "Dart Sass $version",
-        "prerelease": new Version.parse(version).isPreRelease,
+        "prerelease": Version.parse(version).isPreRelease,
         "body": _releaseMessage()
       }));
 
@@ -44,7 +44,7 @@ githubRelease() async {
   var uploadUrl = json
       .decode(response.body)["upload_url"]
       // Remove the URL template.
-      .replaceFirst(new RegExp(r"\{[^}]+\}$"), "");
+      .replaceFirst(RegExp(r"\{[^}]+\}$"), "");
 
   await Future.wait(["linux", "macos", "windows"].expand((os) {
     return ["ia32", "x64"].map((architecture) async {
@@ -56,7 +56,7 @@ githubRelease() async {
                 os == "windows" ? "application/zip" : "application/gzip",
             "authorization": authorization
           },
-          body: new File(p.join("build", package)).readAsBytesSync());
+          body: File(p.join("build", package)).readAsBytesSync());
 
       if (response.statusCode != 201) {
         fail("${response.statusCode} error uploading $package:\n"
@@ -87,12 +87,12 @@ String _releaseMessage() {
 }
 
 /// A regular expression that matches a Markdown code block.
-final _codeBlock = new RegExp(" *```");
+final _codeBlock = RegExp(" *```");
 
 /// Returns the most recent section in the CHANGELOG, reformatted to remove line
 /// breaks that will show up on GitHub.
 String _lastChangelogSection() {
-  var scanner = new StringScanner(new File("CHANGELOG.md").readAsStringSync(),
+  var scanner = StringScanner(File("CHANGELOG.md").readAsStringSync(),
       sourceUrl: "CHANGELOG.md");
 
   // Scans the remainder of the current line and returns it. This consumes the
@@ -105,17 +105,17 @@ String _lastChangelogSection() {
 
   scanner.expect("## $version\n");
 
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   while (!scanner.isDone && !scanner.matches("## ")) {
     if (scanner.matches(_codeBlock)) {
       do {
         buffer.writeln(scanLine());
       } while (!scanner.matches(_codeBlock));
       buffer.writeln(scanLine());
-    } else if (scanner.matches(new RegExp(" *\n"))) {
+    } else if (scanner.matches(RegExp(" *\n"))) {
       buffer.writeln();
       buffer.writeln(scanLine());
-    } else if (scanner.matches(new RegExp(r" *([*-]|\d+\.)"))) {
+    } else if (scanner.matches(RegExp(r" *([*-]|\d+\.)"))) {
       buffer.write(scanLine());
       buffer.writeCharCode($space);
     } else {

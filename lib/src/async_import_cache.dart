@@ -18,7 +18,7 @@ import 'utils.dart'; // ignore: unused_import
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
 class AsyncImportCache {
   /// A cache that contains no importers.
-  static const none = const AsyncImportCache._none();
+  static const none = AsyncImportCache._none();
 
   /// The importers to use when loading new Sass files.
   final List<AsyncImporter> _importers;
@@ -70,18 +70,18 @@ class AsyncImportCache {
     var list = importers?.toList() ?? [];
 
     if (loadPaths != null) {
-      list.addAll(loadPaths.map((path) => new FilesystemImporter(path)));
+      list.addAll(loadPaths.map((path) => FilesystemImporter(path)));
     }
 
     var sassPath = getEnvironmentVariable('SASS_PATH');
     if (sassPath != null) {
       list.addAll(sassPath
           .split(isWindows ? ';' : ':')
-          .map((path) => new FilesystemImporter(path)));
+          .map((path) => FilesystemImporter(path)));
     }
 
     if (packageResolver != null) {
-      list.add(new PackageImporter(packageResolver));
+      list.add(PackageImporter(packageResolver));
     }
 
     return list;
@@ -111,7 +111,7 @@ class AsyncImportCache {
       var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
       var canonicalUrl = await _canonicalize(baseImporter, resolvedUrl);
       if (canonicalUrl != null) {
-        return new Tuple3(baseImporter, canonicalUrl, resolvedUrl);
+        return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
       }
     }
 
@@ -119,7 +119,7 @@ class AsyncImportCache {
       for (var importer in _importers) {
         var canonicalUrl = await _canonicalize(importer, url);
         if (canonicalUrl != null) {
-          return new Tuple3(importer, canonicalUrl, url);
+          return Tuple3(importer, canonicalUrl, url);
         }
       }
 
@@ -155,7 +155,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     if (tuple == null) return null;
     var stylesheet =
         await importCanonical(tuple.item1, tuple.item2, tuple.item3);
-    return new Tuple2(tuple.item1, stylesheet);
+    return Tuple2(tuple.item1, stylesheet);
   }
 
   /// Tries to load the canonicalized [canonicalUrl] using [importer].
@@ -173,7 +173,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     return await putIfAbsentAsync(_importCache, canonicalUrl, () async {
       var result = await importer.load(canonicalUrl);
       if (result == null) return null;
-      return new Stylesheet.parse(result.contents, result.syntax,
+      return Stylesheet.parse(result.contents, result.syntax,
           // For backwards-compatibility, relative canonical URLs are resolved
           // relative to [originalUrl].
           url: originalUrl == null

@@ -19,6 +19,5 @@ abstract class SassArgumentList extends SassList {
 
   factory SassArgumentList(Iterable<Value> contents,
           Map<String, Value> keywords, ListSeparator separator) =>
-      new internal.SassArgumentList(
-          contents.cast(), keywords.cast(), separator);
+      internal.SassArgumentList(contents.cast(), keywords.cast(), separator);
 }

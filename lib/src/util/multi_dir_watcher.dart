@@ -22,7 +22,7 @@ class MultiDirWatcher {
 
   /// The stream of events from all directories that are being watched.
   Stream<WatchEvent> get events => _group.stream;
-  final _group = new StreamGroup<WatchEvent>();
+  final _group = StreamGroup<WatchEvent>();
 
   /// Whether to manually check the filesystem for changes periodically.
   final bool _poll;
@@ -31,7 +31,7 @@ class MultiDirWatcher {
   ///
   /// If [poll] is `true`, this manually checks the filesystem for changes
   /// periodically rather than using a native filesystem monitoring API.
-  MultiDirWatcher({bool poll: false}) : _poll = poll;
+  MultiDirWatcher({bool poll = false}) : _poll = poll;
 
   /// Watches [directory] for changes.
   ///
@@ -43,7 +43,7 @@ class MultiDirWatcher {
       if (!isParentOfExistingDir &&
           (p.equals(existingDir, directory) ||
               p.isWithin(existingDir, directory))) {
-        return new Future.value();
+        return Future.value();
       }
 
       if (p.isWithin(directory, existingDir)) {

@@ -98,4 +98,4 @@ int exitCode;
 ///
 /// If [poll] is `true`, this manually checks the filesystem for changes
 /// periodically rather than using a native filesystem monitoring API.
-Future<Stream<WatchEvent>> watchDir(String path, {bool poll: false}) => null;
+Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) => null;

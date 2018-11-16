@@ -109,10 +109,10 @@ abstract class Value implements ext.Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SelectorList assertSelector({String name, bool allowParent: false}) {
+  SelectorList assertSelector({String name, bool allowParent = false}) {
     var string = _selectorString(name);
     try {
-      return new SelectorList.parse(string, allowParent: allowParent);
+      return SelectorList.parse(string, allowParent: allowParent);
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -129,10 +129,10 @@ abstract class Value implements ext.Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SimpleSelector assertSimpleSelector({String name, bool allowParent: false}) {
+  SimpleSelector assertSimpleSelector({String name, bool allowParent = false}) {
     var string = _selectorString(name);
     try {
-      return new SimpleSelector.parse(string, allowParent: allowParent);
+      return SimpleSelector.parse(string, allowParent: allowParent);
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -150,10 +150,10 @@ abstract class Value implements ext.Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   CompoundSelector assertCompoundSelector(
-      {String name, bool allowParent: false}) {
+      {String name, bool allowParent = false}) {
     var string = _selectorString(name);
     try {
-      return new CompoundSelector.parse(string, allowParent: allowParent);
+      return CompoundSelector.parse(string, allowParent: allowParent);
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -217,7 +217,7 @@ abstract class Value implements ext.Value {
   /// separator and brackets.
   SassList changeListContents(Iterable<Value> contents,
       {ListSeparator separator, bool brackets}) {
-    return new SassList(contents, separator ?? this.separator,
+    return SassList(contents, separator ?? this.separator,
         brackets: brackets ?? this.hasBrackets);
   }
 
@@ -226,49 +226,49 @@ abstract class Value implements ext.Value {
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   Value singleEquals(Value other) =>
-      new SassString("${toCssString()}=${other.toCssString()}", quotes: false);
+      SassString("${toCssString()}=${other.toCssString()}", quotes: false);
 
   /// The SassScript `>` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   SassBoolean greaterThan(Value other) =>
-      throw new SassScriptException('Undefined operation "$this > $other".');
+      throw SassScriptException('Undefined operation "$this > $other".');
 
   /// The SassScript `>=` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   SassBoolean greaterThanOrEquals(Value other) =>
-      throw new SassScriptException('Undefined operation "$this >= $other".');
+      throw SassScriptException('Undefined operation "$this >= $other".');
 
   /// The SassScript `<` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   SassBoolean lessThan(Value other) =>
-      throw new SassScriptException('Undefined operation "$this < $other".');
+      throw SassScriptException('Undefined operation "$this < $other".');
 
   /// The SassScript `<=` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   SassBoolean lessThanOrEquals(Value other) =>
-      throw new SassScriptException('Undefined operation "$this <= $other".');
+      throw SassScriptException('Undefined operation "$this <= $other".');
 
   /// The SassScript `*` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   Value times(Value other) =>
-      throw new SassScriptException('Undefined operation "$this * $other".');
+      throw SassScriptException('Undefined operation "$this * $other".');
 
   /// The SassScript `%` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   Value modulo(Value other) =>
-      throw new SassScriptException('Undefined operation "$this % $other".');
+      throw SassScriptException('Undefined operation "$this % $other".');
 
   /// The SassScript `+` operation.
   ///
@@ -276,10 +276,9 @@ abstract class Value implements ext.Value {
   /// It's not guaranteed to be stable across versions.
   Value plus(Value other) {
     if (other is SassString) {
-      return new SassString(toCssString() + other.text,
-          quotes: other.hasQuotes);
+      return SassString(toCssString() + other.text, quotes: other.hasQuotes);
     } else {
-      return new SassString(toCssString() + other.toCssString(), quotes: false);
+      return SassString(toCssString() + other.toCssString(), quotes: false);
     }
   }
 
@@ -288,32 +287,32 @@ abstract class Value implements ext.Value {
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   Value minus(Value other) =>
-      new SassString("${toCssString()}-${other.toCssString()}", quotes: false);
+      SassString("${toCssString()}-${other.toCssString()}", quotes: false);
 
   /// The SassScript `/` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
   Value dividedBy(Value other) =>
-      new SassString("${toCssString()}/${other.toCssString()}", quotes: false);
+      SassString("${toCssString()}/${other.toCssString()}", quotes: false);
 
   /// The SassScript unary `+` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
-  Value unaryPlus() => new SassString("+${toCssString()}", quotes: false);
+  Value unaryPlus() => SassString("+${toCssString()}", quotes: false);
 
   /// The SassScript unary `-` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
-  Value unaryMinus() => new SassString("-${toCssString()}", quotes: false);
+  Value unaryMinus() => SassString("-${toCssString()}", quotes: false);
 
   /// The SassScript unary `/` operation.
   ///
   /// **Note:** this function should not be called outside the `sass` package.
   /// It's not guaranteed to be stable across versions.
-  Value unaryDivide() => new SassString("/${toCssString()}", quotes: false);
+  Value unaryDivide() => SassString("/${toCssString()}", quotes: false);
 
   /// The SassScript unary `not` operation.
   ///
@@ -336,11 +335,11 @@ abstract class Value implements ext.Value {
   /// isn't valid CSS.
   ///
   /// If [quote] is `false`, quoted strings are emitted without quotes.
-  String toCssString({bool quote: true}) => serializeValue(this, quote: quote);
+  String toCssString({bool quote = true}) => serializeValue(this, quote: quote);
 
   String toString() => serializeValue(this, inspect: true);
 
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String name]) =>
-      new SassScriptException(name == null ? message : "\$$name: $message");
+      SassScriptException(name == null ? message : "\$$name: $message");
 }

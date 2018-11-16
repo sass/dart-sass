@@ -29,7 +29,7 @@ abstract class AsyncCallable {
   /// See [new Callable] for more details.
   factory AsyncCallable(String name, String arguments,
           FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
-      new AsyncBuiltInCallable(name, arguments, (arguments) {
+      AsyncBuiltInCallable(name, arguments, (arguments) {
         var result = callback(arguments);
         if (result is ext.Value) return result as Value;
         return (result as Future).then((value) => value as Value);

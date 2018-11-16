@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 6da6661213e8c929ae91a0a993a6cf2827f033f5
+// Checksum: 07e2cda457e3bca4efd3b3f4742744c91c2970d8
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
@@ -69,8 +69,8 @@ EvaluateResult evaluate(Stylesheet stylesheet,
         Iterable<Callable> functions,
         Map<String, Value> variables,
         Logger logger,
-        bool sourceMap: false}) =>
-    new _EvaluateVisitor(
+        bool sourceMap = false}) =>
+    _EvaluateVisitor(
             importCache: importCache,
             nodeImporter: nodeImporter,
             importer: importer,
@@ -96,7 +96,7 @@ Value evaluateExpression(Expression expression,
         {Iterable<Callable> functions,
         Map<String, Value> variables,
         Logger logger}) =>
-    expression.accept(new _EvaluateVisitor(
+    expression.accept(_EvaluateVisitor(
         functions: functions,
         variables: variables,
         logger: logger,
@@ -184,12 +184,12 @@ class _EvaluateVisitor
   ///
   /// For filesystem imports, this contains the import path. For all other
   /// imports, it contains the URL passed to the `@import`.
-  final _includedFiles = new Set<String>();
+  final _includedFiles = Set<String>();
 
-  final _activeImports = new Set<Uri>();
+  final _activeImports = Set<Uri>();
 
   /// The extender that handles extensions for this perform run.
-  final _extender = new Extender();
+  final _extender = Extender();
 
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
@@ -214,66 +214,65 @@ class _EvaluateVisitor
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
         _sourceMap = sourceMap,
-        _environment = new Environment(sourceMap: sourceMap) {
+        _environment = Environment(sourceMap: sourceMap) {
     _environment.setFunction(
-        new BuiltInCallable("global-variable-exists", r"$name", (arguments) {
+        BuiltInCallable("global-variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
-      return new SassBoolean(_environment.globalVariableExists(variable.text));
-    }));
-
-    _environment.setFunction(
-        new BuiltInCallable("variable-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return new SassBoolean(_environment.variableExists(variable.text));
-    }));
-
-    _environment.setFunction(
-        new BuiltInCallable("function-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return new SassBoolean(_environment.functionExists(variable.text));
+      return SassBoolean(_environment.globalVariableExists(variable.text));
     }));
 
     _environment
-        .setFunction(new BuiltInCallable("mixin-exists", r"$name", (arguments) {
+        .setFunction(BuiltInCallable("variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
-      return new SassBoolean(_environment.mixinExists(variable.text));
+      return SassBoolean(_environment.variableExists(variable.text));
     }));
 
     _environment
-        .setFunction(new BuiltInCallable("content-exists", "", (arguments) {
+        .setFunction(BuiltInCallable("function-exists", r"$name", (arguments) {
+      var variable = arguments[0].assertString("name");
+      return SassBoolean(_environment.functionExists(variable.text));
+    }));
+
+    _environment
+        .setFunction(BuiltInCallable("mixin-exists", r"$name", (arguments) {
+      var variable = arguments[0].assertString("name");
+      return SassBoolean(_environment.mixinExists(variable.text));
+    }));
+
+    _environment.setFunction(BuiltInCallable("content-exists", "", (arguments) {
       if (!_environment.inMixin) {
-        throw new SassScriptException(
+        throw SassScriptException(
             "content-exists() may only be called within a mixin.");
       }
-      return new SassBoolean(_environment.content != null);
+      return SassBoolean(_environment.content != null);
     }));
 
     _environment.setFunction(
-        new BuiltInCallable("get-function", r"$name, $css: false", (arguments) {
+        BuiltInCallable("get-function", r"$name, $css: false", (arguments) {
       var name = arguments[0].assertString("name");
       var css = arguments[1].isTruthy;
 
       var callable = css
-          ? new PlainCssCallable(name.text)
+          ? PlainCssCallable(name.text)
           : _environment.getFunction(name.text);
-      if (callable != null) return new SassFunction(callable);
+      if (callable != null) return SassFunction(callable);
 
-      throw new SassScriptException("Function not found: $name");
+      throw SassScriptException("Function not found: $name");
     }));
 
     _environment.setFunction(
-        new BuiltInCallable("call", r"$function, $args...", (arguments) {
+        BuiltInCallable("call", r"$function, $args...", (arguments) {
       var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
 
-      var invocation = new ArgumentInvocation([], {}, _callableSpan,
-          rest: new ValueExpression(args, _callableSpan),
+      var invocation = ArgumentInvocation([], {}, _callableSpan,
+          rest: ValueExpression(args, _callableSpan),
           keywordRest: args.keywords.isEmpty
               ? null
-              : new ValueExpression(
-                  new SassMap(mapMap(args.keywords,
+              : ValueExpression(
+                  SassMap(mapMap(args.keywords,
                       key: (String key, Value _) =>
-                          new SassString(key, quotes: false),
+                          SassString(key, quotes: false),
                       value: (String _, Value value) => value)),
                   _callableSpan));
 
@@ -284,8 +283,8 @@ class _EvaluateVisitor
             _callableSpan,
             deprecation: true);
 
-        var expression = new FunctionExpression(
-            new Interpolation([function.text], _callableSpan), invocation);
+        var expression = FunctionExpression(
+            Interpolation([function.text], _callableSpan), invocation);
         return expression.accept(this);
       }
 
@@ -293,7 +292,7 @@ class _EvaluateVisitor
       if (callable is Callable) {
         return _runFunctionCallable(invocation, callable, _callableSpan);
       } else {
-        throw new SassScriptException(
+        throw SassScriptException(
             "The function ${callable.name} is asynchronous.\n"
             "This is probably caused by a bug in a Sass plugin.");
       }
@@ -322,14 +321,14 @@ class _EvaluateVisitor
 
     visitStylesheet(node);
 
-    return new EvaluateResult(_root, _includedFiles);
+    return EvaluateResult(_root, _includedFiles);
   }
 
   // ## Statements
 
   Value visitStylesheet(Stylesheet node) {
     _stylesheet = node;
-    _root = new CssStylesheet(node.span);
+    _root = CssStylesheet(node.span);
     _parent = _root;
     for (var child in node.children) {
       child.accept(this);
@@ -349,8 +348,8 @@ class _EvaluateVisitor
     var query = AtRootQuery.defaultQuery;
     if (node.query != null) {
       var resolved = _performInterpolation(node.query, warnForColor: true);
-      query = _adjustParseError(node.query.span,
-          () => new AtRootQuery.parse(resolved, logger: _logger));
+      query = _adjustParseError(
+          node.query.span, () => AtRootQuery.parse(resolved, logger: _logger));
     }
 
     var parent = _parent;
@@ -476,7 +475,7 @@ class _EvaluateVisitor
     return scope;
   }
 
-  Value visitContentBlock(ContentBlock node) => throw new UnsupportedError(
+  Value visitContentBlock(ContentBlock node) => throw UnsupportedError(
       "Evaluation handles @include and its content block together.");
 
   Value visitContentRule(ContentRule node) {
@@ -507,17 +506,17 @@ class _EvaluateVisitor
 
     var name = _interpolationToValue(node.name, warnForColor: true);
     if (_declarationName != null) {
-      name = new CssValue("$_declarationName-${name.value}", name.span);
+      name = CssValue("$_declarationName-${name.value}", name.span);
     }
     var cssValue = node.value == null
         ? null
-        : new CssValue(node.value.accept(this), node.value.span);
+        : CssValue(node.value.accept(this), node.value.span);
 
     // If the value is an empty list, preserve it, because converting it to CSS
     // will throw an error that we want the user to see.
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
-      _parent.addChild(new CssDeclaration(name, cssValue, node.span,
+      _parent.addChild(CssDeclaration(name, cssValue, node.span,
           valueSpanForMap: _expressionSpan(node.value)));
     } else if (name.value.startsWith('--')) {
       throw _exception(
@@ -585,7 +584,7 @@ class _EvaluateVisitor
 
     var list = _adjustParseError(
         targetText.span,
-        () => new SelectorList.parse(
+        () => SelectorList.parse(
             trimAscii(targetText.value, excludeEscape: true),
             logger: _logger,
             allowParent: false));
@@ -595,13 +594,13 @@ class _EvaluateVisitor
           complex.components.first is! CompoundSelector) {
         // If the selector was a compound selector but not a simple
         // selector, emit a more explicit error.
-        throw new SassFormatException(
+        throw SassFormatException(
             "complex selectors may not be extended.", targetText.span);
       }
 
       var compound = complex.components.first as CompoundSelector;
       if (compound.components.length != 1) {
-        throw new SassFormatException(
+        throw SassFormatException(
             "compound selectors may longer be extended.\n"
             "Consider `@extend ${compound.components.join(', ')}` instead.\n"
             "See http://bit.ly/ExtendCompound for details.\n",
@@ -628,8 +627,8 @@ class _EvaluateVisitor
         : _interpolationToValue(node.value, trim: true, warnForColor: true);
 
     if (node.children == null) {
-      _parent.addChild(
-          new CssAtRule(name, node.span, childless: true, value: value));
+      _parent
+          .addChild(CssAtRule(name, node.span, childless: true, value: value));
       return null;
     }
 
@@ -641,7 +640,7 @@ class _EvaluateVisitor
       _inUnknownAtRule = true;
     }
 
-    _withParent(new CssAtRule(name, node.span, value: value), () {
+    _withParent(CssAtRule(name, node.span, value: value), () {
       if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);
@@ -686,7 +685,7 @@ class _EvaluateVisitor
     return _environment.scope(() {
       var span = _expressionSpan(node.from);
       for (var i = from; i != to; i += direction) {
-        _environment.setLocalVariable(node.variable, new SassNumber(i), span);
+        _environment.setLocalVariable(node.variable, SassNumber(i), span);
         var result = _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;
@@ -696,8 +695,7 @@ class _EvaluateVisitor
   }
 
   Value visitFunctionRule(FunctionRule node) {
-    _environment
-        .setFunction(new UserDefinedCallable(node, _environment.closure()));
+    _environment.setFunction(UserDefinedCallable(node, _environment.closure()));
     return null;
   }
 
@@ -763,7 +761,7 @@ class _EvaluateVisitor
     try {
       if (_nodeImporter != null) {
         var stylesheet = _importLikeNode(import);
-        if (stylesheet != null) return new Tuple2(null, stylesheet);
+        if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
         var tuple = _importCache.import(
             Uri.parse(import.url), _importer, _stylesheet.span?.sourceUrl);
@@ -780,8 +778,7 @@ class _EvaluateVisitor
     } on SassException catch (error) {
       var frames = error.trace.frames.toList()
         ..addAll(_stackTrace(import.span).frames);
-      throw new SassRuntimeException(
-          error.message, error.span, new Trace(frames));
+      throw SassRuntimeException(error.message, error.span, Trace(frames));
     } catch (error) {
       String message;
       try {
@@ -805,7 +802,7 @@ class _EvaluateVisitor
 
     _includedFiles.add(url.startsWith('file:') ? p.fromUri(url) : url);
 
-    return new Stylesheet.parse(
+    return Stylesheet.parse(
         contents, url.startsWith('file') ? Syntax.forPath(url) : Syntax.scss,
         url: url, logger: _logger);
   }
@@ -821,10 +818,10 @@ class _EvaluateVisitor
     var mediaQuery =
         import.media == null ? null : _visitMediaQueries(import.media);
 
-    var node = new CssImport(url, import.span,
+    var node = CssImport(url, import.span,
         supports: resolvedSupports == null
             ? null
-            : new CssValue("supports($resolvedSupports)", import.supports.span),
+            : CssValue("supports($resolvedSupports)", import.supports.span),
         media: mediaQuery);
 
     if (_parent != _root) {
@@ -851,7 +848,7 @@ class _EvaluateVisitor
 
     var contentCallable = node.content == null
         ? null
-        : new UserDefinedCallable(node.content, _environment.closure());
+        : UserDefinedCallable(node.content, _environment.closure());
     _runUserDefinedCallable(node.arguments, mixin, node.span, () {
       _environment.withContent(contentCallable, () {
         _environment.asMixin(() {
@@ -868,8 +865,7 @@ class _EvaluateVisitor
   }
 
   Value visitMixinRule(MixinRule node) {
-    _environment
-        .setMixin(new UserDefinedCallable(node, _environment.closure()));
+    _environment.setMixin(UserDefinedCallable(node, _environment.closure()));
     return null;
   }
 
@@ -881,8 +877,7 @@ class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent
-        .addChild(new CssComment(_performInterpolation(node.text), node.span));
+    _parent.addChild(CssComment(_performInterpolation(node.text), node.span));
     return null;
   }
 
@@ -898,7 +893,7 @@ class _EvaluateVisitor
         : _mergeMediaQueries(_mediaQueries, queries);
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
-    _withParent(new CssMediaRule(mergedQueries ?? queries, node.span), () {
+    _withParent(CssMediaRule(mergedQueries ?? queries, node.span), () {
       _withMediaQueries(mergedQueries ?? queries, () {
         if (!_inStyleRule) {
           for (var child in node.children) {
@@ -971,11 +966,10 @@ class _EvaluateVisitor
     if (_inKeyframes) {
       var parsedSelector = _adjustParseError(
           node.selector.span,
-          () => new KeyframeSelectorParser(selectorText.value, logger: _logger)
+          () => KeyframeSelectorParser(selectorText.value, logger: _logger)
               .parse());
-      var rule = new CssKeyframeBlock(
-          new CssValue(
-              new List.unmodifiable(parsedSelector), node.selector.span),
+      var rule = CssKeyframeBlock(
+          CssValue(List.unmodifiable(parsedSelector), node.selector.span),
           node.span);
       _withParent(rule, () {
         for (var child in node.children) {
@@ -989,7 +983,7 @@ class _EvaluateVisitor
 
     var parsedSelector = _adjustParseError(
         node.selector.span,
-        () => new SelectorList.parse(selectorText.value,
+        () => SelectorList.parse(selectorText.value,
             allowParent: !_stylesheet.plainCss,
             allowPlaceholder: !_stylesheet.plainCss,
             logger: _logger));
@@ -999,8 +993,7 @@ class _EvaluateVisitor
             _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
-    var selector =
-        new CssValue<SelectorList>(parsedSelector, node.selector.span);
+    var selector = CssValue<SelectorList>(parsedSelector, node.selector.span);
 
     var rule = _extender.addSelector(selector, node.span, _mediaQueries);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
@@ -1031,9 +1024,9 @@ class _EvaluateVisitor
           node.span);
     }
 
-    var condition = new CssValue(
-        _visitSupportsCondition(node.condition), node.condition.span);
-    _withParent(new CssSupportsRule(condition, node.span), () {
+    var condition =
+        CssValue(_visitSupportsCondition(node.condition), node.condition.span);
+    _withParent(CssSupportsRule(condition, node.span), () {
       if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);
@@ -1145,11 +1138,11 @@ class _EvaluateVisitor
 
         case BinaryOperator.equals:
           var right = node.right.accept(this);
-          return new SassBoolean(left == right);
+          return SassBoolean(left == right);
 
         case BinaryOperator.notEquals:
           var right = node.right.accept(this);
-          return new SassBoolean(left != right);
+          return SassBoolean(left != right);
 
         case BinaryOperator.greaterThan:
           var right = node.right.accept(this);
@@ -1218,12 +1211,12 @@ class _EvaluateVisitor
       case UnaryOperator.not:
         return operand.unaryNot();
       default:
-        throw new StateError("Unknown unary operator ${node.operator}.");
+        throw StateError("Unknown unary operator ${node.operator}.");
     }
   }
 
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
-      new SassBoolean(node.value);
+      SassBoolean(node.value);
 
   Value visitIfExpression(IfExpression node) {
     var pair = _evaluateMacroArguments(node);
@@ -1243,14 +1236,14 @@ class _EvaluateVisitor
   SassNull visitNullExpression(NullExpression node) => sassNull;
 
   SassNumber visitNumberExpression(NumberExpression node) =>
-      new SassNumber(node.value, node.unit);
+      SassNumber(node.value, node.unit);
 
   Value visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this);
 
   SassColor visitColorExpression(ColorExpression node) => node.value;
 
-  SassList visitListExpression(ListExpression node) => new SassList(
+  SassList visitListExpression(ListExpression node) => SassList(
       node.contents.map((Expression expression) => expression.accept(this)),
       node.separator,
       brackets: node.hasBrackets);
@@ -1265,14 +1258,14 @@ class _EvaluateVisitor
       }
       map[keyValue] = valueValue;
     }
-    return new SassMap(map);
+    return SassMap(map);
   }
 
   Value visitFunctionExpression(FunctionExpression node) {
     var plainName = node.name.asPlain;
     var function =
         (plainName == null ? null : _environment.getFunction(plainName)) ??
-            new PlainCssCallable(_performInterpolation(node.name));
+            PlainCssCallable(_performInterpolation(node.name));
 
     var oldInFunction = _inFunction;
     _inFunction = true;
@@ -1326,7 +1319,7 @@ class _EvaluateVisitor
             var rest = evaluated.positional.length > declaredArguments.length
                 ? evaluated.positional.sublist(declaredArguments.length)
                 : const <Value>[];
-            argumentList = new SassArgumentList(
+            argumentList = SassArgumentList(
                 rest,
                 evaluated.named,
                 evaluated.separator == ListSeparator.undecided
@@ -1374,7 +1367,7 @@ class _EvaluateVisitor
             "Plain CSS functions don't support keyword arguments.", span);
       }
 
-      var buffer = new StringBuffer("${callable.name}(");
+      var buffer = StringBuffer("${callable.name}(");
       var first = true;
       for (var argument in arguments.positional) {
         if (first) {
@@ -1393,7 +1386,7 @@ class _EvaluateVisitor
       }
       buffer.writeCharCode($rparen);
 
-      return new SassString(buffer.toString(), quotes: false);
+      return SassString(buffer.toString(), quotes: false);
     } else {
       return null;
     }
@@ -1408,7 +1401,7 @@ class _EvaluateVisitor
     var oldCallableSpan = _callableSpan;
     _callableSpan = span;
 
-    var namedSet = new MapKeySet(evaluated.named);
+    var namedSet = MapKeySet(evaluated.named);
     var tuple = callable.callbackFor(evaluated.positional.length, namedSet);
     var overload = tuple.item1;
     var callback = tuple.item2;
@@ -1433,7 +1426,7 @@ class _EvaluateVisitor
             .removeRange(declaredArguments.length, evaluated.positional.length);
       }
 
-      argumentList = new SassArgumentList(
+      argumentList = SassArgumentList(
           rest,
           evaluated.named,
           evaluated.separator == ListSeparator.undecided
@@ -1488,7 +1481,7 @@ class _EvaluateVisitor
         : null;
 
     if (arguments.rest == null) {
-      return new _ArgumentResults(positional, named, ListSeparator.undecided,
+      return _ArgumentResults(positional, named, ListSeparator.undecided,
           positionalSpans: positionalSpans, namedSpans: namedSpans);
     }
 
@@ -1502,7 +1495,7 @@ class _EvaluateVisitor
           value: (_, __) => restSpan));
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
-      positionalSpans?.addAll(new List.filled(rest.lengthAsList, restSpan));
+      positionalSpans?.addAll(List.filled(rest.lengthAsList, restSpan));
       separator = rest.separator;
 
       if (rest is SassArgumentList) {
@@ -1517,7 +1510,7 @@ class _EvaluateVisitor
     }
 
     if (arguments.keywordRest == null) {
-      return new _ArgumentResults(positional, named, separator,
+      return _ArgumentResults(positional, named, separator,
           positionalSpans: positionalSpans, namedSpans: namedSpans);
     }
 
@@ -1529,7 +1522,7 @@ class _EvaluateVisitor
       namedSpans?.addAll(mapMap(keywordRest.contents,
           key: (key, _) => (key as SassString).text,
           value: (_, __) => keywordRestSpan));
-      return new _ArgumentResults(positional, named, separator,
+      return _ArgumentResults(positional, named, separator,
           positionalSpans: positionalSpans, namedSpans: namedSpans);
     } else {
       throw _exception(
@@ -1546,7 +1539,7 @@ class _EvaluateVisitor
   Tuple2<List<Expression>, Map<String, Expression>> _evaluateMacroArguments(
       CallableInvocation invocation) {
     if (invocation.arguments.rest == null) {
-      return new Tuple2(
+      return Tuple2(
           invocation.arguments.positional, invocation.arguments.named);
     }
 
@@ -1555,27 +1548,27 @@ class _EvaluateVisitor
     var rest = invocation.arguments.rest.accept(this);
     if (rest is SassMap) {
       _addRestMap(
-          named, rest, invocation.span, (value) => new ValueExpression(value));
+          named, rest, invocation.span, (value) => ValueExpression(value));
     } else if (rest is SassList) {
-      positional.addAll(rest.asList.map((value) => new ValueExpression(value)));
+      positional.addAll(rest.asList.map((value) => ValueExpression(value)));
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
-          named[key] = new ValueExpression(value);
+          named[key] = ValueExpression(value);
         });
       }
     } else {
-      positional.add(new ValueExpression(rest));
+      positional.add(ValueExpression(rest));
     }
 
     if (invocation.arguments.keywordRest == null) {
-      return new Tuple2(positional, named);
+      return Tuple2(positional, named);
     }
 
     var keywordRest = invocation.arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
       _addRestMap(named, keywordRest, invocation.span,
-          (value) => new ValueExpression(value));
-      return new Tuple2(positional, named);
+          (value) => ValueExpression(value));
+      return Tuple2(positional, named);
     } else {
       throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",
@@ -1610,7 +1603,7 @@ class _EvaluateVisitor
   void _verifyArguments(int positional, Map<String, dynamic> named,
           ArgumentDeclaration arguments, FileSpan span) =>
       _addExceptionSpan(
-          span, () => arguments.verify(positional, new MapKeySet(named)));
+          span, () => arguments.verify(positional, MapKeySet(named)));
 
   Value visitSelectorExpression(SelectorExpression node) {
     if (_styleRule == null) return sassNull;
@@ -1620,7 +1613,7 @@ class _EvaluateVisitor
   SassString visitStringExpression(StringExpression node) {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
-    return new SassString(
+    return SassString(
         node.text.contents.map((value) {
           if (value is String) return value;
           var expression = value as Expression;
@@ -1661,10 +1654,10 @@ class _EvaluateVisitor
   /// [warnForColor] is `true`, this will emit a warning for any named color
   /// values passed into the interpolation.
   CssValue<String> _interpolationToValue(Interpolation interpolation,
-      {bool trim: false, bool warnForColor: false}) {
+      {bool trim = false, bool warnForColor = false}) {
     var result =
         _performInterpolation(interpolation, warnForColor: warnForColor);
-    return new CssValue(trim ? trimAscii(result, excludeEscape: true) : result,
+    return CssValue(trim ? trimAscii(result, excludeEscape: true) : result,
         interpolation.span);
   }
 
@@ -1673,7 +1666,7 @@ class _EvaluateVisitor
   /// If [warnForColor] is `true`, this will emit a warning for any named color
   /// values passed into the interpolation.
   String _performInterpolation(Interpolation interpolation,
-      {bool warnForColor: false}) {
+      {bool warnForColor = false}) {
     return interpolation.contents.map((value) {
       if (value is String) return value;
       var expression = value as Expression;
@@ -1682,9 +1675,9 @@ class _EvaluateVisitor
       if (warnForColor &&
           result is SassColor &&
           namesByColor.containsKey(result)) {
-        var alternative = new BinaryOperationExpression(
+        var alternative = BinaryOperationExpression(
             BinaryOperator.plus,
-            new StringExpression(new Interpolation([""], null), quotes: true),
+            StringExpression(Interpolation([""], null), quotes: true),
             expression);
         _warn(
             "You probably don't mean to use the color value "
@@ -1703,12 +1696,12 @@ class _EvaluateVisitor
 
   /// Evaluates [expression] and calls `toCssString()` and wraps a
   /// [SassScriptException] to associate it with [span].
-  String _evaluateToCss(Expression expression, {bool quote: true}) =>
+  String _evaluateToCss(Expression expression, {bool quote = true}) =>
       _serialize(expression.accept(this), expression.span, quote: quote);
 
   /// Calls `value.toCssString()` and wraps a [SassScriptException] to associate
   /// it with [span].
-  String _serialize(Value value, FileSpan span, {bool quote: true}) =>
+  String _serialize(Value value, FileSpan span, {bool quote = true}) =>
       _addExceptionSpan(span, () => value.toCssString(quote: quote));
 
   /// Returns the span for [expression], or if [expression] is just a variable
@@ -1733,7 +1726,7 @@ class _EvaluateVisitor
   ///
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   T _withParent<S extends CssParentNode, T>(S node, T callback(),
-      {bool through(CssNode node), bool scopeWhen: true}) {
+      {bool through(CssNode node), bool scopeWhen = true}) {
     var oldParent = _parent;
 
     // Go up through parents that match [through].
@@ -1784,7 +1777,7 @@ class _EvaluateVisitor
   ///
   /// Runs [callback] with the new stack.
   T _withStackFrame<T>(String member, FileSpan span, T callback()) {
-    _stack.add(new Tuple2(_member, span));
+    _stack.add(Tuple2(_member, span));
     var oldMember = _member;
     _member = member;
     var result = callback();
@@ -1808,17 +1801,17 @@ class _EvaluateVisitor
         .map((tuple) => _stackFrame(tuple.item1, tuple.item2))
         .toList()
           ..add(_stackFrame(_member, span));
-    return new Trace(frames.reversed);
+    return Trace(frames.reversed);
   }
 
   /// Emits a warning with the given [message] about the given [span].
-  void _warn(String message, FileSpan span, {bool deprecation: false}) =>
+  void _warn(String message, FileSpan span, {bool deprecation = false}) =>
       _logger.warn(message,
           span: span, trace: _stackTrace(span), deprecation: deprecation);
 
   /// Throws a [SassRuntimeException] with the given [message] and [span].
   SassRuntimeException _exception(String message, FileSpan span) =>
-      new SassRuntimeException(message, span, _stackTrace(span));
+      SassRuntimeException(message, span, _stackTrace(span));
 
   /// Runs [callback], and adjusts any [SassFormatException] to be within [span].
   ///
@@ -1835,7 +1828,7 @@ class _EvaluateVisitor
           .getText(0)
           .replaceRange(span.start.offset, span.end.offset, errorText);
       var syntheticSpan =
-          new SourceFile.fromString(syntheticFile, url: span.file.url).span(
+          SourceFile.fromString(syntheticFile, url: span.file.url).span(
               span.start.offset + error.span.start.offset,
               span.start.offset + error.span.end.offset);
       throw _exception(error.message, syntheticSpan);

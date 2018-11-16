@@ -12,7 +12,7 @@ import '../utils.dart';
 /// A [StringBuffer] that builds a [SourceMap] for the file being written.
 class SourceMapBuffer implements StringBuffer {
   /// The buffer that contains the text of the target file.
-  final _buffer = new StringBuffer();
+  final _buffer = StringBuffer();
 
   /// The source map entries that map the source files to [_buffer].
   final _entries = <Entry>[];
@@ -20,7 +20,7 @@ class SourceMapBuffer implements StringBuffer {
   /// A map from source file URLs to the corresponding [SourceFile]s.
   ///
   /// This is of a form that can be passed to [Mapping.spanFor].
-  Map<String, SourceFile> get sourceFiles => new UnmodifiableMapView(
+  Map<String, SourceFile> get sourceFiles => UnmodifiableMapView(
       mapMap(_sourceFiles, key: (url, _) => url.toString()));
   final _sourceFiles = <Uri, SourceFile>{};
 
@@ -36,7 +36,7 @@ class SourceMapBuffer implements StringBuffer {
 
   /// The current location in [_buffer].
   SourceLocation get _targetLocation =>
-      new SourceLocation(_buffer.length, line: _line, column: _column);
+      SourceLocation(_buffer.length, line: _line, column: _column);
 
   bool get isEmpty => _buffer.isEmpty;
   bool get isNotEmpty => _buffer.isNotEmpty;
@@ -83,11 +83,11 @@ class SourceMapBuffer implements StringBuffer {
     }
 
     _sourceFiles.putIfAbsent(source.sourceUrl, () => source.file);
-    _entries.add(new Entry(source, target, null));
+    _entries.add(Entry(source, target, null));
   }
 
   void clear() =>
-      throw new UnsupportedError("SourceMapBuffer.clear() is not supported.");
+      throw UnsupportedError("SourceMapBuffer.clear() is not supported.");
 
   void write(Object object) {
     var string = object.toString();
@@ -146,7 +146,7 @@ class SourceMapBuffer implements StringBuffer {
     _line++;
     _column = 0;
     if (_inSpan) {
-      _entries.add(new Entry(_entries.last.source, _targetLocation, null));
+      _entries.add(Entry(_entries.last.source, _targetLocation, null));
     }
   }
 
@@ -160,7 +160,7 @@ class SourceMapBuffer implements StringBuffer {
   /// [SingleMapping.targetUrl] will be `null`.
   SingleMapping buildSourceMap({String prefix}) {
     if (prefix == null || prefix.isEmpty) {
-      return new SingleMapping.fromEntries(_entries);
+      return SingleMapping.fromEntries(_entries);
     }
 
     var prefixLength = prefix.length;
@@ -175,9 +175,9 @@ class SourceMapBuffer implements StringBuffer {
       }
     }
 
-    return new SingleMapping.fromEntries(_entries.map((entry) => new Entry(
+    return SingleMapping.fromEntries(_entries.map((entry) => Entry(
         entry.source,
-        new SourceLocation(entry.target.offset + prefixLength,
+        SourceLocation(entry.target.offset + prefixLength,
             line: entry.target.line + prefixLines,
             // Only adjust the column for entries that are on the same line as
             // the last chunk of the prefix.

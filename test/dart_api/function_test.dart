@@ -13,23 +13,23 @@ main() {
   test(
       "new Callable() throws a SassFormatException if the argument list is "
       "invalid", () {
-    expect(() => new Callable("foo", "arg", (_) => sassNull),
+    expect(() => Callable("foo", "arg", (_) => sassNull),
         throwsA(const TypeMatcher<SassFormatException>()));
   });
 
   test(
       "new AsyncCallable() throws a SassFormatException if the argument list "
       "is invalid", () {
-    expect(() => new AsyncCallable("foo", "arg", (_) async => sassNull),
+    expect(() => AsyncCallable("foo", "arg", (_) async => sassNull),
         throwsA(const TypeMatcher<SassFormatException>()));
   });
 
   test("passes an argument to a custom function and uses its return value", () {
     var css = compileString('a {b: foo(bar)}', functions: [
-      new Callable("foo", r"$arg", expectAsync1((arguments) {
+      Callable("foo", r"$arg", expectAsync1((arguments) {
         expect(arguments, hasLength(1));
         expect(arguments.first.assertString().text, equals("bar"));
-        return new SassString("result", quotes: false);
+        return SassString("result", quotes: false);
       }))
     ]);
 
@@ -38,11 +38,11 @@ main() {
 
   test("runs a function asynchronously", () async {
     var css = await compileStringAsync('a {b: foo(bar)}', functions: [
-      new AsyncCallable("foo", r"$arg", expectAsync1((arguments) async {
+      AsyncCallable("foo", r"$arg", expectAsync1((arguments) async {
         expect(arguments, hasLength(1));
         expect(arguments.first.assertString().text, equals("bar"));
         await pumpEventQueue();
-        return new SassString("result", quotes: false);
+        return SassString("result", quotes: false);
       }))
     ]);
 
@@ -52,7 +52,7 @@ main() {
   test("passes no arguments to a custom function", () {
     expect(
         compileString('a {b: foo()}', functions: [
-          new Callable("foo", "", expectAsync1((arguments) {
+          Callable("foo", "", expectAsync1((arguments) {
             expect(arguments, isEmpty);
             return sassNull;
           }))
@@ -63,7 +63,7 @@ main() {
   test("passes multiple arguments to a custom function", () {
     expect(
         compileString('a {b: foo(x, y, z)}', functions: [
-          new Callable("foo", r"$arg1, $arg2, $arg3", expectAsync1((arguments) {
+          Callable("foo", r"$arg1, $arg2, $arg3", expectAsync1((arguments) {
             expect(arguments, hasLength(3));
             expect(arguments[0].assertString().text, equals("x"));
             expect(arguments[1].assertString().text, equals("y"));
@@ -77,20 +77,20 @@ main() {
   test("gracefuly handles a custom function throwing", () {
     expect(() {
       compileString('a {b: foo()}',
-          functions: [new Callable("foo", "", (arguments) => throw "heck")]);
+          functions: [Callable("foo", "", (arguments) => throw "heck")]);
     }, throwsA(const TypeMatcher<SassException>()));
   });
 
   test("gracefuly handles a custom function returning null", () {
     expect(() {
       compileString('a {b: foo()}',
-          functions: [new Callable("foo", "", (arguments) => null)]);
+          functions: [Callable("foo", "", (arguments) => null)]);
     }, throwsA(const TypeMatcher<SassException>()));
   });
 
   test("supports default argument values", () {
     var css = compileString('a {b: foo()}', functions: [
-      new Callable("foo", r"$arg: 1", expectAsync1((arguments) {
+      Callable("foo", r"$arg: 1", expectAsync1((arguments) {
         expect(arguments, hasLength(1));
         expect(arguments.first.assertNumber().value, equals(1));
         return arguments.first;
@@ -102,7 +102,7 @@ main() {
 
   test("supports argument lists", () {
     var css = compileString('a {b: foo(1, 2, 3)}', functions: [
-      new Callable("foo", r"$args...", expectAsync1((arguments) {
+      Callable("foo", r"$args...", expectAsync1((arguments) {
         expect(arguments, hasLength(1));
         var list = arguments[0] as SassArgumentList;
         expect(list.asList, hasLength(3));
@@ -118,7 +118,7 @@ main() {
 
   test("supports keyword arguments", () {
     var css = compileString(r'a {b: foo($bar: 1)}', functions: [
-      new Callable("foo", r"$args...", expectAsync1((arguments) {
+      Callable("foo", r"$args...", expectAsync1((arguments) {
         expect(arguments, hasLength(1));
         var list = arguments[0] as SassArgumentList;
         expect(list.asList, hasLength(0));

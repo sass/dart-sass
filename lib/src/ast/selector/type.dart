@@ -18,8 +18,8 @@ class TypeSelector extends SimpleSelector {
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitTypeSelector(this);
 
-  TypeSelector addSuffix(String suffix) => new TypeSelector(
-      new QualifiedName(name.name + suffix, namespace: name.namespace));
+  TypeSelector addSuffix(String suffix) => TypeSelector(
+      QualifiedName(name.name + suffix, namespace: name.namespace));
 
   List<SimpleSelector> unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {

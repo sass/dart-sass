@@ -33,25 +33,25 @@ main() {
     });
 
     test("equals the same color", () {
-      expect(value, equalsWithHash(new SassColor.rgb(0x12, 0x34, 0x56)));
+      expect(value, equalsWithHash(SassColor.rgb(0x12, 0x34, 0x56)));
       expect(
           value,
           equalsWithHash(
-              new SassColor.hsl(210, 65.3846153846154, 20.392156862745097)));
+              SassColor.hsl(210, 65.3846153846154, 20.392156862745097)));
     });
 
     group("changeRgb()", () {
       test("changes RGB values", () {
         expect(value.changeRgb(red: 0xAA),
-            equals(new SassColor.rgb(0xAA, 0x34, 0x56)));
+            equals(SassColor.rgb(0xAA, 0x34, 0x56)));
         expect(value.changeRgb(green: 0xAA),
-            equals(new SassColor.rgb(0x12, 0xAA, 0x56)));
+            equals(SassColor.rgb(0x12, 0xAA, 0x56)));
         expect(value.changeRgb(blue: 0xAA),
-            equals(new SassColor.rgb(0x12, 0x34, 0xAA)));
+            equals(SassColor.rgb(0x12, 0x34, 0xAA)));
         expect(value.changeRgb(alpha: 0.5),
-            equals(new SassColor.rgb(0x12, 0x34, 0x56, 0.5)));
+            equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)));
         expect(value.changeRgb(red: 0xAA, green: 0xAA, blue: 0xAA, alpha: 0.5),
-            equals(new SassColor.rgb(0xAA, 0xAA, 0xAA, 0.5)));
+            equals(SassColor.rgb(0xAA, 0xAA, 0xAA, 0.5)));
       });
 
       test("allows valid values", () {
@@ -79,22 +79,20 @@ main() {
 
     group("changeHsl()", () {
       test("changes HSL values", () {
-        expect(
-            value.changeHsl(hue: 120),
-            equals(
-                new SassColor.hsl(120, 65.3846153846154, 20.392156862745097)));
+        expect(value.changeHsl(hue: 120),
+            equals(SassColor.hsl(120, 65.3846153846154, 20.392156862745097)));
         expect(value.changeHsl(saturation: 42),
-            equals(new SassColor.hsl(210, 42, 20.392156862745097)));
+            equals(SassColor.hsl(210, 42, 20.392156862745097)));
         expect(value.changeHsl(lightness: 42),
-            equals(new SassColor.hsl(210, 65.3846153846154, 42)));
+            equals(SassColor.hsl(210, 65.3846153846154, 42)));
         expect(
             value.changeHsl(alpha: 0.5),
-            equals(new SassColor.hsl(
-                210, 65.3846153846154, 20.392156862745097, 0.5)));
+            equals(
+                SassColor.hsl(210, 65.3846153846154, 20.392156862745097, 0.5)));
         expect(
             value.changeHsl(
                 hue: 120, saturation: 42, lightness: 42, alpha: 0.5),
-            equals(new SassColor.hsl(120, 42, 42, 0.5)));
+            equals(SassColor.hsl(120, 42, 42, 0.5)));
       });
 
       test("allows valid values", () {
@@ -119,7 +117,7 @@ main() {
     group("changeAlpha()", () {
       test("changes the alpha value", () {
         expect(value.changeAlpha(0.5),
-            equals(new SassColor.rgb(0x12, 0x34, 0x56, 0.5)));
+            equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)));
       });
 
       test("allows valid alphas", () {
@@ -167,8 +165,8 @@ main() {
     });
 
     test("equals the same color", () {
-      expect(value, equalsWithHash(new SassColor.rgb(0x3E, 0x98, 0x3E)));
-      expect(value, equalsWithHash(new SassColor.hsl(120, 42, 42)));
+      expect(value, equalsWithHash(SassColor.rgb(0x3E, 0x98, 0x3E)));
+      expect(value, equalsWithHash(SassColor.hsl(120, 42, 42)));
     });
   });
 
@@ -179,39 +177,36 @@ main() {
 
   group("new SassColor.rgb()", () {
     test("allows valid values", () {
-      expect(new SassColor.rgb(0, 0, 0, 0),
-          equals(parseValue("rgba(0, 0, 0, 0)")));
-      expect(
-          new SassColor.rgb(0xFF, 0xFF, 0xFF, 1), equals(parseValue("#fff")));
+      expect(SassColor.rgb(0, 0, 0, 0), equals(parseValue("rgba(0, 0, 0, 0)")));
+      expect(SassColor.rgb(0xFF, 0xFF, 0xFF, 1), equals(parseValue("#fff")));
     });
 
     test("disallows invalid values", () {
-      expect(() => new SassColor.rgb(-1, 0, 0, 0), throwsRangeError);
-      expect(() => new SassColor.rgb(0, -1, 0, 0), throwsRangeError);
-      expect(() => new SassColor.rgb(0, 0, -1, 0), throwsRangeError);
-      expect(() => new SassColor.rgb(0, 0, 0, -0.1), throwsRangeError);
-      expect(() => new SassColor.rgb(0x100, 0, 0, 0), throwsRangeError);
-      expect(() => new SassColor.rgb(0, 0x100, 0, 0), throwsRangeError);
-      expect(() => new SassColor.rgb(0, 0, 0x100, 0), throwsRangeError);
-      expect(() => new SassColor.rgb(0, 0, 0, 1.1), throwsRangeError);
+      expect(() => SassColor.rgb(-1, 0, 0, 0), throwsRangeError);
+      expect(() => SassColor.rgb(0, -1, 0, 0), throwsRangeError);
+      expect(() => SassColor.rgb(0, 0, -1, 0), throwsRangeError);
+      expect(() => SassColor.rgb(0, 0, 0, -0.1), throwsRangeError);
+      expect(() => SassColor.rgb(0x100, 0, 0, 0), throwsRangeError);
+      expect(() => SassColor.rgb(0, 0x100, 0, 0), throwsRangeError);
+      expect(() => SassColor.rgb(0, 0, 0x100, 0), throwsRangeError);
+      expect(() => SassColor.rgb(0, 0, 0, 1.1), throwsRangeError);
     });
   });
 
   group("new SassColor.hsl()", () {
     test("allows valid values", () {
-      expect(new SassColor.hsl(0, 0, 0, 0),
-          equals(parseValue("hsla(0, 0, 0, 0)")));
-      expect(new SassColor.hsl(4320, 100, 100, 1),
+      expect(SassColor.hsl(0, 0, 0, 0), equals(parseValue("hsla(0, 0, 0, 0)")));
+      expect(SassColor.hsl(4320, 100, 100, 1),
           equals(parseValue("hsl(4320, 100, 100)")));
     });
 
     test("disallows invalid values", () {
-      expect(() => new SassColor.hsl(0, -0.1, 0, 0), throwsRangeError);
-      expect(() => new SassColor.hsl(0, 0, -0.1, 0), throwsRangeError);
-      expect(() => new SassColor.hsl(0, 0, 0, -0.1), throwsRangeError);
-      expect(() => new SassColor.hsl(0, 100.1, 0, 0), throwsRangeError);
-      expect(() => new SassColor.hsl(0, 0, 100.1, 0), throwsRangeError);
-      expect(() => new SassColor.hsl(0, 0, 0, 1.1), throwsRangeError);
+      expect(() => SassColor.hsl(0, -0.1, 0, 0), throwsRangeError);
+      expect(() => SassColor.hsl(0, 0, -0.1, 0), throwsRangeError);
+      expect(() => SassColor.hsl(0, 0, 0, -0.1), throwsRangeError);
+      expect(() => SassColor.hsl(0, 100.1, 0, 0), throwsRangeError);
+      expect(() => SassColor.hsl(0, 0, 100.1, 0), throwsRangeError);
+      expect(() => SassColor.hsl(0, 0, 0, 1.1), throwsRangeError);
     });
   });
 }

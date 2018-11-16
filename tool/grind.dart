@@ -26,7 +26,7 @@ all() {}
 format() {
   Pub.run('dart_style',
       script: 'format',
-      arguments: ['--overwrite']
+      arguments: ['--overwrite', '--fix']
         ..addAll(existingSourceDirs.map((dir) => dir.path)));
 }
 

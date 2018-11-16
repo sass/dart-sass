@@ -25,7 +25,7 @@ class CssImport extends CssNode {
   final FileSpan span;
 
   CssImport(this.url, this.span, {this.supports, Iterable<CssMediaQuery> media})
-      : media = media == null ? null : new List.unmodifiable(media);
+      : media = media == null ? null : List.unmodifiable(media);
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitImport(this);
 }

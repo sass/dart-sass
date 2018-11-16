@@ -11,7 +11,7 @@ import 'package:sass/src/exception.dart';
 Value parseValue(String source) {
   Value value;
   compileString("a {b: foo(($source))}", functions: [
-    new Callable("foo", r"$arg", expectAsync1((arguments) {
+    Callable("foo", r"$arg", expectAsync1((arguments) {
       expect(arguments, hasLength(1));
       value = arguments.first;
       return sassNull;

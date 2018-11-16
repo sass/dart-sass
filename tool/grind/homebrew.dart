@@ -13,7 +13,7 @@ import 'utils.dart';
 
 /// A regular expression for locating the URL and SHA256 hash of the Sass
 /// archive in the `homebrew-sass` formula.
-final _homebrewRegExp = new RegExp(r'\n( *)url "[^"]+"'
+final _homebrewRegExp = RegExp(r'\n( *)url "[^"]+"'
     r'\n *sha256 "[^"]+"');
 
 @Task('Update the Homebrew formula for the current version.')
@@ -30,7 +30,7 @@ updateHomebrew() async {
 
   var repo = await cloneOrPull("https://github.com/sass/homebrew-sass.git");
 
-  var formula = new File(p.join(repo, "sass.rb"));
+  var formula = File(p.join(repo, "sass.rb"));
   log("updating ${formula.path}");
   formula.writeAsStringSync(formula.readAsStringSync().replaceFirstMapped(
       _homebrewRegExp,

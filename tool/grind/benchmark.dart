@@ -15,7 +15,7 @@ import 'utils.dart';
 
 @Task('Generate benchmark files.')
 benchmarkGenerate() async {
-  var sources = new Directory("build/benchmark");
+  var sources = Directory("build/benchmark");
   if (!await sources.exists()) await sources.create(recursive: true);
 
   await _writeNTimes("${sources.path}/small_plain.scss", ".foo {a: b}", 4);
@@ -40,7 +40,7 @@ benchmarkGenerate() async {
 
   await cloneOrCheckout("https://github.com/alex-page/sass-a11ycolor",
       "2e7ef93ec06f8bbec80b632863e4b2811618af89");
-  new File("${sources.path}/a11ycolor.scss").writeAsStringSync("""
+  File("${sources.path}/a11ycolor.scss").writeAsStringSync("""
     @import '../sass-a11ycolor/dist';
 
     x {
@@ -59,7 +59,7 @@ benchmarkGenerate() async {
 
   var susy = await cloneOrCheckout("https://github.com/oddbird/susy", "v3.0.5");
   await runAsync("npm", arguments: ["install"], workingDirectory: susy);
-  new File("${sources.path}/susy.scss")
+  File("${sources.path}/susy.scss")
       .writeAsStringSync("@import '../susy/test/scss/test.scss'");
 }
 
@@ -70,7 +70,7 @@ benchmarkGenerate() async {
 /// length, it's not written.
 Future _writeNTimes(String path, String text, num times,
     {String header, String footer}) async {
-  var file = new File(path);
+  var file = File(path);
   var expectedLength = (header == null ? 0 : header.length + 1) +
       (text.length + 1) * times +
       (footer == null ? 0 : footer.length + 1);
@@ -90,14 +90,13 @@ Future _writeNTimes(String path, String text, num times,
 }
 
 @Task('Run benchmarks for Sass compilation speed.')
-@Depends(benchmarkGenerate, snapshot, releaseAppSnapshot, snapshotDart2,
-    releaseDart2AppSnapshot, npmReleasePackage)
+@Depends(benchmarkGenerate, snapshot, releaseAppSnapshot, npmReleasePackage)
 benchmark() async {
   var libsass = await cloneOrPull('https://github.com/sass/libsass');
   var sassc = await cloneOrPull('https://github.com/sass/sassc');
 
   await runAsync("make",
-      runOptions: new RunOptions(
+      runOptions: RunOptions(
           workingDirectory: sassc,
           environment: {"SASS_LIBSASS_PATH": p.absolute(libsass)}));
   log("");
@@ -113,9 +112,8 @@ benchmark() async {
   var nodeVersion = await _version("node");
   var rubyVersion = await _version("ruby");
 
-  var perf = new File("perf.md").readAsStringSync();
-  perf = perf
-      .replaceFirst(new RegExp(r"This was tested against:\n\n[^]*?\n\n"), """
+  var perf = File("perf.md").readAsStringSync();
+  perf = perf.replaceFirst(RegExp(r"This was tested against:\n\n[^]*?\n\n"), """
 This was tested against:
 
 * libsass $libsassRevision and sassc $sasscRevision compiled with $gPlusPlusVersion.
@@ -124,7 +122,7 @@ This was tested against:
 
 """);
 
-  var buffer = new StringBuffer("""
+  var buffer = StringBuffer("""
 # Measurements
 
 I ran five instances of each configuration and recorded the fastest time.
@@ -185,34 +183,17 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
 
     var scriptSnapshotTime = await _benchmark(Platform.executable,
-        ['--no-preview-dart-2', p.join('build', 'sass.dart.snapshot'), path]);
-    buffer.writeln("* Dart Sass from a Dart 1 script snapshot: "
+        ['--no-enable-asserts', p.join('build', 'sass.dart.snapshot'), path]);
+    buffer.writeln("* Dart Sass from a script snapshot: "
         "${_formatTime(scriptSnapshotTime)}");
 
     var appSnapshotTime = await _benchmark(Platform.executable, [
-      '--no-preview-dart-2',
-      '--no-checked',
+      '--no-enable-asserts',
       p.join('build', 'sass.dart.app.snapshot'),
       path
     ]);
-    buffer.writeln(
-        "* Dart Sass from a Dart 1 app snapshot: ${_formatTime(appSnapshotTime)}");
-
-    var dart2ScriptSnapshotTime = await _benchmark(Platform.executable, [
-      '--no-enable-asserts',
-      p.join('build', 'sass.dart.dart2.snapshot'),
-      path
-    ]);
-    buffer.writeln("* Dart Sass from a Dart 2 script snapshot: "
-        "${_formatTime(dart2ScriptSnapshotTime)}");
-
-    var dart2AppSnapshotTime = await _benchmark(Platform.executable, [
-      '--no-enable-asserts',
-      p.join('build', 'sass.dart.app.dart2.snapshot'),
-      path
-    ]);
-    buffer.writeln("* Dart Sass from a Dart 2 app snapshot: "
-        "${_formatTime(dart2AppSnapshotTime)}");
+    buffer.writeln("* Dart Sass from an app snapshot: "
+        "${_formatTime(appSnapshotTime)}");
 
     var nodeTime =
         await _benchmark("node", [p.join('build', 'npm', 'sass.js'), path]);
@@ -228,23 +209,17 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln();
     buffer.writeln('* ${_compare(appSnapshotTime, sasscTime)} libsass');
     buffer
-        .writeln('* ${_compare(appSnapshotTime, dart2AppSnapshotTime)} Dart 2');
-    buffer
         .writeln('* ${_compare(appSnapshotTime, nodeTime)} Dart Sass on Node');
     buffer.writeln('* ${_compare(appSnapshotTime, rubyTime)} Ruby Sass');
-    buffer.writeln();
-    buffer.writeln('A Dart 1 script snapshot is approximately '
-        '${_compare(scriptSnapshotTime, dart2ScriptSnapshotTime)} Dart 2.');
     buffer.writeln();
     log('');
   }
 
   buffer.write("# Prior Measurements");
   perf = perf.replaceFirst(
-      new RegExp(r"# Measurements\n[^]*# Prior Measurements"),
-      buffer.toString());
+      RegExp(r"# Measurements\n[^]*# Prior Measurements"), buffer.toString());
 
-  new File("perf.md").writeAsStringSync(perf);
+  File("perf.md").writeAsStringSync(perf);
 }
 
 /// Returns the revision of the Git repository at [path].
@@ -285,8 +260,8 @@ Future<Duration> _benchmarkOnce(
   }
 
   var match =
-      new RegExp(r"(\d+)m(\d+)\.(\d+)s").firstMatch(result.stderr as String);
-  return new Duration(
+      RegExp(r"(\d+)m(\d+)\.(\d+)s").firstMatch(result.stderr as String);
+  return Duration(
       minutes: int.parse(match[1]),
       seconds: int.parse(match[2]),
       milliseconds: int.parse(match[3]));

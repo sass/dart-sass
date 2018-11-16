@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'dart:async';
 
@@ -24,8 +24,8 @@ void main() {
     var sass = await runSass(["--version"]);
     expect(
         sass.stdout,
-        emits(matches(new RegExp(
-            r"^\d+\.\d+\.\d+.* compiled with dart2js \d+\.\d+\.\d+"))));
+        emits(matches(
+            RegExp(r"^\d+\.\d+\.\d+.* compiled with dart2js \d+\.\d+\.\d+"))));
     await sass.shouldExit(0);
   });
 }

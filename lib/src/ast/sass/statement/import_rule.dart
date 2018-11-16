@@ -16,7 +16,7 @@ class ImportRule implements Statement {
   final FileSpan span;
 
   ImportRule(Iterable<Import> imports, this.span)
-      : imports = new List.unmodifiable(imports);
+      : imports = List.unmodifiable(imports);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitImportRule(this);
 

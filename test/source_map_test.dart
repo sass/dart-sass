@@ -744,22 +744,22 @@ String _reindent(String string) {
 /// Parses and removes the location annotations from [text].
 Tuple2<String, List<Tuple2<String, SourceLocation>>> _extractLocations(
     String text) {
-  var scanner = new StringScanner(text);
-  var buffer = new StringBuffer();
+  var scanner = StringScanner(text);
+  var buffer = StringBuffer();
   var locations = <Tuple2<String, SourceLocation>>[];
 
   var offset = 0;
   var line = 0;
   var column = 0;
   while (!scanner.isDone) {
-    if (scanner.matches(new RegExp(r"{{[^{]"))) {
+    if (scanner.matches(RegExp(r"{{[^{]"))) {
       scanner.expect("{{");
       var start = scanner.position;
       while (!scanner.scan("}}")) {
         scanner.readChar();
       }
-      locations.add(new Tuple2(scanner.substring(start, scanner.position - 2),
-          new SourceLocation(offset, line: line, column: column)));
+      locations.add(Tuple2(scanner.substring(start, scanner.position - 2),
+          SourceLocation(offset, line: line, column: column)));
     } else if (scanner.scanChar($lf)) {
       offset++;
       line++;
@@ -772,7 +772,7 @@ Tuple2<String, List<Tuple2<String, SourceLocation>>> _extractLocations(
     }
   }
 
-  return new Tuple2(buffer.toString(), locations);
+  return Tuple2(buffer.toString(), locations);
 }
 
 /// Converts a list of tuples to a map, asserting that each key appears only
@@ -795,7 +795,7 @@ void _expectMapMatches(
     Map<String, SourceLocation> sourceLocations,
     List<Tuple2<String, SourceLocation>> targetLocations) {
   expect(sourceLocations.keys,
-      equals(new Set.of(targetLocations.map((tuple) => tuple.item1))));
+      equals(Set.of(targetLocations.map((tuple) => tuple.item1))));
 
   String actualMap() =>
       "\nActual map:\n\n" + _mapToString(map, sourceText, targetText) + "\n";
@@ -831,10 +831,9 @@ void _expectMapMatches(
 Iterable<Entry> _entriesForMap(SingleMapping map) sync* {
   for (var lineEntry in map.lines) {
     for (var entry in lineEntry.entries) {
-      yield new Entry(
-          new SourceLocation(0,
-              line: entry.sourceLine, column: entry.sourceColumn),
-          new SourceLocation(0, line: lineEntry.line, column: entry.column),
+      yield Entry(
+          SourceLocation(0, line: entry.sourceLine, column: entry.sourceColumn),
+          SourceLocation(0, line: lineEntry.line, column: entry.column),
           null);
     }
   }
@@ -861,27 +860,27 @@ String _mapToString(SingleMapping map, String sourceText, String targetText) {
   var entryNames = <Tuple2<int, int>, String>{};
   var i = 0;
   for (var entry in entriesInSourceOrder) {
-    entryNames.putIfAbsent(new Tuple2(entry.source.line, entry.source.column),
-        () => (++i).toString());
+    entryNames.putIfAbsent(
+        Tuple2(entry.source.line, entry.source.column), () => (++i).toString());
   }
 
-  var sourceScanner = new LineScanner(sourceText);
-  var sourceBuffer = new StringBuffer();
+  var sourceScanner = LineScanner(sourceText);
+  var sourceBuffer = StringBuffer();
   while (!sourceScanner.isDone) {
-    var name = entryNames[new Tuple2(sourceScanner.line, sourceScanner.column)];
+    var name = entryNames[Tuple2(sourceScanner.line, sourceScanner.column)];
     if (name != null) sourceBuffer.write("{{$name}}");
     sourceBuffer.writeCharCode(sourceScanner.readChar());
   }
 
-  var targetScanner = new LineScanner(targetText);
-  var targetBuffer = new StringBuffer();
+  var targetScanner = LineScanner(targetText);
+  var targetBuffer = StringBuffer();
   var entryIter = entries.iterator..moveNext();
   while (!targetScanner.isDone) {
     var entry = entryIter.current;
     if (entry != null &&
         targetScanner.line == entry.target.line &&
         targetScanner.column == entry.target.column) {
-      var name = entryNames[new Tuple2(entry.source.line, entry.source.column)];
+      var name = entryNames[Tuple2(entry.source.line, entry.source.column)];
       targetBuffer.write("{{$name}}");
       entryIter.moveNext();
     }

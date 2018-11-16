@@ -18,5 +18,5 @@ abstract class Expression implements SassNode {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory Expression.parse(String contents, {url, Logger logger}) =>
-      new ScssParser(contents, url: url, logger: logger).parseExpression();
+      ScssParser(contents, url: url, logger: logger).parseExpression();
 }

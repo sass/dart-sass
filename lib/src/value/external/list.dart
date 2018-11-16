@@ -20,6 +20,6 @@ abstract class SassList extends Value {
 
   /// Returns an empty list with the given [separator] and [brackets].
   factory SassList(Iterable<Value> contents, ListSeparator separator,
-          {bool brackets: false}) =>
-      new internal.SassList(contents.cast(), separator, brackets: brackets);
+          {bool brackets = false}) =>
+      internal.SassList(contents.cast(), separator, brackets: brackets);
 }

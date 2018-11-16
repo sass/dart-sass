@@ -27,14 +27,14 @@ class StringExpression implements Expression {
   /// Returns Sass source for a quoted string that, when evaluated, will have
   /// [text] as its contents.
   static String quoteText(String text) =>
-      new StringExpression.plain(text, null, quotes: true)
+      StringExpression.plain(text, null, quotes: true)
           .asInterpolation(static: true)
           .asPlain;
 
-  StringExpression(this.text, {bool quotes: false}) : hasQuotes = quotes;
+  StringExpression(this.text, {bool quotes = false}) : hasQuotes = quotes;
 
-  StringExpression.plain(String text, FileSpan span, {bool quotes: false})
-      : text = new Interpolation([text], span),
+  StringExpression.plain(String text, FileSpan span, {bool quotes = false})
+      : text = Interpolation([text], span),
         hasQuotes = quotes;
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
@@ -48,11 +48,11 @@ class StringExpression implements Expression {
   /// If [static] is true, this escapes any `#{` sequences in the string. If
   /// [quote] is passed, it uses that character as the quote mark; otherwise, it
   /// determines the best quote to add by looking at the string.
-  Interpolation asInterpolation({bool static: false, int quote}) {
+  Interpolation asInterpolation({bool static = false, int quote}) {
     if (!hasQuotes) return text;
 
     quote ??= hasQuotes ? _bestQuote() : null;
-    var buffer = new InterpolationBuffer();
+    var buffer = InterpolationBuffer();
     if (quote != null) buffer.writeCharCode(quote);
     for (var value in text.contents) {
       assert(value is Expression || value is String);

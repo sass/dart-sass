@@ -23,13 +23,13 @@ class MixinRule extends CallableDeclaration {
   /// won't work correctly.
   MixinRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,
-      {this.hasContent: false})
+      {this.hasContent = false})
       : super(name, arguments, children, span);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
 
   String toString() {
-    var buffer = new StringBuffer("@mixin $name");
+    var buffer = StringBuffer("@mixin $name");
     if (!arguments.isEmpty) buffer.write("($arguments)");
     buffer.write(" {${children.join(' ')}}");
     return buffer.toString();

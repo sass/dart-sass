@@ -22,7 +22,7 @@ import '../utils.dart';
 ///
 /// For example, `.foo` is a superselector of `:matches(.foo)`.
 final _subselectorPseudos =
-    new Set.of(['matches', 'any', 'nth-child', 'nth-last-child']);
+    Set.of(['matches', 'any', 'nth-child', 'nth-last-child']);
 
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by both [complex1] and [complex2].
@@ -54,7 +54,7 @@ List<List<ComplexSelectorComponent>> unifyComplex(
   var complexesWithoutBases = complexes
       .map((complex) => complex.sublist(0, complex.length - 1))
       .toList();
-  complexesWithoutBases.last.add(new CompoundSelector(unifiedBase));
+  complexesWithoutBases.last.add(CompoundSelector(unifiedBase));
   return weave(complexesWithoutBases);
 }
 
@@ -70,7 +70,7 @@ CompoundSelector unifyCompound(
     if (result == null) return null;
   }
 
-  return new CompoundSelector(result);
+  return CompoundSelector(result);
 }
 
 /// Returns a [SimpleSelector] that matches only elements that are matched by
@@ -88,7 +88,7 @@ SimpleSelector unifyUniversalAndElement(
     namespace1 = selector1.name.namespace;
     name1 = selector1.name.name;
   } else {
-    throw new ArgumentError.value(selector1, 'selector1',
+    throw ArgumentError.value(selector1, 'selector1',
         'must be a UniversalSelector or a TypeSelector');
   }
 
@@ -100,7 +100,7 @@ SimpleSelector unifyUniversalAndElement(
     namespace2 = selector2.name.namespace;
     name2 = selector2.name.name;
   } else {
-    throw new ArgumentError.value(selector2, 'selector2',
+    throw ArgumentError.value(selector2, 'selector2',
         'must be a UniversalSelector or a TypeSelector');
   }
 
@@ -123,8 +123,8 @@ SimpleSelector unifyUniversalAndElement(
   }
 
   return name == null
-      ? new UniversalSelector(namespace: namespace)
-      : new TypeSelector(new QualifiedName(name, namespace: namespace));
+      ? UniversalSelector(namespace: namespace)
+      : TypeSelector(QualifiedName(name, namespace: namespace));
 }
 
 /// Expands "parenthesized selectors" in [complexes].
@@ -183,8 +183,8 @@ List<List<ComplexSelectorComponent>> weave(
 Iterable<List<ComplexSelectorComponent>> _weaveParents(
     List<ComplexSelectorComponent> parents1,
     List<ComplexSelectorComponent> parents2) {
-  var queue1 = new Queue.of(parents1);
-  var queue2 = new Queue.of(parents2);
+  var queue1 = Queue.of(parents1);
+  var queue2 = Queue.of(parents2);
 
   var initialCombinators = _mergeInitialCombinators(queue1, queue2);
   if (initialCombinators == null) return null;
@@ -295,7 +295,7 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     Queue<ComplexSelectorComponent> components1,
     Queue<ComplexSelectorComponent> components2,
     [QueueList<List<List<ComplexSelectorComponent>>> result]) {
-  result ??= new QueueList();
+  result ??= QueueList();
   if ((components1.isEmpty || components1.last is! Combinator) &&
       (components2.isEmpty || components2.last is! Combinator)) {
     return result;
@@ -316,9 +316,9 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
     // is a supersequence of the other, use that, otherwise give up.
     var lcs = longestCommonSubsequence(combinators1, combinators2);
     if (listEquals(lcs, combinators1)) {
-      result.addFirst([new List.of(combinators2.reversed)]);
+      result.addFirst([List.of(combinators2.reversed)]);
     } else if (listEquals(lcs, combinators2)) {
-      result.addFirst([new List.of(combinators1.reversed)]);
+      result.addFirst([List.of(combinators1.reversed)]);
     } else {
       return null;
     }
@@ -451,7 +451,7 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
 /// selector, such as an ID.
 bool _mustUnify(List<ComplexSelectorComponent> complex1,
     List<ComplexSelectorComponent> complex2) {
-  var uniqueSelectors = new Set<SimpleSelector>();
+  var uniqueSelectors = Set<SimpleSelector>();
   for (var component in complex1) {
     if (component is CompoundSelector) {
       uniqueSelectors.addAll(component.components.where(_isUnique));
@@ -522,7 +522,7 @@ List<List<T>> paths<T>(Iterable<List<T>> choices) => choices.fold(
 /// `[(A) (B > C) (D + E ~ > G)]`.
 QueueList<List<ComplexSelectorComponent>> _groupSelectors(
     Iterable<ComplexSelectorComponent> complex) {
-  var groups = new QueueList<List<ComplexSelectorComponent>>();
+  var groups = QueueList<List<ComplexSelectorComponent>>();
   var iterator = complex.iterator..moveNext();
   while (iterator.current != null) {
     var group = <ComplexSelectorComponent>[];
@@ -565,7 +565,7 @@ bool complexIsParentSuperselector(List<ComplexSelectorComponent> complex1,
 
   // TODO(nweiz): There's got to be a way to do this without a bunch of extra
   // allocations...
-  var base = new CompoundSelector([new PlaceholderSelector('<temp>')]);
+  var base = CompoundSelector([PlaceholderSelector('<temp>')]);
   return complexIsSuperselector(
       complex1.toList()..add(base), complex2.toList()..add(base));
 }

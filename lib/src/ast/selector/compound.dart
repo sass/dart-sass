@@ -44,9 +44,9 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   bool get isInvisible => components.any((component) => component.isInvisible);
 
   CompoundSelector(Iterable<SimpleSelector> components)
-      : components = new List.unmodifiable(components) {
+      : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
-      throw new ArgumentError("components may not be empty.");
+      throw ArgumentError("components may not be empty.");
     }
   }
 
@@ -58,8 +58,8 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory CompoundSelector.parse(String contents,
-          {url, Logger logger, bool allowParent: true}) =>
-      new SelectorParser(contents,
+          {url, Logger logger, bool allowParent = true}) =>
+      SelectorParser(contents,
               url: url, logger: logger, allowParent: allowParent)
           .parseCompoundSelector();
 

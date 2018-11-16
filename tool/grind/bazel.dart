@@ -17,11 +17,11 @@ updateBazel() async {
 
   var repo = await cloneOrPull("https://github.com/bazelbuild/rules_sass.git");
 
-  var packageFile = new File(p.join(repo, "sass", "package.json"));
+  var packageFile = File(p.join(repo, "sass", "package.json"));
   log("updating ${packageFile.path}");
   packageFile.writeAsStringSync(packageFile
       .readAsStringSync()
-      .replaceFirst(new RegExp(r'"sass": "[^"]+"'), '"sass": "$version"'));
+      .replaceFirst(RegExp(r'"sass": "[^"]+"'), '"sass": "$version"'));
 
   run("yarn", workingDirectory: p.join(repo, "sass"));
 

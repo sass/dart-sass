@@ -39,7 +39,7 @@ class BinaryOperationExpression implements Expression {
       visitor.visitBinaryOperationExpression(this);
 
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
 
     var left = this.left; // Hack to make analysis work.
     var leftNeedsParens = left is BinaryOperationExpression &&
@@ -66,48 +66,48 @@ class BinaryOperationExpression implements Expression {
 /// A binary operator constant.
 class BinaryOperator {
   /// The Microsoft equals operator, `=`.
-  static const singleEquals = const BinaryOperator._("single equals", "=", 0);
+  static const singleEquals = BinaryOperator._("single equals", "=", 0);
 
   /// The disjunction operator, `or`.
-  static const or = const BinaryOperator._("or", "or", 1);
+  static const or = BinaryOperator._("or", "or", 1);
 
   /// The conjunction operator, `and`.
-  static const and = const BinaryOperator._("and", "and", 2);
+  static const and = BinaryOperator._("and", "and", 2);
 
   /// The equality operator, `==`.
-  static const equals = const BinaryOperator._("equals", "==", 3);
+  static const equals = BinaryOperator._("equals", "==", 3);
 
   /// The inequality operator, `!=`.
-  static const notEquals = const BinaryOperator._("not equals", "!=", 3);
+  static const notEquals = BinaryOperator._("not equals", "!=", 3);
 
   /// The greater-than operator, `>`.
-  static const greaterThan = const BinaryOperator._("greater than", ">", 4);
+  static const greaterThan = BinaryOperator._("greater than", ">", 4);
 
   /// The greater-than-or-equal-to operator, `>=`.
   static const greaterThanOrEquals =
-      const BinaryOperator._("greater than or equals", ">=", 4);
+      BinaryOperator._("greater than or equals", ">=", 4);
 
   /// The less-than operator, `<`.
-  static const lessThan = const BinaryOperator._("less than", "<", 4);
+  static const lessThan = BinaryOperator._("less than", "<", 4);
 
   /// The less-than-or-equal-to operator, `<=`.
   static const lessThanOrEquals =
-      const BinaryOperator._("less than or equals", "<=", 4);
+      BinaryOperator._("less than or equals", "<=", 4);
 
   /// The addition operator, `+`.
-  static const plus = const BinaryOperator._("plus", "+", 5);
+  static const plus = BinaryOperator._("plus", "+", 5);
 
   /// The subtraction operator, `+`.
-  static const minus = const BinaryOperator._("minus", "-", 5);
+  static const minus = BinaryOperator._("minus", "-", 5);
 
   /// The multiplication operator, `*`.
-  static const times = const BinaryOperator._("times", "*", 6);
+  static const times = BinaryOperator._("times", "*", 6);
 
   /// The division operator, `/`.
-  static const dividedBy = const BinaryOperator._("divided by", "/", 6);
+  static const dividedBy = BinaryOperator._("divided by", "/", 6);
 
   /// The modulo operator, `%`.
-  static const modulo = const BinaryOperator._("modulo", "%", 6);
+  static const modulo = BinaryOperator._("modulo", "%", 6);
 
   /// The English name of [this].
   final String name;

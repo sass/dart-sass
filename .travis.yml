@@ -3,25 +3,20 @@
 # Set the language to Ruby so that we can run sass-spec tests.
 language: ruby
 
-# TODO(nweiz): We're currently locked to Dart 2.0.0 and 2.0.0-dev.5.0 because
-# 2.0.0-dev.6.0 removes the --preview-dart-2 flag, which we use because it's
-# faster than Dart 2 mode (at least in 2.0.0). Re-enable tracking the latest
-# stable and dev versions once a stable release is out where Dart 2 mode is
-# verified to be faster than Dart 1 mode was in Dart 2.1.0.
-
 env:
   global:
   - DART_CHANNEL=stable
-  - DART_VERSION=2.0.0
+  - DART_VERSION=latest
   matrix:
   # Language specs, defined in sass/sass-spec
   - TASK=specs
-  - TASK=specs DART_CHANNEL=dev DART_VERSION=2.1.0-dev.5.0
+  - TASK=specs DART_CHANNEL=dev
   - TASK=specs ASYNC=true
 
   # Unit tests, defined in test/.
   - TASK=tests
-  - TASK=tests DART_CHANNEL=dev DART_VERSION=2.1.0-dev.5.0
+  - TASK=tests DART_VERSION=2.0.0
+  - TASK=tests DART_CHANNEL=dev
   - TASK=tests NODE_VERSION=stable
 
   # Keep these up-to-date with the latest LTA Node releases. They next need to be

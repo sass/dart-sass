@@ -174,10 +174,10 @@ class SassNumber extends Value implements ext.SassNumber {
       {Iterable<String> numeratorUnits, Iterable<String> denominatorUnits})
       : numeratorUnits = numeratorUnits == null
             ? const []
-            : new List.unmodifiable(numeratorUnits),
+            : List.unmodifiable(numeratorUnits),
         denominatorUnits = denominatorUnits == null
             ? const []
-            : new List.unmodifiable(denominatorUnits),
+            : List.unmodifiable(denominatorUnits),
         asSlash = null;
 
   SassNumber._(this.value, this.numeratorUnits, this.denominatorUnits,
@@ -188,14 +188,14 @@ class SassNumber extends Value implements ext.SassNumber {
   /// Returns a copy of [this] without [asSlash] set.
   SassNumber withoutSlash() {
     if (asSlash == null) return this;
-    return new SassNumber._(value, numeratorUnits, denominatorUnits);
+    return SassNumber._(value, numeratorUnits, denominatorUnits);
   }
 
   /// Returns a copy of [this] with [this.asSlash] set to a tuple containing
   /// [numerator] and [denominator].
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      new SassNumber._(value, numeratorUnits, denominatorUnits,
-          new Tuple2(numerator, denominator));
+      SassNumber._(value, numeratorUnits, denominatorUnits,
+          Tuple2(numerator, denominator));
 
   SassNumber assertNumber([String name]) => this;
 
@@ -228,7 +228,7 @@ class SassNumber extends Value implements ext.SassNumber {
   }
 
   SassNumber coerce(List<String> newNumerators, List<String> newDenominators) =>
-      new SassNumber.withUnits(valueInUnits(newNumerators, newDenominators),
+      SassNumber.withUnits(valueInUnits(newNumerators, newDenominators),
           numeratorUnits: newNumerators, denominatorUnits: newDenominators);
 
   num valueInUnits(List<String> newNumerators, List<String> newDenominators) {
@@ -248,7 +248,7 @@ class SassNumber extends Value implements ext.SassNumber {
         value *= factor;
         return true;
       }, orElse: () {
-        throw new SassScriptException("Incompatible units "
+        throw SassScriptException("Incompatible units "
             "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
             "${_unitString(newNumerators, newDenominators)}.");
       });
@@ -262,14 +262,14 @@ class SassNumber extends Value implements ext.SassNumber {
         value /= factor;
         return true;
       }, orElse: () {
-        throw new SassScriptException("Incompatible units "
+        throw SassScriptException("Incompatible units "
             "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
             "${_unitString(newNumerators, newDenominators)}.");
       });
     }
 
     if (oldNumerators.isNotEmpty || oldDenominators.isNotEmpty) {
-      throw new SassScriptException("Incompatible units "
+      throw SassScriptException("Incompatible units "
           "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
           "${_unitString(newNumerators, newDenominators)}.");
     }
@@ -293,30 +293,30 @@ class SassNumber extends Value implements ext.SassNumber {
 
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
-      return new SassBoolean(_coerceUnits(other, fuzzyGreaterThan));
+      return SassBoolean(_coerceUnits(other, fuzzyGreaterThan));
     }
-    throw new SassScriptException('Undefined operation "$this > $other".');
+    throw SassScriptException('Undefined operation "$this > $other".');
   }
 
   SassBoolean greaterThanOrEquals(Value other) {
     if (other is SassNumber) {
-      return new SassBoolean(_coerceUnits(other, fuzzyGreaterThanOrEquals));
+      return SassBoolean(_coerceUnits(other, fuzzyGreaterThanOrEquals));
     }
-    throw new SassScriptException('Undefined operation "$this >= $other".');
+    throw SassScriptException('Undefined operation "$this >= $other".');
   }
 
   SassBoolean lessThan(Value other) {
     if (other is SassNumber) {
-      return new SassBoolean(_coerceUnits(other, fuzzyLessThan));
+      return SassBoolean(_coerceUnits(other, fuzzyLessThan));
     }
-    throw new SassScriptException('Undefined operation "$this < $other".');
+    throw SassScriptException('Undefined operation "$this < $other".');
   }
 
   SassBoolean lessThanOrEquals(Value other) {
     if (other is SassNumber) {
-      return new SassBoolean(_coerceUnits(other, fuzzyLessThanOrEquals));
+      return SassBoolean(_coerceUnits(other, fuzzyLessThanOrEquals));
     }
-    throw new SassScriptException('Undefined operation "$this <= $other".');
+    throw SassScriptException('Undefined operation "$this <= $other".');
   }
 
   Value modulo(Value other) {
@@ -331,7 +331,7 @@ class SassNumber extends Value implements ext.SassNumber {
         return result == 0 ? 0 : result + num2;
       });
     }
-    throw new SassScriptException('Undefined operation "$this % $other".');
+    throw SassScriptException('Undefined operation "$this % $other".');
   }
 
   Value plus(Value other) {
@@ -339,7 +339,7 @@ class SassNumber extends Value implements ext.SassNumber {
       return _coerceNumber(other, (num1, num2) => num1 + num2);
     }
     if (other is! SassColor) return super.plus(other);
-    throw new SassScriptException('Undefined operation "$this + $other".');
+    throw SassScriptException('Undefined operation "$this + $other".');
   }
 
   Value minus(Value other) {
@@ -347,7 +347,7 @@ class SassNumber extends Value implements ext.SassNumber {
       return _coerceNumber(other, (num1, num2) => num1 - num2);
     }
     if (other is! SassColor) return super.minus(other);
-    throw new SassScriptException('Undefined operation "$this - $other".');
+    throw SassScriptException('Undefined operation "$this - $other".');
   }
 
   Value times(Value other) {
@@ -355,7 +355,7 @@ class SassNumber extends Value implements ext.SassNumber {
       return _multiplyUnits(this.value * other.value, this.numeratorUnits,
           this.denominatorUnits, other.numeratorUnits, other.denominatorUnits);
     }
-    throw new SassScriptException('Undefined operation "$this * $other".');
+    throw SassScriptException('Undefined operation "$this * $other".');
   }
 
   Value dividedBy(Value other) {
@@ -368,7 +368,7 @@ class SassNumber extends Value implements ext.SassNumber {
 
   Value unaryPlus() => this;
 
-  Value unaryMinus() => new SassNumber.withUnits(-value,
+  Value unaryMinus() => SassNumber.withUnits(-value,
       numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
 
   /// Converts [other]'s value to be compatible with this number's, calls
@@ -379,7 +379,7 @@ class SassNumber extends Value implements ext.SassNumber {
   SassNumber _coerceNumber(
       SassNumber other, num operation(num num1, num num2)) {
     var result = _coerceUnits(other, operation);
-    return new SassNumber.withUnits(result,
+    return SassNumber.withUnits(result,
         numeratorUnits: hasUnits ? this.numeratorUnits : other.numeratorUnits,
         denominatorUnits:
             hasUnits ? this.denominatorUnits : other.denominatorUnits);
@@ -415,19 +415,19 @@ class SassNumber extends Value implements ext.SassNumber {
     if (numerators1.isEmpty) {
       if (denominators2.isEmpty &&
           !_areAnyConvertible(denominators1, numerators2)) {
-        return new SassNumber.withUnits(value,
+        return SassNumber.withUnits(value,
             numeratorUnits: numerators2, denominatorUnits: denominators1);
       } else if (denominators1.isEmpty) {
-        return new SassNumber.withUnits(value,
+        return SassNumber.withUnits(value,
             numeratorUnits: numerators2, denominatorUnits: denominators2);
       }
     } else if (numerators2.isEmpty) {
       if (denominators2.isEmpty) {
-        return new SassNumber.withUnits(value,
+        return SassNumber.withUnits(value,
             numeratorUnits: numerators1, denominatorUnits: denominators2);
       } else if (denominators1.isEmpty &&
           !_areAnyConvertible(numerators1, denominators2)) {
-        return new SassNumber.withUnits(value,
+        return SassNumber.withUnits(value,
             numeratorUnits: numerators1, denominatorUnits: denominators2);
       }
     }
@@ -459,7 +459,7 @@ class SassNumber extends Value implements ext.SassNumber {
       });
     }
 
-    return new SassNumber.withUnits(value,
+    return SassNumber.withUnits(value,
         numeratorUnits: newNumerators,
         denominatorUnits: mutableDenominators1..addAll(mutableDenominators2));
   }
@@ -536,5 +536,5 @@ class SassNumber extends Value implements ext.SassNumber {
 
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String name]) =>
-      new SassScriptException(name == null ? message : "\$$name: $message");
+      SassScriptException(name == null ? message : "\$$name: $message");
 }

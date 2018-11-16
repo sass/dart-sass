@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
-@Tags(const ['node'])
+@Tags(['node'])
 
 import 'package:test/test.dart';
 

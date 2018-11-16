@@ -21,7 +21,7 @@ final _interceptStdout = _require("intercept-stdout");
 Stream<String> interceptStderr() {
   void Function() unhook;
   StreamController<String> controller;
-  controller = new StreamController(onListen: () {
+  controller = StreamController(onListen: () {
     unhook = _interceptStdout(null, allowInterop((text) {
       controller.add(text);
       return "";

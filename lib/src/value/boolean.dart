@@ -7,10 +7,10 @@ import '../value.dart';
 import 'external/value.dart' as ext;
 
 /// The SassScript `true` value.
-const sassTrue = const SassBoolean._(true);
+const sassTrue = SassBoolean._(true);
 
 /// The SassScript `false` value.
-const sassFalse = const SassBoolean._(false);
+const sassFalse = SassBoolean._(false);
 
 class SassBoolean extends Value implements ext.SassBoolean {
   final bool value;

@@ -59,10 +59,10 @@ class ComplexSelector extends Selector {
   bool _isInvisible;
 
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
-      {this.lineBreak: false})
-      : components = new List.unmodifiable(components) {
+      {this.lineBreak = false})
+      : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
-      throw new ArgumentError("components may not be empty.");
+      throw ArgumentError("components may not be empty.");
     }
   }
 
@@ -103,15 +103,15 @@ abstract class ComplexSelectorComponent {}
 class Combinator implements ComplexSelectorComponent {
   /// Matches the right-hand selector if it's immediately adjacent to the
   /// left-hand selector in the DOM tree.
-  static const nextSibling = const Combinator._("+");
+  static const nextSibling = Combinator._("+");
 
   /// Matches the right-hand selector if it's a direct child of the left-hand
   /// selector in the DOM tree.
-  static const child = const Combinator._(">");
+  static const child = Combinator._(">");
 
   /// Matches the right-hand selector if it comes after the left-hand selector
   /// in the DOM tree.
-  static const followingSibling = const Combinator._("~");
+  static const followingSibling = Combinator._("~");
 
   /// The combinator's token text.
   final String _text;

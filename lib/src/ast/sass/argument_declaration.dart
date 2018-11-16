@@ -27,7 +27,7 @@ class ArgumentDeclaration implements SassNode {
 
   ArgumentDeclaration(Iterable<Argument> arguments,
       {this.restArgument, this.span})
-      : arguments = new List.unmodifiable(arguments);
+      : arguments = List.unmodifiable(arguments);
 
   /// Creates a declaration that declares no arguments.
   ArgumentDeclaration.empty({this.span})
@@ -41,7 +41,7 @@ class ArgumentDeclaration implements SassNode {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory ArgumentDeclaration.parse(String contents, {url, Logger logger}) =>
-      new ScssParser("($contents)", url: url, logger: logger)
+      ScssParser("($contents)", url: url, logger: logger)
           .parseArgumentDeclaration();
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
@@ -52,21 +52,21 @@ class ArgumentDeclaration implements SassNode {
       var argument = arguments[i];
       if (i < positional) {
         if (names.contains(argument.name)) {
-          throw new SassScriptException(
+          throw SassScriptException(
               "Argument \$${argument.name} was passed both by position and by "
               "name.");
         }
       } else if (names.contains(argument.name)) {
         namedUsed++;
       } else if (argument.defaultValue == null) {
-        throw new SassScriptException("Missing argument \$${argument.name}.");
+        throw SassScriptException("Missing argument \$${argument.name}.");
       }
     }
 
     if (restArgument != null) return;
 
     if (positional > arguments.length) {
-      throw new SassScriptException("Only ${arguments.length} "
+      throw SassScriptException("Only ${arguments.length} "
           "${pluralize('argument', arguments.length)} allowed, but "
           "${positional} ${pluralize('was', positional, plural: 'were')} "
           "passed.");
@@ -75,7 +75,7 @@ class ArgumentDeclaration implements SassNode {
     if (namedUsed < names.length) {
       var unknownNames = normalizedSet(names)
         ..removeAll(arguments.map((argument) => argument.name));
-      throw new SassScriptException(
+      throw SassScriptException(
           "No ${pluralize('argument', unknownNames.length)} named "
           "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.");
     }
@@ -101,7 +101,7 @@ class ArgumentDeclaration implements SassNode {
   }
 
   String toString() {
-    var components = new List.of(arguments.map((arg) => arg.toString()));
+    var components = List.of(arguments.map((arg) => arg.toString()));
     if (restArgument != null) components.add('$restArgument...');
     return components.join(', ');
   }

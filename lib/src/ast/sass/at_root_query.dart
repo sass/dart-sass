@@ -11,7 +11,7 @@ import '../css.dart';
 /// A query for the `@at-root` rule.
 class AtRootQuery {
   /// The default at-root query, which excludes only style rules.
-  static const defaultQuery = const AtRootQuery._default();
+  static const defaultQuery = AtRootQuery._default();
 
   /// Whether the query includes or excludes rules with the specified names.
   final bool include;
@@ -56,7 +56,7 @@ class AtRootQuery {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory AtRootQuery.parse(String contents, {url, Logger logger}) =>
-      new AtRootQueryParser(contents, url: url, logger: logger).parse();
+      AtRootQueryParser(contents, url: url, logger: logger).parse();
 
   /// Returns whether [this] excludes [node].
   bool excludes(CssParentNode node) {

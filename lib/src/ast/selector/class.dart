@@ -19,7 +19,7 @@ class ClassSelector extends SimpleSelector {
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitClassSelector(this);
 
-  ClassSelector addSuffix(String suffix) => new ClassSelector(name + suffix);
+  ClassSelector addSuffix(String suffix) => ClassSelector(name + suffix);
 
   int get hashCode => name.hashCode;
 }
