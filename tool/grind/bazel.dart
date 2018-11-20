@@ -53,7 +53,7 @@ updateBazel() async {
       arguments: [
         "push",
         "https://$username:$password@github.com/bazelbuild/rules_sass.git",
-        "master:master"
+        "HEAD:master"
       ],
       workingDirectory: repo);
 }
