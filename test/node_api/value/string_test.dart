@@ -45,7 +45,7 @@ void main() {
           equalsIgnoringWhitespace("a { b: bar; c: foo; }"));
     });
 
-    test("a quoted string preserves quoting, even when its value is set", () {
+    test("a quoted string becomes unquoted when its value is set", () {
       expect(
           renderSync(RenderOptions(
               data: r"a {b: foo('foo')}",
@@ -57,7 +57,7 @@ void main() {
                   return string;
                 }))
               }))),
-          equalsIgnoringWhitespace('a { b: "bar"; }'));
+          equalsIgnoringWhitespace('a { b: bar; }'));
     });
   });
 

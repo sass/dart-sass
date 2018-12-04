@@ -1,3 +1,10 @@
+## 1.15.2
+
+### Node JS API
+
+* When `setValue()` is called on a Sass string object, make it unquoted even if
+  it was quoted originally, to match the behavior of Node Sass.
+
 ## 1.15.1
 
 * Always add quotes to attribute selector values that begin with `--`, since IE
