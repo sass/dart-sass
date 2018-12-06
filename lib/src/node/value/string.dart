@@ -26,7 +26,7 @@ final Function stringConstructor = createClass(
 }, {
   'getValue': (_NodeSassString thisArg) => thisArg.dartValue.text,
   'setValue': (_NodeSassString thisArg, String value) {
-    thisArg.dartValue = SassString(value, quotes: thisArg.dartValue.hasQuotes);
+    thisArg.dartValue = SassString(value, quotes: false);
   },
   'toString': (_NodeSassString thisArg) => thisArg.dartValue.toString()
 });
