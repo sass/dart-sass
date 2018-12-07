@@ -24,6 +24,9 @@ class CssMediaQuery {
   /// Whether this media query only specifies features.
   bool get isCondition => modifier == null && type == null;
 
+  /// Whether this media query matches all media types.
+  bool get matchesAllTypes => type == null || equalsIgnoreCase(type, 'all');
+
   /// Parses a media query from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
@@ -77,7 +80,7 @@ class CssMediaQuery {
         } else {
           return MediaQueryMergeResult.unrepresentable;
         }
-      } else if (ourType == null || theirType == null) {
+      } else if (this.matchesAllTypes || other.matchesAllTypes) {
         return MediaQueryMergeResult.unrepresentable;
       }
 
@@ -112,11 +115,13 @@ class CssMediaQuery {
         // Otherwise, there's no way to represent the intersection.
         return MediaQueryMergeResult.unrepresentable;
       }
-    } else if (ourType == null) {
+    } else if (this.matchesAllTypes) {
       modifier = theirModifier;
-      type = theirType;
+      // Omit the type if either input query did, since that indicates that they
+      // aren't targeting a browser that requires "all and".
+      type = (other.matchesAllTypes && ourType == null) ? null : theirType;
       features = this.features.toList()..addAll(other.features);
-    } else if (theirType == null) {
+    } else if (other.matchesAllTypes) {
       modifier = ourModifier;
       type = ourType;
       features = this.features.toList()..addAll(other.features);
