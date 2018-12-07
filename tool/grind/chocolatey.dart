@@ -107,7 +107,7 @@ updateChocolatey() async {
   SecurityContext.defaultContext.setTrustedCertificates("tool/godaddy.pem");
 
   var request = http.MultipartRequest(
-      "PUT", Uri.parse("https://push.chocolatey.org/api/v2/package"));
+      "PUT", Uri.parse("https://chocolatey.org/api/v2/package"));
   request.headers["X-NuGet-Protocol-Version"] = "4.1.0";
   request.headers["X-NuGet-ApiKey"] = environment("CHOCO_TOKEN");
   request.files.add(await http.MultipartFile.fromPath(
