@@ -236,7 +236,7 @@ bool equalsIgnoreCase(String string1, String string2) {
 
   for (var i = 0; i < string1.length; i++) {
     if (!characterEqualsIgnoreCase(
-            string1.codeUnitAt(i), string2.codeUnitAt(i))) {
+        string1.codeUnitAt(i), string2.codeUnitAt(i))) {
       return false;
     }
   }
