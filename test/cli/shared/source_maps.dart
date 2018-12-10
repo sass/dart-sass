@@ -89,6 +89,34 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
   });
 
+  group("doesn't normalize file case", () {
+    setUp(() => d.file("TeSt.scss", "a {b: c}").create())
+
+    test("when loaded with the same case", () async {
+      await (await runSass(["TeSt.scss", "out.css"])).shouldExit(0);
+      expect(_readJson("out.css.map"), containsPair("sources", ["TeSt.scss"]));
+    });
+
+    test("when imported with the same case", () async {
+      await d.file("importer.scss", "@import 'TeSt.scss'").create();
+      await (await runSass(["importer.scss", "out.css"])).shouldExit(0);
+      expect(_readJson("out.css.map"), containsPair("sources", ["TeSt.scss"]));
+    });
+
+    // The following tests rely on Windows' case-insensitive filesystem.
+
+    test("when loaded with a different case", () async {
+      await (await runSass(["test.scss", "out.css"])).shouldExit(0);
+      expect(_readJson("out.css.map"), containsPair("sources", ["TeSt.scss"]));
+    }, testOn: "windows");
+
+    test("when imported with a different case", () async {
+      await d.file("importer.scss", "@import 'test.scss'").create();
+      await (await runSass(["importer.scss", "out.css"])).shouldExit(0);
+      expect(_readJson("out.css.map"), containsPair("sources", ["TeSt.scss"]));
+    }, testOn: "windows");
+  });
+
   test("includes a source map comment", () async {
     await d.file("test.scss", "a {b: c}").create();
     await (await runSass(["test.scss", "out.css"])).shouldExit(0);
