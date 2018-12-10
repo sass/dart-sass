@@ -1,3 +1,9 @@
+## 1.15.3
+
+* Properly merge `all and` media queries. These queries were previously being
+  merged as though `all` referred to a specific media type, rather than all
+  media types.
+
 ## 1.15.2
 
 ### Node JS API

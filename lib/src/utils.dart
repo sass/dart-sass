@@ -233,7 +233,14 @@ bool equalsIgnoreCase(String string1, String string2) {
   if (identical(string1, string2)) return true;
   if (string1 == null || string2 == null) return false;
   if (string1.length != string2.length) return false;
-  return string1.toUpperCase() == string2.toUpperCase();
+
+  for (var i = 0; i < string1.length; i++) {
+    if (!characterEqualsIgnoreCase(
+        string1.codeUnitAt(i), string2.codeUnitAt(i))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /// Returns whether [string] starts with [prefix], ignoring ASCII case.
