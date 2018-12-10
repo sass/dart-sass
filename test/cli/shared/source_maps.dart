@@ -90,7 +90,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   });
 
   group("doesn't normalize file case", () {
-    setUp(() => d.file("TeSt.scss", "a {b: c}").create())
+    setUp(() => d.file("TeSt.scss", "a {b: c}").create());
 
     test("when loaded with the same case", () async {
       await (await runSass(["TeSt.scss", "out.css"])).shouldExit(0);
