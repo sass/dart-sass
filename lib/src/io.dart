@@ -30,8 +30,9 @@ String realCasePath(String path) {
 
   if (!couldBeCaseInsensitive) return path;
 
-  var matches = listDir(p.basename(path))
-      .where((realPath) => equalsIgnoreCase(realPath, path))
+  var basename = p.basename(path);
+  var matches = listDir(p.dirname(path))
+      .where((realPath) => equalsIgnoreCase(p.basename(realPath), basename))
       .toList();
 
   // If the file doesn't exist, or if there are multiple options (meaning the
