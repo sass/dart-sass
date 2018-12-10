@@ -19,6 +19,8 @@ io.Stdout get stderr => io.stderr;
 
 bool get isWindows => io.Platform.isWindows;
 
+bool get isMacOS => io.Platform.isMacOS;
+
 bool get hasTerminal => io.stdout.hasTerminal;
 
 bool get isNode => false;

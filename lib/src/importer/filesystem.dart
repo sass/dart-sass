@@ -27,7 +27,9 @@ class FilesystemImporter extends Importer {
   ImporterResult load(Uri url) {
     var path = p.fromUri(url);
     return ImporterResult(io.readFile(path),
-        sourceMapUrl: url, syntax: Syntax.forPath(path));
+        sourceMapUrl:
+            io.couldBeCaseInsensitive ? p.toUri(io.realCasePath(path)) : url,
+        syntax: Syntax.forPath(path));
   }
 
   DateTime modificationTime(Uri url) => io.modificationTime(p.fromUri(url));
