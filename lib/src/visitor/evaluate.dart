@@ -6,6 +6,8 @@
 // See tool/synchronize.dart for details.
 //
 // Checksum: 07e2cda457e3bca4efd3b3f4742744c91c2970d8
+//
+// ignore_for_file: unused_import
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
