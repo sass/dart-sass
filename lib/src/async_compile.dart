@@ -21,45 +21,74 @@ import 'visitor/async_evaluate.dart';
 import 'visitor/serialize.dart';
 
 /// Like [compileAsync] in `lib/sass.dart`, but provides more options to support
-/// the node-sass compatible API.
+/// the node-sass compatible API and the executable.
+///
+/// No more than one of the following arguments or sets of arguments may be
+/// provided:
+///
+/// * `importCache`;
+/// * `nodeImporter`;
+/// * `importers`, `packageResolver`, and/or `loadPaths`.
 Future<CompileResult> compileAsync(String path,
-        {Syntax syntax,
-        Logger logger,
-        Iterable<AsyncImporter> importers,
-        NodeImporter nodeImporter,
-        SyncPackageResolver packageResolver,
-        Iterable<String> loadPaths,
-        Iterable<AsyncCallable> functions,
-        OutputStyle style,
-        bool useSpaces = true,
-        int indentWidth,
-        LineFeed lineFeed,
-        bool sourceMap = false}) =>
-    compileStringAsync(readFile(path),
-        syntax: syntax ?? Syntax.forPath(path),
-        logger: logger,
-        importers: importers,
-        nodeImporter: nodeImporter,
-        packageResolver: packageResolver,
-        loadPaths: loadPaths,
-        importer: FilesystemImporter('.'),
-        functions: functions,
-        style: style,
-        useSpaces: useSpaces,
-        indentWidth: indentWidth,
-        lineFeed: lineFeed,
-        url: p.toUri(path),
-        sourceMap: sourceMap);
+    {Syntax syntax,
+    Logger logger,
+    AsyncImportCache importCache,
+    NodeImporter nodeImporter,
+    Iterable<AsyncImporter> importers,
+    Iterable<String> loadPaths,
+    SyncPackageResolver packageResolver,
+    Iterable<AsyncCallable> functions,
+    OutputStyle style,
+    bool useSpaces = true,
+    int indentWidth,
+    LineFeed lineFeed,
+    bool sourceMap = false}) async {
+  // If the syntax is different than the importer would default to, we have to
+  // parse the file manually and we can't store it in the cache.
+  Stylesheet stylesheet;
+  if (nodeImporter == null &&
+      (syntax == null || syntax == Syntax.forPath(path))) {
+    importCache ??= AsyncImportCache(importers,
+        loadPaths: loadPaths, packageResolver: packageResolver, logger: logger);
+    stylesheet = await importCache.importCanonical(
+        FilesystemImporter('.'), p.toUri(p.canonicalize(path)), p.toUri(path));
+  } else {
+    stylesheet = Stylesheet.parse(
+        readFile(path), syntax ?? Syntax.forPath(path),
+        url: p.toUri(path), logger: logger);
+  }
+
+  return await _compileStylesheet(
+      stylesheet,
+      logger,
+      importCache,
+      nodeImporter,
+      FilesystemImporter('.'),
+      functions,
+      style,
+      useSpaces,
+      indentWidth,
+      lineFeed,
+      sourceMap);
+}
 
 /// Like [compileStringAsync] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
+///
+/// No more than one of the following arguments or sets of arguments may be
+/// provided:
+///
+/// * `importCache`;
+/// * `nodeImporter`;
+/// * `importers`, `packageResolver`, and/or `loadPaths`.
 Future<CompileResult> compileStringAsync(String source,
     {Syntax syntax,
     Logger logger,
-    Iterable<AsyncImporter> importers,
+    AsyncImportCache importCache,
     NodeImporter nodeImporter,
-    SyncPackageResolver packageResolver,
+    Iterable<AsyncImporter> importers,
     Iterable<String> loadPaths,
+    SyncPackageResolver packageResolver,
     AsyncImporter importer,
     Iterable<AsyncCallable> functions,
     OutputStyle style,
@@ -71,11 +100,42 @@ Future<CompileResult> compileStringAsync(String source,
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 
+  if (nodeImporter == null) {
+    importCache ??= AsyncImportCache(importers,
+        loadPaths: loadPaths, packageResolver: packageResolver, logger: logger);
+  }
+
+  return _compileStylesheet(
+      stylesheet,
+      logger,
+      importCache,
+      nodeImporter,
+      importer ?? FilesystemImporter('.'),
+      functions,
+      style,
+      useSpaces,
+      indentWidth,
+      lineFeed,
+      sourceMap);
+}
+
+/// Compiles [stylesheet] and returns its result.
+///
+/// Arguments are handled as for [compileStringAsync].
+Future<CompileResult> _compileStylesheet(
+    Stylesheet stylesheet,
+    Logger logger,
+    AsyncImportCache importCache,
+    NodeImporter nodeImporter,
+    AsyncImporter importer,
+    Iterable<AsyncCallable> functions,
+    OutputStyle style,
+    bool useSpaces,
+    int indentWidth,
+    LineFeed lineFeed,
+    bool sourceMap) async {
   var evaluateResult = await evaluateAsync(stylesheet,
-      importCache: AsyncImportCache(importers,
-          loadPaths: loadPaths,
-          packageResolver: packageResolver,
-          logger: logger),
+      importCache: importCache,
       nodeImporter: nodeImporter,
       importer: importer,
       functions: functions,

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 5ce549b3c33e03ea84c9caf4933d88be9c993ba1
+// Checksum: ece42e2134684c290c8d921521c863857664d323
 //
 // ignore_for_file: unused_import
 
@@ -29,45 +29,74 @@ import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
 
 /// Like [compile] in `lib/sass.dart`, but provides more options to support
-/// the node-sass compatible API.
+/// the node-sass compatible API and the executable.
+///
+/// No more than one of the following arguments or sets of arguments may be
+/// provided:
+///
+/// * `importCache`;
+/// * `nodeImporter`;
+/// * `importers`, `packageResolver`, and/or `loadPaths`.
 CompileResult compile(String path,
-        {Syntax syntax,
-        Logger logger,
-        Iterable<Importer> importers,
-        NodeImporter nodeImporter,
-        SyncPackageResolver packageResolver,
-        Iterable<String> loadPaths,
-        Iterable<Callable> functions,
-        OutputStyle style,
-        bool useSpaces = true,
-        int indentWidth,
-        LineFeed lineFeed,
-        bool sourceMap = false}) =>
-    compileString(readFile(path),
-        syntax: syntax ?? Syntax.forPath(path),
-        logger: logger,
-        importers: importers,
-        nodeImporter: nodeImporter,
-        packageResolver: packageResolver,
-        loadPaths: loadPaths,
-        importer: FilesystemImporter('.'),
-        functions: functions,
-        style: style,
-        useSpaces: useSpaces,
-        indentWidth: indentWidth,
-        lineFeed: lineFeed,
-        url: p.toUri(path),
-        sourceMap: sourceMap);
+    {Syntax syntax,
+    Logger logger,
+    ImportCache importCache,
+    NodeImporter nodeImporter,
+    Iterable<Importer> importers,
+    Iterable<String> loadPaths,
+    SyncPackageResolver packageResolver,
+    Iterable<Callable> functions,
+    OutputStyle style,
+    bool useSpaces = true,
+    int indentWidth,
+    LineFeed lineFeed,
+    bool sourceMap = false}) {
+  // If the syntax is different than the importer would default to, we have to
+  // parse the file manually and we can't store it in the cache.
+  Stylesheet stylesheet;
+  if (nodeImporter == null &&
+      (syntax == null || syntax == Syntax.forPath(path))) {
+    importCache ??= ImportCache(importers,
+        loadPaths: loadPaths, packageResolver: packageResolver, logger: logger);
+    stylesheet = importCache.importCanonical(
+        FilesystemImporter('.'), p.toUri(p.canonicalize(path)), p.toUri(path));
+  } else {
+    stylesheet = Stylesheet.parse(
+        readFile(path), syntax ?? Syntax.forPath(path),
+        url: p.toUri(path), logger: logger);
+  }
+
+  return _compileStylesheet(
+      stylesheet,
+      logger,
+      importCache,
+      nodeImporter,
+      FilesystemImporter('.'),
+      functions,
+      style,
+      useSpaces,
+      indentWidth,
+      lineFeed,
+      sourceMap);
+}
 
 /// Like [compileString] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
+///
+/// No more than one of the following arguments or sets of arguments may be
+/// provided:
+///
+/// * `importCache`;
+/// * `nodeImporter`;
+/// * `importers`, `packageResolver`, and/or `loadPaths`.
 CompileResult compileString(String source,
     {Syntax syntax,
     Logger logger,
-    Iterable<Importer> importers,
+    ImportCache importCache,
     NodeImporter nodeImporter,
-    SyncPackageResolver packageResolver,
+    Iterable<Importer> importers,
     Iterable<String> loadPaths,
+    SyncPackageResolver packageResolver,
     Importer importer,
     Iterable<Callable> functions,
     OutputStyle style,
@@ -79,11 +108,42 @@ CompileResult compileString(String source,
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 
+  if (nodeImporter == null) {
+    importCache ??= ImportCache(importers,
+        loadPaths: loadPaths, packageResolver: packageResolver, logger: logger);
+  }
+
+  return _compileStylesheet(
+      stylesheet,
+      logger,
+      importCache,
+      nodeImporter,
+      importer ?? FilesystemImporter('.'),
+      functions,
+      style,
+      useSpaces,
+      indentWidth,
+      lineFeed,
+      sourceMap);
+}
+
+/// Compiles [stylesheet] and returns its result.
+///
+/// Arguments are handled as for [compileString].
+CompileResult _compileStylesheet(
+    Stylesheet stylesheet,
+    Logger logger,
+    ImportCache importCache,
+    NodeImporter nodeImporter,
+    Importer importer,
+    Iterable<Callable> functions,
+    OutputStyle style,
+    bool useSpaces,
+    int indentWidth,
+    LineFeed lineFeed,
+    bool sourceMap) {
   var evaluateResult = evaluate(stylesheet,
-      importCache: ImportCache(importers,
-          loadPaths: loadPaths,
-          packageResolver: packageResolver,
-          logger: logger),
+      importCache: importCache,
       nodeImporter: nodeImporter,
       importer: importer,
       functions: functions,
