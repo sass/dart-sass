@@ -4,6 +4,9 @@
   merged as though `all` referred to a specific media type, rather than all
   media types.
 
+* Match Ruby Sass's behavior in some edge-cases involving numbers with many
+  significant digits.
+
 ## 1.15.2
 
 ### Node JS API

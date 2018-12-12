@@ -8,7 +8,7 @@ import '../value.dart';
 
 /// The maximum distance two Sass numbers are allowed to be from one another
 /// before they're considered different.
-final epsilon = 1 / math.pow(10, SassNumber.precision);
+final epsilon = 1 / math.pow(10, SassNumber.precision + 1);
 
 /// `epsilon / 2`, cached since [math.pow] may not be computed at compile-time
 /// and thus this probably won't be constant-folded.

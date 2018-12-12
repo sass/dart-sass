@@ -204,6 +204,24 @@ abstract class Parser {
     return buffer.toString();
   }
 
+  /// Consumes and returns a natural number (that is, a non-negative integer).
+  ///
+  /// Doesn't support scientific notation.
+  @protected
+  int naturalNumber() {
+    var first = scanner.readChar();
+    if (!isDigit(first)) {
+      scanner.error("Expected digit.", position: scanner.position - 1);
+    }
+
+    var number = asDecimal(first);
+    while (isDigit(scanner.peekChar())) {
+      number *= 10;
+      number += asDecimal(scanner.readChar());
+    }
+    return number;
+  }
+
   /// Consumes tokens until it reaches a top-level `";"`, `")"`, `"]"`,
   /// or `"}"` and returns their contents as a string.
   ///
