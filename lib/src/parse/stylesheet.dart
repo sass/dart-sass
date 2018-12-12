@@ -2006,6 +2006,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// dot without any numbers following it. Otherwise, it will ignore the dot
   /// without consuming it.
   num _tryDecimal({bool allowTrailingDot = false}) {
+    var start = scanner.position;
     if (scanner.peekChar() != $dot) return 0;
 
     if (!isDigit(scanner.peekChar(1))) {
