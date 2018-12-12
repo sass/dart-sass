@@ -23,20 +23,12 @@ import 'visitor/serialize.dart';
 /// Like [compileAsync] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
 ///
-/// No more than one of the following arguments or sets of arguments may be
-/// provided:
-///
-/// * `importCache`;
-/// * `nodeImporter`;
-/// * `importers`, `packageResolver`, and/or `loadPaths`.
+/// At most one of `importCache` and `nodeImporter` may be provided at once.
 Future<CompileResult> compileAsync(String path,
     {Syntax syntax,
     Logger logger,
     AsyncImportCache importCache,
     NodeImporter nodeImporter,
-    Iterable<AsyncImporter> importers,
-    Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver,
     Iterable<AsyncCallable> functions,
     OutputStyle style,
     bool useSpaces = true,
@@ -48,8 +40,7 @@ Future<CompileResult> compileAsync(String path,
   Stylesheet stylesheet;
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
-    importCache ??= AsyncImportCache(importers,
-        loadPaths: loadPaths, packageResolver: packageResolver, logger: logger);
+    importCache ??= AsyncImportCache.none(logger: logger);
     stylesheet = await importCache.importCanonical(
         FilesystemImporter('.'), p.toUri(p.canonicalize(path)), p.toUri(path));
   } else {
@@ -75,12 +66,7 @@ Future<CompileResult> compileAsync(String path,
 /// Like [compileStringAsync] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
 ///
-/// No more than one of the following arguments or sets of arguments may be
-/// provided:
-///
-/// * `importCache`;
-/// * `nodeImporter`;
-/// * `importers`, `packageResolver`, and/or `loadPaths`.
+/// At most one of `importCache` and `nodeImporter` may be provided at once.
 Future<CompileResult> compileStringAsync(String source,
     {Syntax syntax,
     Logger logger,
@@ -99,11 +85,6 @@ Future<CompileResult> compileStringAsync(String source,
     bool sourceMap = false}) async {
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
-
-  if (nodeImporter == null) {
-    importCache ??= AsyncImportCache(importers,
-        loadPaths: loadPaths, packageResolver: packageResolver, logger: logger);
-  }
 
   return _compileStylesheet(
       stylesheet,

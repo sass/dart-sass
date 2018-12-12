@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: ece42e2134684c290c8d921521c863857664d323
+// Checksum: e6de63e581c0f4da96756b9e2904bd81a090dc5b
 //
 // ignore_for_file: unused_import
 
@@ -31,20 +31,12 @@ import 'visitor/serialize.dart';
 /// Like [compile] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
 ///
-/// No more than one of the following arguments or sets of arguments may be
-/// provided:
-///
-/// * `importCache`;
-/// * `nodeImporter`;
-/// * `importers`, `packageResolver`, and/or `loadPaths`.
+/// At most one of `importCache` and `nodeImporter` may be provided at once.
 CompileResult compile(String path,
     {Syntax syntax,
     Logger logger,
     ImportCache importCache,
     NodeImporter nodeImporter,
-    Iterable<Importer> importers,
-    Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver,
     Iterable<Callable> functions,
     OutputStyle style,
     bool useSpaces = true,
@@ -56,8 +48,7 @@ CompileResult compile(String path,
   Stylesheet stylesheet;
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
-    importCache ??= ImportCache(importers,
-        loadPaths: loadPaths, packageResolver: packageResolver, logger: logger);
+    importCache ??= ImportCache.none(logger: logger);
     stylesheet = importCache.importCanonical(
         FilesystemImporter('.'), p.toUri(p.canonicalize(path)), p.toUri(path));
   } else {
@@ -83,12 +74,7 @@ CompileResult compile(String path,
 /// Like [compileString] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
 ///
-/// No more than one of the following arguments or sets of arguments may be
-/// provided:
-///
-/// * `importCache`;
-/// * `nodeImporter`;
-/// * `importers`, `packageResolver`, and/or `loadPaths`.
+/// At most one of `importCache` and `nodeImporter` may be provided at once.
 CompileResult compileString(String source,
     {Syntax syntax,
     Logger logger,
@@ -107,11 +93,6 @@ CompileResult compileString(String source,
     bool sourceMap = false}) {
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
-
-  if (nodeImporter == null) {
-    importCache ??= ImportCache(importers,
-        loadPaths: loadPaths, packageResolver: packageResolver, logger: logger);
-  }
 
   return _compileStylesheet(
       stylesheet,

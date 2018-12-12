@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 54045771e1267d445a733a83d9fb7e40439d886e
+// Checksum: 4989811a7b432e181ccc42004e91f4fe54a786ca
 //
 // ignore_for_file: unused_import
 
@@ -22,9 +22,6 @@ import 'utils.dart'; // ignore: unused_import
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
 class ImportCache {
-  /// A cache that contains no importers.
-  static const none = ImportCache._none();
-
   /// The importers to use when loading new Sass files.
   final List<Importer> _importers;
 
@@ -64,6 +61,13 @@ class ImportCache {
       SyncPackageResolver packageResolver,
       Logger logger})
       : _importers = _toImporters(importers, loadPaths, packageResolver),
+        _logger = logger ?? const Logger.stderr(),
+        _canonicalizeCache = {},
+        _importCache = {};
+
+  /// Creates an import cache without any globally-avaiable importers.
+  ImportCache.none({Logger logger})
+      : _importers = const [],
         _logger = logger ?? const Logger.stderr(),
         _canonicalizeCache = {},
         _importCache = {};
