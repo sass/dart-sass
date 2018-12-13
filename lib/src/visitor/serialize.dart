@@ -688,13 +688,16 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 
     var text = number.toString();
     if (text.contains("e")) text = _removeExponent(text);
-    if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
 
     // Any double that doesn't contain "e" and is less than
     // `SassNumber.precision + 2` digits long is guaranteed to be safe to emit
     // directly, since it'll contain at most `0.` followed by
     // [SassNumber.precision] digits.
-    if (text.length < SassNumber.precision + 2) {
+    var canWriteDirectly = text.length < SassNumber.precision + 2;
+
+    if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
+
+    if (canWriteDirectly) {
       _buffer.write(text);
       return;
     }
