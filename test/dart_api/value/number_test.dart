@@ -79,10 +79,14 @@ main() {
     test("doesn't equal a different number", () {
       expect(value, isNot(equals(SassNumber(124))));
       expect(value, isNot(equals(SassNumber(122))));
-      expect(value,
-          isNot(equals(SassNumber(123 + math.pow(10, -SassNumber.precision - 1)))));
-      expect(value,
-          isNot(equals(SassNumber(123 - math.pow(10, -SassNumber.precision - 1)))));
+      expect(
+          value,
+          isNot(equals(
+              SassNumber(123 + math.pow(10, -SassNumber.precision - 1)))));
+      expect(
+          value,
+          isNot(equals(
+              SassNumber(123 - math.pow(10, -SassNumber.precision - 1)))));
     });
 
     test("doesn't equal a number with units", () {

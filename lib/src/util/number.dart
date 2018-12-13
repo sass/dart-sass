@@ -16,7 +16,7 @@ bool fuzzyEquals(num number1, num number2) =>
 
 /// `1 / epsilon`, cached since [math.pow] may not be computed at compile-time
 /// and thus this probably won't be constant-folded.
-final _inverseEpsilon = 1/epsilon;
+final _inverseEpsilon = 1 / epsilon;
 
 /// Returns a hash code for [number] that matches [fuzzyEquals].
 int fuzzyHashCode(num number) => (number * _inverseEpsilon).round().hashCode;
