@@ -756,7 +756,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     // after the decimal point, and that we round appropriately if necessary. To
     // do this, we maintain an intermediate buffer of decimal digits, which we
     // then convert to text.
-    var digits = Uint8List(text.length - textIndex);
+    var digits = Uint8List(SassNumber.precision);
     var digitsIndex = 0;
     while (textIndex < text.length && digitsIndex < digits.length) {
       digits[digitsIndex++] = asDecimal(text.codeUnitAt(textIndex++));
