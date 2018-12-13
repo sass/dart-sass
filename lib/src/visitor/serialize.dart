@@ -25,19 +25,6 @@ import 'interface/css.dart';
 import 'interface/selector.dart';
 import 'interface/value.dart';
 
-/// Units that can be omitted for 0 values in compressed mode.
-///
-/// This comes from https://www.w3.org/TR/css3-values/, which says "for zero
-/// [lengths and angles] the unit identifier is optional".
-///
-/// Normally we avoid encoding this much information about CSS semantics, but
-/// since this is just for an optimization it won't cause user pain if it takes
-/// us a while to add new units.
-final _compressibleUnits = Set.of([
-  "em", "ex", "ch", "rem", "vw", "wh", "vmin", "vmax", "cm", "mm", "q", "in", //
-  "pt", "pc", "px", "deg", "rad", "turn"
-]);
-
 /// Converts [node] to a CSS string.
 ///
 /// If [style] is passed, it controls the style of the resulting CSS. It
@@ -647,15 +634,6 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
       visitNumber(value.asSlash.item1);
       _buffer.writeCharCode($slash);
       visitNumber(value.asSlash.item2);
-      return;
-    }
-
-    if (_isCompressed &&
-        fuzzyEquals(value.value, 0) &&
-        value.denominatorUnits.isEmpty &&
-        value.numeratorUnits.length == 1 &&
-        _compressibleUnits.contains(value.numeratorUnits.first)) {
-      _buffer.writeCharCode($0);
       return;
     }
 
