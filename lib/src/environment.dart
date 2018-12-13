@@ -6,6 +6,8 @@
 // See tool/synchronize.dart for details.
 //
 // Checksum: 9e0f9274f4778b701f268bcf4fc349a1cf17a159
+//
+// ignore_for_file: unused_import
 
 import 'package:source_span/source_span.dart';
 

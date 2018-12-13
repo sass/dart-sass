@@ -8,16 +8,13 @@ import 'dart:convert';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 
-import '../../sass.dart';
-import '../ast/sass.dart';
 import '../async_import_cache.dart';
-import '../import_cache.dart';
+import '../compile.dart';
+import '../visitor/serialize.dart';
+import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../syntax.dart';
-import '../visitor/async_evaluate.dart';
-import '../visitor/evaluate.dart';
-import '../visitor/serialize.dart';
 import 'options.dart';
 
 /// Compiles the stylesheet at [source] to [destination].
@@ -48,25 +45,53 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
     }
   }
 
-  var stylesheet = await _parseStylesheet(options, graph.importCache, source);
-  var evaluateResult = options.asynchronous
-      ? await evaluateAsync(stylesheet,
-          importCache: AsyncImportCache([],
-              loadPaths: options.loadPaths, logger: options.logger),
-          importer: importer,
-          logger: options.logger,
-          sourceMap: options.emitSourceMap)
-      : evaluate(stylesheet,
-          importCache: graph.importCache,
-          importer: importer,
-          logger: options.logger,
-          sourceMap: options.emitSourceMap);
+  Syntax syntax;
+  if (options.indented == true) {
+    syntax = Syntax.sass;
+  } else if (source != null) {
+    syntax = Syntax.forPath(source);
+  } else {
+    syntax = Syntax.scss;
+  }
 
-  var serializeResult = serialize(evaluateResult.stylesheet,
-      style: options.style, sourceMap: options.emitSourceMap);
+  CompileResult result;
+  if (options.asynchronous) {
+    var importCache = AsyncImportCache([],
+        loadPaths: options.loadPaths, logger: options.logger);
 
-  var css = serializeResult.css;
-  css += _writeSourceMap(options, serializeResult.sourceMap, destination);
+    result = source == null
+        ? await compileStringAsync(await readStdin(),
+            syntax: syntax,
+            logger: options.logger,
+            importCache: importCache,
+            importer: FilesystemImporter('.'),
+            style: options.style,
+            sourceMap: options.emitSourceMap)
+        : await compileAsync(source,
+            syntax: syntax,
+            logger: options.logger,
+            importCache: importCache,
+            style: options.style,
+            sourceMap: options.emitSourceMap);
+  } else {
+    result = source == null
+        ? compileString(await readStdin(),
+            syntax: syntax,
+            logger: options.logger,
+            importCache: graph.importCache,
+            importer: FilesystemImporter('.'),
+            style: options.style,
+            sourceMap: options.emitSourceMap)
+        : compile(source,
+            syntax: syntax,
+            logger: options.logger,
+            importCache: graph.importCache,
+            style: options.style,
+            sourceMap: options.emitSourceMap);
+  }
+
+  var css = result.css;
+  css += _writeSourceMap(options, result.sourceMap, destination);
   if (destination == null) {
     if (css.isNotEmpty) print(css);
   } else {
@@ -83,34 +108,6 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   buffer.write('Compiled $sourceName to $destinationName.');
   if (options.color) buffer.write('\u001b[0m');
   print(buffer);
-}
-
-/// Parses [source] according to [options], loading it from [graph] if
-/// possible.
-///
-/// Returns the parsed [Stylesheet].
-Future<Stylesheet> _parseStylesheet(
-    ExecutableOptions options, ImportCache importCache, String source) async {
-  // Import from the cache if possible so it caches the file in case anything
-  // else imports it.
-  if (source != null && options.indented == null) {
-    return importCache.importCanonical(FilesystemImporter('.'),
-        p.toUri(p.canonicalize(source)), p.toUri(source));
-  }
-
-  var text = source == null ? await readStdin() : readFile(source);
-  var url = source == null ? null : p.toUri(source);
-
-  Syntax syntax;
-  if (options.indented == true) {
-    syntax = Syntax.sass;
-  } else if (source != null) {
-    syntax = Syntax.forPath(source);
-  } else {
-    syntax = Syntax.scss;
-  }
-
-  return Stylesheet.parse(text, syntax, url: url, logger: options.logger);
 }
 
 /// Writes the source map given by [mapping] to disk (if necessary) according to

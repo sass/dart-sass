@@ -204,7 +204,9 @@ class _EvaluateVisitor
       Map<String, Value> variables,
       Logger logger,
       bool sourceMap})
-      : _importCache = importCache ?? AsyncImportCache.none,
+      : _importCache = nodeImporter == null
+            ? importCache ?? AsyncImportCache.none(logger: logger)
+            : null,
         _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
@@ -1815,10 +1817,11 @@ class _EvaluateVisitor
 
   /// Creates a new stack frame with location information from [member] and
   /// [span].
-  Frame _stackFrame(String member, FileSpan span) => frameForSpan(span, member,
-      url: span.sourceUrl == null
-          ? null
-          : _importCache.humanize(span.sourceUrl));
+  Frame _stackFrame(String member, FileSpan span) {
+    var url = span.sourceUrl;
+    if (url != null && _importCache != null) url = _importCache.humanize(url);
+    return frameForSpan(span, member, url: url);
+  }
 
   /// Returns a stack trace at the current point.
   ///
