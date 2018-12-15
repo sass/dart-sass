@@ -22,9 +22,9 @@ class MixinRule extends CallableDeclaration {
   /// recursively contains a `@content` rule. Otherwise, invoking this mixin
   /// won't work correctly.
   MixinRule(String name, ArgumentDeclaration arguments,
-      Iterable<Statement> children, FileSpan span,
+      Iterable<Statement> children, FileSpan span, String comment,
       {this.hasContent = false})
-      : super(name, arguments, children, span);
+      : super(name, arguments, children, span, comment);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
 

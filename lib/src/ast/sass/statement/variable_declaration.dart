@@ -17,6 +17,9 @@ class VariableDeclaration implements Statement {
   /// The name of the variable.
   final String name;
 
+  /// The documentation comment immediatly preceding this variable declaration.
+  String comment;
+
   /// The value the variable is being assigned to.
   final Expression expression;
 
@@ -32,7 +35,7 @@ class VariableDeclaration implements Statement {
 
   final FileSpan span;
 
-  VariableDeclaration(this.name, this.expression, this.span,
+  VariableDeclaration(this.name, this.expression, this.span, this.comment,
       {bool guarded = false, bool global = false})
       : isGuarded = guarded,
         isGlobal = global;

@@ -13,7 +13,7 @@ import 'callable_declaration.dart';
 class ContentBlock extends CallableDeclaration {
   ContentBlock(ArgumentDeclaration arguments, Iterable<Statement> children,
       FileSpan span)
-      : super(null /* name */, arguments, children, span);
+      : super(null /* name */, arguments, children, span, null);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentBlock(this);
 
