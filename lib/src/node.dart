@@ -16,6 +16,7 @@ import 'callable.dart';
 import 'compile.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
+import 'io.dart';
 import 'importer/node.dart';
 import 'node/error.dart';
 import 'node/exports.dart';
