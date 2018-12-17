@@ -13,11 +13,16 @@ import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 
 /// The files to compile to synchronous versions.
-final _sources = {
+final _sources = const {
   'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
+  'lib/src/async_compile.dart': 'lib/src/compile.dart',
   'lib/src/async_environment.dart': 'lib/src/environment.dart',
   'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart'
 };
+
+/// Classes that are defined in the async version of a file and used as-is in
+/// the sync version, and thus should not be copied over.
+final _sharedClasses = const ['EvaluateResult', 'CompileResult'];
 
 /// This is how we support both synchronous and asynchronous compilation modes.
 ///
@@ -73,12 +78,19 @@ class _Visitor extends RecursiveAstVisitor {
 // See tool/synchronize.dart for details.
 //
 // Checksum: ${sha1.convert(utf8.encode(_source))}
+//
+// ignore_for_file: unused_import
 """);
 
     if (p.basename(path) == 'async_evaluate.dart') {
       _buffer.writeln();
       _buffer.writeln("import 'async_evaluate.dart' show EvaluateResult;");
       _buffer.writeln("export 'async_evaluate.dart' show EvaluateResult;");
+      _buffer.writeln();
+    } else if (p.basename(path) == 'async_compile.dart') {
+      _buffer.writeln();
+      _buffer.writeln("import 'async_compile.dart';");
+      _buffer.writeln("export 'async_compile.dart';");
       _buffer.writeln();
     }
 
@@ -109,7 +121,7 @@ class _Visitor extends RecursiveAstVisitor {
   }
 
   void visitClassDeclaration(ClassDeclaration node) {
-    if (node.name.name == 'EvaluateResult') {
+    if (_sharedClasses.contains(node.name.name)) {
       _skipNode(node);
     } else {
       super.visitClassDeclaration(node);

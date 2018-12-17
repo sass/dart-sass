@@ -10,6 +10,9 @@
   better to do this optimization in a dedicated compressor that's aware of CSS
   property semantics.
 
+* Match Ruby Sass's behavior in some edge-cases involving numbers with many
+  significant digits.
+
 ## 1.15.2
 
 ### Node JS API

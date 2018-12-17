@@ -69,20 +69,24 @@ main() {
       expect(
           value,
           equalsWithHash(
-              SassNumber(123 + math.pow(10, -SassNumber.precision - 1))));
+              SassNumber(123 + math.pow(10, -SassNumber.precision - 2))));
       expect(
           value,
           equalsWithHash(
-              SassNumber(123 - math.pow(10, -SassNumber.precision - 1))));
+              SassNumber(123 - math.pow(10, -SassNumber.precision - 2))));
     });
 
     test("doesn't equal a different number", () {
       expect(value, isNot(equals(SassNumber(124))));
       expect(value, isNot(equals(SassNumber(122))));
-      expect(value,
-          isNot(equals(SassNumber(123 + math.pow(10, -SassNumber.precision)))));
-      expect(value,
-          isNot(equals(SassNumber(123 - math.pow(10, -SassNumber.precision)))));
+      expect(
+          value,
+          isNot(equals(
+              SassNumber(123 + math.pow(10, -SassNumber.precision - 1)))));
+      expect(
+          value,
+          isNot(equals(
+              SassNumber(123 - math.pow(10, -SassNumber.precision - 1)))));
     });
 
     test("doesn't equal a number with units", () {
@@ -119,10 +123,10 @@ main() {
 
   group("a unitless fuzzy integer", () {
     SassNumber value;
-    setUp(() => value = parseValue("123.00000000001") as SassNumber);
+    setUp(() => value = parseValue("123.000000000001") as SassNumber);
 
     test("has the correct value", () {
-      expect(value.value, equals(123.00000000001));
+      expect(value.value, equals(123.000000000001));
     });
 
     test("is an int", () {
@@ -135,7 +139,7 @@ main() {
       expect(
           value,
           equalsWithHash(
-              SassNumber(123 + math.pow(10, -SassNumber.precision - 1))));
+              SassNumber(123 + math.pow(10, -SassNumber.precision - 2))));
     });
 
     test("equals the same number within precision tolerance", () {
@@ -143,7 +147,7 @@ main() {
       expect(
           value,
           equalsWithHash(
-              SassNumber(123 - math.pow(10, -SassNumber.precision - 1))));
+              SassNumber(123 - math.pow(10, -SassNumber.precision - 2))));
     });
 
     group("valueInRange()", () {

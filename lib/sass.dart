@@ -9,9 +9,11 @@ import 'dart:async';
 
 import 'package:source_maps/source_maps.dart';
 
+import 'src/async_import_cache.dart';
 import 'src/callable.dart';
 import 'src/compile.dart' as c;
 import 'src/exception.dart';
+import 'src/import_cache.dart';
 import 'src/importer.dart';
 import 'src/logger.dart';
 import 'src/sync_package_resolver.dart';
@@ -86,11 +88,13 @@ String compile(String path,
     Iterable<Callable> functions,
     OutputStyle style,
     void sourceMap(SingleMapping map)}) {
+  logger ??= Logger.stderr(color: color);
   var result = c.compile(path,
-      logger: logger ?? Logger.stderr(color: color),
-      importers: importers,
-      loadPaths: loadPaths,
-      packageResolver: packageResolver,
+      logger: logger,
+      importCache: ImportCache(importers,
+          logger: logger,
+          loadPaths: loadPaths,
+          packageResolver: packageResolver),
       functions: functions,
       style: style,
       sourceMap: sourceMap != null);
@@ -167,12 +171,14 @@ String compileString(String source,
     url,
     void sourceMap(SingleMapping map),
     @Deprecated("Use syntax instead.") bool indented = false}) {
+  logger ??= Logger.stderr(color: color);
   var result = c.compileString(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
-      logger: logger ?? Logger.stderr(color: color),
-      importers: importers,
-      packageResolver: packageResolver,
-      loadPaths: loadPaths,
+      logger: logger,
+      importCache: ImportCache(importers,
+          logger: logger,
+          packageResolver: packageResolver,
+          loadPaths: loadPaths),
       functions: functions,
       style: style,
       importer: importer,
@@ -196,11 +202,13 @@ Future<String> compileAsync(String path,
     Iterable<AsyncCallable> functions,
     OutputStyle style,
     void sourceMap(SingleMapping map)}) async {
+  logger ??= Logger.stderr(color: color);
   var result = await c.compileAsync(path,
-      logger: logger ?? Logger.stderr(color: color),
-      importers: importers,
-      loadPaths: loadPaths,
-      packageResolver: packageResolver,
+      logger: logger,
+      importCache: AsyncImportCache(importers,
+          logger: logger,
+          loadPaths: loadPaths,
+          packageResolver: packageResolver),
       functions: functions,
       style: style,
       sourceMap: sourceMap != null);
@@ -226,12 +234,14 @@ Future<String> compileStringAsync(String source,
     url,
     void sourceMap(SingleMapping map),
     @Deprecated("Use syntax instead.") bool indented = false}) async {
+  logger ??= Logger.stderr(color: color);
   var result = await c.compileStringAsync(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
-      logger: logger ?? Logger.stderr(color: color),
-      importers: importers,
-      packageResolver: packageResolver,
-      loadPaths: loadPaths,
+      logger: logger,
+      importCache: AsyncImportCache(importers,
+          logger: logger,
+          packageResolver: packageResolver,
+          loadPaths: loadPaths),
       functions: functions,
       style: style,
       importer: importer,

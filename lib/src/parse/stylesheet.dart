@@ -1979,14 +1979,7 @@ relase. For details, see http://bit.ly/moz-document.
     var sign = first == $minus ? -1 : 1;
     if (first == $plus || first == $minus) scanner.readChar();
 
-    num number = 0;
-    var second = scanner.peekChar();
-    if (!isDigit(second) && second != $dot) scanner.error("Expected number.");
-
-    while (isDigit(scanner.peekChar())) {
-      number *= 10;
-      number += asDecimal(scanner.readChar());
-    }
+    num number = scanner.peekChar() == $dot ? 0 : naturalNumber();
 
     // Don't complain about a dot after a number unless the number starts with a
     // dot. We don't allow a plain ".", but we need to allow "1." so that
@@ -2013,6 +2006,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// dot without any numbers following it. Otherwise, it will ignore the dot
   /// without consuming it.
   num _tryDecimal({bool allowTrailingDot = false}) {
+    var start = scanner.position;
     if (scanner.peekChar() != $dot) return 0;
 
     if (!isDigit(scanner.peekChar(1))) {
@@ -2020,14 +2014,14 @@ relase. For details, see http://bit.ly/moz-document.
       scanner.error("Expected digit.", position: scanner.position + 1);
     }
 
-    var number = 0.0;
     scanner.readChar();
-    var decimal = 0.1;
     while (isDigit(scanner.peekChar())) {
-      number += asDecimal(scanner.readChar()) * decimal;
-      decimal /= 10;
+      scanner.readChar();
     }
-    return number;
+
+    // Use Dart's built-in double parsing so that we don't accumulate
+    // floating-point errors for numbers with lots of digits.
+    return double.parse(scanner.substring(start));
   }
 
   /// Consumes the exponent component of a number and returns its value, or 1 if
