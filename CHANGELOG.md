@@ -7,6 +7,11 @@
 * Match Ruby Sass's behavior in some edge-cases involving numbers with many
   significant digits.
 
+### Node JS API
+
+* `this.includePaths` for a running importer is now a `;`-separated string on
+  Windows, rather than `:`-separated. This matches Node Sass's behavior.
+
 ## 1.15.2
 
 ### Node JS API
