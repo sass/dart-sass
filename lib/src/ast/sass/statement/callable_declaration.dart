@@ -16,7 +16,7 @@ abstract class CallableDeclaration extends ParentStatement {
   /// This may be `null` for callables without names.
   final String name;
 
-  /// The documentation comment immediatly preceding this variable declaration.
+  /// The documentation comment immediately preceding this variable declaration.
   final String comment;
 
   /// The declared arguments this callable accepts.
@@ -25,6 +25,8 @@ abstract class CallableDeclaration extends ParentStatement {
   final FileSpan span;
 
   CallableDeclaration(
-      this.name, this.arguments, Iterable<Statement> children, this.span, this.comment)
-      : super(List.unmodifiable(children));
+      this.name, this.arguments, Iterable<Statement> children, this.span,
+      {String comment = null})
+      : this.comment = comment,
+        super(List.unmodifiable(children));
 }

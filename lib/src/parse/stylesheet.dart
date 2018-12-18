@@ -193,9 +193,8 @@ abstract class StylesheetParser extends Parser {
     }
 
     expectStatementSeparator("variable declaration");
-    return new VariableDeclaration(
-        name, value, scanner.spanFrom(start), docComment,
-        guarded: guarded, global: global);
+    return VariableDeclaration(name, value, scanner.spanFrom(start),
+        guarded: guarded, global: global, comment: docComment);
   }
 
   /// Consumes a style rule.
@@ -725,8 +724,8 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     var children = this.children(_functionAtRule);
 
-    return new FunctionRule(
-        name, arguments, children, scanner.spanFrom(start), docComment);
+    return FunctionRule(name, arguments, children, scanner.spanFrom(start),
+        comment: docComment);
   }
 
   /// Consumes a `@for` rule.
@@ -978,9 +977,8 @@ abstract class StylesheetParser extends Parser {
     _inMixin = false;
     _mixinHasContent = null;
 
-    return new MixinRule(
-        name, arguments, children, scanner.spanFrom(start), docComment,
-        hasContent: hadContent);
+    return MixinRule(name, arguments, children, scanner.spanFrom(start),
+        hasContent: hadContent, comment: docComment);
   }
 
   /// Consumes a `@moz-document` rule.
