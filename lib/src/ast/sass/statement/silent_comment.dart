@@ -1,6 +1,7 @@
 // Copyright 2017 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
+
 import 'dart:math' as math;
 
 import 'package:source_span/source_span.dart';
@@ -13,10 +14,10 @@ class SilentComment implements Statement {
   /// The text of this comment, including comment characters.
   final String text;
 
-  /// The text of this comment that are marked as a documentation comment
-  /// (leading triple slashes).
+  /// The subset of lines in text that are marked as part of the documentation
+  /// comments by beginning with '///'.
   ///
-  /// Provided with slashes and common leading whitespace removed.
+  /// The leading slashes and common whitespace on each line is removed.
   String get docComment => _cleanup(text);
 
   final FileSpan span;
@@ -46,6 +47,9 @@ class SilentComment implements Statement {
 
       min = (min == null || matchLength < min) ? matchLength : min;
     }
+
+    // When no shared whitespace, defualt to trimming the three slashes.
+    min ??= 3;
 
     // Trim the '///' and common whitespace from all lines
     var buffer = StringBuffer();
