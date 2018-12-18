@@ -161,7 +161,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a variable declaration.
   @protected
   VariableDeclaration variableDeclaration() {
-    var docComment = clearLastSilentComment()?.docComment;
+    var docComment = clearLastSilentComment();
     var start = scanner.state;
     var name = variableName();
 
@@ -696,7 +696,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   FunctionRule _functionRule(LineScannerState start) {
-    var docComment = clearLastSilentComment()?.docComment;
+    var docComment = clearLastSilentComment();
     var name = identifier();
     whitespace();
     var arguments = _argumentDeclaration();
@@ -954,7 +954,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   MixinRule _mixinRule(LineScannerState start) {
-    var docComment = clearLastSilentComment()?.docComment;
+    var docComment = clearLastSilentComment();
     var name = identifier();
     whitespace();
     var arguments = scanner.peekChar() == $lparen

@@ -9,6 +9,7 @@ import '../../../parse/scss.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
+import 'silent_comment.dart';
 
 /// A variable declaration.
 ///
@@ -17,8 +18,8 @@ class VariableDeclaration implements Statement {
   /// The name of the variable.
   final String name;
 
-  /// The documentation comment immediatly preceding this variable declaration.
-  String comment;
+  /// The comment immediatly preceding this declaration.
+  SilentComment comment;
 
   /// The value the variable is being assigned to.
   final Expression expression;
@@ -36,7 +37,7 @@ class VariableDeclaration implements Statement {
   final FileSpan span;
 
   VariableDeclaration(this.name, this.expression, this.span,
-      {bool guarded = false, bool global = false, String comment = null})
+      {bool guarded = false, bool global = false, SilentComment comment = null})
       : isGuarded = guarded,
         isGlobal = global,
         this.comment = comment;

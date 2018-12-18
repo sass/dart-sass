@@ -8,6 +8,7 @@ import '../../../visitor/interface/statement.dart';
 import '../argument_declaration.dart';
 import '../statement.dart';
 import 'callable_declaration.dart';
+import 'silent_comment.dart';
 
 /// A mixin declaration.
 ///
@@ -23,7 +24,7 @@ class MixinRule extends CallableDeclaration {
   /// won't work correctly.
   MixinRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,
-      {this.hasContent = false, String comment})
+      {this.hasContent = false, SilentComment comment})
       : super(name, arguments, children, span, comment: comment);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
