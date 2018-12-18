@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:source_span/source_span.dart';
+import 'package:string_scanner/string_scanner.dart';
 
 import '../../../visitor/interface/statement.dart';
 import '../statement.dart';
@@ -17,49 +18,24 @@ class SilentComment implements Statement {
   /// The subset of lines in text that are marked as part of the documentation
   /// comments by beginning with '///'.
   ///
-  /// The leading slashes and common whitespace on each line is removed.
-  String get docComment => _cleanup(text);
+  /// The leading slashes and space on each line is removed.
+  String get docComment {
+    var buffer = StringBuffer();
+    for (var line in text.split('\n')) {
+      var scanner = StringScanner(line);
+      if (!scanner.scan('///')) continue;
+      scanner.scan(' ');
+      buffer.writeln(scanner.rest);
+    }
+
+    return buffer.toString().trimRight();
+  }
 
   final FileSpan span;
 
   SilentComment(this.text, this.span);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSilentComment(this);
-
-  // Matches '///' followed by some amount of whitespace.
-  final _leadingWhitespace = RegExp('^(\/\/\/[\t ]*)[^\t ]?');
-
-  // Returns a string formed from lines of this comment that begin with '///'
-  // trimmed to remove the slashes and common leading whitespace.
-  String _cleanup(String text) {
-    // Only lines with leading '///'.
-    var lines = text.split('\n').where((line) => line.startsWith('///'));
-    if (lines.isEmpty) return null;
-
-    // Count the common whitespace after '///' on all lines.
-    int min;
-    for (var line in lines) {
-      var match = _leadingWhitespace.firstMatch(line);
-      var matchLength = match.group(1).length;
-
-      // Line is empty after '///'.
-      if (matchLength == 3) continue;
-
-      min = (min == null || matchLength < min) ? matchLength : min;
-    }
-
-    // When no shared whitespace, defualt to trimming the three slashes.
-    min ??= 3;
-
-    // Trim the '///' and common whitespace from all lines
-    var buffer = StringBuffer();
-    for (var line in lines) {
-      var trimLength = math.min(line.length, min);
-      buffer.writeln(line.substring(trimLength));
-    }
-
-    return buffer.toString().trimRight();
-  }
 
   String toString() => text;
 }
