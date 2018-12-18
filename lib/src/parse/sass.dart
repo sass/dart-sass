@@ -206,7 +206,9 @@ class SassParser extends StylesheetParser {
       _readIndentation();
     }
 
-    return SilentComment(buffer.toString(), scanner.spanFrom(start));
+    lastSilentComment =
+        SilentComment(buffer.toString(), scanner.spanFrom(start));
+    return lastSilentComment;
   }
 
   /// Consumes an indented-style loud context.
