@@ -184,26 +184,44 @@ class SassParser extends StylesheetParser {
   /// Consumes an indented-style silent comment.
   SilentComment _silentComment() {
     var start = scanner.state;
-    scanner.expect("//");
-
     var buffer = StringBuffer();
     var parentIndentation = currentIndentation;
-    while (true) {
-      buffer.write("//");
 
-      // Skip the first two indentation characters because we're already writing
-      // "//".
-      for (var i = 2; i < currentIndentation - parentIndentation; i++) {
-        buffer.writeCharCode($space);
+    while (scanner.scan("//")) {
+      var commentPrefix = "//";
+      if (scanner.scan("/")) {
+        commentPrefix = "///";
       }
 
-      while (!scanner.isDone && !isNewline(scanner.peekChar())) {
-        buffer.writeCharCode(scanner.readChar());
-      }
-      buffer.writeln();
+      inner:
+      while (true) {
+        buffer.write(commentPrefix);
 
-      if (_peekIndentation() <= parentIndentation) break;
-      _readIndentation();
+        // Skip the initial characters because we're already writing the
+        // slashes.
+        for (var i = commentPrefix.length;
+            i < currentIndentation - parentIndentation;
+            i++) {
+          buffer.writeCharCode($space);
+        }
+
+        while (!scanner.isDone && !isNewline(scanner.peekChar())) {
+          buffer.writeCharCode(scanner.readChar());
+        }
+        buffer.writeln();
+
+        if (_peekIndentation() < parentIndentation) break inner;
+
+        if (_peekIndentation() == parentIndentation) {
+          // Look ahead to the next line to see if it starts another comment.
+          if (scanner.peekChar(1 + parentIndentation) == $slash &&
+              scanner.peekChar(2 + parentIndentation) == $slash) {
+            _readIndentation();
+          }
+          break inner;
+        }
+        _readIndentation();
+      }
     }
 
     lastSilentComment =
