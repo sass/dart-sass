@@ -18,7 +18,8 @@ class SilentComment implements Statement {
   /// The subset of lines in text that are marked as part of the documentation
   /// comments by beginning with '///'.
   ///
-  /// The leading slashes and space on each line is removed.
+  /// The leading slashes and space on each line is removed. Is `null` when
+  /// there is no documentation comment.
   String get docComment {
     var buffer = StringBuffer();
     for (var line in text.split('\n')) {
@@ -27,8 +28,9 @@ class SilentComment implements Statement {
       scanner.scan(' ');
       buffer.writeln(scanner.rest);
     }
+    var comment = buffer.toString().trimRight();
 
-    return buffer.toString().trimRight();
+    return comment.isNotEmpty ? comment : null;
   }
 
   final FileSpan span;
