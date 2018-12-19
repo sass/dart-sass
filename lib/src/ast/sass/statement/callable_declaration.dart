@@ -28,6 +28,6 @@ abstract class CallableDeclaration extends ParentStatement {
   CallableDeclaration(
       this.name, this.arguments, Iterable<Statement> children, this.span,
       {SilentComment comment})
-      : this.comment = comment,
+      : comment = comment,
         super(List.unmodifiable(children));
 }
