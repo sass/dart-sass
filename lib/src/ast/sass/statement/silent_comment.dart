@@ -23,7 +23,7 @@ class SilentComment implements Statement {
   String get docComment {
     var buffer = StringBuffer();
     for (var line in text.split('\n')) {
-      var scanner = StringScanner(line);
+      var scanner = StringScanner(line.trim());
       if (!scanner.scan('///')) continue;
       scanner.scan(' ');
       buffer.writeln(scanner.rest);
