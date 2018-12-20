@@ -7,20 +7,19 @@ import 'package:test/test.dart';
 
 void main() {
   group('documentation comments', () {
-    group('SCSS syntax:', () {
-      test('variable declarations are found', () {
+    group('in SCSS', () {
+      test('attach to variable declarations', () {
         final contents = r'''
             /// Results my vary.
             $vary: 5.16em;''';
         final stylesheet = Stylesheet.parseScss(contents);
-        final variable = stylesheet.children
-                .firstWhere((child) => child is VariableDeclaration)
-            as VariableDeclaration;
+        final variable =
+            stylesheet.children.whereType<VariableDeclaration>().first;
 
         expect(variable.comment.docComment, equals('Results my vary.'));
       });
 
-      test('function rules are found', () {
+      test('attach to function rules', () {
         final contents = r'''
             /// A fun function!
             @function fun($val) {
@@ -28,13 +27,12 @@ void main() {
               @return ($val / 1000) * 1em;
             }''';
         final stylesheet = Stylesheet.parseScss(contents);
-        final function = stylesheet.children
-            .firstWhere((child) => child is FunctionRule) as FunctionRule;
+        final function = stylesheet.children.whereType<FunctionRule>().first;
 
         expect(function.comment.docComment, equals('A fun function!'));
       });
 
-      test('mixin rules are found', () {
+      test('attach to mixin rules', () {
         final contents = r'''
             /// Mysterious mixin.
             @mixin mystery {
@@ -43,17 +41,24 @@ void main() {
               background-color: black;
             }''';
         final stylesheet = Stylesheet.parseScss(contents);
-        final mix = stylesheet.children
-            .firstWhere((child) => child is MixinRule) as MixinRule;
+        final mix = stylesheet.children.whereType<MixinRule>().first;
 
         expect(mix.comment.docComment, equals('Mysterious mixin.'));
       });
 
-      test('attached to the correct children', () {
+      test('are null when there are no triple-slash comments', () {
         final contents = r'''
             // Regular comment.
-            $vary: 5.16em;
+            $vary: 5.16em;''';
+        final stylesheet = Stylesheet.parseScss(contents);
+        final variable =
+            stylesheet.children.whereType<VariableDeclaration>().first;
 
+        expect(variable.comment.docComment, isNull);
+      });
+
+      test('are not carried over across members', () {
+        final contents = r'''
             /// Mysterious mixin.
             @mixin mystery {
               // All black.
@@ -67,62 +72,55 @@ void main() {
               @return ($val / 1000) * 1em;
             }''';
         final stylesheet = Stylesheet.parseScss(contents);
-        final variable = stylesheet.children
-                .firstWhere((child) => child is VariableDeclaration)
-            as VariableDeclaration;
-        final mix = stylesheet.children
-            .firstWhere((child) => child is MixinRule) as MixinRule;
-        final function = stylesheet.children
-            .firstWhere((child) => child is FunctionRule) as FunctionRule;
+        final mix = stylesheet.children.whereType<MixinRule>().first;
+        final function = stylesheet.children.whereType<FunctionRule>().first;
 
-        expect(variable.comment.docComment, isNull);
         expect(mix.comment.docComment, equals('Mysterious mixin.'));
         expect(function.comment.docComment, equals('A fun function!'));
       });
 
-      test('correct comment lines included', () {
+      test('do not include double-slash comments', () {
         final contents = r'''
             // Not a doc comment.
             /// Line 1
             /// Line 2
+            // Not a doc comment.
             /// Line 3
+            // Not a doc comment.
             $vary: 5.16em;''';
         final stylesheet = Stylesheet.parseScss(contents);
-        final variable = stylesheet.children
-                .firstWhere((child) => child is VariableDeclaration)
-            as VariableDeclaration;
+        final variable =
+            stylesheet.children.whereType<VariableDeclaration>().first;
 
         expect(variable.comment.docComment, equals('Line 1\nLine 2\nLine 3'));
       });
     });
 
-    group('indented syntax:', () {
-      test('variable declarations are found', () {
+    group('in indented syntax', () {
+      test('attach to variable declarations', () {
         final contents = r'''
 /// Results my vary.
 $vary: 5.16em''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final variable = stylesheet.children
-                .firstWhere((child) => child is VariableDeclaration)
-            as VariableDeclaration;
+        final variable =
+            stylesheet.children.whereType<VariableDeclaration>().first;
 
         expect(variable.comment.docComment, equals('Results my vary.'));
       });
 
-      test('function rules', () {
+      test('attach to function rules', () {
         final contents = r'''
 /// A fun function!
 @function fun($val)
   // Not a doc comment.
   @return ($val / 1000) * 1em''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final function = stylesheet.children
-            .firstWhere((child) => child is FunctionRule) as FunctionRule;
+        final function = stylesheet.children.whereType<FunctionRule>().first;
 
         expect(function.comment.docComment, equals('A fun function!'));
       });
 
-      test('mixin rules are found', () {
+      test('attach to mixin rules', () {
         final contents = r'''
 /// Mysterious mixin.
 @mixin mystery
@@ -130,17 +128,24 @@ $vary: 5.16em''';
   color: black
   background-color: black''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final mix = stylesheet.children
-            .firstWhere((child) => child is MixinRule) as MixinRule;
+        final mix = stylesheet.children.whereType<MixinRule>().first;
 
         expect(mix.comment.docComment, equals('Mysterious mixin.'));
       });
 
-      test('attached to the correct children', () {
+      test('are null when there are no triple-slash comments', () {
         final contents = r'''
 // Regular comment.
-$vary: 5.16em
+$vary: 5.16em''';
+        final stylesheet = Stylesheet.parseSass(contents);
+        final variable =
+            stylesheet.children.whereType<VariableDeclaration>().first;
 
+        expect(variable.comment.docComment, isNull);
+      });
+
+      test('are not carried over across members', () {
+        final contents = r'''
 /// Mysterious mixin.
 @mixin mystery
   // All black.
@@ -152,47 +157,43 @@ $vary: 5.16em
   // Not a doc comment.
   @return ($val / 1000) * 1em''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final variable = stylesheet.children
-                .firstWhere((child) => child is VariableDeclaration)
-            as VariableDeclaration;
-        final mix = stylesheet.children
-            .firstWhere((child) => child is MixinRule) as MixinRule;
-        final function = stylesheet.children
-            .firstWhere((child) => child is FunctionRule) as FunctionRule;
+        final mix = stylesheet.children.whereType<MixinRule>().first;
+        final function = stylesheet.children.whereType<FunctionRule>().first;
 
-        expect(variable.comment.docComment, isNull);
         expect(mix.comment.docComment, equals('Mysterious mixin.'));
         expect(function.comment.docComment, equals('A fun function!'));
       });
 
-      test('correct comment lines included', () {
+      test('do not include double-slash comments', () {
         final contents = r'''
 // Not a doc comment.
 /// Line 1
    Line 2
+// Not a doc comment.
+  Should be ignored.
 $vary: 5.16em''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final variable = stylesheet.children
-                .firstWhere((child) => child is VariableDeclaration)
-            as VariableDeclaration;
+        final variable =
+            stylesheet.children.whereType<VariableDeclaration>().first;
 
         expect(variable.comment.docComment, equals('Line 1\nLine 2'));
       });
 
-      test('compacting adjacent comments into one', () {
+      test('are compacted into one from adjacent comments', () {
         final contents = r'''
 // Not a doc comment.
 /// Line 1
 /// Line 2
    Line 3
+/// Line 4
 $vary: 5.16em''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final variable = stylesheet.children
-                .firstWhere((child) => child is VariableDeclaration)
-            as VariableDeclaration;
+        final variable =
+            stylesheet.children.whereType<VariableDeclaration>().first;
 
         expect(stylesheet.children.length, equals(2));
-        expect(variable.comment.docComment, equals('Line 1\nLine 2\nLine 3'));
+        expect(variable.comment.docComment,
+            equals('Line 1\nLine 2\nLine 3\nLine 4'));
       });
     });
   });
