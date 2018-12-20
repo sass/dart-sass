@@ -184,16 +184,14 @@ class SassParser extends StylesheetParser {
   /// Consumes an indented-style silent comment.
   SilentComment _silentComment() {
     var start = scanner.state;
+    scanner.expect("//");
     var buffer = StringBuffer();
     var parentIndentation = currentIndentation;
 
-    while (scanner.scan("//")) {
-      var commentPrefix = "//";
-      if (scanner.scan("/")) {
-        commentPrefix = "///";
-      }
+    outer:
+    do {
+      var commentPrefix = scanner.scanChar($slash) ? "///" : "//";
 
-      inner:
       while (true) {
         buffer.write(commentPrefix);
 
@@ -210,7 +208,7 @@ class SassParser extends StylesheetParser {
         }
         buffer.writeln();
 
-        if (_peekIndentation() < parentIndentation) break inner;
+        if (_peekIndentation() < parentIndentation) break outer;
 
         if (_peekIndentation() == parentIndentation) {
           // Look ahead to the next line to see if it starts another comment.
@@ -218,11 +216,11 @@ class SassParser extends StylesheetParser {
               scanner.peekChar(2 + parentIndentation) == $slash) {
             _readIndentation();
           }
-          break inner;
+          break;
         }
         _readIndentation();
       }
-    }
+    } while (scanner.scan("//"));
 
     lastSilentComment =
         SilentComment(buffer.toString(), scanner.spanFrom(start));
