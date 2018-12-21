@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
@@ -17,6 +18,7 @@ import 'io.dart';
 import 'logger.dart';
 import 'sync_package_resolver.dart';
 import 'syntax.dart';
+import 'utils.dart';
 import 'visitor/async_evaluate.dart';
 import 'visitor/serialize.dart';
 
@@ -129,6 +131,18 @@ Future<CompileResult> _compileStylesheet(
       indentWidth: indentWidth,
       lineFeed: lineFeed,
       sourceMap: sourceMap);
+
+  if (serializeResult.sourceMap != null && importCache != null) {
+    // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
+    // is fixed.
+    mapInPlace<String>(
+        serializeResult.sourceMap.urls,
+        (url) => url == ''
+            ? Uri.dataFromString(stylesheet.span.file.getText(0),
+                    encoding: utf8)
+                .toString()
+            : importCache.sourceMapUrl(Uri.parse(url)).toString());
+  }
 
   return CompileResult(evaluateResult, serializeResult);
 }
