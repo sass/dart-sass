@@ -8,14 +8,16 @@ import '../../../visitor/interface/statement.dart';
 import '../argument_declaration.dart';
 import '../statement.dart';
 import 'callable_declaration.dart';
+import 'silent_comment.dart';
 
 /// A function declaration.
 ///
 /// This declares a function that's invoked using normal CSS function syntax.
 class FunctionRule extends CallableDeclaration {
   FunctionRule(String name, ArgumentDeclaration arguments,
-      Iterable<Statement> children, FileSpan span)
-      : super(name, arguments, children, span);
+      Iterable<Statement> children, FileSpan span,
+      {SilentComment comment})
+      : super(name, arguments, children, span, comment: comment);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);
 
