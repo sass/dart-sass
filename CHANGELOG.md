@@ -7,6 +7,9 @@
 * Match Ruby Sass's behavior in some edge-cases involving numbers with many
   significant digits.
 
+* Emit escaped tab characters in identifiers as `\9` rather than a backslash
+  followed by a literal tab.
+
 ## 1.15.2
 
 ### Node JS API
