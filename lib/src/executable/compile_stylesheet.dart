@@ -15,6 +15,7 @@ import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../syntax.dart';
+import '../utils.dart';
 import 'options.dart';
 
 /// Compiles the stylesheet at [source] to [destination].
@@ -126,15 +127,10 @@ String _writeSourceMap(
     sourceMap.targetUrl = p.toUri(p.basename(destination)).toString();
   }
 
-  for (var i = 0; i < sourceMap.urls.length; i++) {
-    var url = sourceMap.urls[i];
-
-    // The special URL "" indicates a file that came from stdin.
-    if (url == "") continue;
-
-    sourceMap.urls[i] =
-        options.sourceMapUrl(Uri.parse(url), destination).toString();
-  }
+  // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
+  // is fixed.
+  mapInPlace<String>(sourceMap.urls,
+      (url) => options.sourceMapUrl(Uri.parse(url), destination).toString());
   var sourceMapText =
       jsonEncode(sourceMap.toJson(includeSourceContents: options.embedSources));
 

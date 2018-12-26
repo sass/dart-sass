@@ -10,6 +10,16 @@
 * Emit escaped tab characters in identifiers as `\9` rather than a backslash
   followed by a literal tab.
 
+### Command-Line Interface
+
+* The source map generated for a stylesheet read from standard input now uses a
+  `data:` URL to include that stylesheet's contents in the source map.
+
+### Dart API
+
+* The URL used in a source map to refer to a stylesheet loaded from an importer
+  is now `ImportResult.sourceMapUrl` as documented.
+
 ## 1.15.2
 
 ### Node JS API

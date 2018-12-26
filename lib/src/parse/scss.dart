@@ -158,8 +158,9 @@ class ScssParser extends StylesheetParser {
           scanner.spanFrom(start));
     }
 
-    return SilentComment(
+    lastSilentComment = SilentComment(
         scanner.substring(start.position), scanner.spanFrom(start));
+    return lastSilentComment;
   }
 
   /// Consumes a statement-level loud comment block.
