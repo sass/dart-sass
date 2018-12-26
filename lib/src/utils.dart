@@ -289,6 +289,13 @@ Map<String, V2> normalizedMapMap<K, V1, V2>(Map<K, V1> map,
   return result;
 }
 
+/// Destructively updates every element of [list] with the result of [function].
+void mapInPlace<T>(List<T> list, T function(T element)) {
+  for (var i = 0; i < list.length; i++) {
+    list[i] = function(list[i]);
+  }
+}
+
 /// Returns the longest common subsequence between [list1] and [list2].
 ///
 /// If there are more than one equally long common subsequence, returns the one

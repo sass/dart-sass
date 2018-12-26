@@ -57,6 +57,10 @@ abstract class StylesheetParser extends Parser {
   /// Whether the parser is currently within a parenthesized expression.
   var _inParentheses = false;
 
+  /// The silent comment this parser encountered previously.
+  @protected
+  SilentComment lastSilentComment;
+
   StylesheetParser(String contents, {url, Logger logger})
       : super(contents, url: url, logger: logger);
 
@@ -147,6 +151,8 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a variable declaration.
   @protected
   VariableDeclaration variableDeclaration() {
+    var precedingComment = lastSilentComment;
+    lastSilentComment = null;
     var start = scanner.state;
     var name = variableName();
 
@@ -179,7 +185,7 @@ abstract class StylesheetParser extends Parser {
 
     expectStatementSeparator("variable declaration");
     return VariableDeclaration(name, value, scanner.spanFrom(start),
-        guarded: guarded, global: global);
+        guarded: guarded, global: global, comment: precedingComment);
   }
 
   /// Consumes a style rule.
@@ -681,6 +687,8 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   FunctionRule _functionRule(LineScannerState start) {
+    var precedingComment = lastSilentComment;
+    lastSilentComment = null;
     var name = identifier();
     whitespace();
     var arguments = _argumentDeclaration();
@@ -708,7 +716,8 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     var children = this.children(_functionAtRule);
 
-    return FunctionRule(name, arguments, children, scanner.spanFrom(start));
+    return FunctionRule(name, arguments, children, scanner.spanFrom(start),
+        comment: precedingComment);
   }
 
   /// Consumes a `@for` rule.
@@ -937,6 +946,8 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   MixinRule _mixinRule(LineScannerState start) {
+    var precedingComment = lastSilentComment;
+    lastSilentComment = null;
     var name = identifier();
     whitespace();
     var arguments = scanner.peekChar() == $lparen
@@ -960,7 +971,7 @@ abstract class StylesheetParser extends Parser {
     _mixinHasContent = null;
 
     return MixinRule(name, arguments, children, scanner.spanFrom(start),
-        hasContent: hadContent);
+        hasContent: hadContent, comment: precedingComment);
   }
 
   /// Consumes a `@moz-document` rule.

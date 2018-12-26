@@ -5,12 +5,14 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: e6de63e581c0f4da96756b9e2904bd81a090dc5b
+// Checksum: 2bb00947655b3add16335253802a82188d730595
 //
 // ignore_for_file: unused_import
 
 import 'async_compile.dart';
 export 'async_compile.dart';
+
+import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
@@ -25,6 +27,7 @@ import 'io.dart';
 import 'logger.dart';
 import 'sync_package_resolver.dart';
 import 'syntax.dart';
+import 'utils.dart';
 import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
 
@@ -137,6 +140,18 @@ CompileResult _compileStylesheet(
       indentWidth: indentWidth,
       lineFeed: lineFeed,
       sourceMap: sourceMap);
+
+  if (serializeResult.sourceMap != null && importCache != null) {
+    // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
+    // is fixed.
+    mapInPlace<String>(
+        serializeResult.sourceMap.urls,
+        (url) => url == ''
+            ? Uri.dataFromString(stylesheet.span.file.getText(0),
+                    encoding: utf8)
+                .toString()
+            : importCache.sourceMapUrl(Uri.parse(url)).toString());
+  }
 
   return CompileResult(evaluateResult, serializeResult);
 }

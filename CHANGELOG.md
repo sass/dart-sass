@@ -7,10 +7,20 @@
 * Match Ruby Sass's behavior in some edge-cases involving numbers with many
   significant digits.
 
+### Command-Line Interface
+
+* The source map generated for a stylesheet read from standard input now uses a
+  `data:` URL to include that stylesheet's contents in the source map.
+
 ### Node JS API
 
 * `this.includePaths` for a running importer is now a `;`-separated string on
   Windows, rather than `:`-separated. This matches Node Sass's behavior.
+
+### Dart API
+
+* The URL used in a source map to refer to a stylesheet loaded from an importer
+  is now `ImportResult.sourceMapUrl` as documented.
 
 ## 1.15.2
 

@@ -185,28 +185,46 @@ class SassParser extends StylesheetParser {
   SilentComment _silentComment() {
     var start = scanner.state;
     scanner.expect("//");
-
     var buffer = StringBuffer();
     var parentIndentation = currentIndentation;
-    while (true) {
-      buffer.write("//");
 
-      // Skip the first two indentation characters because we're already writing
-      // "//".
-      for (var i = 2; i < currentIndentation - parentIndentation; i++) {
-        buffer.writeCharCode($space);
+    outer:
+    do {
+      var commentPrefix = scanner.scanChar($slash) ? "///" : "//";
+
+      while (true) {
+        buffer.write(commentPrefix);
+
+        // Skip the initial characters because we're already writing the
+        // slashes.
+        for (var i = commentPrefix.length;
+            i < currentIndentation - parentIndentation;
+            i++) {
+          buffer.writeCharCode($space);
+        }
+
+        while (!scanner.isDone && !isNewline(scanner.peekChar())) {
+          buffer.writeCharCode(scanner.readChar());
+        }
+        buffer.writeln();
+
+        if (_peekIndentation() < parentIndentation) break outer;
+
+        if (_peekIndentation() == parentIndentation) {
+          // Look ahead to the next line to see if it starts another comment.
+          if (scanner.peekChar(1 + parentIndentation) == $slash &&
+              scanner.peekChar(2 + parentIndentation) == $slash) {
+            _readIndentation();
+          }
+          break;
+        }
+        _readIndentation();
       }
+    } while (scanner.scan("//"));
 
-      while (!scanner.isDone && !isNewline(scanner.peekChar())) {
-        buffer.writeCharCode(scanner.readChar());
-      }
-      buffer.writeln();
-
-      if (_peekIndentation() <= parentIndentation) break;
-      _readIndentation();
-    }
-
-    return SilentComment(buffer.toString(), scanner.spanFrom(start));
+    lastSilentComment =
+        SilentComment(buffer.toString(), scanner.spanFrom(start));
+    return lastSilentComment;
   }
 
   /// Consumes an indented-style loud context.

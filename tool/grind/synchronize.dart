@@ -13,7 +13,7 @@ import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 
 /// The files to compile to synchronous versions.
-final _sources = const {
+final sources = const {
   'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
   'lib/src/async_compile.dart': 'lib/src/compile.dart',
   'lib/src/async_environment.dart': 'lib/src/environment.dart',
@@ -38,7 +38,7 @@ final _sharedClasses = const ['EvaluateResult', 'CompileResult'];
 /// to a synchronous equivalent.
 @Task('Compile async code to synchronous code.')
 synchronize() {
-  _sources.forEach((source, target) {
+  sources.forEach((source, target) {
     var visitor = _Visitor(File(source).readAsStringSync(), source);
     parseDartFile(source).accept(visitor);
     var formatted = DartFormatter().format(visitor.result);
