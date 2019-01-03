@@ -15,7 +15,6 @@ env:
 
   # Unit tests, defined in test/.
   - TASK=tests
-  - TASK=tests DART_VERSION=2.0.0
   - TASK=tests DART_CHANNEL=dev
   - TASK=tests NODE_VERSION=stable
 

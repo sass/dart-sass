@@ -150,16 +150,9 @@ class NodeImporter {
   Tuple2<String, String> _handleImportResult(
       String url, Uri previous, Object value) {
     if (isJSError(value)) throw value;
+    if (value is! NodeImporterResult) return null;
 
-    NodeImporterResult result;
-    try {
-      result = value as NodeImporterResult;
-    } on CastError {
-      // is reports a different result than as here. I can't find a minimal
-      // reproduction, but it seems likely to be related to sdk#26838.
-      return null;
-    }
-
+    var result = value as NodeImporterResult;
     if (result.file != null) {
       var resolved = _resolvePath(result.file, previous);
       if (resolved != null) return resolved;
