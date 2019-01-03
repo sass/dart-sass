@@ -4,6 +4,12 @@
   merged as though `all` referred to a specific media type, rather than all
   media types.
 
+* Never remove units from 0 values in compressed mode. This wasn't safe in
+  general, since some properties (such as `line-height`) interpret `0` as a
+  `<number>` rather than a `<length>` which can break CSS transforms. It's
+  better to do this optimization in a dedicated compressor that's aware of CSS
+  property semantics.
+
 * Match Ruby Sass's behavior in some edge-cases involving numbers with many
   significant digits.
 

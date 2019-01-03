@@ -92,36 +92,6 @@ void main() {
         expect(_compile("a {b: 0.123}"), equals("a{b:.123}"));
         expect(_compile("a {b: 0.123px}"), equals("a{b:.123px}"));
       });
-
-      group("omit units for 0", () {
-        test("lengths", () {
-          expect(_compile("a {b: 0px}"), equals("a{b:0}"));
-          expect(_compile("a {b: 0.000000000000001px}"), equals("a{b:0}"));
-        });
-
-        test("angles", () {
-          expect(_compile("a {b: 0deg}"), equals("a{b:0}"));
-          expect(_compile("a {b: 0.000000000000001deg}"), equals("a{b:0}"));
-        });
-      });
-
-      group("include units for 0", () {
-        test("durations", () {
-          expect(_compile("a {b: 0s}"), equals("a{b:0s}"));
-        });
-
-        test("frequencies", () {
-          expect(_compile("a {b: 0Hz}"), equals("a{b:0Hz}"));
-        });
-
-        test("resolutions", () {
-          expect(_compile("a {b: 0dpi}"), equals("a{b:0dpi}"));
-        });
-
-        test("with unknown units", () {
-          expect(_compile("a {b: 0foo}"), equals("a{b:0foo}"));
-        });
-      });
     });
 
     group("lists", () {
