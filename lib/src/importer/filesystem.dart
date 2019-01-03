@@ -28,6 +28,9 @@ class FilesystemImporter extends Importer {
     var path = p.fromUri(url);
     return ImporterResult(io.readFile(path),
         sourceMapUrl:
+            // [io.realCasePath] will short-circuit on case-sensitive
+            // filesystems anyway, but we still avoid calling it here so we
+            // don't have to re-parse the URL.
             io.couldBeCaseInsensitive ? p.toUri(io.realCasePath(path)) : url,
         syntax: Syntax.forPath(path));
   }
