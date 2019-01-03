@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:math' as math;
-
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
