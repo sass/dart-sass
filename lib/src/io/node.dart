@@ -232,6 +232,8 @@ bool get hasTerminal => _hasTerminal ?? false;
 
 bool get isWindows => _process.platform == 'win32';
 
+bool get isMacOS => _process.platform == 'darwin';
+
 bool get isNode => true;
 
 // Node seems to support ANSI escapes on all terminals.
