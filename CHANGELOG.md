@@ -13,6 +13,9 @@
 * Match Ruby Sass's behavior in some edge-cases involving numbers with many
   significant digits.
 
+* Emit escaped tab characters in identifiers as `\9` rather than a backslash
+  followed by a literal tab.
+
 ### Command-Line Interface
 
 * The source map generated for a stylesheet read from standard input now uses a
