@@ -405,7 +405,8 @@ void main() {
           includePaths: [sandbox],
           importer: allowInteropCaptureThis(
               expectAsync3((RenderContext this_, _, __) {
-            expect(this_.options.includePaths, equals("${p.current}:$sandbox"));
+            expect(this_.options.includePaths,
+                equals("${p.current}${isWindows ? ';' : ':'}$sandbox"));
             return NodeImporterResult(contents: '');
           }))));
     });

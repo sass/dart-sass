@@ -16,6 +16,7 @@ import 'callable.dart';
 import 'compile.dart';
 import 'exception.dart';
 import 'executable.dart' as executable;
+import 'io.dart';
 import 'importer/node.dart';
 import 'node/error.dart';
 import 'node/exports.dart';
@@ -253,7 +254,8 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
         options: RenderContextOptions(
             file: options.file,
             data: options.data,
-            includePaths: ([p.current]..addAll(includePaths)).join(":"),
+            includePaths:
+                ([p.current]..addAll(includePaths)).join(isWindows ? ';' : ':'),
             precision: SassNumber.precision,
             style: 1,
             indentType: options.indentType == 'tab' ? 1 : 0,

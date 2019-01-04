@@ -9,13 +9,27 @@
   merged as though `all` referred to a specific media type, rather than all
   media types.
 
+* Never remove units from 0 values in compressed mode. This wasn't safe in
+  general, since some properties (such as `line-height`) interpret `0` as a
+  `<number>` rather than a `<length>` which can break CSS transforms. It's
+  better to do this optimization in a dedicated compressor that's aware of CSS
+  property semantics.
+
 * Match Ruby Sass's behavior in some edge-cases involving numbers with many
   significant digits.
+
+* Emit escaped tab characters in identifiers as `\9` rather than a backslash
+  followed by a literal tab.
 
 ### Command-Line Interface
 
 * The source map generated for a stylesheet read from standard input now uses a
   `data:` URL to include that stylesheet's contents in the source map.
+
+### Node JS API
+
+* `this.includePaths` for a running importer is now a `;`-separated string on
+  Windows, rather than `:`-separated. This matches Node Sass's behavior.
 
 ### Dart API
 

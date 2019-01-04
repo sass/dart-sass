@@ -33,6 +33,9 @@ Stderr get stderr => null;
 /// Whether the current process is running on Windows.
 bool get isWindows => false;
 
+/// Whether the current process is running on Mac OS.
+bool get isMacOS => false;
+
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => false;
 
