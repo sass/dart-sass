@@ -31,7 +31,7 @@ class SassString extends Value implements ext.SassString {
 
   bool get isSpecialNumber {
     if (hasQuotes) return false;
-    if (text.length < "calc(_)".length) return false;
+    if (text.length < "min(_)".length) return false;
 
     var first = text.codeUnitAt(0);
     if (equalsLetterIgnoreCase($c, first)) {
@@ -43,6 +43,21 @@ class SassString extends Value implements ext.SassString {
       if (!equalsLetterIgnoreCase($a, text.codeUnitAt(1))) return false;
       if (!equalsLetterIgnoreCase($r, text.codeUnitAt(2))) return false;
       return text.codeUnitAt(3) == $lparen;
+    } else if (equalsLetterIgnoreCase($e, first)) {
+      if (!equalsLetterIgnoreCase($n, text.codeUnitAt(1))) return false;
+      if (!equalsLetterIgnoreCase($v, text.codeUnitAt(2))) return false;
+      return text.codeUnitAt(3) == $lparen;
+    } else if (equalsLetterIgnoreCase($m, first)) {
+      var second = text.codeUnitAt(1);
+      if (equalsLetterIgnoreCase($a, second)) {
+        if (!equalsLetterIgnoreCase($x, text.codeUnitAt(2))) return false;
+        return text.codeUnitAt(3) == $lparen;
+      } else if (equalsLetterIgnoreCase($i, second)) {
+        if (!equalsLetterIgnoreCase($n, text.codeUnitAt(2))) return false;
+        return text.codeUnitAt(3) == $lparen;
+      } else {
+        return false;
+      }
     } else {
       return false;
     }

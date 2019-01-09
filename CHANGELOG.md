@@ -1,3 +1,8 @@
+## 1.16.0
+
+* `rgb()` and `hsl()` now treat unquoted strings beginning with `env()`,
+  `min()`, and `max()` as special number strings like `calc()`.
+
 ## 1.15.3
 
 * Properly merge `all and` media queries. These queries were previously being
