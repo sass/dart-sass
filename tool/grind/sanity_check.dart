@@ -12,11 +12,18 @@ import 'utils.dart';
 
 @Task('Verify that the package is in a good state to release.')
 sanityCheckBeforeRelease() {
+  var travisTag = environment("TRAVIS_TAG");
+  if (travisTag != version) {
+    fail("TRAVIS_TAG $travisTag is different than pubspec version $version.");
+  }
+
   if (const ListEquality().equals(Version.parse(version).preRelease, ["dev"])) {
     fail("$version is a dev release.");
   }
 
-  if (!File("CHANGELOG.md").readAsStringSync().contains(RegExp("^## ${RegExp.escape(version)}\$", multiLine: true))) {
+  var versionHeader =
+      RegExp("^## ${RegExp.escape(version)}\$", multiLine: true);
+  if (!File("CHANGELOG.md").readAsStringSync().contains(versionHeader)) {
     fail("There's no CHANGELOG entry for $version.");
   }
 }
