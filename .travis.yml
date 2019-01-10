@@ -73,10 +73,15 @@ script: tool/travis/test.sh
 
 jobs:
   include:
-  # Deploy to GitHub.
-  - stage: deploy 1
+  # Sanity check before releasing anywhere.
+  - stage: sanity check
     if: &deploy-if
       (type IN (push, api)) AND (repo = sass/dart-sass) AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
+    script: pub run grinder sanity-check-before-release
+
+  # Deploy to GitHub.
+  - stage: deploy 1
+    if: *deploy-if
     env: &github-env
       - GITHUB_USER=sassbot
       # GITHUB_AUTH="..."
