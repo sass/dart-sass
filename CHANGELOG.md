@@ -1,3 +1,12 @@
+## 1.17.0
+
+* Improve error output, particularly for errors that cover multiple lines.
+
+### Command-Line Interface
+
+* The new error output uses non-ASCII Unicode characters by default. Add a
+  `--no-unicode` flag to disable this.
+
 ## 1.16.0
 
 * `rgb()` and `hsl()` now treat unquoted strings beginning with `env()`,

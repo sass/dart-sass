@@ -282,15 +282,17 @@ void sharedTests(
   });
 
   test("gracefully reports errors from stdin", () async {
-    var sass = await runSass(["-"]);
+    var sass = await runSass(["--no-unicode", "-"]);
     sass.stdin.writeln("a {b: 1 + }");
     sass.stdin.close();
     expect(
         sass.stderr,
         emitsInOrder([
           "Error: Expected expression.",
-          "a {b: 1 + }",
-          "          ^",
+          "  ,",
+          "1 | a {b: 1 + }",
+          "  |           ^",
+          "  '",
           "  - 1:11  root stylesheet",
         ]));
     await sass.shouldExit(65);
@@ -300,15 +302,17 @@ void sharedTests(
   test(
       "gracefully reports errors for binary operations with parentheized "
       "operands", () async {
-    var sass = await runSass(["-"]);
+    var sass = await runSass(["--no-unicode", "-"]);
     sass.stdin.writeln("a {b: (#123) + (#456)}");
     sass.stdin.close();
     expect(
         sass.stderr,
         emitsInOrder([
           'Error: Undefined operation "#123 + #456".',
-          "a {b: (#123) + (#456)}",
-          "      ^^^^^^^^^^^^^^^",
+          "  ,",
+          "1 | a {b: (#123) + (#456)}",
+          "  |       ^^^^^^^^^^^^^^^",
+          "  '",
           "  - 1:7  root stylesheet",
         ]));
     await sass.shouldExit(65);

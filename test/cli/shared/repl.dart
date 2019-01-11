@@ -121,7 +121,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("an error after a warning", () async {
-      var sass = await runSass(["--interactive"]);
+      var sass = await runSass(["--no-unicode", "--interactive"]);
       sass.stdin.writeln("call('max', 1, 2) + blue");
       await expectLater(sass.stderr, emits(contains("DEPRECATION WARNING")));
       await expectLater(
@@ -129,8 +129,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           emitsInOrder([
             ">> call('max', 1, 2) + blue",
             'Error: Undefined operation "2 + blue".',
-            "call('max', 1, 2) + blue",
-            "^^^^^^^^^^^^^^^^^^^^^^^^"
+            "  ,",
+            "1 | call('max', 1, 2) + blue",
+            "  | ^^^^^^^^^^^^^^^^^^^^^^^^",
+            "  '"
           ]));
       await sass.kill();
     });

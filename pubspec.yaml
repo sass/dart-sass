@@ -1,5 +1,5 @@
 name: sass
-version: 1.16.0
+version: 1.17.0-dev
 description: A Sass implementation in Dart.
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/sass/dart-sass
@@ -24,6 +24,7 @@ dependencies:
   stack_trace: ">=0.9.0 <2.0.0"
   stream_transform: "^0.0.1"
   string_scanner: ">=0.1.5 <2.0.0"
+  term_glyph: "^1.0.0"
   tuple: "^1.0.0"
   watcher: "^0.9.6"
 
