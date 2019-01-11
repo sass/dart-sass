@@ -13,6 +13,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
+import '../ast/node.dart';
 import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../async_environment.dart';
@@ -143,10 +144,13 @@ class _EvaluateVisitor
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
 
-  /// The span for the innermost callable that's been invoked.
+  /// The node for the innermost callable that's been invoked.
   ///
-  /// This is used to provide `call()` with a span.
-  FileSpan _callableSpan;
+  /// This is used to provide `call()` with a span. It's stored as an [AstNode]
+  /// rather than a [FileSpan] so we can avoid calling [AstNode.span] if the
+  /// span isn't required, since some nodes need to do real work to manufacture
+  /// a source span.
+  AstNode _callableNode;
 
   /// Whether we're currently executing a function.
   var _inFunction = false;
@@ -191,7 +195,11 @@ class _EvaluateVisitor
   ///
   /// Each member is a tuple of the span where the stack trace starts and the
   /// name of the member being invoked.
-  final _stack = <Tuple2<String, FileSpan>>[];
+  ///
+  /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  final _stack = <Tuple2<String, AstNode>>[];
 
   /// Whether we're running in Node Sass-compatibility mode.
   bool get _asNodeSass => _nodeImporter != null;
@@ -262,8 +270,8 @@ class _EvaluateVisitor
       var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
 
-      var invocation = ArgumentInvocation([], {}, _callableSpan,
-          rest: ValueExpression(args, _callableSpan),
+      var invocation = ArgumentInvocation([], {}, _callableNode.span,
+          rest: ValueExpression(args, _callableNode.span),
           keywordRest: args.keywords.isEmpty
               ? null
               : ValueExpression(
@@ -271,23 +279,23 @@ class _EvaluateVisitor
                       key: (String key, Value _) =>
                           SassString(key, quotes: false),
                       value: (String _, Value value) => value)),
-                  _callableSpan));
+                  _callableNode.span));
 
       if (function is SassString) {
         _warn(
             "Passing a string to call() is deprecated and will be illegal\n"
             "in Sass 4.0. Use call(get-function($function)) instead.",
-            _callableSpan,
+            _callableNode.span,
             deprecation: true);
 
         var expression = FunctionExpression(
-            Interpolation([function.text], _callableSpan), invocation);
+            Interpolation([function.text], _callableNode.span), invocation);
         return await expression.accept(this);
       }
 
       var callable = function.assertFunction("function").callable;
       if (callable is AsyncCallable) {
-        return await _runFunctionCallable(invocation, callable, _callableSpan);
+        return await _runFunctionCallable(invocation, callable, _callableNode);
       } else {
         throw SassScriptException(
             "The function ${callable.name} is asynchronous.\n"
@@ -347,7 +355,7 @@ class _EvaluateVisitor
       var resolved =
           await _performInterpolation(node.query, warnForColor: true);
       query = _adjustParseError(
-          node.query.span, () => AtRootQuery.parse(resolved, logger: _logger));
+          node.query, () => AtRootQuery.parse(resolved, logger: _logger));
     }
 
     var parent = _parent;
@@ -480,7 +488,7 @@ class _EvaluateVisitor
     var content = _environment.content;
     if (content == null) return null;
 
-    await _runUserDefinedCallable(node.arguments, content, node.span, () async {
+    await _runUserDefinedCallable(node.arguments, content, node, () async {
       for (var statement in content.declaration.children) {
         await statement.accept(this);
       }
@@ -515,7 +523,7 @@ class _EvaluateVisitor
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
       _parent.addChild(CssDeclaration(name, cssValue, node.span,
-          valueSpanForMap: _expressionSpan(node.value)));
+          valueSpanForMap: _expressionNode(node.value)?.span));
     } else if (name.value.startsWith('--')) {
       throw _exception(
           "Custom property values may not be empty.", node.value.span);
@@ -540,11 +548,12 @@ class _EvaluateVisitor
 
   Future<Value> visitEachRule(EachRule node) async {
     var list = await node.list.accept(this);
-    var span = _expressionSpan(node.list);
+    var nodeForSpan = _expressionNode(node.list);
     var setVariables = node.variables.length == 1
         ? (Value value) => _environment.setLocalVariable(
-            node.variables.first, value.withoutSlash(), span)
-        : (Value value) => _setMultipleVariables(node.variables, value, span);
+            node.variables.first, value.withoutSlash(), nodeForSpan)
+        : (Value value) =>
+            _setMultipleVariables(node.variables, value, nodeForSpan);
     return _environment.scope(() {
       return _handleReturn<Value>(list.asList, (element) {
         setVariables(element);
@@ -557,14 +566,15 @@ class _EvaluateVisitor
   /// Destructures [value] and assigns it to [variables], as in an `@each`
   /// statement.
   void _setMultipleVariables(
-      List<String> variables, Value value, FileSpan span) {
+      List<String> variables, Value value, AstNode nodeForSpan) {
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
-      _environment.setLocalVariable(variables[i], list[i].withoutSlash(), span);
+      _environment.setLocalVariable(
+          variables[i], list[i].withoutSlash(), nodeForSpan);
     }
     for (var i = minLength; i < variables.length; i++) {
-      _environment.setLocalVariable(variables[i], sassNull, span);
+      _environment.setLocalVariable(variables[i], sassNull, nodeForSpan);
     }
   }
 
@@ -583,7 +593,7 @@ class _EvaluateVisitor
         await _interpolationToValue(node.selector, warnForColor: true);
 
     var list = _adjustParseError(
-        targetText.span,
+        targetText,
         () => SelectorList.parse(
             trimAscii(targetText.value, excludeEscape: true),
             logger: _logger,
@@ -667,26 +677,27 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitForRule(ForRule node) async {
-    var fromNumber = await _addExceptionSpanAsync(node.from.span,
-        () async => (await node.from.accept(this)).assertNumber());
+    var fromNumber = await _addExceptionSpanAsync(
+        node.from, () async => (await node.from.accept(this)).assertNumber());
     var toNumber = await _addExceptionSpanAsync(
-        node.to.span, () async => (await node.to.accept(this)).assertNumber());
+        node.to, () async => (await node.to.accept(this)).assertNumber());
 
     var from = _addExceptionSpan(
-        node.from.span,
+        node.from,
         () => fromNumber
             .coerce(toNumber.numeratorUnits, toNumber.denominatorUnits)
             .assertInt());
-    var to = _addExceptionSpan(node.to.span, () => toNumber.assertInt());
+    var to = _addExceptionSpan(node.to, () => toNumber.assertInt());
 
     var direction = from > to ? -1 : 1;
     if (!node.isExclusive) to += direction;
     if (from == to) return null;
 
     return _environment.scope(() async {
-      var span = _expressionSpan(node.from);
+      var nodeForSpan = _expressionNode(node.from);
       for (var i = from; i != to; i += direction) {
-        _environment.setLocalVariable(node.variable, SassNumber(i), span);
+        _environment.setLocalVariable(
+            node.variable, SassNumber(i), nodeForSpan);
         var result = await _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;
@@ -740,7 +751,7 @@ class _EvaluateVisitor
     }
 
     _activeImports.add(url);
-    await _withStackFrame("@import", import.span, () async {
+    await _withStackFrame("@import", import, () async {
       await _withEnvironment(_environment.closure(), () async {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -852,7 +863,7 @@ class _EvaluateVisitor
     var contentCallable = node.content == null
         ? null
         : UserDefinedCallable(node.content, _environment.closure());
-    await _runUserDefinedCallable(node.arguments, mixin, node.span, () async {
+    await _runUserDefinedCallable(node.arguments, mixin, node, () async {
       await _environment.withContent(contentCallable, () async {
         await _environment.asMixin(() async {
           for (var statement in mixin.declaration.children) {
@@ -934,7 +945,7 @@ class _EvaluateVisitor
         await _performInterpolation(interpolation, warnForColor: true);
 
     // TODO(nweiz): Remove this type argument when sdk#31398 is fixed.
-    return _adjustParseError<List<CssMediaQuery>>(interpolation.span,
+    return _adjustParseError<List<CssMediaQuery>>(interpolation,
         () => CssMediaQuery.parseList(resolved, logger: _logger));
   }
 
@@ -973,7 +984,7 @@ class _EvaluateVisitor
         trim: true, warnForColor: true);
     if (_inKeyframes) {
       var parsedSelector = _adjustParseError(
-          node.selector.span,
+          node.selector,
           () => KeyframeSelectorParser(selectorText.value, logger: _logger)
               .parse());
       var rule = CssKeyframeBlock(
@@ -990,13 +1001,13 @@ class _EvaluateVisitor
     }
 
     var parsedSelector = _adjustParseError(
-        node.selector.span,
+        node.selector,
         () => SelectorList.parse(selectorText.value,
             allowParent: !_stylesheet.plainCss,
             allowPlaceholder: !_stylesheet.plainCss,
             logger: _logger));
     parsedSelector = _addExceptionSpan(
-        node.selector.span,
+        node.selector,
         () => parsedSelector.resolveParentSelectors(
             _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
@@ -1102,18 +1113,16 @@ class _EvaluateVisitor
     _environment.setVariable(
         node.name,
         (await node.expression.accept(this)).withoutSlash(),
-        _expressionSpan(node.expression),
+        _expressionNode(node.expression),
         global: node.isGlobal);
     return null;
   }
 
   Future<Value> visitWarnRule(WarnRule node) async {
-    var value = await _addExceptionSpanAsync(
-        node.span, () => node.expression.accept(this));
+    var value =
+        await _addExceptionSpanAsync(node, () => node.expression.accept(this));
     _logger.warn(
-        value is SassString
-            ? value.text
-            : _serialize(value, node.expression.span),
+        value is SassString ? value.text : _serialize(value, node.expression),
         trace: _stackTrace(node.span));
     return null;
   }
@@ -1132,7 +1141,7 @@ class _EvaluateVisitor
   // ## Expressions
 
   Future<Value> visitBinaryOperationExpression(BinaryOperationExpression node) {
-    return _addExceptionSpanAsync(node.span, () async {
+    return _addExceptionSpanAsync(node, () async {
       var left = await node.left.accept(this);
       switch (node.operator) {
         case BinaryOperator.singleEquals:
@@ -1233,8 +1242,7 @@ class _EvaluateVisitor
     var positional = pair.item1;
     var named = pair.item2;
 
-    _verifyArguments(
-        positional.length, named, IfExpression.declaration, node.span);
+    _verifyArguments(positional.length, named, IfExpression.declaration, node);
 
     var condition = positional.length > 0 ? positional[0] : named["condition"];
     var ifTrue = positional.length > 1 ? positional[1] : named["if-true"];
@@ -1282,8 +1290,7 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    var result =
-        await _runFunctionCallable(node.arguments, function, node.span);
+    var result = await _runFunctionCallable(node.arguments, function, node);
     _inFunction = oldInFunction;
     return result;
   }
@@ -1293,18 +1300,18 @@ class _EvaluateVisitor
   Future<Value> _runUserDefinedCallable(
       ArgumentInvocation arguments,
       UserDefinedCallable<AsyncEnvironment> callable,
-      FileSpan span,
+      AstNode nodeWithSpan,
       Future<Value> run()) async {
     var evaluated = await _evaluateArguments(arguments);
 
     var name = callable.name == null ? "@content" : callable.name + "()";
-    return await _withStackFrame(name, span, () {
+    return await _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {
         return _environment.scope(() async {
           _verifyArguments(evaluated.positional.length, evaluated.named,
-              callable.declaration.arguments, span);
+              callable.declaration.arguments, nodeWithSpan);
 
           var declaredArguments = callable.declaration.arguments.arguments;
           var minLength =
@@ -1313,7 +1320,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 declaredArguments[i].name,
                 evaluated.positional[i].withoutSlash(),
-                _sourceMap ? evaluated.positionalSpans[i] : null);
+                _sourceMap ? evaluated.positionalNodes[i] : null);
           }
 
           for (var i = evaluated.positional.length;
@@ -1326,8 +1333,8 @@ class _EvaluateVisitor
                 argument.name,
                 value.withoutSlash(),
                 _sourceMap
-                    ? evaluated.namedSpans[argument.name] ??
-                        _expressionSpan(argument.defaultValue)
+                    ? evaluated.namedNodes[argument.name] ??
+                        _expressionNode(argument.defaultValue)
                     : null);
           }
 
@@ -1345,7 +1352,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 callable.declaration.arguments.restArgument,
                 argumentList,
-                span);
+                nodeWithSpan);
           }
 
           var result = await run();
@@ -1357,7 +1364,8 @@ class _EvaluateVisitor
           var argumentWord = pluralize('argument', evaluated.named.keys.length);
           var argumentNames =
               toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
-          throw _exception("No $argumentWord named $argumentNames.", span);
+          throw _exception(
+              "No $argumentWord named $argumentNames.", nodeWithSpan.span);
         });
       });
     });
@@ -1365,12 +1373,12 @@ class _EvaluateVisitor
 
   /// Evaluates [arguments] as applied to [callable].
   Future<Value> _runFunctionCallable(ArgumentInvocation arguments,
-      AsyncCallable callable, FileSpan span) async {
+      AsyncCallable callable, AstNode nodeWithSpan) async {
     if (callable is AsyncBuiltInCallable) {
-      return (await _runBuiltInCallable(arguments, callable, span))
+      return (await _runBuiltInCallable(arguments, callable, nodeWithSpan))
           .withoutSlash();
     } else if (callable is UserDefinedCallable<AsyncEnvironment>) {
-      return (await _runUserDefinedCallable(arguments, callable, span,
+      return (await _runUserDefinedCallable(arguments, callable, nodeWithSpan,
               () async {
         for (var statement in callable.declaration.children) {
           var returnValue = await statement.accept(this);
@@ -1383,8 +1391,8 @@ class _EvaluateVisitor
           .withoutSlash();
     } else if (callable is PlainCssCallable) {
       if (arguments.named.isNotEmpty || arguments.keywordRest != null) {
-        throw _exception(
-            "Plain CSS functions don't support keyword arguments.", span);
+        throw _exception("Plain CSS functions don't support keyword arguments.",
+            nodeWithSpan.span);
       }
 
       var buffer = StringBuffer("${callable.name}(");
@@ -1402,7 +1410,7 @@ class _EvaluateVisitor
       var rest = await arguments.rest?.accept(this);
       if (rest != null) {
         if (!first) buffer.write(", ");
-        buffer.write(_serialize(rest, arguments.rest.span));
+        buffer.write(_serialize(rest, arguments.rest));
       }
       buffer.writeCharCode($rparen);
 
@@ -1415,18 +1423,18 @@ class _EvaluateVisitor
   /// Evaluates [invocation] as applied to [callable], and invokes [callable]'s
   /// body.
   Future<Value> _runBuiltInCallable(ArgumentInvocation arguments,
-      AsyncBuiltInCallable callable, FileSpan span) async {
+      AsyncBuiltInCallable callable, AstNode nodeWithSpan) async {
     var evaluated = await _evaluateArguments(arguments, trackSpans: false);
 
-    var oldCallableSpan = _callableSpan;
-    _callableSpan = span;
+    var oldCallableNode = _callableNode;
+    _callableNode = nodeWithSpan;
 
     var namedSet = MapKeySet(evaluated.named);
     var tuple = callable.callbackFor(evaluated.positional.length, namedSet);
     var overload = tuple.item1;
     var callback = tuple.item2;
-    _addExceptionSpan(
-        span, () => overload.verify(evaluated.positional.length, namedSet));
+    _addExceptionSpan(nodeWithSpan,
+        () => overload.verify(evaluated.positional.length, namedSet));
 
     var declaredArguments = overload.arguments;
     for (var i = evaluated.positional.length;
@@ -1466,9 +1474,9 @@ class _EvaluateVisitor
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message, span);
+      throw _exception(message, nodeWithSpan.span);
     }
-    _callableSpan = oldCallableSpan;
+    _callableNode = oldCallableNode;
 
     if (argumentList == null) return result;
     if (evaluated.named.isEmpty) return result;
@@ -1476,7 +1484,7 @@ class _EvaluateVisitor
     throw _exception(
         "No ${pluralize('argument', evaluated.named.keys.length)} named "
         "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
-        span);
+        nodeWithSpan.span);
   }
 
   /// Returns the evaluated values of the given [arguments].
@@ -1494,57 +1502,57 @@ class _EvaluateVisitor
         arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    var positionalSpans =
-        trackSpans ? arguments.positional.map(_expressionSpan).toList() : null;
-    var namedSpans = trackSpans
-        ? mapMap<String, Expression, String, FileSpan>(arguments.named,
-            value: (_, expression) => _expressionSpan(expression))
+    var positionalNodes =
+        trackSpans ? arguments.positional.map(_expressionNode).toList() : null;
+    var namedNodes = trackSpans
+        ? mapMap<String, Expression, String, AstNode>(arguments.named,
+            value: (_, expression) => _expressionNode(expression))
         : null;
 
     if (arguments.rest == null) {
       return _ArgumentResults(positional, named, ListSeparator.undecided,
-          positionalSpans: positionalSpans, namedSpans: namedSpans);
+          positionalNodes: positionalNodes, namedNodes: namedNodes);
     }
 
     var rest = await arguments.rest.accept(this);
-    var restSpan = trackSpans ? _expressionSpan(arguments.rest) : null;
+    var restNodeForSpan = trackSpans ? _expressionNode(arguments.rest) : null;
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
-      _addRestMap(named, rest, arguments.rest.span);
-      namedSpans?.addAll(mapMap(rest.contents,
+      _addRestMap(named, rest, arguments.rest);
+      namedNodes?.addAll(mapMap(rest.contents,
           key: (key, _) => (key as SassString).text,
-          value: (_, __) => restSpan));
+          value: (_, __) => restNodeForSpan));
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
-      positionalSpans?.addAll(List.filled(rest.lengthAsList, restSpan));
+      positionalNodes?.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
       separator = rest.separator;
 
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
           named[key] = value;
-          if (namedSpans != null) namedSpans[key] = restSpan;
+          if (namedNodes != null) namedNodes[key] = restNodeForSpan;
         });
       }
     } else {
       positional.add(rest);
-      positionalSpans?.add(restSpan);
+      positionalNodes?.add(restNodeForSpan);
     }
 
     if (arguments.keywordRest == null) {
       return _ArgumentResults(positional, named, separator,
-          positionalSpans: positionalSpans, namedSpans: namedSpans);
+          positionalNodes: positionalNodes, namedNodes: namedNodes);
     }
 
     var keywordRest = await arguments.keywordRest.accept(this);
-    var keywordRestSpan =
-        trackSpans ? _expressionSpan(arguments.keywordRest) : null;
+    var keywordRestNodeForSpan =
+        trackSpans ? _expressionNode(arguments.keywordRest) : null;
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, arguments.keywordRest.span);
-      namedSpans?.addAll(mapMap(keywordRest.contents,
+      _addRestMap(named, keywordRest, arguments.keywordRest);
+      namedNodes?.addAll(mapMap(keywordRest.contents,
           key: (key, _) => (key as SassString).text,
-          value: (_, __) => keywordRestSpan));
+          value: (_, __) => keywordRestNodeForSpan));
       return _ArgumentResults(positional, named, separator,
-          positionalSpans: positionalSpans, namedSpans: namedSpans);
+          positionalNodes: positionalNodes, namedNodes: namedNodes);
     } else {
       throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",
@@ -1568,8 +1576,7 @@ class _EvaluateVisitor
     var named = normalizedMap(invocation.arguments.named);
     var rest = await invocation.arguments.rest.accept(this);
     if (rest is SassMap) {
-      _addRestMap(
-          named, rest, invocation.span, (value) => ValueExpression(value));
+      _addRestMap(named, rest, invocation, (value) => ValueExpression(value));
     } else if (rest is SassList) {
       positional.addAll(rest.asList.map((value) => ValueExpression(value)));
       if (rest is SassArgumentList) {
@@ -1587,8 +1594,8 @@ class _EvaluateVisitor
 
     var keywordRest = await invocation.arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, invocation.span,
-          (value) => ValueExpression(value));
+      _addRestMap(
+          named, keywordRest, invocation, (value) => ValueExpression(value));
       return Tuple2(positional, named);
     } else {
       throw _exception(
@@ -1599,12 +1606,16 @@ class _EvaluateVisitor
 
   /// Adds the values in [map] to [values].
   ///
-  /// Throws a [SassRuntimeException] associated with [span] if any [map] keys
-  /// aren't strings.
+  /// Throws a [SassRuntimeException] associated with [nodeForSpan]'s source
+  /// span if any [map] keys aren't strings.
   ///
   /// If [convert] is passed, that's used to convert the map values to the value
   /// type for [values]. Otherwise, the [Value]s are used as-is.
-  void _addRestMap<T>(Map<String, T> values, SassMap map, FileSpan span,
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  void _addRestMap<T>(Map<String, T> values, SassMap map, AstNode nodeForSpan,
       [T convert(Value value)]) {
     convert ??= (value) => value as T;
     map.contents.forEach((key, value) {
@@ -1614,7 +1625,7 @@ class _EvaluateVisitor
         throw _exception(
             "Variable keyword argument map must have string keys.\n"
             "$key is not a string in $map.",
-            span);
+            nodeForSpan.span);
       }
     });
   }
@@ -1622,9 +1633,9 @@ class _EvaluateVisitor
   /// Throws a [SassRuntimeException] if [positional] and [named] aren't valid
   /// when applied to [arguments].
   void _verifyArguments(int positional, Map<String, dynamic> named,
-          ArgumentDeclaration arguments, FileSpan span) =>
+          ArgumentDeclaration arguments, AstNode nodeWithSpan) =>
       _addExceptionSpan(
-          span, () => arguments.verify(positional, MapKeySet(named)));
+          nodeWithSpan, () => arguments.verify(positional, MapKeySet(named)));
 
   Future<Value> visitSelectorExpression(SelectorExpression node) async {
     if (_styleRule == null) return sassNull;
@@ -1641,7 +1652,7 @@ class _EvaluateVisitor
           var result = await expression.accept(this);
           return result is SassString
               ? result.text
-              : _serialize(result, expression.span, quote: false);
+              : _serialize(result, expression, quote: false);
         }))
             .join(),
         quotes: node.hasQuotes);
@@ -1714,7 +1725,7 @@ class _EvaluateVisitor
             expression.span);
       }
 
-      return _serialize(result, expression.span, quote: false);
+      return _serialize(result, expression, quote: false);
     }))
         .join();
   }
@@ -1723,23 +1734,34 @@ class _EvaluateVisitor
   /// [SassScriptException] to associate it with [span].
   Future<String> _evaluateToCss(Expression expression,
           {bool quote = true}) async =>
-      _serialize(await expression.accept(this), expression.span, quote: quote);
+      _serialize(await expression.accept(this), expression, quote: quote);
 
   /// Calls `value.toCssString()` and wraps a [SassScriptException] to associate
-  /// it with [span].
-  String _serialize(Value value, FileSpan span, {bool quote = true}) =>
-      _addExceptionSpan(span, () => value.toCssString(quote: quote));
+  /// it with [nodeWithSpan]'s source span.
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  String _serialize(Value value, AstNode nodeWithSpan, {bool quote = true}) =>
+      _addExceptionSpan(nodeWithSpan, () => value.toCssString(quote: quote));
 
-  /// Returns the span for [expression], or if [expression] is just a variable
-  /// reference for the span where it was declared.
+  /// Returns the [AstNode] whose span should be used for [expression].
+  ///
+  /// If [expression] is a variable reference, [AstNode]'s span will be the span
+  /// where that variable was originally declared. Otherwise, this will just
+  /// return [expression].
   ///
   /// Returns `null` if [_sourceMap] is `false`.
-  FileSpan _expressionSpan(Expression expression) {
+  ///
+  /// This returns an [AstNode] rather than a [FileSpan] so we can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  AstNode _expressionNode(Expression expression) {
     if (!_sourceMap) return null;
     if (expression is VariableExpression) {
-      return _environment.getVariableSpan(expression.name);
+      return _environment.getVariableNode(expression.name);
     } else {
-      return expression.span;
+      return expression;
     }
   }
 
@@ -1800,13 +1822,17 @@ class _EvaluateVisitor
     return result;
   }
 
-  /// Adds a frame to the stack with the given [member] name, and [span] as the
-  /// site of the new frame.
+  /// Adds a frame to the stack with the given [member] name, and [nodeWithSpan]
+  /// as the site of the new frame.
   ///
   /// Runs [callback] with the new stack.
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
   Future<T> _withStackFrame<T>(
-      String member, FileSpan span, Future<T> callback()) async {
-    _stack.add(Tuple2(_member, span));
+      String member, AstNode nodeWithSpan, Future<T> callback()) async {
+    _stack.add(Tuple2(_member, nodeWithSpan));
     var oldMember = _member;
     _member = member;
     var result = await callback();
@@ -1828,7 +1854,7 @@ class _EvaluateVisitor
   /// [span] is the current location, used for the bottom-most stack frame.
   Trace _stackTrace(FileSpan span) {
     var frames = _stack
-        .map((tuple) => _stackFrame(tuple.item1, tuple.item2))
+        .map((tuple) => _stackFrame(tuple.item1, tuple.item2.span))
         .toList()
           ..add(_stackFrame(_member, span));
     return Trace(frames.reversed);
@@ -1843,17 +1869,23 @@ class _EvaluateVisitor
   SassRuntimeException _exception(String message, FileSpan span) =>
       SassRuntimeException(message, span, _stackTrace(span));
 
-  /// Runs [callback], and adjusts any [SassFormatException] to be within [span].
+  /// Runs [callback], and adjusts any [SassFormatException] to be within
+  /// [nodeWithSpan]'s source span.
   ///
   /// Specifically, this adjusts format exceptions so that the errors are
   /// reported as though the text being parsed were exactly in [span]. This may
   /// not be quite accurate if the source text contained interpolation, but
   /// it'll still produce a useful error.
-  T _adjustParseError<T>(FileSpan span, T callback()) {
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  T _adjustParseError<T>(AstNode nodeWithSpan, T callback()) {
     try {
       return callback();
     } on SassFormatException catch (error) {
       var errorText = error.span.file.getText(0);
+      var span = nodeWithSpan.span;
       var syntheticFile = span.file
           .getText(0)
           .replaceRange(span.start.offset, span.end.offset, errorText);
@@ -1866,22 +1898,26 @@ class _EvaluateVisitor
   }
 
   /// Runs [callback], and converts any [SassScriptException]s it throws to
-  /// [SassRuntimeException]s with [span].
-  T _addExceptionSpan<T>(FileSpan span, T callback()) {
+  /// [SassRuntimeException]s with [nodeWithSpan]'s source span.
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  T _addExceptionSpan<T>(AstNode nodeWithSpan, T callback()) {
     try {
       return callback();
     } on SassScriptException catch (error) {
-      throw _exception(error.message, span);
+      throw _exception(error.message, nodeWithSpan.span);
     }
   }
 
   /// Like [_addExceptionSpan], but for an asynchronous [callback].
   Future<T> _addExceptionSpanAsync<T>(
-      FileSpan span, Future<T> callback()) async {
+      AstNode nodeWithSpan, Future<T> callback()) async {
     try {
       return await callback();
     } on SassScriptException catch (error) {
-      throw _exception(error.message, span);
+      throw _exception(error.message, nodeWithSpan.span);
     }
   }
 }
@@ -1907,20 +1943,28 @@ class _ArgumentResults {
   /// Arguments passed by position.
   final List<Value> positional;
 
-  /// The spans for each [positional] argument, or `null` if source span
-  /// tracking is disabled.
-  final List<FileSpan> positionalSpans;
+  /// The [AstNode]s that hold the spans for each [positional] argument, or
+  /// `null` if source span tracking is disabled.
+  ///
+  /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  final List<AstNode> positionalNodes;
 
   /// Arguments passed by name.
   final Map<String, Value> named;
 
-  /// The spans for each [named] argument, or `null` if source span tracking is
-  /// disabled.
-  final Map<String, FileSpan> namedSpans;
+  /// The [AstNode]s that hold the spans for each [named] argument, or `null` if
+  /// source span tracking is disabled.
+  ///
+  /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  final Map<String, AstNode> namedNodes;
 
   /// The separator used for the rest argument list, if any.
   final ListSeparator separator;
 
   _ArgumentResults(this.positional, this.named, this.separator,
-      {this.positionalSpans, this.namedSpans});
+      {this.positionalNodes, this.namedNodes});
 }

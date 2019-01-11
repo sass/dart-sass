@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:source_span/source_span.dart';
 
+import 'ast/node.dart';
 import 'callable.dart';
 import 'functions.dart';
 import 'value.dart';
@@ -26,10 +27,14 @@ class AsyncEnvironment {
   /// deeper in the tree.
   final List<Map<String, Value>> _variables;
 
-  /// The spans where each variable in [_variables] was defined.
+  /// The nodes where each variable in [_variables] was defined.
   ///
   /// This is `null` if source mapping is disabled.
-  final List<Map<String, FileSpan>> _variableSpans;
+  ///
+  /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  final List<Map<String, AstNode>> _variableNodes;
 
   /// A map of variable names to their indices in [_variables].
   ///
@@ -104,7 +109,7 @@ class AsyncEnvironment {
   /// If [sourceMap] is `true`, this tracks variables' source locations
   AsyncEnvironment({bool sourceMap = false})
       : _variables = [normalizedMap()],
-        _variableSpans = sourceMap ? [normalizedMap()] : null,
+        _variableNodes = sourceMap ? [normalizedMap()] : null,
         _variableIndices = normalizedMap(),
         _functions = [normalizedMap()],
         _functionIndices = normalizedMap(),
@@ -113,7 +118,7 @@ class AsyncEnvironment {
     coreFunctions.forEach(setFunction);
   }
 
-  AsyncEnvironment._(this._variables, this._variableSpans, this._functions,
+  AsyncEnvironment._(this._variables, this._variableNodes, this._functions,
       this._mixins, this._content)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() because the copying took a lot of
@@ -130,7 +135,7 @@ class AsyncEnvironment {
   /// when the closure was created will be reflected.
   AsyncEnvironment closure() => AsyncEnvironment._(
       _variables.toList(),
-      _variableSpans?.toList(),
+      _variableNodes?.toList(),
       _functions.toList(),
       _mixins.toList(),
       _content);
@@ -156,18 +161,24 @@ class AsyncEnvironment {
     return _variables[index][name];
   }
 
-  /// Returns the source span for the variable named [name], or `null` if no
-  /// such variable is declared.
-  FileSpan getVariableSpan(String name) {
+  /// Returns the node for the variable named [name], or `null` if no such
+  /// variable is declared.
+  ///
+  /// This node is intended as a proxy for the [FileSpan] indicating where the
+  /// variable's value originated. It's returned as an [AstNode] rather than a
+  /// [FileSpan] so we can avoid calling [AstNode.span] if the span isn't
+  /// required, since some nodes need to do real work to manufacture a source
+  /// span.
+  AstNode getVariableNode(String name) {
     if (_lastVariableName == name) {
-      return _variableSpans[_lastVariableIndex][name];
+      return _variableNodes[_lastVariableIndex][name];
     }
 
     var index = _variableIndices[name];
     if (index != null) {
       _lastVariableName = name;
       _lastVariableIndex = index;
-      return _variableSpans[index][name];
+      return _variableNodes[index][name];
     }
 
     index = _variableIndex(name);
@@ -176,7 +187,7 @@ class AsyncEnvironment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
-    return _variableSpans[index][name];
+    return _variableNodes[index][name];
   }
 
   /// Returns whether a variable named [name] exists.
@@ -194,12 +205,17 @@ class AsyncEnvironment {
     return null;
   }
 
-  /// Sets the variable named [name] to [value], associated with the given [span].
+  /// Sets the variable named [name] to [value], associated with
+  /// [nodeWithSpan]'s source span.
   ///
   /// If [global] is `true`, this sets the variable at the top-level scope.
   /// Otherwise, if the variable was already defined, it'll set it in the
   /// previous scope. If it's undefined, it'll set it in the current scope.
-  void setVariable(String name, Value value, FileSpan span,
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  void setVariable(String name, Value value, AstNode nodeWithSpan,
       {bool global = false}) {
     if (global || _variables.length == 1) {
       // Don't set the index if there's already a variable with the given name,
@@ -211,7 +227,7 @@ class AsyncEnvironment {
       });
 
       _variables.first[name] = value;
-      if (_variableSpans != null) _variableSpans.first[name] = span;
+      if (_variableNodes != null) _variableNodes.first[name] = nodeWithSpan;
       return;
     }
 
@@ -227,20 +243,25 @@ class AsyncEnvironment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variables[index][name] = value;
-    if (_variableSpans != null) _variableSpans[index][name] = span;
+    if (_variableNodes != null) _variableNodes[index][name] = nodeWithSpan;
   }
 
-  /// Sets the variable named [name] to [value] in the current scope, associated with the given [span].
+  /// Sets the variable named [name] to [value], associated with
+  /// [nodeWithSpan]'s source span.
   ///
   /// Unlike [setVariable], this will declare the variable in the current scope
   /// even if a declaration already exists in an outer scope.
-  void setLocalVariable(String name, Value value, FileSpan span) {
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  void setLocalVariable(String name, Value value, AstNode nodeWithSpan) {
     var index = _variables.length - 1;
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
     _variables[index][name] = value;
-    if (_variableSpans != null) _variableSpans[index][name] = span;
+    if (_variableNodes != null) _variableNodes[index][name] = nodeWithSpan;
   }
 
   /// Returns the value of the function named [name], or `null` if no such
@@ -358,7 +379,7 @@ class AsyncEnvironment {
     _inSemiGlobalScope = semiGlobal;
 
     _variables.add(normalizedMap());
-    _variableSpans?.add(normalizedMap());
+    _variableNodes?.add(normalizedMap());
     _functions.add(normalizedMap());
     _mixins.add(normalizedMap());
     try {
