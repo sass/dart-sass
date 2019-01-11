@@ -135,6 +135,23 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       ]).validate();
     });
 
+    test("compiles files to the same directory if no output is given",
+        () async {
+      await d.dir("in", [
+        d.file("test1.scss", "a {b: c}"),
+        d.file("test2.sass", "x\n  y: z")
+      ]).create();
+
+      var sass = await runSass(["--no-source-map", "in"]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+
+      await d.dir("in", [
+        d.file("test1.css", equalsIgnoringWhitespace("a { b: c; }")),
+        d.file("test2.css", equalsIgnoringWhitespace("x { y: z; }"))
+      ]).validate();
+    });
+
     test("ignores partials", () async {
       await d.dir("in", [
         d.file("_fake.scss", "a {b:"),
@@ -238,6 +255,24 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["test.scss:out.css", "positional"]);
         expect(sass.stdout,
             emits('Positional and ":" arguments may not both be used.'));
+        await sass.shouldExit(64);
+      });
+
+      test("before a directory", () async {
+        await d.dir("in").create();
+
+        var sass = await runSass(["positional", "in"]);
+        expect(
+            sass.stdout, emits('Directory "in" may not be a positional arg.'));
+        await sass.shouldExit(64);
+      });
+
+      test("after a directory", () async {
+        await d.dir("in").create();
+
+        var sass = await runSass(["in", "positional"]);
+        expect(
+            sass.stdout, emits('Directory "in" may not be a positional arg.'));
         await sass.shouldExit(64);
       });
     });

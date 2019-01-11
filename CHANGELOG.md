@@ -1,3 +1,11 @@
+## 1.17.0
+
+### Command-Line Interface
+
+* Passing a directory on the command line now compiles all Sass source files in
+  the directory to CSS files in the same directory, as though `dir:dir` were
+  passed instead of just `dir`.
+
 ## 1.16.1
 
 * Fix a performance bug where stylesheet evaluation could take a very long time
