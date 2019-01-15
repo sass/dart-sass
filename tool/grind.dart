@@ -13,6 +13,7 @@ export 'grind/chocolatey.dart';
 export 'grind/github.dart';
 export 'grind/homebrew.dart';
 export 'grind/npm.dart';
+export 'grind/sanity_check.dart';
 export 'grind/standalone.dart';
 export 'grind/synchronize.dart';
 
