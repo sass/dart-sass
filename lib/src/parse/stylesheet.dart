@@ -944,7 +944,8 @@ abstract class StylesheetParser extends Parser {
       expectStatementSeparator();
     }
 
-    var span = scanner.spanFrom(start, start).expand((content ?? arguments).span);
+    var span =
+        scanner.spanFrom(start, start).expand((content ?? arguments).span);
     return IncludeRule(name, arguments, span, content: content);
   }
 
