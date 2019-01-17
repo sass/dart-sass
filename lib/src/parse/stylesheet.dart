@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:tuple/tuple.dart';
 
@@ -200,8 +201,8 @@ abstract class StylesheetParser extends Parser {
 
     var start = scanner.state;
     var selector = styleRuleSelector();
-    var children = this.children(_statement);
-    var rule = StyleRule(selector, children, scanner.spanFrom(start));
+    var rule = _withChildren(_statement, start,
+        (children, span) => StyleRule(selector, children, span));
     _inStyleRule = wasInStyleRule;
     return rule;
   }
@@ -252,16 +253,17 @@ abstract class StylesheetParser extends Parser {
     var wasInStyleRule = _inStyleRule;
     _inStyleRule = true;
 
-    var children = this.children(_statement);
-    if (indented && children.isEmpty) {
-      warn("This selector doesn't have any properties and won't be rendered.",
-          selectorSpan);
-    }
+    return _withChildren(_statement, start, (children, span) {
+      if (indented && children.isEmpty) {
+        warn("This selector doesn't have any properties and won't be rendered.",
+            selectorSpan);
+      }
 
-    _inStyleRule = wasInStyleRule;
+      _inStyleRule = wasInStyleRule;
 
-    return StyleRule(
-        buffer.interpolation(selectorSpan), children, scanner.spanFrom(start));
+      return StyleRule(buffer.interpolation(selectorSpan), children,
+          scanner.spanFrom(start));
+    });
   }
 
   /// Tries to parse a declaration, and returns the value parsed so far if it
@@ -319,8 +321,8 @@ abstract class StylesheetParser extends Parser {
 
     var postColonWhitespace = rawText(whitespace);
     if (lookingAtChildren()) {
-      var children = this.children(_declarationChild);
-      return Declaration(name, scanner.spanFrom(start), children: children);
+      return _withChildren(_declarationChild, start,
+          (children, span) => Declaration(name, span, children: children));
     }
 
     midBuffer.write(postColonWhitespace);
@@ -359,12 +361,16 @@ abstract class StylesheetParser extends Parser {
       return nameBuffer;
     }
 
-    var children =
-        lookingAtChildren() ? this.children(_declarationChild) : null;
-    if (children == null) expectStatementSeparator();
-
-    return Declaration(name, scanner.spanFrom(start),
-        value: value, children: children);
+    if (lookingAtChildren()) {
+      return _withChildren(
+          _declarationChild,
+          start,
+          (children, span) =>
+              Declaration(name, span, value: value, children: children));
+    } else {
+      expectStatementSeparator();
+      return Declaration(name, scanner.spanFrom(start), value: value);
+    }
   }
 
   /// Consumes a property declaration.
@@ -401,22 +407,24 @@ abstract class StylesheetParser extends Parser {
       if (plainCss) {
         scanner.error("Nested declarations aren't allowed in plain CSS.");
       }
-      return Declaration(name, scanner.spanFrom(start),
-          children: this.children(_declarationChild));
+      return _withChildren(_declarationChild, start,
+          (children, span) => Declaration(name, span, children: children));
     }
 
     var value = expression();
-    List<Statement> children;
     if (lookingAtChildren()) {
       if (plainCss) {
         scanner.error("Nested declarations aren't allowed in plain CSS.");
       }
-      children = this.children(_declarationChild);
+      return _withChildren(
+          _declarationChild,
+          start,
+          (children, span) =>
+              Declaration(name, span, value: value, children: children));
+    } else {
+      expectStatementSeparator();
+      return Declaration(name, scanner.spanFrom(start), value: value);
     }
-
-    if (children == null) expectStatementSeparator();
-    return Declaration(name, scanner.spanFrom(start),
-        value: value, children: children);
   }
 
   /// Consumes a statement that's allowed within a declaration.
@@ -566,10 +574,11 @@ abstract class StylesheetParser extends Parser {
     if (scanner.peekChar() == $lparen) {
       var query = _atRootQuery();
       whitespace();
-      return AtRootRule(children(_statement), scanner.spanFrom(start),
-          query: query);
+      return _withChildren(_statement, start,
+          (children, span) => AtRootRule(children, span, query: query));
     } else if (lookingAtChildren()) {
-      return AtRootRule(children(_statement), scanner.spanFrom(start));
+      return _withChildren(
+          _statement, start, (children, span) => AtRootRule(children, span));
     } else {
       var child = _styleRule();
       return AtRootRule([child], scanner.spanFrom(start));
@@ -652,10 +661,11 @@ abstract class StylesheetParser extends Parser {
     whitespace();
 
     var list = expression();
-    var children = this.children(child);
-    _inControlDirective = wasInControlDirective;
 
-    return EachRule(variables, list, children, scanner.spanFrom(start));
+    return _withChildren(child, start, (children, span) {
+      _inControlDirective = wasInControlDirective;
+      return EachRule(variables, list, children, span);
+    });
   }
 
   /// Consumes an `@error` rule.
@@ -714,10 +724,11 @@ abstract class StylesheetParser extends Parser {
     }
 
     whitespace();
-    var children = this.children(_functionAtRule);
-
-    return FunctionRule(name, arguments, children, scanner.spanFrom(start),
-        comment: precedingComment);
+    return _withChildren(
+        _functionAtRule,
+        start,
+        (children, span) => FunctionRule(name, arguments, children, span,
+            comment: precedingComment));
   }
 
   /// Consumes a `@for` rule.
@@ -751,11 +762,11 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     var to = expression();
 
-    var children = this.children(child);
-    _inControlDirective = wasInControlDirective;
+    return _withChildren(child, start, (children, span) {
+      _inControlDirective = wasInControlDirective;
 
-    return ForRule(variable, from, to, children, scanner.spanFrom(start),
-        exclusive: exclusive);
+      return ForRule(variable, from, to, children, span, exclusive: exclusive);
+    });
   }
 
   /// Consumes an `@if` rule.
@@ -768,6 +779,7 @@ abstract class StylesheetParser extends Parser {
     _inControlDirective = true;
     var condition = expression();
     var children = this.children(child);
+    whitespaceWithoutComments();
 
     var clauses = [IfClause(condition, children)];
     IfClause lastClause;
@@ -784,7 +796,9 @@ abstract class StylesheetParser extends Parser {
     }
     _inControlDirective = wasInControlDirective;
 
-    return IfRule(clauses, scanner.spanFrom(start), lastClause: lastClause);
+    var span = scanner.spanFrom(start);
+    whitespaceWithoutComments();
+    return IfRule(clauses, span, lastClause: lastClause);
   }
 
   /// Consumes an `@import` rule.
@@ -918,18 +932,20 @@ abstract class StylesheetParser extends Parser {
     if (contentArguments != null || lookingAtChildren()) {
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
-      content = ContentBlock(
-          contentArguments ??
-              ArgumentDeclaration.empty(span: scanner.emptySpan),
-          this.children(_statement),
-          scanner.spanFrom(start));
+      content = _withChildren(_statement, start, (children, span) {
+        return ContentBlock(
+            contentArguments ??
+                ArgumentDeclaration.empty(span: scanner.emptySpan),
+            children,
+            span);
+      });
       _inContentBlock = wasInContentBlock;
     } else {
       expectStatementSeparator();
     }
 
-    return IncludeRule(name, arguments, scanner.spanFrom(start),
-        content: content);
+    var span = scanner.spanFrom(start, start).expand((content ?? arguments).span);
+    return IncludeRule(name, arguments, span, content: content);
   }
 
   /// Consumes a `@media` rule.
@@ -938,8 +954,8 @@ abstract class StylesheetParser extends Parser {
   @protected
   MediaRule mediaRule(LineScannerState start) {
     var query = _mediaQueryList();
-    var children = this.children(_statement);
-    return MediaRule(query, children, scanner.spanFrom(start));
+    return _withChildren(_statement, start,
+        (children, span) => MediaRule(query, children, span));
   }
 
   /// Consumes a mixin declaration.
@@ -965,13 +981,15 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     _inMixin = true;
     _mixinHasContent = false;
-    var children = this.children(_statement);
-    var hadContent = _mixinHasContent;
-    _inMixin = false;
-    _mixinHasContent = null;
 
-    return MixinRule(name, arguments, children, scanner.spanFrom(start),
-        hasContent: hadContent, comment: precedingComment);
+    return _withChildren(_statement, start, (children, span) {
+      var hadContent = _mixinHasContent;
+      _inMixin = false;
+      _mixinHasContent = null;
+
+      return MixinRule(name, arguments, children, span,
+          hasContent: hadContent, comment: precedingComment);
+    });
   }
 
   /// Consumes a `@moz-document` rule.
@@ -1045,17 +1063,16 @@ abstract class StylesheetParser extends Parser {
     }
 
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
-    var children = this.children(_statement);
-    var span = scanner.spanFrom(start);
-
-    if (needsDeprecationWarning) {
-      logger.warn("""
+    return _withChildren(_statement, start, (children, span) {
+      if (needsDeprecationWarning) {
+        logger.warn("""
 @-moz-document is deprecated and support will be removed from Sass in a future
 relase. For details, see http://bit.ly/moz-document.
 """, span: span, deprecation: true);
-    }
+      }
 
-    return AtRule(name, span, value: value, children: children);
+      return AtRule(name, span, value: value, children: children);
+    });
   }
 
   /// Consumes a `@return` rule.
@@ -1074,8 +1091,8 @@ relase. For details, see http://bit.ly/moz-document.
   SupportsRule supportsRule(LineScannerState start) {
     var condition = _supportsCondition();
     whitespace();
-    return SupportsRule(
-        condition, children(_statement), scanner.spanFrom(start));
+    return _withChildren(_statement, start,
+        (children, span) => SupportsRule(condition, children, span));
   }
 
   /// Consumes a `@warn` rule.
@@ -1095,9 +1112,10 @@ relase. For details, see http://bit.ly/moz-document.
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var condition = expression();
-    var children = this.children(child);
-    _inControlDirective = wasInControlDirective;
-    return WhileRule(condition, children, scanner.spanFrom(start));
+    return _withChildren(child, start, (children, span) {
+      _inControlDirective = wasInControlDirective;
+      return WhileRule(condition, children, span);
+    });
   }
 
   /// Consumes an at-rule that's not explicitly supported by Sass.
@@ -1112,11 +1130,18 @@ relase. For details, see http://bit.ly/moz-document.
     var next = scanner.peekChar();
     if (next != $exclamation && !atEndOfStatement()) value = almostAnyValue();
 
-    var children = lookingAtChildren() ? this.children(_statement) : null;
-    if (children == null) expectStatementSeparator();
+    AtRule rule;
+    if (lookingAtChildren()) {
+      rule = _withChildren(
+          _statement,
+          start,
+          (children, span) =>
+              AtRule(name, span, value: value, children: children));
+    } else {
+      expectStatementSeparator();
+      rule = AtRule(name, scanner.spanFrom(start), value: value);
+    }
 
-    var rule =
-        AtRule(name, scanner.spanFrom(start), value: value, children: children);
     _inUnknownAtRule = wasInUnknownAtRule;
     return rule;
   }
@@ -3034,6 +3059,15 @@ relase. For details, see http://bit.ly/moz-document.
 
   // ## Utilities
 
+  /// Consumes a block of [child] statements and passes them, as well as the
+  /// span from [start] to the end of the child block, to [create].
+  T _withChildren<T>(Statement child(), LineScannerState start,
+      T create(List<Statement> children, FileSpan span)) {
+    var result = create(children(child), scanner.spanFrom(start));
+    whitespaceWithoutComments();
+    return result;
+  }
+
   // ## Abstract Methods
 
   /// Whether this is parsing the indented syntax.
@@ -3083,6 +3117,10 @@ relase. For details, see http://bit.ly/moz-document.
   bool scanElse(int ifIndentation);
 
   /// Consumes a block of child statements.
+  ///
+  /// Unlike most production consumers, this does *not* consume trailing
+  /// whitespace. This is necessary to ensure that the source span for the
+  /// parent rule doesn't cover whitespace after the rule.
   @protected
   List<Statement> children(Statement child());
 

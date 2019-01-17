@@ -92,7 +92,6 @@ class ScssParser extends StylesheetParser {
 
         case $rbrace:
           scanner.expectChar($rbrace);
-          whitespaceWithoutComments();
           return children;
 
         default:
