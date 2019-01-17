@@ -174,10 +174,15 @@ Frame frameForSpan(SourceSpan span, String member, {Uri url}) => Frame(
 /// returns `null`.
 FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
+
   // Spans may be null for dynamically-constructed ASTs.
-  if (nodes.first.span == null) return null;
-  if (nodes.last.span == null) return null;
-  return nodes.first.span.expand(nodes.last.span);
+  var left = nodes.first.span;
+  if (left == null) return null;
+
+  var right = nodes.last.span;
+  if (right == null) return null;
+
+  return left.expand(right);
 }
 
 /// Returns [name] without a vendor prefix.
