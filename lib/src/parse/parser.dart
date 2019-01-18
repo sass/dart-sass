@@ -17,7 +17,7 @@ import '../utils.dart';
 /// This provides utility methods and common token parsing. Unless specified
 /// otherwise, a parse method throws a [SassFormatException] if it fails to
 /// parse.
-abstract class Parser {
+class Parser {
   /// The scanner that scans through the text being parsed.
   final SpanScanner scanner;
 
@@ -25,9 +25,24 @@ abstract class Parser {
   @protected
   final Logger logger;
 
+  /// Parses [text] as a CSS identifier and returns the result.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  static String parseIdentifier(String text, {Logger logger}) =>
+      Parser(text, logger: logger)._parseIdentifier();
+
+  @protected
   Parser(String contents, {url, Logger logger})
       : scanner = SpanScanner(contents, sourceUrl: url),
         logger = logger ?? const Logger.stderr();
+
+  String _parseIdentifier() {
+    return wrapSpanFormatException(() {
+      var result = identifier();
+      scanner.expectDone();
+      return result;
+    });
+  }
 
   // ## Tokens
 
@@ -114,8 +129,8 @@ abstract class Parser {
   @protected
   String identifier({bool unit = false}) {
     // NOTE: this logic is largely duplicated in
-    // StylesheetParser._interpolatedIdentifier. Most changes here should be
-    // mirrored there.
+    // StylesheetParser._interpolatedIdentifier and isIdentifier in utils.dart.
+    // Most changes here should be mirrored there.
 
     var text = StringBuffer();
     while (scanner.scanChar($dash)) {

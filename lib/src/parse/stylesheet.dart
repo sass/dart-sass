@@ -13,6 +13,7 @@ import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
 import '../color_names.dart';
+import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
 import '../util/character.dart';
@@ -20,6 +21,14 @@ import '../utils.dart';
 import '../value.dart';
 import '../value/color.dart';
 import 'parser.dart';
+
+/// Whether to parse `@use` rules.
+///
+/// This is set to `false` on Dart Sass's master branch and `true` on the
+/// `feature.use` branch. It allows us to avoid having separate development
+/// tracks as much as possible without shipping `@use` support until we're
+/// ready.
+const _parseUse = true;
 
 /// The base class for both the SCSS and indented syntax parsers.
 ///
@@ -33,6 +42,10 @@ import 'parser.dart';
 /// private, except where they have to be public for subclasses to refer to
 /// them.
 abstract class StylesheetParser extends Parser {
+  /// Whether we've consumed a rule other than `@charset`, `@forward`, or
+  /// `@use`.
+  var _isUseAllowed = true;
+
   /// Whether the parser is currently parsing the contents of a mixin
   /// declaration.
   var _inMixin = false;
@@ -131,18 +144,21 @@ abstract class StylesheetParser extends Parser {
 
       case $plus:
         if (!indented || !lookingAtIdentifier(1)) return _styleRule();
+        _isUseAllowed = false;
         var start = scanner.state;
         scanner.readChar();
         return _includeRule(start);
 
       case $equal:
         if (!indented) return _styleRule();
+        _isUseAllowed = false;
         var start = scanner.state;
         scanner.readChar();
         whitespace();
         return _mixinRule(start);
 
       default:
+        _isUseAllowed = false;
         return _inStyleRule || _inUnknownAtRule || _inMixin || _inContentBlock
             ? _declarationOrStyleRule()
             : _styleRule();
@@ -155,7 +171,13 @@ abstract class StylesheetParser extends Parser {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     var start = scanner.state;
+
+    String namespace;
     var name = variableName();
+    if (scanner.scanChar($dot)) {
+      namespace = name;
+      name = identifier();
+    }
 
     if (plainCss) {
       error("Sass variables aren't allowed in plain CSS.",
@@ -176,6 +198,11 @@ abstract class StylesheetParser extends Parser {
       if (flag == 'default') {
         guarded = true;
       } else if (flag == 'global') {
+        if (namespace != null) {
+          error("!global isn't allowed for variables in other modules.",
+              scanner.spanFrom(flagStart));
+        }
+
         global = true;
       } else {
         error("Invalid flag name.", scanner.spanFrom(flagStart));
@@ -186,7 +213,10 @@ abstract class StylesheetParser extends Parser {
 
     expectStatementSeparator("variable declaration");
     return VariableDeclaration(name, value, scanner.spanFrom(start),
-        guarded: guarded, global: global, comment: precedingComment);
+        namespace: namespace,
+        guarded: guarded,
+        global: global,
+        comment: precedingComment);
   }
 
   /// Consumes a style rule.
@@ -455,10 +485,18 @@ abstract class StylesheetParser extends Parser {
     var name = interpolatedIdentifier();
     whitespace();
 
+    // We want to set [_isUseAllowed] to `false` *unless* we're parsing
+    // `@charset`, `@forward`, or `@use`. To avoid double-comparing the rule
+    // name, we always set it to `false` and then set it back to its previous
+    // value if we're parsing an allowed rule.
+    var wasUseAllowed = _isUseAllowed;
+    _isUseAllowed = false;
+
     switch (name.asPlain) {
       case "at-root":
         return _atRootRule(start);
       case "charset":
+        _isUseAllowed = wasUseAllowed;
         if (!root) _disallowedAtRule(start);
         string();
         return null;
@@ -494,6 +532,11 @@ abstract class StylesheetParser extends Parser {
         return _disallowedAtRule(start);
       case "supports":
         return supportsRule(start);
+      case "use":
+        _isUseAllowed = wasUseAllowed;
+        if (!root || !_isUseAllowed) _disallowedAtRule(start);
+        if (!_parseUse) _disallowedAtRule(start);
+        return _useRule(start);
       case "warn":
         return _warnRule(start);
       case "while":
@@ -933,7 +976,13 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   IncludeRule _includeRule(LineScannerState start) {
+    String namespace;
     var name = identifier();
+    if (scanner.scanChar($dot)) {
+      namespace = name;
+      name = identifier();
+    }
+
     whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentInvocation(mixin: true)
@@ -965,7 +1014,8 @@ abstract class StylesheetParser extends Parser {
 
     var span =
         scanner.spanFrom(start, start).expand((content ?? arguments).span);
-    return IncludeRule(name, arguments, span, content: content);
+    return IncludeRule(name, arguments, span,
+        namespace: namespace, content: content);
   }
 
   /// Consumes a `@media` rule.
@@ -1113,6 +1163,39 @@ relase. For details, see http://bit.ly/moz-document.
     whitespace();
     return _withChildren(_statement, start,
         (children, span) => SupportsRule(condition, children, span));
+  }
+
+  /// Consumes a `@use` rule.
+  ///
+  /// [start] should point before the `@`.
+  UseRule _useRule(LineScannerState start) {
+    var urlString = string();
+    Uri url;
+    try {
+      url = Uri.parse(urlString);
+    } on FormatException catch (innerError) {
+      error("Invalid URL: ${innerError.message}", scanner.spanFrom(start));
+    }
+    whitespace();
+
+    String namespace;
+    if (scanIdentifier("as")) {
+      whitespace();
+      namespace = scanner.scanChar($asterisk) ? null : identifier();
+    } else {
+      var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
+      var dot = basename.indexOf(".");
+      namespace = basename.substring(0, dot == -1 ? basename.length : dot);
+
+      try {
+        namespace = Parser.parseIdentifier(namespace, logger: logger);
+      } on SassFormatException {
+        error('Invalid Sass identifier "$namespace"', scanner.spanFrom(start));
+      }
+    }
+    expectStatementSeparator("@use rule");
+
+    return UseRule(url, namespace, scanner.spanFrom(start));
   }
 
   /// Consumes a `@warn` rule.
@@ -2143,11 +2226,22 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes a variable expression.
   VariableExpression _variable() {
     var start = scanner.state;
-    var name = variableName();
-    if (!plainCss) return VariableExpression(name, scanner.spanFrom(start));
 
-    error(
-        "Sass variables aren't allowed in plain CSS.", scanner.spanFrom(start));
+    String namespace;
+    var name = variableName();
+    if (scanner.peekChar() == $dot && scanner.peekChar(1) != $dot) {
+      scanner.readChar();
+      namespace = name;
+      name = identifier();
+    }
+
+    if (plainCss) {
+      error("Sass variables aren't allowed in plain CSS.",
+          scanner.spanFrom(start));
+    }
+
+    return VariableExpression(name, scanner.spanFrom(start),
+        namespace: namespace);
   }
 
   /// Consumes a selector expression.
@@ -2254,9 +2348,31 @@ relase. For details, see http://bit.ly/moz-document.
       if (specialFunction != null) return specialFunction;
     }
 
-    return scanner.peekChar() == $lparen
-        ? FunctionExpression(identifier, _argumentInvocation())
-        : StringExpression(identifier);
+    switch (scanner.peekChar()) {
+      case $dot:
+        if (scanner.peekChar(1) == $dot) return StringExpression(identifier);
+
+        var namespace = identifier.asPlain;
+        scanner.readChar();
+        var beforeName = scanner.state;
+        var name =
+            Interpolation([this.identifier()], scanner.spanFrom(beforeName));
+
+        if (namespace == null) {
+          error("Interpolation isn't allowed in namespaces.", identifier.span);
+        }
+
+        return FunctionExpression(
+            name, _argumentInvocation(), scanner.spanFrom(start),
+            namespace: namespace);
+
+      case $lparen:
+        return FunctionExpression(
+            identifier, _argumentInvocation(), scanner.spanFrom(start));
+
+      default:
+        return StringExpression(identifier);
+    }
   }
 
   /// If [name] is the name of a function with special syntax, consumes it.
@@ -2510,8 +2626,8 @@ relase. For details, see http://bit.ly/moz-document.
     var contents = _tryUrlContents(start);
     if (contents != null) return StringExpression(contents);
 
-    return FunctionExpression(
-        Interpolation(["url"], scanner.spanFrom(start)), _argumentInvocation());
+    return FunctionExpression(Interpolation(["url"], scanner.spanFrom(start)),
+        _argumentInvocation(), scanner.spanFrom(start));
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".
@@ -2620,8 +2736,8 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// Unlike [declarationValue], this allows interpolation.
   StringExpression _interpolatedDeclarationValue({bool allowEmpty = false}) {
-    // NOTE: this logic is largely duplicated in Parser.declarationValue. Most
-    // changes here should be mirrored there.
+    // NOTE: this logic is largely duplicated in Parser.declarationValue and
+    // isIdentifier in utils.dart. Most changes here should be mirrored there.
 
     var start = scanner.state;
     var buffer = InterpolationBuffer();

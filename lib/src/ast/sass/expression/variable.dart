@@ -9,15 +9,24 @@ import '../expression.dart';
 
 /// A Sass variable.
 class VariableExpression implements Expression {
+  /// The namespace of the variable being referenced, or `null` if it's
+  /// referenced without a namespace.
+  final String namespace;
+
   /// The name of this variable.
   final String name;
 
   final FileSpan span;
 
-  VariableExpression(this.name, this.span);
+  VariableExpression(this.name, this.span, {this.namespace});
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitVariableExpression(this);
 
-  String toString() => "\$$name";
+  String toString() {
+    var buffer = StringBuffer("\$");
+    if (namespace != null) buffer.write("$namespace.");
+    buffer.write(name);
+    return buffer.toString();
+  }
 }

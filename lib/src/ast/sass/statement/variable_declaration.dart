@@ -15,6 +15,10 @@ import 'silent_comment.dart';
 ///
 /// This defines or sets a variable.
 class VariableDeclaration implements Statement {
+  /// The namespace of the variable being set, or `null` if it's defined or set
+  /// without a namespace.
+  final String namespace;
+
   /// The name of the variable.
   final String name;
 
@@ -37,7 +41,10 @@ class VariableDeclaration implements Statement {
   final FileSpan span;
 
   VariableDeclaration(this.name, this.expression, this.span,
-      {bool guarded = false, bool global = false, SilentComment comment})
+      {this.namespace,
+      bool guarded = false,
+      bool global = false,
+      SilentComment comment})
       : isGuarded = guarded,
         isGlobal = global,
         comment = comment;
@@ -53,5 +60,10 @@ class VariableDeclaration implements Statement {
   T accept<T>(StatementVisitor<T> visitor) =>
       visitor.visitVariableDeclaration(this);
 
-  String toString() => "\$$name: $expression;";
+  String toString() {
+    var buffer = StringBuffer("\$");
+    if (namespace != null) buffer.write("$namespace.");
+    buffer.write("$name: $expression;");
+    return buffer.toString();
+  }
 }

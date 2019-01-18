@@ -28,6 +28,10 @@ class _FindImportsVisitor extends RecursiveStatementVisitor {
   void visitInterpolation(Interpolation interpolation) {}
   void visitSupportsCondition(SupportsCondition condition) {}
 
+  void visitUseRule(UseRule node) {
+    _imports.add(DynamicImport(node.url.toString(), node.span));
+  }
+
   void visitImportRule(ImportRule node) {
     for (var import in node.imports) {
       if (import is DynamicImport) _imports.add(import);
