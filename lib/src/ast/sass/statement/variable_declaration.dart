@@ -47,7 +47,12 @@ class VariableDeclaration implements Statement {
       SilentComment comment})
       : isGuarded = guarded,
         isGlobal = global,
-        comment = comment;
+        comment = comment {
+    if (namespace != null && global) {
+      throw ArgumentError(
+          "Other modules' members can't be defined with !global.");
+    }
+  }
 
   /// Parses a variable declaration from [contents].
   ///

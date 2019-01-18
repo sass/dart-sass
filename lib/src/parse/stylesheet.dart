@@ -176,7 +176,7 @@ abstract class StylesheetParser extends Parser {
     var name = variableName();
     if (scanner.scanChar($dot)) {
       namespace = name;
-      name = identifier();
+      name = _publicIdentifier();
     }
 
     if (plainCss) {
@@ -192,8 +192,8 @@ abstract class StylesheetParser extends Parser {
 
     var guarded = false;
     var global = false;
+    var flagStart = scanner.state;
     while (scanner.scanChar($exclamation)) {
-      var flagStart = scanner.state;
       var flag = identifier();
       if (flag == 'default') {
         guarded = true;
@@ -209,6 +209,7 @@ abstract class StylesheetParser extends Parser {
       }
 
       whitespace();
+      flagStart = scanner.state;
     }
 
     expectStatementSeparator("variable declaration");
@@ -980,7 +981,7 @@ abstract class StylesheetParser extends Parser {
     var name = identifier();
     if (scanner.scanChar($dot)) {
       namespace = name;
-      name = identifier();
+      name = _publicIdentifier();
     }
 
     whitespace();
@@ -2232,7 +2233,7 @@ relase. For details, see http://bit.ly/moz-document.
     if (scanner.peekChar() == $dot && scanner.peekChar(1) != $dot) {
       scanner.readChar();
       namespace = name;
-      name = identifier();
+      name = _publicIdentifier();
     }
 
     if (plainCss) {
@@ -2355,8 +2356,8 @@ relase. For details, see http://bit.ly/moz-document.
         var namespace = identifier.asPlain;
         scanner.readChar();
         var beforeName = scanner.state;
-        var name =
-            Interpolation([this.identifier()], scanner.spanFrom(beforeName));
+        var name = Interpolation(
+            [this._publicIdentifier()], scanner.spanFrom(beforeName));
 
         if (namespace == null) {
           error("Interpolation isn't allowed in namespaces.", identifier.span);
@@ -3201,6 +3202,20 @@ relase. For details, see http://bit.ly/moz-document.
       T create(List<Statement> children, FileSpan span)) {
     var result = create(children(child), scanner.spanFrom(start));
     whitespaceWithoutComments();
+    return result;
+  }
+
+  /// Like [identifier], but rejects identifiers that begin with `_` or `-`.
+  String _publicIdentifier() {
+    var start = scanner.state;
+    var result = identifier();
+
+    var first = result.codeUnitAt(0);
+    if (first == $dash || first == $underscore) {
+      error("Private members can't be accessed from outside their modules.",
+          scanner.spanFrom(start));
+    }
+
     return result;
   }
 
