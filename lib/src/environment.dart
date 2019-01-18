@@ -5,17 +5,20 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 449ed8a8ad29fe107656a666e6e6005ef539b834
+// Checksum: e8d50e36818b44b30e9ff78b6c22b4eceb7a7607
 //
 // ignore_for_file: unused_import
 
 import 'package:source_span/source_span.dart';
 
+import 'ast/css.dart';
 import 'ast/node.dart';
+import 'module.dart';
 import 'callable.dart';
 import 'functions.dart';
-import 'value.dart';
+import 'util/public_member_map.dart';
 import 'utils.dart';
+import 'value.dart';
 
 /// The lexical environment in which Sass is executed.
 ///
@@ -401,5 +404,35 @@ class Environment {
         _mixinIndices.remove(name);
       }
     }
+  }
+
+  /// Returns a module that represents the top-level members defined in [this],
+  /// and that contains [css] as its CSS tree.
+  Module toModule(CssStylesheet css) => _EnvironmentModule(this, css);
+}
+
+/// A module that represents the top-level members defined in an [Environment].
+class _EnvironmentModule implements Module {
+  final Map<String, Value> variables;
+  final Map<String, AstNode> variableNodes;
+  final Map<String, Callable> functions;
+  final Map<String, Callable> mixins;
+  final CssStylesheet css;
+
+  /// The environment that defines this module's members.
+  final Environment _environment;
+
+  // TODO(nweiz): Use custom [UnmodifiableMapView]s that forbid access to
+  // private members.
+  _EnvironmentModule(this._environment, this.css)
+      : variables = PublicMemberMap(_environment._variables.first),
+        variableNodes = _environment._variableNodes == null
+            ? null
+            : PublicMemberMap(_environment._variableNodes.first),
+        functions = PublicMemberMap(_environment._functions.first),
+        mixins = PublicMemberMap(_environment._mixins.first);
+
+  void setVariable(String name, Value value, AstNode nodeWithSpan) {
+    _environment.setVariable(name, value, nodeWithSpan, global: true);
   }
 }
