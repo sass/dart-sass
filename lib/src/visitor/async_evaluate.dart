@@ -611,7 +611,7 @@ class _EvaluateVisitor
       var compound = complex.components.first as CompoundSelector;
       if (compound.components.length != 1) {
         throw SassFormatException(
-            "compound selectors may longer be extended.\n"
+            "compound selectors may no longer be extended.\n"
             "Consider `@extend ${compound.components.join(', ')}` instead.\n"
             "See http://bit.ly/ExtendCompound for details.\n",
             targetText.span);
