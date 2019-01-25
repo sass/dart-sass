@@ -93,14 +93,6 @@ abstract class ModifiableCssParentNode extends ModifiableCssNode
   /// Returns a copy of [this] with an empty [children] list.
   ModifiableCssParentNode copyWithoutChildren();
 
-  /// Passes a modifiable view of [children] to [modify].
-  ///
-  /// This is used to explicitly indicate when modifications are intended so
-  /// that [children] can remain unmodifiable by default.
-  void modifyChildren(void modify(List<ModifiableCssNode> children)) {
-    modify(_children);
-  }
-
   /// Adds [child] as a child of this statement.
   void addChild(ModifiableCssNode child) {
     child._parent = this;

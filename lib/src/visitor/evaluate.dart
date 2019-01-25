@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: f90160d7f7fd8d5b9aacd1019cfe9e41385d34f5
+// Checksum: 816959e86ecf3e10aaa0ced8a58a35cf3604b3b2
 //
 // ignore_for_file: unused_import
 
@@ -334,7 +334,20 @@ class _EvaluateVisitor
 
     visitStylesheet(node);
 
-    return EvaluateResult(_root, _includedFiles);
+    CssStylesheet stylesheet = _root;
+    if (_outOfOrderImports.isNotEmpty) {
+      // Create a copy of [_root.children] with [_outOfOrderImports] inserted at
+      // [_endOfImports].
+      var statements =
+          List<CssNode>(_root.children.length + _outOfOrderImports.length);
+      statements.setRange(0, _endOfImports, _root.children);
+      statements.setAll(_endOfImports, _outOfOrderImports);
+      statements.setRange(_endOfImports + _outOfOrderImports.length,
+          statements.length, _root.children, _endOfImports);
+      stylesheet = CssStylesheet(statements, _root.span);
+    }
+
+    return EvaluateResult(stylesheet, _includedFiles);
   }
 
   // ## Statements
@@ -345,12 +358,6 @@ class _EvaluateVisitor
     _parent = _root;
     for (var child in node.children) {
       child.accept(this);
-    }
-
-    if (_outOfOrderImports.isNotEmpty) {
-      _root.modifyChildren((children) {
-        children.insertAll(_endOfImports, _outOfOrderImports);
-      });
     }
 
     _extender.finalize();

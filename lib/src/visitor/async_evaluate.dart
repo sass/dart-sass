@@ -327,7 +327,20 @@ class _EvaluateVisitor
 
     await visitStylesheet(node);
 
-    return EvaluateResult(_root, _includedFiles);
+    CssStylesheet stylesheet = _root;
+    if (_outOfOrderImports.isNotEmpty) {
+      // Create a copy of [_root.children] with [_outOfOrderImports] inserted at
+      // [_endOfImports].
+      var statements =
+          List<CssNode>(_root.children.length + _outOfOrderImports.length);
+      statements.setRange(0, _endOfImports, _root.children);
+      statements.setAll(_endOfImports, _outOfOrderImports);
+      statements.setRange(_endOfImports + _outOfOrderImports.length,
+          statements.length, _root.children, _endOfImports);
+      stylesheet = CssStylesheet(statements, _root.span);
+    }
+
+    return EvaluateResult(stylesheet, _includedFiles);
   }
 
   // ## Statements
@@ -338,12 +351,6 @@ class _EvaluateVisitor
     _parent = _root;
     for (var child in node.children) {
       await child.accept(this);
-    }
-
-    if (_outOfOrderImports.isNotEmpty) {
-      _root.modifyChildren((children) {
-        children.insertAll(_endOfImports, _outOfOrderImports);
-      });
     }
 
     _extender.finalize();
