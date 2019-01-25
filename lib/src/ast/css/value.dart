@@ -12,7 +12,7 @@ import '../node.dart';
 /// its span.
 class CssValue<T> implements AstNode {
   /// The value.
-  T value;
+  final T value;
 
   /// The span associated with the value.
   final FileSpan span;
