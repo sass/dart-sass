@@ -13,6 +13,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
+import '../ast/css/modifiable.dart';
 import '../ast/node.dart';
 import '../ast/sass.dart';
 import '../ast/selector.dart';
@@ -29,8 +30,8 @@ import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../utils.dart';
 import '../value.dart';
-import 'interface/statement.dart';
 import 'interface/expression.dart';
+import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
 typedef Future _ScopeCallback(Future callback());
@@ -127,16 +128,16 @@ class _EvaluateVisitor
   Stylesheet _stylesheet;
 
   /// The style rule that defines the current parent selector, if any.
-  CssStyleRule _styleRule;
+  ModifiableCssStyleRule _styleRule;
 
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
 
   /// The root stylesheet node.
-  CssStylesheet _root;
+  ModifiableCssStylesheet _root;
 
   /// The current parent node in the output CSS tree.
-  CssParentNode _parent;
+  ModifiableCssParentNode _parent;
 
   /// The name of the current declaration parent.
   String _declarationName;
@@ -176,7 +177,7 @@ class _EvaluateVisitor
   ///
   /// These are added to the initial CSS import block by [visitStylesheet] after
   /// the stylesheet has been fully performed.
-  var _outOfOrderImports = <CssImport>[];
+  var _outOfOrderImports = <ModifiableCssImport>[];
 
   /// The set that will eventually populate the JS API's
   /// `result.stats.includedFiles` field.
@@ -326,23 +327,30 @@ class _EvaluateVisitor
 
     await visitStylesheet(node);
 
-    return EvaluateResult(_root, _includedFiles);
+    CssStylesheet stylesheet = _root;
+    if (_outOfOrderImports.isNotEmpty) {
+      // Create a copy of [_root.children] with [_outOfOrderImports] inserted at
+      // [_endOfImports].
+      var statements =
+          List<CssNode>(_root.children.length + _outOfOrderImports.length);
+      statements.setRange(0, _endOfImports, _root.children);
+      statements.setAll(_endOfImports, _outOfOrderImports);
+      statements.setRange(_endOfImports + _outOfOrderImports.length,
+          statements.length, _root.children, _endOfImports);
+      stylesheet = CssStylesheet(statements, _root.span);
+    }
+
+    return EvaluateResult(stylesheet, _includedFiles);
   }
 
   // ## Statements
 
   Future<Value> visitStylesheet(Stylesheet node) async {
     _stylesheet = node;
-    _root = CssStylesheet(node.span);
+    _root = ModifiableCssStylesheet(node.span);
     _parent = _root;
     for (var child in node.children) {
       await child.accept(this);
-    }
-
-    if (_outOfOrderImports.isNotEmpty) {
-      _root.modifyChildren((children) {
-        children.insertAll(_endOfImports, _outOfOrderImports);
-      });
     }
 
     _extender.finalize();
@@ -359,7 +367,7 @@ class _EvaluateVisitor
     }
 
     var parent = _parent;
-    var included = <CssParentNode>[];
+    var included = <ModifiableCssParentNode>[];
     while (parent is! CssStylesheet) {
       if (!query.excludes(parent)) included.add(parent);
       parent = parent.parent;
@@ -406,7 +414,7 @@ class _EvaluateVisitor
   /// sublist and returns the innermost removed parent.
   ///
   /// Otherwise, this leaves [nodes] as-is and returns [_root].
-  CssParentNode _trimIncluded(List<CssParentNode> nodes) {
+  ModifiableCssParentNode _trimIncluded(List<ModifiableCssParentNode> nodes) {
     if (nodes.isEmpty) return _root;
 
     var parent = _parent;
@@ -432,8 +440,11 @@ class _EvaluateVisitor
   /// This returns a callback that adjusts various instance variables for its
   /// duration, based on which rules are excluded by [query]. It always assigns
   /// [_parent] to [newParent].
-  _ScopeCallback _scopeForAtRoot(AtRootRule node, CssParentNode newParent,
-      AtRootQuery query, List<CssParentNode> included) {
+  _ScopeCallback _scopeForAtRoot(
+      AtRootRule node,
+      ModifiableCssParentNode newParent,
+      AtRootQuery query,
+      List<ModifiableCssParentNode> included) {
     var scope = (Future callback()) async {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
@@ -522,7 +533,7 @@ class _EvaluateVisitor
     // will throw an error that we want the user to see.
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
-      _parent.addChild(CssDeclaration(name, cssValue, node.span,
+      _parent.addChild(ModifiableCssDeclaration(name, cssValue, node.span,
           valueSpanForMap: _expressionNode(node.value)?.span));
     } else if (name.value.startsWith('--')) {
       throw _exception(
@@ -638,8 +649,8 @@ class _EvaluateVisitor
             trim: true, warnForColor: true);
 
     if (node.children == null) {
-      _parent
-          .addChild(CssAtRule(name, node.span, childless: true, value: value));
+      _parent.addChild(
+          ModifiableCssAtRule(name, node.span, childless: true, value: value));
       return null;
     }
 
@@ -651,7 +662,8 @@ class _EvaluateVisitor
       _inUnknownAtRule = true;
     }
 
-    await _withParent(CssAtRule(name, node.span, value: value), () async {
+    await _withParent(ModifiableCssAtRule(name, node.span, value: value),
+        () async {
       if (!_inStyleRule) {
         for (var child in node.children) {
           await child.accept(this);
@@ -832,7 +844,7 @@ class _EvaluateVisitor
     var mediaQuery =
         import.media == null ? null : await _visitMediaQueries(import.media);
 
-    var node = CssImport(url, import.span,
+    var node = ModifiableCssImport(url, import.span,
         supports: resolvedSupports == null
             ? null
             : CssValue("supports($resolvedSupports)", import.supports.span),
@@ -891,8 +903,8 @@ class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(
-        CssComment(await _performInterpolation(node.text), node.span));
+    _parent.addChild(ModifiableCssComment(
+        await _performInterpolation(node.text), node.span));
     return null;
   }
 
@@ -908,8 +920,8 @@ class _EvaluateVisitor
         : _mergeMediaQueries(_mediaQueries, queries);
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
-    await _withParent(CssMediaRule(mergedQueries ?? queries, node.span),
-        () async {
+    await _withParent(
+        ModifiableCssMediaRule(mergedQueries ?? queries, node.span), () async {
       await _withMediaQueries(mergedQueries ?? queries, () async {
         if (!_inStyleRule) {
           for (var child in node.children) {
@@ -987,7 +999,7 @@ class _EvaluateVisitor
           node.selector,
           () => KeyframeSelectorParser(selectorText.value, logger: _logger)
               .parse());
-      var rule = CssKeyframeBlock(
+      var rule = ModifiableCssKeyframeBlock(
           CssValue(List.unmodifiable(parsedSelector), node.selector.span),
           node.span);
       await _withParent(rule, () async {
@@ -1012,9 +1024,8 @@ class _EvaluateVisitor
             _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
-    var selector = CssValue<SelectorList>(parsedSelector, node.selector.span);
-
-    var rule = _extender.addSelector(selector, node.span, _mediaQueries);
+    var rule = _extender.addSelector(
+        parsedSelector, node.selector.span, node.span, _mediaQueries);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     await _withParent(rule, () async {
@@ -1045,7 +1056,8 @@ class _EvaluateVisitor
 
     var condition = CssValue(
         await _visitSupportsCondition(node.condition), node.condition.span);
-    await _withParent(CssSupportsRule(condition, node.span), () async {
+    await _withParent(ModifiableCssSupportsRule(condition, node.span),
+        () async {
       if (!_inStyleRule) {
         for (var child in node.children) {
           await child.accept(this);
@@ -1773,7 +1785,7 @@ class _EvaluateVisitor
   /// lattermost child of its parent.
   ///
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
-  Future<T> _withParent<S extends CssParentNode, T>(
+  Future<T> _withParent<S extends ModifiableCssParentNode, T>(
       S node, Future<T> callback(),
       {bool through(CssNode node), bool scopeWhen = true}) async {
     var oldParent = _parent;
@@ -1804,7 +1816,8 @@ class _EvaluateVisitor
   }
 
   /// Runs [callback] with [rule] as the current style rule.
-  Future<T> _withStyleRule<T>(CssStyleRule rule, Future<T> callback()) async {
+  Future<T> _withStyleRule<T>(
+      ModifiableCssStyleRule rule, Future<T> callback()) async {
     var oldRule = _styleRule;
     _styleRule = rule;
     var result = await callback();

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 47ed1d2d77cf7e8f169e4e6b6c9d62d07455425a
+// Checksum: 816959e86ecf3e10aaa0ced8a58a35cf3604b3b2
 //
 // ignore_for_file: unused_import
 
@@ -22,6 +22,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
+import '../ast/css/modifiable.dart';
 import '../ast/node.dart';
 import '../ast/sass.dart';
 import '../ast/selector.dart';
@@ -38,8 +39,8 @@ import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../utils.dart';
 import '../value.dart';
-import 'interface/statement.dart';
 import 'interface/expression.dart';
+import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
 typedef void _ScopeCallback(void callback());
@@ -134,16 +135,16 @@ class _EvaluateVisitor
   Stylesheet _stylesheet;
 
   /// The style rule that defines the current parent selector, if any.
-  CssStyleRule _styleRule;
+  ModifiableCssStyleRule _styleRule;
 
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
 
   /// The root stylesheet node.
-  CssStylesheet _root;
+  ModifiableCssStylesheet _root;
 
   /// The current parent node in the output CSS tree.
-  CssParentNode _parent;
+  ModifiableCssParentNode _parent;
 
   /// The name of the current declaration parent.
   String _declarationName;
@@ -183,7 +184,7 @@ class _EvaluateVisitor
   ///
   /// These are added to the initial CSS import block by [visitStylesheet] after
   /// the stylesheet has been fully performed.
-  var _outOfOrderImports = <CssImport>[];
+  var _outOfOrderImports = <ModifiableCssImport>[];
 
   /// The set that will eventually populate the JS API's
   /// `result.stats.includedFiles` field.
@@ -333,23 +334,30 @@ class _EvaluateVisitor
 
     visitStylesheet(node);
 
-    return EvaluateResult(_root, _includedFiles);
+    CssStylesheet stylesheet = _root;
+    if (_outOfOrderImports.isNotEmpty) {
+      // Create a copy of [_root.children] with [_outOfOrderImports] inserted at
+      // [_endOfImports].
+      var statements =
+          List<CssNode>(_root.children.length + _outOfOrderImports.length);
+      statements.setRange(0, _endOfImports, _root.children);
+      statements.setAll(_endOfImports, _outOfOrderImports);
+      statements.setRange(_endOfImports + _outOfOrderImports.length,
+          statements.length, _root.children, _endOfImports);
+      stylesheet = CssStylesheet(statements, _root.span);
+    }
+
+    return EvaluateResult(stylesheet, _includedFiles);
   }
 
   // ## Statements
 
   Value visitStylesheet(Stylesheet node) {
     _stylesheet = node;
-    _root = CssStylesheet(node.span);
+    _root = ModifiableCssStylesheet(node.span);
     _parent = _root;
     for (var child in node.children) {
       child.accept(this);
-    }
-
-    if (_outOfOrderImports.isNotEmpty) {
-      _root.modifyChildren((children) {
-        children.insertAll(_endOfImports, _outOfOrderImports);
-      });
     }
 
     _extender.finalize();
@@ -365,7 +373,7 @@ class _EvaluateVisitor
     }
 
     var parent = _parent;
-    var included = <CssParentNode>[];
+    var included = <ModifiableCssParentNode>[];
     while (parent is! CssStylesheet) {
       if (!query.excludes(parent)) included.add(parent);
       parent = parent.parent;
@@ -412,7 +420,7 @@ class _EvaluateVisitor
   /// sublist and returns the innermost removed parent.
   ///
   /// Otherwise, this leaves [nodes] as-is and returns [_root].
-  CssParentNode _trimIncluded(List<CssParentNode> nodes) {
+  ModifiableCssParentNode _trimIncluded(List<ModifiableCssParentNode> nodes) {
     if (nodes.isEmpty) return _root;
 
     var parent = _parent;
@@ -438,8 +446,11 @@ class _EvaluateVisitor
   /// This returns a callback that adjusts various instance variables for its
   /// duration, based on which rules are excluded by [query]. It always assigns
   /// [_parent] to [newParent].
-  _ScopeCallback _scopeForAtRoot(AtRootRule node, CssParentNode newParent,
-      AtRootQuery query, List<CssParentNode> included) {
+  _ScopeCallback _scopeForAtRoot(
+      AtRootRule node,
+      ModifiableCssParentNode newParent,
+      AtRootQuery query,
+      List<ModifiableCssParentNode> included) {
     var scope = (void callback()) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
@@ -528,7 +539,7 @@ class _EvaluateVisitor
     // will throw an error that we want the user to see.
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
-      _parent.addChild(CssDeclaration(name, cssValue, node.span,
+      _parent.addChild(ModifiableCssDeclaration(name, cssValue, node.span,
           valueSpanForMap: _expressionNode(node.value)?.span));
     } else if (name.value.startsWith('--')) {
       throw _exception(
@@ -641,8 +652,8 @@ class _EvaluateVisitor
         : _interpolationToValue(node.value, trim: true, warnForColor: true);
 
     if (node.children == null) {
-      _parent
-          .addChild(CssAtRule(name, node.span, childless: true, value: value));
+      _parent.addChild(
+          ModifiableCssAtRule(name, node.span, childless: true, value: value));
       return null;
     }
 
@@ -654,7 +665,7 @@ class _EvaluateVisitor
       _inUnknownAtRule = true;
     }
 
-    _withParent(CssAtRule(name, node.span, value: value), () {
+    _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
       if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);
@@ -833,7 +844,7 @@ class _EvaluateVisitor
     var mediaQuery =
         import.media == null ? null : _visitMediaQueries(import.media);
 
-    var node = CssImport(url, import.span,
+    var node = ModifiableCssImport(url, import.span,
         supports: resolvedSupports == null
             ? null
             : CssValue("supports($resolvedSupports)", import.supports.span),
@@ -892,7 +903,8 @@ class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(CssComment(_performInterpolation(node.text), node.span));
+    _parent.addChild(
+        ModifiableCssComment(_performInterpolation(node.text), node.span));
     return null;
   }
 
@@ -908,7 +920,8 @@ class _EvaluateVisitor
         : _mergeMediaQueries(_mediaQueries, queries);
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
-    _withParent(CssMediaRule(mergedQueries ?? queries, node.span), () {
+    _withParent(ModifiableCssMediaRule(mergedQueries ?? queries, node.span),
+        () {
       _withMediaQueries(mergedQueries ?? queries, () {
         if (!_inStyleRule) {
           for (var child in node.children) {
@@ -983,7 +996,7 @@ class _EvaluateVisitor
           node.selector,
           () => KeyframeSelectorParser(selectorText.value, logger: _logger)
               .parse());
-      var rule = CssKeyframeBlock(
+      var rule = ModifiableCssKeyframeBlock(
           CssValue(List.unmodifiable(parsedSelector), node.selector.span),
           node.span);
       _withParent(rule, () {
@@ -1008,9 +1021,8 @@ class _EvaluateVisitor
             _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
-    var selector = CssValue<SelectorList>(parsedSelector, node.selector.span);
-
-    var rule = _extender.addSelector(selector, node.span, _mediaQueries);
+    var rule = _extender.addSelector(
+        parsedSelector, node.selector.span, node.span, _mediaQueries);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     _withParent(rule, () {
@@ -1041,7 +1053,7 @@ class _EvaluateVisitor
 
     var condition =
         CssValue(_visitSupportsCondition(node.condition), node.condition.span);
-    _withParent(CssSupportsRule(condition, node.span), () {
+    _withParent(ModifiableCssSupportsRule(condition, node.span), () {
       if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);
@@ -1755,7 +1767,7 @@ class _EvaluateVisitor
   /// lattermost child of its parent.
   ///
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
-  T _withParent<S extends CssParentNode, T>(S node, T callback(),
+  T _withParent<S extends ModifiableCssParentNode, T>(S node, T callback(),
       {bool through(CssNode node), bool scopeWhen = true}) {
     var oldParent = _parent;
 
@@ -1785,7 +1797,7 @@ class _EvaluateVisitor
   }
 
   /// Runs [callback] with [rule] as the current style rule.
-  T _withStyleRule<T>(CssStyleRule rule, T callback()) {
+  T _withStyleRule<T>(ModifiableCssStyleRule rule, T callback()) {
     var oldRule = _styleRule;
     _styleRule = rule;
     var result = callback();
