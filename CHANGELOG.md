@@ -1,3 +1,9 @@
+## 1.16.2
+
+* Improve source locations for some parse errors. Rather than pointing to the
+  next token that wasn't what was expected, they point *after* the previous
+  token. This should generally provide more context for the syntax error.
+
 ## 1.16.1
 
 * Fix a performance bug where stylesheet evaluation could take a very long time
