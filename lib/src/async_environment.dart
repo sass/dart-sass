@@ -29,6 +29,10 @@ class AsyncEnvironment {
   /// This is `null` if there are no namespaceless modules.
   Set<AsyncModule> _globalModules;
 
+  /// Modules from both [_modules] and [_global], in the order in which they
+  /// were `@use`d.
+  final List<AsyncModule> _allModules;
+
   /// A list of variables defined at each lexical scope level.
   ///
   /// Each scope maps the names of declared variables to their values. These
@@ -122,6 +126,7 @@ class AsyncEnvironment {
   AsyncEnvironment({bool sourceMap = false})
       : _modules = {},
         _globalModules = null,
+        _allModules = [],
         _variables = [normalizedMap()],
         _variableNodes = sourceMap ? [normalizedMap()] : null,
         _variableIndices = normalizedMap(),
@@ -132,8 +137,15 @@ class AsyncEnvironment {
     coreFunctions.forEach(setFunction);
   }
 
-  AsyncEnvironment._(this._modules, this._globalModules, this._variables,
-      this._variableNodes, this._functions, this._mixins, this._content)
+  AsyncEnvironment._(
+      this._modules,
+      this._globalModules,
+      this._allModules,
+      this._variables,
+      this._variableNodes,
+      this._functions,
+      this._mixins,
+      this._content)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() because the copying took a lot of
       // time and was rarely helpful. This saves a bunch of time on Susy's
@@ -150,6 +162,7 @@ class AsyncEnvironment {
   AsyncEnvironment closure() => AsyncEnvironment._(
       _modules,
       _globalModules,
+      _allModules,
       _variables.toList(),
       _variableNodes?.toList(),
       _functions.toList(),
@@ -160,8 +173,10 @@ class AsyncEnvironment {
   ///
   /// The returned environment shares this environment's global variables,
   /// functions, and mixins, but not its modules.
-  AsyncEnvironment global() => AsyncEnvironment._({},
+  AsyncEnvironment global() => AsyncEnvironment._(
+      {},
       null,
+      [],
       _variables.toList(),
       _variableNodes?.toList(),
       _functions.toList(),
@@ -180,6 +195,7 @@ class AsyncEnvironment {
     if (namespace == null) {
       _globalModules ??= Set();
       _globalModules.add(module);
+      _allModules.add(module);
 
       for (var name in _variables.first.keys) {
         if (module.variables.containsKey(name)) {
@@ -195,6 +211,7 @@ class AsyncEnvironment {
       }
 
       _modules[namespace] = module;
+      _allModules.add(module);
     }
   }
 
@@ -600,6 +617,7 @@ class AsyncEnvironment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements AsyncModule {
+  final List<AsyncModule> upstream;
   final Map<String, Value> variables;
   final Map<String, AstNode> variableNodes;
   final Map<String, AsyncCallable> functions;
@@ -612,7 +630,8 @@ class _EnvironmentModule implements AsyncModule {
   // TODO(nweiz): Use custom [UnmodifiableMapView]s that forbid access to
   // private members.
   _EnvironmentModule(this._environment, this.css)
-      : variables = PublicMemberMap(_environment._variables.first),
+      : upstream = _environment._allModules,
+        variables = PublicMemberMap(_environment._variables.first),
         variableNodes = _environment._variableNodes == null
             ? null
             : PublicMemberMap(_environment._variableNodes.first),
