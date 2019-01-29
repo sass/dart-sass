@@ -277,8 +277,10 @@ a {
         expect(
             error.toString(),
             equals("Error: Expected expression.\n"
-                "x {y: }\n"
-                "      ^\n"
+                "  ╷\n"
+                "1 │ x {y: }\n"
+                "  │       ^\n"
+                "  ╵\n"
                 "  $sassPath 1:7  root stylesheet"));
       });
     });
@@ -350,8 +352,10 @@ a {
           expect(
               error,
               toStringAndMessageEqual("Expected expression.\n"
-                  "a {b: }\n"
-                  "      ^\n"
+                  "  ╷\n"
+                  "1 │ a {b: }\n"
+                  "  │       ^\n"
+                  "  ╵\n"
                   "  $sassPath 1:7  root stylesheet"));
         });
 
@@ -375,8 +379,10 @@ a {
           expect(
               error,
               toStringAndMessageEqual("Expected expression.\n"
-                  "a {b: }\n"
-                  "      ^\n"
+                  "  ╷\n"
+                  "1 │ a {b: }\n"
+                  "  │       ^\n"
+                  "  ╵\n"
                   "  stdin 1:7  root stylesheet"));
         });
 
@@ -397,8 +403,10 @@ a {
           expect(
               error,
               toStringAndMessageEqual('Undefined operation "1 % a".\n'
-                  'a {b: 1 % a}\n'
-                  '      ^^^^^\n'
+                  '  ╷\n'
+                  '1 │ a {b: 1 % a}\n'
+                  '  │       ^^^^^\n'
+                  '  ╵\n'
                   '  $sassPath 1:7  root stylesheet'));
         });
 
@@ -418,8 +426,10 @@ a {
           expect(
               error,
               toStringAndMessageEqual('Undefined operation "1 % a".\n'
-                  'a {b: 1 % a}\n'
-                  '      ^^^^^\n'
+                  '  ╷\n'
+                  '1 │ a {b: 1 % a}\n'
+                  '  │       ^^^^^\n'
+                  '  ╵\n'
                   '  stdin 1:7  root stylesheet'));
         });
 
@@ -467,8 +477,10 @@ a {
       expect(
           error.toString(),
           equals("Error: Expected expression.\n"
-              "a {b: }\n"
-              "      ^\n"
+              "  ╷\n"
+              "1 │ a {b: }\n"
+              "  │       ^\n"
+              "  ╵\n"
               "  $sassPath 1:7  root stylesheet"));
     });
   });

@@ -1,5 +1,5 @@
 name: sass
-version: 1.16.1
+version: 1.17.0-dev
 description: A Sass implementation in Dart.
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/sass/dart-sass
@@ -20,12 +20,11 @@ dependencies:
   package_resolver: "^1.0.0"
   path: "^1.6.0"
   source_maps: "^0.10.5"
-  # Temporarily limit source_span to 1.4.x so we can land other fixes before we
-  # fix all the tests for the new source_span format. See #566.
-  source_span: ">=1.4.0 <1.5.0"
+  source_span: "^1.4.0"
   stack_trace: ">=0.9.0 <2.0.0"
   stream_transform: "^0.0.1"
   string_scanner: ">=0.1.5 <2.0.0"
+  term_glyph: "^1.0.0"
   tuple: "^1.0.0"
   watcher: "^0.9.6"
 
@@ -39,6 +38,7 @@ dev_dependencies:
   js: "^0.6.0"
   node_preamble: "^1.1.0"
   pub_semver: "^1.0.0"
+  source_span: "^1.5.2"
   stream_channel: "^1.0.0"
   test_descriptor: "^1.1.0"
   test_process: "^1.0.0-rc.1"
