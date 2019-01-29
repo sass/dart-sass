@@ -1,8 +1,15 @@
-## 1.16.2
+## 1.17.0
+
+* Improve error output, particularly for errors that cover multiple lines.
 
 * Improve source locations for some parse errors. Rather than pointing to the
   next token that wasn't what was expected, they point *after* the previous
   token. This should generally provide more context for the syntax error.
+
+### Command-Line Interface
+
+* The new error output uses non-ASCII Unicode characters by default. Add a
+  `--no-unicode` flag to disable this.
 
 ## 1.16.1
 

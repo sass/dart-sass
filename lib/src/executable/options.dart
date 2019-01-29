@@ -9,6 +9,7 @@ import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../../sass.dart';
 import '../io.dart';
@@ -85,7 +86,10 @@ class ExecutableOptions {
           abbr: 'i',
           help: 'Run an interactive SassScript shell.',
           negatable: false)
-      ..addFlag('color', abbr: 'c', help: 'Whether to emit terminal colors.')
+      ..addFlag('color',
+          abbr: 'c', help: 'Whether to use terminal colors for messages.')
+      ..addFlag('unicode',
+          help: 'Whether to use Unicode characters for messages.')
       ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
       ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
       ..addFlag('help',
@@ -150,6 +154,11 @@ class ExecutableOptions {
   bool get color => _options.wasParsed('color')
       ? _options['color'] as bool
       : supportsAnsiEscapes;
+
+  /// Whether to use non-ASCII Unicode glyphs.
+  bool get unicode => _options.wasParsed('unicode')
+      ? _options['unicode'] as bool
+      : !term_glyph.ascii;
 
   /// Whether to silence normal output.
   bool get quiet => _options['quiet'] as bool;

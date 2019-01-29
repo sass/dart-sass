@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:cli_repl/cli_repl.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -54,21 +55,20 @@ void _logError(SassException error, StackTrace stackTrace, String line,
   }
 
   // Otherwise, highlight the bad input from the previous line.
-  var arrows = error.span.highlight().split('\n').last.trimRight();
   var buffer = StringBuffer();
   if (options.color) buffer.write("\u001b[31m");
 
-  if (options.color && arrows.length <= line.length) {
-    int start = arrows.length - arrows.trimLeft().length;
+  var spacesBeforeError = repl.prompt.length + error.span.start.column;
+  if (options.color && error.span.start.column < line.length) {
     // Position the cursor at the beginning of the error text.
-    buffer.write("\u001b[1F\u001b[${start + 3}C");
+    buffer.write("\u001b[1F\u001b[${spacesBeforeError}C");
     // Rewrite the bad input, this time in red text.
-    buffer.writeln(line.substring(start, arrows.length));
+    buffer.writeln(error.span.text);
   }
 
   // Write arrows underneath the error text.
-  buffer.write(" " * repl.prompt.length);
-  buffer.writeln(arrows);
+  buffer.write(" " * spacesBeforeError);
+  buffer.writeln("^" * math.max(1, error.span.length));
   if (options.color) buffer.write("\u001b[0m");
 
   buffer.writeln("Error: ${error.message}");

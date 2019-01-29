@@ -41,13 +41,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("from invalid syntax", () async {
     await d.file("test.scss", "a {b: }").create();
 
-    var sass = await runSass(["test.scss"]);
+    var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
         sass.stderr,
         emitsInOrder([
           "Error: Expected expression.",
-          "a {b: }",
-          "      ^",
+          "  ,",
+          "1 | a {b: }",
+          "  |       ^",
+          "  '",
           "  test.scss 1:7  root stylesheet",
         ]));
     await sass.shouldExit(65);
@@ -56,13 +58,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("from the runtime", () async {
     await d.file("test.scss", "a {b: 1px + 1deg}").create();
 
-    var sass = await runSass(["test.scss"]);
+    var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
         sass.stderr,
         emitsInOrder([
           "Error: Incompatible units deg and px.",
-          "a {b: 1px + 1deg}",
-          "      ^^^^^^^^^^",
+          "  ,",
+          "1 | a {b: 1px + 1deg}",
+          "  |       ^^^^^^^^^^",
+          "  '",
           "  test.scss 1:7  root stylesheet",
         ]));
     await sass.shouldExit(65);
@@ -71,13 +75,32 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("with colors with --color", () async {
     await d.file("test.scss", "a {b: }").create();
 
-    var sass = await runSass(["--color", "test.scss"]);
+    var sass = await runSass(["--no-unicode", "--color", "test.scss"]);
     expect(
         sass.stderr,
         emitsInOrder([
           "Error: Expected expression.",
-          "a {b: \u001b[31m\u001b[0m}",
-          "      \u001b[31m^\u001b[0m",
+          "\u001b[34m  ,\u001b[0m",
+          "\u001b[34m1 |\u001b[0m a {b: \u001b[31m\u001b[0m}",
+          "\u001b[34m  |\u001b[0m       \u001b[31m^\u001b[0m",
+          "\u001b[34m  '\u001b[0m",
+          "  test.scss 1:7  root stylesheet",
+        ]));
+    await sass.shouldExit(65);
+  });
+
+  test("with Unicode by default", () async {
+    await d.file("test.scss", "a {b: }").create();
+
+    var sass = await runSass(["test.scss"]);
+    expect(
+        sass.stderr,
+        emitsInOrder([
+          "Error: Expected expression.",
+          "  ╷",
+          "1 │ a {b: }",
+          "  │       ^",
+          "  ╵",
           "  test.scss 1:7  root stylesheet",
         ]));
     await sass.shouldExit(65);
@@ -94,13 +117,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("for package urls", () async {
     await d.file("test.scss", "@import 'package:nope/test';").create();
 
-    var sass = await runSass(["test.scss"]);
+    var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
         sass.stderr,
         emitsInOrder([
           "Error: \"package:\" URLs aren't supported on this platform.",
-          "@import 'package:nope/test';",
-          "        ^^^^^^^^^^^^^^^^^^^",
+          "  ,",
+          "1 | @import 'package:nope/test';",
+          "  |         ^^^^^^^^^^^^^^^^^^^",
+          "  '",
           "  test.scss 1:9  root stylesheet"
         ]));
     await sass.shouldExit(65);
