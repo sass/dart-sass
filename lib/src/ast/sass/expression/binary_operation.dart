@@ -24,7 +24,20 @@ class BinaryOperationExpression implements Expression {
   /// interpreted as slash-separated numbers.
   final bool allowsSlash;
 
-  FileSpan get span => spanForList([left, right]);
+  FileSpan get span {
+    // Avoid creating a bunch of intermediate spans for multiple binary
+    // expressions in a row by moving to the left- and right-most expressions.
+    var left = this.left;
+    while (left is BinaryOperationExpression) {
+      left = (left as BinaryOperationExpression).left;
+    }
+
+    var right = this.right;
+    while (right is BinaryOperationExpression) {
+      right = (right as BinaryOperationExpression).right;
+    }
+    return spanForList([left, right]);
+  }
 
   BinaryOperationExpression(this.operator, this.left, this.right)
       : allowsSlash = false;

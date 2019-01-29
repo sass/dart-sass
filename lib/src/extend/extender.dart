@@ -8,6 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
+import '../ast/css/modifiable.dart';
 import '../ast/selector.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
@@ -22,7 +23,7 @@ class Extender {
   /// contain them.
   ///
   /// This is used to find which rules an `@extend` applies to.
-  final _selectors = <SimpleSelector, Set<CssStyleRule>>{};
+  final _selectors = <SimpleSelector, Set<ModifiableCssStyleRule>>{};
 
   /// A map from all extended simple selectors to the sources of those
   /// extensions.
@@ -106,17 +107,19 @@ class Extender {
 
   Extender._(this._mode);
 
-  /// Adds [selector] to this extender, associated with [span].
+  /// Adds [selector] to this extender, with [selectorSpan] as the span covering
+  /// the selector and [ruleSpan] as the span covering the entire style rule.
   ///
   /// Extends [selector] using any registered extensions, then returns an empty
-  /// [CssStyleRule] with the resulting selector. If any more relevant
+  /// [ModifiableCssStyleRule] with the resulting selector. If any more relevant
   /// extensions are added, the returned rule is automatically updated.
   ///
   /// The [mediaContext] is the media query context in which the selector was
   /// defined, or `null` if it was defined at the top level of the document.
-  CssStyleRule addSelector(CssValue<SelectorList> selector, FileSpan span,
+  ModifiableCssStyleRule addSelector(
+      SelectorList selector, FileSpan selectorSpan, FileSpan ruleSpan,
       [List<CssMediaQuery> mediaContext]) {
-    var originalSelector = selector.value;
+    var originalSelector = selector;
     if (!originalSelector.isInvisible) {
       for (var complex in originalSelector.components) {
         _originals.add(complex);
@@ -125,26 +128,26 @@ class Extender {
 
     if (_extensions.isNotEmpty) {
       try {
-        selector = CssValue(
-            _extendList(originalSelector, _extensions, mediaContext),
-            selector.span);
+        selector = _extendList(originalSelector, _extensions, mediaContext);
       } on SassException catch (error) {
         throw SassException(
             "From ${error.span.message('')}\n"
             "${error.message}",
-            selector.span);
+            selectorSpan);
       }
     }
-    var rule = CssStyleRule(selector, span, originalSelector: originalSelector);
+    var rule = ModifiableCssStyleRule(
+        ModifiableCssValue(selector, selectorSpan), ruleSpan,
+        originalSelector: originalSelector);
     if (mediaContext != null) _mediaContexts[rule] = mediaContext;
-    _registerSelector(selector.value, rule);
+    _registerSelector(selector, rule);
 
     return rule;
   }
 
   /// Registers the [SimpleSelector]s in [list] to point to [rule] in
   /// [_selectors].
-  void _registerSelector(SelectorList list, CssStyleRule rule) {
+  void _registerSelector(SelectorList list, ModifiableCssStyleRule rule) {
     for (var complex in list.components) {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
@@ -296,8 +299,8 @@ class Extender {
     }
   }
 
-  void _extendExistingStyleRules(Set<CssStyleRule> rules, SimpleSelector target,
-      Map<ComplexSelector, Extension> extensions) {
+  void _extendExistingStyleRules(Set<ModifiableCssStyleRule> rules,
+      SimpleSelector target, Map<ComplexSelector, Extension> extensions) {
     for (var rule in rules) {
       var oldValue = rule.selector.value;
       try {

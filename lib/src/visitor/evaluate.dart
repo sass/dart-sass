@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 2065f7d701646283e536c5300b0f20f38c4acb46
+// Checksum: 816959e86ecf3e10aaa0ced8a58a35cf3604b3b2
 //
 // ignore_for_file: unused_import
 
@@ -22,6 +22,8 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
+import '../ast/css/modifiable.dart';
+import '../ast/node.dart';
 import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../environment.dart';
@@ -37,8 +39,8 @@ import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../utils.dart';
 import '../value.dart';
-import 'interface/statement.dart';
 import 'interface/expression.dart';
+import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
 typedef void _ScopeCallback(void callback());
@@ -133,16 +135,16 @@ class _EvaluateVisitor
   Stylesheet _stylesheet;
 
   /// The style rule that defines the current parent selector, if any.
-  CssStyleRule _styleRule;
+  ModifiableCssStyleRule _styleRule;
 
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
 
   /// The root stylesheet node.
-  CssStylesheet _root;
+  ModifiableCssStylesheet _root;
 
   /// The current parent node in the output CSS tree.
-  CssParentNode _parent;
+  ModifiableCssParentNode _parent;
 
   /// The name of the current declaration parent.
   String _declarationName;
@@ -150,10 +152,13 @@ class _EvaluateVisitor
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
 
-  /// The span for the innermost callable that's been invoked.
+  /// The node for the innermost callable that's been invoked.
   ///
-  /// This is used to provide `call()` with a span.
-  FileSpan _callableSpan;
+  /// This is used to provide `call()` with a span. It's stored as an [AstNode]
+  /// rather than a [FileSpan] so we can avoid calling [AstNode.span] if the
+  /// span isn't required, since some nodes need to do real work to manufacture
+  /// a source span.
+  AstNode _callableNode;
 
   /// Whether we're currently executing a function.
   var _inFunction = false;
@@ -179,7 +184,7 @@ class _EvaluateVisitor
   ///
   /// These are added to the initial CSS import block by [visitStylesheet] after
   /// the stylesheet has been fully performed.
-  var _outOfOrderImports = <CssImport>[];
+  var _outOfOrderImports = <ModifiableCssImport>[];
 
   /// The set that will eventually populate the JS API's
   /// `result.stats.includedFiles` field.
@@ -198,7 +203,11 @@ class _EvaluateVisitor
   ///
   /// Each member is a tuple of the span where the stack trace starts and the
   /// name of the member being invoked.
-  final _stack = <Tuple2<String, FileSpan>>[];
+  ///
+  /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  final _stack = <Tuple2<String, AstNode>>[];
 
   /// Whether we're running in Node Sass-compatibility mode.
   bool get _asNodeSass => _nodeImporter != null;
@@ -269,8 +278,8 @@ class _EvaluateVisitor
       var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
 
-      var invocation = ArgumentInvocation([], {}, _callableSpan,
-          rest: ValueExpression(args, _callableSpan),
+      var invocation = ArgumentInvocation([], {}, _callableNode.span,
+          rest: ValueExpression(args, _callableNode.span),
           keywordRest: args.keywords.isEmpty
               ? null
               : ValueExpression(
@@ -278,23 +287,23 @@ class _EvaluateVisitor
                       key: (String key, Value _) =>
                           SassString(key, quotes: false),
                       value: (String _, Value value) => value)),
-                  _callableSpan));
+                  _callableNode.span));
 
       if (function is SassString) {
         _warn(
             "Passing a string to call() is deprecated and will be illegal\n"
             "in Sass 4.0. Use call(get-function($function)) instead.",
-            _callableSpan,
+            _callableNode.span,
             deprecation: true);
 
         var expression = FunctionExpression(
-            Interpolation([function.text], _callableSpan), invocation);
+            Interpolation([function.text], _callableNode.span), invocation);
         return expression.accept(this);
       }
 
       var callable = function.assertFunction("function").callable;
       if (callable is Callable) {
-        return _runFunctionCallable(invocation, callable, _callableSpan);
+        return _runFunctionCallable(invocation, callable, _callableNode);
       } else {
         throw SassScriptException(
             "The function ${callable.name} is asynchronous.\n"
@@ -325,23 +334,30 @@ class _EvaluateVisitor
 
     visitStylesheet(node);
 
-    return EvaluateResult(_root, _includedFiles);
+    CssStylesheet stylesheet = _root;
+    if (_outOfOrderImports.isNotEmpty) {
+      // Create a copy of [_root.children] with [_outOfOrderImports] inserted at
+      // [_endOfImports].
+      var statements =
+          List<CssNode>(_root.children.length + _outOfOrderImports.length);
+      statements.setRange(0, _endOfImports, _root.children);
+      statements.setAll(_endOfImports, _outOfOrderImports);
+      statements.setRange(_endOfImports + _outOfOrderImports.length,
+          statements.length, _root.children, _endOfImports);
+      stylesheet = CssStylesheet(statements, _root.span);
+    }
+
+    return EvaluateResult(stylesheet, _includedFiles);
   }
 
   // ## Statements
 
   Value visitStylesheet(Stylesheet node) {
     _stylesheet = node;
-    _root = CssStylesheet(node.span);
+    _root = ModifiableCssStylesheet(node.span);
     _parent = _root;
     for (var child in node.children) {
       child.accept(this);
-    }
-
-    if (_outOfOrderImports.isNotEmpty) {
-      _root.modifyChildren((children) {
-        children.insertAll(_endOfImports, _outOfOrderImports);
-      });
     }
 
     _extender.finalize();
@@ -353,11 +369,11 @@ class _EvaluateVisitor
     if (node.query != null) {
       var resolved = _performInterpolation(node.query, warnForColor: true);
       query = _adjustParseError(
-          node.query.span, () => AtRootQuery.parse(resolved, logger: _logger));
+          node.query, () => AtRootQuery.parse(resolved, logger: _logger));
     }
 
     var parent = _parent;
-    var included = <CssParentNode>[];
+    var included = <ModifiableCssParentNode>[];
     while (parent is! CssStylesheet) {
       if (!query.excludes(parent)) included.add(parent);
       parent = parent.parent;
@@ -404,7 +420,7 @@ class _EvaluateVisitor
   /// sublist and returns the innermost removed parent.
   ///
   /// Otherwise, this leaves [nodes] as-is and returns [_root].
-  CssParentNode _trimIncluded(List<CssParentNode> nodes) {
+  ModifiableCssParentNode _trimIncluded(List<ModifiableCssParentNode> nodes) {
     if (nodes.isEmpty) return _root;
 
     var parent = _parent;
@@ -430,8 +446,11 @@ class _EvaluateVisitor
   /// This returns a callback that adjusts various instance variables for its
   /// duration, based on which rules are excluded by [query]. It always assigns
   /// [_parent] to [newParent].
-  _ScopeCallback _scopeForAtRoot(AtRootRule node, CssParentNode newParent,
-      AtRootQuery query, List<CssParentNode> included) {
+  _ScopeCallback _scopeForAtRoot(
+      AtRootRule node,
+      ModifiableCssParentNode newParent,
+      AtRootQuery query,
+      List<ModifiableCssParentNode> included) {
     var scope = (void callback()) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
@@ -486,7 +505,7 @@ class _EvaluateVisitor
     var content = _environment.content;
     if (content == null) return null;
 
-    _runUserDefinedCallable(node.arguments, content, node.span, () {
+    _runUserDefinedCallable(node.arguments, content, node, () {
       for (var statement in content.declaration.children) {
         statement.accept(this);
       }
@@ -520,8 +539,8 @@ class _EvaluateVisitor
     // will throw an error that we want the user to see.
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
-      _parent.addChild(CssDeclaration(name, cssValue, node.span,
-          valueSpanForMap: _expressionSpan(node.value)));
+      _parent.addChild(ModifiableCssDeclaration(name, cssValue, node.span,
+          valueSpanForMap: _expressionNode(node.value)?.span));
     } else if (name.value.startsWith('--')) {
       throw _exception(
           "Custom property values may not be empty.", node.value.span);
@@ -546,11 +565,12 @@ class _EvaluateVisitor
 
   Value visitEachRule(EachRule node) {
     var list = node.list.accept(this);
-    var span = _expressionSpan(node.list);
+    var nodeForSpan = _expressionNode(node.list);
     var setVariables = node.variables.length == 1
         ? (Value value) => _environment.setLocalVariable(
-            node.variables.first, value.withoutSlash(), span)
-        : (Value value) => _setMultipleVariables(node.variables, value, span);
+            node.variables.first, value.withoutSlash(), nodeForSpan)
+        : (Value value) =>
+            _setMultipleVariables(node.variables, value, nodeForSpan);
     return _environment.scope(() {
       return _handleReturn<Value>(list.asList, (element) {
         setVariables(element);
@@ -563,14 +583,15 @@ class _EvaluateVisitor
   /// Destructures [value] and assigns it to [variables], as in an `@each`
   /// statement.
   void _setMultipleVariables(
-      List<String> variables, Value value, FileSpan span) {
+      List<String> variables, Value value, AstNode nodeForSpan) {
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
-      _environment.setLocalVariable(variables[i], list[i].withoutSlash(), span);
+      _environment.setLocalVariable(
+          variables[i], list[i].withoutSlash(), nodeForSpan);
     }
     for (var i = minLength; i < variables.length; i++) {
-      _environment.setLocalVariable(variables[i], sassNull, span);
+      _environment.setLocalVariable(variables[i], sassNull, nodeForSpan);
     }
   }
 
@@ -587,7 +608,7 @@ class _EvaluateVisitor
     var targetText = _interpolationToValue(node.selector, warnForColor: true);
 
     var list = _adjustParseError(
-        targetText.span,
+        targetText,
         () => SelectorList.parse(
             trimAscii(targetText.value, excludeEscape: true),
             logger: _logger,
@@ -631,8 +652,8 @@ class _EvaluateVisitor
         : _interpolationToValue(node.value, trim: true, warnForColor: true);
 
     if (node.children == null) {
-      _parent
-          .addChild(CssAtRule(name, node.span, childless: true, value: value));
+      _parent.addChild(
+          ModifiableCssAtRule(name, node.span, childless: true, value: value));
       return null;
     }
 
@@ -644,7 +665,7 @@ class _EvaluateVisitor
       _inUnknownAtRule = true;
     }
 
-    _withParent(CssAtRule(name, node.span, value: value), () {
+    _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
       if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);
@@ -671,25 +692,26 @@ class _EvaluateVisitor
 
   Value visitForRule(ForRule node) {
     var fromNumber = _addExceptionSpan(
-        node.from.span, () => node.from.accept(this).assertNumber());
-    var toNumber = _addExceptionSpan(
-        node.to.span, () => node.to.accept(this).assertNumber());
+        node.from, () => node.from.accept(this).assertNumber());
+    var toNumber =
+        _addExceptionSpan(node.to, () => node.to.accept(this).assertNumber());
 
     var from = _addExceptionSpan(
-        node.from.span,
+        node.from,
         () => fromNumber
             .coerce(toNumber.numeratorUnits, toNumber.denominatorUnits)
             .assertInt());
-    var to = _addExceptionSpan(node.to.span, () => toNumber.assertInt());
+    var to = _addExceptionSpan(node.to, () => toNumber.assertInt());
 
     var direction = from > to ? -1 : 1;
     if (!node.isExclusive) to += direction;
     if (from == to) return null;
 
     return _environment.scope(() {
-      var span = _expressionSpan(node.from);
+      var nodeForSpan = _expressionNode(node.from);
       for (var i = from; i != to; i += direction) {
-        _environment.setLocalVariable(node.variable, SassNumber(i), span);
+        _environment.setLocalVariable(
+            node.variable, SassNumber(i), nodeForSpan);
         var result = _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;
@@ -743,7 +765,7 @@ class _EvaluateVisitor
     }
 
     _activeImports.add(url);
-    _withStackFrame("@import", import.span, () {
+    _withStackFrame("@import", import, () {
       _withEnvironment(_environment.closure(), () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -822,7 +844,7 @@ class _EvaluateVisitor
     var mediaQuery =
         import.media == null ? null : _visitMediaQueries(import.media);
 
-    var node = CssImport(url, import.span,
+    var node = ModifiableCssImport(url, import.span,
         supports: resolvedSupports == null
             ? null
             : CssValue("supports($resolvedSupports)", import.supports.span),
@@ -853,7 +875,7 @@ class _EvaluateVisitor
     var contentCallable = node.content == null
         ? null
         : UserDefinedCallable(node.content, _environment.closure());
-    _runUserDefinedCallable(node.arguments, mixin, node.span, () {
+    _runUserDefinedCallable(node.arguments, mixin, node, () {
       _environment.withContent(contentCallable, () {
         _environment.asMixin(() {
           for (var statement in mixin.declaration.children) {
@@ -881,7 +903,8 @@ class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(CssComment(_performInterpolation(node.text), node.span));
+    _parent.addChild(
+        ModifiableCssComment(_performInterpolation(node.text), node.span));
     return null;
   }
 
@@ -897,7 +920,8 @@ class _EvaluateVisitor
         : _mergeMediaQueries(_mediaQueries, queries);
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
-    _withParent(CssMediaRule(mergedQueries ?? queries, node.span), () {
+    _withParent(ModifiableCssMediaRule(mergedQueries ?? queries, node.span),
+        () {
       _withMediaQueries(mergedQueries ?? queries, () {
         if (!_inStyleRule) {
           for (var child in node.children) {
@@ -931,7 +955,7 @@ class _EvaluateVisitor
     var resolved = _performInterpolation(interpolation, warnForColor: true);
 
     // TODO(nweiz): Remove this type argument when sdk#31398 is fixed.
-    return _adjustParseError<List<CssMediaQuery>>(interpolation.span,
+    return _adjustParseError<List<CssMediaQuery>>(interpolation,
         () => CssMediaQuery.parseList(resolved, logger: _logger));
   }
 
@@ -969,10 +993,10 @@ class _EvaluateVisitor
         _interpolationToValue(node.selector, trim: true, warnForColor: true);
     if (_inKeyframes) {
       var parsedSelector = _adjustParseError(
-          node.selector.span,
+          node.selector,
           () => KeyframeSelectorParser(selectorText.value, logger: _logger)
               .parse());
-      var rule = CssKeyframeBlock(
+      var rule = ModifiableCssKeyframeBlock(
           CssValue(List.unmodifiable(parsedSelector), node.selector.span),
           node.span);
       _withParent(rule, () {
@@ -986,20 +1010,19 @@ class _EvaluateVisitor
     }
 
     var parsedSelector = _adjustParseError(
-        node.selector.span,
+        node.selector,
         () => SelectorList.parse(selectorText.value,
             allowParent: !_stylesheet.plainCss,
             allowPlaceholder: !_stylesheet.plainCss,
             logger: _logger));
     parsedSelector = _addExceptionSpan(
-        node.selector.span,
+        node.selector,
         () => parsedSelector.resolveParentSelectors(
             _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
-    var selector = CssValue<SelectorList>(parsedSelector, node.selector.span);
-
-    var rule = _extender.addSelector(selector, node.span, _mediaQueries);
+    var rule = _extender.addSelector(
+        parsedSelector, node.selector.span, node.span, _mediaQueries);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     _withParent(rule, () {
@@ -1030,7 +1053,7 @@ class _EvaluateVisitor
 
     var condition =
         CssValue(_visitSupportsCondition(node.condition), node.condition.span);
-    _withParent(CssSupportsRule(condition, node.span), () {
+    _withParent(ModifiableCssSupportsRule(condition, node.span), () {
       if (!_inStyleRule) {
         for (var child in node.children) {
           child.accept(this);
@@ -1097,18 +1120,15 @@ class _EvaluateVisitor
     _environment.setVariable(
         node.name,
         node.expression.accept(this).withoutSlash(),
-        _expressionSpan(node.expression),
+        _expressionNode(node.expression),
         global: node.isGlobal);
     return null;
   }
 
   Value visitWarnRule(WarnRule node) {
-    var value =
-        _addExceptionSpan(node.span, () => node.expression.accept(this));
+    var value = _addExceptionSpan(node, () => node.expression.accept(this));
     _logger.warn(
-        value is SassString
-            ? value.text
-            : _serialize(value, node.expression.span),
+        value is SassString ? value.text : _serialize(value, node.expression),
         trace: _stackTrace(node.span));
     return null;
   }
@@ -1127,7 +1147,7 @@ class _EvaluateVisitor
   // ## Expressions
 
   Value visitBinaryOperationExpression(BinaryOperationExpression node) {
-    return _addExceptionSpan(node.span, () {
+    return _addExceptionSpan(node, () {
       var left = node.left.accept(this);
       switch (node.operator) {
         case BinaryOperator.singleEquals:
@@ -1227,8 +1247,7 @@ class _EvaluateVisitor
     var positional = pair.item1;
     var named = pair.item2;
 
-    _verifyArguments(
-        positional.length, named, IfExpression.declaration, node.span);
+    _verifyArguments(positional.length, named, IfExpression.declaration, node);
 
     var condition = positional.length > 0 ? positional[0] : named["condition"];
     var ifTrue = positional.length > 1 ? positional[1] : named["if-true"];
@@ -1273,25 +1292,28 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    var result = _runFunctionCallable(node.arguments, function, node.span);
+    var result = _runFunctionCallable(node.arguments, function, node);
     _inFunction = oldInFunction;
     return result;
   }
 
   /// Evaluates the arguments in [arguments] as applied to [callable], and
   /// invokes [run] in a scope with those arguments defined.
-  Value _runUserDefinedCallable(ArgumentInvocation arguments,
-      UserDefinedCallable<Environment> callable, FileSpan span, Value run()) {
+  Value _runUserDefinedCallable(
+      ArgumentInvocation arguments,
+      UserDefinedCallable<Environment> callable,
+      AstNode nodeWithSpan,
+      Value run()) {
     var evaluated = _evaluateArguments(arguments);
 
     var name = callable.name == null ? "@content" : callable.name + "()";
-    return _withStackFrame(name, span, () {
+    return _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {
         return _environment.scope(() {
           _verifyArguments(evaluated.positional.length, evaluated.named,
-              callable.declaration.arguments, span);
+              callable.declaration.arguments, nodeWithSpan);
 
           var declaredArguments = callable.declaration.arguments.arguments;
           var minLength =
@@ -1300,7 +1322,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 declaredArguments[i].name,
                 evaluated.positional[i].withoutSlash(),
-                _sourceMap ? evaluated.positionalSpans[i] : null);
+                _sourceMap ? evaluated.positionalNodes[i] : null);
           }
 
           for (var i = evaluated.positional.length;
@@ -1313,8 +1335,8 @@ class _EvaluateVisitor
                 argument.name,
                 value.withoutSlash(),
                 _sourceMap
-                    ? evaluated.namedSpans[argument.name] ??
-                        _expressionSpan(argument.defaultValue)
+                    ? evaluated.namedNodes[argument.name] ??
+                        _expressionNode(argument.defaultValue)
                     : null);
           }
 
@@ -1332,7 +1354,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 callable.declaration.arguments.restArgument,
                 argumentList,
-                span);
+                nodeWithSpan);
           }
 
           var result = run();
@@ -1344,7 +1366,8 @@ class _EvaluateVisitor
           var argumentWord = pluralize('argument', evaluated.named.keys.length);
           var argumentNames =
               toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
-          throw _exception("No $argumentWord named $argumentNames.", span);
+          throw _exception(
+              "No $argumentWord named $argumentNames.", nodeWithSpan.span);
         });
       });
     });
@@ -1352,11 +1375,12 @@ class _EvaluateVisitor
 
   /// Evaluates [arguments] as applied to [callable].
   Value _runFunctionCallable(
-      ArgumentInvocation arguments, Callable callable, FileSpan span) {
+      ArgumentInvocation arguments, Callable callable, AstNode nodeWithSpan) {
     if (callable is BuiltInCallable) {
-      return _runBuiltInCallable(arguments, callable, span).withoutSlash();
+      return _runBuiltInCallable(arguments, callable, nodeWithSpan)
+          .withoutSlash();
     } else if (callable is UserDefinedCallable<Environment>) {
-      return _runUserDefinedCallable(arguments, callable, span, () {
+      return _runUserDefinedCallable(arguments, callable, nodeWithSpan, () {
         for (var statement in callable.declaration.children) {
           var returnValue = statement.accept(this);
           if (returnValue is Value) return returnValue;
@@ -1367,8 +1391,8 @@ class _EvaluateVisitor
       }).withoutSlash();
     } else if (callable is PlainCssCallable) {
       if (arguments.named.isNotEmpty || arguments.keywordRest != null) {
-        throw _exception(
-            "Plain CSS functions don't support keyword arguments.", span);
+        throw _exception("Plain CSS functions don't support keyword arguments.",
+            nodeWithSpan.span);
       }
 
       var buffer = StringBuffer("${callable.name}(");
@@ -1386,7 +1410,7 @@ class _EvaluateVisitor
       var rest = arguments.rest?.accept(this);
       if (rest != null) {
         if (!first) buffer.write(", ");
-        buffer.write(_serialize(rest, arguments.rest.span));
+        buffer.write(_serialize(rest, arguments.rest));
       }
       buffer.writeCharCode($rparen);
 
@@ -1398,19 +1422,19 @@ class _EvaluateVisitor
 
   /// Evaluates [invocation] as applied to [callable], and invokes [callable]'s
   /// body.
-  Value _runBuiltInCallable(
-      ArgumentInvocation arguments, BuiltInCallable callable, FileSpan span) {
+  Value _runBuiltInCallable(ArgumentInvocation arguments,
+      BuiltInCallable callable, AstNode nodeWithSpan) {
     var evaluated = _evaluateArguments(arguments, trackSpans: false);
 
-    var oldCallableSpan = _callableSpan;
-    _callableSpan = span;
+    var oldCallableNode = _callableNode;
+    _callableNode = nodeWithSpan;
 
     var namedSet = MapKeySet(evaluated.named);
     var tuple = callable.callbackFor(evaluated.positional.length, namedSet);
     var overload = tuple.item1;
     var callback = tuple.item2;
-    _addExceptionSpan(
-        span, () => overload.verify(evaluated.positional.length, namedSet));
+    _addExceptionSpan(nodeWithSpan,
+        () => overload.verify(evaluated.positional.length, namedSet));
 
     var declaredArguments = overload.arguments;
     for (var i = evaluated.positional.length;
@@ -1450,9 +1474,9 @@ class _EvaluateVisitor
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message, span);
+      throw _exception(message, nodeWithSpan.span);
     }
-    _callableSpan = oldCallableSpan;
+    _callableNode = oldCallableNode;
 
     if (argumentList == null) return result;
     if (evaluated.named.isEmpty) return result;
@@ -1460,7 +1484,7 @@ class _EvaluateVisitor
     throw _exception(
         "No ${pluralize('argument', evaluated.named.keys.length)} named "
         "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
-        span);
+        nodeWithSpan.span);
   }
 
   /// Returns the evaluated values of the given [arguments].
@@ -1477,57 +1501,57 @@ class _EvaluateVisitor
     var named = normalizedMapMap<String, Expression, Value>(arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    var positionalSpans =
-        trackSpans ? arguments.positional.map(_expressionSpan).toList() : null;
-    var namedSpans = trackSpans
-        ? mapMap<String, Expression, String, FileSpan>(arguments.named,
-            value: (_, expression) => _expressionSpan(expression))
+    var positionalNodes =
+        trackSpans ? arguments.positional.map(_expressionNode).toList() : null;
+    var namedNodes = trackSpans
+        ? mapMap<String, Expression, String, AstNode>(arguments.named,
+            value: (_, expression) => _expressionNode(expression))
         : null;
 
     if (arguments.rest == null) {
       return _ArgumentResults(positional, named, ListSeparator.undecided,
-          positionalSpans: positionalSpans, namedSpans: namedSpans);
+          positionalNodes: positionalNodes, namedNodes: namedNodes);
     }
 
     var rest = arguments.rest.accept(this);
-    var restSpan = trackSpans ? _expressionSpan(arguments.rest) : null;
+    var restNodeForSpan = trackSpans ? _expressionNode(arguments.rest) : null;
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
-      _addRestMap(named, rest, arguments.rest.span);
-      namedSpans?.addAll(mapMap(rest.contents,
+      _addRestMap(named, rest, arguments.rest);
+      namedNodes?.addAll(mapMap(rest.contents,
           key: (key, _) => (key as SassString).text,
-          value: (_, __) => restSpan));
+          value: (_, __) => restNodeForSpan));
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
-      positionalSpans?.addAll(List.filled(rest.lengthAsList, restSpan));
+      positionalNodes?.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
       separator = rest.separator;
 
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
           named[key] = value;
-          if (namedSpans != null) namedSpans[key] = restSpan;
+          if (namedNodes != null) namedNodes[key] = restNodeForSpan;
         });
       }
     } else {
       positional.add(rest);
-      positionalSpans?.add(restSpan);
+      positionalNodes?.add(restNodeForSpan);
     }
 
     if (arguments.keywordRest == null) {
       return _ArgumentResults(positional, named, separator,
-          positionalSpans: positionalSpans, namedSpans: namedSpans);
+          positionalNodes: positionalNodes, namedNodes: namedNodes);
     }
 
     var keywordRest = arguments.keywordRest.accept(this);
-    var keywordRestSpan =
-        trackSpans ? _expressionSpan(arguments.keywordRest) : null;
+    var keywordRestNodeForSpan =
+        trackSpans ? _expressionNode(arguments.keywordRest) : null;
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, arguments.keywordRest.span);
-      namedSpans?.addAll(mapMap(keywordRest.contents,
+      _addRestMap(named, keywordRest, arguments.keywordRest);
+      namedNodes?.addAll(mapMap(keywordRest.contents,
           key: (key, _) => (key as SassString).text,
-          value: (_, __) => keywordRestSpan));
+          value: (_, __) => keywordRestNodeForSpan));
       return _ArgumentResults(positional, named, separator,
-          positionalSpans: positionalSpans, namedSpans: namedSpans);
+          positionalNodes: positionalNodes, namedNodes: namedNodes);
     } else {
       throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",
@@ -1551,8 +1575,7 @@ class _EvaluateVisitor
     var named = normalizedMap(invocation.arguments.named);
     var rest = invocation.arguments.rest.accept(this);
     if (rest is SassMap) {
-      _addRestMap(
-          named, rest, invocation.span, (value) => ValueExpression(value));
+      _addRestMap(named, rest, invocation, (value) => ValueExpression(value));
     } else if (rest is SassList) {
       positional.addAll(rest.asList.map((value) => ValueExpression(value)));
       if (rest is SassArgumentList) {
@@ -1570,8 +1593,8 @@ class _EvaluateVisitor
 
     var keywordRest = invocation.arguments.keywordRest.accept(this);
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, invocation.span,
-          (value) => ValueExpression(value));
+      _addRestMap(
+          named, keywordRest, invocation, (value) => ValueExpression(value));
       return Tuple2(positional, named);
     } else {
       throw _exception(
@@ -1582,12 +1605,16 @@ class _EvaluateVisitor
 
   /// Adds the values in [map] to [values].
   ///
-  /// Throws a [SassRuntimeException] associated with [span] if any [map] keys
-  /// aren't strings.
+  /// Throws a [SassRuntimeException] associated with [nodeForSpan]'s source
+  /// span if any [map] keys aren't strings.
   ///
   /// If [convert] is passed, that's used to convert the map values to the value
   /// type for [values]. Otherwise, the [Value]s are used as-is.
-  void _addRestMap<T>(Map<String, T> values, SassMap map, FileSpan span,
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  void _addRestMap<T>(Map<String, T> values, SassMap map, AstNode nodeForSpan,
       [T convert(Value value)]) {
     convert ??= (value) => value as T;
     map.contents.forEach((key, value) {
@@ -1597,7 +1624,7 @@ class _EvaluateVisitor
         throw _exception(
             "Variable keyword argument map must have string keys.\n"
             "$key is not a string in $map.",
-            span);
+            nodeForSpan.span);
       }
     });
   }
@@ -1605,9 +1632,9 @@ class _EvaluateVisitor
   /// Throws a [SassRuntimeException] if [positional] and [named] aren't valid
   /// when applied to [arguments].
   void _verifyArguments(int positional, Map<String, dynamic> named,
-          ArgumentDeclaration arguments, FileSpan span) =>
+          ArgumentDeclaration arguments, AstNode nodeWithSpan) =>
       _addExceptionSpan(
-          span, () => arguments.verify(positional, MapKeySet(named)));
+          nodeWithSpan, () => arguments.verify(positional, MapKeySet(named)));
 
   Value visitSelectorExpression(SelectorExpression node) {
     if (_styleRule == null) return sassNull;
@@ -1624,7 +1651,7 @@ class _EvaluateVisitor
           var result = expression.accept(this);
           return result is SassString
               ? result.text
-              : _serialize(result, expression.span, quote: false);
+              : _serialize(result, expression, quote: false);
         }).join(),
         quotes: node.hasQuotes);
   }
@@ -1694,30 +1721,41 @@ class _EvaluateVisitor
             expression.span);
       }
 
-      return _serialize(result, expression.span, quote: false);
+      return _serialize(result, expression, quote: false);
     }).join();
   }
 
   /// Evaluates [expression] and calls `toCssString()` and wraps a
   /// [SassScriptException] to associate it with [span].
   String _evaluateToCss(Expression expression, {bool quote = true}) =>
-      _serialize(expression.accept(this), expression.span, quote: quote);
+      _serialize(expression.accept(this), expression, quote: quote);
 
   /// Calls `value.toCssString()` and wraps a [SassScriptException] to associate
-  /// it with [span].
-  String _serialize(Value value, FileSpan span, {bool quote = true}) =>
-      _addExceptionSpan(span, () => value.toCssString(quote: quote));
+  /// it with [nodeWithSpan]'s source span.
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  String _serialize(Value value, AstNode nodeWithSpan, {bool quote = true}) =>
+      _addExceptionSpan(nodeWithSpan, () => value.toCssString(quote: quote));
 
-  /// Returns the span for [expression], or if [expression] is just a variable
-  /// reference for the span where it was declared.
+  /// Returns the [AstNode] whose span should be used for [expression].
+  ///
+  /// If [expression] is a variable reference, [AstNode]'s span will be the span
+  /// where that variable was originally declared. Otherwise, this will just
+  /// return [expression].
   ///
   /// Returns `null` if [_sourceMap] is `false`.
-  FileSpan _expressionSpan(Expression expression) {
+  ///
+  /// This returns an [AstNode] rather than a [FileSpan] so we can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  AstNode _expressionNode(Expression expression) {
     if (!_sourceMap) return null;
     if (expression is VariableExpression) {
-      return _environment.getVariableSpan(expression.name);
+      return _environment.getVariableNode(expression.name);
     } else {
-      return expression.span;
+      return expression;
     }
   }
 
@@ -1729,7 +1767,7 @@ class _EvaluateVisitor
   /// lattermost child of its parent.
   ///
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
-  T _withParent<S extends CssParentNode, T>(S node, T callback(),
+  T _withParent<S extends ModifiableCssParentNode, T>(S node, T callback(),
       {bool through(CssNode node), bool scopeWhen = true}) {
     var oldParent = _parent;
 
@@ -1759,7 +1797,7 @@ class _EvaluateVisitor
   }
 
   /// Runs [callback] with [rule] as the current style rule.
-  T _withStyleRule<T>(CssStyleRule rule, T callback()) {
+  T _withStyleRule<T>(ModifiableCssStyleRule rule, T callback()) {
     var oldRule = _styleRule;
     _styleRule = rule;
     var result = callback();
@@ -1776,12 +1814,16 @@ class _EvaluateVisitor
     return result;
   }
 
-  /// Adds a frame to the stack with the given [member] name, and [span] as the
-  /// site of the new frame.
+  /// Adds a frame to the stack with the given [member] name, and [nodeWithSpan]
+  /// as the site of the new frame.
   ///
   /// Runs [callback] with the new stack.
-  T _withStackFrame<T>(String member, FileSpan span, T callback()) {
-    _stack.add(Tuple2(_member, span));
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  T _withStackFrame<T>(String member, AstNode nodeWithSpan, T callback()) {
+    _stack.add(Tuple2(_member, nodeWithSpan));
     var oldMember = _member;
     _member = member;
     var result = callback();
@@ -1803,7 +1845,7 @@ class _EvaluateVisitor
   /// [span] is the current location, used for the bottom-most stack frame.
   Trace _stackTrace(FileSpan span) {
     var frames = _stack
-        .map((tuple) => _stackFrame(tuple.item1, tuple.item2))
+        .map((tuple) => _stackFrame(tuple.item1, tuple.item2.span))
         .toList()
           ..add(_stackFrame(_member, span));
     return Trace(frames.reversed);
@@ -1818,17 +1860,23 @@ class _EvaluateVisitor
   SassRuntimeException _exception(String message, FileSpan span) =>
       SassRuntimeException(message, span, _stackTrace(span));
 
-  /// Runs [callback], and adjusts any [SassFormatException] to be within [span].
+  /// Runs [callback], and adjusts any [SassFormatException] to be within
+  /// [nodeWithSpan]'s source span.
   ///
   /// Specifically, this adjusts format exceptions so that the errors are
   /// reported as though the text being parsed were exactly in [span]. This may
   /// not be quite accurate if the source text contained interpolation, but
   /// it'll still produce a useful error.
-  T _adjustParseError<T>(FileSpan span, T callback()) {
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  T _adjustParseError<T>(AstNode nodeWithSpan, T callback()) {
     try {
       return callback();
     } on SassFormatException catch (error) {
       var errorText = error.span.file.getText(0);
+      var span = nodeWithSpan.span;
       var syntheticFile = span.file
           .getText(0)
           .replaceRange(span.start.offset, span.end.offset, errorText);
@@ -1841,12 +1889,16 @@ class _EvaluateVisitor
   }
 
   /// Runs [callback], and converts any [SassScriptException]s it throws to
-  /// [SassRuntimeException]s with [span].
-  T _addExceptionSpan<T>(FileSpan span, T callback()) {
+  /// [SassRuntimeException]s with [nodeWithSpan]'s source span.
+  ///
+  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  T _addExceptionSpan<T>(AstNode nodeWithSpan, T callback()) {
     try {
       return callback();
     } on SassScriptException catch (error) {
-      throw _exception(error.message, span);
+      throw _exception(error.message, nodeWithSpan.span);
     }
   }
 }
@@ -1856,20 +1908,28 @@ class _ArgumentResults {
   /// Arguments passed by position.
   final List<Value> positional;
 
-  /// The spans for each [positional] argument, or `null` if source span
-  /// tracking is disabled.
-  final List<FileSpan> positionalSpans;
+  /// The [AstNode]s that hold the spans for each [positional] argument, or
+  /// `null` if source span tracking is disabled.
+  ///
+  /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  final List<AstNode> positionalNodes;
 
   /// Arguments passed by name.
   final Map<String, Value> named;
 
-  /// The spans for each [named] argument, or `null` if source span tracking is
-  /// disabled.
-  final Map<String, FileSpan> namedSpans;
+  /// The [AstNode]s that hold the spans for each [named] argument, or `null` if
+  /// source span tracking is disabled.
+  ///
+  /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
+  /// [AstNode.span] if the span isn't required, since some nodes need to do
+  /// real work to manufacture a source span.
+  final Map<String, AstNode> namedNodes;
 
   /// The separator used for the rest argument list, if any.
   final ListSeparator separator;
 
   _ArgumentResults(this.positional, this.named, this.separator,
-      {this.positionalSpans, this.namedSpans});
+      {this.positionalNodes, this.namedNodes});
 }

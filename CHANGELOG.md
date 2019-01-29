@@ -7,6 +7,11 @@
 * The new error output uses non-ASCII Unicode characters by default. Add a
   `--no-unicode` flag to disable this.
 
+## 1.16.1
+
+* Fix a performance bug where stylesheet evaluation could take a very long time
+  when many binary operators were used in sequence.
+
 ## 1.16.0
 
 * `rgb()` and `hsl()` now treat unquoted strings beginning with `env()`,
