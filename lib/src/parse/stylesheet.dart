@@ -253,6 +253,8 @@ abstract class StylesheetParser extends Parser {
     var wasInStyleRule = _inStyleRule;
     _inStyleRule = true;
 
+    if (buffer.isEmpty) scanner.error('expected "}".');
+
     return _withChildren(_statement, start, (children, span) {
       if (indented && children.isEmpty) {
         warn("This selector doesn't have any properties and won't be rendered.",
