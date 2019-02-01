@@ -227,21 +227,22 @@ class ExecutableOptions {
     var stdin = _options['stdin'] as bool;
     if (_options.rest.isEmpty && !stdin) _fail("Compile Sass to CSS.");
 
+    var directories = Set<String>();
     var colonArgs = false;
     var positionalArgs = false;
     for (var argument in _options.rest) {
       if (argument.isEmpty) _fail('Invalid argument "".');
 
-      // If the colon appears at position 1, treat it as a Windows drive
-      // letter.
-      if (!argument.contains(":") ||
-          (_isWindowsPath(argument, 0) &&
+      if (argument.contains(":") &&
+          (!_isWindowsPath(argument, 0) ||
               // Look for colons after index 1, since that's where the drive
               // letter is on Windows paths.
-              argument.indexOf(":", 2) == -1)) {
-        positionalArgs = true;
-      } else {
+              argument.indexOf(":", 2) != -1)) {
         colonArgs = true;
+      } else if (dirExists(argument)) {
+        directories.add(argument);
+      } else {
+        positionalArgs = true;
       }
     }
 
@@ -260,6 +261,21 @@ class ExecutableOptions {
             {null: _options.rest.isEmpty ? null : _options.rest.first});
       } else if (_options.rest.length > 2) {
         _fail("Only two positional args may be passed.");
+      } else if (directories.isNotEmpty) {
+        var message =
+            'Directory "${directories.first}" may not be a positional arg.';
+
+        // If it looks like the user called `sass in-dir out-dir`, suggest they
+        // call "sass in-dir:out-dir` instead. Don't do this if they wrote
+        // `sass dir file.scss` or `sass something dir`.
+        var target = _options.rest.last;
+        if (directories.first == _options.rest.first && !fileExists(target)) {
+          message += '\n'
+              'To compile all CSS in "${directories.first}" to "$target", use '
+              '`sass ${directories.first}:$target`.';
+        }
+
+        _fail(message);
       } else {
         var source = _options.rest.first == '-' ? null : _options.rest.first;
         var destination = _options.rest.length == 1 ? null : _options.rest.last;
@@ -286,6 +302,14 @@ class ExecutableOptions {
     var sourcesToDestinations = p.PathMap<String>();
     var sourceDirectoriesToDestinations = p.PathMap<String>();
     for (var argument in _options.rest) {
+      if (directories.contains(argument)) {
+        if (!seen.add(argument)) _fail('Duplicate source "$argument".');
+
+        sourceDirectoriesToDestinations[argument] = argument;
+        sourcesToDestinations.addAll(_listSourceDirectory(argument, argument));
+        continue;
+      }
+
       String source;
       String destination;
       for (var i = 0; i < argument.length; i++) {
@@ -299,16 +323,14 @@ class ExecutableOptions {
             destination = argument.substring(i + 1);
           } else if (i != source.length + 2 ||
               !_isWindowsPath(argument, i - 1)) {
-            // A colon 2 character after the separator may also be a Windows
+            // A colon 2 characters after the separator may also be a Windows
             // drive letter.
             _fail('"$argument" may only contain one ":".');
           }
         }
       }
 
-      if (!seen.add(source)) {
-        _fail('Duplicate source "${source}".');
-      }
+      if (!seen.add(source)) _fail('Duplicate source "$source".');
 
       if (source == '-') {
         sourcesToDestinations[null] = destination;

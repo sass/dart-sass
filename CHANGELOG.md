@@ -8,6 +8,10 @@
 
 ### Command-Line Interface
 
+* Passing a directory on the command line now compiles all Sass source files in
+  the directory to CSS files in the same directory, as though `dir:dir` were
+  passed instead of just `dir`.
+
 * The new error output uses non-ASCII Unicode characters by default. Add a
   `--no-unicode` flag to disable this.
 

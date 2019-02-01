@@ -96,7 +96,7 @@ main(List<String> args) async {
   } on UsageException catch (error) {
     print("${error.message}\n");
     print("Usage: sass <input.scss> [output.css]\n"
-        "       sass <input.scss>:<output.css> <input/>:<output/>\n");
+        "       sass <input.scss>:<output.css> <input/>:<output/> <dir/>\n");
     print(ExecutableOptions.usage);
     exitCode = 64;
   } catch (error, stackTrace) {
