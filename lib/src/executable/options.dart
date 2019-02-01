@@ -253,7 +253,20 @@ class ExecutableOptions {
       } else if (_options.rest.length > 2) {
         _fail("Only two positional args may be passed.");
       } else if (directories.isNotEmpty) {
-        _fail('Directory "${directories.first}" may not be a positional arg.');
+        var message =
+            'Directory "${directories.first}" may not be a positional arg.';
+
+        // If it looks like the user called `sass in-dir out-dir`, suggest they
+        // call "sass in-dir:out-dir` instead. Don't do this if they wrote
+        // `sass dir file.scss` or `sass something dir`.
+        var target = _options.rest.last;
+        if (directories.first == _options.rest.first && !fileExists(target)) {
+          message += '\n'
+              'To compile all CSS in "${directories.first}" to "$target", use '
+              '`sass ${directories.first}:$target`.';
+        }
+
+        _fail(message);
       } else {
         var source = _options.rest.first == '-' ? null : _options.rest.first;
         var destination = _options.rest.length == 1 ? null : _options.rest.last;

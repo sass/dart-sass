@@ -272,7 +272,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
         var sass = await runSass(["in", "positional"]);
         expect(
-            sass.stdout, emits('Directory "in" may not be a positional arg.'));
+            sass.stdout,
+            emitsInOrder([
+              'Directory "in" may not be a positional arg.',
+              'To compile all CSS in "in" to "positional", use `sass '
+                  'in:positional`.'
+            ]));
         await sass.shouldExit(64);
       });
     });
