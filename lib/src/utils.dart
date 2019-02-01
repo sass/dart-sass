@@ -373,6 +373,20 @@ T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
   }
 }
 
+/// Like [Map.addAll], but for two-layer maps.
+///
+/// This avoids copying inner maps from [source] if possible.
+void mapAddAll2<K1, K2, V>(
+    Map<K1, Map<K2, V>> destination, Map<K1, Map<K2, V>> source) {
+  source.forEach((key, inner) {
+    if (destination.containsKey(key)) {
+      destination[key].addAll(inner);
+    } else {
+      destination[key] = inner;
+    }
+  });
+}
+
 /// Rotates the element in list from [start] (inclusive) to [end] (exclusive)
 /// one index higher, looping the final element back to [start].
 void rotateSlice(List list, int start, int end) {
