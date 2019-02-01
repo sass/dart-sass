@@ -10,6 +10,7 @@ import 'package:string_scanner/string_scanner.dart';
 import '../exception.dart';
 import '../logger.dart';
 import '../util/character.dart';
+import '../utils.dart';
 
 /// The abstract base class for all parsers.
 ///
@@ -627,7 +628,7 @@ abstract class Parser {
       return callback();
     } on SourceSpanFormatException catch (error) {
       var span = error.span as FileSpan;
-      if (error.message.startsWith("Expected") && span.length == 0) {
+      if (startsWithIgnoreCase(error.message, "expected") && span.length == 0) {
         var startPosition = _firstNewlineBefore(span.start.offset);
         if (startPosition != span.start.offset) {
           span = span.file.span(startPosition, startPosition);
