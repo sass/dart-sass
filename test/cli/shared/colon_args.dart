@@ -203,18 +203,23 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test1.scss", "a {b: }").create();
       await d.file("test2.scss", "x {y: }").create();
 
-      var sass = await runSass(["test1.scss:out1.css", "test2.scss:out2.css"]);
+      var sass = await runSass(
+          ["--no-unicode", "test1.scss:out1.css", "test2.scss:out2.css"]);
       expect(
           sass.stderr,
           emitsInOrder([
             "Error: Expected expression.",
-            "a {b: }",
-            "      ^",
+            "  ,",
+            "1 | a {b: }",
+            "  |       ^",
+            "  '",
             "  test1.scss 1:7  root stylesheet",
             "",
             "Error: Expected expression.",
-            "x {y: }",
-            "      ^",
+            "  ,",
+            "1 | x {y: }",
+            "  |       ^",
+            "  '",
             "  test2.scss 1:7  root stylesheet"
           ]));
       await sass.shouldExit(65);
@@ -224,18 +229,23 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test1.scss", "a {b: 1 + #abc}").create();
       await d.file("test2.scss", "x {y: 1 + #abc}").create();
 
-      var sass = await runSass(["test1.scss:out1.css", "test2.scss:out2.css"]);
+      var sass = await runSass(
+          ["--no-unicode", "test1.scss:out1.css", "test2.scss:out2.css"]);
       expect(
           sass.stderr,
           emitsInOrder([
             'Error: Undefined operation "1 + #abc".',
-            "a {b: 1 + #abc}",
-            "      ^^^^^^^^",
+            "  ,",
+            "1 | a {b: 1 + #abc}",
+            "  |       ^^^^^^^^",
+            "  '",
             "  test1.scss 1:7  root stylesheet",
             "",
             'Error: Undefined operation "1 + #abc".',
-            "x {y: 1 + #abc}",
-            "      ^^^^^^^^",
+            "  ,",
+            "1 | x {y: 1 + #abc}",
+            "  |       ^^^^^^^^",
+            "  '",
             "  test2.scss 1:7  root stylesheet"
           ]));
       await sass.shouldExit(65);

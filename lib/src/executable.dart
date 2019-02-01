@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
+import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import 'exception.dart';
 import 'executable/compile_stylesheet.dart';
@@ -38,6 +39,8 @@ main(List<String> args) async {
   ExecutableOptions options;
   try {
     options = ExecutableOptions.parse(args);
+    term_glyph.ascii = !options.unicode;
+
     if (options.version) {
       print(await _loadVersion());
       exitCode = 0;
