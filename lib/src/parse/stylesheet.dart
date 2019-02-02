@@ -451,7 +451,7 @@ abstract class StylesheetParser extends Parser {
     // here should be mirrored there.
 
     var start = scanner.state;
-    scanner.expectChar($at);
+    scanner.expectChar($at, name: "@-rule");
     var name = interpolatedIdentifier();
     whitespace();
 
@@ -536,6 +536,23 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes an at-rule allowed within a function.
   Statement _functionAtRule() {
+    if (scanner.peekChar() != $at) {
+      var position = scanner.position;
+      Statement statement;
+      try {
+        statement = _declarationOrStyleRule();
+      } on SourceSpanFormatException catch (_) {
+        // If we can't parse a valid declaration or style rule, throw a more
+        // generic error message.
+        scanner.error("expected @-rule", position: position);
+      }
+
+      error(
+          "@function rules may not contain "
+          "${statement is StyleRule ? "style rules" : "declarations"}.",
+          statement.span);
+    }
+
     var start = scanner.state;
     switch (_plainAtRuleName()) {
       case "debug":
@@ -563,7 +580,7 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes an at-rule's name, with interpolation disallowed.
   String _plainAtRuleName() {
-    scanner.expectChar($at);
+    scanner.expectChar($at, name: "@-rule");
     var name = identifier();
     whitespace();
     return name;
