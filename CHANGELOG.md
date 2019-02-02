@@ -6,6 +6,9 @@
   next token that wasn't what was expected, they point *after* the previous
   token. This should generally provide more context for the syntax error.
 
+* Produce a better error message for style rules that are missing the closing
+  `}`.
+
 ### Command-Line Interface
 
 * Passing a directory on the command line now compiles all Sass source files in
