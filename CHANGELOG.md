@@ -9,6 +9,9 @@
 * Produce a better error message for style rules that are missing the closing
   `}`.
 
+* Produce a better error message for style rules and property declarations
+  within `@function` rules.
+
 ### Command-Line Interface
 
 * Passing a directory on the command line now compiles all Sass source files in
