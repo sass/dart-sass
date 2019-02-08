@@ -133,6 +133,12 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
   return result;
 }
 
+/// Returns the first element of [iterable], or `null` if the iterable is empty.
+T firstOrNull<T>(Iterable<T> iterable) {
+  var iterator = iterable.iterator;
+  return iterator.moveNext() ? iterator.current : null;
+}
+
 /// Converts [codepointIndex] to a code unit index, relative to [string].
 ///
 /// A codepoint index is the index in pure Unicode codepoints; a code unit index

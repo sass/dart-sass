@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: d60a4b3395a8abc00190edb5380481914680a281
+// Checksum: f2cf0b954a83f5a986d490155ef77c6a6b3e63f5
 //
 // ignore_for_file: unused_import
 
@@ -16,6 +16,7 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -33,6 +34,7 @@ import '../callable.dart';
 import '../color_names.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
+import '../extend/extension.dart';
 import '../importer.dart';
 import '../importer/node.dart';
 import '../importer/utils.dart';
@@ -421,7 +423,18 @@ class _EvaluateVisitor
   ///
   /// This also applies each module's extensions to its upstream modules.
   CssStylesheet _combineCss(Module root) {
-    if (root.upstream.isEmpty) return root.css;
+    // TODO(nweiz): short-circuit if no upstream modules (transitively) include
+    // any CSS.
+    if (root.upstream.isEmpty) {
+      var selectors = root.extender.simpleSelectors;
+      var unsatisfiedExtension = firstOrNull(root.extender
+          .extensionsWhereTarget((target) => !selectors.contains(target)));
+      if (unsatisfiedExtension != null) {
+        _throwForUnsatisfiedExtension(unsatisfiedExtension);
+      }
+
+      return root.css;
+    }
 
     var sortedModules = _topologicalModules(root);
     _extendModules(sortedModules);
@@ -452,7 +465,22 @@ class _EvaluateVisitor
     // and we can use them to extend that module.
     var downstreamExtenders = <Module, List<Extender>>{};
 
+    /// Extensions that haven't yet been satisfied by some upstream module. This
+    /// adds extensions when they're defined but not satisfied, and removes them
+    /// when they're satisfied by any module.
+    var unsatisfiedExtensions = Set<Extension>.identity();
+
     for (var module in sortedModules) {
+      // Create a snapshot of the simple selectors currently in the extender so
+      // that we don't consider an extension "satisfied" below because of a
+      // simple selector added by another (sibling) extension.
+      var originalSelectors = module.extender.simpleSelectors.toSet();
+
+      // Add all as-yet-unsatisfied extensions before adding downstream
+      // extenders, because those are all in [unsatisfiedExtensions] already.
+      unsatisfiedExtensions.addAll(module.extender.extensionsWhereTarget(
+          (target) => !originalSelectors.contains(target)));
+
       var extenders = downstreamExtenders[module];
       if (extenders != null) module.extender.addExtensions(extenders);
       if (module.extender.isEmpty) continue;
@@ -462,7 +490,26 @@ class _EvaluateVisitor
             .putIfAbsent(upstream, () => [])
             .add(module.extender);
       }
+
+      // Remove all extensions that are now satisfied after adding downstream
+      // extenders so it counts any downstream extensions that have been newly
+      // satisfied.
+      unsatisfiedExtensions.removeAll(
+          module.extender.extensionsWhereTarget(originalSelectors.contains));
     }
+
+    if (unsatisfiedExtensions.isNotEmpty) {
+      _throwForUnsatisfiedExtension(unsatisfiedExtensions.first);
+    }
+  }
+
+  /// Throws an exception indicating that [extension] is unsatisfied.
+  @alwaysThrows
+  void _throwForUnsatisfiedExtension(Extension extension) {
+    throw SassException(
+        'The target selector was not found.\n'
+        'Use "@extend ${extension.target} !optional" to avoid this error.',
+        extension.span);
   }
 
   /// Returns all modules transitively used by [root] in topological order,

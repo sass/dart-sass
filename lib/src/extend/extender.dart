@@ -14,6 +14,7 @@ import '../ast/sass.dart';
 import '../exception.dart';
 import '../utils.dart';
 import 'extension.dart';
+import 'merged_extension.dart';
 import 'functions.dart';
 import 'mode.dart';
 
@@ -106,9 +107,36 @@ class Extender {
     return selector;
   }
 
+  /// The set of all simple selectors in style rules handled by this extender.
+  ///
+  /// This includes simple selectors that were added because of downstream
+  /// extensions.
+  Set<SimpleSelector> get simpleSelectors => MapKeySet(_selectors);
+
   Extender() : _mode = ExtendMode.normal;
 
   Extender._(this._mode);
+
+  /// Returns all mandatory extensions in this extender for whose targets
+  /// [callback] returns `true`.
+  ///
+  /// This un-merges any [MergedExtension] so only base [Extension]s are
+  /// returned.
+  Iterable<Extension> extensionsWhereTarget(
+      bool callback(SimpleSelector target)) sync* {
+    for (var target in _extensions.keys) {
+      if (!callback(target)) continue;
+      for (var extension in _extensions[target].values) {
+        if (extension is MergedExtension) {
+          yield* extension
+              .unmerge()
+              .where((extension) => !extension.isOptional);
+        } else if (!extension.isOptional) {
+          yield extension;
+        }
+      }
+    }
+  }
 
   /// Adds [selector] to this extender, with [selectorSpan] as the span covering
   /// the selector and [ruleSpan] as the span covering the entire style rule.
@@ -184,19 +212,19 @@ class Extender {
     Map<ComplexSelector, Extension> newExtensions;
     var sources = _extensions.putIfAbsent(target, () => {});
     for (var complex in extender.value.components) {
+      var state = Extension(
+          complex, target, extender.span, extend.span, mediaContext,
+          optional: extend.isOptional);
+
       var existingState = sources[complex];
       if (existingState != null) {
         // If there's already an extend from [extender] to [target], we don't need
         // to re-run the extension. We may need to mark the extension as
         // mandatory, though.
-        existingState.addSource(extend.span, mediaContext,
-            optional: extend.isOptional);
+        sources[complex] = MergedExtension.merge(existingState, state);
         continue;
       }
 
-      var state = Extension(
-          complex, target, extender.span, extend.span, mediaContext,
-          optional: extend.isOptional);
       sources[complex] = state;
 
       for (var component in complex.components) {
@@ -279,12 +307,12 @@ class Extender {
           continue;
         }
 
+        var withExtender = extension.withExtender(complex);
         var existingExtension = sources[complex];
         if (existingExtension != null) {
-          existingExtension.addSource(extension.span, extension.mediaContext,
-              optional: extension.isOptional);
+          sources[complex] =
+              MergedExtension.merge(existingExtension, withExtender);
         } else {
-          var withExtender = extension.withExtender(complex);
           sources[complex] = withExtender;
 
           for (var component in complex.components) {
@@ -410,12 +438,6 @@ class Extender {
     if (rulesToExtend != null) {
       _extendExistingStyleRules(rulesToExtend, newExtensions);
     }
-  }
-
-  /// Throws a [SassException] if any (non-optional) extensions failed to match
-  /// any selectors.
-  void finalize() {
-    // TODO(nweiz): Do this across modules.
   }
 
   /// Extends [list] using [extensions].
