@@ -30,6 +30,7 @@ abstract class StatementVisitor<T> {
   T visitStyleRule(StyleRule node);
   T visitStylesheet(Stylesheet node);
   T visitSupportsRule(SupportsRule node);
+  T visitUseRule(UseRule node);
   T visitVariableDeclaration(VariableDeclaration node);
   T visitWarnRule(WarnRule node);
   T visitWhileRule(WhileRule node);

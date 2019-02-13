@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 262c642b0cda0a5ed4984e763e9970422405efaa
+// Checksum: 08c3aaa09f3be71dd315bf36665e249983ce3d53
 //
 // ignore_for_file: unused_import
 
@@ -297,7 +297,9 @@ class _EvaluateVisitor
             deprecation: true);
 
         var expression = FunctionExpression(
-            Interpolation([function.text], _callableNode.span), invocation);
+            Interpolation([function.text], _callableNode.span),
+            invocation,
+            _callableNode.span);
         return expression.accept(this);
       }
 
@@ -1122,6 +1124,10 @@ class _EvaluateVisitor
         node.expression.accept(this).withoutSlash(),
         _expressionNode(node.expression),
         global: node.isGlobal);
+    return null;
+  }
+
+  Value visitUseRule(UseRule node) {
     return null;
   }
 

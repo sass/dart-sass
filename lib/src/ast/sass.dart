@@ -53,6 +53,7 @@ export 'sass/statement/silent_comment.dart';
 export 'sass/statement/style_rule.dart';
 export 'sass/statement/stylesheet.dart';
 export 'sass/statement/supports_rule.dart';
+export 'sass/statement/use_rule.dart';
 export 'sass/statement/variable_declaration.dart';
 export 'sass/statement/warn_rule.dart';
 export 'sass/statement/while_rule.dart';

@@ -7,7 +7,7 @@
 # run. If we're running specs for a pull request which refers to a sass-spec
 # pull request, we'll run against the latter rather than sass-spec master.
 
-default=master
+default=feature.use
 
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   >&2 echo "TRAVIS_PULL_REQUEST: $TRAVIS_PULL_REQUEST."
