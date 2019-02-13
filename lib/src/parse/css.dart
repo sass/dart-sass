@@ -139,6 +139,7 @@ class CssParser extends ScssParser {
         // as plain CSS, rather than calling a user-defined function.
         Interpolation([StringExpression(identifier)], identifier.span),
         ArgumentInvocation(
-            arguments, const {}, scanner.spanFrom(beforeArguments)));
+            arguments, const {}, scanner.spanFrom(beforeArguments)),
+        scanner.spanFrom(start));
   }
 }

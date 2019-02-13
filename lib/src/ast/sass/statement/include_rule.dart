@@ -12,6 +12,10 @@ import 'content_block.dart';
 
 /// A mixin invocation.
 class IncludeRule implements Statement, CallableInvocation {
+  /// The namespace of the mixin being invoked, or `null` if it's invoked
+  /// without a namespace.
+  final String namespace;
+
   /// The name of the mixin being invoked.
   final String name;
 
@@ -24,12 +28,15 @@ class IncludeRule implements Statement, CallableInvocation {
 
   final FileSpan span;
 
-  IncludeRule(this.name, this.arguments, this.span, {this.content});
+  IncludeRule(this.name, this.arguments, this.span,
+      {this.namespace, this.content});
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 
   String toString() {
-    var buffer = StringBuffer("@include $name");
+    var buffer = StringBuffer("@include ");
+    if (namespace != null) buffer.write("$namespace.");
+    buffer.write(name);
     if (!arguments.isEmpty) buffer.write("($arguments)");
     buffer.write(content == null ? ";" : " $content");
     return buffer.toString();
