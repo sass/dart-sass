@@ -535,8 +535,7 @@ abstract class StylesheetParser extends Parser {
         return supportsRule(start);
       case "use":
         _isUseAllowed = wasUseAllowed;
-        if (!root || !_isUseAllowed) _disallowedAtRule(start);
-        if (!_parseUse) _disallowedAtRule(start);
+        if (!root) _disallowedAtRule(start);
         return _useRule(start);
       case "warn":
         return _warnRule(start);
@@ -1196,7 +1195,17 @@ relase. For details, see http://bit.ly/moz-document.
     }
     expectStatementSeparator("@use rule");
 
-    return UseRule(url, namespace, scanner.spanFrom(start));
+    var span = scanner.spanFrom(start);
+    if (!_parseUse) {
+      error(
+          "@use is coming soon, but it's not supported in this version of "
+          "Dart Sass.",
+          span);
+    } else if (!_isUseAllowed) {
+      error("@use rules must be written before any other rules.", span);
+    }
+
+    return UseRule(url, namespace, span);
   }
 
   /// Consumes a `@warn` rule.
