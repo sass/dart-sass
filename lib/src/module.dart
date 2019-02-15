@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_module.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 6cb2d5ca89346a8deddb51bd8b4bee7d5620d870
+// Checksum: 5608be0fdb1bff974611b75d1bbcb364a15d4df2
 //
 // ignore_for_file: unused_import
 
@@ -54,5 +54,8 @@ abstract class Module {
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
+  ///
+  /// Throws a [SassScriptException] if this module doesn't define a variable
+  /// named [name].
   void setVariable(String name, Value value, AstNode nodeWithSpan);
 }

@@ -47,5 +47,8 @@ abstract class AsyncModule {
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
+  ///
+  /// Throws a [SassScriptException] if this module doesn't define a variable
+  /// named [name].
   void setVariable(String name, Value value, AstNode nodeWithSpan);
 }

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
+
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/css.dart';
@@ -18,7 +20,10 @@ class CssStylesheet extends CssParentNode {
 
   /// Creates an unmodifiable stylesheet containing [children].
   CssStylesheet(Iterable<CssNode> children, this.span)
-      : children = List.unmodifiable(children);
+      // Use [UnmodifiableListView] rather than [List.unmodifiable] because
+      // the underlying nodes are mutable anyway, so it's better to have the
+      // whole thing consistently represent mutation of the underlying data.
+      : children = UnmodifiableListView(children);
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitStylesheet(this);
 }
