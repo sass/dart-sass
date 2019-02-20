@@ -31,6 +31,16 @@ class Parser {
   static String parseIdentifier(String text, {Logger logger}) =>
       Parser(text, logger: logger)._parseIdentifier();
 
+  /// Returns whether [text] is a valid CSS identifier.
+  static bool isIdentifier(String text, {Logger logger}) {
+    try {
+      parseIdentifier(text, logger: logger);
+      return true;
+    } on SassFormatException {
+      return false;
+    }
+  }
+
   @protected
   Parser(String contents, {url, Logger logger})
       : scanner = SpanScanner(contents, sourceUrl: url),

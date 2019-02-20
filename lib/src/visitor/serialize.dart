@@ -15,6 +15,7 @@ import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../color_names.dart';
 import '../exception.dart';
+import '../parse/parser.dart';
 import '../utils.dart';
 import '../util/character.dart';
 import '../util/no_source_map_buffer.dart';
@@ -903,7 +904,10 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _buffer.write(attribute.name);
     if (attribute.op != null) {
       _buffer.write(attribute.op);
-      if (_isIdentifier(attribute.value)) {
+      if (Parser.isIdentifier(attribute.value) &&
+          // Emit identifiers that start with `--` with quotes, because IE11
+          // doesn't consider them to be valid identifiers.
+          !attribute.value.startsWith('--')) {
         _buffer.write(attribute.value);
       } else {
         _visitQuotedString(attribute.value);
@@ -1132,64 +1136,6 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     } else {
       return false;
     }
-  }
-
-  /// Returns whether [text] is a valid identifier.
-  ///
-  /// This *doesn't* consider identifiers beginning with `--` to be valid,
-  /// because IE 11 doesn't.
-  bool _isIdentifier(String text) {
-    var scanner = StringScanner(text);
-    scanner.scanChar($dash);
-
-    if (scanner.isDone) return false;
-    var first = scanner.readChar();
-
-    if (isNameStart(first)) {
-      if (scanner.isDone) return true;
-      scanner.readChar();
-    } else if (first == $backslash) {
-      if (!_consumeEscape(scanner)) return false;
-    } else {
-      return false;
-    }
-
-    while (true) {
-      var next = scanner.peekChar();
-      if (next == null) return true;
-
-      if (isName(next)) {
-        scanner.readChar();
-      } else if (next == $backslash) {
-        if (!_consumeEscape(scanner)) return false;
-      } else {
-        return false;
-      }
-    }
-  }
-
-  /// Consumes an escape sequence in [scanner].
-  ///
-  /// Returns whether a valid escape was consumed.
-  bool _consumeEscape(StringScanner scanner) {
-    scanner.expectChar($backslash);
-
-    var first = scanner.peekChar();
-    if (first == null || isNewline(first)) return false;
-
-    if (isHex(first)) {
-      for (var i = 0; i < 6; i++) {
-        var next = scanner.peekChar();
-        if (next == null || !isHex(next)) break;
-        scanner.readChar();
-      }
-      if (isWhitespace(scanner.peekChar())) scanner.readChar();
-    } else {
-      if (scanner.isDone) return false;
-      scanner.readChar();
-    }
-
-    return true;
   }
 }
 

@@ -1,3 +1,8 @@
+## 1.17.1
+
+* Properly quote attribute selector values that start with identifiers but end
+  with a non-identifier character.
+
 ## 1.17.0
 
 * Improve error output, particularly for errors that cover multiple lines.
