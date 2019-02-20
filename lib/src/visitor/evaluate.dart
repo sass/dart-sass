@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 08c3aaa09f3be71dd315bf36665e249983ce3d53
+// Checksum: 607d30ac9d49b341367f71b69bed09f19f93e77d
 //
 // ignore_for_file: unused_import
 
@@ -1117,6 +1117,16 @@ class _EvaluateVisitor
     if (node.isGuarded) {
       var value = _environment.getVariable(node.name);
       if (value != null && value != sassNull) return null;
+    }
+
+    if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
+      _logger.warn(
+          "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
+          "declare new variables. Consider adding `\$${node.name}: null` at "
+          "the top level.",
+          span: node.span,
+          trace: _stackTrace(node.span),
+          deprecation: true);
     }
 
     _environment.setVariable(

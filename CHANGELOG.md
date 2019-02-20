@@ -1,3 +1,9 @@
+## 1.17.2
+
+* Deprecate `!global` variable assignments to variables that aren't yet defined.
+  This deprecation message can be avoided by assigning variables to `null` at
+  the top level before globally assigning values to them.
+
 ## 1.17.1
 
 * Properly quote attribute selector values that start with identifiers but end
