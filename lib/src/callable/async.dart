@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import '../value.dart';
 import '../value/external/value.dart' as ext;
 import 'async_built_in.dart';
@@ -16,6 +18,7 @@ import 'async_built_in.dart';
 /// work synchronously, it should be a [Callable] instead.
 ///
 /// See [Callable] for more details.
+@sealed
 abstract class AsyncCallable {
   /// The callable's name.
   String get name;

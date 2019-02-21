@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../value.dart' as internal;
 import '../../value.dart' show ListSeparator;
 import 'boolean.dart';
@@ -35,6 +37,7 @@ Value get sassNull => internal.sassNull;
 /// subclass constructors like [new SassString]. Untyped values can be cast to
 /// particular types using `assert*()` functions like [assertString], which
 /// throw user-friendly error messages if they fail.
+@sealed
 abstract class Value {
   /// Whether the value counts as `true` in an `@if` statement and other
   /// contexts.

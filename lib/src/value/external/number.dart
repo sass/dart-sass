@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../value.dart' as internal;
 import 'value.dart';
 
@@ -11,6 +13,7 @@ import 'value.dart';
 /// support scientific-style numerator and denominator units (for example,
 /// `miles/hour`). These are expected to be resolved before being emitted to
 /// CSS.
+@sealed
 abstract class SassNumber extends Value {
   /// The number of distinct digits that are emitted when converting a number to
   /// CSS.

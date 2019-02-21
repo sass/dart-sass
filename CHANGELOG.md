@@ -1,3 +1,8 @@
+## 1.17.2
+
+* Explicitly mark classes that were never intended to be subclassed or
+  implemented as "sealed".
+
 ## 1.17.1
 
 * Properly quote attribute selector values that start with identifiers but end

@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
@@ -1140,6 +1141,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
 }
 
 /// An enum of generated CSS styles.
+@sealed
 class OutputStyle {
   /// The standard CSS style, with each declaration on its own line.
   ///

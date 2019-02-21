@@ -2,11 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../value.dart' as internal;
 import '../../value.dart' show ListSeparator;
 import 'value.dart';
 
 /// A SassScript list.
+@sealed
 abstract class SassList extends Value {
   ListSeparator get separator;
 
