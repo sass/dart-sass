@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../value.dart' as internal;
 import 'value.dart';
 
@@ -12,6 +14,7 @@ SassBoolean get sassTrue => internal.sassTrue;
 SassBoolean get sassFalse => internal.sassFalse;
 
 /// A SassScript boolean value.
+@sealed
 abstract class SassBoolean extends Value {
   /// Whether this value is `true` or `false`.
   bool get value;

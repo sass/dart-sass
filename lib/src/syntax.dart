@@ -2,9 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 /// An enum of syntaxes that Sass can parse.
+@sealed
 class Syntax {
   /// The CSS-superset SCSS syntax.
   static const scss = Syntax._("SCSS");

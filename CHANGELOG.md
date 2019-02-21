@@ -4,6 +4,11 @@
   This deprecation message can be avoided by assigning variables to `null` at
   the top level before globally assigning values to them.
 
+### Dart API
+
+* Explicitly mark classes that were never intended to be subclassed or
+  implemented as "sealed".
+
 ## 1.17.1
 
 * Properly quote attribute selector values that start with identifiers but end
