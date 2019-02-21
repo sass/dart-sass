@@ -1,5 +1,11 @@
 ## 1.17.2
 
+* Deprecate `!global` variable assignments to variables that aren't yet defined.
+  This deprecation message can be avoided by assigning variables to `null` at
+  the top level before globally assigning values to them.
+
+### Dart API
+
 * Explicitly mark classes that were never intended to be subclassed or
   implemented as "sealed".
 

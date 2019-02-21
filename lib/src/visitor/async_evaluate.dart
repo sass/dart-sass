@@ -1124,6 +1124,16 @@ class _EvaluateVisitor
       if (value != null && value != sassNull) return null;
     }
 
+    if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
+      _logger.warn(
+          "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
+          "declare new variables. Consider adding `\$${node.name}: null` at "
+          "the top level.",
+          span: node.span,
+          trace: _stackTrace(node.span),
+          deprecation: true);
+    }
+
     _environment.setVariable(
         node.name,
         (await node.expression.accept(this)).withoutSlash(),
