@@ -2,10 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../value.dart' as internal;
 import 'value.dart';
 
 /// A SassScript color.
+@sealed
 abstract class SassColor extends Value {
   /// This color's red channel, between `0` and `255`.
   int get red;
