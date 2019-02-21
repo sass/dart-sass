@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import 'callable/async.dart';
 import 'callable/built_in.dart';
 import 'value.dart';
@@ -61,6 +63,7 @@ export 'callable/user_defined.dart';
 ///   [SassString.sassIndexToRuneIndex] methods can be used to do this
 ///   automatically, and the [SassString.sassLength] getter can be used to
 ///   access a string's length in code points.
+@sealed
 abstract class Callable extends AsyncCallable {
   /// Creates a callable with the given [name] and [arguments] that runs
   /// [callback] when called.

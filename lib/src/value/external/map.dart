@@ -2,10 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../value.dart' as internal;
 import 'value.dart';
 
 /// A SassScript map.
+@sealed
 abstract class SassMap extends Value {
   // TODO(nweiz): Use persistent data structures rather than copying here. We
   // need to preserve the order, which can be done by tracking an RRB vector of

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../callable.dart';
 import '../../value.dart' as internal;
 import 'value.dart';
@@ -10,6 +12,7 @@ import 'value.dart';
 ///
 /// A function reference captures a function from the local environment so that
 /// it may be passed between modules.
+@sealed
 abstract class SassFunction extends Value {
   /// The callable that this function invokes.
   ///
