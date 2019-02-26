@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../value.dart' as internal;
 import 'value.dart';
 
@@ -9,6 +11,7 @@ import 'value.dart';
 ///
 /// Strings can either be quoted or unquoted. Unquoted strings are usually CSS
 /// identifiers, but they may contain any text.
+@sealed
 abstract class SassString extends Value {
   /// The contents of the string.
   ///

@@ -71,6 +71,15 @@ abstract class StylesheetParser extends Parser {
   /// Whether the parser is currently within a parenthesized expression.
   var _inParentheses = false;
 
+  /// A map from all variable names that are assigned with `!global` in the
+  /// current stylesheet to the nodes where they're defined.
+  ///
+  /// These are collected at parse time because they affect the variables
+  /// exposed by the module generated for this stylesheet, *even if they aren't
+  /// evaluated*. This allows us to ensure that the stylesheet always exposes
+  /// the same set of variable names no matter how it's evaluated.
+  final _globalVariables = normalizedMap<VariableDeclaration>();
+
   /// The silent comment this parser encountered previously.
   @protected
   SilentComment lastSilentComment;
@@ -87,6 +96,14 @@ abstract class StylesheetParser extends Parser {
       scanner.scanChar(0xFEFF);
       var statements = this.statements(() => _statement(root: true));
       scanner.expectDone();
+
+      /// Ensure that all gloal variable assignments produce a variable in this
+      /// stylesheet, even if they aren't evaluated. See sass/language#50.
+      statements.addAll(_globalVariables.values.map((declaration) =>
+          VariableDeclaration(declaration.name,
+              NullExpression(declaration.expression.span), declaration.span,
+              guarded: true)));
+
       return Stylesheet(statements, scanner.spanFrom(start),
           plainCss: plainCss);
     });
@@ -213,11 +230,13 @@ abstract class StylesheetParser extends Parser {
     }
 
     expectStatementSeparator("variable declaration");
-    return VariableDeclaration(name, value, scanner.spanFrom(start),
+    var declaration = VariableDeclaration(name, value, scanner.spanFrom(start),
         namespace: namespace,
         guarded: guarded,
         global: global,
         comment: precedingComment);
+    if (global) _globalVariables.putIfAbsent(name, () => declaration);
+    return declaration;
   }
 
   /// Consumes a style rule.

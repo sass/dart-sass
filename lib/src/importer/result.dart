@@ -4,10 +4,13 @@
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
+
 import '../importer.dart';
 import '../syntax.dart';
 
 /// The result of importing a Sass stylesheet, as returned by [Importer.load].
+@sealed
 class ImporterResult {
   /// The contents of the stylesheet.
   final String contents;

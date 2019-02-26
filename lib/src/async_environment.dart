@@ -6,17 +6,29 @@ import 'dart:async';
 
 import 'package:source_span/source_span.dart';
 
+import 'ast/css.dart';
 import 'ast/node.dart';
+import 'async_module.dart';
 import 'callable.dart';
+import 'exception.dart';
 import 'functions.dart';
-import 'value.dart';
+import 'util/public_member_map.dart';
 import 'utils.dart';
+import 'value.dart';
 
 /// The lexical environment in which Sass is executed.
 ///
 /// This tracks lexically-scoped information, such as variables, functions, and
 /// mixins.
 class AsyncEnvironment {
+  /// The modules used in the current scope, indexed by their namespaces.
+  final Map<String, AsyncModule> _modules;
+
+  /// The namespaceless modules used in the current scope.
+  ///
+  /// This is `null` if there are no namespaceless modules.
+  Set<AsyncModule> _globalModules;
+
   /// A list of variables defined at each lexical scope level.
   ///
   /// Each scope maps the names of declared variables to their values. These
@@ -108,7 +120,9 @@ class AsyncEnvironment {
   ///
   /// If [sourceMap] is `true`, this tracks variables' source locations
   AsyncEnvironment({bool sourceMap = false})
-      : _variables = [normalizedMap()],
+      : _modules = {},
+        _globalModules = null,
+        _variables = [normalizedMap()],
         _variableNodes = sourceMap ? [normalizedMap()] : null,
         _variableIndices = normalizedMap(),
         _functions = [normalizedMap()],
@@ -118,8 +132,8 @@ class AsyncEnvironment {
     coreFunctions.forEach(setFunction);
   }
 
-  AsyncEnvironment._(this._variables, this._variableNodes, this._functions,
-      this._mixins, this._content)
+  AsyncEnvironment._(this._modules, this._globalModules, this._variables,
+      this._variableNodes, this._functions, this._mixins, this._content)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() because the copying took a lot of
       // time and was rarely helpful. This saves a bunch of time on Susy's
@@ -134,32 +148,89 @@ class AsyncEnvironment {
   /// However, any new declarations or assignments in scopes that are visible
   /// when the closure was created will be reflected.
   AsyncEnvironment closure() => AsyncEnvironment._(
+      _modules,
+      _globalModules,
       _variables.toList(),
       _variableNodes?.toList(),
       _functions.toList(),
       _mixins.toList(),
       _content);
 
-  /// Returns the value of the variable named [name], or `null` if no such
-  /// variable is declared.
-  Value getVariable(String name) {
-    if (_lastVariableName == name) return _variables[_lastVariableIndex][name];
+  /// Returns a new global environment.
+  ///
+  /// The returned environment shares this environment's global variables,
+  /// functions, and mixins, but not its modules.
+  AsyncEnvironment global() => AsyncEnvironment._({},
+      null,
+      _variables.toList(),
+      _variableNodes?.toList(),
+      _functions.toList(),
+      _mixins.toList(),
+      _content);
+
+  /// Adds [module] to the set of modules visible in this environment.
+  ///
+  /// If [namespace] is passed, the module is made available under that
+  /// namespace.
+  ///
+  /// Throws a [SassScriptException] if there's already a module with the given
+  /// [namespace].
+  void addModule(AsyncModule module, {String namespace}) {
+    if (namespace == null) {
+      _globalModules ??= Set();
+      _globalModules.add(module);
+
+      for (var name in _variables.first.keys) {
+        if (module.variables.containsKey(name)) {
+          throw SassScriptException(
+              'This module and the new module both define a variable named '
+              '"\$$name".');
+        }
+      }
+    } else {
+      if (_modules.containsKey(namespace)) {
+        throw SassScriptException(
+            "There's already a module with namespace \"$namespace\".");
+      }
+
+      _modules[namespace] = module;
+    }
+  }
+
+  /// Returns the value of the variable named [name], optionally with the given
+  /// [namespace], or `null` if no such variable is declared.
+  ///
+  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// if multiple global modules expose variables named [name].
+  Value getVariable(String name, {String namespace}) {
+    if (namespace != null) return _getModule(namespace).variables[name];
+
+    if (_lastVariableName == name) {
+      return _variables[_lastVariableIndex][name] ??
+          _getVariableFromGlobalModule(name);
+    }
 
     var index = _variableIndices[name];
     if (index != null) {
       _lastVariableName = name;
       _lastVariableIndex = index;
-      return _variables[index][name];
+      return _variables[index][name] ?? _getVariableFromGlobalModule(name);
     }
 
     index = _variableIndex(name);
-    if (index == null) return null;
+    if (index == null) return _getVariableFromGlobalModule(name);
 
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
-    return _variables[index][name];
+    return _variables[index][name] ?? _getVariableFromGlobalModule(name);
   }
+
+  /// Returns the value of the variable named [name] from a namespaceless
+  /// module, or `null` if no such variable is declared in any namespaceless
+  /// module.
+  Value _getVariableFromGlobalModule(String name) =>
+      _fromOneModule("variable", "\$$name", (module) => module.variables[name]);
 
   /// Returns the node for the variable named [name], or `null` if no such
   /// variable is declared.
@@ -169,32 +240,66 @@ class AsyncEnvironment {
   /// [FileSpan] so we can avoid calling [AstNode.span] if the span isn't
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
-  AstNode getVariableNode(String name) {
+  AstNode getVariableNode(String name, {String namespace}) {
+    if (namespace != null) return _getModule(namespace).variableNodes[name];
+
     if (_lastVariableName == name) {
-      return _variableNodes[_lastVariableIndex][name];
+      return _variableNodes[_lastVariableIndex][name] ??
+          _getVariableNodeFromGlobalModule(name);
     }
 
     var index = _variableIndices[name];
     if (index != null) {
       _lastVariableName = name;
       _lastVariableIndex = index;
-      return _variableNodes[index][name];
+      return _variableNodes[index][name] ??
+          _getVariableNodeFromGlobalModule(name);
     }
 
     index = _variableIndex(name);
-    if (index == null) return null;
+    if (index == null) return _getVariableNodeFromGlobalModule(name);
 
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
-    return _variableNodes[index][name];
+    return _variableNodes[index][name] ??
+        _getVariableNodeFromGlobalModule(name);
+  }
+
+  /// Returns the node for the variable named [name] from a namespaceless
+  /// module, or `null` if no such variable is declared.
+  ///
+  /// This node is intended as a proxy for the [FileSpan] indicating where the
+  /// variable's value originated. It's returned as an [AstNode] rather than a
+  /// [FileSpan] so we can avoid calling [AstNode.span] if the span isn't
+  /// required, since some nodes need to do real work to manufacture a source
+  /// span.
+  AstNode _getVariableNodeFromGlobalModule(String name) {
+    // There isn't a real variable defined as this index, but it will cause
+    // [getVariable] to short-circuit and get to this function faster next time
+    // the variable is accessed.
+    _lastVariableName = name;
+    _lastVariableIndex = 0;
+
+    if (_globalModules == null) return null;
+
+    // We don't need to worry about multiple modules defining the same variable,
+    // because that's already been checked by [getVariable].
+    for (var module in _globalModules) {
+      var value = module.variableNodes[name];
+      if (value != null) return value;
+    }
+    return null;
   }
 
   /// Returns whether a variable named [name] exists.
   bool variableExists(String name) => getVariable(name) != null;
 
   /// Returns whether a global variable named [name] exists.
-  bool globalVariableExists(String name) => _variables.first.containsKey(name);
+  bool globalVariableExists(String name) {
+    if (_variables.first.containsKey(name)) return true;
+    return _getVariableFromGlobalModule(name) != null;
+  }
 
   /// Returns the index of the last map in [_variables] that has a [name] key,
   /// or `null` if none exists.
@@ -208,6 +313,9 @@ class AsyncEnvironment {
   /// Sets the variable named [name] to [value], associated with
   /// [nodeWithSpan]'s source span.
   ///
+  /// If [namespace] is passed, this sets the variable in the module with the
+  /// given namespace, if that module exposes a variable with that name.
+  ///
   /// If [global] is `true`, this sets the variable at the top-level scope.
   /// Otherwise, if the variable was already defined, it'll set it in the
   /// previous scope. If it's undefined, it'll set it in the current scope.
@@ -215,8 +323,18 @@ class AsyncEnvironment {
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
+  ///
+  /// Throws a [SassScriptException] if [namespace] is passed but no module is
+  /// defined with the given namespace, if no variable with the given [name] is
+  /// defined in module with the given namespace, or if no [namespace] is passed
+  /// and multiple global modules define variables named [name].
   void setVariable(String name, Value value, AstNode nodeWithSpan,
-      {bool global = false}) {
+      {String namespace, bool global = false}) {
+    if (namespace != null) {
+      _getModule(namespace).setVariable(name, value, nodeWithSpan);
+      return;
+    }
+
     if (global || _variables.length == 1) {
       // Don't set the index if there's already a variable with the given name,
       // since local accesses should still return the local variable.
@@ -225,6 +343,17 @@ class AsyncEnvironment {
         _lastVariableIndex = 0;
         return 0;
       });
+
+      // If this module doesn't already contain a variable named [name], try
+      // setting it in a global module.
+      if (!_variables.first.containsKey(name) && _globalModules != null) {
+        var moduleWithName = _fromOneModule("variable", "\$$name",
+            (module) => module.variables.containsKey(name) ? module : null);
+        if (moduleWithName != null) {
+          moduleWithName.setVariable(name, value, nodeWithSpan);
+          return;
+        }
+      }
 
       _variables.first[name] = value;
       if (_variableNodes != null) _variableNodes.first[name] = nodeWithSpan;
@@ -264,18 +393,31 @@ class AsyncEnvironment {
     if (_variableNodes != null) _variableNodes[index][name] = nodeWithSpan;
   }
 
-  /// Returns the value of the function named [name], or `null` if no such
-  /// function is declared.
-  AsyncCallable getFunction(String name) {
+  /// Returns the value of the function named [name], optionally with the given
+  /// [namespace], or `null` if no such variable is declared.
+  ///
+  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// if multiple global modules expose functions named [name].
+  AsyncCallable getFunction(String name, {String namespace}) {
+    if (namespace != null) return _getModule(namespace).functions[name];
+
     var index = _functionIndices[name];
-    if (index != null) return _functions[index][name];
+    if (index != null) {
+      return _functions[index][name] ?? _getFunctionFromGlobalModule(name);
+    }
 
     index = _functionIndex(name);
-    if (index == null) return null;
+    if (index == null) return _getFunctionFromGlobalModule(name);
 
     _functionIndices[name] = index;
-    return _functions[index][name];
+    return _functions[index][name] ?? _getFunctionFromGlobalModule(name);
   }
+
+  /// Returns the value of the function named [name] from a namespaceless
+  /// module, or `null` if no such function is declared in any namespaceless
+  /// module.
+  AsyncCallable _getFunctionFromGlobalModule(String name) =>
+      _fromOneModule("function", name, (module) => module.functions[name]);
 
   /// Returns the index of the last map in [_functions] that has a [name] key,
   /// or `null` if none exists.
@@ -296,18 +438,31 @@ class AsyncEnvironment {
     _functions[index][callable.name] = callable;
   }
 
-  /// Returns the value of the mixin named [name], or `null` if no such mixin is
-  /// declared.
-  AsyncCallable getMixin(String name) {
+  /// Returns the value of the mixin named [name], optionally with the given
+  /// [namespace], or `null` if no such variable is declared.
+  ///
+  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// if multiple global modules expose mixins named [name].
+  AsyncCallable getMixin(String name, {String namespace}) {
+    if (namespace != null) return _getModule(namespace).mixins[name];
+
     var index = _mixinIndices[name];
-    if (index != null) return _mixins[index][name];
+    if (index != null) {
+      return _mixins[index][name] ?? _getMixinFromGlobalModule(name);
+    }
 
     index = _mixinIndex(name);
-    if (index == null) return null;
+    if (index == null) return _getMixinFromGlobalModule(name);
 
     _mixinIndices[name] = index;
-    return _mixins[index][name];
+    return _mixins[index][name] ?? _getMixinFromGlobalModule(name);
   }
+
+  /// Returns the value of the mixin named [name] from a namespaceless
+  /// module, or `null` if no such mixin is declared in any namespaceless
+  /// module.
+  AsyncCallable _getMixinFromGlobalModule(String name) =>
+      _fromOneModule("mixin", name, (module) => module.mixins[name]);
 
   /// Returns the index of the last map in [_mixins] that has a [name] key, or
   /// `null` if none exists.
@@ -398,5 +553,80 @@ class AsyncEnvironment {
         _mixinIndices.remove(name);
       }
     }
+  }
+
+  /// Returns a module that represents the top-level members defined in [this],
+  /// and that contains [css] as its CSS tree.
+  AsyncModule toModule(CssStylesheet css) => _EnvironmentModule(this, css);
+
+  /// Returns the module with the given [namespace], or throws a
+  /// [SassScriptException] if none exists.
+  AsyncModule _getModule(String namespace) {
+    var module = _modules[namespace];
+    if (module != null) return module;
+
+    throw SassScriptException(
+        'There is no module with the namespace "$namespace".');
+  }
+
+  /// Returns the result of [callback] if it returns non-`null` for exactly one
+  /// module in [_globalModules].
+  ///
+  /// Returns `null` if [callback] returns `null` for all modules. Throws an
+  /// error if [callback] returns non-`null` for more than one module.
+  ///
+  /// The [type] should be the singular name of the value type being returned.
+  /// The [name] should be the specific name being looked up. These are's used
+  /// to format an appropriate error message.
+  T _fromOneModule<T>(
+      String type, String name, T callback(AsyncModule module)) {
+    if (_globalModules == null) return null;
+
+    T value;
+    for (var module in _globalModules) {
+      var valueInModule = callback(module);
+      if (valueInModule != null && value != null) {
+        // TODO(nweiz): List the module URLs.
+        throw SassScriptException(
+            'Multiple global modules have a $type named "$name".');
+      }
+
+      value = valueInModule;
+    }
+    return value;
+  }
+}
+
+/// A module that represents the top-level members defined in an [Environment].
+class _EnvironmentModule implements AsyncModule {
+  final Map<String, Value> variables;
+  final Map<String, AstNode> variableNodes;
+  final Map<String, AsyncCallable> functions;
+  final Map<String, AsyncCallable> mixins;
+  final CssStylesheet css;
+
+  /// The environment that defines this module's members.
+  final AsyncEnvironment _environment;
+
+  // TODO(nweiz): Use custom [UnmodifiableMapView]s that forbid access to
+  // private members.
+  _EnvironmentModule(this._environment, this.css)
+      : variables = PublicMemberMap(_environment._variables.first),
+        variableNodes = _environment._variableNodes == null
+            ? null
+            : PublicMemberMap(_environment._variableNodes.first),
+        functions = PublicMemberMap(_environment._functions.first),
+        mixins = PublicMemberMap(_environment._mixins.first);
+
+  void setVariable(String name, Value value, AstNode nodeWithSpan) {
+    if (!_environment._variables.first.containsKey(name)) {
+      throw SassScriptException("Undefined variable.");
+    }
+
+    _environment._variables.first[name] = value;
+    if (_environment._variableNodes != null) {
+      _environment._variableNodes.first[name] = nodeWithSpan;
+    }
+    return;
   }
 }

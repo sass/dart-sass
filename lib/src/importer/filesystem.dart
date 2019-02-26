@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../importer.dart';
@@ -11,6 +12,7 @@ import 'result.dart';
 import 'utils.dart';
 
 /// An importer that loads files from a load path on the filesystem.
+@sealed
 class FilesystemImporter extends Importer {
   /// The path relative to which this importer looks for files.
   final String _loadPath;
