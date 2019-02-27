@@ -27,7 +27,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["--interactive", arg]);
         expect(sass.stdout,
             emitsThrough(contains("isn't allowed with --interactive")));
-        sass.stdin.close();
+        await sass.stdin.close();
         await sass.shouldExit(64);
       });
     }
@@ -35,7 +35,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
   test("exits when stdin closes", () async {
     var sass = await runSass(["--interactive"]);
-    sass.stdin.close();
+    await sass.stdin.close();
     expect(sass.stdout, emitsDone);
     await sass.shouldExit(0);
   });

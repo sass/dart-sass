@@ -723,6 +723,7 @@ void _expectSassSourceMap(String sass, String css, {OutputStyle style}) {
 
   SingleMapping sassMap;
   var sassOutput = compileString(sassText,
+      // ignore: deprecated_member_use_from_same_package
       indented: true, sourceMap: (map) => sassMap = map, style: style);
   expect(sassOutput, equals(cssText));
   _expectMapMatches(sassMap, sassText, cssText, sassLocations, cssLocations);

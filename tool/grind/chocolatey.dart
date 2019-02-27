@@ -119,7 +119,7 @@ updateChocolatey() async {
         "${await response.stream.bytesToString()}");
   } else {
     log("Released Dart Sass ${_chocolateyVersion()} to Chocolatey.");
-    response.stream.listen(null).cancel();
+    await response.stream.listen(null).cancel();
   }
 }
 

@@ -15,5 +15,6 @@ class Types {
   external set Number(function);
   external set String(function);
 
+  // ignore: avoid_types_as_parameter_names
   external factory Types({Boolean, Color, List, Map, Null, Number, String});
 }

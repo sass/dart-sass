@@ -147,7 +147,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("with --stdin uses a data: URL", () async {
     var sass = await runSass(["--stdin", "out.css"]);
     sass.stdin.writeln("a {b: c}");
-    sass.stdin.close();
+    await sass.stdin.close();
     await sass.shouldExit(0);
 
     expect(

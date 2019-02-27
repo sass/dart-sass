@@ -13,7 +13,7 @@ import 'io.dart';
 
 hybridMain(StreamChannel channel) async {
   ensureUpToDate("build/npm/sass.dart.js", "pub run grinder npm-package");
-  channel.sink.close();
+  await channel.sink.close();
 }
 
 /// Ensures that the NPM package is compiled and up-to-date.

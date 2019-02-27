@@ -98,7 +98,7 @@ void sharedTests(
   test("compiles from stdin with the magic path -", () async {
     var sass = await runSass(["-"]);
     sass.stdin.writeln("a {b: 1 + 2}");
-    sass.stdin.close();
+    await sass.stdin.close();
     expect(
         sass.stdout,
         emitsInOrder([
@@ -234,7 +234,7 @@ void sharedTests(
     test("compiles from stdin", () async {
       var sass = await runSass(["--stdin"]);
       sass.stdin.writeln("a {b: 1 + 2}");
-      sass.stdin.close();
+      await sass.stdin.close();
       expect(
           sass.stdout,
           emitsInOrder([
@@ -248,7 +248,7 @@ void sharedTests(
     test("writes a CSS file to disk", () async {
       var sass = await runSass(["--no-source-map", "--stdin", "out.css"]);
       sass.stdin.writeln("a {b: 1 + 2}");
-      sass.stdin.close();
+      await sass.stdin.close();
       expect(sass.stdout, emitsDone);
 
       await sass.shouldExit(0);
@@ -260,7 +260,7 @@ void sharedTests(
     test("uses the indented syntax with --indented", () async {
       var sass = await runSass(["--no-source-map", "--stdin", "--indented"]);
       sass.stdin.writeln("a\n  b: 1 + 2");
-      sass.stdin.close();
+      await sass.stdin.close();
       expect(
           sass.stdout,
           emitsInOrder([
@@ -275,7 +275,7 @@ void sharedTests(
     test("supports @debug", () async {
       var sass = await runSass(["--no-source-map", "--stdin"]);
       sass.stdin.writeln("@debug foo");
-      sass.stdin.close();
+      await sass.stdin.close();
       expect(sass.stderr, emitsInOrder(["-:1 DEBUG: foo"]));
       await sass.shouldExit(0);
     });
@@ -284,7 +284,7 @@ void sharedTests(
   test("gracefully reports errors from stdin", () async {
     var sass = await runSass(["--no-unicode", "-"]);
     sass.stdin.writeln("a {b: 1 + }");
-    sass.stdin.close();
+    await sass.stdin.close();
     expect(
         sass.stderr,
         emitsInOrder([
@@ -304,7 +304,7 @@ void sharedTests(
       "operands", () async {
     var sass = await runSass(["--no-unicode", "-"]);
     sass.stdin.writeln("a {b: (#123) + (#456)}");
-    sass.stdin.close();
+    await sass.stdin.close();
     expect(
         sass.stderr,
         emitsInOrder([

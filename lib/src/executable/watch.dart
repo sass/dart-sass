@@ -43,7 +43,7 @@ Future watch(ExecutableOptions options, StylesheetGraph graph) async {
         p.toUri(source));
     var success = await watcher.compile(source, destination, ifModified: true);
     if (!success && options.stopOnError) {
-      dirWatcher.events.listen(null).cancel();
+      await dirWatcher.events.listen(null).cancel();
       return;
     }
   }
@@ -225,7 +225,7 @@ class _Watcher {
     var toRecompile = Queue.of(nodes);
 
     var allSucceeded = true;
-    while (!toRecompile.isEmpty) {
+    while (toRecompile.isNotEmpty) {
       var node = toRecompile.removeFirst();
       if (!seen.add(node)) continue;
 

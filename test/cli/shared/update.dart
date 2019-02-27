@@ -91,7 +91,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("from stdin", () async {
       var sass = await update(["-:out.css"]);
       sass.stdin.writeln("a {b: c}");
-      sass.stdin.close();
+      await sass.stdin.close();
       expect(sass.stdout, emits('Compiled stdin to out.css.'));
       await sass.shouldExit(0);
 
@@ -101,7 +101,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       sass = await update(["-:out.css"]);
       sass.stdin.writeln("x {y: z}");
-      sass.stdin.close();
+      await sass.stdin.close();
       expect(sass.stdout, emits('Compiled stdin to out.css.'));
       await sass.shouldExit(0);
 

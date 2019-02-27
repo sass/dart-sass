@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'dart:convert';
 
 import 'package:meta/meta.dart';

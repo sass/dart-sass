@@ -237,6 +237,7 @@ class ExecutableOptions {
           (!_isWindowsPath(argument, 0) ||
               // Look for colons after index 1, since that's where the drive
               // letter is on Windows paths.
+              // ignore: prefer_contains
               argument.indexOf(":", 2) != -1)) {
         colonArgs = true;
       } else if (dirExists(argument)) {
