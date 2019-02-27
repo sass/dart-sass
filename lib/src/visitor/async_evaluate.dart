@@ -1272,7 +1272,7 @@ class _EvaluateVisitor
 
     _verifyArguments(positional.length, named, IfExpression.declaration, node);
 
-    var condition = positional.length > 0 ? positional[0] : named["condition"];
+    var condition = positional.isNotEmpty ? positional[0] : named["condition"];
     var ifTrue = positional.length > 1 ? positional[1] : named["if-true"];
     var ifFalse = positional.length > 2 ? positional[2] : named["if-false"];
 
