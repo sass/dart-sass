@@ -30,7 +30,7 @@ void _js({@required bool release}) {
   var destination = File('build/sass.dart.js');
 
   var args = [
-    '--categories=Server',
+    '--server-mode',
     '-Dnode=true',
     '-Dversion=$version',
     '-Ddart-version=$dartVersion',
