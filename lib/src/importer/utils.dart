@@ -60,7 +60,6 @@ String resolveImportPath(String path) {
 /// Like [_tryPath], but checks `.sass`, `.scss`, and `.css` extensions.
 List<String> _tryPathWithExtensions(String path) {
   var result = _tryPath(path + '.sass')..addAll(_tryPath(path + '.scss'));
-  if (_inUseRule) return result..addAll(_tryPath(path + '.css'));
   return result.isNotEmpty ? result : _tryPath(path + '.css');
 }
 
