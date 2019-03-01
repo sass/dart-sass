@@ -1,3 +1,9 @@
+## 1.17.3
+
+* Fix an edge case where slash-separated numbers were written to the stylesheet
+  with a slash even when they're used as part of another arithmetic operation,
+  such as being concatenated with a string.
+
 ## 1.17.2
 
 * Deprecate `!global` variable assignments to variables that aren't yet defined.
