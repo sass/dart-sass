@@ -77,7 +77,7 @@ String _releaseMessage() {
           version.replaceAll(".", "");
   return "To install Dart Sass $version, download one of the packages above "
       "and [add it to your PATH](https://katiek2.github.io/path-doc/), or see "
-      "[the Sass website](http://sass-lang.com/install) for full installation "
+      "[the Sass website](https://sass-lang.com/install) for full installation "
       "instructions.\n\n"
       "## Changes\n\n" +
       _lastChangelogSection() +

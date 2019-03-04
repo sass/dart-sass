@@ -19,7 +19,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 </table>
 
 [dart]: https://www.dartlang.org
-[sass]: http://sass-lang.com/
+[sass]: https://sass-lang.com/
 
 * [Using Dart Sass](#using-dart-sass)
   * [From Chocolatey (Windows)](#from-chocolatey-windows)
