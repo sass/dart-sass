@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 607d30ac9d49b341367f71b69bed09f19f93e77d
+// Checksum: ffaa86c905bb6ef4bcb3d5a0c4ddf7b9af5d4d55
 //
 // ignore_for_file: unused_import
 
@@ -668,7 +668,7 @@ class _EvaluateVisitor
     }
 
     _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
-      if (!_inStyleRule) {
+      if (!_inStyleRule || _inKeyframes) {
         for (var child in node.children) {
           child.accept(this);
         }

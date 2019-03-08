@@ -666,7 +666,7 @@ class _EvaluateVisitor
 
     await _withParent(ModifiableCssAtRule(name, node.span, value: value),
         () async {
-      if (!_inStyleRule) {
+      if (!_inStyleRule || _inKeyframes) {
         for (var child in node.children) {
           await child.accept(this);
         }

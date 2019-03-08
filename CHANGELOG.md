@@ -1,3 +1,7 @@
+## 1.17.3
+
+* Don't put style rules inside empty `@keyframes` selectors.
+
 ## 1.17.2
 
 * Deprecate `!global` variable assignments to variables that aren't yet defined.
