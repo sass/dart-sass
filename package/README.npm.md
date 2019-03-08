@@ -16,7 +16,7 @@ A pure JavaScript implementation of [Sass][sass]. **Sass makes CSS fun again**.
   </tr>
 </table>
 
-[sass]: http://sass-lang.com/
+[sass]: https://sass-lang.com/
 
 This package is a distribution of [Dart Sass][], compiled to pure JavaScript
 with no native code or external dependencies. It provides a command-line `sass`

@@ -4,6 +4,8 @@
   with a slash even when they're used as part of another arithmetic operation,
   such as being concatenated with a string.
 
+* Don't put style rules inside empty `@keyframes` selectors.
+
 ## 1.17.2
 
 * Deprecate `!global` variable assignments to variables that aren't yet defined.
