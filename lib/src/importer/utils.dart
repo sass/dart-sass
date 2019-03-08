@@ -6,6 +6,39 @@ import 'package:path/path.dart' as p;
 
 import '../io.dart';
 
+/// Whether the Sass interpreter is currently evaluating a `@use` rule.
+///
+/// The `@use` rule has slightly different path-resolution behavior than
+/// `@import`: `@use` prioritizes a `.css` file with a given name at the same
+/// level as `.sass` and `.scss`, while `@import` prefers `.sass` and `.scss`
+/// over `.css`. It's admittedly hacky to set this globally, but `@import` will
+/// eventually be removed, at which point we can delete this and have one
+/// consistent behavior.
+bool _inUseRule = false;
+
+/// Runs [callback] in a context where [resolveImportPath] uses `@use` semantics
+/// rather than `@import` semantics.
+T inUseRule<T>(T callback()) {
+  var wasInUseRule = _inUseRule;
+  _inUseRule = true;
+  try {
+    return callback();
+  } finally {
+    _inUseRule = wasInUseRule;
+  }
+}
+
+/// Like [inUseRule], but asynchronous.
+Future<T> inUseRuleAsync<T>(Future<T> callback()) async {
+  var wasInUseRule = _inUseRule;
+  _inUseRule = true;
+  try {
+    return await callback();
+  } finally {
+    _inUseRule = wasInUseRule;
+  }
+}
+
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///
 /// This tries to fill in extensions and partial prefixes and check if a directory default. If no file can be
@@ -13,13 +46,18 @@ import '../io.dart';
 String resolveImportPath(String path) {
   var extension = p.extension(path);
   if (extension == '.sass' || extension == '.scss' || extension == '.css') {
-    return _exactlyOne(_tryPath(path));
+    return _ifInImport(() => _exactlyOne(
+            _tryPath('${p.withoutExtension(path)}.import$extension'))) ??
+        _exactlyOne(_tryPath(path));
   }
 
-  return _exactlyOne(_tryPathWithExtensions(path)) ?? _tryPathAsDirectory(path);
+  return _ifInImport(
+          () => _exactlyOne(_tryPathWithExtensions('$path.import'))) ??
+      _exactlyOne(_tryPathWithExtensions(path)) ??
+      _tryPathAsDirectory(path);
 }
 
-/// Like [_tryPath], but checks both `.sass` and `.scss` extensions.
+/// Like [_tryPath], but checks `.sass`, `.scss`, and `.css` extensions.
 List<String> _tryPathWithExtensions(String path) {
   var result = _tryPath(path + '.sass')..addAll(_tryPath(path + '.scss'));
   return result.isNotEmpty ? result : _tryPath(path + '.css');
@@ -41,9 +79,13 @@ List<String> _tryPath(String path) {
 /// index file exists.
 ///
 /// Otherwise, returns `null`.
-String _tryPathAsDirectory(String path) => dirExists(path)
-    ? _exactlyOne(_tryPathWithExtensions(p.join(path, 'index')))
-    : null;
+String _tryPathAsDirectory(String path) {
+  if (!dirExists(path)) return null;
+
+  return _ifInImport(() =>
+          _exactlyOne(_tryPathWithExtensions(p.join(path, 'index.import')))) ??
+      _exactlyOne(_tryPathWithExtensions(p.join(path, 'index')));
+}
 
 /// If [paths] contains exactly one path, returns that path.
 ///
@@ -56,3 +98,8 @@ String _exactlyOne(List<String> paths) {
   throw "It's not clear which file to import. Found:\n" +
       paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n");
 }
+
+/// If [_inUseRule] is `false`, invokes callback and returns the result.
+///
+/// Otherwise, returns `null`.
+T _ifInImport<T>(T callback()) => _inUseRule ? null : callback();
