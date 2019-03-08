@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: cd30b3dde2c13598cac75f949eb46ab2ac2e49df
+// Checksum: 77b03257b1770270e2d1f269281bdaab3f9f1ae9
 //
 // ignore_for_file: unused_import
 
@@ -179,7 +179,8 @@ class Environment {
   /// namespace.
   ///
   /// Throws a [SassScriptException] if there's already a module with the given
-  /// [namespace].
+  /// [namespace], or if [namespace] is `null` and [module] defines a variable
+  /// with the same name as a variable defined in this environment.
   void addModule(Module module, {String namespace}) {
     if (namespace == null) {
       _globalModules ??= Set();
@@ -205,7 +206,7 @@ class Environment {
   /// Returns the value of the variable named [name], optionally with the given
   /// [namespace], or `null` if no such variable is declared.
   ///
-  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose variables named [name].
   Value getVariable(String name, {String namespace}) {
     if (namespace != null) return _getModule(namespace).variables[name];
@@ -401,7 +402,7 @@ class Environment {
   /// Returns the value of the function named [name], optionally with the given
   /// [namespace], or `null` if no such variable is declared.
   ///
-  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
   Callable getFunction(String name, {String namespace}) {
     if (namespace != null) return _getModule(namespace).functions[name];
@@ -446,7 +447,7 @@ class Environment {
   /// Returns the value of the mixin named [name], optionally with the given
   /// [namespace], or `null` if no such variable is declared.
   ///
-  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose mixins named [name].
   Callable getMixin(String name, {String namespace}) {
     if (namespace != null) return _getModule(namespace).mixins[name];

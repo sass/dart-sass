@@ -174,7 +174,8 @@ class AsyncEnvironment {
   /// namespace.
   ///
   /// Throws a [SassScriptException] if there's already a module with the given
-  /// [namespace].
+  /// [namespace], or if [namespace] is `null` and [module] defines a variable
+  /// with the same name as a variable defined in this environment.
   void addModule(AsyncModule module, {String namespace}) {
     if (namespace == null) {
       _globalModules ??= Set();
@@ -200,7 +201,7 @@ class AsyncEnvironment {
   /// Returns the value of the variable named [name], optionally with the given
   /// [namespace], or `null` if no such variable is declared.
   ///
-  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose variables named [name].
   Value getVariable(String name, {String namespace}) {
     if (namespace != null) return _getModule(namespace).variables[name];
@@ -396,7 +397,7 @@ class AsyncEnvironment {
   /// Returns the value of the function named [name], optionally with the given
   /// [namespace], or `null` if no such variable is declared.
   ///
-  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
   AsyncCallable getFunction(String name, {String namespace}) {
     if (namespace != null) return _getModule(namespace).functions[name];
@@ -441,7 +442,7 @@ class AsyncEnvironment {
   /// Returns the value of the mixin named [name], optionally with the given
   /// [namespace], or `null` if no such variable is declared.
   ///
-  /// Throws a [SourceSpanException] if there is no module named [namespace], or
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose mixins named [name].
   AsyncCallable getMixin(String name, {String namespace}) {
     if (namespace != null) return _getModule(namespace).mixins[name];
