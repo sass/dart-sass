@@ -105,6 +105,14 @@ int _lastNonWhitespace(String string, {bool excludeEscape = false}) {
   return null;
 }
 
+/// Returns whether [member] is a public member name.
+///
+/// Assumes that [member] is a valid Sass identifier.
+bool isPublic(String member) {
+  var start = member.codeUnitAt(0);
+  return start != $dash && start != $underscore;
+}
+
 /// Flattens the first level of nested arrays in [iterable].
 ///
 /// The return value is ordered first by index in the nested iterable, then by

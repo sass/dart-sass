@@ -19,15 +19,18 @@ import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../async_environment.dart';
 import '../async_import_cache.dart';
+import '../async_module.dart';
 import '../callable.dart';
 import '../color_names.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../importer.dart';
 import '../importer/node.dart';
+import '../importer/utils.dart';
 import '../logger.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
+import '../util/fixed_length_list_builder.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'interface/expression.dart';
@@ -62,18 +65,15 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
         NodeImporter nodeImporter,
         AsyncImporter importer,
         Iterable<AsyncCallable> functions,
-        Map<String, Value> variables,
         Logger logger,
         bool sourceMap = false}) =>
     _EvaluateVisitor(
             importCache: importCache,
             nodeImporter: nodeImporter,
-            importer: importer,
             functions: functions,
-            variables: variables,
             logger: logger,
             sourceMap: sourceMap)
-        .run(stylesheet);
+        .run(importer, stylesheet);
 
 /// Evaluates a single [expression]
 ///
@@ -91,11 +91,8 @@ Future<Value> evaluateExpressionAsync(Expression expression,
         {Iterable<AsyncCallable> functions,
         Map<String, Value> variables,
         Logger logger}) =>
-    expression.accept(_EvaluateVisitor(
-        functions: functions,
-        variables: variables,
-        logger: logger,
-        sourceMap: false));
+    _EvaluateVisitor(functions: functions, logger: logger, sourceMap: false)
+        .runExpression(expression, variables: variables);
 
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
@@ -109,6 +106,12 @@ class _EvaluateVisitor
   /// compiled to Node.js.
   final NodeImporter _nodeImporter;
 
+  /// User-defined functions that should be added to each environment.
+  final List<AsyncCallable> _functions;
+
+  /// All modules that have been loaded and evaluated so far.
+  final _modules = <Uri, AsyncModule>{};
+
   /// The logger to use to print warnings.
   final Logger _logger;
 
@@ -118,23 +121,11 @@ class _EvaluateVisitor
   /// The current lexical environment.
   AsyncEnvironment _environment;
 
-  /// The importer that's currently being used to resolve relative imports.
-  ///
-  /// If this is `null`, relative imports aren't supported in the current
-  /// stylesheet.
-  AsyncImporter _importer;
-
-  /// The stylesheet that's currently being evaluated.
-  Stylesheet _stylesheet;
-
   /// The style rule that defines the current parent selector, if any.
   ModifiableCssStyleRule _styleRule;
 
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
-
-  /// The root stylesheet node.
-  ModifiableCssStylesheet _root;
 
   /// The current parent node in the output CSS tree.
   ModifiableCssParentNode _parent;
@@ -169,16 +160,6 @@ class _EvaluateVisitor
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
 
-  /// The first index in [_root.children] after the initial block of CSS
-  /// imports.
-  var _endOfImports = 0;
-
-  /// Plain-CSS imports that didn't appear in the initial block of CSS imports.
-  ///
-  /// These are added to the initial CSS import block by [visitStylesheet] after
-  /// the stylesheet has been fully performed.
-  var _outOfOrderImports = <ModifiableCssImport>[];
-
   /// The set that will eventually populate the JS API's
   /// `result.stats.includedFiles` field.
   ///
@@ -205,47 +186,145 @@ class _EvaluateVisitor
   /// Whether we're running in Node Sass-compatibility mode.
   bool get _asNodeSass => _nodeImporter != null;
 
+  // ## Module-Specific Fields
+
+  /// The importer that's currently being used to resolve relative imports.
+  ///
+  /// If this is `null`, relative imports aren't supported in the current
+  /// stylesheet.
+  AsyncImporter _importer;
+
+  /// The stylesheet that's currently being evaluated.
+  Stylesheet _stylesheet;
+
+  /// The root stylesheet node.
+  ModifiableCssStylesheet _root;
+
+  /// The first index in [_root.children] after the initial block of CSS
+  /// imports.
+  int _endOfImports;
+
+  /// Plain-CSS imports that didn't appear in the initial block of CSS imports.
+  ///
+  /// These are added to the initial CSS import block by [visitStylesheet] after
+  /// the stylesheet has been fully performed.
+  ///
+  /// This is `null` unless there are any out-of-order imports in the current
+  /// stylesheet.
+  List<ModifiableCssImport> _outOfOrderImports;
+
   _EvaluateVisitor(
       {AsyncImportCache importCache,
       NodeImporter nodeImporter,
-      AsyncImporter importer,
       Iterable<AsyncCallable> functions,
-      Map<String, Value> variables,
       Logger logger,
       bool sourceMap})
       : _importCache = nodeImporter == null
             ? importCache ?? AsyncImportCache.none(logger: logger)
             : null,
-        _importer = importer ?? Importer.noOp,
         _nodeImporter = nodeImporter,
+        _functions = List.unmodifiable(functions ?? const <AsyncCallable>[]),
         _logger = logger ?? const Logger.stderr(),
-        _sourceMap = sourceMap,
-        _environment = AsyncEnvironment(sourceMap: sourceMap) {
-    _environment.setFunction(
+        _sourceMap = sourceMap;
+
+  Future<EvaluateResult> run(AsyncImporter importer, Stylesheet node) async {
+    var url = node.span?.sourceUrl;
+    if (url != null) {
+      if (_asNodeSass) {
+        if (url.scheme == 'file') {
+          _includedFiles.add(p.fromUri(url));
+        } else if (url.toString() != 'stdin') {
+          _includedFiles.add(url.toString());
+        }
+      }
+    }
+
+    var module = await _execute(importer, node);
+    _extender.finalize();
+
+    return EvaluateResult(module.css, _includedFiles);
+  }
+
+  Future<Value> runExpression(Expression expression,
+      {Map<String, Value> variables}) {
+    _environment = _newEnvironment();
+
+    for (var name in variables?.keys ?? const <String>[]) {
+      _environment.setVariable(name, variables[name], null, global: true);
+    }
+
+    return expression.accept(this);
+  }
+
+  /// Executes [stylesheet], loaded by [importer], to produce a module.
+  Future<AsyncModule> _execute(AsyncImporter importer, Stylesheet stylesheet) {
+    var url = stylesheet.span.sourceUrl;
+    return putIfAbsentAsync(_modules, url, () async {
+      var environment = _newEnvironment();
+      CssStylesheet css;
+      _activeImports.add(url);
+      await _withEnvironment(environment, () async {
+        var oldImporter = _importer;
+        var oldStylesheet = _stylesheet;
+        var oldRoot = _root;
+        var oldParent = _parent;
+        var oldEndOfImports = _endOfImports;
+        var oldOutOfOrderImports = _outOfOrderImports;
+        _importer = importer;
+        _stylesheet = stylesheet;
+        _root = ModifiableCssStylesheet(stylesheet.span);
+        _parent = _root;
+        _endOfImports = 0;
+        _outOfOrderImports = null;
+
+        await visitStylesheet(stylesheet);
+        css = _addOutOfOrderImports();
+
+        _importer = oldImporter;
+        _stylesheet = oldStylesheet;
+        _root = oldRoot;
+        _parent = oldParent;
+        _endOfImports = oldEndOfImports;
+        _outOfOrderImports = oldOutOfOrderImports;
+      });
+      _activeImports.remove(url);
+
+      return environment.toModule(css);
+    });
+  }
+
+  /// Creates a new [AsyncEnvironment] containing all the built-in and
+  /// user-defined functions.
+  AsyncEnvironment _newEnvironment() {
+    var environment = AsyncEnvironment(sourceMap: _sourceMap);
+
+    // TODO(nweiz): Find a way to share these functions across all environments,
+    // rather than needing to re-initialize each time.
+    environment.setFunction(
         BuiltInCallable("global-variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return SassBoolean(_environment.globalVariableExists(variable.text));
     }));
 
-    _environment
+    environment
         .setFunction(BuiltInCallable("variable-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return SassBoolean(_environment.variableExists(variable.text));
     }));
 
-    _environment
+    environment
         .setFunction(BuiltInCallable("function-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return SassBoolean(_environment.functionExists(variable.text));
     }));
 
-    _environment
+    environment
         .setFunction(BuiltInCallable("mixin-exists", r"$name", (arguments) {
       var variable = arguments[0].assertString("name");
       return SassBoolean(_environment.mixinExists(variable.text));
     }));
 
-    _environment.setFunction(BuiltInCallable("content-exists", "", (arguments) {
+    environment.setFunction(BuiltInCallable("content-exists", "", (arguments) {
       if (!_environment.inMixin) {
         throw SassScriptException(
             "content-exists() may only be called within a mixin.");
@@ -253,20 +332,21 @@ class _EvaluateVisitor
       return SassBoolean(_environment.content != null);
     }));
 
-    _environment.setFunction(
+    environment.setFunction(
         BuiltInCallable("get-function", r"$name, $css: false", (arguments) {
       var name = arguments[0].assertString("name");
       var css = arguments[1].isTruthy;
 
       var callable = css
           ? PlainCssCallable(name.text)
-          : _environment.getFunction(name.text);
+          : _addExceptionSpan(
+              _callableNode, () => _environment.getFunction(name.text));
       if (callable != null) return SassFunction(callable);
 
       throw SassScriptException("Function not found: $name");
     }));
 
-    _environment.setFunction(
+    environment.setFunction(
         AsyncBuiltInCallable("call", r"$function, $args...", (arguments) async {
       var function = arguments[0];
       var args = arguments[1] as SassArgumentList;
@@ -306,56 +386,32 @@ class _EvaluateVisitor
       }
     }));
 
-    for (var function in functions ?? const <AsyncCallable>[]) {
-      _environment.setFunction(function);
+    for (var function in _functions) {
+      environment.setFunction(function);
     }
 
-    for (var name in variables?.keys ?? const <String>[]) {
-      _environment.setVariable(name, variables[name], null, global: true);
-    }
+    return environment;
   }
 
-  Future<EvaluateResult> run(Stylesheet node) async {
-    var url = node.span?.sourceUrl;
-    if (url != null) {
-      if (_asNodeSass) {
-        if (url.scheme == 'file') {
-          _includedFiles.add(p.fromUri(url));
-        } else if (url.toString() != 'stdin') {
-          _includedFiles.add(url.toString());
-        }
-      }
-    }
+  /// Returns a copy of [_root] with [_outOfOrderImports] inserted after
+  /// [_endOfImports], if necessary.
+  CssStylesheet _addOutOfOrderImports() {
+    if (_outOfOrderImports == null) return _root;
 
-    await visitStylesheet(node);
-
-    CssStylesheet stylesheet = _root;
-    if (_outOfOrderImports.isNotEmpty) {
-      // Create a copy of [_root.children] with [_outOfOrderImports] inserted at
-      // [_endOfImports].
-      var statements =
-          List<CssNode>(_root.children.length + _outOfOrderImports.length);
-      statements.setRange(0, _endOfImports, _root.children);
-      statements.setAll(_endOfImports, _outOfOrderImports);
-      statements.setRange(_endOfImports + _outOfOrderImports.length,
-          statements.length, _root.children, _endOfImports);
-      stylesheet = CssStylesheet(statements, _root.span);
-    }
-
-    return EvaluateResult(stylesheet, _includedFiles);
+    var statements = FixedLengthListBuilder<CssNode>(
+        _root.children.length + _outOfOrderImports.length)
+      ..addRange(_root.children, 0, _endOfImports)
+      ..addAll(_outOfOrderImports)
+      ..addRange(_root.children, _endOfImports);
+    return CssStylesheet(statements.build(), _root.span);
   }
 
   // ## Statements
 
   Future<Value> visitStylesheet(Stylesheet node) async {
-    _stylesheet = node;
-    _root = ModifiableCssStylesheet(node.span);
-    _parent = _root;
     for (var child in node.children) {
       await child.accept(this);
     }
-
-    _extender.finalize();
     return null;
   }
 
@@ -755,18 +811,18 @@ class _EvaluateVisitor
 
   /// Adds the stylesheet imported by [import] to the current document.
   Future _visitDynamicImport(DynamicImport import) async {
-    var result = await _loadImport(import);
+    var result = await _loadStylesheet(import.url, import.span);
     var importer = result.item1;
     var stylesheet = result.item2;
 
     var url = stylesheet.span.sourceUrl;
     if (_activeImports.contains(url)) {
-      throw _exception("This file is already being imported.", import.span);
+      throw _exception("This file is already being loaded.", import.span);
     }
 
     _activeImports.add(url);
     await _withStackFrame("@import", import, () async {
-      await _withEnvironment(_environment.closure(), () async {
+      await _withEnvironment(_environment.global(), () async {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
         _importer = importer;
@@ -781,21 +837,21 @@ class _EvaluateVisitor
     _activeImports.remove(url);
   }
 
-  /// Loads the [Stylesheet] imported by [import], or throws a
+  /// Loads the [Stylesheet] identified by [url], or throws a
   /// [SassRuntimeException] if loading fails.
-  Future<Tuple2<AsyncImporter, Stylesheet>> _loadImport(
-      DynamicImport import) async {
+  Future<Tuple2<AsyncImporter, Stylesheet>> _loadStylesheet(
+      String url, FileSpan span) async {
     try {
       if (_nodeImporter != null) {
-        var stylesheet = await _importLikeNode(import);
+        var stylesheet = await _importLikeNode(url);
         if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
         var tuple = await _importCache.import(
-            Uri.parse(import.url), _importer, _stylesheet.span?.sourceUrl);
+            Uri.parse(url), _importer, _stylesheet.span?.sourceUrl);
         if (tuple != null) return tuple;
       }
 
-      if (import.url.startsWith('package:')) {
+      if (url.startsWith('package:')) {
         // Special-case this error message, since it's tripped people up in the
         // past.
         throw "\"package:\" URLs aren't supported on this platform.";
@@ -804,7 +860,7 @@ class _EvaluateVisitor
       }
     } on SassException catch (error) {
       var frames = error.trace.frames.toList()
-        ..addAll(_stackTrace(import.span).frames);
+        ..addAll(_stackTrace(span).frames);
       throw SassRuntimeException(error.message, error.span, Trace(frames));
     } catch (error) {
       String message;
@@ -813,16 +869,16 @@ class _EvaluateVisitor
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message, import.span);
+      throw _exception(message, span);
     }
   }
 
   /// Imports a stylesheet using [_nodeImporter].
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
-  Future<Stylesheet> _importLikeNode(DynamicImport import) async {
+  Future<Stylesheet> _importLikeNode(String originalUrl) async {
     var result =
-        await _nodeImporter.loadAsync(import.url, _stylesheet.span?.sourceUrl);
+        await _nodeImporter.loadAsync(originalUrl, _stylesheet.span?.sourceUrl);
     if (result == null) return null;
 
     var contents = result.item1;
@@ -858,13 +914,15 @@ class _EvaluateVisitor
       _root.addChild(node);
       _endOfImports++;
     } else {
+      _outOfOrderImports ??= [];
       _outOfOrderImports.add(node);
     }
     return null;
   }
 
   Future<Value> visitIncludeRule(IncludeRule node) async {
-    var mixin = _environment.getMixin(node.name)
+    var mixin = _addExceptionSpan(node,
+            () => _environment.getMixin(node.name, namespace: node.namespace))
         as UserDefinedCallable<AsyncEnvironment>;
     if (mixin == null) {
       throw _exception("Undefined mixin.", node.span);
@@ -1120,7 +1178,8 @@ class _EvaluateVisitor
 
   Future<Value> visitVariableDeclaration(VariableDeclaration node) async {
     if (node.isGuarded) {
-      var value = _environment.getVariable(node.name);
+      var value = _addExceptionSpan(node,
+          () => _environment.getVariable(node.name, namespace: node.namespace));
       if (value != null && value != sassNull) return null;
     }
 
@@ -1134,15 +1193,33 @@ class _EvaluateVisitor
           deprecation: true);
     }
 
-    _environment.setVariable(
-        node.name,
-        (await node.expression.accept(this)).withoutSlash(),
-        _expressionNode(node.expression),
-        global: node.isGlobal);
+    var value = (await node.expression.accept(this)).withoutSlash();
+    _addExceptionSpan(node, () {
+      _environment.setVariable(
+          node.name, value, _expressionNode(node.expression),
+          namespace: node.namespace, global: node.isGlobal);
+    });
     return null;
   }
 
   Future<Value> visitUseRule(UseRule node) async {
+    var result = await inUseRuleAsync(
+        () => _loadStylesheet(node.url.toString(), node.span));
+    var importer = result.item1;
+    var stylesheet = result.item2;
+
+    var url = stylesheet.span.sourceUrl;
+    if (_activeImports.contains(url)) {
+      throw _exception("This module is currently being loaded.", node.span);
+    }
+
+    await _withStackFrame("@use", stylesheet, () {
+      return _addExceptionSpanAsync(node, () async {
+        _environment.addModule(await _execute(importer, stylesheet),
+            namespace: node.namespace);
+      });
+    });
+
     return null;
   }
 
@@ -1240,7 +1317,8 @@ class _EvaluateVisitor
   Future<Value> visitValueExpression(ValueExpression node) async => node.value;
 
   Future<Value> visitVariableExpression(VariableExpression node) async {
-    var result = _environment.getVariable(node.name);
+    var result = _addExceptionSpan(node,
+        () => _environment.getVariable(node.name, namespace: node.namespace));
     if (result != null) return result;
     throw _exception("Undefined variable.", node.span);
   }
@@ -1312,9 +1390,19 @@ class _EvaluateVisitor
 
   Future<Value> visitFunctionExpression(FunctionExpression node) async {
     var plainName = node.name.asPlain;
-    var function =
-        (plainName == null ? null : _environment.getFunction(plainName)) ??
-            PlainCssCallable(await _performInterpolation(node.name));
+    AsyncCallable function;
+    if (plainName != null) {
+      function = _addExceptionSpan(node,
+          () => _environment.getFunction(plainName, namespace: node.namespace));
+    }
+
+    if (function == null) {
+      if (node.namespace != null) {
+        throw _exception("Undefined function.", node.span);
+      }
+
+      function = PlainCssCallable(await _performInterpolation(node.name));
+    }
 
     var oldInFunction = _inFunction;
     _inFunction = true;
@@ -1787,7 +1875,8 @@ class _EvaluateVisitor
   AstNode _expressionNode(Expression expression) {
     if (!_sourceMap) return null;
     if (expression is VariableExpression) {
-      return _environment.getVariableNode(expression.name);
+      return _environment.getVariableNode(expression.name,
+          namespace: expression.namespace);
     } else {
       return expression;
     }
