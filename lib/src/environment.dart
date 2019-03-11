@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 77b03257b1770270e2d1f269281bdaab3f9f1ae9
+// Checksum: e1d3693a4ede6e31d259efb13148a669be01e98c
 //
 // ignore_for_file: unused_import
 
@@ -33,6 +33,10 @@ class Environment {
   ///
   /// This is `null` if there are no namespaceless modules.
   Set<Module> _globalModules;
+
+  /// Modules from both [_modules] and [_global], in the order in which they
+  /// were `@use`d.
+  final List<Module> _allModules;
 
   /// A list of variables defined at each lexical scope level.
   ///
@@ -127,6 +131,7 @@ class Environment {
   Environment({bool sourceMap = false})
       : _modules = {},
         _globalModules = null,
+        _allModules = [],
         _variables = [normalizedMap()],
         _variableNodes = sourceMap ? [normalizedMap()] : null,
         _variableIndices = normalizedMap(),
@@ -137,8 +142,15 @@ class Environment {
     coreFunctions.forEach(setFunction);
   }
 
-  Environment._(this._modules, this._globalModules, this._variables,
-      this._variableNodes, this._functions, this._mixins, this._content)
+  Environment._(
+      this._modules,
+      this._globalModules,
+      this._allModules,
+      this._variables,
+      this._variableNodes,
+      this._functions,
+      this._mixins,
+      this._content)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() because the copying took a lot of
       // time and was rarely helpful. This saves a bunch of time on Susy's
@@ -155,6 +167,7 @@ class Environment {
   Environment closure() => Environment._(
       _modules,
       _globalModules,
+      _allModules,
       _variables.toList(),
       _variableNodes?.toList(),
       _functions.toList(),
@@ -165,8 +178,10 @@ class Environment {
   ///
   /// The returned environment shares this environment's global variables,
   /// functions, and mixins, but not its modules.
-  Environment global() => Environment._({},
+  Environment global() => Environment._(
+      {},
       null,
+      [],
       _variables.toList(),
       _variableNodes?.toList(),
       _functions.toList(),
@@ -185,6 +200,7 @@ class Environment {
     if (namespace == null) {
       _globalModules ??= Set();
       _globalModules.add(module);
+      _allModules.add(module);
 
       for (var name in _variables.first.keys) {
         if (module.variables.containsKey(name)) {
@@ -200,6 +216,7 @@ class Environment {
       }
 
       _modules[namespace] = module;
+      _allModules.add(module);
     }
   }
 
@@ -602,6 +619,7 @@ class Environment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements Module {
+  final List<Module> upstream;
   final Map<String, Value> variables;
   final Map<String, AstNode> variableNodes;
   final Map<String, Callable> functions;
@@ -614,7 +632,8 @@ class _EnvironmentModule implements Module {
   // TODO(nweiz): Use custom [UnmodifiableMapView]s that forbid access to
   // private members.
   _EnvironmentModule(this._environment, this.css)
-      : variables = PublicMemberMap(_environment._variables.first),
+      : upstream = _environment._allModules,
+        variables = PublicMemberMap(_environment._variables.first),
         variableNodes = _environment._variableNodes == null
             ? null
             : PublicMemberMap(_environment._variableNodes.first),

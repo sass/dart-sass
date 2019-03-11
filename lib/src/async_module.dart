@@ -11,6 +11,9 @@ import 'value.dart';
 
 /// The interface for a Sass module.
 abstract class AsyncModule {
+  /// Modules that this module uses.
+  List<AsyncModule> get upstream;
+
   /// The module's variables.
   Map<String, Value> get variables;
 
