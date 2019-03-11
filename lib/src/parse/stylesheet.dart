@@ -1496,6 +1496,8 @@ relase. For details, see http://bit.ly/moz-document.
             length: operator.operator.length);
       }
 
+      allowSlash = allowSlash && operator == BinaryOperator.dividedBy;
+
       operators ??= [];
       operands ??= [];
       while (operators.isNotEmpty &&
