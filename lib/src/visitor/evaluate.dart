@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: da6068544fd58007ee2d44c2688063cbe4543e73
+// Checksum: 9f5130aa940610d9f0a84205428197c7b51f1bd3
 //
 // ignore_for_file: unused_import
 
@@ -764,7 +764,7 @@ class _EvaluateVisitor
     }
 
     _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
-      if (!_inStyleRule) {
+      if (!_inStyleRule || _inKeyframes) {
         for (var child in node.children) {
           child.accept(this);
         }
@@ -1216,6 +1216,16 @@ class _EvaluateVisitor
       var value = _addExceptionSpan(node,
           () => _environment.getVariable(node.name, namespace: node.namespace));
       if (value != null && value != sassNull) return null;
+    }
+
+    if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
+      _logger.warn(
+          "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
+          "declare new variables. Consider adding `\$${node.name}: null` at "
+          "the top level.",
+          span: node.span,
+          trace: _stackTrace(node.span),
+          deprecation: true);
     }
 
     var value = node.expression.accept(this).withoutSlash();
