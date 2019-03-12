@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: be2d44a3dc50defd98446d806b4c21bfe54a4ba9
+// Checksum: 9f5130aa940610d9f0a84205428197c7b51f1bd3
 //
 // ignore_for_file: unused_import
 
@@ -249,7 +249,7 @@ class _EvaluateVisitor
     var module = _execute(importer, node);
     _extender.finalize();
 
-    return EvaluateResult(module.css, _includedFiles);
+    return EvaluateResult(_combineCss(module), _includedFiles);
   }
 
   Value runExpression(Expression expression, {Map<String, Value> variables}) {
@@ -410,6 +410,47 @@ class _EvaluateVisitor
       ..addAll(_outOfOrderImports)
       ..addRange(_root.children, _endOfImports);
     return CssStylesheet(statements.build(), _root.span);
+  }
+
+  /// Returns a new stylesheet containing [root]'s CSS as well as the CSS of all
+  /// modules transitively used by [root].
+  CssStylesheet _combineCss(Module root) {
+    if (root.upstream.isEmpty) return root.css;
+
+    var seen = Set<Module>();
+    var imports = <CssNode>[];
+    var css = <CssNode>[];
+
+    void visitModule(Module module) {
+      if (!seen.add(module)) return;
+      for (var module in module.upstream) {
+        visitModule(module);
+      }
+
+      var statements = module.css.children;
+      var index = _indexAfterImports(statements);
+      imports.addAll(statements.getRange(0, index));
+      css.addAll(statements.getRange(index, statements.length));
+    }
+
+    visitModule(root);
+
+    return CssStylesheet(imports + css, root.css.span);
+  }
+
+  /// Returns the index of the first node in [statements] that comes after all
+  /// static imports.
+  int _indexAfterImports(List<CssNode> statements) {
+    var lastImport = -1;
+    for (var i = 0; i < statements.length; i++) {
+      var statement = statements[i];
+      if (statement is CssImport) {
+        lastImport = i;
+      } else if (statement is! CssComment) {
+        break;
+      }
+    }
+    return lastImport + 1;
   }
 
   // ## Statements

@@ -242,7 +242,7 @@ class _EvaluateVisitor
     var module = await _execute(importer, node);
     _extender.finalize();
 
-    return EvaluateResult(module.css, _includedFiles);
+    return EvaluateResult(_combineCss(module), _includedFiles);
   }
 
   Future<Value> runExpression(Expression expression,
@@ -404,6 +404,47 @@ class _EvaluateVisitor
       ..addAll(_outOfOrderImports)
       ..addRange(_root.children, _endOfImports);
     return CssStylesheet(statements.build(), _root.span);
+  }
+
+  /// Returns a new stylesheet containing [root]'s CSS as well as the CSS of all
+  /// modules transitively used by [root].
+  CssStylesheet _combineCss(AsyncModule root) {
+    if (root.upstream.isEmpty) return root.css;
+
+    var seen = Set<AsyncModule>();
+    var imports = <CssNode>[];
+    var css = <CssNode>[];
+
+    void visitModule(AsyncModule module) {
+      if (!seen.add(module)) return;
+      for (var module in module.upstream) {
+        visitModule(module);
+      }
+
+      var statements = module.css.children;
+      var index = _indexAfterImports(statements);
+      imports.addAll(statements.getRange(0, index));
+      css.addAll(statements.getRange(index, statements.length));
+    }
+
+    visitModule(root);
+
+    return CssStylesheet(imports + css, root.css.span);
+  }
+
+  /// Returns the index of the first node in [statements] that comes after all
+  /// static imports.
+  int _indexAfterImports(List<CssNode> statements) {
+    var lastImport = -1;
+    for (var i = 0; i < statements.length; i++) {
+      var statement = statements[i];
+      if (statement is CssImport) {
+        lastImport = i;
+      } else if (statement is! CssComment) {
+        break;
+      }
+    }
+    return lastImport + 1;
   }
 
   // ## Statements
