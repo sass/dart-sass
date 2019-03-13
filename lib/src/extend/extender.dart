@@ -14,6 +14,7 @@ import '../ast/sass.dart';
 import '../exception.dart';
 import '../utils.dart';
 import 'extension.dart';
+import 'merged_extension.dart';
 import 'functions.dart';
 import 'mode.dart';
 
@@ -62,6 +63,9 @@ class Extender {
   /// The mode that controls this extender's behavior.
   final ExtendMode _mode;
 
+  /// Whether this extender has no extensions.
+  bool get isEmpty => _extensions.isEmpty;
+
   /// Extends [selector] with [source] extender and [targets] extendees.
   ///
   /// This works as though `source {@extend target}` were written in the
@@ -103,9 +107,36 @@ class Extender {
     return selector;
   }
 
+  /// The set of all simple selectors in style rules handled by this extender.
+  ///
+  /// This includes simple selectors that were added because of downstream
+  /// extensions.
+  Set<SimpleSelector> get simpleSelectors => MapKeySet(_selectors);
+
   Extender() : _mode = ExtendMode.normal;
 
   Extender._(this._mode);
+
+  /// Returns all mandatory extensions in this extender for whose targets
+  /// [callback] returns `true`.
+  ///
+  /// This un-merges any [MergedExtension] so only base [Extension]s are
+  /// returned.
+  Iterable<Extension> extensionsWhereTarget(
+      bool callback(SimpleSelector target)) sync* {
+    for (var target in _extensions.keys) {
+      if (!callback(target)) continue;
+      for (var extension in _extensions[target].values) {
+        if (extension is MergedExtension) {
+          yield* extension
+              .unmerge()
+              .where((extension) => !extension.isOptional);
+        } else if (!extension.isOptional) {
+          yield extension;
+        }
+      }
+    }
+  }
 
   /// Adds [selector] to this extender, with [selectorSpan] as the span covering
   /// the selector and [ruleSpan] as the span covering the entire style rule.
@@ -181,19 +212,19 @@ class Extender {
     Map<ComplexSelector, Extension> newExtensions;
     var sources = _extensions.putIfAbsent(target, () => {});
     for (var complex in extender.value.components) {
+      var state = Extension(
+          complex, target, extender.span, extend.span, mediaContext,
+          optional: extend.isOptional);
+
       var existingState = sources[complex];
       if (existingState != null) {
         // If there's already an extend from [extender] to [target], we don't need
         // to re-run the extension. We may need to mark the extension as
         // mandatory, though.
-        existingState.addSource(extend.span, mediaContext,
-            optional: extend.isOptional);
+        sources[complex] = MergedExtension.merge(existingState, state);
         continue;
       }
 
-      var state = Extension(
-          complex, target, extender.span, extend.span, mediaContext,
-          optional: extend.isOptional);
       sources[complex] = state;
 
       for (var component in complex.components) {
@@ -216,35 +247,48 @@ class Extender {
 
     if (newExtensions == null) return;
 
+    var newExtensionsByTarget = {target: newExtensions};
     if (existingExtensions != null) {
-      _extendExistingExtensions(existingExtensions, target, newExtensions);
+      var additionalExtensions =
+          _extendExistingExtensions(existingExtensions, newExtensionsByTarget);
+      if (additionalExtensions != null) {
+        mapAddAll2(newExtensionsByTarget, additionalExtensions);
+      }
     }
 
     if (rules != null) {
-      _extendExistingStyleRules(rules, target, newExtensions);
+      _extendExistingStyleRules(rules, newExtensionsByTarget);
     }
   }
 
   /// Extend [extensions] using [newExtensions].
   ///
-  /// The [newTarget] is the extendee of [newExtensions].
-  ///
   /// Note that this does duplicate some work done by
   /// [_extendExistingStyleRules], but it's necessary to expand each extension's
   /// extender separately without reference to the full selector list, so that
   /// relevant results don't get trimmed too early.
-  void _extendExistingExtensions(List<Extension> extensions,
-      SimpleSelector newTarget, Map<ComplexSelector, Extension> newExtensions) {
-    // Extensions to add to [newExtensions] after updating [extensions].
-    Map<ComplexSelector, Extension> additionalExtensions;
+  ///
+  /// Returns extensions that should be added to [newExtensions] before
+  /// extending selectors in order to properly handle extension loops such as:
+  ///
+  ///     .c {x: y; @extend .a}
+  ///     .x.y.a {@extend .b}
+  ///     .z.b {@extend .c}
+  ///
+  /// Returns `null` if there are no extensions to add.
+  Map<SimpleSelector, Map<ComplexSelector, Extension>>
+      _extendExistingExtensions(List<Extension> extensions,
+          Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions) {
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> additionalExtensions;
+
     for (var extension in extensions.toList()) {
       var sources = _extensions[extension.target];
 
       // [_extendExistingStyleRules] would have thrown already.
       List<ComplexSelector> selectors;
       try {
-        selectors = _extendComplex(extension.extender,
-            {newTarget: newExtensions}, extension.mediaContext);
+        selectors = _extendComplex(
+            extension.extender, newExtensions, extension.mediaContext);
         if (selectors == null) continue;
       } on SassException catch (error) {
         throw SassException(
@@ -263,12 +307,12 @@ class Extender {
           continue;
         }
 
+        var withExtender = extension.withExtender(complex);
         var existingExtension = sources[complex];
         if (existingExtension != null) {
-          existingExtension.addSource(extension.span, extension.mediaContext,
-              optional: extension.isOptional);
+          sources[complex] =
+              MergedExtension.merge(existingExtension, withExtender);
         } else {
-          var withExtender = extension.withExtender(complex);
           sources[complex] = withExtender;
 
           for (var component in complex.components) {
@@ -281,9 +325,11 @@ class Extender {
             }
           }
 
-          if (extension.target == newTarget) {
+          if (newExtensions.containsKey(extension.target)) {
             additionalExtensions ??= {};
-            additionalExtensions[complex] = withExtender;
+            var additionalSources =
+                additionalExtensions.putIfAbsent(extension.target, () => {});
+            additionalSources[complex] = withExtender;
           }
         }
       }
@@ -294,18 +340,17 @@ class Extender {
       if (!containsExtension) sources.remove(extension.extender);
     }
 
-    if (additionalExtensions != null) {
-      newExtensions.addAll(additionalExtensions);
-    }
+    return additionalExtensions;
   }
 
+  /// Extend [extensions] using [newExtensions].
   void _extendExistingStyleRules(Set<ModifiableCssStyleRule> rules,
-      SimpleSelector target, Map<ComplexSelector, Extension> extensions) {
+      Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions) {
     for (var rule in rules) {
       var oldValue = rule.selector.value;
       try {
         rule.selector.value = _extendList(
-            rule.selector.value, {target: extensions}, _mediaContexts[rule]);
+            rule.selector.value, newExtensions, _mediaContexts[rule]);
       } on SassException catch (error) {
         throw SassException(
             "From ${rule.selector.span.message('')}\n"
@@ -320,20 +365,79 @@ class Extender {
     }
   }
 
-  /// Throws a [SassException] if any (non-optional) extensions failed to match
-  /// any selectors.
-  void finalize() {
-    _extensions.forEach((target, extensions) {
-      if (_selectors.containsKey(target)) return;
+  /// Extends [this] with all the extensions in [extensions].
+  ///
+  /// These extensions will extend all selectors already in [this], but they
+  /// will *not* extend other extensions from [extenders].
+  void addExtensions(Iterable<Extender> extenders) {
+    // Extensions already in [this] whose extenders are extended by
+    // [extensions], and thus which need to be updated.
+    List<Extension> extensionsToExtend;
 
-      extensions.forEach((_, extension) {
-        if (extension.isOptional) return;
-        throw SassException(
-            'The target selector was not found.\n'
-            'Use "@extend $target !optional" to avoid this error.',
-            extension.span);
+    // Style rules whose selectors contain simple selectors that are extended by
+    // [extensions], and thus which need to be extended themselves.
+    Set<ModifiableCssStyleRule> rulesToExtend;
+
+    // An extension map with the same structure as [_extensions] that only
+    // includes extensions from [extenders].
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions;
+
+    for (var extender in extenders) {
+      extender._extensions.forEach((target, newSources) {
+        // Private selectors can't be extended across module boundaries.
+        if (target is PlaceholderSelector && target.isPrivate) return;
+
+        // Find existing extensions to extend.
+        var extensionsForTarget = _extensionsByExtender[target];
+        if (extensionsForTarget != null) {
+          extensionsToExtend ??= [];
+          extensionsToExtend.addAll(extensionsForTarget);
+        }
+
+        // Find existing selectors to extend.
+        var rulesForTarget = _selectors[target];
+        if (rulesForTarget != null) {
+          rulesToExtend ??= Set();
+          rulesToExtend.addAll(rulesForTarget);
+        }
+
+        // Add [newSources] to [_extensions].
+        var existingSources = _extensions[target];
+        if (existingSources == null) {
+          _extensions[target] = extender._extensions[target];
+          if (extensionsForTarget != null || rulesForTarget != null) {
+            newExtensions ??= {};
+            newExtensions[target] = extender._extensions[target];
+          }
+        } else {
+          newSources.forEach((extender, extension) {
+            // If [extender] already extends [target] in [_extensions], we don't
+            // need to re-run the extension.
+            if (existingSources.containsKey(extender)) return;
+            existingSources[extender] = extension;
+
+            // TODO(nweiz): how do we handle mixed optional and mandatory
+            // extensions here?
+            if (extensionsForTarget != null || rulesForTarget != null) {
+              newExtensions ??= {};
+              newExtensions
+                  .putIfAbsent(target, () => {})
+                  .putIfAbsent(extender, () => extension);
+            }
+          });
+        }
       });
-    });
+    }
+
+    if (extensionsToExtend != null) {
+      // We can ignore the return value here because it's only useful for extend
+      // loops, which can't exist across module boundaries.
+      _extendExistingExtensions(extensionsToExtend, newExtensions);
+    }
+
+    if (rulesToExtend != null) {
+      _extendExistingStyleRules(rulesToExtend, newExtensions);
+    }
   }
 
   /// Extends [list] using [extensions].

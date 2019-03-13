@@ -133,6 +133,12 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
   return result;
 }
 
+/// Returns the first element of [iterable], or `null` if the iterable is empty.
+T firstOrNull<T>(Iterable<T> iterable) {
+  var iterator = iterable.iterator;
+  return iterator.moveNext() ? iterator.current : null;
+}
+
 /// Converts [codepointIndex] to a code unit index, relative to [string].
 ///
 /// A codepoint index is the index in pure Unicode codepoints; a code unit index
@@ -371,6 +377,20 @@ T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
     list.remove(toRemove);
     return toRemove;
   }
+}
+
+/// Like [Map.addAll], but for two-layer maps.
+///
+/// This avoids copying inner maps from [source] if possible.
+void mapAddAll2<K1, K2, V>(
+    Map<K1, Map<K2, V>> destination, Map<K1, Map<K2, V>> source) {
+  source.forEach((key, inner) {
+    if (destination.containsKey(key)) {
+      destination[key].addAll(inner);
+    } else {
+      destination[key] = inner;
+    }
+  });
 }
 
 /// Rotates the element in list from [start] (inclusive) to [end] (exclusive)

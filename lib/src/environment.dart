@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: e1d3693a4ede6e31d259efb13148a669be01e98c
+// Checksum: 0969eab1df3ee05f1029ebe1a5e2485580032491
 //
 // ignore_for_file: unused_import
 
@@ -16,6 +16,7 @@ import 'ast/node.dart';
 import 'module.dart';
 import 'callable.dart';
 import 'exception.dart';
+import 'extend/extender.dart';
 import 'functions.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
@@ -577,8 +578,10 @@ class Environment {
   }
 
   /// Returns a module that represents the top-level members defined in [this],
-  /// and that contains [css] as its CSS tree.
-  Module toModule(CssStylesheet css) => _EnvironmentModule(this, css);
+  /// that contains [css] as its CSS tree, which can be extended using
+  /// [extender].
+  Module toModule(CssStylesheet css, Extender extender) =>
+      _EnvironmentModule(this, css, extender);
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
@@ -624,21 +627,26 @@ class _EnvironmentModule implements Module {
   final Map<String, AstNode> variableNodes;
   final Map<String, Callable> functions;
   final Map<String, Callable> mixins;
+  final Extender extender;
   final CssStylesheet css;
+  final bool transitivelyContainsCss;
 
   /// The environment that defines this module's members.
   final Environment _environment;
 
   // TODO(nweiz): Use custom [UnmodifiableMapView]s that forbid access to
   // private members.
-  _EnvironmentModule(this._environment, this.css)
+  _EnvironmentModule(this._environment, this.css, this.extender)
       : upstream = _environment._allModules,
         variables = PublicMemberMap(_environment._variables.first),
         variableNodes = _environment._variableNodes == null
             ? null
             : PublicMemberMap(_environment._variableNodes.first),
         functions = PublicMemberMap(_environment._functions.first),
-        mixins = PublicMemberMap(_environment._mixins.first);
+        mixins = PublicMemberMap(_environment._mixins.first),
+        transitivelyContainsCss = css.children.isNotEmpty ||
+            _environment._allModules
+                .any((module) => module.transitivelyContainsCss);
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!_environment._variables.first.containsKey(name)) {

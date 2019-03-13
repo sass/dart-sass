@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 9f5130aa940610d9f0a84205428197c7b51f1bd3
+// Checksum: f2cf0b954a83f5a986d490155ef77c6a6b3e63f5
 //
 // ignore_for_file: unused_import
 
@@ -16,6 +16,7 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -33,6 +34,7 @@ import '../callable.dart';
 import '../color_names.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
+import '../extend/extension.dart';
 import '../importer.dart';
 import '../importer/node.dart';
 import '../importer/utils.dart';
@@ -176,9 +178,6 @@ class _EvaluateVisitor
 
   final _activeImports = Set<Uri>();
 
-  /// The extender that handles extensions for this perform run.
-  final _extender = Extender();
-
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
   ///
@@ -220,6 +219,10 @@ class _EvaluateVisitor
   /// stylesheet.
   List<ModifiableCssImport> _outOfOrderImports;
 
+  /// The extender that tracks extensions and style rules for the current
+  /// module.
+  Extender _extender;
+
   _EvaluateVisitor(
       {ImportCache importCache,
       NodeImporter nodeImporter,
@@ -247,7 +250,6 @@ class _EvaluateVisitor
     }
 
     var module = _execute(importer, node);
-    _extender.finalize();
 
     return EvaluateResult(_combineCss(module), _includedFiles);
   }
@@ -268,6 +270,7 @@ class _EvaluateVisitor
     return _modules.putIfAbsent(url, () {
       var environment = _newEnvironment();
       CssStylesheet css;
+      var extender = Extender();
       _activeImports.add(url);
       _withEnvironment(environment, () {
         var oldImporter = _importer;
@@ -276,12 +279,14 @@ class _EvaluateVisitor
         var oldParent = _parent;
         var oldEndOfImports = _endOfImports;
         var oldOutOfOrderImports = _outOfOrderImports;
+        var oldExtender = _extender;
         _importer = importer;
         _stylesheet = stylesheet;
         _root = ModifiableCssStylesheet(stylesheet.span);
         _parent = _root;
         _endOfImports = 0;
         _outOfOrderImports = null;
+        _extender = extender;
 
         visitStylesheet(stylesheet);
         css = _addOutOfOrderImports();
@@ -292,10 +297,11 @@ class _EvaluateVisitor
         _parent = oldParent;
         _endOfImports = oldEndOfImports;
         _outOfOrderImports = oldOutOfOrderImports;
+        _extender = oldExtender;
       });
       _activeImports.remove(url);
 
-      return environment.toModule(css);
+      return environment.toModule(css, extender);
     });
   }
 
@@ -414,28 +420,123 @@ class _EvaluateVisitor
 
   /// Returns a new stylesheet containing [root]'s CSS as well as the CSS of all
   /// modules transitively used by [root].
+  ///
+  /// This also applies each module's extensions to its upstream modules.
   CssStylesheet _combineCss(Module root) {
-    if (root.upstream.isEmpty) return root.css;
-
-    var seen = Set<Module>();
-    var imports = <CssNode>[];
-    var css = <CssNode>[];
-
-    void visitModule(Module module) {
-      if (!seen.add(module)) return;
-      for (var module in module.upstream) {
-        visitModule(module);
+    // TODO(nweiz): short-circuit if no upstream modules (transitively) include
+    // any CSS.
+    if (root.upstream.isEmpty) {
+      var selectors = root.extender.simpleSelectors;
+      var unsatisfiedExtension = firstOrNull(root.extender
+          .extensionsWhereTarget((target) => !selectors.contains(target)));
+      if (unsatisfiedExtension != null) {
+        _throwForUnsatisfiedExtension(unsatisfiedExtension);
       }
 
+      return root.css;
+    }
+
+    var sortedModules = _topologicalModules(root);
+    _extendModules(sortedModules);
+
+    // The imports (and comments between them) that should be included at the
+    // beginning of the final document.
+    var imports = <CssNode>[];
+
+    // The CSS statements in the final document.
+    var css = <CssNode>[];
+
+    for (var module in sortedModules.reversed) {
       var statements = module.css.children;
       var index = _indexAfterImports(statements);
       imports.addAll(statements.getRange(0, index));
       css.addAll(statements.getRange(index, statements.length));
     }
 
+    return CssStylesheet(imports + css, root.css.span);
+  }
+
+  /// Extends the selectors in each module with the extensions defined in
+  /// downstream modules.
+  void _extendModules(List<Module> sortedModules) {
+    // All the extenders directly downstream of a given module. It's important
+    // that we create this in topological order, so that by the time we're
+    // processing a module we've already filled in all its downstream extenders
+    // and we can use them to extend that module.
+    var downstreamExtenders = <Module, List<Extender>>{};
+
+    /// Extensions that haven't yet been satisfied by some upstream module. This
+    /// adds extensions when they're defined but not satisfied, and removes them
+    /// when they're satisfied by any module.
+    var unsatisfiedExtensions = Set<Extension>.identity();
+
+    for (var module in sortedModules) {
+      // Create a snapshot of the simple selectors currently in the extender so
+      // that we don't consider an extension "satisfied" below because of a
+      // simple selector added by another (sibling) extension.
+      var originalSelectors = module.extender.simpleSelectors.toSet();
+
+      // Add all as-yet-unsatisfied extensions before adding downstream
+      // extenders, because those are all in [unsatisfiedExtensions] already.
+      unsatisfiedExtensions.addAll(module.extender.extensionsWhereTarget(
+          (target) => !originalSelectors.contains(target)));
+
+      var extenders = downstreamExtenders[module];
+      if (extenders != null) module.extender.addExtensions(extenders);
+      if (module.extender.isEmpty) continue;
+
+      for (var upstream in module.upstream) {
+        downstreamExtenders
+            .putIfAbsent(upstream, () => [])
+            .add(module.extender);
+      }
+
+      // Remove all extensions that are now satisfied after adding downstream
+      // extenders so it counts any downstream extensions that have been newly
+      // satisfied.
+      unsatisfiedExtensions.removeAll(
+          module.extender.extensionsWhereTarget(originalSelectors.contains));
+    }
+
+    if (unsatisfiedExtensions.isNotEmpty) {
+      _throwForUnsatisfiedExtension(unsatisfiedExtensions.first);
+    }
+  }
+
+  /// Throws an exception indicating that [extension] is unsatisfied.
+  @alwaysThrows
+  void _throwForUnsatisfiedExtension(Extension extension) {
+    throw SassException(
+        'The target selector was not found.\n'
+        'Use "@extend ${extension.target} !optional" to avoid this error.',
+        extension.span);
+  }
+
+  /// Returns all modules transitively used by [root] in topological order,
+  /// ignoring modules that contain no CSS.
+  List<Module> _topologicalModules(Module root) {
+    // Construct a topological ordering using depth-first traversal, as in
+    // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search.
+    var seen = Set<Module>();
+    var sorted = QueueList<Module>();
+
+    void visitModule(Module module) {
+      // Each module is added to the beginning of [sorted], which means the
+      // returned list contains sibling modules in the opposite order of how
+      // they appear in the document. Then when the list is reversed to generate
+      // the CSS, they're put back in their original order.
+      for (var upstream in module.upstream) {
+        if (upstream.transitivelyContainsCss && seen.add(upstream)) {
+          visitModule(upstream);
+        }
+      }
+
+      sorted.addFirst(module);
+    }
+
     visitModule(root);
 
-    return CssStylesheet(imports + css, root.css.span);
+    return sorted;
   }
 
   /// Returns the index of the first node in [statements] that comes after all

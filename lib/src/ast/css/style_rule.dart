@@ -14,7 +14,4 @@ import 'value.dart';
 abstract class CssStyleRule extends CssParentNode {
   /// The selector for this rule.
   CssValue<SelectorList> get selector;
-
-  /// The selector for this rule, before any extensions are applied.
-  SelectorList get originalSelector;
 }

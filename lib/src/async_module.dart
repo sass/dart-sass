@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 import 'ast/css.dart';
 import 'ast/node.dart';
 import 'callable.dart';
+import 'extend/extender.dart';
 import 'value.dart';
 
 /// The interface for a Sass module.
@@ -41,8 +42,15 @@ abstract class AsyncModule {
   /// name.
   Map<String, AsyncCallable> get mixins;
 
+  /// The extensions defined in this module, which is also able to update
+  /// [css]'s style rules in-place based on downstream extensions.
+  Extender get extender;
+
   /// The module's CSS tree.
   CssStylesheet get css;
+
+  /// Whether this module *or* any modules in [upstream] contain any CSS.
+  bool get transitivelyContainsCss;
 
   /// Sets the variable named [name] to [value], associated with
   /// [nodeWithSpan]'s source span.
