@@ -387,7 +387,7 @@ class Extender {
         // Private selectors can't be extended across module boundaries.
         if (target is PlaceholderSelector && target.isPrivate) return;
 
-        // Find existing extensions to exend.
+        // Find existing extensions to extend.
         var extensionsForTarget = _extensionsByExtender[target];
         if (extensionsForTarget != null) {
           extensionsToExtend ??= [];
