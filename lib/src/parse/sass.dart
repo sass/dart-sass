@@ -155,6 +155,7 @@ class SassParser extends StylesheetParser {
       // Ignore empty lines.
       case $cr:
       case $lf:
+      case $ff:
         return null;
 
       case $dollar:
@@ -282,8 +283,8 @@ class SassParser extends StylesheetParser {
       if (_peekIndentation() <= parentIndentation) break;
 
       // Preserve empty lines.
-      while (isNewline(scanner.peekChar(1))) {
-        scanner.readChar();
+      while (_lookingAtDoubleNewline()) {
+        _expectNewline();
         buffer.writeln();
         buffer.write(" *");
       }
@@ -315,11 +316,31 @@ class SassParser extends StylesheetParser {
       case $semicolon:
         scanner.error("semicolons aren't allowed in the indented syntax.");
         return;
+      case $cr:
+        scanner.readChar();
+        if (scanner.peekChar() == $lf) scanner.readChar();
+        return;
       case $lf:
+      case $ff:
         scanner.readChar();
         return;
       default:
         scanner.error("expected newline.");
+    }
+  }
+
+  /// Returns whether the scanner is immediately before *two* newlines.
+  bool _lookingAtDoubleNewline() {
+    switch (scanner.peekChar()) {
+      case $cr:
+        var nextChar = scanner.peekChar(1);
+        if (nextChar == $lf) return isNewline(scanner.peekChar(2));
+        return nextChar == $cr || nextChar == $ff;
+      case $lf:
+      case $ff:
+        return isNewline(scanner.peekChar(1));
+      default:
+        return false;
     }
   }
 
