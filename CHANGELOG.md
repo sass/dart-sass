@@ -1,3 +1,10 @@
+## 1.17.4
+
+### JavaScript API
+
+* Add a `sass.types.Error` constructor as an alias for `Error`. This makes our
+  custom function API compatible with Node Sass's.
+
 ## 1.17.3
 
 * Fix an edge case where slash-separated numbers were written to the stylesheet

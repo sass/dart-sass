@@ -56,7 +56,8 @@ void main() {
       Map: mapConstructor,
       Null: nullConstructor,
       Number: numberConstructor,
-      String: stringConstructor);
+      String: stringConstructor,
+      Error: jsErrorConstructor);
 }
 
 /// Converts Sass to CSS.

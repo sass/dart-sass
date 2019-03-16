@@ -14,6 +14,8 @@ class Types {
   external set Null(function);
   external set Number(function);
   external set String(function);
+  external set Error(function);
 
-  external factory Types({Boolean, Color, List, Map, Null, Number, String});
+  external factory Types(
+      {Boolean, Color, List, Map, Null, Number, String, Error});
 }
