@@ -1,3 +1,8 @@
+## 1.17.4
+
+* Consistently parse U+000C FORM FEED, U+000D CARRIAGE RETURN, and sequences of
+  U+000D CARRIAGE RETURN followed by U+000A LINE FEED as individual newlines.
+
 ## 1.17.3
 
 * Fix an edge case where slash-separated numbers were written to the stylesheet
