@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: f2cf0b954a83f5a986d490155ef77c6a6b3e63f5
+// Checksum: 2be3101c91e2da634702804d1e13dca27558f543
 //
 // ignore_for_file: unused_import
 
@@ -44,6 +44,7 @@ import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
 import '../utils.dart';
 import '../value.dart';
+import 'interface/modifiable_css.dart';
 import 'interface/expression.dart';
 import 'interface/statement.dart';
 
@@ -289,7 +290,9 @@ class _EvaluateVisitor
         _extender = extender;
 
         visitStylesheet(stylesheet);
-        css = _addOutOfOrderImports();
+        css = _outOfOrderImports == null
+            ? _root
+            : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
 
         _importer = oldImporter;
         _stylesheet = oldStylesheet;
@@ -405,17 +408,17 @@ class _EvaluateVisitor
     return environment;
   }
 
-  /// Returns a copy of [_root] with [_outOfOrderImports] inserted after
-  /// [_endOfImports], if necessary.
-  CssStylesheet _addOutOfOrderImports() {
-    if (_outOfOrderImports == null) return _root;
+  /// Returns a copy of [_root.children] with [_outOfOrderImports] inserted
+  /// after [_endOfImports], if necessary.
+  List<ModifiableCssNode> _addOutOfOrderImports() {
+    if (_outOfOrderImports == null) return _root.children;
 
-    var statements = FixedLengthListBuilder<CssNode>(
+    var statements = FixedLengthListBuilder<ModifiableCssNode>(
         _root.children.length + _outOfOrderImports.length)
       ..addRange(_root.children, 0, _endOfImports)
       ..addAll(_outOfOrderImports)
       ..addRange(_root.children, _endOfImports);
-    return CssStylesheet(statements.build(), _root.span);
+    return statements.build();
   }
 
   /// Returns a new stylesheet containing [root]'s CSS as well as the CSS of all
@@ -964,19 +967,42 @@ class _EvaluateVisitor
     }
 
     _activeImports.add(url);
+
+    // TODO(nweiz): If [stylesheet] contains no `@use` rules, just evaluate it
+    // directly in [_root] rather than making a new stylesheet.
+    List<ModifiableCssNode> children;
     _withStackFrame("@import", import, () {
       _withEnvironment(_environment.global(), () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
+        var oldRoot = _root;
+        var oldParent = _parent;
+        var oldEndOfImports = _endOfImports;
+        var oldOutOfOrderImports = _outOfOrderImports;
         _importer = importer;
         _stylesheet = stylesheet;
-        for (var statement in stylesheet.children) {
-          statement.accept(this);
-        }
+        _root = ModifiableCssStylesheet(stylesheet.span);
+        _parent = _root;
+        _endOfImports = 0;
+        _outOfOrderImports = null;
+
+        visitStylesheet(stylesheet);
+        children = _addOutOfOrderImports();
+
         _importer = oldImporter;
         _stylesheet = oldStylesheet;
+        _root = oldRoot;
+        _parent = oldParent;
+        _endOfImports = oldEndOfImports;
+        _outOfOrderImports = oldOutOfOrderImports;
       });
     });
+
+    var visitor = _ImportedCssVisitor(this);
+    for (var child in children) {
+      child.accept(visitor);
+    }
+
     _activeImports.remove(url);
   }
 
@@ -2015,8 +2041,22 @@ class _EvaluateVisitor
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   T _withParent<S extends ModifiableCssParentNode, T>(S node, T callback(),
       {bool through(CssNode node), bool scopeWhen = true}) {
-    var oldParent = _parent;
+    _addChild(node, through: through);
 
+    var oldParent = _parent;
+    _parent = node;
+    var result = _environment.scope(callback, when: scopeWhen);
+    _parent = oldParent;
+
+    return result;
+  }
+
+  /// Adds [node] as a child of the current parent.
+  ///
+  /// If [through] is passed, [node] is added as a child of the first parent for
+  /// which [through] returns `false` instead. That parent is copied unless it's the
+  /// lattermost child of its parent.
+  void _addChild(ModifiableCssNode node, {bool through(CssNode node)}) {
     // Go up through parents that match [through].
     var parent = _parent;
     if (through != null) {
@@ -2035,11 +2075,6 @@ class _EvaluateVisitor
     }
 
     parent.addChild(node);
-    _parent = node;
-    var result = _environment.scope(callback, when: scopeWhen);
-    _parent = oldParent;
-
-    return result;
   }
 
   /// Runs [callback] with [rule] as the current style rule.
@@ -2147,6 +2182,73 @@ class _EvaluateVisitor
       throw _exception(error.message, nodeWithSpan.span);
     }
   }
+}
+
+/// A helper class for [_EvaluateVisitor] that adds `@import`ed CSS nodes to the
+/// root stylesheet.
+///
+/// We can't evaluate the imported stylesheet with the original stylesheet as
+/// its root because it may `@use` modules that need to be injected before the
+/// imported stylesheet's CSS.
+///
+/// We also can't use [_EvaluateVisitor]'s implementation of [CssVisitor]
+/// because it will add the parent selector to the CSS if the `@import` appeared
+/// in a nested context, but the parent selector was already added when the
+/// imported stylesheet was evaluated.
+class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
+  /// The visitor in whose context this was created.
+  final _EvaluateVisitor _visitor;
+
+  _ImportedCssVisitor(this._visitor);
+
+  void visitCssAtRule(ModifiableCssAtRule node) => _visitor._addChild(node);
+
+  void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
+
+  void visitCssDeclaration(ModifiableCssDeclaration node) {
+    assert(false, "visitCssDeclaration() should never be called.");
+  }
+
+  void visitCssImport(ModifiableCssImport node) {
+    if (_visitor._parent != _visitor._root) {
+      _visitor._addChild(node);
+    } else if (_visitor._endOfImports == _visitor._root.children.length) {
+      _visitor._addChild(node);
+      _visitor._endOfImports++;
+    } else {
+      _visitor._outOfOrderImports ??= [];
+      _visitor._outOfOrderImports.add(node);
+    }
+  }
+
+  void visitCssKeyframeBlock(ModifiableCssKeyframeBlock node) {
+    assert(false, "visitCssKeyframeBlock() should never be called.");
+  }
+
+  void visitCssMediaRule(ModifiableCssMediaRule node) {
+    // Whether [node.query] has been merged with [_visitor._mediaQueries]. If it
+    // has been merged, merging again is a no-op; if it hasn't been merged,
+    // merging again will fail.
+    var hasBeenMerged = _visitor._mediaQueries == null ||
+        _visitor._mergeMediaQueries(_visitor._mediaQueries, node.queries) !=
+            null;
+
+    _visitor._addChild(node,
+        through: (node) =>
+            node is CssStyleRule || (hasBeenMerged && node is CssMediaRule));
+  }
+
+  void visitCssStyleRule(ModifiableCssStyleRule node) =>
+      _visitor._addChild(node, through: (node) => node is CssStyleRule);
+
+  void visitCssStylesheet(ModifiableCssStylesheet node) {
+    for (var child in node.children) {
+      child.accept(this);
+    }
+  }
+
+  void visitCssSupportsRule(ModifiableCssSupportsRule node) =>
+      _visitor._addChild(node, through: (node) => node is CssStyleRule);
 }
 
 /// The result of evaluating arguments to a function or mixin.
