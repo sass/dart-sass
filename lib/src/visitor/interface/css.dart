@@ -3,11 +3,12 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../ast/css.dart';
+import 'modifiable_css.dart';
 
 /// An interface for [visitors][] that traverse CSS statements.
 ///
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
-abstract class CssVisitor<T> {
+abstract class CssVisitor<T> implements ModifiableCssVisitor<T> {
   T visitCssAtRule(CssAtRule node);
   T visitCssComment(CssComment node);
   T visitCssDeclaration(CssDeclaration node);

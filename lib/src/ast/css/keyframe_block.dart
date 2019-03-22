@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/interface/css.dart';
 import 'node.dart';
 import 'value.dart';
 
@@ -11,4 +12,6 @@ import 'value.dart';
 abstract class CssKeyframeBlock extends CssParentNode {
   /// The selector for this block.
   CssValue<List<String>> get selector;
+
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssKeyframeBlock(this);
 }

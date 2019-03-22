@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/interface/css.dart';
 import 'node.dart';
 import 'value.dart';
 
@@ -18,4 +19,6 @@ abstract class CssAtRule extends CssParentNode {
   /// This implies `children.isEmpty`, but the reverse is not true—for a rule
   /// like `@foo {}`, [children] is empty but [isChildless] is `false`.
   bool get isChildless;
+
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssAtRule(this);
 }

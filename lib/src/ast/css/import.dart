@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/interface/css.dart';
 import 'media_query.dart';
 import 'node.dart';
 import 'value.dart';
@@ -18,4 +19,6 @@ abstract class CssImport extends CssNode {
 
   /// The media query attached to this import.
   List<CssMediaQuery> get media;
+
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssImport(this);
 }

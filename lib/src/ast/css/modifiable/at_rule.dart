@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../at_rule.dart';
 import '../value.dart';
 import 'node.dart';
@@ -20,7 +20,7 @@ class ModifiableCssAtRule extends ModifiableCssParentNode implements CssAtRule {
       {bool childless = false, this.value})
       : isChildless = childless;
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssAtRule(this);
+  T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssAtRule(this);
 
   ModifiableCssAtRule copyWithoutChildren() =>
       ModifiableCssAtRule(name, span, childless: isChildless, value: value);

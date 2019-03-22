@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../supports_rule.dart';
 import '../value.dart';
 import 'node.dart';
@@ -17,7 +17,8 @@ class ModifiableCssSupportsRule extends ModifiableCssParentNode
 
   ModifiableCssSupportsRule(this.condition, this.span);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssSupportsRule(this);
+  T accept<T>(ModifiableCssVisitor<T> visitor) =>
+      visitor.visitCssSupportsRule(this);
 
   ModifiableCssSupportsRule copyWithoutChildren() =>
       ModifiableCssSupportsRule(condition, span);

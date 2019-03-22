@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../keyframe_block.dart';
 import '../value.dart';
 import 'node.dart';
@@ -17,7 +17,8 @@ class ModifiableCssKeyframeBlock extends ModifiableCssParentNode
 
   ModifiableCssKeyframeBlock(this.selector, this.span);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssKeyframeBlock(this);
+  T accept<T>(ModifiableCssVisitor<T> visitor) =>
+      visitor.visitCssKeyframeBlock(this);
 
   ModifiableCssKeyframeBlock copyWithoutChildren() =>
       ModifiableCssKeyframeBlock(selector, span);

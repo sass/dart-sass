@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/interface/css.dart';
 import 'node.dart';
 
 /// A plain CSS comment.
@@ -14,4 +15,6 @@ abstract class CssComment extends CssNode {
   /// Whether this comment starts with `/*!` and so should be preserved even in
   /// compressed mode.
   bool get isPreserved;
+
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssComment(this);
 }
