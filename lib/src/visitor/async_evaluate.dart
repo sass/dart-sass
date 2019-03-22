@@ -35,8 +35,9 @@ import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
 import '../utils.dart';
 import '../value.dart';
-import 'interface/modifiable_css.dart';
+import 'interface/css.dart';
 import 'interface/expression.dart';
+import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
@@ -101,7 +102,8 @@ Future<Value> evaluateExpressionAsync(Expression expression,
 class _EvaluateVisitor
     implements
         StatementVisitor<Future<Value>>,
-        ExpressionVisitor<Future<Value>> {
+        ExpressionVisitor<Future<Value>>,
+        CssVisitor<Future<void>> {
   /// The import cache used to import other stylesheets.
   final AsyncImportCache _importCache;
 
@@ -275,6 +277,12 @@ class _EvaluateVisitor
         var oldEndOfImports = _endOfImports;
         var oldOutOfOrderImports = _outOfOrderImports;
         var oldExtender = _extender;
+        var oldStyleRule = _styleRule;
+        var oldMediaQueries = _mediaQueries;
+        var oldDeclarationName = _declarationName;
+        var oldInUnknownAtRule = _inUnknownAtRule;
+        var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
+        var oldInKeyframes = _inKeyframes;
         _importer = importer;
         _stylesheet = stylesheet;
         _root = ModifiableCssStylesheet(stylesheet.span);
@@ -282,6 +290,12 @@ class _EvaluateVisitor
         _endOfImports = 0;
         _outOfOrderImports = null;
         _extender = extender;
+        _styleRule = null;
+        _mediaQueries = null;
+        _declarationName = null;
+        _inUnknownAtRule = false;
+        _atRootExcludingStyleRule = false;
+        _inKeyframes = false;
 
         await visitStylesheet(stylesheet);
         css = _outOfOrderImports == null
@@ -295,6 +309,12 @@ class _EvaluateVisitor
         _endOfImports = oldEndOfImports;
         _outOfOrderImports = oldOutOfOrderImports;
         _extender = oldExtender;
+        _styleRule = oldStyleRule;
+        _mediaQueries = oldMediaQueries;
+        _declarationName = oldDeclarationName;
+        _inUnknownAtRule = oldInUnknownAtRule;
+        _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
+        _inKeyframes = oldInKeyframes;
       });
       _activeImports.remove(url);
 
@@ -839,6 +859,9 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitAtRule(AtRule node) async {
+    // NOTE: this logic is largely duplicated in [visitCssAtRule]. Most changes
+    // here should be mirrored there.
+
     if (_declarationName != null) {
       throw _exception(
           "At-rules may not be used within nested declarations.", node.span);
@@ -961,7 +984,7 @@ class _EvaluateVisitor
     var stylesheet = result.item2;
 
     var url = stylesheet.span.sourceUrl;
-    if (_activeImports.contains(url)) {
+    if (!_activeImports.add(url)) {
       throw _exception("This file is already being loaded.", import.span);
     }
 
@@ -969,9 +992,11 @@ class _EvaluateVisitor
 
     // TODO(nweiz): If [stylesheet] contains no `@use` rules, just evaluate it
     // directly in [_root] rather than making a new stylesheet.
+
     List<ModifiableCssNode> children;
+    var environment = _environment.global();
     await _withStackFrame("@import", import, () async {
-      await _withEnvironment(_environment.global(), () async {
+      await _withEnvironment(environment, () async {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
         var oldRoot = _root;
@@ -996,6 +1021,12 @@ class _EvaluateVisitor
         _outOfOrderImports = oldOutOfOrderImports;
       });
     });
+
+    // Create a dummy module with empty CSS and no extensions to combine all
+    // the CSS from modules used by [stylesheet].
+    var module = environment.toModule(
+        CssStylesheet(const [], stylesheet.span), Extender.empty);
+    if (module.transitivelyContainsCss) await _combineCss(module).accept(this);
 
     var visitor = _ImportedCssVisitor(this);
     for (var child in children) {
@@ -1061,6 +1092,9 @@ class _EvaluateVisitor
 
   /// Adds a CSS import for [import].
   Future _visitStaticImport(StaticImport import) async {
+    // NOTE: this logic is largely duplicated in [visitCssImport]. Most changes
+    // here should be mirrored there.
+
     var url = await _interpolationToValue(import.url);
     var supports = import.supports;
     var resolvedSupports = supports is SupportsDeclaration
@@ -1124,6 +1158,9 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitLoudComment(LoudComment node) async {
+    // NOTE: this logic is largely duplicated in [visitCssComment]. Most changes
+    // here should be mirrored there.
+
     if (_inFunction) return null;
 
     // Comments are allowed to appear between CSS imports.
@@ -1137,6 +1174,9 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitMediaRule(MediaRule node) async {
+    // NOTE: this logic is largely duplicated in [visitCssMediaRule]. Most
+    // changes here should be mirrored there.
+
     if (_declarationName != null) {
       throw _exception(
           "Media rules may not be used within nested declarations.", node.span);
@@ -1215,6 +1255,9 @@ class _EvaluateVisitor
   Future<Value> visitSilentComment(SilentComment node) async => null;
 
   Future<Value> visitStyleRule(StyleRule node) async {
+    // NOTE: this logic is largely duplicated in [visitCssStyleRule]. Most
+    // changes here should be mirrored there.
+
     if (_declarationName != null) {
       throw _exception(
           "Style rules may not be used within nested declarations.", node.span);
@@ -1223,6 +1266,9 @@ class _EvaluateVisitor
     var selectorText = await _interpolationToValue(node.selector,
         trim: true, warnForColor: true);
     if (_inKeyframes) {
+      // NOTE: this logic is largely duplicated in [visitCssKeyframeBlock]. Most
+      // changes here should be mirrored there.
+
       var parsedSelector = _adjustParseError(
           node.selector,
           () => KeyframeSelectorParser(selectorText.value, logger: _logger)
@@ -1276,6 +1322,9 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitSupportsRule(SupportsRule node) async {
+    // NOTE: this logic is largely duplicated in [visitCssSupportsRule]. Most
+    // changes here should be mirrored there.
+
     if (_declarationName != null) {
       throw _exception(
           "Supports rules may not be used within nested declarations.",
@@ -1940,6 +1989,206 @@ class _EvaluateVisitor
         }))
             .join(),
         quotes: node.hasQuotes);
+  }
+
+  // ## Plain CSS
+
+  // These methods are used when evaluating CSS syntax trees from `@import`ed
+  // stylesheets that themselves contain `@use` rules, and CSS included via the
+  // `load-css()` function.
+
+  Future<void> visitCssAtRule(CssAtRule node) async {
+    // NOTE: this logic is largely duplicated in [visitAtRule]. Most changes
+    // here should be mirrored there.
+
+    if (_declarationName != null) {
+      throw _exception(
+          "At-rules may not be used within nested declarations.", node.span);
+    }
+
+    if (node.isChildless) {
+      _parent.addChild(ModifiableCssAtRule(node.name, node.span,
+          childless: true, value: node.value));
+      return null;
+    }
+
+    var wasInKeyframes = _inKeyframes;
+    var wasInUnknownAtRule = _inUnknownAtRule;
+    if (unvendor(node.name.value) == 'keyframes') {
+      _inKeyframes = true;
+    } else {
+      _inUnknownAtRule = true;
+    }
+
+    await _withParent(
+        ModifiableCssAtRule(node.name, node.span, value: node.value), () async {
+      // We don't have to check for an unknown at-rule in a style rule here,
+      // because the previous compilation has already bubbled the at-rule to the
+      // root.
+      for (var child in node.children) {
+        await child.accept(this);
+      }
+    }, through: (node) => node is CssStyleRule, scopeWhen: false);
+
+    _inUnknownAtRule = wasInUnknownAtRule;
+    _inKeyframes = wasInKeyframes;
+  }
+
+  Future<void> visitCssComment(CssComment node) async {
+    // NOTE: this logic is largely duplicated in [visitLoudComment]. Most
+    // changes here should be mirrored there.
+
+    // Comments are allowed to appear between CSS imports.
+    if (_parent == _root && _endOfImports == _root.children.length) {
+      _endOfImports++;
+    }
+
+    _parent.addChild(ModifiableCssComment(node.text, node.span));
+  }
+
+  Future<void> visitCssDeclaration(CssDeclaration node) async {
+    _parent.addChild(ModifiableCssDeclaration(node.name, node.value, node.span,
+        valueSpanForMap: node.valueSpanForMap));
+  }
+
+  Future<void> visitCssImport(CssImport node) async {
+    // NOTE: this logic is largely duplicated in [_visitStaticImport]. Most
+    // changes here should be mirrored there.
+
+    var modifiableNode = ModifiableCssImport(node.url, node.span,
+        supports: node.supports, media: node.media);
+    if (_parent != _root) {
+      _parent.addChild(modifiableNode);
+    } else if (_endOfImports == _root.children.length) {
+      _root.addChild(modifiableNode);
+      _endOfImports++;
+    } else {
+      _outOfOrderImports ??= [];
+      _outOfOrderImports.add(modifiableNode);
+    }
+  }
+
+  Future<void> visitCssKeyframeBlock(CssKeyframeBlock node) async {
+    // NOTE: this logic is largely duplicated in [visitStyleRule]. Most changes
+    // here should be mirrored there.
+
+    var rule = ModifiableCssKeyframeBlock(node.selector, node.span);
+    await _withParent(rule, () async {
+      for (var child in node.children) {
+        await child.accept(this);
+      }
+    }, through: (node) => node is CssStyleRule, scopeWhen: false);
+  }
+
+  Future<void> visitCssMediaRule(CssMediaRule node) async {
+    // NOTE: this logic is largely duplicated in [visitMediaRule]. Most changes
+    // here should be mirrored there.
+
+    if (_declarationName != null) {
+      throw _exception(
+          "Media rules may not be used within nested declarations.", node.span);
+    }
+
+    var mergedQueries = _mediaQueries == null
+        ? null
+        : _mergeMediaQueries(_mediaQueries, node.queries);
+    if (mergedQueries != null && mergedQueries.isEmpty) return null;
+
+    await _withParent(
+        ModifiableCssMediaRule(mergedQueries ?? node.queries, node.span),
+        () async {
+      await _withMediaQueries(mergedQueries ?? node.queries, () async {
+        if (!_inStyleRule) {
+          for (var child in node.children) {
+            await child.accept(this);
+          }
+        } else {
+          // If we're in a style rule, copy it into the media query so that
+          // declarations immediately inside @media have somewhere to go.
+          //
+          // For example, "a {@media screen {b: c}}" should produce
+          // "@media screen {a {b: c}}".
+          await _withParent(_styleRule.copyWithoutChildren(), () async {
+            for (var child in node.children) {
+              await child.accept(this);
+            }
+          }, scopeWhen: false);
+        }
+      });
+    },
+        through: (node) =>
+            node is CssStyleRule ||
+            (mergedQueries != null && node is CssMediaRule),
+        scopeWhen: false);
+  }
+
+  Future<void> visitCssStyleRule(CssStyleRule node) async {
+    // NOTE: this logic is largely duplicated in [visitStyleRule]. Most changes
+    // here should be mirrored there.
+
+    if (_declarationName != null) {
+      throw _exception(
+          "Style rules may not be used within nested declarations.", node.span);
+    }
+
+    var rule = _extender.addSelector(
+        node.selector.value.resolveParentSelectors(_styleRule?.originalSelector,
+            implicitParent: !_atRootExcludingStyleRule),
+        node.selector.span,
+        node.span,
+        _mediaQueries);
+    var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
+    _atRootExcludingStyleRule = false;
+    await _withParent(rule, () async {
+      await _withStyleRule(rule, () async {
+        for (var child in node.children) {
+          await child.accept(this);
+        }
+      });
+    }, through: (node) => node is CssStyleRule, scopeWhen: false);
+    _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
+
+    if (!_inStyleRule && _parent.children.isNotEmpty) {
+      var lastChild = _parent.children.last;
+      lastChild.isGroupEnd = true;
+    }
+  }
+
+  Future<void> visitCssStylesheet(CssStylesheet node) async {
+    for (var statement in node.children) {
+      await statement.accept(this);
+    }
+  }
+
+  Future<void> visitCssSupportsRule(CssSupportsRule node) async {
+    // NOTE: this logic is largely duplicated in [visitSupportsRule]. Most
+    // changes here should be mirrored there.
+
+    if (_declarationName != null) {
+      throw _exception(
+          "Supports rules may not be used within nested declarations.",
+          node.span);
+    }
+
+    await _withParent(ModifiableCssSupportsRule(node.condition, node.span),
+        () async {
+      if (!_inStyleRule) {
+        for (var child in node.children) {
+          await child.accept(this);
+        }
+      } else {
+        // If we're in a style rule, copy it into the supports rule so that
+        // declarations immediately inside @supports have somewhere to go.
+        //
+        // For example, "a {@supports (a: b) {b: c}}" should produce "@supports
+        // (a: b) {a {b: c}}".
+        await _withParent(_styleRule.copyWithoutChildren(), () async {
+          for (var child in node.children) {
+            await child.accept(this);
+          }
+        });
+      }
+    }, through: (node) => node is CssStyleRule, scopeWhen: false);
   }
 
   // ## Utilities
