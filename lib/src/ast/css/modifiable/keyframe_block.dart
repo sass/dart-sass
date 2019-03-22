@@ -17,7 +17,7 @@ class ModifiableCssKeyframeBlock extends ModifiableCssParentNode
 
   ModifiableCssKeyframeBlock(this.selector, this.span);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitKeyframeBlock(this);
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssKeyframeBlock(this);
 
   ModifiableCssKeyframeBlock copyWithoutChildren() =>
       ModifiableCssKeyframeBlock(selector, span);

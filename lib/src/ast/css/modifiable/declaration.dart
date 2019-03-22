@@ -22,5 +22,5 @@ class ModifiableCssDeclaration extends ModifiableCssNode
       {FileSpan valueSpanForMap})
       : valueSpanForMap = valueSpanForMap ?? span;
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitDeclaration(this);
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssDeclaration(this);
 }

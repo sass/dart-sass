@@ -22,7 +22,7 @@ class ModifiableCssMediaRule extends ModifiableCssParentNode
     }
   }
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitMediaRule(this);
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssMediaRule(this);
 
   ModifiableCssMediaRule copyWithoutChildren() =>
       ModifiableCssMediaRule(queries, span);

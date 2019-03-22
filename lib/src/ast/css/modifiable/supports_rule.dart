@@ -17,7 +17,7 @@ class ModifiableCssSupportsRule extends ModifiableCssParentNode
 
   ModifiableCssSupportsRule(this.condition, this.span);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitSupportsRule(this);
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssSupportsRule(this);
 
   ModifiableCssSupportsRule copyWithoutChildren() =>
       ModifiableCssSupportsRule(condition, span);

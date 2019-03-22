@@ -18,5 +18,5 @@ class ModifiableCssComment extends ModifiableCssNode implements CssComment {
 
   ModifiableCssComment(this.text, this.span);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitComment(this);
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssComment(this);
 }

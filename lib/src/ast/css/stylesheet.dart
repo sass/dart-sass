@@ -25,5 +25,5 @@ class CssStylesheet extends CssParentNode {
       // whole thing consistently represent mutation of the underlying data.
       : children = UnmodifiableListView(children);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitStylesheet(this);
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssStylesheet(this);
 }

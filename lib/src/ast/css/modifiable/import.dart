@@ -29,5 +29,5 @@ class ModifiableCssImport extends ModifiableCssNode implements CssImport {
       {this.supports, Iterable<CssMediaQuery> media})
       : media = media == null ? null : List.unmodifiable(media);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitImport(this);
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssImport(this);
 }

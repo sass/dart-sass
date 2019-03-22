@@ -8,13 +8,13 @@ import '../../ast/css.dart';
 ///
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
 abstract class CssVisitor<T> {
-  T visitAtRule(CssAtRule node);
-  T visitComment(CssComment node);
-  T visitDeclaration(CssDeclaration node);
-  T visitImport(CssImport node);
-  T visitKeyframeBlock(CssKeyframeBlock node);
-  T visitMediaRule(CssMediaRule node);
-  T visitStyleRule(CssStyleRule node);
-  T visitStylesheet(CssStylesheet node);
-  T visitSupportsRule(CssSupportsRule node);
+  T visitCssAtRule(CssAtRule node);
+  T visitCssComment(CssComment node);
+  T visitCssDeclaration(CssDeclaration node);
+  T visitCssImport(CssImport node);
+  T visitCssKeyframeBlock(CssKeyframeBlock node);
+  T visitCssMediaRule(CssMediaRule node);
+  T visitCssStyleRule(CssStyleRule node);
+  T visitCssStylesheet(CssStylesheet node);
+  T visitCssSupportsRule(CssSupportsRule node);
 }
