@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
+import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
 import '../ast/css/modifiable.dart';
@@ -28,21 +29,21 @@ class Extender {
   /// contain them.
   ///
   /// This is used to find which rules an `@extend` applies to.
-  final _selectors = <SimpleSelector, Set<ModifiableCssStyleRule>>{};
+  final Map<SimpleSelector, Set<ModifiableCssStyleRule>> _selectors;
 
   /// A map from all extended simple selectors to the sources of those
   /// extensions.
-  final _extensions = <SimpleSelector, Map<ComplexSelector, Extension>>{};
+  final Map<SimpleSelector, Map<ComplexSelector, Extension>> _extensions;
 
   /// A map from all simple selectors in extenders to the extensions that those
   /// extenders define.
-  final _extensionsByExtender = <SimpleSelector, List<Extension>>{};
+  final Map<SimpleSelector, List<Extension>> _extensionsByExtender;
 
   /// A map from CSS rules to the media query contexts they're defined in.
   ///
   /// This tracks the contexts in which each style rule is defined. If a rule is
   /// defined at the top level, it doesn't have an entry.
-  final _mediaContexts = Map<CssStyleRule, List<CssMediaQuery>>();
+  final Map<CssStyleRule, List<CssMediaQuery>> _mediaContexts;
 
   /// A map from [SimpleSelector]s to the specificity of their source
   /// selectors.
@@ -53,7 +54,7 @@ class Extender {
   /// of extend][].
   ///
   /// [second law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
-  final _sourceSpecificity = Map<SimpleSelector, int>.identity();
+  final Map<SimpleSelector, int> _sourceSpecificity;
 
   /// A set of [ComplexSelector]s that were originally part of
   /// their component [SelectorList]s, as opposed to being added by `@extend`.
@@ -62,7 +63,7 @@ class Extender {
   /// exist to satisfy the [first law of extend][].
   ///
   /// [first law of extend]: https://github.com/sass/sass/issues/324#issuecomment-4607184
-  final _originals = Set<ComplexSelector>.identity();
+  final Set<ComplexSelector> _originals;
 
   /// The mode that controls this extender's behavior.
   final ExtendMode _mode;
@@ -101,7 +102,7 @@ class Extender {
         extensions[simple] = extenders;
       }
 
-      var extender = Extender._(mode);
+      var extender = Extender._mode(mode);
       if (!selector.isInvisible) {
         extender._originals.addAll(selector.components);
       }
@@ -117,9 +118,19 @@ class Extender {
   /// extensions.
   Set<SimpleSelector> get simpleSelectors => MapKeySet(_selectors);
 
-  Extender() : _mode = ExtendMode.normal;
+  Extender() : this._mode(ExtendMode.normal);
 
-  Extender._(this._mode);
+  Extender._mode(this._mode)
+      : _selectors = {},
+        _extensions = {},
+        _extensionsByExtender = {},
+        _mediaContexts = {},
+        _sourceSpecificity = Map.identity(),
+        _originals = Set.identity();
+
+  Extender._(this._selectors, this._extensions, this._extensionsByExtender,
+      this._mediaContexts, this._sourceSpecificity, this._originals)
+      : _mode = ExtendMode.normal;
 
   /// Returns all mandatory extensions in this extender for whose targets
   /// [callback] returns `true`.
@@ -887,5 +898,38 @@ class Extender {
       specificity = math.max(specificity, _sourceSpecificity[simple] ?? 0);
     }
     return specificity;
+  }
+
+  /// Returns a copy of [this] that extends new [ModifiableCssStyleRules], as
+  /// well as a map from the rules extended by [this] to the rules extended by
+  /// the new [Extender].
+  Tuple2<Extender, Map<CssStyleRule, ModifiableCssStyleRule>> clone() {
+    var newSelectors = <SimpleSelector, Set<ModifiableCssStyleRule>>{};
+    var newMediaContexts = Map<CssStyleRule, List<CssMediaQuery>>();
+    var oldToNewRules = <CssStyleRule, ModifiableCssStyleRule>{};
+
+    _selectors.forEach((simple, rules) {
+      var newRules = Set<ModifiableCssStyleRule>();
+      newSelectors[simple] = newRules;
+
+      for (var rule in rules) {
+        var newRule = rule.copyWithoutChildren();
+        newRules.add(newRule);
+        oldToNewRules[rule] = newRule;
+
+        var mediaContext = _mediaContexts[rule];
+        if (mediaContext != null) newMediaContexts[newRule] = mediaContext;
+      }
+    });
+
+    return Tuple2(
+        Extender._(
+            newSelectors,
+            copyMapOfMap(_extensions),
+            copyMapOfList(_extensionsByExtender),
+            newMediaContexts,
+            Map.identity()..addAll(_sourceSpecificity),
+            Set.identity()..addAll(_originals)),
+        oldToNewRules);
   }
 }

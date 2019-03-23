@@ -31,7 +31,7 @@ class ModifiableCssStyleRule extends ModifiableCssParentNode
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssStyleRule(this);
 
-  ModifiableCssStyleRule copyWithoutChildren() =>
-      ModifiableCssStyleRule(selector, span,
-          originalSelector: originalSelector);
+  ModifiableCssStyleRule copyWithoutChildren() => ModifiableCssStyleRule(
+      ModifiableCssValue(selector.value, selector.span), span,
+      originalSelector: originalSelector);
 }

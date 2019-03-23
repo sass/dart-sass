@@ -62,4 +62,7 @@ abstract class AsyncModule {
   /// Throws a [SassScriptException] if this module doesn't define a variable
   /// named [name].
   void setVariable(String name, Value value, AstNode nodeWithSpan);
+
+  /// Creates a copy of this module with new [css] and [extender].
+  AsyncModule cloneCss();
 }

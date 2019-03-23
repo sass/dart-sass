@@ -16,6 +16,7 @@ import 'functions.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
 import 'value.dart';
+import 'visitor/clone_css.dart';
 
 /// The lexical environment in which Sass is executed.
 ///
@@ -656,5 +657,13 @@ class _EnvironmentModule implements AsyncModule {
       _environment._variableNodes.first[name] = nodeWithSpan;
     }
     return;
+  }
+
+  AsyncModule cloneCss() {
+    if (css.children.isEmpty) return this;
+
+    var newCssAndExtender = cloneCssStylesheet(css, extender);
+    return _EnvironmentModule(
+        _environment, newCssAndExtender.item1, newCssAndExtender.item2);
   }
 }

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_module.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: c8cda9eb650a827924cb601386be7d507faa7a61
+// Checksum: e85903dbb32318c558ca4132a78dca55ee617280
 //
 // ignore_for_file: unused_import
 
@@ -69,4 +69,7 @@ abstract class Module {
   /// Throws a [SassScriptException] if this module doesn't define a variable
   /// named [name].
   void setVariable(String name, Value value, AstNode nodeWithSpan);
+
+  /// Creates a copy of this module with new [css] and [extender].
+  Module cloneCss();
 }

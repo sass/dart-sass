@@ -42,4 +42,7 @@ class EmptyExtender implements Extender {
     throw UnsupportedError(
         "addExtensions() can't be called for a const Extender.");
   }
+
+  Tuple2<Extender, Map<CssStyleRule, ModifiableCssStyleRule>> clone() =>
+      const Tuple2(EmptyExtender(), {});
 }

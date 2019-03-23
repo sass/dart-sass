@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 0969eab1df3ee05f1029ebe1a5e2485580032491
+// Checksum: 36876e7e932a30409d59d0fa256ad02d25934aab
 //
 // ignore_for_file: unused_import
 
@@ -21,6 +21,7 @@ import 'functions.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
 import 'value.dart';
+import 'visitor/clone_css.dart';
 
 /// The lexical environment in which Sass is executed.
 ///
@@ -658,5 +659,13 @@ class _EnvironmentModule implements Module {
       _environment._variableNodes.first[name] = nodeWithSpan;
     }
     return;
+  }
+
+  Module cloneCss() {
+    if (css.children.isEmpty) return this;
+
+    var newCssAndExtender = cloneCssStylesheet(css, extender);
+    return _EnvironmentModule(
+        _environment, newCssAndExtender.item1, newCssAndExtender.item2);
   }
 }

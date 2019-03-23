@@ -440,3 +440,12 @@ Future<Map<String, V2>> normalizedMapMapAsync<K, V1, V2>(Map<K, V1> map,
   }
   return result;
 }
+
+/// Returns a deep copy of a map that contains maps.
+Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
+    mapMap<K1, Map<K2, V>, K1, Map<K2, V>>(map,
+        value: (_, innerMap) => Map.of(innerMap));
+
+/// Returns a deep copy of a map that contains lists.
+Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
+    mapMap<K, List<E>, K, List<E>>(map, value: (_, list) => list.toList());
