@@ -1995,7 +1995,12 @@ class _EvaluateVisitor
 
   // These methods are used when evaluating CSS syntax trees from `@import`ed
   // stylesheets that themselves contain `@use` rules, and CSS included via the
-  // `load-css()` function.
+  // `load-css()` function. When we load a module using one of these constructs,
+  // we first convert it to CSS (we can't evaluate it as Sass directly because
+  // it may be used elsewhere and it must only be evaluatedonce). Then we
+  // execute that CSS more or less as though it were Sass (we can't inject it
+  // into the stylesheet as-is because the `@import` may be nested in other
+  // rules). That's what these rules implement.
 
   Future<void> visitCssAtRule(CssAtRule node) async {
     // NOTE: this logic is largely duplicated in [visitAtRule]. Most changes

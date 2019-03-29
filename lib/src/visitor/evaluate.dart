@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 1b0b35d8f9eb6af205dc426c4cf4fee9523e9caa
+// Checksum: c7d7b5c49b3b2d09edd180440fc10582f53fdafb
 //
 // ignore_for_file: unused_import
 
@@ -1982,7 +1982,12 @@ class _EvaluateVisitor
 
   // These methods are used when evaluating CSS syntax trees from `@import`ed
   // stylesheets that themselves contain `@use` rules, and CSS included via the
-  // `load-css()` function.
+  // `load-css()` function. When we load a module using one of these constructs,
+  // we first convert it to CSS (we can't evaluate it as Sass directly because
+  // it may be used elsewhere and it must only be evaluatedonce). Then we
+  // execute that CSS more or less as though it were Sass (we can't inject it
+  // into the stylesheet as-is because the `@import` may be nested in other
+  // rules). That's what these rules implement.
 
   void visitCssAtRule(CssAtRule node) {
     // NOTE: this logic is largely duplicated in [visitAtRule]. Most changes
