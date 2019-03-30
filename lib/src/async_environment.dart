@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
@@ -621,6 +622,8 @@ class AsyncEnvironment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements AsyncModule {
+  Uri get url => css.span.sourceUrl;
+
   final List<AsyncModule> upstream;
   final Map<String, Value> variables;
   final Map<String, AstNode> variableNodes;
@@ -666,4 +669,6 @@ class _EnvironmentModule implements AsyncModule {
     return _EnvironmentModule(
         _environment, newCssAndExtender.item1, newCssAndExtender.item2);
   }
+
+  String toString() => p.prettyUri(css.span.sourceUrl);
 }

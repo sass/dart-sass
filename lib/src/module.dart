@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_module.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: e85903dbb32318c558ca4132a78dca55ee617280
+// Checksum: 895440529b78f1ef2830cf105af00dba0755e947
 //
 // ignore_for_file: unused_import
 
@@ -19,6 +19,12 @@ import 'value.dart';
 
 /// The interface for a Sass module.
 abstract class Module {
+  /// The canonical URL for this module's source file.
+  ///
+  /// This may be `null` if the module was loaded from a string without a URL
+  /// provided.
+  Uri get url;
+
   /// Modules that this module uses.
   List<Module> get upstream;
 

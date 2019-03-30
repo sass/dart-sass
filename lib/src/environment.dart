@@ -5,10 +5,11 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 36876e7e932a30409d59d0fa256ad02d25934aab
+// Checksum: 097eb94cd15103bf4bef739a61e61414db4b55b1
 //
 // ignore_for_file: unused_import
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
@@ -623,6 +624,8 @@ class Environment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements Module {
+  Uri get url => css.span.sourceUrl;
+
   final List<Module> upstream;
   final Map<String, Value> variables;
   final Map<String, AstNode> variableNodes;
@@ -668,4 +671,6 @@ class _EnvironmentModule implements Module {
     return _EnvironmentModule(
         _environment, newCssAndExtender.item1, newCssAndExtender.item2);
   }
+
+  String toString() => p.prettyUri(css.span.sourceUrl);
 }

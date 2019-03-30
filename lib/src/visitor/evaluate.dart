@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: c7d7b5c49b3b2d09edd180440fc10582f53fdafb
+// Checksum: 0f4f00db38a7f2a60771d3d50652cbfdeb322e52
 //
 // ignore_for_file: unused_import
 
@@ -447,7 +447,10 @@ class _EvaluateVisitor
   /// modules transitively used by [root].
   ///
   /// This also applies each module's extensions to its upstream modules.
-  CssStylesheet _combineCss(Module root) {
+  ///
+  /// If [clone] is `true`, this will copy the modules before extending them so
+  /// that they don't modify [root] or its dependencies.
+  CssStylesheet _combineCss(Module root, {bool clone = false}) {
     // TODO(nweiz): short-circuit if no upstream modules (transitively) include
     // any CSS.
     if (root.upstream.isEmpty) {
@@ -462,6 +465,9 @@ class _EvaluateVisitor
     }
 
     var sortedModules = _topologicalModules(root);
+    if (clone) {
+      sortedModules = sortedModules.map((module) => module.cloneCss()).toList();
+    }
     _extendModules(sortedModules);
 
     // The imports (and comments between them) that should be included at the
@@ -484,11 +490,11 @@ class _EvaluateVisitor
   /// Extends the selectors in each module with the extensions defined in
   /// downstream modules.
   void _extendModules(List<Module> sortedModules) {
-    // All the extenders directly downstream of a given module. It's important
-    // that we create this in topological order, so that by the time we're
-    // processing a module we've already filled in all its downstream extenders
-    // and we can use them to extend that module.
-    var downstreamExtenders = <Module, List<Extender>>{};
+    // All the extenders directly downstream of a given module (indexed by its
+    // canonical URL). It's important that we create this in topological order,
+    // so that by the time we're processing a module we've already filled in all
+    // its downstream extenders and we can use them to extend that module.
+    var downstreamExtenders = <Uri, List<Extender>>{};
 
     /// Extensions that haven't yet been satisfied by some upstream module. This
     /// adds extensions when they're defined but not satisfied, and removes them
@@ -506,13 +512,13 @@ class _EvaluateVisitor
       unsatisfiedExtensions.addAll(module.extender.extensionsWhereTarget(
           (target) => !originalSelectors.contains(target)));
 
-      var extenders = downstreamExtenders[module];
+      var extenders = downstreamExtenders[module.url];
       if (extenders != null) module.extender.addExtensions(extenders);
       if (module.extender.isEmpty) continue;
 
       for (var upstream in module.upstream) {
         downstreamExtenders
-            .putIfAbsent(upstream, () => [])
+            .putIfAbsent(upstream.url, () => [])
             .add(module.extender);
       }
 
@@ -1029,7 +1035,9 @@ class _EvaluateVisitor
     // the CSS from modules used by [stylesheet].
     var module = environment.toModule(
         CssStylesheet(const [], stylesheet.span), Extender.empty);
-    if (module.transitivelyContainsCss) _combineCss(module).accept(this);
+    if (module.transitivelyContainsCss) {
+      _combineCss(module, clone: true).accept(this);
+    }
 
     var visitor = _ImportedCssVisitor(this);
     for (var child in children) {

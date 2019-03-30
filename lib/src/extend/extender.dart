@@ -398,6 +398,7 @@ class Extender {
     Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions;
 
     for (var extender in extenders) {
+      if (extender.isEmpty) continue;
       extender._extensions.forEach((target, newSources) {
         // Private selectors can't be extended across module boundaries.
         if (target is PlaceholderSelector && target.isPrivate) return;
