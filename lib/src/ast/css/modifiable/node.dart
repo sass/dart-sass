@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../at_rule.dart';
 import '../node.dart';
 import '../style_rule.dart';
@@ -57,7 +57,7 @@ abstract class ModifiableCssNode extends CssNode {
     }
   }
 
-  T accept<T>(CssVisitor<T> visitor);
+  T accept<T>(ModifiableCssVisitor<T> visitor);
 
   /// Removes [this] from [parent]'s child list.
   ///
