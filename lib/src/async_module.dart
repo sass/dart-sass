@@ -58,6 +58,10 @@ abstract class AsyncModule {
   /// Whether this module *or* any modules in [upstream] contain any CSS.
   bool get transitivelyContainsCss;
 
+  /// Whether this module *or* any modules in [upstream] contain `@extend`
+  /// rules..
+  bool get transitivelyContainsExtensions;
+
   /// Sets the variable named [name] to [value], associated with
   /// [nodeWithSpan]'s source span.
   ///

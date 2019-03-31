@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 097eb94cd15103bf4bef739a61e61414db4b55b1
+// Checksum: 3210a5c0528eac456ae8ca7827b65f3976f6b29d
 //
 // ignore_for_file: unused_import
 
@@ -634,6 +634,7 @@ class _EnvironmentModule implements Module {
   final Extender extender;
   final CssStylesheet css;
   final bool transitivelyContainsCss;
+  final bool transitivelyContainsExtensions;
 
   /// The environment that defines this module's members.
   final Environment _environment;
@@ -650,7 +651,10 @@ class _EnvironmentModule implements Module {
         mixins = PublicMemberMap(_environment._mixins.first),
         transitivelyContainsCss = css.children.isNotEmpty ||
             _environment._allModules
-                .any((module) => module.transitivelyContainsCss);
+                .any((module) => module.transitivelyContainsCss),
+        transitivelyContainsExtensions = !extender.isEmpty ||
+            _environment._allModules
+                .any((module) => module.transitivelyContainsExtensions);
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!_environment._variables.first.containsKey(name)) {

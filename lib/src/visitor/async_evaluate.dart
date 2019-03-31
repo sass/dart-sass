@@ -1033,7 +1033,12 @@ class _EvaluateVisitor
     var module = environment.toModule(
         CssStylesheet(const [], stylesheet.span), Extender.empty);
     if (module.transitivelyContainsCss) {
-      await _combineCss(module, clone: true).accept(this);
+      // If any transitively used module contains extensions, we need to clone
+      // all modules' CSS. Otherwise, it's possible that they'll be used or
+      // imported from another location that shouldn't have the same extensions
+      // applied.
+      await _combineCss(module, clone: module.transitivelyContainsExtensions)
+          .accept(this);
     }
 
     var visitor = _ImportedCssVisitor(this);

@@ -632,6 +632,7 @@ class _EnvironmentModule implements AsyncModule {
   final Extender extender;
   final CssStylesheet css;
   final bool transitivelyContainsCss;
+  final bool transitivelyContainsExtensions;
 
   /// The environment that defines this module's members.
   final AsyncEnvironment _environment;
@@ -648,7 +649,10 @@ class _EnvironmentModule implements AsyncModule {
         mixins = PublicMemberMap(_environment._mixins.first),
         transitivelyContainsCss = css.children.isNotEmpty ||
             _environment._allModules
-                .any((module) => module.transitivelyContainsCss);
+                .any((module) => module.transitivelyContainsCss),
+        transitivelyContainsExtensions = !extender.isEmpty ||
+            _environment._allModules
+                .any((module) => module.transitivelyContainsExtensions);
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!_environment._variables.first.containsKey(name)) {

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_module.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 895440529b78f1ef2830cf105af00dba0755e947
+// Checksum: d996840504b080c2c4e6b34136562b8152bb2e97
 //
 // ignore_for_file: unused_import
 
@@ -64,6 +64,10 @@ abstract class Module {
 
   /// Whether this module *or* any modules in [upstream] contain any CSS.
   bool get transitivelyContainsCss;
+
+  /// Whether this module *or* any modules in [upstream] contain `@extend`
+  /// rules..
+  bool get transitivelyContainsExtensions;
 
   /// Sets the variable named [name] to [value], associated with
   /// [nodeWithSpan]'s source span.

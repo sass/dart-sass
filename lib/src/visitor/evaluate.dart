@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 0f4f00db38a7f2a60771d3d50652cbfdeb322e52
+// Checksum: 4de442e73c75611a675e2fd0d8962219f1ceffd7
 //
 // ignore_for_file: unused_import
 
@@ -1036,7 +1036,12 @@ class _EvaluateVisitor
     var module = environment.toModule(
         CssStylesheet(const [], stylesheet.span), Extender.empty);
     if (module.transitivelyContainsCss) {
-      _combineCss(module, clone: true).accept(this);
+      // If any transitively used module contains extensions, we need to clone
+      // all modules' CSS. Otherwise, it's possible that they'll be used or
+      // imported from another location that shouldn't have the same extensions
+      // applied.
+      _combineCss(module, clone: module.transitivelyContainsExtensions)
+          .accept(this);
     }
 
     var visitor = _ImportedCssVisitor(this);
