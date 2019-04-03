@@ -195,9 +195,9 @@ Iterable<String> listDir(String path, {bool recursive = false}) {
   return _systemErrorToFileSystemException(() {
     if (!recursive) {
       return _fs
-          .readdirSync(parent)
-          .map((child) => p.join(parent, child as String))
-          .where((path) => !dirExists(path));
+          .readdirSync(path)
+          .map((child) => p.join(path, child as String))
+          .where((child) => !dirExists(child));
     } else {
       Iterable<String> list(String parent) =>
           _fs.readdirSync(parent).expand((child) {
