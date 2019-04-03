@@ -71,10 +71,11 @@ bool dirExists(String path) => io.Directory(path).existsSync();
 
 void ensureDir(String path) => io.Directory(path).createSync(recursive: true);
 
-Iterable<String> listDir(String path) => io.Directory(path)
-    .listSync(recursive: true)
-    .where((entity) => entity is io.File)
-    .map((entity) => entity.path);
+Iterable<String> listDir(String path, {bool recursive = false}) =>
+    io.Directory(path)
+        .listSync(recursive: recursive)
+        .where((entity) => entity is io.File)
+        .map((entity) => entity.path);
 
 DateTime modificationTime(String path) {
   var stat = io.FileStat.statSync(path);

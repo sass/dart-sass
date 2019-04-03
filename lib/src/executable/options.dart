@@ -356,7 +356,7 @@ class ExecutableOptions {
   /// [destination] directories.
   Map<String, String> _listSourceDirectory(String source, String destination) {
     var map = <String, String>{};
-    for (var path in listDir(source)) {
+    for (var path in listDir(source, recursive: true)) {
       var basename = p.basename(path);
       if (basename.startsWith("_")) continue;
 

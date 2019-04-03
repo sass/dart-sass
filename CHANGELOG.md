@@ -1,3 +1,8 @@
+## 1.17.5
+
+* Avoid recursively listing directories when finding the canonical name of a
+  file on case-insensitive filesystems.
+
 ## 1.17.4
 
 * Consistently parse U+000C FORM FEED, U+000D CARRIAGE RETURN, and sequences of
