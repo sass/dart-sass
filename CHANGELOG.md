@@ -1,6 +1,15 @@
 ## 1.17.5
 
+* Fix importing files relative to `package:`-imported files.
+
 * Don't claim that "package:" URLs aren't supported when they actually are.
+
+### Dart API
+
+* Explicitly require that importers' `canonicalize()` methods be able to take
+  paths relative to their outputs as valid inputs. This isn't considered a
+  breaking change because the importer infrastructure already required this in
+  practice.
 
 ## 1.17.4
 

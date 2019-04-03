@@ -29,6 +29,7 @@ class PackageImporter extends Importer {
   PackageImporter(this._packageResolver);
 
   Uri canonicalize(Uri url) {
+    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
     if (url.scheme != 'package') return null;
 
     var resolved = _packageResolver.resolveUri(url);
