@@ -1,3 +1,7 @@
+## 1.17.5
+
+* Don't claim that "package:" URLs aren't supported when they actually are.
+
 ## 1.17.4
 
 * Consistently parse U+000C FORM FEED, U+000D CARRIAGE RETURN, and sequences of
