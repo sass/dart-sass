@@ -91,6 +91,9 @@ abstract class ModifiableCssParentNode extends ModifiableCssNode
         children = UnmodifiableListView(children);
 
   /// Returns a copy of [this] with an empty [children] list.
+  ///
+  /// This is *not* a deep copy. If other parts of this node are modifiable,
+  /// they are shared between the new and old nodes.
   ModifiableCssParentNode copyWithoutChildren();
 
   /// Adds [child] as a child of this statement.

@@ -914,7 +914,13 @@ class Extender {
       newSelectors[simple] = newRules;
 
       for (var rule in rules) {
-        var newRule = rule.copyWithoutChildren();
+        // We can't use [StyleRule.copyWithoutChildren] here because it doesn't
+        // copy the [ModifiableCssValue<Selector>], which we need to do to
+        // properly isolate extensions.
+        var newRule = ModifiableCssStyleRule(
+            ModifiableCssValue(rule.selector.value, rule.selector.span),
+            rule.span,
+            originalSelector: rule.originalSelector);
         newRules.add(newRule);
         oldToNewRules[rule] = newRule;
 
