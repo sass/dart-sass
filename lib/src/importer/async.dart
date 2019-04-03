@@ -68,8 +68,10 @@ abstract class AsyncImporter {
   ///
   /// If no stylesheets are found, the importer should return `null`.
   ///
-  /// Sass assumes that calling [canonicalize] multiple times with the same URL
-  /// will return the same result.
+  /// Calling [canonicalize] multiple times with the same URL must return the
+  /// same result. Calling [canonicalize] with a URL returned by [canonicalize]
+  /// must return that URL. Calling [canonicalize] with a URL relative to one
+  /// returned by [canonicalize] must return a meaningful result.
   FutureOr<Uri> canonicalize(Uri url);
 
   /// Loads the Sass text for the given [url], or returns `null` if
