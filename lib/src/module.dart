@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_module.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: c8cda9eb650a827924cb601386be7d507faa7a61
+// Checksum: d996840504b080c2c4e6b34136562b8152bb2e97
 //
 // ignore_for_file: unused_import
 
@@ -19,6 +19,12 @@ import 'value.dart';
 
 /// The interface for a Sass module.
 abstract class Module {
+  /// The canonical URL for this module's source file.
+  ///
+  /// This may be `null` if the module was loaded from a string without a URL
+  /// provided.
+  Uri get url;
+
   /// Modules that this module uses.
   List<Module> get upstream;
 
@@ -59,6 +65,10 @@ abstract class Module {
   /// Whether this module *or* any modules in [upstream] contain any CSS.
   bool get transitivelyContainsCss;
 
+  /// Whether this module *or* any modules in [upstream] contain `@extend`
+  /// rules..
+  bool get transitivelyContainsExtensions;
+
   /// Sets the variable named [name] to [value], associated with
   /// [nodeWithSpan]'s source span.
   ///
@@ -69,4 +79,7 @@ abstract class Module {
   /// Throws a [SassScriptException] if this module doesn't define a variable
   /// named [name].
   void setVariable(String name, Value value, AstNode nodeWithSpan);
+
+  /// Creates a copy of this module with new [css] and [extender].
+  Module cloneCss();
 }

@@ -5,10 +5,11 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 0969eab1df3ee05f1029ebe1a5e2485580032491
+// Checksum: 3210a5c0528eac456ae8ca7827b65f3976f6b29d
 //
 // ignore_for_file: unused_import
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
@@ -21,6 +22,7 @@ import 'functions.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
 import 'value.dart';
+import 'visitor/clone_css.dart';
 
 /// The lexical environment in which Sass is executed.
 ///
@@ -622,6 +624,8 @@ class Environment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements Module {
+  Uri get url => css.span.sourceUrl;
+
   final List<Module> upstream;
   final Map<String, Value> variables;
   final Map<String, AstNode> variableNodes;
@@ -630,6 +634,7 @@ class _EnvironmentModule implements Module {
   final Extender extender;
   final CssStylesheet css;
   final bool transitivelyContainsCss;
+  final bool transitivelyContainsExtensions;
 
   /// The environment that defines this module's members.
   final Environment _environment;
@@ -646,7 +651,10 @@ class _EnvironmentModule implements Module {
         mixins = PublicMemberMap(_environment._mixins.first),
         transitivelyContainsCss = css.children.isNotEmpty ||
             _environment._allModules
-                .any((module) => module.transitivelyContainsCss);
+                .any((module) => module.transitivelyContainsCss),
+        transitivelyContainsExtensions = !extender.isEmpty ||
+            _environment._allModules
+                .any((module) => module.transitivelyContainsExtensions);
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!_environment._variables.first.containsKey(name)) {
@@ -659,4 +667,14 @@ class _EnvironmentModule implements Module {
     }
     return;
   }
+
+  Module cloneCss() {
+    if (css.children.isEmpty) return this;
+
+    var newCssAndExtender = cloneCssStylesheet(css, extender);
+    return _EnvironmentModule(
+        _environment, newCssAndExtender.item1, newCssAndExtender.item2);
+  }
+
+  String toString() => p.prettyUri(css.span.sourceUrl);
 }

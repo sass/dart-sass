@@ -12,6 +12,12 @@ import 'value.dart';
 
 /// The interface for a Sass module.
 abstract class AsyncModule {
+  /// The canonical URL for this module's source file.
+  ///
+  /// This may be `null` if the module was loaded from a string without a URL
+  /// provided.
+  Uri get url;
+
   /// Modules that this module uses.
   List<AsyncModule> get upstream;
 
@@ -52,6 +58,10 @@ abstract class AsyncModule {
   /// Whether this module *or* any modules in [upstream] contain any CSS.
   bool get transitivelyContainsCss;
 
+  /// Whether this module *or* any modules in [upstream] contain `@extend`
+  /// rules..
+  bool get transitivelyContainsExtensions;
+
   /// Sets the variable named [name] to [value], associated with
   /// [nodeWithSpan]'s source span.
   ///
@@ -62,4 +72,7 @@ abstract class AsyncModule {
   /// Throws a [SassScriptException] if this module doesn't define a variable
   /// named [name].
   void setVariable(String name, Value value, AstNode nodeWithSpan);
+
+  /// Creates a copy of this module with new [css] and [extender].
+  AsyncModule cloneCss();
 }
