@@ -1,5 +1,8 @@
 ## 1.17.4
 
+* Consistently parse U+000C FORM FEED, U+000D CARRIAGE RETURN, and sequences of
+  U+000D CARRIAGE RETURN followed by U+000A LINE FEED as individual newlines.
+
 ### JavaScript API
 
 * Add a `sass.types.Error` constructor as an alias for `Error`. This makes our
