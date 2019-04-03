@@ -137,6 +137,8 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
     return visitChildren(node);
   }
 
+  T visitUseRule(UseRule node) => null;
+
   T visitVariableDeclaration(VariableDeclaration node) {
     visitExpression(node.expression);
     return null;
