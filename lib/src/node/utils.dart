@@ -34,10 +34,10 @@ bool isUndefined(value) => _isUndefined.call(value) as bool;
 final _isUndefined = JSFunction("value", "return value === undefined;");
 
 @JS("Error")
-external Function get _JSError;
+external Function get jsErrorConstructor;
 
 /// Returns whether [value] is a JS Error object.
-bool isJSError(value) => instanceof(value, _JSError);
+bool isJSError(value) => instanceof(value, jsErrorConstructor);
 
 /// Invokes [function] with [thisArg] as `this`.
 Object call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
