@@ -1,3 +1,14 @@
+## 1.17.5
+
+* Fix importing files relative to `package:`-imported files.
+
+### Dart API
+
+* Explicitly require that importers' `canonicalize()` methods be able to take
+  paths relative to their outputs as valid inputs. This isn't considered a
+  breaking change because the importer infrastructure already required this in
+  practice.
+
 ## 1.17.4
 
 * Consistently parse U+000C FORM FEED, U+000D CARRIAGE RETURN, and sequences of
