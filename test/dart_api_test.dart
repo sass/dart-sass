@@ -100,6 +100,22 @@ main() {
       expect(css, equals("a {\n  b: 3;\n}"));
     });
 
+    test("can resolve relative paths in a package", () async {
+      await d.dir("subdir", [
+        d.file("test.scss", "@import 'other'"),
+        d.file("_other.scss", "a {b: 1 + 2}"),
+      ]).create();
+
+      await d
+          .file("test.scss", '@import "package:fake_package/test";')
+          .create();
+      var resolver = SyncPackageResolver.config(
+          {"fake_package": p.toUri(d.path('subdir'))});
+
+      var css = compile(d.path("test.scss"), packageResolver: resolver);
+      expect(css, equals("a {\n  b: 3;\n}"));
+    });
+
     test("doesn't import a package URL from a missing package", () async {
       await d
           .file("test.scss", '@import "package:fake_package/test_aux";')
