@@ -2,6 +2,8 @@
 
 * Fix importing files relative to `package:`-imported files.
 
+* Don't claim that "package:" URLs aren't supported when they actually are.
+
 ### Dart API
 
 * Explicitly require that importers' `canonicalize()` methods be able to take

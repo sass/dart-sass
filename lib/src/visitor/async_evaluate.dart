@@ -27,6 +27,7 @@ import '../extend/extender.dart';
 import '../importer.dart';
 import '../importer/node.dart';
 import '../importer/utils.dart';
+import '../io.dart';
 import '../logger.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
@@ -851,7 +852,7 @@ class _EvaluateVisitor
         if (tuple != null) return tuple;
       }
 
-      if (url.startsWith('package:')) {
+      if (url.startsWith('package:') && isNode) {
         // Special-case this error message, since it's tripped people up in the
         // past.
         throw "\"package:\" URLs aren't supported on this platform.";
