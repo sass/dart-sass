@@ -79,9 +79,11 @@ bool dirExists(String path) => null;
 /// necessary.
 void ensureDir(String path) => null;
 
-/// Recursively lists the files (not sub-directories) of the directory at
-/// [path].
-Iterable<String> listDir(String path) => null;
+/// Lists the files (not sub-directories) in the directory at [path].
+///
+/// If [recursive] is `true`, this lists files in directories transitively
+/// beneath [path] as well.
+Iterable<String> listDir(String path, {bool recursive = false}) => null;
 
 /// Returns the modification time of the file at [path].
 DateTime modificationTime(String path) => null;

@@ -1,5 +1,8 @@
 ## 1.17.5
 
+* Avoid recursively listing directories when finding the canonical name of a
+  file on case-insensitive filesystems.
+
 * Fix importing files relative to `package:`-imported files.
 
 * Don't claim that "package:" URLs aren't supported when they actually are.
