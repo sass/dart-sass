@@ -1,4 +1,4 @@
-## 1.17.5
+## 1.18.0
 
 * Avoid recursively listing directories when finding the canonical name of a
   file on case-insensitive filesystems.
@@ -7,7 +7,18 @@
 
 * Don't claim that "package:" URLs aren't supported when they actually are.
 
+### Command-Line Interface
+
+* Add a `--no-charset` flag. If this flag is set, Sass will never emit a
+  `@charset` declaration or a byte-order mark, even if the CSS file contains
+  non-ASCII characters.
+
 ### Dart API
+
+* Add a `charset` option to `compile()`, `compileString()`, `compileAsync()` and
+  `compileStringAsync()`. If this option is set to `false`, Sass will never emit
+  a `@charset` declaration or a byte-order mark, even if the CSS file contains
+  non-ASCII characters.
 
 * Explicitly require that importers' `canonicalize()` methods be able to take
   paths relative to their outputs as valid inputs. This isn't considered a

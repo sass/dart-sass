@@ -36,7 +36,8 @@ Future<CompileResult> compileAsync(String path,
     bool useSpaces = true,
     int indentWidth,
     LineFeed lineFeed,
-    bool sourceMap = false}) async {
+    bool sourceMap = false,
+    bool charset = true}) async {
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
   Stylesheet stylesheet;
@@ -62,7 +63,8 @@ Future<CompileResult> compileAsync(String path,
       useSpaces,
       indentWidth,
       lineFeed,
-      sourceMap);
+      sourceMap,
+      charset);
 }
 
 /// Like [compileStringAsync] in `lib/sass.dart`, but provides more options to
@@ -84,7 +86,8 @@ Future<CompileResult> compileStringAsync(String source,
     int indentWidth,
     LineFeed lineFeed,
     url,
-    bool sourceMap = false}) async {
+    bool sourceMap = false,
+    bool charset = true}) async {
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 
@@ -99,7 +102,8 @@ Future<CompileResult> compileStringAsync(String source,
       useSpaces,
       indentWidth,
       lineFeed,
-      sourceMap);
+      sourceMap,
+      charset);
 }
 
 /// Compiles [stylesheet] and returns its result.
@@ -116,7 +120,8 @@ Future<CompileResult> _compileStylesheet(
     bool useSpaces,
     int indentWidth,
     LineFeed lineFeed,
-    bool sourceMap) async {
+    bool sourceMap,
+    bool charset) async {
   var evaluateResult = await evaluateAsync(stylesheet,
       importCache: importCache,
       nodeImporter: nodeImporter,
@@ -130,7 +135,8 @@ Future<CompileResult> _compileStylesheet(
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed,
-      sourceMap: sourceMap);
+      sourceMap: sourceMap,
+      charset: charset);
 
   if (serializeResult.sourceMap != null && importCache != null) {
     // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
