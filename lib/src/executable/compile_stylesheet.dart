@@ -67,13 +67,15 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
             importCache: importCache,
             importer: FilesystemImporter('.'),
             style: options.style,
-            sourceMap: options.emitSourceMap)
+            sourceMap: options.emitSourceMap,
+            charset: options.charset)
         : await compileAsync(source,
             syntax: syntax,
             logger: options.logger,
             importCache: importCache,
             style: options.style,
-            sourceMap: options.emitSourceMap);
+            sourceMap: options.emitSourceMap,
+            charset: options.charset);
   } else {
     result = source == null
         ? compileString(await readStdin(),
@@ -82,13 +84,15 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
             importCache: graph.importCache,
             importer: FilesystemImporter('.'),
             style: options.style,
-            sourceMap: options.emitSourceMap)
+            sourceMap: options.emitSourceMap,
+            charset: options.charset)
         : compile(source,
             syntax: syntax,
             logger: options.logger,
             importCache: graph.importCache,
             style: options.style,
-            sourceMap: options.emitSourceMap);
+            sourceMap: options.emitSourceMap,
+            charset: options.charset);
   }
 
   var css = result.css;

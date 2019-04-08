@@ -39,13 +39,17 @@ import 'interface/value.dart';
 ///
 /// If [sourceMap] is `true`, the returned [SerializeResult] will contain a
 /// source map indicating how the original Sass files map to the compiled CSS.
+///
+/// If [charset] is `true`, this will include a `@charset` declaration or a BOM
+/// if the stylesheet contains any non-ASCII characters.
 SerializeResult serialize(CssNode node,
     {OutputStyle style,
     bool inspect = false,
     bool useSpaces = true,
     int indentWidth,
     LineFeed lineFeed,
-    bool sourceMap = false}) {
+    bool sourceMap = false,
+    bool charset = true}) {
   indentWidth ??= 2;
   var visitor = _SerializeVisitor(
       style: style,
@@ -57,7 +61,7 @@ SerializeResult serialize(CssNode node,
   node.accept(visitor);
   var css = visitor._buffer.toString();
   String prefix;
-  if (css.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
+  if (charset && css.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
     if (style == OutputStyle.compressed) {
       prefix = '\uFEFF';
     } else {

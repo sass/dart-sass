@@ -55,6 +55,9 @@ class ExecutableOptions {
           help: 'Output style.',
           allowed: ['expanded', 'compressed'],
           defaultsTo: 'expanded')
+      ..addFlag('charset',
+          help: 'Emit a @charset or BOM for CSS with non-ASCII characters.',
+          defaultsTo: true)
       ..addFlag('update',
           help: 'Only compile out-of-date stylesheets.', negatable: false);
 
@@ -170,6 +173,10 @@ class ExecutableOptions {
   OutputStyle get style => _options['style'] == 'compressed'
       ? OutputStyle.compressed
       : OutputStyle.expanded;
+
+  /// Whether to include a `@charset` declaration or a BOM if the stylesheet
+  /// contains any non-ASCII characters.
+  bool get charset => _options['charset'] as bool;
 
   /// The set of paths Sass in which should look for imported files.
   List<String> get loadPaths => _options['load-path'] as List<String>;
