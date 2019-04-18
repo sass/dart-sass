@@ -1,3 +1,7 @@
+## 1.19.0
+
+* Allow `!` in `url()`s without quotes.
+
 ## 1.18.0
 
 * Avoid recursively listing directories when finding the canonical name of a
