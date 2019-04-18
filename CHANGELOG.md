@@ -1,3 +1,10 @@
+## 1.18.1
+
+### Dart API
+
+* `FilesystemImporter` now doesn't change its effective directory if the working
+  directory changes, even if it's passed a relative argument.
+
 ## 1.18.0
 
 * Avoid recursively listing directories when finding the canonical name of a
