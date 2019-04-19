@@ -1,4 +1,6 @@
-## 1.18.1
+## 1.19.0
+
+* Allow `!` in `url()`s without quotes.
 
 ### Dart API
 
