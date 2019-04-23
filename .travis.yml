@@ -18,10 +18,10 @@ env:
   - TASK=tests DART_CHANNEL=dev
   - TASK=tests NODE_VERSION=stable
 
-  # Keep these up-to-date with the latest LTA Node releases. They next need to be
-  # rotated October 2018. See https://github.com/nodejs/Release.
-  - TASK=tests NODE_VERSION=lts/boron
+  # Keep these up-to-date with the latest LTS Node releases. They next need to
+  # be rotated December 2019. See https://github.com/nodejs/Release.
   - TASK=tests NODE_VERSION=lts/carbon
+  - TASK=tests NODE_VERSION=lts/dubnium
 
   # Miscellaneous checks.
   - TASK=analyze
