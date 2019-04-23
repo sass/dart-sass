@@ -1,35 +1,12 @@
 ## Testing
 
 # Set the language to Ruby so that we can run sass-spec tests.
-language: ruby
+language: shell
 
 env:
   global:
   - DART_CHANNEL=stable
   - DART_VERSION=latest
-  matrix:
-  # Language specs, defined in sass/sass-spec
-  - TASK=specs
-  - TASK=specs DART_CHANNEL=dev
-  - TASK=specs ASYNC=true
-
-  # Unit tests, defined in test/.
-  - TASK=tests
-  - TASK=tests DART_CHANNEL=dev
-  # TODO(nweiz): Make this "stable" when laverdet/node-fibers#409 is fixed.
-  - TASK=tests NODE_VERSION=11
-
-  # Keep these up-to-date with the latest LTS Node releases. They next need to
-  # be rotated December 2019. See https://github.com/nodejs/Release.
-  - TASK=tests NODE_VERSION=lts/carbon
-  - TASK=tests NODE_VERSION=lts/dubnium
-
-  # Miscellaneous checks.
-  - TASK=analyze
-  - TASK=format
-
-rvm:
-- 2.3.1
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
@@ -46,17 +23,17 @@ cache:
 
 install:
 # Install the Dart SDK.
-- curl -o dart.zip "https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-linux-x64-release.zip"
+- os="$TRAVIS_OS_NAME"
+- if [ "$os" = osx ]; then os=macos; fi
+- curl -o dart.zip "https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-$os-x64-release.zip"
 - unzip dart.zip
-- export PATH="$PATH:`pwd`/dart-sdk/bin"
+- export PATH="$PATH:`pwd`/dart-sdk/bin";
+- if [ "$os" = windows ]; then echo 'pub.bat "$@"' > `pwd`/dart-sdk/bin/pub; fi
+- if [ "$os" = windows ]; then chmod a+x `pwd`/dart-sdk/bin/pub; fi
 - pub get
 
-# Install the Node SDK if we're running Node tests.
-- if-node() { if [ ! -z "$NODE_VERSION" ]; then "$@"; fi }
-- if-node . "$HOME/.nvm/nvm.sh"
-- if-node nvm install "$NODE_VERSION"
-- if-node nvm use "$NODE_VERSION"
-- if-node pub run grinder before-test
+# Compile to JavaScript if we're running Node tests.
+- if [ ! -z "$TRAVIS_NODE_VERSION" ]; then pub run grinder before-test; fi
 
 # Download sass-spec and install its dependencies if we're running specs.
 - if-specs() { if [ "$TASK" = specs ]; then "$@"; fi }
@@ -70,10 +47,58 @@ install:
 
 script: tool/travis/test.sh
 
-## Deployment
-
 jobs:
   include:
+  ## Testing
+
+  # Language specs, defined in sass/sass-spec. These need Ruby to run the spec
+  # runner.
+  - language: ruby
+    env: TASK=specs
+  - language: ruby
+    env: TASK=specs DART_CHANNEL=dev
+  - language: ruby
+    env: TASK=specs ASYNC=true
+
+  # Unit tests, defined in test/.
+  - env: TASK=tests
+  - env: TASK=tests DART_CHANNEL=dev
+  - language: node_js
+    # TODO(nweiz): Make this "stable" when laverdet/node-fibers#409 is fixed.
+    node_js: 11
+    env: TASK=tests
+
+  # Keep these up-to-date with the latest LTS Node releases. They next need to
+  # be rotated December 2019. See https://github.com/nodejs/Release.
+  - language: node_js
+    node_js: lts/carbon
+    env: TASK=tests
+  - language: node_js
+    node_js: lts/dubnium
+    env: TASK=tests
+
+  # Minimize tests on other OSes to avoid long cycle times.
+  - os: windows
+    # We have to explicitly list "shell" as the language because Windows doesn't
+    # support Ruby yet.
+    env: TASK=tests
+  # TODO(nweiz): Run Node tests on Windows when [this issue][] is fixed.
+  #
+  # [this issue]: https://travis-ci.community/t/windows-instances-hanging-before-install/250/28.
+  - os: osx
+    env: TASK=tests
+  - os: osx
+    language: node_js
+    # TODO(nweiz): Make this "stable" when laverdet/node-fibers#409 is fixed.
+    node_js: 11
+    env: TASK=tests
+
+  # Miscellaneous checks.
+  - env: TASK=analyze
+  - env: TASK=format
+
+  ## Deployment
+
   # Sanity check before releasing anywhere.
   - stage: sanity check
     if: &deploy-if

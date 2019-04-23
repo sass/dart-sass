@@ -13,7 +13,7 @@ elif [ "$TASK" = format ]; then
   echo "${bold}Ensuring Dart code is formatted.$none"
   ./tool/assert-formatted.sh
 elif [ "$TASK" = tests ]; then
-  if [ -z "$NODE_VERSION" ]; then
+  if [ -z "$TRAVIS_NODE_VERSION" ]; then
     echo "${bold}Running Dart tests against $(dart --version &> /dev/stdout).$none"
     pub run test -p vm -x node
   else
