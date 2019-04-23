@@ -3,8 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
+import 'package:bazel_worker/bazel_worker.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
@@ -18,8 +20,35 @@ import 'import_cache.dart';
 import 'io.dart';
 import 'stylesheet_graph.dart';
 
-main(List<String> args) async {
+main(List<String> originalArgs) async {
+  var args = originalArgs.toList();
+  // We assume that argument that starts with '@' is a flagfile.
+  // Starlark rules that invoke this need to use args.use_param_file("@%s").
+  if (args.isNotEmpty && args.last.startsWith('@')) {
+    var filePath = args.removeLast().substring(1);
+    args.addAll(File(filePath).readAsLinesSync());
+  }
+
+  if (args.remove('--persistent_worker')) {
+    await _AsyncWorker().run();
+  } else {
+    _run(args);
+  }
+}
+
+class _AsyncWorker extends AsyncWorkerLoop {
+  Future<WorkResponse> performRequest(WorkRequest request) async {
+    var output = StringBuffer();
+    var exitCode = await _run(request.arguments, printFn: output.writeln);
+    return WorkResponse()
+      ..exitCode = exitCode
+      ..output = output.toString();
+  }
+}
+
+Future<int> _run(List<String> args, {void printFn(Object obj)}) async {
   var printedError = false;
+  printFn ??= print;
 
   // Prints [error] to stderr, along with a preceding newline if anything else
   // has been printed to stderr.
@@ -42,21 +71,21 @@ main(List<String> args) async {
     term_glyph.ascii = !options.unicode;
 
     if (options.version) {
-      print(await _loadVersion());
+      printFn(await _loadVersion());
       exitCode = 0;
-      return;
+      return exitCode;
     }
 
     if (options.interactive) {
       await repl(options);
-      return;
+      return exitCode;
     }
 
     var graph = StylesheetGraph(
         ImportCache([], loadPaths: options.loadPaths, logger: options.logger));
     if (options.watch) {
       await watch(options, graph);
-      return;
+      return exitCode;
     }
 
     for (var source in options.sourcesToDestinations.keys) {
@@ -83,21 +112,21 @@ main(List<String> args) async {
         //
         // We let exitCode 66 take precedence for deterministic behavior.
         if (exitCode != 66) exitCode = 65;
-        if (options.stopOnError) return;
+        if (options.stopOnError) return exitCode;
       } on FileSystemException catch (error, stackTrace) {
         printError("Error reading ${p.relative(error.path)}: ${error.message}.",
             options.trace ? stackTrace : null);
 
         // Error 66 indicates no input.
         exitCode = 66;
-        if (options.stopOnError) return;
+        if (options.stopOnError) return exitCode;
       }
     }
   } on UsageException catch (error) {
-    print("${error.message}\n");
-    print("Usage: sass <input.scss> [output.css]\n"
+    printFn("${error.message}\n");
+    printFn("Usage: sass <input.scss> [output.css]\n"
         "       sass <input.scss>:<output.css> <input/>:<output/> <dir/>\n");
-    print(ExecutableOptions.usage);
+    printFn(ExecutableOptions.usage);
     exitCode = 64;
   } catch (error, stackTrace) {
     var buffer = StringBuffer();
@@ -110,6 +139,7 @@ main(List<String> args) async {
     printError(buffer.toString(), stackTrace);
     exitCode = 255;
   }
+  return exitCode;
 }
 
 /// Loads and returns the current version of Sass.
