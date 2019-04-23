@@ -16,7 +16,8 @@ env:
   # Unit tests, defined in test/.
   - TASK=tests
   - TASK=tests DART_CHANNEL=dev
-  - TASK=tests NODE_VERSION=stable
+  # TODO(nweiz): Make this "stable" when laverdet/node-fibers#409 is fixed.
+  - TASK=tests NODE_VERSION=11
 
   # Keep these up-to-date with the latest LTS Node releases. They next need to
   # be rotated December 2019. See https://github.com/nodejs/Release.
