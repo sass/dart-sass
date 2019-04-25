@@ -94,7 +94,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   // triggers but the caller can still listen at their leisure.
   var stream = SubscriptionStream<WatchEvent>(watcher.events
       .transform(const SingleSubscriptionTransformer<WatchEvent, WatchEvent>())
-      .listen((e) => print(e)));
+      .listen(null));
   await watcher.ready;
 
   return stream;
