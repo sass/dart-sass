@@ -1,35 +1,12 @@
 ## Testing
 
 # Set the language to Ruby so that we can run sass-spec tests.
-language: ruby
+language: shell
 
 env:
   global:
   - DART_CHANNEL=stable
   - DART_VERSION=latest
-  matrix:
-  # Language specs, defined in sass/sass-spec
-  - TASK=specs
-  - TASK=specs DART_CHANNEL=dev
-  - TASK=specs ASYNC=true
-
-  # Unit tests, defined in test/.
-  - TASK=tests
-  - TASK=tests DART_CHANNEL=dev
-  # TODO(nweiz): Make this "stable" when laverdet/node-fibers#409 is fixed.
-  - TASK=tests NODE_VERSION=11
-
-  # Keep these up-to-date with the latest LTS Node releases. They next need to
-  # be rotated December 2019. See https://github.com/nodejs/Release.
-  - TASK=tests NODE_VERSION=lts/carbon
-  - TASK=tests NODE_VERSION=lts/dubnium
-
-  # Miscellaneous checks.
-  - TASK=analyze
-  - TASK=format
-
-rvm:
-- 2.3.1
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
@@ -44,36 +21,82 @@ cache:
   directories:
   - $HOME/.pub-cache
 
-install:
 # Install the Dart SDK.
-- curl -o dart.zip "https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-linux-x64-release.zip"
-- unzip dart.zip
-- export PATH="$PATH:`pwd`/dart-sdk/bin"
-- pub get
-
-# Install the Node SDK if we're running Node tests.
-- if-node() { if [ ! -z "$NODE_VERSION" ]; then "$@"; fi }
-- if-node . "$HOME/.nvm/nvm.sh"
-- if-node nvm install "$NODE_VERSION"
-- if-node nvm use "$NODE_VERSION"
-- if-node pub run grinder before-test
-
-# Download sass-spec and install its dependencies if we're running specs.
-- if-specs() { if [ "$TASK" = specs ]; then "$@"; fi }
-- if-specs export sass_spec_ref=`tool/travis/sass-spec-ref.sh`
-- if-specs git init sass-spec
-- if-specs git -C sass-spec fetch git://github.com/sass/sass-spec "$sass_spec_ref" --depth 1
-- if-specs git -C sass-spec checkout FETCH_HEAD
-- if-specs bundle install --gemfile=sass-spec/Gemfile --jobs=3 --retry=3
-
-- if [ "$TASK" = tests ]; then pub run grinder app-snapshot; fi
-
-script: tool/travis/test.sh
-
-## Deployment
+before_install:
+- tool/travis/use_dart.sh
+- export PATH="$PATH:`pwd`/dart-sdk/bin";
 
 jobs:
   include:
+  ## Testing
+
+  # Language specs, defined in sass/sass-spec. These need Ruby to run the spec
+  # runner.
+  - &specs
+    name: sass-spec | Dart stable | synchronous
+    language: ruby
+    install:
+    - export sass_spec_ref=`tool/travis/sass-spec-ref.sh`
+    - git init sass-spec
+    - git -C sass-spec fetch git://github.com/sass/sass-spec "$sass_spec_ref" --depth 1
+    - git -C sass-spec checkout FETCH_HEAD
+    - bundle install --gemfile=sass-spec/Gemfile --jobs=3 --retry=3
+    script: tool/travis/task/specs.sh
+  - <<: *specs
+    name: sass-spec | Dart dev | synchronous
+    env: DART_CHANNEL=dev
+  - <<: *specs
+    name: sass-spec | Dart stable | asynchronous
+    env: ASYNC=true
+
+  # Pure Dart unit tests, defined in test/.
+  - &dart-tests
+    name: Dart tests | Dart stable
+    install: pub run grinder app-snapshot
+    task: tool/travis/task/dart_tests.sh
+  - <<: *dart-tests
+    name: Dart tests | Dart dev
+    env: DART_CHANNEL=dev
+  - <<: *dart-tests
+    os: windows
+  - <<: *dart-tests
+    os: osx
+
+  # Unit tests that use Node.js, defined in test/.
+  #
+  # The versions should be kept up-to-date with the latest LTS Node releases.
+  # They next need to be rotated December 2019. See
+  # https://github.com/nodejs/Release.
+  #
+  # TODO(nweiz): Run Node tests on Windows when [this issue][] is fixed.
+  #
+  # [this issue]: https://travis-ci.community/t/windows-instances-hanging-before-install/250/28.
+  - &node-tests
+    name: Node tests | Dart stable | Node 11
+    language: node_js
+    # TODO(nweiz): Make this "stable" when laverdet/node-fibers#409 is fixed.
+    node_js: 11
+    install: pub run grinder before-test
+    script: tool/travis/task/node_tests.sh
+  - <<: *node-tests
+    name: Node tests | Dart stable | Node Carbon
+    node_js: lts/carbon
+  - <<: *node-tests
+    name: Node tests | Dart stable | Node Dubnium
+    node_js: lts/dubnium
+  - <<: *node-tests
+    os: osx
+
+  # Miscellaneous checks.
+  - name: static analysis
+    language: dart
+    dart_task: {dartanalyzer: --fatal-warnings lib tool test}
+  - name: code formatting
+    language: dart
+    dart_task: dartfmt
+
+  ## Deployment
+
   # Sanity check before releasing anywhere.
   - stage: sanity check
     if: &deploy-if
