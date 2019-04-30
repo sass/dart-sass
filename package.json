@@ -6,7 +6,7 @@
   "devDependencies": {
     "node-sass": "^4.11.0",
     "chokidar": "^2.0.0",
-    "fibers": ">=1.0.0 <4.0.0",
+    "fibers": ">=1.0.0 <5.0.0",
     "intercept-stdout": "^0.1.2"
   }
 }
