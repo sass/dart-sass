@@ -914,9 +914,13 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
           // doesn't consider them to be valid identifiers.
           !attribute.value.startsWith('--')) {
         _buffer.write(attribute.value);
+
+        if (attribute.modifier != null) _buffer.writeCharCode($space);
       } else {
         _visitQuotedString(attribute.value);
+        if (attribute.modifier != null) _writeOptionalSpace();
       }
+      if (attribute.modifier != null) _buffer.write(attribute.modifier);
     }
     _buffer.writeCharCode($rbracket);
   }

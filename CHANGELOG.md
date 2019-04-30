@@ -1,5 +1,7 @@
 ## 1.20.0
 
+* Support attribute selector modifiers, such as the `i` in `[title="test" i]`.
+
 ### Command-Line Interface
 
 * When compilation fails, Sass will now write the error message to the CSS

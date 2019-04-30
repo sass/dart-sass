@@ -201,8 +201,13 @@ class SelectorParser extends Parser {
         : identifier();
     whitespace();
 
+    var modifier = isAlphabetic(scanner.peekChar())
+        ? String.fromCharCode(scanner.readChar())
+        : null;
+
     scanner.expectChar($rbracket);
-    return AttributeSelector.withOperator(name, operator, value);
+    return AttributeSelector.withOperator(name, operator, value,
+        modifier: modifier);
   }
 
   /// Consumes a qualified name as part of an attribute selector.
