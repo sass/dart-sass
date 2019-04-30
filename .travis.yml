@@ -72,10 +72,9 @@ jobs:
   #
   # [this issue]: https://travis-ci.community/t/windows-instances-hanging-before-install/250/28.
   - &node-tests
-    name: Node tests | Dart stable | Node 11
+    name: Node tests | Dart stable | Node stable
     language: node_js
-    # TODO(nweiz): Make this "stable" when laverdet/node-fibers#409 is fixed.
-    node_js: 11
+    node_js: stable
     install: pub run grinder before-test
     script: tool/travis/task/node_tests.sh
   - <<: *node-tests
