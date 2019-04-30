@@ -102,7 +102,8 @@ jobs:
       (type IN (push, api)) AND (repo = sass/dart-sass) AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
     script: pub run grinder sanity-check-before-release
 
-  # Deploy to GitHub.
+  # Deploy Linux and Windows releases to GitHub. Mac OS releases are deployed in
+  # a later stage so that we can build application snapshots on Mac OS bots.
   - stage: deploy 1
     if: *deploy-if
     env: &github-env
@@ -115,7 +116,7 @@ jobs:
     script: skip # Don't run tests
     deploy:
       provider: script
-      script: pub run grinder github-release
+      script: pub run grinder github-release github-linux github-windows
       skip_cleanup: true # Don't clean up the Dart SDK.
 
       # This causes the deploy to only be build when a tag is pushed. This
@@ -193,5 +194,14 @@ jobs:
     deploy:
       provider: script
       script: pub run grinder update-bazel
+      skip_cleanup: true
+      on: {tags: true}
+
+  - if: *deploy-if
+    env: *github-env
+    script: skip
+    deploy:
+      provider: script
+      script: pub run grinder github-mac-os
       skip_cleanup: true
       on: {tags: true}
