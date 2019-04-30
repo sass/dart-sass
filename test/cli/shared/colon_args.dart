@@ -72,13 +72,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d.file("test1.scss", "a {b: }").create();
     await d.file("test2.scss", "x {y: z}").create();
 
+    var message = 'Error: Expected expression.';
     var sass = await runSass(
         ["--no-source-map", "test1.scss:out1.css", "test2.scss:out2.css"]);
-    await expectLater(sass.stderr, emits('Error: Expected expression.'));
+    await expectLater(sass.stderr, emits(message));
     await expectLater(sass.stderr, emitsThrough(contains('test1.scss 1:7')));
     await sass.shouldExit(65);
 
-    await d.nothing("out1.css").validate();
+    await d.file("out1.css", contains(message)).validate();
     await d
         .file("out2.css", equalsIgnoringWhitespace("x { y: z; }"))
         .validate();
@@ -88,18 +89,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d.file("test1.scss", "a {b: }").create();
     await d.file("test2.scss", "x {y: z}").create();
 
+    var message = 'Error: Expected expression.';
     var sass = await runSass(
         ["--stop-on-error", "test1.scss:out1.css", "test2.scss:out2.css"]);
     await expectLater(
         sass.stderr,
-        emitsInOrder([
-          'Error: Expected expression.',
-          emitsThrough(contains('test1.scss 1:7')),
-          emitsDone
-        ]));
+        emitsInOrder(
+            [message, emitsThrough(contains('test1.scss 1:7')), emitsDone]));
     await sass.shouldExit(65);
 
-    await d.nothing("out1.css").validate();
+    await d.file("out1.css", contains(message)).validate();
     await d.nothing("out2.css").validate();
   });
 

@@ -1,3 +1,18 @@
+## 1.20.0
+
+### Command-Line Interface
+
+* When compilation fails, Sass will now write the error message to the CSS
+  output as a comment and as the `content` property of a `body::before` rule so
+  it will show up in the browser (unless compiling to standard output). This can
+  be disabled with the `--no-error-css` flag, or forced even when compiling to
+  standard output with the `--error-css` flag.
+
+### Dart API
+
+* Added `SassException.toCssString()`, which returns the contents of a CSS
+  stylesheet describing the error, as above.
+
 ## 1.19.0
 
 * Allow `!` in `url()`s without quotes.
