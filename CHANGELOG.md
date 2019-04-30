@@ -1,3 +1,7 @@
+## 1.20.0
+
+* Support attribute selector modifiers, such as the `i` in `[title="test" i]`.
+
 ## 1.19.0
 
 * Allow `!` in `url()`s without quotes.
