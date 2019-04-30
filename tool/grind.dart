@@ -35,5 +35,5 @@ format() {
 npmInstall() => run("npm", arguments: ["install"]);
 
 @Task('Runs the tasks that are required for running tests.')
-@Depends(format, synchronize, npmPackage, npmInstall)
+@Depends(format, synchronize, npmPackage, npmInstall, appSnapshot)
 beforeTest() {}
