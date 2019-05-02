@@ -5,6 +5,7 @@
 import 'package:grinder/grinder.dart';
 
 import 'grind/npm.dart';
+import 'grind/standalone.dart';
 import 'grind/synchronize.dart';
 
 export 'grind/bazel.dart';
