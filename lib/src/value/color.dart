@@ -133,7 +133,7 @@ class SassColor extends Value implements ext.SassColor {
   /// Computes [_hue], [_saturation], and [_value] based on [red], [green], and
   /// [blue].
   void _rgbToHsl() {
-    // Algorithm from http://en.wikipedia.org/wiki/HSL_and_HSV#Conversion_from_RGB_to_HSL_or_HSV
+    // Algorithm from https://en.wikipedia.org/wiki/HSL_and_HSV#RGB_to_HSL_and_HSV
     var scaledRed = red / 255;
     var scaledGreen = green / 255;
     var scaledBlue = blue / 255;
@@ -166,7 +166,7 @@ class SassColor extends Value implements ext.SassColor {
   /// Computes [_red], [_green], and [_blue] based on [hue], [saturation], and
   /// [value].
   void _hslToRgb() {
-    // Algorithm from the CSS3 spec: http://www.w3.org/TR/css3-color/#hsl-color.
+    // Algorithm from the CSS3 spec: https://www.w3.org/TR/css3-color/#hsl-color.
     var scaledHue = hue / 360;
     var scaledSaturation = saturation / 100;
     var scaledLightness = lightness / 100;
