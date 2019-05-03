@@ -69,7 +69,9 @@ main(List<String> args) async {
         // dart-lang/sdk#33400.
         () {
           try {
-            if (destination != null) deleteFile(destination);
+            if (destination != null && !options.emitErrorCss) {
+              deleteFile(destination);
+            }
           } on FileSystemException {
             // If the file doesn't exist, that's fine.
           }

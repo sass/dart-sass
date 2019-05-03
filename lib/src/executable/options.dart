@@ -58,6 +58,10 @@ class ExecutableOptions {
       ..addFlag('charset',
           help: 'Emit a @charset or BOM for CSS with non-ASCII characters.',
           defaultsTo: true)
+      ..addFlag('error-css',
+          help: 'When an error occurs, emit a stylesheet describing it.\n'
+              'Defaults to true when compiling to a file.',
+          defaultsTo: null)
       ..addFlag('update',
           help: 'Only compile out-of-date stylesheets.', negatable: false);
 
@@ -199,6 +203,11 @@ class ExecutableOptions {
   /// Whether to stop compiling additional files once one file produces an
   /// error.
   bool get stopOnError => _options['stop-on-error'] as bool;
+
+  /// Whether to emit error messages as CSS stylesheets
+  bool get emitErrorCss =>
+      _options['error-css'] as bool ??
+      sourcesToDestinations.values.any((destination) => destination != null);
 
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.

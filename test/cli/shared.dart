@@ -476,4 +476,51 @@ void sharedTests(
           isNot(equals(bomBytes)));
     });
   });
+
+  group("with --error-css", () {
+    var message = "Error: Expected expression.";
+    setUp(() => d.file("test.scss", "a {b: 1 + }").create());
+
+    group("not explicitly set", () {
+      test("doesn't emit error CSS when compiling to stdout", () async {
+        var sass = await runSass(["test.scss"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(65);
+      });
+
+      test("emits error CSS when compiling to a file", () async {
+        var sass = await runSass(["test.scss", "test.css"]);
+        await sass.shouldExit(65);
+        await d.file("test.css", contains(message)).validate();
+      });
+    });
+
+    group("explicitly set", () {
+      test("emits error CSS when compiling to stdout", () async {
+        var sass = await runSass(["--error-css", "test.scss"]);
+        expect(sass.stdout, emitsThrough(contains(message)));
+        await sass.shouldExit(65);
+      });
+
+      test("emits error CSS when compiling to a file", () async {
+        var sass = await runSass(["--error-css", "test.scss", "test.css"]);
+        await sass.shouldExit(65);
+        await d.file("test.css", contains(message)).validate();
+      });
+    });
+
+    group("explicitly unset", () {
+      test("doesn't emit error CSS when compiling to stdout", () async {
+        var sass = await runSass(["--no-error-css", "test.scss"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(65);
+      });
+
+      test("emits error CSS when compiling to a file", () async {
+        var sass = await runSass(["--no-error-css", "test.scss", "test.css"]);
+        await sass.shouldExit(65);
+        await d.nothing("test.css").validate();
+      });
+    });
+  });
 }
