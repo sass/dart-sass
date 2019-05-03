@@ -105,7 +105,7 @@ jobs:
   # Deploy Linux and Windows releases to GitHub. Mac OS releases are deployed in
   # a later stage so that we can build application snapshots on Mac OS bots.
   - stage: deploy 1
-    name: GitHub: Windows and Linux
+    name: "GitHub: Windows and Linux"
     if: *deploy-if
     env: &github-env
       - GITHUB_USER=sassbot
@@ -206,7 +206,7 @@ jobs:
       skip_cleanup: true
       on: {tags: true}
 
-  - name: GitHub: Mac OS
+  - name: "GitHub: Mac OS"
     if: *deploy-if
     env: *github-env
     script: skip
