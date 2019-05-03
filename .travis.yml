@@ -105,6 +105,7 @@ jobs:
   # Deploy Linux and Windows releases to GitHub. Mac OS releases are deployed in
   # a later stage so that we can build application snapshots on Mac OS bots.
   - stage: deploy 1
+    name: GitHub: Windows and Linux
     if: *deploy-if
     env: &github-env
       - GITHUB_USER=sassbot
@@ -132,8 +133,11 @@ jobs:
       on: {tags: true}
 
   # Deploy to npm.
-  - if: *deploy-if
+  - name: npm
+    if: *deploy-if
     script: skip
+    language: node_js
+    node_js: stable
     deploy:
       provider: script
       script: tool/travis/deploy/npm.sh
@@ -141,7 +145,8 @@ jobs:
       on: {tags: true}
 
   # Deploy to pub.
-  - if: *deploy-if
+  - name: pub
+    if: *deploy-if
     script: skip
     deploy:
       provider: script
@@ -150,7 +155,8 @@ jobs:
       on: {tags: true}
 
   # Deploy to Homebrew.
-  - if: *deploy-if
+  - name: Homebrew
+    if: *deploy-if
     env: *github-env
     script: skip
     deploy:
@@ -160,7 +166,8 @@ jobs:
       on: {tags: true}
 
   # Deploy to Chocolatey.
-  - if: *deploy-if
+  - name: Chocolatey
+    if: *deploy-if
     env:
       # CHOCO_TOKEN="..."
       - secure: "cW11kQYBBEElfVsc1pJfVEHOMYwt0ZK+9STZHwSPbAISlplIRnsimMN7TqCY2aLnkWXyUMU7DphIl9uQ86M4BT1bJopsHbapj27bFSlKWHlBSDB/xylFHywV41Yk5lMlr8DLMbsSzVahasyR34xS6HYIRlDpZ9TFiQuDQNJxQmqTZJg/FC+3nqCI7tyMKGkWc48ikTcmqDMHsG9CudG2u+Q3S9sLNXArh9T4tSnAyWkTvSrS05mvFx5tC83PcG9/VkioTId+VRSJchwTmCxDFDROrTikTXZMtYn8wMAQ2wQ34TQXNZMZ9uiHA6W0IuJV2EnYerJbqV2lrJq9xqZywKu6HW6i4GhrCvizALNFZx/N7s/10xuf3UcuWizYml/e0MYT+6t4ojTYBMKv+Cx+H2Y2Jdpvdn2ZAIl6LaU3pLw4OIPJ7aXjDwZd63MPxtwGwVLHbH7Zu+oUv1erIq5LtatuocGWipD8WdiMBQvyCuDRMowpLPoAbj+mevOf+xlY2Eym4tOXpxM7iY3lXFHROo5dQbhsARfVF9J1gl5PuYXvCjxqTfK/ef9t3ZoDbi57+yAJUWlZfWa5r1zKE8OS0pA8GfQRLom/Lt0wKVw4Xiofgolzd9pEHi4JpsYIQb8O+u1ACQU6nBCS87CGrQ+ylnzKfGUs0aW2K3gvbkg0LUg="
@@ -172,7 +179,8 @@ jobs:
       on: {tags: true}
 
   # Redeploy sass-lang.com.
-  - if: *deploy-if
+  - name: sass-lang.com
+    if: *deploy-if
     env:
       # HEROKU_TOKEN="..."
       - secure: "JUBfLfJr+5RIvxkk+1qqtyJxaHq2A9x78G9L9bUTjBD3C7XJOmJtt8u+pAgperL+fIfrlcAVzmYTyRGLj+0PL4VcxMTrmn604FIn+ffcgatylYKtPdpJq5dnXQ4U0+ROaZnq1mPZeUI7OHwRlVcQStIWkPxk7Eno+ZqxFyziLZ4wxo7l809iCAbhJttCfWPupyHX75cHhBMFaPEk9LYUrxQURyE0GKMQgDKHY/ehe87gyuKt3o79gi7/E0chQApv1jeua4xz5tyNBNQH/nwuJmmBCab/IdgTLn2vj4qjT1ENeB5PINCfFOT98IPVREOLbY+jiGRVwQFJbC55mOBQH21mfIt/XLhcjYHe80X4PyYhtJJ2GDadcyrzppZmHpEDHzfR8B29LEKhNM1VfUTZ8I9+TudXW8uMjtqCsXyi8bKZLsuZNNSlWVh1qIR+FXMDTrYNOnTcvgzv5yi6fbD10Uf8k1G0pHtKQiFainWatmJhNIMtGoYe7LRAB0Rj7OGWDMv/PHy/+Z7BKIj3b0LefVN1xpeuy3mMhMq9g5Q8HI8yk37DNmZQ9kwgHpIUk/t2xAdwzZ0XMSDFW9iHV48/iHwi0t5M2RCFRnI8ZaUNU5Z8QLUPHnazCucIvR4N8ns1yFwDgNQ5CzlBFrV70EwgqZhjjToAOhnIXpHMWr3AVAw="
@@ -188,6 +196,7 @@ jobs:
   # Deploy to Bazel. This is in a separate deploy stage because it needs to
   # install the npm package.
   - stage: deploy 2
+    name: Bazel
     if: *deploy-if
     env: *github-env
     script: skip
@@ -197,7 +206,8 @@ jobs:
       skip_cleanup: true
       on: {tags: true}
 
-  - if: *deploy-if
+  - name: GitHub: Mac OS
+    if: *deploy-if
     env: *github-env
     script: skip
     deploy:
