@@ -1,3 +1,7 @@
+## 1.20.1
+
+* No user-visible changes.
+
 ## 1.20.0
 
 * Support attribute selector modifiers, such as the `i` in `[title="test" i]`.
