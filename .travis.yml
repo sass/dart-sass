@@ -134,6 +134,8 @@ jobs:
   # Deploy to npm.
   - if: *deploy-if
     script: skip
+    language: node_js
+    node_js: stable
     deploy:
       provider: script
       script: tool/travis/deploy/npm.sh
