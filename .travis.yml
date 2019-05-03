@@ -200,6 +200,8 @@ jobs:
     if: *deploy-if
     env: *github-env
     script: skip
+    language: node_js
+    node_js: stable
     deploy:
       provider: script
       script: pub run grinder update-bazel
