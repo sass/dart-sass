@@ -191,14 +191,23 @@ void ensureDir(String path) {
   });
 }
 
-Iterable<String> listDir(String path) {
-  Iterable<String> list(String parent) =>
-      _fs.readdirSync(parent).expand((child) {
-        var path = p.join(parent, child as String);
-        return dirExists(path) ? listDir(path) : [path];
-      });
+Iterable<String> listDir(String path, {bool recursive = false}) {
+  return _systemErrorToFileSystemException(() {
+    if (!recursive) {
+      return _fs
+          .readdirSync(path)
+          .map((child) => p.join(path, child as String))
+          .where((child) => !dirExists(child));
+    } else {
+      Iterable<String> list(String parent) =>
+          _fs.readdirSync(parent).expand((child) {
+            var path = p.join(parent, child as String);
+            return dirExists(path) ? list(path) : [path];
+          });
 
-  return _systemErrorToFileSystemException(() => list(path));
+      return list(path);
+    }
+  });
 }
 
 DateTime modificationTime(String path) =>

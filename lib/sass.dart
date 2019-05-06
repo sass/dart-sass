@@ -70,6 +70,13 @@ export 'src/visitor/serialize.dart' show OutputStyle;
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
+/// If [charset] is `true`, this will include a `@charset` declaration or a
+/// UTF-8 [byte-order mark][] if the stylesheet contains any non-ASCII
+/// characters. Otherwise, it will never include a `@charset` declaration or a
+/// byte-order mark.
+///
+/// [byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
+///
 /// This parameter is meant to be used as an out parameter, so that users who
 /// want access to the source map can get it. For example:
 ///
@@ -87,7 +94,8 @@ String compile(String path,
     SyncPackageResolver packageResolver,
     Iterable<Callable> functions,
     OutputStyle style,
-    void sourceMap(SingleMapping map)}) {
+    void sourceMap(SingleMapping map),
+    bool charset = true}) {
   logger ??= Logger.stderr(color: color);
   var result = c.compile(path,
       logger: logger,
@@ -97,7 +105,8 @@ String compile(String path,
           packageResolver: packageResolver),
       functions: functions,
       style: style,
-      sourceMap: sourceMap != null);
+      sourceMap: sourceMap != null,
+      charset: charset);
   if (sourceMap != null) sourceMap(result.sourceMap);
   return result.css;
 }
@@ -149,6 +158,13 @@ String compile(String path,
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
+/// If [charset] is `true`, this will include a `@charset` declaration or a
+/// UTF-8 [byte-order mark][] if the stylesheet contains any non-ASCII
+/// characters. Otherwise, it will never include a `@charset` declaration or a
+/// byte-order mark.
+///
+/// [byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
+///
 /// This parameter is meant to be used as an out parameter, so that users who
 /// want access to the source map can get it. For example:
 ///
@@ -170,6 +186,7 @@ String compileString(String source,
     Importer importer,
     url,
     void sourceMap(SingleMapping map),
+    bool charset = true,
     @Deprecated("Use syntax instead.") bool indented = false}) {
   logger ??= Logger.stderr(color: color);
   var result = c.compileString(source,
@@ -183,7 +200,8 @@ String compileString(String source,
       style: style,
       importer: importer,
       url: url,
-      sourceMap: sourceMap != null);
+      sourceMap: sourceMap != null,
+      charset: charset);
   if (sourceMap != null) sourceMap(result.sourceMap);
   return result.css;
 }
@@ -233,6 +251,7 @@ Future<String> compileStringAsync(String source,
     AsyncImporter importer,
     url,
     void sourceMap(SingleMapping map),
+    bool charset = true,
     @Deprecated("Use syntax instead.") bool indented = false}) async {
   logger ??= Logger.stderr(color: color);
   var result = await c.compileStringAsync(source,
@@ -246,7 +265,8 @@ Future<String> compileStringAsync(String source,
       style: style,
       importer: importer,
       url: url,
-      sourceMap: sourceMap != null);
+      sourceMap: sourceMap != null,
+      charset: charset);
   if (sourceMap != null) sourceMap(result.sourceMap);
   return result.css;
 }

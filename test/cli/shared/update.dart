@@ -153,12 +153,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("with a missing import", () async {
       await d.file("test.scss", "@import 'other'").create();
 
+      var message = "Error: Can't find stylesheet to import.";
       var sass = await update(["test.scss:out.css"]);
-      expect(sass.stderr, emits("Error: Can't find stylesheet to import."));
+      expect(sass.stderr, emits(message));
       expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
       await sass.shouldExit(65);
 
-      await d.nothing("out.css").validate();
+      await d.file("out.css", contains(message)).validate();
     });
 
     test("with a conflicting import", () async {
@@ -166,29 +167,46 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("other.scss", "a {b: c}").create();
       await d.file("_other.scss", "x {y: z}").create();
 
+      var message = "Error: It's not clear which file to import. Found:";
       var sass = await update(["test.scss:out.css"]);
-      expect(sass.stderr,
-          emits("Error: It's not clear which file to import. Found:"));
+      expect(sass.stderr, emits(message));
       expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
       await sass.shouldExit(65);
 
-      await d.nothing("out.css").validate();
+      await d.file("out.css", contains(message)).validate();
     });
   });
 
-  group("removes a CSS file", () {
+  group("updates a CSS file", () {
     test("when a file has an error", () async {
       await d.file("test.scss", "a {b: c}").create();
       await (await update(["test.scss:out.css"])).shouldExit(0);
       await d.file("out.css", anything).validate();
 
+      var message = "Error: Expected expression.";
       await d.file("test.scss", "a {b: }").create();
       var sass = await update(["test.scss:out.css"]);
-      expect(sass.stderr, emits("Error: Expected expression."));
+      expect(sass.stderr, emits(message));
       expect(sass.stderr, emitsThrough(contains("test.scss 1:7")));
       await sass.shouldExit(65);
 
-      await d.nothing("out.css").validate();
+      await d.file("out.css", contains(message)).validate();
+    });
+
+    test("when a file has an error even with another stdout output", () async {
+      await d.file("test.scss", "a {b: c}").create();
+      await (await update(["test.scss:out.css"])).shouldExit(0);
+      await d.file("out.css", anything).validate();
+
+      var message = "Error: Expected expression.";
+      await d.file("test.scss", "a {b: }").create();
+      await d.file("other.scss", "x {y: z}").create();
+      var sass = await update(["test.scss:out.css", "other.scss:-"]);
+      expect(sass.stderr, emits(message));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:7")));
+      await sass.shouldExit(65);
+
+      await d.file("out.css", contains(message)).validate();
     });
 
     test("when an import is removed", () async {
@@ -197,14 +215,30 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await (await update(["test.scss:out.css"])).shouldExit(0);
       await d.file("out.css", anything).validate();
 
+      var message = "Error: Can't find stylesheet to import.";
       d.file("_other.scss").io.deleteSync();
       var sass = await update(["test.scss:out.css"]);
-      expect(sass.stderr, emits("Error: Can't find stylesheet to import."));
+      expect(sass.stderr, emits(message));
       expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
       await sass.shouldExit(65);
 
-      await d.nothing("out.css").validate();
+      await d.file("out.css", contains(message)).validate();
     });
+  });
+
+  test("deletes a CSS file when a file has an error with --no-error-css",
+      () async {
+    await d.file("test.scss", "a {b: c}").create();
+    await (await update(["test.scss:out.css"])).shouldExit(0);
+    await d.file("out.css", anything).validate();
+
+    await d.file("test.scss", "a {b: }").create();
+    var sass = await update(["--no-error-css", "test.scss:out.css"]);
+    expect(sass.stderr, emits("Error: Expected expression."));
+    expect(sass.stderr, emitsThrough(contains("test.scss 1:7")));
+    await sass.shouldExit(65);
+
+    await d.nothing("out.css").validate();
   });
 
   group("doesn't allow", () {

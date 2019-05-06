@@ -5,6 +5,7 @@
 import 'dart:js_util';
 
 import '../value.dart';
+import 'utils.dart';
 import 'value/color.dart';
 import 'value/list.dart';
 import 'value/map.dart';
@@ -20,11 +21,14 @@ export 'value/number.dart';
 export 'value/string.dart';
 
 /// Unwraps a value wrapped with [wrapValue].
+///
+/// If [object] is a JS error, throws it.
 Value unwrapValue(object) {
   if (object != null) {
     if (object is Value) return object;
     var value = getProperty(object, 'dartValue');
     if (value != null && value is Value) return value;
+    if (isJSError(object)) throw object;
   }
   throw "$object must be a Sass value type.";
 }

@@ -2621,7 +2621,8 @@ relase. For details, see http://bit.ly/moz-document.
       var next = scanner.peekChar();
       if (next == null) {
         break;
-      } else if (next == $percent ||
+      } else if (next == $exclamation ||
+          next == $percent ||
           next == $ampersand ||
           (next >= $asterisk && next <= $tilde) ||
           next >= 0x0080) {

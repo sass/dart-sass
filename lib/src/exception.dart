@@ -2,10 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import 'utils.dart';
+import 'value.dart';
 
 /// An exception thrown by Sass.
 class SassException extends SourceSpanException {
@@ -29,6 +32,48 @@ class SassException extends SourceSpanException {
       buffer.write("  $frame");
     }
     return buffer.toString();
+  }
+
+  /// Returns the contents of a CSS stylesheet that will display this error
+  /// message above the current page.
+  String toCssString() {
+    // Don't render the error message in Unicode for the inline comment, since
+    // we can't be sure the user's default encoding is UTF-8.
+    var wasAscii = term_glyph.ascii;
+    term_glyph.ascii = true;
+    // Replace comment-closing sequences in the error message with
+    // visually-similar sequences that won't actually close the comment.
+    var commentMessage = toString(color: false).replaceAll("*/", "*∕");
+    term_glyph.ascii = wasAscii;
+
+    // For the string comment, render all non-ASCII characters as escape
+    // sequences so that they'll show up even if the HTTP headers are set
+    // incorrectly.
+    var stringMessage = StringBuffer();
+    for (var rune in SassString(toString(color: false)).toString().runes) {
+      if (rune > 0xFF) {
+        stringMessage
+          ..writeCharCode($backslash)
+          ..write(rune.toRadixString(16))
+          ..writeCharCode($space);
+      } else {
+        stringMessage.writeCharCode(rune);
+      }
+    }
+
+    return """
+/* ${commentMessage.split("\n").join("\n * ")} */
+
+body::before {
+  font-family: "Source Code Pro", "SF Mono", Monaco, Inconsolata, "Fira Mono",
+      "Droid Sans Mono", monospace, monospace;
+  white-space: pre;
+  display: block;
+  padding: 1em;
+  margin-bottom: 1em;
+  border-bottom: 2px solid black;
+  content: $stringMessage;
+}""";
   }
 }
 

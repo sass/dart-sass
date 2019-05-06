@@ -8,34 +8,14 @@ branches:
     # Semantic version tags and legacy branches of the form "1.2.x".
     - "/^\\d+\\.\\d+\\.(\\d+([+-].*)?|x)$/"
 
-# Don't run specs because sass-spec doesn't support Windows. They're also
-# supposed to be platform-independent.
-environment:
-  matrix:
-  - {TASK: tests, NODE: false}
-  - {TASK: tests, NODE: true}
-
 install:
 - choco install dart-sdk
 - refreshenv
 - pub get
-- ps: >-
-    If ($env:NODE -eq "true") {
-      Install-Product node ''
-      pub run grinder npm-package
-    }
-- ps: >-
-    If ($env:NODE -eq "false") {
-      pub run grinder app-snapshot
-    }
+- ps: Install-Product node ''
+- pub run grinder npm-package
+- npm install
 
-# Run this as CMD because npm's stderr will cause PowerShell to think it failed.
-- IF "%NODE%"=="true" npm install
-
-test_script:
-- ps: >-
-    If ($env:NODE -eq "true") {
-      pub run test -t node
-    } Else {
-      pub run test -p vm -x node
-    }
+# Only run Node tests on Windows because they won't work on Travis. See
+# https://travis-ci.community/t/windows-instances-hanging-before-install/250/28.
+test_script: pub run test -t node

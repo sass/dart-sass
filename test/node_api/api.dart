@@ -75,6 +75,7 @@ class SassTypes {
   external NodeSassNullClass get Null;
   external Function get Number;
   external Function get String;
+  external Function get Error;
 }
 
 @JS()

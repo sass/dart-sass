@@ -2,7 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn('vm')
+// OS X's modification time reporting is flaky, so we skip these tests on it.
+@TestOn('vm && !mac-os')
 @Tags(['node'])
 
 import 'package:test/test.dart';

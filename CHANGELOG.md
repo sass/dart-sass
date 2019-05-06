@@ -1,3 +1,70 @@
+## 1.20.1
+
+* No user-visible changes.
+
+## 1.20.0
+
+* Support attribute selector modifiers, such as the `i` in `[title="test" i]`.
+
+### Command-Line Interface
+
+* When compilation fails, Sass will now write the error message to the CSS
+  output as a comment and as the `content` property of a `body::before` rule so
+  it will show up in the browser (unless compiling to standard output). This can
+  be disabled with the `--no-error-css` flag, or forced even when compiling to
+  standard output with the `--error-css` flag.
+
+### Dart API
+
+* Added `SassException.toCssString()`, which returns the contents of a CSS
+  stylesheet describing the error, as above.
+
+## 1.19.0
+
+* Allow `!` in `url()`s without quotes.
+
+### Dart API
+
+* `FilesystemImporter` now doesn't change its effective directory if the working
+  directory changes, even if it's passed a relative argument.
+
+## 1.18.0
+
+* Avoid recursively listing directories when finding the canonical name of a
+  file on case-insensitive filesystems.
+
+* Fix importing files relative to `package:`-imported files.
+
+* Don't claim that "package:" URLs aren't supported when they actually are.
+
+### Command-Line Interface
+
+* Add a `--no-charset` flag. If this flag is set, Sass will never emit a
+  `@charset` declaration or a byte-order mark, even if the CSS file contains
+  non-ASCII characters.
+
+### Dart API
+
+* Add a `charset` option to `compile()`, `compileString()`, `compileAsync()` and
+  `compileStringAsync()`. If this option is set to `false`, Sass will never emit
+  a `@charset` declaration or a byte-order mark, even if the CSS file contains
+  non-ASCII characters.
+
+* Explicitly require that importers' `canonicalize()` methods be able to take
+  paths relative to their outputs as valid inputs. This isn't considered a
+  breaking change because the importer infrastructure already required this in
+  practice.
+
+## 1.17.4
+
+* Consistently parse U+000C FORM FEED, U+000D CARRIAGE RETURN, and sequences of
+  U+000D CARRIAGE RETURN followed by U+000A LINE FEED as individual newlines.
+
+### JavaScript API
+
+* Add a `sass.types.Error` constructor as an alias for `Error`. This makes our
+  custom function API compatible with Node Sass's.
+
 ## 1.17.3
 
 * Fix an edge case where slash-separated numbers were written to the stylesheet

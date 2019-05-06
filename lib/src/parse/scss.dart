@@ -184,6 +184,16 @@ class ScssParser extends StylesheetParser {
           buffer.writeCharCode(scanner.readChar());
           return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
 
+        case $cr:
+          scanner.readChar();
+          if (scanner.peekChar() != $lf) buffer.writeCharCode($lf);
+          break;
+
+        case $ff:
+          scanner.readChar();
+          buffer.writeCharCode($lf);
+          break;
+
         default:
           buffer.writeCharCode(scanner.readChar());
           break;

@@ -27,15 +27,27 @@ class AttributeSelector extends SimpleSelector {
   /// regardless of this value. It's `null` if and only if [op] is `null`.
   final String value;
 
+  /// The modifier which indicates how the attribute selector should be
+  /// processed.
+  ///
+  /// See for example [case-sensitivity][] modifiers.
+  ///
+  /// [case-sensitivity]: https://www.w3.org/TR/selectors-4/#attribute-case
+  ///
+  /// If [op] is `null`, this is always `null` as well.
+  final String modifier;
+
   /// Creates an attribute selector that matches any element with a property of
   /// the given name.
   AttributeSelector(this.name)
       : op = null,
-        value = null;
+        value = null,
+        modifier = null;
 
   /// Creates an attribute selector that matches an element with a property
   /// named [name], whose value matches [value] based on the semantics of [op].
-  AttributeSelector.withOperator(this.name, this.op, this.value);
+  AttributeSelector.withOperator(this.name, this.op, this.value,
+      {this.modifier});
 
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitAttributeSelector(this);
@@ -44,9 +56,11 @@ class AttributeSelector extends SimpleSelector {
       other is AttributeSelector &&
       other.name == name &&
       other.op == op &&
-      other.value == value;
+      other.value == value &&
+      other.modifier == modifier;
 
-  int get hashCode => name.hashCode ^ op.hashCode ^ value.hashCode;
+  int get hashCode =>
+      name.hashCode ^ op.hashCode ^ value.hashCode ^ modifier.hashCode;
 }
 
 /// An operator that defines the semantics of an [AttributeSelector].

@@ -65,24 +65,51 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           await d.file("out.css", "x {y: z}").validate();
         });
 
-        test("continues compiling after an error", () async {
-          await d.file("test1.scss", "a {b: }").create();
-          await d.file("test2.scss", "x {y: z}").create();
+        group("continues compiling after an error", () {
+          test("with --error-css", () async {
+            await d.file("test1.scss", "a {b: }").create();
+            await d.file("test2.scss", "x {y: z}").create();
 
-          var sass =
-              await watch(["test1.scss:out1.css", "test2.scss:out2.css"]);
-          await expectLater(sass.stderr, emits('Error: Expected expression.'));
-          await expectLater(
-              sass.stderr, emitsThrough(contains('test1.scss 1:7')));
-          await expectLater(
-              sass.stdout, emitsThrough('Compiled test2.scss to out2.css.'));
-          await expectLater(sass.stdout, _watchingForChanges);
-          await sass.kill();
+            var message = 'Error: Expected expression.';
+            var sass =
+                await watch(["test1.scss:out1.css", "test2.scss:out2.css"]);
+            await expectLater(sass.stderr, emits(message));
+            await expectLater(
+                sass.stderr, emitsThrough(contains('test1.scss 1:7')));
+            await expectLater(
+                sass.stdout, emitsThrough('Compiled test2.scss to out2.css.'));
+            await expectLater(sass.stdout, _watchingForChanges);
+            await sass.kill();
 
-          await d.nothing("out1.css").validate();
-          await d
-              .file("out2.css", equalsIgnoringWhitespace("x { y: z; }"))
-              .validate();
+            await d.file("out1.css", contains(message)).validate();
+            await d
+                .file("out2.css", equalsIgnoringWhitespace("x { y: z; }"))
+                .validate();
+          });
+
+          test("with --no-error-css", () async {
+            await d.file("test1.scss", "a {b: }").create();
+            await d.file("test2.scss", "x {y: z}").create();
+
+            var sass = await watch([
+              "--no-error-css",
+              "test1.scss:out1.css",
+              "test2.scss:out2.css"
+            ]);
+            await expectLater(
+                sass.stderr, emits('Error: Expected expression.'));
+            await expectLater(
+                sass.stderr, emitsThrough(contains('test1.scss 1:7')));
+            await expectLater(
+                sass.stdout, emitsThrough('Compiled test2.scss to out2.css.'));
+            await expectLater(sass.stdout, _watchingForChanges);
+            await sass.kill();
+
+            await d.nothing("out1.css").validate();
+            await d
+                .file("out2.css", equalsIgnoringWhitespace("x { y: z; }"))
+                .validate();
+          });
         });
 
         test("stops compiling after an error with --stop-on-error", () async {
@@ -94,16 +121,18 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "test1.scss:out1.css",
             "test2.scss:out2.css"
           ]);
+
+          var message = 'Error: Expected expression.';
           await expectLater(
               sass.stderr,
               emitsInOrder([
-                'Error: Expected expression.',
+                message,
                 emitsThrough(contains('test1.scss 1:7')),
                 emitsDone
               ]));
           await sass.shouldExit(65);
 
-          await d.nothing("out1.css").validate();
+          await d.file("out1.css", contains(message)).validate();
           await d.nothing("out2.css").validate();
         });
       });
@@ -201,13 +230,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           await expectLater(sass.stdout, _watchingForChanges);
           await tickIfPoll();
 
+          var message = 'Error: Expected expression.';
           await d.file("test.scss", "a {b: }").create();
-          await expectLater(sass.stderr, emits('Error: Expected expression.'));
+          await expectLater(sass.stderr, emits(message));
           await expectLater(
               sass.stderr, emitsThrough(contains('test.scss 1:7')));
           await sass.kill();
 
-          await d.nothing("out.css").validate();
+          await d.file("out.css", contains(message)).validate();
         });
 
         test("stops compiling after an error with --stop-on-error", () async {
@@ -219,21 +249,22 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           await expectLater(sass.stdout, _watchingForChanges);
           await tickIfPoll();
 
+          var message = 'Error: Expected expression.';
           await d.file("test.scss", "a {b: }").create();
           await expectLater(
               sass.stderr,
               emitsInOrder([
-                'Error: Expected expression.',
+                message,
                 emitsThrough(contains('test.scss 1:7')),
                 emitsDone
               ]));
           await sass.shouldExit(65);
 
-          await d.nothing("out.css").validate();
+          await d.file("out.css", contains(message)).validate();
         });
 
         group("when its dependency is deleted", () {
-          test("and removes the output", () async {
+          test("and updates the output", () async {
             await d.file("_other.scss", "a {b: c}").create();
             await d.file("test.scss", "@import 'other'").create();
 
@@ -243,14 +274,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             await expectLater(sass.stdout, _watchingForChanges);
             await tickIfPoll();
 
+            var message = "Error: Can't find stylesheet to import.";
             d.file("_other.scss").io.deleteSync();
-            await expectLater(
-                sass.stderr, emits("Error: Can't find stylesheet to import."));
+            await expectLater(sass.stderr, emits(message));
             await expectLater(
                 sass.stderr, emitsThrough(contains('test.scss 1:9')));
             await sass.kill();
 
-            await d.nothing("out.css").validate();
+            await d.file("out.css", contains(message)).validate();
           });
 
           test("but another is available", () async {
@@ -374,13 +405,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             await expectLater(sass.stdout, _watchingForChanges);
             await tickIfPoll();
 
+            var message = "Error: It's not clear which file to import. Found:";
             await d.file("_other.sass", "x\n  y: z").create();
-            await expectLater(sass.stderr,
-                emits("Error: It's not clear which file to import. Found:"));
-            await expectLater(sass.stdout, emits("Deleted out.css."));
+            await expectLater(sass.stderr, emits(message));
             await sass.kill();
 
-            await d.nothing("out.css").validate();
+            await d.file("out.css", contains(message)).validate();
           });
 
           group("that overrides the previous dependency", () {

@@ -13,16 +13,14 @@ import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import '../grind.dart';
+import 'standalone.dart';
 import 'utils.dart';
 
-@Task('Release the current version as to GitHub.')
-@Depends(package)
+@Task('Create a GitHub release for the current version, without executables.')
 githubRelease() async {
   var authorization = _githubAuthorization();
 
-  var client = http.Client();
-  var response = await client.post(
+  var response = await http.post(
       "https://api.github.com/repos/sass/dart-sass/releases",
       headers: {
         "content-type": "application/json",
@@ -40,34 +38,6 @@ githubRelease() async {
   } else {
     log("Released Dart Sass $version to GitHub.");
   }
-
-  var uploadUrl = json
-      .decode(response.body)["upload_url"]
-      // Remove the URL template.
-      .replaceFirst(RegExp(r"\{[^}]+\}$"), "");
-
-  await Future.wait(["linux", "macos", "windows"].expand((os) {
-    return ["ia32", "x64"].map((architecture) async {
-      var format = os == "windows" ? "zip" : "tar.gz";
-      var package = "dart-sass-$version-$os-$architecture.$format";
-      var response = await http.post("$uploadUrl?name=$package",
-          headers: {
-            "content-type":
-                os == "windows" ? "application/zip" : "application/gzip",
-            "authorization": authorization
-          },
-          body: File(p.join("build", package)).readAsBytesSync());
-
-      if (response.statusCode != 201) {
-        fail("${response.statusCode} error uploading $package:\n"
-            "${response.body}");
-      } else {
-        log("Uploaded $package.");
-      }
-    });
-  }));
-
-  client.close();
 }
 
 /// Returns the Markdown-formatted message to use for a GitHub release.
@@ -125,6 +95,52 @@ String _lastChangelogSection() {
   }
 
   return buffer.toString().trim();
+}
+
+@Task('Release Linux executables to GitHub.')
+@Depends(packageLinux)
+githubLinux() => _uploadExecutables("linux");
+
+@Task('Release Mac OS executables to GitHub.')
+@Depends(packageMacOs)
+githubMacOs() => _uploadExecutables("macos");
+
+@Task('Release Windows executables to GitHub.')
+@Depends(packageWindows)
+githubWindows() => _uploadExecutables("windows");
+
+/// Upload the 32- and 64-bit executables to the current GitHub release
+Future<void> _uploadExecutables(String os) async {
+  var authorization = _githubAuthorization();
+  var client = http.Client();
+  var response = await client.get(
+      "https://api.github.com/repos/sass/dart-sass/releases/tags/$version",
+      headers: {"authorization": authorization});
+
+  var uploadUrl = json
+      .decode(response.body)["upload_url"]
+      // Remove the URL template.
+      .replaceFirst(RegExp(r"\{[^}]+\}$"), "");
+
+  await Future.wait(["ia32", "x64"].map((architecture) async {
+    var format = os == "windows" ? "zip" : "tar.gz";
+    var package = "dart-sass-$version-$os-$architecture.$format";
+    var response = await http.post("$uploadUrl?name=$package",
+        headers: {
+          "content-type":
+              os == "windows" ? "application/zip" : "application/gzip",
+          "authorization": authorization
+        },
+        body: File(p.join("build", package)).readAsBytesSync());
+
+    if (response.statusCode != 201) {
+      fail("${response.statusCode} error uploading $package:\n"
+          "${response.body}");
+    } else {
+      log("Uploaded $package.");
+    }
+  }));
+  await client.close();
 }
 
 /// Returns the HTTP basic authentication Authorization header from the

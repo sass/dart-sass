@@ -10,12 +10,13 @@ import 'package:source_maps/source_maps.dart';
 
 import '../async_import_cache.dart';
 import '../compile.dart';
-import '../visitor/serialize.dart';
+import '../exception.dart';
 import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../syntax.dart';
 import '../utils.dart';
+import '../visitor/serialize.dart';
 import 'options.dart';
 
 /// Compiles the stylesheet at [source] to [destination].
@@ -56,39 +57,55 @@ Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   }
 
   CompileResult result;
-  if (options.asynchronous) {
-    var importCache = AsyncImportCache([],
-        loadPaths: options.loadPaths, logger: options.logger);
+  try {
+    if (options.asynchronous) {
+      var importCache = AsyncImportCache([],
+          loadPaths: options.loadPaths, logger: options.logger);
 
-    result = source == null
-        ? await compileStringAsync(await readStdin(),
-            syntax: syntax,
-            logger: options.logger,
-            importCache: importCache,
-            importer: FilesystemImporter('.'),
-            style: options.style,
-            sourceMap: options.emitSourceMap)
-        : await compileAsync(source,
-            syntax: syntax,
-            logger: options.logger,
-            importCache: importCache,
-            style: options.style,
-            sourceMap: options.emitSourceMap);
-  } else {
-    result = source == null
-        ? compileString(await readStdin(),
-            syntax: syntax,
-            logger: options.logger,
-            importCache: graph.importCache,
-            importer: FilesystemImporter('.'),
-            style: options.style,
-            sourceMap: options.emitSourceMap)
-        : compile(source,
-            syntax: syntax,
-            logger: options.logger,
-            importCache: graph.importCache,
-            style: options.style,
-            sourceMap: options.emitSourceMap);
+      result = source == null
+          ? await compileStringAsync(await readStdin(),
+              syntax: syntax,
+              logger: options.logger,
+              importCache: importCache,
+              importer: FilesystemImporter('.'),
+              style: options.style,
+              sourceMap: options.emitSourceMap,
+              charset: options.charset)
+          : await compileAsync(source,
+              syntax: syntax,
+              logger: options.logger,
+              importCache: importCache,
+              style: options.style,
+              sourceMap: options.emitSourceMap,
+              charset: options.charset);
+    } else {
+      result = source == null
+          ? compileString(await readStdin(),
+              syntax: syntax,
+              logger: options.logger,
+              importCache: graph.importCache,
+              importer: FilesystemImporter('.'),
+              style: options.style,
+              sourceMap: options.emitSourceMap,
+              charset: options.charset)
+          : compile(source,
+              syntax: syntax,
+              logger: options.logger,
+              importCache: graph.importCache,
+              style: options.style,
+              sourceMap: options.emitSourceMap,
+              charset: options.charset);
+    }
+  } on SassException catch (error) {
+    if (options.emitErrorCss) {
+      if (destination == null) {
+        print(error.toCssString());
+      } else {
+        ensureDir(p.dirname(destination));
+        writeFile(destination, error.toCssString() + "\n");
+      }
+    }
+    rethrow;
   }
 
   var css = result.css;

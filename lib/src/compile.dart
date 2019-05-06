@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 2bb00947655b3add16335253802a82188d730595
+// Checksum: ea78ec4431055c1d222e52f4ea54a9659c4df11f
 //
 // ignore_for_file: unused_import
 
@@ -45,7 +45,8 @@ CompileResult compile(String path,
     bool useSpaces = true,
     int indentWidth,
     LineFeed lineFeed,
-    bool sourceMap = false}) {
+    bool sourceMap = false,
+    bool charset = true}) {
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
   Stylesheet stylesheet;
@@ -71,7 +72,8 @@ CompileResult compile(String path,
       useSpaces,
       indentWidth,
       lineFeed,
-      sourceMap);
+      sourceMap,
+      charset);
 }
 
 /// Like [compileString] in `lib/sass.dart`, but provides more options to
@@ -93,7 +95,8 @@ CompileResult compileString(String source,
     int indentWidth,
     LineFeed lineFeed,
     url,
-    bool sourceMap = false}) {
+    bool sourceMap = false,
+    bool charset = true}) {
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 
@@ -108,7 +111,8 @@ CompileResult compileString(String source,
       useSpaces,
       indentWidth,
       lineFeed,
-      sourceMap);
+      sourceMap,
+      charset);
 }
 
 /// Compiles [stylesheet] and returns its result.
@@ -125,7 +129,8 @@ CompileResult _compileStylesheet(
     bool useSpaces,
     int indentWidth,
     LineFeed lineFeed,
-    bool sourceMap) {
+    bool sourceMap,
+    bool charset) {
   var evaluateResult = evaluate(stylesheet,
       importCache: importCache,
       nodeImporter: nodeImporter,
@@ -139,7 +144,8 @@ CompileResult _compileStylesheet(
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed,
-      sourceMap: sourceMap);
+      sourceMap: sourceMap,
+      charset: charset);
 
   if (serializeResult.sourceMap != null && importCache != null) {
     // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490

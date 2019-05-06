@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -387,6 +388,139 @@ void sharedTests(
       var sass = await runSass(["--quiet", "test.scss"]);
       expect(sass.stderr, emitsDone);
       await sass.shouldExit(0);
+    });
+  });
+
+  group("with --charset", () {
+    test("doesn't emit @charset for a pure-ASCII stylesheet", () async {
+      await d.file("test.scss", "a {b: c}").create();
+
+      var sass = await runSass(["test.scss"]);
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            "a {",
+            "  b: c;",
+            "}",
+          ]));
+      await sass.shouldExit(0);
+    });
+
+    test("emits @charset with expanded output", () async {
+      await d.file("test.scss", "a {b: 👭}").create();
+
+      var sass = await runSass(["test.scss"]);
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            "@charset \"UTF-8\";",
+            "a {",
+            "  b: 👭;",
+            "}",
+          ]));
+      await sass.shouldExit(0);
+    });
+
+    test("emits a BOM with compressed output", () async {
+      await d.file("test.scss", "a {b: 👭}").create();
+
+      var sass = await runSass(
+          ["--no-source-map", "--style=compressed", "test.scss", "test.css"]);
+      await sass.shouldExit(0);
+
+      // We can't verify this as a string because `dart:io` automatically trims
+      // the BOM.
+      var bomBytes = utf8.encode("\uFEFF");
+      expect(
+          File(p.join(d.sandbox, "test.css"))
+              .readAsBytesSync()
+              .sublist(0, bomBytes.length),
+          equals(bomBytes));
+    });
+  });
+
+  group("with --no-charset", () {
+    test("doesn't emit @charset with expanded output", () async {
+      await d.file("test.scss", "a {b: 👭}").create();
+
+      var sass = await runSass(["--no-charset", "test.scss"]);
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            "a {",
+            "  b: 👭;",
+            "}",
+          ]));
+      await sass.shouldExit(0);
+    });
+
+    test("doesn't emit a BOM with compressed output", () async {
+      await d.file("test.scss", "a {b: 👭}").create();
+
+      var sass = await runSass([
+        "--no-charset",
+        "--no-source-map",
+        "--style=compressed",
+        "test.scss",
+        "test.css"
+      ]);
+      await sass.shouldExit(0);
+
+      // We can't verify this as a string because `dart:io` automatically trims
+      // the BOM.
+      var bomBytes = utf8.encode("\uFEFF");
+      expect(
+          File(p.join(d.sandbox, "test.css"))
+              .readAsBytesSync()
+              .sublist(0, bomBytes.length),
+          isNot(equals(bomBytes)));
+    });
+  });
+
+  group("with --error-css", () {
+    var message = "Error: Expected expression.";
+    setUp(() => d.file("test.scss", "a {b: 1 + }").create());
+
+    group("not explicitly set", () {
+      test("doesn't emit error CSS when compiling to stdout", () async {
+        var sass = await runSass(["test.scss"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(65);
+      });
+
+      test("emits error CSS when compiling to a file", () async {
+        var sass = await runSass(["test.scss", "test.css"]);
+        await sass.shouldExit(65);
+        await d.file("test.css", contains(message)).validate();
+      });
+    });
+
+    group("explicitly set", () {
+      test("emits error CSS when compiling to stdout", () async {
+        var sass = await runSass(["--error-css", "test.scss"]);
+        expect(sass.stdout, emitsThrough(contains(message)));
+        await sass.shouldExit(65);
+      });
+
+      test("emits error CSS when compiling to a file", () async {
+        var sass = await runSass(["--error-css", "test.scss", "test.css"]);
+        await sass.shouldExit(65);
+        await d.file("test.css", contains(message)).validate();
+      });
+    });
+
+    group("explicitly unset", () {
+      test("doesn't emit error CSS when compiling to stdout", () async {
+        var sass = await runSass(["--no-error-css", "test.scss"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(65);
+      });
+
+      test("emits error CSS when compiling to a file", () async {
+        var sass = await runSass(["--no-error-css", "test.scss", "test.css"]);
+        await sass.shouldExit(65);
+        await d.nothing("test.css").validate();
+      });
     });
   });
 }

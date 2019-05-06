@@ -55,6 +55,13 @@ class ExecutableOptions {
           help: 'Output style.',
           allowed: ['expanded', 'compressed'],
           defaultsTo: 'expanded')
+      ..addFlag('charset',
+          help: 'Emit a @charset or BOM for CSS with non-ASCII characters.',
+          defaultsTo: true)
+      ..addFlag('error-css',
+          help: 'When an error occurs, emit a stylesheet describing it.\n'
+              'Defaults to true when compiling to a file.',
+          defaultsTo: null)
       ..addFlag('update',
           help: 'Only compile out-of-date stylesheets.', negatable: false);
 
@@ -171,6 +178,10 @@ class ExecutableOptions {
       ? OutputStyle.compressed
       : OutputStyle.expanded;
 
+  /// Whether to include a `@charset` declaration or a BOM if the stylesheet
+  /// contains any non-ASCII characters.
+  bool get charset => _options['charset'] as bool;
+
   /// The set of paths Sass in which should look for imported files.
   List<String> get loadPaths => _options['load-path'] as List<String>;
 
@@ -192,6 +203,11 @@ class ExecutableOptions {
   /// Whether to stop compiling additional files once one file produces an
   /// error.
   bool get stopOnError => _options['stop-on-error'] as bool;
+
+  /// Whether to emit error messages as CSS stylesheets
+  bool get emitErrorCss =>
+      _options['error-css'] as bool ??
+      sourcesToDestinations.values.any((destination) => destination != null);
 
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.
@@ -356,7 +372,7 @@ class ExecutableOptions {
   /// [destination] directories.
   Map<String, String> _listSourceDirectory(String source, String destination) {
     var map = <String, String>{};
-    for (var path in listDir(source)) {
+    for (var path in listDir(source, recursive: true)) {
       var basename = p.basename(path);
       if (basename.startsWith("_")) continue;
 
