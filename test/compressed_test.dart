@@ -42,6 +42,16 @@ void main() {
               equals("a:nth-child(2n of b,c){x:y}"));
         });
       });
+
+      group("in attribute selectors with modifiers", () {
+        test("removes whitespace when quotes are required", () {
+          expect(_compile('[a=" " b] {x: y}'), equals('[a=" "b]{x:y}'));
+        });
+
+        test("doesn't remove whitespace when quotes aren't required", () {
+          expect(_compile('[a="b"c] {x: y}'), equals('[a=b c]{x:y}'));
+        });
+      });
     });
 
     group("for declarations", () {

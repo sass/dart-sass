@@ -195,6 +195,16 @@ void main() {
       expect(error.toString(), contains('aw beans'));
     });
 
+    test("reports a synchronous sass.types.Error", () async {
+      var error = await renderError(RenderOptions(
+          data: "a {b: foo()}",
+          functions: jsify({
+            "foo": allowInterop(
+                (_) => callConstructor(sass.types.Error, ["aw beans"]))
+          })));
+      expect(error.toString(), contains('aw beans'));
+    });
+
     test("reports an asynchronous error", () async {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
@@ -202,6 +212,19 @@ void main() {
             "foo": allowInterop((done) {
               Future.delayed(Duration.zero).then((_) {
                 done(JSError("aw beans"));
+              });
+            })
+          })));
+      expect(error.toString(), contains('aw beans'));
+    });
+
+    test("reports an asynchronous sass.types.Error", () async {
+      var error = await renderError(RenderOptions(
+          data: "a {b: foo()}",
+          functions: jsify({
+            "foo": allowInterop((done) {
+              Future.delayed(Duration.zero).then((_) {
+                done(callConstructor(sass.types.Error, ["aw beans"]));
               });
             })
           })));

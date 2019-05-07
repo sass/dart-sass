@@ -74,7 +74,7 @@ class _Watcher {
           ifModified: ifModified);
       return true;
     } on SassException catch (error, stackTrace) {
-      _delete(destination);
+      if (!_options.emitErrorCss) _delete(destination);
       _printError(error.toString(color: _options.color), stackTrace);
       exitCode = 65;
       return false;

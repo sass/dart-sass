@@ -1,34 +1,12 @@
 ## Testing
 
 # Set the language to Ruby so that we can run sass-spec tests.
-language: ruby
+language: shell
 
 env:
   global:
   - DART_CHANNEL=stable
   - DART_VERSION=latest
-  matrix:
-  # Language specs, defined in sass/sass-spec
-  - TASK=specs
-  - TASK=specs DART_CHANNEL=dev
-  - TASK=specs ASYNC=true
-
-  # Unit tests, defined in test/.
-  - TASK=tests
-  - TASK=tests DART_CHANNEL=dev
-  - TASK=tests NODE_VERSION=stable
-
-  # Keep these up-to-date with the latest LTA Node releases. They next need to be
-  # rotated October 2018. See https://github.com/nodejs/Release.
-  - TASK=tests NODE_VERSION=lts/boron
-  - TASK=tests NODE_VERSION=lts/carbon
-
-  # Miscellaneous checks.
-  - TASK=analyze
-  - TASK=format
-
-rvm:
-- 2.3.1
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
@@ -43,44 +21,91 @@ cache:
   directories:
   - $HOME/.pub-cache
 
-install:
 # Install the Dart SDK.
-- curl -o dart.zip "https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-linux-x64-release.zip"
-- unzip dart.zip
-- export PATH="$PATH:`pwd`/dart-sdk/bin"
-- pub get
-
-# Install the Node SDK if we're running Node tests.
-- if-node() { if [ ! -z "$NODE_VERSION" ]; then "$@"; fi }
-- if-node . "$HOME/.nvm/nvm.sh"
-- if-node nvm install "$NODE_VERSION"
-- if-node nvm use "$NODE_VERSION"
-- if-node pub run grinder before-test
-
-# Download sass-spec and install its dependencies if we're running specs.
-- if-specs() { if [ "$TASK" = specs ]; then "$@"; fi }
-- if-specs export sass_spec_ref=`tool/travis/sass-spec-ref.sh`
-- if-specs git init sass-spec
-- if-specs git -C sass-spec fetch git://github.com/sass/sass-spec "$sass_spec_ref" --depth 1
-- if-specs git -C sass-spec checkout FETCH_HEAD
-- if-specs bundle install --gemfile=sass-spec/Gemfile --jobs=3 --retry=3
-
-- if [ "$TASK" = tests ]; then pub run grinder app-snapshot; fi
-
-script: tool/travis/test.sh
-
-## Deployment
+before_install:
+- tool/travis/use_dart.sh
+- export PATH="$PATH:`pwd`/dart-sdk/bin";
 
 jobs:
   include:
+  ## Testing
+
+  # Language specs, defined in sass/sass-spec. These need Ruby to run the spec
+  # runner.
+  - &specs
+    name: sass-spec | Dart stable | synchronous
+    language: ruby
+    install:
+    - export sass_spec_ref=`tool/travis/sass-spec-ref.sh`
+    - git init sass-spec
+    - git -C sass-spec fetch git://github.com/sass/sass-spec "$sass_spec_ref" --depth 1
+    - git -C sass-spec checkout FETCH_HEAD
+    - bundle install --gemfile=sass-spec/Gemfile --jobs=3 --retry=3
+    script: tool/travis/task/specs.sh
+  - <<: *specs
+    name: sass-spec | Dart dev | synchronous
+    env: DART_CHANNEL=dev
+  - <<: *specs
+    name: sass-spec | Dart stable | asynchronous
+    env: ASYNC=true
+
+  # Pure Dart unit tests, defined in test/.
+  - &dart-tests
+    name: Dart tests | Dart stable
+    install: pub run grinder app-snapshot
+    task: tool/travis/task/dart_tests.sh
+  - <<: *dart-tests
+    name: Dart tests | Dart dev
+    env: DART_CHANNEL=dev
+  - <<: *dart-tests
+    os: windows
+  - <<: *dart-tests
+    os: osx
+
+  # Unit tests that use Node.js, defined in test/.
+  #
+  # The versions should be kept up-to-date with the latest LTS Node releases.
+  # They next need to be rotated December 2019. See
+  # https://github.com/nodejs/Release.
+  #
+  # TODO(nweiz): Run Node tests on Windows when [this issue][] is fixed.
+  #
+  # [this issue]: https://travis-ci.community/t/windows-instances-hanging-before-install/250/28.
+  - &node-tests
+    name: Node tests | Dart stable | Node stable
+    language: node_js
+    node_js: stable
+    install: pub run grinder before-test
+    script: tool/travis/task/node_tests.sh
+  - <<: *node-tests
+    name: Node tests | Dart stable | Node Carbon
+    node_js: lts/carbon
+  - <<: *node-tests
+    name: Node tests | Dart stable | Node Dubnium
+    node_js: lts/dubnium
+  - <<: *node-tests
+    os: osx
+
+  # Miscellaneous checks.
+  - name: static analysis
+    language: dart
+    dart_task: {dartanalyzer: --fatal-warnings lib tool test}
+  - name: code formatting
+    language: dart
+    dart_task: dartfmt
+
+  ## Deployment
+
   # Sanity check before releasing anywhere.
   - stage: sanity check
     if: &deploy-if
       (type IN (push, api)) AND (repo = sass/dart-sass) AND tag =~ ^\d+\.\d+\.\d+([+-].*)?$
     script: pub run grinder sanity-check-before-release
 
-  # Deploy to GitHub.
+  # Deploy Linux and Windows releases to GitHub. Mac OS releases are deployed in
+  # a later stage so that we can build application snapshots on Mac OS bots.
   - stage: deploy 1
+    name: "GitHub: Windows and Linux"
     if: *deploy-if
     env: &github-env
       - GITHUB_USER=sassbot
@@ -92,7 +117,7 @@ jobs:
     script: skip # Don't run tests
     deploy:
       provider: script
-      script: pub run grinder github-release
+      script: pub run grinder github-release github-linux github-windows
       skip_cleanup: true # Don't clean up the Dart SDK.
 
       # This causes the deploy to only be build when a tag is pushed. This
@@ -108,8 +133,11 @@ jobs:
       on: {tags: true}
 
   # Deploy to npm.
-  - if: *deploy-if
+  - name: npm
+    if: *deploy-if
     script: skip
+    language: node_js
+    node_js: stable
     deploy:
       provider: script
       script: tool/travis/deploy/npm.sh
@@ -117,7 +145,8 @@ jobs:
       on: {tags: true}
 
   # Deploy to pub.
-  - if: *deploy-if
+  - name: pub
+    if: *deploy-if
     script: skip
     deploy:
       provider: script
@@ -126,7 +155,8 @@ jobs:
       on: {tags: true}
 
   # Deploy to Homebrew.
-  - if: *deploy-if
+  - name: Homebrew
+    if: *deploy-if
     env: *github-env
     script: skip
     deploy:
@@ -136,7 +166,8 @@ jobs:
       on: {tags: true}
 
   # Deploy to Chocolatey.
-  - if: *deploy-if
+  - name: Chocolatey
+    if: *deploy-if
     env:
       # CHOCO_TOKEN="..."
       - secure: "cW11kQYBBEElfVsc1pJfVEHOMYwt0ZK+9STZHwSPbAISlplIRnsimMN7TqCY2aLnkWXyUMU7DphIl9uQ86M4BT1bJopsHbapj27bFSlKWHlBSDB/xylFHywV41Yk5lMlr8DLMbsSzVahasyR34xS6HYIRlDpZ9TFiQuDQNJxQmqTZJg/FC+3nqCI7tyMKGkWc48ikTcmqDMHsG9CudG2u+Q3S9sLNXArh9T4tSnAyWkTvSrS05mvFx5tC83PcG9/VkioTId+VRSJchwTmCxDFDROrTikTXZMtYn8wMAQ2wQ34TQXNZMZ9uiHA6W0IuJV2EnYerJbqV2lrJq9xqZywKu6HW6i4GhrCvizALNFZx/N7s/10xuf3UcuWizYml/e0MYT+6t4ojTYBMKv+Cx+H2Y2Jdpvdn2ZAIl6LaU3pLw4OIPJ7aXjDwZd63MPxtwGwVLHbH7Zu+oUv1erIq5LtatuocGWipD8WdiMBQvyCuDRMowpLPoAbj+mevOf+xlY2Eym4tOXpxM7iY3lXFHROo5dQbhsARfVF9J1gl5PuYXvCjxqTfK/ef9t3ZoDbi57+yAJUWlZfWa5r1zKE8OS0pA8GfQRLom/Lt0wKVw4Xiofgolzd9pEHi4JpsYIQb8O+u1ACQU6nBCS87CGrQ+ylnzKfGUs0aW2K3gvbkg0LUg="
@@ -148,10 +179,11 @@ jobs:
       on: {tags: true}
 
   # Redeploy sass-lang.com.
-  - if: *deploy-if
+  - name: sass-lang.com
+    if: *deploy-if
     env:
       # HEROKU_TOKEN="..."
-      - secure: "jF3TCL+k6xdXWfEh54K6KrZ3w0oljUpP0uy9Hx0BIM5gaqG6fUijUnNGCkWDZxufEpl68mGxNRNMB2Mv++UXHiT7ChFx8zZqEyc5FzhIu/nVO3CP3Sek7fuktYidtUvqJ6eHkI15990dWkUoE+TTXTc4/Z9vv1Lt3JX8Ni5VApGCmcLjRwW52EkCC49xo7cWE8/wBEm2ntOivLBIXEKq6hpncXTO4H5KYt042WAJ+MPmQZYE1ENJAObXWrGituRCT6DQnIJuTodOn24SU1KJuvEtfskEJQUajIIQw29uvmu4TP7dgaJw8QBt+hdgcCYrMhoq3RTNmD+vitLRloG4QMWHFYhzONVZ8S3vAhKeolL7nnIz150FpLVQiddSLsdGomqjCfYEJN7TVrwvunGgHxygcGBcq2AiydnxREnlW9Rj6m6g6TVlhdX7JtyePDQN7xEDdZF1UbGMA6CDjzFsi0GY2WNLSCAANUOXmst0kDIFHGc6WkIUXMIbfmkUZADKzF/JDtnEQqtU8Qxc8JfW6ODXqC/fowE3q4cr8NnJMtclyIL/DsWSx2ph3vUr/VH5MWXd4MDJ6ZRnSJHaY2E0IYcKU2JEpA8r7xrFK/+/B9qCMPnoegRFfuN+zHM9b84rNzaF8fmuWuMVKzncw/TvXttRFqoZVS2Ej1EfLY3SA3M="
+      - secure: "JUBfLfJr+5RIvxkk+1qqtyJxaHq2A9x78G9L9bUTjBD3C7XJOmJtt8u+pAgperL+fIfrlcAVzmYTyRGLj+0PL4VcxMTrmn604FIn+ffcgatylYKtPdpJq5dnXQ4U0+ROaZnq1mPZeUI7OHwRlVcQStIWkPxk7Eno+ZqxFyziLZ4wxo7l809iCAbhJttCfWPupyHX75cHhBMFaPEk9LYUrxQURyE0GKMQgDKHY/ehe87gyuKt3o79gi7/E0chQApv1jeua4xz5tyNBNQH/nwuJmmBCab/IdgTLn2vj4qjT1ENeB5PINCfFOT98IPVREOLbY+jiGRVwQFJbC55mOBQH21mfIt/XLhcjYHe80X4PyYhtJJ2GDadcyrzppZmHpEDHzfR8B29LEKhNM1VfUTZ8I9+TudXW8uMjtqCsXyi8bKZLsuZNNSlWVh1qIR+FXMDTrYNOnTcvgzv5yi6fbD10Uf8k1G0pHtKQiFainWatmJhNIMtGoYe7LRAB0Rj7OGWDMv/PHy/+Z7BKIj3b0LefVN1xpeuy3mMhMq9g5Q8HI8yk37DNmZQ9kwgHpIUk/t2xAdwzZ0XMSDFW9iHV48/iHwi0t5M2RCFRnI8ZaUNU5Z8QLUPHnazCucIvR4N8ns1yFwDgNQ5CzlBFrV70EwgqZhjjToAOhnIXpHMWr3AVAw="
     install: skip
     script: skip
     deploy:
@@ -164,11 +196,22 @@ jobs:
   # Deploy to Bazel. This is in a separate deploy stage because it needs to
   # install the npm package.
   - stage: deploy 2
+    name: Bazel
     if: *deploy-if
     env: *github-env
     script: skip
     deploy:
       provider: script
       script: pub run grinder update-bazel
+      skip_cleanup: true
+      on: {tags: true}
+
+  - name: "GitHub: Mac OS"
+    if: *deploy-if
+    env: *github-env
+    script: skip
+    deploy:
+      provider: script
+      script: pub run grinder github-mac-os
       skip_cleanup: true
       on: {tags: true}

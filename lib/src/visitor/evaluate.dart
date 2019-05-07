@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 4de442e73c75611a675e2fd0d8962219f1ceffd7
+// Checksum: ef520a902171c8d105ece12e7c84889e34f95d80
 //
 // ignore_for_file: unused_import
 
@@ -38,6 +38,7 @@ import '../extend/extension.dart';
 import '../importer.dart';
 import '../importer/node.dart';
 import '../importer/utils.dart';
+import '../io.dart';
 import '../logger.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
@@ -1065,7 +1066,7 @@ class _EvaluateVisitor
         if (tuple != null) return tuple;
       }
 
-      if (url.startsWith('package:')) {
+      if (url.startsWith('package:') && isNode) {
         // Special-case this error message, since it's tripped people up in the
         // past.
         throw "\"package:\" URLs aren't supported on this platform.";

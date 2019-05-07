@@ -100,6 +100,22 @@ main() {
       expect(css, equals("a {\n  b: 3;\n}"));
     });
 
+    test("can resolve relative paths in a package", () async {
+      await d.dir("subdir", [
+        d.file("test.scss", "@import 'other'"),
+        d.file("_other.scss", "a {b: 1 + 2}"),
+      ]).create();
+
+      await d
+          .file("test.scss", '@import "package:fake_package/test";')
+          .create();
+      var resolver = SyncPackageResolver.config(
+          {"fake_package": p.toUri(d.path('subdir'))});
+
+      var css = compile(d.path("test.scss"), packageResolver: resolver);
+      expect(css, equals("a {\n  b: 3;\n}"));
+    });
+
     test("doesn't import a package URL from a missing package", () async {
       await d
           .file("test.scss", '@import "package:fake_package/test_aux";')
@@ -167,6 +183,46 @@ main() {
           packageResolver: SyncPackageResolver.config(
               {"fake_package": p.toUri(d.path('package'))}));
       expect(css, equals("a {\n  b: from-importer;\n}"));
+    });
+  });
+
+  group("charset", () {
+    group("= true", () {
+      test("doesn't emit @charset for a pure-ASCII stylesheet", () {
+        expect(compileString("a {b: c}"), equals("""
+a {
+  b: c;
+}"""));
+      });
+
+      test("emits @charset with expanded output", () async {
+        expect(compileString("a {b: 👭}"), equals("""
+@charset "UTF-8";
+a {
+  b: 👭;
+}"""));
+      });
+
+      test("emits a BOM with compressed output", () async {
+        expect(compileString("a {b: 👭}", style: OutputStyle.compressed),
+            equals("\u{FEFF}a{b:👭}"));
+      });
+    });
+
+    group("= false", () {
+      test("doesn't emit @charset with expanded output", () async {
+        expect(compileString("a {b: 👭}", charset: false), equals("""
+a {
+  b: 👭;
+}"""));
+      });
+
+      test("emits a BOM with compressed output", () async {
+        expect(
+            compileString("a {b: 👭}",
+                charset: false, style: OutputStyle.compressed),
+            equals("a{b:👭}"));
+      });
     });
   });
 }

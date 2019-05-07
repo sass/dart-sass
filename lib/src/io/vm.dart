@@ -71,10 +71,11 @@ bool dirExists(String path) => io.Directory(path).existsSync();
 
 void ensureDir(String path) => io.Directory(path).createSync(recursive: true);
 
-Iterable<String> listDir(String path) => io.Directory(path)
-    .listSync(recursive: true)
-    .where((entity) => entity is io.File)
-    .map((entity) => entity.path);
+Iterable<String> listDir(String path, {bool recursive = false}) =>
+    io.Directory(path)
+        .listSync(recursive: recursive)
+        .where((entity) => entity is io.File)
+        .map((entity) => entity.path);
 
 DateTime modificationTime(String path) {
   var stat = io.FileStat.statSync(path);
@@ -93,7 +94,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   // triggers but the caller can still listen at their leisure.
   var stream = SubscriptionStream<WatchEvent>(watcher.events
       .transform(const SingleSubscriptionTransformer<WatchEvent, WatchEvent>())
-      .listen((e) => print(e)));
+      .listen(null));
   await watcher.ready;
 
   return stream;
