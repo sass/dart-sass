@@ -53,7 +53,7 @@ jobs:
   - &dart-tests
     name: Dart tests | Dart stable
     install: pub run grinder app-snapshot
-    task: tool/travis/task/dart_tests.sh
+    script: tool/travis/task/dart_tests.sh
   - <<: *dart-tests
     name: Dart tests | Dart dev
     env: DART_CHANNEL=dev
