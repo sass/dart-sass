@@ -5,7 +5,7 @@
 import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../comment.dart';
 import 'node.dart';
 
@@ -18,5 +18,5 @@ class ModifiableCssComment extends ModifiableCssNode implements CssComment {
 
   ModifiableCssComment(this.text, this.span);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitComment(this);
+  T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssComment(this);
 }

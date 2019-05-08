@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../value.dart';
+import '../../visitor/interface/css.dart';
 import 'node.dart';
 import 'value.dart';
 
@@ -22,4 +23,6 @@ abstract class CssDeclaration extends CssNode {
   /// where that variable was declared whereas [value.span] is the span where
   /// the variable was used. Otherwise, this is identical to [value.span].
   FileSpan get valueSpanForMap;
+
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssDeclaration(this);
 }

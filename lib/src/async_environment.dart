@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
@@ -11,10 +12,12 @@ import 'ast/node.dart';
 import 'async_module.dart';
 import 'callable.dart';
 import 'exception.dart';
+import 'extend/extender.dart';
 import 'functions.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
 import 'value.dart';
+import 'visitor/clone_css.dart';
 
 /// The lexical environment in which Sass is executed.
 ///
@@ -28,6 +31,10 @@ class AsyncEnvironment {
   ///
   /// This is `null` if there are no namespaceless modules.
   Set<AsyncModule> _globalModules;
+
+  /// Modules from both [_modules] and [_global], in the order in which they
+  /// were `@use`d.
+  final List<AsyncModule> _allModules;
 
   /// A list of variables defined at each lexical scope level.
   ///
@@ -122,6 +129,7 @@ class AsyncEnvironment {
   AsyncEnvironment({bool sourceMap = false})
       : _modules = {},
         _globalModules = null,
+        _allModules = [],
         _variables = [normalizedMap()],
         _variableNodes = sourceMap ? [normalizedMap()] : null,
         _variableIndices = normalizedMap(),
@@ -132,8 +140,15 @@ class AsyncEnvironment {
     coreFunctions.forEach(setFunction);
   }
 
-  AsyncEnvironment._(this._modules, this._globalModules, this._variables,
-      this._variableNodes, this._functions, this._mixins, this._content)
+  AsyncEnvironment._(
+      this._modules,
+      this._globalModules,
+      this._allModules,
+      this._variables,
+      this._variableNodes,
+      this._functions,
+      this._mixins,
+      this._content)
       // Lazily fill in the indices rather than eagerly copying them from the
       // existing environment in closure() because the copying took a lot of
       // time and was rarely helpful. This saves a bunch of time on Susy's
@@ -150,6 +165,7 @@ class AsyncEnvironment {
   AsyncEnvironment closure() => AsyncEnvironment._(
       _modules,
       _globalModules,
+      _allModules,
       _variables.toList(),
       _variableNodes?.toList(),
       _functions.toList(),
@@ -160,8 +176,10 @@ class AsyncEnvironment {
   ///
   /// The returned environment shares this environment's global variables,
   /// functions, and mixins, but not its modules.
-  AsyncEnvironment global() => AsyncEnvironment._({},
+  AsyncEnvironment global() => AsyncEnvironment._(
+      {},
       null,
+      [],
       _variables.toList(),
       _variableNodes?.toList(),
       _functions.toList(),
@@ -180,6 +198,7 @@ class AsyncEnvironment {
     if (namespace == null) {
       _globalModules ??= Set();
       _globalModules.add(module);
+      _allModules.add(module);
 
       for (var name in _variables.first.keys) {
         if (module.variables.containsKey(name)) {
@@ -195,6 +214,7 @@ class AsyncEnvironment {
       }
 
       _modules[namespace] = module;
+      _allModules.add(module);
     }
   }
 
@@ -557,8 +577,10 @@ class AsyncEnvironment {
   }
 
   /// Returns a module that represents the top-level members defined in [this],
-  /// and that contains [css] as its CSS tree.
-  AsyncModule toModule(CssStylesheet css) => _EnvironmentModule(this, css);
+  /// that contains [css] as its CSS tree, which can be extended using
+  /// [extender].
+  AsyncModule toModule(CssStylesheet css, Extender extender) =>
+      _EnvironmentModule(this, css, extender);
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
@@ -600,24 +622,37 @@ class AsyncEnvironment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements AsyncModule {
+  Uri get url => css.span.sourceUrl;
+
+  final List<AsyncModule> upstream;
   final Map<String, Value> variables;
   final Map<String, AstNode> variableNodes;
   final Map<String, AsyncCallable> functions;
   final Map<String, AsyncCallable> mixins;
+  final Extender extender;
   final CssStylesheet css;
+  final bool transitivelyContainsCss;
+  final bool transitivelyContainsExtensions;
 
   /// The environment that defines this module's members.
   final AsyncEnvironment _environment;
 
   // TODO(nweiz): Use custom [UnmodifiableMapView]s that forbid access to
   // private members.
-  _EnvironmentModule(this._environment, this.css)
-      : variables = PublicMemberMap(_environment._variables.first),
+  _EnvironmentModule(this._environment, this.css, this.extender)
+      : upstream = _environment._allModules,
+        variables = PublicMemberMap(_environment._variables.first),
         variableNodes = _environment._variableNodes == null
             ? null
             : PublicMemberMap(_environment._variableNodes.first),
         functions = PublicMemberMap(_environment._functions.first),
-        mixins = PublicMemberMap(_environment._mixins.first);
+        mixins = PublicMemberMap(_environment._mixins.first),
+        transitivelyContainsCss = css.children.isNotEmpty ||
+            _environment._allModules
+                .any((module) => module.transitivelyContainsCss),
+        transitivelyContainsExtensions = !extender.isEmpty ||
+            _environment._allModules
+                .any((module) => module.transitivelyContainsExtensions);
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!_environment._variables.first.containsKey(name)) {
@@ -630,4 +665,14 @@ class _EnvironmentModule implements AsyncModule {
     }
     return;
   }
+
+  AsyncModule cloneCss() {
+    if (css.children.isEmpty) return this;
+
+    var newCssAndExtender = cloneCssStylesheet(css, extender);
+    return _EnvironmentModule(
+        _environment, newCssAndExtender.item1, newCssAndExtender.item2);
+  }
+
+  String toString() => p.prettyUri(css.span.sourceUrl);
 }

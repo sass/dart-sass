@@ -133,6 +133,12 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
   return result;
 }
 
+/// Returns the first element of [iterable], or `null` if the iterable is empty.
+T firstOrNull<T>(Iterable<T> iterable) {
+  var iterator = iterable.iterator;
+  return iterator.moveNext() ? iterator.current : null;
+}
+
 /// Converts [codepointIndex] to a code unit index, relative to [string].
 ///
 /// A codepoint index is the index in pure Unicode codepoints; a code unit index
@@ -373,6 +379,20 @@ T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
   }
 }
 
+/// Like [Map.addAll], but for two-layer maps.
+///
+/// This avoids copying inner maps from [source] if possible.
+void mapAddAll2<K1, K2, V>(
+    Map<K1, Map<K2, V>> destination, Map<K1, Map<K2, V>> source) {
+  source.forEach((key, inner) {
+    if (destination.containsKey(key)) {
+      destination[key].addAll(inner);
+    } else {
+      destination[key] = inner;
+    }
+  });
+}
+
 /// Rotates the element in list from [start] (inclusive) to [end] (exclusive)
 /// one index higher, looping the final element back to [start].
 void rotateSlice(List list, int start, int end) {
@@ -420,3 +440,12 @@ Future<Map<String, V2>> normalizedMapMapAsync<K, V1, V2>(Map<K, V1> map,
   }
   return result;
 }
+
+/// Returns a deep copy of a map that contains maps.
+Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
+    mapMap<K1, Map<K2, V>, K1, Map<K2, V>>(map,
+        value: (_, innerMap) => Map.of(innerMap));
+
+/// Returns a deep copy of a map that contains lists.
+Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
+    mapMap<K, List<E>, K, List<E>>(map, value: (_, list) => list.toList());
