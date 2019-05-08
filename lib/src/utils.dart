@@ -274,6 +274,25 @@ bool startsWithIgnoreCase(String string, String prefix) {
   return true;
 }
 
+/// Returns whether [string] begins with [prefix] if `-` and `_` are
+/// considered equivalent.
+bool startsWithIgnoreSeparator(String string, String prefix) {
+  if (string.length < prefix.length) return false;
+  for (var i = 0; i < prefix.length; i++) {
+    var stringCodeUnit = string.codeUnitAt(i);
+    var prefixCodeUnit = prefix.codeUnitAt(i);
+    if (stringCodeUnit == prefixCodeUnit) continue;
+    if (stringCodeUnit == $dash) {
+      if (prefixCodeUnit != $underscore) return false;
+    } else if (stringCodeUnit == $underscore) {
+      if (prefixCodeUnit != $dash) return false;
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+
 /// Returns an empty map that uses [equalsIgnoreSeparator] for key equality.
 ///
 /// If [source] is passed, copies it into the map.
@@ -391,6 +410,13 @@ void mapAddAll2<K1, K2, V>(
       destination[key] = inner;
     }
   });
+}
+
+/// Sets all [keys] in [map] to [value].
+void setAll<K, V>(Map<K, V> map, Iterable<K> keys, V value) {
+  for (var key in keys) {
+    map[key] = value;
+  }
 }
 
 /// Rotates the element in list from [start] (inclusive) to [end] (exclusive)

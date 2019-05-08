@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4aeea9b6944414d06fecf6864ca53ff45c616814
+// Checksum: 43b4dea4729576663db7c16618e5babae26a9090
 //
 // ignore_for_file: unused_import
 
@@ -274,10 +274,15 @@ class _EvaluateVisitor
   Module<Callable> _execute(Importer importer, Stylesheet stylesheet) {
     var url = stylesheet.span.sourceUrl;
     return _modules.putIfAbsent(url, () {
+      if (_activeImports.contains(url)) {
+        throw _exception(
+            "This module is currently being loaded.", stylesheet.span);
+      }
+      _activeImports.add(url);
+
       var environment = _newEnvironment();
       CssStylesheet css;
       var extender = Extender();
-      _activeImports.add(url);
       _withEnvironment(environment, () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -954,6 +959,21 @@ class _EvaluateVisitor
     }, semiGlobal: true);
   }
 
+  Value visitForwardRule(ForwardRule node) {
+    var result =
+        inUseRule(() => _loadStylesheet(node.url.toString(), node.span));
+    var importer = result.item1;
+    var stylesheet = result.item2;
+
+    _withStackFrame("@forward", stylesheet, () {
+      return _addExceptionSpan(node, () {
+        _environment.forwardModule(_execute(importer, stylesheet), node);
+      });
+    });
+
+    return null;
+  }
+
   Value visitFunctionRule(FunctionRule node) {
     _environment.setFunction(UserDefinedCallable(node, _environment.closure()));
     return null;
@@ -997,8 +1017,6 @@ class _EvaluateVisitor
     if (!_activeImports.add(url)) {
       throw _exception("This file is already being loaded.", import.span);
     }
-
-    _activeImports.add(url);
 
     // TODO(nweiz): If [stylesheet] contains no `@use` rules, just evaluate it
     // directly in [_root] rather than making a new stylesheet.
@@ -1433,11 +1451,6 @@ class _EvaluateVisitor
         inUseRule(() => _loadStylesheet(node.url.toString(), node.span));
     var importer = result.item1;
     var stylesheet = result.item2;
-
-    var url = stylesheet.span.sourceUrl;
-    if (_activeImports.contains(url)) {
-      throw _exception("This module is currently being loaded.", node.span);
-    }
 
     _withStackFrame("@use", stylesheet, () {
       return _addExceptionSpan(node, () {

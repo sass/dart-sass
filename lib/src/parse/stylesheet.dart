@@ -534,6 +534,10 @@ abstract class StylesheetParser extends Parser {
         return _extendRule(start);
       case "for":
         return _forRule(start, child);
+      case "forward":
+        _isUseAllowed = wasUseAllowed;
+        if (!root) _disallowedAtRule(start);
+        return _forwardRule(start);
       case "function":
         return _functionRule(start);
       case "if":
@@ -848,6 +852,82 @@ abstract class StylesheetParser extends Parser {
 
       return ForRule(variable, from, to, children, span, exclusive: exclusive);
     });
+  }
+
+  /// Consumes a `@forward` rule.
+  ///
+  /// [start] should point before the `@`.
+  ForwardRule _forwardRule(LineScannerState start) {
+    var url = _urlString();
+    whitespace();
+
+    Set<String> shownMixinsAndFunctions;
+    Set<String> shownVariables;
+    Set<String> hiddenMixinsAndFunctions;
+    Set<String> hiddenVariables;
+    if (scanIdentifier("show")) {
+      var members = _memberList();
+      shownMixinsAndFunctions = members.item1;
+      shownVariables = members.item2;
+    } else if (scanIdentifier("hide")) {
+      var members = _memberList();
+      hiddenMixinsAndFunctions = members.item1;
+      hiddenVariables = members.item2;
+    }
+
+    String prefix;
+    if (scanIdentifier("as")) {
+      whitespace();
+      prefix = identifier();
+      scanner.expectChar($asterisk);
+      whitespace();
+    }
+
+    var span = scanner.spanFrom(start);
+    if (!_parseUse) {
+      error(
+          "@forward is coming soon, but it's not supported in this version of "
+          "Dart Sass.",
+          span);
+    } else if (!_isUseAllowed) {
+      error("@forward rules must be written before any other rules.", span);
+    }
+    expectStatementSeparator("@forward rule");
+
+    if (shownMixinsAndFunctions != null) {
+      return ForwardRule.show(
+          url, shownMixinsAndFunctions, shownVariables, span,
+          prefix: prefix);
+    } else if (hiddenMixinsAndFunctions != null) {
+      return ForwardRule.hide(
+          url, hiddenMixinsAndFunctions, hiddenVariables, span,
+          prefix: prefix);
+    } else {
+      return ForwardRule(url, span, prefix: prefix);
+    }
+  }
+
+  /// Consumes a list of members that may contain either plain identifiers or
+  /// variable names.
+  ///
+  /// The plain identifiers are returned in the first set, and the variable
+  /// names in the second.
+  Tuple2<Set<String>, Set<String>> _memberList() {
+    var identifiers = Set<String>();
+    var variables = Set<String>();
+    do {
+      whitespace();
+      withErrorMessage("Expected variable, mixin, or function name", () {
+        if (scanner.peekChar() == $dollar) {
+          variables.add(variableName());
+        } else {
+          identifiers.add(identifier());
+        }
+      });
+      whitespace();
+    } while (scanner.scanChar($comma));
+
+    return Tuple2(identifiers, variables);
   }
 
   /// Consumes an `@if` rule.
@@ -1188,13 +1268,7 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// [start] should point before the `@`.
   UseRule _useRule(LineScannerState start) {
-    var urlString = string();
-    Uri url;
-    try {
-      url = Uri.parse(urlString);
-    } on FormatException catch (innerError) {
-      error("Invalid URL: ${innerError.message}", scanner.spanFrom(start));
-    }
+    var url = _urlString();
     whitespace();
 
     String namespace;
@@ -1223,6 +1297,7 @@ relase. For details, see http://bit.ly/moz-document.
     } else if (!_isUseAllowed) {
       error("@use rules must be written before any other rules.", span);
     }
+    expectStatementSeparator("@use rule");
 
     return UseRule(url, namespace, span);
   }
@@ -3234,6 +3309,17 @@ relase. For details, see http://bit.ly/moz-document.
     var result = create(children(child), scanner.spanFrom(start));
     whitespaceWithoutComments();
     return result;
+  }
+
+  /// Consumes a string that contains a valid URL.
+  Uri _urlString() {
+    var start = scanner.state;
+    var url = string();
+    try {
+      return Uri.parse(url);
+    } on FormatException catch (innerError) {
+      error("Invalid URL: ${innerError.message}", scanner.spanFrom(start));
+    }
   }
 
   /// Like [identifier], but rejects identifiers that begin with `_` or `-`.

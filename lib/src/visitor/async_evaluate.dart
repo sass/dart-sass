@@ -266,10 +266,15 @@ class _EvaluateVisitor
   Future<Module> _execute(AsyncImporter importer, Stylesheet stylesheet) {
     var url = stylesheet.span.sourceUrl;
     return putIfAbsentAsync(_modules, url, () async {
+      if (_activeImports.contains(url)) {
+        throw _exception(
+            "This module is currently being loaded.", stylesheet.span);
+      }
+      _activeImports.add(url);
+
       var environment = _newEnvironment();
       CssStylesheet css;
       var extender = Extender();
-      _activeImports.add(url);
       await _withEnvironment(environment, () async {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -951,6 +956,21 @@ class _EvaluateVisitor
     }, semiGlobal: true);
   }
 
+  Future<Value> visitForwardRule(ForwardRule node) async {
+    var result = await inUseRuleAsync(
+        () => _loadStylesheet(node.url.toString(), node.span));
+    var importer = result.item1;
+    var stylesheet = result.item2;
+
+    await _withStackFrame("@forward", stylesheet, () {
+      return _addExceptionSpanAsync(node, () async {
+        _environment.forwardModule(await _execute(importer, stylesheet), node);
+      });
+    });
+
+    return null;
+  }
+
   Future<Value> visitFunctionRule(FunctionRule node) async {
     _environment.setFunction(UserDefinedCallable(node, _environment.closure()));
     return null;
@@ -994,8 +1014,6 @@ class _EvaluateVisitor
     if (!_activeImports.add(url)) {
       throw _exception("This file is already being loaded.", import.span);
     }
-
-    _activeImports.add(url);
 
     // TODO(nweiz): If [stylesheet] contains no `@use` rules, just evaluate it
     // directly in [_root] rather than making a new stylesheet.
@@ -1437,11 +1455,6 @@ class _EvaluateVisitor
         () => _loadStylesheet(node.url.toString(), node.span));
     var importer = result.item1;
     var stylesheet = result.item2;
-
-    var url = stylesheet.span.sourceUrl;
-    if (_activeImports.contains(url)) {
-      throw _exception("This module is currently being loaded.", node.span);
-    }
 
     await _withStackFrame("@use", stylesheet, () {
       return _addExceptionSpanAsync(node, () async {
