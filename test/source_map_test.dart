@@ -808,7 +808,7 @@ void _expectMapMatches(
 
     if (!entryIter.moveNext()) {
       fail('Missing mapping "$name", expected '
-          '${_mapping(expectedSource, expectedTarget)}.\n' +
+              '${_mapping(expectedSource, expectedTarget)}.\n' +
           actualMap());
     }
 
@@ -818,7 +818,7 @@ void _expectMapMatches(
         expectedTarget.line != entry.target.line ||
         expectedTarget.column != entry.target.column) {
       fail('Mapping "$name" was ${_mapping(entry.source, entry.target)}, '
-          'expected ${_mapping(expectedSource, expectedTarget)}.\n' +
+              'expected ${_mapping(expectedSource, expectedTarget)}.\n' +
           actualMap());
     }
   }

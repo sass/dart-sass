@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ef520a902171c8d105ece12e7c84889e34f95d80
+// Checksum: c41c933bbae5af96a77e39cea8c4d7a4c86cb564
 //
 // ignore_for_file: unused_import
 
@@ -51,7 +51,7 @@ import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
-typedef void _ScopeCallback(void callback());
+typedef _ScopeCallback = void Function(void Function() callback);
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
