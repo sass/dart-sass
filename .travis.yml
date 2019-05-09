@@ -86,6 +86,9 @@ jobs:
     node_js: lts/dubnium
   - <<: *node-tests
     os: osx
+  - <<: *node-tests
+    name: Node tests | Dart dev | Node stable
+    env: DART_CHANNEL=dev
 
   # Miscellaneous checks.
   - name: static analysis
