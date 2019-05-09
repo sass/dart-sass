@@ -6,7 +6,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:grinder/grinder.dart';
