@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 // DO NOT EDIT. This file was generated from async_module.dart.
-// See tool/synchronize.dart for details.
+// See tool/grind/synchronize.dart for details.
 //
 // Checksum: d996840504b080c2c4e6b34136562b8152bb2e97
 //

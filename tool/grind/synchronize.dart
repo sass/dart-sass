@@ -76,7 +76,7 @@ class _Visitor extends RecursiveAstVisitor {
     _buffer.writeln(_source.substring(0, afterHeader));
     _buffer.writeln("""
 // DO NOT EDIT. This file was generated from ${p.basename(path)}.
-// See tool/synchronize.dart for details.
+// See tool/grind/synchronize.dart for details.
 //
 // Checksum: ${sha1.convert(utf8.encode(_source))}
 //
