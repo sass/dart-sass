@@ -25,6 +25,7 @@ cache:
 before_install:
 - tool/travis/use_dart.sh
 - export PATH="$PATH:`pwd`/dart-sdk/bin";
+- dart --version
 
 jobs:
   include:
