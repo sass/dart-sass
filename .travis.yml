@@ -1,6 +1,5 @@
 ## Testing
 
-# Set the language to Ruby so that we can run sass-spec tests.
 language: shell
 
 env:
