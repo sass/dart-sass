@@ -23,40 +23,38 @@ snapshot() {
 }
 
 @Task('Build a dev-mode Dart application snapshot.')
-appSnapshot() => _appSnapshot(release: false);
+appSnapshot() => _appSnapshot();
 
-// Don't build in Dart 2 runtime mode for now because it's substantially slower
-// than Dart 1 mode. See dart-lang/sdk#33257.
-@Task('Build a release-mode Dart application snapshot.')
-releaseAppSnapshot() => _appSnapshot(release: true);
+@Task('Build a native-code Dart executable.')
+nativeExecutable() {
+  ensureBuild();
+  run(p.join(sdkDir.path, 'bin/dart2aot'),
+      arguments: ['bin/sass.dart', 'build/sass.dart.native']);
+}
 
 /// Compiles Sass to an application snapshot.
-///
-/// If [release] is `true`, this compiles in checked mode. Otherwise, it
-/// compiles in unchecked mode.
-void _appSnapshot({@required bool release}) {
-  var args = [
-    '--snapshot=build/sass.dart.app.snapshot',
-    '--snapshot-kind=app-jit'
-  ];
-
-  if (!release) args.add('--enable-asserts');
-
+void _appSnapshot() {
   ensureBuild();
   Dart.run('bin/sass.dart',
-      arguments: ['tool/app-snapshot-input.scss'], vmArgs: args, quiet: true);
+      arguments: ['tool/app-snapshot-input.scss'],
+      vmArgs: [
+        '--enable-asserts',
+        '--snapshot=build/sass.dart.app.snapshot',
+        '--snapshot-kind=app-jit'
+      ],
+      quiet: true);
 }
 
 @Task('Build standalone packages for Linux.')
-@Depends(snapshot, releaseAppSnapshot)
+@Depends(snapshot, nativeExecutable)
 packageLinux() => _buildPackage("linux");
 
 @Task('Build standalone packages for Mac OS.')
-@Depends(snapshot, releaseAppSnapshot)
+@Depends(snapshot, nativeExecutable)
 packageMacOs() => _buildPackage("macos");
 
 @Task('Build standalone packages for Windows.')
-@Depends(snapshot, releaseAppSnapshot)
+@Depends(snapshot, nativeExecutable)
 packageWindows() => _buildPackage("windows");
 
 /// Builds standalone 32- and 64-bit Sass packages for the given [os].
@@ -75,20 +73,23 @@ Future _buildPackage(String os) async {
           "${response.reasonPhrase}.";
     }
 
-    var dartExecutable = ZipDecoder()
-        .decodeBytes(response.bodyBytes)
-        .firstWhere((file) => os == 'windows'
-            ? file.name.endsWith("/bin/dart.exe")
-            : file.name.endsWith("/bin/dart"));
-    var executable = dartExecutable.content as List<int>;
-
-    // Use the app snapshot when packaging for the current operating system.
+    // Use a native executable when packaging for the current operating system.
     //
-    // TODO: Use an app snapshot everywhere when dart-lang/sdk#28617 is fixed.
-    var snapshot =
-        os == Platform.operatingSystem && (architecture == "x64") == _is64Bit
-            ? "build/sass.dart.app.snapshot"
-            : "build/sass.dart.snapshot";
+    // We only use the native executable on 64-bit machines, because currently
+    // only 64-bit Dart SDKs ship with dart2aot.
+    //
+    // TODO: Use a native executable everywhere when dart-lang/sdk#28617 is
+    // fixed.
+    var useNative =
+        os == Platform.operatingSystem && architecture == "x64" && _is64Bit;
+
+    var filename = "/bin/" +
+        (useNative ? "dartaotruntime" : "dart") +
+        (os == 'windows' ? '.exe' : '');
+    var executable = ZipDecoder()
+        .decodeBytes(response.bodyBytes)
+        .firstWhere((file) => file.name.endsWith(filename))
+        .content as List<int>;
 
     var archive = Archive()
       ..addFile(fileFromBytes(
@@ -96,7 +97,8 @@ Future _buildPackage(String os) async {
           executable: true))
       ..addFile(
           file("dart-sass/src/DART_LICENSE", p.join(sdkDir.path, 'LICENSE')))
-      ..addFile(file("dart-sass/src/sass.dart.snapshot", snapshot))
+      ..addFile(file("dart-sass/src/sass.dart.snapshot",
+          useNative ? "build/sass.dart.native" : "build/sass.dart.snapshot"))
       ..addFile(file("dart-sass/src/SASS_LICENSE", "LICENSE"))
       ..addFile(fileFromString(
           "dart-sass/dart-sass${os == 'windows' ? '.bat' : ''}",
