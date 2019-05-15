@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/interface/css.dart';
 import 'node.dart';
 import 'value.dart';
 
@@ -9,4 +10,6 @@ import 'value.dart';
 abstract class CssSupportsRule extends CssParentNode {
   /// The supports condition.
   CssValue<String> get condition;
+
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssSupportsRule(this);
 }

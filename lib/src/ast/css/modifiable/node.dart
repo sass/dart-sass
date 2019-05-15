@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../at_rule.dart';
 import '../node.dart';
 import '../style_rule.dart';
@@ -57,7 +57,7 @@ abstract class ModifiableCssNode extends CssNode {
     }
   }
 
-  T accept<T>(CssVisitor<T> visitor);
+  T accept<T>(ModifiableCssVisitor<T> visitor);
 
   /// Removes [this] from [parent]'s child list.
   ///
@@ -91,6 +91,9 @@ abstract class ModifiableCssParentNode extends ModifiableCssNode
         children = UnmodifiableListView(children);
 
   /// Returns a copy of [this] with an empty [children] list.
+  ///
+  /// This is *not* a deep copy. If other parts of this node are modifiable,
+  /// they are shared between the new and old nodes.
   ModifiableCssParentNode copyWithoutChildren();
 
   /// Adds [child] as a child of this statement.

@@ -152,7 +152,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
   }
 
-  void visitStylesheet(CssStylesheet node) {
+  void visitCssStylesheet(CssStylesheet node) {
     CssNode previous;
     for (var i = 0; i < node.children.length; i++) {
       var child = node.children[i];
@@ -173,7 +173,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     }
   }
 
-  void visitComment(CssComment node) {
+  void visitCssComment(CssComment node) {
     _for(node, () {
       // Preserve comments that start with `/*!`.
       if (_isCompressed && !node.isPreserved) return;
@@ -196,7 +196,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     });
   }
 
-  void visitAtRule(CssAtRule node) {
+  void visitCssAtRule(CssAtRule node) {
     _writeIndentation();
 
     _for(node, () {
@@ -215,7 +215,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     }
   }
 
-  void visitMediaRule(CssMediaRule node) {
+  void visitCssMediaRule(CssMediaRule node) {
     _writeIndentation();
 
     _for(node, () {
@@ -232,7 +232,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _visitChildren(node.children);
   }
 
-  void visitImport(CssImport node) {
+  void visitCssImport(CssImport node) {
     _writeIndentation();
 
     _for(node, () {
@@ -272,7 +272,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     }
   }
 
-  void visitKeyframeBlock(CssKeyframeBlock node) {
+  void visitCssKeyframeBlock(CssKeyframeBlock node) {
     _writeIndentation();
 
     _for(
@@ -300,7 +300,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
         query.features, _isCompressed ? "and " : " and ", _buffer.write);
   }
 
-  void visitStyleRule(CssStyleRule node) {
+  void visitCssStyleRule(CssStyleRule node) {
     _writeIndentation();
 
     _for(node.selector, () => node.selector.value.accept(this));
@@ -308,7 +308,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _visitChildren(node.children);
   }
 
-  void visitSupportsRule(CssSupportsRule node) {
+  void visitCssSupportsRule(CssSupportsRule node) {
     _writeIndentation();
 
     _for(node, () {
@@ -325,7 +325,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _visitChildren(node.children);
   }
 
-  void visitDeclaration(CssDeclaration node) {
+  void visitCssDeclaration(CssDeclaration node) {
     _writeIndentation();
 
     _write(node.name);

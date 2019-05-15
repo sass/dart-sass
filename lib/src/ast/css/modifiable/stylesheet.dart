@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../stylesheet.dart';
 import 'node.dart';
 
@@ -15,7 +15,8 @@ class ModifiableCssStylesheet extends ModifiableCssParentNode
 
   ModifiableCssStylesheet(this.span);
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitStylesheet(this);
+  T accept<T>(ModifiableCssVisitor<T> visitor) =>
+      visitor.visitCssStylesheet(this);
 
   ModifiableCssStylesheet copyWithoutChildren() =>
       ModifiableCssStylesheet(span);

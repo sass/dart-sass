@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../visitor/interface/css.dart';
 import 'media_query.dart';
 import 'node.dart';
 
@@ -11,4 +12,6 @@ abstract class CssMediaRule extends CssParentNode {
   ///
   /// This is never empty.
   List<CssMediaQuery> get queries;
+
+  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssMediaRule(this);
 }

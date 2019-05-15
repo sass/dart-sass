@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../media_query.dart';
 import '../media_rule.dart';
 import 'node.dart';
@@ -22,7 +22,8 @@ class ModifiableCssMediaRule extends ModifiableCssParentNode
     }
   }
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitMediaRule(this);
+  T accept<T>(ModifiableCssVisitor<T> visitor) =>
+      visitor.visitCssMediaRule(this);
 
   ModifiableCssMediaRule copyWithoutChildren() =>
       ModifiableCssMediaRule(queries, span);

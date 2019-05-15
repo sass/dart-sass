@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/css.dart';
+import '../../../visitor/interface/modifiable_css.dart';
 import '../../selector.dart';
 import '../style_rule.dart';
 import 'node.dart';
@@ -14,7 +14,10 @@ import 'value.dart';
 class ModifiableCssStyleRule extends ModifiableCssParentNode
     implements CssStyleRule {
   final ModifiableCssValue<SelectorList> selector;
+
+  /// The selector for this rule, before any extensions are applied.
   final SelectorList originalSelector;
+
   final FileSpan span;
 
   /// Creates a new [ModifiableCssStyleRule].
@@ -25,7 +28,8 @@ class ModifiableCssStyleRule extends ModifiableCssParentNode
       : selector = selector,
         originalSelector = originalSelector ?? selector.value;
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitStyleRule(this);
+  T accept<T>(ModifiableCssVisitor<T> visitor) =>
+      visitor.visitCssStyleRule(this);
 
   ModifiableCssStyleRule copyWithoutChildren() =>
       ModifiableCssStyleRule(selector, span,
