@@ -36,11 +36,13 @@ nativeExecutable() {
 void _appSnapshot() {
   ensureBuild();
   Dart.run('bin/sass.dart',
-      arguments: ['tool/app-snapshot-input.scss'], vmArgs: [
-    '--enable-asserts',
-    '--snapshot=build/sass.dart.app.snapshot',
-    '--snapshot-kind=app-jit'
-  ], quiet: true);
+      arguments: ['tool/app-snapshot-input.scss'],
+      vmArgs: [
+        '--enable-asserts',
+        '--snapshot=build/sass.dart.app.snapshot',
+        '--snapshot-kind=app-jit'
+      ],
+      quiet: true);
 }
 
 @Task('Build standalone packages for Linux.')

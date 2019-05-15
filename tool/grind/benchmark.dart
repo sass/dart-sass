@@ -187,10 +187,9 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("* Dart Sass from a script snapshot: "
         "${_formatTime(scriptSnapshotTime)}");
 
-    var nativeExecutableTime = await _benchmark(p.join(sdkDir.path, 'bin/dartaotruntime'), [
-      p.join('build', 'sass.dart.native'),
-      path
-    ]);
+    var nativeExecutableTime = await _benchmark(
+        p.join(sdkDir.path, 'bin/dartaotruntime'),
+        [p.join('build', 'sass.dart.native'), path]);
     buffer.writeln("* Dart Sass native executable: "
         "${_formatTime(nativeExecutableTime)}");
 
@@ -207,8 +206,8 @@ I ran five instances of each configuration and recorded the fastest time.
         'is approximately:');
     buffer.writeln();
     buffer.writeln('* ${_compare(nativeExecutableTime, sasscTime)} libsass');
-    buffer
-        .writeln('* ${_compare(nativeExecutableTime, nodeTime)} Dart Sass on Node');
+    buffer.writeln(
+        '* ${_compare(nativeExecutableTime, nodeTime)} Dart Sass on Node');
     buffer.writeln('* ${_compare(nativeExecutableTime, rubyTime)} Ruby Sass');
     buffer.writeln();
     log('');
