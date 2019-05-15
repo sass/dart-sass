@@ -144,16 +144,19 @@ That's it!
 
 ## JavaScript API
 
-When installed via npm, Dart Sass supports a JavaScript API that aims to be
-compatible with [Node Sass](https://github.com/sass/node-sass#usage). Full
-compatibility is a work in progress, but Dart Sass currently supports the
-`render()` and `renderSync()` functions. Note however that by default,
-**`renderSync()` is more than twice as fast as `render()`**, due to the overhead
-of asynchronous callbacks.
+When installed via npm, Dart Sass supports a JavaScript API that's fully
+compatible with [Node Sass][] (with a few exceptions listed below), with support
+for both the `render()` and `renderSync()` functions. See [the Sass
+website][js api] for full API documentation!
 
-To avoid this performance hit, `render()` can use the [`fibers`][fibers] package
-to call asynchronous importers from the synchronous code path. To enable this,
-pass the `Fiber` class to the `fiber` option:
+[Node Sass]: https://github.com/sass/node-sass
+[js api]: https://sass-lang.com/documentation/js-api
+
+Note however that by default, **`renderSync()` is more than twice as fast as
+`render()`** due to the overhead of asynchronous callbacks. To avoid this
+performance hit, `render()` can use the [`fibers`][fibers] package to call
+asynchronous importers from the synchronous code path. To enable this, pass the
+`Fiber` class to the `fiber` option:
 
 [fibers]: https://www.npmjs.com/package/fibers
 
