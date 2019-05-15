@@ -1,6 +1,5 @@
 ## Testing
 
-# Set the language to Ruby so that we can run sass-spec tests.
 language: shell
 
 env:
@@ -25,6 +24,7 @@ cache:
 before_install:
 - tool/travis/use_dart.sh
 - export PATH="$PATH:`pwd`/dart-sdk/bin";
+- dart --version
 
 jobs:
   include:
@@ -53,7 +53,7 @@ jobs:
   - &dart-tests
     name: Dart tests | Dart stable
     install: pub run grinder app-snapshot
-    task: tool/travis/task/dart_tests.sh
+    script: tool/travis/task/dart_tests.sh
   - <<: *dart-tests
     name: Dart tests | Dart dev
     env: DART_CHANNEL=dev
@@ -85,6 +85,9 @@ jobs:
     node_js: lts/dubnium
   - <<: *node-tests
     os: osx
+  - <<: *node-tests
+    name: Node tests | Dart dev | Node stable
+    env: DART_CHANNEL=dev
 
   # Miscellaneous checks.
   - name: static analysis

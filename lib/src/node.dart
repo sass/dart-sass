@@ -350,11 +350,11 @@ RenderResult _newRenderResult(
     }
 
     var json = result.sourceMap
-        .toJson(includeSourceContents: options.sourceMapContents);
+        .toJson(includeSourceContents: isTruthy(options.sourceMapContents));
     sourceMapBytes = utf8Encode(jsonEncode(json));
 
     if (!isTruthy(options.omitSourceMapUrl)) {
-      var url = options.sourceMapEmbed
+      var url = isTruthy(options.sourceMapEmbed)
           ? Uri.dataFromBytes(sourceMapBytes, mimeType: "application/json")
           : p.toUri(options.outFile == null
               ? sourceMapPath
