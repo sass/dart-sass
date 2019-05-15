@@ -90,7 +90,7 @@ Future _writeNTimes(String path, String text, num times,
 }
 
 @Task('Run benchmarks for Sass compilation speed.')
-@Depends(benchmarkGenerate, snapshot, releaseAppSnapshot, npmReleasePackage)
+@Depends(benchmarkGenerate, snapshot, nativeExecutable, npmReleasePackage)
 benchmark() async {
   var libsass = await cloneOrPull('https://github.com/sass/libsass');
   var sassc = await cloneOrPull('https://github.com/sass/sassc');
@@ -187,13 +187,12 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("* Dart Sass from a script snapshot: "
         "${_formatTime(scriptSnapshotTime)}");
 
-    var appSnapshotTime = await _benchmark(Platform.executable, [
-      '--no-enable-asserts',
-      p.join('build', 'sass.dart.app.snapshot'),
+    var nativeExecutableTime = await _benchmark(p.join(sdkDir.path, 'bin/dartaotruntime'), [
+      p.join('build', 'sass.dart.native'),
       path
     ]);
-    buffer.writeln("* Dart Sass from an app snapshot: "
-        "${_formatTime(appSnapshotTime)}");
+    buffer.writeln("* Dart Sass native executable: "
+        "${_formatTime(nativeExecutableTime)}");
 
     var nodeTime =
         await _benchmark("node", [p.join('build', 'npm', 'sass.js'), path]);
@@ -204,13 +203,13 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("* Ruby Sass with a hot cache: ${_formatTime(rubyTime)}");
 
     buffer.writeln();
-    buffer.writeln('Based on these numbers, Dart Sass from an app snapshot is '
-        'approximately:');
+    buffer.writeln('Based on these numbers, Dart Sass from a native executable '
+        'is approximately:');
     buffer.writeln();
-    buffer.writeln('* ${_compare(appSnapshotTime, sasscTime)} libsass');
+    buffer.writeln('* ${_compare(nativeExecutableTime, sasscTime)} libsass');
     buffer
-        .writeln('* ${_compare(appSnapshotTime, nodeTime)} Dart Sass on Node');
-    buffer.writeln('* ${_compare(appSnapshotTime, rubyTime)} Ruby Sass');
+        .writeln('* ${_compare(nativeExecutableTime, nodeTime)} Dart Sass on Node');
+    buffer.writeln('* ${_compare(nativeExecutableTime, rubyTime)} Ruby Sass');
     buffer.writeln();
     log('');
   }
