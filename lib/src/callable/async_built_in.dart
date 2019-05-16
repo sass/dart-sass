@@ -11,7 +11,7 @@ import '../value.dart';
 import 'async.dart';
 
 /// An [AsyncBuiltInCallable]'s callback.
-typedef FutureOr<Value> _Callback(List<Value> arguments);
+typedef _Callback = FutureOr<Value> Function(List<Value> arguments);
 
 /// A callable defined in Dart code.
 ///

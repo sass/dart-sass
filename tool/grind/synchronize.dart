@@ -6,7 +6,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:grinder/grinder.dart';
@@ -76,7 +78,7 @@ class _Visitor extends RecursiveAstVisitor {
     _buffer.writeln(_source.substring(0, afterHeader));
     _buffer.writeln("""
 // DO NOT EDIT. This file was generated from ${p.basename(path)}.
-// See tool/synchronize.dart for details.
+// See tool/grind/synchronize.dart for details.
 //
 // Checksum: ${sha1.convert(utf8.encode(_source))}
 //

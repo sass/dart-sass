@@ -9,7 +9,7 @@ import '../callable.dart';
 import '../value.dart';
 import 'async_built_in.dart';
 
-typedef Value _Callback(List<Value> arguments);
+typedef _Callback = Value Function(List<Value> arguments);
 
 /// A callable defined in Dart code.
 ///

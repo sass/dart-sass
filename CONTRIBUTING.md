@@ -191,7 +191,7 @@ ways they can't share code.
 
 To avoid colossal amounts of duplicated code, we have a few files that are
 written in an asynchronous style originally and then compiled to their
-synchronous equivalents using `tool/synchronize.dart`. In particular:
+synchronous equivalents using `pub run grinder synchronize`. In particular:
 
 * `lib/src/visitor/async_evaluate.dart` is compiled to
   `lib/src/visitor/evaluate.dart`.

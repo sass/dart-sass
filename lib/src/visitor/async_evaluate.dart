@@ -42,7 +42,7 @@ import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
-typedef Future _ScopeCallback(Future callback());
+typedef _ScopeCallback = Future Function(Future Function() callback);
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
