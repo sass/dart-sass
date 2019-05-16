@@ -627,7 +627,7 @@ final List<BuiltInCallable> coreFunctions = UnmodifiableListView([
             ? list1.hasBrackets
             : bracketedParam.isTruthy;
 
-    var newList = list1.asList.toList()..addAll(list2.asList);
+    var newList = [...list1.asList, ...list2.asList];
     return SassList(newList, separator, brackets: bracketed);
   }),
 
@@ -650,7 +650,7 @@ final List<BuiltInCallable> coreFunctions = UnmodifiableListView([
           '\$$separator: Must be "space", "comma", or "auto".');
     }
 
-    var newList = list.asList.toList()..add(value);
+    var newList = [...list.asList, value];
     return list.changeListContents(newList, separator: separator);
   }),
 
@@ -769,8 +769,7 @@ final List<BuiltInCallable> coreFunctions = UnmodifiableListView([
             throw SassScriptException("Can't append $complex to $parent.");
           }
 
-          return ComplexSelector(<ComplexSelectorComponent>[newCompound]
-            ..addAll(complex.components.skip(1)));
+          return ComplexSelector([newCompound, ...complex.components.skip(1)]);
         } else {
           throw SassScriptException("Can't append $complex to $parent.");
         }
@@ -1139,12 +1138,12 @@ CompoundSelector _prependParent(CompoundSelector compound) {
   if (first is UniversalSelector) return null;
   if (first is TypeSelector) {
     if (first.name.namespace != null) return null;
-    return CompoundSelector(<SimpleSelector>[
-      ParentSelector(suffix: first.name.name)
-    ]..addAll(compound.components.skip(1)));
+    return CompoundSelector([
+      ParentSelector(suffix: first.name.name),
+      ...compound.components.skip(1)
+    ]);
   } else {
-    return CompoundSelector(
-        <SimpleSelector>[ParentSelector()]..addAll(compound.components));
+    return CompoundSelector([ParentSelector(), ...compound.components]);
   }
 }
 

@@ -29,23 +29,19 @@ void _js({@required bool release}) {
   ensureBuild();
   var destination = File('build/sass.dart.js');
 
-  var args = [
+  Dart2js.compile(File('bin/sass.dart'), outFile: destination, extraArgs: [
     '--categories=Server',
     '-Dnode=true',
     '-Dversion=$version',
     '-Ddart-version=$dartVersion',
-  ];
-  if (release) {
     // We use O4 because:
     //
     // * We don't care about the string representation of types.
     // * We expect our test coverage to ensure that nothing throws subtypes of
     //   Error.
     // * We thoroughly test edge cases in user input.
-    args..add("-O4")..add("--fast-startup");
-  }
-
-  Dart2js.compile(File('bin/sass.dart'), outFile: destination, extraArgs: args);
+    if (release) ...["-O4", "--fast-startup"]
+  ]);
   var text = destination.readAsStringSync();
 
   if (release) {

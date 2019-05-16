@@ -50,16 +50,17 @@ Future<TestProcess> runSass(Iterable<String> arguments,
   var executable = _snapshotPaths.firstWhere((path) => File(path).existsSync(),
       orElse: () => p.absolute("bin/sass.dart"));
 
-  var args = ["--enable-asserts"];
-
-  // Work around dart-lang/sdk#33622.
-  if (Platform.isWindows) args.add("--packages=${p.absolute('.packages')}");
-
   return TestProcess.start(
       Platform.executable,
-      args
-        ..add(executable)
-        ..addAll(arguments),
+      [
+        "--enable-asserts",
+        // Work around dart-lang/sdk#33622.
+        if (Platform.isWindows)
+          "--packages=${p.absolute('.packages')}",
+
+        executable,
+        ...arguments
+      ],
       workingDirectory: d.sandbox,
       environment: environment,
       description: "sass");
