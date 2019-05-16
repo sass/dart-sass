@@ -21,13 +21,13 @@ import 'value.dart';
 final _microsoftFilterStart = RegExp(r'^[a-zA-Z]+\s*=');
 
 /// Feature names supported by Dart sass.
-final _features = Set.of([
+final _features = {
   "global-variable-shadowing",
   "extend-selector-pseudoclass",
   "units-level-3",
   "at-error",
   "custom-property"
-]);
+};
 
 /// A random number generator.
 final _random = math.Random();
@@ -694,7 +694,7 @@ final List<BuiltInCallable> coreFunctions = UnmodifiableListView([
   BuiltInCallable("map-merge", r"$map1, $map2", (arguments) {
     var map1 = arguments[0].assertMap("map1");
     var map2 = arguments[1].assertMap("map2");
-    return SassMap(Map.of(map1.contents)..addAll(map2.contents));
+    return SassMap({...map1.contents, ...map2.contents});
   }),
 
   BuiltInCallable("map-remove", r"$map, $keys...", (arguments) {

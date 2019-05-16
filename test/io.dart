@@ -18,20 +18,21 @@ void ensureUpToDate(String path, String commandToRun) {
     throw "$path does not exist. Run $commandToRun.";
   }
 
+  var entriesToCheck = [
+    ...Directory("lib").listSync(recursive: true),
+
+    // If we have a dependency override, "pub run" will touch the lockfile to
+    // mark it as newer than the pubspec, which makes it unsuitable to use for
+    // freshness checking.
+    if (File("pubspec.yaml")
+        .readAsStringSync()
+        .contains("dependency_overrides"))
+      File("pubspec.yaml")
+    else
+      File("pubspec.lock")
+  ];
+
   var lastModified = File(path).lastModifiedSync();
-  var entriesToCheck = Directory("lib").listSync(recursive: true).toList();
-
-  // If we have a dependency override, "pub run" will touch the lockfile to mark
-  // it as newer than the pubspec, which makes it unsuitable to use for
-  // freshness checking.
-  if (File("pubspec.yaml")
-      .readAsStringSync()
-      .contains("dependency_overrides")) {
-    entriesToCheck.add(File("pubspec.yaml"));
-  } else {
-    entriesToCheck.add(File("pubspec.lock"));
-  }
-
   for (var entry in entriesToCheck) {
     if (entry is File) {
       var entryLastModified = entry.lastModifiedSync();

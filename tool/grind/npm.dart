@@ -67,13 +67,15 @@ npmReleasePackage() => _npm(release: true);
 /// --trust-type-annotations. Otherwise, it compiles unminified with pessimistic
 /// type checks.
 void _npm({@required bool release}) {
-  var json = jsonDecode(File('package/package.json').readAsStringSync())
-      as Map<String, dynamic>;
-  json['version'] = version;
+  var json = {
+    ...(jsonDecode(File('package/package.json').readAsStringSync())
+        as Map<String, dynamic>),
+    "version": version
+  };
 
   _writeNpmPackage('build/npm', json);
   if (release) {
-    _writeNpmPackage('build/npm-old', json..addAll({"name": "dart-sass"}));
+    _writeNpmPackage('build/npm-old', {...json, "name": "dart-sass"});
   }
 }
 

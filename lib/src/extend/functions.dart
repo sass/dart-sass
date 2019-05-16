@@ -21,8 +21,7 @@ import '../utils.dart';
 /// subselectors of their arguments.
 ///
 /// For example, `.foo` is a superselector of `:matches(.foo)`.
-final _subselectorPseudos =
-    Set.of(['matches', 'any', 'nth-child', 'nth-last-child']);
+final _subselectorPseudos = {'matches', 'any', 'nth-child', 'nth-last-child'};
 
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by both [complex1] and [complex2].
@@ -449,12 +448,11 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
 /// selector, such as an ID.
 bool _mustUnify(List<ComplexSelectorComponent> complex1,
     List<ComplexSelectorComponent> complex2) {
-  var uniqueSelectors = Set<SimpleSelector>();
-  for (var component in complex1) {
-    if (component is CompoundSelector) {
-      uniqueSelectors.addAll(component.components.where(_isUnique));
-    }
-  }
+  var uniqueSelectors = {
+    for (var component in complex1)
+      if (component is CompoundSelector)
+        ...component.components.where(_isUnique)
+  };
   if (uniqueSelectors.isEmpty) return false;
 
   return complex2.any((component) =>

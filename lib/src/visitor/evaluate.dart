@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c41c933bbae5af96a77e39cea8c4d7a4c86cb564
+// Checksum: 71e3dfeef2683bd246e21ddfd25b21df408cf18e
 //
 // ignore_for_file: unused_import
 
@@ -1074,8 +1074,7 @@ class _EvaluateVisitor
         throw "Can't find stylesheet to import.";
       }
     } on SassException catch (error) {
-      var frames = error.trace.frames.toList()
-        ..addAll(_stackTrace(span).frames);
+      var frames = [...error.trace.frames, ..._stackTrace(span).frames];
       throw SassRuntimeException(error.message, error.span, Trace(frames));
     } catch (error) {
       String message;
@@ -2393,10 +2392,10 @@ class _EvaluateVisitor
   ///
   /// [span] is the current location, used for the bottom-most stack frame.
   Trace _stackTrace(FileSpan span) {
-    var frames = _stack
-        .map((tuple) => _stackFrame(tuple.item1, tuple.item2.span))
-        .toList()
-          ..add(_stackFrame(_member, span));
+    var frames = [
+      ..._stack.map((tuple) => _stackFrame(tuple.item1, tuple.item2.span)),
+      _stackFrame(_member, span)
+    ];
     return Trace(frames.reversed);
   }
 
