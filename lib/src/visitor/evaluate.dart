@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: ef520a902171c8d105ece12e7c84889e34f95d80
+// Checksum: d52c30611ad55bb7764f570381b6d739e39e6f98
 //
 // ignore_for_file: unused_import
 
@@ -29,7 +29,6 @@ import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../environment.dart';
 import '../import_cache.dart';
-import '../module.dart';
 import '../callable.dart';
 import '../color_names.dart';
 import '../exception.dart';
@@ -40,6 +39,7 @@ import '../importer/node.dart';
 import '../importer/utils.dart';
 import '../io.dart';
 import '../logger.dart';
+import '../module.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
@@ -125,7 +125,7 @@ class _EvaluateVisitor
   final List<Callable> _functions;
 
   /// All modules that have been loaded and evaluated so far.
-  final _modules = <Uri, Module>{};
+  final _modules = <Uri, Module<Callable>>{};
 
   /// The logger to use to print warnings.
   final Logger _logger;
@@ -271,7 +271,7 @@ class _EvaluateVisitor
   }
 
   /// Executes [stylesheet], loaded by [importer], to produce a module.
-  Module _execute(Importer importer, Stylesheet stylesheet) {
+  Module<Callable> _execute(Importer importer, Stylesheet stylesheet) {
     var url = stylesheet.span.sourceUrl;
     return _modules.putIfAbsent(url, () {
       var environment = _newEnvironment();
@@ -451,7 +451,7 @@ class _EvaluateVisitor
   ///
   /// If [clone] is `true`, this will copy the modules before extending them so
   /// that they don't modify [root] or its dependencies.
-  CssStylesheet _combineCss(Module root, {bool clone = false}) {
+  CssStylesheet _combineCss(Module<Callable> root, {bool clone = false}) {
     // TODO(nweiz): short-circuit if no upstream modules (transitively) include
     // any CSS.
     if (root.upstream.isEmpty) {
@@ -490,7 +490,7 @@ class _EvaluateVisitor
 
   /// Extends the selectors in each module with the extensions defined in
   /// downstream modules.
-  void _extendModules(List<Module> sortedModules) {
+  void _extendModules(List<Module<Callable>> sortedModules) {
     // All the extenders directly downstream of a given module (indexed by its
     // canonical URL). It's important that we create this in topological order,
     // so that by the time we're processing a module we've already filled in all
@@ -546,13 +546,13 @@ class _EvaluateVisitor
 
   /// Returns all modules transitively used by [root] in topological order,
   /// ignoring modules that contain no CSS.
-  List<Module> _topologicalModules(Module root) {
+  List<Module<Callable>> _topologicalModules(Module<Callable> root) {
     // Construct a topological ordering using depth-first traversal, as in
     // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search.
-    var seen = Set<Module>();
-    var sorted = QueueList<Module>();
+    var seen = Set<Module<Callable>>();
+    var sorted = QueueList<Module<Callable>>();
 
-    void visitModule(Module module) {
+    void visitModule(Module<Callable> module) {
       // Each module is added to the beginning of [sorted], which means the
       // returned list contains sibling modules in the opposite order of how
       // they appear in the document. Then when the list is reversed to generate
