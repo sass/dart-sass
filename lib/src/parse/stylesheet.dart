@@ -28,7 +28,7 @@ import 'parser.dart';
 /// `feature.use` branch. It allows us to avoid having separate development
 /// tracks as much as possible without shipping `@use` support until we're
 /// ready.
-const _parseUse = false;
+const _parseUse = true;
 
 /// The base class for both the SCSS and indented syntax parsers.
 ///
