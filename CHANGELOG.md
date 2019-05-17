@@ -4,6 +4,12 @@
 
 * Improve performance for stand-alone packages on Linux and Mac OS.
 
+### JavaScript API
+
+* Pass imports to custom importers before resolving them using `includePaths` or
+  the `SASS_PATH` environment variable. This matches Node Sass's behavior, so
+  it's considered a bug fix.
+
 ## 1.20.1
 
 * No user-visible changes.

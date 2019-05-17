@@ -34,10 +34,10 @@ import '../utils.dart';
 /// * The order of import precedence is as follows:
 ///
 ///   1. Filesystem imports relative to the base file.
-///   2. Filesystem imports relative to the working directory.
-///   3. Filesystem imports relative to an `includePaths` path.
-///   3. Filesystem imports relative to a `SASS_PATH` path.
-///   4. Custom importer imports.
+///   2. Custom importer imports.
+///   3. Filesystem imports relative to the working directory.
+///   4. Filesystem imports relative to an `includePaths` path.
+///   5. Filesystem imports relative to a `SASS_PATH` path.
 class NodeImporter {
   /// The `this` context in which importer functions are invoked.
   final Object _context;
@@ -69,7 +69,7 @@ class NodeImporter {
   Tuple2<String, String> load(String url, Uri previous) {
     var parsed = Uri.parse(url);
     if (parsed.scheme == '' || parsed.scheme == 'file') {
-      var result = _resolvePath(p.fromUri(parsed), previous);
+      var result = _resolveRelativePath(p.fromUri(parsed), previous);
       if (result != null) return result;
     }
 
@@ -79,6 +79,11 @@ class NodeImporter {
     for (var importer in _importers) {
       var value = call2(importer, _context, url, previousString);
       if (value != null) return _handleImportResult(url, previous, value);
+    }
+
+    if (parsed.scheme == '' || parsed.scheme == 'file') {
+      var result = _resolveLoadPath(p.fromUri(parsed), previous);
+      if (result != null) return result;
     }
 
     return null;
@@ -92,7 +97,7 @@ class NodeImporter {
   Future<Tuple2<String, String>> loadAsync(String url, Uri previous) async {
     var parsed = Uri.parse(url);
     if (parsed.scheme == '' || parsed.scheme == 'file') {
-      var result = _resolvePath(p.fromUri(parsed), previous);
+      var result = _resolveRelativePath(p.fromUri(parsed), previous);
       if (result != null) return result;
     }
 
@@ -104,15 +109,19 @@ class NodeImporter {
       if (value != null) return _handleImportResult(url, previous, value);
     }
 
+    if (parsed.scheme == '' || parsed.scheme == 'file') {
+      var result = _resolveLoadPath(p.fromUri(parsed), previous);
+      if (result != null) return result;
+    }
+
     return null;
   }
 
-  /// Tries to load a stylesheet at the given [path] using Node Sass's file path
-  /// resolution logic.
+  /// Tries to load a stylesheet at the given [path] relative to [previous].
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String> _resolvePath(String path, Uri previous) {
+  Tuple2<String, String> _resolveRelativePath(String path, Uri previous) {
     if (p.isAbsolute(path)) return _tryPath(path);
 
     // 1: Filesystem imports relative to the base file.
@@ -120,7 +129,15 @@ class NodeImporter {
       var result = _tryPath(p.join(p.dirname(p.fromUri(previous)), path));
       if (result != null) return result;
     }
+    return null;
+  }
 
+  /// Tries to load a stylesheet at the given [path] from a load path (including
+  /// the working directory).
+  ///
+  /// Returns the stylesheet at that path and the URL used to load it, or `null`
+  /// if loading failed.
+  Tuple2<String, String> _resolveLoadPath(String path, Uri previous) {
     // 2: Filesystem imports relative to the working directory.
     var cwdResult = _tryPath(p.absolute(path));
     if (cwdResult != null) return cwdResult;
@@ -154,7 +171,8 @@ class NodeImporter {
 
     var result = value as NodeImporterResult;
     if (result.file != null) {
-      var resolved = _resolvePath(result.file, previous);
+      var resolved = _resolveRelativePath(result.file, previous) ??
+          _resolveLoadPath(result.file, previous);
       if (resolved != null) return resolved;
 
       throw "Can't find stylesheet to import.";

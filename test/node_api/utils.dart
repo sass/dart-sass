@@ -105,3 +105,15 @@ void runTestInSandbox() {
 void setEnvironmentVariable(String name, String value) {
   setProperty(_environment, name, value);
 }
+
+// Runs [callback] with the `SASS_PATH` environment variable set to [paths].
+T withSassPath<T>(List<String> paths, T callback()) {
+  var oldSassPath =
+      setEnvironmentVariable("SASS_PATH", paths.join(isWindows ? ';' : ':'));
+
+  try {
+    return callback();
+  } finally {
+    setEnvironmentVariable("SASS_PATH", null);
+  }
+}
