@@ -371,18 +371,19 @@ class ExecutableOptions {
   /// Returns the sub-map of [sourcesToDestinations] for the given [source] and
   /// [destination] directories.
   Map<String, String> _listSourceDirectory(String source, String destination) {
-    var map = <String, String>{};
-    for (var path in listDir(source, recursive: true)) {
-      var basename = p.basename(path);
-      if (basename.startsWith("_")) continue;
+    return {
+      for (var path in listDir(source, recursive: true))
+        if (_isEntrypoint(path))
+          path: p.join(destination,
+              p.setExtension(p.relative(path, from: source), '.css'))
+    };
+  }
 
-      var extension = p.extension(path);
-      if (extension != ".scss" && extension != ".sass") continue;
-
-      map[path] = p.join(
-          destination, p.setExtension(p.relative(path, from: source), '.css'));
-    }
-    return map;
+  /// Returns whether [path] is a Sass entrypoint (that is, not a partial).
+  bool _isEntrypoint(String path) {
+    if (p.basename(path).startsWith("_")) return false;
+    var extension = p.extension(path);
+    return extension == ".scss" || extension == ".sass";
   }
 
   /// Whether to emit a source map file.

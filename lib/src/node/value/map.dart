@@ -55,10 +55,8 @@ final Function mapConstructor =
   },
   'setValue': (_NodeSassMap thisArg, int index, value) {
     var key = thisArg.dartValue.contents.keys.elementAt(index);
-
-    var mutable = Map.of(thisArg.dartValue.contents);
-    mutable[key] = unwrapValue(value);
-    thisArg.dartValue = SassMap(mutable);
+    thisArg.dartValue =
+        SassMap({...thisArg.dartValue.contents, key: unwrapValue(value)});
   },
   'toString': (_NodeSassMap thisArg) => thisArg.dartValue.toString()
 });

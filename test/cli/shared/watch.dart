@@ -23,11 +23,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   });
 
   for (var poll in [true, false]) {
-    Future<TestProcess> watch(Iterable<String> arguments) {
-      var allArguments = ["--no-source-map", "--watch"]..addAll(arguments);
-      if (poll) allArguments.add("--poll");
-      return runSass(allArguments);
-    }
+    Future<TestProcess> watch(Iterable<String> arguments) => runSass(
+        ["--no-source-map", "--watch", ...arguments, if (poll) "--poll"]);
 
     /// Returns a future that completes after a delay if [poll] is `true`.
     ///

@@ -54,8 +54,8 @@ class CssMediaQuery {
     var theirType = other.type?.toLowerCase();
 
     if (ourType == null && theirType == null) {
-      return MediaQuerySuccessfulMergeResult._(CssMediaQuery.condition(
-          this.features.toList()..addAll(other.features)));
+      return MediaQuerySuccessfulMergeResult._(
+          CssMediaQuery.condition([...this.features, ...other.features]));
     }
 
     String modifier;
@@ -120,17 +120,17 @@ class CssMediaQuery {
       // Omit the type if either input query did, since that indicates that they
       // aren't targeting a browser that requires "all and".
       type = (other.matchesAllTypes && ourType == null) ? null : theirType;
-      features = this.features.toList()..addAll(other.features);
+      features = [...this.features, ...other.features];
     } else if (other.matchesAllTypes) {
       modifier = ourModifier;
       type = ourType;
-      features = this.features.toList()..addAll(other.features);
+      features = [...this.features, ...other.features];
     } else if (ourType != theirType) {
       return MediaQueryMergeResult.empty;
     } else {
       modifier = ourModifier ?? theirModifier;
       type = ourType;
-      features = this.features.toList()..addAll(other.features);
+      features = [...this.features, ...other.features];
     }
 
     return MediaQuerySuccessfulMergeResult._(CssMediaQuery(

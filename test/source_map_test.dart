@@ -795,7 +795,7 @@ void _expectMapMatches(
     Map<String, SourceLocation> sourceLocations,
     List<Tuple2<String, SourceLocation>> targetLocations) {
   expect(sourceLocations.keys,
-      equals(Set.of(targetLocations.map((tuple) => tuple.item1))));
+      equals({for (var tuple in targetLocations) tuple.item1}));
 
   String actualMap() =>
       "\nActual map:\n\n" + _mapToString(map, sourceText, targetText) + "\n";

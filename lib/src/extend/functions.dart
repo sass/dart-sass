@@ -21,8 +21,7 @@ import '../utils.dart';
 /// subselectors of their arguments.
 ///
 /// For example, `.foo` is a superselector of `:matches(.foo)`.
-final _subselectorPseudos =
-    Set.of(['matches', 'any', 'nth-child', 'nth-last-child']);
+final _subselectorPseudos = {'matches', 'any', 'nth-child', 'nth-last-child'};
 
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by both [complex1] and [complex2].
@@ -381,18 +380,16 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
           [nextSiblingSelector, Combinator.nextSibling]
         ]);
       } else {
-        var choices = [
+        var unified = unifyCompound(compound1.components, compound2.components);
+        result.addFirst([
           [
             followingSiblingSelector,
             Combinator.followingSibling,
             nextSiblingSelector,
             Combinator.nextSibling
-          ]
-        ];
-
-        var unified = unifyCompound(compound1.components, compound2.components);
-        if (unified != null) choices.add([unified, Combinator.nextSibling]);
-        result.addFirst(choices);
+          ],
+          if (unified != null) [unified, Combinator.nextSibling]
+        ]);
       }
     } else if (combinator1 == Combinator.child &&
         (combinator2 == Combinator.nextSibling ||
@@ -451,12 +448,11 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
 /// selector, such as an ID.
 bool _mustUnify(List<ComplexSelectorComponent> complex1,
     List<ComplexSelectorComponent> complex2) {
-  var uniqueSelectors = Set<SimpleSelector>();
-  for (var component in complex1) {
-    if (component is CompoundSelector) {
-      uniqueSelectors.addAll(component.components.where(_isUnique));
-    }
-  }
+  var uniqueSelectors = {
+    for (var component in complex1)
+      if (component is CompoundSelector)
+        ...component.components.where(_isUnique)
+  };
   if (uniqueSelectors.isEmpty) return false;
 
   return complex2.any((component) =>
@@ -496,7 +492,10 @@ List<List<T>> _chunks<T>(
   if (chunk1.isEmpty && chunk2.isEmpty) return [];
   if (chunk1.isEmpty) return [chunk2];
   if (chunk2.isEmpty) return [chunk1];
-  return [chunk1.toList()..addAll(chunk2), chunk2..addAll(chunk1)];
+  return [
+    [...chunk1, ...chunk2],
+    [...chunk2, ...chunk1]
+  ];
 }
 
 /// Returns a list of all possible paths through the given lists.
@@ -512,7 +511,7 @@ List<List<T>> _chunks<T>(
 List<List<T>> paths<T>(Iterable<List<T>> choices) => choices.fold(
     [[]],
     (paths, choice) => choice
-        .expand((option) => paths.map((path) => path.toList()..add(option)))
+        .expand((option) => paths.map((path) => [...path, option]))
         .toList());
 
 /// Returns [complex], grouped into sub-lists such that no sub-list contains two
@@ -566,8 +565,7 @@ bool complexIsParentSuperselector(List<ComplexSelectorComponent> complex1,
   // TODO(nweiz): There's got to be a way to do this without a bunch of extra
   // allocations...
   var base = CompoundSelector([PlaceholderSelector('<temp>')]);
-  return complexIsSuperselector(
-      complex1.toList()..add(base), complex2.toList()..add(base));
+  return complexIsSuperselector([...complex1, base], [...complex2, base]);
 }
 
 /// Returns whether [complex1] is a superselector of [complex2].
@@ -732,11 +730,8 @@ bool _selectorPseudoIsSuperselector(
       return pseudos.any((pseudo2) {
             return pseudo1.selector.isSuperselector(pseudo2.selector);
           }) ||
-          pseudo1.selector.components.any((complex1) {
-            var complex2 = (parents?.toList() ?? <ComplexSelectorComponent>[])
-              ..add(compound2);
-            return complexIsSuperselector(complex1.components, complex2);
-          });
+          pseudo1.selector.components.any((complex1) => complexIsSuperselector(
+              complex1.components, [...?parents, compound2]));
 
     case 'has':
     case 'host':
