@@ -81,12 +81,7 @@ class NodeImporter {
       if (value != null) return _handleImportResult(url, previous, value);
     }
 
-    if (parsed.scheme == '' || parsed.scheme == 'file') {
-      var result = _resolveLoadPath(p.fromUri(parsed), previous);
-      if (result != null) return result;
-    }
-
-    return null;
+    return _resolveLoadPathFromUrl(parsed, previous);
   }
 
   /// Asynchronously loads the stylesheet at [url].
@@ -109,12 +104,7 @@ class NodeImporter {
       if (value != null) return _handleImportResult(url, previous, value);
     }
 
-    if (parsed.scheme == '' || parsed.scheme == 'file') {
-      var result = _resolveLoadPath(p.fromUri(parsed), previous);
-      if (result != null) return result;
-    }
-
-    return null;
+    return _resolveLoadPathFromUrl(parsed, previous);
   }
 
   /// Tries to load a stylesheet at the given [path] relative to [previous].
@@ -131,6 +121,14 @@ class NodeImporter {
     }
     return null;
   }
+
+  /// Tries to load a stylesheet at the given [url] from a load path (including
+  /// the working directory), if that URL refers to the filesystem.
+  ///
+  /// Returns the stylesheet at that path and the URL used to load it, or `null`
+  /// if loading failed.
+  Tuple2<String, String> _resolveLoadPathFromUrl(Uri url, Uri previous) =>
+    url.scheme == '' || url.scheme == 'file' ? _resolveLoadPath(p.fromUri(url), previous) : null;
 
   /// Tries to load a stylesheet at the given [path] from a load path (including
   /// the working directory).
