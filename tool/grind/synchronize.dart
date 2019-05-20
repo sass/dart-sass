@@ -17,8 +17,7 @@ final sources = const {
   'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
   'lib/src/async_compile.dart': 'lib/src/compile.dart',
   'lib/src/async_environment.dart': 'lib/src/environment.dart',
-  'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart',
-  'lib/src/async_module.dart': 'lib/src/module.dart'
+  'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart'
 };
 
 /// Classes that are defined in the async version of a file and used as-is in
@@ -188,6 +187,9 @@ class _Visitor extends RecursiveAstVisitor {
       } else {
         _buffer.write("void");
       }
+    } else if (node.name.name == "Module") {
+      _skip(node.name.beginToken);
+      _buffer.write("Module<Callable>");
     } else {
       super.visitTypeName(node);
     }

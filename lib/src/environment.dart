@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/synchronize.dart for details.
 //
-// Checksum: 3210a5c0528eac456ae8ca7827b65f3976f6b29d
+// Checksum: a7e4f09ccb8a4997500abfe34e712b9c2ad212c6
 //
 // ignore_for_file: unused_import
 
@@ -14,11 +14,11 @@ import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
 import 'ast/node.dart';
-import 'module.dart';
 import 'callable.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
 import 'functions.dart';
+import 'module.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
 import 'value.dart';
@@ -30,16 +30,16 @@ import 'visitor/clone_css.dart';
 /// mixins.
 class Environment {
   /// The modules used in the current scope, indexed by their namespaces.
-  final Map<String, Module> _modules;
+  final Map<String, Module<Callable>> _modules;
 
   /// The namespaceless modules used in the current scope.
   ///
   /// This is `null` if there are no namespaceless modules.
-  Set<Module> _globalModules;
+  Set<Module<Callable>> _globalModules;
 
   /// Modules from both [_modules] and [_global], in the order in which they
   /// were `@use`d.
-  final List<Module> _allModules;
+  final List<Module<Callable>> _allModules;
 
   /// A list of variables defined at each lexical scope level.
   ///
@@ -199,7 +199,7 @@ class Environment {
   /// Throws a [SassScriptException] if there's already a module with the given
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
-  void addModule(Module module, {String namespace}) {
+  void addModule(Module<Callable> module, {String namespace}) {
     if (namespace == null) {
       _globalModules ??= Set();
       _globalModules.add(module);
@@ -582,12 +582,12 @@ class Environment {
   /// Returns a module that represents the top-level members defined in [this],
   /// that contains [css] as its CSS tree, which can be extended using
   /// [extender].
-  Module toModule(CssStylesheet css, Extender extender) =>
+  Module<Callable> toModule(CssStylesheet css, Extender extender) =>
       _EnvironmentModule(this, css, extender);
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
-  Module _getModule(String namespace) {
+  Module<Callable> _getModule(String namespace) {
     var module = _modules[namespace];
     if (module != null) return module;
 
@@ -604,7 +604,8 @@ class Environment {
   /// The [type] should be the singular name of the value type being returned.
   /// The [name] should be the specific name being looked up. These are's used
   /// to format an appropriate error message.
-  T _fromOneModule<T>(String type, String name, T callback(Module module)) {
+  T _fromOneModule<T>(
+      String type, String name, T callback(Module<Callable> module)) {
     if (_globalModules == null) return null;
 
     T value;
@@ -623,10 +624,10 @@ class Environment {
 }
 
 /// A module that represents the top-level members defined in an [Environment].
-class _EnvironmentModule implements Module {
+class _EnvironmentModule implements Module<Callable> {
   Uri get url => css.span.sourceUrl;
 
-  final List<Module> upstream;
+  final List<Module<Callable>> upstream;
   final Map<String, Value> variables;
   final Map<String, AstNode> variableNodes;
   final Map<String, Callable> functions;
@@ -668,7 +669,7 @@ class _EnvironmentModule implements Module {
     return;
   }
 
-  Module cloneCss() {
+  Module<Callable> cloneCss() {
     if (css.children.isEmpty) return this;
 
     var newCssAndExtender = cloneCssStylesheet(css, extender);

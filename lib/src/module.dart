@@ -2,13 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-// DO NOT EDIT. This file was generated from async_module.dart.
-// See tool/synchronize.dart for details.
-//
-// Checksum: d996840504b080c2c4e6b34136562b8152bb2e97
-//
-// ignore_for_file: unused_import
-
 import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
@@ -18,7 +11,7 @@ import 'extend/extender.dart';
 import 'value.dart';
 
 /// The interface for a Sass module.
-abstract class Module {
+abstract class Module<T extends AsyncCallable> {
   /// The canonical URL for this module's source file.
   ///
   /// This may be `null` if the module was loaded from a string without a URL
@@ -26,7 +19,7 @@ abstract class Module {
   Uri get url;
 
   /// Modules that this module uses.
-  List<Module> get upstream;
+  List<Module<T>> get upstream;
 
   /// The module's variables.
   Map<String, Value> get variables;
@@ -45,15 +38,15 @@ abstract class Module {
 
   /// The module's functions.
   ///
-  /// Implementations must ensure that each [Callable] is stored under its own
-  /// name.
-  Map<String, Callable> get functions;
+  /// Implementations must ensure that each [AsyncCallable] is stored under its
+  /// own name.
+  Map<String, T> get functions;
 
   /// The module's mixins.
   ///
-  /// Implementations must ensure that each [Callable] is stored under its own
-  /// name.
-  Map<String, Callable> get mixins;
+  /// Implementations must ensure that each [AsyncCallable] is stored under its
+  /// own name.
+  Map<String, T> get mixins;
 
   /// The extensions defined in this module, which is also able to update
   /// [css]'s style rules in-place based on downstream extensions.
@@ -81,5 +74,5 @@ abstract class Module {
   void setVariable(String name, Value value, AstNode nodeWithSpan);
 
   /// Creates a copy of this module with new [css] and [extender].
-  Module cloneCss();
+  Module<T> cloneCss();
 }

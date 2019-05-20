@@ -9,11 +9,11 @@ import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
 import 'ast/node.dart';
-import 'async_module.dart';
 import 'callable.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
 import 'functions.dart';
+import 'module.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
 import 'value.dart';
@@ -25,16 +25,16 @@ import 'visitor/clone_css.dart';
 /// mixins.
 class AsyncEnvironment {
   /// The modules used in the current scope, indexed by their namespaces.
-  final Map<String, AsyncModule> _modules;
+  final Map<String, Module> _modules;
 
   /// The namespaceless modules used in the current scope.
   ///
   /// This is `null` if there are no namespaceless modules.
-  Set<AsyncModule> _globalModules;
+  Set<Module> _globalModules;
 
   /// Modules from both [_modules] and [_global], in the order in which they
   /// were `@use`d.
-  final List<AsyncModule> _allModules;
+  final List<Module> _allModules;
 
   /// A list of variables defined at each lexical scope level.
   ///
@@ -194,7 +194,7 @@ class AsyncEnvironment {
   /// Throws a [SassScriptException] if there's already a module with the given
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
-  void addModule(AsyncModule module, {String namespace}) {
+  void addModule(Module module, {String namespace}) {
     if (namespace == null) {
       _globalModules ??= Set();
       _globalModules.add(module);
@@ -579,12 +579,12 @@ class AsyncEnvironment {
   /// Returns a module that represents the top-level members defined in [this],
   /// that contains [css] as its CSS tree, which can be extended using
   /// [extender].
-  AsyncModule toModule(CssStylesheet css, Extender extender) =>
+  Module toModule(CssStylesheet css, Extender extender) =>
       _EnvironmentModule(this, css, extender);
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
-  AsyncModule _getModule(String namespace) {
+  Module _getModule(String namespace) {
     var module = _modules[namespace];
     if (module != null) return module;
 
@@ -601,8 +601,7 @@ class AsyncEnvironment {
   /// The [type] should be the singular name of the value type being returned.
   /// The [name] should be the specific name being looked up. These are's used
   /// to format an appropriate error message.
-  T _fromOneModule<T>(
-      String type, String name, T callback(AsyncModule module)) {
+  T _fromOneModule<T>(String type, String name, T callback(Module module)) {
     if (_globalModules == null) return null;
 
     T value;
@@ -621,10 +620,10 @@ class AsyncEnvironment {
 }
 
 /// A module that represents the top-level members defined in an [Environment].
-class _EnvironmentModule implements AsyncModule {
+class _EnvironmentModule implements Module {
   Uri get url => css.span.sourceUrl;
 
-  final List<AsyncModule> upstream;
+  final List<Module> upstream;
   final Map<String, Value> variables;
   final Map<String, AstNode> variableNodes;
   final Map<String, AsyncCallable> functions;
@@ -666,7 +665,7 @@ class _EnvironmentModule implements AsyncModule {
     return;
   }
 
-  AsyncModule cloneCss() {
+  Module cloneCss() {
     if (css.children.isEmpty) return this;
 
     var newCssAndExtender = cloneCssStylesheet(css, extender);
