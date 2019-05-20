@@ -128,7 +128,9 @@ class NodeImporter {
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
   Tuple2<String, String> _resolveLoadPathFromUrl(Uri url, Uri previous) =>
-    url.scheme == '' || url.scheme == 'file' ? _resolveLoadPath(p.fromUri(url), previous) : null;
+      url.scheme == '' || url.scheme == 'file'
+          ? _resolveLoadPath(p.fromUri(url), previous)
+          : null;
 
   /// Tries to load a stylesheet at the given [path] from a load path (including
   /// the working directory).
