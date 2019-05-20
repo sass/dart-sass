@@ -1,5 +1,8 @@
 ## 1.20.2
 
+* Fix a bug where numbers could be written using exponential notation in
+  Node.js.
+
 * Fix a crash that would appear when writing some very large integers to CSS.
 
 ### Command-Line Interface

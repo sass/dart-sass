@@ -23,4 +23,40 @@ void main() {
           equals("/* foo\n * bar */"));
     });
   });
+
+  // Regression test for sass/dart-sass#688. This needs to be tested here
+  // because it varies between Dart and Node.
+  group("removes exponential notation", () {
+    group("for integers", () {
+      test(">= 1e21", () {
+        expect(compileString("a {b: 1e21}"),
+            equalsIgnoringWhitespace("a { b: 1${'0' * 21}; }"));
+      });
+
+      // At time of writing, numbers that are 20 digits or fewer are not printed
+      // in exponential notation by either Dart or Node, and we rely on that to
+      // determine when to get rid of the exponent. This test ensures that if that
+      // ever changes, we know about it.
+      test("< 1e21", () {
+        expect(compileString("a {b: 1e20}"),
+            equalsIgnoringWhitespace("a { b: 1${'0' * 20}; }"));
+      });
+    });
+
+    group("for floating-point numbers", () {
+      test(">= 1e21", () {
+        expect(compileString("a {b: 1.01e21}"),
+            equalsIgnoringWhitespace("a { b: 101${'0' * 19}; }"));
+      });
+
+      // At time of writing, numbers that are 20 digits or fewer are not printed
+      // in exponential notation by either Dart or Node, and we rely on that to
+      // determine when to get rid of the exponent. This test ensures that if that
+      // ever changes, we know about it.
+      test("< 1e21", () {
+        expect(compileString("a {b: 1.01e20}"),
+            equalsIgnoringWhitespace("a { b: 101${'0' * 18}; }"));
+      });
+    });
+  });
 }

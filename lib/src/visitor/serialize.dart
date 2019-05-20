@@ -16,6 +16,7 @@ import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../color_names.dart';
 import '../exception.dart';
+import '../io.dart';
 import '../parse/parser.dart';
 import '../utils.dart';
 import '../util/character.dart';
@@ -666,17 +667,21 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     // have to do is clamp doubles that are close to being integers.
     var integer = fuzzyAsInt(number);
     if (integer != null) {
-      _buffer.write(integer);
+      // Node.js prints integers at least 1e21 using exponential notation.
+      _buffer.write(isNode && integer >= 1e21
+          ? _removeExponent(integer.toString())
+          : integer.toString());
       return;
     }
 
-    var text = number.toString();
-    if (text.contains("e")) text = _removeExponent(text);
+    // Dart and Node both print doubles at least 1e21 using exponential
+    // notation.
+    var text =
+        number >= 1e21 ? _removeExponent(number.toString()) : number.toString();
 
-    // Any double that doesn't contain "e" and is less than
-    // `SassNumber.precision + 2` digits long is guaranteed to be safe to emit
-    // directly, since it'll contain at most `0.` followed by
-    // [SassNumber.precision] digits.
+    // Any double that's less than `SassNumber.precision + 2` digits long is
+    // guaranteed to be safe to emit directly, since it'll contain at most `0.`
+    // followed by [SassNumber.precision] digits.
     var canWriteDirectly = text.length < SassNumber.precision + 2;
 
     if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
