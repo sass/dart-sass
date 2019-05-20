@@ -689,23 +689,37 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _writeDecimal(text);
   }
 
-  /// Assuming [text] is a double written in exponent notation, returns a string
-  /// representation of that double without exponent notation.
+  /// If [text] is written in exponent notation, returns a string representation
+  /// of it without exponent notation.
+  ///
+  /// Otherwise, returns [text] as-is.
   String _removeExponent(String text) {
-    var buffer = StringBuffer();
+    // Don't allocate this until we know [text] contains exponent notation.
+    StringBuffer buffer;
     int exponent;
     for (var i = 0; i < text.length; i++) {
       var codeUnit = text.codeUnitAt(i);
-      if (codeUnit == $e) {
-        exponent = int.parse(text.substring(i + 1, text.length));
-        break;
-      } else if (codeUnit != $dot) {
-        buffer.writeCharCode(codeUnit);
-      }
+      if (codeUnit != $e) continue;
+
+      buffer = StringBuffer();
+      buffer.writeCharCode(text.codeUnitAt(0));
+
+      // If the number has more than one significant digit, the second
+      // character will be a decimal point that we don't want to include in
+      // the generated number.
+      if (i > 2) buffer.write(text.substring(2, i));
+
+      exponent = int.parse(text.substring(i + 1, text.length));
+      break;
     }
+    if (buffer == null) return text;
 
     if (exponent > 0) {
-      for (var i = 0; i < exponent; i++) {
+      // Write an additional zero for each exponent digits other than those
+      // already written to the buffer. We subtract 1 from `buffer.length`
+      // because the first digit doesn't count towards the exponent.
+      var additionalZeroes = exponent - (buffer.length - 1);
+      for (var i = 0; i < additionalZeroes; i++) {
         buffer.writeCharCode($0);
       }
       return buffer.toString();
