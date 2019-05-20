@@ -32,8 +32,7 @@ void main() {
 
 Future<TestProcess> runSass(Iterable<String> arguments,
         {Map<String, String> environment}) =>
-    TestProcess.start(
-        "node", [p.absolute("build/npm/sass.js")]..addAll(arguments),
+    TestProcess.start("node", [p.absolute("build/npm/sass.js"), ...arguments],
         workingDirectory: d.sandbox,
         environment: environment,
         description: "sass");

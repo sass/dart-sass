@@ -3,9 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
-// See tool/synchronize.dart for details.
+// See tool/grind/synchronize.dart for details.
 //
-// Checksum: d52c30611ad55bb7764f570381b6d739e39e6f98
+// Checksum: 4aeea9b6944414d06fecf6864ca53ff45c616814
 //
 // ignore_for_file: unused_import
 
@@ -51,7 +51,7 @@ import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
-typedef void _ScopeCallback(void callback());
+typedef _ScopeCallback = void Function(void Function() callback);
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
@@ -1074,8 +1074,7 @@ class _EvaluateVisitor
         throw "Can't find stylesheet to import.";
       }
     } on SassException catch (error) {
-      var frames = error.trace.frames.toList()
-        ..addAll(_stackTrace(span).frames);
+      var frames = [...error.trace.frames, ..._stackTrace(span).frames];
       throw SassRuntimeException(error.message, error.span, Trace(frames));
     } catch (error) {
       String message;
@@ -2393,10 +2392,10 @@ class _EvaluateVisitor
   ///
   /// [span] is the current location, used for the bottom-most stack frame.
   Trace _stackTrace(FileSpan span) {
-    var frames = _stack
-        .map((tuple) => _stackFrame(tuple.item1, tuple.item2.span))
-        .toList()
-          ..add(_stackFrame(_member, span));
+    var frames = [
+      ..._stack.map((tuple) => _stackFrame(tuple.item1, tuple.item2.span)),
+      _stackFrame(_member, span)
+    ];
     return Trace(frames.reversed);
   }
 

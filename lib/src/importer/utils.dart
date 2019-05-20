@@ -68,11 +68,8 @@ List<String> _tryPathWithExtensions(String path) {
 ///
 /// If neither exists, returns an empty list.
 List<String> _tryPath(String path) {
-  var paths = <String>[];
   var partial = p.join(p.dirname(path), "_${p.basename(path)}");
-  if (fileExists(partial)) paths.add(partial);
-  if (fileExists(path)) paths.add(path);
-  return paths;
+  return [if (fileExists(partial)) partial, if (fileExists(path)) path];
 }
 
 /// Returns the resolved index file for [path] if [path] is a directory and the

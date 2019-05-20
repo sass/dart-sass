@@ -28,8 +28,11 @@ appSnapshot() => _appSnapshot();
 @Task('Build a native-code Dart executable.')
 nativeExecutable() {
   ensureBuild();
-  run(p.join(sdkDir.path, 'bin/dart2aot'),
-      arguments: ['bin/sass.dart', 'build/sass.dart.native']);
+  run(p.join(sdkDir.path, 'bin/dart2aot'), arguments: [
+    'bin/sass.dart',
+    '-Dversion=$version',
+    'build/sass.dart.native'
+  ]);
 }
 
 /// Compiles Sass to an application snapshot.

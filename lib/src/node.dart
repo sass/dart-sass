@@ -204,12 +204,14 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
     if (options.fiber != null) {
       result.add(BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
         var fiber = options.fiber.current;
-        var jsArguments = arguments.map(wrapValue).toList()
-          ..add(allowInterop(([result]) {
+        var jsArguments = [
+          ...arguments.map(wrapValue),
+          allowInterop(([result]) {
             // Schedule a microtask so we don't try to resume the running fiber
             // if [importer] calls `done()` synchronously.
             scheduleMicrotask(() => fiber.run(result));
-          }));
+          })
+        ];
         var result = Function.apply(callback as Function, jsArguments);
         return unwrapValue(
             isUndefined(result) ? options.fiber.yield() : result);
@@ -224,8 +226,10 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
       result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
           (arguments) async {
         var completer = Completer();
-        var jsArguments = arguments.map(wrapValue).toList()
-          ..add(allowInterop(([result]) => completer.complete(result)));
+        var jsArguments = [
+          ...arguments.map(wrapValue),
+          allowInterop(([result]) => completer.complete(result))
+        ];
         var result = Function.apply(callback as Function, jsArguments);
         return unwrapValue(
             isUndefined(result) ? await completer.future : result);
@@ -256,7 +260,7 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
             file: options.file,
             data: options.data,
             includePaths:
-                ([p.current]..addAll(includePaths)).join(isWindows ? ';' : ':'),
+                ([p.current, ...includePaths]).join(isWindows ? ';' : ':'),
             precision: SassNumber.precision,
             style: 1,
             indentType: options.indentType == 'tab' ? 1 : 0,

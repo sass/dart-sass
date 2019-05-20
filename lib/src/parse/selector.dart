@@ -11,11 +11,18 @@ import '../utils.dart';
 import 'parser.dart';
 
 /// Pseudo-class selectors that take unadorned selectors as arguments.
-final _selectorPseudoClasses =
-    Set.of(["not", "matches", "current", "any", "has", "host", "host-context"]);
+final _selectorPseudoClasses = {
+  "not",
+  "matches",
+  "current",
+  "any",
+  "has",
+  "host",
+  "host-context"
+};
 
 /// Pseudo-element selectors that take unadorned selectors as arguments.
-final _selectorPseudoElements = Set.of(["slotted"]);
+final _selectorPseudoElements = {"slotted"};
 
 /// A parser for selectors.
 class SelectorParser extends Parser {

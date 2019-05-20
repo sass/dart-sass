@@ -42,7 +42,7 @@ import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
-typedef Future _ScopeCallback(Future callback());
+typedef _ScopeCallback = Future Function(Future Function() callback);
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
@@ -1072,8 +1072,7 @@ class _EvaluateVisitor
         throw "Can't find stylesheet to import.";
       }
     } on SassException catch (error) {
-      var frames = error.trace.frames.toList()
-        ..addAll(_stackTrace(span).frames);
+      var frames = [...error.trace.frames, ..._stackTrace(span).frames];
       throw SassRuntimeException(error.message, error.span, Trace(frames));
     } catch (error) {
       String message;
@@ -2416,10 +2415,10 @@ class _EvaluateVisitor
   ///
   /// [span] is the current location, used for the bottom-most stack frame.
   Trace _stackTrace(FileSpan span) {
-    var frames = _stack
-        .map((tuple) => _stackFrame(tuple.item1, tuple.item2.span))
-        .toList()
-          ..add(_stackFrame(_member, span));
+    var frames = [
+      ..._stack.map((tuple) => _stackFrame(tuple.item1, tuple.item2.span)),
+      _stackFrame(_member, span)
+    ];
     return Trace(frames.reversed);
   }
 

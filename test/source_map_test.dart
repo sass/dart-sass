@@ -795,7 +795,7 @@ void _expectMapMatches(
     Map<String, SourceLocation> sourceLocations,
     List<Tuple2<String, SourceLocation>> targetLocations) {
   expect(sourceLocations.keys,
-      equals(Set.of(targetLocations.map((tuple) => tuple.item1))));
+      equals({for (var tuple in targetLocations) tuple.item1}));
 
   String actualMap() =>
       "\nActual map:\n\n" + _mapToString(map, sourceText, targetText) + "\n";
@@ -808,7 +808,7 @@ void _expectMapMatches(
 
     if (!entryIter.moveNext()) {
       fail('Missing mapping "$name", expected '
-          '${_mapping(expectedSource, expectedTarget)}.\n' +
+              '${_mapping(expectedSource, expectedTarget)}.\n' +
           actualMap());
     }
 
@@ -818,7 +818,7 @@ void _expectMapMatches(
         expectedTarget.line != entry.target.line ||
         expectedTarget.column != entry.target.column) {
       fail('Mapping "$name" was ${_mapping(entry.source, entry.target)}, '
-          'expected ${_mapping(expectedSource, expectedTarget)}.\n' +
+              'expected ${_mapping(expectedSource, expectedTarget)}.\n' +
           actualMap());
     }
   }

@@ -103,7 +103,7 @@ class SelectorList extends Selector {
       if (!_complexContainsParentSelector(complex)) {
         if (!implicitParent) return [complex];
         return parent.components.map((parentComplex) => ComplexSelector(
-            parentComplex.components.toList()..addAll(complex.components),
+            [...parentComplex.components, ...complex.components],
             lineBreak: complex.lineBreak || parentComplex.lineBreak));
       }
 
@@ -127,8 +127,7 @@ class SelectorList extends Selector {
           for (var newComplex in previousComplexes) {
             var lineBreak = previousLineBreaks[i++];
             for (var resolvedComplex in resolved) {
-              newComplexes
-                  .add(newComplex.toList()..addAll(resolvedComplex.components));
+              newComplexes.add([...newComplex, ...resolvedComplex.components]);
               lineBreaks.add(lineBreak || resolvedComplex.lineBreak);
             }
           }
@@ -204,18 +203,18 @@ class SelectorList extends Selector {
       var last = lastComponent as CompoundSelector;
       var suffix = (compound.components.first as ParentSelector).suffix;
       if (suffix != null) {
-        last = CompoundSelector(
-            last.components.take(last.components.length - 1).toList()
-              ..add(last.components.last.addSuffix(suffix))
-              ..addAll(resolvedMembers.skip(1)));
+        last = CompoundSelector([
+          ...last.components.take(last.components.length - 1),
+          last.components.last.addSuffix(suffix),
+          ...resolvedMembers.skip(1)
+        ]);
       } else {
-        last = CompoundSelector(
-            last.components.toList()..addAll(resolvedMembers.skip(1)));
+        last =
+            CompoundSelector([...last.components, ...resolvedMembers.skip(1)]);
       }
 
       return ComplexSelector(
-          complex.components.take(complex.components.length - 1).toList()
-            ..add(last),
+          [...complex.components.take(complex.components.length - 1), last],
           lineBreak: complex.lineBreak);
     });
   }

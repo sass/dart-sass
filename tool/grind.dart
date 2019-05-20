@@ -26,10 +26,11 @@ all() {}
 
 @Task('Run the Dart formatter.')
 format() {
-  Pub.run('dart_style',
-      script: 'format',
-      arguments: ['--overwrite', '--fix']
-        ..addAll(existingSourceDirs.map((dir) => dir.path)));
+  Pub.run('dart_style', script: 'format', arguments: [
+    '--overwrite',
+    '--fix',
+    for (var dir in existingSourceDirs) dir.path
+  ]);
 }
 
 @Task('Installs dependencies from npm.')
