@@ -739,14 +739,27 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// Assuming [text] is a double written without exponent notation, writes it
   /// to [_buffer] with at most [SassNumber.precision] digits after the decimal.
   void _writeDecimal(String text) {
+    // Write up until the decimal point, or to the end of [text] if it has no
+    // decimal point.
     var textIndex = 0;
     for (; textIndex < text.length; textIndex++) {
       var codeUnit = text.codeUnitAt(textIndex);
-      _buffer.writeCharCode(codeUnit);
       if (codeUnit == $dot) {
+        // Most integer-value doubles will have been converted to ints using
+        // [fuzzyAsInt] in [_writeNumber]. However, that logic isn't rock-solid
+        // for very large doubles due to floating-point imprecision, so we
+        // handle that case here as well.
+        if (textIndex == text.length - 2 &&
+            text.codeUnitAt(text.length - 1) == $0) {
+          return;
+        }
+
+        _buffer.writeCharCode(codeUnit);
         textIndex++;
         break;
       }
+
+      _buffer.writeCharCode(codeUnit);
     }
     if (textIndex == text.length) return;
 
@@ -773,7 +786,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     }
 
     // Remove trailing zeros.
-    while (digitsIndex >= 0 && digits[digitsIndex - 1] == 0) {
+    while (digitsIndex > 0 && digits[digitsIndex - 1] == 0) {
       digitsIndex--;
     }
 

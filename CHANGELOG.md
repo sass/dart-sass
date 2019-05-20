@@ -1,5 +1,7 @@
 ## 1.20.2
 
+* Fix a crash that would appear when writing some very large integers to CSS.
+
 ### Command-Line Interface
 
 * Improve performance for stand-alone packages on Linux and Mac OS.
