@@ -19,8 +19,7 @@ void sharedTests(
   /// the contents of the output file match [expected].
   Future expectCompiles(List<String> arguments, expected,
       {Map<String, String> environment}) async {
-    var sass = await runSass(
-        arguments.toList()..add("out.css")..add("--no-source-map"),
+    var sass = await runSass([...arguments, "out.css", "--no-source-map"],
         environment: environment);
     await sass.shouldExit(0);
     await d.file("out.css", expected).validate();

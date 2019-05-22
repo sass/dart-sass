@@ -3,9 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
-// See tool/synchronize.dart for details.
+// See tool/grind/synchronize.dart for details.
 //
-// Checksum: 291afac7e0d5edc6610685b28741786f667f83e8
+// Checksum: 1e51fceaa60c0a65fa9c447cfe25eda5109a819f
 //
 // ignore_for_file: unused_import
 
@@ -82,24 +82,16 @@ class ImportCache {
   /// options into a single list of importers.
   static List<Importer> _toImporters(Iterable<Importer> importers,
       Iterable<String> loadPaths, SyncPackageResolver packageResolver) {
-    var list = importers?.toList() ?? [];
-
-    if (loadPaths != null) {
-      list.addAll(loadPaths.map((path) => FilesystemImporter(path)));
-    }
-
     var sassPath = getEnvironmentVariable('SASS_PATH');
-    if (sassPath != null) {
-      list.addAll(sassPath
-          .split(isWindows ? ';' : ':')
-          .map((path) => FilesystemImporter(path)));
-    }
-
-    if (packageResolver != null) {
-      list.add(PackageImporter(packageResolver));
-    }
-
-    return list;
+    return [
+      ...?importers,
+      if (loadPaths != null)
+        for (var path in loadPaths) FilesystemImporter(path),
+      if (sassPath != null)
+        for (var path in sassPath.split(isWindows ? ';' : ':'))
+          FilesystemImporter(path),
+      if (packageResolver != null) PackageImporter(packageResolver)
+    ];
   }
 
   /// Creates a cache that contains no importers.

@@ -406,13 +406,8 @@ void rotateSlice(List list, int start, int end) {
 
 /// Like [Iterable.map] but for an asynchronous [callback].
 Future<Iterable<F>> mapAsync<E, F>(
-    Iterable<E> iterable, Future<F> callback(E value)) async {
-  var result = <F>[];
-  for (var element in iterable) {
-    result.add(await callback(element));
-  }
-  return result;
-}
+        Iterable<E> iterable, Future<F> callback(E value)) async =>
+    [for (var element in iterable) await callback(element)];
 
 /// Like [Map.putIfAbsent], but for an asynchronous [ifAbsent].
 ///

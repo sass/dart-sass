@@ -96,11 +96,10 @@ class Extender {
         throw SassScriptException("Can't extend complex selector $complex.");
       }
 
-      var extensions = <SimpleSelector, Map<ComplexSelector, Extension>>{};
       var compound = complex.components.first as CompoundSelector;
-      for (var simple in compound.components) {
-        extensions[simple] = extenders;
-      }
+      var extensions = {
+        for (var simple in compound.components) simple: extenders
+      };
 
       var extender = Extender._mode(mode);
       if (!selector.isInvisible) {
@@ -702,10 +701,7 @@ class Extender {
       targetsUsed?.add(simple);
       if (_mode == ExtendMode.replace) return extenders.values.toList();
 
-      var extenderList = List<Extension>(extenders.length + 1);
-      extenderList[0] = _extensionForSimple(simple);
-      extenderList.setRange(1, extenderList.length, extenders.values);
-      return extenderList;
+      return [_extensionForSimple(simple), ...extenders.values];
     }
 
     if (simple is PseudoSelector && simple.selector != null) {

@@ -77,24 +77,16 @@ class AsyncImportCache {
   /// options into a single list of importers.
   static List<AsyncImporter> _toImporters(Iterable<AsyncImporter> importers,
       Iterable<String> loadPaths, SyncPackageResolver packageResolver) {
-    var list = importers?.toList() ?? [];
-
-    if (loadPaths != null) {
-      list.addAll(loadPaths.map((path) => FilesystemImporter(path)));
-    }
-
     var sassPath = getEnvironmentVariable('SASS_PATH');
-    if (sassPath != null) {
-      list.addAll(sassPath
-          .split(isWindows ? ';' : ':')
-          .map((path) => FilesystemImporter(path)));
-    }
-
-    if (packageResolver != null) {
-      list.add(PackageImporter(packageResolver));
-    }
-
-    return list;
+    return [
+      ...?importers,
+      if (loadPaths != null)
+        for (var path in loadPaths) FilesystemImporter(path),
+      if (sassPath != null)
+        for (var path in sassPath.split(isWindows ? ';' : ':'))
+          FilesystemImporter(path),
+      if (packageResolver != null) PackageImporter(packageResolver)
+    ];
   }
 
   /// Creates a cache that contains no importers.

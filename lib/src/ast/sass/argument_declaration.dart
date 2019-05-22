@@ -100,9 +100,8 @@ class ArgumentDeclaration implements SassNode {
     return true;
   }
 
-  String toString() {
-    var components = List.of(arguments.map((arg) => arg.toString()));
-    if (restArgument != null) components.add('$restArgument...');
-    return components.join(', ');
-  }
+  String toString() => [
+        for (var arg in arguments) arg.toString(),
+        if (restArgument != null) '$restArgument...'
+      ].join(', ');
 }

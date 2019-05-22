@@ -94,13 +94,13 @@ class StylesheetGraph {
   /// appears within [baseUrl] imported by [baseImporter].
   Map<Uri, StylesheetNode> _upstreamNodes(
       Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
-    var active = Set.of([baseUrl]);
-    var upstream = <Uri, StylesheetNode>{};
-    for (var import in findImports(stylesheet)) {
-      var url = Uri.parse(import.url);
-      upstream[url] = _nodeFor(url, baseImporter, baseUrl, active);
-    }
-    return upstream;
+    var active = {baseUrl};
+    var upstreamUrls =
+        findImports(stylesheet).map((import) => Uri.parse(import.url));
+    return {
+      for (var url in upstreamUrls)
+        url: _nodeFor(url, baseImporter, baseUrl, active)
+    };
   }
 
   /// Re-parses the stylesheet at [canonicalUrl] and updates the dependency graph

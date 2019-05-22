@@ -46,14 +46,14 @@ String _releaseMessage() {
       "https://github.com/sass/dart-sass/blob/master/CHANGELOG.md#" +
           version.replaceAll(".", "");
   return "To install Dart Sass $version, download one of the packages above "
-      "and [add it to your PATH](https://katiek2.github.io/path-doc/), or see "
-      "[the Sass website](https://sass-lang.com/install) for full installation "
-      "instructions.\n\n"
-      "## Changes\n\n" +
+          "and [add it to your PATH](https://katiek2.github.io/path-doc/), or "
+          "see [the Sass website](https://sass-lang.com/install) for full "
+          "installation instructions.\n\n"
+          "## Changes\n\n" +
       _lastChangelogSection() +
       "\n\n"
-      "See the [full changelog]($changelogUrl) for changes in earlier "
-      "releases.";
+          "See the [full changelog]($changelogUrl) for changes in earlier "
+          "releases.";
 }
 
 /// A regular expression that matches a Markdown code block.

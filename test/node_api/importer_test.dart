@@ -78,11 +78,24 @@ void main() {
         var basePath = p.join(subDir, 'base.scss');
         await writeTextFile(basePath, '@import "test"');
 
-        expect(renderSync(RenderOptions(file: basePath)),
+        expect(
+            renderSync(RenderOptions(
+                file: basePath,
+                importer: allowInterop(
+                    (_, __) => NodeImporterResult(contents: "q {r: s}")))),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
 
-      test("CWD is #2", () async {
+      test("importer is #2", () async {
+        expect(
+            renderSync(RenderOptions(
+                data: '@import "test"',
+                importer: allowInterop(
+                    (_, __) => NodeImporterResult(contents: "x {y: z}")))),
+            equalsIgnoringWhitespace('x { y: z; }'));
+      });
+
+      test("CWD is #3", () async {
         var subDir = p.join(sandbox, 'sub');
         await createDirectory(subDir);
         await writeTextFile(p.join(subDir, 'test.scss'), 'x {y: z}');
@@ -94,13 +107,17 @@ void main() {
       });
     });
 
-    test("include path is #3", () async {
-      expect(
-          renderSync(RenderOptions(
-              data: '@import "test"',
-              includePaths: [sandbox],
-              importer: allowInterop(expectAsync2((_, __) {}, count: 0)))),
-          equalsIgnoringWhitespace('a { b: c; }'));
+    test("include path is #4", () async {
+      var subDir = p.join(sandbox, 'sub');
+      await createDirectory(subDir);
+      await writeTextFile(p.join(subDir, 'test.scss'), 'x {y: z}');
+
+      withSassPath([subDir], () {
+        expect(
+            renderSync(
+                RenderOptions(data: '@import "test"', includePaths: [sandbox])),
+            equalsIgnoringWhitespace('a { b: c; }'));
+      });
     });
   });
 

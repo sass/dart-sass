@@ -25,9 +25,9 @@ class TypeSelector extends SimpleSelector {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
       var unified = unifyUniversalAndElement(this, compound.first);
       if (unified == null) return null;
-      return [unified]..addAll(compound.skip(1));
+      return [unified, ...compound.skip(1)];
     } else {
-      return <SimpleSelector>[this]..addAll(compound);
+      return [this, ...compound];
     }
   }
 

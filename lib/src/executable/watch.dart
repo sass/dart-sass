@@ -20,10 +20,11 @@ import 'options.dart';
 
 /// Watches all the files in [graph] for changes and updates them as necessary.
 Future watch(ExecutableOptions options, StylesheetGraph graph) async {
-  var directoriesToWatch = <String>[]
-    ..addAll(options.sourceDirectoriesToDestinations.keys)
-    ..addAll(options.sourcesToDestinations.keys.map(p.dirname))
-    ..addAll(options.loadPaths);
+  var directoriesToWatch = [
+    ...options.sourceDirectoriesToDestinations.keys,
+    ...options.sourcesToDestinations.keys.map(p.dirname),
+    ...options.loadPaths
+  ];
 
   var dirWatcher = MultiDirWatcher(poll: options.poll);
   await Future.wait(directoriesToWatch.map((dir) {

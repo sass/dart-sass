@@ -42,10 +42,12 @@ class ArgumentInvocation implements SassNode {
         keywordRest = null;
 
   String toString() {
-    var components = List<Object>.from(positional)
-      ..addAll(named.keys.map((name) => "$name: ${named[name]}"));
-    if (rest != null) components.add("$rest...");
-    if (keywordRest != null) components.add("$keywordRest...");
+    var components = [
+      ...positional,
+      for (var name in named.keys) "$name: ${named[name]}",
+      if (rest != null) "$rest...",
+      if (keywordRest != null) "$keywordRest..."
+    ];
     return "(${components.join(', ')})";
   }
 }

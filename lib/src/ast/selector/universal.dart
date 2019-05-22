@@ -27,12 +27,10 @@ class UniversalSelector extends SimpleSelector {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
       var unified = unifyUniversalAndElement(this, compound.first);
       if (unified == null) return null;
-      return [unified]..addAll(compound.skip(1));
+      return [unified, ...compound.skip(1)];
     }
 
-    if (namespace != null && namespace != "*") {
-      return <SimpleSelector>[this]..addAll(compound);
-    }
+    if (namespace != null && namespace != "*") return [this, ...compound];
     if (compound.isNotEmpty) return compound;
     return [this];
   }
