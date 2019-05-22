@@ -12,7 +12,6 @@ import 'ast/node.dart';
 import 'callable.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
-import 'functions.dart';
 import 'module.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
@@ -136,9 +135,7 @@ class AsyncEnvironment {
         _functions = [normalizedMap()],
         _functionIndices = normalizedMap(),
         _mixins = [normalizedMap()],
-        _mixinIndices = normalizedMap() {
-    coreFunctions.forEach(setFunction);
-  }
+        _mixinIndices = normalizedMap();
 
   AsyncEnvironment._(
       this._modules,
