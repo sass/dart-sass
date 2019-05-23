@@ -5,19 +5,23 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 739a592852b730f66c9f195b65307450edd14898
+// Checksum: e3e1c304d7ca4a58ee7847229da9ec34be0fb902
 //
 // ignore_for_file: unused_import
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
 import 'ast/node.dart';
+import 'ast/sass.dart';
 import 'callable.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
 import 'module.dart';
+import 'module/forwarded_view.dart';
+import 'util/merged_map_view.dart';
 import 'util/public_member_map_view.dart';
 import 'utils.dart';
 import 'value.dart';
@@ -36,8 +40,13 @@ class Environment {
   /// This is `null` if there are no namespaceless modules.
   Set<Module<Callable>> _globalModules;
 
-  /// Modules from both [_modules] and [_global], in the order in which they
-  /// were `@use`d.
+  /// The modules forwarded by this module.
+  ///
+  /// This is `null` if there are no forwarded modules.
+  List<Module<Callable>> _forwardedModules;
+
+  /// Modules from [_modules], [_globalModules], and [_forwardedModules], in the
+  /// order in which they were `@use`d.
   final List<Module<Callable>> _allModules;
 
   /// A list of variables defined at each lexical scope level.
@@ -133,6 +142,7 @@ class Environment {
   Environment({bool sourceMap = false})
       : _modules = {},
         _globalModules = null,
+        _forwardedModules = null,
         _allModules = [],
         _variables = [normalizedMap()],
         _variableNodes = sourceMap ? [normalizedMap()] : null,
@@ -145,6 +155,7 @@ class Environment {
   Environment._(
       this._modules,
       this._globalModules,
+      this._forwardedModules,
       this._allModules,
       this._variables,
       this._variableNodes,
@@ -167,6 +178,7 @@ class Environment {
   Environment closure() => Environment._(
       _modules,
       _globalModules,
+      _forwardedModules,
       _allModules,
       _variables.toList(),
       _variableNodes?.toList(),
@@ -180,6 +192,7 @@ class Environment {
   /// functions, and mixins, but not its modules.
   Environment global() => Environment._(
       {},
+      null,
       null,
       [],
       _variables.toList(),
@@ -217,6 +230,82 @@ class Environment {
 
       _modules[namespace] = module;
       _allModules.add(module);
+    }
+  }
+
+  /// Exposes the members in [module] to downstream modules as though they were
+  /// defined in this module, according to the modifications defined by [rule].
+  void forwardModule(Module<Callable> module, ForwardRule rule) {
+    _forwardedModules ??= [];
+
+    var view = ForwardedModuleView(module, rule);
+    for (var other in _forwardedModules) {
+      _assertNoConflicts(view.variables, other.variables, "variable", other);
+      _assertNoConflicts(view.functions, other.functions, "function", other);
+      _assertNoConflicts(view.mixins, other.mixins, "mixin", other);
+    }
+
+    // Add the original module to [_allModules] (rather than the
+    // [ForwardedModuleView]) so that we can de-duplicate upstream modules using
+    // `==`. This is safe because upstream modules are only used for collating
+    // CSS, not for the members they expose.
+    _allModules.add(module);
+    _forwardedModules.add(view);
+  }
+
+  /// Throws a [SassScriptException] if [newMembers] has any keys that overlap
+  /// with [oldMembers].
+  ///
+  /// The [type] and [oldModule] is used for error reporting.
+  void _assertNoConflicts(Map<String, Object> newMembers,
+      Map<String, Object> oldMembers, String type, Module<Callable> oldModule) {
+    Map<String, Object> smaller;
+    Map<String, Object> larger;
+    if (newMembers.length < oldMembers.length) {
+      smaller = newMembers;
+      larger = oldMembers;
+    } else {
+      smaller = oldMembers;
+      larger = newMembers;
+    }
+
+    for (var name in smaller.keys) {
+      if (larger.containsKey(name)) {
+        if (type == "variable") name = "\$$name";
+        throw SassScriptException(
+            'Module ${p.prettyUri(oldModule.url)} and the new module both '
+            'forward a $type named $name.');
+      }
+    }
+  }
+
+  /// Makes the members forwarded by [module] available in the current
+  /// environment.
+  ///
+  /// This is called when [module] is `@import`ed.
+  void importForwards(Module<Callable> module) {
+    if (module is _EnvironmentModule) {
+      for (var forwarded in module._environment._forwardedModules ??
+          const <Module<Callable>>[]) {
+        _globalModules ??= {};
+        _globalModules.add(forwarded);
+
+        // Remove existing definitions that the forwarded members are now
+        // shadowing.
+        for (var variable in forwarded.variables.keys) {
+          _variableIndices.remove(variable);
+          _variables[0].remove(variable);
+          if (_variableNodes != null) _variableNodes[0].remove(variable);
+        }
+        for (var function in forwarded.functions.keys) {
+          _functionIndices.remove(function);
+          _functions[0].remove(function);
+        }
+        for (var mixin in forwarded.mixins.keys) {
+          _mixinIndices.remove(mixin);
+          _mixins[0].remove(mixin);
+        }
+      }
     }
   }
 
@@ -580,7 +669,7 @@ class Environment {
   /// that contains [css] as its CSS tree, which can be extended using
   /// [extender].
   Module<Callable> toModule(CssStylesheet css, Extender extender) =>
-      _EnvironmentModule(this, css, extender);
+      _EnvironmentModule(this, css, extender, forwarded: _forwardedModules);
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
@@ -637,24 +726,99 @@ class _EnvironmentModule implements Module<Callable> {
   /// The environment that defines this module's members.
   final Environment _environment;
 
-  // TODO(nweiz): Use custom [UnmodifiableMapView]s that forbid access to
-  // private members.
-  _EnvironmentModule(this._environment, this.css, this.extender)
-      : upstream = _environment._allModules,
-        variables = PublicMemberMapView(_environment._variables.first),
-        variableNodes = _environment._variableNodes == null
+  /// A map from variable names to the modules in which those variables appear,
+  /// used to determine where variables should be set.
+  ///
+  /// Variables that don't appear in this map are either defined directly in
+  /// this module (if they appear in `_environment._variables.first`) or not
+  /// defined at all.
+  final Map<String, Module<Callable>> _modulesByVariable;
+
+  factory _EnvironmentModule(
+      Environment environment, CssStylesheet css, Extender extender,
+      {List<Module<Callable>> forwarded}) {
+    forwarded ??= const [];
+    return _EnvironmentModule._(
+        environment,
+        css,
+        extender,
+        _makeModulesByVariable(forwarded),
+        _memberMap(environment._variables.first,
+            forwarded.map((module) => module.variables)),
+        environment._variableNodes == null
             ? null
-            : PublicMemberMapView(_environment._variableNodes.first),
-        functions = PublicMemberMapView(_environment._functions.first),
-        mixins = PublicMemberMapView(_environment._mixins.first),
-        transitivelyContainsCss = css.children.isNotEmpty ||
-            _environment._allModules
+            : _memberMap(environment._variableNodes.first,
+                forwarded.map((module) => module.variableNodes)),
+        _memberMap(environment._functions.first,
+            forwarded.map((module) => module.functions)),
+        _memberMap(environment._mixins.first,
+            forwarded.map((module) => module.mixins)),
+        transitivelyContainsCss: css.children.isNotEmpty ||
+            environment._allModules
                 .any((module) => module.transitivelyContainsCss),
-        transitivelyContainsExtensions = !extender.isEmpty ||
-            _environment._allModules
-                .any((module) => module.transitivelyContainsExtensions);
+        transitivelyContainsExtensions: !extender.isEmpty ||
+            environment._allModules
+                .any((module) => module.transitivelyContainsExtensions));
+  }
+
+  /// Create [_modulesByVariable] for a set of forwarded modules.
+  static Map<String, Module<Callable>> _makeModulesByVariable(
+      List<Module<Callable>> forwarded) {
+    if (forwarded.isEmpty) return const {};
+
+    var modulesByVariable = normalizedMap<Module<Callable>>();
+    for (var module in forwarded) {
+      if (module is _EnvironmentModule) {
+        // Flatten nested forwarded modules to avoid O(depth) overhead.
+        for (var child in module._modulesByVariable.values) {
+          setAll(modulesByVariable, child.variables.keys, child);
+        }
+        setAll(modulesByVariable, module._environment._variables.first.keys,
+            module);
+      } else {
+        setAll(modulesByVariable, module.variables.keys, module);
+      }
+    }
+    return modulesByVariable;
+  }
+
+  /// Returns a map that exposes the public members of [localMap] as well as all
+  /// the members of [otherMaps].
+  static Map<String, V> _memberMap<V>(
+      Map<String, V> localMap, Iterable<Map<String, V>> otherMaps) {
+    localMap = PublicMemberMapView(localMap);
+    if (otherMaps.isEmpty) return localMap;
+
+    var allMaps = [
+      for (var map in otherMaps) if (map.isNotEmpty) map,
+      localMap
+    ];
+    if (allMaps.length == 1) return localMap;
+
+    return MergedMapView(allMaps,
+        equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+  }
+
+  _EnvironmentModule._(
+      this._environment,
+      this.css,
+      this.extender,
+      this._modulesByVariable,
+      this.variables,
+      this.variableNodes,
+      this.functions,
+      this.mixins,
+      {@required this.transitivelyContainsCss,
+      @required this.transitivelyContainsExtensions})
+      : upstream = _environment._allModules;
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
+    var module = _modulesByVariable[name];
+    if (module != null) {
+      module.setVariable(name, value, nodeWithSpan);
+      return;
+    }
+
     if (!_environment._variables.first.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
     }
@@ -670,8 +834,17 @@ class _EnvironmentModule implements Module<Callable> {
     if (css.children.isEmpty) return this;
 
     var newCssAndExtender = cloneCssStylesheet(css, extender);
-    return _EnvironmentModule(
-        _environment, newCssAndExtender.item1, newCssAndExtender.item2);
+    return _EnvironmentModule._(
+        _environment,
+        newCssAndExtender.item1,
+        newCssAndExtender.item2,
+        _modulesByVariable,
+        variables,
+        variableNodes,
+        functions,
+        mixins,
+        transitivelyContainsCss: transitivelyContainsCss,
+        transitivelyContainsExtensions: transitivelyContainsExtensions);
   }
 
   String toString() => p.prettyUri(css.span.sourceUrl);

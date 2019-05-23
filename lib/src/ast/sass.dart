@@ -40,6 +40,7 @@ export 'sass/statement/each_rule.dart';
 export 'sass/statement/error_rule.dart';
 export 'sass/statement/extend_rule.dart';
 export 'sass/statement/for_rule.dart';
+export 'sass/statement/forward_rule.dart';
 export 'sass/statement/function_rule.dart';
 export 'sass/statement/if_rule.dart';
 export 'sass/statement/import_rule.dart';

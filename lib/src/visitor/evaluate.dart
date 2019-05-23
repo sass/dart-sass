@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 36af5d91812c44a7f77ef0b7f580fa9fb8520ad0
+// Checksum: 66510adda04cb00e75c60fc354b66081e24d1f40
 //
 // ignore_for_file: unused_import
 
@@ -977,6 +977,14 @@ class _EvaluateVisitor
     }, semiGlobal: true);
   }
 
+  Value visitForwardRule(ForwardRule node) {
+    _loadModule(node.url, "@forward", node, (module) {
+      _environment.forwardModule(module, node);
+    });
+
+    return null;
+  }
+
   Value visitFunctionRule(FunctionRule node) {
     _environment.setFunction(UserDefinedCallable(node, _environment.closure()));
     return null;
@@ -1023,8 +1031,9 @@ class _EvaluateVisitor
 
     _activeModules.add(url);
 
-    // TODO(nweiz): If [stylesheet] contains no `@use` rules, just evaluate it
-    // directly in [_root] rather than making a new stylesheet.
+    // TODO(nweiz): If [stylesheet] contains no `@use` or `@forward` rules, just
+    // evaluate it directly in [_root] rather than making a new
+    // [ModifiableCssStylesheet] and manually copying members.
 
     List<ModifiableCssNode> children;
     var environment = _environment.global();
@@ -1055,10 +1064,13 @@ class _EvaluateVisitor
       });
     });
 
-    // Create a dummy module with empty CSS and no extensions to combine all
-    // the CSS from modules used by [stylesheet].
+    // Create a dummy module with empty CSS and no extensions to make forwarded
+    // members available in the current import context and to combine all the
+    // CSS from modules used by [stylesheet].
     var module = environment.toModule(
         CssStylesheet(const [], stylesheet.span), Extender.empty);
+    _environment.importForwards(module);
+
     if (module.transitivelyContainsCss) {
       // If any transitively used module contains extensions, we need to clone
       // all modules' CSS. Otherwise, it's possible that they'll be used or

@@ -975,6 +975,14 @@ class _EvaluateVisitor
     }, semiGlobal: true);
   }
 
+  Future<Value> visitForwardRule(ForwardRule node) async {
+    await _loadModule(node.url, "@forward", node, (module) {
+      _environment.forwardModule(module, node);
+    });
+
+    return null;
+  }
+
   Future<Value> visitFunctionRule(FunctionRule node) async {
     _environment.setFunction(UserDefinedCallable(node, _environment.closure()));
     return null;
@@ -1021,8 +1029,9 @@ class _EvaluateVisitor
 
     _activeModules.add(url);
 
-    // TODO(nweiz): If [stylesheet] contains no `@use` rules, just evaluate it
-    // directly in [_root] rather than making a new stylesheet.
+    // TODO(nweiz): If [stylesheet] contains no `@use` or `@forward` rules, just
+    // evaluate it directly in [_root] rather than making a new
+    // [ModifiableCssStylesheet] and manually copying members.
 
     List<ModifiableCssNode> children;
     var environment = _environment.global();
@@ -1053,10 +1062,13 @@ class _EvaluateVisitor
       });
     });
 
-    // Create a dummy module with empty CSS and no extensions to combine all
-    // the CSS from modules used by [stylesheet].
+    // Create a dummy module with empty CSS and no extensions to make forwarded
+    // members available in the current import context and to combine all the
+    // CSS from modules used by [stylesheet].
     var module = environment.toModule(
         CssStylesheet(const [], stylesheet.span), Extender.empty);
+    _environment.importForwards(module);
+
     if (module.transitivelyContainsCss) {
       // If any transitively used module contains extensions, we need to clone
       // all modules' CSS. Otherwise, it's possible that they'll be used or
