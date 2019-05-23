@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4aeea9b6944414d06fecf6864ca53ff45c616814
+// Checksum: 2bd6f8c74ca546e481cce450f4f982344ab8a611
 //
 // ignore_for_file: unused_import
 
@@ -34,6 +34,7 @@ import '../color_names.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../extend/extension.dart';
+import '../functions.dart';
 import '../importer.dart';
 import '../importer/node.dart';
 import '../importer/utils.dart';
@@ -121,8 +122,9 @@ class _EvaluateVisitor
   /// compiled to Node.js.
   final NodeImporter _nodeImporter;
 
-  /// User-defined functions that should be added to each environment.
-  final List<Callable> _functions;
+  /// Built-in functions that are globally-acessible, even under the new module
+  /// system.
+  final _builtInFunctions = normalizedMap<Callable>();
 
   /// All modules that have been loaded and evaluated so far.
   final _modules = <Uri, Module<Callable>>{};
@@ -239,9 +241,100 @@ class _EvaluateVisitor
             ? importCache ?? ImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
-        _functions = List.unmodifiable(functions ?? const <Callable>[]),
         _logger = logger ?? const Logger.stderr(),
-        _sourceMap = sourceMap;
+        _sourceMap = sourceMap {
+    functions = [
+      ...?functions,
+      ...coreFunctions,
+
+      // These functions are defined in the context of the evaluator because
+      // they need access to the [_environment] or other local state.
+
+      BuiltInCallable("global-variable-exists", r"$name", (arguments) {
+        var variable = arguments[0].assertString("name");
+        return SassBoolean(_environment.globalVariableExists(variable.text));
+      }),
+
+      BuiltInCallable("variable-exists", r"$name", (arguments) {
+        var variable = arguments[0].assertString("name");
+        return SassBoolean(_environment.variableExists(variable.text));
+      }),
+
+      BuiltInCallable("function-exists", r"$name", (arguments) {
+        var variable = arguments[0].assertString("name");
+        return SassBoolean(_environment.functionExists(variable.text) ||
+            _builtInFunctions.containsKey(variable.text));
+      }),
+
+      BuiltInCallable("mixin-exists", r"$name", (arguments) {
+        var variable = arguments[0].assertString("name");
+        return SassBoolean(_environment.mixinExists(variable.text));
+      }),
+
+      BuiltInCallable("content-exists", "", (arguments) {
+        if (!_environment.inMixin) {
+          throw SassScriptException(
+              "content-exists() may only be called within a mixin.");
+        }
+        return SassBoolean(_environment.content != null);
+      }),
+
+      BuiltInCallable("get-function", r"$name, $css: false", (arguments) {
+        var name = arguments[0].assertString("name");
+        var css = arguments[1].isTruthy;
+
+        var callable = css
+            ? PlainCssCallable(name.text)
+            : _addExceptionSpan(_callableNode, () => _getFunction(name.text));
+        if (callable != null) return SassFunction(callable);
+
+        throw SassScriptException("Function not found: $name");
+      }),
+
+      BuiltInCallable("call", r"$function, $args...", (arguments) {
+        var function = arguments[0];
+        var args = arguments[1] as SassArgumentList;
+
+        var invocation = ArgumentInvocation([], {}, _callableNode.span,
+            rest: ValueExpression(args, _callableNode.span),
+            keywordRest: args.keywords.isEmpty
+                ? null
+                : ValueExpression(
+                    SassMap(mapMap(args.keywords,
+                        key: (String key, Value _) =>
+                            SassString(key, quotes: false),
+                        value: (String _, Value value) => value)),
+                    _callableNode.span));
+
+        if (function is SassString) {
+          _warn(
+              "Passing a string to call() is deprecated and will be illegal\n"
+              "in Sass 4.0. Use call(get-function($function)) instead.",
+              _callableNode.span,
+              deprecation: true);
+
+          var expression = FunctionExpression(
+              Interpolation([function.text], _callableNode.span),
+              invocation,
+              _callableNode.span);
+          return expression.accept(this);
+        }
+
+        var callable = function.assertFunction("function").callable;
+        if (callable is Callable) {
+          return _runFunctionCallable(invocation, callable, _callableNode);
+        } else {
+          throw SassScriptException(
+              "The function ${callable.name} is asynchronous.\n"
+              "This is probably caused by a bug in a Sass plugin.");
+        }
+      })
+    ];
+
+    for (var function in functions) {
+      _builtInFunctions[function.name] = function;
+    }
+  }
 
   EvaluateResult run(Importer importer, Stylesheet node) {
     var url = node.span?.sourceUrl;
@@ -261,7 +354,7 @@ class _EvaluateVisitor
   }
 
   Value runExpression(Expression expression, {Map<String, Value> variables}) {
-    _environment = _newEnvironment();
+    _environment = Environment(sourceMap: _sourceMap);
 
     for (var name in variables?.keys ?? const <String>[]) {
       _environment.setVariable(name, variables[name], null, global: true);
@@ -274,7 +367,7 @@ class _EvaluateVisitor
   Module<Callable> _execute(Importer importer, Stylesheet stylesheet) {
     var url = stylesheet.span.sourceUrl;
     return _modules.putIfAbsent(url, () {
-      var environment = _newEnvironment();
+      var environment = Environment(sourceMap: _sourceMap);
       CssStylesheet css;
       var extender = Extender();
       _activeImports.add(url);
@@ -329,106 +422,6 @@ class _EvaluateVisitor
 
       return environment.toModule(css, extender);
     });
-  }
-
-  /// Creates a new [Environment] containing all the built-in and
-  /// user-defined functions.
-  Environment _newEnvironment() {
-    var environment = Environment(sourceMap: _sourceMap);
-
-    // TODO(nweiz): Find a way to share these functions across all environments,
-    // rather than needing to re-initialize each time.
-    environment.setFunction(
-        BuiltInCallable("global-variable-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return SassBoolean(_environment.globalVariableExists(variable.text));
-    }));
-
-    environment
-        .setFunction(BuiltInCallable("variable-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return SassBoolean(_environment.variableExists(variable.text));
-    }));
-
-    environment
-        .setFunction(BuiltInCallable("function-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return SassBoolean(_environment.functionExists(variable.text));
-    }));
-
-    environment
-        .setFunction(BuiltInCallable("mixin-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return SassBoolean(_environment.mixinExists(variable.text));
-    }));
-
-    environment.setFunction(BuiltInCallable("content-exists", "", (arguments) {
-      if (!_environment.inMixin) {
-        throw SassScriptException(
-            "content-exists() may only be called within a mixin.");
-      }
-      return SassBoolean(_environment.content != null);
-    }));
-
-    environment.setFunction(
-        BuiltInCallable("get-function", r"$name, $css: false", (arguments) {
-      var name = arguments[0].assertString("name");
-      var css = arguments[1].isTruthy;
-
-      var callable = css
-          ? PlainCssCallable(name.text)
-          : _addExceptionSpan(
-              _callableNode, () => _environment.getFunction(name.text));
-      if (callable != null) return SassFunction(callable);
-
-      throw SassScriptException("Function not found: $name");
-    }));
-
-    environment.setFunction(
-        BuiltInCallable("call", r"$function, $args...", (arguments) {
-      var function = arguments[0];
-      var args = arguments[1] as SassArgumentList;
-
-      var invocation = ArgumentInvocation([], {}, _callableNode.span,
-          rest: ValueExpression(args, _callableNode.span),
-          keywordRest: args.keywords.isEmpty
-              ? null
-              : ValueExpression(
-                  SassMap(mapMap(args.keywords,
-                      key: (String key, Value _) =>
-                          SassString(key, quotes: false),
-                      value: (String _, Value value) => value)),
-                  _callableNode.span));
-
-      if (function is SassString) {
-        _warn(
-            "Passing a string to call() is deprecated and will be illegal\n"
-            "in Sass 4.0. Use call(get-function($function)) instead.",
-            _callableNode.span,
-            deprecation: true);
-
-        var expression = FunctionExpression(
-            Interpolation([function.text], _callableNode.span),
-            invocation,
-            _callableNode.span);
-        return expression.accept(this);
-      }
-
-      var callable = function.assertFunction("function").callable;
-      if (callable is Callable) {
-        return _runFunctionCallable(invocation, callable, _callableNode);
-      } else {
-        throw SassScriptException(
-            "The function ${callable.name} is asynchronous.\n"
-            "This is probably caused by a bug in a Sass plugin.");
-      }
-    }));
-
-    for (var function in _functions) {
-      environment.setFunction(function);
-    }
-
-    return environment;
   }
 
   /// Returns a copy of [_root.children] with [_outOfOrderImports] inserted
@@ -1613,8 +1606,8 @@ class _EvaluateVisitor
     var plainName = node.name.asPlain;
     Callable function;
     if (plainName != null) {
-      function = _addExceptionSpan(node,
-          () => _environment.getFunction(plainName, namespace: node.namespace));
+      function = _addExceptionSpan(
+          node, () => _getFunction(plainName, namespace: node.namespace));
     }
 
     if (function == null) {
@@ -1630,6 +1623,14 @@ class _EvaluateVisitor
     var result = _runFunctionCallable(node.arguments, function, node);
     _inFunction = oldInFunction;
     return result;
+  }
+
+  /// Like `_environment.getFunction`, but also returns built-in
+  /// globally-avaialble functions.
+  Callable _getFunction(String name, {String namespace}) {
+    var local = _environment.getFunction(name, namespace: namespace);
+    if (local != null || namespace != null) return local;
+    return _builtInFunctions[name];
   }
 
   /// Evaluates the arguments in [arguments] as applied to [callable], and

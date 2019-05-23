@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a7e4f09ccb8a4997500abfe34e712b9c2ad212c6
+// Checksum: b3626ab4de7508e5a54ea404f2fdf0ff14cd4418
 //
 // ignore_for_file: unused_import
 
@@ -17,7 +17,6 @@ import 'ast/node.dart';
 import 'callable.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
-import 'functions.dart';
 import 'module.dart';
 import 'util/public_member_map.dart';
 import 'utils.dart';
@@ -141,9 +140,7 @@ class Environment {
         _functions = [normalizedMap()],
         _functionIndices = normalizedMap(),
         _mixins = [normalizedMap()],
-        _mixinIndices = normalizedMap() {
-    coreFunctions.forEach(setFunction);
-  }
+        _mixinIndices = normalizedMap();
 
   Environment._(
       this._modules,
