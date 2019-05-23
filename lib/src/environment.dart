@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b3626ab4de7508e5a54ea404f2fdf0ff14cd4418
+// Checksum: 739a592852b730f66c9f195b65307450edd14898
 //
 // ignore_for_file: unused_import
 
@@ -18,7 +18,7 @@ import 'callable.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
 import 'module.dart';
-import 'util/public_member_map.dart';
+import 'util/public_member_map_view.dart';
 import 'utils.dart';
 import 'value.dart';
 import 'visitor/clone_css.dart';
@@ -641,12 +641,12 @@ class _EnvironmentModule implements Module<Callable> {
   // private members.
   _EnvironmentModule(this._environment, this.css, this.extender)
       : upstream = _environment._allModules,
-        variables = PublicMemberMap(_environment._variables.first),
+        variables = PublicMemberMapView(_environment._variables.first),
         variableNodes = _environment._variableNodes == null
             ? null
-            : PublicMemberMap(_environment._variableNodes.first),
-        functions = PublicMemberMap(_environment._functions.first),
-        mixins = PublicMemberMap(_environment._mixins.first),
+            : PublicMemberMapView(_environment._variableNodes.first),
+        functions = PublicMemberMapView(_environment._functions.first),
+        mixins = PublicMemberMapView(_environment._mixins.first),
         transitivelyContainsCss = css.children.isNotEmpty ||
             _environment._allModules
                 .any((module) => module.transitivelyContainsCss),

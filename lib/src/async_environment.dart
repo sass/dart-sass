@@ -13,7 +13,7 @@ import 'callable.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
 import 'module.dart';
-import 'util/public_member_map.dart';
+import 'util/public_member_map_view.dart';
 import 'utils.dart';
 import 'value.dart';
 import 'visitor/clone_css.dart';
@@ -637,12 +637,12 @@ class _EnvironmentModule implements Module {
   // private members.
   _EnvironmentModule(this._environment, this.css, this.extender)
       : upstream = _environment._allModules,
-        variables = PublicMemberMap(_environment._variables.first),
+        variables = PublicMemberMapView(_environment._variables.first),
         variableNodes = _environment._variableNodes == null
             ? null
-            : PublicMemberMap(_environment._variableNodes.first),
-        functions = PublicMemberMap(_environment._functions.first),
-        mixins = PublicMemberMap(_environment._mixins.first),
+            : PublicMemberMapView(_environment._variableNodes.first),
+        functions = PublicMemberMapView(_environment._functions.first),
+        mixins = PublicMemberMapView(_environment._mixins.first),
         transitivelyContainsCss = css.children.isNotEmpty ||
             _environment._allModules
                 .any((module) => module.transitivelyContainsCss),
