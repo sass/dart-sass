@@ -7,8 +7,7 @@ echo 'Deploying to npm.'
 
 source tool/travis/utils.sh
 
-decrypt_credentials
-tar xfO credentials.tar npm > ~/.npmrc
+echo "$NPM_RC" > ~/.npmrc
 
 travis_cmd pub run grinder npm-release-package
 travis_cmd npm publish build/npm
