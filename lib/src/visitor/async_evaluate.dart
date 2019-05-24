@@ -175,7 +175,11 @@ class _EvaluateVisitor
   /// imports, it contains the URL passed to the `@import`.
   final _includedFiles = Set<String>();
 
-  final _activeImports = Set<Uri>();
+  /// The set of canonical URLs for modules (or imported files) that are
+  /// currently being evaluated.
+  ///
+  /// This is used to ensure that we don't get into an infinite load loop.
+  final _activeModules = Set<Uri>();
 
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
@@ -331,6 +335,7 @@ class _EvaluateVisitor
   Future<EvaluateResult> run(AsyncImporter importer, Stylesheet node) async {
     var url = node.span?.sourceUrl;
     if (url != null) {
+      _activeModules.add(url);
       if (_asNodeSass) {
         if (url.scheme == 'file') {
           _includedFiles.add(p.fromUri(url));
@@ -356,6 +361,33 @@ class _EvaluateVisitor
     return expression.accept(this);
   }
 
+  /// Loads the module at [url] and passes it to [callback].
+  ///
+  /// The [stackFrame] and [nodeForSpan] are used for the name and location of
+  /// the stack frame in which the new module is executed.
+  Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
+      void callback(Module module)) async {
+    var result = await inUseRuleAsync(
+        () => _loadStylesheet(url.toString(), nodeForSpan.span));
+    var importer = result.item1;
+    var stylesheet = result.item2;
+
+    var canonicalUrl = stylesheet.span.sourceUrl;
+    if (_activeModules.contains(canonicalUrl)) {
+      throw _exception(
+          "This module is currently being loaded.", nodeForSpan.span);
+    }
+    _activeModules.add(canonicalUrl);
+
+    var module = await _withStackFrame(
+        stackFrame, nodeForSpan, () => _execute(importer, stylesheet));
+    try {
+      return _addExceptionSpan(nodeForSpan, () => callback(module));
+    } finally {
+      _activeModules.remove(canonicalUrl);
+    }
+  }
+
   /// Executes [stylesheet], loaded by [importer], to produce a module.
   Future<Module> _execute(AsyncImporter importer, Stylesheet stylesheet) {
     var url = stylesheet.span.sourceUrl;
@@ -363,7 +395,6 @@ class _EvaluateVisitor
       var environment = AsyncEnvironment(sourceMap: _sourceMap);
       CssStylesheet css;
       var extender = Extender();
-      _activeImports.add(url);
       await _withEnvironment(environment, () async {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -411,7 +442,6 @@ class _EvaluateVisitor
         _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
         _inKeyframes = oldInKeyframes;
       });
-      _activeImports.remove(url);
 
       return environment.toModule(css, extender);
     });
@@ -985,11 +1015,11 @@ class _EvaluateVisitor
     var stylesheet = result.item2;
 
     var url = stylesheet.span.sourceUrl;
-    if (!_activeImports.add(url)) {
+    if (!_activeModules.add(url)) {
       throw _exception("This file is already being loaded.", import.span);
     }
 
-    _activeImports.add(url);
+    _activeModules.add(url);
 
     // TODO(nweiz): If [stylesheet] contains no `@use` rules, just evaluate it
     // directly in [_root] rather than making a new stylesheet.
@@ -1041,7 +1071,7 @@ class _EvaluateVisitor
       child.accept(visitor);
     }
 
-    _activeImports.remove(url);
+    _activeModules.remove(url);
   }
 
   /// Loads the [Stylesheet] identified by [url], or throws a
@@ -1427,21 +1457,8 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitUseRule(UseRule node) async {
-    var result = await inUseRuleAsync(
-        () => _loadStylesheet(node.url.toString(), node.span));
-    var importer = result.item1;
-    var stylesheet = result.item2;
-
-    var url = stylesheet.span.sourceUrl;
-    if (_activeImports.contains(url)) {
-      throw _exception("This module is currently being loaded.", node.span);
-    }
-
-    await _withStackFrame("@use", stylesheet, () {
-      return _addExceptionSpanAsync(node, () async {
-        _environment.addModule(await _execute(importer, stylesheet),
-            namespace: node.namespace);
-      });
+    await _loadModule(node.url, "@use", node, (module) {
+      _environment.addModule(module, namespace: node.namespace);
     });
 
     return null;
