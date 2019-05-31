@@ -184,7 +184,7 @@ class NodeImporter {
   /// Calls an importer that may or may not be asynchronous.
   Future<Object> _callImporterAsync(
       JSFunction importer, String url, String previousString) async {
-    var completer = Completer();
+    var completer = Completer<Object>();
 
     var result = call3(importer, _context, url, previousString,
         allowInterop(completer.complete));

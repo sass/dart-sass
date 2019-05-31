@@ -14,7 +14,7 @@ import 'utils.dart';
 
 void main() {
   group("from a parameter", () {
-    var value;
+    Object value;
     setUp(() {
       value = parseValue("null");
     });

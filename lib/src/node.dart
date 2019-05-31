@@ -225,7 +225,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
     } else {
       result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
           (arguments) async {
-        var completer = Completer();
+        var completer = Completer<Object>();
         var jsArguments = [
           ...arguments.map(wrapValue),
           allowInterop(([result]) => completer.complete(result))

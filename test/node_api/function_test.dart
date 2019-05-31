@@ -180,7 +180,7 @@ void main() {
               data: "a {b: foo()}",
               functions: jsify({
                 "foo": allowInterop((done) {
-                  Future.delayed(Duration.zero).then((_) {
+                  Timer(Duration.zero, () {
                     done(callConstructor(sass.types.Number, [1]));
                   });
                 })
@@ -210,7 +210,7 @@ void main() {
           data: "a {b: foo()}",
           functions: jsify({
             "foo": allowInterop((done) {
-              Future.delayed(Duration.zero).then((_) {
+              Timer(Duration.zero, () {
                 done(JSError("aw beans"));
               });
             })
@@ -223,7 +223,7 @@ void main() {
           data: "a {b: foo()}",
           functions: jsify({
             "foo": allowInterop((done) {
-              Future.delayed(Duration.zero).then((_) {
+              Timer(Duration.zero, () {
                 done(callConstructor(sass.types.Error, ["aw beans"]));
               });
             })
@@ -236,7 +236,7 @@ void main() {
           data: "a {b: foo()}",
           functions: jsify({
             "foo": allowInterop((done) {
-              Future.delayed(Duration.zero).then((_) {
+              Timer(Duration.zero, () {
                 done(null);
               });
             })
@@ -249,7 +249,7 @@ void main() {
           data: "a {b: foo()}",
           functions: jsify({
             "foo": allowInterop((done) {
-              Future.delayed(Duration.zero).then((_) {
+              Timer(Duration.zero, () {
                 done();
               });
             })
@@ -291,7 +291,7 @@ void main() {
                 data: "a {b: foo()}",
                 functions: jsify({
                   "foo": allowInterop((done) {
-                    Future.delayed(Duration.zero).then((_) {
+                    Timer(Duration.zero, () {
                       done(callConstructor(sass.types.Number, [1]));
                     });
                   })
@@ -313,7 +313,7 @@ void main() {
             data: "a {b: foo()}",
             functions: jsify({
               "foo": allowInterop((done) {
-                Future.delayed(Duration.zero).then((_) {
+                Timer(Duration.zero, () {
                   done(JSError("aw beans"));
                 });
               })
@@ -327,7 +327,7 @@ void main() {
             data: "a {b: foo()}",
             functions: jsify({
               "foo": allowInterop((done) {
-                Future.delayed(Duration.zero).then((_) {
+                Timer(Duration.zero, () {
                   done(null);
                 });
               })
@@ -341,7 +341,7 @@ void main() {
             data: "a {b: foo()}",
             functions: jsify({
               "foo": allowInterop((done) {
-                Future.delayed(Duration.zero).then((_) {
+                Timer(Duration.zero, () {
                   done();
                 });
               })
