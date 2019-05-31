@@ -30,7 +30,9 @@ Future watch(ExecutableOptions options, StylesheetGraph graph) async {
   await Future.wait(directoriesToWatch.map((dir) {
     // If a directory doesn't exist, watch its parent directory so that we're
     // notified once it starts existing.
-    while (!dirExists(dir)) dir = p.dirname(dir);
+    while (!dirExists(dir)) {
+      dir = p.dirname(dir);
+    }
     return dirWatcher.watch(dir);
   }));
 
@@ -226,7 +228,7 @@ class _Watcher {
     var toRecompile = Queue.of(nodes);
 
     var allSucceeded = true;
-    while (!toRecompile.isEmpty) {
+    while (toRecompile.isNotEmpty) {
       var node = toRecompile.removeFirst();
       if (!seen.add(node)) continue;
 

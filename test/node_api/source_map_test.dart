@@ -12,7 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:test/test.dart';
 
-import 'package:sass/sass.dart' as dartSass;
+import 'package:sass/sass.dart' as dart_sass;
 
 import '../ensure_npm_package.dart';
 import '../hybrid.dart';
@@ -39,7 +39,8 @@ void main() {
 
     test("includes correct mappings", () {
       SingleMapping expectedMap;
-      dartSass.compileString("a {b: c}", sourceMap: (map) => expectedMap = map);
+      dart_sass.compileString("a {b: c}",
+          sourceMap: (map) => expectedMap = map);
       expectedMap.targetUrl = "out.css";
 
       expect(map, containsPair("mappings", expectedMap.toJson()["mappings"]));

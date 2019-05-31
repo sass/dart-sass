@@ -1459,7 +1459,7 @@ relase. For details, see http://bit.ly/moz-document.
 
     resolveOperations() {
       if (operators == null) return;
-      while (!operators.isEmpty) {
+      while (operators.isNotEmpty) {
         resolveOneOperation();
       }
     }

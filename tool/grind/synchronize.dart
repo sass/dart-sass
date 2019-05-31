@@ -5,6 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+// See https://groups.google.com/a/dartlang.org/d/msg/misc/bZ0AGuEo41c/u05-1M7yAgAJ.
+//
+// ignore: deprecated_member_use
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
