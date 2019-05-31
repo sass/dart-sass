@@ -1,3 +1,7 @@
+## 1.20.3
+
+* No user-visible changes.
+
 ## 1.20.2
 
 * Fix a bug where numbers could be written using exponential notation in
