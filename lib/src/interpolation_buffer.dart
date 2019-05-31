@@ -48,7 +48,7 @@ class InterpolationBuffer implements StringSink {
   void addInterpolation(Interpolation interpolation) {
     if (interpolation.contents.isEmpty) return;
 
-    Iterable toAdd = interpolation.contents;
+    Iterable<Object> toAdd = interpolation.contents;
     var first = interpolation.contents.first;
     if (first is String) {
       _text.write(first);

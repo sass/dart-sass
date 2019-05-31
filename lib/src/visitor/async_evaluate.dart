@@ -42,7 +42,8 @@ import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
 
 /// A function that takes a callback with no arguments.
-typedef _ScopeCallback = Future Function(Future Function() callback);
+typedef _ScopeCallback = Future<void> Function(
+    Future<void> Function() callback);
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
@@ -675,7 +676,7 @@ class _EvaluateVisitor
       ModifiableCssParentNode newParent,
       AtRootQuery query,
       List<ModifiableCssParentNode> included) {
-    var scope = (Future callback()) async {
+    var scope = (Future<void> callback()) async {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
       var oldParent = _parent;
@@ -985,7 +986,7 @@ class _EvaluateVisitor
   }
 
   /// Adds the stylesheet imported by [import] to the current document.
-  Future _visitDynamicImport(DynamicImport import) async {
+  Future<void> _visitDynamicImport(DynamicImport import) async {
     var result = await _loadStylesheet(import.url, import.span);
     var importer = result.item1;
     var stylesheet = result.item2;
@@ -1104,7 +1105,7 @@ class _EvaluateVisitor
   }
 
   /// Adds a CSS import for [import].
-  Future _visitStaticImport(StaticImport import) async {
+  Future<void> _visitStaticImport(StaticImport import) async {
     // NOTE: this logic is largely duplicated in [visitCssImport]. Most changes
     // here should be mirrored there.
 

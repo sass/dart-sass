@@ -3,6 +3,7 @@ analyzer:
     implicit-casts: false
   language:
     strict-inference: true
+    strict-raw-types: true
   errors:
     missing_js_lib_annotation: ignore
     deprecated_member_use_from_same_package: ignore

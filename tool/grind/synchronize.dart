@@ -59,7 +59,7 @@ synchronize() {
 /// original source where possible. It tracks the [_position] at the end of the
 /// text that's been written, and writes from that position to the new position
 /// whenever text needs to be emitted.
-class _Visitor extends RecursiveAstVisitor {
+class _Visitor extends RecursiveAstVisitor<void> {
   /// The source of the original asynchronous file.
   final String _source;
 

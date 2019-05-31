@@ -105,7 +105,8 @@ String serializeSelector(Selector selector, {bool inspect = false}) {
 }
 
 /// A visitor that converts CSS syntax trees to plain strings.
-class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
+class _SerializeVisitor
+    implements CssVisitor<void>, ValueVisitor<void>, SelectorVisitor<void> {
   /// A buffer that contains the CSS produced so far.
   final SourceMapBuffer _buffer;
 

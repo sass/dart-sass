@@ -12,5 +12,5 @@ class JSFunction implements Function {
   // than calling `Function.prototype.call()`. See sdk#31271.
   external call([arg1, arg2, arg3]);
 
-  external apply(thisArg, [List args]);
+  external apply(thisArg, [List<Object> args]);
 }

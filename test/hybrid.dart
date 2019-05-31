@@ -12,21 +12,21 @@ Future<String> createTempDir() async => (await runHybridExpression(
     '(await Directory.systemTemp.createTemp("dart_sass_")).path')) as String;
 
 /// Writes [text] to [path].
-Future writeTextFile(String path, String text) => runHybridExpression(
+Future<void> writeTextFile(String path, String text) => runHybridExpression(
     'new File(message[0]).writeAsString(message[1])', [path, text]);
 
 /// Creates a directoy at [path].
-Future createDirectory(String path) =>
+Future<void> createDirectory(String path) =>
     runHybridExpression('new Directory(message).create()', path);
 
 /// Recursively deletes the directoy at [path].
-Future deleteDirectory(String path) =>
+Future<void> deleteDirectory(String path) =>
     runHybridExpression('new Directory(message).delete(recursive: true)', path);
 
 /// Runs [expression], which may be asynchronous, in a hybrid isolate.
 ///
 /// Returns the result of [expression] if it's JSON-serializable.
-Future runHybridExpression(String expression, [message]) async {
+Future<Object> runHybridExpression(String expression, [message]) async {
   var channel = spawnHybridCode('''
     import 'dart:async';
     import 'dart:convert';
