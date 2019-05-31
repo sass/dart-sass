@@ -17,7 +17,7 @@ void sharedTests(
         {Map<String, String> environment})) {
   /// Runs the executable on [arguments] plus an output file, then verifies that
   /// the contents of the output file match [expected].
-  Future expectCompiles(List<String> arguments, expected,
+  Future<void> expectCompiles(List<String> arguments, expected,
       {Map<String, String> environment}) async {
     var sass = await runSass([...arguments, "out.css", "--no-source-map"],
         environment: environment);

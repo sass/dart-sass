@@ -102,7 +102,7 @@ class SourceMapBuffer implements StringBuffer {
     }
   }
 
-  void writeAll(Iterable objects, [String separator = ""]) =>
+  void writeAll(Iterable<Object> objects, [String separator = ""]) =>
       write(objects.join(separator));
 
   void writeCharCode(int charCode) {

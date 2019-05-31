@@ -16,7 +16,7 @@ import '../value.dart' as internal;
 import '../visitor/evaluate.dart';
 
 /// Runs an interactive SassScript shell according to [options].
-Future repl(ExecutableOptions options) async {
+Future<void> repl(ExecutableOptions options) async {
   var repl = Repl(prompt: '>> ');
   var variables = <String, internal.Value>{};
   await for (String line in repl.runAsync()) {

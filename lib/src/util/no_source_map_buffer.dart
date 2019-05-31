@@ -19,7 +19,7 @@ class NoSourceMapBuffer implements SourceMapBuffer {
 
   T forSpan<T>(SourceSpan span, T callback()) => callback();
   void write(Object object) => _buffer.write(object);
-  void writeAll(Iterable objects, [String separator = ""]) =>
+  void writeAll(Iterable<Object> objects, [String separator = ""]) =>
       _buffer.writeAll(objects, separator);
   void writeCharCode(int charCode) => _buffer.writeCharCode(charCode);
   void writeln([Object object = ""]) => _buffer.writeln(object);

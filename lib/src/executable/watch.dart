@@ -19,7 +19,7 @@ import 'compile_stylesheet.dart';
 import 'options.dart';
 
 /// Watches all the files in [graph] for changes and updates them as necessary.
-Future watch(ExecutableOptions options, StylesheetGraph graph) async {
+Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   var directoriesToWatch = [
     ...options.sourceDirectoriesToDestinations.keys,
     ...options.sourcesToDestinations.keys.map(p.dirname),
@@ -30,7 +30,9 @@ Future watch(ExecutableOptions options, StylesheetGraph graph) async {
   await Future.wait(directoriesToWatch.map((dir) {
     // If a directory doesn't exist, watch its parent directory so that we're
     // notified once it starts existing.
-    while (!dirExists(dir)) dir = p.dirname(dir);
+    while (!dirExists(dir)) {
+      dir = p.dirname(dir);
+    }
     return dirWatcher.watch(dir);
   }));
 
@@ -117,7 +119,7 @@ class _Watcher {
   /// Listens to `watcher.events` and updates the filesystem accordingly.
   ///
   /// Returns a future that will only complete if an unexpected error occurs.
-  Future watch(MultiDirWatcher watcher) async {
+  Future<void> watch(MultiDirWatcher watcher) async {
     await for (var event in _debounceEvents(watcher.events)) {
       var extension = p.extension(event.path);
       if (extension != '.sass' && extension != '.scss') continue;
@@ -226,7 +228,7 @@ class _Watcher {
     var toRecompile = Queue.of(nodes);
 
     var allSucceeded = true;
-    while (!toRecompile.isEmpty) {
+    while (toRecompile.isNotEmpty) {
       var node = toRecompile.removeFirst();
       if (!seen.add(node)) continue;
 

@@ -505,8 +505,8 @@ class AsyncEnvironment {
   }
 
   /// Sets [content] as [this.content] for the duration of [callback].
-  Future withContent(
-      UserDefinedCallable<AsyncEnvironment> content, Future callback()) async {
+  Future<void> withContent(UserDefinedCallable<AsyncEnvironment> content,
+      Future<void> callback()) async {
     var oldContent = _content;
     _content = content;
     await callback();
@@ -514,7 +514,7 @@ class AsyncEnvironment {
   }
 
   /// Sets [inMixin] to `true` for the duration of [callback].
-  Future asMixin(Future callback()) async {
+  Future<void> asMixin(Future<void> callback()) async {
     var oldInMixin = _inMixin;
     _inMixin = true;
     await callback();

@@ -76,8 +76,9 @@ class Extension {
   /// query context for this extender.
   void assertCompatibleMediaContext(List<CssMediaQuery> mediaContext) {
     if (this.mediaContext == null) return;
-    if (mediaContext != null && listEquals(this.mediaContext, mediaContext))
+    if (mediaContext != null && listEquals(this.mediaContext, mediaContext)) {
       return;
+    }
 
     throw SassException(
         "You may not @extend selectors across media queries.", span);

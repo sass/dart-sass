@@ -92,7 +92,7 @@ jobs:
   # Miscellaneous checks.
   - name: static analysis
     language: dart
-    dart_task: {dartanalyzer: --fatal-warnings lib tool test}
+    dart_task: {dartanalyzer: --fatal-warnings --fatal-infos lib tool test}
   - name: code formatting
     language: dart
     dart_task: dartfmt

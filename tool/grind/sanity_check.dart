@@ -4,9 +4,10 @@
 
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+import 'package:sass/src/utils.dart';
 
 import 'utils.dart';
 
@@ -17,7 +18,7 @@ sanityCheckBeforeRelease() {
     fail("TRAVIS_TAG $travisTag is different than pubspec version $version.");
   }
 
-  if (const ListEquality().equals(Version.parse(version).preRelease, ["dev"])) {
+  if (listEquals(Version.parse(version).preRelease, ["dev"])) {
     fail("$version is a dev release.");
   }
 

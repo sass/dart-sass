@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 71e3dfeef2683bd246e21ddfd25b21df408cf18e
+// Checksum: f316e802a42334d416c62f1d60d281a8262016f2
 //
 // ignore_for_file: unused_import
 
@@ -1574,6 +1574,7 @@ class _EvaluateVisitor
 
     _verifyArguments(positional.length, named, IfExpression.declaration, node);
 
+    // ignore: prefer_is_empty
     var condition = positional.length > 0 ? positional[0] : named["condition"];
     var ifTrue = positional.length > 1 ? positional[1] : named["if-true"];
     var ifFalse = positional.length > 2 ? positional[2] : named["if-false"];
