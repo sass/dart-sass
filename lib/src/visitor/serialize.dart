@@ -559,14 +559,15 @@ class _SerializeVisitor
 
     var singleton = _inspect &&
         value.asList.length == 1 &&
-        value.separator == ListSeparator.comma;
+        (value.separator == ListSeparator.comma ||
+            value.separator == ListSeparator.slash);
     if (singleton && !value.hasBrackets) _buffer.writeCharCode($lparen);
 
     _writeBetween<Value>(
         _inspect
             ? value.asList
             : value.asList.where((element) => !element.isBlank),
-        value.separator == ListSeparator.space ? " " : _commaSeparator,
+        _separatorString(value.separator),
         _inspect
             ? (element) {
                 var needsParens = _elementNeedsParens(value.separator, element);
@@ -579,11 +580,28 @@ class _SerializeVisitor
               });
 
     if (singleton) {
-      _buffer.writeCharCode($comma);
+      _buffer.write(value.separator.separator);
       if (!value.hasBrackets) _buffer.writeCharCode($rparen);
     }
 
     if (value.hasBrackets) _buffer.writeCharCode($rbracket);
+  }
+
+  /// Returns the string to use to separate list items for lists with the given [separator].
+  String _separatorString(ListSeparator separator) {
+    switch (separator) {
+      case ListSeparator.comma:
+        return _commaSeparator;
+      case ListSeparator.slash:
+        return _isCompressed ? "/" : " / ";
+      case ListSeparator.space:
+        return " ";
+      default:
+        // This should never be used, but it may still be returned since
+        // [_separatorString] is invoked eagerly by [writeList] even for lists
+        // with only one elements.
+        return "";
+    }
   }
 
   /// Returns whether [value] needs parentheses as an element in a list with the
@@ -592,9 +610,15 @@ class _SerializeVisitor
     if (value is SassList) {
       if (value.asList.length < 2) return false;
       if (value.hasBrackets) return false;
-      return separator == ListSeparator.comma
-          ? value.separator == ListSeparator.comma
-          : value.separator != ListSeparator.undecided;
+      switch (separator) {
+        case ListSeparator.comma:
+          return value.separator == ListSeparator.comma;
+        case ListSeparator.slash:
+          return value.separator == ListSeparator.comma ||
+              value.separator == ListSeparator.slash;
+        default:
+          return value.separator != ListSeparator.undecided;
+      }
     }
     return false;
   }

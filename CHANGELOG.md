@@ -1,3 +1,12 @@
+## 1.33.0
+
+* Deprecate the use of `/` for division. The new `math.div()` function should be
+  used instead. See [this page][] for details.
+
+  [this page]: https://sass-lang.com/documentation/breaking-changes/slash-div
+
+* Add a `list.slash()` function that returns a slash-separated list.
+
 ## 1.32.13
 
 * Use the proper parameter names in error messages about `string.slice`

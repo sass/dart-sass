@@ -10,7 +10,11 @@ import 'package:sass/src/exception.dart';
 /// Parses [source] by way of a function call.
 Value parseValue(String source) {
   late Value value;
-  compileString("a {b: foo(($source))}", functions: [
+  compileString("""
+    @use "sass:list";
+
+    a {b: foo(($source))}
+  """, functions: [
     Callable("foo", r"$arg", expectAsync1((arguments) {
       expect(arguments, hasLength(1));
       value = arguments.first;
