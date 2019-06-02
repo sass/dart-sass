@@ -10,6 +10,8 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'package:sass/sass.dart';
 
+import 'test_importer.dart';
+
 main() {
   group("with @warn", () {
     test("passes the message and stack trace to the logger", () {
@@ -106,6 +108,122 @@ main() {
       expect(deprecation, isFalse);
       mustBeCalled();
     }));
+  });
+
+  group("with warn()", () {
+    group("from a function", () {
+      test("synchronously", () {
+        var mustBeCalled = expectAsync0(() {});
+        compileString("""
+        @function bar() {@return foo()}
+        a {b: bar()}
+      """, functions: [
+          Callable("foo", "", expectAsync1((_) {
+            warn("heck");
+            return sassNull;
+          }))
+        ], logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
+          expect(message, equals("heck"));
+
+          expect(span.start.line, equals(0));
+          expect(span.start.column, equals(33));
+          expect(span.end.line, equals(0));
+          expect(span.end.column, equals(38));
+
+          expect(trace.frames.first.member, equals('bar()'));
+          expect(deprecation, isFalse);
+          mustBeCalled();
+        }));
+      });
+
+      test("asynchronously", () {
+        var mustBeCalled = expectAsync0(() {});
+        compileStringAsync("""
+        @function bar() {@return foo()}
+        a {b: bar()}
+      """, functions: [
+          AsyncCallable("foo", "", expectAsync1((_) async {
+            warn("heck");
+            return sassNull;
+          }))
+        ], logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
+          expect(message, equals("heck"));
+
+          expect(span.start.line, equals(0));
+          expect(span.start.column, equals(33));
+          expect(span.end.line, equals(0));
+          expect(span.end.column, equals(38));
+
+          expect(trace.frames.first.member, equals('bar()'));
+          expect(deprecation, isFalse);
+          mustBeCalled();
+        }));
+      });
+
+      test("asynchronously after a gap", () {
+        var mustBeCalled = expectAsync0(() {});
+        compileStringAsync("""
+        @function bar() {@return foo()}
+        a {b: bar()}
+      """, functions: [
+          AsyncCallable("foo", "", expectAsync1((_) async {
+            await Future<void>.delayed(Duration.zero);
+            warn("heck");
+            return sassNull;
+          }))
+        ], logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
+          expect(message, equals("heck"));
+
+          expect(span.start.line, equals(0));
+          expect(span.start.column, equals(33));
+          expect(span.end.line, equals(0));
+          expect(span.end.column, equals(38));
+
+          expect(trace.frames.first.member, equals('bar()'));
+          expect(deprecation, isFalse);
+          mustBeCalled();
+        }));
+      });
+    });
+
+    test("from an importer", () {
+      var mustBeCalled = expectAsync0(() {});
+      compileString("@import 'foo';", importers: [
+        TestImporter((url) => Uri.parse("u:$url"), (url) {
+          warn("heck");
+          return ImporterResult("", indented: false);
+        })
+      ], logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
+        expect(message, equals("heck"));
+
+        expect(span.start.line, equals(0));
+        expect(span.start.column, equals(8));
+        expect(span.end.line, equals(0));
+        expect(span.end.column, equals(13));
+
+        expect(trace.frames.first.member, equals('root stylesheet'));
+        expect(deprecation, isFalse);
+        mustBeCalled();
+      }));
+    });
+
+    test("with deprecation", () {
+      var mustBeCalled = expectAsync0(() {});
+      compileString("a {b: foo()}", functions: [
+        Callable("foo", "", expectAsync1((_) {
+          warn("heck", deprecation: true);
+          return sassNull;
+        }))
+      ], logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
+        expect(message, equals("heck"));
+        expect(deprecation, isTrue);
+        mustBeCalled();
+      }));
+    });
+
+    test("throws an error outside a callback", () {
+      expect(() => warn("heck"), throwsArgumentError);
+    });
   });
 }
 
