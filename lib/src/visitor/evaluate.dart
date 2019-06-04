@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 66510adda04cb00e75c60fc354b66081e24d1f40
+// Checksum: bad6506a5b7221d448f4e9156ceb5af097cfb36e
 //
 // ignore_for_file: unused_import
 
@@ -381,8 +381,8 @@ class _EvaluateVisitor
 
     var canonicalUrl = stylesheet.span.sourceUrl;
     if (_activeModules.contains(canonicalUrl)) {
-      throw _exception(
-          "This module is currently being loaded.", nodeForSpan.span);
+      throw _exception("Module loop: this module is already being loaded.",
+          nodeForSpan.span);
     }
     _activeModules.add(canonicalUrl);
 

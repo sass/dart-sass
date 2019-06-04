@@ -374,8 +374,8 @@ class _EvaluateVisitor
 
     var canonicalUrl = stylesheet.span.sourceUrl;
     if (_activeModules.contains(canonicalUrl)) {
-      throw _exception(
-          "This module is currently being loaded.", nodeForSpan.span);
+      throw _exception("Module loop: this module is already being loaded.",
+          nodeForSpan.span);
     }
     _activeModules.add(canonicalUrl);
 
