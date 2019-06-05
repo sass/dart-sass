@@ -1,4 +1,4 @@
-// Copyright 2017 Google Inc. Use of this source code is governed by an
+// Copyright 2019 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
@@ -15,7 +15,7 @@ void warn(String message, {bool deprecation = false}) {
 
   if (warnDefinition == null) {
     throw ArgumentError(
-        "warn() may only becalled within a custom function or importer "
+        "warn() may only be called within a custom function or importer "
         "callback.");
   }
 
@@ -24,7 +24,7 @@ void warn(String message, {bool deprecation = false}) {
 
 /// Runs [callback] with [warn] as the definition for the top-level `warn()` function.
 ///
-/// This is zone-based, so if [callback] is asynchronous [warn] set for the
+/// This is zone-based, so if [callback] is asynchronous [warn] is set for the
 /// duration of that callback.
 T withWarnCallback<T>(
     void warn(String message, bool deprecation), T callback()) {
