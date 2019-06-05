@@ -1,3 +1,9 @@
+## 1.21.0
+
+### Dart API
+
+* Add a `sass` executable when installing the package through `pub`.
+
 ## 1.20.3
 
 * No user-visible changes.
