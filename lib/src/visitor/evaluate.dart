@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bca29e4eda6c92a8722d0ae34f0860a93fda3ea9
+// Checksum: 948db9d9efe2ed5572ecc0d2763817a56df88bd6
 //
 // ignore_for_file: unused_import
 
@@ -35,12 +35,14 @@ import '../exception.dart';
 import '../extend/extender.dart';
 import '../extend/extension.dart';
 import '../functions.dart';
+import '../functions/meta.dart' as meta;
 import '../importer.dart';
 import '../importer/node.dart';
 import '../importer/utils.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../module.dart';
+import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
@@ -126,6 +128,9 @@ class _EvaluateVisitor
   /// Built-in functions that are globally-acessible, even under the new module
   /// system.
   final _builtInFunctions = normalizedMap<Callable>();
+
+  /// Built in modules, indexed by their URLs.
+  final _builtInModules = <Uri, Module<Callable>>{};
 
   /// All modules that have been loaded and evaluated so far.
   final _modules = <Uri, Module<Callable>>{};
@@ -253,13 +258,9 @@ class _EvaluateVisitor
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
         _sourceMap = sourceMap {
-    functions = [
-      ...?functions,
-      ...coreFunctions,
-
+    var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
-
       BuiltInCallable("global-variable-exists", r"$name", (arguments) {
         var variable = arguments[0].assertString("name");
         return SassBoolean(_environment.globalVariableExists(variable.text));
@@ -340,6 +341,12 @@ class _EvaluateVisitor
       })
     ];
 
+    var metaModule = BuiltInModule("meta", [...meta.global, ...metaFunctions]);
+    for (var module in [...coreModules, metaModule]) {
+      _builtInModules[module.url] = module;
+    }
+
+    functions = [...?functions, ...globalFunctions, ...metaFunctions];
     for (var function in functions) {
       _builtInFunctions[function.name] = function;
     }
@@ -392,6 +399,12 @@ class _EvaluateVisitor
   /// the stack frame in which the new module is executed.
   void _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
       void callback(Module<Callable> module)) {
+    var builtInModule = _builtInModules[url];
+    if (builtInModule != null) {
+      callback(builtInModule);
+      return;
+    }
+
     var result =
         inUseRule(() => _loadStylesheet(url.toString(), nodeForSpan.span));
     var importer = result.item1;
@@ -407,7 +420,7 @@ class _EvaluateVisitor
     var module = _withStackFrame(
         stackFrame, nodeForSpan, () => _execute(importer, stylesheet));
     try {
-      return _addExceptionSpan(nodeForSpan, () => callback(module));
+      _addExceptionSpan(nodeForSpan, () => callback(module));
     } finally {
       _activeModules.remove(canonicalUrl);
     }
