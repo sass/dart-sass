@@ -36,6 +36,7 @@ import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
 import '../utils.dart';
 import '../value.dart';
+import '../warn.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
@@ -143,13 +144,18 @@ class _EvaluateVisitor
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
 
-  /// The node for the innermost callable that's been invoked.
+  /// The node for the innermost callable that's being invoked.
   ///
-  /// This is used to provide `call()` with a span. It's stored as an [AstNode]
-  /// rather than a [FileSpan] so we can avoid calling [AstNode.span] if the
-  /// span isn't required, since some nodes need to do real work to manufacture
-  /// a source span.
+  /// This is used to produce warnings for function calls. It's stored as an
+  /// [AstNode] rather than a [FileSpan] so we can avoid calling [AstNode.span]
+  /// if the span isn't required, since some nodes need to do real work to
+  /// manufacture a source span.
   AstNode _callableNode;
+
+  /// The span for the current import that's being resolved.
+  ///
+  /// This is used to produce warnings for importers.
+  FileSpan _importSpan;
 
   /// Whether we're currently executing a function.
   var _inFunction = false;
@@ -235,32 +241,45 @@ class _EvaluateVisitor
         _logger = logger ?? const Logger.stderr(),
         _sourceMap = sourceMap;
 
-  Future<EvaluateResult> run(AsyncImporter importer, Stylesheet node) async {
-    var url = node.span?.sourceUrl;
-    if (url != null) {
-      if (_asNodeSass) {
-        if (url.scheme == 'file') {
-          _includedFiles.add(p.fromUri(url));
-        } else if (url.toString() != 'stdin') {
-          _includedFiles.add(url.toString());
+  Future<EvaluateResult> run(AsyncImporter importer, Stylesheet node) {
+    return _withWarnCallback(() async {
+      var url = node.span?.sourceUrl;
+      if (url != null) {
+        if (_asNodeSass) {
+          if (url.scheme == 'file') {
+            _includedFiles.add(p.fromUri(url));
+          } else if (url.toString() != 'stdin') {
+            _includedFiles.add(url.toString());
+          }
         }
       }
-    }
 
-    var module = await _execute(importer, node);
+      var module = await _execute(importer, node);
 
-    return EvaluateResult(_combineCss(module), _includedFiles);
+      return EvaluateResult(_combineCss(module), _includedFiles);
+    });
   }
 
   Future<Value> runExpression(Expression expression,
       {Map<String, Value> variables}) {
-    _environment = _newEnvironment();
+    return _withWarnCallback(() async {
+      _environment = _newEnvironment();
 
-    for (var name in variables?.keys ?? const <String>[]) {
-      _environment.setVariable(name, variables[name], null, global: true);
-    }
+      for (var name in variables?.keys ?? const <String>[]) {
+        _environment.setVariable(name, variables[name], null, global: true);
+      }
 
-    return expression.accept(this);
+      return expression.accept(this);
+    });
+  }
+
+  /// Runs [callback] with a definition for the top-level `warn` function.
+  T _withWarnCallback<T>(T callback()) {
+    return withWarnCallback(
+        (message, deprecation) => _warn(
+            message, _importSpan ?? _callableNode.span,
+            deprecation: deprecation),
+        callback);
   }
 
   /// Executes [stylesheet], loaded by [importer], to produce a module.
@@ -394,10 +413,9 @@ class _EvaluateVisitor
                   _callableNode.span));
 
       if (function is SassString) {
-        _warn(
+        warn(
             "Passing a string to call() is deprecated and will be illegal\n"
             "in Sass 4.0. Use call(get-function($function)) instead.",
-            _callableNode.span,
             deprecation: true);
 
         var expression = FunctionExpression(
@@ -1056,6 +1074,9 @@ class _EvaluateVisitor
   Future<Tuple2<AsyncImporter, Stylesheet>> _loadStylesheet(
       String url, FileSpan span) async {
     try {
+      assert(_importSpan == null);
+      _importSpan = span;
+
       if (_nodeImporter != null) {
         var stylesheet = await _importLikeNode(url);
         if (stylesheet != null) return Tuple2(null, stylesheet);
@@ -1083,6 +1104,8 @@ class _EvaluateVisitor
         message = error.toString();
       }
       throw _exception(message, span);
+    } finally {
+      _importSpan = null;
     }
   }
 

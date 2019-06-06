@@ -4,6 +4,9 @@
 
 * Add a `sass` executable when installing the package through `pub`.
 
+* Add a top-level `warn()` function for custom functions and importers to print
+  warning messages.
+
 ## 1.20.3
 
 * No user-visible changes.
