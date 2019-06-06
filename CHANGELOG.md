@@ -1,5 +1,9 @@
 ## 1.21.0
 
+### Dart API
+
+* Add a `sass` executable when installing the package through `pub`.
+
 * Add a top-level `warn()` function for custom functions and importers to print
   warning messages.
 
