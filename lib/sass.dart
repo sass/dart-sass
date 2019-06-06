@@ -28,6 +28,7 @@ export 'src/syntax.dart';
 export 'src/value.dart' show ListSeparator;
 export 'src/value/external/value.dart';
 export 'src/visitor/serialize.dart' show OutputStyle;
+export 'src/warn.dart' show warn;
 
 /// Loads the Sass file at [path], compiles it to CSS, and returns the result.
 ///
