@@ -2,10 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:collection/collection.dart';
-
 import '../visitor/interface/value.dart';
 import '../value.dart';
+import '../utils.dart';
 import 'external/value.dart' as ext;
 
 class SassMap extends Value implements ext.SassMap {
@@ -33,11 +32,9 @@ class SassMap extends Value implements ext.SassMap {
   SassMap assertMap([String name]) => this;
 
   bool operator ==(other) =>
-      (other is SassMap &&
-          const MapEquality().equals(other.contents, contents)) ||
+      (other is SassMap && mapEquals(other.contents, contents)) ||
       (contents.isEmpty && other is SassList && other.asList.isEmpty);
 
-  int get hashCode => contents.isEmpty
-      ? const SassList.empty().hashCode
-      : const MapEquality().hash(contents);
+  int get hashCode =>
+      contents.isEmpty ? const SassList.empty().hashCode : mapHash(contents);
 }

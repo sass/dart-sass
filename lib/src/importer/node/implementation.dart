@@ -48,9 +48,10 @@ class NodeImporter {
   /// The importer functions passed in by the user.
   final List<JSFunction> _importers;
 
-  NodeImporter(this._context, Iterable<String> includePaths, Iterable importers)
+  NodeImporter(
+      this._context, Iterable<String> includePaths, Iterable<Object> importers)
       : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
-        _importers = List.unmodifiable(importers);
+        _importers = List.unmodifiable(importers.cast());
 
   /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
   /// environment variable.
@@ -184,7 +185,7 @@ class NodeImporter {
   /// Calls an importer that may or may not be asynchronous.
   Future<Object> _callImporterAsync(
       JSFunction importer, String url, String previousString) async {
-    var completer = Completer();
+    var completer = Completer<Object>();
 
     var result = call3(importer, _context, url, previousString,
         allowInterop(completer.complete));

@@ -31,7 +31,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     /// Modifying a file very quickly after it was processed can go
     /// unrecognized, especially on Windows where filesystem operations can have
     /// very high delays.
-    Future tickIfPoll() => poll ? tick : Future.value();
+    Future<void> tickIfPoll() => poll ? tick : Future.value();
 
     group("${poll ? 'with' : 'without'} --poll", () {
       group("when started", () {

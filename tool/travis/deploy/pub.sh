@@ -7,8 +7,6 @@ echo 'Deploying to pub.'
 
 source tool/travis/utils.sh
 
-decrypt_credentials
-mkdir -p ~/.pub-cache
-tar xfO credentials.tar pub > ~/.pub-cache/credentials.json
+echo "$PUB_CREDENTIALS" > ~/.pub-cache/credentials.json
 
 travis_cmd pub lish --force

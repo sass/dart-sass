@@ -5,6 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+// See https://groups.google.com/a/dartlang.org/d/msg/misc/bZ0AGuEo41c/u05-1M7yAgAJ.
+//
+// ignore: deprecated_member_use
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -55,7 +58,7 @@ synchronize() {
 /// original source where possible. It tracks the [_position] at the end of the
 /// text that's been written, and writes from that position to the new position
 /// whenever text needs to be emitted.
-class _Visitor extends RecursiveAstVisitor {
+class _Visitor extends RecursiveAstVisitor<void> {
   /// The source of the original asynchronous file.
   final String _source;
 

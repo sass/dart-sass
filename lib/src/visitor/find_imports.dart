@@ -11,7 +11,7 @@ List<DynamicImport> findImports(Stylesheet stylesheet) =>
 
 /// A visitor that traverses a stylesheet and records all the [DynamicImport]s
 /// it contains.
-class _FindImportsVisitor extends RecursiveStatementVisitor {
+class _FindImportsVisitor extends RecursiveStatementVisitor<void> {
   final _imports = <DynamicImport>[];
 
   List<DynamicImport> run(Stylesheet stylesheet) {

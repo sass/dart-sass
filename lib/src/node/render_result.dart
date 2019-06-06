@@ -24,7 +24,7 @@ class RenderResultStats {
   external int get start;
   external int get end;
   external int get duration;
-  external List get includedFiles; // contains Strings
+  external List<Object /* String */ > get includedFiles;
 
   external factory RenderResultStats(
       {String entry,

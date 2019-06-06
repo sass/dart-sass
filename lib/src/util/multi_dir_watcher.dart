@@ -37,7 +37,7 @@ class MultiDirWatcher {
   ///
   /// Returns a [Future] that completes when [events] is ready to emit events
   /// from [directory].
-  Future watch(String directory) {
+  Future<void> watch(String directory) {
     var isParentOfExistingDir = false;
     for (var existingDir in _watchers.keys.toList()) {
       if (!isParentOfExistingDir &&

@@ -22,7 +22,7 @@ class _FS {
   external void mkdirSync(String path);
   external _Stat statSync(String path);
   external void unlinkSync(String path);
-  external List readdirSync(String path);
+  external List<Object> readdirSync(String path);
 }
 
 @JS()

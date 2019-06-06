@@ -17,7 +17,7 @@ final _sourceMapCommentRegExp = RegExp(r"/\*# sourceMappingURL=(.*) \*/\s*$");
 ///
 /// Windows (or at least Appveyor) seems to require a more coarse-grained time
 /// than Unixes.
-Future get tick =>
+Future<void> get tick =>
     Future.delayed(Duration(milliseconds: isWindows ? 1000 : 50));
 
 /// Loads and decodes the source map embedded as a `data:` URI in [css].
