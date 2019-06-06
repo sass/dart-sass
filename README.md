@@ -44,7 +44,7 @@ If you use [the Chocolatey package manager](https://chocolatey.org/) for
 Windows, you can install Dart Sass by running
 
 ```cmd
-choco install sass -prerelease
+choco install sass
 ```
 
 That'll give you a `sass` executable on your command line that will run Dart
@@ -65,26 +65,12 @@ Sass.
 ### Standalone
 
 You can download the standalone Dart Sass archive for your operating
-system—containing the Dart VM and the snapshot of the Sass library—from
-[the release page][releases]. Extract it, add the directory to your path, and
-the `dart-sass` executable is ready to run!
+system—containing the Dart VM and the snapshot of the executable—from [the
+GitHub release page][]. Extract it, [add the directory to your path][], restart
+your terminal, and the `sass` executable is ready to run!
 
-[releases]: https://github.com/sass/dart-sass/releases/
-
-To add the directory to your path on Windows, open the Control Panel, then
-search for and select "edit environment variables". Find the variable named
-`PATH`, click Edit, add `;C:\path\to\dart-sass` to the end of the value, then
-click OK.
-
-On more Unix-y systems, edit your shell configuration file (usually `~/.bashrc`
-or `~/.profile`) and add at the end:
-
-```sh
-export PATH=$PATH:/path/to/dart-sass
-```
-
-Regardless of your OS, you'll need to restart your terminal in order for this
-configuration to take effect.
+[the GitHub release page]: https://github.com/sass/dart-sass/releases/
+[add the directory to your path]: https://katiek2.github.io/path-doc/
 
 ### From npm
 
@@ -111,9 +97,9 @@ var result = sass.renderSync({file: scss_filename});
 ### From Pub
 
 If you're a Dart user, you can install Dart Sass globally using `pub global
-activate sass ^1.0.0-alpha`, which will provide a `dart-sass` executable. You
-can also add it to your pubspec and use it as a library. We strongly recommend
-importing it with the prefix `sass`:
+activate sass`, which will provide a `sass` executable. You can also add it to
+your pubspec and use it as a library. We strongly recommend importing it with
+the prefix `sass`:
 
 ```dart
 import 'package:sass/sass.dart' as sass;

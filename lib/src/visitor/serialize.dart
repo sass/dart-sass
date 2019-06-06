@@ -16,6 +16,7 @@ import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../color_names.dart';
 import '../exception.dart';
+import '../io.dart';
 import '../parse/parser.dart';
 import '../utils.dart';
 import '../util/character.dart';
@@ -105,7 +106,8 @@ String serializeSelector(Selector selector, {bool inspect = false}) {
 }
 
 /// A visitor that converts CSS syntax trees to plain strings.
-class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
+class _SerializeVisitor
+    implements CssVisitor<void>, ValueVisitor<void>, SelectorVisitor<void> {
   /// A buffer that contains the CSS produced so far.
   final SourceMapBuffer _buffer;
 
@@ -666,17 +668,21 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     // have to do is clamp doubles that are close to being integers.
     var integer = fuzzyAsInt(number);
     if (integer != null) {
-      _buffer.write(integer);
+      // Node.js prints integers at least 1e21 using exponential notation.
+      _buffer.write(isNode && integer >= 1e21
+          ? _removeExponent(integer.toString())
+          : integer.toString());
       return;
     }
 
-    var text = number.toString();
-    if (text.contains("e")) text = _removeExponent(text);
+    // Dart and Node both print doubles at least 1e21 using exponential
+    // notation.
+    var text =
+        number >= 1e21 ? _removeExponent(number.toString()) : number.toString();
 
-    // Any double that doesn't contain "e" and is less than
-    // `SassNumber.precision + 2` digits long is guaranteed to be safe to emit
-    // directly, since it'll contain at most `0.` followed by
-    // [SassNumber.precision] digits.
+    // Any double that's less than `SassNumber.precision + 2` digits long is
+    // guaranteed to be safe to emit directly, since it'll contain at most `0.`
+    // followed by [SassNumber.precision] digits.
     var canWriteDirectly = text.length < SassNumber.precision + 2;
 
     if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
@@ -689,23 +695,37 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     _writeDecimal(text);
   }
 
-  /// Assuming [text] is a double written in exponent notation, returns a string
-  /// representation of that double without exponent notation.
+  /// If [text] is written in exponent notation, returns a string representation
+  /// of it without exponent notation.
+  ///
+  /// Otherwise, returns [text] as-is.
   String _removeExponent(String text) {
-    var buffer = StringBuffer();
+    // Don't allocate this until we know [text] contains exponent notation.
+    StringBuffer buffer;
     int exponent;
     for (var i = 0; i < text.length; i++) {
       var codeUnit = text.codeUnitAt(i);
-      if (codeUnit == $e) {
-        exponent = int.parse(text.substring(i + 1, text.length));
-        break;
-      } else if (codeUnit != $dot) {
-        buffer.writeCharCode(codeUnit);
-      }
+      if (codeUnit != $e) continue;
+
+      buffer = StringBuffer();
+      buffer.writeCharCode(text.codeUnitAt(0));
+
+      // If the number has more than one significant digit, the second
+      // character will be a decimal point that we don't want to include in
+      // the generated number.
+      if (i > 2) buffer.write(text.substring(2, i));
+
+      exponent = int.parse(text.substring(i + 1, text.length));
+      break;
     }
+    if (buffer == null) return text;
 
     if (exponent > 0) {
-      for (var i = 0; i < exponent; i++) {
+      // Write an additional zero for each exponent digits other than those
+      // already written to the buffer. We subtract 1 from `buffer.length`
+      // because the first digit doesn't count towards the exponent.
+      var additionalZeroes = exponent - (buffer.length - 1);
+      for (var i = 0; i < additionalZeroes; i++) {
         buffer.writeCharCode($0);
       }
       return buffer.toString();
@@ -725,14 +745,27 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
   /// Assuming [text] is a double written without exponent notation, writes it
   /// to [_buffer] with at most [SassNumber.precision] digits after the decimal.
   void _writeDecimal(String text) {
+    // Write up until the decimal point, or to the end of [text] if it has no
+    // decimal point.
     var textIndex = 0;
     for (; textIndex < text.length; textIndex++) {
       var codeUnit = text.codeUnitAt(textIndex);
-      _buffer.writeCharCode(codeUnit);
       if (codeUnit == $dot) {
+        // Most integer-value doubles will have been converted to ints using
+        // [fuzzyAsInt] in [_writeNumber]. However, that logic isn't rock-solid
+        // for very large doubles due to floating-point imprecision, so we
+        // handle that case here as well.
+        if (textIndex == text.length - 2 &&
+            text.codeUnitAt(text.length - 1) == $0) {
+          return;
+        }
+
+        _buffer.writeCharCode(codeUnit);
         textIndex++;
         break;
       }
+
+      _buffer.writeCharCode(codeUnit);
     }
     if (textIndex == text.length) return;
 
@@ -759,7 +792,7 @@ class _SerializeVisitor implements CssVisitor, ValueVisitor, SelectorVisitor {
     }
 
     // Remove trailing zeros.
-    while (digitsIndex >= 0 && digits[digitsIndex - 1] == 0) {
+    while (digitsIndex > 0 && digits[digitsIndex - 1] == 0) {
       digitsIndex--;
     }
 

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bad6506a5b7221d448f4e9156ceb5af097cfb36e
+// Checksum: bca29e4eda6c92a8722d0ae34f0860a93fda3ea9
 //
 // ignore_for_file: unused_import
 
@@ -46,6 +46,7 @@ import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
 import '../utils.dart';
 import '../value.dart';
+import '../warn.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
@@ -153,13 +154,18 @@ class _EvaluateVisitor
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
 
-  /// The node for the innermost callable that's been invoked.
+  /// The node for the innermost callable that's being invoked.
   ///
-  /// This is used to provide `call()` with a span. It's stored as an [AstNode]
-  /// rather than a [FileSpan] so we can avoid calling [AstNode.span] if the
-  /// span isn't required, since some nodes need to do real work to manufacture
-  /// a source span.
+  /// This is used to produce warnings for function calls. It's stored as an
+  /// [AstNode] rather than a [FileSpan] so we can avoid calling [AstNode.span]
+  /// if the span isn't required, since some nodes need to do real work to
+  /// manufacture a source span.
   AstNode _callableNode;
+
+  /// The span for the current import that's being resolved.
+  ///
+  /// This is used to produce warnings for importers.
+  FileSpan _importSpan;
 
   /// Whether we're currently executing a function.
   var _inFunction = false;
@@ -311,10 +317,9 @@ class _EvaluateVisitor
                     _callableNode.span));
 
         if (function is SassString) {
-          _warn(
+          warn(
               "Passing a string to call() is deprecated and will be illegal\n"
               "in Sass 4.0. Use call(get-function($function)) instead.",
-              _callableNode.span,
               deprecation: true);
 
           var expression = FunctionExpression(
@@ -341,31 +346,44 @@ class _EvaluateVisitor
   }
 
   EvaluateResult run(Importer importer, Stylesheet node) {
-    var url = node.span?.sourceUrl;
-    if (url != null) {
-      _activeModules.add(url);
-      if (_asNodeSass) {
-        if (url.scheme == 'file') {
-          _includedFiles.add(p.fromUri(url));
-        } else if (url.toString() != 'stdin') {
-          _includedFiles.add(url.toString());
+    return _withWarnCallback(() {
+      var url = node.span?.sourceUrl;
+      if (url != null) {
+        _activeModules.add(url);
+        if (_asNodeSass) {
+          if (url.scheme == 'file') {
+            _includedFiles.add(p.fromUri(url));
+          } else if (url.toString() != 'stdin') {
+            _includedFiles.add(url.toString());
+          }
         }
       }
-    }
 
-    var module = _execute(importer, node);
+      var module = _execute(importer, node);
 
-    return EvaluateResult(_combineCss(module), _includedFiles);
+      return EvaluateResult(_combineCss(module), _includedFiles);
+    });
   }
 
   Value runExpression(Expression expression, {Map<String, Value> variables}) {
-    _environment = Environment(sourceMap: _sourceMap);
+    return _withWarnCallback(() {
+      _environment = Environment(sourceMap: _sourceMap);
 
-    for (var name in variables?.keys ?? const <String>[]) {
-      _environment.setVariable(name, variables[name], null, global: true);
-    }
+      for (var name in variables?.keys ?? const <String>[]) {
+        _environment.setVariable(name, variables[name], null, global: true);
+      }
 
-    return expression.accept(this);
+      return expression.accept(this);
+    });
+  }
+
+  /// Runs [callback] with a definition for the top-level `warn` function.
+  T _withWarnCallback<T>(T callback()) {
+    return withWarnCallback(
+        (message, deprecation) => _warn(
+            message, _importSpan ?? _callableNode.span,
+            deprecation: deprecation),
+        callback);
   }
 
   /// Loads the module at [url] and passes it to [callback].
@@ -1092,6 +1110,9 @@ class _EvaluateVisitor
   /// [SassRuntimeException] if loading fails.
   Tuple2<Importer, Stylesheet> _loadStylesheet(String url, FileSpan span) {
     try {
+      assert(_importSpan == null);
+      _importSpan = span;
+
       if (_nodeImporter != null) {
         var stylesheet = _importLikeNode(url);
         if (stylesheet != null) return Tuple2(null, stylesheet);
@@ -1119,6 +1140,8 @@ class _EvaluateVisitor
         message = error.toString();
       }
       throw _exception(message, span);
+    } finally {
+      _importSpan = null;
     }
   }
 
@@ -1596,6 +1619,7 @@ class _EvaluateVisitor
 
     _verifyArguments(positional.length, named, IfExpression.declaration, node);
 
+    // ignore: prefer_is_empty
     var condition = positional.length > 0 ? positional[0] : named["condition"];
     var ifTrue = positional.length > 1 ? positional[1] : named["if-true"];
     var ifFalse = positional.length > 2 ? positional[2] : named["if-false"];

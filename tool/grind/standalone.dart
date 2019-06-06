@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:grinder/grinder.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
 
@@ -61,7 +60,7 @@ packageMacOs() => _buildPackage("macos");
 packageWindows() => _buildPackage("windows");
 
 /// Builds standalone 32- and 64-bit Sass packages for the given [os].
-Future _buildPackage(String os) async {
+Future<void> _buildPackage(String os) async {
   var client = http.Client();
   await Future.wait(["ia32", "x64"].map((architecture) async {
     // TODO: Compile a single executable that embeds the Dart VM and the

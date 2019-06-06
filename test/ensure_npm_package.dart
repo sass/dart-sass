@@ -11,7 +11,7 @@ import 'package:sass/src/io.dart';
 
 import 'io.dart';
 
-hybridMain(StreamChannel channel) async {
+void hybridMain(StreamChannel<Object> channel) async {
   ensureUpToDate("build/npm/sass.dart.js", "pub run grinder npm-package");
   channel.sink.close();
 }
@@ -19,7 +19,7 @@ hybridMain(StreamChannel channel) async {
 /// Ensures that the NPM package is compiled and up-to-date.
 ///
 /// This is safe to call even outside the Dart VM.
-Future ensureNpmPackage() async {
+Future<void> ensureNpmPackage() async {
   // spawnHybridUri() doesn't currently work on Windows and Node due to busted
   // path handling in the SDK.
   if (isNode && isWindows) return;

@@ -92,7 +92,7 @@ jobs:
   # Miscellaneous checks.
   - name: static analysis
     language: dart
-    dart_task: {dartanalyzer: --fatal-warnings lib tool test}
+    dart_task: {dartanalyzer: --fatal-warnings --fatal-infos lib tool test}
   - name: code formatting
     language: dart
     dart_task: dartfmt
@@ -138,6 +138,9 @@ jobs:
   # Deploy to npm.
   - name: npm
     if: *deploy-if
+    env:
+      # NPM_RC="..."
+      - secure: "Iv6UKB6mH0GLkRQtaLeZnoW0QMmXbzGVX/QO+vvT26yWvqlW/ik+YeHB+4VLZFz/4xezukkztVENdxNDCnrQA/NX7fVhjqj4Px2JQau0V0ljYN64H+o0oxlBeMQqnsVOJcsU7DuPFPErYixkE3yuN6DqIYE+DYe3fVQg/1RBCs2z1nejg4udbZG7D0yfrxZSCckhsyBH1Ej72FhMGMaFq7k7IMC7f/sGYZZYsOe2WKmsYF35hyL/twIXKBNxjPat1HmsVT/3VOUIF+doO26BxthEc68Tmp3SHucEXHWPEjk9N87DxLClGkHvvZ2PUK9nYB9/KqxvJqf/AcDO34vS0lAU809Eov7dK/19WE1GtgA/gL0B/nh2QYbWpbO/HPzxFqOYwfzLtAXvwUr45eMNxmh1yupbAtxRvst7ZO/UTC+awW55AXnVd4jiTzZ/jqV52aGbClN+escPZCYXgYosvJLK3G4xLYCY4TTC99riBQZ0MDLfCt35+RivjNLVf8vecGT8WTmVQySzq0Cthy/9SCp1OzWT5roY2rzkwvR4R0+42f48qyDU/buUgPBsw9zwCabWVoB0p4hflalEhc9EwbRn5oDI0NHwXE0r83movx+JHHPBau1zwX53DJSpSFXnDPi6KaNpg52wyuIIzO90zA7FZTRR9My38AzYgVaKkdE="
     script: skip
     language: node_js
     node_js: stable
@@ -150,6 +153,9 @@ jobs:
   # Deploy to pub.
   - name: pub
     if: *deploy-if
+    env:
+      # PUB_CREDENTIALS="..."
+      - secure: "L7p8nH1qhGbOdqXZSPJzaC4wv1Rf4gJUiPpy2e0pgkk78jFyaLJ4Vt6c/976hQxETZQ8q1mChj7xrgEI4d6rN+iBEDSdgCiV+toVVYCzX9gnzb8+a5qTBbRNLrcC4jPr5+6LPK+qklrAyYi56JCYI2CgCOxUzo/CHOk/nHbEWwxMoD5Ifzat3NXwyb/9RKHH/4YYBi2PRkBrIuGTvZi4VqyIJ7AJu8eCZYPD8e1ij5muLhTxgQvycIf6fkSBbhMoC/ULExkV3zFEgY1eU/UMdXPR68/qgne+q0ph4K5ArTgFoPAVVIDYv4CZfpx2NVEpluWz2OQ/Lr+VxTqAYMGDCEEreeTTTE26JFCquUwSypNBSo7jtAoMtFDrX3fwa0jt9lhkwTMlEQtLg3ykpABsn7E4nEYw6K3hAqjV5kJFdgNFqli83QpXXu9mfUtif7Wzlekiw6DuN7FKTr8VohaqlVgp5gSExp/zuFCOFQn3+LnzxZtFJbkiQw0Bbii4TBwrASrhvNcPE/CrCbq0OLrNYrJH8UiLsZGoz1iAuPyCvbpiD7eXrL4vodR73IGUBx2hKTbolP8EWseR/nw4InH50kc+jhDMaT+Lj34q+9Icv2Q4ICWsPky7NhLDJWvLntiExwkos4fPtmr5SuaV/dCVox1Qvkzg7NBoqihrdQC8Tak="
     script: skip
     deploy:
       provider: script

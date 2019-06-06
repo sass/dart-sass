@@ -12,10 +12,12 @@ import 'package:test/test.dart';
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
+import 'test_importer.dart';
+
 main() {
   test("uses an importer to resolve an @import", () {
     var css = compileString('@import "orange";', importers: [
-      _TestImporter((url) => Uri.parse("u:$url"), (url) {
+      TestImporter((url) => Uri.parse("u:$url"), (url) {
         var color = url.path;
         return ImporterResult('.$color {color: $color}', indented: false);
       })
@@ -26,7 +28,7 @@ main() {
 
   test("passes the canonicalized URL to the importer", () {
     var css = compileString('@import "orange";', importers: [
-      _TestImporter((url) => Uri.parse('u:blue'), (url) {
+      TestImporter((url) => Uri.parse('u:blue'), (url) {
         var color = url.path;
         return ImporterResult('.$color {color: $color}', indented: false);
       })
@@ -40,7 +42,7 @@ main() {
       @import "orange";
       @import "orange";
     """, importers: [
-      _TestImporter(
+      TestImporter(
           (url) => Uri.parse('u:blue'),
           expectAsync1((url) {
             var color = url.path;
@@ -62,7 +64,7 @@ main() {
     var times = 0;
     var css = compileString('@import "foo:bar/baz";',
         importers: [
-          _TestImporter(
+          TestImporter(
               expectAsync1((url) {
                 times++;
                 if (times == 1) return Uri(path: 'first');
@@ -93,7 +95,7 @@ main() {
     SingleMapping map;
     compileString('@import "orange";',
         importers: [
-          _TestImporter((url) => Uri.parse("u:$url"), (url) {
+          TestImporter((url) => Uri.parse("u:$url"), (url) {
             var color = url.path;
             return ImporterResult('.$color {color: $color}',
                 sourceMapUrl: Uri.parse("u:blue"), indented: false);
@@ -108,7 +110,7 @@ main() {
     SingleMapping map;
     compileString('@import "orange";',
         importers: [
-          _TestImporter((url) => Uri.parse("u:$url"), (url) {
+          TestImporter((url) => Uri.parse("u:$url"), (url) {
             var color = url.path;
             return ImporterResult('.$color {color: $color}', indented: false);
           })
@@ -124,7 +126,7 @@ main() {
   test("wraps an error in canonicalize()", () {
     expect(() {
       compileString('@import "orange";', importers: [
-        _TestImporter((url) {
+        TestImporter((url) {
           throw "this import is bad actually";
         }, expectAsync1((_) => null, count: 0))
       ]);
@@ -139,7 +141,7 @@ main() {
   test("wraps an error in load()", () {
     expect(() {
       compileString('@import "orange";', importers: [
-        _TestImporter((url) => Uri.parse("u:$url"), (url) {
+        TestImporter((url) => Uri.parse("u:$url"), (url) {
           throw "this import is bad actually";
         })
       ]);
@@ -154,7 +156,7 @@ main() {
   test("prefers .message to .toString() for an importer error", () {
     expect(() {
       compileString('@import "orange";', importers: [
-        _TestImporter((url) => Uri.parse("u:$url"), (url) {
+        TestImporter((url) => Uri.parse("u:$url"), (url) {
           throw FormatException("bad format somehow");
         })
       ]);
@@ -166,17 +168,4 @@ main() {
       return true;
     })));
   });
-}
-
-/// An [Importer] whose [canonicalize] and [load] methods are provided by
-/// closures.
-class _TestImporter extends Importer {
-  final Uri Function(Uri url) _canonicalize;
-  final ImporterResult Function(Uri url) _load;
-
-  _TestImporter(this._canonicalize, this._load);
-
-  Uri canonicalize(Uri url) => _canonicalize(url);
-
-  ImporterResult load(Uri url) => _load(url);
 }

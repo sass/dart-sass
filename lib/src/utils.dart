@@ -18,7 +18,7 @@ import 'util/character.dart';
 final _noSourceUrl = Uri.parse("-");
 
 /// Converts [iter] into a sentence, separating each word with [conjunction].
-String toSentence(Iterable iter, [String conjunction]) {
+String toSentence(Iterable<Object> iter, [String conjunction]) {
   conjunction ??= "and";
   if (iter.length == 1) return iter.first.toString();
   return iter.take(iter.length - 1).join(", ") + " $conjunction ${iter.last}";
@@ -165,11 +165,19 @@ int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
 }
 
 /// Returns whether [list1] and [list2] have the same contents.
-bool listEquals<T>(List<T> list1, List<T> list2) =>
-    const ListEquality().equals(list1, list2);
+bool listEquals(List<Object> list1, List<Object> list2) =>
+    const ListEquality<Object>().equals(list1, list2);
 
 /// Returns a hash code for [list] that matches [listEquals].
-int listHash(List list) => const ListEquality().hash(list);
+int listHash(List<Object> list) => const ListEquality<Object>().hash(list);
+
+/// Returns whether [map1] and [map2] have the same contents.
+bool mapEquals(Map<Object, Object> map1, Map<Object, Object> map2) =>
+    const MapEquality<Object, Object>().equals(map1, map2);
+
+/// Returns a hash code for [map] that matches [mapEquals].
+int mapHash(Map<Object, Object> map) =>
+    const MapEquality<Object, Object>().hash(map);
 
 /// Returns a stack frame for the given [span] with the given [member] name.
 ///
@@ -428,7 +436,7 @@ void setAll<K, V>(Map<K, V> map, Iterable<K> keys, V value) {
 
 /// Rotates the element in list from [start] (inclusive) to [end] (exclusive)
 /// one index higher, looping the final element back to [start].
-void rotateSlice(List list, int start, int end) {
+void rotateSlice(List<Object> list, int start, int end) {
   var element = list[end - 1];
   for (var i = start; i < end; i++) {
     var next = list[i];

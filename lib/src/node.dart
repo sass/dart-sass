@@ -40,7 +40,7 @@ import 'visitor/serialize.dart';
 /// to run the executable when installed from npm.
 void main() {
   exports.run_ =
-      allowInterop((args) => executable.main(List.from(args as List)));
+      allowInterop((args) => executable.main(List.from(args as List<Object>)));
   exports.render = allowInterop(_render);
   exports.renderSync = allowInterop(_renderSync);
   exports.info =
@@ -225,7 +225,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
     } else {
       result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
           (arguments) async {
-        var completer = Completer();
+        var completer = Completer<Object>();
         var jsArguments = [
           ...arguments.map(wrapValue),
           allowInterop(([result]) => completer.complete(result))
@@ -245,8 +245,8 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
   List<JSFunction> importers;
   if (options.importer == null) {
     importers = [];
-  } else if (options.importer is List) {
-    importers = (options.importer as List).cast();
+  } else if (options.importer is List<Object>) {
+    importers = (options.importer as List<Object>).cast();
   } else {
     importers = [options.importer as JSFunction];
   }

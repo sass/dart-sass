@@ -589,7 +589,7 @@ void main() {
           render(RenderOptions(
               data: "@import 'foo'",
               importer: allowInterop((_, __, done) {
-                Future.delayed(Duration.zero).then((_) {
+                Timer(Duration.zero, () {
                   done(NodeImporterResult(contents: 'a {b: c}'));
                 });
               }))),
@@ -601,7 +601,7 @@ void main() {
           renderError(RenderOptions(
               data: "@import 'foo'",
               importer: allowInterop((_, __, done) {
-                Future.delayed(Duration.zero).then((_) {
+                Timer(Duration.zero, () {
                   done(JSError('oh no'));
                 });
               }))),
@@ -651,7 +651,7 @@ void main() {
             render(RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, done) {
-                  Future.delayed(Duration.zero).then((_) {
+                  Timer(Duration.zero, () {
                     done(NodeImporterResult(contents: 'a {b: c}'));
                   });
                 }),
@@ -686,7 +686,7 @@ void main() {
             renderError(RenderOptions(
                 data: "@import 'foo'",
                 importer: allowInterop((_, __, done) {
-                  Future.delayed(Duration.zero).then((_) {
+                  Timer(Duration.zero, () {
                     done(JSError('oh no'));
                   });
                 }),

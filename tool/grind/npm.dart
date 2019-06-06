@@ -69,7 +69,7 @@ npmReleasePackage() => _npm(release: true);
 void _npm({@required bool release}) {
   var json = {
     ...(jsonDecode(File('package/package.json').readAsStringSync())
-        as Map<String, dynamic>),
+        as Map<String, Object>),
     "version": version
   };
 

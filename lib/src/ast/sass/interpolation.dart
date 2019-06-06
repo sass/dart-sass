@@ -13,7 +13,7 @@ class Interpolation implements SassNode {
   ///
   /// This contains [String]s and [Expression]s. It never contains two adjacent
   /// [String]s.
-  final List contents;
+  final List<Object /* String | Expression */ > contents;
 
   final FileSpan span;
 
@@ -33,7 +33,7 @@ class Interpolation implements SassNode {
     return first is String ? first : '';
   }
 
-  Interpolation(Iterable /*(String|Expression)*/ contents, this.span)
+  Interpolation(Iterable<Object /* String | Expression */ > contents, this.span)
       : contents = List.unmodifiable(contents) {
     for (var i = 0; i < this.contents.length; i++) {
       if (this.contents[i] is! String && this.contents[i] is! Expression) {

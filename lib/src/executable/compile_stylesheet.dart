@@ -30,7 +30,7 @@ import 'options.dart';
 /// If [ifModified] is `true`, only recompiles if [source]'s modification time
 /// or that of a file it imports is more recent than [destination]'s
 /// modification time. Note that these modification times are cached by [graph].
-Future compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
+Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
     String source, String destination,
     {bool ifModified = false}) async {
   var importer = FilesystemImporter('.');

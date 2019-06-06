@@ -1,4 +1,22 @@
+## 1.21.0
+
+### Dart API
+
+* Add a `sass` executable when installing the package through `pub`.
+
+* Add a top-level `warn()` function for custom functions and importers to print
+  warning messages.
+
+## 1.20.3
+
+* No user-visible changes.
+
 ## 1.20.2
+
+* Fix a bug where numbers could be written using exponential notation in
+  Node.js.
+
+* Fix a crash that would appear when writing some very large integers to CSS.
 
 ### Command-Line Interface
 
