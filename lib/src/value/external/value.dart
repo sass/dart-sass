@@ -61,6 +61,10 @@ abstract class Value {
   /// and all other values count as single-value lists.
   List<Value> get asList;
 
+  /// Returns Dart's `null` value if this is [sassNull], and returns [this]
+  /// otherwise.
+  Value get realNull;
+
   /// Converts [sassIndex] into a Dart-style index into the list returned by
   /// [asList].
   ///

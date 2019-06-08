@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c1515ac728ab32d953e902e2608f1cc97411e57d
+// Checksum: 9037d898096d2eb998be8f01a65739ee34bec024
 //
 // ignore_for_file: unused_import
 
@@ -408,7 +408,13 @@ class Environment {
   bool variableExists(String name) => getVariable(name) != null;
 
   /// Returns whether a global variable named [name] exists.
-  bool globalVariableExists(String name) {
+  ///
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
+  /// if multiple global modules expose functions named [name].
+  bool globalVariableExists(String name, {String namespace}) {
+    if (namespace != null) {
+      return _getModule(namespace).variables.containsKey(name);
+    }
     if (_variables.first.containsKey(name)) return true;
     return _getVariableFromGlobalModule(name) != null;
   }
@@ -541,7 +547,11 @@ class Environment {
   }
 
   /// Returns whether a function named [name] exists.
-  bool functionExists(String name) => getFunction(name) != null;
+  ///
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
+  /// if multiple global modules expose functions named [name].
+  bool functionExists(String name, {String namespace}) =>
+      getFunction(name, namespace: namespace) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
   void setFunction(Callable callable) {
@@ -586,7 +596,11 @@ class Environment {
   }
 
   /// Returns whether a mixin named [name] exists.
-  bool mixinExists(String name) => getMixin(name) != null;
+  ///
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
+  /// if multiple global modules expose functions named [name].
+  bool mixinExists(String name, {String namespace}) =>
+      getMixin(name, namespace: namespace) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
   void setMixin(Callable callable) {

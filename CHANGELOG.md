@@ -1,3 +1,10 @@
+## 1.22.0
+
+### Dart API
+
+* Add a `Value.realNull` getter, which returns Dart's `null` if the value is
+  Sass's null.
+
 ## 1.21.0
 
 ### Dart API

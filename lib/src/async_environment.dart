@@ -403,7 +403,13 @@ class AsyncEnvironment {
   bool variableExists(String name) => getVariable(name) != null;
 
   /// Returns whether a global variable named [name] exists.
-  bool globalVariableExists(String name) {
+  ///
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
+  /// if multiple global modules expose functions named [name].
+  bool globalVariableExists(String name, {String namespace}) {
+    if (namespace != null) {
+      return _getModule(namespace).variables.containsKey(name);
+    }
     if (_variables.first.containsKey(name)) return true;
     return _getVariableFromGlobalModule(name) != null;
   }
@@ -536,7 +542,11 @@ class AsyncEnvironment {
   }
 
   /// Returns whether a function named [name] exists.
-  bool functionExists(String name) => getFunction(name) != null;
+  ///
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
+  /// if multiple global modules expose functions named [name].
+  bool functionExists(String name, {String namespace}) =>
+      getFunction(name, namespace: namespace) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
   void setFunction(AsyncCallable callable) {
@@ -581,7 +591,11 @@ class AsyncEnvironment {
   }
 
   /// Returns whether a mixin named [name] exists.
-  bool mixinExists(String name) => getMixin(name) != null;
+  ///
+  /// Throws a [SassScriptException] if there is no module named [namespace], or
+  /// if multiple global modules expose functions named [name].
+  bool mixinExists(String name, {String namespace}) =>
+      getMixin(name, namespace: namespace) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
   void setMixin(AsyncCallable callable) {
