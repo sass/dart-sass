@@ -37,6 +37,8 @@ import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
+import '../util/limited_map_view.dart';
+import '../util/unprefixed_map_view.dart';
 import '../utils.dart';
 import '../value.dart';
 import '../warn.dart';
@@ -238,6 +240,10 @@ class _EvaluateVisitor
   /// module.
   Extender _extender;
 
+  /// A map from variable names to the values that override their `!default`
+  /// definitions in this module.
+  Map<String, _ConfiguredValue> _configuration;
+
   _EvaluateVisitor(
       {AsyncImportCache importCache,
       NodeImporter nodeImporter,
@@ -429,12 +435,24 @@ class _EvaluateVisitor
 
   /// Loads the module at [url] and passes it to [callback].
   ///
+  /// The [configuration] overrides values for `!default` variables defined in
+  /// the module or modules it forwards and/or imports. If it's not passed, the
+  /// current configuration is used instead. Throws a [SassRuntimeException] if
+  /// a configured variable is not declared with `!default`.
+  ///
   /// The [stackFrame] and [nodeForSpan] are used for the name and location of
   /// the stack frame in which the new module is executed.
   Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
-      void callback(Module module)) async {
+      void callback(Module module),
+      {Map<String, _ConfiguredValue> configuration}) async {
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
+      if (configuration != null || _configuration != null) {
+        throw _exception(
+            "This variable was not declared with !default in the @used module.",
+            configuration.values.first.configurationSpan);
+      }
+
       callback(builtInModule);
       return;
     }
@@ -453,7 +471,8 @@ class _EvaluateVisitor
 
       Module module;
       try {
-        module = await _execute(importer, stylesheet);
+        module =
+            await _execute(importer, stylesheet, configuration: configuration);
       } finally {
         _activeModules.remove(canonicalUrl);
       }
@@ -467,62 +486,90 @@ class _EvaluateVisitor
   }
 
   /// Executes [stylesheet], loaded by [importer], to produce a module.
-  Future<Module> _execute(AsyncImporter importer, Stylesheet stylesheet) {
+  ///
+  /// The [configuration] overrides values for `!default` variables defined in
+  /// the module or modules it forwards and/or imports. If it's not passed, the
+  /// current configuration is used instead. Throws a [SassRuntimeException] if
+  /// a configured variable is not declared with `!default`.
+  Future<Module> _execute(AsyncImporter importer, Stylesheet stylesheet,
+      {Map<String, _ConfiguredValue> configuration}) async {
     var url = stylesheet.span.sourceUrl;
-    return putIfAbsentAsync(_modules, url, () async {
-      var environment = AsyncEnvironment(sourceMap: _sourceMap);
-      CssStylesheet css;
-      var extender = Extender();
-      await _withEnvironment(environment, () async {
-        var oldImporter = _importer;
-        var oldStylesheet = _stylesheet;
-        var oldRoot = _root;
-        var oldParent = _parent;
-        var oldEndOfImports = _endOfImports;
-        var oldOutOfOrderImports = _outOfOrderImports;
-        var oldExtender = _extender;
-        var oldStyleRule = _styleRule;
-        var oldMediaQueries = _mediaQueries;
-        var oldDeclarationName = _declarationName;
-        var oldInUnknownAtRule = _inUnknownAtRule;
-        var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
-        var oldInKeyframes = _inKeyframes;
-        _importer = importer;
-        _stylesheet = stylesheet;
-        _root = ModifiableCssStylesheet(stylesheet.span);
-        _parent = _root;
-        _endOfImports = 0;
-        _outOfOrderImports = null;
-        _extender = extender;
-        _styleRule = null;
-        _mediaQueries = null;
-        _declarationName = null;
-        _inUnknownAtRule = false;
-        _atRootExcludingStyleRule = false;
-        _inKeyframes = false;
 
-        await visitStylesheet(stylesheet);
-        css = _outOfOrderImports == null
-            ? _root
-            : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
+    var alreadyLoaded = _modules[url];
+    if (alreadyLoaded != null) {
+      if (configuration != null || _configuration != null) {
+        throw _exception(
+            "This module was already loaded, so it can't be configured using "
+            "\"with\".");
+      }
 
-        _importer = oldImporter;
-        _stylesheet = oldStylesheet;
-        _root = oldRoot;
-        _parent = oldParent;
-        _endOfImports = oldEndOfImports;
-        _outOfOrderImports = oldOutOfOrderImports;
-        _extender = oldExtender;
-        _styleRule = oldStyleRule;
-        _mediaQueries = oldMediaQueries;
-        _declarationName = oldDeclarationName;
-        _inUnknownAtRule = oldInUnknownAtRule;
-        _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
-        _inKeyframes = oldInKeyframes;
-      });
+      return alreadyLoaded;
+    }
 
-      return environment.toModule(css, extender);
+    var environment = AsyncEnvironment(sourceMap: _sourceMap);
+    CssStylesheet css;
+    var extender = Extender();
+    await _withEnvironment(environment, () async {
+      var oldImporter = _importer;
+      var oldStylesheet = _stylesheet;
+      var oldRoot = _root;
+      var oldParent = _parent;
+      var oldEndOfImports = _endOfImports;
+      var oldOutOfOrderImports = _outOfOrderImports;
+      var oldExtender = _extender;
+      var oldStyleRule = _styleRule;
+      var oldMediaQueries = _mediaQueries;
+      var oldDeclarationName = _declarationName;
+      var oldInUnknownAtRule = _inUnknownAtRule;
+      var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
+      var oldInKeyframes = _inKeyframes;
+      var oldConfiguration = _configuration;
+      _importer = importer;
+      _stylesheet = stylesheet;
+      _root = ModifiableCssStylesheet(stylesheet.span);
+      _parent = _root;
+      _endOfImports = 0;
+      _outOfOrderImports = null;
+      _extender = extender;
+      _styleRule = null;
+      _mediaQueries = null;
+      _declarationName = null;
+      _inUnknownAtRule = false;
+      _atRootExcludingStyleRule = false;
+      _inKeyframes = false;
+
+      if (configuration != null) _configuration = normalizedMap(configuration);
+
+      await visitStylesheet(stylesheet);
+      css = _outOfOrderImports == null
+          ? _root
+          : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
+
+      _importer = oldImporter;
+      _stylesheet = oldStylesheet;
+      _root = oldRoot;
+      _parent = oldParent;
+      _endOfImports = oldEndOfImports;
+      _outOfOrderImports = oldOutOfOrderImports;
+      _extender = oldExtender;
+      _styleRule = oldStyleRule;
+      _mediaQueries = oldMediaQueries;
+      _declarationName = oldDeclarationName;
+      _inUnknownAtRule = oldInUnknownAtRule;
+      _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
+      _inKeyframes = oldInKeyframes;
+
+      if (configuration != null && _configuration.isNotEmpty) {
+        throw _exception(
+            "This variable was not declared with !default in the @used module.",
+            _configuration.values.first.configurationSpan);
+      }
+      _configuration = oldConfiguration;
     });
+
+    var module = environment.toModule(css, extender);
+    _modules[url] = module;
+    return module;
   }
 
   /// Returns a copy of [_root.children] with [_outOfOrderImports] inserted
@@ -1054,10 +1101,32 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitForwardRule(ForwardRule node) async {
+    // Only allow variables that are visible through the `@forward` to be
+    // configured. These views support [Map.remove] so we can mark when a
+    // configuration variable is used by removing it even when the underlying
+    // map is wrapped.
+    var oldConfiguration = _configuration;
+    if (_configuration != null) {
+      if (node.prefix != null) {
+        _configuration = UnprefixedMapView(_configuration, node.prefix,
+            equals: equalsIgnoreSeparator);
+      }
+
+      if (node.shownVariables != null) {
+        _configuration =
+            LimitedMapView.whitelist(_configuration, node.shownVariables);
+      } else if (node.hiddenVariables != null &&
+          node.hiddenVariables.isNotEmpty) {
+        _configuration =
+            LimitedMapView.blacklist(_configuration, node.hiddenVariables);
+      }
+    }
+
     await _loadModule(node.url, "@forward", node, (module) {
       _environment.forwardModule(module, node);
     });
 
+    _configuration = oldConfiguration;
     return null;
   }
 
@@ -1526,6 +1595,18 @@ class _EvaluateVisitor
 
   Future<Value> visitVariableDeclaration(VariableDeclaration node) async {
     if (node.isGuarded) {
+      if (node.namespace == null && _environment.atRoot) {
+        var override = _configuration?.remove(node.name);
+        if (override != null) {
+          _addExceptionSpan(node, () {
+            _environment.setVariable(
+                node.name, override.value, override.assignmentNode,
+                global: true);
+          });
+          return null;
+        }
+      }
+
       var value = _addExceptionSpan(node,
           () => _environment.getVariable(node.name, namespace: node.namespace));
       if (value != null && value != sassNull) return null;
@@ -1553,7 +1634,16 @@ class _EvaluateVisitor
   Future<Value> visitUseRule(UseRule node) async {
     await _loadModule(node.url, "@use", node, (module) {
       _environment.addModule(module, namespace: node.namespace);
-    });
+    },
+        configuration: node.configuration.isEmpty
+            ? null
+            : {
+                for (var entry in node.configuration.entries)
+                  entry.key: _ConfiguredValue(
+                      (await entry.value.item1.accept(this)).withoutSlash(),
+                      entry.value.item2,
+                      _expressionNode(entry.value.item1))
+              });
 
     return null;
   }
@@ -2713,4 +2803,20 @@ class _ArgumentResults {
 
   _ArgumentResults(this.positional, this.named, this.separator,
       {this.positionalNodes, this.namedNodes});
+}
+
+/// A variable value that's been configured using `@use ... with`.
+class _ConfiguredValue {
+  /// The value of the variable.
+  final Value value;
+
+  /// The span where the variable's configuration was written.
+  final FileSpan configurationSpan;
+
+  /// The [AstNode] where the variable's value originated.
+  ///
+  /// This is used to generate source maps.
+  final AstNode assignmentNode;
+
+  _ConfiguredValue(this.value, this.configurationSpan, [this.assignmentNode]);
 }

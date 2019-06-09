@@ -28,7 +28,9 @@ import 'parser.dart';
 /// `feature.use` branch. It allows us to avoid having separate development
 /// tracks as much as possible without shipping `@use` support until we're
 /// ready.
-const _parseUse = true;
+///
+/// This should not be referenced outside the Sass package.
+const parseUse = true;
 
 /// The base class for both the SCSS and indented syntax parsers.
 ///
@@ -885,7 +887,7 @@ abstract class StylesheetParser extends Parser {
 
     expectStatementSeparator("@forward rule");
     var span = scanner.spanFrom(start);
-    if (!_parseUse) {
+    if (!parseUse) {
       error(
           "@forward is coming soon, but it's not supported in this version of "
           "Dart Sass.",
@@ -1271,25 +1273,14 @@ relase. For details, see http://bit.ly/moz-document.
     var url = _urlString();
     whitespace();
 
-    String namespace;
-    if (scanIdentifier("as")) {
-      whitespace();
-      namespace = scanner.scanChar($asterisk) ? null : identifier();
-    } else {
-      var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
-      var dot = basename.indexOf(".");
-      namespace = basename.substring(0, dot == -1 ? basename.length : dot);
+    var namespace = _useNamespace(url, start);
+    whitespace();
+    var configuration = _useConfiguration();
 
-      try {
-        namespace = Parser.parseIdentifier(namespace, logger: logger);
-      } on SassFormatException {
-        error('Invalid Sass identifier "$namespace"', scanner.spanFrom(start));
-      }
-    }
     expectStatementSeparator("@use rule");
 
     var span = scanner.spanFrom(start);
-    if (!_parseUse) {
+    if (!parseUse) {
       error(
           "@use is coming soon, but it's not supported in this version of "
           "Dart Sass.",
@@ -1299,7 +1290,61 @@ relase. For details, see http://bit.ly/moz-document.
     }
     expectStatementSeparator("@use rule");
 
-    return UseRule(url, namespace, span);
+    return UseRule(url, namespace, span, configuration: configuration);
+  }
+
+  /// Parses the namespace of a `@use` rule from an `as` clause, or returns the
+  /// default namespace from its URL.
+  String _useNamespace(Uri url, LineScannerState start) {
+    if (scanIdentifier("as")) {
+      whitespace();
+      return scanner.scanChar($asterisk) ? null : identifier();
+    }
+
+    var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
+    var dot = basename.indexOf(".");
+    var namespace = basename.substring(0, dot == -1 ? basename.length : dot);
+    try {
+      return Parser.parseIdentifier(namespace, logger: logger);
+    } on SassFormatException {
+      error('Invalid Sass identifier "$namespace"', scanner.spanFrom(start));
+    }
+  }
+
+  /// Returns the map from variable names to expressions from a `@use` rule's
+  /// `with` clause.
+  ///
+  /// Returns `null` if there is no `with` clause.
+  Map<String, Tuple2<Expression, FileSpan>> _useConfiguration() {
+    if (!scanIdentifier("with")) return null;
+
+    var configuration = normalizedMap<Tuple2<Expression, FileSpan>>();
+    whitespace();
+    scanner.expectChar($lparen);
+
+    while (true) {
+      whitespace();
+
+      var variableStart = scanner.state;
+      var name = variableName();
+      whitespace();
+      scanner.expectChar($colon);
+      whitespace();
+      var expression = _expressionUntilComma();
+      var span = scanner.spanFrom(variableStart);
+
+      if (configuration.containsKey(name)) {
+        error("The same variable may only be configured once.", span);
+      }
+      configuration[name] = Tuple2(expression, span);
+
+      if (!scanner.scanChar($comma)) break;
+      whitespace();
+      if (!_lookingAtExpression()) break;
+    }
+
+    scanner.expectChar($rparen);
+    return configuration;
   }
 
   /// Consumes a `@warn` rule.

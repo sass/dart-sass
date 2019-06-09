@@ -6,9 +6,6 @@ import 'dart:collection';
 
 /// An unmodifiable view of a map with string keys that allows keys to be
 /// accessed with an additional prefix.
-///
-/// Whether or not the underlying map contains keys that aren't allowed, this
-/// view will behave as though it doesn't contain them.
 class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The wrapped map.
   final Map<String, V> _map;
@@ -33,18 +30,18 @@ class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
       {bool equals(String string1, String string2)})
       : _equals = equals ?? ((string1, string2) => string1 == string2);
 
-  V operator [](Object key) => key is String && _startsWith(key, _prefix)
+  V operator [](Object key) => key is String && _startsWithPrefix(key)
       ? _map[key.substring(_prefix.length)]
       : null;
 
-  bool containsKey(Object key) => key is String && _startsWith(key, _prefix)
+  bool containsKey(Object key) => key is String && _startsWithPrefix(key)
       ? _map.containsKey(key.substring(_prefix.length))
       : false;
 
-  /// Returns whether [string] begins with [prefix] according to [_equals].
-  bool _startsWith(String string, String prefix) =>
-      string.length >= prefix.length &&
-      _equals(string.substring(0, prefix.length), prefix);
+  /// Returns whether [string] begins with [_prefix] according to [_equals].
+  bool _startsWithPrefix(String string) =>
+      string.length >= _prefix.length &&
+      _equals(string.substring(0, _prefix.length), _prefix);
 }
 
 /// The implementation of [PrefixedMapViews.keys].
