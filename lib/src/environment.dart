@@ -5,9 +5,11 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 9037d898096d2eb998be8f01a65739ee34bec024
+// Checksum: 02d98a8b9466b9a25d2ef91fb803d87921749700
 //
 // ignore_for_file: unused_import
+
+import 'dart:collection';
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -33,6 +35,7 @@ import 'visitor/clone_css.dart';
 /// mixins.
 class Environment {
   /// The modules used in the current scope, indexed by their namespaces.
+  Map<String, Module<Callable>> get modules => UnmodifiableMapView(_modules);
   final Map<String, Module<Callable>> _modules;
 
   /// The namespaceless modules used in the current scope.
