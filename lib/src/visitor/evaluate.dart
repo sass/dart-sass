@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6138883df6130d5bbf47a70704a5edc6e35741e0
+// Checksum: 83e5a1fae8bbf8a4862b04bbaaa33bb5de181af0
 //
 // ignore_for_file: unused_import
 
@@ -307,6 +307,19 @@ class _EvaluateVisitor
         return SassMap({
           for (var entry in module.variables.entries)
             SassString(entry.key): entry.value
+        });
+      }),
+
+      BuiltInCallable("module-functions", r"$module", (arguments) {
+        var namespace = arguments[0].assertString("module");
+        var module = _environment.modules[namespace.text];
+        if (module == null) {
+          throw 'There is no module with namespace "${namespace.text}".';
+        }
+
+        return SassMap({
+          for (var entry in module.functions.entries)
+            SassString(entry.key): SassFunction(entry.value)
         });
       }),
 

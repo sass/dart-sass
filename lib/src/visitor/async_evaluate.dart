@@ -302,6 +302,19 @@ class _EvaluateVisitor
         });
       }),
 
+      BuiltInCallable("module-functions", r"$module", (arguments) {
+        var namespace = arguments[0].assertString("module");
+        var module = _environment.modules[namespace.text];
+        if (module == null) {
+          throw 'There is no module with namespace "${namespace.text}".';
+        }
+
+        return SassMap({
+          for (var entry in module.functions.entries)
+            SassString(entry.key): SassFunction(entry.value)
+        });
+      }),
+
       BuiltInCallable("get-function", r"$name, $css: false, $module: null",
           (arguments) {
         var name = arguments[0].assertString("name");
