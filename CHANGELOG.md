@@ -1,5 +1,8 @@
 ## 1.22.0
 
+* Produce better stack traces when importing a file that contains a syntax
+  error.
+
 ### Dart API
 
 * Add a `Value.realNull` getter, which returns Dart's `null` if the value is
