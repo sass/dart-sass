@@ -25,7 +25,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass math module.
-final module = BuiltInModule("math", [
+final module = BuiltInModule("math", functions: [
   _round, _ceil, _floor, _abs, _max, _min, _randomFunction, _unit,
   _isUnitless, //
   _percentage, _compatible

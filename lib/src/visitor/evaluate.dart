@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4321c38db6bec0c51bad2e2f65ea5f01285fb355
+// Checksum: d34bc9a5863c3bf38eaa58d92e8c2da8b4f2c771
 //
 // ignore_for_file: unused_import
 
@@ -387,7 +387,9 @@ class _EvaluateVisitor
       })
     ];
 
-    var metaModule = BuiltInModule("meta", [...meta.global, ...metaFunctions]);
+    var metaModule =
+        BuiltInModule("meta", functions: [...meta.global, ...metaFunctions]);
+
     for (var module in [...coreModules, metaModule]) {
       _builtInModules[module.url] = module;
     }

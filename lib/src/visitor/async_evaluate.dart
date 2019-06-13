@@ -380,7 +380,9 @@ class _EvaluateVisitor
       })
     ];
 
-    var metaModule = BuiltInModule("meta", [...meta.global, ...metaFunctions]);
+    var metaModule =
+        BuiltInModule("meta", functions: [...meta.global, ...metaFunctions]);
+
     for (var module in [...coreModules, metaModule]) {
       _builtInModules[module.url] = module;
     }

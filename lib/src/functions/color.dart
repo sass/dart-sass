@@ -202,7 +202,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass color module.
-final module = BuiltInModule("color", [
+final module = BuiltInModule("color", functions: [
   // ### RGB
   _red, _green, _blue, _mix,
 
