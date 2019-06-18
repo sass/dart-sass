@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -28,6 +29,7 @@ import 'visitor/clone_css.dart';
 /// mixins.
 class AsyncEnvironment {
   /// The modules used in the current scope, indexed by their namespaces.
+  Map<String, Module> get modules => UnmodifiableMapView(_modules);
   final Map<String, Module> _modules;
 
   /// The namespaceless modules used in the current scope.

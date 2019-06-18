@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f6dcd674164d13633df1359d5a4cfc215f3a3469
+// Checksum: 83e5a1fae8bbf8a4862b04bbaaa33bb5de181af0
 //
 // ignore_for_file: unused_import
 
@@ -295,6 +295,32 @@ class _EvaluateVisitor
               "content-exists() may only be called within a mixin.");
         }
         return SassBoolean(_environment.content != null);
+      }),
+
+      BuiltInCallable("module-variables", r"$module", (arguments) {
+        var namespace = arguments[0].assertString("module");
+        var module = _environment.modules[namespace.text];
+        if (module == null) {
+          throw 'There is no module with namespace "${namespace.text}".';
+        }
+
+        return SassMap({
+          for (var entry in module.variables.entries)
+            SassString(entry.key): entry.value
+        });
+      }),
+
+      BuiltInCallable("module-functions", r"$module", (arguments) {
+        var namespace = arguments[0].assertString("module");
+        var module = _environment.modules[namespace.text];
+        if (module == null) {
+          throw 'There is no module with namespace "${namespace.text}".';
+        }
+
+        return SassMap({
+          for (var entry in module.functions.entries)
+            SassString(entry.key): SassFunction(entry.value)
+        });
       }),
 
       BuiltInCallable("get-function", r"$name, $css: false, $module: null",
