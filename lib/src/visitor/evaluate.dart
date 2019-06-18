@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 948db9d9efe2ed5572ecc0d2763817a56df88bd6
+// Checksum: f6dcd674164d13633df1359d5a4cfc215f3a3469
 //
 // ignore_for_file: unused_import
 
@@ -261,9 +261,12 @@ class _EvaluateVisitor
     var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
-      BuiltInCallable("global-variable-exists", r"$name", (arguments) {
+      BuiltInCallable("global-variable-exists", r"$name, $module: null",
+          (arguments) {
         var variable = arguments[0].assertString("name");
-        return SassBoolean(_environment.globalVariableExists(variable.text));
+        var module = arguments[1].realNull?.assertString("module");
+        return SassBoolean(_environment.globalVariableExists(variable.text,
+            namespace: module?.text));
       }),
 
       BuiltInCallable("variable-exists", r"$name", (arguments) {
@@ -271,15 +274,19 @@ class _EvaluateVisitor
         return SassBoolean(_environment.variableExists(variable.text));
       }),
 
-      BuiltInCallable("function-exists", r"$name", (arguments) {
+      BuiltInCallable("function-exists", r"$name, $module: null", (arguments) {
         var variable = arguments[0].assertString("name");
-        return SassBoolean(_environment.functionExists(variable.text) ||
+        var module = arguments[1].realNull?.assertString("module");
+        return SassBoolean(_environment.functionExists(variable.text,
+                namespace: module?.text) ||
             _builtInFunctions.containsKey(variable.text));
       }),
 
-      BuiltInCallable("mixin-exists", r"$name", (arguments) {
+      BuiltInCallable("mixin-exists", r"$name, $module: null", (arguments) {
         var variable = arguments[0].assertString("name");
-        return SassBoolean(_environment.mixinExists(variable.text));
+        var module = arguments[1].realNull?.assertString("module");
+        return SassBoolean(
+            _environment.mixinExists(variable.text, namespace: module?.text));
       }),
 
       BuiltInCallable("content-exists", "", (arguments) {
@@ -290,16 +297,23 @@ class _EvaluateVisitor
         return SassBoolean(_environment.content != null);
       }),
 
-      BuiltInCallable("get-function", r"$name, $css: false", (arguments) {
+      BuiltInCallable("get-function", r"$name, $css: false, $module: null",
+          (arguments) {
         var name = arguments[0].assertString("name");
         var css = arguments[1].isTruthy;
+        var module = arguments[2].realNull?.assertString("module");
+
+        if (css && module != null) {
+          throw r"$css and $module may not both be passed at once.";
+        }
 
         var callable = css
             ? PlainCssCallable(name.text)
-            : _addExceptionSpan(_callableNode, () => _getFunction(name.text));
+            : _addExceptionSpan(_callableNode,
+                () => _getFunction(name.text, namespace: module?.text));
         if (callable != null) return SassFunction(callable);
 
-        throw SassScriptException("Function not found: $name");
+        throw "Function not found: $name";
       }),
 
       BuiltInCallable("call", r"$function, $args...", (arguments) {
