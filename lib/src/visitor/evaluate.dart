@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b0d4460a876c7bb9248da004dece98c690b798dd
+// Checksum: e0d1df19c15e24fe5ee72bc9ee0d3a26e4412830
 //
 // ignore_for_file: unused_import
 
@@ -422,7 +422,7 @@ class _EvaluateVisitor
       if (function is SassString) {
         warn(
             "Passing a string to call() is deprecated and will be illegal\n"
-            "in Sass 4.0. Use call(get-function($function)) instead.",
+            "in Dart Sass 2.0.0. Use call(get-function($function)) instead.",
             deprecation: true);
 
         var expression = FunctionExpression(

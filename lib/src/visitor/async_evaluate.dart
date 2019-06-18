@@ -415,7 +415,7 @@ class _EvaluateVisitor
       if (function is SassString) {
         warn(
             "Passing a string to call() is deprecated and will be illegal\n"
-            "in Sass 4.0. Use call(get-function($function)) instead.",
+            "in Dart Sass 2.0.0. Use call(get-function($function)) instead.",
             deprecation: true);
 
         var expression = FunctionExpression(
