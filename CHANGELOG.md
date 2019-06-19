@@ -1,3 +1,9 @@
+## 1.21.1
+
+* Make deprecation warnings for `!global` variable declarations that create new
+  variables clearer, especially in the case where the `!global` flag is
+  unnecessary because the variables are at the top level of the stylesheet.
+
 ## 1.21.0
 
 ### Dart API

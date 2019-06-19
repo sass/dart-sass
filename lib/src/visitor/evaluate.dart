@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b0d4460a876c7bb9248da004dece98c690b798dd
+// Checksum: 9a864b68aea5bf6aaa6077a16bade57a8a97085e
 //
 // ignore_for_file: unused_import
 
@@ -422,7 +422,7 @@ class _EvaluateVisitor
       if (function is SassString) {
         warn(
             "Passing a string to call() is deprecated and will be illegal\n"
-            "in Sass 4.0. Use call(get-function($function)) instead.",
+            "in Dart Sass 2.0.0. Use call(get-function($function)) instead.",
             deprecation: true);
 
         var expression = FunctionExpression(
@@ -1434,9 +1434,15 @@ class _EvaluateVisitor
 
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
       _logger.warn(
-          "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-          "declare new variables. Consider adding `\$${node.name}: null` at "
-          "the top level.",
+          _environment.atRoot
+              ? "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
+                  "declare new variables. Since this assignment is at the root "
+                  "of the stylesheet,\n"
+                  "the !global flag is unnecessary and can safely be removed."
+              : "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
+                  "declare new variables. Consider adding `\$${node.name}: "
+                  "null` at the root of the\n"
+                  "stylesheet.",
           span: node.span,
           trace: _stackTrace(node.span),
           deprecation: true);
