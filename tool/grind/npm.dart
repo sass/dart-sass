@@ -50,7 +50,11 @@ void _js({@required bool release}) {
         text.replaceFirst(RegExp(r"\n*//# sourceMappingURL=[^\n]+\n*$"), "\n");
   }
 
-  destination.writeAsStringSync(preamble.getPreamble() + text);
+  destination.writeAsStringSync("""
+${preamble.getPreamble()}
+self.fs = require("fs");
+self.chokidar = require("chokidar");
+$text""");
 }
 
 @Task('Build a pure-JS dev-mode npm package.')
