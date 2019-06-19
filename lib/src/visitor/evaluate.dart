@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 83e5a1fae8bbf8a4862b04bbaaa33bb5de181af0
+// Checksum: 1106d5c41e569e6a152baee453a942441fa3c609
 //
 // ignore_for_file: unused_import
 
@@ -445,25 +445,31 @@ class _EvaluateVisitor
       return;
     }
 
-    var result =
-        inUseRule(() => _loadStylesheet(url.toString(), nodeForSpan.span));
-    var importer = result.item1;
-    var stylesheet = result.item2;
+    _withStackFrame(stackFrame, nodeForSpan, () {
+      var result =
+          inUseRule(() => _loadStylesheet(url.toString(), nodeForSpan.span));
+      var importer = result.item1;
+      var stylesheet = result.item2;
 
-    var canonicalUrl = stylesheet.span.sourceUrl;
-    if (_activeModules.contains(canonicalUrl)) {
-      throw _exception("Module loop: this module is already being loaded.",
-          nodeForSpan.span);
-    }
-    _activeModules.add(canonicalUrl);
+      var canonicalUrl = stylesheet.span.sourceUrl;
+      if (_activeModules.contains(canonicalUrl)) {
+        throw _exception("Module loop: this module is already being loaded.");
+      }
+      _activeModules.add(canonicalUrl);
 
-    var module = _withStackFrame(
-        stackFrame, nodeForSpan, () => _execute(importer, stylesheet));
-    try {
-      _addExceptionSpan(nodeForSpan, () => callback(module));
-    } finally {
-      _activeModules.remove(canonicalUrl);
-    }
+      Module<Callable> module;
+      try {
+        module = _execute(importer, stylesheet);
+      } finally {
+        _activeModules.remove(canonicalUrl);
+      }
+
+      try {
+        callback(module);
+      } on SassScriptException catch (error) {
+        throw _exception(error.message);
+      }
+    });
   }
 
   /// Executes [stylesheet], loaded by [importer], to produce a module.
@@ -1091,24 +1097,24 @@ class _EvaluateVisitor
 
   /// Adds the stylesheet imported by [import] to the current document.
   void _visitDynamicImport(DynamicImport import) {
-    var result = _loadStylesheet(import.url, import.span);
-    var importer = result.item1;
-    var stylesheet = result.item2;
+    return _withStackFrame("@import", import, () {
+      var result = _loadStylesheet(import.url, import.span);
+      var importer = result.item1;
+      var stylesheet = result.item2;
 
-    var url = stylesheet.span.sourceUrl;
-    if (!_activeModules.add(url)) {
-      throw _exception("This file is already being loaded.", import.span);
-    }
+      var url = stylesheet.span.sourceUrl;
+      if (!_activeModules.add(url)) {
+        throw _exception("This file is already being loaded.");
+      }
 
-    _activeModules.add(url);
+      _activeModules.add(url);
 
-    // TODO(nweiz): If [stylesheet] contains no `@use` or `@forward` rules, just
-    // evaluate it directly in [_root] rather than making a new
-    // [ModifiableCssStylesheet] and manually copying members.
+      // TODO(nweiz): If [stylesheet] contains no `@use` or `@forward` rules, just
+      // evaluate it directly in [_root] rather than making a new
+      // [ModifiableCssStylesheet] and manually copying members.
 
-    List<ModifiableCssNode> children;
-    var environment = _environment.global();
-    _withStackFrame("@import", import, () {
+      List<ModifiableCssNode> children;
+      var environment = _environment.global();
       _withEnvironment(environment, () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -1133,30 +1139,30 @@ class _EvaluateVisitor
         _endOfImports = oldEndOfImports;
         _outOfOrderImports = oldOutOfOrderImports;
       });
+
+      // Create a dummy module with empty CSS and no extensions to make forwarded
+      // members available in the current import context and to combine all the
+      // CSS from modules used by [stylesheet].
+      var module = environment.toModule(
+          CssStylesheet(const [], stylesheet.span), Extender.empty);
+      _environment.importForwards(module);
+
+      if (module.transitivelyContainsCss) {
+        // If any transitively used module contains extensions, we need to clone
+        // all modules' CSS. Otherwise, it's possible that they'll be used or
+        // imported from another location that shouldn't have the same extensions
+        // applied.
+        _combineCss(module, clone: module.transitivelyContainsExtensions)
+            .accept(this);
+      }
+
+      var visitor = _ImportedCssVisitor(this);
+      for (var child in children) {
+        child.accept(visitor);
+      }
+
+      _activeModules.remove(url);
     });
-
-    // Create a dummy module with empty CSS and no extensions to make forwarded
-    // members available in the current import context and to combine all the
-    // CSS from modules used by [stylesheet].
-    var module = environment.toModule(
-        CssStylesheet(const [], stylesheet.span), Extender.empty);
-    _environment.importForwards(module);
-
-    if (module.transitivelyContainsCss) {
-      // If any transitively used module contains extensions, we need to clone
-      // all modules' CSS. Otherwise, it's possible that they'll be used or
-      // imported from another location that shouldn't have the same extensions
-      // applied.
-      _combineCss(module, clone: module.transitivelyContainsExtensions)
-          .accept(this);
-    }
-
-    var visitor = _ImportedCssVisitor(this);
-    for (var child in children) {
-      child.accept(visitor);
-    }
-
-    _activeModules.remove(url);
   }
 
   /// Loads the [Stylesheet] identified by [url], or throws a
@@ -1183,8 +1189,7 @@ class _EvaluateVisitor
         throw "Can't find stylesheet to import.";
       }
     } on SassException catch (error) {
-      var frames = [...error.trace.frames, ..._stackTrace(span).frames];
-      throw SassRuntimeException(error.message, error.span, Trace(frames));
+      throw _exception(error.message, error.span);
     } catch (error) {
       String message;
       try {
@@ -1192,7 +1197,7 @@ class _EvaluateVisitor
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message, span);
+      throw _exception(message);
     } finally {
       _importSpan = null;
     }
@@ -2497,11 +2502,11 @@ class _EvaluateVisitor
 
   /// Returns a stack trace at the current point.
   ///
-  /// [span] is the current location, used for the bottom-most stack frame.
-  Trace _stackTrace(FileSpan span) {
+  /// If [span] is passed, it's used for the innermost stack frame.
+  Trace _stackTrace([FileSpan span]) {
     var frames = [
       ..._stack.map((tuple) => _stackFrame(tuple.item1, tuple.item2.span)),
-      _stackFrame(_member, span)
+      if (span != null) _stackFrame(_member, span)
     ];
     return Trace(frames.reversed);
   }
@@ -2511,9 +2516,12 @@ class _EvaluateVisitor
       _logger.warn(message,
           span: span, trace: _stackTrace(span), deprecation: deprecation);
 
-  /// Throws a [SassRuntimeException] with the given [message] and [span].
-  SassRuntimeException _exception(String message, FileSpan span) =>
-      SassRuntimeException(message, span, _stackTrace(span));
+  /// Throws a [SassRuntimeException] with the given [message].
+  ///
+  /// If [span] is passed, it's used for the innermost stack frame.
+  SassRuntimeException _exception(String message, [FileSpan span]) =>
+      SassRuntimeException(
+          message, span ?? _stack.last.item2.span, _stackTrace(span));
 
   /// Runs [callback], and adjusts any [SassFormatException] to be within
   /// [nodeWithSpan]'s source span.
