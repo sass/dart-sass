@@ -1439,9 +1439,15 @@ class _EvaluateVisitor
 
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
       _logger.warn(
-          "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-          "declare new variables. Consider adding `\$${node.name}: null` at "
-          "the top level.",
+          _environment.atRoot
+              ? "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
+                  "declare new variables. Since this assignment is at the root "
+                  "of the stylesheet,\n"
+                  "the !global flag is unnecessary and can safely be removed."
+              : "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
+                  "declare new variables. Consider adding `\$${node.name}: "
+                  "null` at the root of the\n"
+                  "stylesheet.",
           span: node.span,
           trace: _stackTrace(node.span),
           deprecation: true);

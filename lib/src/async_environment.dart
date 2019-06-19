@@ -104,6 +104,9 @@ class AsyncEnvironment {
   UserDefinedCallable<AsyncEnvironment> get content => _content;
   UserDefinedCallable<AsyncEnvironment> _content;
 
+  /// Whether the environment is lexically at the root of the document.
+  bool get atRoot => _variables.length == 1;
+
   /// Whether the environment is lexically within a mixin.
   bool get inMixin => _inMixin;
   var _inMixin = false;
@@ -356,7 +359,7 @@ class AsyncEnvironment {
       return;
     }
 
-    if (global || _variables.length == 1) {
+    if (global || atRoot) {
       // Don't set the index if there's already a variable with the given name,
       // since local accesses should still return the local variable.
       _variableIndices.putIfAbsent(name, () {
