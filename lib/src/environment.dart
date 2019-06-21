@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 02d98a8b9466b9a25d2ef91fb803d87921749700
+// Checksum: 1f5c92aead0d5957fb0e502091f18d406701707a
 //
 // ignore_for_file: unused_import
 
@@ -296,17 +296,21 @@ class Environment {
         // Remove existing definitions that the forwarded members are now
         // shadowing.
         for (var variable in forwarded.variables.keys) {
-          _variableIndices.remove(variable);
-          _variables[0].remove(variable);
-          if (_variableNodes != null) _variableNodes[0].remove(variable);
+          var index =
+              _variableIndices.remove(variable) ?? _variableIndex(variable);
+          if (index != null) {
+            _variables[index].remove(variable);
+            if (_variableNodes != null) _variableNodes[index].remove(variable);
+          }
         }
         for (var function in forwarded.functions.keys) {
-          _functionIndices.remove(function);
-          _functions[0].remove(function);
+          var index =
+              _functionIndices.remove(function) ?? _functionIndex(function);
+          if (index != null) _functions[index].remove(function);
         }
         for (var mixin in forwarded.mixins.keys) {
-          _mixinIndices.remove(mixin);
-          _mixins[0].remove(mixin);
+          var index = _mixinIndices.remove(mixin) ?? _mixinIndex(mixin);
+          if (index != null) _mixins[index].remove(mixin);
         }
       }
     }

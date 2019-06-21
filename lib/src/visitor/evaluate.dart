@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1106d5c41e569e6a152baee453a942441fa3c609
+// Checksum: b4dcbae0a682db653ebbc98719e293f6432eb266
 //
 // ignore_for_file: unused_import
 
@@ -436,7 +436,7 @@ class _EvaluateVisitor
   /// Loads the module at [url] and passes it to [callback].
   ///
   /// The [stackFrame] and [nodeForSpan] are used for the name and location of
-  /// the stack frame in which the new module is executed.
+  /// the stack frame for the duration of the [callback].
   void _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
       void callback(Module<Callable> module)) {
     var builtInModule = _builtInModules[url];

@@ -430,7 +430,7 @@ class _EvaluateVisitor
   /// Loads the module at [url] and passes it to [callback].
   ///
   /// The [stackFrame] and [nodeForSpan] are used for the name and location of
-  /// the stack frame in which the new module is executed.
+  /// the stack frame for the duration of the [callback].
   Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
       void callback(Module module)) async {
     var builtInModule = _builtInModules[url];
