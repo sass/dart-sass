@@ -4,6 +4,10 @@
   variables clearer, especially in the case where the `!global` flag is
   unnecessary because the variables are at the top level of the stylesheet.
 
+### JavaScript API
+
+* Expand the dependency on `chokidar` to allow 3.x.
+
 ## 1.21.0
 
 ### Dart API
