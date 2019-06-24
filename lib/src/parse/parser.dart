@@ -632,6 +632,17 @@ class Parser {
   void error(String message, FileSpan span) =>
       throw StringScannerException(message, span, scanner.string);
 
+  /// Runs callback and, if it throws a [SourceSpanFormatException], rethrows it
+  /// with [message] as its message.
+  @protected
+  T withErrorMessage<T>(String message, T callback()) {
+    try {
+      return callback();
+    } on SourceSpanFormatException catch (error) {
+      throw SourceSpanFormatException(message, error.span, error.source);
+    }
+  }
+
   /// Prints a source span highlight of the current location being scanned.
   ///
   /// If [message] is passed, prints that as well. This is intended for use when

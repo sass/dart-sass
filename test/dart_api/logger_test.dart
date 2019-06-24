@@ -201,7 +201,7 @@ main() {
         expect(span.end.line, equals(0));
         expect(span.end.column, equals(13));
 
-        expect(trace.frames.first.member, equals('root stylesheet'));
+        expect(trace.frames.first.member, equals('@import'));
         expect(deprecation, isFalse);
         mustBeCalled();
       }));

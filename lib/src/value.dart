@@ -62,6 +62,10 @@ abstract class Value implements ext.Value {
   /// these arguments are passed in.
   bool get isVar => false;
 
+  /// Returns Dart's `null` value if this is [sassNull], and returns [this]
+  /// otherwise.
+  Value get realNull => this;
+
   const Value();
 
   /// Calls the appropriate visit method on [visitor].

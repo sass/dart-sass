@@ -21,7 +21,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   final String name;
 
   /// The overloads declared for this callable.
-  final _overloads = <Tuple2<ArgumentDeclaration, _Callback>>[];
+  final List<Tuple2<ArgumentDeclaration, _Callback>> _overloads;
 
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
@@ -35,9 +35,8 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
   BuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
-      Value callback(List<Value> arguments)) {
-    _overloads.add(Tuple2(arguments, callback));
-  }
+      Value callback(List<Value> arguments))
+      : _overloads = [Tuple2(arguments, callback)];
 
   /// Creates a callable with multiple implementations.
   ///
@@ -45,11 +44,13 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// the overload (which should not include parentheses), and the callback to
   /// execute if that argument declaration matches. Throws a
   /// [SassFormatException] if parsing fails.
-  BuiltInCallable.overloaded(this.name, Map<String, _Callback> overloads) {
-    overloads.forEach((arguments, callback) {
-      _overloads.add(Tuple2(ArgumentDeclaration.parse(arguments), callback));
-    });
-  }
+  BuiltInCallable.overloaded(this.name, Map<String, _Callback> overloads)
+      : _overloads = [
+          for (var entry in overloads.entries)
+            Tuple2(ArgumentDeclaration.parse(entry.key), entry.value)
+        ];
+
+  BuiltInCallable._(this.name, this._overloads);
 
   /// Returns the argument declaration and Dart callback for the given
   /// positional and named arguments.
@@ -61,4 +62,8 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
       _overloads.take(_overloads.length - 1).firstWhere(
           (overload) => overload.item1.matches(positional, names),
           orElse: () => _overloads.last);
+
+  /// Returns a copy of this callable with the given [name].
+  BuiltInCallable withName(String name) =>
+      BuiltInCallable._(name, this._overloads);
 }

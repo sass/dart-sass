@@ -72,6 +72,8 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
     return visitChildren(node);
   }
 
+  T visitForwardRule(ForwardRule node) => null;
+
   T visitFunctionRule(FunctionRule node) => visitCallableDeclaration(node);
 
   T visitIfRule(IfRule node) {
