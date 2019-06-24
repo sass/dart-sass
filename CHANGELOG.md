@@ -1,8 +1,16 @@
-## 1.21.1
+## 1.22.0
+
+* Produce better stack traces when importing a file that contains a syntax
+  error.
 
 * Make deprecation warnings for `!global` variable declarations that create new
   variables clearer, especially in the case where the `!global` flag is
   unnecessary because the variables are at the top level of the stylesheet.
+
+### Dart API
+
+* Add a `Value.realNull` getter, which returns Dart's `null` if the value is
+  Sass's null.
 
 ## 1.21.0
 
