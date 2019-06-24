@@ -6,9 +6,6 @@ import 'dart:collection';
 
 /// An unmodifiable view of a map with string keys that allows keys to be
 /// accessed with an additional prefix.
-///
-/// Whether or not the underlying map contains keys that aren't allowed, this
-/// view will behave as though it doesn't contain them.
 class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The wrapped map.
   final Map<String, V> _map;
