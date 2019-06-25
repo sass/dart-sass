@@ -16,6 +16,8 @@ class SassNull extends Value {
 
   bool get isBlank => true;
 
+  Value get realNull => null;
+
   const SassNull._();
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNull(this);

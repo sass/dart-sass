@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 9a864b68aea5bf6aaa6077a16bade57a8a97085e
+// Checksum: b5c6cb6023c2cf2735c13f16d340438972117eb7
 //
 // ignore_for_file: unused_import
 
@@ -29,17 +29,20 @@ import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../environment.dart';
 import '../import_cache.dart';
-import '../module.dart';
 import '../callable.dart';
 import '../color_names.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../extend/extension.dart';
+import '../functions.dart';
+import '../functions/meta.dart' as meta;
 import '../importer.dart';
 import '../importer/node.dart';
 import '../importer/utils.dart';
 import '../io.dart';
 import '../logger.dart';
+import '../module.dart';
+import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
@@ -122,11 +125,15 @@ class _EvaluateVisitor
   /// compiled to Node.js.
   final NodeImporter _nodeImporter;
 
-  /// User-defined functions that should be added to each environment.
-  final List<Callable> _functions;
+  /// Built-in functions that are globally-acessible, even under the new module
+  /// system.
+  final _builtInFunctions = normalizedMap<Callable>();
+
+  /// Built in modules, indexed by their URLs.
+  final _builtInModules = <Uri, Module<Callable>>{};
 
   /// All modules that have been loaded and evaluated so far.
-  final _modules = <Uri, Module>{};
+  final _modules = <Uri, Module<Callable>>{};
 
   /// The logger to use to print warnings.
   final Logger _logger;
@@ -188,7 +195,11 @@ class _EvaluateVisitor
   /// imports, it contains the URL passed to the `@import`.
   final _includedFiles = Set<String>();
 
-  final _activeImports = Set<Uri>();
+  /// The set of canonical URLs for modules (or imported files) that are
+  /// currently being evaluated.
+  ///
+  /// This is used to ensure that we don't get into an infinite load loop.
+  final _activeModules = Set<Uri>();
 
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
@@ -245,14 +256,147 @@ class _EvaluateVisitor
             ? importCache ?? ImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
-        _functions = List.unmodifiable(functions ?? const <Callable>[]),
         _logger = logger ?? const Logger.stderr(),
-        _sourceMap = sourceMap;
+        _sourceMap = sourceMap {
+    var metaFunctions = [
+      // These functions are defined in the context of the evaluator because
+      // they need access to the [_environment] or other local state.
+      BuiltInCallable("global-variable-exists", r"$name, $module: null",
+          (arguments) {
+        var variable = arguments[0].assertString("name");
+        var module = arguments[1].realNull?.assertString("module");
+        return SassBoolean(_environment.globalVariableExists(variable.text,
+            namespace: module?.text));
+      }),
+
+      BuiltInCallable("variable-exists", r"$name", (arguments) {
+        var variable = arguments[0].assertString("name");
+        return SassBoolean(_environment.variableExists(variable.text));
+      }),
+
+      BuiltInCallable("function-exists", r"$name, $module: null", (arguments) {
+        var variable = arguments[0].assertString("name");
+        var module = arguments[1].realNull?.assertString("module");
+        return SassBoolean(_environment.functionExists(variable.text,
+                namespace: module?.text) ||
+            _builtInFunctions.containsKey(variable.text));
+      }),
+
+      BuiltInCallable("mixin-exists", r"$name, $module: null", (arguments) {
+        var variable = arguments[0].assertString("name");
+        var module = arguments[1].realNull?.assertString("module");
+        return SassBoolean(
+            _environment.mixinExists(variable.text, namespace: module?.text));
+      }),
+
+      BuiltInCallable("content-exists", "", (arguments) {
+        if (!_environment.inMixin) {
+          throw SassScriptException(
+              "content-exists() may only be called within a mixin.");
+        }
+        return SassBoolean(_environment.content != null);
+      }),
+
+      BuiltInCallable("module-variables", r"$module", (arguments) {
+        var namespace = arguments[0].assertString("module");
+        var module = _environment.modules[namespace.text];
+        if (module == null) {
+          throw 'There is no module with namespace "${namespace.text}".';
+        }
+
+        return SassMap({
+          for (var entry in module.variables.entries)
+            SassString(entry.key): entry.value
+        });
+      }),
+
+      BuiltInCallable("module-functions", r"$module", (arguments) {
+        var namespace = arguments[0].assertString("module");
+        var module = _environment.modules[namespace.text];
+        if (module == null) {
+          throw 'There is no module with namespace "${namespace.text}".';
+        }
+
+        return SassMap({
+          for (var entry in module.functions.entries)
+            SassString(entry.key): SassFunction(entry.value)
+        });
+      }),
+
+      BuiltInCallable("get-function", r"$name, $css: false, $module: null",
+          (arguments) {
+        var name = arguments[0].assertString("name");
+        var css = arguments[1].isTruthy;
+        var module = arguments[2].realNull?.assertString("module");
+
+        if (css && module != null) {
+          throw r"$css and $module may not both be passed at once.";
+        }
+
+        var callable = css
+            ? PlainCssCallable(name.text)
+            : _addExceptionSpan(_callableNode,
+                () => _getFunction(name.text, namespace: module?.text));
+        if (callable != null) return SassFunction(callable);
+
+        throw "Function not found: $name";
+      }),
+
+      BuiltInCallable("call", r"$function, $args...", (arguments) {
+        var function = arguments[0];
+        var args = arguments[1] as SassArgumentList;
+
+        var invocation = ArgumentInvocation([], {}, _callableNode.span,
+            rest: ValueExpression(args, _callableNode.span),
+            keywordRest: args.keywords.isEmpty
+                ? null
+                : ValueExpression(
+                    SassMap(mapMap(args.keywords,
+                        key: (String key, Value _) =>
+                            SassString(key, quotes: false),
+                        value: (String _, Value value) => value)),
+                    _callableNode.span));
+
+        if (function is SassString) {
+          warn(
+              "Passing a string to call() is deprecated and will be illegal\n"
+              "in Dart Sass 2.0.0. Use call(get-function($function)) instead.",
+              deprecation: true);
+
+          var expression = FunctionExpression(
+              Interpolation([function.text], _callableNode.span),
+              invocation,
+              _callableNode.span);
+          return expression.accept(this);
+        }
+
+        var callable = function.assertFunction("function").callable;
+        if (callable is Callable) {
+          return _runFunctionCallable(invocation, callable, _callableNode);
+        } else {
+          throw SassScriptException(
+              "The function ${callable.name} is asynchronous.\n"
+              "This is probably caused by a bug in a Sass plugin.");
+        }
+      })
+    ];
+
+    var metaModule = BuiltInModule("meta", [...meta.global, ...metaFunctions]);
+    for (var module in [...coreModules, metaModule]) {
+      _builtInModules[module.url] = module;
+    }
+
+    functions = [...?functions, ...globalFunctions, ...metaFunctions];
+    for (var function in functions) {
+      _builtInFunctions[function.name] = function;
+    }
+  }
 
   EvaluateResult run(Importer importer, Stylesheet node) {
     return _withWarnCallback(() {
       var url = node.span?.sourceUrl;
       if (url != null) {
+        _activeModules.add(url);
         if (_asNodeSass) {
           if (url.scheme == 'file') {
             _includedFiles.add(p.fromUri(url));
@@ -270,7 +414,7 @@ class _EvaluateVisitor
 
   Value runExpression(Expression expression, {Map<String, Value> variables}) {
     return _withWarnCallback(() {
-      _environment = _newEnvironment();
+      _environment = Environment(sourceMap: _sourceMap);
 
       for (var name in variables?.keys ?? const <String>[]) {
         _environment.setVariable(name, variables[name], null, global: true);
@@ -289,14 +433,52 @@ class _EvaluateVisitor
         callback);
   }
 
+  /// Loads the module at [url] and passes it to [callback].
+  ///
+  /// The [stackFrame] and [nodeForSpan] are used for the name and location of
+  /// the stack frame for the duration of the [callback].
+  void _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
+      void callback(Module<Callable> module)) {
+    var builtInModule = _builtInModules[url];
+    if (builtInModule != null) {
+      callback(builtInModule);
+      return;
+    }
+
+    _withStackFrame(stackFrame, nodeForSpan, () {
+      var result =
+          inUseRule(() => _loadStylesheet(url.toString(), nodeForSpan.span));
+      var importer = result.item1;
+      var stylesheet = result.item2;
+
+      var canonicalUrl = stylesheet.span.sourceUrl;
+      if (_activeModules.contains(canonicalUrl)) {
+        throw _exception("Module loop: this module is already being loaded.");
+      }
+      _activeModules.add(canonicalUrl);
+
+      Module<Callable> module;
+      try {
+        module = _execute(importer, stylesheet);
+      } finally {
+        _activeModules.remove(canonicalUrl);
+      }
+
+      try {
+        callback(module);
+      } on SassScriptException catch (error) {
+        throw _exception(error.message);
+      }
+    });
+  }
+
   /// Executes [stylesheet], loaded by [importer], to produce a module.
-  Module _execute(Importer importer, Stylesheet stylesheet) {
+  Module<Callable> _execute(Importer importer, Stylesheet stylesheet) {
     var url = stylesheet.span.sourceUrl;
     return _modules.putIfAbsent(url, () {
-      var environment = _newEnvironment();
+      var environment = Environment(sourceMap: _sourceMap);
       CssStylesheet css;
       var extender = Extender();
-      _activeImports.add(url);
       _withEnvironment(environment, () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -344,109 +526,9 @@ class _EvaluateVisitor
         _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
         _inKeyframes = oldInKeyframes;
       });
-      _activeImports.remove(url);
 
       return environment.toModule(css, extender);
     });
-  }
-
-  /// Creates a new [Environment] containing all the built-in and
-  /// user-defined functions.
-  Environment _newEnvironment() {
-    var environment = Environment(sourceMap: _sourceMap);
-
-    // TODO(nweiz): Find a way to share these functions across all environments,
-    // rather than needing to re-initialize each time.
-    environment.setFunction(
-        BuiltInCallable("global-variable-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return SassBoolean(_environment.globalVariableExists(variable.text));
-    }));
-
-    environment
-        .setFunction(BuiltInCallable("variable-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return SassBoolean(_environment.variableExists(variable.text));
-    }));
-
-    environment
-        .setFunction(BuiltInCallable("function-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return SassBoolean(_environment.functionExists(variable.text));
-    }));
-
-    environment
-        .setFunction(BuiltInCallable("mixin-exists", r"$name", (arguments) {
-      var variable = arguments[0].assertString("name");
-      return SassBoolean(_environment.mixinExists(variable.text));
-    }));
-
-    environment.setFunction(BuiltInCallable("content-exists", "", (arguments) {
-      if (!_environment.inMixin) {
-        throw SassScriptException(
-            "content-exists() may only be called within a mixin.");
-      }
-      return SassBoolean(_environment.content != null);
-    }));
-
-    environment.setFunction(
-        BuiltInCallable("get-function", r"$name, $css: false", (arguments) {
-      var name = arguments[0].assertString("name");
-      var css = arguments[1].isTruthy;
-
-      var callable = css
-          ? PlainCssCallable(name.text)
-          : _addExceptionSpan(
-              _callableNode, () => _environment.getFunction(name.text));
-      if (callable != null) return SassFunction(callable);
-
-      throw SassScriptException("Function not found: $name");
-    }));
-
-    environment.setFunction(
-        BuiltInCallable("call", r"$function, $args...", (arguments) {
-      var function = arguments[0];
-      var args = arguments[1] as SassArgumentList;
-
-      var invocation = ArgumentInvocation([], {}, _callableNode.span,
-          rest: ValueExpression(args, _callableNode.span),
-          keywordRest: args.keywords.isEmpty
-              ? null
-              : ValueExpression(
-                  SassMap(mapMap(args.keywords,
-                      key: (String key, Value _) =>
-                          SassString(key, quotes: false),
-                      value: (String _, Value value) => value)),
-                  _callableNode.span));
-
-      if (function is SassString) {
-        warn(
-            "Passing a string to call() is deprecated and will be illegal\n"
-            "in Dart Sass 2.0.0. Use call(get-function($function)) instead.",
-            deprecation: true);
-
-        var expression = FunctionExpression(
-            Interpolation([function.text], _callableNode.span),
-            invocation,
-            _callableNode.span);
-        return expression.accept(this);
-      }
-
-      var callable = function.assertFunction("function").callable;
-      if (callable is Callable) {
-        return _runFunctionCallable(invocation, callable, _callableNode);
-      } else {
-        throw SassScriptException(
-            "The function ${callable.name} is asynchronous.\n"
-            "This is probably caused by a bug in a Sass plugin.");
-      }
-    }));
-
-    for (var function in _functions) {
-      environment.setFunction(function);
-    }
-
-    return environment;
   }
 
   /// Returns a copy of [_root.children] with [_outOfOrderImports] inserted
@@ -469,7 +551,7 @@ class _EvaluateVisitor
   ///
   /// If [clone] is `true`, this will copy the modules before extending them so
   /// that they don't modify [root] or its dependencies.
-  CssStylesheet _combineCss(Module root, {bool clone = false}) {
+  CssStylesheet _combineCss(Module<Callable> root, {bool clone = false}) {
     // TODO(nweiz): short-circuit if no upstream modules (transitively) include
     // any CSS.
     if (root.upstream.isEmpty) {
@@ -508,7 +590,7 @@ class _EvaluateVisitor
 
   /// Extends the selectors in each module with the extensions defined in
   /// downstream modules.
-  void _extendModules(List<Module> sortedModules) {
+  void _extendModules(List<Module<Callable>> sortedModules) {
     // All the extenders directly downstream of a given module (indexed by its
     // canonical URL). It's important that we create this in topological order,
     // so that by the time we're processing a module we've already filled in all
@@ -564,13 +646,13 @@ class _EvaluateVisitor
 
   /// Returns all modules transitively used by [root] in topological order,
   /// ignoring modules that contain no CSS.
-  List<Module> _topologicalModules(Module root) {
+  List<Module<Callable>> _topologicalModules(Module<Callable> root) {
     // Construct a topological ordering using depth-first traversal, as in
     // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search.
-    var seen = Set<Module>();
-    var sorted = QueueList<Module>();
+    var seen = Set<Module<Callable>>();
+    var sorted = QueueList<Module<Callable>>();
 
-    void visitModule(Module module) {
+    void visitModule(Module<Callable> module) {
       // Each module is added to the beginning of [sorted], which means the
       // returned list contains sibling modules in the opposite order of how
       // they appear in the document. Then when the list is reversed to generate
@@ -972,6 +1054,14 @@ class _EvaluateVisitor
     }, semiGlobal: true);
   }
 
+  Value visitForwardRule(ForwardRule node) {
+    _loadModule(node.url, "@forward", node, (module) {
+      _environment.forwardModule(module, node);
+    });
+
+    return null;
+  }
+
   Value visitFunctionRule(FunctionRule node) {
     _environment.setFunction(UserDefinedCallable(node, _environment.closure()));
     return null;
@@ -1007,23 +1097,24 @@ class _EvaluateVisitor
 
   /// Adds the stylesheet imported by [import] to the current document.
   void _visitDynamicImport(DynamicImport import) {
-    var result = _loadStylesheet(import.url, import.span);
-    var importer = result.item1;
-    var stylesheet = result.item2;
+    return _withStackFrame("@import", import, () {
+      var result = _loadStylesheet(import.url, import.span);
+      var importer = result.item1;
+      var stylesheet = result.item2;
 
-    var url = stylesheet.span.sourceUrl;
-    if (!_activeImports.add(url)) {
-      throw _exception("This file is already being loaded.", import.span);
-    }
+      var url = stylesheet.span.sourceUrl;
+      if (!_activeModules.add(url)) {
+        throw _exception("This file is already being loaded.");
+      }
 
-    _activeImports.add(url);
+      _activeModules.add(url);
 
-    // TODO(nweiz): If [stylesheet] contains no `@use` rules, just evaluate it
-    // directly in [_root] rather than making a new stylesheet.
+      // TODO(nweiz): If [stylesheet] contains no `@use` or `@forward` rules, just
+      // evaluate it directly in [_root] rather than making a new
+      // [ModifiableCssStylesheet] and manually copying members.
 
-    List<ModifiableCssNode> children;
-    var environment = _environment.global();
-    _withStackFrame("@import", import, () {
+      List<ModifiableCssNode> children;
+      var environment = _environment.global();
       _withEnvironment(environment, () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -1048,27 +1139,30 @@ class _EvaluateVisitor
         _endOfImports = oldEndOfImports;
         _outOfOrderImports = oldOutOfOrderImports;
       });
+
+      // Create a dummy module with empty CSS and no extensions to make forwarded
+      // members available in the current import context and to combine all the
+      // CSS from modules used by [stylesheet].
+      var module = environment.toModule(
+          CssStylesheet(const [], stylesheet.span), Extender.empty);
+      _environment.importForwards(module);
+
+      if (module.transitivelyContainsCss) {
+        // If any transitively used module contains extensions, we need to clone
+        // all modules' CSS. Otherwise, it's possible that they'll be used or
+        // imported from another location that shouldn't have the same extensions
+        // applied.
+        _combineCss(module, clone: module.transitivelyContainsExtensions)
+            .accept(this);
+      }
+
+      var visitor = _ImportedCssVisitor(this);
+      for (var child in children) {
+        child.accept(visitor);
+      }
+
+      _activeModules.remove(url);
     });
-
-    // Create a dummy module with empty CSS and no extensions to combine all
-    // the CSS from modules used by [stylesheet].
-    var module = environment.toModule(
-        CssStylesheet(const [], stylesheet.span), Extender.empty);
-    if (module.transitivelyContainsCss) {
-      // If any transitively used module contains extensions, we need to clone
-      // all modules' CSS. Otherwise, it's possible that they'll be used or
-      // imported from another location that shouldn't have the same extensions
-      // applied.
-      _combineCss(module, clone: module.transitivelyContainsExtensions)
-          .accept(this);
-    }
-
-    var visitor = _ImportedCssVisitor(this);
-    for (var child in children) {
-      child.accept(visitor);
-    }
-
-    _activeImports.remove(url);
   }
 
   /// Loads the [Stylesheet] identified by [url], or throws a
@@ -1095,8 +1189,7 @@ class _EvaluateVisitor
         throw "Can't find stylesheet to import.";
       }
     } on SassException catch (error) {
-      var frames = [...error.trace.frames, ..._stackTrace(span).frames];
-      throw SassRuntimeException(error.message, error.span, Trace(frames));
+      throw _exception(error.message, error.span);
     } catch (error) {
       String message;
       try {
@@ -1104,7 +1197,7 @@ class _EvaluateVisitor
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message, span);
+      throw _exception(message);
     } finally {
       _importSpan = null;
     }
@@ -1458,21 +1551,8 @@ class _EvaluateVisitor
   }
 
   Value visitUseRule(UseRule node) {
-    var result =
-        inUseRule(() => _loadStylesheet(node.url.toString(), node.span));
-    var importer = result.item1;
-    var stylesheet = result.item2;
-
-    var url = stylesheet.span.sourceUrl;
-    if (_activeImports.contains(url)) {
-      throw _exception("This module is currently being loaded.", node.span);
-    }
-
-    _withStackFrame("@use", stylesheet, () {
-      return _addExceptionSpan(node, () {
-        _environment.addModule(_execute(importer, stylesheet),
-            namespace: node.namespace);
-      });
+    _loadModule(node.url, "@use", node, (module) {
+      _environment.addModule(module, namespace: node.namespace);
     });
 
     return null;
@@ -1643,8 +1723,8 @@ class _EvaluateVisitor
     var plainName = node.name.asPlain;
     Callable function;
     if (plainName != null) {
-      function = _addExceptionSpan(node,
-          () => _environment.getFunction(plainName, namespace: node.namespace));
+      function = _addExceptionSpan(
+          node, () => _getFunction(plainName, namespace: node.namespace));
     }
 
     if (function == null) {
@@ -1660,6 +1740,14 @@ class _EvaluateVisitor
     var result = _runFunctionCallable(node.arguments, function, node);
     _inFunction = oldInFunction;
     return result;
+  }
+
+  /// Like `_environment.getFunction`, but also returns built-in
+  /// globally-avaialble functions.
+  Callable _getFunction(String name, {String namespace}) {
+    var local = _environment.getFunction(name, namespace: namespace);
+    if (local != null || namespace != null) return local;
+    return _builtInFunctions[name];
   }
 
   /// Evaluates the arguments in [arguments] as applied to [callable], and
@@ -2420,11 +2508,11 @@ class _EvaluateVisitor
 
   /// Returns a stack trace at the current point.
   ///
-  /// [span] is the current location, used for the bottom-most stack frame.
-  Trace _stackTrace(FileSpan span) {
+  /// If [span] is passed, it's used for the innermost stack frame.
+  Trace _stackTrace([FileSpan span]) {
     var frames = [
       ..._stack.map((tuple) => _stackFrame(tuple.item1, tuple.item2.span)),
-      _stackFrame(_member, span)
+      if (span != null) _stackFrame(_member, span)
     ];
     return Trace(frames.reversed);
   }
@@ -2434,9 +2522,12 @@ class _EvaluateVisitor
       _logger.warn(message,
           span: span, trace: _stackTrace(span), deprecation: deprecation);
 
-  /// Throws a [SassRuntimeException] with the given [message] and [span].
-  SassRuntimeException _exception(String message, FileSpan span) =>
-      SassRuntimeException(message, span, _stackTrace(span));
+  /// Throws a [SassRuntimeException] with the given [message].
+  ///
+  /// If [span] is passed, it's used for the innermost stack frame.
+  SassRuntimeException _exception(String message, [FileSpan span]) =>
+      SassRuntimeException(
+          message, span ?? _stack.last.item2.span, _stackTrace(span));
 
   /// Runs [callback], and adjusts any [SassFormatException] to be within
   /// [nodeWithSpan]'s source span.

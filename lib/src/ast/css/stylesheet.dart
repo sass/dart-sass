@@ -25,5 +25,10 @@ class CssStylesheet extends CssParentNode {
       // whole thing consistently represent mutation of the underlying data.
       : children = UnmodifiableListView(children);
 
+  /// Creates an empty stylesheet with the given source URL.
+  CssStylesheet.empty({url})
+      : children = const [],
+        span = SourceFile.decoded(const [], url: url).span(0, 0);
+
   T accept<T>(CssVisitor<T> visitor) => visitor.visitCssStylesheet(this);
 }

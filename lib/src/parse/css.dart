@@ -12,7 +12,7 @@ import 'scss.dart';
 
 /// The set of all function names disallowed in plain CSS.
 final _disallowedFunctionNames =
-    coreFunctions.map((function) => function.name).toSet()
+    globalFunctions.map((function) => function.name).toSet()
       ..add("if")
       ..remove("rgb")
       ..remove("rgba")

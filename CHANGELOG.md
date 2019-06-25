@@ -1,12 +1,22 @@
-## 1.21.1
+## 1.22.1
+
+### JavaScript API
+
+* Expand the dependency on `chokidar` to allow 3.x.
+
+## 1.22.0
+
+* Produce better stack traces when importing a file that contains a syntax
+  error.
 
 * Make deprecation warnings for `!global` variable declarations that create new
   variables clearer, especially in the case where the `!global` flag is
   unnecessary because the variables are at the top level of the stylesheet.
 
-### JavaScript API
+### Dart API
 
-* Expand the dependency on `chokidar` to allow 3.x.
+* Add a `Value.realNull` getter, which returns Dart's `null` if the value is
+  Sass's null.
 
 ## 1.21.0
 
