@@ -449,8 +449,7 @@ class _EvaluateVisitor
     if (builtInModule != null) {
       if (configuration != null || _configuration != null) {
         throw _exception(
-            "This variable was not declared with !default in the @used module.",
-            configuration.values.first.configurationSpan);
+            "Built-in modules can't be configured.", nodeForSpan.span);
       }
 
       callback(builtInModule);

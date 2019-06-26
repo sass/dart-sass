@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c8480b485dd00869ad214a82eddb7dc3b40e90b5
+// Checksum: 08fe4369e45ce8e6db2ab909bb66ec8373a0799e
 //
 // ignore_for_file: unused_import
 
@@ -455,8 +455,7 @@ class _EvaluateVisitor
     if (builtInModule != null) {
       if (configuration != null || _configuration != null) {
         throw _exception(
-            "This variable was not declared with !default in the @used module.",
-            configuration.values.first.configurationSpan);
+            "Built-in modules can't be configured.", nodeForSpan.span);
       }
 
       callback(builtInModule);
