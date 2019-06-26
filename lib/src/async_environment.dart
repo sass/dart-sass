@@ -114,7 +114,7 @@ class AsyncEnvironment {
   UserDefinedCallable<AsyncEnvironment> get content => _content;
   UserDefinedCallable<AsyncEnvironment> _content;
 
-  /// Whether the environment is lexically at the top level of a stylesheet.
+  /// Whether the environment is lexically at the root of the document.
   bool get atRoot => _variables.length == 1;
 
   /// Whether the environment is lexically within a mixin.

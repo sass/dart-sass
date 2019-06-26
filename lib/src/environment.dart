@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: e6c0676f437c303e8b750f08574b2c5f356aa115
+// Checksum: fe68ec0b099d3f2992af03dbdaeff0b3e8392808
 //
 // ignore_for_file: unused_import
 
@@ -120,7 +120,7 @@ class Environment {
   UserDefinedCallable<Environment> get content => _content;
   UserDefinedCallable<Environment> _content;
 
-  /// Whether the environment is lexically at the top level of a stylesheet.
+  /// Whether the environment is lexically at the root of the document.
   bool get atRoot => _variables.length == 1;
 
   /// Whether the environment is lexically within a mixin.
