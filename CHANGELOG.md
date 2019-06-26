@@ -1,3 +1,9 @@
+## 1.22.1
+
+### JavaScript API
+
+* Expand the dependency on `chokidar` to allow 3.x.
+
 ## 1.22.0
 
 * Produce better stack traces when importing a file that contains a syntax
