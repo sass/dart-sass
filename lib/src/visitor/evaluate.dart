@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 08fe4369e45ce8e6db2ab909bb66ec8373a0799e
+// Checksum: 131cdfb0c216fa288c2fe5b35042212dd423f686
 //
 // ignore_for_file: unused_import
 
@@ -447,7 +447,7 @@ class _EvaluateVisitor
   /// a configured variable is not declared with `!default`.
   ///
   /// The [stackFrame] and [nodeForSpan] are used for the name and location of
-  /// the stack frame in which the new module is executed.
+  /// the stack frame for the duration of the [callback].
   void _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
       void callback(Module<Callable> module),
       {Map<String, _ConfiguredValue> configuration}) {

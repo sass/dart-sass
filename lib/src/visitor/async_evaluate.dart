@@ -441,7 +441,7 @@ class _EvaluateVisitor
   /// a configured variable is not declared with `!default`.
   ///
   /// The [stackFrame] and [nodeForSpan] are used for the name and location of
-  /// the stack frame in which the new module is executed.
+  /// the stack frame for the duration of the [callback].
   Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
       void callback(Module module),
       {Map<String, _ConfiguredValue> configuration}) async {
