@@ -5,10 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-// See https://groups.google.com/a/dartlang.org/d/msg/misc/bZ0AGuEo41c/u05-1M7yAgAJ.
-//
-// ignore: deprecated_member_use
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -45,7 +43,9 @@ final _sharedClasses = const ['EvaluateResult', 'CompileResult'];
 synchronize() {
   sources.forEach((source, target) {
     var visitor = _Visitor(File(source).readAsStringSync(), source);
-    parseDartFile(source).accept(visitor);
+    parseFile2(path: source, featureSet: FeatureSet.fromEnableFlags([]))
+        .unit
+        .accept(visitor);
     var formatted = DartFormatter().format(visitor.result);
     File(target).writeAsStringSync(formatted);
   });
