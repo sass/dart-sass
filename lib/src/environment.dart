@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1f5c92aead0d5957fb0e502091f18d406701707a
+// Checksum: fe68ec0b099d3f2992af03dbdaeff0b3e8392808
 //
 // ignore_for_file: unused_import
 
@@ -119,6 +119,9 @@ class Environment {
   /// this is not in a mixin, or if no content block was passed.
   UserDefinedCallable<Environment> get content => _content;
   UserDefinedCallable<Environment> _content;
+
+  /// Whether the environment is lexically at the root of the document.
+  bool get atRoot => _variables.length == 1;
 
   /// Whether the environment is lexically within a mixin.
   bool get inMixin => _inMixin;
@@ -460,7 +463,7 @@ class Environment {
       return;
     }
 
-    if (global || _variables.length == 1) {
+    if (global || atRoot) {
       // Don't set the index if there's already a variable with the given name,
       // since local accesses should still return the local variable.
       _variableIndices.putIfAbsent(name, () {
