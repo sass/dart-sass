@@ -8,13 +8,17 @@ import 'package:collection/collection.dart';
 
 import '../utils.dart';
 
-/// An unmodifiable view of a map that only allows certain keys to be accessed.
+/// A mostly-unmodifiable view of a map that only allows certain keys to be
+/// accessed.
 ///
 /// Whether or not the underlying map contains keys that aren't allowed, this
 /// view will behave as though it doesn't contain them.
 ///
 /// The underlying map's values may change independently of this view, but its
 /// set of keys may not.
+///
+/// This is unmodifiable *except for the [remove] method*, which is used for
+/// `@used with` to mark configured variables as used.
 class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
   /// The wrapped map.
   final Map<K, V> _map;
@@ -42,4 +46,6 @@ class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
 
   V operator [](Object key) => _keys.contains(key) ? _map[key] : null;
   bool containsKey(Object key) => _keys.contains(key);
+
+  V remove(Object key) => _keys.contains(key) ? _map.remove(key) : null;
 }
