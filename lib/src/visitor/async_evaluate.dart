@@ -380,8 +380,36 @@ class _EvaluateVisitor
       })
     ];
 
-    var metaModule =
-        BuiltInModule("meta", functions: [...meta.global, ...metaFunctions]);
+    var metaMixins = [
+      AsyncBuiltInCallable("load-css", r"$module, $with: null",
+          (arguments) async {
+        var url = Uri.parse(arguments[0].assertString("module").text);
+        var withMap = arguments[1].realNull?.assertMap("with")?.contents;
+
+        Map<String, _ConfiguredValue> configuration;
+        if (withMap != null) {
+          configuration = normalizedMap<_ConfiguredValue>();
+          var span = _callableNode.span;
+          withMap.forEach((variable, value) {
+            var name = variable.assertString("with key").text;
+            if (configuration.containsKey(name)) {
+              throw "The variable \$$name was configured twice.";
+            }
+
+            configuration[name] = _ConfiguredValue(value, span);
+          });
+        }
+
+        await _loadModule(url, "load-css()", _callableNode,
+            (module) => _combineCss(module, clone: true).accept(this),
+            baseUrl: _callableNode.span?.sourceUrl,
+            configuration: configuration,
+            namesInErrors: true);
+      })
+    ];
+
+    var metaModule = BuiltInModule("meta",
+        functions: [...meta.global, ...metaFunctions], mixins: metaMixins);
 
     for (var module in [...coreModules, metaModule]) {
       _builtInModules[module.url] = module;
@@ -437,21 +465,33 @@ class _EvaluateVisitor
 
   /// Loads the module at [url] and passes it to [callback].
   ///
+  /// This first tries loading [url] relative to [baseUrl], which defaults to
+  /// `_stylesheet.span.sourceUrl`.
+  ///
   /// The [configuration] overrides values for `!default` variables defined in
   /// the module or modules it forwards and/or imports. If it's not passed, the
   /// current configuration is used instead. Throws a [SassRuntimeException] if
   /// a configured variable is not declared with `!default`.
   ///
+  /// If [namesInErrors] is `true`, this includes the names of modules or
+  /// configured variables in errors relating to them. This should only be
+  /// `true` if the names won't be obvious from the source span.
+  ///
   /// The [stackFrame] and [nodeForSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
   Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
       void callback(Module module),
-      {Map<String, _ConfiguredValue> configuration}) async {
+      {Uri baseUrl,
+      Map<String, _ConfiguredValue> configuration,
+      bool namesInErrors = false}) async {
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
       if (configuration != null || _configuration != null) {
         throw _exception(
-            "Built-in modules can't be configured.", nodeForSpan.span);
+            namesInErrors
+                ? "Built-in module $url can't be configured."
+                : "Built-in modules can't be configured.",
+            nodeForSpan.span);
       }
 
       callback(builtInModule);
@@ -459,27 +499,34 @@ class _EvaluateVisitor
     }
 
     await _withStackFrame(stackFrame, nodeForSpan, () async {
-      var result = await inUseRuleAsync(
-          () => _loadStylesheet(url.toString(), nodeForSpan.span));
+      var result = await inUseRuleAsync(() =>
+          _loadStylesheet(url.toString(), nodeForSpan.span, baseUrl: baseUrl));
       var importer = result.item1;
       var stylesheet = result.item2;
 
       var canonicalUrl = stylesheet.span.sourceUrl;
       if (_activeModules.contains(canonicalUrl)) {
-        throw _exception("Module loop: this module is already being loaded.");
+        throw _exception(namesInErrors
+            ? "Module loop: ${p.prettyUri(canonicalUrl)} is already being "
+                "loaded."
+            : "Module loop: this module is already being loaded.");
       }
       _activeModules.add(canonicalUrl);
 
       Module module;
       try {
-        module =
-            await _execute(importer, stylesheet, configuration: configuration);
+        module = await _execute(importer, stylesheet,
+            configuration: configuration, namesInErrors: namesInErrors);
       } finally {
         _activeModules.remove(canonicalUrl);
       }
 
       try {
         await callback(module);
+      } on SassRuntimeException {
+        rethrow;
+      } on SassException catch (error) {
+        throw _exception(error.message, error.span);
       } on SassScriptException catch (error) {
         throw _exception(error.message);
       }
@@ -492,16 +539,23 @@ class _EvaluateVisitor
   /// the module or modules it forwards and/or imports. If it's not passed, the
   /// current configuration is used instead. Throws a [SassRuntimeException] if
   /// a configured variable is not declared with `!default`.
+  ///
+  /// If [namesInErrors] is `true`, this includes the names of modules or
+  /// configured variables in errors relating to them. This should only be
+  /// `true` if the names won't be obvious from the source span.
   Future<Module> _execute(AsyncImporter importer, Stylesheet stylesheet,
-      {Map<String, _ConfiguredValue> configuration}) async {
+      {Map<String, _ConfiguredValue> configuration,
+      bool namesInErrors = false}) async {
     var url = stylesheet.span.sourceUrl;
 
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       if (configuration != null || _configuration != null) {
-        throw _exception(
-            "This module was already loaded, so it can't be configured using "
-            "\"with\".");
+        throw _exception(namesInErrors
+            ? "${p.prettyUri(url)} was already loaded, so it can't be "
+                "configured using \"with\"."
+            : "This module was already loaded, so it can't be configured using "
+                "\"with\".");
       }
 
       return alreadyLoaded;
@@ -562,7 +616,11 @@ class _EvaluateVisitor
 
       if (configuration != null && _configuration.isNotEmpty) {
         throw _exception(
-            "This variable was not declared with !default in the @used module.",
+            namesInErrors
+                ? "\$${_configuration.keys.first} was not declared with "
+                    "!default in the @used module."
+                : "This variable was not declared with !default in the @used "
+                    "module.",
             _configuration.values.first.configurationSpan);
       }
       _configuration = oldConfiguration;
@@ -1236,8 +1294,12 @@ class _EvaluateVisitor
 
   /// Loads the [Stylesheet] identified by [url], or throws a
   /// [SassRuntimeException] if loading fails.
+  ///
+  /// This first tries loading [url] relative to [baseUrl], which defaults to
+  /// `_stylesheet.span.sourceUrl`.
   Future<Tuple2<AsyncImporter, Stylesheet>> _loadStylesheet(
-      String url, FileSpan span) async {
+      String url, FileSpan span,
+      {Uri baseUrl}) async {
     try {
       assert(_importSpan == null);
       _importSpan = span;
@@ -1247,7 +1309,7 @@ class _EvaluateVisitor
         if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
         var tuple = await _importCache.import(
-            Uri.parse(url), _importer, _stylesheet.span?.sourceUrl);
+            Uri.parse(url), _importer, baseUrl ?? _stylesheet.span?.sourceUrl);
         if (tuple != null) return tuple;
       }
 
@@ -1325,30 +1387,41 @@ class _EvaluateVisitor
 
   Future<Value> visitIncludeRule(IncludeRule node) async {
     var mixin = _addExceptionSpan(node,
-            () => _environment.getMixin(node.name, namespace: node.namespace))
-        as UserDefinedCallable<AsyncEnvironment>;
+        () => _environment.getMixin(node.name, namespace: node.namespace));
     if (mixin == null) {
       throw _exception("Undefined mixin.", node.span);
     }
 
-    if (node.content != null && !(mixin.declaration as MixinRule).hasContent) {
-      throw _exception("Mixin doesn't accept a content block.", node.span);
-    }
+    if (mixin is AsyncBuiltInCallable) {
+      if (node.content != null) {
+        throw _exception("Mixin doesn't accept a content block.", node.span);
+      }
 
-    var contentCallable = node.content == null
-        ? null
-        : UserDefinedCallable(node.content, _environment.closure());
-    await _runUserDefinedCallable(node.arguments, mixin, node, () async {
-      await _environment.withContent(contentCallable, () async {
-        await _environment.asMixin(() async {
-          for (var statement in mixin.declaration.children) {
-            await statement.accept(this);
-          }
+      await _runBuiltInCallable(node.arguments, mixin, node);
+    } else if (mixin is UserDefinedCallable<AsyncEnvironment>) {
+      if (node.content != null &&
+          !(mixin.declaration as MixinRule).hasContent) {
+        throw _exception("Mixin doesn't accept a content block.", node.span);
+      }
+
+      var contentCallable = node.content == null
+          ? null
+          : UserDefinedCallable(node.content, _environment.closure());
+
+      await _runUserDefinedCallable(node.arguments, mixin, node, () async {
+        await _environment.withContent(contentCallable, () async {
+          await _environment.asMixin(() async {
+            for (var statement in mixin.declaration.children) {
+              await statement.accept(this);
+            }
+          });
+          return null;
         });
         return null;
       });
-      return null;
-    });
+    } else {
+      throw UnsupportedError("Unknown callable type $mixin.");
+    }
 
     return null;
   }
@@ -1932,8 +2005,13 @@ class _EvaluateVisitor
   Future<Value> _runFunctionCallable(ArgumentInvocation arguments,
       AsyncCallable callable, AstNode nodeWithSpan) async {
     if (callable is AsyncBuiltInCallable) {
-      return (await _runBuiltInCallable(arguments, callable, nodeWithSpan))
-          .withoutSlash();
+      var result = await _runBuiltInCallable(arguments, callable, nodeWithSpan);
+      if (result == null) {
+        throw _exception(
+            "Custom functions may not return Dart's null.", nodeWithSpan.span);
+      }
+
+      return result.withoutSlash();
     } else if (callable is UserDefinedCallable<AsyncEnvironment>) {
       return (await _runUserDefinedCallable(arguments, callable, nodeWithSpan,
               () async {
@@ -2023,7 +2101,8 @@ class _EvaluateVisitor
     Value result;
     try {
       result = await callback(evaluated.positional);
-      if (result == null) throw "Custom functions may not return Dart's null.";
+    } on SassRuntimeException {
+      rethrow;
     } catch (error) {
       String message;
       try {
