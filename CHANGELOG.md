@@ -27,6 +27,11 @@
 * Add a top-level `warn()` function for custom functions and importers to print
   warning messages.
 
+### JavaScript API
+
+* Avoid re-assigning the `require()` function to make the code statically
+  analyzable by Webpack.
+
 ## 1.20.3
 
 * No user-visible changes.
