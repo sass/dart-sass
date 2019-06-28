@@ -835,6 +835,7 @@ class _EvaluateVisitor
       for (var statement in content.declaration.children) {
         await statement.accept(this);
       }
+      return null;
     });
 
     return null;
