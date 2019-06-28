@@ -17,7 +17,7 @@
     "node": ">=0.11.8"
   },
   "dependencies": {
-    "chokidar": "^2.0.0"
+    "chokidar": ">=2.0.0 <4.0.0"
   },
   "main": "sass.dart.js",
   "bin": "sass.js",

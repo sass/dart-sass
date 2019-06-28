@@ -87,10 +87,8 @@ class Stderr {
   void flush() {}
 }
 
-@JS("require")
-external _FS _require(String name);
-
-final _fs = _require("fs");
+@JS("fs")
+external _FS get _fs;
 
 @JS("process")
 external _Process get _process;

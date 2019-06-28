@@ -4,9 +4,6 @@
 
 import 'package:js/js.dart';
 
-@JS("require")
-external Chokidar _require(String name);
-
 @JS()
 class Chokidar {
   external ChokidarWatcher watch(String path, ChokidarOptions options);
@@ -30,4 +27,5 @@ class ChokidarWatcher {
 /// The Chokidar module.
 ///
 /// See [the docs on npm](https://www.npmjs.com/package/chokidar).
-final chokidar = _require("chokidar");
+@JS("chokidar")
+external Chokidar get chokidar;
