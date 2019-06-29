@@ -405,6 +405,7 @@ class _EvaluateVisitor
             baseUrl: _callableNode.span?.sourceUrl,
             configuration: configuration,
             namesInErrors: true);
+        return null;
       })
     ];
 

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 0a446aad9eb80d114e05901c0ba4625339a2f85a
+// Checksum: 2dc9fdf171d8c876f24994eb0e106328154497c4
 //
 // ignore_for_file: unused_import
 
@@ -411,6 +411,7 @@ class _EvaluateVisitor
             baseUrl: _callableNode.span?.sourceUrl,
             configuration: configuration,
             namesInErrors: true);
+        return null;
       })
     ];
 
