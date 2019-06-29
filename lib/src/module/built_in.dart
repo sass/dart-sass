@@ -17,20 +17,28 @@ import '../value.dart';
 class BuiltInModule<T extends AsyncCallable> implements Module<T> {
   final Uri url;
   final Map<String, T> functions;
+  final Map<String, T> mixins;
 
   List<Module<T>> get upstream => const [];
   Map<String, Value> get variables => const {};
   Map<String, AstNode> get variableNodes => const {};
-  Map<String, T> get mixins => const {};
   Extender get extender => Extender.empty;
   CssStylesheet get css => CssStylesheet.empty(url: url);
   bool get transitivelyContainsCss => false;
   bool get transitivelyContainsExtensions => false;
 
-  BuiltInModule(String name, Iterable<T> functions)
+  BuiltInModule(String name, {Iterable<T> functions, Iterable<T> mixins})
       : url = Uri(scheme: "sass", path: name),
-        functions = UnmodifiableMapView(normalizedMap(
-            {for (var function in functions) function.name: function}));
+        functions = _callableMap(functions),
+        mixins = _callableMap(mixins);
+
+  /// Returns a map from [callables]' names to their values.
+  static Map<String, T> _callableMap<T extends AsyncCallable>(
+          Iterable<T> callables) =>
+      UnmodifiableMapView(callables == null
+          ? {}
+          : normalizedMap(
+              {for (var callable in callables) callable.name: callable}));
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     throw SassScriptException("Undefined variable.");

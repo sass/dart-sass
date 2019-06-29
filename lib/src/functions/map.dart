@@ -21,8 +21,8 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass map module.
-final module =
-    BuiltInModule("map", [_get, _merge, _remove, _keys, _values, _hasKey]);
+final module = BuiltInModule("map",
+    functions: [_get, _merge, _remove, _keys, _values, _hasKey]);
 
 final _get = BuiltInCallable("get", r"$map, $key", (arguments) {
   var map = arguments[0].assertMap("map");
