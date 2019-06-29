@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4321c38db6bec0c51bad2e2f65ea5f01285fb355
+// Checksum: fdba485a582818d8fe09e46f2cd51b19eeef7839
 //
 // ignore_for_file: unused_import
 
@@ -885,6 +885,7 @@ class _EvaluateVisitor
       for (var statement in content.declaration.children) {
         statement.accept(this);
       }
+      return null;
     });
 
     return null;
