@@ -42,7 +42,13 @@ void _js({@required bool release}) {
     // * We thoroughly test edge cases in user input.
     if (release) ...["-O4", "--fast-startup"]
   ]);
-  var text = destination.readAsStringSync();
+  var text = destination
+      .readAsStringSync()
+      // Some dependencies dynamically invoke `require()`, which makes Webpack
+      // complain. We replace those with direct references to the modules, which
+      // we load explicitly after the preamble.
+      .replaceAllMapped(RegExp(r'self\.require\("([a-zA-Z0-9_-]+)"\)'),
+          (match) => "self.${match[1]}");
 
   if (release) {
     // We don't ship the source map, so remove the source map comment.
@@ -50,7 +56,16 @@ void _js({@required bool release}) {
         text.replaceFirst(RegExp(r"\n*//# sourceMappingURL=[^\n]+\n*$"), "\n");
   }
 
-  destination.writeAsStringSync(preamble.getPreamble() + text);
+  // Reassigning require() makes Webpack complain.
+  var preambleText =
+      preamble.getPreamble().replaceFirst("self.require = require;\n", "");
+
+  destination.writeAsStringSync("""
+$preambleText
+self.fs = require("fs");
+self.chokidar = require("chokidar");
+self.readline = require("readline");
+$text""");
 }
 
 @Task('Build a pure-JS dev-mode npm package.')

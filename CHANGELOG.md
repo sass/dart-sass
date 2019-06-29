@@ -1,3 +1,9 @@
+## 1.22.1
+
+### JavaScript API
+
+* Expand the dependency on `chokidar` to allow 3.x.
+
 ## 1.22.0
 
 * Produce better stack traces when importing a file that contains a syntax
@@ -20,6 +26,11 @@
 
 * Add a top-level `warn()` function for custom functions and importers to print
   warning messages.
+
+### JavaScript API
+
+* Avoid re-assigning the `require()` function to make the code statically
+  analyzable by Webpack.
 
 ## 1.20.3
 
