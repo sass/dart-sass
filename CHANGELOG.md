@@ -1,3 +1,10 @@
+## 1.22.2
+
+### JavaScript API
+
+* Avoid re-assigning the `require()` function to make the code statically
+  analyzable by Webpack.
+
 ## 1.22.1
 
 ### JavaScript API
@@ -26,11 +33,6 @@
 
 * Add a top-level `warn()` function for custom functions and importers to print
   warning messages.
-
-### JavaScript API
-
-* Avoid re-assigning the `require()` function to make the code statically
-  analyzable by Webpack.
 
 ## 1.20.3
 
