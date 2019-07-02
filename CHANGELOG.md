@@ -16,6 +16,9 @@
   
   [plain-CSS invert]: https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/invert
 
+* The `adjust-color()` function no longer throws an error when a large `$alpha`
+  value is combined with HSL adjustments.
+
 * The `alpha()` function now produces clearer error messages when the wrong
   number of arguments are passed.
 

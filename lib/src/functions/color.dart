@@ -414,7 +414,7 @@ final _adjust = BuiltInCallable("adjust", r"$color, $kwargs...", (arguments) {
         hue: color.hue + (hue ?? 0),
         saturation: (color.saturation + (saturation ?? 0)).clamp(0, 100),
         lightness: (color.lightness + (lightness ?? 0)).clamp(0, 100),
-        alpha: color.alpha + (alpha ?? 0));
+        alpha: (color.alpha + (alpha ?? 0)).clamp(0, 1));
   } else if (alpha != null) {
     return color.changeAlpha((color.alpha + (alpha ?? 0)).clamp(0, 1));
   } else {
