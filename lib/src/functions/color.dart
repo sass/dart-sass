@@ -47,7 +47,7 @@ final global = UnmodifiableListView([
     }
   }),
 
-  BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
+  BuiltInCallable("invert", r"$color, $weight: 100%", (arguments) {
     if (arguments[0] is SassNumber) {
       return _functionString("invert", arguments.take(1));
     }
@@ -56,7 +56,6 @@ final global = UnmodifiableListView([
     var weight = arguments[1].assertNumber("weight");
     var inverse = color.changeRgb(
         red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
-    if (weight.value == 50) return inverse;
 
     return _mixColors(inverse, color, weight);
   }),
@@ -212,7 +211,7 @@ final module = BuiltInModule("color", [
   // ### RGB
   _red, _green, _blue, _mix,
 
-  BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
+  BuiltInCallable("invert", r"$color, $weight: 100%", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("invert", arguments.take(1));
       warn("Passing a number to color.invert() is deprecated.\n"
@@ -225,7 +224,6 @@ final module = BuiltInModule("color", [
     var weight = arguments[1].assertNumber("weight");
     var inverse = color.changeRgb(
         red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
-    if (weight.value == 50) return inverse;
 
     return _mixColors(inverse, color, weight);
   }),

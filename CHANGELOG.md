@@ -4,6 +4,11 @@
   function is now `$amount`, to match the name in LibSass and originally in Ruby
   Sass.
 
+* **Potentially breaking bug fix:** The `invert()` function now properly returns
+  `#808080` when passed `$weight: 50%`. This matches the behavior in LibSass and
+  originally in Ruby Sass, as well as being consistent with other nearby values
+  of `$weight`.
+
 * The `alpha()` function now produces clearer error messages when the wrong
   number of arguments are passed.
 
