@@ -113,7 +113,7 @@ final _slice =
   return SassString(
       string.text.substring(
           codepointIndexToCodeUnitIndex(string.text, startCodepoint),
-          codepointIndexToCodeUnitIndex(string.text, endCodepoint) + 1),
+          codepointIndexToCodeUnitIndex(string.text, endCodepoint + 1)),
       quotes: string.hasQuotes);
 });
 

@@ -22,6 +22,10 @@
 * The `alpha()` function now produces clearer error messages when the wrong
   number of arguments are passed.
 
+* Fix a bug where the `str-slice()` function could produce invalid output when
+  passed a string that contains characters that aren't represented as a single
+  byte in UTF-16.
+
 ## 1.22.2
 
 ### JavaScript API
