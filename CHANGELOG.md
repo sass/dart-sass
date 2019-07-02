@@ -1,3 +1,9 @@
+## 1.22.3
+
+* **Potentially breaking bug fix:** The argument name for the `saturate()`
+  function is now `$amount`, to match the name in LibSass and originally in Ruby
+  Sass.
+
 ## 1.22.2
 
 ### JavaScript API

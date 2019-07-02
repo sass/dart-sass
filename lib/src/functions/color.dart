@@ -130,8 +130,8 @@ final global = UnmodifiableListView([
   }),
 
   BuiltInCallable.overloaded("saturate", {
-    r"$number": (arguments) {
-      var number = arguments[0].assertNumber("number");
+    r"$amount": (arguments) {
+      var number = arguments[0].assertNumber("amount");
       return SassString("saturate(${number.toCssString()})", quotes: false);
     },
     r"$color, $amount": (arguments) {
