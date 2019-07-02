@@ -48,12 +48,17 @@ final global = UnmodifiableListView([
   }),
 
   BuiltInCallable("invert", r"$color, $weight: 100%", (arguments) {
+    var weight = arguments[1].assertNumber("weight");
     if (arguments[0] is SassNumber) {
+      if (weight.value != 100 || !weight.hasUnit("%")) {
+        throw "Only one argument may be passed to the plain-CSS invert() "
+            "function.";
+      }
+
       return _functionString("invert", arguments.take(1));
     }
 
     var color = arguments[0].assertColor("color");
-    var weight = arguments[1].assertNumber("weight");
     var inverse = color.changeRgb(
         red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
 
@@ -212,7 +217,13 @@ final module = BuiltInModule("color", [
   _red, _green, _blue, _mix,
 
   BuiltInCallable("invert", r"$color, $weight: 100%", (arguments) {
+    var weight = arguments[1].assertNumber("weight");
     if (arguments[0] is SassNumber) {
+      if (weight.value != 100 || !weight.hasUnit("%")) {
+        throw "Only one argument may be passed to the plain-CSS invert() "
+            "function.";
+      }
+
       var result = _functionString("invert", arguments.take(1));
       warn("Passing a number to color.invert() is deprecated.\n"
           "\n"
@@ -221,7 +232,6 @@ final module = BuiltInModule("color", [
     }
 
     var color = arguments[0].assertColor("color");
-    var weight = arguments[1].assertNumber("weight");
     var inverse = color.changeRgb(
         red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
 

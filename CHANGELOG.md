@@ -9,6 +9,13 @@
   originally in Ruby Sass, as well as being consistent with other nearby values
   of `$weight`.
 
+* **Potentially breaking bug fix:** The `invert()` function now throws an error
+  if it's used [as a plain CSS function][plain-CSS invert] *and* the Sass-only
+  `$weight` parameter is passed. This never did anything useful, so it's
+  considered a bug fix rather than a full breaking change.
+  
+  [plain-CSS invert]: https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/invert
+
 * The `alpha()` function now produces clearer error messages when the wrong
   number of arguments are passed.
 
