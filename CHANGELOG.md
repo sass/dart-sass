@@ -16,6 +16,10 @@
   
   [plain-CSS invert]: https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/invert
 
+* **Potentially breaking bug fix**: The `str-insert()` function now properly
+  inserts at the end of the string if the `$index` is `-1`. This matches the
+  behavior in LibSass and originally in Ruby Sass.
+
 * The `adjust-color()` function no longer throws an error when a large `$alpha`
   value is combined with HSL adjustments.
 
