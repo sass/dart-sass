@@ -4,6 +4,9 @@
   function is now `$amount`, to match the name in LibSass and originally in Ruby
   Sass.
 
+* The `alpha()` function now produces clearer error messages when the wrong
+  number of arguments are passed.
+
 ## 1.22.2
 
 ### JavaScript API

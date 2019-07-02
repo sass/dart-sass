@@ -171,17 +171,23 @@ final global = UnmodifiableListView([
       return SassNumber(color.alpha);
     },
     r"$args...": (arguments) {
-      if (arguments[0].asList.every((argument) =>
-          argument is SassString &&
-          !argument.hasQuotes &&
-          argument.text.contains(_microsoftFilterStart))) {
+      var argList = arguments[0].asList;
+      if (argList.isNotEmpty &&
+          argList.every((argument) =>
+              argument is SassString &&
+              !argument.hasQuotes &&
+              argument.text.contains(_microsoftFilterStart))) {
         // Suport the proprietary Microsoft alpha() function.
         return _functionString("alpha", arguments);
       }
 
-      assert(arguments.length != 1);
-      throw SassScriptException(
-          "Only 1 argument allowed, but ${arguments.length} were passed.");
+      assert(argList.length != 1);
+      if (argList.isEmpty) {
+        throw SassScriptException("Missing argument \$color.");
+      } else {
+        throw SassScriptException(
+            "Only 1 argument allowed, but ${argList.length} were passed.");
+      }
     }
   }),
 
