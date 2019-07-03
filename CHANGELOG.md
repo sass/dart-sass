@@ -20,6 +20,11 @@
   inserts at the end of the string if the `$index` is `-1`. This matches the
   behavior in LibSass and originally in Ruby Sass.
 
+* **Potentially breaking bug fix**: An empty map returned by `map-remove()` is
+  now treated as identical to the literal value `()`, rather than being treated
+  as though it had a comma separator. This matches the original behavior in Ruby
+  Sass.
+
 * The `adjust-color()` function no longer throws an error when a large `$alpha`
   value is combined with HSL adjustments.
 
