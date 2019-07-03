@@ -100,6 +100,10 @@ final _append =
 
 final _zip = BuiltInCallable("zip", r"$lists...", (arguments) {
   var lists = arguments[0].asList.map((list) => list.asList).toList();
+  if (lists.isEmpty) {
+    return const SassList.empty(separator: ListSeparator.comma);
+  }
+
   var i = 0;
   var results = <SassList>[];
   while (lists.every((list) => i != list.length)) {

@@ -38,6 +38,8 @@
 * Improve the error message for an unknown separator name passed to the `join()`
   or `append()` functions.
 
+* The `zip()` function no longer deadlocks if passed no arguments.
+
 ## 1.22.2
 
 ### JavaScript API
