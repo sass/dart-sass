@@ -40,6 +40,9 @@
 
 * The `zip()` function no longer deadlocks if passed no arguments.
 
+* The `map-remove()` function can now take a `$key` named argument. This matches
+  the signature in LibSass and originally in Ruby Sass.
+
 ## 1.22.2
 
 ### JavaScript API
