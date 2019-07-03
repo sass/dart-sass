@@ -35,6 +35,9 @@
   passed a string that contains characters that aren't represented as a single
   byte in UTF-16.
 
+* Improve the error message for an unknown separator name passed to the `join()`
+  or `append()` functions.
+
 ## 1.22.2
 
 ### JavaScript API
