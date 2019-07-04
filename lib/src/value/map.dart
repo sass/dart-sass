@@ -10,7 +10,8 @@ import 'external/value.dart' as ext;
 class SassMap extends Value implements ext.SassMap {
   final Map<Value, Value> contents;
 
-  ListSeparator get separator => ListSeparator.comma;
+  ListSeparator get separator =>
+      contents.isEmpty ? ListSeparator.undecided : ListSeparator.comma;
 
   List<Value> get asList {
     var result = <Value>[];

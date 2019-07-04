@@ -63,7 +63,7 @@ final _join = BuiltInCallable(
     separator = ListSeparator.comma;
   } else {
     throw SassScriptException(
-        '\$$separator: Must be "space", "comma", or "auto".');
+        '\$separator: Must be "space", "comma", or "auto".');
   }
 
   var bracketed = bracketedParam is SassString && bracketedParam.text == 'auto'
@@ -91,7 +91,7 @@ final _append =
     separator = ListSeparator.comma;
   } else {
     throw SassScriptException(
-        '\$$separator: Must be "space", "comma", or "auto".');
+        '\$separator: Must be "space", "comma", or "auto".');
   }
 
   var newList = [...list.asList, value];
@@ -100,6 +100,10 @@ final _append =
 
 final _zip = BuiltInCallable("zip", r"$lists...", (arguments) {
   var lists = arguments[0].asList.map((list) => list.asList).toList();
+  if (lists.isEmpty) {
+    return const SassList.empty(separator: ListSeparator.comma);
+  }
+
   var i = 0;
   var results = <SassList>[];
   while (lists.every((list) => i != list.length)) {

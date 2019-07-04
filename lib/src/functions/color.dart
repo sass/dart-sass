@@ -47,16 +47,20 @@ final global = UnmodifiableListView([
     }
   }),
 
-  BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
+  BuiltInCallable("invert", r"$color, $weight: 100%", (arguments) {
+    var weight = arguments[1].assertNumber("weight");
     if (arguments[0] is SassNumber) {
+      if (weight.value != 100 || !weight.hasUnit("%")) {
+        throw "Only one argument may be passed to the plain-CSS invert() "
+            "function.";
+      }
+
       return _functionString("invert", arguments.take(1));
     }
 
     var color = arguments[0].assertColor("color");
-    var weight = arguments[1].assertNumber("weight");
     var inverse = color.changeRgb(
         red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
-    if (weight.value == 50) return inverse;
 
     return _mixColors(inverse, color, weight);
   }),
@@ -130,8 +134,8 @@ final global = UnmodifiableListView([
   }),
 
   BuiltInCallable.overloaded("saturate", {
-    r"$number": (arguments) {
-      var number = arguments[0].assertNumber("number");
+    r"$amount": (arguments) {
+      var number = arguments[0].assertNumber("amount");
       return SassString("saturate(${number.toCssString()})", quotes: false);
     },
     r"$color, $amount": (arguments) {
@@ -171,17 +175,23 @@ final global = UnmodifiableListView([
       return SassNumber(color.alpha);
     },
     r"$args...": (arguments) {
-      if (arguments[0].asList.every((argument) =>
-          argument is SassString &&
-          !argument.hasQuotes &&
-          argument.text.contains(_microsoftFilterStart))) {
+      var argList = arguments[0].asList;
+      if (argList.isNotEmpty &&
+          argList.every((argument) =>
+              argument is SassString &&
+              !argument.hasQuotes &&
+              argument.text.contains(_microsoftFilterStart))) {
         // Suport the proprietary Microsoft alpha() function.
         return _functionString("alpha", arguments);
       }
 
-      assert(arguments.length != 1);
-      throw SassScriptException(
-          "Only 1 argument allowed, but ${arguments.length} were passed.");
+      assert(argList.length != 1);
+      if (argList.isEmpty) {
+        throw SassScriptException("Missing argument \$color.");
+      } else {
+        throw SassScriptException(
+            "Only 1 argument allowed, but ${argList.length} were passed.");
+      }
     }
   }),
 
@@ -206,8 +216,14 @@ final module = BuiltInModule("color", [
   // ### RGB
   _red, _green, _blue, _mix,
 
-  BuiltInCallable("invert", r"$color, $weight: 50%", (arguments) {
+  BuiltInCallable("invert", r"$color, $weight: 100%", (arguments) {
+    var weight = arguments[1].assertNumber("weight");
     if (arguments[0] is SassNumber) {
+      if (weight.value != 100 || !weight.hasUnit("%")) {
+        throw "Only one argument may be passed to the plain-CSS invert() "
+            "function.";
+      }
+
       var result = _functionString("invert", arguments.take(1));
       warn("Passing a number to color.invert() is deprecated.\n"
           "\n"
@@ -216,10 +232,8 @@ final module = BuiltInModule("color", [
     }
 
     var color = arguments[0].assertColor("color");
-    var weight = arguments[1].assertNumber("weight");
     var inverse = color.changeRgb(
         red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
-    if (weight.value == 50) return inverse;
 
     return _mixColors(inverse, color, weight);
   }),
@@ -400,7 +414,7 @@ final _adjust = BuiltInCallable("adjust", r"$color, $kwargs...", (arguments) {
         hue: color.hue + (hue ?? 0),
         saturation: (color.saturation + (saturation ?? 0)).clamp(0, 100),
         lightness: (color.lightness + (lightness ?? 0)).clamp(0, 100),
-        alpha: color.alpha + (alpha ?? 0));
+        alpha: (color.alpha + (alpha ?? 0)).clamp(0, 1));
   } else if (alpha != null) {
     return color.changeAlpha((color.alpha + (alpha ?? 0)).clamp(0, 1));
   } else {

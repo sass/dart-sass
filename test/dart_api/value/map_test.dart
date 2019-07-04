@@ -15,7 +15,7 @@ main() {
     SassMap value;
     setUp(() => value = parseValue("(a: b, c: d)") as SassMap);
 
-    test("is comma-separated", () {
+    test("has an undecided separator", () {
       expect(value.separator, equals(ListSeparator.comma));
     });
 
@@ -143,8 +143,8 @@ main() {
     SassMap value;
     setUp(() => value = parseValue("map-remove((a: b), a)") as SassMap);
 
-    test("is comma-separated", () {
-      expect(value.separator, equals(ListSeparator.comma));
+    test("has an undecided separator", () {
+      expect(value.separator, equals(ListSeparator.undecided));
     });
 
     test("returns its contents as a map", () {
