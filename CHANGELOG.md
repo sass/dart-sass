@@ -1,3 +1,9 @@
+## 1.22.5
+
+### JavaScript API
+
+* Improve performance for logic-heavy stylesheets.
+
 ## 1.22.4
 
 * Fix a bug where at-rules imported from within a style rule would appear within
