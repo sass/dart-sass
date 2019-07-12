@@ -40,7 +40,10 @@ void _js({@required bool release}) {
     // * We expect our test coverage to ensure that nothing throws subtypes of
     //   Error.
     // * We thoroughly test edge cases in user input.
-    if (release) ...["-O4", "--fast-startup"]
+    //
+    // We don't minify because download size isn't especially important
+    // server-side and it's nice to get readable stack traces from bug reports.
+    if (release) ...["-O4", "--no-minify", "--fast-startup"]
   ]);
   var text = destination
       .readAsStringSync()
