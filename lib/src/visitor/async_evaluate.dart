@@ -2625,7 +2625,10 @@ class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   _ImportedCssVisitor(this._visitor);
 
-  void visitCssAtRule(ModifiableCssAtRule node) => _visitor._addChild(node);
+  void visitCssAtRule(ModifiableCssAtRule node) {
+    _visitor._addChild(node,
+        through: node.isChildless ? null : (node) => node is CssStyleRule);
+  }
 
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 

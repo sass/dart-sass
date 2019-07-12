@@ -1,3 +1,8 @@
+## 1.22.4
+
+* Fix a bug where at-rules imported from within a style rule would appear within
+  that style rule rather than at the root of the document.
+
 ## 1.22.3
 
 * **Potentially breaking bug fix:** The argument name for the `saturate()`

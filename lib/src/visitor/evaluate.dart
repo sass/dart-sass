@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7915d98d80d1288aa327578a9d274d02c814528a
+// Checksum: cae91fd0fcd94fbb45712286a85761d69fef5415
 //
 // ignore_for_file: unused_import
 
@@ -2590,7 +2590,10 @@ class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   _ImportedCssVisitor(this._visitor);
 
-  void visitCssAtRule(ModifiableCssAtRule node) => _visitor._addChild(node);
+  void visitCssAtRule(ModifiableCssAtRule node) {
+    _visitor._addChild(node,
+        through: node.isChildless ? null : (node) => node is CssStyleRule);
+  }
 
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 
