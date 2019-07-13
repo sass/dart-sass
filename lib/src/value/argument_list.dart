@@ -2,11 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:collection';
-
-import 'package:collection/collection.dart';
-
-import '../utils.dart';
 import '../value.dart';
 import 'external/value.dart' as ext;
 
@@ -30,6 +25,6 @@ class SassArgumentList extends SassList implements ext.SassArgumentList {
 
   SassArgumentList(Iterable<Value> contents, Map<String, Value> keywords,
       ListSeparator separator)
-      : _keywords = UnmodifiableMapView(normalizedMap(keywords)),
+      : _keywords = Map.unmodifiable(keywords),
         super(contents, separator);
 }

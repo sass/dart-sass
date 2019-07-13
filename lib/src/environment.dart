@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: fe68ec0b099d3f2992af03dbdaeff0b3e8392808
+// Checksum: 0e6357eae4a02ebe64d8cdbf48a14797f98a418c
 //
 // ignore_for_file: unused_import
 
@@ -150,13 +150,13 @@ class Environment {
         _globalModules = null,
         _forwardedModules = null,
         _allModules = [],
-        _variables = [normalizedMap()],
-        _variableNodes = sourceMap ? [normalizedMap()] : null,
-        _variableIndices = normalizedMap(),
-        _functions = [normalizedMap()],
-        _functionIndices = normalizedMap(),
-        _mixins = [normalizedMap()],
-        _mixinIndices = normalizedMap();
+        _variables = [{}],
+        _variableNodes = sourceMap ? [{}] : null,
+        _variableIndices = {},
+        _functions = [{}],
+        _functionIndices = {},
+        _mixins = [{}],
+        _mixinIndices = {};
 
   Environment._(
       this._modules,
@@ -172,9 +172,9 @@ class Environment {
       // existing environment in closure() because the copying took a lot of
       // time and was rarely helpful. This saves a bunch of time on Susy's
       // tests.
-      : _variableIndices = normalizedMap(),
-        _functionIndices = normalizedMap(),
-        _mixinIndices = normalizedMap();
+      : _variableIndices = {},
+        _functionIndices = {},
+        _mixinIndices = {};
 
   /// Creates a closure based on this environment.
   ///
@@ -352,7 +352,7 @@ class Environment {
   /// module, or `null` if no such variable is declared in any namespaceless
   /// module.
   Value _getVariableFromGlobalModule(String name) =>
-      _fromOneModule("variable", "\$$name", (module) => module.variables[name]);
+      _fromOneModule("variable", (module) => module.variables[name]);
 
   /// Returns the node for the variable named [name], or `null` if no such
   /// variable is declared.
@@ -475,7 +475,7 @@ class Environment {
       // If this module doesn't already contain a variable named [name], try
       // setting it in a global module.
       if (!_variables.first.containsKey(name) && _globalModules != null) {
-        var moduleWithName = _fromOneModule("variable", "\$$name",
+        var moduleWithName = _fromOneModule("variable",
             (module) => module.variables.containsKey(name) ? module : null);
         if (moduleWithName != null) {
           moduleWithName.setVariable(name, value, nodeWithSpan);
@@ -545,7 +545,7 @@ class Environment {
   /// module, or `null` if no such function is declared in any namespaceless
   /// module.
   Callable _getFunctionFromGlobalModule(String name) =>
-      _fromOneModule("function", name, (module) => module.functions[name]);
+      _fromOneModule("function", (module) => module.functions[name]);
 
   /// Returns the index of the last map in [_functions] that has a [name] key,
   /// or `null` if none exists.
@@ -594,7 +594,7 @@ class Environment {
   /// module, or `null` if no such mixin is declared in any namespaceless
   /// module.
   Callable _getMixinFromGlobalModule(String name) =>
-      _fromOneModule("mixin", name, (module) => module.mixins[name]);
+      _fromOneModule("mixin", (module) => module.mixins[name]);
 
   /// Returns the index of the last map in [_mixins] that has a [name] key, or
   /// `null` if none exists.
@@ -667,10 +667,10 @@ class Environment {
     var wasInSemiGlobalScope = _inSemiGlobalScope;
     _inSemiGlobalScope = semiGlobal;
 
-    _variables.add(normalizedMap());
-    _variableNodes?.add(normalizedMap());
-    _functions.add(normalizedMap());
-    _mixins.add(normalizedMap());
+    _variables.add({});
+    _variableNodes?.add({});
+    _functions.add({});
+    _mixins.add({});
     try {
       return callback();
     } finally {
@@ -712,10 +712,8 @@ class Environment {
   /// error if [callback] returns non-`null` for more than one module.
   ///
   /// The [type] should be the singular name of the value type being returned.
-  /// The [name] should be the specific name being looked up. These are's used
-  /// to format an appropriate error message.
-  T _fromOneModule<T>(
-      String type, String name, T callback(Module<Callable> module)) {
+  /// It's used to format an appropriate error message.
+  T _fromOneModule<T>(String type, T callback(Module<Callable> module)) {
     if (_globalModules == null) return null;
 
     T value;
@@ -724,7 +722,7 @@ class Environment {
       if (valueInModule != null && value != null) {
         // TODO(nweiz): List the module URLs.
         throw SassScriptException(
-            'Multiple global modules have a $type named "$name".');
+            'This $type is available from multiple global modules.');
       }
 
       value = valueInModule;
@@ -790,7 +788,7 @@ class _EnvironmentModule implements Module<Callable> {
       List<Module<Callable>> forwarded) {
     if (forwarded.isEmpty) return const {};
 
-    var modulesByVariable = normalizedMap<Module<Callable>>();
+    var modulesByVariable = <String, Module<Callable>>{};
     for (var module in forwarded) {
       if (module is _EnvironmentModule) {
         // Flatten nested forwarded modules to avoid O(depth) overhead.
@@ -819,8 +817,7 @@ class _EnvironmentModule implements Module<Callable> {
     ];
     if (allMaps.length == 1) return localMap;
 
-    return MergedMapView(allMaps,
-        equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+    return MergedMapView(allMaps);
   }
 
   _EnvironmentModule._(
