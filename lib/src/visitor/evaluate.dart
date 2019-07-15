@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: cae91fd0fcd94fbb45712286a85761d69fef5415
+// Checksum: 1685f0e62002cbb13d3d54ea3d5166c4c7f8f678
 //
 // ignore_for_file: unused_import
 
@@ -1949,14 +1949,18 @@ class _EvaluateVisitor
       {bool trackSpans}) {
     trackSpans ??= _sourceMap;
 
-    var positional = arguments.positional
-        .map((Expression expression) => expression.accept(this))
-        .toList();
+    var positional = [
+      for (var expression in arguments.positional) expression.accept(this)
+    ];
     var named = normalizedMapMap<String, Expression, Value>(arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    var positionalNodes =
-        trackSpans ? arguments.positional.map(_expressionNode).toList() : null;
+    var positionalNodes = trackSpans
+        ? [
+            for (var expression in arguments.positional)
+              _expressionNode(expression)
+          ]
+        : null;
     var namedNodes = trackSpans
         ? mapMap<String, Expression, String, AstNode>(arguments.named,
             value: (_, expression) => _expressionNode(expression))
