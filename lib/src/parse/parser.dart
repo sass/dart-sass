@@ -41,6 +41,12 @@ class Parser {
     }
   }
 
+  /// Returns whether [text] starts like a variable declaration.
+  ///
+  /// Ignores everything after the `:`.
+  static bool isVariableDeclarationLike(String text, {Logger logger}) =>
+      Parser(text, logger: logger)._isVariableDeclarationLike();
+
   @protected
   Parser(String contents, {url, Logger logger})
       : scanner = SpanScanner(contents, sourceUrl: url),
@@ -52,6 +58,14 @@ class Parser {
       scanner.expectDone();
       return result;
     });
+  }
+
+  bool _isVariableDeclarationLike() {
+    if (!scanner.scanChar($dollar)) return false;
+    if (!lookingAtIdentifier()) return false;
+    identifier();
+    whitespace();
+    return scanner.scanChar($colon);
   }
 
   // ## Tokens
