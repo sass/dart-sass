@@ -1111,9 +1111,24 @@ class _EvaluateVisitor
 
       _activeModules.add(url);
 
-      // TODO(nweiz): If [stylesheet] contains no `@use` or `@forward` rules, just
-      // evaluate it directly in [_root] rather than making a new
-      // [ModifiableCssStylesheet] and manually copying members.
+      // If the imported stylesheet doesn't use any modules, we can inject its
+      // CSS directly into the current stylesheet. If it does use modules, we
+      // need to put its CSS into an intermediate [ModifiableCssStylesheet] so
+      // that we can hermetically resolve `@extend`s before injecting it.
+      if (stylesheet.uses.isEmpty && stylesheet.forwards.isEmpty) {
+        var environment = _environment.global();
+        await _withEnvironment(environment, () async {
+          var oldImporter = _importer;
+          var oldStylesheet = _stylesheet;
+          _importer = importer;
+          _stylesheet = stylesheet;
+          await visitStylesheet(stylesheet);
+          _importer = oldImporter;
+          _stylesheet = oldStylesheet;
+        });
+        _activeModules.remove(url);
+        return;
+      }
 
       List<ModifiableCssNode> children;
       var environment = _environment.global();

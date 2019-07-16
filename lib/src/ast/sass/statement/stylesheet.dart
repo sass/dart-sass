@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:collection';
+
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -12,6 +14,11 @@ import '../../../parse/scss.dart';
 import '../../../syntax.dart';
 import '../statement.dart';
 import 'parent.dart';
+import 'forward_rule.dart';
+import 'loud_comment.dart';
+import 'silent_comment.dart';
+import 'use_rule.dart';
+import 'variable_declaration.dart';
 
 /// A Sass stylesheet.
 ///
@@ -22,8 +29,28 @@ class Stylesheet extends ParentStatement {
   /// Whether this was parsed from a plain CSS stylesheet.
   final bool plainCss;
 
+  /// All the `@use` rules that appear in this stylesheet.
+  List<UseRule> get uses => UnmodifiableListView(_uses);
+  final _uses = <UseRule>[];
+
+  /// All the `@forward` rules that appear in this stylesheet.
+  List<ForwardRule> get forwards => UnmodifiableListView(_forwards);
+  final _forwards = <ForwardRule>[];
+
   Stylesheet(Iterable<Statement> children, this.span, {this.plainCss = false})
-      : super(List.unmodifiable(children));
+      : super(List.unmodifiable(children)) {
+    for (var child in this.children) {
+      if (child is UseRule) {
+        _uses.add(child);
+      } else if (child is ForwardRule) {
+        _forwards.add(child);
+      } else if (child is! SilentComment &&
+          child is! LoudComment &&
+          child is! VariableDeclaration) {
+        break;
+      }
+    }
+  }
 
   /// Parses a stylesheet from [contents] according to [syntax].
   ///
