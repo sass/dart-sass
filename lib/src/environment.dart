@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: fe68ec0b099d3f2992af03dbdaeff0b3e8392808
+// Checksum: 23da0a0dca141c7ac432dc64958c4240eeceb23d
 //
 // ignore_for_file: unused_import
 
@@ -722,9 +722,11 @@ class Environment {
     for (var module in _globalModules) {
       var valueInModule = callback(module);
       if (valueInModule != null && value != null) {
-        // TODO(nweiz): List the module URLs.
         throw SassScriptException(
-            'Multiple global modules have a $type named "$name".');
+            'Multiple global modules have a $type named "$name":\n' +
+                bulletedList(_globalModules
+                    .where((module) => callback(module) != null)
+                    .map((module) => p.prettyUri(module.url))));
       }
 
       value = valueInModule;
