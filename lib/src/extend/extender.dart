@@ -431,8 +431,6 @@ class Extender {
             if (existingSources.containsKey(extender)) return;
             existingSources[extender] = extension;
 
-            // TODO(nweiz): how do we handle mixed optional and mandatory
-            // extensions here?
             if (extensionsForTarget != null || rulesForTarget != null) {
               newExtensions ??= {};
               newExtensions
