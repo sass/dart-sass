@@ -550,9 +550,7 @@ class _EvaluateVisitor
   /// If [clone] is `true`, this will copy the modules before extending them so
   /// that they don't modify [root] or its dependencies.
   CssStylesheet _combineCss(Module root, {bool clone = false}) {
-    // TODO(nweiz): short-circuit if no upstream modules (transitively) include
-    // any CSS.
-    if (root.upstream.isEmpty) {
+    if (!root.upstream.any((module) => module.transitivelyContainsCss)) {
       var selectors = root.extender.simpleSelectors;
       var unsatisfiedExtension = firstOrNull(root.extender
           .extensionsWhereTarget((target) => !selectors.contains(target)));
