@@ -378,7 +378,7 @@ final _adjust = BuiltInCallable("adjust", r"$color, $kwargs...", (arguments) {
         "be passed by name.");
   }
 
-  var keywords = normalizedMap(argumentList.keywords);
+  var keywords = Map.of(argumentList.keywords);
   getInRange(String name, num min, num max) =>
       keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
 
@@ -431,7 +431,7 @@ final _scale = BuiltInCallable("scale", r"$color, $kwargs...", (arguments) {
         "be passed by name.");
   }
 
-  var keywords = normalizedMap(argumentList.keywords);
+  var keywords = Map.of(argumentList.keywords);
   getScale(String name) {
     var value = keywords.remove(name);
     if (value == null) return null;
@@ -492,7 +492,7 @@ final _change = BuiltInCallable("change", r"$color, $kwargs...", (arguments) {
         "be passed by name.");
   }
 
-  var keywords = normalizedMap(argumentList.keywords);
+  var keywords = Map.of(argumentList.keywords);
   getInRange(String name, num min, num max) =>
       keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
 

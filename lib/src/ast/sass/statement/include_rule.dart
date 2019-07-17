@@ -16,7 +16,8 @@ class IncludeRule implements Statement, CallableInvocation {
   /// without a namespace.
   final String namespace;
 
-  /// The name of the mixin being invoked.
+  /// The name of the mixin being invoked, with underscores converted to
+  /// hyphens.
   final String name;
 
   /// The arguments to pass to the mixin.

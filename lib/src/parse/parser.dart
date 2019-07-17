@@ -133,11 +133,13 @@ class Parser {
 
   /// Consumes a plain CSS identifier.
   ///
+  /// If [normalize] is `true`, this converts underscores into hyphens.
+  ///
   /// If [unit] is `true`, this doesn't parse a `-` followed by a digit. This
   /// ensures that `1px-2px` parses as subtraction rather than the unit
   /// `px-2px`.
   @protected
-  String identifier({bool unit = false}) {
+  String identifier({bool normalize = false, bool unit = false}) {
     // NOTE: this logic is largely duplicated in
     // StylesheetParser._interpolatedIdentifier and isIdentifier in utils.dart.
     // Most changes here should be mirrored there.
@@ -150,6 +152,9 @@ class Parser {
     var first = scanner.peekChar();
     if (first == null) {
       scanner.error("Expected identifier.");
+    } else if (normalize && first == $underscore) {
+      scanner.readChar();
+      text.writeCharCode($dash);
     } else if (isNameStart(first)) {
       text.writeCharCode(scanner.readChar());
     } else if (first == $backslash) {
@@ -158,7 +163,7 @@ class Parser {
       scanner.error("Expected identifier.");
     }
 
-    _identifierBody(text, unit: unit);
+    _identifierBody(text, normalize: normalize, unit: unit);
     return text.toString();
   }
 
@@ -172,7 +177,8 @@ class Parser {
   }
 
   /// Like [_identifierBody], but parses the body into the [text] buffer.
-  void _identifierBody(StringBuffer text, {bool unit = false}) {
+  void _identifierBody(StringBuffer text,
+      {bool normalize = false, bool unit = false}) {
     while (true) {
       var next = scanner.peekChar();
       if (next == null) {
@@ -182,6 +188,9 @@ class Parser {
         var second = scanner.peekChar(1);
         if (second != null && (second == $dot || isDigit(second))) break;
         text.writeCharCode(scanner.readChar());
+      } else if (normalize && next == $underscore) {
+        scanner.readChar();
+        text.writeCharCode($dash);
       } else if (isName(next)) {
         text.writeCharCode(scanner.readChar());
       } else if (next == $backslash) {
@@ -403,7 +412,7 @@ class Parser {
   @protected
   String variableName() {
     scanner.expectChar($dollar);
-    return identifier();
+    return identifier(normalize: true);
   }
 
   // ## Characters

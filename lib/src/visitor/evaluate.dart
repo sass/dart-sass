@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1685f0e62002cbb13d3d54ea3d5166c4c7f8f678
+// Checksum: 7169a54c3952c7708141a4cec606dee0c8ba4f2d
 //
 // ignore_for_file: unused_import
 
@@ -127,7 +127,7 @@ class _EvaluateVisitor
 
   /// Built-in functions that are globally-acessible, even under the new module
   /// system.
-  final _builtInFunctions = normalizedMap<Callable>();
+  final _builtInFunctions = <String, Callable>{};
 
   /// Built in modules, indexed by their URLs.
   final _builtInModules = <Uri, Module<Callable>>{};
@@ -265,19 +265,22 @@ class _EvaluateVisitor
           (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(_environment.globalVariableExists(variable.text,
+        return SassBoolean(_environment.globalVariableExists(
+            variable.text.replaceAll("_", "-"),
             namespace: module?.text));
       }),
 
       BuiltInCallable("variable-exists", r"$name", (arguments) {
         var variable = arguments[0].assertString("name");
-        return SassBoolean(_environment.variableExists(variable.text));
+        return SassBoolean(
+            _environment.variableExists(variable.text.replaceAll("_", "-")));
       }),
 
       BuiltInCallable("function-exists", r"$name, $module: null", (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(_environment.functionExists(variable.text,
+        return SassBoolean(_environment.functionExists(
+                variable.text.replaceAll("_", "-"),
                 namespace: module?.text) ||
             _builtInFunctions.containsKey(variable.text));
       }),
@@ -285,8 +288,9 @@ class _EvaluateVisitor
       BuiltInCallable("mixin-exists", r"$name, $module: null", (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(
-            _environment.mixinExists(variable.text, namespace: module?.text));
+        return SassBoolean(_environment.mixinExists(
+            variable.text.replaceAll("_", "-"),
+            namespace: module?.text));
       }),
 
       BuiltInCallable("content-exists", "", (arguments) {
@@ -1534,8 +1538,8 @@ class _EvaluateVisitor
                   "of the stylesheet,\n"
                   "the !global flag is unnecessary and can safely be removed."
               : "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-                  "declare new variables. Consider adding `\$${node.name}: "
-                  "null` at the root of the\n"
+                  "declare new variables. Consider adding "
+                  "`${node.originalName}: null` at the root of the\n"
                   "stylesheet.",
           span: node.span,
           trace: _stackTrace(node.span),
@@ -1725,7 +1729,14 @@ class _EvaluateVisitor
     Callable function;
     if (plainName != null) {
       function = _addExceptionSpan(
-          node, () => _getFunction(plainName, namespace: node.namespace));
+          node,
+          () => _getFunction(
+              // If the node has a namespace, the plain name was already
+              // normalized at parse-time so we don't need to renormalize here.
+              node.namespace == null
+                  ? plainName.replaceAll("_", "-")
+                  : plainName,
+              namespace: node.namespace));
     }
 
     if (function == null) {
@@ -1952,7 +1963,7 @@ class _EvaluateVisitor
     var positional = [
       for (var expression in arguments.positional) expression.accept(this)
     ];
-    var named = normalizedMapMap<String, Expression, Value>(arguments.named,
+    var named = mapMap<String, Expression, String, Value>(arguments.named,
         value: (_, expression) => expression.accept(this));
 
     var positionalNodes = trackSpans
@@ -2030,7 +2041,7 @@ class _EvaluateVisitor
     }
 
     var positional = invocation.arguments.positional.toList();
-    var named = normalizedMap(invocation.arguments.named);
+    var named = Map.of(invocation.arguments.named);
     var rest = invocation.arguments.rest.accept(this);
     if (rest is SassMap) {
       _addRestMap(named, rest, invocation, (value) => ValueExpression(value));

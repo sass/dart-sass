@@ -1,3 +1,13 @@
+## 1.22.6
+
+* **Potentially breaking bug fix:** The `keywords()` function now converts
+  underscore-separated argument names to hyphen-separated names. This matches
+  LibSass's behavior, but not Ruby Sass's.
+
+* Further improve performance for logic-heavy stylesheets.
+
+* Improve a few error messages.
+
 ## 1.22.5
 
 ### JavaScript API

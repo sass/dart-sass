@@ -10,7 +10,6 @@ import '../callable.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../module.dart';
-import '../utils.dart';
 import '../value.dart';
 
 /// A module provided by Sass, available under the special `sass:` URL space.
@@ -29,8 +28,8 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
 
   BuiltInModule(String name, Iterable<T> functions)
       : url = Uri(scheme: "sass", path: name),
-        functions = UnmodifiableMapView(normalizedMap(
-            {for (var function in functions) function.name: function}));
+        functions = UnmodifiableMapView(
+            {for (var function in functions) function.name: function});
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     throw SassScriptException("Undefined variable.");

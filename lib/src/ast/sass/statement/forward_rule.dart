@@ -5,7 +5,6 @@
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression/string.dart';
 import '../statement.dart';
@@ -80,8 +79,8 @@ class ForwardRule implements Statement {
       Iterable<String> shownVariables, this.span,
       {this.prefix})
       : shownMixinsAndFunctions =
-            UnmodifiableSetView(normalizedSet(shownMixinsAndFunctions)),
-        shownVariables = UnmodifiableSetView(normalizedSet(shownVariables)),
+            UnmodifiableSetView(Set.of(shownMixinsAndFunctions)),
+        shownVariables = UnmodifiableSetView(Set.of(shownVariables)),
         hiddenMixinsAndFunctions = null,
         hiddenVariables = null;
 
@@ -93,8 +92,8 @@ class ForwardRule implements Statement {
       : shownMixinsAndFunctions = null,
         shownVariables = null,
         hiddenMixinsAndFunctions =
-            UnmodifiableSetView(normalizedSet(hiddenMixinsAndFunctions)),
-        hiddenVariables = UnmodifiableSetView(normalizedSet(hiddenVariables));
+            UnmodifiableSetView(Set.of(hiddenMixinsAndFunctions)),
+        hiddenVariables = UnmodifiableSetView(Set.of(hiddenVariables));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this);
 

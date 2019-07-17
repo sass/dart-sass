@@ -13,22 +13,13 @@ class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The prefix to add to the map keys.
   final String _prefix;
 
-  /// The equality operation to use for comparing map keys.
-  final bool Function(String string1, String string2) _equals;
-
   Iterable<String> get keys => _PrefixedKeys(this);
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
 
   /// Creates a new prefixed map view.
-  ///
-  /// The map's notion of equality must match [equals], and must be stable over
-  /// substrings (that is, if `T == S`, then for all ranges `i..j`,
-  /// `T[i..j] == S[i..j]`).
-  PrefixedMapView(this._map, this._prefix,
-      {bool equals(String string1, String string2)})
-      : _equals = equals ?? ((string1, string2) => string1 == string2);
+  PrefixedMapView(this._map, this._prefix);
 
   V operator [](Object key) => key is String && _startsWith(key, _prefix)
       ? _map[key.substring(_prefix.length)]
@@ -38,10 +29,9 @@ class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
       ? _map.containsKey(key.substring(_prefix.length))
       : false;
 
-  /// Returns whether [string] begins with [prefix] according to [_equals].
+  /// Returns whether [string] begins with [prefix].
   bool _startsWith(String string, String prefix) =>
-      string.length >= prefix.length &&
-      _equals(string.substring(0, prefix.length), prefix);
+      string.length >= prefix.length && string.startsWith(prefix);
 }
 
 /// The implementation of [PrefixedMapViews.keys].
