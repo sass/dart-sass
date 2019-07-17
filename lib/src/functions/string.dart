@@ -64,10 +64,13 @@ final _insert =
   // the `$insert` string is at `$index` in the result, which means that we
   // want to insert before `$index` if it's positive and after if it's
   // negative.
-  if (indexInt < 0) indexInt++;
+  if (indexInt < 0) {
+    // +1 because negative indexes start counting from -1 rather than 0, and
+    // another +1 because we want to insert *after* that index.
+    indexInt = string.sassLength + indexInt + 2;
+  }
 
   var codepointIndex = _codepointForIndex(indexInt, string.sassLength);
-
   var codeUnitIndex =
       codepointIndexToCodeUnitIndex(string.text, codepointIndex);
   return SassString(
@@ -113,7 +116,7 @@ final _slice =
   return SassString(
       string.text.substring(
           codepointIndexToCodeUnitIndex(string.text, startCodepoint),
-          codepointIndexToCodeUnitIndex(string.text, endCodepoint) + 1),
+          codepointIndexToCodeUnitIndex(string.text, endCodepoint + 1)),
       quotes: string.hasQuotes);
 });
 

@@ -36,14 +36,23 @@ final _merge = BuiltInCallable("merge", r"$map1, $map2", (arguments) {
   return SassMap({...map1.contents, ...map2.contents});
 });
 
-final _remove = BuiltInCallable("remove", r"$map, $keys...", (arguments) {
-  var map = arguments[0].assertMap("map");
-  var keys = arguments[1];
-  var mutableMap = Map.of(map.contents);
-  for (var key in keys.asList) {
-    mutableMap.remove(key);
+final _remove = BuiltInCallable.overloaded("remove", {
+  // Because the signature below has an explicit `$key` argument, it doesn't
+  // allow zero keys to be passed. We want to allow that case, so we add an
+  // explicit overload for it.
+  r"$map": (arguments) => arguments[0].assertMap("map"),
+
+  // The first argument has special handling so that the $key parameter can be
+  // passed by name.
+  r"$map, $key, $keys...": (arguments) {
+    var map = arguments[0].assertMap("map");
+    var keys = [arguments[1], ...arguments[2].asList];
+    var mutableMap = Map.of(map.contents);
+    for (var key in keys) {
+      mutableMap.remove(key);
+    }
+    return SassMap(mutableMap);
   }
-  return SassMap(mutableMap);
 });
 
 final _keys = BuiltInCallable(

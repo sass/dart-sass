@@ -4,5 +4,5 @@
 # https://opensource.org/licenses/MIT.
 
 echo "$(tput bold)Running sass-spec against $(dart --version &> /dev/stdout).$(tput sgr0)"
-if [ "$ASYNC" = true ]; then extra_args="--dart-args --async"; fi
+if [ "$ASYNC" = true ]; then extra_args="--cmd-args --async"; fi
 (cd sass-spec; bundle exec sass-spec.rb --dart .. $extra_args)
