@@ -153,7 +153,7 @@ class ScssParser extends StylesheetParser {
     } while (scanner.scan("//"));
 
     if (plainCss) {
-      error("Silent comments arne't allowed in plain CSS.",
+      error("Silent comments aren't allowed in plain CSS.",
           scanner.spanFrom(start));
     }
 

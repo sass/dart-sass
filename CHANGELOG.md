@@ -1,3 +1,66 @@
+## 1.22.5
+
+### JavaScript API
+
+* Improve performance for logic-heavy stylesheets.
+
+## 1.22.4
+
+* Fix a bug where at-rules imported from within a style rule would appear within
+  that style rule rather than at the root of the document.
+
+## 1.22.3
+
+* **Potentially breaking bug fix:** The argument name for the `saturate()`
+  function is now `$amount`, to match the name in LibSass and originally in Ruby
+  Sass.
+
+* **Potentially breaking bug fix:** The `invert()` function now properly returns
+  `#808080` when passed `$weight: 50%`. This matches the behavior in LibSass and
+  originally in Ruby Sass, as well as being consistent with other nearby values
+  of `$weight`.
+
+* **Potentially breaking bug fix:** The `invert()` function now throws an error
+  if it's used [as a plain CSS function][plain-CSS invert] *and* the Sass-only
+  `$weight` parameter is passed. This never did anything useful, so it's
+  considered a bug fix rather than a full breaking change.
+  
+  [plain-CSS invert]: https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/invert
+
+* **Potentially breaking bug fix**: The `str-insert()` function now properly
+  inserts at the end of the string if the `$index` is `-1`. This matches the
+  behavior in LibSass and originally in Ruby Sass.
+
+* **Potentially breaking bug fix**: An empty map returned by `map-remove()` is
+  now treated as identical to the literal value `()`, rather than being treated
+  as though it had a comma separator. This matches the original behavior in Ruby
+  Sass.
+
+* The `adjust-color()` function no longer throws an error when a large `$alpha`
+  value is combined with HSL adjustments.
+
+* The `alpha()` function now produces clearer error messages when the wrong
+  number of arguments are passed.
+
+* Fix a bug where the `str-slice()` function could produce invalid output when
+  passed a string that contains characters that aren't represented as a single
+  byte in UTF-16.
+
+* Improve the error message for an unknown separator name passed to the `join()`
+  or `append()` functions.
+
+* The `zip()` function no longer deadlocks if passed no arguments.
+
+* The `map-remove()` function can now take a `$key` named argument. This matches
+  the signature in LibSass and originally in Ruby Sass.
+
+## 1.22.2
+
+### JavaScript API
+
+* Avoid re-assigning the `require()` function to make the code statically
+  analyzable by Webpack.
+
 ## 1.22.1
 
 ### JavaScript API
@@ -26,11 +89,6 @@
 
 * Add a top-level `warn()` function for custom functions and importers to print
   warning messages.
-
-### JavaScript API
-
-* Avoid re-assigning the `require()` function to make the code statically
-  analyzable by Webpack.
 
 ## 1.20.3
 
