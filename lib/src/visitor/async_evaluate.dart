@@ -2133,15 +2133,19 @@ class _EvaluateVisitor
       {bool trackSpans}) async {
     trackSpans ??= _sourceMap;
 
-    var positional = (await mapAsync(arguments.positional,
-            (Expression expression) => expression.accept(this)))
-        .toList();
+    var positional = [
+      for (var expression in arguments.positional) await expression.accept(this)
+    ];
     var named = await normalizedMapMapAsync<String, Expression, Value>(
         arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    var positionalNodes =
-        trackSpans ? arguments.positional.map(_expressionNode).toList() : null;
+    var positionalNodes = trackSpans
+        ? [
+            for (var expression in arguments.positional)
+              _expressionNode(expression)
+          ]
+        : null;
     var namedNodes = trackSpans
         ? mapMap<String, Expression, String, AstNode>(arguments.named,
             value: (_, expression) => _expressionNode(expression))
@@ -2796,7 +2800,10 @@ class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   _ImportedCssVisitor(this._visitor);
 
-  void visitCssAtRule(ModifiableCssAtRule node) => _visitor._addChild(node);
+  void visitCssAtRule(ModifiableCssAtRule node) {
+    _visitor._addChild(node,
+        through: node.isChildless ? null : (node) => node is CssStyleRule);
+  }
 
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 

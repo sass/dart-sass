@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 2dc9fdf171d8c876f24994eb0e106328154497c4
+// Checksum: f6ac9bc98278f8019357f5d6d56d46f46636f4bc
 //
 // ignore_for_file: unused_import
 
@@ -2119,14 +2119,18 @@ class _EvaluateVisitor
       {bool trackSpans}) {
     trackSpans ??= _sourceMap;
 
-    var positional = arguments.positional
-        .map((Expression expression) => expression.accept(this))
-        .toList();
+    var positional = [
+      for (var expression in arguments.positional) expression.accept(this)
+    ];
     var named = normalizedMapMap<String, Expression, Value>(arguments.named,
         value: (_, expression) => expression.accept(this));
 
-    var positionalNodes =
-        trackSpans ? arguments.positional.map(_expressionNode).toList() : null;
+    var positionalNodes = trackSpans
+        ? [
+            for (var expression in arguments.positional)
+              _expressionNode(expression)
+          ]
+        : null;
     var namedNodes = trackSpans
         ? mapMap<String, Expression, String, AstNode>(arguments.named,
             value: (_, expression) => _expressionNode(expression))
@@ -2760,7 +2764,10 @@ class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   _ImportedCssVisitor(this._visitor);
 
-  void visitCssAtRule(ModifiableCssAtRule node) => _visitor._addChild(node);
+  void visitCssAtRule(ModifiableCssAtRule node) {
+    _visitor._addChild(node,
+        through: node.isChildless ? null : (node) => node is CssStyleRule);
+  }
 
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 

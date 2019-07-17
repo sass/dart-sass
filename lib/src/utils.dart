@@ -316,7 +316,11 @@ bool startsWithIgnoreSeparator(String string, String prefix) {
 /// If [source] is passed, copies it into the map.
 Map<String, V> normalizedMap<V>([Map<String, V> source]) {
   var map = LinkedHashMap<String, V>(
-      equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+      // Explicitly set this because the default implementation involves a type
+      // check, which is very expensive in dart2js.
+      isValidKey: (_) => true,
+      equals: equalsIgnoreSeparator,
+      hashCode: hashCodeIgnoreSeparator);
   if (source != null) map.addAll(source);
   return map;
 }
@@ -326,7 +330,11 @@ Map<String, V> normalizedMap<V>([Map<String, V> source]) {
 /// If [source] is passed, copies it into the set.
 Set<String> normalizedSet([Iterable<String> source]) {
   var set = LinkedHashSet(
-      equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+      // Explicitly set this because the default implementation involves a type
+      // check, which is very expensive in dart2js.
+      isValidKey: (_) => true,
+      equals: equalsIgnoreSeparator,
+      hashCode: hashCodeIgnoreSeparator);
   if (source != null) set.addAll(source);
   return set;
 }
