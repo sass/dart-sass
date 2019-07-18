@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7169a54c3952c7708141a4cec606dee0c8ba4f2d
+// Checksum: c8527e9c89f7ebbab760b62b70da66d1b01b2bf3
 //
 // ignore_for_file: unused_import
 
@@ -556,9 +556,7 @@ class _EvaluateVisitor
   /// If [clone] is `true`, this will copy the modules before extending them so
   /// that they don't modify [root] or its dependencies.
   CssStylesheet _combineCss(Module<Callable> root, {bool clone = false}) {
-    // TODO(nweiz): short-circuit if no upstream modules (transitively) include
-    // any CSS.
-    if (root.upstream.isEmpty) {
+    if (!root.upstream.any((module) => module.transitivelyContainsCss)) {
       var selectors = root.extender.simpleSelectors;
       var unsatisfiedExtension = firstOrNull(root.extender
           .extensionsWhereTarget((target) => !selectors.contains(target)));
@@ -1114,9 +1112,24 @@ class _EvaluateVisitor
 
       _activeModules.add(url);
 
-      // TODO(nweiz): If [stylesheet] contains no `@use` or `@forward` rules, just
-      // evaluate it directly in [_root] rather than making a new
-      // [ModifiableCssStylesheet] and manually copying members.
+      // If the imported stylesheet doesn't use any modules, we can inject its
+      // CSS directly into the current stylesheet. If it does use modules, we
+      // need to put its CSS into an intermediate [ModifiableCssStylesheet] so
+      // that we can hermetically resolve `@extend`s before injecting it.
+      if (stylesheet.uses.isEmpty && stylesheet.forwards.isEmpty) {
+        var environment = _environment.global();
+        _withEnvironment(environment, () {
+          var oldImporter = _importer;
+          var oldStylesheet = _stylesheet;
+          _importer = importer;
+          _stylesheet = stylesheet;
+          visitStylesheet(stylesheet);
+          _importer = oldImporter;
+          _stylesheet = oldStylesheet;
+        });
+        _activeModules.remove(url);
+        return;
+      }
 
       List<ModifiableCssNode> children;
       var environment = _environment.global();
