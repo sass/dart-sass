@@ -546,26 +546,24 @@ main() {
           """);
         });
 
-        if (parseUse) {
-          test("a @use rule with a with clause", () {
-            _expectScssSourceMap(r"""
-              $var1: {{1}}new value;
-              @use 'other' with ($var2: $var1);
+        test("a @use rule with a with clause", () {
+          _expectScssSourceMap(r"""
+            $var1: {{1}}new value;
+            @use 'other' with ($var2: $var1);
 
-              {{2}}a {
-                {{3}}b: $other.var2;
-              }
-            """, """
-              {{2}}a {
-                {{3}}b: {{1}}new value;
-              }
-            """,
-                importer: TestImporter(
-                    (url) => Uri.parse("u:$url"),
-                    (_) => ImporterResult(r"$var2: default value !default;",
-                        syntax: Syntax.scss)));
-          });
-        }
+            {{2}}a {
+              {{3}}b: $other.var2;
+            }
+          """, """
+            {{2}}a {
+              {{3}}b: {{1}}new value;
+            }
+          """,
+              importer: TestImporter(
+                  (url) => Uri.parse("u:$url"),
+                  (_) => ImporterResult(r"$var2: default value !default;",
+                      syntax: Syntax.scss)));
+        }, tags: "module-system");
 
         group("a mixin argument that is", () {
           test("the default value", () {

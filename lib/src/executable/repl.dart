@@ -6,37 +6,44 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:cli_repl/cli_repl.dart';
+import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../ast/sass.dart';
 import '../exception.dart';
 import '../executable/options.dart';
+import '../import_cache.dart';
+import '../importer/filesystem.dart';
 import '../logger/tracking.dart';
 import '../parse/parser.dart';
-import '../value.dart' as internal;
 import '../visitor/evaluate.dart';
 
 /// Runs an interactive SassScript shell according to [options].
 Future<void> repl(ExecutableOptions options) async {
   var repl = Repl(prompt: '>> ');
-  var variables = <String, internal.Value>{};
+  var logger = TrackingLogger(options.logger);
+  var evaluator = Evaluator(
+      importer: FilesystemImporter('.'),
+      importCache:
+          ImportCache(const [], loadPaths: options.loadPaths, logger: logger),
+      logger: logger);
   await for (String line in repl.runAsync()) {
     if (line.trim().isEmpty) continue;
-    var logger = TrackingLogger(options.logger);
     try {
-      VariableDeclaration declaration;
-      Expression expression;
-      if (Parser.isVariableDeclarationLike(line)) {
-        declaration = VariableDeclaration.parse(line, logger: logger);
-        expression = declaration.expression;
-      } else {
-        expression = Expression.parse(line, logger: logger);
+      if (line.startsWith("@")) {
+        evaluator.use(UseRule.parse(line, logger: logger));
+        continue;
       }
 
-      var result =
-          evaluateExpression(expression, variables: variables, logger: logger);
-      if (declaration != null) variables[declaration.name] = result;
-      print(result);
+      if (Parser.isVariableDeclarationLike(line)) {
+        var declaration = VariableDeclaration.parse(line, logger: logger);
+        evaluator.setVariable(declaration);
+        print(evaluator.evaluate(VariableExpression(
+            declaration.name, declaration.span,
+            namespace: declaration.namespace)));
+      } else {
+        print(evaluator.evaluate(Expression.parse(line, logger: logger)));
+      }
     } on SassException catch (error, stackTrace) {
       _logError(error, stackTrace, line, repl, options, logger);
     }
@@ -46,10 +53,11 @@ Future<void> repl(ExecutableOptions options) async {
 /// Logs an error from the interactive shell.
 void _logError(SassException error, StackTrace stackTrace, String line,
     Repl repl, ExecutableOptions options, TrackingLogger logger) {
-  // If something was logged after the input, just print the error.
-  if (!options.quiet && (logger.emittedDebug || logger.emittedWarning)) {
-    print("Error: ${error.message}");
-    print(error.span.highlight(color: options.color));
+  // If the error doesn't come from the repl line, or if something was logged
+  // after the user's input, just print the error normally.
+  if (error.span.sourceUrl != null ||
+      (!options.quiet && (logger.emittedDebug || logger.emittedWarning))) {
+    print(error.toString(color: options.color));
     return;
   }
 
@@ -74,3 +82,12 @@ void _logError(SassException error, StackTrace stackTrace, String line,
   if (options.trace) buffer.write(Trace.from(stackTrace).terse);
   print(buffer.toString().trimRight());
 }
+
+// /// Returns whether [span] refers to subset of portion of the repl input [line]
+// /// that's indicated by the span's column number.
+// ///
+// /// Always returns `false` for multi-line spans since they can never be
+// /// highlighted inline.
+// bool _lineContainsSpan(String line, SourceSpan span) =>
+//     span.start.line == span.end.line &&
+//     line.substring(span.start.column, span.end.column) == indexOf(span.text) == span.start.column;

@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
+import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
@@ -13,7 +14,6 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     var invalidArgs = [
       '--stdin',
       '--indented',
-      '--load-path=x',
       '--style=compressed',
       '--source-map',
       '--source-map-urls=absolute',
@@ -78,6 +78,91 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.kill();
   });
 
+  group("with @use", () {
+    test("uses variables from the @used module", () async {
+      await d.file("other.scss", r"$var: 12;").create();
+
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln("@use 'other'");
+      await expectLater(sass.stdout, emits(">> @use 'other'"));
+
+      sass.stdin.writeln(r"$other.var");
+      await expectLater(sass.stdout, emitsInOrder([r">> $other.var", "12"]));
+
+      await sass.kill();
+    });
+
+    test("uses functions from the @used module", () async {
+      await d.file("other.scss", r"@function foo() {@return 12}").create();
+
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln("@use 'other'");
+      await expectLater(sass.stdout, emits(">> @use 'other'"));
+
+      sass.stdin.writeln(r"other.foo()");
+      await expectLater(sass.stdout, emitsInOrder([">> other.foo()", "12"]));
+
+      await sass.kill();
+    });
+
+    test("uses a built-in module", () async {
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln("@use 'sass:math'");
+      await expectLater(sass.stdout, emits(">> @use 'sass:math'"));
+
+      sass.stdin.writeln(r"math.abs(-1)");
+      await expectLater(sass.stdout, emitsInOrder([">> math.abs(-1)", "1"]));
+
+      await sass.kill();
+    });
+
+    test("loads a module from the load path", () async {
+      await d.dir("dir", [d.file("other.scss", r"$var: 12;")]).create();
+
+      var sass = await runSass(["--load-path=dir", "--interactive"]);
+      sass.stdin.writeln("@use 'other'");
+      await expectLater(sass.stdout, emits(">> @use 'other'"));
+
+      sass.stdin.writeln(r"$other.var");
+      await expectLater(sass.stdout, emitsInOrder([r">> $other.var", "12"]));
+
+      await sass.kill();
+    });
+
+    test("loads a module in the global scope", () async {
+      await d.file("other.scss", r"$var: 12;").create();
+
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln("@use 'other' as *");
+      await expectLater(sass.stdout, emits(">> @use 'other' as *"));
+
+      sass.stdin.writeln(r"$var");
+      await expectLater(sass.stdout, emitsInOrder([r">> $var", "12"]));
+
+      await sass.kill();
+    });
+
+    test("loads a module with configuration", () async {
+      await d.file("other.scss", r"""
+        $var: 12 !default;
+        $derived: $var + 13;
+      """).create();
+
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln(r"@use 'other' with ($var: 1)");
+      await expectLater(sass.stdout, emits(r">> @use 'other' with ($var: 1)"));
+
+      sass.stdin.writeln(r"$other.var");
+      await expectLater(sass.stdout, emitsInOrder([r">> $other.var", "1"]));
+
+      sass.stdin.writeln(r"$other.derived");
+      await expectLater(
+          sass.stdout, emitsInOrder([r">> $other.derived", "14"]));
+
+      await sass.kill();
+    });
+  }, tags: "module-system");
+
   group("gracefully handles", () {
     test("a parse error", () async {
       var sass = await runSass(["--interactive"]);
@@ -129,7 +214,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await expectLater(
           sass.stdout,
           emitsInOrder(
-              [r">> 1 + $x + 3", r"       ^^", "Error: Undefined variable."]));
+              [r">> 1 + $x + 3", "       ^^", "Error: Undefined variable."]));
       await sass.kill();
     });
 
@@ -149,6 +234,68 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           ]));
       await sass.kill();
     });
+
+    group("with @use", () {
+      test("a module load error", () async {
+        var sass = await runSass(["--no-unicode", "--interactive"]);
+        sass.stdin.writeln('@use "non-existent"');
+        await expectLater(
+            sass.stdout,
+            emitsInOrder([
+              '>> @use "non-existent"',
+              "   ^^^^^^^^^^^^^^^^^^^",
+              "Error: Can't find stylesheet to import."
+            ]));
+        await sass.kill();
+      });
+
+      test("a parse error for @use", () async {
+        var sass = await runSass(["--no-unicode", "--interactive"]);
+        sass.stdin.writeln('@use "other" as');
+        await expectLater(
+            sass.stdout,
+            emitsInOrder([
+              '>> @use "other" as',
+              "                  ^",
+              "Error: Expected identifier."
+            ]));
+        await sass.kill();
+      });
+
+      test("a parse error in a loaded module", () async {
+        await d.file("other.scss", r"$var: 1px +").create();
+
+        var sass = await runSass(["--no-unicode", "--interactive"]);
+        sass.stdin.writeln('@use "other"');
+        await expectLater(sass.stdout,
+            emitsInOrder([
+              '>> @use "other"',
+              "Error: Expected expression.",
+              "  ,",
+              r"1 | $var: 1px +",
+              "  |            ^",
+              "  '"
+            ]));
+        await sass.kill();
+      });
+
+      test("a runtime error in a loaded module", () async {
+        await d.file("other.scss", r"$var: 1px + 1s;").create();
+
+        var sass = await runSass(["--no-unicode", "--interactive"]);
+        sass.stdin.writeln('@use "other"');
+        await expectLater(sass.stdout,
+                        emitsInOrder([
+              '>> @use "other"',
+              "Error: Incompatible units s and px.",
+              "  ,",
+              r"1 | $var: 1px + 1s;",
+              "  |       ^^^^^^^^",
+              "  '"
+            ]));
+        await sass.kill();
+      });
+    }, tags: "module-system");
 
     group("and colorizes", () {
       test("an error in the source text", () async {

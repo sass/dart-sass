@@ -87,24 +87,35 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
             sourceMap: sourceMap)
         .run(importer, stylesheet);
 
-/// Evaluates a single [expression]
-///
-/// The [functions] are available as global functions when evaluating
-/// [expression].
-///
-/// The [variables] are available as global variables when evaluating
-/// [expression].
-///
-/// Warnings are emitted using [logger], or printed to standard error by
-/// default.
-///
-/// Throws a [SassRuntimeException] if evaluation fails.
-Future<Value> evaluateExpressionAsync(Expression expression,
-        {Iterable<AsyncCallable> functions,
-        Map<String, Value> variables,
-        Logger logger}) =>
-    _EvaluateVisitor(functions: functions, logger: logger, sourceMap: false)
-        .runExpression(expression, variables: variables);
+/// A class that can evaluate multiple independent statements and expressions
+/// in the context of a single module.
+class AsyncEvaluator {
+  /// The visitor that evaluates each expression and statement.
+  final _EvaluateVisitor _visitor;
+
+  /// The importer to use to resolve `@use` rules in [_importer].
+  final AsyncImporter _importer;
+
+  /// Creates an evaluator.
+  ///
+  /// Arguments are the same as for [evaluateAsync].
+  AsyncEvaluator(
+      {AsyncImportCache importCache,
+      AsyncImporter importer,
+      Iterable<AsyncCallable> functions,
+      Logger logger})
+      : _visitor = _EvaluateVisitor(
+            importCache: importCache, functions: functions, logger: logger),
+        _importer = importer;
+
+  Future<void> use(UseRule use) => _visitor.runStatement(_importer, use);
+
+  Future<Value> evaluate(Expression expression) =>
+      _visitor.runExpression(_importer, expression);
+
+  Future<void> setVariable(VariableDeclaration declaration) =>
+      _visitor.runStatement(_importer, declaration);
+}
 
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
@@ -244,18 +255,24 @@ class _EvaluateVisitor
   /// definitions in this module.
   Map<String, _ConfiguredValue> _configuration;
 
+  /// Creates a new visitor.
+  ///
+  /// Most arguments are the same as those to [evaluateAsync].
   _EvaluateVisitor(
       {AsyncImportCache importCache,
       NodeImporter nodeImporter,
       Iterable<AsyncCallable> functions,
       Logger logger,
-      bool sourceMap})
+      bool sourceMap = false})
       : _importCache = nodeImporter == null
             ? importCache ?? AsyncImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
-        _sourceMap = sourceMap {
+        _sourceMap = sourceMap,
+        // The default environment is overridden in [_execute] for full
+        // stylesheets, but for [AsyncEvaluator] this environment is used.
+        _environment = AsyncEnvironment(sourceMap: sourceMap) {
     var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
@@ -447,18 +464,13 @@ class _EvaluateVisitor
     });
   }
 
-  Future<Value> runExpression(Expression expression,
-      {Map<String, Value> variables}) {
-    return _withWarnCallback(() async {
-      _environment = AsyncEnvironment(sourceMap: _sourceMap);
+  Future<Value> runExpression(AsyncImporter importer, Expression expression) =>
+      _withWarnCallback(() => _withFakeStylesheet(
+          importer, expression, () => expression.accept(this)));
 
-      for (var name in variables?.keys ?? const <String>[]) {
-        _environment.setVariable(name, variables[name], null, global: true);
-      }
-
-      return expression.accept(this);
-    });
-  }
+  Future<void> runStatement(AsyncImporter importer, Statement statement) =>
+      _withWarnCallback(() => _withFakeStylesheet(
+          importer, statement, () => statement.accept(this)));
 
   /// Runs [callback] with a definition for the top-level `warn` function.
   T _withWarnCallback<T>(T callback()) {
@@ -467,6 +479,23 @@ class _EvaluateVisitor
             message, _importSpan ?? _callableNode.span,
             deprecation: deprecation),
         callback);
+  }
+
+  /// Runs [callback] with [importer] as [_importer] and a fake [_stylesheet]
+  /// with [nodeForSpan]'s source span.
+  Future<T> _withFakeStylesheet<T>(AsyncImporter importer, AstNode nodeForSpan,
+      FutureOr<T> callback()) async {
+    var oldImporter = _importer;
+    _importer = importer;
+    var oldStylesheet = _stylesheet;
+    _stylesheet = Stylesheet(const [], nodeForSpan.span);
+
+    try {
+      return await callback();
+    } finally {
+      _importer = oldImporter;
+      _stylesheet = oldStylesheet;
+    }
   }
 
   /// Loads the module at [url] and passes it to [callback].
@@ -1328,7 +1357,7 @@ class _EvaluateVisitor
         if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
         var tuple = await _importCache.import(
-            Uri.parse(url), _importer, baseUrl ?? _stylesheet.span?.sourceUrl);
+            Uri.parse(url), _importer, baseUrl ?? _stylesheet?.span?.sourceUrl);
         if (tuple != null) return tuple;
       }
 
