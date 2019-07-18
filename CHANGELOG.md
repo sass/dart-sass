@@ -1,3 +1,7 @@
+## 1.22.7
+
+* Restrict the supported versions of the Dart SDK to `^2.4.0`.
+
 ## 1.22.6
 
 * **Potentially breaking bug fix:** The `keywords()` function now converts
