@@ -78,14 +78,6 @@ class Parser {
     } while (scanComment());
   }
 
-  /// Like [whitespace], but returns whether any was consumed.
-  @protected
-  bool scanWhitespace() {
-    var start = scanner.position;
-    whitespace();
-    return scanner.position != start;
-  }
-
   /// Consumes whitespace, but not comments.
   @protected
   void whitespaceWithoutComments() {
