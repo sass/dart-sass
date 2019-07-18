@@ -717,9 +717,11 @@ class AsyncEnvironment {
     for (var module in _globalModules) {
       var valueInModule = callback(module);
       if (valueInModule != null && value != null) {
-        // TODO(nweiz): List the module URLs.
         throw SassScriptException(
-            'Multiple global modules have a $type named "$name".');
+            'Multiple global modules have a $type named "$name":\n' +
+                bulletedList(_globalModules
+                    .where((module) => callback(module) != null)
+                    .map((module) => p.prettyUri(module.url))));
       }
 
       value = valueInModule;

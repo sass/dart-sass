@@ -10,6 +10,7 @@ import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import 'ast/node.dart';
 import 'util/character.dart';
@@ -36,6 +37,15 @@ String pluralize(String name, int number, {String plural}) {
   if (number == 1) return name;
   if (plural != null) return plural;
   return '${name}s';
+}
+
+/// Returns a bulleted list of items in [bullets].
+String bulletedList(Iterable<String> bullets) {
+  return bullets.map((element) {
+    var lines = element.split("\n");
+    return "${glyph.bullet} ${lines.first}" +
+        (lines.length > 1 ? "\n" + indent(lines.skip(1).join("\n"), 2) : "");
+  }).join("\n");
 }
 
 /// Returns the number of times [codeUnit] appears in [string].
