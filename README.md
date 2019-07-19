@@ -23,6 +23,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 
 * [Using Dart Sass](#using-dart-sass)
   * [From Chocolatey (Windows)](#from-chocolatey-windows)
+  * [From Scoop (Windows)](#from-scoop-windows)
   * [From Homebrew (OS X)](#from-homebrew-os-x)
   * [Standalone](#standalone)
   * [From npm](#from-npm)
@@ -45,6 +46,17 @@ Windows, you can install Dart Sass by running
 
 ```cmd
 choco install sass
+```
+
+That'll give you a `sass` executable on your command line that will run Dart
+Sass.
+
+### From Scoop (Windows)
+
+If you use [the Scoop package manager](https://github.com/lukesampson/scoop) for Windows, you can install Dart Sass by running
+
+```cmd
+scoop install sass
 ```
 
 That'll give you a `sass` executable on your command line that will run Dart
