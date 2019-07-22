@@ -1,3 +1,10 @@
+## 1.22.8
+
+### JavaScript API
+
+* Don't crash when running in a directory whose name contains URL-sensitive
+  characters.
+
 ## 1.22.7
 
 * Restrict the supported versions of the Dart SDK to `^2.4.0`.
