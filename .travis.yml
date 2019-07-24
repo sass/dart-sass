@@ -74,7 +74,7 @@ jobs:
   - &node-tests
     name: Node tests | Dart stable | Node stable
     language: node_js
-    node_js: 10
+    node_js: stable
     install: pub run grinder before-test
     script: tool/travis/task/node_tests.sh
   - <<: *node-tests
