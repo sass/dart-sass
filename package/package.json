@@ -21,5 +21,10 @@
   },
   "main": "sass.dart.js",
   "bin": "sass.js",
-  "keywords": ["style", "scss", "sass", "preprocessor", "css"]
+  "keywords": ["style", "scss", "sass", "preprocessor", "css"],
+  "browser": {
+    "fs": false,
+    "chokidar": false,
+    "readline": false
+  }
 }
