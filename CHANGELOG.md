@@ -1,3 +1,7 @@
+## 1.22.9
+
+* Include argument names when reporting range errors.
+
 ## 1.22.8
 
 ### JavaScript API
