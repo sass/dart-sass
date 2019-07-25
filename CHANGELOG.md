@@ -2,6 +2,8 @@
 
 * Include argument names when reporting range errors and selector parse errors.
 
+* Avoid double `Error:` headers when reporting selector parse errors.
+
 ## 1.22.8
 
 ### JavaScript API
