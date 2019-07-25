@@ -1,6 +1,6 @@
 ## 1.22.9
 
-* Include argument names when reporting range errors.
+* Include argument names when reporting range errors and selector parse errors.
 
 ## 1.22.8
 

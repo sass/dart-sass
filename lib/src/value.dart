@@ -120,7 +120,7 @@ abstract class Value implements ext.Value {
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
-      throw _exception(error.toString());
+      throw _exception(error.toString(), name);
     }
   }
 
@@ -140,7 +140,7 @@ abstract class Value implements ext.Value {
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
-      throw _exception(error.toString());
+      throw _exception(error.toString(), name);
     }
   }
 
@@ -161,7 +161,7 @@ abstract class Value implements ext.Value {
     } on SassFormatException catch (error) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
-      throw _exception(error.toString());
+      throw _exception(error.toString(), name);
     }
   }
 
