@@ -1,3 +1,12 @@
+## 1.22.9
+
+* Include argument names when reporting range errors and selector parse errors.
+
+* Avoid double `Error:` headers when reporting selector parse errors.
+
+* Clarify the error message when the wrong number of positional arguments are
+  passed along with a named argument.
+
 ## 1.22.8
 
 ### JavaScript API

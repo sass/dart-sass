@@ -81,6 +81,7 @@ class ArgumentDeclaration implements SassNode {
 
     if (positional > arguments.length) {
       throw SassScriptException("Only ${arguments.length} "
+          "${names.isEmpty ? '' : 'positional '}"
           "${pluralize('argument', arguments.length)} allowed, but "
           "${positional} ${pluralize('was', positional, plural: 'were')} "
           "passed.");
