@@ -144,13 +144,13 @@ class AsyncEnvironment {
         _globalModules = null,
         _forwardedModules = null,
         _allModules = [],
-        _variables = [normalizedMap()],
-        _variableNodes = sourceMap ? [normalizedMap()] : null,
-        _variableIndices = normalizedMap(),
-        _functions = [normalizedMap()],
-        _functionIndices = normalizedMap(),
-        _mixins = [normalizedMap()],
-        _mixinIndices = normalizedMap();
+        _variables = [{}],
+        _variableNodes = sourceMap ? [{}] : null,
+        _variableIndices = {},
+        _functions = [{}],
+        _functionIndices = {},
+        _mixins = [{}],
+        _mixinIndices = {};
 
   AsyncEnvironment._(
       this._modules,
@@ -166,9 +166,9 @@ class AsyncEnvironment {
       // existing environment in closure() because the copying took a lot of
       // time and was rarely helpful. This saves a bunch of time on Susy's
       // tests.
-      : _variableIndices = normalizedMap(),
-        _functionIndices = normalizedMap(),
-        _mixinIndices = normalizedMap();
+      : _variableIndices = {},
+        _functionIndices = {},
+        _mixinIndices = {};
 
   /// Creates a closure based on this environment.
   ///
@@ -346,7 +346,7 @@ class AsyncEnvironment {
   /// module, or `null` if no such variable is declared in any namespaceless
   /// module.
   Value _getVariableFromGlobalModule(String name) =>
-      _fromOneModule("variable", "\$$name", (module) => module.variables[name]);
+      _fromOneModule("variable", (module) => module.variables[name]);
 
   /// Returns the node for the variable named [name], or `null` if no such
   /// variable is declared.
@@ -469,7 +469,7 @@ class AsyncEnvironment {
       // If this module doesn't already contain a variable named [name], try
       // setting it in a global module.
       if (!_variables.first.containsKey(name) && _globalModules != null) {
-        var moduleWithName = _fromOneModule("variable", "\$$name",
+        var moduleWithName = _fromOneModule("variable",
             (module) => module.variables.containsKey(name) ? module : null);
         if (moduleWithName != null) {
           moduleWithName.setVariable(name, value, nodeWithSpan);
@@ -539,7 +539,7 @@ class AsyncEnvironment {
   /// module, or `null` if no such function is declared in any namespaceless
   /// module.
   AsyncCallable _getFunctionFromGlobalModule(String name) =>
-      _fromOneModule("function", name, (module) => module.functions[name]);
+      _fromOneModule("function", (module) => module.functions[name]);
 
   /// Returns the index of the last map in [_functions] that has a [name] key,
   /// or `null` if none exists.
@@ -588,7 +588,7 @@ class AsyncEnvironment {
   /// module, or `null` if no such mixin is declared in any namespaceless
   /// module.
   AsyncCallable _getMixinFromGlobalModule(String name) =>
-      _fromOneModule("mixin", name, (module) => module.mixins[name]);
+      _fromOneModule("mixin", (module) => module.mixins[name]);
 
   /// Returns the index of the last map in [_mixins] that has a [name] key, or
   /// `null` if none exists.
@@ -663,10 +663,10 @@ class AsyncEnvironment {
     var wasInSemiGlobalScope = _inSemiGlobalScope;
     _inSemiGlobalScope = semiGlobal;
 
-    _variables.add(normalizedMap());
-    _variableNodes?.add(normalizedMap());
-    _functions.add(normalizedMap());
-    _mixins.add(normalizedMap());
+    _variables.add({});
+    _variableNodes?.add({});
+    _functions.add({});
+    _mixins.add({});
     try {
       return await callback();
     } finally {
@@ -708,9 +708,8 @@ class AsyncEnvironment {
   /// error if [callback] returns non-`null` for more than one module.
   ///
   /// The [type] should be the singular name of the value type being returned.
-  /// The [name] should be the specific name being looked up. These are's used
-  /// to format an appropriate error message.
-  T _fromOneModule<T>(String type, String name, T callback(Module module)) {
+  /// It's used to format an appropriate error message.
+  T _fromOneModule<T>(String type, T callback(Module module)) {
     if (_globalModules == null) return null;
 
     T value;
@@ -718,7 +717,7 @@ class AsyncEnvironment {
       var valueInModule = callback(module);
       if (valueInModule != null && value != null) {
         throw SassScriptException(
-            'Multiple global modules have a $type named "$name":\n' +
+            'This $type is available from multiple global modules:\n' +
                 bulletedList(_globalModules
                     .where((module) => callback(module) != null)
                     .map((module) => p.prettyUri(module.url))));
@@ -786,7 +785,7 @@ class _EnvironmentModule implements Module {
   static Map<String, Module> _makeModulesByVariable(List<Module> forwarded) {
     if (forwarded.isEmpty) return const {};
 
-    var modulesByVariable = normalizedMap<Module>();
+    var modulesByVariable = <String, Module>{};
     for (var module in forwarded) {
       if (module is _EnvironmentModule) {
         // Flatten nested forwarded modules to avoid O(depth) overhead.
@@ -815,8 +814,7 @@ class _EnvironmentModule implements Module {
     ];
     if (allMaps.length == 1) return localMap;
 
-    return MergedMapView(allMaps,
-        equals: equalsIgnoreSeparator, hashCode: hashCodeIgnoreSeparator);
+    return MergedMapView(allMaps);
   }
 
   _EnvironmentModule._(

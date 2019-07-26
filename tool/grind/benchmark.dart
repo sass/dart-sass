@@ -101,16 +101,11 @@ benchmark() async {
           environment: {"SASS_LIBSASS_PATH": p.absolute(libsass)}));
   log("");
 
-  var ruby = await cloneOrPull('https://github.com/sass/ruby-sass');
-  log("");
-
   var libsassRevision = await _revision(libsass);
   var sasscRevision = await _revision(sassc);
   var dartSassRevision = await _revision('.');
-  var rubySassRevision = await _revision(ruby);
   var gPlusPlusVersion = await _version("g++");
   var nodeVersion = await _version("node");
-  var rubyVersion = await _version("ruby");
 
   var perf = File("perf.md").readAsStringSync();
   perf = perf.replaceFirst(RegExp(r"This was tested against:\n\n[^]*?\n\n"), """
@@ -118,7 +113,6 @@ This was tested against:
 
 * libsass $libsassRevision and sassc $sasscRevision compiled with $gPlusPlusVersion.
 * Dart Sass $dartSassRevision on Dart $dartVersion and Node $nodeVersion.
-* Ruby Sass $rubySassRevision on $rubyVersion.
 
 """);
 
@@ -197,10 +191,6 @@ I ran five instances of each configuration and recorded the fastest time.
         await _benchmark("node", [p.join('build', 'npm', 'sass.js'), path]);
     buffer.writeln("* Dart Sass on Node.js: ${_formatTime(nodeTime)}");
 
-    var rubyTime = await _benchmark(
-        "ruby", ["-I", p.join(ruby, 'lib'), p.join(ruby, 'bin', 'sass'), path]);
-    buffer.writeln("* Ruby Sass with a hot cache: ${_formatTime(rubyTime)}");
-
     buffer.writeln();
     buffer.writeln('Based on these numbers, Dart Sass from a native executable '
         'is approximately:');
@@ -208,7 +198,6 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln('* ${_compare(nativeExecutableTime, sasscTime)} libsass');
     buffer.writeln(
         '* ${_compare(nativeExecutableTime, nodeTime)} Dart Sass on Node');
-    buffer.writeln('* ${_compare(nativeExecutableTime, rubyTime)} Ruby Sass');
     buffer.writeln();
     log('');
   }
@@ -236,8 +225,8 @@ Future<String> _version(String executable) async =>
 Future<Duration> _benchmark(String executable, List<String> arguments) async {
   log("$executable ${arguments.join(' ')}");
 
-  // Run the benchmark once without recording output to give Ruby Sass a hot
-  // cache and give other implementations a chance to warm up at the OS level.
+  // Run the benchmark once without recording output to give implementations a
+  // chance to warm up at the OS level.
   await _benchmarkOnce(executable, arguments);
 
   Duration lowest;

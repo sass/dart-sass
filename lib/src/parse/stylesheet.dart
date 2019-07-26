@@ -80,7 +80,7 @@ abstract class StylesheetParser extends Parser {
   /// exposed by the module generated for this stylesheet, *even if they aren't
   /// evaluated*. This allows us to ensure that the stylesheet always exposes
   /// the same set of variable names no matter how it's evaluated.
-  final _globalVariables = normalizedMap<VariableDeclaration>();
+  final _globalVariables = <String, VariableDeclaration>{};
 
   /// The silent comment this parser encountered previously.
   @protected
@@ -786,7 +786,7 @@ abstract class StylesheetParser extends Parser {
   FunctionRule _functionRule(LineScannerState start) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
-    var name = identifier();
+    var name = identifier(normalize: true);
     whitespace();
     var arguments = _argumentDeclaration();
 
@@ -866,7 +866,7 @@ abstract class StylesheetParser extends Parser {
     String prefix;
     if (scanIdentifier("as")) {
       whitespace();
-      prefix = identifier();
+      prefix = identifier(normalize: true);
       scanner.expectChar($asterisk);
       whitespace();
     }
@@ -923,7 +923,7 @@ abstract class StylesheetParser extends Parser {
         if (scanner.peekChar() == $dollar) {
           variables.add(variableName());
         } else {
-          identifiers.add(identifier());
+          identifiers.add(identifier(normalize: true));
         }
       });
       whitespace();
@@ -1082,6 +1082,8 @@ abstract class StylesheetParser extends Parser {
     if (scanner.scanChar($dot)) {
       namespace = name;
       name = _publicIdentifier();
+    } else {
+      name = name.replaceAll("_", "-");
     }
 
     whitespace();
@@ -1135,7 +1137,7 @@ abstract class StylesheetParser extends Parser {
   MixinRule _mixinRule(LineScannerState start) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
-    var name = identifier();
+    var name = identifier(normalize: true);
     whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentDeclaration()
@@ -1318,7 +1320,7 @@ relase. For details, see http://bit.ly/moz-document.
   Map<String, Tuple2<Expression, FileSpan>> _useConfiguration() {
     if (!scanIdentifier("with")) return null;
 
-    var configuration = normalizedMap<Tuple2<Expression, FileSpan>>();
+    var configuration = <String, Tuple2<Expression, FileSpan>>{};
     whitespace();
     scanner.expectChar($lparen);
 
@@ -1414,7 +1416,7 @@ relase. For details, see http://bit.ly/moz-document.
     scanner.expectChar($lparen);
     whitespace();
     var arguments = <Argument>[];
-    var named = normalizedSet();
+    var named = <String>{};
     String restArgument;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
@@ -1460,7 +1462,7 @@ relase. For details, see http://bit.ly/moz-document.
     whitespace();
 
     var positional = <Expression>[];
-    var named = normalizedMap<Expression>();
+    var named = <String, Expression>{};
     Expression rest;
     Expression keywordRest;
     while (_lookingAtExpression()) {
@@ -2378,12 +2380,19 @@ relase. For details, see http://bit.ly/moz-document.
   VariableExpression _variable() {
     var start = scanner.state;
 
+    // We can't use [variableName] here because it always normalizes the
+    // identifier, but we don't want the variable namespace to end up
+    // normalized.
+    scanner.expectChar($dollar);
+
     String namespace;
-    var name = variableName();
+    var name = identifier();
     if (scanner.peekChar() == $dot && scanner.peekChar(1) != $dot) {
       scanner.readChar();
       namespace = name;
       name = _publicIdentifier();
+    } else {
+      name = name.replaceAll("_", "-");
     }
 
     if (plainCss) {
@@ -2506,8 +2515,8 @@ relase. For details, see http://bit.ly/moz-document.
         var namespace = identifier.asPlain;
         scanner.readChar();
         var beforeName = scanner.state;
-        var name = Interpolation(
-            [this._publicIdentifier()], scanner.spanFrom(beforeName));
+        var name =
+            Interpolation([_publicIdentifier()], scanner.spanFrom(beforeName));
 
         if (namespace == null) {
           error("Interpolation isn't allowed in namespaces.", identifier.span);
@@ -3370,7 +3379,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Like [identifier], but rejects identifiers that begin with `_` or `-`.
   String _publicIdentifier() {
     var start = scanner.state;
-    var result = identifier();
+    var result = identifier(normalize: true);
 
     var first = result.codeUnitAt(0);
     if (first == $dash || first == $underscore) {

@@ -10,7 +10,6 @@ import '../callable.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../module.dart';
-import '../utils.dart';
 import '../value.dart';
 
 /// A module provided by Sass, available under the special `sass:` URL space.
@@ -37,7 +36,7 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
           Iterable<T> callables) =>
       UnmodifiableMapView(callables == null
           ? {}
-          : normalizedMap(
+          : UnmodifiableMapView(
               {for (var callable in callables) callable.name: callable}));
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {

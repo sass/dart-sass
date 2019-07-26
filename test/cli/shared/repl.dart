@@ -89,6 +89,19 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await sass.kill();
     });
 
+    test("a parse error in a variable declaration", () async {
+      var sass = await runSass(["--interactive"]);
+      sass.stdin.writeln("\$foo: 1 + 2;");
+      await expectLater(
+          sass.stdout,
+          emitsInOrder([
+            ">> \$foo: 1 + 2;",
+            "              ^",
+            "Error: expected no more input."
+          ]));
+      await sass.kill();
+    });
+
     test("a parse error after the end of the input", () async {
       var sass = await runSass(["--interactive"]);
       sass.stdin.writeln("foo(");

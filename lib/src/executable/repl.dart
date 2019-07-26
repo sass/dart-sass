@@ -12,6 +12,7 @@ import '../ast/sass.dart';
 import '../exception.dart';
 import '../executable/options.dart';
 import '../logger/tracking.dart';
+import '../parse/parser.dart';
 import '../value.dart' as internal;
 import '../visitor/evaluate.dart';
 
@@ -23,14 +24,12 @@ Future<void> repl(ExecutableOptions options) async {
     if (line.trim().isEmpty) continue;
     var logger = TrackingLogger(options.logger);
     try {
-      Expression expression;
       VariableDeclaration declaration;
-      try {
+      Expression expression;
+      if (Parser.isVariableDeclarationLike(line)) {
         declaration = VariableDeclaration.parse(line, logger: logger);
         expression = declaration.expression;
-      } on SassFormatException {
-        // TODO(nweiz): If [line] looks like a variable assignment, rethrow the
-        // original exception.
+      } else {
         expression = Expression.parse(line, logger: logger);
       }
 
