@@ -7,6 +7,10 @@
 * Clarify the error message when the wrong number of positional arguments are
   passed along with a named argument.
 
+### JavaScript API
+
+* Re-add support for Node Carbon (8.x).
+
 ## 1.22.8
 
 ### JavaScript API
