@@ -5,6 +5,8 @@
 import 'package:source_span/source_span.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../logger.dart';
+import '../../../parse/scss.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../expression/string.dart';
@@ -30,6 +32,14 @@ class UseRule implements Statement {
   UseRule(this.url, this.namespace, this.span,
       {Map<String, Tuple2<Expression, FileSpan>> configuration})
       : configuration = Map.unmodifiable(configuration ?? const {});
+
+  /// Parses a `@use` rule from [contents].
+  ///
+  /// If passed, [url] is the name of the file from which [contents] comes.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  factory UseRule.parse(String contents, {url, Logger logger}) =>
+      ScssParser(contents, url: url, logger: logger).parseUseRule();
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);
 

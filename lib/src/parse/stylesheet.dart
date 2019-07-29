@@ -111,27 +111,28 @@ abstract class StylesheetParser extends Parser {
     });
   }
 
-  ArgumentDeclaration parseArgumentDeclaration() {
-    return wrapSpanFormatException(() {
-      var declaration = _argumentDeclaration();
-      scanner.expectDone();
-      return declaration;
-    });
-  }
+  ArgumentDeclaration parseArgumentDeclaration() =>
+      _parseSingleProduction(_argumentDeclaration);
 
-  Expression parseExpression() {
+  Expression parseExpression() => _parseSingleProduction(expression);
+
+  VariableDeclaration parseVariableDeclaration() =>
+      _parseSingleProduction(variableDeclaration);
+
+  UseRule parseUseRule() => _parseSingleProduction(() {
+        var start = scanner.state;
+        scanner.expectChar($at, name: "@-rule");
+        expectIdentifier("use");
+        whitespace();
+        return _useRule(start);
+      });
+
+  /// Parses and returns [production] as the entire contents of [scanner].
+  T _parseSingleProduction<T>(T production()) {
     return wrapSpanFormatException(() {
-      var result = expression();
+      var result = production();
       scanner.expectDone();
       return result;
-    });
-  }
-
-  VariableDeclaration parseVariableDeclaration() {
-    return wrapSpanFormatException(() {
-      var declaration = variableDeclaration();
-      scanner.expectDone();
-      return declaration;
     });
   }
 
