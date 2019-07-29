@@ -78,9 +78,6 @@ jobs:
     install: pub run grinder before-test
     script: tool/travis/task/node_tests.sh
   - <<: *node-tests
-    name: Node tests | Dart stable | Node Carbon
-    node_js: lts/carbon
-  - <<: *node-tests
     name: Node tests | Dart stable | Node Dubnium
     node_js: lts/dubnium
   - <<: *node-tests

@@ -12,7 +12,7 @@ import 'silent_comment.dart';
 /// An abstract class for callables (functions or mixins) that are declared in
 /// user code.
 abstract class CallableDeclaration extends ParentStatement {
-  /// The name of this callable.
+  /// The name of this callable, with underscores converted to hyphens.
   ///
   /// This may be `null` for callables without names.
   final String name;

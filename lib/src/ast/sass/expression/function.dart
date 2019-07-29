@@ -20,6 +20,9 @@ class FunctionExpression implements Expression, CallableInvocation {
 
   /// The name of the function being invoked.
   ///
+  /// Underscores aren't converted to hyphens in this name *unless* [namespace]
+  /// is non-`null`, since otherwise it could be a plain CSS function call.
+  ///
   /// If this is interpolated, the function will be interpreted as plain CSS,
   /// even if it has the same name as a Sass function.
   final Interpolation name;

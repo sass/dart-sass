@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../utils.dart';
 import 'expression.dart';
 import 'node.dart';
 
@@ -16,6 +17,14 @@ class Argument implements SassNode {
   final Expression defaultValue;
 
   final FileSpan span;
+
+  /// The variable name as written in the document, without underscores
+  /// converted to hyphens and including the leading `$`.
+  ///
+  /// This isn't particularly efficient, and should only be used for error
+  /// messages.
+  String get originalName =>
+      defaultValue == null ? span.text : declarationName(span);
 
   Argument(this.name, {this.defaultValue, this.span});
 

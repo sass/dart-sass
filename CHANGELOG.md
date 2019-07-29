@@ -1,3 +1,35 @@
+## 1.22.9
+
+* Include argument names when reporting range errors and selector parse errors.
+
+* Avoid double `Error:` headers when reporting selector parse errors.
+
+* Clarify the error message when the wrong number of positional arguments are
+  passed along with a named argument.
+
+## 1.22.8
+
+### JavaScript API
+
+* Don't crash when running in a directory whose name contains URL-sensitive
+  characters.
+
+* Drop support for Node Carbon (8.x), which doesn't support `url.pathToFileURL`.
+
+## 1.22.7
+
+* Restrict the supported versions of the Dart SDK to `^2.4.0`.
+
+## 1.22.6
+
+* **Potentially breaking bug fix:** The `keywords()` function now converts
+  underscore-separated argument names to hyphen-separated names. This matches
+  LibSass's behavior, but not Ruby Sass's.
+
+* Further improve performance for logic-heavy stylesheets.
+
+* Improve a few error messages.
+
 ## 1.22.5
 
 ### JavaScript API

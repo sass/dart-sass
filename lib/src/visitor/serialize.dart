@@ -562,7 +562,7 @@ class _SerializeVisitor
       _buffer.writeCharCode($lbracket);
     } else if (value.asList.isEmpty) {
       if (!_inspect) {
-        throw SassScriptException("() isn't a valid CSS value");
+        throw SassScriptException("() isn't a valid CSS value.");
       }
       _buffer.write("()");
       return;

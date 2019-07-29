@@ -6,8 +6,6 @@ import 'dart:collection';
 
 import 'package:collection/collection.dart';
 
-import '../utils.dart';
-
 /// A mostly-unmodifiable view of a map that only allows certain keys to be
 /// accessed.
 ///
@@ -41,8 +39,7 @@ class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
   ///
   /// The [blacklist] must have the same notion of equality as the [map].
   LimitedMapView.blacklist(this._map, Set<K> blacklist)
-      : _keys = toSetWithEquality(
-            _map.keys.where((key) => !blacklist.contains(key)), blacklist);
+      : _keys = {for (var key in _map.keys) if (!blacklist.contains(key)) key};
 
   V operator [](Object key) => _keys.contains(key) ? _map[key] : null;
   bool containsKey(Object key) => _keys.contains(key);

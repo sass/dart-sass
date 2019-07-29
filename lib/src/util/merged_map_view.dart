@@ -18,7 +18,7 @@ import '../utils.dart';
 /// constraint that the underlying maps' sets of keys remain unchanged.
 class MergedMapView<K, V> extends MapBase<K, V> {
   // A map from keys to the maps in which those keys first appear.
-  final Map<K, Map<K, V>> _mapsByKey;
+  final _mapsByKey = <K, Map<K, V>>{};
 
   Iterable<K> get keys => _mapsByKey.keys;
   int get length => _mapsByKey.length;
@@ -27,13 +27,10 @@ class MergedMapView<K, V> extends MapBase<K, V> {
 
   /// Creates a combined view of [maps].
   ///
-  /// Each map must have the same notion of equality, and that notion of
-  /// equality must also be used for the [equals] and [hashCode] callbacks. The
-  /// underlying maps' values may change independently of this view, but their
-  /// set of keys may not.
-  MergedMapView(Iterable<Map<K, V>> maps,
-      {bool equals(K key1, K key2), int hashCode(K key)})
-      : _mapsByKey = LinkedHashMap(equals: equals, hashCode: hashCode) {
+  /// Each map must have the default notion of equality. The underlying maps'
+  /// values may change independently of this view, but their set of keys may
+  /// not.
+  MergedMapView(Iterable<Map<K, V>> maps) {
     for (var map in maps) {
       if (map is MergedMapView<K, V>) {
         // Flatten nested merged views to avoid O(depth) overhead.

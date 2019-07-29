@@ -13,7 +13,7 @@ class VariableExpression implements Expression {
   /// referenced without a namespace.
   final String namespace;
 
-  /// The name of this variable.
+  /// The name of this variable, with underscores converted to hyphens.
   final String name;
 
   final FileSpan span;

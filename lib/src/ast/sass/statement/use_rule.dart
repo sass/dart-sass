@@ -2,12 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:collection';
-
 import 'package:source_span/source_span.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../expression/string.dart';
@@ -32,9 +29,7 @@ class UseRule implements Statement {
 
   UseRule(this.url, this.namespace, this.span,
       {Map<String, Tuple2<Expression, FileSpan>> configuration})
-      : configuration = configuration == null
-            ? const {}
-            : UnmodifiableMapView(normalizedMap(configuration));
+      : configuration = Map.unmodifiable(configuration ?? const {});
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);
 

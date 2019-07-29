@@ -61,7 +61,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     }
 
     if (prefix != null) {
-      map = PrefixedMapView(map, prefix, equals: equalsIgnoreSeparator);
+      map = PrefixedMapView(map, prefix);
     }
 
     if (whitelist != null) {

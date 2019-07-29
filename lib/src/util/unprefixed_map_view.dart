@@ -20,19 +20,10 @@ class UnprefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The prefix to remove from the map keys.
   final String _prefix;
 
-  /// The equality operation to use for comparing map keys.
-  final bool Function(String string1, String string2) _equals;
-
   Iterable<String> get keys => _UnprefixedKeys(this);
 
   /// Creates a new unprefixed map view.
-  ///
-  /// The map's notion of equality must match [equals], and must be stable over
-  /// substrings (that is, if `T == S`, then for all ranges `i..j`,
-  /// `T[i..j] == S[i..j]`).
-  UnprefixedMapView(this._map, this._prefix,
-      {bool equals(String string1, String string2)})
-      : _equals = equals ?? ((string1, string2) => string1 == string2);
+  UnprefixedMapView(this._map, this._prefix);
 
   V operator [](Object key) => key is String ? _map[_prefix + key] : null;
 
@@ -48,9 +39,8 @@ class _UnprefixedKeys extends IterableBase<String> {
   final UnprefixedMapView<Object> _view;
 
   Iterator<String> get iterator => _view._map.keys
-      .where((key) =>
-          key.length >= _view._prefix.length &&
-          _view._equals(key.substring(0, _view._prefix.length), _view._prefix))
+      .where((key) => key.startsWith(_view._prefix))
+      .map((key) => key.substring(_view._prefix.length))
       .iterator;
 
   _UnprefixedKeys(this._view);

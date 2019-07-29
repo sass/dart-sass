@@ -121,7 +121,7 @@ class _EvaluateVisitor
 
   /// Built-in functions that are globally-acessible, even under the new module
   /// system.
-  final _builtInFunctions = normalizedMap<AsyncCallable>();
+  final _builtInFunctions = <String, AsyncCallable>{};
 
   /// Built in modules, indexed by their URLs.
   final _builtInModules = <Uri, Module>{};
@@ -263,19 +263,22 @@ class _EvaluateVisitor
           (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(_environment.globalVariableExists(variable.text,
+        return SassBoolean(_environment.globalVariableExists(
+            variable.text.replaceAll("_", "-"),
             namespace: module?.text));
       }),
 
       BuiltInCallable("variable-exists", r"$name", (arguments) {
         var variable = arguments[0].assertString("name");
-        return SassBoolean(_environment.variableExists(variable.text));
+        return SassBoolean(
+            _environment.variableExists(variable.text.replaceAll("_", "-")));
       }),
 
       BuiltInCallable("function-exists", r"$name, $module: null", (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(_environment.functionExists(variable.text,
+        return SassBoolean(_environment.functionExists(
+                variable.text.replaceAll("_", "-"),
                 namespace: module?.text) ||
             _builtInFunctions.containsKey(variable.text));
       }),
@@ -283,8 +286,9 @@ class _EvaluateVisitor
       BuiltInCallable("mixin-exists", r"$name, $module: null", (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(
-            _environment.mixinExists(variable.text, namespace: module?.text));
+        return SassBoolean(_environment.mixinExists(
+            variable.text.replaceAll("_", "-"),
+            namespace: module?.text));
       }),
 
       BuiltInCallable("content-exists", "", (arguments) {
@@ -388,10 +392,11 @@ class _EvaluateVisitor
 
         Map<String, _ConfiguredValue> configuration;
         if (withMap != null) {
-          configuration = normalizedMap<_ConfiguredValue>();
+          configuration = <String, _ConfiguredValue>{};
           var span = _callableNode.span;
           withMap.forEach((variable, value) {
-            var name = variable.assertString("with key").text;
+            var name =
+                variable.assertString("with key").text.replaceAll("_", "-");
             if (configuration.containsKey(name)) {
               throw "The variable \$$name was configured twice.";
             }
@@ -594,7 +599,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = false;
       _inKeyframes = false;
 
-      if (configuration != null) _configuration = normalizedMap(configuration);
+      if (configuration != null) _configuration = Map.of(configuration);
 
       await visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
@@ -653,9 +658,7 @@ class _EvaluateVisitor
   /// If [clone] is `true`, this will copy the modules before extending them so
   /// that they don't modify [root] or its dependencies.
   CssStylesheet _combineCss(Module root, {bool clone = false}) {
-    // TODO(nweiz): short-circuit if no upstream modules (transitively) include
-    // any CSS.
-    if (root.upstream.isEmpty) {
+    if (!root.upstream.any((module) => module.transitivelyContainsCss)) {
       var selectors = root.extender.simpleSelectors;
       var unsatisfiedExtension = firstOrNull(root.extender
           .extensionsWhereTarget((target) => !selectors.contains(target)));
@@ -1169,8 +1172,7 @@ class _EvaluateVisitor
     var oldConfiguration = _configuration;
     if (_configuration != null) {
       if (node.prefix != null) {
-        _configuration = UnprefixedMapView(_configuration, node.prefix,
-            equals: equalsIgnoreSeparator);
+        _configuration = UnprefixedMapView(_configuration, node.prefix);
       }
 
       if (node.shownVariables != null) {
@@ -1238,9 +1240,24 @@ class _EvaluateVisitor
 
       _activeModules.add(url);
 
-      // TODO(nweiz): If [stylesheet] contains no `@use` or `@forward` rules, just
-      // evaluate it directly in [_root] rather than making a new
-      // [ModifiableCssStylesheet] and manually copying members.
+      // If the imported stylesheet doesn't use any modules, we can inject its
+      // CSS directly into the current stylesheet. If it does use modules, we
+      // need to put its CSS into an intermediate [ModifiableCssStylesheet] so
+      // that we can hermetically resolve `@extend`s before injecting it.
+      if (stylesheet.uses.isEmpty && stylesheet.forwards.isEmpty) {
+        var environment = _environment.global();
+        await _withEnvironment(environment, () async {
+          var oldImporter = _importer;
+          var oldStylesheet = _stylesheet;
+          _importer = importer;
+          _stylesheet = stylesheet;
+          await visitStylesheet(stylesheet);
+          _importer = oldImporter;
+          _stylesheet = oldStylesheet;
+        });
+        _activeModules.remove(url);
+        return;
+      }
 
       List<ModifiableCssNode> children;
       var environment = _environment.global();
@@ -1696,8 +1713,8 @@ class _EvaluateVisitor
                   "of the stylesheet,\n"
                   "the !global flag is unnecessary and can safely be removed."
               : "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-                  "declare new variables. Consider adding `\$${node.name}: "
-                  "null` at the root of the\n"
+                  "declare new variables. Consider adding "
+                  "`${node.originalName}: null` at the root of the\n"
                   "stylesheet.",
           span: node.span,
           trace: _stackTrace(node.span),
@@ -1901,7 +1918,14 @@ class _EvaluateVisitor
     AsyncCallable function;
     if (plainName != null) {
       function = _addExceptionSpan(
-          node, () => _getFunction(plainName, namespace: node.namespace));
+          node,
+          () => _getFunction(
+              // If the node has a namespace, the plain name was already
+              // normalized at parse-time so we don't need to renormalize here.
+              node.namespace == null
+                  ? plainName.replaceAll("_", "-")
+                  : plainName,
+              namespace: node.namespace));
     }
 
     if (function == null) {
@@ -2136,7 +2160,7 @@ class _EvaluateVisitor
     var positional = [
       for (var expression in arguments.positional) await expression.accept(this)
     ];
-    var named = await normalizedMapMapAsync<String, Expression, Value>(
+    var named = await mapMapAsync<String, Expression, String, Value>(
         arguments.named,
         value: (_, expression) => expression.accept(this));
 
@@ -2215,7 +2239,7 @@ class _EvaluateVisitor
     }
 
     var positional = invocation.arguments.positional.toList();
-    var named = normalizedMap(invocation.arguments.named);
+    var named = Map.of(invocation.arguments.named);
     var rest = await invocation.arguments.rest.accept(this);
     if (rest is SassMap) {
       _addRestMap(named, rest, invocation, (value) => ValueExpression(value));

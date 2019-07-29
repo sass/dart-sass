@@ -6,6 +6,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../../logger.dart';
 import '../../../parse/scss.dart';
+import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
@@ -39,6 +40,13 @@ class VariableDeclaration implements Statement {
   final bool isGlobal;
 
   final FileSpan span;
+
+  /// The variable name as written in the document, without underscores
+  /// converted to hyphens and including the leading `$`.
+  ///
+  /// This isn't particularly efficient, and should only be used for error
+  /// messages.
+  String get originalName => declarationName(span);
 
   VariableDeclaration(this.name, this.expression, this.span,
       {this.namespace,

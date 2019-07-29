@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
@@ -217,6 +216,17 @@ FileSpan spanForList(List<AstNode> nodes) {
   return left.expand(right);
 }
 
+/// Returns the variable name (including the leading `$`) from a [span] that
+/// covers a variable declaration, which includes the variable name as well as
+/// the colon and expression following it.
+///
+/// This isn't particularly efficient, and should only be used for error
+/// messages.
+String declarationName(FileSpan span) {
+  var text = span.text;
+  return trimAsciiRight(text.substring(0, text.indexOf(":")));
+}
+
 /// Returns [name] without a vendor prefix.
 ///
 /// If [name] has no vendor prefix, it's returned as-is.
@@ -229,40 +239,6 @@ String unvendor(String name) {
     if (name.codeUnitAt(i) == $dash) return name.substring(i + 1);
   }
   return name;
-}
-
-/// Returns whether [string1] and [string2] are equal if `-` and `_` are
-/// considered equivalent.
-bool equalsIgnoreSeparator(String string1, String string2) {
-  if (identical(string1, string2)) return true;
-  if (string1 == null || string2 == null) return false;
-  if (string1.length != string2.length) return false;
-  for (var i = 0; i < string1.length; i++) {
-    var codeUnit1 = string1.codeUnitAt(i);
-    var codeUnit2 = string2.codeUnitAt(i);
-    if (codeUnit1 == codeUnit2) continue;
-    if (codeUnit1 == $dash) {
-      if (codeUnit2 != $underscore) return false;
-    } else if (codeUnit1 == $underscore) {
-      if (codeUnit2 != $dash) return false;
-    } else {
-      return false;
-    }
-  }
-  return true;
-}
-
-/// Returns a hash code for [string] that matches [equalsIgnoreSeparator].
-int hashCodeIgnoreSeparator(String string) {
-  var hash = 4603;
-  for (var i = 0; i < string.length; i++) {
-    var codeUnit = string.codeUnitAt(i);
-    if (codeUnit == $underscore) codeUnit = $dash;
-    hash &= 0x3FFFFFF;
-    hash *= 33;
-    hash ^= codeUnit;
-  }
-  return hash;
 }
 
 /// Returns whether [string1] and [string2] are equal, ignoring ASCII case.
@@ -310,55 +286,6 @@ bool startsWithIgnoreSeparator(String string, String prefix) {
   }
   return true;
 }
-
-/// Returns an empty map that uses [equalsIgnoreSeparator] for key equality.
-///
-/// If [source] is passed, copies it into the map.
-Map<String, V> normalizedMap<V>([Map<String, V> source]) {
-  var map = LinkedHashMap<String, V>(
-      // Explicitly set this because the default implementation involves a type
-      // check, which is very expensive in dart2js.
-      isValidKey: (_) => true,
-      equals: equalsIgnoreSeparator,
-      hashCode: hashCodeIgnoreSeparator);
-  if (source != null) map.addAll(source);
-  return map;
-}
-
-/// Returns an empty set that uses [equalsIgnoreSeparator] for equality.
-///
-/// If [source] is passed, copies it into the set.
-Set<String> normalizedSet([Iterable<String> source]) {
-  var set = LinkedHashSet(
-      // Explicitly set this because the default implementation involves a type
-      // check, which is very expensive in dart2js.
-      isValidKey: (_) => true,
-      equals: equalsIgnoreSeparator,
-      hashCode: hashCodeIgnoreSeparator);
-  if (source != null) set.addAll(source);
-  return set;
-}
-
-/// Like [mapMap], but returns a map that uses [equalsIgnoreSeparator] for key
-/// equality.
-Map<String, V2> normalizedMapMap<K, V1, V2>(Map<K, V1> map,
-    {String key(K key, V1 value), V2 value(K key, V1 value)}) {
-  key ??= (mapKey, _) => mapKey as String;
-  value ??= (_, mapValue) => mapValue as V2;
-
-  var result = normalizedMap<V2>();
-  map.forEach((mapKey, mapValue) {
-    result[key(mapKey, mapValue)] = value(mapKey, mapValue);
-  });
-  return result;
-}
-
-/// Returns a set containing the elements in [elements], whose notion of
-/// equality matches that of [matchEquality].
-Set<T> toSetWithEquality<T>(Iterable<T> elements, Set<T> matchEquality) =>
-    matchEquality.toSet()
-      ..clear()
-      ..addAll(elements);
 
 /// Destructively updates every element of [list] with the result of [function].
 void mapInPlace<T>(List<T> list, T function(T element)) {
@@ -480,14 +407,14 @@ Future<V> putIfAbsentAsync<K, V>(
   return value;
 }
 
-/// Like [normalizedMapMap], but for asynchronous [key] and [value].
-Future<Map<String, V2>> normalizedMapMapAsync<K, V1, V2>(Map<K, V1> map,
-    {Future<String> key(K key, V1 value),
-    Future<V2> value(K key, V1 value)}) async {
-  key ??= (mapKey, _) async => mapKey as String;
+/// Like [mapMap], but for asynchronous [key] and [value].
+Future<Map<K2, V2>> mapMapAsync<K1, V1, K2, V2>(Map<K1, V1> map,
+    {Future<K2> key(K1 key, V1 value),
+    Future<V2> value(K1 key, V1 value)}) async {
+  key ??= (mapKey, _) async => mapKey as K2;
   value ??= (_, mapValue) async => mapValue as V2;
 
-  var result = normalizedMap<V2>();
+  var result = <K2, V2>{};
   for (var mapKey in map.keys) {
     var mapValue = map[mapKey];
     result[await key(mapKey, mapValue)] = await value(mapKey, mapValue);

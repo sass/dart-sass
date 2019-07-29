@@ -209,7 +209,8 @@ class SassNumber extends Value implements ext.SassNumber {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
     throw _exception(
-        "Expected $this to be within $min$unitString and $max$unitString.");
+        "Expected $this to be within $min$unitString and $max$unitString.",
+        name);
   }
 
   bool hasUnit(String unit) =>
