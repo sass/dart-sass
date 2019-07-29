@@ -33,7 +33,7 @@ class UseRule implements Statement {
       {Map<String, Tuple2<Expression, FileSpan>> configuration})
       : configuration = Map.unmodifiable(configuration ?? const {});
 
-  /// Parses a variable declaration from [contents].
+  /// Parses a `@use` rule from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///

@@ -82,12 +82,3 @@ void _logError(SassException error, StackTrace stackTrace, String line,
   if (options.trace) buffer.write(Trace.from(stackTrace).terse);
   print(buffer.toString().trimRight());
 }
-
-// /// Returns whether [span] refers to subset of portion of the repl input [line]
-// /// that's indicated by the span's column number.
-// ///
-// /// Always returns `false` for multi-line spans since they can never be
-// /// highlighted inline.
-// bool _lineContainsSpan(String line, SourceSpan span) =>
-//     span.start.line == span.end.line &&
-//     line.substring(span.start.column, span.end.column) == indexOf(span.text) == span.start.column;
