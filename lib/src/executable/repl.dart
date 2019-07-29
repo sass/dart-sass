@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:cli_repl/cli_repl.dart';
-import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../ast/sass.dart';
