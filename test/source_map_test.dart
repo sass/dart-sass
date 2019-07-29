@@ -10,7 +10,6 @@ import 'package:test/test.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:sass/sass.dart';
-import 'package:sass/src/parse/stylesheet.dart';
 import 'package:sass/src/utils.dart';
 
 import 'dart_api/test_importer.dart';
