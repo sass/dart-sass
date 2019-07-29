@@ -267,7 +267,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
         var sass = await runSass(["--no-unicode", "--interactive"]);
         sass.stdin.writeln('@use "other"');
-        await expectLater(sass.stdout,
+        await expectLater(
+            sass.stdout,
             emitsInOrder([
               '>> @use "other"',
               "Error: Expected expression.",
@@ -284,8 +285,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
         var sass = await runSass(["--no-unicode", "--interactive"]);
         sass.stdin.writeln('@use "other"');
-        await expectLater(sass.stdout,
-                        emitsInOrder([
+        await expectLater(
+            sass.stdout,
+            emitsInOrder([
               '>> @use "other"',
               "Error: Incompatible units s and px.",
               "  ,",
