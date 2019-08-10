@@ -331,8 +331,10 @@ class _EvaluateVisitor
 
         var callable = css
             ? PlainCssCallable(name.text)
-            : _addExceptionSpan(_callableNode,
-                () => _getFunction(name.text, namespace: module?.text));
+            : _addExceptionSpan(
+                _callableNode,
+                () => _getFunction(name.text.replaceAll("_", "-"),
+                    namespace: module?.text));
         if (callable != null) return SassFunction(callable);
 
         throw "Function not found: $name";
