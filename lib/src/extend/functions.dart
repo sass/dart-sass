@@ -598,7 +598,7 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     if (remaining1 == 1) {
       return compoundIsSuperselector(
           compound1, complex2.last as CompoundSelector,
-          parents: complex2.skip(i2 + 1));
+          parents: complex2.take(complex2.length - 1).skip(i2));
     }
 
     // Find the first index where `complex2.sublist(i2, afterSuperselector)` is
@@ -673,11 +673,12 @@ bool compoundIsSuperselector(
     }
   }
 
-  // [compound1] can't be a superselector of a selector with pseudo-elements
-  // that [compound2] doesn't share.
+  // [compound1] can't be a superselector of a selector with non-selector
+  // pseudo-elements that [compound2] doesn't share.
   for (var simple2 in compound2.components) {
     if (simple2 is PseudoSelector &&
         simple2.isElement &&
+        simple2.selector == null &&
         !_simpleIsSuperselectorOfCompound(simple2, compound1)) {
       return false;
     }
@@ -736,8 +737,11 @@ bool _selectorPseudoIsSuperselector(
     case 'has':
     case 'host':
     case 'host-context':
-    case 'slotted':
       return _selectorPseudosNamed(compound2, pseudo1.name)
+          .any((pseudo2) => pseudo1.selector.isSuperselector(pseudo2.selector));
+
+    case 'slotted':
+      return _selectorPseudosNamed(compound2, pseudo1.name, isClass: false)
           .any((pseudo2) => pseudo1.selector.isSuperselector(pseudo2.selector));
 
     case 'not':
@@ -764,7 +768,7 @@ bool _selectorPseudoIsSuperselector(
       });
 
     case 'current':
-      return _selectorPseudosNamed(compound2, 'current')
+      return _selectorPseudosNamed(compound2, pseudo1.name)
           .any((pseudo2) => pseudo1.selector == pseudo2.selector);
 
     case 'nth-child':
@@ -783,6 +787,6 @@ bool _selectorPseudoIsSuperselector(
 /// Returns all pseudo selectors in [compound] that have a selector argument,
 /// and that have the given [name].
 Iterable<PseudoSelector> _selectorPseudosNamed(
-        CompoundSelector compound, String name) =>
+        CompoundSelector compound, String name, {bool isClass: true}) =>
     compound.components.whereType<PseudoSelector>().where((pseudo) =>
-        pseudo.isClass && pseudo.selector != null && pseudo.name == name);
+        pseudo.isClass == isClass && pseudo.selector != null && pseudo.name == name);
