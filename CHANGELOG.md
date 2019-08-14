@@ -1,3 +1,8 @@
+## 1.22.10
+
+* Fix a bug in which `get-function()` would fail to find a dash-separated
+  function when passed a function name with underscores.
+
 ## 1.22.9
 
 * Include argument names when reporting range errors and selector parse errors.
