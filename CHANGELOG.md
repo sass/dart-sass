@@ -1,3 +1,14 @@
+## 1.22.11
+
+* Fix a couple edge cases in `@extend` logic and related selector functions:
+
+  * Recognize `:matches()` and similar pseudo-selectors as superselectors of
+    matching complex selectors.
+
+  * Recognize `::slotted()` as a superselector of other `::slotted()` selectors.
+
+  * Regonize `:current()` with a vendor prefix as a superselector.
+
 ## 1.22.10
 
 * Fix a bug in which `get-function()` would fail to find a dash-separated
