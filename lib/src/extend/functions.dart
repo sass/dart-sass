@@ -787,6 +787,8 @@ bool _selectorPseudoIsSuperselector(
 /// Returns all pseudo selectors in [compound] that have a selector argument,
 /// and that have the given [name].
 Iterable<PseudoSelector> _selectorPseudosNamed(
-        CompoundSelector compound, String name, {bool isClass: true}) =>
+        CompoundSelector compound, String name, {bool isClass = true}) =>
     compound.components.whereType<PseudoSelector>().where((pseudo) =>
-        pseudo.isClass == isClass && pseudo.selector != null && pseudo.name == name);
+        pseudo.isClass == isClass &&
+        pseudo.selector != null &&
+        pseudo.name == name);
