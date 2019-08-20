@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 587acdaa22fa4fdecfe796af866ba4dd4aa4d006
+// Checksum: 1a6678b9aa71d8d8ea5aab9216a48e401a892453
 //
 // ignore_for_file: unused_import
 
@@ -54,9 +54,7 @@ class Environment {
 
   /// A list of variables defined at each lexical scope level.
   ///
-  /// Each scope maps the names of declared variables to their values. These
-  /// maps are *normalized*, meaning that they treat hyphens and underscores in
-  /// its keys interchangeably.
+  /// Each scope maps the names of declared variables to their values.
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
@@ -73,17 +71,12 @@ class Environment {
 
   /// A map of variable names to their indices in [_variables].
   ///
-  /// This map is *normalized*, meaning that it treats hyphens and underscores
-  /// in its keys interchangeably.
-  ///
   /// This map is filled in as-needed, and may not be complete.
   final Map<String, int> _variableIndices;
 
   /// A list of functions defined at each lexical scope level.
   ///
-  /// Each scope maps the names of declared functions to their values. These
-  /// maps are *normalized*, meaning that they treat hyphens and underscores in
-  /// its keys interchangeably.
+  /// Each scope maps the names of declared functions to their values.
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
@@ -91,26 +84,18 @@ class Environment {
 
   /// A map of function names to their indices in [_functions].
   ///
-  /// This map is *normalized*, meaning that it treats hyphens and underscores
-  /// in its keys interchangeably.
-  ///
   /// This map is filled in as-needed, and may not be complete.
   final Map<String, int> _functionIndices;
 
   /// A list of mixins defined at each lexical scope level.
   ///
-  /// Each scope maps the names of declared mixins to their values. These
-  /// maps are *normalized*, meaning that they treat hyphens and underscores in
-  /// its keys interchangeably.
+  /// Each scope maps the names of declared mixins to their values.
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
   final List<Map<String, Callable>> _mixins;
 
   /// A map of mixin names to their indices in [_mixins].
-  ///
-  /// This map is *normalized*, meaning that it treats hyphens and underscores
-  /// in its keys interchangeably.
   ///
   /// This map is filled in as-needed, and may not be complete.
   final Map<String, int> _mixinIndices;
