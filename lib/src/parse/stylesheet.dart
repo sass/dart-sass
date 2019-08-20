@@ -117,7 +117,9 @@ abstract class StylesheetParser extends Parser {
   Expression parseExpression() => _parseSingleProduction(expression);
 
   VariableDeclaration parseVariableDeclaration() =>
-      _parseSingleProduction(variableDeclaration);
+      _parseSingleProduction(() => lookingAtIdentifier()
+          ? _variableDeclarationWithNamespace()
+          : variableDeclarationWithoutNamespace());
 
   UseRule parseUseRule() => _parseSingleProduction(() {
         var start = scanner.state;
@@ -177,27 +179,38 @@ abstract class StylesheetParser extends Parser {
         whitespace();
         return _mixinRule(start);
 
+      case $rbrace:
+        scanner.error('unmatched "}".', length: 1);
+        return null;
+
       default:
-        _isUseAllowed = false;
         return _inStyleRule || _inUnknownAtRule || _inMixin || _inContentBlock
             ? _declarationOrStyleRule()
-            : _styleRule();
+            : _variableDeclarationOrStyleRule();
     }
   }
 
+  /// Consumes a namespaced variable declaration.
+  VariableDeclaration _variableDeclarationWithNamespace() {
+    var start = scanner.state;
+    var namespace = identifier();
+    scanner.expectChar($dot);
+    return variableDeclarationWithoutNamespace(namespace, start);
+  }
+
   /// Consumes a variable declaration.
+  ///
+  /// This never *consumes* a namespace, but if [namespace] is passed it will be
+  /// used for the delaration.
   @protected
-  VariableDeclaration variableDeclaration() {
+  VariableDeclaration variableDeclarationWithoutNamespace(
+      [String namespace, LineScannerState start]) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
-    var start = scanner.state;
+    start ??= scanner.state;
 
-    String namespace;
     var name = variableName();
-    if (scanner.scanChar($dot)) {
-      namespace = name;
-      name = _publicIdentifier();
-    }
+    if (namespace != null) _assertPublic(name, () => scanner.spanFrom(start));
 
     if (plainCss) {
       error("Sass variables aren't allowed in plain CSS.",
@@ -242,31 +255,39 @@ abstract class StylesheetParser extends Parser {
     return declaration;
   }
 
-  /// Consumes a style rule.
-  StyleRule _styleRule() {
-    var wasInStyleRule = _inStyleRule;
-    _inStyleRule = true;
+  /// Consumes a namespaced [VariableDeclaration] or a [StyleRule].
+  Statement _variableDeclarationOrStyleRule() {
+    if (plainCss) return _styleRule();
 
     // The indented syntax allows a single backslash to distinguish a style rule
     // from old-style property syntax. We don't support old property syntax, but
     // we do support the backslash because it's easy to do.
-    if (indented) scanner.scanChar($backslash);
+    if (indented && scanner.scanChar($backslash)) return _styleRule();
+
+    if (!lookingAtIdentifier()) return _styleRule();
 
     var start = scanner.state;
-    var selector = styleRuleSelector();
-    var rule = _withChildren(_statement, start,
-        (children, span) => StyleRule(selector, children, span));
-    _inStyleRule = wasInStyleRule;
-    return rule;
+    var variableOrInterpolation = _variableDeclarationOrInterpolation();
+    if (variableOrInterpolation is VariableDeclaration) {
+      return variableOrInterpolation;
+    } else {
+      return _styleRule(
+          InterpolationBuffer()
+            ..addInterpolation(variableOrInterpolation as Interpolation),
+          start);
+    }
   }
 
-  /// Consumes a [Declaration] or a [StyleRule].
+  /// Consumes a [VariableDeclaration], a [Declaration], or a [StyleRule].
   ///
-  /// When parsing the contents of a style rule, it can be difficult to tell
-  /// declarations apart from nested style rules. Since we don't thoroughly
-  /// parse selectors until after resolving interpolation, we can share a bunch
-  /// of the parsing of the two, but we need to disambiguate them first. We use
-  /// the following criteria:
+  /// When parsing the children of a style rule, property declarations,
+  /// namespaced variable declarations, and nested style rules can all begin
+  /// with bare identifiers. In order to know which statement type to produce,
+  /// we need to disambiguate them. We use the following criteria:
+  ///
+  /// * If the entity starts with an identifier followed by a period and a
+  /// * dollar sign, it's a variable declaration. This is the simplest case,
+  /// * because `.$` is used in and only in variable declarations.
   ///
   /// * If the entity doesn't start with an identifier followed by a colon,
   ///   it's a selector. There are some additional mostly-unimportant cases
@@ -287,7 +308,9 @@ abstract class StylesheetParser extends Parser {
   ///   parsed as a selector and never as a property with nested properties
   ///   beneath it.
   Statement _declarationOrStyleRule() {
-    if (plainCss && _inStyleRule && !_inUnknownAtRule) return _declaration();
+    if (plainCss && _inStyleRule && !_inUnknownAtRule) {
+      return _propertyOrVariableDeclaration();
+    }
 
     // The indented syntax allows a single backslash to distinguish a style rule
     // from old-style property syntax. We don't support old property syntax, but
@@ -296,38 +319,18 @@ abstract class StylesheetParser extends Parser {
 
     var start = scanner.state;
     var declarationOrBuffer = _declarationOrBuffer();
-
-    if (declarationOrBuffer is Declaration) return declarationOrBuffer;
-
-    var buffer = declarationOrBuffer as InterpolationBuffer;
-    buffer.addInterpolation(styleRuleSelector());
-    var selectorSpan = scanner.spanFrom(start);
-
-    var wasInStyleRule = _inStyleRule;
-    _inStyleRule = true;
-
-    if (buffer.isEmpty) scanner.error('expected "}".');
-
-    return _withChildren(_statement, start, (children, span) {
-      if (indented && children.isEmpty) {
-        warn("This selector doesn't have any properties and won't be rendered.",
-            selectorSpan);
-      }
-
-      _inStyleRule = wasInStyleRule;
-
-      return StyleRule(buffer.interpolation(selectorSpan), children,
-          scanner.spanFrom(start));
-    });
+    return declarationOrBuffer is Statement
+        ? declarationOrBuffer
+        : _styleRule(declarationOrBuffer as InterpolationBuffer, start);
   }
 
-  /// Tries to parse a declaration, and returns the value parsed so far if it
-  /// fails.
+  /// Tries to parse a variable or property declaration, and returns the value
+  /// parsed so far if it fails.
   ///
   /// This can return either an [InterpolationBuffer], indicating that it
   /// couldn't consume a declaration and that selector parsing should be
-  /// attempted; or it can return a [Declaration], indicating that it
-  /// successfully consumed a declaration.
+  /// attempted; or it can return a [Declaration] or a [VariableDeclaration],
+  /// indicating that it successfully consumed a declaration.
   dynamic _declarationOrBuffer() {
     var start = scanner.state;
     var nameBuffer = InterpolationBuffer();
@@ -335,16 +338,28 @@ abstract class StylesheetParser extends Parser {
     // Allow the "*prop: val", ":prop: val", "#prop: val", and ".prop: val"
     // hacks.
     var first = scanner.peekChar();
+    var startsWithPunctuation = false;
     if (first == $colon ||
         first == $asterisk ||
         first == $dot ||
         (first == $hash && scanner.peekChar(1) != $lbrace)) {
+      startsWithPunctuation = true;
       nameBuffer.writeCharCode(scanner.readChar());
       nameBuffer.write(rawText(whitespace));
     }
 
     if (!_lookingAtInterpolatedIdentifier()) return nameBuffer;
-    nameBuffer.addInterpolation(interpolatedIdentifier());
+
+    var variableOrInterpolation = startsWithPunctuation
+        ? interpolatedIdentifier()
+        : _variableDeclarationOrInterpolation();
+    if (variableOrInterpolation is VariableDeclaration) {
+      return variableOrInterpolation;
+    } else {
+      nameBuffer.addInterpolation(variableOrInterpolation as Interpolation);
+    }
+
+    _isUseAllowed = false;
     if (scanner.matches("/*")) nameBuffer.write(rawText(loudComment));
 
     var midBuffer = StringBuffer();
@@ -428,13 +443,70 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
-  /// Consumes a property declaration.
+  /// Tries to parse a namespaced [VariableDeclaration], and returns the value
+  /// parsed so far if it fails.
+  ///
+  /// This can return either an [Interpolation], indicating that it couldn't
+  /// consume a variable declaration and that property declaration or selector
+  /// parsing should be attempted; or it can return a [VariableDeclaration],
+  /// indicating that it successfully consumed a variable declaration.
+  dynamic _variableDeclarationOrInterpolation() {
+    if (!lookingAtIdentifier()) return interpolatedIdentifier();
+
+    var start = scanner.state;
+    var identifier = this.identifier();
+    if (scanner.matches(".\$")) {
+      scanner.readChar();
+      return variableDeclarationWithoutNamespace(identifier, start);
+    } else {
+      var buffer = InterpolationBuffer()..write(identifier);
+
+      // Parse the rest of an interpolated identifier if one exists, so callers
+      // don't have to.
+      if (_lookingAtInterpolatedIdentifierBody()) {
+        buffer.addInterpolation(interpolatedIdentifier());
+      }
+
+      return buffer.interpolation(scanner.spanFrom(start));
+    }
+  }
+
+  /// Consumes a [StyleRule], optionally with a [buffer] that may contain some
+  /// text that has already been parsed.
+  StyleRule _styleRule([InterpolationBuffer buffer, LineScannerState start]) {
+    _isUseAllowed = false;
+    start ??= scanner.state;
+
+    var interpolation = styleRuleSelector();
+    if (buffer != null) {
+      buffer.addInterpolation(interpolation);
+      interpolation = buffer.interpolation(scanner.spanFrom(start));
+    }
+    if (interpolation.contents.isEmpty) scanner.error('expected "}".');
+
+    var wasInStyleRule = _inStyleRule;
+    _inStyleRule = true;
+
+    return _withChildren(_statement, start, (children, span) {
+      if (indented && children.isEmpty) {
+        warn("This selector doesn't have any properties and won't be rendered.",
+            interpolation.span);
+      }
+
+      _inStyleRule = wasInStyleRule;
+
+      return StyleRule(interpolation, children, scanner.spanFrom(start));
+    });
+  }
+
+  /// Consumes either a property declaration or a namespaced variable
+  /// declaration.
   ///
   /// This is only used in contexts where declarations are allowed but style
   /// rules are not, such as nested declarations. Otherwise,
   /// [_declarationOrStyleRule] is used instead.
   @protected
-  Declaration _declaration() {
+  Statement _propertyOrVariableDeclaration() {
     var start = scanner.state;
 
     Interpolation name;
@@ -450,6 +522,13 @@ abstract class StylesheetParser extends Parser {
       nameBuffer.write(rawText(whitespace));
       nameBuffer.addInterpolation(interpolatedIdentifier());
       name = nameBuffer.interpolation(scanner.spanFrom(start));
+    } else if (!plainCss) {
+      var variableOrInterpolation = _variableDeclarationOrInterpolation();
+      if (variableOrInterpolation is VariableDeclaration) {
+        return variableOrInterpolation;
+      } else {
+        name = variableOrInterpolation as Interpolation;
+      }
     } else {
       name = interpolatedIdentifier();
     }
@@ -485,7 +564,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a statement that's allowed within a declaration.
   Statement _declarationChild() {
     if (scanner.peekChar() == $at) return _declarationAtRule();
-    return _declaration();
+    return _propertyOrVariableDeclaration();
   }
 
   // ## At Rules
@@ -604,22 +683,29 @@ abstract class StylesheetParser extends Parser {
   }
 
   /// Consumes an at-rule allowed within a function.
-  Statement _functionAtRule() {
+  Statement _functionChild() {
     if (scanner.peekChar() != $at) {
-      var position = scanner.position;
-      Statement statement;
+      var state = scanner.state;
       try {
-        statement = _declarationOrStyleRule();
-      } on SourceSpanFormatException catch (_) {
-        // If we can't parse a valid declaration or style rule, throw a more
-        // generic error message.
-        scanner.error("expected @-rule", position: position);
-      }
+        return _variableDeclarationWithNamespace();
+      } on SourceSpanFormatException catch (variableDeclarationError) {
+        scanner.state = state;
 
-      error(
-          "@function rules may not contain "
-          "${statement is StyleRule ? "style rules" : "declarations"}.",
-          statement.span);
+        // If a variable declaration failed to parse, it's possible the user
+        // thought they could write a style rule or property declaration in a
+        // function. If so, throw a more helpful error message.
+        Statement statement;
+        try {
+          statement = _declarationOrStyleRule();
+        } on SourceSpanFormatException catch (_) {
+          throw variableDeclarationError;
+        }
+
+        error(
+            "@function rules may not contain "
+            "${statement is StyleRule ? "style rules" : "declarations"}.",
+            statement.span);
+      }
     }
 
     var start = scanner.state;
@@ -627,21 +713,21 @@ abstract class StylesheetParser extends Parser {
       case "debug":
         return _debugRule(start);
       case "each":
-        return _eachRule(start, _functionAtRule);
+        return _eachRule(start, _functionChild);
       case "else":
         return _disallowedAtRule(start);
       case "error":
         return _errorRule(start);
       case "for":
-        return _forRule(start, _functionAtRule);
+        return _forRule(start, _functionChild);
       case "if":
-        return _ifRule(start, _functionAtRule);
+        return _ifRule(start, _functionChild);
       case "return":
         return _returnRule(start);
       case "warn":
         return _warnRule(start);
       case "while":
-        return _whileRule(start, _functionAtRule);
+        return _whileRule(start, _functionChild);
       default:
         return _disallowedAtRule(start);
     }
@@ -813,7 +899,7 @@ abstract class StylesheetParser extends Parser {
 
     whitespace();
     return _withChildren(
-        _functionAtRule,
+        _functionChild,
         start,
         (children, span) => FunctionRule(name, arguments, children, span,
             comment: precedingComment));
@@ -2380,29 +2466,14 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes a variable expression.
   VariableExpression _variable() {
     var start = scanner.state;
-
-    // We can't use [variableName] here because it always normalizes the
-    // identifier, but we don't want the variable namespace to end up
-    // normalized.
-    scanner.expectChar($dollar);
-
-    String namespace;
-    var name = identifier();
-    if (scanner.peekChar() == $dot && scanner.peekChar(1) != $dot) {
-      scanner.readChar();
-      namespace = name;
-      name = _publicIdentifier();
-    } else {
-      name = name.replaceAll("_", "-");
-    }
+    var name = variableName();
 
     if (plainCss) {
       error("Sass variables aren't allowed in plain CSS.",
           scanner.spanFrom(start));
     }
 
-    return VariableExpression(name, scanner.spanFrom(start),
-        namespace: namespace);
+    return VariableExpression(name, scanner.spanFrom(start));
   }
 
   /// Consumes a selector expression.
@@ -2512,20 +2583,26 @@ relase. For details, see http://bit.ly/moz-document.
     switch (scanner.peekChar()) {
       case $dot:
         if (scanner.peekChar(1) == $dot) return StringExpression(identifier);
-
-        var namespace = identifier.asPlain;
         scanner.readChar();
+
+        if (plain == null) {
+          error("Interpolation isn't allowed in namespaces.", identifier.span);
+        }
+
+        if (scanner.peekChar() == $dollar) {
+          var name = variableName();
+          _assertPublic(name, () => scanner.spanFrom(start));
+          return VariableExpression(name, scanner.spanFrom(start),
+              namespace: plain);
+        }
+
         var beforeName = scanner.state;
         var name =
             Interpolation([_publicIdentifier()], scanner.spanFrom(beforeName));
 
-        if (namespace == null) {
-          error("Interpolation isn't allowed in namespaces.", identifier.span);
-        }
-
         return FunctionExpression(
             name, _argumentInvocation(), scanner.spanFrom(start),
-            namespace: namespace);
+            namespace: plain);
 
       case $lparen:
         return FunctionExpression(
@@ -3381,14 +3458,17 @@ relase. For details, see http://bit.ly/moz-document.
   String _publicIdentifier() {
     var start = scanner.state;
     var result = identifier(normalize: true);
-
-    var first = result.codeUnitAt(0);
-    if (first == $dash || first == $underscore) {
-      error("Private members can't be accessed from outside their modules.",
-          scanner.spanFrom(start));
-    }
-
+    _assertPublic(result, () => scanner.spanFrom(start));
     return result;
+  }
+
+  /// Throws an error if [identifier] isn't public.
+  ///
+  /// Calls [span] to provide the span for an error if one occurs.
+  void _assertPublic(String identifier, FileSpan span()) {
+    if (!isPrivate(identifier)) return;
+    error("Private members can't be accessed from outside their modules.",
+        span());
   }
 
   // ## Abstract Methods

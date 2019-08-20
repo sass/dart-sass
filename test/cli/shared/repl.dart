@@ -86,8 +86,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       sass.stdin.writeln("@use 'other'");
       await expectLater(sass.stdout, emits(">> @use 'other'"));
 
-      sass.stdin.writeln(r"$other.var");
-      await expectLater(sass.stdout, emitsInOrder([r">> $other.var", "12"]));
+      sass.stdin.writeln(r"other.$var");
+      await expectLater(sass.stdout, emitsInOrder([r">> other.$var", "12"]));
 
       await sass.kill();
     });
@@ -123,8 +123,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       sass.stdin.writeln("@use 'other'");
       await expectLater(sass.stdout, emits(">> @use 'other'"));
 
-      sass.stdin.writeln(r"$other.var");
-      await expectLater(sass.stdout, emitsInOrder([r">> $other.var", "12"]));
+      sass.stdin.writeln(r"other.$var");
+      await expectLater(sass.stdout, emitsInOrder([r">> other.$var", "12"]));
 
       await sass.kill();
     });
@@ -152,12 +152,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       sass.stdin.writeln(r"@use 'other' with ($var: 1)");
       await expectLater(sass.stdout, emits(r">> @use 'other' with ($var: 1)"));
 
-      sass.stdin.writeln(r"$other.var");
-      await expectLater(sass.stdout, emitsInOrder([r">> $other.var", "1"]));
+      sass.stdin.writeln(r"other.$var");
+      await expectLater(sass.stdout, emitsInOrder([r">> other.$var", "1"]));
 
-      sass.stdin.writeln(r"$other.derived");
+      sass.stdin.writeln(r"other.$derived");
       await expectLater(
-          sass.stdout, emitsInOrder([r">> $other.derived", "14"]));
+          sass.stdout, emitsInOrder([r">> other.$derived", "14"]));
 
       await sass.kill();
     });
