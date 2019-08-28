@@ -201,7 +201,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a variable declaration.
   ///
   /// This never *consumes* a namespace, but if [namespace] is passed it will be
-  /// used for the delaration.
+  /// used for the declaration.
   @protected
   VariableDeclaration variableDeclarationWithoutNamespace(
       [String namespace, LineScannerState start]) {
@@ -286,8 +286,8 @@ abstract class StylesheetParser extends Parser {
   /// we need to disambiguate them. We use the following criteria:
   ///
   /// * If the entity starts with an identifier followed by a period and a
-  /// * dollar sign, it's a variable declaration. This is the simplest case,
-  /// * because `.$` is used in and only in variable declarations.
+  ///   dollar sign, it's a variable declaration. This is the simplest case,
+  ///   because `.$` is used in and only in variable declarations.
   ///
   /// * If the entity doesn't start with an identifier followed by a colon,
   ///   it's a selector. There are some additional mostly-unimportant cases
@@ -682,7 +682,7 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
-  /// Consumes an at-rule allowed within a function.
+  /// Consumes a statement allowed within a function.
   Statement _functionChild() {
     if (scanner.peekChar() != $at) {
       var state = scanner.state;
