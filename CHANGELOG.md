@@ -1,5 +1,7 @@
 ## 1.22.11
 
+* Don't try to load unquoted plain-CSS indented-syntax imports.
+
 * Fix a couple edge cases in `@extend` logic and related selector functions:
 
   * Recognize `:matches()` and similar pseudo-selectors as superselectors of
