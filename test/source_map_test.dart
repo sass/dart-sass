@@ -551,7 +551,7 @@ main() {
             @use 'other' with ($var2: $var1);
 
             {{2}}a {
-              {{3}}b: $other.var2;
+              {{3}}b: other.$var2;
             }
           """, """
             {{2}}a {
