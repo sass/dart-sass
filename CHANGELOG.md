@@ -1,3 +1,9 @@
+## 1.22.12
+
+### JavaScript API
+
+* Allow underscore-separated functions to be defined.
+
 ## 1.22.11
 
 * Don't try to load unquoted plain-CSS indented-syntax imports.
