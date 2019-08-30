@@ -1,3 +1,7 @@
+## 1.22.12
+
+* Improve the performance of Node.js compilation involving many `@import`s.
+
 ## 1.22.11
 
 * Don't try to load unquoted plain-CSS indented-syntax imports.

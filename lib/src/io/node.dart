@@ -156,6 +156,13 @@ String _cleanErrorMessage(_SystemError error) {
 }
 
 bool fileExists(String path) {
+  return _systemErrorToFileSystemException(() {
+    // `existsSync()` is faster than `statSync()`, but it doesn't clarify
+    // whether the entity in question is a file or a directory. Since false
+    // negatives are much more common than false positives, it works out in our
+    // favor to check this first.
+    if (!_fs.existsSync(path)) return false;
+
   try {
     return _fs.statSync(path).isFile();
   } catch (error) {
@@ -163,9 +170,17 @@ bool fileExists(String path) {
     if (systemError.code == 'ENOENT') return false;
     rethrow;
   }
+  });
 }
 
 bool dirExists(String path) {
+  return _systemErrorToFileSystemException(() {
+    // `existsSync()` is faster than `statSync()`, but it doesn't clarify
+    // whether the entity in question is a file or a directory. Since false
+    // negatives are much more common than false positives, it works out in our
+    // favor to check this first.
+    if (!_fs.existsSync(path)) return false;
+
   try {
     return _fs.statSync(path).isDirectory();
   } catch (error) {
@@ -173,6 +188,7 @@ bool dirExists(String path) {
     if (systemError.code == 'ENOENT') return false;
     rethrow;
   }
+  });
 }
 
 void ensureDir(String path) {
