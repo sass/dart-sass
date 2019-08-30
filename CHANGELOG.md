@@ -1,3 +1,9 @@
+## 1.22.12
+
+### Command-Line Interface
+
+* Fix a bug where changes in `.css` files would be ignored in `--watch` mode.
+
 ## 1.22.11
 
 * Don't try to load unquoted plain-CSS indented-syntax imports.
