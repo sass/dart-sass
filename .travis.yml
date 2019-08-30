@@ -35,11 +35,16 @@ jobs:
   - &specs
     name: sass-spec | Dart stable | synchronous
     language: ruby
+    # Work around an issue where bundler isn't installed correctly on Ruby 2.5.
+    # We should remove this, and the explicit "gem install bundler" line, once
+    # Travis uses Ruby 2.6 by default.
+    rvm: 2.6
     install:
     - export sass_spec_ref=`tool/travis/sass-spec-ref.sh`
     - git init sass-spec
     - git -C sass-spec fetch git://github.com/sass/sass-spec "$sass_spec_ref" --depth 1
     - git -C sass-spec checkout FETCH_HEAD
+    - gem install bundler
     - bundle install --gemfile=sass-spec/Gemfile --jobs=3 --retry=3
     script: tool/travis/task/specs.sh
   - <<: *specs
