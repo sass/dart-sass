@@ -1,3 +1,16 @@
+## 1.22.12
+
+* **Potentially breaking bug fix:** character sequences consisting of two or
+  more hyphens followed by a number (such as `--123`), or two or more hyphens on
+  their own (such as `--`), are now parsed as identifiers [in accordance with
+  the CSS spec][ident-token-diagram].
+
+  The sequence `--` was previously parsed as multiple applications of the `-`
+  operator. Since this is unlikely to be used intentionally in practice, we
+  consider this bug fix safe.
+
+[ident-token-diagram]: https://drafts.csswg.org/css-syntax-3/#ident-token-diagram
+
 ## 1.22.11
 
 * Don't try to load unquoted plain-CSS indented-syntax imports.
