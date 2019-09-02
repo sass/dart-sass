@@ -163,13 +163,13 @@ bool fileExists(String path) {
     // favor to check this first.
     if (!_fs.existsSync(path)) return false;
 
-  try {
-    return _fs.statSync(path).isFile();
-  } catch (error) {
-    var systemError = error as _SystemError;
-    if (systemError.code == 'ENOENT') return false;
-    rethrow;
-  }
+    try {
+      return _fs.statSync(path).isFile();
+    } catch (error) {
+      var systemError = error as _SystemError;
+      if (systemError.code == 'ENOENT') return false;
+      rethrow;
+    }
   });
 }
 
@@ -181,13 +181,13 @@ bool dirExists(String path) {
     // favor to check this first.
     if (!_fs.existsSync(path)) return false;
 
-  try {
-    return _fs.statSync(path).isDirectory();
-  } catch (error) {
-    var systemError = error as _SystemError;
-    if (systemError.code == 'ENOENT') return false;
-    rethrow;
-  }
+    try {
+      return _fs.statSync(path).isDirectory();
+    } catch (error) {
+      var systemError = error as _SystemError;
+      if (systemError.code == 'ENOENT') return false;
+      rethrow;
+    }
   });
 }
 
