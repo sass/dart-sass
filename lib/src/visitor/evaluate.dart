@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c802b1e7bc9ad79b81112445c94d43a514741b8c
+// Checksum: 5c9f270ef574f9c6062421ed1866af3d07672b46
 //
 // ignore_for_file: unused_import
 
@@ -362,8 +362,10 @@ class _EvaluateVisitor
 
         var callable = css
             ? PlainCssCallable(name.text)
-            : _addExceptionSpan(_callableNode,
-                () => _getFunction(name.text, namespace: module?.text));
+            : _addExceptionSpan(
+                _callableNode,
+                () => _getFunction(name.text.replaceAll("_", "-"),
+                    namespace: module?.text));
         if (callable != null) return SassFunction(callable);
 
         throw "Function not found: $name";

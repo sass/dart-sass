@@ -1,7 +1,7 @@
 name: sass
-version: 1.22.9-dev
+version: 1.22.11
 description: A Sass implementation in Dart.
-author: Dart Team <misc@dartlang.org>
+author: Sass Team
 homepage: https://github.com/sass/dart-sass
 
 executables:

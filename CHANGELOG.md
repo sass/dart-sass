@@ -1,3 +1,21 @@
+## 1.22.11
+
+* Don't try to load unquoted plain-CSS indented-syntax imports.
+
+* Fix a couple edge cases in `@extend` logic and related selector functions:
+
+  * Recognize `:matches()` and similar pseudo-selectors as superselectors of
+    matching complex selectors.
+
+  * Recognize `::slotted()` as a superselector of other `::slotted()` selectors.
+
+  * Regonize `:current()` with a vendor prefix as a superselector.
+
+## 1.22.10
+
+* Fix a bug in which `get-function()` would fail to find a dash-separated
+  function when passed a function name with underscores.
+
 ## 1.22.9
 
 * Include argument names when reporting range errors and selector parse errors.
@@ -6,6 +24,10 @@
 
 * Clarify the error message when the wrong number of positional arguments are
   passed along with a named argument.
+
+### JavaScript API
+
+* Re-add support for Node Carbon (8.x).
 
 ## 1.22.8
 
