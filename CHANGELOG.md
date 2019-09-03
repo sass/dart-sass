@@ -1,3 +1,10 @@
+## 1.23.0-module.beta.1
+
+* Initial beta release of the new Sass module system. See [the module system
+  proposal][] for details.
+
+  [the module system proposal]: https://github.com/sass/sass/blob/master/accepted/module-system.md
+
 ## 1.22.11
 
 * Don't try to load unquoted plain-CSS indented-syntax imports.
