@@ -122,7 +122,9 @@ class _Watcher {
   Future<void> watch(MultiDirWatcher watcher) async {
     await for (var event in _debounceEvents(watcher.events)) {
       var extension = p.extension(event.path);
-      if (extension != '.sass' && extension != '.scss') continue;
+      if (extension != '.sass' && extension != '.scss' && extension != '.css') {
+        continue;
+      }
 
       switch (event.type) {
         case ChangeType.MODIFY:

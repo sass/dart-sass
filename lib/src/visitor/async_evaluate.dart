@@ -387,7 +387,7 @@ class _EvaluateVisitor
 
     functions = [...?functions, ...globalFunctions, ...metaFunctions];
     for (var function in functions) {
-      _builtInFunctions[function.name] = function;
+      _builtInFunctions[function.name.replaceAll("_", "-")] = function;
     }
   }
 

@@ -499,6 +499,26 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             ]).validate();
           });
         });
+
+        // Regression test for #806
+        test("with a .css extension", () async {
+          await d.file("test.css", "a {b: c}").create();
+
+          var sass = await watch(["test.css:out.css"]);
+          await expectLater(
+              sass.stdout, emits('Compiled test.css to out.css.'));
+          await expectLater(sass.stdout, _watchingForChanges);
+          await tickIfPoll();
+
+          await d.file("test.css", "x {y: z}").create();
+          await expectLater(
+              sass.stdout, emits('Compiled test.css to out.css.'));
+          await sass.kill();
+
+          await d
+              .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+              .validate();
+        });
       });
 
       group("doesn't recompile the watched file", () {

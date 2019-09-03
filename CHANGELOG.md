@@ -5,11 +5,21 @@
   their own (such as `--`), are now parsed as identifiers [in accordance with
   the CSS spec][ident-token-diagram].
 
+  [ident-token-diagram]: https://drafts.csswg.org/css-syntax-3/#ident-token-diagram
+
   The sequence `--` was previously parsed as multiple applications of the `-`
   operator. Since this is unlikely to be used intentionally in practice, we
   consider this bug fix safe.
 
-[ident-token-diagram]: https://drafts.csswg.org/css-syntax-3/#ident-token-diagram
+### Command-Line Interface
+
+* Fix a bug where changes in `.css` files would be ignored in `--watch` mode.
+
+### JavaScript API
+
+* Allow underscore-separated custom functions to be defined.
+
+* Improve the performance of Node.js compilation involving many `@import`s.
 
 ## 1.22.11
 
