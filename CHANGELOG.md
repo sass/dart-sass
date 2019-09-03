@@ -4,6 +4,12 @@
 
 * Fix a bug where changes in `.css` files would be ignored in `--watch` mode.
 
+### JavaScript API
+
+* Allow underscore-separated custom functions to be defined.
+
+* Improve the performance of Node.js compilation involving many `@import`s.
+
 ## 1.22.11
 
 * Don't try to load unquoted plain-CSS indented-syntax imports.
