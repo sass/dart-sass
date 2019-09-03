@@ -1091,7 +1091,7 @@ abstract class StylesheetParser extends Parser {
     var urlSpan = scanner.spanFrom(start);
     whitespace();
     var queries = tryImportQueries();
-    if (_isPlainImportUrl(url) || queries != null) {
+    if (isPlainImportUrl(url) || queries != null) {
       return StaticImport(
           Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
           supports: queries?.item1, media: queries?.item2);
@@ -1117,7 +1117,8 @@ abstract class StylesheetParser extends Parser {
   }
 
   /// Returns whether [url] indicates that an `@import` is a plain CSS import.
-  bool _isPlainImportUrl(String url) {
+  @protected
+  bool isPlainImportUrl(String url) {
     if (url.length < 5) return false;
     if (url.endsWith(".css")) return true;
 
