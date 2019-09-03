@@ -2,7 +2,9 @@
 
 ### JavaScript API
 
-* Allow underscore-separated functions to be defined.
+* Allow underscore-separated custom functions to be defined.
+
+* Improve the performance of Node.js compilation involving many `@import`s.
 
 ## 1.22.11
 
