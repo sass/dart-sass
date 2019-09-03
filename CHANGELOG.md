@@ -1,5 +1,9 @@
 ## 1.22.12
 
+### Command-Line Interface
+
+* Fix a bug where changes in `.css` files would be ignored in `--watch` mode.
+
 ### JavaScript API
 
 * Allow underscore-separated custom functions to be defined.
