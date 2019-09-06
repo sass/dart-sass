@@ -2979,8 +2979,14 @@ relase. For details, see http://bit.ly/moz-document.
     var start = scanner.state;
     var buffer = InterpolationBuffer();
 
-    while (scanner.scanChar($dash)) {
+    if (scanner.scanChar($dash)) {
       buffer.writeCharCode($dash);
+
+      if (scanner.scanChar($dash)) {
+        buffer.writeCharCode($dash);
+        _interpolatedIdentifierBody(buffer);
+        return buffer.interpolation(scanner.spanFrom(start));
+      }
     }
 
     var first = scanner.peekChar();
@@ -2996,6 +3002,13 @@ relase. For details, see http://bit.ly/moz-document.
       scanner.error("Expected identifier.");
     }
 
+    _interpolatedIdentifierBody(buffer);
+    return buffer.interpolation(scanner.spanFrom(start));
+  }
+
+  /// Consumes a chunk of a possibly-interpolated CSS identifier after the name
+  /// start, and adds the contents to the [buffer] buffer.
+  void _interpolatedIdentifierBody(InterpolationBuffer buffer) {
     while (true) {
       var next = scanner.peekChar();
       if (next == null) {
@@ -3013,8 +3026,6 @@ relase. For details, see http://bit.ly/moz-document.
         break;
       }
     }
-
-    return buffer.interpolation(scanner.spanFrom(start));
   }
 
   /// Consumes interpolation.
@@ -3261,15 +3272,8 @@ relase. For details, see http://bit.ly/moz-document.
     if (first != $dash) return false;
     var second = scanner.peekChar(1);
     if (second == null) return false;
-    if (isNameStart(second) || second == $backslash) return true;
-
     if (second == $hash) return scanner.peekChar(2) == $lbrace;
-    if (second != $dash) return false;
-
-    var third = scanner.peekChar(2);
-    if (third == null) return false;
-    if (third == $hash) return scanner.peekChar(3) == $lbrace;
-    return isNameStart(third);
+    return isNameStart(second) || second == $backslash || second == $dash;
   }
 
   /// Returns whether the scanner is immediately before a sequence of characters

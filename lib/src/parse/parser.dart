@@ -147,12 +147,18 @@ class Parser {
   @protected
   String identifier({bool normalize = false, bool unit = false}) {
     // NOTE: this logic is largely duplicated in
-    // StylesheetParser._interpolatedIdentifier and isIdentifier in utils.dart.
-    // Most changes here should be mirrored there.
+    // StylesheetParser.interpolatedIdentifier. Most changes here should be
+    // mirrored there.
 
     var text = StringBuffer();
-    while (scanner.scanChar($dash)) {
+    if (scanner.scanChar($dash)) {
       text.writeCharCode($dash);
+
+      if (scanner.scanChar($dash)) {
+        text.writeCharCode($dash);
+        _identifierBody(text, normalize: normalize, unit: unit);
+        return text.toString();
+      }
     }
 
     var first = scanner.peekChar();
@@ -580,11 +586,7 @@ class Parser {
 
     var second = scanner.peekChar(forward + 1);
     if (second == null) return false;
-    if (isNameStart(second) || second == $backslash) return true;
-    if (second != $dash) return false;
-
-    var third = scanner.peekChar(forward + 2);
-    return third != null && isNameStart(third);
+    return isNameStart(second) || second == $backslash || second == $dash;
   }
 
   /// Returns whether the scanner is immediately before a sequence of characters
