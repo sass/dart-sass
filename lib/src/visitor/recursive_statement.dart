@@ -23,7 +23,7 @@ import 'interface/statement.dart';
 /// The default implementation of the visit methods all return `null`.
 abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
   T visitAtRootRule(AtRootRule node) {
-    visitInterpolation(node.query);
+    if (node.query != null) visitInterpolation(node.query);
     return visitChildren(node);
   }
 
@@ -47,7 +47,7 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
 
   T visitDeclaration(Declaration node) {
     visitInterpolation(node.name);
-    visitExpression(node.value);
+    if (node.value != null) visitExpression(node.value);
     return node.children == null ? null : visitChildren(node);
   }
 
