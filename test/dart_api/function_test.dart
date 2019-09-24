@@ -130,4 +130,28 @@ main() {
 
     expect(css, equalsIgnoringWhitespace("a { b: 1; }"));
   });
+
+  group("are dash-normalized", () {
+    test("when defined with dashes", () {
+      expect(
+          compileString('a {b: foo_bar()}', functions: [
+            Callable("foo-bar", "", expectAsync1((arguments) {
+              expect(arguments, isEmpty);
+              return sassNull;
+            }))
+          ]),
+          isEmpty);
+    });
+
+    test("when defined with underscores", () {
+      expect(
+          compileString('a {b: foo-bar()}', functions: [
+            Callable("foo_bar", "", expectAsync1((arguments) {
+              expect(arguments, isEmpty);
+              return sassNull;
+            }))
+          ]),
+          isEmpty);
+    });
+  });
 }
