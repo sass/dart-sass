@@ -31,6 +31,8 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 * [JavaScript API](#javascript-api)
 * [Why Dart?](#why-dart)
 * [Compatibility Policy](#compatibility-policy)
+  * [Browser Compatibility](#browser-compatibility)
+  * [Node.js Compatibility](#nodejs-compatibility)
 * [Behavioral Differences from Ruby Sass](#behavioral-differences-from-ruby-sass)
 
 ## Using Dart Sass
@@ -269,6 +271,16 @@ market share of browser according to [StatCounter GlobalStats][], we may release
 a minor version of Dart Sass with that change.
 
 [StatCounter GlobalStats]: http://gs.statcounter.com/
+
+### Node.js Compatibility
+
+We consider dropping support for a given version of Node.js to be a breaking
+change *as long as* that version is still supported by Node.js. This means that
+releases listed as Current, Active LTS, or Maintenance LTS according to [the
+Node.js release page][]. Once a Node.js version is out of LTS, Dart Sass
+considers itself free to break support if necessary.
+
+[the Node.js release page]: https://nodejs.org/en/about/releases/
 
 ## Behavioral Differences from Ruby Sass
 
