@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1a6678b9aa71d8d8ea5aab9216a48e401a892453
+// Checksum: 2522d5fbfb9d301b361a9bacac97228de2c6fd68
 //
 // ignore_for_file: unused_import
 
@@ -202,7 +202,7 @@ class Environment {
   /// with the same name as a variable defined in this environment.
   void addModule(Module<Callable> module, {String namespace}) {
     if (namespace == null) {
-      _globalModules ??= Set();
+      _globalModules ??= {};
       _globalModules.add(module);
       _allModules.add(module);
 
@@ -704,7 +704,9 @@ class Environment {
     T value;
     for (var module in _globalModules) {
       var valueInModule = callback(module);
-      if (valueInModule != null && value != null) {
+      if (valueInModule == null) continue;
+
+      if (value != null) {
         throw SassScriptException(
             'This $type is available from multiple global modules:\n' +
                 bulletedList(_globalModules
