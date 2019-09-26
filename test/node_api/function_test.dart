@@ -69,6 +69,30 @@ void main() {
     });
   });
 
+  group("are dash-normalized", () {
+    test("when defined with dashes", () {
+      expect(
+          renderSync(RenderOptions(
+              data: "a {b: foo_bar()}",
+              functions: jsify({
+                "foo-bar": allowInterop(expectAsync0(
+                    () => callConstructor(sass.types.Number, [12])))
+              }))),
+          equalsIgnoringWhitespace("a { b: 12; }"));
+    });
+
+    test("when defined with underscores", () {
+      expect(
+          renderSync(RenderOptions(
+              data: "a {b: foo-bar()}",
+              functions: jsify({
+                "foo_bar": allowInterop(expectAsync0(
+                    () => callConstructor(sass.types.Number, [12])))
+              }))),
+          equalsIgnoringWhitespace("a { b: 12; }"));
+    });
+  });
+
   group("rejects function calls that", () {
     test("have too few arguments", () {
       var error = renderSyncError(RenderOptions(
