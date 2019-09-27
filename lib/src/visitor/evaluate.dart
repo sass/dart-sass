@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 81a3519c2d9182c91da1907a5129f3810c0ecdb5
+// Checksum: d520e2c69342b6e9c9ce0ddf6e75ac74bdf80574
 //
 // ignore_for_file: unused_import
 
@@ -452,7 +452,7 @@ class _EvaluateVisitor
 
     functions = [...?functions, ...globalFunctions, ...metaFunctions];
     for (var function in functions) {
-      _builtInFunctions[function.name] = function;
+      _builtInFunctions[function.name.replaceAll("_", "-")] = function;
     }
   }
 
