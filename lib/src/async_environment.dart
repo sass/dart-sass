@@ -196,7 +196,7 @@ class AsyncEnvironment {
   /// with the same name as a variable defined in this environment.
   void addModule(Module module, {String namespace}) {
     if (namespace == null) {
-      _globalModules ??= Set();
+      _globalModules ??= {};
       _globalModules.add(module);
       _allModules.add(module);
 
@@ -700,7 +700,9 @@ class AsyncEnvironment {
     T value;
     for (var module in _globalModules) {
       var valueInModule = callback(module);
-      if (valueInModule != null && value != null) {
+      if (valueInModule == null) continue;
+
+      if (value != null) {
         throw SassScriptException(
             'This $type is available from multiple global modules:\n' +
                 bulletedList(_globalModules
