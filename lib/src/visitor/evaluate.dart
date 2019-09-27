@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3fc19891432af3cebdc0f36730e57cbbf672d959
+// Checksum: d520e2c69342b6e9c9ce0ddf6e75ac74bdf80574
 //
 // ignore_for_file: unused_import
 
@@ -261,7 +261,11 @@ class _EvaluateVisitor
 
   /// A map from variable names to the values that override their `!default`
   /// definitions in this module.
-  Map<String, _ConfiguredValue> _configuration;
+  ///
+  /// If this is empty, that indicates that the current module is not confiured.
+  /// Note that it may be unmodifiable when empty, in which case [Map.remove]
+  /// must not be called.
+  var _configuration = const <String, _ConfiguredValue>{};
 
   /// Creates a new visitor.
   ///
@@ -527,9 +531,11 @@ class _EvaluateVisitor
       {Uri baseUrl,
       Map<String, _ConfiguredValue> configuration,
       bool namesInErrors = false}) {
+    configuration ??= const {};
+
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
-      if (configuration != null || _configuration != null) {
+      if (configuration.isNotEmpty || _configuration.isNotEmpty) {
         throw _exception(
             namesInErrors
                 ? "Built-in module $url can't be configured."
@@ -589,11 +595,12 @@ class _EvaluateVisitor
   Module<Callable> _execute(Importer importer, Stylesheet stylesheet,
       {Map<String, _ConfiguredValue> configuration,
       bool namesInErrors = false}) {
+    configuration ??= const {};
     var url = stylesheet.span.sourceUrl;
 
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
-      if (configuration != null || _configuration != null) {
+      if (configuration.isNotEmpty || _configuration.isNotEmpty) {
         throw _exception(namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
@@ -636,7 +643,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = false;
       _inKeyframes = false;
 
-      if (configuration != null) _configuration = Map.of(configuration);
+      if (configuration.isNotEmpty) _configuration = Map.of(configuration);
 
       visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
@@ -657,7 +664,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
       _inKeyframes = oldInKeyframes;
 
-      if (configuration != null && _configuration.isNotEmpty) {
+      if (configuration.isNotEmpty && _configuration.isNotEmpty) {
         throw _exception(
             namesInErrors
                 ? "\$${_configuration.keys.first} was not declared with "
@@ -1202,7 +1209,7 @@ class _EvaluateVisitor
     // configuration variable is used by removing it even when the underlying
     // map is wrapped.
     var oldConfiguration = _configuration;
-    if (_configuration != null) {
+    if (_configuration.isNotEmpty) {
       if (node.prefix != null) {
         _configuration = UnprefixedMapView(_configuration, node.prefix);
       }
@@ -1714,7 +1721,12 @@ class _EvaluateVisitor
   Value visitVariableDeclaration(VariableDeclaration node) {
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
-        var override = _configuration?.remove(node.name);
+        // Explicitly check whether [_configuration] is empty because if it is,
+        // it may be a constant map which doesn't support `remove()`.
+        //
+        // See also dart-lang/sdk#38540.
+        var override =
+            _configuration.isEmpty ? null : _configuration.remove(node.name);
         if (override != null) {
           _addExceptionSpan(node, () {
             _environment.setVariable(
