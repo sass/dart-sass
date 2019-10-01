@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d79b881dbbe875fafde129b908aab5e7ff532a87
+// Checksum: d520e2c69342b6e9c9ce0ddf6e75ac74bdf80574
 //
 // ignore_for_file: unused_import
 
@@ -46,6 +46,8 @@ import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
+import '../util/limited_map_view.dart';
+import '../util/unprefixed_map_view.dart';
 import '../utils.dart';
 import '../value.dart';
 import '../warn.dart';
@@ -93,24 +95,35 @@ EvaluateResult evaluate(Stylesheet stylesheet,
             sourceMap: sourceMap)
         .run(importer, stylesheet);
 
-/// Evaluates a single [expression]
-///
-/// The [functions] are available as global functions when evaluating
-/// [expression].
-///
-/// The [variables] are available as global variables when evaluating
-/// [expression].
-///
-/// Warnings are emitted using [logger], or printed to standard error by
-/// default.
-///
-/// Throws a [SassRuntimeException] if evaluation fails.
-Value evaluateExpression(Expression expression,
-        {Iterable<Callable> functions,
-        Map<String, Value> variables,
-        Logger logger}) =>
-    _EvaluateVisitor(functions: functions, logger: logger, sourceMap: false)
-        .runExpression(expression, variables: variables);
+/// A class that can evaluate multiple independent statements and expressions
+/// in the context of a single module.
+class Evaluator {
+  /// The visitor that evaluates each expression and statement.
+  final _EvaluateVisitor _visitor;
+
+  /// The importer to use to resolve `@use` rules in [_importer].
+  final Importer _importer;
+
+  /// Creates an evaluator.
+  ///
+  /// Arguments are the same as for [evaluate].
+  Evaluator(
+      {ImportCache importCache,
+      Importer importer,
+      Iterable<Callable> functions,
+      Logger logger})
+      : _visitor = _EvaluateVisitor(
+            importCache: importCache, functions: functions, logger: logger),
+        _importer = importer;
+
+  void use(UseRule use) => _visitor.runStatement(_importer, use);
+
+  Value evaluate(Expression expression) =>
+      _visitor.runExpression(_importer, expression);
+
+  void setVariable(VariableDeclaration declaration) =>
+      _visitor.runStatement(_importer, declaration);
+}
 
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
@@ -246,18 +259,32 @@ class _EvaluateVisitor
   /// module.
   Extender _extender;
 
+  /// A map from variable names to the values that override their `!default`
+  /// definitions in this module.
+  ///
+  /// If this is empty, that indicates that the current module is not confiured.
+  /// Note that it may be unmodifiable when empty, in which case [Map.remove]
+  /// must not be called.
+  var _configuration = const <String, _ConfiguredValue>{};
+
+  /// Creates a new visitor.
+  ///
+  /// Most arguments are the same as those to [evaluate].
   _EvaluateVisitor(
       {ImportCache importCache,
       NodeImporter nodeImporter,
       Iterable<Callable> functions,
       Logger logger,
-      bool sourceMap})
+      bool sourceMap = false})
       : _importCache = nodeImporter == null
             ? importCache ?? ImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
-        _sourceMap = sourceMap {
+        _sourceMap = sourceMap,
+        // The default environment is overridden in [_execute] for full
+        // stylesheets, but for [AsyncEvaluator] this environment is used.
+        _environment = Environment(sourceMap: sourceMap) {
     var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
@@ -387,7 +414,38 @@ class _EvaluateVisitor
       })
     ];
 
-    var metaModule = BuiltInModule("meta", [...meta.global, ...metaFunctions]);
+    var metaMixins = [
+      BuiltInCallable("load-css", r"$module, $with: null", (arguments) {
+        var url = Uri.parse(arguments[0].assertString("module").text);
+        var withMap = arguments[1].realNull?.assertMap("with")?.contents;
+
+        Map<String, _ConfiguredValue> configuration;
+        if (withMap != null) {
+          configuration = <String, _ConfiguredValue>{};
+          var span = _callableNode.span;
+          withMap.forEach((variable, value) {
+            var name =
+                variable.assertString("with key").text.replaceAll("_", "-");
+            if (configuration.containsKey(name)) {
+              throw "The variable \$$name was configured twice.";
+            }
+
+            configuration[name] = _ConfiguredValue(value, span);
+          });
+        }
+
+        _loadModule(url, "load-css()", _callableNode,
+            (module) => _combineCss(module, clone: true).accept(this),
+            baseUrl: _callableNode.span?.sourceUrl,
+            configuration: configuration,
+            namesInErrors: true);
+        return null;
+      })
+    ];
+
+    var metaModule = BuiltInModule("meta",
+        functions: [...meta.global, ...metaFunctions], mixins: metaMixins);
+
     for (var module in [...coreModules, metaModule]) {
       _builtInModules[module.url] = module;
     }
@@ -418,17 +476,13 @@ class _EvaluateVisitor
     });
   }
 
-  Value runExpression(Expression expression, {Map<String, Value> variables}) {
-    return _withWarnCallback(() {
-      _environment = Environment(sourceMap: _sourceMap);
+  Value runExpression(Importer importer, Expression expression) =>
+      _withWarnCallback(() => _withFakeStylesheet(
+          importer, expression, () => expression.accept(this)));
 
-      for (var name in variables?.keys ?? const <String>[]) {
-        _environment.setVariable(name, variables[name], null, global: true);
-      }
-
-      return expression.accept(this);
-    });
-  }
+  void runStatement(Importer importer, Statement statement) =>
+      _withWarnCallback(() => _withFakeStylesheet(
+          importer, statement, () => statement.accept(this)));
 
   /// Runs [callback] with a definition for the top-level `warn` function.
   T _withWarnCallback<T>(T callback()) {
@@ -439,39 +493,89 @@ class _EvaluateVisitor
         callback);
   }
 
+  /// Runs [callback] with [importer] as [_importer] and a fake [_stylesheet]
+  /// with [nodeForSpan]'s source span.
+  T _withFakeStylesheet<T>(
+      Importer importer, AstNode nodeForSpan, T callback()) {
+    var oldImporter = _importer;
+    _importer = importer;
+    var oldStylesheet = _stylesheet;
+    _stylesheet = Stylesheet(const [], nodeForSpan.span);
+
+    try {
+      return callback();
+    } finally {
+      _importer = oldImporter;
+      _stylesheet = oldStylesheet;
+    }
+  }
+
   /// Loads the module at [url] and passes it to [callback].
+  ///
+  /// This first tries loading [url] relative to [baseUrl], which defaults to
+  /// `_stylesheet.span.sourceUrl`.
+  ///
+  /// The [configuration] overrides values for `!default` variables defined in
+  /// the module or modules it forwards and/or imports. If it's not passed, the
+  /// current configuration is used instead. Throws a [SassRuntimeException] if
+  /// a configured variable is not declared with `!default`.
+  ///
+  /// If [namesInErrors] is `true`, this includes the names of modules or
+  /// configured variables in errors relating to them. This should only be
+  /// `true` if the names won't be obvious from the source span.
   ///
   /// The [stackFrame] and [nodeForSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
   void _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
-      void callback(Module<Callable> module)) {
+      void callback(Module<Callable> module),
+      {Uri baseUrl,
+      Map<String, _ConfiguredValue> configuration,
+      bool namesInErrors = false}) {
+    configuration ??= const {};
+
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
+      if (configuration.isNotEmpty || _configuration.isNotEmpty) {
+        throw _exception(
+            namesInErrors
+                ? "Built-in module $url can't be configured."
+                : "Built-in modules can't be configured.",
+            nodeForSpan.span);
+      }
+
       callback(builtInModule);
       return;
     }
 
     _withStackFrame(stackFrame, nodeForSpan, () {
-      var result =
-          inUseRule(() => _loadStylesheet(url.toString(), nodeForSpan.span));
+      var result = inUseRule(() =>
+          _loadStylesheet(url.toString(), nodeForSpan.span, baseUrl: baseUrl));
       var importer = result.item1;
       var stylesheet = result.item2;
 
       var canonicalUrl = stylesheet.span.sourceUrl;
       if (_activeModules.contains(canonicalUrl)) {
-        throw _exception("Module loop: this module is already being loaded.");
+        throw _exception(namesInErrors
+            ? "Module loop: ${p.prettyUri(canonicalUrl)} is already being "
+                "loaded."
+            : "Module loop: this module is already being loaded.");
       }
       _activeModules.add(canonicalUrl);
 
       Module<Callable> module;
       try {
-        module = _execute(importer, stylesheet);
+        module = _execute(importer, stylesheet,
+            configuration: configuration, namesInErrors: namesInErrors);
       } finally {
         _activeModules.remove(canonicalUrl);
       }
 
       try {
         callback(module);
+      } on SassRuntimeException {
+        rethrow;
+      } on SassException catch (error) {
+        throw _exception(error.message, error.span);
       } on SassScriptException catch (error) {
         throw _exception(error.message);
       }
@@ -479,62 +583,102 @@ class _EvaluateVisitor
   }
 
   /// Executes [stylesheet], loaded by [importer], to produce a module.
-  Module<Callable> _execute(Importer importer, Stylesheet stylesheet) {
+  ///
+  /// The [configuration] overrides values for `!default` variables defined in
+  /// the module or modules it forwards and/or imports. If it's not passed, the
+  /// current configuration is used instead. Throws a [SassRuntimeException] if
+  /// a configured variable is not declared with `!default`.
+  ///
+  /// If [namesInErrors] is `true`, this includes the names of modules or
+  /// configured variables in errors relating to them. This should only be
+  /// `true` if the names won't be obvious from the source span.
+  Module<Callable> _execute(Importer importer, Stylesheet stylesheet,
+      {Map<String, _ConfiguredValue> configuration,
+      bool namesInErrors = false}) {
+    configuration ??= const {};
     var url = stylesheet.span.sourceUrl;
-    return _modules.putIfAbsent(url, () {
-      var environment = Environment(sourceMap: _sourceMap);
-      CssStylesheet css;
-      var extender = Extender();
-      _withEnvironment(environment, () {
-        var oldImporter = _importer;
-        var oldStylesheet = _stylesheet;
-        var oldRoot = _root;
-        var oldParent = _parent;
-        var oldEndOfImports = _endOfImports;
-        var oldOutOfOrderImports = _outOfOrderImports;
-        var oldExtender = _extender;
-        var oldStyleRule = _styleRule;
-        var oldMediaQueries = _mediaQueries;
-        var oldDeclarationName = _declarationName;
-        var oldInUnknownAtRule = _inUnknownAtRule;
-        var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
-        var oldInKeyframes = _inKeyframes;
-        _importer = importer;
-        _stylesheet = stylesheet;
-        _root = ModifiableCssStylesheet(stylesheet.span);
-        _parent = _root;
-        _endOfImports = 0;
-        _outOfOrderImports = null;
-        _extender = extender;
-        _styleRule = null;
-        _mediaQueries = null;
-        _declarationName = null;
-        _inUnknownAtRule = false;
-        _atRootExcludingStyleRule = false;
-        _inKeyframes = false;
 
-        visitStylesheet(stylesheet);
-        css = _outOfOrderImports == null
-            ? _root
-            : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
+    var alreadyLoaded = _modules[url];
+    if (alreadyLoaded != null) {
+      if (configuration.isNotEmpty || _configuration.isNotEmpty) {
+        throw _exception(namesInErrors
+            ? "${p.prettyUri(url)} was already loaded, so it can't be "
+                "configured using \"with\"."
+            : "This module was already loaded, so it can't be configured using "
+                "\"with\".");
+      }
 
-        _importer = oldImporter;
-        _stylesheet = oldStylesheet;
-        _root = oldRoot;
-        _parent = oldParent;
-        _endOfImports = oldEndOfImports;
-        _outOfOrderImports = oldOutOfOrderImports;
-        _extender = oldExtender;
-        _styleRule = oldStyleRule;
-        _mediaQueries = oldMediaQueries;
-        _declarationName = oldDeclarationName;
-        _inUnknownAtRule = oldInUnknownAtRule;
-        _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
-        _inKeyframes = oldInKeyframes;
-      });
+      return alreadyLoaded;
+    }
 
-      return environment.toModule(css, extender);
+    var environment = Environment(sourceMap: _sourceMap);
+    CssStylesheet css;
+    var extender = Extender();
+    _withEnvironment(environment, () {
+      var oldImporter = _importer;
+      var oldStylesheet = _stylesheet;
+      var oldRoot = _root;
+      var oldParent = _parent;
+      var oldEndOfImports = _endOfImports;
+      var oldOutOfOrderImports = _outOfOrderImports;
+      var oldExtender = _extender;
+      var oldStyleRule = _styleRule;
+      var oldMediaQueries = _mediaQueries;
+      var oldDeclarationName = _declarationName;
+      var oldInUnknownAtRule = _inUnknownAtRule;
+      var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
+      var oldInKeyframes = _inKeyframes;
+      var oldConfiguration = _configuration;
+      _importer = importer;
+      _stylesheet = stylesheet;
+      _root = ModifiableCssStylesheet(stylesheet.span);
+      _parent = _root;
+      _endOfImports = 0;
+      _outOfOrderImports = null;
+      _extender = extender;
+      _styleRule = null;
+      _mediaQueries = null;
+      _declarationName = null;
+      _inUnknownAtRule = false;
+      _atRootExcludingStyleRule = false;
+      _inKeyframes = false;
+
+      if (configuration.isNotEmpty) _configuration = Map.of(configuration);
+
+      visitStylesheet(stylesheet);
+      css = _outOfOrderImports == null
+          ? _root
+          : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
+
+      _importer = oldImporter;
+      _stylesheet = oldStylesheet;
+      _root = oldRoot;
+      _parent = oldParent;
+      _endOfImports = oldEndOfImports;
+      _outOfOrderImports = oldOutOfOrderImports;
+      _extender = oldExtender;
+      _styleRule = oldStyleRule;
+      _mediaQueries = oldMediaQueries;
+      _declarationName = oldDeclarationName;
+      _inUnknownAtRule = oldInUnknownAtRule;
+      _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
+      _inKeyframes = oldInKeyframes;
+
+      if (configuration.isNotEmpty && _configuration.isNotEmpty) {
+        throw _exception(
+            namesInErrors
+                ? "\$${_configuration.keys.first} was not declared with "
+                    "!default in the @used module."
+                : "This variable was not declared with !default in the @used "
+                    "module.",
+            _configuration.values.first.configurationSpan);
+      }
+      _configuration = oldConfiguration;
     });
+
+    var module = environment.toModule(css, extender);
+    _modules[url] = module;
+    return module;
   }
 
   /// Returns a copy of [_root.children] with [_outOfOrderImports] inserted
@@ -1060,10 +1204,31 @@ class _EvaluateVisitor
   }
 
   Value visitForwardRule(ForwardRule node) {
+    // Only allow variables that are visible through the `@forward` to be
+    // configured. These views support [Map.remove] so we can mark when a
+    // configuration variable is used by removing it even when the underlying
+    // map is wrapped.
+    var oldConfiguration = _configuration;
+    if (_configuration.isNotEmpty) {
+      if (node.prefix != null) {
+        _configuration = UnprefixedMapView(_configuration, node.prefix);
+      }
+
+      if (node.shownVariables != null) {
+        _configuration =
+            LimitedMapView.whitelist(_configuration, node.shownVariables);
+      } else if (node.hiddenVariables != null &&
+          node.hiddenVariables.isNotEmpty) {
+        _configuration =
+            LimitedMapView.blacklist(_configuration, node.hiddenVariables);
+      }
+    }
+
     _loadModule(node.url, "@forward", node, (module) {
       _environment.forwardModule(module, node);
     });
 
+    _configuration = oldConfiguration;
     return null;
   }
 
@@ -1187,7 +1352,11 @@ class _EvaluateVisitor
 
   /// Loads the [Stylesheet] identified by [url], or throws a
   /// [SassRuntimeException] if loading fails.
-  Tuple2<Importer, Stylesheet> _loadStylesheet(String url, FileSpan span) {
+  ///
+  /// This first tries loading [url] relative to [baseUrl], which defaults to
+  /// `_stylesheet.span.sourceUrl`.
+  Tuple2<Importer, Stylesheet> _loadStylesheet(String url, FileSpan span,
+      {Uri baseUrl}) {
     try {
       assert(_importSpan == null);
       _importSpan = span;
@@ -1197,7 +1366,7 @@ class _EvaluateVisitor
         if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
         var tuple = _importCache.import(
-            Uri.parse(url), _importer, _stylesheet.span?.sourceUrl);
+            Uri.parse(url), _importer, baseUrl ?? _stylesheet?.span?.sourceUrl);
         if (tuple != null) return tuple;
       }
 
@@ -1274,30 +1443,41 @@ class _EvaluateVisitor
 
   Value visitIncludeRule(IncludeRule node) {
     var mixin = _addExceptionSpan(node,
-            () => _environment.getMixin(node.name, namespace: node.namespace))
-        as UserDefinedCallable<Environment>;
+        () => _environment.getMixin(node.name, namespace: node.namespace));
     if (mixin == null) {
       throw _exception("Undefined mixin.", node.span);
     }
 
-    if (node.content != null && !(mixin.declaration as MixinRule).hasContent) {
-      throw _exception("Mixin doesn't accept a content block.", node.span);
-    }
+    if (mixin is BuiltInCallable) {
+      if (node.content != null) {
+        throw _exception("Mixin doesn't accept a content block.", node.span);
+      }
 
-    var contentCallable = node.content == null
-        ? null
-        : UserDefinedCallable(node.content, _environment.closure());
-    _runUserDefinedCallable(node.arguments, mixin, node, () {
-      _environment.withContent(contentCallable, () {
-        _environment.asMixin(() {
-          for (var statement in mixin.declaration.children) {
-            statement.accept(this);
-          }
+      _runBuiltInCallable(node.arguments, mixin, node);
+    } else if (mixin is UserDefinedCallable<Environment>) {
+      if (node.content != null &&
+          !(mixin.declaration as MixinRule).hasContent) {
+        throw _exception("Mixin doesn't accept a content block.", node.span);
+      }
+
+      var contentCallable = node.content == null
+          ? null
+          : UserDefinedCallable(node.content, _environment.closure());
+
+      _runUserDefinedCallable(node.arguments, mixin, node, () {
+        _environment.withContent(contentCallable, () {
+          _environment.asMixin(() {
+            for (var statement in mixin.declaration.children) {
+              statement.accept(this);
+            }
+          });
+          return null;
         });
         return null;
       });
-      return null;
-    });
+    } else {
+      throw UnsupportedError("Unknown callable type $mixin.");
+    }
 
     return null;
   }
@@ -1540,6 +1720,23 @@ class _EvaluateVisitor
 
   Value visitVariableDeclaration(VariableDeclaration node) {
     if (node.isGuarded) {
+      if (node.namespace == null && _environment.atRoot) {
+        // Explicitly check whether [_configuration] is empty because if it is,
+        // it may be a constant map which doesn't support `remove()`.
+        //
+        // See also dart-lang/sdk#38540.
+        var override =
+            _configuration.isEmpty ? null : _configuration.remove(node.name);
+        if (override != null) {
+          _addExceptionSpan(node, () {
+            _environment.setVariable(
+                node.name, override.value, override.assignmentNode,
+                global: true);
+          });
+          return null;
+        }
+      }
+
       var value = _addExceptionSpan(node,
           () => _environment.getVariable(node.name, namespace: node.namespace));
       if (value != null && value != sassNull) return null;
@@ -1573,7 +1770,16 @@ class _EvaluateVisitor
   Value visitUseRule(UseRule node) {
     _loadModule(node.url, "@use", node, (module) {
       _environment.addModule(module, namespace: node.namespace);
-    });
+    },
+        configuration: node.configuration.isEmpty
+            ? null
+            : {
+                for (var entry in node.configuration.entries)
+                  entry.key: _ConfiguredValue(
+                      entry.value.item1.accept(this).withoutSlash(),
+                      entry.value.item2,
+                      _expressionNode(entry.value.item1))
+              });
 
     return null;
   }
@@ -1857,8 +2063,13 @@ class _EvaluateVisitor
   Value _runFunctionCallable(
       ArgumentInvocation arguments, Callable callable, AstNode nodeWithSpan) {
     if (callable is BuiltInCallable) {
-      return _runBuiltInCallable(arguments, callable, nodeWithSpan)
-          .withoutSlash();
+      var result = _runBuiltInCallable(arguments, callable, nodeWithSpan);
+      if (result == null) {
+        throw _exception(
+            "Custom functions may not return Dart's null.", nodeWithSpan.span);
+      }
+
+      return result.withoutSlash();
     } else if (callable is UserDefinedCallable<Environment>) {
       return _runUserDefinedCallable(arguments, callable, nodeWithSpan, () {
         for (var statement in callable.declaration.children) {
@@ -1946,7 +2157,8 @@ class _EvaluateVisitor
     Value result;
     try {
       result = callback(evaluated.positional);
-      if (result == null) throw "Custom functions may not return Dart's null.";
+    } on SassRuntimeException {
+      rethrow;
     } catch (error) {
       String message;
       try {
@@ -2702,4 +2914,20 @@ class _ArgumentResults {
 
   _ArgumentResults(this.positional, this.named, this.separator,
       {this.positionalNodes, this.namedNodes});
+}
+
+/// A variable value that's been configured using `@use ... with`.
+class _ConfiguredValue {
+  /// The value of the variable.
+  final Value value;
+
+  /// The span where the variable's configuration was written.
+  final FileSpan configurationSpan;
+
+  /// The [AstNode] where the variable's value originated.
+  ///
+  /// This is used to generate source maps.
+  final AstNode assignmentNode;
+
+  _ConfiguredValue(this.value, this.configurationSpan, [this.assignmentNode]);
 }

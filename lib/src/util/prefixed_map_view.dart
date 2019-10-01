@@ -21,17 +21,13 @@ class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// Creates a new prefixed map view.
   PrefixedMapView(this._map, this._prefix);
 
-  V operator [](Object key) => key is String && _startsWith(key, _prefix)
+  V operator [](Object key) => key is String && key.startsWith(_prefix)
       ? _map[key.substring(_prefix.length)]
       : null;
 
-  bool containsKey(Object key) => key is String && _startsWith(key, _prefix)
+  bool containsKey(Object key) => key is String && key.startsWith(_prefix)
       ? _map.containsKey(key.substring(_prefix.length))
       : false;
-
-  /// Returns whether [string] begins with [prefix].
-  bool _startsWith(String string, String prefix) =>
-      string.length >= prefix.length && string.startsWith(prefix);
 }
 
 /// The implementation of [PrefixedMapViews.keys].

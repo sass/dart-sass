@@ -11,7 +11,6 @@ import '../extend/extender.dart';
 import '../module.dart';
 import '../util/limited_map_view.dart';
 import '../util/prefixed_map_view.dart';
-import '../utils.dart';
 import '../value.dart';
 
 /// A [Module] that exposes members according to a [ForwardRule].
@@ -82,7 +81,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     }
 
     if (_rule.prefix != null) {
-      if (!startsWithIgnoreSeparator(name, _rule.prefix)) {
+      if (!name.startsWith(_rule.prefix)) {
         throw SassScriptException("Undefined variable.");
       }
 

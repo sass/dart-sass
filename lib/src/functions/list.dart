@@ -18,7 +18,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass list module.
-final module = BuiltInModule("list", [
+final module = BuiltInModule("list", functions: [
   _length, _nth, _setNth, _join, _append, _zip, _index, _isBracketed, //
   _separator
 ]);

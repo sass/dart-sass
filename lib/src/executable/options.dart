@@ -138,8 +138,8 @@ class ExecutableOptions {
     if (!_interactive) return false;
 
     var invalidOptions = [
-      'stdin', 'indented', 'load-path', 'style', 'source-map', //
-      'source-map-urls', 'embed-sources', 'embed-source-map', 'update', 'watch'
+      'stdin', 'indented', 'style', 'source-map', 'source-map-urls', //
+      'embed-sources', 'embed-source-map', 'update', 'watch'
     ];
     for (var option in invalidOptions) {
       if (_options.wasParsed(option)) {

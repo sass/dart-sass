@@ -12,6 +12,8 @@ import 'package:tuple/tuple.dart';
 import 'package:sass/sass.dart';
 import 'package:sass/src/utils.dart';
 
+import 'dart_api/test_importer.dart';
+
 main() {
   group("maps source to target for", () {
     group("a style rule", () {
@@ -543,6 +545,25 @@ main() {
           """);
         });
 
+        test("a @use rule with a with clause", () {
+          _expectScssSourceMap(r"""
+            $var1: {{1}}new value;
+            @use 'other' with ($var2: $var1);
+
+            {{2}}a {
+              {{3}}b: other.$var2;
+            }
+          """, """
+            {{2}}a {
+              {{3}}b: {{1}}new value;
+            }
+          """,
+              importer: TestImporter(
+                  (url) => Uri.parse("u:$url"),
+                  (_) => ImporterResult(r"$var2: default value !default;",
+                      syntax: Syntax.scss)));
+        });
+
         group("a mixin argument that is", () {
           test("the default value", () {
             _expectScssSourceMap(r"""
@@ -689,13 +710,14 @@ main() {
 ///
 /// This also re-indents the input strings with [_reindent].
 void _expectSourceMap(String sass, String scss, String css,
-    {OutputStyle style}) {
-  _expectSassSourceMap(sass, css, style: style);
-  _expectScssSourceMap(scss, css, style: style);
+    {Importer importer, OutputStyle style}) {
+  _expectSassSourceMap(sass, css, importer: importer, style: style);
+  _expectScssSourceMap(scss, css, importer: importer, style: style);
 }
 
 /// Like [_expectSourceMap], but with only SCSS source.
-void _expectScssSourceMap(String scss, String css, {OutputStyle style}) {
+void _expectScssSourceMap(String scss, String css,
+    {Importer importer, OutputStyle style}) {
   var scssTuple = _extractLocations(_reindent(scss));
   var scssText = scssTuple.item1;
   var scssLocations = _tuplesToMap(scssTuple.item2);
@@ -705,14 +727,15 @@ void _expectScssSourceMap(String scss, String css, {OutputStyle style}) {
   var cssLocations = cssTuple.item2;
 
   SingleMapping scssMap;
-  var scssOutput =
-      compileString(scssText, sourceMap: (map) => scssMap = map, style: style);
+  var scssOutput = compileString(scssText,
+      sourceMap: (map) => scssMap = map, importer: importer, style: style);
   expect(scssOutput, equals(cssText));
   _expectMapMatches(scssMap, scssText, cssText, scssLocations, cssLocations);
 }
 
 /// Like [_expectSourceMap], but with only indented source.
-void _expectSassSourceMap(String sass, String css, {OutputStyle style}) {
+void _expectSassSourceMap(String sass, String css,
+    {Importer importer, OutputStyle style}) {
   var sassTuple = _extractLocations(_reindent(sass));
   var sassText = sassTuple.item1;
   var sassLocations = _tuplesToMap(sassTuple.item2);
@@ -723,7 +746,10 @@ void _expectSassSourceMap(String sass, String css, {OutputStyle style}) {
 
   SingleMapping sassMap;
   var sassOutput = compileString(sassText,
-      indented: true, sourceMap: (map) => sassMap = map, style: style);
+      indented: true,
+      sourceMap: (map) => sassMap = map,
+      importer: importer,
+      style: style);
   expect(sassOutput, equals(cssText));
   _expectMapMatches(sassMap, sassText, cssText, sassLocations, cssLocations);
 }

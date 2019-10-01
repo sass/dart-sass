@@ -66,7 +66,7 @@ final global = UnmodifiableListView([
   }),
 
   // ### HSL
-  _hue, _saturation, _lightness, _adjustHue, _complement,
+  _hue, _saturation, _lightness, _complement,
 
   BuiltInCallable.overloaded("hsl", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
@@ -115,6 +115,12 @@ final global = UnmodifiableListView([
 
     var color = arguments[0].assertColor("color");
     return color.changeHsl(saturation: 0);
+  }),
+
+  BuiltInCallable("adjust-hue", r"$color, $degrees", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var degrees = arguments[1].assertNumber("degrees");
+    return color.changeHsl(hue: color.hue + degrees.value);
   }),
 
   BuiltInCallable("lighten", r"$color, $amount", (arguments) {
@@ -212,7 +218,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass color module.
-final module = BuiltInModule("color", [
+final module = BuiltInModule("color", functions: [
   // ### RGB
   _red, _green, _blue, _mix,
 
@@ -239,7 +245,8 @@ final module = BuiltInModule("color", [
   }),
 
   // ### HSL
-  _hue, _saturation, _lightness, _adjustHue, _complement,
+  _hue, _saturation, _lightness, _complement,
+  _removedColorFunction("adjust-hue", "hue"),
   _removedColorFunction("lighten", "lightness"),
   _removedColorFunction("darken", "lightness", negative: true),
   _removedColorFunction("saturate", "saturation"),
@@ -354,13 +361,6 @@ final _lightness = BuiltInCallable(
     r"$color",
     (arguments) =>
         SassNumber(arguments.first.assertColor("color").lightness, "%"));
-
-final _adjustHue =
-    BuiltInCallable("adjust-hue", r"$color, $degrees", (arguments) {
-  var color = arguments[0].assertColor("color");
-  var degrees = arguments[1].assertNumber("degrees");
-  return color.changeHsl(hue: color.hue + degrees.value);
-});
 
 final _complement = BuiltInCallable("complement", r"$color", (arguments) {
   var color = arguments[0].assertColor("color");

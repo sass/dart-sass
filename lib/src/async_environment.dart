@@ -48,9 +48,7 @@ class AsyncEnvironment {
 
   /// A list of variables defined at each lexical scope level.
   ///
-  /// Each scope maps the names of declared variables to their values. These
-  /// maps are *normalized*, meaning that they treat hyphens and underscores in
-  /// its keys interchangeably.
+  /// Each scope maps the names of declared variables to their values.
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
@@ -67,17 +65,12 @@ class AsyncEnvironment {
 
   /// A map of variable names to their indices in [_variables].
   ///
-  /// This map is *normalized*, meaning that it treats hyphens and underscores
-  /// in its keys interchangeably.
-  ///
   /// This map is filled in as-needed, and may not be complete.
   final Map<String, int> _variableIndices;
 
   /// A list of functions defined at each lexical scope level.
   ///
-  /// Each scope maps the names of declared functions to their values. These
-  /// maps are *normalized*, meaning that they treat hyphens and underscores in
-  /// its keys interchangeably.
+  /// Each scope maps the names of declared functions to their values.
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
@@ -85,26 +78,18 @@ class AsyncEnvironment {
 
   /// A map of function names to their indices in [_functions].
   ///
-  /// This map is *normalized*, meaning that it treats hyphens and underscores
-  /// in its keys interchangeably.
-  ///
   /// This map is filled in as-needed, and may not be complete.
   final Map<String, int> _functionIndices;
 
   /// A list of mixins defined at each lexical scope level.
   ///
-  /// Each scope maps the names of declared mixins to their values. These
-  /// maps are *normalized*, meaning that they treat hyphens and underscores in
-  /// its keys interchangeably.
+  /// Each scope maps the names of declared mixins to their values.
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
   final List<Map<String, AsyncCallable>> _mixins;
 
   /// A map of mixin names to their indices in [_mixins].
-  ///
-  /// This map is *normalized*, meaning that it treats hyphens and underscores
-  /// in its keys interchangeably.
   ///
   /// This map is filled in as-needed, and may not be complete.
   final Map<String, int> _mixinIndices;
@@ -211,7 +196,7 @@ class AsyncEnvironment {
   /// with the same name as a variable defined in this environment.
   void addModule(Module module, {String namespace}) {
     if (namespace == null) {
-      _globalModules ??= Set();
+      _globalModules ??= {};
       _globalModules.add(module);
       _allModules.add(module);
 
@@ -715,10 +700,14 @@ class AsyncEnvironment {
     T value;
     for (var module in _globalModules) {
       var valueInModule = callback(module);
-      if (valueInModule != null && value != null) {
-        // TODO(nweiz): List the module URLs.
+      if (valueInModule == null) continue;
+
+      if (value != null) {
         throw SassScriptException(
-            'This $type is available from multiple global modules.');
+            'This $type is available from multiple global modules:\n' +
+                bulletedList(_globalModules
+                    .where((module) => callback(module) != null)
+                    .map((module) => p.prettyUri(module.url))));
       }
 
       value = valueInModule;

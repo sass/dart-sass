@@ -9,6 +9,7 @@ import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import 'ast/node.dart';
 import 'util/character.dart';
@@ -35,6 +36,15 @@ String pluralize(String name, int number, {String plural}) {
   if (number == 1) return name;
   if (plural != null) return plural;
   return '${name}s';
+}
+
+/// Returns a bulleted list of items in [bullets].
+String bulletedList(Iterable<String> bullets) {
+  return bullets.map((element) {
+    var lines = element.split("\n");
+    return "${glyph.bullet} ${lines.first}" +
+        (lines.length > 1 ? "\n" + indent(lines.skip(1).join("\n"), 2) : "");
+  }).join("\n");
 }
 
 /// Returns the number of times [codeUnit] appears in [string].
@@ -252,25 +262,6 @@ bool startsWithIgnoreCase(String string, String prefix) {
   for (var i = 0; i < prefix.length; i++) {
     if (!characterEqualsIgnoreCase(
         string.codeUnitAt(i), prefix.codeUnitAt(i))) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/// Returns whether [string] begins with [prefix] if `-` and `_` are
-/// considered equivalent.
-bool startsWithIgnoreSeparator(String string, String prefix) {
-  if (string.length < prefix.length) return false;
-  for (var i = 0; i < prefix.length; i++) {
-    var stringCodeUnit = string.codeUnitAt(i);
-    var prefixCodeUnit = prefix.codeUnitAt(i);
-    if (stringCodeUnit == prefixCodeUnit) continue;
-    if (stringCodeUnit == $dash) {
-      if (prefixCodeUnit != $underscore) return false;
-    } else if (stringCodeUnit == $underscore) {
-      if (prefixCodeUnit != $dash) return false;
-    } else {
       return false;
     }
   }

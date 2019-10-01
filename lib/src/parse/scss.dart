@@ -66,7 +66,7 @@ class ScssParser extends StylesheetParser {
     while (true) {
       switch (scanner.peekChar()) {
         case $dollar:
-          children.add(variableDeclaration());
+          children.add(variableDeclarationWithoutNamespace());
           break;
 
         case $slash:
@@ -107,7 +107,7 @@ class ScssParser extends StylesheetParser {
     while (!scanner.isDone) {
       switch (scanner.peekChar()) {
         case $dollar:
-          statements.add(variableDeclaration());
+          statements.add(variableDeclarationWithoutNamespace());
           break;
 
         case $slash:

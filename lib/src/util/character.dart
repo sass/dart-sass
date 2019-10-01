@@ -65,6 +65,14 @@ bool isSimpleSelectorStart(int character) =>
     character == $percent ||
     character == $colon;
 
+/// Returns whether [identifier] is module-private.
+///
+/// Assumes [identifier] is a valid Sass identifier.
+bool isPrivate(String identifier) {
+  var first = identifier.codeUnitAt(0);
+  return first == $dash || first == $underscore;
+}
+
 /// Returns the value of [character] as a hex digit.
 ///
 /// Assumes that [character] is a hex digit.

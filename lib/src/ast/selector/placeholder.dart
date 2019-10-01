@@ -2,8 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:charcode/charcode.dart';
-
+import '../../util/character.dart' as character;
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -20,10 +19,7 @@ class PlaceholderSelector extends SimpleSelector {
 
   /// Returns whether this is a private selector (that is, whether it begins
   /// with `-` or `_`).
-  bool get isPrivate {
-    var start = name.codeUnitAt(0);
-    return start == $dash || start == $underscore;
-  }
+  bool get isPrivate => character.isPrivate(name);
 
   PlaceholderSelector(this.name);
 
