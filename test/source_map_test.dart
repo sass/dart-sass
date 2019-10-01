@@ -562,7 +562,7 @@ main() {
                   (url) => Uri.parse("u:$url"),
                   (_) => ImporterResult(r"$var2: default value !default;",
                       syntax: Syntax.scss)));
-        }, tags: "module-system");
+        });
 
         group("a mixin argument that is", () {
           test("the default value", () {

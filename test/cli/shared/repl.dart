@@ -161,7 +161,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       await sass.kill();
     });
-  }, tags: "module-system");
+  });
 
   group("gracefully handles", () {
     test("a parse error", () async {
@@ -297,7 +297,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             ]));
         await sass.kill();
       });
-    }, tags: "module-system");
+    });
 
     group("and colorizes", () {
       test("an error in the source text", () async {
