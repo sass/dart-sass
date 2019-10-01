@@ -2,4 +2,8 @@ tags:
   # Indicates tests that require Node.js.
   node:
 
+  # Indicates tests that use the new module system, and so should only run on
+  # the `feature.use` branch.
+  module-system:
+
 platforms: [vm, node]

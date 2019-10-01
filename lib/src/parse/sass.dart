@@ -172,7 +172,7 @@ class SassParser extends StylesheetParser {
         return null;
 
       case $dollar:
-        return variableDeclaration();
+        return variableDeclarationWithoutNamespace();
         break;
 
       case $slash:
