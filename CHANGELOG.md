@@ -1,3 +1,44 @@
+## 1.23.0
+
+* **Launch the new Sass module system!** This adds:
+
+  * The [`@use` rule][], which loads Sass files as *modules* and makes their
+    members available only in the current file, with automatic namespacing.
+    
+    [`@use` rule]: https://sass-lang.com/documentation/at-rules/use
+
+  * The [`@forward` rule][], which makes members of another Sass file available
+    to stylesheets that `@use` the current file.
+
+    [`@forward` rule]: https://sass-lang.com/documentation/at-rules/forward
+
+  * Built-in modules named `sass:color`, `sass:list`, `sass:map`, `sass:math`,
+    `sass:meta`, `sass:selector`, and `sass:string` that provide access to all
+    the built-in Sass functions you know and love, with automatic module
+    namespaces.
+
+  * The [`meta.load-css()` mixin][], which includes the CSS contents of a module
+    loaded from a (potentially dynamic) URL.
+
+    [`meta.load-css()` function]: https://sass-lang.com/documentation/modules/meta#load-css
+
+  * The [`meta.module-variables()` function][], which provides access to the
+    variables defined in a given module.
+
+    [`meta.module-variables()` function]: https://sass-lang.com/documentation/modules/meta#module-variables
+
+  * The [`meta.module-functions()` function][], which provides access to the
+    functions defined in a given module.
+
+    [`meta.module-functions()` function]: https://sass-lang.com/documentation/modules/meta#module-functions
+
+  Check out [the Sass blog][migrator blog] for more information on the new
+  module system. You can also use the new [Sass migrator][] to automatically
+  migrate your stylesheets to the new module system!
+
+  [migrator blog]: https://sass-lang.com/blog/7858341-the-module-system-is-launched
+  [Sass migrator]: https://sass-lang.com/documentation/cli/migrator
+
 ## 1.22.12
 
 * **Potentially breaking bug fix:** character sequences consisting of two or
