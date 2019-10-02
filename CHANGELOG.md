@@ -20,7 +20,7 @@
   * The [`meta.load-css()` mixin][], which includes the CSS contents of a module
     loaded from a (potentially dynamic) URL.
 
-    [`meta.load-css()` function]: https://sass-lang.com/documentation/modules/meta#load-css
+    [`meta.load-css()` mixin]: https://sass-lang.com/documentation/modules/meta#load-css
 
   * The [`meta.module-variables()` function][], which provides access to the
     variables defined in a given module.
