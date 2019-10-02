@@ -20,7 +20,7 @@
   * The [`meta.load-css()` mixin][], which includes the CSS contents of a module
     loaded from a (potentially dynamic) URL.
 
-    [`meta.load-css()` function]: https://sass-lang.com/documentation/modules/meta#load-css
+    [`meta.load-css()` mixin]: https://sass-lang.com/documentation/modules/meta#load-css
 
   * The [`meta.module-variables()` function][], which provides access to the
     variables defined in a given module.
@@ -36,7 +36,7 @@
   module system. You can also use the new [Sass migrator][] to automatically
   migrate your stylesheets to the new module system!
 
-  [migrator blog]: https://sass-lang.com/blog/7858341-the-module-system-is-launched
+  [migrator blog]: http://sass-lang.com/blog/posts/7858341-the-module-system-is-launched
   [Sass migrator]: https://sass-lang.com/documentation/cli/migrator
 
 ## 1.22.12
