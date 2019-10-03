@@ -250,8 +250,8 @@ class SassNumber extends Value implements ext.SassNumber {
         return true;
       }, orElse: () {
         throw SassScriptException("Incompatible units "
-            "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
-            "${_unitString(newNumerators, newDenominators)}.");
+            "${_unitString(newNumerators, newDenominators)} and "
+            "${_unitString(this.numeratorUnits, this.denominatorUnits)}.");
       });
     }
 
@@ -264,15 +264,15 @@ class SassNumber extends Value implements ext.SassNumber {
         return true;
       }, orElse: () {
         throw SassScriptException("Incompatible units "
-            "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
-            "${_unitString(newNumerators, newDenominators)}.");
+            "${_unitString(newNumerators, newDenominators)} and "
+            "${_unitString(this.numeratorUnits, this.denominatorUnits)}.");
       });
     }
 
     if (oldNumerators.isNotEmpty || oldDenominators.isNotEmpty) {
       throw SassScriptException("Incompatible units "
-          "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
-          "${_unitString(newNumerators, newDenominators)}.");
+          "${_unitString(newNumerators, newDenominators)} and "
+          "${_unitString(this.numeratorUnits, this.denominatorUnits)}.");
     }
 
     return value;
