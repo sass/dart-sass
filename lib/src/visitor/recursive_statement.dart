@@ -10,7 +10,7 @@ import 'interface/statement.dart';
 /// A visitor that recursively traverses each statement in a Sass AST.
 ///
 /// In addition to the methods from [StatementVisitor], this has more general
-/// protected methods that can be overriden to add behavior for a wide variety
+/// protected methods that can be overridden to add behavior for a wide variety
 /// of AST nodes:
 ///
 /// * [visitCallableDeclaration]

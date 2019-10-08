@@ -1976,7 +1976,7 @@ class _EvaluateVisitor
   }
 
   /// Like `_environment.getFunction`, but also returns built-in
-  /// globally-avaialble functions.
+  /// globally-available functions.
   Callable _getFunction(String name, {String namespace}) {
     var local = _environment.getFunction(name, namespace: namespace);
     if (local != null || namespace != null) return local;

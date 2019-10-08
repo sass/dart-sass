@@ -74,14 +74,14 @@ main() {
         isEmpty);
   });
 
-  test("gracefuly handles a custom function throwing", () {
+  test("gracefully handles a custom function throwing", () {
     expect(() {
       compileString('a {b: foo()}',
           functions: [Callable("foo", "", (arguments) => throw "heck")]);
     }, throwsA(const TypeMatcher<SassException>()));
   });
 
-  test("gracefuly handles a custom function returning null", () {
+  test("gracefully handles a custom function returning null", () {
     expect(() {
       compileString('a {b: foo()}',
           functions: [Callable("foo", "", (arguments) => null)]);

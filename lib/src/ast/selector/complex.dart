@@ -24,7 +24,7 @@ class ComplexSelector extends Selector {
   /// This isn't valid CSS, but Sass supports it for CSS hack purposes.
   final List<ComplexSelectorComponent> components;
 
-  /// Whether a line break should be emited *before* this selector.
+  /// Whether a line break should be emitted *before* this selector.
   final bool lineBreak;
 
   /// The minimum possible specificity that this selector can have.

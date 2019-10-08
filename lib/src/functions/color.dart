@@ -173,7 +173,7 @@ final global = UnmodifiableListView([
       if (argument is SassString &&
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart)) {
-        // Suport the proprietary Microsoft alpha() function.
+        // Support the proprietary Microsoft alpha() function.
         return _functionString("alpha", arguments);
       }
 
@@ -187,7 +187,7 @@ final global = UnmodifiableListView([
               argument is SassString &&
               !argument.hasQuotes &&
               argument.text.contains(_microsoftFilterStart))) {
-        // Suport the proprietary Microsoft alpha() function.
+        // Support the proprietary Microsoft alpha() function.
         return _functionString("alpha", arguments);
       }
 
@@ -292,7 +292,7 @@ final module = BuiltInModule("color", functions: [
           argument is SassString &&
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart))) {
-        // Suport the proprietary Microsoft alpha() function.
+        // Support the proprietary Microsoft alpha() function.
         var result = _functionString("alpha", arguments);
         warn("Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"

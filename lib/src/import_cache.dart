@@ -70,7 +70,7 @@ class ImportCache {
         _importCache = {},
         _resultsCache = {};
 
-  /// Creates an import cache without any globally-avaiable importers.
+  /// Creates an import cache without any globally-available importers.
   ImportCache.none({Logger logger})
       : _importers = const [],
         _logger = logger ?? const Logger.stderr(),

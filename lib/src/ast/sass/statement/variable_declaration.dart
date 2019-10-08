@@ -23,7 +23,7 @@ class VariableDeclaration implements Statement {
   /// The name of the variable.
   final String name;
 
-  /// The comment immediatly preceding this declaration.
+  /// The comment immediately preceding this declaration.
   SilentComment comment;
 
   /// The value the variable is being assigned to.

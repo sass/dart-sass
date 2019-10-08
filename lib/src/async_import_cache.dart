@@ -65,7 +65,7 @@ class AsyncImportCache {
         _importCache = {},
         _resultsCache = {};
 
-  /// Creates an import cache without any globally-avaiable importers.
+  /// Creates an import cache without any globally-available importers.
   AsyncImportCache.none({Logger logger})
       : _importers = const [],
         _logger = logger ?? const Logger.stderr(),
