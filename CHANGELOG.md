@@ -1,10 +1,15 @@
+## 1.23.1
+
+* Fix a bug preventing built-in modules from being loaded within a configured
+  module.
+
 ## 1.23.0
 
 * **Launch the new Sass module system!** This adds:
 
   * The [`@use` rule][], which loads Sass files as *modules* and makes their
     members available only in the current file, with automatic namespacing.
-    
+
     [`@use` rule]: https://sass-lang.com/documentation/at-rules/use
 
   * The [`@forward` rule][], which makes members of another Sass file available
@@ -142,7 +147,7 @@
   if it's used [as a plain CSS function][plain-CSS invert] *and* the Sass-only
   `$weight` parameter is passed. This never did anything useful, so it's
   considered a bug fix rather than a full breaking change.
-  
+
   [plain-CSS invert]: https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/invert
 
 * **Potentially breaking bug fix**: The `str-insert()` function now properly
