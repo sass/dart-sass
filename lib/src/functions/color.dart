@@ -557,7 +557,7 @@ BuiltInCallable _removedColorFunction(String name, String argument,
         {bool negative = false}) =>
     BuiltInCallable(name, r"$color, $amount", (arguments) {
       throw SassScriptException(
-          "The function $name() isn't in the new module system.\n"
+          "The function $name() isn't in the sass:color module.\n"
           "\n"
           "Recommendation: color.adjust(${arguments[0]}, \$$argument: "
           "${negative ? '-' : ''}${arguments[1]})\n"

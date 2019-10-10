@@ -3,6 +3,9 @@
 * Fix a bug preventing built-in modules from being loaded within a configured
   module.
 
+* Improve the error messages for trying to access functions like `lighten()`
+  from the `sass:color` module.
+
 ## 1.23.0
 
 * **Launch the new Sass module system!** This adds:
