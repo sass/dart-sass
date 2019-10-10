@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1e51fceaa60c0a65fa9c447cfe25eda5109a819f
+// Checksum: 8555cca43b8d54d392e81f33935fd379d1eb3c72
 //
 // ignore_for_file: unused_import
 
@@ -70,7 +70,7 @@ class ImportCache {
         _importCache = {},
         _resultsCache = {};
 
-  /// Creates an import cache without any globally-avaiable importers.
+  /// Creates an import cache without any globally-available importers.
   ImportCache.none({Logger logger})
       : _importers = const [],
         _logger = logger ?? const Logger.stderr(),

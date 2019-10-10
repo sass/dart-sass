@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1b5e338c188160941ee0bcad8197006bce384936
+// Checksum: f4f4c5d1cbc9894d14b6d8ce7c1a3c09146db9ba
 //
 // ignore_for_file: unused_import
 
@@ -1976,7 +1976,7 @@ class _EvaluateVisitor
   }
 
   /// Like `_environment.getFunction`, but also returns built-in
-  /// globally-avaialble functions.
+  /// globally-available functions.
   Callable _getFunction(String name, {String namespace}) {
     var local = _environment.getFunction(name, namespace: namespace);
     if (local != null || namespace != null) return local;

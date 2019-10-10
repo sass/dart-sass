@@ -15,11 +15,11 @@ Future<String> createTempDir() async => (await runHybridExpression(
 Future<void> writeTextFile(String path, String text) => runHybridExpression(
     'new File(message[0]).writeAsString(message[1])', [path, text]);
 
-/// Creates a directoy at [path].
+/// Creates a directory at [path].
 Future<void> createDirectory(String path) =>
     runHybridExpression('new Directory(message).create()', path);
 
-/// Recursively deletes the directoy at [path].
+/// Recursively deletes the directory at [path].
 Future<void> deleteDirectory(String path) =>
     runHybridExpression('new Directory(message).delete(recursive: true)', path);
 
