@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 015923b4fd76d402166ec4fddd743edb40d31a34
+// Checksum: f4f4c5d1cbc9894d14b6d8ce7c1a3c09146db9ba
 //
 // ignore_for_file: unused_import
 
@@ -535,7 +535,7 @@ class _EvaluateVisitor
 
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
-      if (configuration.isNotEmpty || _configuration.isNotEmpty) {
+      if (configuration.isNotEmpty) {
         throw _exception(
             namesInErrors
                 ? "Built-in module $url can't be configured."

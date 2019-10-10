@@ -529,7 +529,7 @@ class _EvaluateVisitor
 
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
-      if (configuration.isNotEmpty || _configuration.isNotEmpty) {
+      if (configuration.isNotEmpty) {
         throw _exception(
             namesInErrors
                 ? "Built-in module $url can't be configured."
