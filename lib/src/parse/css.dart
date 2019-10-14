@@ -21,7 +21,8 @@ final _disallowedFunctionNames =
       ..remove("grayscale")
       ..remove("invert")
       ..remove("alpha")
-      ..remove("opacity");
+      ..remove("opacity")
+      ..remove("saturate");
 
 class CssParser extends ScssParser {
   bool get plainCss => true;
