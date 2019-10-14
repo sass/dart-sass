@@ -3,6 +3,9 @@
 * Fix a bug preventing built-in modules from being loaded within a configured
   module.
 
+* Allow `saturate()` in plain CSS files, since it can be used as a plain CSS
+  filter function.
+
 ## 1.23.0
 
 * **Launch the new Sass module system!** This adds:
