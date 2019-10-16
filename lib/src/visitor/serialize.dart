@@ -1190,13 +1190,6 @@ class _SerializeVisitor
   /// Returns a comma used to separate values in lists.
   String get _commaSeparator => _isCompressed ? "," : ", ";
 
-  /// Runs [callback] with indentation increased one level.
-  void _indent(void callback()) {
-    _indentation++;
-    callback();
-    _indentation--;
-  }
-
   /// Returns whether [node] is considered invisible.
   bool _isInvisible(CssNode node) {
     if (_inspect) return false;
