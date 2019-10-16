@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f4f4c5d1cbc9894d14b6d8ce7c1a3c09146db9ba
+// Checksum: 56067ad7a31ee7adf5bb4e9d484fe95f38d3762c
 //
 // ignore_for_file: unused_import
 
@@ -1498,8 +1498,8 @@ class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(
-        ModifiableCssComment(_performInterpolation(node.text), node.span));
+    _parent.addChild(ModifiableCssComment(
+        _performInterpolation(node.text), node.span, node.isTrailing));
     return null;
   }
 
@@ -2409,7 +2409,8 @@ class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(ModifiableCssComment(node.text, node.span));
+    _parent
+        .addChild(ModifiableCssComment(node.text, node.span, node.isTrailing));
   }
 
   void visitCssDeclaration(CssDeclaration node) {

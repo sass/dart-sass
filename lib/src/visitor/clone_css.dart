@@ -37,7 +37,7 @@ class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
   }
 
   ModifiableCssComment visitCssComment(CssComment node) =>
-      ModifiableCssComment(node.text, node.span);
+      ModifiableCssComment(node.text, node.span, node.isTrailing);
 
   ModifiableCssDeclaration visitCssDeclaration(CssDeclaration node) =>
       ModifiableCssDeclaration(node.name, node.value, node.span,

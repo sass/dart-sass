@@ -61,8 +61,8 @@ class ScssParser extends StylesheetParser {
 
   List<Statement> children(Statement child()) {
     scanner.expectChar($lbrace);
-    whitespaceWithoutComments();
     var children = <Statement>[];
+    _whitespaceAndOptionalTrailingLoudComment(children);
     while (true) {
       switch (scanner.peekChar()) {
         case $dollar:
@@ -76,7 +76,7 @@ class ScssParser extends StylesheetParser {
               whitespaceWithoutComments();
               break;
             case $asterisk:
-              children.add(_loudComment());
+              children.add(_loudComment(/* isTrailing= */ false));
               whitespaceWithoutComments();
               break;
             default:
@@ -87,7 +87,7 @@ class ScssParser extends StylesheetParser {
 
         case $semicolon:
           scanner.readChar();
-          whitespaceWithoutComments();
+          _whitespaceAndOptionalTrailingLoudComment(children);
           break;
 
         case $rbrace:
@@ -103,7 +103,7 @@ class ScssParser extends StylesheetParser {
 
   List<Statement> statements(Statement statement()) {
     var statements = <Statement>[];
-    whitespaceWithoutComments();
+    _whitespaceAndOptionalTrailingLoudComment(statements);
     while (!scanner.isDone) {
       switch (scanner.peekChar()) {
         case $dollar:
@@ -117,7 +117,7 @@ class ScssParser extends StylesheetParser {
               whitespaceWithoutComments();
               break;
             case $asterisk:
-              statements.add(_loudComment());
+              statements.add(_loudComment(/* isTrailing= */ false));
               whitespaceWithoutComments();
               break;
             default:
@@ -129,7 +129,7 @@ class ScssParser extends StylesheetParser {
 
         case $semicolon:
           scanner.readChar();
-          whitespaceWithoutComments();
+          _whitespaceAndOptionalTrailingLoudComment(statements);
           break;
 
         default:
@@ -163,7 +163,7 @@ class ScssParser extends StylesheetParser {
   }
 
   /// Consumes a statement-level loud comment block.
-  LoudComment _loudComment() {
+  LoudComment _loudComment(bool isTrailing) {
     var start = scanner.state;
     scanner.expect("/*");
     var buffer = InterpolationBuffer()..write("/*");
@@ -182,7 +182,8 @@ class ScssParser extends StylesheetParser {
           if (scanner.peekChar() != $slash) break;
 
           buffer.writeCharCode(scanner.readChar());
-          return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+          return LoudComment(
+              buffer.interpolation(scanner.spanFrom(start)), isTrailing);
 
         case $cr:
           scanner.readChar();
@@ -199,5 +200,27 @@ class ScssParser extends StylesheetParser {
           break;
       }
     }
+  }
+
+  /// Consumes whitespace and optionally a trailing loud comment, adding the
+  /// trailing loud comment to [statements] if consumed.
+  ///
+  /// A trailing loud comment is only possible if the initially consumed
+  /// whitespace lacks any newlines.  If that's the case and a loud comment
+  /// immediately follows, the loud comment will also be consumed.
+  void _whitespaceAndOptionalTrailingLoudComment(List<Statement> statements) {
+    bool sawAnyNewlines = whitespaceWithoutComments();
+    if (_peekForStartOfLoudComment()) {
+      bool isTrailing = !sawAnyNewlines;
+      statements.add(_loudComment(isTrailing));
+      whitespaceWithoutComments();
+    }
+  }
+
+  /// Returns whether the scanner is pointing at the start of a loud comment.
+  bool _peekForStartOfLoudComment() {
+    return !scanner.isDone &&
+        scanner.peekChar() == $slash &&
+        scanner.peekChar(1) == $asterisk;
   }
 }

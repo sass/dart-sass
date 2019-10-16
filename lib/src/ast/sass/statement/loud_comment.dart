@@ -15,7 +15,11 @@ class LoudComment implements Statement {
 
   FileSpan get span => text.span;
 
-  LoudComment(this.text);
+  /// Whether this comment follows non-comment text on a line and should remain
+  /// attached to that non-comment text when being serialized.
+  final bool isTrailing;
+
+  LoudComment(this.text, this.isTrailing);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitLoudComment(this);
 

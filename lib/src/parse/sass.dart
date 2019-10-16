@@ -306,7 +306,8 @@ class SassParser extends StylesheetParser {
     }
     if (!buffer.trailingString.trimRight().endsWith("*/")) buffer.write(" */");
 
-    return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+    // The sass syntax does not support trailing loud comments ==> isTrailing = false.
+    return LoudComment(buffer.interpolation(scanner.spanFrom(start)), false);
   }
 
   void whitespace() {

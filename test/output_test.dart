@@ -59,4 +59,34 @@ void main() {
       });
     });
   });
+
+  // Regression test for sass/dart-sass#417.
+  group("preserve trailing loud comments", () {
+    // No need for "in Sass" cases as it's not possible to have
+    // trailing loud comments in the Sass syntax.
+    group("in SCSS", () {
+      test("after open block", () {
+        expect(compileString("""
+selector { /* please don't move me */
+  name: value;
+}"""), equals("""
+selector { /* please don't move me */
+  name: value;
+}"""));
+      });
+      test("after declaration", () {
+        expect(compileString("""
+selector {
+  name: value; /* please don't move me */
+}"""), equals("""
+selector {
+  name: value; /* please don't move me */
+}"""));
+      });
+      test("after top-level statement", () {
+        expect(compileString("@rule; /* please don't move me */"),
+            equals("@rule; /* please don't move me */"));
+      });
+    });
+  });
 }

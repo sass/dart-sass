@@ -162,7 +162,12 @@ class _SerializeVisitor
 
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        _writeLineFeed();
+        if (_shouldWriteLineFeedBeforeChild(child)) {
+          _writeLineFeed();
+        } else {
+          _writeOptionalSpace();
+        }
+
         if (previous.isGroupEnd) _writeLineFeed();
       }
       previous = child;
@@ -1085,23 +1090,41 @@ class _SerializeVisitor
       return;
     }
 
-    _writeLineFeed();
+    bool indentNextChild;
+    if (_shouldWriteLineFeedBeforeChildren(children)) {
+      _writeLineFeed();
+      indentNextChild = true;
+    } else {
+      _writeOptionalSpace();
+      indentNextChild = false;
+    }
+
     CssNode previous;
-    _indent(() {
-      for (var i = 0; i < children.length; i++) {
-        var child = children[i];
-        if (_isInvisible(child)) continue;
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      if (_isInvisible(child)) continue;
 
-        if (previous != null) {
-          if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
+      if (previous != null) {
+        if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
+        if (_shouldWriteLineFeedBeforeChild(child)) {
           _writeLineFeed();
-          if (previous.isGroupEnd) _writeLineFeed();
+          indentNextChild = true;
+        } else {
+          _writeOptionalSpace();
+          indentNextChild = false;
         }
-        previous = child;
-
-        child.accept(this);
+        if (previous.isGroupEnd) _writeLineFeed();
       }
-    });
+      previous = child;
+
+      if (indentNextChild) {
+        _indentation++;
+      }
+      child.accept(this);
+      if (indentNextChild) {
+        _indentation--;
+      }
+    }
 
     if (_requiresSemicolon(previous) && !_isCompressed) {
       _buffer.writeCharCode($semicolon);
@@ -1114,6 +1137,17 @@ class _SerializeVisitor
   /// Whether [node] requires a semicolon to be written after it.
   bool _requiresSemicolon(CssNode node) =>
       node is CssParentNode ? node.isChildless : node is! CssComment;
+
+  /// Whether [child] should have a line feed written before the child is serialized.
+  bool _shouldWriteLineFeedBeforeChild(CssNode child) =>
+      child is! CssComment || !(child as CssComment).isTrailing;
+
+  /// Whether [children] should have a line feed written before the children are serialized.
+  bool _shouldWriteLineFeedBeforeChildren(List<CssNode> children) {
+    return children.isEmpty ||
+        !(children.first is CssComment) ||
+        !((children.first as CssComment).isTrailing);
+  }
 
   /// Writes a line feed, unless this emitting compressed CSS.
   void _writeLineFeed() {
