@@ -110,4 +110,119 @@ void main() {
       });
     });
   });
+
+  // Tests for sass/dart-sass#417.
+  //
+  // Note there's no need for "in Sass" cases as it's not possible to have
+  // trailing loud comments in the Sass syntax.
+  group("preserve trailing loud comments in SCSS", () {
+    test("after open block", () {
+      expect(compileString("""
+selector { /* please don't move me */
+  name: value;
+}"""), equals("""
+selector { /* please don't move me */
+  name: value;
+}"""));
+    });
+
+    test("after open block (multi-line selector)", () {
+      expect(compileString("""
+selector1,
+selector2 { /* please don't move me */
+  name: value;
+}"""), equals("""
+selector1,
+selector2 { /* please don't move me */
+  name: value;
+}"""));
+    });
+
+    test("after close block", () {
+      expect(compileString("""
+selector {
+  name: value;
+} /* please don't move me */"""), equals("""
+selector {
+  name: value;
+} /* please don't move me */"""));
+    });
+
+    test("only content in block", () {
+      expect(compileString("""
+selector {
+  /* please don't move me */
+}"""), equals("""
+selector {
+  /* please don't move me */
+}"""));
+    });
+
+    test("only content in block (no newlines)", () {
+      expect(compileString("""
+selector { /* please don't move me */ }"""), equals("""
+selector { /* please don't move me */ }"""));
+    });
+
+    test("after property in block", () {
+      expect(compileString("""
+selector {
+  name1: value1; /* please don't move me 1 */
+  name2: value2; /* please don't move me 2 */
+  name3: value3; /* please don't move me 3 */
+}"""), equals("""
+selector {
+  name1: value1; /* please don't move me 1 */
+  name2: value2; /* please don't move me 2 */
+  name3: value3; /* please don't move me 3 */
+}"""));
+    });
+
+    test("after rule in block", () {
+      expect(compileString("""
+selector {
+  @rule1; /* please don't move me 1 */
+  @rule2; /* please don't move me 2 */
+  @rule3; /* please don't move me 3 */
+}"""), equals("""
+selector {
+  @rule1; /* please don't move me 1 */
+  @rule2; /* please don't move me 2 */
+  @rule3; /* please don't move me 3 */
+}"""));
+    });
+
+    test("after top-level statement", () {
+      expect(compileString("@rule; /* please don't move me */"),
+          equals("@rule; /* please don't move me */"));
+    });
+
+    // The trailing comment detection logic looks for left braces to detect
+    // whether a comment is on the same line as its parent node.  This test
+    // checks to make sure it isn't confused by syntax that uses braces for
+    // things other than starting child blocks.
+    test("selector contains left brace", () {
+      expect(compileString("""@rule1;
+@rule2;
+selector[href*=\"{\"]
+{ /* please don't move me */ }
+
+@rule3;"""), equals("""@rule1;
+@rule2;
+selector[href*=\"{\"] { /* please don't move me */ }
+
+@rule3;"""));
+    });
+
+    test("loud comments in mixin", () {
+      expect(compileString("""
+@mixin loudComment {
+  /* ... */
+}
+
+selector {
+  @include loudComment;
+}"""), "selector {\n  /* ... */\n}");
+    });
+  });
 }

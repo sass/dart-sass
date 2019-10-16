@@ -153,14 +153,16 @@ class _SerializeVisitor
 
   void visitCssStylesheet(CssStylesheet node) {
     CssNode? previous;
-    for (var i = 0; i < node.children.length; i++) {
-      var child = node.children[i];
+    for (var child in node.children) {
       if (_isInvisible(child)) continue;
-
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        _writeLineFeed();
-        if (previous.isGroupEnd) _writeLineFeed();
+        if (_isTrailingComment(child, previous)) {
+          _writeOptionalSpace();
+        } else {
+          _writeLineFeed();
+          if (previous.isGroupEnd) _writeLineFeed();
+        }
       }
       previous = child;
 
@@ -208,7 +210,7 @@ class _SerializeVisitor
 
     if (!node.isChildless) {
       _writeOptionalSpace();
-      _visitChildren(node.children);
+      _visitChildren(node.children, node);
     }
   }
 
@@ -226,7 +228,7 @@ class _SerializeVisitor
     });
 
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node.children, node);
   }
 
   void visitCssImport(CssImport node) {
@@ -273,7 +275,7 @@ class _SerializeVisitor
         () =>
             _writeBetween(node.selector.value, _commaSeparator, _buffer.write));
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node.children, node);
   }
 
   void _visitMediaQuery(CssMediaQuery query) {
@@ -298,7 +300,7 @@ class _SerializeVisitor
 
     _for(node.selector, () => node.selector.value.accept(this));
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node.children, node);
   }
 
   void visitCssSupportsRule(CssSupportsRule node) {
@@ -315,7 +317,7 @@ class _SerializeVisitor
     });
 
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node.children, node);
   }
 
   void visitCssDeclaration(CssDeclaration node) {
@@ -1287,43 +1289,86 @@ class _SerializeVisitor
       _for(value, () => _buffer.write(value.value));
 
   /// Emits [children] in a block.
-  void _visitChildren(List<CssNode> children) {
+  void _visitChildren(List<CssNode> children, CssParentNode parent) {
     _buffer.writeCharCode($lbrace);
-    if (children.every(_isInvisible)) {
-      _buffer.writeCharCode($rbrace);
-      return;
-    }
 
-    _writeLineFeed();
-    CssNode? previous_;
-    _indent(() {
-      for (var i = 0; i < children.length; i++) {
-        var child = children[i];
-        if (_isInvisible(child)) continue;
-
-        var previous = previous_; // dart-lang/sdk#45348
-        if (previous != null) {
-          if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-          _writeLineFeed();
-          if (previous.isGroupEnd) _writeLineFeed();
-        }
-        previous_ = child;
-
-        child.accept(this);
+    CssNode? prePrevious_;
+    CssNode previous = parent;
+    for (var child in children) {
+      if (_isInvisible(child)) continue;
+      if (previous != parent && _requiresSemicolon(previous)) {
+        _buffer.writeCharCode($semicolon);
       }
-    });
 
-    if (_requiresSemicolon(previous_!) && !_isCompressed) {
-      _buffer.writeCharCode($semicolon);
+      if (_isTrailingComment(child, previous)) {
+        _writeOptionalSpace();
+        _withoutIndendation(() => child.accept(this));
+      } else {
+        _writeLineFeed();
+        _indent(() {
+          child.accept(this);
+        });
+      }
+
+      prePrevious_ = previous;
+      previous = child;
     }
-    _writeLineFeed();
-    _writeIndentation();
+
+    if (previous != parent) {
+      if (_requiresSemicolon(previous) && !_isCompressed) {
+        _buffer.writeCharCode($semicolon);
+      }
+
+      if (prePrevious_ == parent && _isTrailingComment(previous, prePrevious_)) {
+        _writeOptionalSpace();
+      } else {
+        _writeLineFeed();
+        _writeIndentation();
+      }
+    }
+
     _buffer.writeCharCode($rbrace);
   }
 
   /// Whether [node] requires a semicolon to be written after it.
   bool _requiresSemicolon(CssNode? node) =>
       node is CssParentNode ? node.isChildless : node is! CssComment;
+
+  /// Whether [node] represents a trailing comment when it appears after
+  /// [previous] in a sequence of nodes being serialized.
+  ///
+  /// Note [previous] could be either a sibling of [node] or the parent of
+  /// [node], with [node] being the first visible child.
+  bool _isTrailingComment(CssNode node, CssNode previous) {
+    // Short-circuit in compressed mode to avoid expensive span shenanigans
+    // (shespanigans?), since we're compressing all whitespace anyway.
+    if (_isCompressed) return false;
+    if (node is! CssComment) return false;
+
+    var previousSpan = previous.span;
+    if (previous is CssParentNode && previous.children.contains(node)) {
+      // Walk back from just before the current node starts looking for the
+      // parent's left brace (to open the child block).  This is safer than
+      // a simple forward search of the previousSpan.text as that might contain
+      // other left braces.
+      var searchFrom = node.span.start.offset - previousSpan.start.offset - 1;
+      if (searchFrom < 0) {
+        // This can happen when the loud comment is the first statement in a
+        // mixin that's later included. In that case, node.span.start.offset
+        // (representing the loud comment in the mixin) will be less than
+        // previousSpan.start.offset (representing the statement where the
+        // mixin is later included) ==> the loud comment cannot possibly be
+        // trailing.
+        return false;
+      }
+
+      var endOffset = previousSpan.text.lastIndexOf("{", searchFrom);
+      endOffset = math.max(0, endOffset);
+      previousSpan = previousSpan.file.span(
+          previousSpan.start.offset, previousSpan.start.offset + endOffset);
+    }
+    return node.span.start.line == previousSpan.end.line;
+  }
 
   /// Writes a line feed, unless this emitting compressed CSS.
   void _writeLineFeed() {
@@ -1371,6 +1416,14 @@ class _SerializeVisitor
     _indentation++;
     callback();
     _indentation--;
+  }
+
+  /// Runs [callback] without any indentation.
+  void _withoutIndendation(void callback()) {
+    var savedIndentation = _indentation;
+    _indentation = 0;
+    callback();
+    _indentation = savedIndentation;
   }
 
   /// Returns whether [node] is considered invisible.
