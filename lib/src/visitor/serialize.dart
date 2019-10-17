@@ -1100,7 +1100,7 @@ class _SerializeVisitor
     }
 
     CssNode previous;
-    for (var i = 0; i < children.length; i++) {
+    for (var child in children) {
       var child = children[i];
       if (_isInvisible(child)) continue;
 
