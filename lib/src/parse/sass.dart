@@ -9,7 +9,6 @@ import '../ast/sass.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
 import '../util/character.dart';
-import '../value.dart';
 import 'stylesheet.dart';
 
 /// A parser for the indented syntax.
@@ -99,21 +98,9 @@ class SassParser extends StylesheetParser {
       scanner.readChar();
       next = scanner.peekChar();
     }
-    var url = scanner.substring(start.position);
-    var span = scanner.spanFrom(start);
 
-    if (isPlainImportUrl(url)) {
-      // Serialize [url] as a Sass string because [StaticImport] expects it to
-      // include quotes.
-      return StaticImport(
-          Interpolation([SassString(url).toString()], span), span);
-    } else {
-      try {
-        return DynamicImport(parseImportUrl(url), span);
-      } on FormatException catch (innerError) {
-        error("Invalid URL: ${innerError.message}", span);
-      }
-    }
+    return DynamicImport(parseImportUrl(scanner.substring(start.position)),
+        scanner.spanFrom(start));
   }
 
   bool scanElse(int ifIndentation) {
@@ -306,8 +293,7 @@ class SassParser extends StylesheetParser {
     }
     if (!buffer.trailingString.trimRight().endsWith("*/")) buffer.write(" */");
 
-    // The sass syntax does not support trailing loud comments ==> isTrailing = false.
-    return LoudComment(buffer.interpolation(scanner.spanFrom(start)), false);
+    return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
   void whitespace() {

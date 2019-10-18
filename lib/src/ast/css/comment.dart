@@ -16,9 +16,5 @@ abstract class CssComment extends CssNode {
   /// compressed mode.
   bool get isPreserved;
 
-  /// Whether this comment follows non-comment text on a line and should remain
-  /// attached to that non-comment text when being serialized.
-  bool get isTrailing;
-
   T accept<T>(CssVisitor<T> visitor) => visitor.visitCssComment(this);
 }

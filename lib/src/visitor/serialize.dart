@@ -156,19 +156,16 @@ class _SerializeVisitor
 
   void visitCssStylesheet(CssStylesheet node) {
     CssNode previous;
-    for (var i = 0; i < node.children.length; i++) {
-      var child = node.children[i];
+    for (CssNode child in node.children) {
       if (_isInvisible(child)) continue;
-
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        if (_shouldWriteLineFeedBeforeChild(child)) {
-          _writeLineFeed();
-        } else {
+        if (_isTrailingComment(child, previous)) {
           _writeOptionalSpace();
+        } else {
+          _writeLineFeed();
+          if (previous.isGroupEnd) _writeLineFeed();
         }
-
-        if (previous.isGroupEnd) _writeLineFeed();
       }
       previous = child;
 
@@ -218,7 +215,7 @@ class _SerializeVisitor
 
     if (!node.isChildless) {
       _writeOptionalSpace();
-      _visitChildren(node.children);
+      _visitChildren(node.children, node);
     }
   }
 
@@ -236,7 +233,7 @@ class _SerializeVisitor
     });
 
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node.children, node);
   }
 
   void visitCssImport(CssImport node) {
@@ -287,7 +284,7 @@ class _SerializeVisitor
         () =>
             _writeBetween(node.selector.value, _commaSeparator, _buffer.write));
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node.children, node);
   }
 
   void _visitMediaQuery(CssMediaQuery query) {
@@ -312,7 +309,7 @@ class _SerializeVisitor
 
     _for(node.selector, () => node.selector.value.accept(this));
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node.children, node);
   }
 
   void visitCssSupportsRule(CssSupportsRule node) {
@@ -329,7 +326,7 @@ class _SerializeVisitor
     });
 
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node.children, node);
   }
 
   void visitCssDeclaration(CssDeclaration node) {
@@ -1083,7 +1080,7 @@ class _SerializeVisitor
       _for(value, () => _buffer.write(value.value));
 
   /// Emits [children] in a block.
-  void _visitChildren(List<CssNode> children) {
+  void _visitChildren(Iterable<CssNode> children, CssNode parent) {
     _buffer.writeCharCode($lbrace);
     if (children.every(_isInvisible)) {
       _buffer.writeCharCode($rbrace);
@@ -1091,38 +1088,37 @@ class _SerializeVisitor
     }
 
     bool indentNextChild;
-    if (_shouldWriteLineFeedBeforeChildren(children)) {
-      _writeLineFeed();
-      indentNextChild = true;
-    } else {
+    if (children.isNotEmpty && _isTrailingComment(children.first, parent)) {
       _writeOptionalSpace();
       indentNextChild = false;
+    } else {
+      _writeLineFeed();
+      indentNextChild = true;
     }
 
     CssNode previous;
     for (var child in children) {
-      var child = children[i];
       if (_isInvisible(child)) continue;
 
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        if (_shouldWriteLineFeedBeforeChild(child)) {
-          _writeLineFeed();
-          indentNextChild = true;
-        } else {
+        if (_isTrailingComment(child, previous)) {
           _writeOptionalSpace();
           indentNextChild = false;
+        } else {
+          _writeLineFeed();
+          indentNextChild = true;
         }
         if (previous.isGroupEnd) _writeLineFeed();
       }
       previous = child;
 
       if (indentNextChild) {
-        _indentation++;
-      }
-      child.accept(this);
-      if (indentNextChild) {
-        _indentation--;
+        _indent(() {
+          child.accept(this);
+        });
+      } else {
+        child.accept(this);
       }
     }
 
@@ -1138,15 +1134,21 @@ class _SerializeVisitor
   bool _requiresSemicolon(CssNode node) =>
       node is CssParentNode ? node.isChildless : node is! CssComment;
 
-  /// Whether [child] should have a line feed written before the child is serialized.
-  bool _shouldWriteLineFeedBeforeChild(CssNode child) =>
-      child is! CssComment || !(child as CssComment).isTrailing;
+  /// Whether [node] represents a trailing comment when it appears after
+  /// [previous] in a sequence of nodes.  If there are no nodes before [node],
+  /// then [previous] should be the parent node.
+  bool _isTrailingComment(CssNode node, CssNode previous) {
+    if (node is CssComment) {
+      if (previous is CssParentNode) {
+        // TODO(nbehrens): Can we do better?
+        return node.span.start.line == previous.span.start.line ||
+            node.span.start.line == previous.span.end.line;
+      } else {
+        return node.span.start.line == previous.span.end.line;
+      }
+    }
 
-  /// Whether [children] should have a line feed written before the children are serialized.
-  bool _shouldWriteLineFeedBeforeChildren(List<CssNode> children) {
-    return children.isEmpty ||
-        !(children.first is CssComment) ||
-        !((children.first as CssComment).isTrailing);
+    return false;
   }
 
   /// Writes a line feed, unless this emitting compressed CSS.
@@ -1189,6 +1191,13 @@ class _SerializeVisitor
 
   /// Returns a comma used to separate values in lists.
   String get _commaSeparator => _isCompressed ? "," : ", ";
+
+  /// Runs [callback] with indentation increased one level.
+  void _indent(void callback()) {
+    _indentation++;
+    callback();
+    _indentation--;
+  }
 
   /// Returns whether [node] is considered invisible.
   bool _isInvisible(CssNode node) {

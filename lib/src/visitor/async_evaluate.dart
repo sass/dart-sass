@@ -1500,7 +1500,7 @@ class _EvaluateVisitor
     }
 
     _parent.addChild(ModifiableCssComment(
-        await _performInterpolation(node.text), node.span, node.isTrailing));
+        await _performInterpolation(node.text), node.span));
     return null;
   }
 
@@ -2424,8 +2424,7 @@ class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent
-        .addChild(ModifiableCssComment(node.text, node.span, node.isTrailing));
+    _parent.addChild(ModifiableCssComment(node.text, node.span));
   }
 
   Future<void> visitCssDeclaration(CssDeclaration node) async {

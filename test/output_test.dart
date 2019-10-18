@@ -60,33 +60,72 @@ void main() {
     });
   });
 
-  // Regression test for sass/dart-sass#417.
-  group("preserve trailing loud comments", () {
-    // No need for "in Sass" cases as it's not possible to have
-    // trailing loud comments in the Sass syntax.
-    group("in SCSS", () {
-      test("after open block", () {
-        expect(compileString("""
+  // Tests for sass/dart-sass#417.
+  //
+  // Note there's no need for "in Sass" cases as it's not possible to have
+  // trailing loud comments in the Sass syntax.
+  group("preserve trailing loud comments in SCSS", () {
+    test("after open block", () {
+      expect(compileString("""
 selector { /* please don't move me */
   name: value;
 }"""), equals("""
 selector { /* please don't move me */
   name: value;
 }"""));
-      });
-      test("after declaration", () {
-        expect(compileString("""
+    });
+
+    test("after close block", () {
+      expect(compileString("""
 selector {
-  name: value; /* please don't move me */
+  name: value;
+} /* please don't move me */"""), equals("""
+selector {
+  name: value;
+} /* please don't move me */"""));
+    });
+
+    test("only content in block", () {
+      expect(compileString("""
+selector {
+  /* please don't move me */
 }"""), equals("""
 selector {
-  name: value; /* please don't move me */
+  /* please don't move me */
 }"""));
-      });
-      test("after top-level statement", () {
-        expect(compileString("@rule; /* please don't move me */"),
-            equals("@rule; /* please don't move me */"));
-      });
+    });
+
+    test("after property in block", () {
+      expect(compileString("""
+selector {
+  name1: value1; /* please don't move me 1 */
+  name2: value2; /* please don't move me 2 */
+  name3: value3; /* please don't move me 3 */
+}"""), equals("""
+selector {
+  name1: value1; /* please don't move me 1 */
+  name2: value2; /* please don't move me 2 */
+  name3: value3; /* please don't move me 3 */
+}"""));
+    });
+
+    test("after rule in block", () {
+      expect(compileString("""
+selector {
+  @rule1; /* please don't move me 1 */
+  @rule2; /* please don't move me 2 */
+  @rule3; /* please don't move me 3 */
+}"""), equals("""
+selector {
+  @rule1; /* please don't move me 1 */
+  @rule2; /* please don't move me 2 */
+  @rule3; /* please don't move me 3 */
+}"""));
+    });
+
+    test("after top-level statement", () {
+      expect(compileString("@rule; /* please don't move me */"),
+          equals("@rule; /* please don't move me */"));
     });
   });
 }

@@ -13,12 +13,10 @@ import 'node.dart';
 class ModifiableCssComment extends ModifiableCssNode implements CssComment {
   final String text;
   final FileSpan span;
-  final bool _isTrailing;
 
   bool get isPreserved => text.codeUnitAt(2) == $exclamation;
-  bool get isTrailing => _isTrailing;
 
-  ModifiableCssComment(this.text, this.span, this._isTrailing);
+  ModifiableCssComment(this.text, this.span);
 
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssComment(this);
 }
