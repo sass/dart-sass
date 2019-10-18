@@ -1139,13 +1139,12 @@ class _SerializeVisitor
   /// then [previous] should be the parent node.
   bool _isTrailingComment(CssNode node, CssNode previous) {
     if (node is CssComment) {
-      if (previous is CssParentNode) {
-        // TODO(nbehrens): Can we do better?
-        return node.span.start.line == previous.span.start.line ||
-            node.span.start.line == previous.span.end.line;
-      } else {
-        return node.span.start.line == previous.span.end.line;
-      }
+      // While the last condition (comment start line == previous end line)
+      // seems like it should be sufficient, it doesn't handle the case where
+      // "previous" is a parent node and the trailing comment appears right
+      // after a block open lbrace.
+      return node.span.start.line == previous.span.start.line
+          || node.span.start.line == previous.span.end.line;
     }
 
     return false;
