@@ -3,6 +3,9 @@
 * Fix a bug preventing built-in modules from being loaded within a configured
   module.
 
+* Fix a bug preventing an unconfigured module from being loaded from within two
+  different configured modules.
+
 ## 1.23.0
 
 * **Launch the new Sass module system!** This adds:
