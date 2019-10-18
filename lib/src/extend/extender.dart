@@ -20,16 +20,17 @@ import 'merged_extension.dart';
 import 'functions.dart';
 import 'mode.dart';
 
-/// Tracks style rules and extensions, and applies the latter to the former.
+/// Tracks selectors and extensions, and applies the latter to the former.
 class Extender {
   /// An [Extender] that contains no extensions and can have no extensions added.
   static const empty = EmptyExtender();
 
-  /// A map from all simple selectors in the stylesheet to the rules that
-  /// contain them.
+  /// A map from all simple selectors in the stylesheet to the selector lists
+  /// that contain them.
   ///
-  /// This is used to find which rules an `@extend` applies to.
-  final Map<SimpleSelector, Set<ModifiableCssStyleRule>> _selectors;
+  /// This is used to find which selectors an `@extend` applies to and adjust
+  /// them.
+  final Map<SimpleSelector, Set<ModifiableCssValue<SelectorList>>> _selectors;
 
   /// A map from all extended simple selectors to the sources of those
   /// extensions.
@@ -39,11 +40,12 @@ class Extender {
   /// extenders define.
   final Map<SimpleSelector, List<Extension>> _extensionsByExtender;
 
-  /// A map from CSS rules to the media query contexts they're defined in.
+  /// A map from CSS selectors to the media query contexts they're defined in.
   ///
-  /// This tracks the contexts in which each style rule is defined. If a rule is
-  /// defined at the top level, it doesn't have an entry.
-  final Map<CssStyleRule, List<CssMediaQuery>> _mediaContexts;
+  /// This tracks the contexts in which each selector's style rule is defined.
+  /// If a rule is defined at the top level, it doesn't have an entry.
+  final Map<ModifiableCssValue<SelectorList>, List<CssMediaQuery>>
+      _mediaContexts;
 
   /// A map from [SimpleSelector]s to the specificity of their source
   /// selectors.
@@ -111,7 +113,7 @@ class Extender {
     return selector;
   }
 
-  /// The set of all simple selectors in style rules handled by this extender.
+  /// The set of all simple selectors in selectors handled by this extender.
   ///
   /// This includes simple selectors that were added because of downstream
   /// extensions.
@@ -152,17 +154,17 @@ class Extender {
     }
   }
 
-  /// Adds [selector] to this extender, with [selectorSpan] as the span covering
-  /// the selector and [ruleSpan] as the span covering the entire style rule.
+  /// Adds [selector] to this extender.
   ///
   /// Extends [selector] using any registered extensions, then returns an empty
-  /// [ModifiableCssStyleRule] with the resulting selector. If any more relevant
-  /// extensions are added, the returned rule is automatically updated.
+  /// [ModifiableCssValue] containing the resulting selector. If any more
+  /// relevant extensions are added, the returned selector is automatically
+  /// updated.
   ///
   /// The [mediaContext] is the media query context in which the selector was
   /// defined, or `null` if it was defined at the top level of the document.
-  ModifiableCssStyleRule addSelector(
-      SelectorList selector, FileSpan selectorSpan, FileSpan ruleSpan,
+  ModifiableCssValue<SelectorList> addSelector(
+      SelectorList selector, FileSpan span,
       [List<CssMediaQuery> mediaContext]) {
     var originalSelector = selector;
     if (!originalSelector.isInvisible) {
@@ -178,29 +180,29 @@ class Extender {
         throw SassException(
             "From ${error.span.message('')}\n"
             "${error.message}",
-            selectorSpan);
+            span);
       }
     }
-    var rule = ModifiableCssStyleRule(
-        ModifiableCssValue(selector, selectorSpan), ruleSpan,
-        originalSelector: originalSelector);
-    if (mediaContext != null) _mediaContexts[rule] = mediaContext;
-    _registerSelector(selector, rule);
 
-    return rule;
+    var modifiableSelector = ModifiableCssValue(selector, span);
+    if (mediaContext != null) _mediaContexts[modifiableSelector] = mediaContext;
+    _registerSelector(selector, modifiableSelector);
+
+    return modifiableSelector;
   }
 
-  /// Registers the [SimpleSelector]s in [list] to point to [rule] in
+  /// Registers the [SimpleSelector]s in [list] to point to [selector] in
   /// [_selectors].
-  void _registerSelector(SelectorList list, ModifiableCssStyleRule rule) {
+  void _registerSelector(
+      SelectorList list, ModifiableCssValue<SelectorList> selector) {
     for (var complex in list.components) {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
-            _selectors.putIfAbsent(simple, () => Set()).add(rule);
+            _selectors.putIfAbsent(simple, () => Set()).add(selector);
 
             if (simple is PseudoSelector && simple.selector != null) {
-              _registerSelector(simple.selector, rule);
+              _registerSelector(simple.selector, selector);
             }
           }
         }
@@ -220,7 +222,7 @@ class Extender {
   void addExtension(
       CssValue<SelectorList> extender, SimpleSelector target, ExtendRule extend,
       [List<CssMediaQuery> mediaContext]) {
-    var rules = _selectors[target];
+    var selectors = _selectors[target];
     var existingExtensions = _extensionsByExtender[target];
 
     Map<ComplexSelector, Extension> newExtensions;
@@ -253,7 +255,7 @@ class Extender {
         }
       }
 
-      if (rules != null || existingExtensions != null) {
+      if (selectors != null || existingExtensions != null) {
         newExtensions ??= {};
         newExtensions[complex] = state;
       }
@@ -270,15 +272,15 @@ class Extender {
       }
     }
 
-    if (rules != null) {
-      _extendExistingStyleRules(rules, newExtensionsByTarget);
+    if (selectors != null) {
+      _extendExistingSelectors(selectors, newExtensionsByTarget);
     }
   }
 
   /// Extend [extensions] using [newExtensions].
   ///
   /// Note that this does duplicate some work done by
-  /// [_extendExistingStyleRules], but it's necessary to expand each extension's
+  /// [_extendExistingSelectors], but it's necessary to expand each extension's
   /// extender separately without reference to the full selector list, so that
   /// relevant results don't get trimmed too early.
   ///
@@ -298,7 +300,7 @@ class Extender {
     for (var extension in extensions.toList()) {
       var sources = _extensions[extension.target];
 
-      // [_extendExistingStyleRules] would have thrown already.
+      // [_extendExistingSelectors] would have thrown already.
       List<ComplexSelector> selectors;
       try {
         selectors = _extendComplex(
@@ -358,24 +360,24 @@ class Extender {
   }
 
   /// Extend [extensions] using [newExtensions].
-  void _extendExistingStyleRules(Set<ModifiableCssStyleRule> rules,
+  void _extendExistingSelectors(Set<ModifiableCssValue<SelectorList>> selectors,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions) {
-    for (var rule in rules) {
-      var oldValue = rule.selector.value;
+    for (var selector in selectors) {
+      var oldValue = selector.value;
       try {
-        rule.selector.value = _extendList(
-            rule.selector.value, newExtensions, _mediaContexts[rule]);
+        selector.value = _extendList(
+            selector.value, newExtensions, _mediaContexts[selector]);
       } on SassException catch (error) {
         throw SassException(
-            "From ${rule.selector.span.message('')}\n"
+            "From ${selector.span.message('')}\n"
             "${error.message}",
             error.span);
       }
 
       // If no extends actually happenedit (for example becaues unification
       // failed), we don't need to re-register the selector.
-      if (identical(oldValue, rule.selector.value)) continue;
-      _registerSelector(rule.selector.value, rule);
+      if (identical(oldValue, selector.value)) continue;
+      _registerSelector(selector.value, selector);
     }
   }
 
@@ -388,9 +390,9 @@ class Extender {
     // [extensions], and thus which need to be updated.
     List<Extension> extensionsToExtend;
 
-    // Style rules whose selectors contain simple selectors that are extended by
+    // Selectors that contain simple selectors that are extended by
     // [extensions], and thus which need to be extended themselves.
-    Set<ModifiableCssStyleRule> rulesToExtend;
+    Set<ModifiableCssValue<SelectorList>> selectorsToExtend;
 
     // An extension map with the same structure as [_extensions] that only
     // includes extensions from [extenders].
@@ -410,17 +412,17 @@ class Extender {
         }
 
         // Find existing selectors to extend.
-        var rulesForTarget = _selectors[target];
-        if (rulesForTarget != null) {
-          rulesToExtend ??= Set();
-          rulesToExtend.addAll(rulesForTarget);
+        var selectorsForTarget = _selectors[target];
+        if (selectorsForTarget != null) {
+          selectorsToExtend ??= Set();
+          selectorsToExtend.addAll(selectorsForTarget);
         }
 
         // Add [newSources] to [_extensions].
         var existingSources = _extensions[target];
         if (existingSources == null) {
           _extensions[target] = extender._extensions[target];
-          if (extensionsForTarget != null || rulesForTarget != null) {
+          if (extensionsForTarget != null || selectorsForTarget != null) {
             newExtensions ??= {};
             newExtensions[target] = extender._extensions[target];
           }
@@ -431,7 +433,7 @@ class Extender {
             if (existingSources.containsKey(extender)) return;
             existingSources[extender] = extension;
 
-            if (extensionsForTarget != null || rulesForTarget != null) {
+            if (extensionsForTarget != null || selectorsForTarget != null) {
               newExtensions ??= {};
               newExtensions
                   .putIfAbsent(target, () => {})
@@ -450,8 +452,8 @@ class Extender {
       _extendExistingExtensions(extensionsToExtend, newExtensions);
     }
 
-    if (rulesToExtend != null) {
-      _extendExistingStyleRules(rulesToExtend, newExtensions);
+    if (selectorsToExtend != null) {
+      _extendExistingSelectors(selectorsToExtend, newExtensions);
     }
   }
 
@@ -895,31 +897,29 @@ class Extender {
     return specificity;
   }
 
-  /// Returns a copy of [this] that extends new [ModifiableCssStyleRules], as
-  /// well as a map from the rules extended by [this] to the rules extended by
-  /// the new [Extender].
-  Tuple2<Extender, Map<CssStyleRule, ModifiableCssStyleRule>> clone() {
-    var newSelectors = <SimpleSelector, Set<ModifiableCssStyleRule>>{};
-    var newMediaContexts = Map<CssStyleRule, List<CssMediaQuery>>();
-    var oldToNewRules = <CssStyleRule, ModifiableCssStyleRule>{};
+  /// Returns a copy of [this] that extends new selectors, as well as a map from
+  /// the selectors extended by [this] to the selectors extended by the new
+  /// [Extender].
+  Tuple2<Extender,
+      Map<CssValue<SelectorList>, ModifiableCssValue<SelectorList>>> clone() {
+    var newSelectors =
+        <SimpleSelector, Set<ModifiableCssValue<SelectorList>>>{};
+    var newMediaContexts =
+        Map<ModifiableCssValue<SelectorList>, List<CssMediaQuery>>();
+    var oldToNewSelectors =
+        <CssValue<SelectorList>, ModifiableCssValue<SelectorList>>{};
 
-    _selectors.forEach((simple, rules) {
-      var newRules = Set<ModifiableCssStyleRule>();
-      newSelectors[simple] = newRules;
+    _selectors.forEach((simple, selectors) {
+      var newSelectorSet = Set<ModifiableCssValue<SelectorList>>();
+      newSelectors[simple] = newSelectorSet;
 
-      for (var rule in rules) {
-        // We can't use [StyleRule.copyWithoutChildren] here because it doesn't
-        // copy the [ModifiableCssValue<Selector>], which we need to do to
-        // properly isolate extensions.
-        var newRule = ModifiableCssStyleRule(
-            ModifiableCssValue(rule.selector.value, rule.selector.span),
-            rule.span,
-            originalSelector: rule.originalSelector);
-        newRules.add(newRule);
-        oldToNewRules[rule] = newRule;
+      for (var selector in selectors) {
+        var newSelector = ModifiableCssValue(selector.value, selector.span);
+        newSelectorSet.add(newSelector);
+        oldToNewSelectors[selector] = newSelector;
 
-        var mediaContext = _mediaContexts[rule];
-        if (mediaContext != null) newMediaContexts[newRule] = mediaContext;
+        var mediaContext = _mediaContexts[selector];
+        if (mediaContext != null) newMediaContexts[newSelector] = mediaContext;
       }
     });
 
@@ -931,6 +931,6 @@ class Extender {
             newMediaContexts,
             Map.identity()..addAll(_sourceSpecificity),
             Set.identity()..addAll(_originals)),
-        oldToNewRules);
+        oldToNewSelectors);
   }
 }

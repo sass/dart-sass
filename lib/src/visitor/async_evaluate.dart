@@ -1629,8 +1629,10 @@ class _EvaluateVisitor
             _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
-    var rule = _extender.addSelector(
-        parsedSelector, node.selector.span, node.span, _mediaQueries);
+    var selector = _extender.addSelector(
+        parsedSelector, node.selector.span, _mediaQueries);
+    var rule = ModifiableCssStyleRule(selector, node.span,
+        originalSelector: parsedSelector);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     await _withParent(rule, () async {
@@ -2512,12 +2514,13 @@ class _EvaluateVisitor
           "Style rules may not be used within nested declarations.", node.span);
     }
 
-    var rule = _extender.addSelector(
-        node.selector.value.resolveParentSelectors(_styleRule?.originalSelector,
-            implicitParent: !_atRootExcludingStyleRule),
-        node.selector.span,
-        node.span,
-        _mediaQueries);
+    var originalSelector = node.selector.value.resolveParentSelectors(
+        _styleRule?.originalSelector,
+        implicitParent: !_atRootExcludingStyleRule);
+    var selector = _extender.addSelector(
+        originalSelector, node.selector.span, _mediaQueries);
+    var rule = ModifiableCssStyleRule(selector, node.span,
+        originalSelector: originalSelector);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     await _withParent(rule, () async {

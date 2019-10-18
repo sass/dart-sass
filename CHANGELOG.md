@@ -2,7 +2,10 @@
 
 * Fix a bug preventing built-in modules from being loaded within a configured
   module.
-  
+
+* Fix a bug when `meta.load-css()` was used to load some files that included
+  media queries.
+
 * Allow `saturate()` in plain CSS files, since it can be used as a plain CSS
   filter function.
 

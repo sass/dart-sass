@@ -14,10 +14,7 @@ import 'value.dart';
 class ModifiableCssStyleRule extends ModifiableCssParentNode
     implements CssStyleRule {
   final ModifiableCssValue<SelectorList> selector;
-
-  /// The selector for this rule, before any extensions are applied.
   final SelectorList originalSelector;
-
   final FileSpan span;
 
   /// Creates a new [ModifiableCssStyleRule].
