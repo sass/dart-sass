@@ -24,8 +24,8 @@ class EmptyExtender implements Extender {
           bool callback(SimpleSelector target)) =>
       const [];
 
-  ModifiableCssStyleRule addSelector(
-      SelectorList selector, FileSpan selectorSpan, FileSpan ruleSpan,
+  ModifiableCssValue<SelectorList> addSelector(
+      SelectorList selector, FileSpan span,
       [List<CssMediaQuery> mediaContext]) {
     throw UnsupportedError(
         "addSelector() can't be called for a const Extender.");
@@ -43,6 +43,7 @@ class EmptyExtender implements Extender {
         "addExtensions() can't be called for a const Extender.");
   }
 
-  Tuple2<Extender, Map<CssStyleRule, ModifiableCssStyleRule>> clone() =>
-      const Tuple2(EmptyExtender(), {});
+  Tuple2<Extender,
+          Map<CssValue<SelectorList>, ModifiableCssValue<SelectorList>>>
+      clone() => const Tuple2(EmptyExtender(), {});
 }

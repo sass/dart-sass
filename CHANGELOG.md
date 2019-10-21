@@ -6,6 +6,15 @@
 * Fix a bug preventing an unconfigured module from being loaded from within two
   different configured modules.
 
+* Fix a bug when `meta.load-css()` was used to load some files that included
+  media queries.
+
+* Allow `saturate()` in plain CSS files, since it can be used as a plain CSS
+  filter function.
+
+* Improve the error messages for trying to access functions like `lighten()`
+  from the `sass:color` module.
+
 ## 1.23.0
 
 * **Launch the new Sass module system!** This adds:
