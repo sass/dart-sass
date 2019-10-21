@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f4f4c5d1cbc9894d14b6d8ce7c1a3c09146db9ba
+// Checksum: 9083313a65eb24875e7292b859202fd574daf46b
 //
 // ignore_for_file: unused_import
 
@@ -1625,8 +1625,10 @@ class _EvaluateVisitor
             _styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
-    var rule = _extender.addSelector(
-        parsedSelector, node.selector.span, node.span, _mediaQueries);
+    var selector = _extender.addSelector(
+        parsedSelector, node.selector.span, _mediaQueries);
+    var rule = ModifiableCssStyleRule(selector, node.span,
+        originalSelector: parsedSelector);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     _withParent(rule, () {
@@ -2496,12 +2498,13 @@ class _EvaluateVisitor
           "Style rules may not be used within nested declarations.", node.span);
     }
 
-    var rule = _extender.addSelector(
-        node.selector.value.resolveParentSelectors(_styleRule?.originalSelector,
-            implicitParent: !_atRootExcludingStyleRule),
-        node.selector.span,
-        node.span,
-        _mediaQueries);
+    var originalSelector = node.selector.value.resolveParentSelectors(
+        _styleRule?.originalSelector,
+        implicitParent: !_atRootExcludingStyleRule);
+    var selector = _extender.addSelector(
+        originalSelector, node.selector.span, _mediaQueries);
+    var rule = ModifiableCssStyleRule(selector, node.span,
+        originalSelector: originalSelector);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     _withParent(rule, () {
