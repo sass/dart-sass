@@ -413,9 +413,9 @@ class _EvaluateVisitor
         var url = Uri.parse(arguments[0].assertString("module").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
-        Map<String, _ConfiguredValue> configuration;
+        var configuration = const <String, _ConfiguredValue>{};
         if (withMap != null) {
-          configuration = <String, _ConfiguredValue>{};
+          configuration = {};
           var span = _callableNode.span;
           withMap.forEach((variable, value) {
             var name =
@@ -525,11 +525,9 @@ class _EvaluateVisitor
       {Uri baseUrl,
       Map<String, _ConfiguredValue> configuration,
       bool namesInErrors = false}) async {
-    configuration ??= const {};
-
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
-      if (configuration.isNotEmpty) {
+      if (configuration != null && configuration.isNotEmpty) {
         throw _exception(
             namesInErrors
                 ? "Built-in module $url can't be configured."
@@ -589,12 +587,11 @@ class _EvaluateVisitor
   Future<Module> _execute(AsyncImporter importer, Stylesheet stylesheet,
       {Map<String, _ConfiguredValue> configuration,
       bool namesInErrors = false}) async {
-    configuration ??= const {};
     var url = stylesheet.span.sourceUrl;
 
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
-      if (configuration.isNotEmpty || _configuration.isNotEmpty) {
+      if ((configuration ?? _configuration).isNotEmpty) {
         throw _exception(namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
@@ -637,7 +634,10 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = false;
       _inKeyframes = false;
 
-      if (configuration.isNotEmpty) _configuration = Map.of(configuration);
+      if (configuration != null) {
+        _configuration =
+            configuration.isEmpty ? const {} : Map.of(configuration);
+      }
 
       await visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
@@ -658,7 +658,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
       _inKeyframes = oldInKeyframes;
 
-      if (configuration.isNotEmpty && _configuration.isNotEmpty) {
+      if (configuration != null && _configuration.isNotEmpty) {
         throw _exception(
             namesInErrors
                 ? "\$${_configuration.keys.first} was not declared with "
@@ -1780,7 +1780,7 @@ class _EvaluateVisitor
       _environment.addModule(module, namespace: node.namespace);
     },
         configuration: node.configuration.isEmpty
-            ? null
+            ? const {}
             : {
                 for (var entry in node.configuration.entries)
                   entry.key: _ConfiguredValue(
