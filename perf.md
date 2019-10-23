@@ -165,7 +165,7 @@ overall.
 
 Dart Sass on Node is still substantially slower than on the Dart VM, and that
 relative slowdown becomes more pronounced as the raw Dart code becomes faster.
-Solutions for this such as [the embedded protocol][] or [WebAssembly support][]
+Solutions for this such as [the embedded protocol][embedded Dart Sass] or [WebAssembly support][Dart WebAssembly support]
 are becoming more and more important.
 
 [embedded Dart Sass]: https://github.com/sass/sass-embedded-protocol
