@@ -168,5 +168,5 @@ relative slowdown becomes more pronounced as the raw Dart code becomes faster.
 Solutions for this such as [the embedded protocol][] or [WebAssembly support][]
 are becoming more and more important.
 
-[embedded Dart Sass]: https://github.com/sass/sass-embedded-protocol
-[Dart WebAssembly support]: https://github.com/dart-lang/sdk/issues/32894
+[the embedded protocol]: https://github.com/sass/sass-embedded-protocol
+[WebAssembly support]: https://github.com/dart-lang/sdk/issues/32894
