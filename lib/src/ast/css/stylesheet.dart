@@ -20,7 +20,7 @@ class CssStylesheet extends CssParentNode {
   bool get isChildless => false;
 
   // TODO(nbehrens): How to avoid duplicating the impl here and in
-  // CssStylesheet?  I really want to define this impl in CssParentNode
+  // CssParentNode?  I really want to define this impl in CssParentNode
   // and have everyone that extends/implements CssParentNode inherit the
   // implementation... but that doesn't seem to work.
   FileSpan get beforeChildren {
