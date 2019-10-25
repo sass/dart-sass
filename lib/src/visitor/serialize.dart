@@ -156,7 +156,7 @@ class _SerializeVisitor
 
   void visitCssStylesheet(CssStylesheet node) {
     CssNode previous;
-    for (CssNode child in node.children) {
+    for (var child in node.children) {
       if (_isInvisible(child)) continue;
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
