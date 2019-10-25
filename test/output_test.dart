@@ -75,6 +75,19 @@ selector { /* please don't move me */
 }"""));
     });
 
+    // TODO(nbehrens): Get this test passing
+    test("after open block (multi-line selector)", () {
+      expect(compileString("""
+selector1,
+selector2 { /* please don't move me */
+  name: value;
+}"""), equals("""
+selector1,
+selector2 { /* please don't move me */
+  name: value;
+}"""));
+    });
+
     test("after close block", () {
       expect(compileString("""
 selector {
@@ -93,6 +106,13 @@ selector {
 selector {
   /* please don't move me */
 }"""));
+    });
+
+    // TODO(nbehrens): Get this test passing
+    test("only content in block (no newlines)", () {
+      expect(compileString("""
+selector { /* please don't move me */ }"""), equals("""
+selector { /* please don't move me */ }"""));
     });
 
     test("after property in block", () {

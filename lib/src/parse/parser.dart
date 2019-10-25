@@ -79,17 +79,11 @@ class Parser {
   }
 
   /// Consumes whitespace, but not comments.
-  ///
-  /// Returns whether any newlines were seen in the consumed whitespace.
   @protected
-  bool whitespaceWithoutComments() {
-    bool sawAnyNewlines = false;
+  void whitespaceWithoutComments() {
     while (!scanner.isDone && isWhitespace(scanner.peekChar())) {
-      if (isNewline(scanner.readChar())) {
-        sawAnyNewlines = true;
-      }
+      scanner.readChar();
     }
-    return sawAnyNewlines;
   }
 
   /// Consumes spaces and tabs.

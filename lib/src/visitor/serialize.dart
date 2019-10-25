@@ -1080,7 +1080,7 @@ class _SerializeVisitor
       _for(value, () => _buffer.write(value.value));
 
   /// Emits [children] in a block.
-  void _visitChildren(Iterable<CssNode> children, CssNode parent) {
+  void _visitChildren(List<CssNode> children, CssNode parent) {
     _buffer.writeCharCode($lbrace);
     if (children.every(_isInvisible)) {
       _buffer.writeCharCode($rbrace);
@@ -1143,8 +1143,8 @@ class _SerializeVisitor
       // seems like it should be sufficient, it doesn't handle the case where
       // "previous" is a parent node and the trailing comment appears right
       // after a block open lbrace.
-      return node.span.start.line == previous.span.start.line
-          || node.span.start.line == previous.span.end.line;
+      return node.span.start.line == previous.span.start.line ||
+          node.span.start.line == previous.span.end.line;
     }
 
     return false;
