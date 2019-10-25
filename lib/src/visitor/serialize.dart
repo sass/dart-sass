@@ -1146,15 +1146,7 @@ class _SerializeVisitor
   /// a block (and thus there are no nodes before [node]), then [previous]
   /// should span the text before the brace that opens the child block.
   bool _isTrailingComment(CssNode node, FileSpan previous) {
-    if (node is CssComment) {
-      // While the last condition (comment start line == previous end line)
-      // seems like it should be sufficient, it doesn't handle the case where
-      // "previous" is a parent node and the trailing comment appears right
-      // after a block open lbrace.
-      return node.span.start.line == previous.end.line;
-    }
-
-    return false;
+    return node is CssComment && node.span.start.line == previous.end.line;
   }
 
   /// Writes a line feed, unless this emitting compressed CSS.
