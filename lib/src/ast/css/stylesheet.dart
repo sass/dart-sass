@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:source_span/source_span.dart';
 
@@ -17,6 +18,12 @@ class CssStylesheet extends CssParentNode {
   final FileSpan span;
   bool get isGroupEnd => false;
   bool get isChildless => false;
+
+  FileSpan get beforeChildren {
+    var endOffsetInclusive = max(0, this.span.text.indexOf('{') - 1);
+    return this.span.file.span(
+        this.span.start.offset, this.span.start.offset + endOffsetInclusive);
+  }
 
   /// Creates an unmodifiable stylesheet containing [children].
   CssStylesheet(Iterable<CssNode> children, this.span)

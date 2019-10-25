@@ -160,7 +160,7 @@ class _SerializeVisitor
       if (_isInvisible(child)) continue;
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        if (_isTrailingComment(child, previous)) {
+        if (_isTrailingComment(child, previous.span)) {
           _writeOptionalSpace();
         } else {
           _writeLineFeed();
@@ -1080,7 +1080,7 @@ class _SerializeVisitor
       _for(value, () => _buffer.write(value.value));
 
   /// Emits [children] in a block.
-  void _visitChildren(List<CssNode> children, CssNode parent) {
+  void _visitChildren(List<CssNode> children, CssParentNode parent) {
     _buffer.writeCharCode($lbrace);
     if (children.every(_isInvisible)) {
       _buffer.writeCharCode($rbrace);
@@ -1088,7 +1088,8 @@ class _SerializeVisitor
     }
 
     bool indentNextChild;
-    if (children.isNotEmpty && _isTrailingComment(children.first, parent)) {
+    if (children.isNotEmpty &&
+        _isTrailingComment(children.first, parent.beforeChildren)) {
       _writeOptionalSpace();
       indentNextChild = false;
     } else {
@@ -1102,7 +1103,7 @@ class _SerializeVisitor
 
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        if (_isTrailingComment(child, previous)) {
+        if (_isTrailingComment(child, previous.span)) {
           _writeOptionalSpace();
           indentNextChild = false;
         } else {
@@ -1125,8 +1126,14 @@ class _SerializeVisitor
     if (_requiresSemicolon(previous) && !_isCompressed) {
       _buffer.writeCharCode($semicolon);
     }
+
+    // Doing this unconditionally isn't always ideal. e.g. if the input CSS is
+    //  "selector { /** comment */ }", this code will introduce a new newline
+    // between the comment and the rbrace.  That said, it's not clear it's a
+    // real problem for anyone either.
     _writeLineFeed();
     _writeIndentation();
+
     _buffer.writeCharCode($rbrace);
   }
 
@@ -1135,16 +1142,16 @@ class _SerializeVisitor
       node is CssParentNode ? node.isChildless : node is! CssComment;
 
   /// Whether [node] represents a trailing comment when it appears after
-  /// [previous] in a sequence of nodes.  If there are no nodes before [node],
-  /// then [previous] should be the parent node.
-  bool _isTrailingComment(CssNode node, CssNode previous) {
+  /// [previous] in a sequence of nodes.  If [node] is the first child in
+  /// a block (and thus there are no nodes before [node]), then [previous]
+  /// should span the text before the brace that opens the child block.
+  bool _isTrailingComment(CssNode node, FileSpan previous) {
     if (node is CssComment) {
       // While the last condition (comment start line == previous end line)
       // seems like it should be sufficient, it doesn't handle the case where
       // "previous" is a parent node and the trailing comment appears right
       // after a block open lbrace.
-      return node.span.start.line == previous.span.start.line ||
-          node.span.start.line == previous.span.end.line;
+      return node.span.start.line == previous.end.line;
     }
 
     return false;
