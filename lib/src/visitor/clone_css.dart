@@ -6,6 +6,7 @@ import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
 import '../ast/css/modifiable.dart';
+import '../ast/selector.dart';
 import '../extend/extender.dart';
 import 'interface/css.dart';
 
@@ -16,19 +17,21 @@ Tuple2<ModifiableCssStylesheet, Extender> cloneCssStylesheet(
     CssStylesheet stylesheet, Extender extender) {
   var result = extender.clone();
   var newExtender = result.item1;
-  var oldToNewRules = result.item2;
+  var oldToNewSelectors = result.item2;
 
-  return Tuple2(_CloneCssVisitor(oldToNewRules).visitCssStylesheet(stylesheet),
+  return Tuple2(
+      _CloneCssVisitor(oldToNewSelectors).visitCssStylesheet(stylesheet),
       newExtender);
 }
 
 /// A visitor that creates a deep (and mutable) copy of a [CssStylesheet].
 class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
-  /// A map from style rules in the original stylesheet to style rules generated
-  /// for the new stylesheet using [Extender.clone].
-  final Map<CssStyleRule, ModifiableCssStyleRule> _oldToNewRules;
+  /// A map from selectors in the original stylesheet to selectors generated for
+  /// the new stylesheet using [Extender.clone].
+  final Map<CssValue<SelectorList>, ModifiableCssValue<SelectorList>>
+      _oldToNewSelectors;
 
-  _CloneCssVisitor(this._oldToNewRules);
+  _CloneCssVisitor(this._oldToNewSelectors);
 
   ModifiableCssAtRule visitCssAtRule(CssAtRule node) {
     var rule = ModifiableCssAtRule(node.name, node.span,
@@ -55,14 +58,17 @@ class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
       _visitChildren(ModifiableCssMediaRule(node.queries, node.span), node);
 
   ModifiableCssStyleRule visitCssStyleRule(CssStyleRule node) {
-    var newRule = _oldToNewRules[node];
-    if (newRule == null) {
+    var newSelector = _oldToNewSelectors[node.selector];
+    if (newSelector == null) {
       throw StateError(
           "The Extender and CssStylesheet passed to cloneCssStylesheet() must "
           "come from the same compilation.");
     }
 
-    return _visitChildren(newRule, node);
+    return _visitChildren(
+        ModifiableCssStyleRule(newSelector, node.span,
+            originalSelector: node.originalSelector),
+        node);
   }
 
   ModifiableCssStylesheet visitCssStylesheet(CssStylesheet node) =>
