@@ -267,10 +267,14 @@ class _Watcher {
     if (p.basename(source).startsWith('_')) return null;
 
     for (var sourceDir in _options.sourceDirectoriesToDestinations.keys) {
-      if (p.isWithin(sourceDir, source)) {
-        return p.join(_options.sourceDirectoriesToDestinations[sourceDir],
-            p.setExtension(p.relative(source, from: sourceDir), '.css'));
-      }
+      if (!p.isWithin(sourceDir, source)) continue;
+
+      var destination = p.join(
+          _options.sourceDirectoriesToDestinations[sourceDir],
+          p.setExtension(p.relative(source, from: sourceDir), '.css'));
+
+      // Don't compile ".css" files to their own locations.
+      if (destination != source) return destination;
     }
 
     return null;

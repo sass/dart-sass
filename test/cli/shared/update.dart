@@ -175,6 +175,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       await d.file("out.css", contains(message)).validate();
     });
+
+    test("from itself", () async {
+      await d.dir("dir", [d.file("test.css", "a {b: c}")]).create();
+
+      var sass = await update(["dir:dir"]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+
+      await d.file("dir/test.css", "a {b: c}").validate();
+    });
   });
 
   group("updates a CSS file", () {
