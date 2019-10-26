@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:math' as math;
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
@@ -1128,7 +1127,7 @@ class _SerializeVisitor
       // TODO(nbehrens): Should we instead move this into the parser and simply
       // store in the AST?
       var lbracePattern = String.fromCharCode($lbrace);
-      var endOffset = max(0, previousSpan.text.indexOf(lbracePattern));
+      var endOffset = math.max(0, previousSpan.text.indexOf(lbracePattern));
       previousSpan = previousSpan.file.span(
           previousSpan.start.offset, previousSpan.start.offset + endOffset);
     }
