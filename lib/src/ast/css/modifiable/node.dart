@@ -3,10 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
-import 'dart:math';
-
-import 'package:charcode/ascii.dart';
-import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/modifiable_css.dart';
 import '../at_rule.dart';
@@ -85,13 +81,6 @@ abstract class ModifiableCssParentNode extends ModifiableCssNode
   final List<ModifiableCssNode> children;
   final List<ModifiableCssNode> _children;
   bool get isChildless => false;
-
-  FileSpan get beforeChildren {
-    var lbracePattern = String.fromCharCode($lbrace);
-    var endOffsetInclusive = max(0, this.span.text.indexOf(lbracePattern) - 1);
-    return this.span.file.span(
-        this.span.start.offset, this.span.start.offset + endOffsetInclusive);
-  }
 
   ModifiableCssParentNode() : this._([]);
 

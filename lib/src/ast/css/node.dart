@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
-
 import '../../visitor/interface/css.dart';
 import '../../visitor/serialize.dart';
 import '../node.dart';
@@ -26,10 +24,6 @@ abstract class CssNode extends AstNode {
 abstract class CssParentNode extends CssNode {
   /// The child statements of this node.
   List<CssNode> get children;
-
-  /// The source span from the beginning of the node until just before the
-  /// first opening brace.
-  FileSpan get beforeChildren;
 
   /// Whether the rule has no children and should be emitted without curly
   /// braces.

@@ -18,12 +18,6 @@ class CssStylesheet extends CssParentNode {
   bool get isGroupEnd => false;
   bool get isChildless => false;
 
-  /// The root stylesheet node *only* contains child nodes, so the
-  /// beforeChildren span is always empty.
-  FileSpan get beforeChildren {
-    return this.span.file.span(this.span.start.offset, this.span.start.offset);
-  }
-
   /// Creates an unmodifiable stylesheet containing [children].
   CssStylesheet(Iterable<CssNode> children, this.span)
       // Use [UnmodifiableListView] rather than [List.unmodifiable] because

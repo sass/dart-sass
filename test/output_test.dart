@@ -108,11 +108,12 @@ selector {
     });
 
     // Note the expected output has an added newline.  If in the future we want
-    // to change this, we can start by updating this test case.
+    // to try to change this, we can start by updating this test case.
     test("only content in block (no newlines)", () {
       expect(compileString("""
 selector { /* please don't move me */ }"""), equals("""
-selector { /* please don't move me */\n}"""));
+selector { /* please don't move me */
+}"""));
     });
 
     test("after property in block", () {

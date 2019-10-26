@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:math' as math;
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
@@ -160,7 +161,7 @@ class _SerializeVisitor
       if (_isInvisible(child)) continue;
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        if (_isTrailingComment(child, previous.span)) {
+        if (_isTrailingComment(child, previous)) {
           _writeOptionalSpace();
         } else {
           _writeLineFeed();
@@ -1082,57 +1083,32 @@ class _SerializeVisitor
   /// Emits [children] in a block.
   void _visitChildren(List<CssNode> children, CssParentNode parent) {
     _buffer.writeCharCode($lbrace);
-    if (children.every(_isInvisible)) {
-      _buffer.writeCharCode($rbrace);
-      return;
-    }
 
-    bool indentNextChild;
-    if (children.isNotEmpty &&
-        _isTrailingComment(children.first, parent.beforeChildren)) {
-      _writeOptionalSpace();
-      indentNextChild = false;
-    } else {
-      _writeLineFeed();
-      indentNextChild = true;
-    }
-
-    CssNode previous;
-    for (var child in children) {
-      if (_isInvisible(child)) continue;
-
-      if (previous != null) {
+    CssNode previous = parent;
+    for (var child in children.where((n) => !_isInvisible(n))) {
+      if (previous != parent) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        if (_isTrailingComment(child, previous.span)) {
-          _writeOptionalSpace();
-          indentNextChild = false;
-        } else {
-          _writeLineFeed();
-          indentNextChild = true;
-        }
-        if (previous.isGroupEnd) _writeLineFeed();
       }
-      previous = child;
-
-      if (indentNextChild) {
+      if (_isTrailingComment(child, previous)) {
+        _writeOptionalSpace();
+        _withoutIndendation(() => child.accept(this));
+      } else {
+        _writeLineFeed();
         _indent(() {
           child.accept(this);
         });
-      } else {
-        child.accept(this);
       }
+
+      previous = child;
     }
 
-    if (_requiresSemicolon(previous) && !_isCompressed) {
-      _buffer.writeCharCode($semicolon);
+    if (previous != parent) {
+      if (_requiresSemicolon(previous) && !_isCompressed) {
+        _buffer.writeCharCode($semicolon);
+      }
+      _writeLineFeed();
+      _writeIndentation();
     }
-
-    // Doing this unconditionally isn't always ideal. e.g. if the input CSS is
-    //  "selector { /** comment */ }", this code will introduce a new newline
-    // between the comment and the rbrace.  That said, it's not clear it's a
-    // real problem for anyone either.
-    _writeLineFeed();
-    _writeIndentation();
 
     _buffer.writeCharCode($rbrace);
   }
@@ -1142,11 +1118,21 @@ class _SerializeVisitor
       node is CssParentNode ? node.isChildless : node is! CssComment;
 
   /// Whether [node] represents a trailing comment when it appears after
-  /// [previous] in a sequence of nodes.  If [node] is the first child in
-  /// a block (and thus there are no nodes before [node]), then [previous]
-  /// should span the text before the brace that opens the child block.
-  bool _isTrailingComment(CssNode node, FileSpan previous) {
-    return node is CssComment && node.span.start.line == previous.end.line;
+  /// [previous] in a sequence of nodes being serialized.  Note [previous]
+  /// could either be (1) a sibling of [node] or (2) the parent of [node], with
+  /// [node] being the first child.
+  bool _isTrailingComment(CssNode node, CssNode previous) {
+    if (node is! CssComment) return false;
+    FileSpan previousSpan = previous.span;
+    if (previous is CssParentNode && previous.children.contains(node)) {
+      // TODO(nbehrens): Should we instead move this into the parser and simply
+      // store in the AST?
+      var lbracePattern = String.fromCharCode($lbrace);
+      var endOffset = max(0, previousSpan.text.indexOf(lbracePattern));
+      previousSpan = previousSpan.file.span(
+          previousSpan.start.offset, previousSpan.start.offset + endOffset);
+    }
+    return node.span.start.line == previousSpan.end.line;
   }
 
   /// Writes a line feed, unless this emitting compressed CSS.
@@ -1195,6 +1181,14 @@ class _SerializeVisitor
     _indentation++;
     callback();
     _indentation--;
+  }
+
+  /// Runs [callback] without any indentation.
+  void _withoutIndendation(void callback()) {
+    var savedIndentation = _indentation;
+    _indentation = 0;
+    callback();
+    _indentation = savedIndentation;
   }
 
   /// Returns whether [node] is considered invisible.
