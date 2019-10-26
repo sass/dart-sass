@@ -75,7 +75,6 @@ selector { /* please don't move me */
 }"""));
     });
 
-    // TODO(nbehrens): Get this test passing
     test("after open block (multi-line selector)", () {
       expect(compileString("""
 selector1,
