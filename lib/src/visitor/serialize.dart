@@ -1120,13 +1120,11 @@ class _SerializeVisitor
   /// Whether [node] represents a trailing comment when it appears after
   /// [previous] in a sequence of nodes being serialized.  Note [previous]
   /// could either be (1) a sibling of [node] or (2) the parent of [node], with
-  /// [node] being the first child.
+  /// [node] being the first visible child.
   bool _isTrailingComment(CssNode node, CssNode previous) {
     if (node is! CssComment) return false;
     FileSpan previousSpan = previous.span;
     if (previous is CssParentNode && previous.children.contains(node)) {
-      // TODO(nbehrens): Should we instead move this into the parser and simply
-      // store in the AST?
       var lbracePattern = String.fromCharCode($lbrace);
       var endOffset = math.max(0, previousSpan.text.indexOf(lbracePattern));
       previousSpan = previousSpan.file.span(
