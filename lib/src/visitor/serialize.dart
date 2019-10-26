@@ -1084,7 +1084,8 @@ class _SerializeVisitor
     _buffer.writeCharCode($lbrace);
 
     CssNode previous = parent;
-    for (var child in children.where((n) => !_isInvisible(n))) {
+    for (var child in children) {
+      if (_isInvisible(child)) continue;
       if (previous != parent) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
       }
