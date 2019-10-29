@@ -106,7 +106,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("compiles all the stylesheets in the directory", () async {
       await d.dir("in", [
         d.file("test1.scss", "a {b: c}"),
-        d.file("test2.sass", "x\n  y: z")
+        d.file("test2.sass", "x\n  y: z"),
+        d.file("test3.css", "q {r: s}")
       ]).create();
 
       var sass = await runSass(["--no-source-map", "in:out"]);
@@ -115,7 +116,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       await d.dir("out", [
         d.file("test1.css", equalsIgnoringWhitespace("a { b: c; }")),
-        d.file("test2.css", equalsIgnoringWhitespace("x { y: z; }"))
+        d.file("test2.css", equalsIgnoringWhitespace("x { y: z; }")),
+        d.file("test3.css", equalsIgnoringWhitespace("q { r: s; }"))
       ]).validate();
     });
 
@@ -182,6 +184,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         d.file("real.css", equalsIgnoringWhitespace("x { y: z; }")),
         d.nothing("fake.css")
       ]).validate();
+    });
+
+    test("ignores a CSS file that would compile to itself", () async {
+      await d.dir("dir", [d.file("test.css", "a {b: c}")]).create();
+
+      var sass = await runSass(["dir:dir"]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+
+      await d.file("dir/test.css", "a {b: c}").validate();
     });
   });
 

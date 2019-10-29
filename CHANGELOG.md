@@ -1,3 +1,12 @@
+## 1.23.2
+
+### Command-Line Interface
+
+* Fix a bug when compiling all Sass files in a directory where a CSS file could
+  be compiled to its own location, creating an infinite loop in `--watch` mode.
+
+* Properly compile CSS entrypoints in directories outside of `--watch` mode.
+
 ## 1.23.1
 
 * Fix a bug preventing built-in modules from being loaded within a configured

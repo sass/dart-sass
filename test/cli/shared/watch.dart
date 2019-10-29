@@ -639,6 +639,29 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         await d.nothing("out/test.scss").validate();
       });
 
+      // Regression test for #853.
+      test("doesn't try to compile a CSS file to itself", () async {
+        await d.dir("dir").create();
+
+        var sass = await watch(["dir:dir"]);
+        await expectLater(sass.stdout, _watchingForChanges);
+        await tickIfPoll();
+
+        await d.file("dir/test.css", "a {b: c}").create();
+        await tick;
+
+        // Create a new file that *will* be compiled so that if the first change
+        // did incorrectly trigger a compilation, it would emit a message
+        // before the message for this change.
+        await d.file("dir/test2.scss", "x {y: z}").create();
+        await expectLater(
+            sass.stdout, emits(_compiled('dir/test2.scss', 'dir/test2.css')));
+
+        await sass.kill();
+
+        await d.file("dir/test.css", "a {b: c}").validate();
+      });
+
       group("doesn't allow", () {
         test("--stdin", () async {
           var sass = await watch(["--stdin", "test.scss"]);
