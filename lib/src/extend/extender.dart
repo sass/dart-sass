@@ -400,6 +400,7 @@ class Extender {
 
     for (var extender in extenders) {
       if (extender.isEmpty) continue;
+      _sourceSpecificity.addAll(extender._sourceSpecificity);
       extender._extensions.forEach((target, newSources) {
         // Private selectors can't be extended across module boundaries.
         if (target is PlaceholderSelector && target.isPrivate) return;

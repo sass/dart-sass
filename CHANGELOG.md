@@ -1,3 +1,8 @@
+## 1.23.3
+
+* Fix a bug where selectors were being trimmed over-eagerly when `@extend`
+  crossed module boundaries.
+
 ## 1.23.2
 
 ### Command-Line Interface
