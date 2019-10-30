@@ -669,11 +669,9 @@ class Extender {
       }
 
       var lineBreak = false;
-      var specificity = _sourceSpecificityFor(compound);
       for (var state in path) {
         state.assertCompatibleMediaContext(mediaQueryContext);
         lineBreak = lineBreak || state.extender.lineBreak;
-        specificity = math.max(specificity, state.specificity);
       }
 
       return complexes
