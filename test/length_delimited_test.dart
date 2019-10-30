@@ -17,7 +17,9 @@ void main() {
     setUp(() {
       var controller = StreamController<List<int>>();
       sink = controller.sink;
-      stream = controller.stream.transform(lengthDelimitedEncoder);
+      stream = controller.stream
+          .map((chunk) => Uint8List.fromList(chunk))
+          .transform(lengthDelimitedEncoder);
     });
 
     test("encodes an empty message", () {
