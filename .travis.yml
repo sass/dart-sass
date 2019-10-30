@@ -1,0 +1,29 @@
+language: dart
+branches:
+  only:
+  - master
+  # Semantic version tags and legacy branches of the form "1.2.x".
+  - "/^\\d+\\.\\d+\\.(\\d+([+-].*)?|x)$/"
+
+cache:
+  directories:
+  - $HOME/.pub-cache
+
+jobs:
+  include:
+
+  # Testing
+  - dart: stable
+    dart_task: test
+  - dart: dev
+    dart_task: test
+  - dart: stable
+    os: windows
+    dart_task: test
+  - dart: stable
+    os: osx
+    dart_task: test
+
+  # Static checks
+  - dart_task: {dartanalyzer: --fatal-warnings ./}
+  - dart_task: dartfmt
