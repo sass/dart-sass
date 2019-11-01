@@ -1083,12 +1083,14 @@ class _SerializeVisitor
   void _visitChildren(List<CssNode> children, CssParentNode parent) {
     _buffer.writeCharCode($lbrace);
 
+    CssNode prePrevious;
     CssNode previous = parent;
     for (var child in children) {
       if (_isInvisible(child)) continue;
-      if (previous != parent) {
-        if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
+      if (previous != parent && _requiresSemicolon(previous)) {
+        _buffer.writeCharCode($semicolon);
       }
+
       if (_isTrailingComment(child, previous)) {
         _writeOptionalSpace();
         _withoutIndendation(() => child.accept(this));
@@ -1099,6 +1101,7 @@ class _SerializeVisitor
         });
       }
 
+      prePrevious = previous;
       previous = child;
     }
 
@@ -1106,8 +1109,13 @@ class _SerializeVisitor
       if (_requiresSemicolon(previous) && !_isCompressed) {
         _buffer.writeCharCode($semicolon);
       }
-      _writeLineFeed();
-      _writeIndentation();
+
+      if (prePrevious == parent && _isTrailingComment(previous, prePrevious)) {
+        _writeOptionalSpace();
+      } else {
+        _writeLineFeed();
+        _writeIndentation();
+      }
     }
 
     _buffer.writeCharCode($rbrace);
@@ -1118,15 +1126,19 @@ class _SerializeVisitor
       node is CssParentNode ? node.isChildless : node is! CssComment;
 
   /// Whether [node] represents a trailing comment when it appears after
-  /// [previous] in a sequence of nodes being serialized.  Note [previous]
-  /// could either be (1) a sibling of [node] or (2) the parent of [node], with
-  /// [node] being the first visible child.
+  /// [previous] in a sequence of nodes being serialized.
+  ///
+  /// Note [previous] could be either a sibling of [node] or the parent of
+  /// [node], with [node] being the first visible child.
   bool _isTrailingComment(CssNode node, CssNode previous) {
+    // Short-circuit in compressed mode to avoid expensive span shenanigans
+    // (shespanigans?), since we're compressing all whitespace anyway.
+    if (_isCompressed) return false;
     if (node is! CssComment) return false;
-    FileSpan previousSpan = previous.span;
+
+    var previousSpan = previous.span;
     if (previous is CssParentNode && previous.children.contains(node)) {
-      var lbracePattern = String.fromCharCode($lbrace);
-      var endOffset = math.max(0, previousSpan.text.indexOf(lbracePattern));
+      var endOffset = math.max(0, previousSpan.text.indexOf("{"));
       previousSpan = previousSpan.file.span(
           previousSpan.start.offset, previousSpan.start.offset + endOffset);
     }
