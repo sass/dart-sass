@@ -373,7 +373,9 @@ class ExecutableOptions {
   Map<String, String> _listSourceDirectory(String source, String destination) {
     return {
       for (var path in listDir(source, recursive: true))
-        if (_isEntrypoint(path))
+        if (_isEntrypoint(path) &&
+            // Don't compile a CSS file to its own location.
+            !(source == destination && p.extension(path) == '.css'))
           path: p.join(destination,
               p.setExtension(p.relative(path, from: source), '.css'))
     };
@@ -383,7 +385,7 @@ class ExecutableOptions {
   bool _isEntrypoint(String path) {
     if (p.basename(path).startsWith("_")) return false;
     var extension = p.extension(path);
-    return extension == ".scss" || extension == ".sass";
+    return extension == ".scss" || extension == ".sass" || extension == ".css";
   }
 
   /// Whether to emit a source map file.
