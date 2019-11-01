@@ -1138,7 +1138,13 @@ class _SerializeVisitor
 
     var previousSpan = previous.span;
     if (previous is CssParentNode && previous.children.contains(node)) {
-      var endOffset = math.max(0, previousSpan.text.indexOf("{"));
+      // Walk back from just before the current node starts looking for the
+      // parent's left brace (to open the child block).  This is safer than
+      // a simple forward search of the previousSpan.text as that might contain
+      // other left braces.
+      var endOffset =
+          previousSpan.text.lastIndexOf("{", node.span.start.offset - 1);
+      endOffset = math.max(0, endOffset);
       previousSpan = previousSpan.file.span(
           previousSpan.start.offset, previousSpan.start.offset + endOffset);
     }

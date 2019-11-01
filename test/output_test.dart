@@ -145,5 +145,15 @@ selector {
       expect(compileString("@rule; /* please don't move me */"),
           equals("@rule; /* please don't move me */"));
     });
+
+    // The trailing comment detection logic looks for left braces to detect
+    // whether a comment is on the same line as its parent node.  This test
+    // checks to make sure it isn't confused by syntax that uses braces for
+    // things other than starting child blocks.
+    test("selector contains left brace", () {
+      expect(compileString("""selector[href*=\"{\"]
+{ /* please don't move me */ }"""),
+          equals("""selector[href*=\"{\"] { /* please don't move me */ }"""));
+    });
   });
 }
