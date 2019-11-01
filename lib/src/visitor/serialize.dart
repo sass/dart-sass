@@ -1131,6 +1131,9 @@ class _SerializeVisitor
   /// Note [previous] could be either a sibling of [node] or the parent of
   /// [node], with [node] being the first visible child.
   bool _isTrailingComment(CssNode node, CssNode previous) {
+    // Short-circuit in compressed mode to avoid expensive span shenanigans
+    // (shespanigans?), since we're compressing all whitespace anyway.
+    if (_isCompressed) return false;
     if (node is! CssComment) return false;
 
     var previousSpan = previous.span;
