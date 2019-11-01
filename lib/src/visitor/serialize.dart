@@ -1083,12 +1083,14 @@ class _SerializeVisitor
   void _visitChildren(List<CssNode> children, CssParentNode parent) {
     _buffer.writeCharCode($lbrace);
 
+    CssNode prePrevious;
     CssNode previous = parent;
     for (var child in children) {
       if (_isInvisible(child)) continue;
-      if (previous != parent) {
-        if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
+      if (previous != parent && _requiresSemicolon(previous)) {
+        _buffer.writeCharCode($semicolon);
       }
+
       if (_isTrailingComment(child, previous)) {
         _writeOptionalSpace();
         _withoutIndendation(() => child.accept(this));
@@ -1099,6 +1101,7 @@ class _SerializeVisitor
         });
       }
 
+      prePrevious = previous;
       previous = child;
     }
 
@@ -1106,8 +1109,13 @@ class _SerializeVisitor
       if (_requiresSemicolon(previous) && !_isCompressed) {
         _buffer.writeCharCode($semicolon);
       }
-      _writeLineFeed();
-      _writeIndentation();
+
+      if (prePrevious == parent && _isTrailingComment(previous, prePrevious)) {
+        _writeOptionalSpace();
+      } else {
+        _writeLineFeed();
+        _writeIndentation();
+      }
     }
 
     _buffer.writeCharCode($rbrace);
