@@ -400,6 +400,7 @@ class Extender {
 
     for (var extender in extenders) {
       if (extender.isEmpty) continue;
+      _sourceSpecificity.addAll(extender._sourceSpecificity);
       extender._extensions.forEach((target, newSources) {
         // Private selectors can't be extended across module boundaries.
         if (target is PlaceholderSelector && target.isPrivate) return;
@@ -669,11 +670,9 @@ class Extender {
       }
 
       var lineBreak = false;
-      var specificity = _sourceSpecificityFor(compound);
       for (var state in path) {
         state.assertCompatibleMediaContext(mediaQueryContext);
         lineBreak = lineBreak || state.extender.lineBreak;
-        specificity = math.max(specificity, state.specificity);
       }
 
       return complexes
