@@ -9,6 +9,24 @@ cache:
   directories:
   - $HOME/.pub-cache
 
+env:
+  global:
+  - PROTOBUF_VERSION=3.10.1
+  - PATH="$HOME/protoc/bin:$PATH"
+
+before_install:
+- if [[ "$TRAVIS_OS_NAME" = windows ]]; then
+    curl -Lo protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-win64.zip;
+  else
+    curl -Lo protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-${TRAVIS_OS_NAME}-x86_64.zip;
+  fi
+- unzip -d "$HOME/protoc" protoc.zip
+
+before_script:
+- pub run grinder protobuf
+# Format the generated code or else the formatter task will get upset.
+- dartfmt -w --fix lib/src/embedded_sass.pb*
+
 jobs:
   include:
 
