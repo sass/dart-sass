@@ -1126,15 +1126,16 @@ class _SerializeVisitor
       node is CssParentNode ? node.isChildless : node is! CssComment;
 
   /// Whether [node] represents a trailing comment when it appears after
-  /// [previous] in a sequence of nodes being serialized.  Note [previous]
-  /// could either be (1) a sibling of [node] or (2) the parent of [node], with
-  /// [node] being the first visible child.
+  /// [previous] in a sequence of nodes being serialized.
+  ///
+  /// Note [previous] could be either a sibling of [node] or the parent of
+  /// [node], with [node] being the first visible child.
   bool _isTrailingComment(CssNode node, CssNode previous) {
     if (node is! CssComment) return false;
-    FileSpan previousSpan = previous.span;
+
+    var previousSpan = previous.span;
     if (previous is CssParentNode && previous.children.contains(node)) {
-      var lbracePattern = String.fromCharCode($lbrace);
-      var endOffset = math.max(0, previousSpan.text.indexOf(lbracePattern));
+      var endOffset = math.max(0, previousSpan.text.indexOf("{"));
       previousSpan = previousSpan.file.span(
           previousSpan.start.offset, previousSpan.start.offset + endOffset);
     }
