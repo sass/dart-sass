@@ -1,3 +1,10 @@
+## 1.23.4
+
+### Command-Line Interface
+
+* Fix a bug where `--watch` wouldn't watch files referred to by `@forward`
+  rules.
+
 ## 1.23.3
 
 * Fix a bug where selectors were being trimmed over-eagerly when `@extend`
