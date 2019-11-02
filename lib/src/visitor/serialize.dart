@@ -1142,8 +1142,8 @@ class _SerializeVisitor
       // parent's left brace (to open the child block).  This is safer than
       // a simple forward search of the previousSpan.text as that might contain
       // other left braces.
-      var endOffset =
-          previousSpan.text.lastIndexOf("{", node.span.start.offset - 1);
+      var searchFrom = node.span.start.offset - previousSpan.start.offset - 1;
+      var endOffset = previousSpan.text.lastIndexOf("{", searchFrom);
       endOffset = math.max(0, endOffset);
       previousSpan = previousSpan.file.span(
           previousSpan.start.offset, previousSpan.start.offset + endOffset);

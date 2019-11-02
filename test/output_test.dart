@@ -151,9 +151,16 @@ selector {
     // checks to make sure it isn't confused by syntax that uses braces for
     // things other than starting child blocks.
     test("selector contains left brace", () {
-      expect(compileString("""selector[href*=\"{\"]
-{ /* please don't move me */ }"""),
-          equals("""selector[href*=\"{\"] { /* please don't move me */ }"""));
+      expect(compileString("""@rule1;
+@rule2;
+selector[href*=\"{\"]
+{ /* please don't move me */ }
+
+@rule3;"""), equals("""@rule1;
+@rule2;
+selector[href*=\"{\"] { /* please don't move me */ }
+
+@rule3;"""));
     });
   });
 }
