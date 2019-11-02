@@ -153,7 +153,7 @@ selector {
     test("selector contains left brace", () {
       expect(compileString("""selector[href*=\"{\"]
 { /* please don't move me */ }"""),
-          equals("""selector[href*=\"{\"] { /* please don't move me */ }"""));
+          equals('selector[href*="{"] { /* please don't move me */ }'));
     });
   });
 }
