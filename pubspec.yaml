@@ -7,9 +7,17 @@ homepage: https://github.com/sass/dart-sass-embedded
 environment:
   sdk: '>=2.4.0 <3.0.0'
 
+executables:
+  dart-sass-embedded: dart_sass_embedded
+
 dependencies:
   async: ">=1.13.0 <3.0.0"
+  protobuf: ^1.0.0
+  stack_trace: ^1.6.0
   stream_channel: ">=1.6.0 <3.0.0"
 
 dev_dependencies:
+  grinder: ^0.8.0
+  protoc_plugin: ^19.0.0
+  path: ^1.6.0
   test: ^1.0.0
