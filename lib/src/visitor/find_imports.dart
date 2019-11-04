@@ -32,6 +32,10 @@ class _FindImportsVisitor extends RecursiveStatementVisitor<void> {
     _imports.add(DynamicImport(node.url.toString(), node.span));
   }
 
+  void visitForwardRule(ForwardRule node) {
+    _imports.add(DynamicImport(node.url.toString(), node.span));
+  }
+
   void visitImportRule(ImportRule node) {
     for (var import in node.imports) {
       if (import is DynamicImport) _imports.add(import);

@@ -173,24 +173,66 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           ]).validate();
         });
 
-        test("when its dependency is modified", () async {
-          await d.file("_other.scss", "a {b: c}").create();
-          await d.file("test.scss", "@import 'other'").create();
+        group("when its dependency is modified", () {
+          test("through @import", () async {
+            await d.file("_other.scss", "a {b: c}").create();
+            await d.file("test.scss", "@import 'other'").create();
 
-          var sass = await watch(["test.scss:out.css"]);
-          await expectLater(
-              sass.stdout, emits('Compiled test.scss to out.css.'));
-          await expectLater(sass.stdout, _watchingForChanges);
-          await tickIfPoll();
+            var sass = await watch(["test.scss:out.css"]);
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await expectLater(sass.stdout, _watchingForChanges);
+            await tickIfPoll();
 
-          await d.file("_other.scss", "x {y: z}").create();
-          await expectLater(
-              sass.stdout, emits('Compiled test.scss to out.css.'));
-          await sass.kill();
+            await d.file("_other.scss", "x {y: z}").create();
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await sass.kill();
 
-          await d
-              .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
-              .validate();
+            await d
+                .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                .validate();
+          });
+
+          test("through @use", () async {
+            await d.file("_other.scss", "a {b: c}").create();
+            await d.file("test.scss", "@use 'other'").create();
+
+            var sass = await watch(["test.scss:out.css"]);
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await expectLater(sass.stdout, _watchingForChanges);
+            await tickIfPoll();
+
+            await d.file("_other.scss", "x {y: z}").create();
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await sass.kill();
+
+            await d
+                .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                .validate();
+          });
+
+          test("through @forward", () async {
+            await d.file("_other.scss", "a {b: c}").create();
+            await d.file("test.scss", "@forward 'other'").create();
+
+            var sass = await watch(["test.scss:out.css"]);
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await expectLater(sass.stdout, _watchingForChanges);
+            await tickIfPoll();
+
+            await d.file("_other.scss", "x {y: z}").create();
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await sass.kill();
+
+            await d
+                .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                .validate();
+          });
         });
 
         test("when it's deleted and re-added", () async {
