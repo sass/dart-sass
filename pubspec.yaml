@@ -9,7 +9,7 @@ executables:
   sass: sass
 
 environment:
-  sdk: '>=2.4.0 <3.0.0'
+  sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
   args: ">=1.4.0 <2.0.0"
@@ -23,7 +23,7 @@ dependencies:
   source_maps: "^0.10.5"
   source_span: "^1.4.0"
   stack_trace: ">=0.9.0 <2.0.0"
-  stream_transform: "^0.0.1"
+  stream_transform: "^0.0.20"
   string_scanner: ">=0.1.5 <2.0.0"
   term_glyph: "^1.0.0"
   tuple: "^1.0.0"

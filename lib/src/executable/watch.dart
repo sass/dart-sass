@@ -201,9 +201,7 @@ class _Watcher {
   /// Otherwise, if a file is erased and then rewritten, we can end up reading
   /// the intermediate erased version.
   Stream<WatchEvent> _debounceEvents(Stream<WatchEvent> events) {
-    return events
-        .transform(debounceBuffer(Duration(milliseconds: 25)))
-        .expand((buffer) {
+    return events.debounceBuffer(Duration(milliseconds: 25)).expand((buffer) {
       var typeForPath = p.PathMap<ChangeType>();
       for (var event in buffer) {
         var oldType = typeForPath[event.path];
