@@ -27,6 +27,13 @@ before_script:
 # Format the generated code or else the formatter task will get upset.
 - dartfmt -w --fix lib/src/embedded_sass.pb*
 
+# TODO(nweiz): always compile native when we're running on Dart 2.7.
+- if [[ "$TRAVIS_OS_NAME" = windows ]]; then
+    pub run grinder pkg-compile-snapshot;
+  else
+    pub run grinder pkg-compile-native;
+  fi
+
 jobs:
   include:
 
