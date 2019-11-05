@@ -90,6 +90,10 @@ class Dispatcher {
     });
   }
 
+  /// Sends [event] to the host.
+  void sendLog(OutboundMessage_LogEvent event) =>
+      _send(OutboundMessage()..logEvent = event);
+
   /// Sends [message] to the host.
   void _send(OutboundMessage message) =>
       _channel.sink.add(message.writeToBuffer());

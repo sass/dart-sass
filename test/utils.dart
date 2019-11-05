@@ -90,7 +90,8 @@ void _ensureUpToDate(String path, String commandToRun) {
 /// Returns a [InboundMessage] that compiles the given plain CSS
 /// string.
 InboundMessage compileString(String css,
-    {InboundMessage_Syntax syntax,
+    {int id,
+    InboundMessage_Syntax syntax,
     InboundMessage_CompileRequest_OutputStyle style,
     String url,
     bool sourceMap}) {
@@ -99,6 +100,7 @@ InboundMessage compileString(String css,
   if (url != null) input.url = url;
 
   var request = InboundMessage_CompileRequest()..string = input;
+  if (id != null) request.id = id;
   if (style != null) request.style = style;
   if (sourceMap != null) request.sourceMap = sourceMap;
 
@@ -144,6 +146,16 @@ OutboundMessage_CompileResponse getCompileResponse(value) {
   expect(message.hasCompileResponse(), isTrue,
       reason: "Expected $message to have a CompileResponse");
   return message.compileResponse;
+}
+
+/// Asserts that [message] is an [OutboundMessage] with a `LogEvent` and
+/// returns it.
+OutboundMessage_LogEvent getLogEvent(value) {
+  expect(value, isA<OutboundMessage>());
+  var message = value as OutboundMessage;
+  expect(message.hasLogEvent(), isTrue,
+      reason: "Expected $message to have a LogEvent");
+  return message.logEvent;
 }
 
 /// Asserts that an [OutboundMessage] is a `CompileResponse` with CSS that

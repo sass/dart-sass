@@ -7,12 +7,11 @@ import 'dart:convert';
 
 import 'package:sass/sass.dart' as sass;
 import 'package:source_maps/source_maps.dart' as source_maps;
-import 'package:source_span/source_span.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import 'package:sass_embedded/src/dispatcher.dart';
-import 'package:sass_embedded/src/embedded_sass.pb.dart' as proto;
-import 'package:sass_embedded/src/embedded_sass.pb.dart' hide SourceSpan;
+import 'package:sass_embedded/src/embedded_sass.pb.dart';
+import 'package:sass_embedded/src/logger.dart';
 import 'package:sass_embedded/src/util/length_delimited_transformer.dart';
 import 'package:sass_embedded/src/utils.dart';
 
@@ -35,6 +34,7 @@ void main(List<String> args) {
         request.style == InboundMessage_CompileRequest_OutputStyle.COMPRESSED
             ? sass.OutputStyle.compressed
             : sass.OutputStyle.expanded;
+    var logger = Logger(dispatcher, request.id);
 
     try {
       String result;
@@ -46,6 +46,7 @@ void main(List<String> args) {
         case InboundMessage_CompileRequest_Input.string:
           var input = request.string;
           result = sass.compileString(input.source,
+              logger: logger,
               syntax: _syntaxToSyntax(input.syntax),
               style: style,
               url: input.url.isEmpty ? null : input.url,
@@ -55,7 +56,7 @@ void main(List<String> args) {
         case InboundMessage_CompileRequest_Input.path:
           try {
             result = sass.compile(request.path,
-                style: style, sourceMap: sourceMapCallback);
+                logger: logger, style: style, sourceMap: sourceMapCallback);
           } on FileSystemException catch (error) {
             return OutboundMessage_CompileResponse()
               ..failure = (OutboundMessage_CompileResponse_CompileFailure()
@@ -79,7 +80,7 @@ void main(List<String> args) {
       return OutboundMessage_CompileResponse()
         ..failure = (OutboundMessage_CompileResponse_CompileFailure()
           ..message = error.message
-          ..span = _protofySpan(error.span)
+          ..span = protofySpan(error.span)
           ..stackTrace = error.trace.toString());
     }
   });
@@ -98,18 +99,3 @@ sass.Syntax _syntaxToSyntax(InboundMessage_Syntax syntax) {
       throw "Unknown syntax $syntax.";
   }
 }
-
-/// Converts a Dart source span to a protocol buffer source span.
-proto.SourceSpan _protofySpan(SourceSpanWithContext span) => proto.SourceSpan()
-  ..text = span.text
-  ..start = _protofyLocation(span.start)
-  ..end = _protofyLocation(span.end)
-  ..url = span.sourceUrl?.toString() ?? ""
-  ..context = span.context;
-
-/// Converts a Dart source location to a protocol buffer source location.
-SourceSpan_SourceLocation _protofyLocation(SourceLocation location) =>
-    SourceSpan_SourceLocation()
-      ..offset = location.offset
-      ..line = location.line
-      ..column = location.column;

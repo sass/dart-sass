@@ -155,6 +155,85 @@ void main() {
     await process.kill();
   });
 
+  group("emits a log event", () {
+    test("for a @debug rule", () async {
+      process.inbound.add(compileString("a {@debug hello}"));
+
+      var logEvent = getLogEvent(await process.outbound.next);
+      expect(logEvent.compilationId, equals(0));
+      expect(logEvent.type, equals(OutboundMessage_LogEvent_Type.DEBUG));
+      expect(logEvent.message, equals("hello"));
+      expect(logEvent.span.text, equals("@debug hello"));
+      expect(logEvent.span.start, equals(location(3, 0, 3)));
+      expect(logEvent.span.end, equals(location(15, 0, 15)));
+      expect(logEvent.span.context, equals("a {@debug hello}"));
+      expect(logEvent.stackTrace, isEmpty);
+      await process.kill();
+    });
+
+    test("for a @warn rule", () async {
+      process.inbound.add(compileString("a {@warn hello}"));
+
+      var logEvent = getLogEvent(await process.outbound.next);
+      expect(logEvent.compilationId, equals(0));
+      expect(logEvent.type, equals(OutboundMessage_LogEvent_Type.WARNING));
+      expect(logEvent.message, equals("hello"));
+      expect(logEvent.span, equals(SourceSpan()));
+      expect(logEvent.stackTrace, equals("- 1:4  root stylesheet\n"));
+      await process.kill();
+    });
+
+    test("for a parse-time deprecation warning", () async {
+      process.inbound.add(compileString("@if true {} @elseif true {}"));
+
+      var logEvent = getLogEvent(await process.outbound.next);
+      expect(logEvent.compilationId, equals(0));
+      expect(logEvent.type,
+          equals(OutboundMessage_LogEvent_Type.DEPRECATION_WARNING));
+      expect(
+          logEvent.message,
+          equals(
+              '@elseif is deprecated and will not be supported in future Sass '
+              'versions.\n'
+              'Use "@else if" instead.'));
+      expect(logEvent.span.text, equals("@elseif"));
+      expect(logEvent.span.start, equals(location(12, 0, 12)));
+      expect(logEvent.span.end, equals(location(19, 0, 19)));
+      expect(logEvent.span.context, equals("@if true {} @elseif true {}"));
+      expect(logEvent.stackTrace, isEmpty);
+      await process.kill();
+    });
+
+    test("for a runtime deprecation warning", () async {
+      process.inbound.add(compileString("a {\$var: value !global}"));
+
+      var logEvent = getLogEvent(await process.outbound.next);
+      expect(logEvent.compilationId, equals(0));
+      expect(logEvent.type,
+          equals(OutboundMessage_LogEvent_Type.DEPRECATION_WARNING));
+      expect(
+          logEvent.message,
+          equals("As of Dart Sass 2.0.0, !global assignments won't be able to\n"
+              "declare new variables. Consider adding `\$var: null` at the "
+              "root of the\n"
+              "stylesheet."));
+      expect(logEvent.span.text, equals("\$var: value !global"));
+      expect(logEvent.span.start, equals(location(3, 0, 3)));
+      expect(logEvent.span.end, equals(location(22, 0, 22)));
+      expect(logEvent.span.context, equals("a {\$var: value !global}"));
+      expect(logEvent.stackTrace, "- 1:4  root stylesheet\n");
+      await process.kill();
+    });
+
+    test("with the same ID as the CompileRequest", () async {
+      process.inbound.add(compileString("@debug hello", id: 12345));
+
+      var logEvent = getLogEvent(await process.outbound.next);
+      expect(logEvent.compilationId, equals(12345));
+      await process.kill();
+    });
+  });
+
   group("gracefully handles an error", () {
     test("from invalid syntax", () async {
       process.inbound.add(compileString("a {b: }"));
