@@ -89,9 +89,21 @@ void _ensureUpToDate(String path, String commandToRun) {
 
 /// Returns a [InboundMessage] that compiles the given plain CSS
 /// string.
-InboundMessage compileString(String css) => InboundMessage()
-  ..compileRequest = (InboundMessage_CompileRequest()
-    ..string = (InboundMessage_CompileRequest_StringInput()..source = css));
+InboundMessage compileString(String css,
+    {InboundMessage_Syntax syntax,
+    InboundMessage_CompileRequest_OutputStyle style,
+    String url,
+    bool sourceMap}) {
+  var input = InboundMessage_CompileRequest_StringInput()..source = css;
+  if (syntax != null) input.syntax = syntax;
+  if (url != null) input.url = url;
+
+  var request = InboundMessage_CompileRequest()..string = input;
+  if (style != null) request.style = style;
+  if (sourceMap != null) request.sourceMap = sourceMap;
+
+  return InboundMessage()..compileRequest = request;
+}
 
 /// Asserts that [process] emits a [ProtocolError] parse error with the given
 /// [message] on its protobuf stream and prints a notice on stderr.
@@ -115,7 +127,16 @@ Matcher isProtocolError(int id, ProtocolError_ErrorType type, [message]) =>
       return true;
     });
 
-/// Asserts that [message] is an [OutboundMessage] with a [CompileResponse] and
+/// Asserts that [message] is an [OutboundMessage] with a
+/// `CompileResponse.Failure` and returns it.
+OutboundMessage_CompileResponse_CompileFailure getCompileFailure(value) {
+  var response = getCompileResponse(value);
+  expect(response.hasFailure(), isTrue,
+      reason: "Expected $response to be a failure");
+  return response.failure;
+}
+
+/// Asserts that [message] is an [OutboundMessage] with a `CompileResponse` and
 /// returns it.
 OutboundMessage_CompileResponse getCompileResponse(value) {
   expect(value, isA<OutboundMessage>());
@@ -125,16 +146,30 @@ OutboundMessage_CompileResponse getCompileResponse(value) {
   return message.compileResponse;
 }
 
-/// Asserts that an [OutboundMessage] is a [CompileResponse] with CSS that
-/// matches [css].
+/// Asserts that an [OutboundMessage] is a `CompileResponse` with CSS that
+/// matches [css], with a source map that matches [sourceMap] (if passed).
 ///
 /// If [css] is a [String], this automatically wraps it in
 /// [equalsIgnoringWhitespace].
-Matcher isSuccess(css) => predicate((value) {
+Matcher isSuccess(css, {sourceMap}) => predicate((value) {
       var response = getCompileResponse(value);
       expect(response.hasSuccess(), isTrue,
           reason: "Expected $response to be successful");
       expect(response.success.css,
           css is String ? equalsIgnoringWhitespace(css) : css);
+      if (sourceMap != null) expect(response.success.sourceMap, sourceMap);
       return true;
     });
+
+/// Returns a [SourceSpan_SourceLocation] with the given [offset], [line], and
+/// [column].
+SourceSpan_SourceLocation location(int offset, int line, int column) =>
+    SourceSpan_SourceLocation()
+      ..offset = offset
+      ..line = line
+      ..column = column;
+
+/// Returns a matcher that verifies whether the given value refers to the same
+/// path as [expected].
+Matcher equalsPath(String expected) => predicate<String>(
+    (actual) => p.equals(actual, expected), "equals $expected");

@@ -29,7 +29,7 @@ pub run protoc_plugin %*
   } else {
     File('build/protoc-gen-dart')
         .writeAsStringSync('pub run protoc_plugin "\$@"');
-    runProcess('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
+    run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
   }
 
   await cloneOrPull("git://github.com/sass/embedded-protocol");

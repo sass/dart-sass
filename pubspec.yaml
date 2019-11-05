@@ -13,6 +13,9 @@ executables:
 dependencies:
   async: ">=1.13.0 <3.0.0"
   protobuf: ^1.0.0
+  sass: ^1.21.0
+  source_maps: ^0.10.5
+  source_span: ^1.1.0
   stack_trace: ^1.6.0
   stream_channel: ">=1.6.0 <3.0.0"
 
@@ -22,6 +25,7 @@ dev_dependencies:
   protoc_plugin: ^19.0.0
   path: ^1.6.0
   test: ^1.0.0
+  test_descriptor: ^1.0.0
 
 dependency_overrides:
   cli_pkg: {git: git://github.com/google/dart_cli_pkg}

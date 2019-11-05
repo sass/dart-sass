@@ -23,9 +23,10 @@ class Dispatcher {
 
   /// Listens for incoming `CompileRequests` and passes them to [callback].
   ///
-  /// The callback must return a `CompileResponse` which is sent to the host. It
-  /// doesn't need to set [OutboundMessage_CompileResponse.id]; the [Dispatcher]
-  /// will take care of that.
+  /// The callback must return a `CompileResponse` which is sent to the host.
+  /// The callback may throw [ProtocolError]s, which will be sent back to the
+  /// host. Neither `CompileResponse`s nor [ProtocolError]s need to set their
+  /// `id` fields; the [Dispatcher] will take care of that.
   ///
   /// This may only be called once.
   void listen(

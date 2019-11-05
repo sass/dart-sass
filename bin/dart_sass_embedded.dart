@@ -3,12 +3,18 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:io';
+import 'dart:convert';
 
+import 'package:sass/sass.dart' as sass;
+import 'package:source_maps/source_maps.dart' as source_maps;
+import 'package:source_span/source_span.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import 'package:sass_embedded/src/dispatcher.dart';
-import 'package:sass_embedded/src/embedded_sass.pb.dart';
+import 'package:sass_embedded/src/embedded_sass.pb.dart' as proto;
+import 'package:sass_embedded/src/embedded_sass.pb.dart' hide SourceSpan;
 import 'package:sass_embedded/src/util/length_delimited_transformer.dart';
+import 'package:sass_embedded/src/utils.dart';
 
 void main(List<String> args) {
   if (args.isNotEmpty) {
@@ -23,9 +29,87 @@ void main(List<String> args) {
   var dispatcher = Dispatcher(
       StreamChannel.withGuarantees(stdin, stdout, allowSinkErrors: false)
           .transform(lengthDelimited));
+
   dispatcher.listen((request) {
-    return OutboundMessage_CompileResponse()
-      ..success = (OutboundMessage_CompileResponse_CompileSuccess()
-        ..css = "a {\n  b: c;\n}\n");
+    var style =
+        request.style == InboundMessage_CompileRequest_OutputStyle.COMPRESSED
+            ? sass.OutputStyle.compressed
+            : sass.OutputStyle.expanded;
+
+    try {
+      String result;
+      source_maps.SingleMapping sourceMap;
+      var sourceMapCallback = request.sourceMap
+          ? (source_maps.SingleMapping map) => sourceMap = map
+          : null;
+      switch (request.whichInput()) {
+        case InboundMessage_CompileRequest_Input.string:
+          var input = request.string;
+          result = sass.compileString(input.source,
+              syntax: _syntaxToSyntax(input.syntax),
+              style: style,
+              url: input.url.isEmpty ? null : input.url,
+              sourceMap: sourceMapCallback);
+          break;
+
+        case InboundMessage_CompileRequest_Input.path:
+          try {
+            result = sass.compile(request.path,
+                style: style, sourceMap: sourceMapCallback);
+          } on FileSystemException catch (error) {
+            return OutboundMessage_CompileResponse()
+              ..failure = (OutboundMessage_CompileResponse_CompileFailure()
+                ..message = error.path == null
+                    ? error.message
+                    : "${error.message}: ${error.path}");
+          }
+          break;
+
+        case InboundMessage_CompileRequest_Input.notSet:
+          throw mandatoryError("CompileRequest.input");
+      }
+
+      var success = OutboundMessage_CompileResponse_CompileSuccess()
+        ..css = result;
+      if (sourceMap != null) {
+        success.sourceMap = json.encode(sourceMap.toJson());
+      }
+      return OutboundMessage_CompileResponse()..success = success;
+    } on sass.SassException catch (error) {
+      return OutboundMessage_CompileResponse()
+        ..failure = (OutboundMessage_CompileResponse_CompileFailure()
+          ..message = error.message
+          ..span = _protofySpan(error.span)
+          ..stackTrace = error.trace.toString());
+    }
   });
 }
+
+/// Converts a protocol buffer syntax enum into a Sass API syntax enum.
+sass.Syntax _syntaxToSyntax(InboundMessage_Syntax syntax) {
+  switch (syntax) {
+    case InboundMessage_Syntax.SCSS:
+      return sass.Syntax.scss;
+    case InboundMessage_Syntax.INDENTED:
+      return sass.Syntax.sass;
+    case InboundMessage_Syntax.CSS:
+      return sass.Syntax.css;
+    default:
+      throw "Unknown syntax $syntax.";
+  }
+}
+
+/// Converts a Dart source span to a protocol buffer source span.
+proto.SourceSpan _protofySpan(SourceSpanWithContext span) => proto.SourceSpan()
+  ..text = span.text
+  ..start = _protofyLocation(span.start)
+  ..end = _protofyLocation(span.end)
+  ..url = span.sourceUrl?.toString() ?? ""
+  ..context = span.context;
+
+/// Converts a Dart source location to a protocol buffer source location.
+SourceSpan_SourceLocation _protofyLocation(SourceLocation location) =>
+    SourceSpan_SourceLocation()
+      ..offset = location.offset
+      ..line = location.line
+      ..column = location.column;
