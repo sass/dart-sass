@@ -10,6 +10,8 @@ import 'embedded_process.dart';
 import 'utils.dart';
 
 void main() {
+  ensureExecutableUpToDate();
+
   EmbeddedProcess process;
   setUp(() async {
     process = await EmbeddedProcess.start();

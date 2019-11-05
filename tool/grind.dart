@@ -4,11 +4,15 @@
 
 import 'dart:io';
 
+import 'package:cli_pkg/cli_pkg.dart' as pkg;
 import 'package:grinder/grinder.dart';
 
 import 'utils.dart';
 
-main(List<String> args) => grind(args);
+main(List<String> args) {
+  pkg.addGithubTasks();
+  grind(args);
+}
 
 @Task('Compile the protocol buffer definition to a Dart library.')
 protobuf() async {
