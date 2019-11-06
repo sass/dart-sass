@@ -31,7 +31,7 @@ class TypeSelector extends SimpleSelector {
     }
   }
 
-  bool operator ==(other) => other is TypeSelector && other.name == name;
+  bool operator ==(Object other) => other is TypeSelector && other.name == name;
 
   int get hashCode => name.hashCode;
 }

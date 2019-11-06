@@ -52,7 +52,7 @@ class AttributeSelector extends SimpleSelector {
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitAttributeSelector(this);
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is AttributeSelector &&
       other.name == name &&
       other.op == op &&

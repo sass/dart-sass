@@ -10,7 +10,7 @@ import 'package:sass/sass.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   group("true", () {
     Value value;
     setUp(() => value = parseValue("true"));

@@ -34,23 +34,23 @@ void main() {
     expect(
         renderSync(RenderOptions(
             data: "@import 'foo'",
-            importer: allowInterop(
-                (_, __) => NodeImporterResult(contents: 'a {b: c}')))),
+            importer: allowInterop((void _, void __) =>
+                NodeImporterResult(contents: 'a {b: c}')))),
         equalsIgnoringWhitespace('a { b: c; }'));
   });
 
   test("imports cascade through importers", () {
     expect(
         renderSync(RenderOptions(data: "@import 'foo'", importer: [
-          allowInterop((url, __) {
+          allowInterop((Object url, void _) {
             if (url != "foo") return null;
             return NodeImporterResult(contents: '@import "bar"');
           }),
-          allowInterop((url, __) {
+          allowInterop((Object url, void _) {
             if (url != "bar") return null;
             return NodeImporterResult(contents: '@import "baz"');
           }),
-          allowInterop((url, __) {
+          allowInterop((Object url, void _) {
             if (url != "baz") return null;
             return NodeImporterResult(contents: 'a {b: c}');
           })
@@ -62,7 +62,7 @@ void main() {
     expect(
         renderSync(RenderOptions(
             data: "@import 'foo'",
-            importer: allowInterop((_, __) => NodeImporterResult()))),
+            importer: allowInterop((void _, void __) => NodeImporterResult()))),
         equalsIgnoringWhitespace(''));
   });
 
@@ -81,8 +81,8 @@ void main() {
         expect(
             renderSync(RenderOptions(
                 file: basePath,
-                importer: allowInterop(
-                    (_, __) => NodeImporterResult(contents: "q {r: s}")))),
+                importer: allowInterop((void _, void __) =>
+                    NodeImporterResult(contents: "q {r: s}")))),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
 
@@ -90,8 +90,8 @@ void main() {
         expect(
             renderSync(RenderOptions(
                 data: '@import "test"',
-                importer: allowInterop(
-                    (_, __) => NodeImporterResult(contents: "x {y: z}")))),
+                importer: allowInterop((void _, void __) =>
+                    NodeImporterResult(contents: "x {y: z}")))),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
 
@@ -126,8 +126,8 @@ void main() {
       expect(
           renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer:
-                  allowInterop((_, __) => NodeImporterResult(file: sassPath)))),
+              importer: allowInterop(
+                  (void _, void __) => NodeImporterResult(file: sassPath)))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -137,7 +137,7 @@ void main() {
       expect(
           renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __) =>
+              importer: allowInterop((void _, void __) =>
                   NodeImporterResult(file: p.join(sandbox, 'target.sass'))))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
@@ -149,7 +149,7 @@ void main() {
       expect(
           renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __) =>
+              importer: allowInterop((void _, void __) =>
                   NodeImporterResult(file: p.join(sandbox, 'target.css'))))),
           equalsIgnoringWhitespace('@import "bar";'));
     });
@@ -160,7 +160,7 @@ void main() {
       expect(
           renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __) =>
+              importer: allowInterop((void _, void __) =>
                   NodeImporterResult(file: p.join(sandbox, 'target.scss'))))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
@@ -169,7 +169,7 @@ void main() {
       expect(
           renderSync(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __) =>
+              importer: allowInterop((void _, void __) =>
                   NodeImporterResult(file: p.withoutExtension(sassPath))))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
@@ -182,7 +182,7 @@ void main() {
           renderSync(RenderOptions(
               file: basePath,
               importer: allowInterop(
-                  (_, __) => NodeImporterResult(file: 'test.scss')))),
+                  (void _, void __) => NodeImporterResult(file: 'test.scss')))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -192,7 +192,8 @@ void main() {
 
       var result = sass.renderSync(RenderOptions(
           file: basePath,
-          importer: allowInterop((_, __) => NodeImporterResult(file: 'test'))));
+          importer: allowInterop(
+              (void _, void __) => NodeImporterResult(file: 'test'))));
       expect(result.stats.includedFiles, equals([basePath, sassPath]));
     });
 
@@ -201,8 +202,8 @@ void main() {
           renderSync(RenderOptions(
               data: "@import 'foo'",
               includePaths: [sandbox],
-              importer:
-                  allowInterop((_, __) => NodeImporterResult(file: 'test')))),
+              importer: allowInterop(
+                  (void _, void __) => NodeImporterResult(file: 'test')))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -219,8 +220,8 @@ void main() {
           renderSync(RenderOptions(
               file: basePath,
               includePaths: [subDir],
-              importer:
-                  allowInterop((_, __) => NodeImporterResult(file: 'test')))),
+              importer: allowInterop(
+                  (void _, void __) => NodeImporterResult(file: 'test')))),
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
@@ -237,8 +238,8 @@ void main() {
         expect(
             renderSync(RenderOptions(
                 data: "@import 'foo'",
-                importer: allowInterop(
-                    (_, __) => NodeImporterResult(file: 'test.scss')))),
+                importer: allowInterop((void _, void __) =>
+                    NodeImporterResult(file: 'test.scss')))),
             equalsIgnoringWhitespace('a { b: c; }'));
       });
 
@@ -251,8 +252,8 @@ void main() {
         expect(
             renderSync(RenderOptions(
                 file: basePath,
-                importer: allowInterop(
-                    (_, __) => NodeImporterResult(file: 'test.scss')))),
+                importer: allowInterop((void _, void __) =>
+                    NodeImporterResult(file: 'test.scss')))),
             equalsIgnoringWhitespace('x { y: z; }'));
       });
 
@@ -267,8 +268,8 @@ void main() {
             renderSync(RenderOptions(
                 file: basePath,
                 includePaths: [subDir],
-                importer: allowInterop(
-                    (_, __) => NodeImporterResult(file: 'test.scss')))),
+                importer: allowInterop((void _, void __) =>
+                    NodeImporterResult(file: 'test.scss')))),
             equalsIgnoringWhitespace('a { b: c; }'));
       });
     });
@@ -310,7 +311,7 @@ void main() {
     test("is added to includedFiles", () {
       var result = sass.renderSync(RenderOptions(
           data: "@import 'foo'",
-          importer: allowInterop(expectAsync2((_, __) {
+          importer: allowInterop(expectAsync2((void _, void __) {
             return NodeImporterResult(contents: '');
           }))));
       expect(result.stats.includedFiles, equals(['foo']));
@@ -513,8 +514,8 @@ void main() {
     test("an importer redirects to a non-existent file", () {
       var error = renderSyncError(RenderOptions(
           data: "@import 'foo'",
-          importer: allowInterop(
-              (_, __) => NodeImporterResult(file: '_does_not_exist'))));
+          importer: allowInterop((void _, void __) =>
+              NodeImporterResult(file: '_does_not_exist'))));
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
@@ -528,7 +529,7 @@ void main() {
     test("an error is returned", () {
       var error = renderSyncError(RenderOptions(
           data: "@import 'foo'",
-          importer: allowInterop((_, __) => JSError("oh no"))));
+          importer: allowInterop((void _, void __) => JSError("oh no"))));
 
       expect(
           error,
@@ -545,7 +546,8 @@ void main() {
 
     test("null is returned", () {
       var error = renderSyncError(RenderOptions(
-          data: "@import 'foo'", importer: allowInterop((_, __) => null)));
+          data: "@import 'foo'",
+          importer: allowInterop((void _, void __) => null)));
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
@@ -558,7 +560,8 @@ void main() {
 
     test("undefined is returned", () {
       var error = renderSyncError(RenderOptions(
-          data: "@import 'foo'", importer: allowInterop((_, __) => undefined)));
+          data: "@import 'foo'",
+          importer: allowInterop((void _, void __) => undefined)));
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
@@ -571,7 +574,8 @@ void main() {
 
     test("an unrecognized value is returned", () {
       var error = renderSyncError(RenderOptions(
-          data: "@import 'foo'", importer: allowInterop((_, __) => 10)));
+          data: "@import 'foo'",
+          importer: allowInterop((void _, void __) => 10)));
       expect(
           error,
           toStringAndMessageEqual("Can't find stylesheet to import.\n"
@@ -588,7 +592,8 @@ void main() {
       expect(
           render(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __, done) {
+              importer:
+                  allowInterop((void _, void __, void done(Object result)) {
                 Timer(Duration.zero, () {
                   done(NodeImporterResult(contents: 'a {b: c}'));
                 });
@@ -600,7 +605,8 @@ void main() {
       expect(
           renderError(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __, done) {
+              importer:
+                  allowInterop((void _, void __, void done(Object result)) {
                 Timer(Duration.zero, () {
                   done(JSError('oh no'));
                 });
@@ -617,8 +623,8 @@ void main() {
       expect(
           render(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop(
-                  (_, __, ___) => NodeImporterResult(contents: 'a {b: c}')))),
+              importer: allowInterop((void _, void __, void ___) =>
+                  NodeImporterResult(contents: 'a {b: c}')))),
           completion(equalsIgnoringWhitespace('a { b: c; }')));
     });
 
@@ -626,7 +632,7 @@ void main() {
       expect(
           renderError(RenderOptions(
               data: "@import 'foo'",
-              importer: allowInterop((_, __, ___) => jsNull))),
+              importer: allowInterop((void _, void __, void ___) => jsNull))),
           completion(
               toStringAndMessageEqual("Can't find stylesheet to import.\n"
                   "  ╷\n"
@@ -650,7 +656,8 @@ void main() {
         expect(
             render(RenderOptions(
                 data: "@import 'foo'",
-                importer: allowInterop((_, __, done) {
+                importer:
+                    allowInterop((void _, void __, void done(Object result)) {
                   Timer(Duration.zero, () {
                     done(NodeImporterResult(contents: 'a {b: c}'));
                   });
@@ -663,7 +670,8 @@ void main() {
         expect(
             render(RenderOptions(
                 data: "@import 'foo'",
-                importer: allowInterop((_, __, done) {
+                importer:
+                    allowInterop((void _, void __, void done(Object result)) {
                   done(NodeImporterResult(contents: 'a {b: c}'));
                 }),
                 fiber: fiber)),
@@ -674,7 +682,7 @@ void main() {
         expect(
             render(RenderOptions(
                 data: "@import 'foo'",
-                importer: allowInterop((_, __, ___) {
+                importer: allowInterop((void _, void __, void ___) {
                   return NodeImporterResult(contents: 'a {b: c}');
                 }),
                 fiber: fiber)),
@@ -685,7 +693,8 @@ void main() {
         expect(
             renderError(RenderOptions(
                 data: "@import 'foo'",
-                importer: allowInterop((_, __, done) {
+                importer:
+                    allowInterop((void _, void __, void done(Object result)) {
                   Timer(Duration.zero, () {
                     done(JSError('oh no'));
                   });
@@ -703,7 +712,7 @@ void main() {
         expect(
             renderError(RenderOptions(
                 data: "@import 'foo'",
-                importer: allowInterop((_, __, ___) => jsNull),
+                importer: allowInterop((void _, void __, void ___) => jsNull),
                 fiber: fiber)),
             completion(
                 toStringAndMessageEqual("Can't find stylesheet to import.\n"

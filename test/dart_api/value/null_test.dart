@@ -10,7 +10,7 @@ import 'package:sass/sass.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   Value value;
   setUp(() => value = parseValue("null"));
 

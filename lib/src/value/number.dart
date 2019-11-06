@@ -502,7 +502,7 @@ class SassNumber extends Value implements ext.SassNumber {
     return "${numerators.join("*")}/${denominators.join("*")}";
   }
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SassNumber) {
       // Unitless numbers are convertable to unit numbers, but not equal, so we
       // special-case unitless here.

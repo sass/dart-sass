@@ -48,7 +48,7 @@ class Parser {
       Parser(text, logger: logger)._isVariableDeclarationLike();
 
   @protected
-  Parser(String contents, {url, Logger logger})
+  Parser(String contents, {Object url, Logger logger})
       : scanner = SpanScanner(contents, sourceUrl: url),
         logger = logger ?? const Logger.stderr();
 
@@ -665,7 +665,7 @@ class Parser {
   /// If [message] is passed, prints that as well. This is intended for use when
   /// debugging parser failures.
   @protected
-  void debug([message]) {
+  void debug([Object message]) {
     if (message == null) {
       print(scanner.emptySpan.highlight(color: true));
     } else {

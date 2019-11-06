@@ -15,10 +15,10 @@ import 'package:source_span/source_span.dart';
 import 'utils.dart';
 
 @Task('Compile to JS in dev mode.')
-js() => _js(release: false);
+void js() => _js(release: false);
 
 @Task('Compile to JS in release mode.')
-jsRelease() => _js(release: true);
+void jsRelease() => _js(release: true);
 
 /// Compiles Sass to JS.
 ///
@@ -73,11 +73,11 @@ $text""");
 
 @Task('Build a pure-JS dev-mode npm package.')
 @Depends(js)
-npmPackage() => _npm(release: false);
+void npmPackage() => _npm(release: false);
 
 @Task('Build a pure-JS release-mode npm package.')
 @Depends(jsRelease)
-npmReleasePackage() => _npm(release: true);
+void npmReleasePackage() => _npm(release: true);
 
 /// Builds a pure-JS npm package.
 ///
@@ -162,7 +162,7 @@ String _readAndResolveMarkdown(String path) => File(path)
     });
 
 /// Throws a nice [SourceSpanException] associated with [match].
-void _matchError(Match match, String message, {url}) {
+void _matchError(Match match, String message, {Object url}) {
   var file = SourceFile.fromString(match.input, url: url);
   throw SourceSpanException(message, file.span(match.start, match.end));
 }

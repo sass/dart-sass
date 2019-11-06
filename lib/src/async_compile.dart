@@ -85,7 +85,7 @@ Future<CompileResult> compileStringAsync(String source,
     bool useSpaces = true,
     int indentWidth,
     LineFeed lineFeed,
-    url,
+    Object url,
     bool sourceMap = false,
     bool charset = true}) async {
   var stylesheet =

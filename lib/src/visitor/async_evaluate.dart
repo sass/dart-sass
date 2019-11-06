@@ -2230,9 +2230,10 @@ class _EvaluateVisitor
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
       _addRestMap(named, rest, arguments.rest);
-      namedNodes?.addAll(mapMap(rest.contents,
-          key: (key, _) => (key as SassString).text,
-          value: (_, __) => restNodeForSpan));
+      namedNodes?.addAll({
+        for (var key in rest.contents.keys)
+          (key as SassString).text: restNodeForSpan
+      });
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
       positionalNodes?.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
@@ -2259,9 +2260,10 @@ class _EvaluateVisitor
         trackSpans ? _expressionNode(arguments.keywordRest) : null;
     if (keywordRest is SassMap) {
       _addRestMap(named, keywordRest, arguments.keywordRest);
-      namedNodes?.addAll(mapMap(keywordRest.contents,
-          key: (key, _) => (key as SassString).text,
-          value: (_, __) => keywordRestNodeForSpan));
+      namedNodes?.addAll({
+        for (var key in keywordRest.contents.keys)
+          (key as SassString).text: keywordRestNodeForSpan
+      });
       return _ArgumentResults(positional, named, separator,
           positionalNodes: positionalNodes, namedNodes: namedNodes);
     } else {

@@ -16,7 +16,7 @@ class SassFunction extends Value implements internal.SassFunction {
 
   SassFunction assertFunction([String name]) => this;
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is SassFunction && callable == other.callable;
 
   int get hashCode => callable.hashCode;

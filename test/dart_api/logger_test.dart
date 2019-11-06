@@ -12,7 +12,7 @@ import 'package:sass/sass.dart';
 
 import 'test_importer.dart';
 
-main() {
+void main() {
   group("with @warn", () {
     test("passes the message and stack trace to the logger", () {
       var mustBeCalled = expectAsync0(() {});

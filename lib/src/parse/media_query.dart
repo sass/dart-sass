@@ -11,7 +11,7 @@ import 'parser.dart';
 
 /// A parser for `@media` queries.
 class MediaQueryParser extends Parser {
-  MediaQueryParser(String contents, {url, Logger logger})
+  MediaQueryParser(String contents, {Object url, Logger logger})
       : super(contents, url: url, logger: logger);
 
   List<CssMediaQuery> parse() {

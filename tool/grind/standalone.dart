@@ -16,16 +16,16 @@ import 'utils.dart';
 bool get _is64Bit => Platform.version.contains("x64");
 
 @Task('Build Dart script snapshot.')
-snapshot() {
+void snapshot() {
   ensureBuild();
   Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
 }
 
 @Task('Build a dev-mode Dart application snapshot.')
-appSnapshot() => _appSnapshot();
+void appSnapshot() => _appSnapshot();
 
 @Task('Build a native-code Dart executable.')
-nativeExecutable() {
+void nativeExecutable() {
   ensureBuild();
   run(p.join(sdkDir.path, 'bin/dart2aot'), arguments: [
     'bin/sass.dart',
@@ -49,15 +49,15 @@ void _appSnapshot() {
 
 @Task('Build standalone packages for Linux.')
 @Depends(snapshot, nativeExecutable)
-packageLinux() => _buildPackage("linux");
+Future<void> packageLinux() => _buildPackage("linux");
 
 @Task('Build standalone packages for Mac OS.')
 @Depends(snapshot, nativeExecutable)
-packageMacOs() => _buildPackage("macos");
+Future<void> packageMacOs() => _buildPackage("macos");
 
 @Task('Build standalone packages for Windows.')
 @Depends(snapshot, nativeExecutable)
-packageWindows() => _buildPackage("windows");
+Future<void> packageWindows() => _buildPackage("windows");
 
 /// Builds standalone 32- and 64-bit Sass packages for the given [os].
 Future<void> _buildPackage(String os) async {

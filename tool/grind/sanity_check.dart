@@ -12,7 +12,7 @@ import 'package:sass/src/utils.dart';
 import 'utils.dart';
 
 @Task('Verify that the package is in a good state to release.')
-sanityCheckBeforeRelease() {
+void sanityCheckBeforeRelease() {
   var travisTag = environment("TRAVIS_TAG");
   if (travisTag != version) {
     fail("TRAVIS_TAG $travisTag is different than pubspec version $version.");

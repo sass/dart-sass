@@ -80,9 +80,9 @@ class SassTypes {
 
 @JS()
 class NodeSassBooleanClass implements Function {
-  external call();
-  external get TRUE;
-  external get FALSE;
+  external NodeSassBoolean call();
+  external NodeSassBoolean get TRUE;
+  external NodeSassBoolean get FALSE;
 }
 
 @JS()
@@ -104,8 +104,8 @@ class NodeSassColor {
 
 @JS()
 class NodeSassList {
-  external getValue(int index);
-  external void setValue(int index, value);
+  external Object getValue(int index);
+  external void setValue(int index, Object value);
   external bool getSeparator();
   external void setSeparator(bool value);
   external int getLength();
@@ -113,17 +113,17 @@ class NodeSassList {
 
 @JS()
 class NodeSassMap {
-  external getValue(int index);
-  external void setValue(int index, value);
-  external getKey(int index);
-  external void setKey(int index, value);
+  external Object getValue(int index);
+  external void setValue(int index, Object value);
+  external Object getKey(int index);
+  external void setKey(int index, Object value);
   external int getLength();
 }
 
 @JS()
 class NodeSassNullClass implements Function {
-  external call();
-  external get NULL;
+  external Object call();
+  external Object get NULL;
 }
 
 @JS()

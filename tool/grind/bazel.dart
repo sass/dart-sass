@@ -10,7 +10,7 @@ import 'package:path/path.dart' as p;
 import 'utils.dart';
 
 @Task('Update the Bazel rules for the current version.')
-updateBazel() async {
+Future<void> updateBazel() async {
   ensureBuild();
 
   run("npm", arguments: ["install", "-g", "yarn"]);

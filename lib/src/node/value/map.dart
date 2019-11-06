@@ -32,7 +32,7 @@ final Function mapConstructor =
   'getValue': (_NodeSassMap thisArg, int index) =>
       wrapValue(thisArg.dartValue.contents.values.elementAt(index)),
   'getLength': (_NodeSassMap thisArg) => thisArg.dartValue.contents.length,
-  'setKey': (_NodeSassMap thisArg, int index, key) {
+  'setKey': (_NodeSassMap thisArg, int index, Object key) {
     var oldMap = thisArg.dartValue.contents;
     RangeError.checkValidIndex(index, oldMap, "index");
 
@@ -53,7 +53,7 @@ final Function mapConstructor =
 
     thisArg.dartValue = SassMap(newMap);
   },
-  'setValue': (_NodeSassMap thisArg, int index, value) {
+  'setValue': (_NodeSassMap thisArg, int index, Object value) {
     var key = thisArg.dartValue.contents.keys.elementAt(index);
     thisArg.dartValue =
         SassMap({...thisArg.dartValue.contents, key: unwrapValue(value)});

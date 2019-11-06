@@ -108,7 +108,7 @@ class SassString extends Value implements ext.SassString {
     }
   }
 
-  bool operator ==(other) => other is SassString && text == other.text;
+  bool operator ==(Object other) => other is SassString && text == other.text;
 
   int get hashCode => text.hashCode;
 

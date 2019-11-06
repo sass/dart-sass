@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 8abca72a6d671844aa9eb075aef56f58fd71ddf7
+// Checksum: 7bcd07f449d67c0f625de8e505a9c74cfed0b616
 //
 // ignore_for_file: unused_import
 
@@ -2216,9 +2216,10 @@ class _EvaluateVisitor
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
       _addRestMap(named, rest, arguments.rest);
-      namedNodes?.addAll(mapMap(rest.contents,
-          key: (key, _) => (key as SassString).text,
-          value: (_, __) => restNodeForSpan));
+      namedNodes?.addAll({
+        for (var key in rest.contents.keys)
+          (key as SassString).text: restNodeForSpan
+      });
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
       positionalNodes?.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
@@ -2245,9 +2246,10 @@ class _EvaluateVisitor
         trackSpans ? _expressionNode(arguments.keywordRest) : null;
     if (keywordRest is SassMap) {
       _addRestMap(named, keywordRest, arguments.keywordRest);
-      namedNodes?.addAll(mapMap(keywordRest.contents,
-          key: (key, _) => (key as SassString).text,
-          value: (_, __) => keywordRestNodeForSpan));
+      namedNodes?.addAll({
+        for (var key in keywordRest.contents.keys)
+          (key as SassString).text: keywordRestNodeForSpan
+      });
       return _ArgumentResults(positional, named, separator,
           positionalNodes: positionalNodes, namedNodes: namedNodes);
     } else {

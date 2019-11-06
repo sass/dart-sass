@@ -7,15 +7,22 @@ import 'package:js/js.dart';
 @JS()
 @anonymous
 class Types {
-  external set Boolean(function);
-  external set Color(function);
-  external set List(function);
-  external set Map(function);
-  external set Null(function);
-  external set Number(function);
-  external set String(function);
-  external set Error(function);
+  external set Boolean(Function function);
+  external set Color(Function function);
+  external set List(Function function);
+  external set Map(Function function);
+  external set Null(Function function);
+  external set Number(Function function);
+  external set String(Function function);
+  external set Error(Function function);
 
   external factory Types(
-      {Boolean, Color, List, Map, Null, Number, String, Error});
+      {Function Boolean,
+      Function Color,
+      Function List,
+      Function Map,
+      Function Null,
+      Function Number,
+      Function String,
+      Function Error});
 }

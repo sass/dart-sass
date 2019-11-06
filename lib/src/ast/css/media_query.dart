@@ -32,7 +32,8 @@ class CssMediaQuery {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  static List<CssMediaQuery> parseList(String contents, {url, Logger logger}) =>
+  static List<CssMediaQuery> parseList(String contents,
+          {Object url, Logger logger}) =>
       MediaQueryParser(contents, url: url, logger: logger).parse();
 
   /// Creates a media query specifies a type and, optionally, features.
@@ -139,7 +140,7 @@ class CssMediaQuery {
         features: features));
   }
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is CssMediaQuery &&
       other.modifier == modifier &&
       other.type == type &&

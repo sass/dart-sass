@@ -14,7 +14,7 @@ import 'package:sass/src/exception.dart';
 
 import 'test_importer.dart';
 
-main() {
+void main() {
   test("uses an importer to resolve an @import", () {
     var css = compileString('@import "orange";', importers: [
       TestImporter((url) => Uri.parse("u:$url"), (url) {

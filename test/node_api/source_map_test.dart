@@ -123,8 +123,8 @@ void main() {
         @import "other";
         a {b: c}
       ''',
-          importer:
-              allowInterop((_, __) => NodeImporterResult(contents: 'x {y: z}')),
+          importer: allowInterop(
+              (void _, void __) => NodeImporterResult(contents: 'x {y: z}')),
           sourceMap: true,
           outFile: 'out.css'));
       expect(map, containsPair("sources", ["other", "stdin"]));

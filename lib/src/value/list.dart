@@ -46,7 +46,7 @@ class SassList extends Value implements ext.SassList {
   SassMap assertMap([String name]) =>
       asList.isEmpty ? const SassMap.empty() : super.assertMap(name);
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       (other is SassList &&
           other.separator == separator &&
           other.hasBrackets == hasBrackets &&

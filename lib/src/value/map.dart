@@ -32,7 +32,7 @@ class SassMap extends Value implements ext.SassMap {
 
   SassMap assertMap([String name]) => this;
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       (other is SassMap && mapEquals(other.contents, contents)) ||
       (contents.isEmpty && other is SassList && other.asList.isEmpty);
 

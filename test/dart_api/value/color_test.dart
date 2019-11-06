@@ -11,7 +11,7 @@ import 'package:sass/src/util/number.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   group("an RGB color", () {
     SassColor value;
     setUp(() => value = parseValue("#123456") as SassColor);

@@ -14,7 +14,7 @@ import 'standalone.dart';
 import 'utils.dart';
 
 @Task('Generate benchmark files.')
-benchmarkGenerate() async {
+Future<void> benchmarkGenerate() async {
   var sources = Directory("build/benchmark");
   if (!await sources.exists()) await sources.create(recursive: true);
 
@@ -91,7 +91,7 @@ Future<void> _writeNTimes(String path, String text, num times,
 
 @Task('Run benchmarks for Sass compilation speed.')
 @Depends(benchmarkGenerate, snapshot, nativeExecutable, npmReleasePackage)
-benchmark() async {
+Future<void> benchmark() async {
   var libsass = await cloneOrPull('https://github.com/sass/libsass');
   var sassc = await cloneOrPull('https://github.com/sass/sassc');
 

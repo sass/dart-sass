@@ -58,7 +58,7 @@ class Stylesheet extends ParentStatement {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory Stylesheet.parse(String contents, Syntax syntax,
-      {url, Logger logger}) {
+      {Object url, Logger logger}) {
     switch (syntax) {
       case Syntax.sass:
         return Stylesheet.parseSass(contents, url: url, logger: logger);
@@ -76,7 +76,7 @@ class Stylesheet extends ParentStatement {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseSass(String contents, {url, Logger logger}) =>
+  factory Stylesheet.parseSass(String contents, {Object url, Logger logger}) =>
       SassParser(contents, url: url, logger: logger).parse();
 
   /// Parses an SCSS stylesheet from [contents].
@@ -84,7 +84,7 @@ class Stylesheet extends ParentStatement {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseScss(String contents, {url, Logger logger}) =>
+  factory Stylesheet.parseScss(String contents, {Object url, Logger logger}) =>
       ScssParser(contents, url: url, logger: logger).parse();
 
   /// Parses a plain CSS stylesheet from [contents].
@@ -92,7 +92,7 @@ class Stylesheet extends ParentStatement {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseCss(String contents, {url, Logger logger}) =>
+  factory Stylesheet.parseCss(String contents, {Object url, Logger logger}) =>
       CssParser(contents, url: url, logger: logger).parse();
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);

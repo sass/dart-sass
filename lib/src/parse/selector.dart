@@ -33,7 +33,7 @@ class SelectorParser extends Parser {
   final bool _allowPlaceholder;
 
   SelectorParser(String contents,
-      {url,
+      {Object url,
       Logger logger,
       bool allowParent = true,
       bool allowPlaceholder = true})

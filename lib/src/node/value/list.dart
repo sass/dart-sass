@@ -29,7 +29,7 @@ final Function listConstructor = createClass((_NodeSassList thisArg, int length,
 }, {
   'getValue': (_NodeSassList thisArg, int index) =>
       wrapValue(thisArg.dartValue.asList[index]),
-  'setValue': (_NodeSassList thisArg, int index, value) {
+  'setValue': (_NodeSassList thisArg, int index, Object value) {
     var mutable = thisArg.dartValue.asList.toList();
     mutable[index] = unwrapValue(value);
     thisArg.dartValue = thisArg.dartValue.changeListContents(mutable);

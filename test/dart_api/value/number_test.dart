@@ -12,7 +12,7 @@ import 'package:sass/sass.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   group("a unitless integer", () {
     SassNumber value;
     setUp(() => value = parseValue("123") as SassNumber);

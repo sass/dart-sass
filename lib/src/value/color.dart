@@ -120,7 +120,7 @@ class SassColor extends Value implements ext.SassColor {
   Value modulo(Value other) =>
       throw SassScriptException('Undefined operation "$this % $other".');
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is SassColor &&
       other.red == red &&
       other.green == green &&
