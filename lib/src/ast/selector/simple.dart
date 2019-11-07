@@ -35,7 +35,7 @@ abstract class SimpleSelector extends Selector {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SimpleSelector.parse(String contents,
-          {url, Logger logger, bool allowParent = true}) =>
+          {Object url, Logger logger, bool allowParent = true}) =>
       SelectorParser(contents,
               url: url, logger: logger, allowParent: allowParent)
           .parseSimpleSelector();

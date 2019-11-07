@@ -26,7 +26,7 @@ Future<void> deleteDirectory(String path) =>
 /// Runs [expression], which may be asynchronous, in a hybrid isolate.
 ///
 /// Returns the result of [expression] if it's JSON-serializable.
-Future<Object> runHybridExpression(String expression, [message]) async {
+Future<Object> runHybridExpression(String expression, [Object message]) async {
   var channel = spawnHybridCode('''
     import 'dart:async';
     import 'dart:convert';

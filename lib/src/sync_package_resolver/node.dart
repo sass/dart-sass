@@ -10,7 +10,7 @@ class SyncPackageResolver {
 
   static Future<SyncPackageResolver> get current => throw _error;
 
-  Uri resolveUri(packageUri) => throw _error;
+  Uri resolveUri(Object packageUri) => throw _error;
 
   factory SyncPackageResolver.config(Map<String, Uri> configMap) =>
       throw _error;

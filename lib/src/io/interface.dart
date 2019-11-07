@@ -9,13 +9,13 @@ import 'package:watcher/watcher.dart';
 /// An output sink that writes to this process's standard error.
 class Stderr {
   /// Writes the string representation of [object] to standard error.
-  void write(object) {}
+  void write(Object object) {}
 
   /// Writes the string representation of [object] to standard error, followed
   /// by a newline.
   ///
   /// If [object] is `null`, just writes a newline.
-  void writeln([object]) {}
+  void writeln([Object object]) {}
 
   /// Flushes any buffered text.
   void flush() {}

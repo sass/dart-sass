@@ -15,7 +15,7 @@ class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => null;
 
-  ScssParser(String contents, {url, Logger logger})
+  ScssParser(String contents, {Object url, Logger logger})
       : super(contents, url: url, logger: logger);
 
   Interpolation styleRuleSelector() => almostAnyValue();

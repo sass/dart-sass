@@ -18,14 +18,14 @@ export 'grind/sanity_check.dart';
 export 'grind/standalone.dart';
 export 'grind/synchronize.dart';
 
-main(List<String> args) => grind(args);
+void main(List<String> args) => grind(args);
 
 @DefaultTask('Compile async code and reformat.')
 @Depends(format, synchronize)
-all() {}
+void all() {}
 
 @Task('Run the Dart formatter.')
-format() {
+void format() {
   Pub.run('dart_style', script: 'format', arguments: [
     '--overwrite',
     '--fix',
@@ -34,8 +34,8 @@ format() {
 }
 
 @Task('Installs dependencies from npm.')
-npmInstall() => run("npm", arguments: ["install"]);
+void npmInstall() => run("npm", arguments: ["install"]);
 
 @Task('Runs the tasks that are required for running tests.')
 @Depends(format, synchronize, npmPackage, npmInstall, appSnapshot)
-beforeTest() {}
+void beforeTest() {}

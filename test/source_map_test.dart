@@ -14,7 +14,7 @@ import 'package:sass/src/utils.dart';
 
 import 'dart_api/test_importer.dart';
 
-main() {
+void main() {
   group("maps source to target for", () {
     group("a style rule", () {
       test("that's basic", () {

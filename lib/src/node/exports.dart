@@ -8,9 +8,9 @@ import 'types.dart';
 
 @JS()
 class Exports {
-  external set run_(function);
-  external set render(function);
-  external set renderSync(function);
+  external set run_(Function function);
+  external set render(Function function);
+  external set renderSync(Function function);
   external set info(String info);
   external set types(Types types);
 }

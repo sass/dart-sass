@@ -15,7 +15,8 @@ class ClassSelector extends SimpleSelector {
 
   ClassSelector(this.name);
 
-  bool operator ==(other) => other is ClassSelector && other.name == name;
+  bool operator ==(Object other) =>
+      other is ClassSelector && other.name == name;
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitClassSelector(this);
 

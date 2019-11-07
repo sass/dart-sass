@@ -40,7 +40,7 @@ final _sharedClasses = const ['EvaluateResult', 'CompileResult'];
 /// code for the evaluator and the environment and use this task to compile it
 /// to a synchronous equivalent.
 @Task('Compile async code to synchronous code.')
-synchronize() {
+void synchronize() {
   sources.forEach((source, target) {
     var visitor = _Visitor(File(source).readAsStringSync(), source);
     parseFile2(path: source, featureSet: FeatureSet.fromEnableFlags([]))

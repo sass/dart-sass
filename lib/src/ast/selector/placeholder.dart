@@ -29,7 +29,8 @@ class PlaceholderSelector extends SimpleSelector {
   PlaceholderSelector addSuffix(String suffix) =>
       PlaceholderSelector(name + suffix);
 
-  bool operator ==(other) => other is PlaceholderSelector && other.name == name;
+  bool operator ==(Object other) =>
+      other is PlaceholderSelector && other.name == name;
 
   int get hashCode => name.hashCode;
 }

@@ -22,7 +22,7 @@ class RenderOptions {
   external dynamic get indentWidth;
   external String get linefeed;
   external FiberClass get fiber;
-  external get sourceMap;
+  external Object get sourceMap;
   external bool get sourceMapContents;
   external bool get sourceMapEmbed;
   external String get sourceMapRoot;
@@ -30,18 +30,18 @@ class RenderOptions {
   external factory RenderOptions(
       {String file,
       String data,
-      importer,
-      functions,
+      Object importer,
+      Object functions,
       List<String> includePaths,
       bool indentedSyntax,
       bool omitSourceMapUrl,
       String outFile,
       String outputStyle,
       String indentType,
-      indentWidth,
+      Object indentWidth,
       String linefeed,
       FiberClass fiber,
-      sourceMap,
+      Object sourceMap,
       bool sourceMapContents,
       bool sourceMapEmbed,
       String sourceMapRoot});

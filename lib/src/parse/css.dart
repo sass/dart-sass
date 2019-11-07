@@ -27,7 +27,7 @@ final _disallowedFunctionNames =
 class CssParser extends ScssParser {
   bool get plainCss => true;
 
-  CssParser(String contents, {url, Logger logger})
+  CssParser(String contents, {Object url, Logger logger})
       : super(contents, url: url, logger: logger);
 
   void silentComment() {

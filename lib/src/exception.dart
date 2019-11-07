@@ -21,7 +21,7 @@ class SassException extends SourceSpanException {
 
   SassException(String message, FileSpan span) : super(message, span);
 
-  String toString({color}) {
+  String toString({Object color}) {
     var buffer = StringBuffer()
       ..writeln("Error: $message")
       ..write(span.highlight(color: color));

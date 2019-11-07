@@ -12,7 +12,7 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
-main() {
+void main() {
   // TODO(nweiz): test SASS_PATH when dart-lang/sdk#28160 is fixed.
 
   group("importers", () {

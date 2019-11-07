@@ -22,8 +22,11 @@ final Function booleanConstructor = () {
   });
   injectSuperclass(sassTrue, constructor);
   forwardToString(constructor);
-  setProperty(getProperty(constructor, "prototype"), "getValue",
-      allowInteropCaptureThis((thisArg) => identical(thisArg, sassTrue)));
+  setProperty(
+      getProperty(constructor, "prototype"),
+      "getValue",
+      allowInteropCaptureThis(
+          (Object thisArg) => identical(thisArg, sassTrue)));
   setProperty(constructor, "TRUE", sassTrue);
   setProperty(constructor, "FALSE", sassFalse);
   return constructor;

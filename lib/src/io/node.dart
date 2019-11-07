@@ -16,7 +16,7 @@ import '../node/chokidar.dart';
 
 @JS()
 class _FS {
-  external readFileSync(String path, [String encoding]);
+  external Object readFileSync(String path, [String encoding]);
   external void writeFileSync(String path, String data);
   external bool existsSync(String path);
   external void mkdirSync(String path);
@@ -46,7 +46,7 @@ class _Stderr {
 class _Stdin {
   external String read();
 
-  external void on(String event, void callback([object]));
+  external void on(String event, void callback([Object object]));
 }
 
 @JS()
@@ -78,9 +78,9 @@ class Stderr {
 
   Stderr(this._stderr);
 
-  void write(object) => _stderr.write(object.toString());
+  void write(Object object) => _stderr.write(object.toString());
 
-  void writeln([object]) {
+  void writeln([Object object]) {
     _stderr.write("${object ?? ''}\n");
   }
 
@@ -111,7 +111,7 @@ String readFile(String path) {
 }
 
 /// Wraps `fs.readFileSync` to throw a [FileSystemException].
-_readFile(String path, [String encoding]) =>
+Object _readFile(String path, [String encoding]) =>
     _systemErrorToFileSystemException(() => _fs.readFileSync(path, encoding));
 
 void writeFile(String path, String contents) =>
@@ -270,6 +270,8 @@ external bool get _hasTerminal;
 @JS("process.exitCode")
 external int get exitCode;
 
+// TODO(nweiz): remove this ignore when dart-lang/sdk#39250 is fixed.
+// ignore: inference_failure_on_function_return_type
 @JS("process.exitCode")
 external set exitCode(int code);
 
@@ -283,17 +285,17 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
   watcher
     ..on(
         'add',
-        allowInterop((String path, [_]) =>
+        allowInterop((String path, [void _]) =>
             controller?.add(WatchEvent(ChangeType.ADD, path))))
     ..on(
         'change',
-        allowInterop((String path, [_]) =>
+        allowInterop((String path, [void _]) =>
             controller?.add(WatchEvent(ChangeType.MODIFY, path))))
     ..on(
         'unlink',
         allowInterop((String path) =>
             controller?.add(WatchEvent(ChangeType.REMOVE, path))))
-    ..on('error', allowInterop((error) => controller?.addError(error)));
+    ..on('error', allowInterop((Object error) => controller?.addError(error)));
 
   var completer = Completer<Stream<WatchEvent>>();
   watcher.on('ready', allowInterop(() {

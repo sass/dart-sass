@@ -14,22 +14,22 @@ import 'function.dart';
 ///
 /// Dart's JS interop doesn't currently let us set toString() for custom
 /// classes, so we use this as a workaround.
-void setToString(object, String body()) =>
+void setToString(Object object, String body()) =>
     setProperty(object, 'toString', allowInterop(body));
 
 /// Adds a `toString()` method to [klass] that forwards to Dart's `toString()`.
 void forwardToString(Function klass) {
   setProperty(getProperty(klass, 'prototype'), 'toString',
-      allowInteropCaptureThis((thisArg) => thisArg.toString()));
+      allowInteropCaptureThis((Object thisArg) => thisArg.toString()));
 }
 
 /// Throws [error] like JS would, without any Dart wrappers.
-void jsThrow(error) => _jsThrow.call(error);
+void jsThrow(Object error) => _jsThrow.call(error);
 
 final _jsThrow = JSFunction("error", "throw error;");
 
 /// Returns whether or not [value] is the JS `undefined` value.
-bool isUndefined(value) => _isUndefined.call(value) as bool;
+bool isUndefined(Object value) => _isUndefined.call(value) as bool;
 
 final _isUndefined = JSFunction("value", "return value === undefined;");
 
@@ -37,7 +37,7 @@ final _isUndefined = JSFunction("value", "return value === undefined;");
 external Function get jsErrorConstructor;
 
 /// Returns whether [value] is a JS Error object.
-bool isJSError(value) => instanceof(value, jsErrorConstructor);
+bool isJSError(Object value) => instanceof(value, jsErrorConstructor);
 
 /// Invokes [function] with [thisArg] as `this`.
 Object call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
@@ -72,16 +72,16 @@ Function createClass(Function constructor, Map<String, Function> methods) {
 }
 
 @JS("Object.getPrototypeOf")
-external _getPrototypeOf(object);
+external Object _getPrototypeOf(Object object);
 
 @JS("Object.setPrototypeOf")
-external void _setPrototypeOf(object, prototype);
+external void _setPrototypeOf(Object object, Object prototype);
 
 @JS("Object.create")
-external _create(prototype);
+external Object _create(Object prototype);
 
 /// Injects [constructor] into the inheritance chain for [object]'s class.
-void injectSuperclass(object, Function constructor) {
+void injectSuperclass(Object object, Function constructor) {
   var prototype = _getPrototypeOf(object);
   var parent = _getPrototypeOf(prototype);
   if (parent != null) {

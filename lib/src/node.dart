@@ -39,8 +39,8 @@ import 'visitor/serialize.dart';
 /// export that runs the normal `main()`, which is called from `package/sass.js`
 /// to run the executable when installed from npm.
 void main() {
-  exports.run_ =
-      allowInterop((args) => executable.main(List.from(args as List<Object>)));
+  exports.run_ = allowInterop(
+      (Object args) => executable.main(List.from(args as List<Object>)));
   exports.render = allowInterop(_render);
   exports.renderSync = allowInterop(_renderSync);
   exports.info =
@@ -75,11 +75,12 @@ void _render(
       } catch (error) {
         callback(error as JSError, null);
       }
+      return null;
     })).run();
   } else {
     _renderAsync(options).then((result) {
       callback(null, result);
-    }, onError: (error, stackTrace) {
+    }, onError: (Object error, StackTrace stackTrace) {
       if (error is SassException) {
         callback(_wrapException(error), null);
       } else {
@@ -168,7 +169,7 @@ RenderResult _renderSync(RenderOptions options) {
 }
 
 /// Converts an exception to a [JSError].
-JSError _wrapException(exception) {
+JSError _wrapException(Object exception) {
   if (exception is SassException) {
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
         line: exception.span.start.line + 1,
@@ -206,7 +207,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
         var fiber = options.fiber.current;
         var jsArguments = [
           ...arguments.map(wrapValue),
-          allowInterop(([result]) {
+          allowInterop(([Object result]) {
             // Schedule a microtask so we don't try to resume the running fiber
             // if [importer] calls `done()` synchronously.
             scheduleMicrotask(() => fiber.run(result));
@@ -228,7 +229,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
         var completer = Completer<Object>();
         var jsArguments = [
           ...arguments.map(wrapValue),
-          allowInterop(([result]) => completer.complete(result))
+          allowInterop(([Object result]) => completer.complete(result))
         ];
         var result = Function.apply(callback as Function, jsArguments);
         return unwrapValue(
@@ -275,11 +276,11 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 
   if (options.fiber != null) {
     importers = importers.map((importer) {
-      return allowInteropCaptureThis((thisArg, String url, String previous,
-          [_]) {
+      return allowInteropCaptureThis(
+          (Object thisArg, String url, String previous, [Object _]) {
         var fiber = options.fiber.current;
-        var result =
-            call3(importer, thisArg, url, previous, allowInterop((result) {
+        var result = call3(importer, thisArg, url, previous,
+            allowInterop((Object result) {
           // Schedule a microtask so we don't try to resume the running fiber if
           // [importer] calls `done()` synchronously.
           scheduleMicrotask(() => fiber.run(result));
@@ -301,7 +302,7 @@ OutputStyle _parseOutputStyle(String style) {
 }
 
 /// Parses the indentation width into an [int].
-int _parseIndentWidth(width) {
+int _parseIndentWidth(Object width) {
   if (width == null) return null;
   return width is int ? width : int.parse(width.toString());
 }

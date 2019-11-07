@@ -58,7 +58,7 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory CompoundSelector.parse(String contents,
-          {url, Logger logger, bool allowParent = true}) =>
+          {Object url, Logger logger, bool allowParent = true}) =>
       SelectorParser(contents,
               url: url, logger: logger, allowParent: allowParent)
           .parseCompoundSelector();
@@ -85,6 +85,6 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
 
   int get hashCode => listHash(components);
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is CompoundSelector && listEquals(components, other.components);
 }

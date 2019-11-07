@@ -14,7 +14,7 @@ import 'utils.dart';
 
 @Task('Build a Chocolatey package.')
 @Depends(snapshot)
-chocolateyPackage() {
+void chocolateyPackage() {
   ensureBuild();
 
   var nuspec = _nuspec();
@@ -99,7 +99,7 @@ This package is Dart Sass, the new Dart implementation of Sass.
 
 @Task('Upload the Chocolatey package to the current version.')
 @Depends(chocolateyPackage)
-updateChocolatey() async {
+Future<void> updateChocolatey() async {
   // For some reason, although Chrome seems able to access it just fine,
   // command-line tools don't seem to be able to verify the certificate for
   // Chocolatey, so we need to manually add the intermediate GoDaddy certificate

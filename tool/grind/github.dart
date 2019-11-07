@@ -17,7 +17,7 @@ import 'standalone.dart';
 import 'utils.dart';
 
 @Task('Create a GitHub release for the current version, without executables.')
-githubRelease() async {
+Future<void> githubRelease() async {
   var authorization = _githubAuthorization();
 
   var response = await http.post(
@@ -99,15 +99,15 @@ String _lastChangelogSection() {
 
 @Task('Release Linux executables to GitHub.')
 @Depends(packageLinux)
-githubLinux() => _uploadExecutables("linux");
+Future<void> githubLinux() => _uploadExecutables("linux");
 
 @Task('Release Mac OS executables to GitHub.')
 @Depends(packageMacOs)
-githubMacOs() => _uploadExecutables("macos");
+Future<void> githubMacOs() => _uploadExecutables("macos");
 
 @Task('Release Windows executables to GitHub.')
 @Depends(packageWindows)
-githubWindows() => _uploadExecutables("windows");
+Future<void> githubWindows() => _uploadExecutables("windows");
 
 /// Upload the 32- and 64-bit executables to the current GitHub release
 Future<void> _uploadExecutables(String os) async {

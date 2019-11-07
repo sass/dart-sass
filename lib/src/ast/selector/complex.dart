@@ -89,7 +89,7 @@ class ComplexSelector extends Selector {
 
   int get hashCode => listHash(components);
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is ComplexSelector && listEquals(components, other.components);
 }
 

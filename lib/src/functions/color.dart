@@ -637,7 +637,7 @@ Value _hsl(String name, List<Value> arguments) {
           : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
 }
 
-/* SassString | List<Value> */ _parseChannels(
+Object /* SassString | List<Value> */ _parseChannels(
     String name, List<String> argumentNames, Value channels) {
   if (channels.isVar) return _functionString(name, [channels]);
 

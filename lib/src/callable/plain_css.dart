@@ -12,7 +12,8 @@ class PlainCssCallable implements Callable {
 
   PlainCssCallable(this.name);
 
-  bool operator ==(other) => other is PlainCssCallable && name == other.name;
+  bool operator ==(Object other) =>
+      other is PlainCssCallable && name == other.name;
 
   int get hashCode => name.hashCode;
 }

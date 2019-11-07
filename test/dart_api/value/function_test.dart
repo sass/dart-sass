@@ -10,7 +10,7 @@ import 'package:sass/sass.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   group("a function value", () {
     SassFunction value;
     setUp(() => value = parseValue("get-function('red')") as SassFunction);

@@ -18,7 +18,7 @@ class QualifiedName {
 
   QualifiedName(this.name, {this.namespace});
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is QualifiedName &&
       other.name == name &&
       other.namespace == namespace;

@@ -17,7 +17,7 @@ final _homebrewRegExp = RegExp(r'\n( *)url "[^"]+"'
     r'\n *sha256 "[^"]+"');
 
 @Task('Update the Homebrew formula for the current version.')
-updateHomebrew() async {
+Future<void> updateHomebrew() async {
   ensureBuild();
 
   var process = await Process.start("git",

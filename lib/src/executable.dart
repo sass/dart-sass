@@ -18,7 +18,7 @@ import 'import_cache.dart';
 import 'io.dart';
 import 'stylesheet_graph.dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   var printedError = false;
 
   // Prints [error] to stderr, along with a preceding newline if anything else

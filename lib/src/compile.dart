@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ea78ec4431055c1d222e52f4ea54a9659c4df11f
+// Checksum: 193c9bc1905022e881636f4d6359c906146abcb3
 //
 // ignore_for_file: unused_import
 
@@ -94,7 +94,7 @@ CompileResult compileString(String source,
     bool useSpaces = true,
     int indentWidth,
     LineFeed lineFeed,
-    url,
+    Object url,
     bool sourceMap = false,
     bool charset = true}) {
   var stylesheet =

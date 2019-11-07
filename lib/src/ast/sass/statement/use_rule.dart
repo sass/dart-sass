@@ -38,7 +38,7 @@ class UseRule implements Statement {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory UseRule.parse(String contents, {url, Logger logger}) =>
+  factory UseRule.parse(String contents, {Object url, Logger logger}) =>
       ScssParser(contents, url: url, logger: logger).parseUseRule();
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);

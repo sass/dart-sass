@@ -54,7 +54,7 @@ class SelectorList extends Selector {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SelectorList.parse(String contents,
-          {url,
+          {Object url,
           Logger logger,
           bool allowParent = true,
           bool allowPlaceholder = true}) =>
@@ -228,6 +228,6 @@ class SelectorList extends Selector {
 
   int get hashCode => listHash(components);
 
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is SelectorList && listEquals(components, other.components);
 }

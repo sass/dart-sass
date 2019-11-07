@@ -53,7 +53,8 @@ class ArgumentDeclaration implements SassNode {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory ArgumentDeclaration.parse(String contents, {url, Logger logger}) =>
+  factory ArgumentDeclaration.parse(String contents,
+          {Object url, Logger logger}) =>
       ScssParser("($contents)", url: url, logger: logger)
           .parseArgumentDeclaration();
 

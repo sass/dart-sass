@@ -10,7 +10,7 @@ import 'package:sass/sass.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   group("a map with contents", () {
     SassMap value;
     setUp(() => value = parseValue("(a: b, c: d)") as SassMap);

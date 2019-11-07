@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
-main() {
+void main() {
   test(
       "new Callable() throws a SassFormatException if the argument list is "
       "invalid", () {

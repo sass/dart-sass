@@ -450,7 +450,7 @@ a {
             renderSyncJS({
               "data": "@import 'test'",
               "includePaths": [sandbox],
-              "importer": allowInterop((url, prev) => null)
+              "importer": allowInterop((void _, void __) => null)
             }),
             equalsIgnoringWhitespace('a { b: c; }'));
       });

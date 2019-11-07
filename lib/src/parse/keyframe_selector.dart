@@ -10,7 +10,7 @@ import 'parser.dart';
 
 /// A parser for `@keyframes` block selectors.
 class KeyframeSelectorParser extends Parser {
-  KeyframeSelectorParser(String contents, {url, Logger logger})
+  KeyframeSelectorParser(String contents, {Object url, Logger logger})
       : super(contents, url: url, logger: logger);
 
   List<String> parse() {

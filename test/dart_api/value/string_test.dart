@@ -10,7 +10,7 @@ import 'package:sass/sass.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   group("an unquoted ASCII string", () {
     SassString value;
     setUp(() => value = parseValue("foobar") as SassString);

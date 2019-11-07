@@ -38,7 +38,7 @@ class SassParser extends StylesheetParser {
 
   bool get indented => true;
 
-  SassParser(String contents, {url, Logger logger})
+  SassParser(String contents, {Object url, Logger logger})
       : super(contents, url: url, logger: logger);
 
   Interpolation styleRuleSelector() {

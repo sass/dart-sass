@@ -192,8 +192,8 @@ void main() {
           render(RenderOptions(
               data: "a {b: foo()}",
               functions: jsify({
-                "foo":
-                    allowInterop((_) => callConstructor(sass.types.Number, [1]))
+                "foo": allowInterop(
+                    (void _) => callConstructor(sass.types.Number, [1]))
               }))),
           completion(equalsIgnoringWhitespace("a { b: 1; }")));
     });
@@ -203,7 +203,7 @@ void main() {
           render(RenderOptions(
               data: "a {b: foo()}",
               functions: jsify({
-                "foo": allowInterop((done) {
+                "foo": allowInterop((void done(Object result)) {
                   Timer(Duration.zero, () {
                     done(callConstructor(sass.types.Number, [1]));
                   });
@@ -215,7 +215,8 @@ void main() {
     test("reports a synchronous error", () async {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
-          functions: jsify({"foo": allowInterop((_) => throw "aw beans")})));
+          functions:
+              jsify({"foo": allowInterop((void _) => throw "aw beans")})));
       expect(error.toString(), contains('aw beans'));
     });
 
@@ -224,7 +225,7 @@ void main() {
           data: "a {b: foo()}",
           functions: jsify({
             "foo": allowInterop(
-                (_) => callConstructor(sass.types.Error, ["aw beans"]))
+                (void _) => callConstructor(sass.types.Error, ["aw beans"]))
           })));
       expect(error.toString(), contains('aw beans'));
     });
@@ -233,7 +234,7 @@ void main() {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
           functions: jsify({
-            "foo": allowInterop((done) {
+            "foo": allowInterop((void done(Object result)) {
               Timer(Duration.zero, () {
                 done(JSError("aw beans"));
               });
@@ -246,7 +247,7 @@ void main() {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
           functions: jsify({
-            "foo": allowInterop((done) {
+            "foo": allowInterop((void done(Object result)) {
               Timer(Duration.zero, () {
                 done(callConstructor(sass.types.Error, ["aw beans"]));
               });
@@ -259,7 +260,7 @@ void main() {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
           functions: jsify({
-            "foo": allowInterop((done) {
+            "foo": allowInterop((void done(Object result)) {
               Timer(Duration.zero, () {
                 done(null);
               });
@@ -272,7 +273,7 @@ void main() {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
           functions: jsify({
-            "foo": allowInterop((done) {
+            "foo": allowInterop((void done()) {
               Timer(Duration.zero, () {
                 done();
               });
@@ -303,7 +304,7 @@ void main() {
                 data: "a {b: foo()}",
                 functions: jsify({
                   "foo": allowInterop(
-                      (_) => callConstructor(sass.types.Number, [1]))
+                      (void _) => callConstructor(sass.types.Number, [1]))
                 }),
                 fiber: fiber)),
             completion(equalsIgnoringWhitespace("a { b: 1; }")));
@@ -314,7 +315,7 @@ void main() {
             render(RenderOptions(
                 data: "a {b: foo()}",
                 functions: jsify({
-                  "foo": allowInterop((done) {
+                  "foo": allowInterop((void done(Object result)) {
                     Timer(Duration.zero, () {
                       done(callConstructor(sass.types.Number, [1]));
                     });
@@ -327,7 +328,8 @@ void main() {
       test("reports a synchronous error", () async {
         var error = await renderError(RenderOptions(
             data: "a {b: foo()}",
-            functions: jsify({"foo": allowInterop((_) => throw "aw beans")}),
+            functions:
+                jsify({"foo": allowInterop((void _) => throw "aw beans")}),
             fiber: fiber));
         expect(error.toString(), contains('aw beans'));
       });
@@ -336,7 +338,7 @@ void main() {
         var error = await renderError(RenderOptions(
             data: "a {b: foo()}",
             functions: jsify({
-              "foo": allowInterop((done) {
+              "foo": allowInterop((void done(Object result)) {
                 Timer(Duration.zero, () {
                   done(JSError("aw beans"));
                 });
@@ -350,7 +352,7 @@ void main() {
         var error = await renderError(RenderOptions(
             data: "a {b: foo()}",
             functions: jsify({
-              "foo": allowInterop((done) {
+              "foo": allowInterop((void done(Object result)) {
                 Timer(Duration.zero, () {
                   done(null);
                 });
@@ -364,7 +366,7 @@ void main() {
         var error = await renderError(RenderOptions(
             data: "a {b: foo()}",
             functions: jsify({
-              "foo": allowInterop((done) {
+              "foo": allowInterop((void done()) {
                 Timer(Duration.zero, () {
                   done();
                 });
