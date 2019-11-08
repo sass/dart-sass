@@ -41,6 +41,12 @@ class Dispatcher {
       FutureOr<OutboundMessage_CompileResponse> callback(
           InboundMessage_CompileRequest request)) {
     _channel.stream.listen((binaryMessage) async {
+      // Wait a single microtask tick so that we're running in a separate
+      // microtask from the initial request dispatch. Otherwise, [waitFor] will
+      // deadlock the event loop fiber that would otherwise be checking stdin
+      // for new input.
+      await Future.value();
+
       InboundMessage message;
       try {
         try {
@@ -75,6 +81,11 @@ class Dispatcher {
 
           case InboundMessage_Message.importResponse:
             var response = message.importResponse;
+            _dispatchResponse(response.id, response);
+            break;
+
+          case InboundMessage_Message.functionCallResponse:
+            var response = message.functionCallResponse;
             _dispatchResponse(response.id, response);
             break;
 
@@ -124,6 +135,11 @@ class Dispatcher {
           OutboundMessage_ImportRequest request) =>
       _sendRequest<InboundMessage_ImportResponse>(
           OutboundMessage()..importRequest = request);
+
+  Future<InboundMessage_FunctionCallResponse> sendFunctionCallRequest(
+          OutboundMessage_FunctionCallRequest request) =>
+      _sendRequest<InboundMessage_FunctionCallResponse>(
+          OutboundMessage()..functionCallRequest = request);
 
   /// Sends [request] to the host and returns the message sent in response.
   Future<T> _sendRequest<T extends GeneratedMessage>(

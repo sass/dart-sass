@@ -95,7 +95,8 @@ InboundMessage compileString(String css,
     InboundMessage_CompileRequest_OutputStyle style,
     String url,
     bool sourceMap,
-    Iterable<InboundMessage_CompileRequest_Importer> importers}) {
+    Iterable<InboundMessage_CompileRequest_Importer> importers,
+    Iterable<String> functions}) {
   var input = InboundMessage_CompileRequest_StringInput()..source = css;
   if (syntax != null) input.syntax = syntax;
   if (url != null) input.url = url;
@@ -105,6 +106,7 @@ InboundMessage compileString(String css,
   if (importers != null) request.importers.addAll(importers);
   if (style != null) request.style = style;
   if (sourceMap != null) request.sourceMap = sourceMap;
+  if (functions != null) request.globalFunctions.addAll(functions);
 
   return InboundMessage()..compileRequest = request;
 }
@@ -114,7 +116,13 @@ InboundMessage compileString(String css,
 Future<void> expectParseError(EmbeddedProcess process, message) async {
   await expectLater(process.outbound,
       emits(isProtocolError(-1, ProtocolError_ErrorType.PARSE, message)));
-  await expectLater(process.stderr, emits("Host caused parse error: $message"));
+
+  var stderrPrefix = "Host caused parse error: ";
+  await expectLater(
+      process.stderr,
+      message is String
+          ? emitsInOrder("$stderrPrefix$message".split("\n"))
+          : emits(startsWith(stderrPrefix)));
 }
 
 /// Asserts that [process] emits a [ProtocolError] params error with the given
@@ -122,10 +130,14 @@ Future<void> expectParseError(EmbeddedProcess process, message) async {
 Future<void> expectParamsError(EmbeddedProcess process, int id, message) async {
   await expectLater(process.outbound,
       emits(isProtocolError(id, ProtocolError_ErrorType.PARAMS, message)));
+
+  var stderrPrefix = "Host caused params error"
+      "${id == -1 ? '' : " with request $id"}: ";
   await expectLater(
       process.stderr,
-      emits("Host caused params error${id == -1 ? '' : " with request $id"}: "
-          "$message"));
+      message is String
+          ? emitsInOrder("$stderrPrefix$message".split("\n"))
+          : emits(startsWith(stderrPrefix)));
 }
 
 /// Asserts that an [OutboundMessage] is a [ProtocolError] with the given [id],
@@ -163,12 +175,31 @@ OutboundMessage_ImportRequest getImportRequest(value) {
 }
 
 /// Asserts that [message] is an [OutboundMessage] with a
+/// `FunctionCallRequest` and returns it.
+OutboundMessage_FunctionCallRequest getFunctionCallRequest(value) {
+  expect(value, isA<OutboundMessage>());
+  var message = value as OutboundMessage;
+  expect(message.hasFunctionCallRequest(), isTrue,
+      reason: "Expected $message to have a FunctionCallRequest");
+  return message.functionCallRequest;
+}
+
+/// Asserts that [message] is an [OutboundMessage] with a
 /// `CompileResponse.Failure` and returns it.
 OutboundMessage_CompileResponse_CompileFailure getCompileFailure(value) {
   var response = getCompileResponse(value);
   expect(response.hasFailure(), isTrue,
       reason: "Expected $response to be a failure");
   return response.failure;
+}
+
+/// Asserts that [message] is an [OutboundMessage] with a
+/// `CompileResponse.Success` and returns it.
+OutboundMessage_CompileResponse_CompileSuccess getCompileSuccess(value) {
+  var response = getCompileResponse(value);
+  expect(response.hasSuccess(), isTrue,
+      reason: "Expected $response to be a success");
+  return response.success;
 }
 
 /// Asserts that [message] is an [OutboundMessage] with a `CompileResponse` and
@@ -200,15 +231,12 @@ OutboundMessage_LogEvent getLogEvent(value) {
 /// If [sourceMap] is a function, `response.success.sourceMap` is passed to it.
 /// Otherwise, it's treated as a matcher for `response.success.sourceMap`.
 Matcher isSuccess(css, {sourceMap}) => predicate((value) {
-      var response = getCompileResponse(value);
-      expect(response.hasSuccess(), isTrue,
-          reason: "Expected $response to be successful");
-      expect(response.success.css,
-          css is String ? equalsIgnoringWhitespace(css) : css);
+      var success = getCompileSuccess(value);
+      expect(success.css, css is String ? equalsIgnoringWhitespace(css) : css);
       if (sourceMap is void Function(String)) {
-        sourceMap(response.success.sourceMap);
+        sourceMap(success.sourceMap);
       } else if (sourceMap != null) {
-        expect(response.success.sourceMap, sourceMap);
+        expect(success.sourceMap, sourceMap);
       }
       return true;
     });

@@ -44,10 +44,10 @@ class Importer extends sass.Importer {
 
         case InboundMessage_CanonicalizeResponse_Result.notSet:
           return null;
-
-        default:
-          throw "Unknown CanonicalizeResponse.result $response.";
       }
+
+      // dart-lang/sdk#38790
+      throw "Unknown CanonicalizeResponse.result $response.";
     }());
   }
 
@@ -74,10 +74,10 @@ class Importer extends sass.Importer {
         case InboundMessage_ImportResponse_Result.notSet:
           _sendAndThrow(mandatoryError("ImportResponse.result"));
           break; // dart-lang/sdk#34048
-
-        default:
-          throw "Unknown ImporterResponse.result $response.";
       }
+
+      // dart-lang/sdk#38790
+      throw "Unknown ImporterResponse.result $response.";
     }());
   }
 
