@@ -144,14 +144,14 @@ void main() {
     process.inbound.add(compileString("a {b: 1px + 2px}", sourceMap: true));
     await expectLater(
         process.outbound,
-        emits(isSuccess("a { b: 3px; }", sourceMap: predicate((map) {
+        emits(isSuccess("a { b: 3px; }", sourceMap: (map) {
           var mapping = source_maps.parse(map);
           var span = mapping.spanFor(2, 5);
           expect(span.start.line, equals(0));
           expect(span.start.column, equals(3));
           expect(span.end, equals(span.start));
           return true;
-        }))));
+        })));
     await process.kill();
   });
 

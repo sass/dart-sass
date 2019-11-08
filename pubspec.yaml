@@ -12,6 +12,7 @@ executables:
 
 dependencies:
   async: ">=1.13.0 <3.0.0"
+  meta: ^1.1.0
   protobuf: ^1.0.0
   sass: ^1.21.0
   source_maps: ^0.10.5

@@ -11,11 +11,19 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import 'embedded_sass.pb.dart';
+import 'utils.dart';
 
 /// A class that dispatches messages to and from the host.
 class Dispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
+
+  /// Completers awaiting responses to outbound requests.
+  ///
+  /// The completers are located at indexes in this list matching the request
+  /// IDs. `null` elements indicate IDs whose requests have been responded to,
+  /// and which are therefore free to re-use.
+  final _outstandingRequests = <Completer<GeneratedMessage>>[];
 
   /// Creates a [Dispatcher] that sends and receives encoded protocol buffers
   /// over [channel].
@@ -43,7 +51,7 @@ class Dispatcher {
 
         switch (message.whichMessage()) {
           case InboundMessage_Message.error:
-            var error = message.ensureError();
+            var error = message.error;
             stderr
                 .write("Host reported ${error.type.name.toLowerCase()} error");
             if (error.id != -1) stderr.write(" with request ${error.id}");
@@ -54,10 +62,20 @@ class Dispatcher {
             break;
 
           case InboundMessage_Message.compileRequest:
-            var request = message.ensureCompileRequest();
+            var request = message.compileRequest;
             var response = await callback(request);
             response.id = request.id;
             _send(OutboundMessage()..compileResponse = response);
+            break;
+
+          case InboundMessage_Message.canonicalizeResponse:
+            var response = message.canonicalizeResponse;
+            _dispatchResponse(response.id, response);
+            break;
+
+          case InboundMessage_Message.importResponse:
+            var response = message.importResponse;
+            _dispatchResponse(response.id, response);
             break;
 
           case InboundMessage_Message.notSet:
@@ -72,19 +90,18 @@ class Dispatcher {
                 "Unknown message type: ${message.toDebugString()}");
         }
       } on ProtocolError catch (error) {
-        error.id = _messageId(message) ?? -1;
+        error.id = _inboundId(message) ?? -1;
         stderr.write("Host caused ${error.type.name.toLowerCase()} error");
         if (error.id != -1) stderr.write(" with request ${error.id}");
         stderr.writeln(": ${error.message}");
-        _send(OutboundMessage()..error = error);
+        sendError(error);
       } catch (error, stackTrace) {
         var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
         stderr.write("Internal compiler error: $errorMessage");
-        _send(OutboundMessage()
-          ..error = (ProtocolError()
-            ..type = ProtocolError_ErrorType.INTERNAL
-            ..id = _messageId(message) ?? -1
-            ..message = errorMessage));
+        sendError(ProtocolError()
+          ..type = ProtocolError_ErrorType.INTERNAL
+          ..id = _inboundId(message) ?? -1
+          ..message = errorMessage);
         _channel.sink.close();
       }
     });
@@ -93,6 +110,62 @@ class Dispatcher {
   /// Sends [event] to the host.
   void sendLog(OutboundMessage_LogEvent event) =>
       _send(OutboundMessage()..logEvent = event);
+
+  /// Sends [error] to the host.
+  void sendError(ProtocolError error) =>
+      _send(OutboundMessage()..error = error);
+
+  Future<InboundMessage_CanonicalizeResponse> sendCanonicalizeRequest(
+          OutboundMessage_CanonicalizeRequest request) =>
+      _sendRequest<InboundMessage_CanonicalizeResponse>(
+          OutboundMessage()..canonicalizeRequest = request);
+
+  Future<InboundMessage_ImportResponse> sendImportRequest(
+          OutboundMessage_ImportRequest request) =>
+      _sendRequest<InboundMessage_ImportResponse>(
+          OutboundMessage()..importRequest = request);
+
+  /// Sends [request] to the host and returns the message sent in response.
+  Future<T> _sendRequest<T extends GeneratedMessage>(
+      OutboundMessage request) async {
+    var id = _nextRequestId();
+    _setOutboundId(request, id);
+    _send(request);
+
+    var completer = Completer<T>();
+    _outstandingRequests[id] = completer;
+    return completer.future;
+  }
+
+  /// Returns an available request ID, and guarantees that its slot is available
+  /// in [_outstandingRequests].
+  int _nextRequestId() {
+    for (var i = 0; i < _outstandingRequests.length; i++) {
+      if (_outstandingRequests[i] == null) return i;
+    }
+
+    // If there are no empty slots, add another one.
+    _outstandingRequests.add(null);
+    return _outstandingRequests.length - 1;
+  }
+
+  /// Dispatches [response] to the appropriate outstanding request.
+  ///
+  /// Throws an error if there's no outstanding request with the given [id] or
+  /// if that request is expecting a different type of response.
+  void _dispatchResponse<T extends GeneratedMessage>(int id, T response) {
+    var completer =
+        id < _outstandingRequests.length ? _outstandingRequests[id] : null;
+    if (completer == null) {
+      throw paramsError(
+          "Response ID $id doesn't match any outstanding requests.");
+    } else if (completer is! Completer<T>) {
+      throw paramsError("Request ID $id doesn't match response type "
+          "${response.runtimeType}.");
+    }
+
+    completer.complete(response);
+  }
 
   /// Sends [message] to the host.
   void _send(OutboundMessage message) =>
@@ -103,21 +176,40 @@ class Dispatcher {
     ..type = ProtocolError_ErrorType.PARSE
     ..message = message;
 
-  /// Returns the id for [message] if it it's a request or response, or `null`
+  /// Returns the id for [message] if it it's a request, or `null`
   /// otherwise.
-  int _messageId(InboundMessage message) {
+  int _inboundId(InboundMessage message) {
     if (message == null) return null;
     switch (message.whichMessage()) {
       case InboundMessage_Message.compileRequest:
-        return message.ensureCompileRequest().id;
-      case InboundMessage_Message.canonicalizeResponse:
-        return message.ensureCanonicalizeResponse().id;
-      case InboundMessage_Message.importResponse:
-        return message.ensureImportResponse().id;
+        return message.compileRequest.id;
       case InboundMessage_Message.functionCallRequest:
-        return message.ensureFunctionCallRequest().id;
-      case InboundMessage_Message.functionCallResponse:
-        return message.ensureFunctionCallResponse().id;
+        return message.functionCallRequest.id;
+      default:
+        return null;
+    }
+  }
+
+  /// Sets the id for [message] to [id].
+  ///
+  /// Throws an [ArgumentError] if [message] doesn't have an id field.
+  void _setOutboundId(OutboundMessage message, int id) {
+    switch (message.whichMessage()) {
+      case OutboundMessage_Message.compileResponse:
+        message.compileResponse.id = id;
+        break;
+      case OutboundMessage_Message.canonicalizeRequest:
+        message.canonicalizeRequest.id = id;
+        break;
+      case OutboundMessage_Message.importRequest:
+        message.importRequest.id = id;
+        break;
+      case OutboundMessage_Message.functionCallRequest:
+        message.functionCallRequest.id = id;
+        break;
+      case OutboundMessage_Message.functionCallResponse:
+        message.functionCallResponse.id = id;
+        break;
       default:
         return null;
     }

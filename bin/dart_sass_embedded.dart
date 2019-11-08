@@ -11,6 +11,7 @@ import 'package:stream_channel/stream_channel.dart';
 
 import 'package:sass_embedded/src/dispatcher.dart';
 import 'package:sass_embedded/src/embedded_sass.pb.dart';
+import 'package:sass_embedded/src/importer.dart';
 import 'package:sass_embedded/src/logger.dart';
 import 'package:sass_embedded/src/util/length_delimited_transformer.dart';
 import 'package:sass_embedded/src/utils.dart';
@@ -29,7 +30,13 @@ void main(List<String> args) {
       StreamChannel.withGuarantees(stdin, stdout, allowSinkErrors: false)
           .transform(lengthDelimited));
 
-  dispatcher.listen((request) {
+  dispatcher.listen((request) async {
+    // Wait a single microtask tick so that we're running in a separate
+    // microtask from the initial request dispatch. Otherwise, [waitFor] will
+    // deadlock the event loop fiber that would otherwise be checking stdin for
+    // new input.
+    await Future.value();
+
     var style =
         request.style == InboundMessage_CompileRequest_OutputStyle.COMPRESSED
             ? sass.OutputStyle.compressed
@@ -42,12 +49,30 @@ void main(List<String> args) {
       var sourceMapCallback = request.sourceMap
           ? (source_maps.SingleMapping map) => sourceMap = map
           : null;
+
+      var importers = request.importers.map((importer) {
+        switch (importer.whichImporter()) {
+          case InboundMessage_CompileRequest_Importer_Importer.path:
+            return sass.FilesystemImporter(importer.path);
+
+          case InboundMessage_CompileRequest_Importer_Importer.importerId:
+            return Importer(dispatcher, request.id, importer.importerId);
+
+          case InboundMessage_CompileRequest_Importer_Importer.notSet:
+            throw mandatoryError("Importer.importer");
+
+          default:
+            throw "Unknown Importer.importer $importer.";
+        }
+      });
+
       switch (request.whichInput()) {
         case InboundMessage_CompileRequest_Input.string:
           var input = request.string;
           result = sass.compileString(input.source,
               logger: logger,
-              syntax: _syntaxToSyntax(input.syntax),
+              importers: importers,
+              syntax: syntaxToSyntax(input.syntax),
               style: style,
               url: input.url.isEmpty ? null : input.url,
               sourceMap: sourceMapCallback);
@@ -56,7 +81,10 @@ void main(List<String> args) {
         case InboundMessage_CompileRequest_Input.path:
           try {
             result = sass.compile(request.path,
-                logger: logger, style: style, sourceMap: sourceMapCallback);
+                logger: logger,
+                importers: importers,
+                style: style,
+                sourceMap: sourceMapCallback);
           } on FileSystemException catch (error) {
             return OutboundMessage_CompileResponse()
               ..failure = (OutboundMessage_CompileResponse_CompileFailure()
@@ -84,18 +112,4 @@ void main(List<String> args) {
           ..stackTrace = error.trace.toString());
     }
   });
-}
-
-/// Converts a protocol buffer syntax enum into a Sass API syntax enum.
-sass.Syntax _syntaxToSyntax(InboundMessage_Syntax syntax) {
-  switch (syntax) {
-    case InboundMessage_Syntax.SCSS:
-      return sass.Syntax.scss;
-    case InboundMessage_Syntax.INDENTED:
-      return sass.Syntax.sass;
-    case InboundMessage_Syntax.CSS:
-      return sass.Syntax.css;
-    default:
-      throw "Unknown syntax $syntax.";
-  }
 }

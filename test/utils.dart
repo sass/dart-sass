@@ -94,13 +94,15 @@ InboundMessage compileString(String css,
     InboundMessage_Syntax syntax,
     InboundMessage_CompileRequest_OutputStyle style,
     String url,
-    bool sourceMap}) {
+    bool sourceMap,
+    Iterable<InboundMessage_CompileRequest_Importer> importers}) {
   var input = InboundMessage_CompileRequest_StringInput()..source = css;
   if (syntax != null) input.syntax = syntax;
   if (url != null) input.url = url;
 
   var request = InboundMessage_CompileRequest()..string = input;
   if (id != null) request.id = id;
+  if (importers != null) request.importers.addAll(importers);
   if (style != null) request.style = style;
   if (sourceMap != null) request.sourceMap = sourceMap;
 
@@ -115,6 +117,17 @@ Future<void> expectParseError(EmbeddedProcess process, message) async {
   await expectLater(process.stderr, emits("Host caused parse error: $message"));
 }
 
+/// Asserts that [process] emits a [ProtocolError] params error with the given
+/// [message] on its protobuf stream and prints a notice on stderr.
+Future<void> expectParamsError(EmbeddedProcess process, int id, message) async {
+  await expectLater(process.outbound,
+      emits(isProtocolError(id, ProtocolError_ErrorType.PARAMS, message)));
+  await expectLater(
+      process.stderr,
+      emits("Host caused params error${id == -1 ? '' : " with request $id"}: "
+          "$message"));
+}
+
 /// Asserts that an [OutboundMessage] is a [ProtocolError] with the given [id],
 /// [type], and optionally [message].
 Matcher isProtocolError(int id, ProtocolError_ErrorType type, [message]) =>
@@ -122,12 +135,32 @@ Matcher isProtocolError(int id, ProtocolError_ErrorType type, [message]) =>
       expect(value, isA<OutboundMessage>());
       var outboundMessage = value as OutboundMessage;
       expect(outboundMessage.hasError(), isTrue,
-          reason: "Expected $message to be a ProtocolError");
+          reason: "Expected $outboundMessage to be a ProtocolError");
       expect(outboundMessage.error.id, equals(id));
       expect(outboundMessage.error.type, equals(type));
       if (message != null) expect(outboundMessage.error.message, message);
       return true;
     });
+
+/// Asserts that [message] is an [OutboundMessage] with a
+/// `CanonicalizeRequest` and returns it.
+OutboundMessage_CanonicalizeRequest getCanonicalizeRequest(value) {
+  expect(value, isA<OutboundMessage>());
+  var message = value as OutboundMessage;
+  expect(message.hasCanonicalizeRequest(), isTrue,
+      reason: "Expected $message to have a CanonicalizeRequest");
+  return message.canonicalizeRequest;
+}
+
+/// Asserts that [message] is an [OutboundMessage] with a `ImportRequest` and
+/// returns it.
+OutboundMessage_ImportRequest getImportRequest(value) {
+  expect(value, isA<OutboundMessage>());
+  var message = value as OutboundMessage;
+  expect(message.hasImportRequest(), isTrue,
+      reason: "Expected $message to have a ImportRequest");
+  return message.importRequest;
+}
 
 /// Asserts that [message] is an [OutboundMessage] with a
 /// `CompileResponse.Failure` and returns it.
@@ -163,13 +196,20 @@ OutboundMessage_LogEvent getLogEvent(value) {
 ///
 /// If [css] is a [String], this automatically wraps it in
 /// [equalsIgnoringWhitespace].
+///
+/// If [sourceMap] is a function, `response.success.sourceMap` is passed to it.
+/// Otherwise, it's treated as a matcher for `response.success.sourceMap`.
 Matcher isSuccess(css, {sourceMap}) => predicate((value) {
       var response = getCompileResponse(value);
       expect(response.hasSuccess(), isTrue,
           reason: "Expected $response to be successful");
       expect(response.success.css,
           css is String ? equalsIgnoringWhitespace(css) : css);
-      if (sourceMap != null) expect(response.success.sourceMap, sourceMap);
+      if (sourceMap is void Function(String)) {
+        sourceMap(response.success.sourceMap);
+      } else if (sourceMap != null) {
+        expect(response.success.sourceMap, sourceMap);
+      }
       return true;
     });
 
