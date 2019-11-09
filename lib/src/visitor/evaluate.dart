@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7bcd07f449d67c0f625de8e505a9c74cfed0b616
+// Checksum: fdd4dcbee0cc9f3af5b8c78612aab7823beb9abb
 //
 // ignore_for_file: unused_import
 
@@ -1076,7 +1076,8 @@ class _EvaluateVisitor
   }
 
   Value visitErrorRule(ErrorRule node) {
-    throw _exception(node.expression.accept(this).toString(), node.span);
+    throw _exception(node.expression.accept(this).toString(), node.span,
+        SassRuntimeExceptionType.error);
   }
 
   Value visitExtendRule(ExtendRule node) {
@@ -1468,7 +1469,14 @@ class _EvaluateVisitor
         _environment.withContent(contentCallable, () {
           _environment.asMixin(() {
             for (var statement in mixin.declaration.children) {
-              statement.accept(this);
+              try {
+                statement.accept(this);
+              } on SassRuntimeException catch (error) {
+                if (error.type != SassRuntimeExceptionType.error) rethrow;
+
+                throw SassRuntimeException(
+                    error.message, node.span, _stackTrace(error.span));
+              }
             }
           });
           return null;
@@ -1972,9 +1980,16 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    var result = _runFunctionCallable(node.arguments, function, node);
-    _inFunction = oldInFunction;
-    return result;
+    try {
+      var result = _runFunctionCallable(node.arguments, function, node);
+      _inFunction = oldInFunction;
+      return result;
+    } on SassRuntimeException catch (error) {
+      if (error.type != SassRuntimeExceptionType.error) rethrow;
+
+      throw SassRuntimeException(
+          error.message, node.span, _stackTrace(error.span));
+    }
   }
 
   /// Like `_environment.getFunction`, but also returns built-in
@@ -2773,9 +2788,10 @@ class _EvaluateVisitor
   /// Throws a [SassRuntimeException] with the given [message].
   ///
   /// If [span] is passed, it's used for the innermost stack frame.
-  SassRuntimeException _exception(String message, [FileSpan span]) =>
+  SassRuntimeException _exception(String message,
+          [FileSpan span, SassRuntimeExceptionType type]) =>
       SassRuntimeException(
-          message, span ?? _stack.last.item2.span, _stackTrace(span));
+          message, span ?? _stack.last.item2.span, _stackTrace(span), type);
 
   /// Runs [callback], and adjusts any [SassFormatException] to be within
   /// [nodeWithSpan]'s source span.

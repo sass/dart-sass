@@ -1071,8 +1071,8 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitErrorRule(ErrorRule node) async {
-    throw _exception(
-        (await node.expression.accept(this)).toString(), node.span);
+    throw _exception((await node.expression.accept(this).toString()), node.span,
+        SassRuntimeExceptionType.error);
   }
 
   Future<Value> visitExtendRule(ExtendRule node) async {
@@ -1469,7 +1469,14 @@ class _EvaluateVisitor
         await _environment.withContent(contentCallable, () async {
           await _environment.asMixin(() async {
             for (var statement in mixin.declaration.children) {
-              await statement.accept(this);
+              try {
+                await statement.accept(this);
+              } on SassRuntimeException catch (error) {
+                if (error.type != SassRuntimeExceptionType.error) rethrow;
+
+                throw SassRuntimeException(
+                    error.message, node.span, _stackTrace(error.span));
+              }
             }
           });
           return null;
@@ -1983,9 +1990,16 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    var result = await _runFunctionCallable(node.arguments, function, node);
-    _inFunction = oldInFunction;
-    return result;
+    try {
+      var result = await _runFunctionCallable(node.arguments, function, node);
+      _inFunction = oldInFunction;
+      return result;
+    } on SassRuntimeException catch (error) {
+      if (error.type != SassRuntimeExceptionType.error) rethrow;
+
+      throw SassRuntimeException(
+          error.message, node.span, _stackTrace(error.span));
+    }
   }
 
   /// Like `_environment.getFunction`, but also returns built-in
@@ -2798,9 +2812,10 @@ class _EvaluateVisitor
   /// Throws a [SassRuntimeException] with the given [message].
   ///
   /// If [span] is passed, it's used for the innermost stack frame.
-  SassRuntimeException _exception(String message, [FileSpan span]) =>
+  SassRuntimeException _exception(String message,
+          [FileSpan span, SassRuntimeExceptionType type]) =>
       SassRuntimeException(
-          message, span ?? _stack.last.item2.span, _stackTrace(span));
+          message, span ?? _stack.last.item2.span, _stackTrace(span), type);
 
   /// Runs [callback], and adjusts any [SassFormatException] to be within
   /// [nodeWithSpan]'s source span.

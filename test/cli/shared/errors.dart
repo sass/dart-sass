@@ -72,6 +72,58 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(65);
   });
 
+  test("from an error encountered within a function", () async {
+    await d.file("test.scss", """
+@function a() {
+  @error "Within A.";
+}
+
+.b {
+  c: a();
+}
+""").create();
+
+    var sass = await runSass(["--no-unicode", "test.scss"]);
+    expect(
+        sass.stderr,
+        emitsInOrder([
+          "Error: \"Within A.\"",
+          "  ,",
+          "6 |   c: a();",
+          "  |      ^^^",
+          "  '",
+          "  test.scss 2:3  a()",
+          "  test.scss 6:6  root stylesheet",
+        ]));
+    await sass.shouldExit(65);
+  });
+
+  test("from an error encountered within a mixin", () async {
+    await d.file("test.scss", """
+@mixin a() {
+  @error "Within A.";
+}
+
+.b {
+  @include a();
+}
+""").create();
+
+    var sass = await runSass(["--no-unicode", "test.scss"]);
+    expect(
+        sass.stderr,
+        emitsInOrder([
+          "Error: \"Within A.\"",
+          "  ,",
+          "6 |   @include a();",
+          "  |   ^^^^^^^^^^^^",
+          "  '",
+          "  test.scss 2:3  a()",
+          "  test.scss 6:3  root stylesheet",
+        ]));
+    await sass.shouldExit(65);
+  });
+
   test("with colors with --color", () async {
     await d.file("test.scss", "a {b: }").create();
 
