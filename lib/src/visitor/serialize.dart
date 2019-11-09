@@ -1143,6 +1143,16 @@ class _SerializeVisitor
       // a simple forward search of the previousSpan.text as that might contain
       // other left braces.
       var searchFrom = node.span.start.offset - previousSpan.start.offset - 1;
+      if (searchFrom < 0) {
+        // This can happen when the loud comment is the first statement in a
+        // mixin that's later included. In that case, node.span.start.offset
+        // (representing the loud comment in the mixin) will be less than
+        // previousSpan.start.offset (representing the statement where the
+        // mixin is later included) ==> the loud comment cannot possibly be
+        // trailing.
+        return false;
+      }
+
       var endOffset = previousSpan.text.lastIndexOf("{", searchFrom);
       endOffset = math.max(0, endOffset);
       previousSpan = previousSpan.file.span(

@@ -162,5 +162,16 @@ selector[href*=\"{\"] { /* please don't move me */ }
 
 @rule3;"""));
     });
+
+    test("loud comments in mixin", () {
+      expect(compileString("""
+@mixin loudComment {
+  /* ... */
+}
+
+selector {
+  @include loudComment;
+}"""), "selector {\n  /* ... */\n}");
+    });
   });
 }
