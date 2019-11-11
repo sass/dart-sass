@@ -172,6 +172,105 @@ void main() {
     await _process.kill();
   });
 
+  group("calls a first-class function", () {
+    test("defined in the compiler and passed to and from the host", () async {
+      _process.inbound.add(compileString(r"""
+        @use "sass:math";
+        @use "sass:meta";
+
+        a {b: call(foo(meta.get-function("abs", $module: "math")), -1)}
+      """, functions: [r"foo($arg)"]));
+
+      var request = getFunctionCallRequest(await _process.outbound.next);
+      var value = request.arguments.single;
+      expect(value.hasCompilerFunction(), isTrue);
+      _process.inbound.add(InboundMessage()
+        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+          ..id = request.id
+          ..success = value));
+
+      await expectLater(
+          _process.outbound, emits(isSuccess(equals("a {\n  b: 1;\n}"))));
+      await _process.kill();
+    });
+
+    test("defined in the host", () async {
+      var compilationId = 1234;
+      _process.inbound.add(compileString("a {b: call(foo(), true)}",
+          id: compilationId, functions: [r"foo()"]));
+
+      var hostFunctionId = 5678;
+      var request = getFunctionCallRequest(await _process.outbound.next);
+      _process.inbound.add(InboundMessage()
+        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+          ..id = request.id
+          ..success = (Value()
+            ..hostFunction = (Value_HostFunction()
+              ..id = hostFunctionId
+              ..signature = r"bar($arg)"))));
+
+      request = getFunctionCallRequest(await _process.outbound.next);
+      expect(request.compilationId, equals(compilationId));
+      expect(request.functionId, equals(hostFunctionId));
+      expect(request.arguments, equals([_true]));
+
+      _process.inbound.add(InboundMessage()
+        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+          ..id = request.id
+          ..success = _false));
+
+      await expectLater(
+          _process.outbound, emits(isSuccess(equals("a {\n  b: false;\n}"))));
+      await _process.kill();
+    });
+
+    test("defined in the host and passed to and from the host", () async {
+      var compilationId = 1234;
+      _process.inbound.add(compileString(
+          r"""
+            $function: get-host-function();
+            $function: round-trip($function);
+            a {b: call($function, true)}
+          """,
+          id: compilationId,
+          functions: [r"get-host-function()", r"round-trip($function)"]));
+
+      var hostFunctionId = 5678;
+      var request = getFunctionCallRequest(await _process.outbound.next);
+      expect(request.name, equals("get-host-function"));
+      _process.inbound.add(InboundMessage()
+        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+          ..id = request.id
+          ..success = (Value()
+            ..hostFunction = (Value_HostFunction()
+              ..id = hostFunctionId
+              ..signature = r"bar($arg)"))));
+
+      request = getFunctionCallRequest(await _process.outbound.next);
+      expect(request.name, equals("round-trip"));
+      var value = request.arguments.single;
+      expect(value.hasCompilerFunction(), isTrue);
+      _process.inbound.add(InboundMessage()
+        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+          ..id = request.id
+          ..success = value));
+
+      request = getFunctionCallRequest(await _process.outbound.next);
+      expect(request.compilationId, equals(compilationId));
+      expect(request.functionId, equals(hostFunctionId));
+      expect(request.arguments, equals([_true]));
+
+      _process.inbound.add(InboundMessage()
+        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+          ..id = request.id
+          ..success = _false));
+
+      await expectLater(
+          _process.outbound, emits(isSuccess(equals("a {\n  b: false;\n}"))));
+      await _process.kill();
+    });
+  });
+
   group("serializes to protocol buffers", () {
     group("a string that's", () {
       group("quoted", () {

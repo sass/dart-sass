@@ -5,10 +5,16 @@
 import 'package:sass/sass.dart' as sass;
 import 'package:sass_embedded/src/embedded_sass.pb.dart';
 
+import 'dispatcher.dart';
+import 'function_registry.dart';
+import 'host_callable.dart';
 import 'utils.dart';
 
 /// Converts [value] to its protocol buffer representation.
-Value protofyValue(sass.Value value) {
+///
+/// The [functions] tracks the IDs of first-class functions so that the host can
+/// pass them back to the compiler.
+Value protofyValue(FunctionRegistry functions, sass.Value value) {
   var result = Value();
   if (value is sass.SassString) {
     result.string = Value_String()
@@ -31,17 +37,20 @@ Value protofyValue(sass.Value value) {
   } else if (value is sass.SassList) {
     var list = Value_List()
       ..separator = _protofySeparator(value.separator)
-      ..hasBrackets = value.hasBrackets;
-    list.contents.addAll(value.asList.map(protofyValue));
+      ..hasBrackets = value.hasBrackets
+      ..contents.addAll(
+          [for (var element in value.asList) protofyValue(functions, element)]);
     result.list = list;
   } else if (value is sass.SassMap) {
     var map = Value_Map();
     value.contents.forEach((key, value) {
       map.entries.add(Value_Map_Entry()
-        ..key = protofyValue(key)
-        ..value = protofyValue(value));
+        ..key = protofyValue(functions, key)
+        ..value = protofyValue(functions, value));
     });
     result.map = map;
+  } else if (value is sass.SassFunction) {
+    result.compilerFunction = functions.protofy(value);
   } else if (value == sass.sassTrue) {
     result.singleton = Value_Singleton.TRUE;
   } else if (value == sass.sassFalse) {
@@ -69,7 +78,16 @@ Value_List_Separator _protofySeparator(sass.ListSeparator separator) {
 }
 
 /// Converts [value] to its Sass representation.
-sass.Value deprotofyValue(Value value) {
+///
+/// The [functions] tracks the IDs of first-class functions so that they can be
+/// deserialized to their original references.
+sass.Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
+    int compilationId, Value value) {
+  // Curry recursive calls to this function so we don't have to keep repeating
+  // ourselves.
+  var deprotofy = (Value value) =>
+      deprotofyValue(dispatcher, functions, compilationId, value);
+
   switch (value.whichValue()) {
     case Value_Value.string:
       return value.string.text.isEmpty
@@ -110,22 +128,32 @@ sass.Value deprotofyValue(Value value) {
             "$length elements");
       }
 
-      return sass.SassList(value.list.contents.map(deprotofyValue), separator,
-          brackets: value.list.hasBrackets);
+      return sass.SassList([
+        for (var element in value.list.contents) deprotofy(element)
+      ], separator, brackets: value.list.hasBrackets);
 
     case Value_Value.map:
       return value.map.entries.isEmpty
           ? const sass.SassMap.empty()
           : sass.SassMap({
               for (var entry in value.map.entries)
-                deprotofyValue(entry.key): deprotofyValue(entry.value)
+                deprotofy(entry.key): deprotofy(entry.value)
             });
 
     case Value_Value.compilerFunction:
-      throw "CompilerFunctions are not yet supported.";
+      var id = value.compilerFunction.id;
+      var function = functions[id];
+      if (function == null) {
+        throw paramsError(
+            "CompilerFunction.id $id doesn't match any known functions");
+      }
+
+      return function;
 
     case Value_Value.hostFunction:
-      throw "HostFunctions not yet supported.";
+      return sass.SassFunction(hostCallable(
+          dispatcher, functions, compilationId, value.hostFunction.signature,
+          id: value.hostFunction.id));
 
     case Value_Value.singleton:
       switch (value.singleton) {
