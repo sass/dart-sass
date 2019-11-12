@@ -1071,8 +1071,8 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitErrorRule(ErrorRule node) async {
-    throw _exception((await node.expression.accept(this).toString()), node.span,
-        SassRuntimeExceptionType.error);
+    throw _exception(
+        (await node.expression.accept(this)).toString(), node.span);
   }
 
   Future<Value> visitExtendRule(ExtendRule node) async {
@@ -1469,14 +1469,7 @@ class _EvaluateVisitor
         await _environment.withContent(contentCallable, () async {
           await _environment.asMixin(() async {
             for (var statement in mixin.declaration.children) {
-              try {
-                await statement.accept(this);
-              } on SassRuntimeException catch (error) {
-                if (error.type != SassRuntimeExceptionType.error) rethrow;
-
-                throw SassRuntimeException(
-                    error.message, node.span, _stackTrace(error.span));
-              }
+              await _addErrorSpanAsync(node, () => statement.accept(this));
             }
           });
           return null;
@@ -1990,16 +1983,10 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    try {
-      var result = await _runFunctionCallable(node.arguments, function, node);
-      _inFunction = oldInFunction;
-      return result;
-    } on SassRuntimeException catch (error) {
-      if (error.type != SassRuntimeExceptionType.error) rethrow;
-
-      throw SassRuntimeException(
-          error.message, node.span, _stackTrace(error.span));
-    }
+    var result = await _addErrorSpanAsync(
+        node, () => _runFunctionCallable(node.arguments, function, node));
+    _inFunction = oldInFunction;
+    return result;
   }
 
   /// Like `_environment.getFunction`, but also returns built-in
@@ -2812,10 +2799,9 @@ class _EvaluateVisitor
   /// Throws a [SassRuntimeException] with the given [message].
   ///
   /// If [span] is passed, it's used for the innermost stack frame.
-  SassRuntimeException _exception(String message,
-          [FileSpan span, SassRuntimeExceptionType type]) =>
+  SassRuntimeException _exception(String message, [FileSpan span]) =>
       SassRuntimeException(
-          message, span ?? _stack.last.item2.span, _stackTrace(span), type);
+          message, span ?? _stack.last.item2.span, _stackTrace(span));
 
   /// Runs [callback], and adjusts any [SassFormatException] to be within
   /// [nodeWithSpan]'s source span.
@@ -2866,6 +2852,31 @@ class _EvaluateVisitor
       return await callback();
     } on SassScriptException catch (error) {
       throw _exception(error.message, nodeWithSpan.span);
+    }
+  }
+
+  /// Runs [callback], and converts any [SassRuntimeException]s containing an
+  /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
+  /// source span.
+  T _addErrorSpan<T>(AstNode nodeWithSpan, T callback()) {
+    try {
+      return callback();
+    } on SassRuntimeException catch (error) {
+      if (!error.span.text.startsWith("@error")) rethrow;
+      throw SassRuntimeException(
+          error.message, nodeWithSpan.span, _stackTrace(nodeWithSpan.span));
+    }
+  }
+
+  /// Like [_addErrorSpan], but for an asynchronous [callback].
+  Future<T> _addErrorSpanAsync<T>(
+      AstNode nodeWithSpan, Future<T> callback()) async {
+    try {
+      return await callback();
+    } on SassRuntimeException catch (error) {
+      if (!error.span.text.startsWith("@error")) rethrow;
+      throw SassRuntimeException(
+          error.message, nodeWithSpan.span, _stackTrace(nodeWithSpan.span));
     }
   }
 }

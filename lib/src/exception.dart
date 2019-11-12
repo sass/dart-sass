@@ -81,14 +81,8 @@ body::before {
 class SassRuntimeException extends SassException {
   final Trace trace;
 
-  SassRuntimeExceptionType type;
-
-  SassRuntimeException(String message, FileSpan span, this.trace, [this.type])
+  SassRuntimeException(String message, FileSpan span, this.trace)
       : super(message, span);
-}
-
-enum SassRuntimeExceptionType {
-  error,
 }
 
 /// An exception thrown when Sass parsing has failed.

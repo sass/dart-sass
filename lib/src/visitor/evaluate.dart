@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: fdd4dcbee0cc9f3af5b8c78612aab7823beb9abb
+// Checksum: 4d00afa45e1a405a53159888e7912d9ab6e9c178
 //
 // ignore_for_file: unused_import
 
@@ -1076,8 +1076,7 @@ class _EvaluateVisitor
   }
 
   Value visitErrorRule(ErrorRule node) {
-    throw _exception(node.expression.accept(this).toString(), node.span,
-        SassRuntimeExceptionType.error);
+    throw _exception(node.expression.accept(this).toString(), node.span);
   }
 
   Value visitExtendRule(ExtendRule node) {
@@ -1469,14 +1468,7 @@ class _EvaluateVisitor
         _environment.withContent(contentCallable, () {
           _environment.asMixin(() {
             for (var statement in mixin.declaration.children) {
-              try {
-                statement.accept(this);
-              } on SassRuntimeException catch (error) {
-                if (error.type != SassRuntimeExceptionType.error) rethrow;
-
-                throw SassRuntimeException(
-                    error.message, node.span, _stackTrace(error.span));
-              }
+              _addErrorSpan(node, () => statement.accept(this));
             }
           });
           return null;
@@ -1980,16 +1972,10 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    try {
-      var result = _runFunctionCallable(node.arguments, function, node);
-      _inFunction = oldInFunction;
-      return result;
-    } on SassRuntimeException catch (error) {
-      if (error.type != SassRuntimeExceptionType.error) rethrow;
-
-      throw SassRuntimeException(
-          error.message, node.span, _stackTrace(error.span));
-    }
+    var result = _addErrorSpan(
+        node, () => _runFunctionCallable(node.arguments, function, node));
+    _inFunction = oldInFunction;
+    return result;
   }
 
   /// Like `_environment.getFunction`, but also returns built-in
@@ -2788,10 +2774,9 @@ class _EvaluateVisitor
   /// Throws a [SassRuntimeException] with the given [message].
   ///
   /// If [span] is passed, it's used for the innermost stack frame.
-  SassRuntimeException _exception(String message,
-          [FileSpan span, SassRuntimeExceptionType type]) =>
+  SassRuntimeException _exception(String message, [FileSpan span]) =>
       SassRuntimeException(
-          message, span ?? _stack.last.item2.span, _stackTrace(span), type);
+          message, span ?? _stack.last.item2.span, _stackTrace(span));
 
   /// Runs [callback], and adjusts any [SassFormatException] to be within
   /// [nodeWithSpan]'s source span.
@@ -2832,6 +2817,19 @@ class _EvaluateVisitor
       return callback();
     } on SassScriptException catch (error) {
       throw _exception(error.message, nodeWithSpan.span);
+    }
+  }
+
+  /// Runs [callback], and converts any [SassRuntimeException]s containing an
+  /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
+  /// source span.
+  T _addErrorSpan<T>(AstNode nodeWithSpan, T callback()) {
+    try {
+      return callback();
+    } on SassRuntimeException catch (error) {
+      if (!error.span.text.startsWith("@error")) rethrow;
+      throw SassRuntimeException(
+          error.message, nodeWithSpan.span, _stackTrace(nodeWithSpan.span));
     }
   }
 }
