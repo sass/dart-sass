@@ -1,3 +1,7 @@
+## 1.23.5
+
+* Support inline comments in the indented syntax.
+
 ## 1.23.4
 
 ### Command-Line Interface
