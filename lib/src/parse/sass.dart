@@ -319,7 +319,7 @@ class SassParser extends StylesheetParser {
     }
   }
 
-  bool loudComment() {
+  void loudComment() {
     // This overrides loud comment consumption so that it doesn't consume
     // multi-line comments.
     scanner.expect("/*");
