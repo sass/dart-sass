@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4d00afa45e1a405a53159888e7912d9ab6e9c178
+// Checksum: 14dca11ccb77211c498bd38737edd63956700aba
 //
 // ignore_for_file: unused_import
 
@@ -2829,7 +2829,7 @@ class _EvaluateVisitor
     } on SassRuntimeException catch (error) {
       if (!error.span.text.startsWith("@error")) rethrow;
       throw SassRuntimeException(
-          error.message, nodeWithSpan.span, _stackTrace(nodeWithSpan.span));
+          error.message, nodeWithSpan.span, _stackTrace());
     }
   }
 }

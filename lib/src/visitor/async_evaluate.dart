@@ -2864,7 +2864,7 @@ class _EvaluateVisitor
     } on SassRuntimeException catch (error) {
       if (!error.span.text.startsWith("@error")) rethrow;
       throw SassRuntimeException(
-          error.message, nodeWithSpan.span, _stackTrace(nodeWithSpan.span));
+          error.message, nodeWithSpan.span, _stackTrace());
     }
   }
 
@@ -2876,7 +2876,7 @@ class _EvaluateVisitor
     } on SassRuntimeException catch (error) {
       if (!error.span.text.startsWith("@error")) rethrow;
       throw SassRuntimeException(
-          error.message, nodeWithSpan.span, _stackTrace(nodeWithSpan.span));
+          error.message, nodeWithSpan.span, _stackTrace());
     }
   }
 }
