@@ -1469,7 +1469,7 @@ class _EvaluateVisitor
         await _environment.withContent(contentCallable, () async {
           await _environment.asMixin(() async {
             for (var statement in mixin.declaration.children) {
-              await _addErrorSpanAsync(node, () => statement.accept(this));
+              await _addErrorSpan(node, () => statement.accept(this));
             }
           });
           return null;
@@ -1983,7 +1983,7 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    var result = await _addErrorSpanAsync(
+    var result = await _addErrorSpan(
         node, () => _runFunctionCallable(node.arguments, function, node));
     _inFunction = oldInFunction;
     return result;
@@ -2858,19 +2858,7 @@ class _EvaluateVisitor
   /// Runs [callback], and converts any [SassRuntimeException]s containing an
   /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
   /// source span.
-  T _addErrorSpan<T>(AstNode nodeWithSpan, T callback()) {
-    try {
-      return callback();
-    } on SassRuntimeException catch (error) {
-      if (!error.span.text.startsWith("@error")) rethrow;
-      throw SassRuntimeException(
-          error.message, nodeWithSpan.span, _stackTrace());
-    }
-  }
-
-  /// Like [_addErrorSpan], but for an asynchronous [callback].
-  Future<T> _addErrorSpanAsync<T>(
-      AstNode nodeWithSpan, Future<T> callback()) async {
+  Future<T> _addErrorSpan<T>(AstNode nodeWithSpan, Future<T> callback()) async {
     try {
       return await callback();
     } on SassRuntimeException catch (error) {
