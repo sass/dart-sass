@@ -1469,7 +1469,7 @@ class _EvaluateVisitor
         await _environment.withContent(contentCallable, () async {
           await _environment.asMixin(() async {
             for (var statement in mixin.declaration.children) {
-              await statement.accept(this);
+              await _addErrorSpan(node, () => statement.accept(this));
             }
           });
           return null;
@@ -1983,7 +1983,8 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    var result = await _runFunctionCallable(node.arguments, function, node);
+    var result = await _addErrorSpan(
+        node, () => _runFunctionCallable(node.arguments, function, node));
     _inFunction = oldInFunction;
     return result;
   }
@@ -2851,6 +2852,19 @@ class _EvaluateVisitor
       return await callback();
     } on SassScriptException catch (error) {
       throw _exception(error.message, nodeWithSpan.span);
+    }
+  }
+
+  /// Runs [callback], and converts any [SassRuntimeException]s containing an
+  /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
+  /// source span.
+  Future<T> _addErrorSpan<T>(AstNode nodeWithSpan, Future<T> callback()) async {
+    try {
+      return await callback();
+    } on SassRuntimeException catch (error) {
+      if (!error.span.text.startsWith("@error")) rethrow;
+      throw SassRuntimeException(
+          error.message, nodeWithSpan.span, _stackTrace());
     }
   }
 }

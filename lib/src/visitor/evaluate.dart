@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7bcd07f449d67c0f625de8e505a9c74cfed0b616
+// Checksum: 9617d2d08b71858db9228b0858f2f27f87a35bf7
 //
 // ignore_for_file: unused_import
 
@@ -1468,7 +1468,7 @@ class _EvaluateVisitor
         _environment.withContent(contentCallable, () {
           _environment.asMixin(() {
             for (var statement in mixin.declaration.children) {
-              statement.accept(this);
+              _addErrorSpan(node, () => statement.accept(this));
             }
           });
           return null;
@@ -1972,7 +1972,8 @@ class _EvaluateVisitor
 
     var oldInFunction = _inFunction;
     _inFunction = true;
-    var result = _runFunctionCallable(node.arguments, function, node);
+    var result = _addErrorSpan(
+        node, () => _runFunctionCallable(node.arguments, function, node));
     _inFunction = oldInFunction;
     return result;
   }
@@ -2816,6 +2817,19 @@ class _EvaluateVisitor
       return callback();
     } on SassScriptException catch (error) {
       throw _exception(error.message, nodeWithSpan.span);
+    }
+  }
+
+  /// Runs [callback], and converts any [SassRuntimeException]s containing an
+  /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
+  /// source span.
+  T _addErrorSpan<T>(AstNode nodeWithSpan, T callback()) {
+    try {
+      return callback();
+    } on SassRuntimeException catch (error) {
+      if (!error.span.text.startsWith("@error")) rethrow;
+      throw SassRuntimeException(
+          error.message, nodeWithSpan.span, _stackTrace());
     }
   }
 }
