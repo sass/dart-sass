@@ -1,3 +1,9 @@
+## 1.23.5
+
+* When `@error` is used in a function or mixin, print the call site rather than
+  the location of the `@error` itself to better match the behavior of calling a
+  built-in function that throws an error.
+
 ## 1.23.4
 
 ### Command-Line Interface
