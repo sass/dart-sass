@@ -56,11 +56,32 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// Returns the argument declaration and Dart callback for the given
   /// positional and named arguments.
   ///
-  /// Note that this doesn't guarantee that [positional] and [names] are valid
-  /// for the returned [ArgumentDeclaration].
+  /// If no exact match is found, finds the closest approximation. Note that this
+  /// doesn't guarantee that [positional] and [names] are valid for the returned
+  /// [ArgumentDeclaration].
   Tuple2<ArgumentDeclaration, _Callback> callbackFor(
-          int positional, Set<String> names) =>
-      _overloads.take(_overloads.length - 1).firstWhere(
-          (overload) => overload.item1.matches(positional, names),
-          orElse: () => _overloads.last);
+      int positional, Set<String> names) {
+    Tuple2<ArgumentDeclaration, _Callback> fuzzyMatch;
+    int minMismatchDistance;
+
+    for (var overload in _overloads) {
+      // Ideally, find an exact match.
+      if (overload.item1.matches(positional, names)) return overload;
+
+      var mismatchDistance = overload.item1.arguments.length - positional;
+
+      if (minMismatchDistance != null) {
+        if (mismatchDistance.abs() > minMismatchDistance.abs()) continue;
+        // If two overloads have the same mismatch distance, favor the overload
+        // that has more arguments.
+        if (mismatchDistance.abs() == minMismatchDistance.abs() &&
+            mismatchDistance < 0) continue;
+      }
+
+      minMismatchDistance = mismatchDistance;
+      fuzzyMatch = overload;
+    }
+
+    return fuzzyMatch;
+  }
 }
