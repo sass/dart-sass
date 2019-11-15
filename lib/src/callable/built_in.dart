@@ -64,8 +64,6 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
     int minMismatchDistance;
 
     for (var overload in _overloads) {
-      var overload = _overloads[i];
-
       // Ideally, find an exact match.
       if (overload.item1.matches(positional, names)) return overload;
 
@@ -75,8 +73,8 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
         if (mismatchDistance.abs() > minMismatchDistance.abs()) continue;
         // If two overloads have the same mismatch distance, favor the overload
         // that has more arguments.
-        if ((mismatchDistance.abs() == minMismatchDistance.abs()) &&
-            (mismatchDistance < 0)) continue;
+        if (mismatchDistance.abs() == minMismatchDistance.abs() &&
+            mismatchDistance < 0) continue;
       }
 
       minMismatchDistance = mismatchDistance;
