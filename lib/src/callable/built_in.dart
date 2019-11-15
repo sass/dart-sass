@@ -63,13 +63,13 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
     Tuple2<ArgumentDeclaration, _Callback> fuzzyMatch;
     int minMismatchDistance;
 
-    for (var i = 0; i < _overloads.length; i++) {
+    for (var overload in _overloads) {
       var overload = _overloads[i];
 
       // Ideally, find an exact match.
       if (overload.item1.matches(positional, names)) return overload;
 
-      int mismatchDistance = overload.item1.arguments.length - positional;
+      var mismatchDistance = overload.item1.arguments.length - positional;
 
       if (minMismatchDistance != null) {
         if (mismatchDistance.abs() > minMismatchDistance.abs()) continue;
