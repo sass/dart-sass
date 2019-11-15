@@ -1,5 +1,9 @@
 ## 1.23.5
 
+* When an overloaded function receives the wrong number of arguments, guess
+  which overload the user actually meant to invoke, and display the invalid
+  argument error for that overload.
+
 * When `@error` is used in a function or mixin, print the call site rather than
   the location of the `@error` itself to better match the behavior of calling a
   built-in function that throws an error.
