@@ -1,5 +1,7 @@
 ## 1.23.5
 
+* Support inline comments in the indented syntax.
+
 * When an overloaded function receives the wrong number of arguments, guess
   which overload the user actually meant to invoke, and display the invalid
   argument error for that overload.
