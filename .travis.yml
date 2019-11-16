@@ -187,9 +187,6 @@ jobs:
   - name: Chocolatey
     if: *deploy-if
     env:
-      # File system watching is extra flaky on Dart 2.5.0 on Windows (see
-      # dart-lang/sdk#38334).
-      - DART_VERSION=2.4.1
       # CHOCO_TOKEN="..."
       - secure: "cW11kQYBBEElfVsc1pJfVEHOMYwt0ZK+9STZHwSPbAISlplIRnsimMN7TqCY2aLnkWXyUMU7DphIl9uQ86M4BT1bJopsHbapj27bFSlKWHlBSDB/xylFHywV41Yk5lMlr8DLMbsSzVahasyR34xS6HYIRlDpZ9TFiQuDQNJxQmqTZJg/FC+3nqCI7tyMKGkWc48ikTcmqDMHsG9CudG2u+Q3S9sLNXArh9T4tSnAyWkTvSrS05mvFx5tC83PcG9/VkioTId+VRSJchwTmCxDFDROrTikTXZMtYn8wMAQ2wQ34TQXNZMZ9uiHA6W0IuJV2EnYerJbqV2lrJq9xqZywKu6HW6i4GhrCvizALNFZx/N7s/10xuf3UcuWizYml/e0MYT+6t4ojTYBMKv+Cx+H2Y2Jdpvdn2ZAIl6LaU3pLw4OIPJ7aXjDwZd63MPxtwGwVLHbH7Zu+oUv1erIq5LtatuocGWipD8WdiMBQvyCuDRMowpLPoAbj+mevOf+xlY2Eym4tOXpxM7iY3lXFHROo5dQbhsARfVF9J1gl5PuYXvCjxqTfK/ef9t3ZoDbi57+yAJUWlZfWa5r1zKE8OS0pA8GfQRLom/Lt0wKVw4Xiofgolzd9pEHi4JpsYIQb8O+u1ACQU6nBCS87CGrQ+ylnzKfGUs0aW2K3gvbkg0LUg="
     script: skip
