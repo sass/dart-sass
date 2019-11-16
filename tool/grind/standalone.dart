@@ -27,10 +27,11 @@ void appSnapshot() => _appSnapshot();
 @Task('Build a native-code Dart executable.')
 void nativeExecutable() {
   ensureBuild();
-  run(p.join(sdkDir.path, 'bin/dart2aot'), arguments: [
+  run(p.join(sdkDir.path, 'bin/dart2native'), arguments: [
+    '--output-kind=aot',
     'bin/sass.dart',
     '-Dversion=$version',
-    'build/sass.dart.native'
+    '--output=build/sass.dart.native'
   ]);
 }
 
