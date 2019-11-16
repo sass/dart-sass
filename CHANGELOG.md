@@ -1,3 +1,7 @@
+## 1.23.6
+
+* No user-visible changes.
+
 ## 1.23.5
 
 * Support inline comments in the indented syntax.
