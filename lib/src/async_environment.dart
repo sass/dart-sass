@@ -13,6 +13,7 @@ import 'ast/css.dart';
 import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'callable.dart';
+import 'configuration.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
 import 'module.dart';
@@ -728,6 +729,22 @@ class AsyncEnvironment {
       }
       _nestedForwardedModules?.removeLast();
     }
+  }
+
+  /// Creates an implicit configuration from the variables declared in this
+  /// environment.
+  Configuration toImplicitConfiguration() {
+    var configuration = <String, ConfiguredValue>{};
+    for (var i = 0; i < _variables.length; i++) {
+      var values = _variables[i];
+      var nodes =
+          _variableNodes == null ? <String, AstNode>{} : _variableNodes[i];
+      for (var name in values.keys) {
+        configuration[name] =
+            ConfiguredValue(values[name], nodes[name]?.span, nodes[name]);
+      }
+    }
+    return Configuration(configuration, isImplicit: true);
   }
 
   /// Returns a module that represents the top-level members defined in [this],
