@@ -1,3 +1,8 @@
+## 1.23.8
+
+* **Potentially breaking bug fix:** Members loaded through a nested `@import`
+  are no longer ever accessible outside that nested context.
+
 ## 1.23.7
 
 * No user-visible changes.

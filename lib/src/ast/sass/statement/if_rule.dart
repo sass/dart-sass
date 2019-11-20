@@ -6,8 +6,10 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
+import '../import/dynamic.dart';
 import '../statement.dart';
 import 'function_rule.dart';
+import 'import_rule.dart';
 import 'mixin_rule.dart';
 import 'variable_declaration.dart';
 
@@ -69,7 +71,9 @@ class IfClause {
       : hasDeclarations = children.any((child) =>
             child is VariableDeclaration ||
             child is FunctionRule ||
-            child is MixinRule);
+            child is MixinRule ||
+            (child is ImportRule &&
+                child.imports.any((import) => import is DynamicImport)));
 
   String toString() =>
       (expression == null ? "@else" : "@if $expression") +
