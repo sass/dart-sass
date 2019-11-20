@@ -16,9 +16,9 @@ import 'value.dart';
 abstract class SassFunction extends Value {
   /// The callable that this function invokes.
   ///
-  /// Note that this is typed as an [AsyncCallback] so that it will work with
+  /// Note that this is typed as an [AsyncCallable] so that it will work with
   /// both synchronous and asynchronous evaluate visitors, but in practice the
-  /// synchronous evaluate visitor will crash if this isn't a [Callback].
+  /// synchronous evaluate visitor will crash if this isn't a [Callable].
   AsyncCallable get callable;
 
   factory SassFunction(AsyncCallable callable) = internal.SassFunction;
