@@ -1283,16 +1283,13 @@ class _EvaluateVisitor
       // need to put its CSS into an intermediate [ModifiableCssStylesheet] so
       // that we can hermetically resolve `@extend`s before injecting it.
       if (stylesheet.uses.isEmpty && stylesheet.forwards.isEmpty) {
-        var environment = _environment.global();
-        await _withEnvironment(environment, () async {
-          var oldImporter = _importer;
-          var oldStylesheet = _stylesheet;
-          _importer = importer;
-          _stylesheet = stylesheet;
-          await visitStylesheet(stylesheet);
-          _importer = oldImporter;
-          _stylesheet = oldStylesheet;
-        });
+        var oldImporter = _importer;
+        var oldStylesheet = _stylesheet;
+        _importer = importer;
+        _stylesheet = stylesheet;
+        await visitStylesheet(stylesheet);
+        _importer = oldImporter;
+        _stylesheet = oldStylesheet;
         _activeModules.remove(url);
         return;
       }

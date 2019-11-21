@@ -17,6 +17,7 @@ import 'exception.dart';
 import 'extend/extender.dart';
 import 'module.dart';
 import 'module/forwarded_view.dart';
+import 'module/shadowed_view.dart';
 import 'util/merged_map_view.dart';
 import 'util/public_member_map_view.dart';
 import 'utils.dart';
@@ -41,6 +42,13 @@ class AsyncEnvironment {
   ///
   /// This is `null` if there are no forwarded modules.
   List<Module> _forwardedModules;
+
+  /// Modules forwarded by nested imports at each lexical scope level *beneath
+  /// the global scope*.
+  ///
+  /// This is `null` until it's needed, since most environments won't ever use
+  /// this.
+  List<List<Module>> _nestedForwardedModules;
 
   /// Modules from [_modules], [_globalModules], and [_forwardedModules], in the
   /// order in which they were `@use`d.
@@ -128,6 +136,7 @@ class AsyncEnvironment {
       : _modules = {},
         _globalModules = null,
         _forwardedModules = null,
+        _nestedForwardedModules = null,
         _allModules = [],
         _variables = [{}],
         _variableNodes = sourceMap ? [{}] : null,
@@ -141,6 +150,7 @@ class AsyncEnvironment {
       this._modules,
       this._globalModules,
       this._forwardedModules,
+      this._nestedForwardedModules,
       this._allModules,
       this._variables,
       this._variableNodes,
@@ -164,6 +174,7 @@ class AsyncEnvironment {
       _modules,
       _globalModules,
       _forwardedModules,
+      _nestedForwardedModules,
       _allModules,
       _variables.toList(),
       _variableNodes?.toList(),
@@ -177,6 +188,7 @@ class AsyncEnvironment {
   /// functions, and mixins, but not its modules.
   AsyncEnvironment global() => AsyncEnvironment._(
       {},
+      null,
       null,
       null,
       [],
@@ -270,30 +282,63 @@ class AsyncEnvironment {
   /// This is called when [module] is `@import`ed.
   void importForwards(Module module) {
     if (module is _EnvironmentModule) {
-      for (var forwarded
-          in module._environment._forwardedModules ?? const <Module>[]) {
-        _globalModules ??= {};
-        _globalModules.add(forwarded);
+      var forwarded = module._environment._forwardedModules;
+      if (forwarded == null) return;
 
-        // Remove existing definitions that the forwarded members are now
-        // shadowing.
-        for (var variable in forwarded.variables.keys) {
-          var index =
-              _variableIndices.remove(variable) ?? _variableIndex(variable);
-          if (index != null) {
-            _variables[index].remove(variable);
-            if (_variableNodes != null) _variableNodes[index].remove(variable);
+      _globalModules ??= {};
+      _forwardedModules ??= [];
+
+      var forwardedVariableNames =
+          forwarded.expand((module) => module.variables.keys).toSet();
+      var forwardedFunctionNames =
+          forwarded.expand((module) => module.functions.keys).toSet();
+      var forwardedMixinNames =
+          forwarded.expand((module) => module.mixins.keys).toSet();
+
+      if (atRoot) {
+        // Hide members from modules that have already been imported or
+        // forwarded that would otherwise conflict with the @imported members.
+        for (var module in _globalModules.toList()) {
+          var shadowed = ShadowedModuleView.ifNecessary(module,
+              variables: forwardedVariableNames,
+              mixins: forwardedMixinNames,
+              functions: forwardedFunctionNames);
+          if (shadowed != null) {
+            _globalModules.remove(module);
+            _globalModules.add(shadowed);
           }
         }
-        for (var function in forwarded.functions.keys) {
-          var index =
-              _functionIndices.remove(function) ?? _functionIndex(function);
-          if (index != null) _functions[index].remove(function);
+        for (var i = 0; i < _forwardedModules.length; i++) {
+          var module = _forwardedModules[i];
+          var shadowed = ShadowedModuleView.ifNecessary(module,
+              variables: forwardedVariableNames,
+              mixins: forwardedMixinNames,
+              functions: forwardedFunctionNames);
+          if (shadowed != null) _forwardedModules[i] = shadowed;
         }
-        for (var mixin in forwarded.mixins.keys) {
-          var index = _mixinIndices.remove(mixin) ?? _mixinIndex(mixin);
-          if (index != null) _mixins[index].remove(mixin);
-        }
+
+        _globalModules.addAll(forwarded);
+        _forwardedModules.addAll(forwarded);
+      } else {
+        _nestedForwardedModules ??=
+            List.generate(_variables.length - 1, (_) => []);
+        _nestedForwardedModules.last.addAll(forwarded);
+      }
+
+      // Remove existing member definitions that are now shadowed by the
+      // forwarded modules.
+      for (var variable in forwardedVariableNames) {
+        _variableIndices.remove(variable);
+        _variables.last.remove(variable);
+        if (_variableNodes != null) _variableNodes.last.remove(variable);
+      }
+      for (var function in forwardedFunctionNames) {
+        _functionIndices.remove(function);
+        _functions.last.remove(function);
+      }
+      for (var mixin in forwardedMixinNames) {
+        _mixinIndices.remove(mixin);
+        _mixins.last.remove(mixin);
       }
     }
   }
@@ -465,6 +510,19 @@ class AsyncEnvironment {
       _variables.first[name] = value;
       if (_variableNodes != null) _variableNodes.first[name] = nodeWithSpan;
       return;
+    }
+
+    if (_nestedForwardedModules != null &&
+        !_variableIndices.containsKey(name) &&
+        _variableIndex(name) == null) {
+      for (var modules in _nestedForwardedModules.reversed) {
+        for (var module in modules.reversed) {
+          if (module.variables.containsKey(name)) {
+            module.setVariable(name, value, nodeWithSpan);
+            return;
+          }
+        }
+      }
     }
 
     var index = _lastVariableName == name
@@ -652,6 +710,7 @@ class AsyncEnvironment {
     _variableNodes?.add({});
     _functions.add({});
     _mixins.add({});
+    _nestedForwardedModules?.add([]);
     try {
       return await callback();
     } finally {
@@ -667,14 +726,18 @@ class AsyncEnvironment {
       for (var name in _mixins.removeLast().keys) {
         _mixinIndices.remove(name);
       }
+      _nestedForwardedModules?.removeLast();
     }
   }
 
   /// Returns a module that represents the top-level members defined in [this],
   /// that contains [css] as its CSS tree, which can be extended using
   /// [extender].
-  Module toModule(CssStylesheet css, Extender extender) =>
-      _EnvironmentModule(this, css, extender, forwarded: _forwardedModules);
+  Module toModule(CssStylesheet css, Extender extender) {
+    assert(atRoot);
+    return _EnvironmentModule(this, css, extender,
+        forwarded: _forwardedModules);
+  }
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
@@ -687,7 +750,8 @@ class AsyncEnvironment {
   }
 
   /// Returns the result of [callback] if it returns non-`null` for exactly one
-  /// module in [_globalModules].
+  /// module in [_globalModules] *or* for any module in
+  /// [_nestedForwardedModules].
   ///
   /// Returns `null` if [callback] returns `null` for all modules. Throws an
   /// error if [callback] returns non-`null` for more than one module.
@@ -695,6 +759,15 @@ class AsyncEnvironment {
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
   T _fromOneModule<T>(String type, T callback(Module module)) {
+    if (_nestedForwardedModules != null) {
+      for (var modules in _nestedForwardedModules.reversed) {
+        for (var module in modules.reversed) {
+          var value = callback(module);
+          if (value != null) return value;
+        }
+      }
+    }
+
     if (_globalModules == null) return null;
 
     T value;
