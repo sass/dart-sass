@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 9617d2d08b71858db9228b0858f2f27f87a35bf7
+// Checksum: 8b0be6a2009429b4a3a915f5ad5850e7891dd94d
 //
 // ignore_for_file: unused_import
 
@@ -1284,16 +1284,13 @@ class _EvaluateVisitor
       // need to put its CSS into an intermediate [ModifiableCssStylesheet] so
       // that we can hermetically resolve `@extend`s before injecting it.
       if (stylesheet.uses.isEmpty && stylesheet.forwards.isEmpty) {
-        var environment = _environment.global();
-        _withEnvironment(environment, () {
-          var oldImporter = _importer;
-          var oldStylesheet = _stylesheet;
-          _importer = importer;
-          _stylesheet = stylesheet;
-          visitStylesheet(stylesheet);
-          _importer = oldImporter;
-          _stylesheet = oldStylesheet;
-        });
+        var oldImporter = _importer;
+        var oldStylesheet = _stylesheet;
+        _importer = importer;
+        _stylesheet = stylesheet;
+        visitStylesheet(stylesheet);
+        _importer = oldImporter;
+        _stylesheet = oldStylesheet;
         _activeModules.remove(url);
         return;
       }
