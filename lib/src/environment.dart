@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b52f5d921ea089ce2924b43ada11b5c61f15f3fa
+// Checksum: 7da67a8956ec74db270764e941b674dcc315a488
 //
 // ignore_for_file: unused_import
 
@@ -20,6 +20,7 @@ import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'callable.dart';
 import 'configuration.dart';
+import 'configured_value.dart';
 import 'exception.dart';
 import 'extend/extender.dart';
 import 'module.dart';
@@ -744,8 +745,9 @@ class Environment {
       var nodes =
           _variableNodes == null ? <String, AstNode>{} : _variableNodes[i];
       for (var name in values.keys) {
-        configuration[name] =
-            ConfiguredValue(values[name], nodes[name]?.span, nodes[name]);
+        // Implicit configurations are never invalid, making [configurationSpan]
+        // unnecessary, so we pass null here to avoid having to compute it.
+        configuration[name] = ConfiguredValue(values[name], null, nodes[name]);
       }
     }
     return Configuration(configuration, isImplicit: true);

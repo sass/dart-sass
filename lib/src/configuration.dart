@@ -2,13 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
+import 'dart:collection';
 
-import 'ast/node.dart';
 import 'ast/sass.dart';
+import 'configured_value.dart';
 import 'util/limited_map_view.dart';
 import 'util/unprefixed_map_view.dart';
-import 'value.dart';
 
 /// A set of variables meant to configure a module by overriding its
 /// `!default` declarations.
@@ -24,23 +23,32 @@ import 'value.dart';
 class Configuration {
   /// A map from variable names (without `$`) to values.
   ///
-  /// When this is empty, it may be unmodifiable, so [Map.remove] should not be
-  /// called on this.
-  final Map<String, ConfiguredValue> values;
+  /// This map may not be modified directly. To remove a value from this
+  /// configuration, use the [remove] method.
+  Map<String, ConfiguredValue> get values => UnmodifiableMapView(_values);
+  final Map<String, ConfiguredValue> _values;
 
   /// Whether or not this configuration is implicit.
   final bool isImplicit;
 
-  Configuration(this.values, {this.isImplicit = false});
+  Configuration(Map<String, ConfiguredValue> values, {this.isImplicit = false})
+      : _values = values;
 
   /// The empty configuration, which indicates that the module has not been
   /// configured.
+  ///
+  /// Empty configurations are always considered implicit, since they are
+  /// ignored if the module has already been loaded.
   const Configuration.empty()
-      : values = const {},
-        isImplicit = false;
+      : _values = const {},
+        isImplicit = true;
 
   bool get isEmpty => values.isEmpty;
-  bool get isNotEmpty => values.isNotEmpty;
+
+  /// Removes a variable with [name] from this configuration, returning it.
+  ///
+  /// If no such variable exists in this configuration, returns null.
+  ConfiguredValue remove(String name) => isEmpty ? null : _values.remove(name);
 
   /// Creates a new configuration from this one based on a `@forward` rule.
   Configuration throughForward(ForwardRule forward) {
@@ -66,20 +74,4 @@ class Configuration {
   Configuration clone() => isEmpty
       ? const Configuration.empty()
       : Configuration({...values}, isImplicit: isImplicit);
-}
-
-/// A variable value that's been configured using `@use ... with`.
-class ConfiguredValue {
-  /// The value of the variable.
-  final Value value;
-
-  /// The span where the variable's configuration was written.
-  final FileSpan configurationSpan;
-
-  /// The [AstNode] where the variable's value originated.
-  ///
-  /// This is used to generate source maps.
-  final AstNode assignmentNode;
-
-  ConfiguredValue(this.value, this.configurationSpan, [this.assignmentNode]);
 }

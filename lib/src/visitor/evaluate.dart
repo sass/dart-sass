@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d69c77c42e500002e3e70bb0df7a9df72a11808f
+// Checksum: ff4d3ead904dd5abaa784e4a931d52b77ea7e82d
 //
 // ignore_for_file: unused_import
 
@@ -32,6 +32,7 @@ import '../import_cache.dart';
 import '../callable.dart';
 import '../color_names.dart';
 import '../configuration.dart';
+import '../configured_value.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../extend/extension.dart';
@@ -527,9 +528,7 @@ class _EvaluateVisitor
       {Uri baseUrl, Configuration configuration, bool namesInErrors = false}) {
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
-      if (configuration != null &&
-          configuration.isNotEmpty &&
-          !configuration.isImplicit) {
+      if (configuration != null && !configuration.isImplicit) {
         throw _exception(
             namesInErrors
                 ? "Built-in module $url can't be configured."
@@ -591,8 +590,7 @@ class _EvaluateVisitor
 
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
-      configuration ??= _configuration;
-      if (configuration.isNotEmpty && !configuration.isImplicit) {
+      if (!(configuration ?? _configuration).isImplicit) {
         throw _exception(namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
@@ -635,9 +633,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = false;
       _inKeyframes = false;
 
-      if (configuration != null) {
-        _configuration = configuration.clone();
-      }
+      if (configuration != null) _configuration = configuration.clone();
 
       visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
@@ -658,7 +654,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
       _inKeyframes = oldInKeyframes;
 
-      if (configuration != null && _configuration.isNotEmpty) {
+      if (configuration != null && !_configuration.isEmpty) {
         throw _exception(
             namesInErrors
                 ? "\$${_configuration.values.keys.first} was not declared with "
@@ -1705,13 +1701,7 @@ class _EvaluateVisitor
   Value visitVariableDeclaration(VariableDeclaration node) {
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
-        // Explicitly check whether [_configuration] is empty because if it is,
-        // it may be a constant map which doesn't support `remove()`.
-        //
-        // See also dart-lang/sdk#38540.
-        var override = _configuration.isEmpty
-            ? null
-            : _configuration.values.remove(node.name);
+        var override = _configuration.remove(node.name);
         if (override != null) {
           _addExceptionSpan(node, () {
             _environment.setVariable(
