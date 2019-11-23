@@ -1,4 +1,4 @@
-## 1.23.8
+## 1.24.0
 
 * **Potentially breaking bug fix:** Members loaded through a nested `@import`
   are no longer ever accessible outside that nested context.
@@ -6,6 +6,11 @@
 * Don't throw an error when importing two modules that both forward members with
   the same name. The latter name now takes precedence over the former, as per
   the specification.
+
+### Dart API
+
+* `SassFormatException` now implements `SourceSpanFormatException` (and thus
+  `FormatException`).
 
 ## 1.23.7
 

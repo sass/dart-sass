@@ -86,7 +86,8 @@ class SassRuntimeException extends SassException {
 }
 
 /// An exception thrown when Sass parsing has failed.
-class SassFormatException extends SassException {
+class SassFormatException extends SassException
+    implements SourceSpanFormatException {
   String get source => span.file.getText(0);
 
   int get offset => span.start.offset;
