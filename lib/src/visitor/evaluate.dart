@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 616c6b935c8b4acee040e359a167f653913c4015
+// Checksum: 63ce60ba47ac04b49e0a3edbe9038fb13b037e64
 //
 // ignore_for_file: unused_import
 
@@ -655,7 +655,9 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
       _inKeyframes = oldInKeyframes;
 
-      if (configuration != null && !_configuration.isEmpty) {
+      if (configuration != null &&
+          !_configuration.isEmpty &&
+          !_configuration.isImplicit) {
         throw _exception(
             namesInErrors
                 ? "\$${_configuration.values.keys.first} was not declared with "

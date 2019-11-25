@@ -651,7 +651,9 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
       _inKeyframes = oldInKeyframes;
 
-      if (configuration != null && !_configuration.isEmpty) {
+      if (configuration != null &&
+          !_configuration.isEmpty &&
+          !_configuration.isImplicit) {
         throw _exception(
             namesInErrors
                 ? "\$${_configuration.values.keys.first} was not declared with "
