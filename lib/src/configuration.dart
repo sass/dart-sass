@@ -53,7 +53,7 @@ class Configuration {
   /// Creates a new configuration from this one based on a `@forward` rule.
   Configuration throughForward(ForwardRule forward) {
     if (isEmpty) return const Configuration.empty();
-    var newValues = values;
+    var newValues = _values;
 
     // Only allow variables that are visible through the `@forward` to be
     // configured. These views support [Map.remove] so we can mark when a

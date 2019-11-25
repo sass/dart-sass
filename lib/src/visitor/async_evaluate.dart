@@ -410,25 +410,26 @@ class _EvaluateVisitor
         var url = Uri.parse(arguments[0].assertString("module").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
-        var configuration = const <String, ConfiguredValue>{};
+        var configuration = const Configuration.empty();
         if (withMap != null) {
-          configuration = {};
+          var values = <String, ConfiguredValue>{};
           var span = _callableNode.span;
           withMap.forEach((variable, value) {
             var name =
                 variable.assertString("with key").text.replaceAll("_", "-");
-            if (configuration.containsKey(name)) {
+            if (values.containsKey(name)) {
               throw "The variable \$$name was configured twice.";
             }
 
-            configuration[name] = ConfiguredValue(value, span);
+            values[name] = ConfiguredValue(value, span);
           });
+          configuration = Configuration(values);
         }
 
         await _loadModule(url, "load-css()", _callableNode,
             (module) => _combineCss(module, clone: true).accept(this),
             baseUrl: _callableNode.span?.sourceUrl,
-            configuration: Configuration(configuration),
+            configuration: configuration,
             namesInErrors: true);
         return null;
       })

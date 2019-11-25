@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ff4d3ead904dd5abaa784e4a931d52b77ea7e82d
+// Checksum: 616c6b935c8b4acee040e359a167f653913c4015
 //
 // ignore_for_file: unused_import
 
@@ -416,25 +416,26 @@ class _EvaluateVisitor
         var url = Uri.parse(arguments[0].assertString("module").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
-        var configuration = const <String, ConfiguredValue>{};
+        var configuration = const Configuration.empty();
         if (withMap != null) {
-          configuration = {};
+          var values = <String, ConfiguredValue>{};
           var span = _callableNode.span;
           withMap.forEach((variable, value) {
             var name =
                 variable.assertString("with key").text.replaceAll("_", "-");
-            if (configuration.containsKey(name)) {
+            if (values.containsKey(name)) {
               throw "The variable \$$name was configured twice.";
             }
 
-            configuration[name] = ConfiguredValue(value, span);
+            values[name] = ConfiguredValue(value, span);
           });
+          configuration = Configuration(values);
         }
 
         _loadModule(url, "load-css()", _callableNode,
             (module) => _combineCss(module, clone: true).accept(this),
             baseUrl: _callableNode.span?.sourceUrl,
-            configuration: Configuration(configuration),
+            configuration: configuration,
             namesInErrors: true);
         return null;
       })
