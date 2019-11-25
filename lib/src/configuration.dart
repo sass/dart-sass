@@ -11,15 +11,6 @@ import 'util/unprefixed_map_view.dart';
 
 /// A set of variables meant to configure a module by overriding its
 /// `!default` declarations.
-///
-/// There are two types of configuration: an explicit one that's created by
-/// the `with` clause of a `@use` rule and an implicit one that's created any
-/// time a file containing a `@forward` rule is imported.
-///
-/// Both types of configuration pass through `@forward` rules, but explicit
-/// configurations will cause an error if attempting to use them on a module
-/// that has already been loaded, while implicit configurations will be silently
-/// ignored in this case.
 class Configuration {
   /// A map from variable names (without `$`) to values.
   ///
@@ -29,6 +20,15 @@ class Configuration {
   final Map<String, ConfiguredValue> _values;
 
   /// Whether or not this configuration is implicit.
+  ///
+  /// Implicit configurations are created when a file containing a `@forward`
+  /// rule is imported, while explicit configurations are created by the
+  /// `with` clause of a `@use` rule.
+  ///
+  /// Both types of configuration pass through `@forward` rules, but explicit
+  /// configurations will cause an error if attempting to use them on a module
+  /// that has already been loaded, while implicit configurations will be
+  /// silently ignored in this case.
   final bool isImplicit;
 
   Configuration(Map<String, ConfiguredValue> values, {this.isImplicit = false})
