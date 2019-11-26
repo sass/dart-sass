@@ -17,7 +17,8 @@ class ConfiguredValue {
 
   /// The [AstNode] where the variable's value originated.
   ///
-  /// This is used to generate source maps.
+  /// This is used to generate source maps and can be `null` if source map
+  /// generation is disabled.
   final AstNode assignmentNode;
 
   ConfiguredValue(this.value, this.configurationSpan, [this.assignmentNode]);
