@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 8b0be6a2009429b4a3a915f5ad5850e7891dd94d
+// Checksum: 63ce60ba47ac04b49e0a3edbe9038fb13b037e64
 //
 // ignore_for_file: unused_import
 
@@ -31,6 +31,8 @@ import '../environment.dart';
 import '../import_cache.dart';
 import '../callable.dart';
 import '../color_names.dart';
+import '../configuration.dart';
+import '../configured_value.dart';
 import '../exception.dart';
 import '../extend/extender.dart';
 import '../extend/extension.dart';
@@ -46,8 +48,6 @@ import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../util/fixed_length_list_builder.dart';
-import '../util/limited_map_view.dart';
-import '../util/unprefixed_map_view.dart';
 import '../utils.dart';
 import '../value.dart';
 import '../warn.dart';
@@ -259,13 +259,10 @@ class _EvaluateVisitor
   /// module.
   Extender _extender;
 
-  /// A map from variable names to the values that override their `!default`
-  /// definitions in this module.
+  /// The configuration for the current module.
   ///
   /// If this is empty, that indicates that the current module is not confiured.
-  /// Note that it may be unmodifiable when empty, in which case [Map.remove]
-  /// must not be called.
-  var _configuration = const <String, _ConfiguredValue>{};
+  var _configuration = const Configuration.empty();
 
   /// Creates a new visitor.
   ///
@@ -419,19 +416,20 @@ class _EvaluateVisitor
         var url = Uri.parse(arguments[0].assertString("module").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
-        var configuration = const <String, _ConfiguredValue>{};
+        var configuration = const Configuration.empty();
         if (withMap != null) {
-          configuration = {};
+          var values = <String, ConfiguredValue>{};
           var span = _callableNode.span;
           withMap.forEach((variable, value) {
             var name =
                 variable.assertString("with key").text.replaceAll("_", "-");
-            if (configuration.containsKey(name)) {
+            if (values.containsKey(name)) {
               throw "The variable \$$name was configured twice.";
             }
 
-            configuration[name] = _ConfiguredValue(value, span);
+            values[name] = ConfiguredValue(value, span);
           });
+          configuration = Configuration(values);
         }
 
         _loadModule(url, "load-css()", _callableNode,
@@ -528,12 +526,10 @@ class _EvaluateVisitor
   /// the stack frame for the duration of the [callback].
   void _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
       void callback(Module<Callable> module),
-      {Uri baseUrl,
-      Map<String, _ConfiguredValue> configuration,
-      bool namesInErrors = false}) {
+      {Uri baseUrl, Configuration configuration, bool namesInErrors = false}) {
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
-      if (configuration != null && configuration.isNotEmpty) {
+      if (configuration != null && !configuration.isImplicit) {
         throw _exception(
             namesInErrors
                 ? "Built-in module $url can't be configured."
@@ -582,22 +578,20 @@ class _EvaluateVisitor
 
   /// Executes [stylesheet], loaded by [importer], to produce a module.
   ///
-  /// The [configuration] overrides values for `!default` variables defined in
-  /// the module or modules it forwards and/or imports. If it's not passed, the
-  /// current configuration is used instead. Throws a [SassRuntimeException] if
-  /// a configured variable is not declared with `!default`.
+  /// If [configuration] is not passed, the current configuration is used
+  /// instead. Throws a [SassRuntimeException] if a configured variable is not
+  /// declared with `!default`.
   ///
   /// If [namesInErrors] is `true`, this includes the names of modules or
   /// configured variables in errors relating to them. This should only be
   /// `true` if the names won't be obvious from the source span.
   Module<Callable> _execute(Importer importer, Stylesheet stylesheet,
-      {Map<String, _ConfiguredValue> configuration,
-      bool namesInErrors = false}) {
+      {Configuration configuration, bool namesInErrors = false}) {
     var url = stylesheet.span.sourceUrl;
 
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
-      if ((configuration ?? _configuration).isNotEmpty) {
+      if (!(configuration ?? _configuration).isImplicit) {
         throw _exception(namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
@@ -640,10 +634,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = false;
       _inKeyframes = false;
 
-      if (configuration != null) {
-        _configuration =
-            configuration.isEmpty ? const {} : Map.of(configuration);
-      }
+      if (configuration != null) _configuration = configuration.clone();
 
       visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
@@ -664,14 +655,16 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
       _inKeyframes = oldInKeyframes;
 
-      if (configuration != null && _configuration.isNotEmpty) {
+      if (configuration != null &&
+          !_configuration.isEmpty &&
+          !_configuration.isImplicit) {
         throw _exception(
             namesInErrors
-                ? "\$${_configuration.keys.first} was not declared with "
+                ? "\$${_configuration.values.keys.first} was not declared with "
                     "!default in the @used module."
                 : "This variable was not declared with !default in the @used "
                     "module.",
-            _configuration.values.first.configurationSpan);
+            _configuration.values.values.first.configurationSpan);
       }
       _configuration = oldConfiguration;
     });
@@ -1204,25 +1197,8 @@ class _EvaluateVisitor
   }
 
   Value visitForwardRule(ForwardRule node) {
-    // Only allow variables that are visible through the `@forward` to be
-    // configured. These views support [Map.remove] so we can mark when a
-    // configuration variable is used by removing it even when the underlying
-    // map is wrapped.
     var oldConfiguration = _configuration;
-    if (_configuration.isNotEmpty) {
-      if (node.prefix != null) {
-        _configuration = UnprefixedMapView(_configuration, node.prefix);
-      }
-
-      if (node.shownVariables != null) {
-        _configuration =
-            LimitedMapView.whitelist(_configuration, node.shownVariables);
-      } else if (node.hiddenVariables != null &&
-          node.hiddenVariables.isNotEmpty) {
-        _configuration =
-            LimitedMapView.blacklist(_configuration, node.hiddenVariables);
-      }
-    }
+    _configuration = _configuration.throughForward(node);
 
     _loadModule(node.url, "@forward", node, (module) {
       _environment.forwardModule(module, node);
@@ -1304,12 +1280,19 @@ class _EvaluateVisitor
         var oldParent = _parent;
         var oldEndOfImports = _endOfImports;
         var oldOutOfOrderImports = _outOfOrderImports;
+        var oldConfiguration = _configuration;
         _importer = importer;
         _stylesheet = stylesheet;
         _root = ModifiableCssStylesheet(stylesheet.span);
         _parent = _root;
         _endOfImports = 0;
         _outOfOrderImports = null;
+
+        // This configuration is only used if it passes through a `@forward`
+        // rule, so we avoid creating unnecessary ones for performance reasons.
+        if (stylesheet.forwards.isNotEmpty) {
+          _configuration = environment.toImplicitConfiguration();
+        }
 
         visitStylesheet(stylesheet);
         children = _addOutOfOrderImports();
@@ -1320,6 +1303,7 @@ class _EvaluateVisitor
         _parent = oldParent;
         _endOfImports = oldEndOfImports;
         _outOfOrderImports = oldOutOfOrderImports;
+        _configuration = oldConfiguration;
       });
 
       // Create a dummy module with empty CSS and no extensions to make forwarded
@@ -1720,12 +1704,7 @@ class _EvaluateVisitor
   Value visitVariableDeclaration(VariableDeclaration node) {
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
-        // Explicitly check whether [_configuration] is empty because if it is,
-        // it may be a constant map which doesn't support `remove()`.
-        //
-        // See also dart-lang/sdk#38540.
-        var override =
-            _configuration.isEmpty ? null : _configuration.remove(node.name);
+        var override = _configuration.remove(node.name);
         if (override != null) {
           _addExceptionSpan(node, () {
             _environment.setVariable(
@@ -1771,14 +1750,14 @@ class _EvaluateVisitor
       _environment.addModule(module, namespace: node.namespace);
     },
         configuration: node.configuration.isEmpty
-            ? const {}
-            : {
+            ? const Configuration.empty()
+            : Configuration({
                 for (var entry in node.configuration.entries)
-                  entry.key: _ConfiguredValue(
+                  entry.key: ConfiguredValue(
                       entry.value.item1.accept(this).withoutSlash(),
                       entry.value.item2,
                       _expressionNode(entry.value.item1))
-              });
+              }));
 
     return null;
   }
@@ -2930,20 +2909,4 @@ class _ArgumentResults {
 
   _ArgumentResults(this.positional, this.named, this.separator,
       {this.positionalNodes, this.namedNodes});
-}
-
-/// A variable value that's been configured using `@use ... with`.
-class _ConfiguredValue {
-  /// The value of the variable.
-  final Value value;
-
-  /// The span where the variable's configuration was written.
-  final FileSpan configurationSpan;
-
-  /// The [AstNode] where the variable's value originated.
-  ///
-  /// This is used to generate source maps.
-  final AstNode assignmentNode;
-
-  _ConfiguredValue(this.value, this.configurationSpan, [this.assignmentNode]);
 }
