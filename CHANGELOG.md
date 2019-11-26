@@ -11,6 +11,11 @@
   the same name. The latter name now takes precedence over the former, as per
   the specification.
 
+### Dart API
+
+* `SassFormatException` now implements `SourceSpanFormatException` (and thus
+  `FormatException`).
+
 ## 1.23.7
 
 * No user-visible changes
