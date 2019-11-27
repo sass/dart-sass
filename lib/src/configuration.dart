@@ -69,9 +69,4 @@ class Configuration {
     }
     return Configuration(newValues, isImplicit: isImplicit);
   }
-
-  /// Creates a copy of this configuration.
-  Configuration clone() => isEmpty
-      ? const Configuration.empty()
-      : Configuration({...values}, isImplicit: isImplicit);
 }

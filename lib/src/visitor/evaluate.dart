@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 63ce60ba47ac04b49e0a3edbe9038fb13b037e64
+// Checksum: de58af7bb88d7a688632ff096930a5d2be263a6d
 //
 // ignore_for_file: unused_import
 
@@ -634,7 +634,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = false;
       _inKeyframes = false;
 
-      if (configuration != null) _configuration = configuration.clone();
+      if (configuration != null) _configuration = configuration;
 
       visitStylesheet(stylesheet);
       css = _outOfOrderImports == null

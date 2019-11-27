@@ -630,7 +630,7 @@ class _EvaluateVisitor
       _atRootExcludingStyleRule = false;
       _inKeyframes = false;
 
-      if (configuration != null) _configuration = configuration.clone();
+      if (configuration != null) _configuration = configuration;
 
       await visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
