@@ -962,6 +962,8 @@ abstract class StylesheetParser extends Parser {
       hiddenVariables = members.item2;
     }
 
+    var configuration = _configuration(allowGuarded: true);
+
     expectStatementSeparator("@forward rule");
     var span = scanner.spanFrom(start);
     if (!_isUseAllowed) {
@@ -971,13 +973,14 @@ abstract class StylesheetParser extends Parser {
     if (shownMixinsAndFunctions != null) {
       return ForwardRule.show(
           url, shownMixinsAndFunctions, shownVariables, span,
-          prefix: prefix);
+          prefix: prefix, configuration: configuration);
     } else if (hiddenMixinsAndFunctions != null) {
       return ForwardRule.hide(
           url, hiddenMixinsAndFunctions, hiddenVariables, span,
-          prefix: prefix);
+          prefix: prefix, configuration: configuration);
     } else {
-      return ForwardRule(url, span, prefix: prefix);
+      return ForwardRule(url, span,
+          prefix: prefix, configuration: configuration);
     }
   }
 
@@ -1350,7 +1353,7 @@ relase. For details, see http://bit.ly/moz-document.
 
     var namespace = _useNamespace(url, start);
     whitespace();
-    var configuration = _useConfiguration();
+    var configuration = _configuration();
 
     expectStatementSeparator("@use rule");
 
@@ -1381,14 +1384,18 @@ relase. For details, see http://bit.ly/moz-document.
     }
   }
 
-  /// Returns the map from variable names to expressions from a `@use` rule's
-  /// `with` clause.
+  /// Returns the map from variable names to expressions from a `@use` or
+  /// `@forward` rule's `with` clause.
+  ///
+  /// If `allowGuarded` is `true`, this will allow configured variable with the
+  /// `!default` flag.
   ///
   /// Returns `null` if there is no `with` clause.
-  Map<String, Tuple2<Expression, FileSpan>> _useConfiguration() {
+  List<ConfiguredVariable> _configuration({bool allowGuarded = false}) {
     if (!scanIdentifier("with")) return null;
 
-    var configuration = <String, Tuple2<Expression, FileSpan>>{};
+    var variableNames = <String>{};
+    var configuration = <ConfiguredVariable>[];
     whitespace();
     scanner.expectChar($lparen);
 
@@ -1401,12 +1408,25 @@ relase. For details, see http://bit.ly/moz-document.
       scanner.expectChar($colon);
       whitespace();
       var expression = _expressionUntilComma();
-      var span = scanner.spanFrom(variableStart);
 
-      if (configuration.containsKey(name)) {
+      var guarded = false;
+      var flagStart = scanner.state;
+      if (allowGuarded && scanner.scanChar($exclamation)) {
+        var flag = identifier();
+        if (flag == 'default') {
+          guarded = true;
+        } else {
+          error("Invalid flag name.", scanner.spanFrom(flagStart));
+        }
+      }
+
+      var span = scanner.spanFrom(variableStart);
+      if (variableNames.contains(name)) {
         error("The same variable may only be configured once.", span);
       }
-      configuration[name] = Tuple2(expression, span);
+      variableNames.add(name);
+      configuration
+          .add(ConfiguredVariable(name, expression, span, guarded: guarded));
 
       if (!scanner.scanChar($comma)) break;
       whitespace();

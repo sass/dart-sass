@@ -3,12 +3,11 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:source_span/source_span.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../logger.dart';
 import '../../../parse/scss.dart';
 import '../../../visitor/interface/statement.dart';
-import '../expression.dart';
+import '../configured_variable.dart';
 import '../expression/string.dart';
 import '../statement.dart';
 
@@ -23,15 +22,23 @@ class UseRule implements Statement {
   /// can be accessed without a namespace.
   final String namespace;
 
-  /// A map from variable names to their values and the spans for those
-  /// variables, used to configure the loaded modules.
-  final Map<String, Tuple2<Expression, FileSpan>> configuration;
+  /// A list of variable assignments used to configure the loaded modules.
+  final List<ConfiguredVariable> configuration;
 
   final FileSpan span;
 
   UseRule(this.url, this.namespace, this.span,
-      {Map<String, Tuple2<Expression, FileSpan>> configuration})
-      : configuration = Map.unmodifiable(configuration ?? const {});
+      {Iterable<ConfiguredVariable> configuration})
+      : configuration = configuration == null
+            ? const []
+            : List.unmodifiable(configuration) {
+    for (var variable in this.configuration) {
+      if (variable.isGuarded) {
+        throw ArgumentError.value(variable, "configured variable",
+            "can't be guarded in a @use rule.");
+      }
+    }
+  }
 
   /// Parses a `@use` rule from [contents].
   ///
@@ -54,11 +61,7 @@ class UseRule implements Statement {
     }
 
     if (configuration.isNotEmpty) {
-      buffer.write(" with (");
-      buffer.write(configuration.entries
-          .map((entry) => "\$${entry.key}: ${entry.value.item1}")
-          .join(", "));
-      buffer.write(")");
+      buffer.write(" with (${configuration.join(", ")})");
     }
 
     buffer.write(";");

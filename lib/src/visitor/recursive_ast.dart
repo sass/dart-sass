@@ -29,6 +29,13 @@ abstract class RecursiveAstVisitor<T> extends RecursiveStatementVisitor<T>
 
   T visitColorExpression(ColorExpression node) => null;
 
+  T visitForwardRule(ForwardRule node) {
+    for (var variable in node.configuration) {
+      variable.expression.accept(this);
+    }
+    return null;
+  }
+
   T visitFunctionExpression(FunctionExpression node) {
     visitInterpolation(node.name);
     visitArgumentInvocation(node.arguments);
@@ -72,7 +79,12 @@ abstract class RecursiveAstVisitor<T> extends RecursiveStatementVisitor<T>
   T visitUnaryOperationExpression(UnaryOperationExpression node) =>
       node.operand.accept(this);
 
-  T visitUseRule(UseRule node) => null;
+  T visitUseRule(UseRule node) {
+    for (var variable in node.configuration) {
+      variable.expression.accept(this);
+    }
+    return null;
+  }
 
   T visitValueExpression(ValueExpression node) => null;
 

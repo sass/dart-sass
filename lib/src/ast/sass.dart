@@ -7,6 +7,7 @@ export 'sass/argument_declaration.dart';
 export 'sass/argument_invocation.dart';
 export 'sass/at_root_query.dart';
 export 'sass/callable_invocation.dart';
+export 'sass/configured_variable.dart';
 export 'sass/expression.dart';
 export 'sass/expression/binary_operation.dart';
 export 'sass/expression/boolean.dart';

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: de58af7bb88d7a688632ff096930a5d2be263a6d
+// Checksum: a1d9ccb1f21e0210717c3ecd86b6176c0543f44c
 //
 // ignore_for_file: unused_import
 
@@ -437,6 +437,8 @@ class _EvaluateVisitor
             baseUrl: _callableNode.span?.sourceUrl,
             configuration: configuration,
             namesInErrors: true);
+        _assertConfigurationIsEmpty(configuration, nameInError: true);
+
         return null;
       })
     ];
@@ -579,12 +581,11 @@ class _EvaluateVisitor
   /// Executes [stylesheet], loaded by [importer], to produce a module.
   ///
   /// If [configuration] is not passed, the current configuration is used
-  /// instead. Throws a [SassRuntimeException] if a configured variable is not
-  /// declared with `!default`.
+  /// instead.
   ///
-  /// If [namesInErrors] is `true`, this includes the names of modules or
-  /// configured variables in errors relating to them. This should only be
-  /// `true` if the names won't be obvious from the source span.
+  /// If [namesInErrors] is `true`, this includes the names of modules in errors
+  /// relating to them. This should only be `true` if the names won't be obvious
+  /// from the source span.
   Module<Callable> _execute(Importer importer, Stylesheet stylesheet,
       {Configuration configuration, bool namesInErrors = false}) {
     var url = stylesheet.span.sourceUrl;
@@ -633,7 +634,6 @@ class _EvaluateVisitor
       _inUnknownAtRule = false;
       _atRootExcludingStyleRule = false;
       _inKeyframes = false;
-
       if (configuration != null) _configuration = configuration;
 
       visitStylesheet(stylesheet);
@@ -654,18 +654,6 @@ class _EvaluateVisitor
       _inUnknownAtRule = oldInUnknownAtRule;
       _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
       _inKeyframes = oldInKeyframes;
-
-      if (configuration != null &&
-          !_configuration.isEmpty &&
-          !_configuration.isImplicit) {
-        throw _exception(
-            namesInErrors
-                ? "\$${_configuration.values.keys.first} was not declared with "
-                    "!default in the @used module."
-                : "This variable was not declared with !default in the @used "
-                    "module.",
-            _configuration.values.values.first.configurationSpan);
-      }
       _configuration = oldConfiguration;
     });
 
@@ -1198,14 +1186,91 @@ class _EvaluateVisitor
 
   Value visitForwardRule(ForwardRule node) {
     var oldConfiguration = _configuration;
-    _configuration = _configuration.throughForward(node);
+    var adjustedConfiguration = oldConfiguration.throughForward(node);
 
-    _loadModule(node.url, "@forward", node, (module) {
-      _environment.forwardModule(module, node);
-    });
+    if (node.configuration.isNotEmpty) {
+      var newConfiguration =
+          _addForwardConfiguration(adjustedConfiguration, node);
 
-    _configuration = oldConfiguration;
+      _loadModule(node.url, "@forward", node, (module) {
+        _environment.forwardModule(module, node);
+      }, configuration: newConfiguration);
+
+      _removeUsedConfiguration(adjustedConfiguration, newConfiguration,
+          except: node.configuration.isEmpty
+              ? const {}
+              : {
+                  for (var variable in node.configuration)
+                    if (!variable.isGuarded) variable.name
+                });
+
+      _assertConfigurationIsEmpty(newConfiguration,
+          only: {for (var variable in node.configuration) variable.name});
+    } else {
+      _configuration = adjustedConfiguration;
+      _loadModule(node.url, "@forward", node, (module) {
+        _environment.forwardModule(module, node);
+      });
+      _configuration = oldConfiguration;
+    }
+
     return null;
+  }
+
+  /// Updates [configuration] to include [node]'s configuration and return the
+  /// result.
+  Configuration _addForwardConfiguration(
+      Configuration configuration, ForwardRule node) {
+    var newValues = Map.of(configuration.values);
+    for (var variable in node.configuration) {
+      if (variable.isGuarded) {
+        var oldValue = configuration.remove(variable.name);
+        if (oldValue != null && oldValue.value != sassNull) {
+          newValues[variable.name] = oldValue;
+          continue;
+        }
+      }
+
+      newValues[variable.name] = ConfiguredValue(
+          variable.expression.accept(this).withoutSlash(),
+          variable.span,
+          _expressionNode(variable.expression));
+    }
+
+    return Configuration(newValues);
+  }
+
+  /// Remove configured values from [upstream] that have been removed from
+  /// [downstream], unless they match a name in [except].
+  void _removeUsedConfiguration(
+      Configuration upstream, Configuration downstream,
+      {@required Set<String> except}) {
+    for (var name in upstream.values.keys.toList()) {
+      if (except.contains(name)) continue;
+      if (!downstream.values.containsKey(name)) upstream.remove(name);
+    }
+  }
+
+  /// Throws an error if [configuration] contains any values.
+  ///
+  /// If [only] is passed, this will only throw an error for configured values
+  /// with the given names.
+  ///
+  /// If [nameInError] is `true`, this includes the name of the configured
+  /// variable in the error message. This should only be `true` if the name
+  /// won't be obvious from the source span.
+  void _assertConfigurationIsEmpty(Configuration configuration,
+      {Set<String> only, bool nameInError = false}) {
+    configuration.values.forEach((name, value) {
+      if (only != null && !only.contains(name)) return;
+
+      throw _exception(
+          nameInError
+              ? "\$$name was not declared with !default in the @used module."
+              : "This variable was not declared with !default in the @used "
+                  "module.",
+          value.configurationSpan);
+    });
   }
 
   Value visitFunctionRule(FunctionRule node) {
@@ -1746,18 +1811,20 @@ class _EvaluateVisitor
   }
 
   Value visitUseRule(UseRule node) {
+    var configuration = node.configuration.isEmpty
+        ? const Configuration.empty()
+        : Configuration({
+            for (var variable in node.configuration)
+              variable.name: ConfiguredValue(
+                  variable.expression.accept(this).withoutSlash(),
+                  variable.span,
+                  _expressionNode(variable.expression))
+          });
+
     _loadModule(node.url, "@use", node, (module) {
       _environment.addModule(module, namespace: node.namespace);
-    },
-        configuration: node.configuration.isEmpty
-            ? const Configuration.empty()
-            : Configuration({
-                for (var entry in node.configuration.entries)
-                  entry.key: ConfiguredValue(
-                      entry.value.item1.accept(this).withoutSlash(),
-                      entry.value.item2,
-                      _expressionNode(entry.value.item1))
-              }));
+    }, configuration: configuration);
+    _assertConfigurationIsEmpty(configuration);
 
     return null;
   }
