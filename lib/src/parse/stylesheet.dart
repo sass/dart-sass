@@ -1384,8 +1384,8 @@ relase. For details, see http://bit.ly/moz-document.
     }
   }
 
-  /// Returns the map from variable names to expressions from a `@use` or
-  /// `@forward` rule's `with` clause.
+  /// Returns the list of configured variables from a `@use` or `@forward`
+  /// rule's `with` clause.
   ///
   /// If `allowGuarded` is `true`, this will allow configured variable with the
   /// `!default` flag.
