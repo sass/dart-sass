@@ -250,7 +250,7 @@ class SassNumber extends Value implements ext.SassNumber {
         return true;
       }, orElse: () {
         throw SassScriptException("Incompatible units "
-            "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
+            "${_unitString(numeratorUnits, denominatorUnits)} and "
             "${_unitString(newNumerators, newDenominators)}.");
       });
     }
@@ -264,14 +264,14 @@ class SassNumber extends Value implements ext.SassNumber {
         return true;
       }, orElse: () {
         throw SassScriptException("Incompatible units "
-            "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
+            "${_unitString(numeratorUnits, denominatorUnits)} and "
             "${_unitString(newNumerators, newDenominators)}.");
       });
     }
 
     if (oldNumerators.isNotEmpty || oldDenominators.isNotEmpty) {
       throw SassScriptException("Incompatible units "
-          "${_unitString(this.numeratorUnits, this.denominatorUnits)} and "
+          "${_unitString(numeratorUnits, denominatorUnits)} and "
           "${_unitString(newNumerators, newDenominators)}.");
     }
 
@@ -353,16 +353,16 @@ class SassNumber extends Value implements ext.SassNumber {
 
   Value times(Value other) {
     if (other is SassNumber) {
-      return _multiplyUnits(this.value * other.value, this.numeratorUnits,
-          this.denominatorUnits, other.numeratorUnits, other.denominatorUnits);
+      return _multiplyUnits(value * other.value, numeratorUnits,
+          denominatorUnits, other.numeratorUnits, other.denominatorUnits);
     }
     throw SassScriptException('Undefined operation "$this * $other".');
   }
 
   Value dividedBy(Value other) {
     if (other is SassNumber) {
-      return _multiplyUnits(this.value / other.value, this.numeratorUnits,
-          this.denominatorUnits, other.denominatorUnits, other.numeratorUnits);
+      return _multiplyUnits(value / other.value, numeratorUnits,
+          denominatorUnits, other.denominatorUnits, other.numeratorUnits);
     }
     return super.dividedBy(other);
   }
@@ -381,9 +381,9 @@ class SassNumber extends Value implements ext.SassNumber {
       SassNumber other, num operation(num num1, num num2)) {
     var result = _coerceUnits(other, operation);
     return SassNumber.withUnits(result,
-        numeratorUnits: hasUnits ? this.numeratorUnits : other.numeratorUnits,
+        numeratorUnits: hasUnits ? numeratorUnits : other.numeratorUnits,
         denominatorUnits:
-            hasUnits ? this.denominatorUnits : other.denominatorUnits);
+            hasUnits ? denominatorUnits : other.denominatorUnits);
   }
 
   /// Converts [other]'s value to be compatible with this number's, and calls
@@ -394,10 +394,10 @@ class SassNumber extends Value implements ext.SassNumber {
     num num1;
     num num2;
     if (hasUnits) {
-      num1 = this.value;
-      num2 = other.valueInUnits(this.numeratorUnits, this.denominatorUnits);
+      num1 = value;
+      num2 = other.valueInUnits(numeratorUnits, denominatorUnits);
     } else {
-      num1 = this.valueInUnits(other.numeratorUnits, other.denominatorUnits);
+      num1 = valueInUnits(other.numeratorUnits, other.denominatorUnits);
       num2 = other.value;
     }
 

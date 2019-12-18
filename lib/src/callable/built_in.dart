@@ -86,5 +86,5 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
 
   /// Returns a copy of this callable with the given [name].
   BuiltInCallable withName(String name) =>
-      BuiltInCallable._(name, this._overloads);
+      BuiltInCallable._(name, _overloads);
 }

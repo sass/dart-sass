@@ -267,7 +267,7 @@ String _compare(Duration duration1, Duration duration2) {
       ? duration2.inMilliseconds / duration1.inMilliseconds
       : duration1.inMilliseconds / duration2.inMilliseconds;
   var rounded = (ratio * 10).round().toString();
-  var humanRatio = '${rounded.substring(0, rounded.length - 1)}.' +
+  var humanRatio = '${rounded.substring(0, rounded.length - 1)}.'
       '${rounded.substring(rounded.length - 1)}x';
   if (humanRatio == '1.0x') return 'identical to';
 

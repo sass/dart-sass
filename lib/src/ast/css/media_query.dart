@@ -81,7 +81,7 @@ class CssMediaQuery {
         } else {
           return MediaQueryMergeResult.unrepresentable;
         }
-      } else if (this.matchesAllTypes || other.matchesAllTypes) {
+      } else if (matchesAllTypes || other.matchesAllTypes) {
         return MediaQueryMergeResult.unrepresentable;
       }
 
@@ -116,7 +116,7 @@ class CssMediaQuery {
         // Otherwise, there's no way to represent the intersection.
         return MediaQueryMergeResult.unrepresentable;
       }
-    } else if (this.matchesAllTypes) {
+    } else if (matchesAllTypes) {
       modifier = theirModifier;
       // Omit the type if either input query did, since that indicates that they
       // aren't targeting a browser that requires "all and".

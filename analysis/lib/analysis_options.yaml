@@ -14,4 +14,13 @@ analyzer:
     # This has tons of false positives for StreamSubscription.close().
     unawaited_futures: ignore
 
+    # These are style preferences rather than potential semantic issues. While
+    # we're not intrinsically opposed to adopting them for consistency with the
+    # Dart ecosystem, there aren't currently any automated tools to help us
+    # migrate to and remain consistent with these style rules, so achieving
+    # consistency isn't worth the engineering time we'd spend getting there.
+    annotate_overrides: ignore
+    prefer_single_quotes: ignore
+    use_function_type_syntax_for_parameters: ignore
+
 include: package:pedantic/analysis_options.yaml

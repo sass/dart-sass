@@ -379,7 +379,7 @@ final _adjust = BuiltInCallable("adjust", r"$color, $kwargs...", (arguments) {
   }
 
   var keywords = Map.of(argumentList.keywords);
-  getInRange(String name, num min, num max) =>
+  num getInRange(String name, num min, num max) =>
       keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
 
   var red = _fuzzyRoundOrNull(getInRange("red", -255, 255));
@@ -432,7 +432,7 @@ final _scale = BuiltInCallable("scale", r"$color, $kwargs...", (arguments) {
   }
 
   var keywords = Map.of(argumentList.keywords);
-  getScale(String name) {
+  num getScale(String name) {
     var value = keywords.remove(name);
     if (value == null) return null;
     var number = value.assertNumber(name);
@@ -440,7 +440,7 @@ final _scale = BuiltInCallable("scale", r"$color, $kwargs...", (arguments) {
     return number.valueInRange(-100, 100, name) / 100;
   }
 
-  scaleValue(num current, num scale, num max) {
+  num scaleValue(num current, num scale, num max) {
     if (scale == null) return current;
     return current + (scale > 0 ? max - current : current) * scale;
   }
@@ -493,7 +493,7 @@ final _change = BuiltInCallable("change", r"$color, $kwargs...", (arguments) {
   }
 
   var keywords = Map.of(argumentList.keywords);
-  getInRange(String name, num min, num max) =>
+  num getInRange(String name, num min, num max) =>
       keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
 
   var red = _fuzzyRoundOrNull(getInRange("red", 0, 255));
@@ -531,7 +531,7 @@ final _change = BuiltInCallable("change", r"$color, $kwargs...", (arguments) {
 
 final _ieHexStr = BuiltInCallable("ie-hex-str", r"$color", (arguments) {
   var color = arguments[0].assertColor("color");
-  hexString(int component) =>
+  String hexString(int component) =>
       component.toRadixString(16).padLeft(2, '0').toUpperCase();
   return SassString(
       "#${hexString(fuzzyRound(color.alpha * 255))}${hexString(color.red)}"

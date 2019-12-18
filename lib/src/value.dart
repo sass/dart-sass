@@ -222,7 +222,7 @@ abstract class Value implements ext.Value {
   SassList changeListContents(Iterable<Value> contents,
       {ListSeparator separator, bool brackets}) {
     return SassList(contents, separator ?? this.separator,
-        brackets: brackets ?? this.hasBrackets);
+        brackets: brackets ?? hasBrackets);
   }
 
   /// The SassScript `=` operation.
