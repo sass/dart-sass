@@ -382,8 +382,7 @@ class SassNumber extends Value implements ext.SassNumber {
     var result = _coerceUnits(other, operation);
     return SassNumber.withUnits(result,
         numeratorUnits: hasUnits ? numeratorUnits : other.numeratorUnits,
-        denominatorUnits:
-            hasUnits ? denominatorUnits : other.denominatorUnits);
+        denominatorUnits: hasUnits ? denominatorUnits : other.denominatorUnits);
   }
 
   /// Converts [other]'s value to be compatible with this number's, and calls
