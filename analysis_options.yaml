@@ -1,1 +1,6 @@
-include: package:sass_analysis/analysis_options.yaml
+# We could depend on sass_analysis with a path dependency and include
+# package:sass_analysis/analysis_options.yaml, but path dependencies don't play
+# nicely with the logic we use to determine whether generated files are
+# out-of-date (because they cause "pub run" to modify the lockfile before it
+# runs the executable).
+include: analysis/lib/analysis_options.yaml
