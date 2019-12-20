@@ -243,7 +243,7 @@ class ExecutableOptions {
     var stdin = _options['stdin'] as bool;
     if (_options.rest.isEmpty && !stdin) _fail("Compile Sass to CSS.");
 
-    var directories = Set<String>();
+    var directories = <String>{};
     var colonArgs = false;
     var positionalArgs = false;
     for (var argument in _options.rest) {
@@ -314,7 +314,7 @@ class ExecutableOptions {
     // Track [seen] separately from `sourcesToDestinations.keys` because we want
     // to report errors for sources as users entered them, rather than after
     // directories have been resolved.
-    var seen = Set<String>();
+    var seen = <String>{};
     var sourcesToDestinations = p.PathMap<String>();
     var sourceDirectoriesToDestinations = p.PathMap<String>();
     for (var argument in _options.rest) {

@@ -242,7 +242,7 @@ class StylesheetNode {
 
   /// The stylesheets that import [stylesheet].
   Set<StylesheetNode> get downstream => UnmodifiableSetView(_downstream);
-  final _downstream = Set<StylesheetNode>();
+  final _downstream = <StylesheetNode>{};
 
   StylesheetNode._(
       this._stylesheet, this.importer, this.canonicalUrl, this._upstream) {

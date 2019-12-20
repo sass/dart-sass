@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 63ce60ba47ac04b49e0a3edbe9038fb13b037e64
+// Checksum: 5067d0c02ede55ebe0ac609b47b6f8a7cb922511
 //
 // ignore_for_file: unused_import
 
@@ -206,13 +206,13 @@ class _EvaluateVisitor
   ///
   /// For filesystem imports, this contains the import path. For all other
   /// imports, it contains the URL passed to the `@import`.
-  final _includedFiles = Set<String>();
+  final _includedFiles = <String>{};
 
   /// The set of canonical URLs for modules (or imported files) that are
   /// currently being evaluated.
   ///
   /// This is used to ensure that we don't get into an infinite load loop.
-  final _activeModules = Set<Uri>();
+  final _activeModules = <Uri>{};
 
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
@@ -790,7 +790,7 @@ class _EvaluateVisitor
   List<Module<Callable>> _topologicalModules(Module<Callable> root) {
     // Construct a topological ordering using depth-first traversal, as in
     // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search.
-    var seen = Set<Module<Callable>>();
+    var seen = <Module<Callable>>{};
     var sorted = QueueList<Module<Callable>>();
 
     void visitModule(Module<Callable> module) {
