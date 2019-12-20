@@ -199,7 +199,7 @@ class Extender {
       for (var component in complex.components) {
         if (component is CompoundSelector) {
           for (var simple in component.components) {
-            _selectors.putIfAbsent(simple, () => Set()).add(selector);
+            _selectors.putIfAbsent(simple, () => {}).add(selector);
 
             if (simple is PseudoSelector && simple.selector != null) {
               _registerSelector(simple.selector, selector);
@@ -415,7 +415,7 @@ class Extender {
         // Find existing selectors to extend.
         var selectorsForTarget = _selectors[target];
         if (selectorsForTarget != null) {
-          selectorsToExtend ??= Set();
+          selectorsToExtend ??= {};
           selectorsToExtend.addAll(selectorsForTarget);
         }
 
@@ -568,7 +568,7 @@ class Extender {
     // which targets are actually extended.
     var targetsUsed = _mode == ExtendMode.normal || extensions.length < 2
         ? null
-        : Set<SimpleSelector>();
+        : <SimpleSelector>{};
 
     // The complex selectors produced from each component of [compound].
     List<List<Extension>> options;
@@ -904,12 +904,12 @@ class Extender {
     var newSelectors =
         <SimpleSelector, Set<ModifiableCssValue<SelectorList>>>{};
     var newMediaContexts =
-        Map<ModifiableCssValue<SelectorList>, List<CssMediaQuery>>();
+        <ModifiableCssValue<SelectorList>, List<CssMediaQuery>>{};
     var oldToNewSelectors =
         <CssValue<SelectorList>, ModifiableCssValue<SelectorList>>{};
 
     _selectors.forEach((simple, selectors) {
-      var newSelectorSet = Set<ModifiableCssValue<SelectorList>>();
+      var newSelectorSet = <ModifiableCssValue<SelectorList>>{};
       newSelectors[simple] = newSelectorSet;
 
       for (var selector in selectors) {

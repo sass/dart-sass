@@ -135,7 +135,7 @@ class PseudoSelector extends SimpleSelector {
       if (simple is PseudoSelector && simple.isElement) {
         // A given compound selector may only contain one pseudo element. If
         // [compound] has a different one than [this], unification fails.
-        if (this.isElement) return null;
+        if (isElement) return null;
 
         // Otherwise, this is a pseudo selector and should come before pseduo
         // elements.

@@ -1,17 +1,6 @@
-analyzer:
-  strong-mode:
-    implicit-casts: false
-  language:
-    strict-inference: true
-    strict-raw-types: true
-  errors:
-    missing_js_lib_annotation: ignore
-    deprecated_member_use_from_same_package: ignore
-
-    # These are necessary for matching the JS API.
-    avoid_types_as_parameter_names: ignore
-
-    # This has tons of false positives for StreamSubscription.close().
-    unawaited_futures: ignore
-
-include: package:pedantic/analysis_options.yaml
+# We could depend on sass_analysis with a path dependency and include
+# package:sass_analysis/analysis_options.yaml, but path dependencies don't play
+# nicely with the logic we use to determine whether generated files are
+# out-of-date (because they cause "pub run" to modify the lockfile before it
+# runs the executable).
+include: analysis/lib/analysis_options.yaml

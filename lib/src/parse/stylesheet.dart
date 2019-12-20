@@ -990,8 +990,8 @@ abstract class StylesheetParser extends Parser {
   /// The plain identifiers are returned in the first set, and the variable
   /// names in the second.
   Tuple2<Set<String>, Set<String>> _memberList() {
-    var identifiers = Set<String>();
-    var variables = Set<String>();
+    var identifiers = <String>{};
+    var variables = <String>{};
     do {
       whitespace();
       withErrorMessage("Expected variable, mixin, or function name", () {
@@ -1645,7 +1645,7 @@ relase. For details, see http://bit.ly/moz-document.
 
     // Resets the scanner state to the state it was at at the beginning of the
     // expression, except for [_inParentheses].
-    resetState() {
+    void resetState() {
       commaExpressions = null;
       spaceExpressions = null;
       operators = null;
@@ -1655,7 +1655,7 @@ relase. For details, see http://bit.ly/moz-document.
       singleExpression = _singleExpression();
     }
 
-    resolveOneOperation() {
+    void resolveOneOperation() {
       var operator = operators.removeLast();
       if (operator != BinaryOperator.dividedBy) allowSlash = false;
       if (allowSlash && !_inParentheses) {
@@ -1667,14 +1667,14 @@ relase. For details, see http://bit.ly/moz-document.
       }
     }
 
-    resolveOperations() {
+    void resolveOperations() {
       if (operators == null) return;
       while (operators.isNotEmpty) {
         resolveOneOperation();
       }
     }
 
-    addSingleExpression(Expression expression, {bool number = false}) {
+    void addSingleExpression(Expression expression, {bool number = false}) {
       if (singleExpression != null) {
         // If we discover we're parsing a list whose first element is a division
         // operation, and we're in parentheses, reparse outside of a paren
@@ -1699,7 +1699,7 @@ relase. For details, see http://bit.ly/moz-document.
       singleExpression = expression;
     }
 
-    addOperator(BinaryOperator operator) {
+    void addOperator(BinaryOperator operator) {
       if (plainCss && operator != BinaryOperator.dividedBy) {
         scanner.error("Operators aren't allowed in plain CSS.",
             position: scanner.position - operator.operator.length,
@@ -1724,7 +1724,7 @@ relase. For details, see http://bit.ly/moz-document.
       allowSlash = allowSlash && singleExpression is NumberExpression;
     }
 
-    resolveSpaceExpressions() {
+    void resolveSpaceExpressions() {
       resolveOperations();
 
       if (spaceExpressions != null) {

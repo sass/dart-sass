@@ -23,7 +23,7 @@ class AtRootQueryParser extends Parser {
       scanner.expectChar($colon);
       whitespace();
 
-      var atRules = Set<String>();
+      var atRules = <String>{};
       do {
         atRules.add(identifier().toLowerCase());
         whitespace();

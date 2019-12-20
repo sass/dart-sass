@@ -224,7 +224,7 @@ class _Watcher {
   ///
   /// Returns whether all recompilations succeeded.
   Future<bool> _recompileDownstream(Iterable<StylesheetNode> nodes) async {
-    var seen = Set<StylesheetNode>();
+    var seen = <StylesheetNode>{};
     var toRecompile = Queue.of(nodes);
 
     var allSucceeded = true;

@@ -169,7 +169,7 @@ class SelectorList extends Selector {
       return null;
     }
 
-    Iterable<SimpleSelector> resolvedMembers = containsSelectorPseudo
+    var resolvedMembers = containsSelectorPseudo
         ? compound.components.map((simple) {
             if (simple is PseudoSelector) {
               if (simple.selector == null) return simple;
