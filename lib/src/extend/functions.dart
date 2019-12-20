@@ -523,19 +523,17 @@ QueueList<List<ComplexSelectorComponent>> _groupSelectors(
     Iterable<ComplexSelectorComponent> complex) {
   var groups = QueueList<List<ComplexSelectorComponent>>();
   var iterator = complex.iterator;
-  if (iterator.moveNext()) {
-    var group = <ComplexSelectorComponent>[iterator.current]   
-    groups.add(group);
-    while (iterator.moveNext()) {
-      if (group.last is Combinator || iterator.current is Combinator) {
-        group.add(iterator.current);
-      } else {
-        group = [iterator.current];
-        groups.add(group);
-      }
+  if (!iterator.moveNext()) return groups;
+  var group = <ComplexSelectorComponent>[iterator.current];
+  groups.add(group);
+  while (iterator.moveNext()) {
+    if (group.last is Combinator || iterator.current is Combinator) {
+      group.add(iterator.current);
+    } else {
+      group = [iterator.current];
+      groups.add(group);
     }
-  }          
-  return groups;
+  }
 }
 
 /// Returns whether or not [compound] contains a `::root` selector.
