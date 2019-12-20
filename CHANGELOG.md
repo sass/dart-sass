@@ -1,3 +1,7 @@
+## 1.25.0
+
+* Add functions to the built-in "sass:math" module.
+
 ## 1.24.0
 
 * Add an optional `with` clause to the `@forward` rule. This works like the

@@ -12,6 +12,7 @@ import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
 import '../value.dart';
+import '../warn.dart';
 
 /// A random number generator.
 final _random = math.Random();
@@ -21,14 +22,16 @@ final global = UnmodifiableListView([
   _round, _ceil, _floor, _abs, _max, _min, _randomFunction, _unit, //
   _percentage,
   _isUnitless.withName("unitless"),
-  _compatible.withName("comparable")
+  _compatible.withName("comparable"),
+  _div.withName("divide")
 ]);
 
 /// The Sass math module.
 final module = BuiltInModule("math", functions: [
   _round, _ceil, _floor, _abs, _max, _min, _randomFunction, _unit,
   _isUnitless, //
-  _percentage, _compatible
+  _percentage, _compatible,
+  _clamp, _div, _hypot
 ]);
 
 final _percentage = BuiltInCallable("percentage", r"$number", (arguments) {
@@ -98,3 +101,57 @@ BuiltInCallable _numberFunction(String name, num transform(num value)) {
         denominatorUnits: number.denominatorUnits);
   });
 }
+
+final _clamp = BuiltInCallable("clamp", r"$min, $preferred, $max", (arguments) {
+  var min = arguments[0].assertNumber("min");
+  var preferred = arguments[1].assertNumber("preferred");
+  var max = arguments[2].assertNumber("max");
+
+  if (min.hasUnits != preferred.hasUnits ||
+      preferred.hasUnits != max.hasUnits) {
+    throw SassScriptException(
+        "Mixing unitless arguments with arguments that have units is not allowed.");
+  }
+
+  if (min.greaterThanOrEquals(max).isTruthy) return min;
+  if (preferred.lessThanOrEquals(min).isTruthy) return min;
+  if (preferred.greaterThanOrEquals(max).isTruthy) return max;
+  return preferred;
+});
+
+final _div = BuiltInCallable("div", r"$dividend, $divisor", (arguments) {
+  var dividend = arguments[0];
+  var divisor = arguments[1];
+
+  if (dividend is SassString || divisor is SassString) {
+    warn("Passing a string is deprecated.");
+  }
+
+  return dividend.dividedBy(divisor);
+});
+
+final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
+  var numbers =
+      arguments[0].asList.map((argument) => argument.assertNumber()).toList();
+
+  if (numbers.isEmpty) {
+    throw SassScriptException("At least one argument must be passed.");
+  }
+
+  var unitRequirement = numbers[0].hasUnits;
+  var numeratorUnits = numbers[0].numeratorUnits;
+  var denominatorUnits = numbers[0].denominatorUnits;
+  var subtotal = 0.0;
+
+  for (var number in numbers) {
+    if (number.hasUnits != unitRequirement) {
+      throw SassScriptException(
+          "Mixing unitless arguments with arguments that have units is not allowed.");
+    }
+    number = number.coerce(numeratorUnits, denominatorUnits);
+    subtotal += math.pow(number.value, 2);
+  }
+
+  return SassNumber.withUnits(math.sqrt(subtotal),
+      numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
+});
