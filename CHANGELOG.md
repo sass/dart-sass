@@ -1,5 +1,10 @@
 ## 1.24.0
 
+* Add an optional `with` clause to the `@forward` rule. This works like the
+  `@use` rule's `with` clause, except that `@forward ... with` can declare
+  variables as `!default` to allow downstream modules to reconfigure their
+  values.
+
 * Support configuring modules through `@import` rules.
 
 ## 1.23.8

@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
+import '../configured_variable.dart';
 import '../expression/string.dart';
 import '../statement.dart';
 
@@ -64,36 +65,46 @@ class ForwardRule implements Statement {
   /// module, or `null` if member names are used as-is.
   final String prefix;
 
+  /// A list of variable assignments used to configure the loaded modules.
+  final List<ConfiguredVariable> configuration;
+
   final FileSpan span;
 
   /// Creates a `@forward` rule that allows all members to be accessed.
-  ForwardRule(this.url, this.span, {this.prefix})
+  ForwardRule(this.url, this.span,
+      {this.prefix, Iterable<ConfiguredVariable> configuration})
       : shownMixinsAndFunctions = null,
         shownVariables = null,
         hiddenMixinsAndFunctions = null,
-        hiddenVariables = null;
+        hiddenVariables = null,
+        configuration =
+            configuration == null ? const [] : List.unmodifiable(configuration);
 
   /// Creates a `@forward` rule that allows only members included in
   /// [shownMixinsAndFunctions] and [shownVariables] to be accessed.
   ForwardRule.show(this.url, Iterable<String> shownMixinsAndFunctions,
       Iterable<String> shownVariables, this.span,
-      {this.prefix})
+      {this.prefix, Iterable<ConfiguredVariable> configuration})
       : shownMixinsAndFunctions =
             UnmodifiableSetView(Set.of(shownMixinsAndFunctions)),
         shownVariables = UnmodifiableSetView(Set.of(shownVariables)),
         hiddenMixinsAndFunctions = null,
-        hiddenVariables = null;
+        hiddenVariables = null,
+        configuration =
+            configuration == null ? const [] : List.unmodifiable(configuration);
 
   /// Creates a `@forward` rule that allows only members not included in
   /// [hiddenMixinsAndFunctions] and [hiddenVariables] to be accessed.
   ForwardRule.hide(this.url, Iterable<String> hiddenMixinsAndFunctions,
       Iterable<String> hiddenVariables, this.span,
-      {this.prefix})
+      {this.prefix, Iterable<ConfiguredVariable> configuration})
       : shownMixinsAndFunctions = null,
         shownVariables = null,
         hiddenMixinsAndFunctions =
             UnmodifiableSetView(Set.of(hiddenMixinsAndFunctions)),
-        hiddenVariables = UnmodifiableSetView(Set.of(hiddenVariables));
+        hiddenVariables = UnmodifiableSetView(Set.of(hiddenVariables)),
+        configuration =
+            configuration == null ? const [] : List.unmodifiable(configuration);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this);
 
@@ -112,6 +123,11 @@ class ForwardRule implements Statement {
     }
 
     if (prefix != null) buffer.write(" as $prefix*");
+
+    if (configuration.isNotEmpty) {
+      buffer.write(" with (${configuration.join(", ")})");
+    }
+
     buffer.write(";");
     return buffer.toString();
   }

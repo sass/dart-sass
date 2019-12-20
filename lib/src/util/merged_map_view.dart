@@ -14,8 +14,9 @@ import '../utils.dart';
 /// key.
 ///
 /// Unlike `CombinedMapView` from the `collection` package, this provides `O(1)`
-/// index and `length` operations. It does so by imposing the additional
-/// constraint that the underlying maps' sets of keys remain unchanged.
+/// index and `length` operations and provides some degree of mutability. It
+/// does so by imposing the additional constraint that the underlying maps' sets
+/// of keys remain unchanged.
 class MergedMapView<K, V> extends MapBase<K, V> {
   // A map from keys to the maps in which those keys first appear.
   final _mapsByKey = <K, Map<K, V>>{};
