@@ -12,38 +12,59 @@ import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
 import '../value.dart';
-import '../warn.dart';
-
-/// A random number generator.
-final _random = math.Random();
 
 /// The global definitions of Sass math functions.
 final global = UnmodifiableListView([
-  _round, _ceil, _floor, _abs, _max, _min, _randomFunction, _unit, //
-  _percentage,
-  _isUnitless.withName("unitless"),
+  _abs, _ceil, _floor, _max, _min, _percentage, _randomFunction, _round,
+  _unit, //
   _compatible.withName("comparable"),
-  _div.withName("divide")
+  _isUnitless.withName("unitless"),
 ]);
 
 /// The Sass math module.
 final module = BuiltInModule("math", functions: [
-  _round, _ceil, _floor, _abs, _max, _min, _randomFunction, _unit,
-  _isUnitless, //
-  _percentage, _compatible,
-  _clamp, _div, _hypot
+  _abs, _ceil, _clamp, _compatible, _floor, _hypot, _isUnitless, _max, _min, //
+  _percentage, _randomFunction, _round, _unit,
 ]);
 
-final _percentage = BuiltInCallable("percentage", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  number.assertNoUnits("number");
-  return SassNumber(number.value * 100, '%');
+/// Returns a [Callable] named [name] that transforms a number's value
+/// using [transform] and preserves its units.
+BuiltInCallable _numberFunction(String name, num transform(num value)) {
+  return BuiltInCallable(name, r"$number", (arguments) {
+    var number = arguments[0].assertNumber("number");
+    return SassNumber.withUnits(transform(number.value),
+        numeratorUnits: number.numeratorUnits,
+        denominatorUnits: number.denominatorUnits);
+  });
+}
+
+///
+/// Bounding functions
+///
+
+final _ceil = _numberFunction("ceil", (value) => value.ceil());
+
+final _clamp = BuiltInCallable("clamp", r"$min, $number, $max", (arguments) {
+  var min = arguments[0].assertNumber("min");
+  var number = arguments[1].assertNumber("number");
+  var max = arguments[2].assertNumber("max");
+
+  if (min.hasUnits == number.hasUnits && number.hasUnits == max.hasUnits) {
+    if (min.greaterThanOrEquals(max).isTruthy) return min;
+    if (min.greaterThanOrEquals(number).isTruthy) return min;
+    if (number.greaterThanOrEquals(max).isTruthy) return max;
+    return number;
+  }
+
+  var arg1 = "$min";
+  var arg2 = "${min.hasUnits != number.hasUnits ? number : max}";
+  var unit1 = "${min.hasUnits ? "has units" : "is unitless"}";
+  var unit2 = "${min.hasUnits ? "is unitless" : "has units"}";
+  throw SassScriptException(
+      "$arg1 $unit1 but $arg2 $unit2. Arguments must all have units or all be unitless.");
 });
 
-final _round = _numberFunction("round", fuzzyRound);
-final _ceil = _numberFunction("ceil", (value) => value.ceil());
 final _floor = _numberFunction("floor", (value) => value.floor());
-final _abs = _numberFunction("abs", (value) => value.abs());
 
 final _max = BuiltInCallable("max", r"$numbers...", (arguments) {
   SassNumber max;
@@ -65,70 +86,13 @@ final _min = BuiltInCallable("min", r"$numbers...", (arguments) {
   throw SassScriptException("At least one argument must be passed.");
 });
 
-final _randomFunction = BuiltInCallable("random", r"$limit: null", (arguments) {
-  if (arguments[0] == sassNull) return SassNumber(_random.nextDouble());
-  var limit = arguments[0].assertNumber("limit").assertInt("limit");
-  if (limit < 1) {
-    throw SassScriptException("\$limit: Must be greater than 0, was $limit.");
-  }
-  return SassNumber(_random.nextInt(limit) + 1);
-});
+final _round = _numberFunction("round", fuzzyRound);
 
-final _unit = BuiltInCallable("unit", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return SassString(number.unitString, quotes: true);
-});
+///
+/// Distance functions
+///
 
-final _isUnitless = BuiltInCallable("is-unitless", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return SassBoolean(!number.hasUnits);
-});
-
-final _compatible =
-    BuiltInCallable("compatible", r"$number1, $number2", (arguments) {
-  var number1 = arguments[0].assertNumber("number1");
-  var number2 = arguments[1].assertNumber("number2");
-  return SassBoolean(number1.isComparableTo(number2));
-});
-
-/// Returns a [Callable] named [name] that transforms a number's value
-/// using [transform] and preserves its units.
-BuiltInCallable _numberFunction(String name, num transform(num value)) {
-  return BuiltInCallable(name, r"$number", (arguments) {
-    var number = arguments[0].assertNumber("number");
-    return SassNumber.withUnits(transform(number.value),
-        numeratorUnits: number.numeratorUnits,
-        denominatorUnits: number.denominatorUnits);
-  });
-}
-
-final _clamp = BuiltInCallable("clamp", r"$min, $preferred, $max", (arguments) {
-  var min = arguments[0].assertNumber("min");
-  var preferred = arguments[1].assertNumber("preferred");
-  var max = arguments[2].assertNumber("max");
-
-  if (min.hasUnits != preferred.hasUnits ||
-      preferred.hasUnits != max.hasUnits) {
-    throw SassScriptException(
-        "Mixing unitless arguments with arguments that have units is not allowed.");
-  }
-
-  if (min.greaterThanOrEquals(max).isTruthy) return min;
-  if (preferred.lessThanOrEquals(min).isTruthy) return min;
-  if (preferred.greaterThanOrEquals(max).isTruthy) return max;
-  return preferred;
-});
-
-final _div = BuiltInCallable("div", r"$dividend, $divisor", (arguments) {
-  var dividend = arguments[0];
-  var divisor = arguments[1];
-
-  if (dividend is SassString || divisor is SassString) {
-    warn("Passing a string is deprecated.");
-  }
-
-  return dividend.dividedBy(divisor);
-});
+final _abs = _numberFunction("abs", (value) => value.abs());
 
 final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
   var numbers =
@@ -145,8 +109,10 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
 
   for (var number in numbers) {
     if (number.hasUnits != unitRequirement) {
+      var unit1 = "${unitRequirement ? "has units" : "is unitless"}";
+      var unit2 = "${unitRequirement ? "is unitless" : "has units"}";
       throw SassScriptException(
-          "Mixing unitless arguments with arguments that have units is not allowed.");
+          "${numbers[0]} $unit1 but $number $unit2. Arguments must all have units or all be unitless.");
     }
     number = number.coerce(numeratorUnits, denominatorUnits);
     subtotal += math.pow(number.value, 2);
@@ -154,4 +120,46 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
 
   return SassNumber.withUnits(math.sqrt(subtotal),
       numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
+});
+
+///
+/// Unit functions
+///
+
+final _compatible =
+    BuiltInCallable("compatible", r"$number1, $number2", (arguments) {
+  var number1 = arguments[0].assertNumber("number1");
+  var number2 = arguments[1].assertNumber("number2");
+  return SassBoolean(number1.isComparableTo(number2));
+});
+
+final _isUnitless = BuiltInCallable("is-unitless", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  return SassBoolean(!number.hasUnits);
+});
+
+final _unit = BuiltInCallable("unit", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  return SassString(number.unitString, quotes: true);
+});
+
+///
+/// Other functions
+///
+
+final _percentage = BuiltInCallable("percentage", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  number.assertNoUnits("number");
+  return SassNumber(number.value * 100, '%');
+});
+
+final _random = math.Random();
+
+final _randomFunction = BuiltInCallable("random", r"$limit: null", (arguments) {
+  if (arguments[0] == sassNull) return SassNumber(_random.nextDouble());
+  var limit = arguments[0].assertNumber("limit").assertInt("limit");
+  if (limit < 1) {
+    throw SassScriptException("\$limit: Must be greater than 0, was $limit.");
+  }
+  return SassNumber(_random.nextInt(limit) + 1);
 });
