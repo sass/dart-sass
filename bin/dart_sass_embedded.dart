@@ -56,6 +56,9 @@ void main(List<String> args) {
           case InboundMessage_CompileRequest_Importer_Importer.importerId:
             return Importer(dispatcher, request.id, importer.importerId);
 
+          case InboundMessage_CompileRequest_Importer_Importer.fileImporterId:
+            throw "CompileRequest.Importer.fileImporterId is not yet supported";
+
           case InboundMessage_CompileRequest_Importer_Importer.notSet:
             throw mandatoryError("Importer.importer");
         }

@@ -199,8 +199,6 @@ class Dispatcher {
     switch (message.whichMessage()) {
       case InboundMessage_Message.compileRequest:
         return message.compileRequest.id;
-      case InboundMessage_Message.functionCallRequest:
-        return message.functionCallRequest.id;
       default:
         return null;
     }
@@ -222,9 +220,6 @@ class Dispatcher {
         break;
       case OutboundMessage_Message.functionCallRequest:
         message.functionCallRequest.id = id;
-        break;
-      case OutboundMessage_Message.functionCallResponse:
-        message.functionCallResponse.id = id;
         break;
       default:
         return null;

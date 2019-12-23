@@ -36,9 +36,6 @@ class Importer extends sass.Importer {
         case InboundMessage_CanonicalizeResponse_Result.url:
           return _parseAbsoluteUrl("CanonicalizeResponse.url", response.url);
 
-        case InboundMessage_CanonicalizeResponse_Result.file:
-          throw "CanonicalizeResponse.file is not yet supported";
-
         case InboundMessage_CanonicalizeResponse_Result.error:
           throw response.error;
 
