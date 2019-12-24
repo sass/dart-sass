@@ -56,12 +56,14 @@ final _clamp = BuiltInCallable("clamp", r"$min, $number, $max", (arguments) {
     return number;
   }
 
-  var arg1 = "$min";
-  var arg2 = "${min.hasUnits != number.hasUnits ? number : max}";
-  var unit1 = "${min.hasUnits ? "has units" : "is unitless"}";
-  var unit2 = "${min.hasUnits ? "is unitless" : "has units"}";
+  var arg2 = min.hasUnits != number.hasUnits ? number : max;
+  var arg2Name = min.hasUnits != number.hasUnits ? "\$number" : "\$max";
+  var unit1 = min.hasUnits ? "has unit ${min.unitString}" : "is unitless";
+  var unit2 = arg2.hasUnits ? "has unit ${arg2.unitString}" : "is unitless";
+
   throw SassScriptException(
-      "$arg1 $unit1 but $arg2 $unit2. Arguments must all have units or all be unitless.");
+      "\$min $unit1 but $arg2Name $unit2. Arguments must all have units or " +
+          "all be unitless.");
 });
 
 final _floor = _numberFunction("floor", (value) => value.floor());
@@ -102,18 +104,24 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
     throw SassScriptException("At least one argument must be passed.");
   }
 
-  var unitRequirement = numbers[0].hasUnits;
   var numeratorUnits = numbers[0].numeratorUnits;
   var denominatorUnits = numbers[0].denominatorUnits;
   var subtotal = 0.0;
 
-  for (var number in numbers) {
-    if (number.hasUnits != unitRequirement) {
-      var unit1 = "${unitRequirement ? "has units" : "is unitless"}";
-      var unit2 = "${unitRequirement ? "is unitless" : "has units"}";
+  for (var i = 0; i < numbers.length; i++) {
+    var number = numbers[i];
+
+    if (number.hasUnits != numbers[0].hasUnits) {
+      var unit1 = numbers[0].hasUnits
+          ? "has unit ${numbers[0].unitString}"
+          : "is unitless";
+      var unit2 =
+          number.hasUnits ? "has unit ${number.unitString}" : "is unitless";
       throw SassScriptException(
-          "${numbers[0]} $unit1 but $number $unit2. Arguments must all have units or all be unitless.");
+          "Argument 1 $unit1 but argument ${i + 1} $unit2. Arguments must " +
+              "all have units or all be unitless.");
     }
+
     number = number.coerce(numeratorUnits, denominatorUnits);
     subtotal += math.pow(number.value, 2);
   }

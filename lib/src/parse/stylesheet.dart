@@ -2367,9 +2367,6 @@ relase. For details, see http://bit.ly/moz-document.
     number += _tryDecimal(allowTrailingDot: scanner.position != start.position);
     number *= _tryExponent();
 
-    // Preserve the sign of -0 by representing it as a double.
-    number = (sign.isNegative && number == 0) ? -0.0 : sign * number;
-
     String unit;
     if (scanner.scanChar($percent)) {
       unit = "%";
@@ -2379,7 +2376,7 @@ relase. For details, see http://bit.ly/moz-document.
       unit = identifier(unit: true);
     }
 
-    return NumberExpression(number, scanner.spanFrom(start), unit: unit);
+    return NumberExpression(sign * number, scanner.spanFrom(start), unit: unit);
   }
 
   /// Consumes the decimal component of a number and returns its value, or 0 if
