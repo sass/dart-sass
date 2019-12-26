@@ -62,8 +62,8 @@ final _clamp = BuiltInCallable("clamp", r"$min, $number, $max", (arguments) {
   var unit2 = arg2.hasUnits ? "has unit ${arg2.unitString}" : "is unitless";
 
   throw SassScriptException(
-      "\$min $unit1 but $arg2Name $unit2. Arguments must all have units or " +
-          "all be unitless.");
+      "\$min $unit1 but $arg2Name $unit2. Arguments must all have units or all "
+      "be unitless.");
 });
 
 final _floor = _numberFunction("floor", (value) => value.floor());
@@ -118,8 +118,8 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
       var unit2 =
           number.hasUnits ? "has unit ${number.unitString}" : "is unitless";
       throw SassScriptException(
-          "Argument 1 $unit1 but argument ${i + 1} $unit2. Arguments must " +
-              "all have units or all be unitless.");
+          "Argument 1 $unit1 but argument ${i + 1} $unit2. Arguments must all "
+          "have units or all be unitless.");
     }
 
     number = number.coerce(numeratorUnits, denominatorUnits);
