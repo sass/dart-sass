@@ -31,7 +31,9 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
       : url = Uri(scheme: "sass", path: name),
         functions = _callableMap(functions),
         mixins = _callableMap(mixins),
-        variables = _variableMap(variables);
+        variables = variables == null
+            ? UnmodifiableMapView({})
+            : UnmodifiableMapView(variables);
 
   /// Returns a map from [callables]' names to their values.
   static Map<String, T> _callableMap<T extends AsyncCallable>(
@@ -41,16 +43,11 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
           : UnmodifiableMapView(
               {for (var callable in callables) callable.name: callable}));
 
-  /// Returns a map from [variables]' names to their values.
-  static Map<String, V> _variableMap<V>(Map<String, V> variables) =>
-      UnmodifiableMapView(
-          variables == null ? {} : UnmodifiableMapView(variables));
-
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
     }
-    throw SassScriptException("Cannot modify built-in variable \$$name.");
+    throw SassScriptException("Cannot modify built-in variable.");
   }
 
   Module<T> cloneCss() => this;
