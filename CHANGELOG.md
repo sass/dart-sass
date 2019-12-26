@@ -8,6 +8,9 @@
 
 * Add the variables `$pi` and `$e` to the built-in "sass:math" module.
 
+* Fix a bug where the wrong file could be loaded when the same URL is used by
+  both a `@use` rule and an `@import` rule.
+
 ## 1.24.0
 
 * Add an optional `with` clause to the `@forward` rule. This works like the

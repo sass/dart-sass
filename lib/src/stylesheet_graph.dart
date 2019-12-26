@@ -5,11 +5,12 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'importer.dart';
-import 'visitor/find_imports.dart';
+import 'visitor/find_dependencies.dart';
 
 /// A graph of the import relationships between stylesheets, available via
 /// [nodes].
@@ -64,8 +65,8 @@ class StylesheetGraph {
   ///
   /// Returns `null` if the import cache can't find a stylesheet at [url].
   StylesheetNode _add(Uri url, [Importer baseImporter, Uri baseUrl]) {
-    var tuple = _ignoreErrors(
-        () => importCache.canonicalize(url, baseImporter, baseUrl));
+    var tuple = _ignoreErrors(() => importCache.canonicalize(url,
+        baseImporter: baseImporter, baseUrl: baseUrl));
     if (tuple == null) return null;
     return addCanonical(tuple.item1, tuple.item2, tuple.item3);
   }
@@ -92,14 +93,17 @@ class StylesheetGraph {
 
   /// Returns a map from non-canonicalized imported URLs in [stylesheet], which
   /// appears within [baseUrl] imported by [baseImporter].
-  Map<Uri, StylesheetNode> _upstreamNodes(
+  Map<Tuple2<Uri, bool>, StylesheetNode> _upstreamNodes(
       Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
     var active = {baseUrl};
-    var upstreamUrls =
-        findImports(stylesheet).map((import) => Uri.parse(import.url));
+    var tuple = findDependencies(stylesheet);
+    var importUrls = tuple.item2.map((import) => Uri.parse(import.url));
     return {
-      for (var url in upstreamUrls)
-        url: _nodeFor(url, baseImporter, baseUrl, active)
+      for (var url in tuple.item1)
+        Tuple2(url, false): _nodeFor(url, baseImporter, baseUrl, active),
+      for (var url in importUrls)
+        Tuple2(url, true):
+            _nodeFor(url, baseImporter, baseUrl, active, forImport: true)
     };
   }
 
@@ -160,9 +164,10 @@ class StylesheetGraph {
   /// The [active] set should contain the canonical URLs that are currently
   /// being imported. It's used to detect circular imports.
   StylesheetNode _nodeFor(
-      Uri url, Importer baseImporter, Uri baseUrl, Set<Uri> active) {
-    var tuple = _ignoreErrors(
-        () => importCache.canonicalize(url, baseImporter, baseUrl));
+      Uri url, Importer baseImporter, Uri baseUrl, Set<Uri> active,
+      {bool forImport = false}) {
+    var tuple = _ignoreErrors(() => importCache.canonicalize(url,
+        baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport));
 
     // If an import fails, let the evaluator surface that error rather than
     // surfacing it here.
@@ -237,8 +242,9 @@ class StylesheetNode {
   /// stylesheets those imports refer to.
   ///
   /// This may have `null` values, which indicate failed imports.
-  Map<Uri, StylesheetNode> get upstream => UnmodifiableMapView(_upstream);
-  Map<Uri, StylesheetNode> _upstream;
+  Map<Tuple2<Uri, bool>, StylesheetNode> get upstream =>
+      UnmodifiableMapView(_upstream);
+  Map<Tuple2<Uri, bool>, StylesheetNode> _upstream;
 
   /// The stylesheets that import [stylesheet].
   Set<StylesheetNode> get downstream => UnmodifiableSetView(_downstream);
@@ -253,7 +259,7 @@ class StylesheetNode {
 
   /// Sets [newUpstream] as the new value of [upstream] and adjusts upstream
   /// nodes' [downstream] fields accordingly.
-  void _replaceUpstream(Map<Uri, StylesheetNode> newUpstream) {
+  void _replaceUpstream(Map<Tuple2<Uri, bool>, StylesheetNode> newUpstream) {
     var oldUpstream = Set.of(upstream.values)..remove(null);
     var newUpstreamSet = Set.of(newUpstream.values)..remove(null);
 

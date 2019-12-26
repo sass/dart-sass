@@ -2,21 +2,28 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:tuple/tuple.dart';
+
 import '../ast/sass.dart';
 import 'recursive_statement.dart';
 
-/// Returns a list of all [DynamicImport]s in [stylesheet].
-List<DynamicImport> findImports(Stylesheet stylesheet) =>
-    _FindImportsVisitor().run(stylesheet);
+/// Returns two lists of dependencies for [stylesheet].
+///
+/// The first is a list of URLs from all `@use` and `@forward` rules in
+/// [stylesheet]. The second is a list of all imports in [stylesheet].
+Tuple2<List<Uri>, List<DynamicImport>> findDependencies(
+        Stylesheet stylesheet) =>
+    _FindDependenciesVisitor().run(stylesheet);
 
-/// A visitor that traverses a stylesheet and records all the [DynamicImport]s
-/// it contains.
-class _FindImportsVisitor extends RecursiveStatementVisitor<void> {
+/// A visitor that traverses a stylesheet and records, all `@import`, `@use`,
+/// and `@forward` rules it contains.
+class _FindDependenciesVisitor extends RecursiveStatementVisitor<void> {
+  final _usesAndForwards = <Uri>[];
   final _imports = <DynamicImport>[];
 
-  List<DynamicImport> run(Stylesheet stylesheet) {
+  Tuple2<List<Uri>, List<DynamicImport>> run(Stylesheet stylesheet) {
     visitStylesheet(stylesheet);
-    return _imports;
+    return Tuple2(_usesAndForwards, _imports);
   }
 
   // These can never contain imports.
@@ -29,11 +36,11 @@ class _FindImportsVisitor extends RecursiveStatementVisitor<void> {
   void visitSupportsCondition(SupportsCondition condition) {}
 
   void visitUseRule(UseRule node) {
-    _imports.add(DynamicImport(node.url.toString(), node.span));
+    _usesAndForwards.add(node.url);
   }
 
   void visitForwardRule(ForwardRule node) {
-    _imports.add(DynamicImport(node.url.toString(), node.span));
+    _usesAndForwards.add(node.url);
   }
 
   void visitImportRule(ImportRule node) {
