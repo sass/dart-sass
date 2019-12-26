@@ -1,3 +1,11 @@
+## 1.25.0
+
+* Add functions to the built-in "sass:math" module.
+  * `clamp()`: given a `$min`, $number`, and `$max` values, clamps the `$number`
+    in between `$min` and `$max`.
+  * `hypot()`: given *n* numbers, outputs the length of the *n*-dimensional
+    vector that has components equal to each of the inputs.
+
 ## 1.24.0
 
 * Add an optional `with` clause to the `@forward` rule. This works like the
