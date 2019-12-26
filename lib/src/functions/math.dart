@@ -23,8 +23,8 @@ final global = UnmodifiableListView([
 
 /// The Sass math module.
 final module = BuiltInModule("math", functions: [
-  _abs, _ceil, _clamp, _compatible, _floor, _hypot, _isUnitless, _max, _min, //
-  _percentage, _randomFunction, _round, _unit,
+  _abs, _ceil, _clamp, _compatible, _floor, _hypot, _isUnitless, _log, _max, //
+  _min, _pow, _percentage, _randomFunction, _round, _sqrt, _unit,
 ], variables: {
   "e": SassNumber(math.e),
   "pi": SassNumber(math.pi),
@@ -131,6 +131,46 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
 
   return SassNumber.withUnits(math.sqrt(subtotal),
       numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
+});
+
+///
+/// Exponential functions
+///
+
+final _log = BuiltInCallable("log", r"$number, $base: null", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  if (arguments[1] == sassNull) {
+    number.assertNoUnits();
+    return SassNumber(math.log(number.value));
+  }
+  var base = arguments[1].assertNumber("base");
+  if (number.hasUnits) {
+    throw SassScriptException("Expected \$number to have no units.");
+  }
+  if (base.hasUnits) {
+    throw SassScriptException("Expected \$base to have no units.");
+  }
+  return SassNumber(math.log(number.value) / math.log(base.value));
+});
+
+final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
+  var base = arguments[0].assertNumber("base");
+  var exponent = arguments[1].assertNumber("exponent");
+  if (base.hasUnits) {
+    throw SassScriptException("Expected \$base to have no units.");
+  }
+  if (exponent.hasUnits) {
+    throw SassScriptException("Expected \$exponent to have no units.");
+  }
+  return base.value.abs() == 1 && exponent.value.isInfinite
+      ? SassNumber(double.nan)
+      : SassNumber(math.pow(base.value, exponent.value));
+});
+
+final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  number.assertNoUnits();
+  return SassNumber(math.sqrt(number.value));
 });
 
 ///

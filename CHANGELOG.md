@@ -5,6 +5,7 @@
     in between `$min` and `$max`.
   * `hypot()`: given *n* numbers, outputs the length of the *n*-dimensional
     vector that has components equal to each of the inputs.
+  * Exponential: `log()`, `pow()`, and `sqrt()`.
 
 * Add the variables `$pi` and `$e` to the built-in "sass:math" module.
 
