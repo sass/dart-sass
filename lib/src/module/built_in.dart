@@ -32,7 +32,7 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
         functions = _callableMap(functions),
         mixins = _callableMap(mixins),
         variables = variables == null
-            ? UnmodifiableMapView({})
+            ? const {}
             : UnmodifiableMapView(variables);
 
   /// Returns a map from [callables]' names to their values.
