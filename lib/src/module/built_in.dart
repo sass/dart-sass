@@ -31,9 +31,8 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
       : url = Uri(scheme: "sass", path: name),
         functions = _callableMap(functions),
         mixins = _callableMap(mixins),
-        variables = variables == null
-            ? const {}
-            : UnmodifiableMapView(variables);
+        variables =
+            variables == null ? const {} : UnmodifiableMapView(variables);
 
   /// Returns a map from [callables]' names to their values.
   static Map<String, T> _callableMap<T extends AsyncCallable>(
