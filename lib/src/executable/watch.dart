@@ -288,9 +288,9 @@ class _Watcher {
     var changed = <StylesheetNode>[];
     for (var node in _graph.nodes.values) {
       var importChanged = false;
-      for (var tuple in node.upstream.keys) {
-        var url = tuple.item1;
-        if (_name(p.url.basename(url.path)) != name) continue;
+      var forImport = false;
+      void recanonicalize(Uri url, StylesheetNode node) {
+        if (_name(p.url.basename(url.path)) != name) return;
         _graph.clearCanonicalize(url);
 
         // If the import produces a different canonicalized URL than it did
@@ -302,15 +302,19 @@ class _Watcher {
                 .canonicalize(url,
                     baseImporter: node.importer,
                     baseUrl: node.canonicalUrl,
-                    forImport: tuple.item2)
+                    forImport: forImport)
                 ?.item2;
           } catch (_) {
-            // If the call to canonicalize failed, do nothing. We'll surface the
-            // error more nicely when we try to recompile the file.
+            // If the call to canonicalize failed, do nothing. We'll surface
+            // the error more nicely when we try to recompile the file.
           }
-          importChanged = newCanonicalUrl != node.upstream[tuple]?.canonicalUrl;
+          importChanged = newCanonicalUrl != node?.canonicalUrl;
         }
       }
+
+      node.upstream.forEach(recanonicalize);
+      forImport = true;
+      node.upstreamImports.forEach(recanonicalize);
       if (importChanged) changed.add(node);
     }
 

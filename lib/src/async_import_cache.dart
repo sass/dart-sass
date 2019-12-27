@@ -141,12 +141,9 @@ class AsyncImportCache {
   /// returns a relative URL.
   Future<Uri> _canonicalize(
       AsyncImporter importer, Uri url, bool forImport) async {
-    Uri result;
-    if (forImport) {
-      result = await inImportRule(() => importer.canonicalize(url));
-    } else {
-      result = await importer.canonicalize(url);
-    }
+    var result = await (forImport
+        ? inImportRule(() => importer.canonicalize(url))
+        : importer.canonicalize(url));
     if (result?.scheme == '') {
       _logger.warn("""
 Importer $importer canonicalized $url to $result.

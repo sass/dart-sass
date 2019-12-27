@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: e3bcbb88321ab00d5c7341fabd792633be874f07
+// Checksum: 3ca2f221c3c1503c688be49d4f7501bd9be8031a
 //
 // ignore_for_file: unused_import
 
@@ -142,12 +142,9 @@ class ImportCache {
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
   /// returns a relative URL.
   Uri _canonicalize(Importer importer, Uri url, bool forImport) {
-    Uri result;
-    if (forImport) {
-      result = inImportRule(() => importer.canonicalize(url));
-    } else {
-      result = importer.canonicalize(url);
-    }
+    var result = (forImport
+        ? inImportRule(() => importer.canonicalize(url))
+        : importer.canonicalize(url));
     if (result?.scheme == '') {
       _logger.warn("""
 Importer $importer canonicalized $url to $result.

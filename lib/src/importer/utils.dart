@@ -40,7 +40,7 @@ Future<T> inImportRuleAsync<T>(Future<T> callback()) async {
 
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///
-/// This tries to fill in extensions and partial prefixes and check if a
+/// This tries to fill in extensions and partial prefixes and check for a
 /// directory default. If no file can be found, it returns `null`.
 String resolveImportPath(String path) {
   var extension = p.extension(path);
