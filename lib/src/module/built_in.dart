@@ -17,19 +17,22 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
   final Uri url;
   final Map<String, T> functions;
   final Map<String, T> mixins;
+  final Map<String, Value> variables;
 
   List<Module<T>> get upstream => const [];
-  Map<String, Value> get variables => const {};
   Map<String, AstNode> get variableNodes => const {};
   Extender get extender => Extender.empty;
   CssStylesheet get css => CssStylesheet.empty(url: url);
   bool get transitivelyContainsCss => false;
   bool get transitivelyContainsExtensions => false;
 
-  BuiltInModule(String name, {Iterable<T> functions, Iterable<T> mixins})
+  BuiltInModule(String name,
+      {Iterable<T> functions, Iterable<T> mixins, Map<String, Value> variables})
       : url = Uri(scheme: "sass", path: name),
         functions = _callableMap(functions),
-        mixins = _callableMap(mixins);
+        mixins = _callableMap(mixins),
+        variables =
+            variables == null ? const {} : UnmodifiableMapView(variables);
 
   /// Returns a map from [callables]' names to their values.
   static Map<String, T> _callableMap<T extends AsyncCallable>(
@@ -40,7 +43,10 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
               {for (var callable in callables) callable.name: callable}));
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
-    throw SassScriptException("Undefined variable.");
+    if (!variables.containsKey(name)) {
+      throw SassScriptException("Undefined variable.");
+    }
+    throw SassScriptException("Cannot modify built-in variable.");
   }
 
   Module<T> cloneCss() => this;
