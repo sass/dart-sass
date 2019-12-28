@@ -11,17 +11,16 @@ import 'recursive_statement.dart';
 ///
 /// The first is a list of URLs from all `@use` and `@forward` rules in
 /// [stylesheet]. The second is a list of all imports in [stylesheet].
-Tuple2<List<Uri>, List<DynamicImport>> findDependencies(
-        Stylesheet stylesheet) =>
+Tuple2<List<Uri>, List<Uri>> findDependencies(Stylesheet stylesheet) =>
     _FindDependenciesVisitor().run(stylesheet);
 
 /// A visitor that traverses a stylesheet and records, all `@import`, `@use`,
 /// and `@forward` rules it contains.
 class _FindDependenciesVisitor extends RecursiveStatementVisitor<void> {
   final _usesAndForwards = <Uri>[];
-  final _imports = <DynamicImport>[];
+  final _imports = <Uri>[];
 
-  Tuple2<List<Uri>, List<DynamicImport>> run(Stylesheet stylesheet) {
+  Tuple2<List<Uri>, List<Uri>> run(Stylesheet stylesheet) {
     visitStylesheet(stylesheet);
     return Tuple2(_usesAndForwards, _imports);
   }
@@ -45,7 +44,7 @@ class _FindDependenciesVisitor extends RecursiveStatementVisitor<void> {
 
   void visitImportRule(ImportRule node) {
     for (var import in node.imports) {
-      if (import is DynamicImport) _imports.add(import);
+      if (import is DynamicImport) _imports.add(Uri.parse(import.url));
     }
   }
 }

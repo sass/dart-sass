@@ -40,10 +40,8 @@ class StylesheetGraph {
     DateTime transitiveModificationTime(StylesheetNode node) {
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
-        for (var upstream in {
-          ...node.upstream.values,
-          ...node.upstreamImports.values
-        }) {
+        for (var upstream
+            in node.upstream.values.followedBy(node.upstreamImports.values)) {
           // If an import is missing, always recompile so we show the user the
           // error.
           var upstreamTime = upstream == null
@@ -94,18 +92,20 @@ class StylesheetGraph {
             _upstreamNodes(stylesheet, importer, canonicalUrl)));
   }
 
-  /// Returns a map from non-canonicalized imported URLs in [stylesheet], which
-  /// appears within [baseUrl] imported by [baseImporter].
+  /// Returns two maps from non-canonicalized imported URLs in [stylesheet] to
+  /// nodes, which appears within [baseUrl] imported by [baseImporter].
+  ///
+  /// The first map contains stylesheets depended on via `@use` and `@forward`
+  /// while the second map contains those depended on via `@import`.
   Tuple2<Map<Uri, StylesheetNode>, Map<Uri, StylesheetNode>> _upstreamNodes(
       Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
     var active = {baseUrl};
     var tuple = findDependencies(stylesheet);
-    var importUrls = tuple.item2.map((import) => Uri.parse(import.url));
     return Tuple2({
       for (var url in tuple.item1)
         url: _nodeFor(url, baseImporter, baseUrl, active)
     }, {
-      for (var url in importUrls)
+      for (var url in tuple.item2)
         url: _nodeFor(url, baseImporter, baseUrl, active, forImport: true)
     });
   }
@@ -244,7 +244,7 @@ class StylesheetNode {
   /// A map from non-canonicalized `@use` and `@forward` URLs in [stylesheet] to
   /// the stylesheets those rules refer to.
   ///
-  /// This may have `null` values, which indicate failed imports.
+  /// This may have `null` values, which indicate failed loads.
   Map<Uri, StylesheetNode> get upstream => UnmodifiableMapView(_upstream);
   Map<Uri, StylesheetNode> _upstream;
 
@@ -264,14 +264,16 @@ class StylesheetNode {
       Tuple2<Map<Uri, StylesheetNode>, Map<Uri, StylesheetNode>> allUpstream)
       : _upstream = allUpstream.item1,
         _upstreamImports = allUpstream.item2 {
-    for (var node in {...upstream.values, ...upstreamImports.values}) {
+    for (var node in upstream.values.followedBy(upstreamImports.values)) {
       if (node != null) node._downstream.add(this);
     }
   }
 
-  /// Sets [newUpstream] as the new value of [upstream] and [newUpstreamImports]
-  /// as the new value of [upstreamImports], and adjusts upstream nodes'
-  /// [downstream] fields accordingly.
+  /// Updates [upstream] and [upstreamImports] from [allUpstream] and adjusts
+  /// upstream nodes' [downstream] fields accordingly.
+  ///
+  /// The first item in [allUpstream] replaces [upstream] while the second item
+  /// replaces [upstreamImports].
   void _replaceUpstream(
       Tuple2<Map<Uri, StylesheetNode>, Map<Uri, StylesheetNode>> allUpstream) {
     var oldUpstream = {...upstream.values, ...upstreamImports.values}

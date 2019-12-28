@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -288,8 +289,8 @@ class _Watcher {
     var changed = <StylesheetNode>[];
     for (var node in _graph.nodes.values) {
       var importChanged = false;
-      var forImport = false;
-      void recanonicalize(Uri url, StylesheetNode node) {
+      void recanonicalize(Uri url, StylesheetNode upstream,
+          {@required bool forImport}) {
         if (_name(p.url.basename(url.path)) != name) return;
         _graph.clearCanonicalize(url);
 
@@ -308,13 +309,16 @@ class _Watcher {
             // If the call to canonicalize failed, do nothing. We'll surface
             // the error more nicely when we try to recompile the file.
           }
-          importChanged = newCanonicalUrl != node?.canonicalUrl;
+          importChanged = newCanonicalUrl != upstream?.canonicalUrl;
         }
       }
 
-      node.upstream.forEach(recanonicalize);
-      forImport = true;
-      node.upstreamImports.forEach(recanonicalize);
+      for (var entry in node.upstream.entries) {
+        recanonicalize(entry.key, entry.value, forImport: false);
+      }
+      for (var entry in node.upstreamImports.entries) {
+        recanonicalize(entry.key, entry.value, forImport: true);
+      }
       if (importChanged) changed.add(node);
     }
 
