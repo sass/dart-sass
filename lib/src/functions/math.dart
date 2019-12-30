@@ -139,37 +139,42 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
 
 final _log = BuiltInCallable("log", r"$number, $base: null", (arguments) {
   var number = arguments[0].assertNumber("number");
-  if (arguments[1] == sassNull) {
-    number.assertNoUnits();
-    return SassNumber(math.log(number.value));
-  }
-  var base = arguments[1].assertNumber("base");
   if (number.hasUnits) {
-    throw SassScriptException("Expected \$number to have no units.");
+    throw SassScriptException("\$number: Expected $number to have no units.");
   }
+
+  if (arguments[1] == sassNull) return SassNumber(math.log(number.value));
+
+  var base = arguments[1].assertNumber("base");
   if (base.hasUnits) {
-    throw SassScriptException("Expected \$base to have no units.");
+    throw SassScriptException("\$base: Expected $base to have no units.");
   }
+
   return SassNumber(math.log(number.value) / math.log(base.value));
 });
 
 final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
   var base = arguments[0].assertNumber("base");
   var exponent = arguments[1].assertNumber("exponent");
+
   if (base.hasUnits) {
-    throw SassScriptException("Expected \$base to have no units.");
+    throw SassScriptException("\$base: Expected $base to have no units.");
+  } else if (exponent.hasUnits) {
+    throw SassScriptException(
+        "\$exponent: Expected $exponent to have no units.");
   }
-  if (exponent.hasUnits) {
-    throw SassScriptException("Expected \$exponent to have no units.");
-  }
-  return base.value.abs() == 1 && exponent.value.isInfinite
+
+  return fuzzyEquals(base.value.abs(), 1) && exponent.value.isInfinite
       ? SassNumber(double.nan)
       : SassNumber(math.pow(base.value, exponent.value));
 });
 
 final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  number.assertNoUnits();
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  }
+
   return SassNumber(math.sqrt(number.value));
 });
 
