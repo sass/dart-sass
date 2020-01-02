@@ -43,7 +43,7 @@ final _sharedClasses = const ['EvaluateResult', 'CompileResult'];
 void synchronize() {
   sources.forEach((source, target) {
     var visitor = _Visitor(File(source).readAsStringSync(), source);
-    parseFile2(path: source, featureSet: FeatureSet.fromEnableFlags([]))
+    parseFile(path: source, featureSet: FeatureSet.fromEnableFlags([]))
         .unit
         .accept(visitor);
     var formatted = DartFormatter().format(visitor.result);
