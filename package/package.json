@@ -19,7 +19,5 @@
   "dependencies": {
     "chokidar": ">=2.0.0 <4.0.0"
   },
-  "main": "sass.dart.js",
-  "bin": "sass.js",
   "keywords": ["style", "scss", "sass", "preprocessor", "css"]
 }

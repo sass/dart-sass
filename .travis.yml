@@ -120,15 +120,15 @@ jobs:
     if: *deploy-if
     env: &github-env
       - GITHUB_USER=sassbot
-      # GITHUB_AUTH="..."
+      # GITHUB_TOKEN="..."
       #
       # Note that this overrides the read-only auth token that's set for all
       # builds.
-      - secure: "AAP74aT+8SQmwGeHrCsZ7GgppvCCkDAZXszivocMy3Fi9gfMCLABBCh67pGINJX4VlLW7ftPF3xivlvgGu+e4ncXz9m9jIPZ9Iza3cW5jCnCgyRGZD98gwabIDFWiv4X9V2xnJA2p1ZuYBf8Sh3TTipUFBKMjlnxVxYkIOTud4rUss/htFhxVA/oFTo0ThTZwXuxJ+GRGTM4PcuHPJvPf18iRPs2AHFV6ZP51xgc3AsXC6Zyom5EJeX0yGj9zWQ0XCjnuFdGsI6G9jmkrmqgAXuUipgqAn0tjxPYp9R/1HqnBLD3Zbrvyi5pCiSFclU6CS6kTDbefzPOc5+zrnlkaolVeF8tQ+EhZiZqtLnpLYUz9bgknoFUapUN4N0R36sKBStdRv54+sMeoOzpQ8ep3PeZW5nWbak12wcrDx38ToWs6hQ4ycb0SQDZZatHsASpSu2nX8HwzZSDAZmsAdB+epPmgA0CBjWVG1ycmVnT6l3OopUmbaY3pXBNzFUXq5Fcd7Q39/MfrmHpyxSc3QVf8xNtUx9ggYtK0Kwx6dgykhNMVzFGZRVyQgwpaiyDqgMGEU2GQzzcJhgKo9+y1fDtdfj/cctmvJ2Fo1fkk+DMkEPUHGOVo6uKFnartky9iLm1WiHDMruJ6SIOJzAnb+TMBWQTSwI+F4wyEiRVR8Zv4uA="
+      - secure: "jTN3v1KndVb29vWAIk4fnw9gcCIJ/6RWhUhk739GHdmsqWI85c8Ibjl3mwT4XYaOZv0KnfvcORFOpYCUkd4FcR7ihp5Dq44oE503IqBi55xvBct1lkan/5jE+KA/RkfvLcnkuHeV+gGJAYIde9lPPW8iTBfGbTmQPCsV3ZTcguXnt8gNc0P0KA6823Ubmim6bSSevUgK8uzospBqqKTqpedFZQBAW9DzsoMtNRhiR8da96L/AN3qixuqlJcraXVoqygNd70WW9LJuFXRFsJwDsyLmzRd4mbHcEqfu4z7Vvh0tqc4eQxvfJqal3wGe3/y15FlNNzGtn7jBa8XW7/hEBWDRWch8OsFSEwHP2cT5G9vOW6PswPTB6lJJViKAoxQLgjRfvnMcyqR+fgzGWKN5nC2cLgdV8R1zTrc8mReXuZclXZceP0Qkq1COf8zj52ip/P0FVuFLd99Wfy5BWmlgVu6xaX8j4/EblE0sT0KiH8Si8+ftUtQwiZE5oZnJ6vHzJwKO7C0uUEInStOr00ZzFQ2Jej3PB+yTdl5POCz9cHHSJpyUNvB55E8qsOZp7wKG9Md8we5IFs3WTSLrdhSJZ6xTawnWO0x08SYGr6Wym98wI7J/FyOD23X5AT1UwSIlflvpJLVBBKnKLQRdWrXofnv4NkmzlpBr2stBfBfpeA="
     script: skip # Don't run tests
     deploy:
       provider: script
-      script: pub run grinder github-release github-linux
+      script: pub run grinder pkg-github-release pkg-github-linux
       skip_cleanup: true # Don't clean up the Dart SDK.
 
       # This causes the deploy to only be build when a tag is pushed. This
@@ -147,14 +147,14 @@ jobs:
   - name: npm
     if: *deploy-if
     env:
-      # NPM_RC="..."
-      - secure: "Iv6UKB6mH0GLkRQtaLeZnoW0QMmXbzGVX/QO+vvT26yWvqlW/ik+YeHB+4VLZFz/4xezukkztVENdxNDCnrQA/NX7fVhjqj4Px2JQau0V0ljYN64H+o0oxlBeMQqnsVOJcsU7DuPFPErYixkE3yuN6DqIYE+DYe3fVQg/1RBCs2z1nejg4udbZG7D0yfrxZSCckhsyBH1Ej72FhMGMaFq7k7IMC7f/sGYZZYsOe2WKmsYF35hyL/twIXKBNxjPat1HmsVT/3VOUIF+doO26BxthEc68Tmp3SHucEXHWPEjk9N87DxLClGkHvvZ2PUK9nYB9/KqxvJqf/AcDO34vS0lAU809Eov7dK/19WE1GtgA/gL0B/nh2QYbWpbO/HPzxFqOYwfzLtAXvwUr45eMNxmh1yupbAtxRvst7ZO/UTC+awW55AXnVd4jiTzZ/jqV52aGbClN+escPZCYXgYosvJLK3G4xLYCY4TTC99riBQZ0MDLfCt35+RivjNLVf8vecGT8WTmVQySzq0Cthy/9SCp1OzWT5roY2rzkwvR4R0+42f48qyDU/buUgPBsw9zwCabWVoB0p4hflalEhc9EwbRn5oDI0NHwXE0r83movx+JHHPBau1zwX53DJSpSFXnDPi6KaNpg52wyuIIzO90zA7FZTRR9My38AzYgVaKkdE="
+      # NPM_TOKEN="..."
+      - secure: "pwOMlV/hUTYYKrdULkhM0pHKCjXR1uWAuBbfxMxWCPH/AGkW3CP/WED8p5/Q6B8Itzca6eYg85PnkzeLl4hK9ANnYrQsHutfszGyzcqqAeWWPXm3Bq6Rqt5XpA4JCSdZBPKOLZ7yGzMCPVRMAet4fvORRU6nFCTJcm/B1JZNIAWY5TnjgcjwLa77Eo4Bflv58CTA5FyngN7hAMIo2JaassmReRHxtyVBh631IYFBvmo8vmC0gruPY0axj9a/4+F1Nx2ChOAjji0SRMJP1FSp7zOXCG+VrcqXMW3KCfBu/70szcdDVXOYYyJpCeiP6vVtRgi+9zqin9wOATIklRPMTy/zVbT4r9kfA7+GFSfsfAQ7K79VbvJQHbxon3E5JnWANjZr3q+iicX+sElL6IngoSw8pXRUHVJD979WcPTcKX+dd2KKqDR0S+rG8d7ZgyjIggCSGsyxvuX0vd/VaPmZA/4+tVfSHYxCq3P3sncVX9raP41UNFW9KyEQzKfxTs6I4U5IffFcLZRRoP1uMSdiru9cIvVCX64UTk6+TTiPXRj4o84dG/NQkYoc3EhHsRL4E7SAq827Ya1gA8GLSCJidtvGPG16VimvgT372pHPZ+l9Pb5XkMnZ+dji3o37xYTSbRESOk+pnMwq3f4lQz6YFuI+EjbO5RYCs5IxHjgW8Ak="
     script: skip
     language: node_js
     node_js: lts/*
     deploy:
       provider: script
-      script: tool/travis/deploy/npm.sh
+      script: pub run grinder pkg-npm-deploy
       skip_cleanup: true
       on: {tags: true}
 
@@ -167,7 +167,7 @@ jobs:
     script: skip
     deploy:
       provider: script
-      script: tool/travis/deploy/pub.sh
+      script: pub run grinder pkg-pub-deploy
       skip_cleanup: true
       on: {tags: true}
 
@@ -178,7 +178,7 @@ jobs:
     script: skip
     deploy:
       provider: script
-      script: pub run grinder update-homebrew
+      script: pub run grinder pkg-homebrew-update
       skip_cleanup: true
       on: {tags: true}
 
@@ -186,12 +186,12 @@ jobs:
   - name: Chocolatey
     if: *deploy-if
     env:
-      # CHOCO_TOKEN="..."
-      - secure: "cW11kQYBBEElfVsc1pJfVEHOMYwt0ZK+9STZHwSPbAISlplIRnsimMN7TqCY2aLnkWXyUMU7DphIl9uQ86M4BT1bJopsHbapj27bFSlKWHlBSDB/xylFHywV41Yk5lMlr8DLMbsSzVahasyR34xS6HYIRlDpZ9TFiQuDQNJxQmqTZJg/FC+3nqCI7tyMKGkWc48ikTcmqDMHsG9CudG2u+Q3S9sLNXArh9T4tSnAyWkTvSrS05mvFx5tC83PcG9/VkioTId+VRSJchwTmCxDFDROrTikTXZMtYn8wMAQ2wQ34TQXNZMZ9uiHA6W0IuJV2EnYerJbqV2lrJq9xqZywKu6HW6i4GhrCvizALNFZx/N7s/10xuf3UcuWizYml/e0MYT+6t4ojTYBMKv+Cx+H2Y2Jdpvdn2ZAIl6LaU3pLw4OIPJ7aXjDwZd63MPxtwGwVLHbH7Zu+oUv1erIq5LtatuocGWipD8WdiMBQvyCuDRMowpLPoAbj+mevOf+xlY2Eym4tOXpxM7iY3lXFHROo5dQbhsARfVF9J1gl5PuYXvCjxqTfK/ef9t3ZoDbi57+yAJUWlZfWa5r1zKE8OS0pA8GfQRLom/Lt0wKVw4Xiofgolzd9pEHi4JpsYIQb8O+u1ACQU6nBCS87CGrQ+ylnzKfGUs0aW2K3gvbkg0LUg="
+      # CHOCOLATEY_TOKEN="..."
+      - secure: "EnII3YAGESEl9g9rQDcrL1Sw9eww80VJP0qZHz8Da07GB0hUrDQBJ372Zs2A4qaH/GOm7cknszEPOnkE4w3IBwe5idj31Q+WJbcvqqAB1gex3bLYyStdHeohculqmPgpuEPD3yVT59viJIn6L9+GEKNtnCygDpgxMilXzDIXi6vtLqovJc6q09i7XCSnf2IVjzKv0VBSUV0lU9QOZui5/zLN0sCSzE8QKYj0QSoQ8Th3ZTuWn3/CtRYhIaw4/12oepHyXRvieMeNGnhv8O4d1lAOiXKn28COJWA+xvCOZSxIrBCc0k8VzanYftTcp1Zf0Lxkm0ObmFXWaoHATFWjkvW6G34kQrzRpUlWUMmxIxBukHc2ZFuGnVi6pL9ANI8BVh6m8M1ojRqtKCFvBbgDDdxD7qqBQSfdtssEL+m6O0U9A5/xnQxHPbuyL/Y9ww9p/ohEFaaF3MK/qjiWKQJR+TXspmNDBhFC+w2vQ6zetEx787V6POS8ma5MX1+WWOecDtaDuEMv4bzjkTuYk9tuBC4GR/KrdUNbFtcNXCk5To4Du4FBdOW/+yoVg+ZHtgOzSDehgMJMeFM2fTYNt55iwmjwDyS4XcqsWoHHCDMEhIcuXL5XV5VBENFgs98EGofja70Lp05oLH2W7100OuyG0H18lpECx15OXSFnHQh+91g="
     script: skip
     deploy:
       provider: script
-      script: pub run grinder update-chocolatey
+      script: pub run grinder pkg-chocolatey-deploy
       skip_cleanup: true
       on: {tags: true}
 
@@ -232,7 +232,7 @@ jobs:
     os: osx
     deploy:
       provider: script
-      script: pub run grinder github-mac-os
+      script: pub run grinder pkg-github-macos
       skip_cleanup: true
       on: {tags: true}
 
@@ -242,6 +242,6 @@ jobs:
     script: skip
     deploy:
       provider: script
-      script: pub run grinder github-windows
+      script: pub run grinder pkg-github-windows
       skip_cleanup: true
       on: {tags: true}

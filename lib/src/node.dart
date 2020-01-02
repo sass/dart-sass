@@ -15,7 +15,6 @@ import 'ast/sass.dart';
 import 'callable.dart';
 import 'compile.dart';
 import 'exception.dart';
-import 'executable.dart' as executable;
 import 'io.dart';
 import 'importer/node.dart';
 import 'node/error.dart';
@@ -33,14 +32,10 @@ import 'syntax.dart';
 import 'value.dart';
 import 'visitor/serialize.dart';
 
-/// The entrypoint for Node.js.
+/// The entrypoint for the Node.js module.
 ///
-/// This sets up exports that can be called from JS. These include a private
-/// export that runs the normal `main()`, which is called from `package/sass.js`
-/// to run the executable when installed from npm.
+/// This sets up exports that can be called from JS.
 void main() {
-  exports.run_ = allowInterop(
-      (Object args) => executable.main(List.from(args as List<Object>)));
   exports.render = allowInterop(_render);
   exports.renderSync = allowInterop(_renderSync);
   exports.info =

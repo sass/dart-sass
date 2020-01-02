@@ -19,12 +19,12 @@ fi
 >&2 echo "Fetching pull request $TRAVIS_PULL_REQUEST..."
 
 url=https://api.github.com/repos/sass/dart-sass/pulls/$TRAVIS_PULL_REQUEST
-if [ -z "$GITHUB_AUTH" ]; then
+if [ -z "$GITHUB_TOKEN" ]; then
     >&2 echo "Fetching pull request info without authentication"
     JSON=$(curl -L -sS $url)
 else
     >&2 echo "Fetching pull request info as sassbot"
-    JSON=$(curl -u "sassbot:$GITHUB_AUTH" -L -sS $url)
+    JSON=$(curl -u "sassbot:$GITHUB_TOKEN" -L -sS $url)
 fi
 >&2 echo "$JSON"
 
