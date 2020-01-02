@@ -46,16 +46,16 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
         mixins = _forwardedMap(_inner.mixins, _rule.prefix,
             _rule.shownMixinsAndFunctions, _rule.hiddenMixinsAndFunctions);
 
-  /// Wraps [map] so that it only shows members allowed by [blacklist] or
-  /// [whitelist], with the given [prefix], if given.
+  /// Wraps [map] so that it only shows members allowed by [blocklist] or
+  /// [safelist], with the given [prefix], if given.
   ///
-  /// Only one of [blacklist] or [whitelist] may be non-`null`.
+  /// Only one of [blocklist] or [safelist] may be non-`null`.
   static Map<String, V> _forwardedMap<V>(Map<String, V> map, String prefix,
-      Set<String> whitelist, Set<String> blacklist) {
-    assert(whitelist == null || blacklist == null);
+      Set<String> safelist, Set<String> blocklist) {
+    assert(safelist == null || blocklist == null);
     if (prefix == null &&
-        whitelist == null &&
-        (blacklist == null || blacklist.isEmpty)) {
+        safelist == null &&
+        (blocklist == null || blocklist.isEmpty)) {
       return map;
     }
 
@@ -63,10 +63,10 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
       map = PrefixedMapView(map, prefix);
     }
 
-    if (whitelist != null) {
-      map = LimitedMapView.whitelist(map, whitelist);
-    } else if (blacklist != null && blacklist.isNotEmpty) {
-      map = LimitedMapView.blacklist(map, blacklist);
+    if (safelist != null) {
+      map = LimitedMapView.safelist(map, safelist);
+    } else if (blocklist != null && blocklist.isNotEmpty) {
+      map = LimitedMapView.blocklist(map, blocklist);
     }
 
     return map;

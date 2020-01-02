@@ -63,9 +63,9 @@ class Configuration {
       newValues = UnprefixedMapView(newValues, forward.prefix);
     }
     if (forward.shownVariables != null) {
-      newValues = LimitedMapView.whitelist(newValues, forward.shownVariables);
+      newValues = LimitedMapView.safelist(newValues, forward.shownVariables);
     } else if (forward.hiddenVariables?.isNotEmpty ?? false) {
-      newValues = LimitedMapView.blacklist(newValues, forward.hiddenVariables);
+      newValues = LimitedMapView.blocklist(newValues, forward.hiddenVariables);
     }
     return Configuration(newValues, isImplicit: isImplicit);
   }

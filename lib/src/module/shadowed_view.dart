@@ -12,7 +12,7 @@ import '../util/limited_map_view.dart';
 import '../value.dart';
 
 /// A [Module] that only exposes members that aren't shadowed by a given
-/// blacklist of member names.
+/// blocklist of member names.
 class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The wrapped module.
   final Module<T> _inner;
@@ -55,16 +55,16 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   ShadowedModuleView._(this._inner, this.variables, this.variableNodes,
       this.functions, this.mixins);
 
-  /// Returns a view of [map] with all keys in [blacklist] omitted.
+  /// Returns a view of [map] with all keys in [blocklist] omitted.
   static Map<String, V> _shadowedMap<V>(
-      Map<String, V> map, Set<String> blacklist) {
-    if (map == null || !_needsBlacklist(map, blacklist)) return map;
-    return LimitedMapView.blacklist(map, blacklist);
+      Map<String, V> map, Set<String> blocklist) {
+    if (map == null || !_needsBlacklist(map, blocklist)) return map;
+    return LimitedMapView.blocklist(map, blocklist);
   }
 
-  /// Returns whether any of [map]'s keys are in [blacklist].
-  static bool _needsBlacklist(Map<String, Object> map, Set<String> blacklist) =>
-      blacklist != null && map.isNotEmpty && blacklist.any(map.containsKey);
+  /// Returns whether any of [map]'s keys are in [blocklist].
+  static bool _needsBlacklist(Map<String, Object> map, Set<String> blocklist) =>
+      blocklist != null && map.isNotEmpty && blocklist.any(map.containsKey);
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {
