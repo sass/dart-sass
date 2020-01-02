@@ -1,12 +1,4 @@
-## 1.25.0
-
-* Add functions to the built-in "sass:math" module.
-  * `clamp()`: given a `$min`, $number`, and `$max` values, clamps the `$number`
-    in between `$min` and `$max`.
-  * `hypot()`: given *n* numbers, outputs the length of the *n*-dimensional
-    vector that has components equal to each of the inputs.
-
-* Add the variables `$pi` and `$e` to the built-in "sass:math" module.
+## 1.24.1
 
 * Fix a bug where the wrong file could be loaded when the same URL is used by
   both a `@use` rule and an `@import` rule.
