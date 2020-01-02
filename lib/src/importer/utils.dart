@@ -6,43 +6,42 @@ import 'package:path/path.dart' as p;
 
 import '../io.dart';
 
-/// Whether the Sass interpreter is currently evaluating a `@use` rule.
+/// Whether the Sass compiler is currently evaluating an `@import` rule.
 ///
-/// The `@use` rule has slightly different path-resolution behavior than
-/// `@import`: `@use` prioritizes a `.css` file with a given name at the same
-/// level as `.sass` and `.scss`, while `@import` prefers `.sass` and `.scss`
-/// over `.css`. It's admittedly hacky to set this globally, but `@import` will
-/// eventually be removed, at which point we can delete this and have one
-/// consistent behavior.
-bool _inUseRule = false;
+/// When evaluating `@import` rules, URLs should canonicalize to an import-only
+/// file if one exists for the URL being canonicalized. Otherwise,
+/// canonicalization should be identical for `@import` and `@use` rules. It's
+/// admittedly hacky to set this globally, but `@import` will eventually be
+/// removed, at which point we can delete this and have one consistent behavior.
+bool _inImportRule = false;
 
-/// Runs [callback] in a context where [resolveImportPath] uses `@use` semantics
-/// rather than `@import` semantics.
-T inUseRule<T>(T callback()) {
-  var wasInUseRule = _inUseRule;
-  _inUseRule = true;
+/// Runs [callback] in a context where [resolveImportPath] uses `@import`
+/// semantics rather than `@use` semantics.
+T inImportRule<T>(T callback()) {
+  var wasInImportRule = _inImportRule;
+  _inImportRule = true;
   try {
     return callback();
   } finally {
-    _inUseRule = wasInUseRule;
+    _inImportRule = wasInImportRule;
   }
 }
 
-/// Like [inUseRule], but asynchronous.
-Future<T> inUseRuleAsync<T>(Future<T> callback()) async {
-  var wasInUseRule = _inUseRule;
-  _inUseRule = true;
+/// Like [inImportRule], but asynchronous.
+Future<T> inImportRuleAsync<T>(Future<T> callback()) async {
+  var wasInImportRule = _inImportRule;
+  _inImportRule = true;
   try {
     return await callback();
   } finally {
-    _inUseRule = wasInUseRule;
+    _inImportRule = wasInImportRule;
   }
 }
 
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///
-/// This tries to fill in extensions and partial prefixes and check if a directory default. If no file can be
-/// found, it returns `null`.
+/// This tries to fill in extensions and partial prefixes and check for a
+/// directory default. If no file can be found, it returns `null`.
 String resolveImportPath(String path) {
   var extension = p.extension(path);
   if (extension == '.sass' || extension == '.scss' || extension == '.css') {
@@ -96,7 +95,7 @@ String _exactlyOne(List<String> paths) {
       paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n");
 }
 
-/// If [_inUseRule] is `false`, invokes callback and returns the result.
+/// If [_inImportRule] is `true`, invokes callback and returns the result.
 ///
 /// Otherwise, returns `null`.
-T _ifInImport<T>(T callback()) => _inUseRule ? null : callback();
+T _ifInImport<T>(T callback()) => _inImportRule ? callback() : null;

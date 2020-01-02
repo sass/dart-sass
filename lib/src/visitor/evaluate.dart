@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3884b2f9f8775f0c3e49725bb2f647372219a149
+// Checksum: e3d7bea705bed417db9925546c076caed4465b2e
 //
 // ignore_for_file: unused_import
 
@@ -40,7 +40,6 @@ import '../functions.dart';
 import '../functions/meta.dart' as meta;
 import '../importer.dart';
 import '../importer/node.dart';
-import '../importer/utils.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../module.dart';
@@ -544,8 +543,8 @@ class _EvaluateVisitor
     }
 
     _withStackFrame(stackFrame, nodeForSpan, () {
-      var result = inUseRule(() =>
-          _loadStylesheet(url.toString(), nodeForSpan.span, baseUrl: baseUrl));
+      var result =
+          _loadStylesheet(url.toString(), nodeForSpan.span, baseUrl: baseUrl);
       var importer = result.item1;
       var stylesheet = result.item2;
 
@@ -1309,7 +1308,7 @@ class _EvaluateVisitor
   /// Adds the stylesheet imported by [import] to the current document.
   void _visitDynamicImport(DynamicImport import) {
     return _withStackFrame("@import", import, () {
-      var result = _loadStylesheet(import.url, import.span);
+      var result = _loadStylesheet(import.url, import.span, forImport: true);
       var importer = result.item1;
       var stylesheet = result.item2;
 
@@ -1402,7 +1401,7 @@ class _EvaluateVisitor
   /// This first tries loading [url] relative to [baseUrl], which defaults to
   /// `_stylesheet.span.sourceUrl`.
   Tuple2<Importer, Stylesheet> _loadStylesheet(String url, FileSpan span,
-      {Uri baseUrl}) {
+      {Uri baseUrl, bool forImport = false}) {
     try {
       assert(_importSpan == null);
       _importSpan = span;
@@ -1411,8 +1410,10 @@ class _EvaluateVisitor
         var stylesheet = _importLikeNode(url);
         if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
-        var tuple = _importCache.import(
-            Uri.parse(url), _importer, baseUrl ?? _stylesheet?.span?.sourceUrl);
+        var tuple = _importCache.import(Uri.parse(url),
+            baseImporter: _importer,
+            baseUrl: baseUrl ?? _stylesheet?.span?.sourceUrl,
+            forImport: forImport);
         if (tuple != null) return tuple;
       }
 

@@ -31,7 +31,6 @@ import '../functions.dart';
 import '../functions/meta.dart' as meta;
 import '../importer.dart';
 import '../importer/node.dart';
-import '../importer/utils.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../module.dart';
@@ -540,8 +539,8 @@ class _EvaluateVisitor
     }
 
     await _withStackFrame(stackFrame, nodeForSpan, () async {
-      var result = await inUseRuleAsync(() =>
-          _loadStylesheet(url.toString(), nodeForSpan.span, baseUrl: baseUrl));
+      var result = await _loadStylesheet(url.toString(), nodeForSpan.span,
+          baseUrl: baseUrl);
       var importer = result.item1;
       var stylesheet = result.item2;
 
@@ -1310,7 +1309,8 @@ class _EvaluateVisitor
   /// Adds the stylesheet imported by [import] to the current document.
   Future<void> _visitDynamicImport(DynamicImport import) {
     return _withStackFrame("@import", import, () async {
-      var result = await _loadStylesheet(import.url, import.span);
+      var result =
+          await _loadStylesheet(import.url, import.span, forImport: true);
       var importer = result.item1;
       var stylesheet = result.item2;
 
@@ -1404,7 +1404,7 @@ class _EvaluateVisitor
   /// `_stylesheet.span.sourceUrl`.
   Future<Tuple2<AsyncImporter, Stylesheet>> _loadStylesheet(
       String url, FileSpan span,
-      {Uri baseUrl}) async {
+      {Uri baseUrl, bool forImport = false}) async {
     try {
       assert(_importSpan == null);
       _importSpan = span;
@@ -1413,8 +1413,10 @@ class _EvaluateVisitor
         var stylesheet = await _importLikeNode(url);
         if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
-        var tuple = await _importCache.import(
-            Uri.parse(url), _importer, baseUrl ?? _stylesheet?.span?.sourceUrl);
+        var tuple = await _importCache.import(Uri.parse(url),
+            baseImporter: _importer,
+            baseUrl: baseUrl ?? _stylesheet?.span?.sourceUrl,
+            forImport: forImport);
         if (tuple != null) return tuple;
       }
 

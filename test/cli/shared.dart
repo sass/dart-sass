@@ -228,6 +228,22 @@ void sharedTests(
         "test.scss"
       ], equalsIgnoringWhitespace("a { b: c; } a { b: c; }"));
     });
+
+    // Regression test for sass/dart-sass#899
+    test("with both @use and @import", () async {
+      await d.file("test.scss", """
+        @use 'library';
+        @import 'library';
+      """).create();
+
+      await d.dir("load-path", [
+        d.file("_library.scss", "a { b: regular }"),
+        d.file("_library.import.scss", "a { b: import-only }")
+      ]).create();
+
+      await expectCompiles(["--load-path", "load-path", "test.scss"],
+          equalsIgnoringWhitespace("a { b: regular; } a { b: import-only; }"));
+    });
   });
 
   group("with --stdin", () {
