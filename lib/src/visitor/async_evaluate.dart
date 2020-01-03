@@ -1410,7 +1410,7 @@ class _EvaluateVisitor
       _importSpan = span;
 
       if (_nodeImporter != null) {
-        var stylesheet = await _importLikeNode(url);
+        var stylesheet = await _importLikeNode(url, forImport);
         if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
         var tuple = await _importCache.import(Uri.parse(url),
@@ -1445,9 +1445,9 @@ class _EvaluateVisitor
   /// Imports a stylesheet using [_nodeImporter].
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
-  Future<Stylesheet> _importLikeNode(String originalUrl) async {
-    var result =
-        await _nodeImporter.loadAsync(originalUrl, _stylesheet.span?.sourceUrl);
+  Future<Stylesheet> _importLikeNode(String originalUrl, bool forImport) async {
+    var result = await _nodeImporter.loadAsync(
+        originalUrl, _stylesheet.span?.sourceUrl, forImport);
     if (result == null) return null;
 
     var contents = result.item1;

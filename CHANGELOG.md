@@ -1,3 +1,8 @@
+## 1.24.2
+
+* Fix a bug introduced in the previous release that prevented custom importers
+  in Node.js from loading import-only files.
+
 ## 1.24.1
 
 * Fix a bug where the wrong file could be loaded when the same URL is used by

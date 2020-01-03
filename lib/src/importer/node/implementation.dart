@@ -67,10 +67,10 @@ class NodeImporter {
   /// The [previous] URL is the URL of the stylesheet in which the import
   /// appeared. Returns the contents of the stylesheet and the URL to use as
   /// [previous] for imports within the loaded stylesheet.
-  Tuple2<String, String> load(String url, Uri previous) {
+  Tuple2<String, String> load(String url, Uri previous, bool forImport) {
     var parsed = Uri.parse(url);
     if (parsed.scheme == '' || parsed.scheme == 'file') {
-      var result = _resolveRelativePath(p.fromUri(parsed), previous);
+      var result = _resolveRelativePath(p.fromUri(parsed), previous, forImport);
       if (result != null) return result;
     }
 
@@ -79,10 +79,12 @@ class NodeImporter {
         previous.scheme == 'file' ? p.fromUri(previous) : previous.toString();
     for (var importer in _importers) {
       var value = call2(importer, _context, url, previousString);
-      if (value != null) return _handleImportResult(url, previous, value);
+      if (value != null) {
+        return _handleImportResult(url, previous, value, forImport);
+      }
     }
 
-    return _resolveLoadPathFromUrl(parsed, previous);
+    return _resolveLoadPathFromUrl(parsed, previous, forImport);
   }
 
   /// Asynchronously loads the stylesheet at [url].
@@ -90,10 +92,11 @@ class NodeImporter {
   /// The [previous] URL is the URL of the stylesheet in which the import
   /// appeared. Returns the contents of the stylesheet and the URL to use as
   /// [previous] for imports within the loaded stylesheet.
-  Future<Tuple2<String, String>> loadAsync(String url, Uri previous) async {
+  Future<Tuple2<String, String>> loadAsync(
+      String url, Uri previous, bool forImport) async {
     var parsed = Uri.parse(url);
     if (parsed.scheme == '' || parsed.scheme == 'file') {
-      var result = _resolveRelativePath(p.fromUri(parsed), previous);
+      var result = _resolveRelativePath(p.fromUri(parsed), previous, forImport);
       if (result != null) return result;
     }
 
@@ -102,22 +105,26 @@ class NodeImporter {
         previous.scheme == 'file' ? p.fromUri(previous) : previous.toString();
     for (var importer in _importers) {
       var value = await _callImporterAsync(importer, url, previousString);
-      if (value != null) return _handleImportResult(url, previous, value);
+      if (value != null) {
+        return _handleImportResult(url, previous, value, forImport);
+      }
     }
 
-    return _resolveLoadPathFromUrl(parsed, previous);
+    return _resolveLoadPathFromUrl(parsed, previous, forImport);
   }
 
   /// Tries to load a stylesheet at the given [path] relative to [previous].
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String> _resolveRelativePath(String path, Uri previous) {
-    if (p.isAbsolute(path)) return _tryPath(path);
+  Tuple2<String, String> _resolveRelativePath(
+      String path, Uri previous, bool forImport) {
+    if (p.isAbsolute(path)) return _tryPath(path, forImport);
 
     // 1: Filesystem imports relative to the base file.
     if (previous.scheme == 'file') {
-      var result = _tryPath(p.join(p.dirname(p.fromUri(previous)), path));
+      var result =
+          _tryPath(p.join(p.dirname(p.fromUri(previous)), path), forImport);
       if (result != null) return result;
     }
     return null;
@@ -128,9 +135,10 @@ class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String> _resolveLoadPathFromUrl(Uri url, Uri previous) =>
+  Tuple2<String, String> _resolveLoadPathFromUrl(
+          Uri url, Uri previous, bool forImport) =>
       url.scheme == '' || url.scheme == 'file'
-          ? _resolveLoadPath(p.fromUri(url), previous)
+          ? _resolveLoadPath(p.fromUri(url), previous, forImport)
           : null;
 
   /// Tries to load a stylesheet at the given [path] from a load path (including
@@ -138,14 +146,15 @@ class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String> _resolveLoadPath(String path, Uri previous) {
+  Tuple2<String, String> _resolveLoadPath(
+      String path, Uri previous, bool forImport) {
     // 2: Filesystem imports relative to the working directory.
-    var cwdResult = _tryPath(p.absolute(path));
+    var cwdResult = _tryPath(p.absolute(path), forImport);
     if (cwdResult != null) return cwdResult;
 
     // 3: Filesystem imports relative to [_includePaths].
     for (var includePath in _includePaths) {
-      var result = _tryPath(p.absolute(p.join(includePath, path)));
+      var result = _tryPath(p.absolute(p.join(includePath, path)), forImport);
       if (result != null) return result;
     }
 
@@ -156,8 +165,10 @@ class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String> _tryPath(String path) {
-    var resolved = resolveImportPath(path);
+  Tuple2<String, String> _tryPath(String path, bool forImport) {
+    var resolved = forImport
+        ? inImportRule(() => resolveImportPath(path))
+        : resolveImportPath(path);
     return resolved == null
         ? null
         : Tuple2(readFile(resolved), p.toUri(resolved).toString());
@@ -166,14 +177,14 @@ class NodeImporter {
   /// Converts an importer's return [value] to a tuple that can be returned by
   /// [load].
   Tuple2<String, String> _handleImportResult(
-      String url, Uri previous, Object value) {
+      String url, Uri previous, Object value, bool forImport) {
     if (isJSError(value)) throw value;
     if (value is! NodeImporterResult) return null;
 
     var result = value as NodeImporterResult;
     if (result.file != null) {
-      var resolved = _resolveRelativePath(result.file, previous) ??
-          _resolveLoadPath(result.file, previous);
+      var resolved = _resolveRelativePath(result.file, previous, forImport) ??
+          _resolveLoadPath(result.file, previous, forImport);
       if (resolved != null) return resolved;
 
       throw "Can't find stylesheet to import.";

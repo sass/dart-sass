@@ -77,6 +77,26 @@ void main() {
           equalsIgnoringWhitespace('a { b: c; }'));
     });
 
+    test("supports import-only files", () async {
+      await writeTextFile(p.join(sandbox, 'foo.scss'), 'a {b: regular}');
+      await writeTextFile(
+          p.join(sandbox, 'foo.import.scss'), 'a {b: import-only}');
+
+      runTestInSandbox();
+      expect(renderSync(RenderOptions(data: "@import 'foo'")),
+          equalsIgnoringWhitespace('a { b: import-only; }'));
+    });
+
+    test("supports mixed `@use` and `@import`", () async {
+      await writeTextFile(p.join(sandbox, 'foo.scss'), 'a {b: regular}');
+      await writeTextFile(
+          p.join(sandbox, 'foo.import.scss'), 'a {b: import-only}');
+
+      runTestInSandbox();
+      expect(renderSync(RenderOptions(data: "@use 'foo'; @import 'foo';")),
+          equalsIgnoringWhitespace('a { b: regular; } a { b: import-only; }'));
+    });
+
     test("renders a string", () {
       expect(renderSync(RenderOptions(data: "a {b: c}")),
           equalsIgnoringWhitespace('a { b: c; }'));

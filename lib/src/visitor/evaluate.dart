@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: e3d7bea705bed417db9925546c076caed4465b2e
+// Checksum: 98bd4418d21d4f005485e343869b458b44841450
 //
 // ignore_for_file: unused_import
 
@@ -1407,7 +1407,7 @@ class _EvaluateVisitor
       _importSpan = span;
 
       if (_nodeImporter != null) {
-        var stylesheet = _importLikeNode(url);
+        var stylesheet = _importLikeNode(url, forImport);
         if (stylesheet != null) return Tuple2(null, stylesheet);
       } else {
         var tuple = _importCache.import(Uri.parse(url),
@@ -1442,8 +1442,9 @@ class _EvaluateVisitor
   /// Imports a stylesheet using [_nodeImporter].
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
-  Stylesheet _importLikeNode(String originalUrl) {
-    var result = _nodeImporter.load(originalUrl, _stylesheet.span?.sourceUrl);
+  Stylesheet _importLikeNode(String originalUrl, bool forImport) {
+    var result =
+        _nodeImporter.load(originalUrl, _stylesheet.span?.sourceUrl, forImport);
     if (result == null) return null;
 
     var contents = result.item1;
