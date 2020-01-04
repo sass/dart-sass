@@ -77,12 +77,59 @@ body::before {
   }
 }
 
+/// A [SassException] that's also a [MultiSpanSassException].
+class MultiSpanSassException extends SassException
+    implements MultiSourceSpanException {
+  final String primaryLabel;
+  final Map<FileSpan, String> secondarySpans;
+
+  MultiSpanSassException(String message, FileSpan span, this.primaryLabel,
+      Map<FileSpan, String> secondarySpans)
+      : secondarySpans = Map.unmodifiable(secondarySpans),
+        super(message, span);
+
+  String toString({Object color, String secondaryColor}) {
+    var useColor = false;
+    String primaryColor;
+    if (color is String) {
+      useColor = true;
+      primaryColor = color;
+    } else if (color == true) {
+      useColor = true;
+    }
+
+    var buffer = StringBuffer()
+      ..writeln("Error: $message")
+      ..write(span.highlightMultiple(primaryLabel, secondarySpans,
+          color: useColor,
+          primaryColor: primaryColor,
+          secondaryColor: secondaryColor));
+
+    for (var frame in trace.toString().split("\n")) {
+      if (frame.isEmpty) continue;
+      buffer.writeln();
+      buffer.write("  $frame");
+    }
+    return buffer.toString();
+  }
+}
+
 /// An exception thrown by Sass while evaluating a stylesheet.
 class SassRuntimeException extends SassException {
   final Trace trace;
 
   SassRuntimeException(String message, FileSpan span, this.trace)
       : super(message, span);
+}
+
+/// A [SassRuntimeException] that's also a [MultiSpanSassException].
+class MultiSpanSassRuntimeException extends MultiSpanSassException
+    implements SassRuntimeException {
+  final Trace trace;
+
+  MultiSpanSassRuntimeException(String message, FileSpan span,
+      String primaryLabel, Map<FileSpan, String> secondarySpans, this.trace)
+      : super(message, span, primaryLabel, secondarySpans);
 }
 
 /// An exception thrown when Sass parsing has failed.
@@ -107,4 +154,19 @@ class SassScriptException {
   SassScriptException(this.message);
 
   String toString() => "$message\n\nBUG: This should include a source span!";
+}
+
+/// A [SassScriptException] that contains one or more additional spans to
+/// display as points of reference.
+class MultiSpanSassScriptException extends SassScriptException {
+  /// See [MultiSourceSpanException.primaryLabel].
+  final String primaryLabel;
+
+  /// See [MultiSourceSpanException.secondarySpans].
+  final Map<FileSpan, String> secondarySpans;
+
+  MultiSpanSassScriptException(
+      String message, this.primaryLabel, Map<FileSpan, String> secondarySpans)
+      : secondarySpans = Map.unmodifiable(secondarySpans),
+        super(message);
 }

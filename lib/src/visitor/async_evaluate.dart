@@ -139,6 +139,13 @@ class _EvaluateVisitor
   /// All modules that have been loaded and evaluated so far.
   final _modules = <Uri, Module>{};
 
+  /// A map from canonical module URLs to the nodes whose spans indicate where
+  /// those modules were originally loaded.
+  ///
+  /// This is not guaranteed to have a node for every module in [_modules]. For
+  /// example, the entrypoint module was not loaded by a node.
+  final _moduleNodes = <Uri, AstNode>{};
+
   /// The logger to use to print warnings.
   final Logger _logger;
 
@@ -199,11 +206,16 @@ class _EvaluateVisitor
   /// imports, it contains the URL passed to the `@import`.
   final _includedFiles = <String>{};
 
-  /// The set of canonical URLs for modules (or imported files) that are
-  /// currently being evaluated.
+  /// A map from canonical URLs for modules (or imported files) that are
+  /// currently being evaluated to AST nodes whose spans indicate the original
+  /// loads for those modules.
+  ///
+  /// Map values may be `null`, which indicates an active module that doesn't
+  /// have a source span associated with its original load (such as the
+  /// entrypoint module).
   ///
   /// This is used to ensure that we don't get into an infinite load loop.
-  final _activeModules = <Uri>{};
+  final _activeModules = <Uri, AstNode>{};
 
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
@@ -453,7 +465,7 @@ class _EvaluateVisitor
     return _withWarnCallback(() async {
       var url = node.span?.sourceUrl;
       if (url != null) {
-        _activeModules.add(url);
+        _activeModules[url] = null;
         if (_asNodeSass) {
           if (url.scheme == 'file') {
             _includedFiles.add(p.fromUri(url));
@@ -487,13 +499,13 @@ class _EvaluateVisitor
   }
 
   /// Runs [callback] with [importer] as [_importer] and a fake [_stylesheet]
-  /// with [nodeForSpan]'s source span.
-  Future<T> _withFakeStylesheet<T>(AsyncImporter importer, AstNode nodeForSpan,
+  /// with [nodeWithSpan]'s source span.
+  Future<T> _withFakeStylesheet<T>(AsyncImporter importer, AstNode nodeWithSpan,
       FutureOr<T> callback()) async {
     var oldImporter = _importer;
     _importer = importer;
     var oldStylesheet = _stylesheet;
-    _stylesheet = Stylesheet(const [], nodeForSpan.span);
+    _stylesheet = Stylesheet(const [], nodeWithSpan.span);
 
     try {
       return await callback();
@@ -517,9 +529,9 @@ class _EvaluateVisitor
   /// configured variables in errors relating to them. This should only be
   /// `true` if the names won't be obvious from the source span.
   ///
-  /// The [stackFrame] and [nodeForSpan] are used for the name and location of
+  /// The [stackFrame] and [nodeWithSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
-  Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeForSpan,
+  Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeWithSpan,
       void callback(Module module),
       {Uri baseUrl,
       Configuration configuration,
@@ -531,32 +543,39 @@ class _EvaluateVisitor
             namesInErrors
                 ? "Built-in module $url can't be configured."
                 : "Built-in modules can't be configured.",
-            nodeForSpan.span);
+            nodeWithSpan.span);
       }
 
       callback(builtInModule);
       return;
     }
 
-    await _withStackFrame(stackFrame, nodeForSpan, () async {
-      var result = await _loadStylesheet(url.toString(), nodeForSpan.span,
+    await _withStackFrame(stackFrame, nodeWithSpan, () async {
+      var result = await _loadStylesheet(url.toString(), nodeWithSpan.span,
           baseUrl: baseUrl);
       var importer = result.item1;
       var stylesheet = result.item2;
 
       var canonicalUrl = stylesheet.span.sourceUrl;
-      if (_activeModules.contains(canonicalUrl)) {
-        throw _exception(namesInErrors
+      if (_activeModules.containsKey(canonicalUrl)) {
+        var message = namesInErrors
             ? "Module loop: ${p.prettyUri(canonicalUrl)} is already being "
                 "loaded."
-            : "Module loop: this module is already being loaded.");
+            : "Module loop: this module is already being loaded.";
+        var previousLoad = _activeModules[canonicalUrl];
+        throw previousLoad == null
+            ? _exception(message)
+            : _multiSpanException(
+                message, "new load", {previousLoad.span: "original load"});
       }
-      _activeModules.add(canonicalUrl);
+      _activeModules[canonicalUrl] = nodeWithSpan;
 
       Module module;
       try {
         module = await _execute(importer, stylesheet,
-            configuration: configuration, namesInErrors: namesInErrors);
+            configuration: configuration,
+            nodeWithSpan: nodeWithSpan,
+            namesInErrors: namesInErrors);
       } finally {
         _activeModules.remove(canonicalUrl);
       }
@@ -565,8 +584,14 @@ class _EvaluateVisitor
         await callback(module);
       } on SassRuntimeException {
         rethrow;
+      } on MultiSpanSassException catch (error) {
+        throw MultiSpanSassRuntimeException(error.message, error.span,
+            error.primaryLabel, error.secondarySpans, _stackTrace(error.span));
       } on SassException catch (error) {
         throw _exception(error.message, error.span);
+      } on MultiSpanSassScriptException catch (error) {
+        throw _multiSpanException(
+            error.message, error.primaryLabel, error.secondarySpans);
       } on SassScriptException catch (error) {
         throw _exception(error.message);
       }
@@ -582,17 +607,25 @@ class _EvaluateVisitor
   /// relating to them. This should only be `true` if the names won't be obvious
   /// from the source span.
   Future<Module> _execute(AsyncImporter importer, Stylesheet stylesheet,
-      {Configuration configuration, bool namesInErrors = false}) async {
+      {Configuration configuration,
+      AstNode nodeWithSpan,
+      bool namesInErrors = false}) async {
     var url = stylesheet.span.sourceUrl;
 
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       if (!(configuration ?? _configuration).isImplicit) {
-        throw _exception(namesInErrors
+        var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
             : "This module was already loaded, so it can't be configured using "
-                "\"with\".");
+                "\"with\".";
+
+        var existingNode = _moduleNodes[url];
+        throw existingNode == null
+            ? _exception(message)
+            : _multiSpanException(
+                message, "new load", {existingNode.span: "original load"});
       }
 
       return alreadyLoaded;
@@ -654,6 +687,7 @@ class _EvaluateVisitor
 
     var module = environment.toModule(css, extender);
     _modules[url] = module;
+    _moduleNodes[url] = nodeWithSpan;
     return module;
   }
 
@@ -1022,12 +1056,12 @@ class _EvaluateVisitor
 
   Future<Value> visitEachRule(EachRule node) async {
     var list = await node.list.accept(this);
-    var nodeForSpan = _expressionNode(node.list);
+    var nodeWithSpan = _expressionNode(node.list);
     var setVariables = node.variables.length == 1
         ? (Value value) => _environment.setLocalVariable(
-            node.variables.first, value.withoutSlash(), nodeForSpan)
+            node.variables.first, value.withoutSlash(), nodeWithSpan)
         : (Value value) =>
-            _setMultipleVariables(node.variables, value, nodeForSpan);
+            _setMultipleVariables(node.variables, value, nodeWithSpan);
     return _environment.scope(() {
       return _handleReturn<Value>(list.asList, (element) {
         setVariables(element);
@@ -1040,15 +1074,15 @@ class _EvaluateVisitor
   /// Destructures [value] and assigns it to [variables], as in an `@each`
   /// statement.
   void _setMultipleVariables(
-      List<String> variables, Value value, AstNode nodeForSpan) {
+      List<String> variables, Value value, AstNode nodeWithSpan) {
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
       _environment.setLocalVariable(
-          variables[i], list[i].withoutSlash(), nodeForSpan);
+          variables[i], list[i].withoutSlash(), nodeWithSpan);
     }
     for (var i = minLength; i < variables.length; i++) {
-      _environment.setLocalVariable(variables[i], sassNull, nodeForSpan);
+      _environment.setLocalVariable(variables[i], sassNull, nodeWithSpan);
     }
   }
 
@@ -1172,10 +1206,10 @@ class _EvaluateVisitor
     if (from == to) return null;
 
     return _environment.scope(() async {
-      var nodeForSpan = _expressionNode(node.from);
+      var nodeWithSpan = _expressionNode(node.from);
       for (var i = from; i != to; i += direction) {
         _environment.setLocalVariable(
-            node.variable, SassNumber(i), nodeForSpan);
+            node.variable, SassNumber(i), nodeWithSpan);
         var result = await _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;
@@ -1315,11 +1349,14 @@ class _EvaluateVisitor
       var stylesheet = result.item2;
 
       var url = stylesheet.span.sourceUrl;
-      if (!_activeModules.add(url)) {
-        throw _exception("This file is already being loaded.");
+      if (_activeModules.containsKey(url)) {
+        var previousLoad = _activeModules[url];
+        throw previousLoad == null
+            ? _exception("This file is already being loaded.")
+            : _multiSpanException("This file is already being loaded.",
+                "new load", {previousLoad.span: "original load"});
       }
-
-      _activeModules.add(url);
+      _activeModules[url] = import;
 
       // If the imported stylesheet doesn't use any modules, we can inject its
       // CSS directly into the current stylesheet. If it does use modules, we
@@ -1832,7 +1869,7 @@ class _EvaluateVisitor
           });
 
     await _loadModule(node.url, "@use", node, (module) {
-      _environment.addModule(module, namespace: node.namespace);
+      _environment.addModule(module, node, namespace: node.namespace);
     }, configuration: configuration);
     _assertConfigurationIsEmpty(configuration);
 
@@ -1994,13 +2031,20 @@ class _EvaluateVisitor
 
   Future<SassMap> visitMapExpression(MapExpression node) async {
     var map = <Value, Value>{};
+    var keyNodes = <Value, AstNode>{};
     for (var pair in node.pairs) {
       var keyValue = await pair.item1.accept(this);
       var valueValue = await pair.item2.accept(this);
       if (map.containsKey(keyValue)) {
-        throw _exception('Duplicate key.', pair.item1.span);
+        throw MultiSpanSassRuntimeException(
+            'Duplicate key.',
+            pair.item1.span,
+            'second key',
+            {keyNodes[keyValue].span: 'first key'},
+            _stackTrace(pair.item1.span));
       }
       map[keyValue] = valueValue;
+      keyNodes[keyValue] = pair.item1;
     }
     return SassMap(map);
   }
@@ -2222,6 +2266,16 @@ class _EvaluateVisitor
       result = await callback(evaluated.positional);
     } on SassRuntimeException {
       rethrow;
+    } on MultiSpanSassScriptException catch (error) {
+      throw MultiSpanSassRuntimeException(
+          error.message,
+          nodeWithSpan.span,
+          error.primaryLabel,
+          error.secondarySpans,
+          _stackTrace(nodeWithSpan.span));
+    } on MultiSpanSassException catch (error) {
+      throw MultiSpanSassRuntimeException(error.message, error.span,
+          error.primaryLabel, error.secondarySpans, _stackTrace(error.span));
     } catch (error) {
       String message;
       try {
@@ -2367,7 +2421,7 @@ class _EvaluateVisitor
 
   /// Adds the values in [map] to [values].
   ///
-  /// Throws a [SassRuntimeException] associated with [nodeForSpan]'s source
+  /// Throws a [SassRuntimeException] associated with [nodeWithSpan]'s source
   /// span if any [map] keys aren't strings.
   ///
   /// If [convert] is passed, that's used to convert the map values to the value
@@ -2376,7 +2430,7 @@ class _EvaluateVisitor
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  void _addRestMap<T>(Map<String, T> values, SassMap map, AstNode nodeForSpan,
+  void _addRestMap<T>(Map<String, T> values, SassMap map, AstNode nodeWithSpan,
       [T convert(Value value)]) {
     convert ??= (value) => value as T;
     map.contents.forEach((key, value) {
@@ -2386,7 +2440,7 @@ class _EvaluateVisitor
         throw _exception(
             "Variable keyword argument map must have string keys.\n"
             "$key is not a string in $map.",
-            nodeForSpan.span);
+            nodeWithSpan.span);
       }
     });
   }
@@ -2843,12 +2897,21 @@ class _EvaluateVisitor
       _logger.warn(message,
           span: span, trace: _stackTrace(span), deprecation: deprecation);
 
-  /// Throws a [SassRuntimeException] with the given [message].
+  /// Returns a [SassRuntimeException] with the given [message].
   ///
   /// If [span] is passed, it's used for the innermost stack frame.
   SassRuntimeException _exception(String message, [FileSpan span]) =>
       SassRuntimeException(
           message, span ?? _stack.last.item2.span, _stackTrace(span));
+
+  /// Returns a [MultiSpanSassRuntimeException] with the given [message],
+  /// [primaryLabel], and [secondaryLabels].
+  ///
+  /// The primary span is taken from the current stack trace span.
+  SassRuntimeException _multiSpanException(String message, String primaryLabel,
+          Map<FileSpan, String> secondaryLabels) =>
+      MultiSpanSassRuntimeException(message, _stack.last.item2.span,
+          primaryLabel, secondaryLabels, _stackTrace());
 
   /// Runs [callback], and adjusts any [SassFormatException] to be within
   /// [nodeWithSpan]'s source span.
@@ -2887,6 +2950,13 @@ class _EvaluateVisitor
   T _addExceptionSpan<T>(AstNode nodeWithSpan, T callback()) {
     try {
       return callback();
+    } on MultiSpanSassScriptException catch (error) {
+      throw MultiSpanSassRuntimeException(
+          error.message,
+          nodeWithSpan.span,
+          error.primaryLabel,
+          error.secondarySpans,
+          _stackTrace(nodeWithSpan.span));
     } on SassScriptException catch (error) {
       throw _exception(error.message, nodeWithSpan.span);
     }
@@ -2897,6 +2967,13 @@ class _EvaluateVisitor
       AstNode nodeWithSpan, Future<T> callback()) async {
     try {
       return await callback();
+    } on MultiSpanSassScriptException catch (error) {
+      throw MultiSpanSassRuntimeException(
+          error.message,
+          nodeWithSpan.span,
+          error.primaryLabel,
+          error.secondarySpans,
+          _stackTrace(nodeWithSpan.span));
     } on SassScriptException catch (error) {
       throw _exception(error.message, nodeWithSpan.span);
     }
