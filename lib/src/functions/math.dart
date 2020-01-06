@@ -143,14 +143,20 @@ final _log = BuiltInCallable("log", r"$number, $base: null", (arguments) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
 
-  if (arguments[1] == sassNull) return SassNumber(math.log(number.value));
+  var numberValue = fuzzyEquals(number.value, 0) ? 0 : number.value;
+
+  if (arguments[1] == sassNull) return SassNumber(math.log(numberValue));
 
   var base = arguments[1].assertNumber("base");
   if (base.hasUnits) {
     throw SassScriptException("\$base: Expected $base to have no units.");
   }
 
-  return SassNumber(math.log(number.value) / math.log(base.value));
+  var baseValue = fuzzyEquals(base.value, 0) || fuzzyEquals(base.value, 1)
+      ? fuzzyRound(base.value)
+      : base.value;
+
+  return SassNumber(math.log(numberValue) / math.log(baseValue));
 });
 
 final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
@@ -164,9 +170,38 @@ final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
         "\$exponent: Expected $exponent to have no units.");
   }
 
-  return fuzzyEquals(base.value.abs(), 1) && exponent.value.isInfinite
-      ? SassNumber(double.nan)
-      : SassNumber(math.pow(base.value, exponent.value));
+  var baseValue = base.value;
+  var exponentValue = exponent.value;
+
+  if (fuzzyEquals(baseValue.abs(), 1) && exponentValue.isInfinite) {
+    return SassNumber(double.nan);
+  }
+
+  // Exponentiating certain real numbers leads to special behaviors. Ensure that
+  // these behaviors are consistent for numbers within the precision limit.
+  if (fuzzyEquals(exponentValue, 0)) {
+    exponentValue = 0;
+  } else if (fuzzyEquals(baseValue, 0)) {
+    baseValue = baseValue.isNegative ? -0.0 : 0;
+    if (exponentValue.isFinite &&
+        fuzzyIsInt(exponentValue) &&
+        fuzzyAsInt(exponentValue) % 2 == 1) {
+      exponentValue = fuzzyRound(exponentValue);
+    }
+  } else if (baseValue.isFinite &&
+      fuzzyLessThan(baseValue, 0) &&
+      exponentValue.isFinite &&
+      fuzzyIsInt(exponentValue)) {
+    exponentValue = fuzzyRound(exponentValue);
+  } else if (baseValue.isInfinite &&
+      fuzzyLessThan(baseValue, 0) &&
+      exponentValue.isFinite &&
+      fuzzyIsInt(exponentValue) &&
+      fuzzyAsInt(exponentValue) % 2 == 1) {
+    exponentValue = fuzzyRound(exponentValue);
+  }
+
+  return SassNumber(math.pow(baseValue, exponentValue));
 });
 
 final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
