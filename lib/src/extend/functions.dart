@@ -522,14 +522,17 @@ List<List<T>> paths<T>(Iterable<List<T>> choices) => choices.fold(
 QueueList<List<ComplexSelectorComponent>> _groupSelectors(
     Iterable<ComplexSelectorComponent> complex) {
   var groups = QueueList<List<ComplexSelectorComponent>>();
-  var iterator = complex.iterator..moveNext();
-  while (iterator.current != null) {
-    var group = <ComplexSelectorComponent>[];
-    do {
+  var iterator = complex.iterator;
+  if (!iterator.moveNext()) return groups;
+  var group = <ComplexSelectorComponent>[iterator.current];
+  groups.add(group);
+  while (iterator.moveNext()) {
+    if (group.last is Combinator || iterator.current is Combinator) {
       group.add(iterator.current);
-    } while (iterator.moveNext() &&
-        (iterator.current is Combinator || group.last is Combinator));
-    groups.add(group);
+    } else {
+      group = [iterator.current];
+      groups.add(group);
+    }
   }
   return groups;
 }
