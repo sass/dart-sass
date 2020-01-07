@@ -534,6 +534,7 @@ QueueList<List<ComplexSelectorComponent>> _groupSelectors(
       groups.add(group);
     }
   }
+  return groups;
 }
 
 /// Returns whether or not [compound] contains a `::root` selector.
