@@ -18,7 +18,8 @@ bool get _is64Bit => Platform.version.contains("x64");
 @Task('Build Dart script snapshot.')
 void snapshot() {
   ensureBuild();
-  Dart.run('bin/sass.dart', vmArgs: ['--snapshot=build/sass.dart.snapshot']);
+  Dart.run('bin/sass.dart',
+      vmArgs: ['-Dversion=$version', '--snapshot=build/sass.dart.snapshot']);
 }
 
 @Task('Build a dev-mode Dart application snapshot.')
@@ -42,6 +43,7 @@ void _appSnapshot() {
       arguments: ['tool/app-snapshot-input.scss'],
       vmArgs: [
         '--enable-asserts',
+        '-Dversion=$version',
         '--snapshot=build/sass.dart.app.snapshot',
         '--snapshot-kind=app-jit'
       ],
@@ -103,15 +105,11 @@ Future<void> _buildPackage(String os) async {
       ..addFile(file("dart-sass/src/sass.dart.snapshot",
           useNative ? "build/sass.dart.native" : "build/sass.dart.snapshot"))
       ..addFile(file("dart-sass/src/SASS_LICENSE", "LICENSE"))
-      ..addFile(fileFromString(
-          "dart-sass/dart-sass${os == 'windows' ? '.bat' : ''}",
-          readAndReplaceVersion(
-              "package/dart-sass.${os == 'windows' ? 'bat' : 'sh'}"),
+      ..addFile(file("dart-sass/dart-sass${os == 'windows' ? '.bat' : ''}",
+          "package/dart-sass.${os == 'windows' ? 'bat' : 'sh'}",
           executable: true))
-      ..addFile(fileFromString(
-          "dart-sass/sass${os == 'windows' ? '.bat' : ''}",
-          readAndReplaceVersion(
-              "package/sass.${os == 'windows' ? 'bat' : 'sh'}"),
+      ..addFile(file("dart-sass/sass${os == 'windows' ? '.bat' : ''}",
+          "package/sass.${os == 'windows' ? 'bat' : 'sh'}",
           executable: true));
 
     var prefix = 'build/dart-sass-$version-$os-$architecture';

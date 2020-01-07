@@ -1,3 +1,8 @@
+## 1.24.3
+
+* Fix a bug where `sass --version` would crash for certain executable
+  distributions.
+
 ## 1.24.2
 
 * Fix a bug introduced in the previous release that prevented custom importers

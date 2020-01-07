@@ -5,4 +5,4 @@ REM https://opensource.org/licenses/MIT.
 
 set SCRIPTPATH=%~dp0
 set arguments=%*
-dart.exe "-Dversion=SASS_VERSION" "%SCRIPTPATH%\sass.dart.snapshot" %arguments%
+dart.exe "%SCRIPTPATH%\sass.dart.snapshot" %arguments%
