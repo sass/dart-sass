@@ -35,11 +35,6 @@ void ensureBuild() {
   Directory('build').createSync(recursive: true);
 }
 
-/// Reads [file], replaces all instances of SASS_VERSION with the actual
-/// version, and returns its contents.
-String readAndReplaceVersion(String file) =>
-    File(file).readAsStringSync().replaceAll("SASS_VERSION", version);
-
 /// Returns the environment variable named [name], or throws an exception if it
 /// can't be found.
 String environment(String name) {

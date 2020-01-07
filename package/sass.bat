@@ -9,4 +9,4 @@ REM grinder package`.
 
 set SCRIPTPATH=%~dp0
 set arguments=%*
-"%SCRIPTPATH%\src\dart.exe" "-Dversion=SASS_VERSION" "%SCRIPTPATH%\src\sass.dart.snapshot" %arguments%
+"%SCRIPTPATH%\src\dart.exe" "%SCRIPTPATH%\src\sass.dart.snapshot" %arguments%

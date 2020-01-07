@@ -22,4 +22,4 @@ fi
 
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 path=`dirname "$(follow_links "$BASH_SOURCE")"`
-exec "$path/src/dart" "-Dversion=SASS_VERSION" "$path/src/sass.dart.snapshot" "$@"
+exec "$path/src/dart" "$path/src/sass.dart.snapshot" "$@"

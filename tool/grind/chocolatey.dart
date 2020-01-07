@@ -32,8 +32,7 @@ void chocolateyPackage() {
         "package/chocolatey/chocolateyInstall.ps1"))
     ..addFile(file("tools/chocolateyUninstall.ps1",
         "package/chocolatey/chocolateyUninstall.ps1"))
-    ..addFile(fileFromString("tools/sass.bat",
-        readAndReplaceVersion("package/chocolatey/sass.bat")));
+    ..addFile(file("tools/sass.bat", "package/chocolatey/sass.bat"));
 
   var output = "build/sass.${_chocolateyVersion()}.nupkg";
   log("Creating $output...");
