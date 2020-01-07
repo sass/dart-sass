@@ -197,7 +197,8 @@ void main() {
     });
 
     // Regression test for sass/dart-sass#922
-    test("contains a URL handled by an importer when sourceMap is absolute", () {
+    test("contains a URL handled by an importer when sourceMap is absolute",
+        () {
       var map = _renderSourceMap(RenderOptions(
           data: '''
         @import "other";
