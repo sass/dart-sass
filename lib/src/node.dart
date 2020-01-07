@@ -351,6 +351,12 @@ RenderResult _newRenderResult(
     for (var i = 0; i < result.sourceMap.urls.length; i++) {
       var source = result.sourceMap.urls[i];
       if (source == "stdin") continue;
+
+      // URLs handled by Node importers that directly return file contents are
+      // preserved in their original (usually relative) form. They may or may
+      // not be intended as `file:` URLs, but there's nothing we can do about it
+      // either way so we keep them as-is.
+      if (p.url.isRelative(source) || p.url.isRootRelative(source)) continue;
       result.sourceMap.urls[i] = p.url.relative(source, from: sourceMapDirUrl);
     }
 
