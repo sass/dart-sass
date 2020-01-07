@@ -23,8 +23,9 @@ final global = UnmodifiableListView([
 
 /// The Sass math module.
 final module = BuiltInModule("math", functions: [
-  _abs, _ceil, _clamp, _compatible, _floor, _hypot, _isUnitless, _log, _max, //
-  _min, _pow, _percentage, _randomFunction, _round, _sqrt, _unit,
+  _abs, _acos, _asin, _atan, _atan2, _ceil, _clamp, _cos, _compatible, //
+  _floor, _hypot, _isUnitless, _log, _max, _min, _percentage, _pow, //
+  _randomFunction, _round, _sin, _sqrt, _tan, _unit,
 ], variables: {
   "e": SassNumber(math.e),
   "pi": SassNumber(math.pi),
@@ -212,6 +213,115 @@ final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
 
   return SassNumber(math.sqrt(number.value));
 });
+
+///
+/// Trigonometric functions
+///
+
+final _acos = BuiltInCallable("acos", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  number.assertNoUnits();
+  var numberValue = fuzzyEquals(number.value.abs(), 1)
+      ? fuzzyRound(number.value)
+      : number.value;
+  var acos = math.acos(numberValue) * 180 / math.pi;
+  return SassNumber.withUnits(acos, numeratorUnits: ['deg']);
+});
+
+final _asin = BuiltInCallable("asin", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  number.assertNoUnits();
+  var numberValue = number.value;
+
+  if (fuzzyEquals(numberValue, 0) && numberValue.isNegative) {
+    numberValue = -0.0;
+  } else if (fuzzyEquals(numberValue.abs(), 1)) {
+    numberValue = fuzzyRound(number.value);
+  }
+
+  var asin = math.asin(numberValue) * 180 / math.pi;
+  return SassNumber.withUnits(asin, numeratorUnits: ['deg']);
+});
+
+final _atan = BuiltInCallable("atan", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  number.assertNoUnits();
+  var numberValue = fuzzyEquals(number.value, 0) && number.value.isNegative
+      ? -0.0
+      : number.value;
+  var atan = math.atan(numberValue) * 180 / math.pi;
+  return SassNumber.withUnits(atan, numeratorUnits: ['deg']);
+});
+
+final _atan2 = BuiltInCallable("atan2", r"$y, $x", (arguments) {
+  var y = arguments[0].assertNumber("y");
+  var x = arguments[1].assertNumber("x");
+
+  if (y.hasUnits != x.hasUnits) {
+    var unit1 = y.hasUnits ? "has unit ${y.unitString}" : "is unitless";
+    var unit2 = x.hasUnits ? "has unit ${x.unitString}" : "is unitless";
+    throw SassScriptException(
+        "\$y $unit1 but \$x $unit2. Arguments must all have units or all be "
+        "unitless.");
+  }
+
+  x = x.coerce(y.numeratorUnits, y.denominatorUnits);
+  var yValue = y.value;
+  var xValue = x.value;
+
+  if (fuzzyEquals(yValue, 0)) {
+    yValue = yValue.isNegative ? -0.0 : 0;
+  }
+
+  if (fuzzyEquals(xValue, 0)) {
+    xValue = xValue.isNegative ? -0.0 : 0;
+  }
+
+  var atan2 = math.atan2(yValue, xValue) * 180 / math.pi;
+  return SassNumber.withUnits(atan2, numeratorUnits: ['deg']);
+});
+
+final _cos = BuiltInCallable("cos", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  number = _coerceToRad(number);
+  return SassNumber(math.cos(number.value));
+});
+
+final _sin = BuiltInCallable("sin", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  number = _coerceToRad(number);
+  var numberValue = fuzzyEquals(number.value, 0) && number.value.isNegative
+      ? -0.0
+      : number.value;
+  return SassNumber(math.sin(numberValue));
+});
+
+final _tan = BuiltInCallable("tan", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  number = _coerceToRad(number);
+  var asymptoteInterval = 0.5 * math.pi;
+  var tanPeriod = 2 * math.pi;
+
+  if (fuzzyEquals((number.value - asymptoteInterval) % tanPeriod, 0)) {
+    return SassNumber(double.infinity);
+  } else if (fuzzyEquals((number.value + asymptoteInterval) % tanPeriod, 0)) {
+    return SassNumber(double.negativeInfinity);
+  } else {
+    var numberValue = fuzzyEquals(number.value, 0) && number.value.isNegative
+        ? -0.0
+        : number.value;
+    return SassNumber(math.tan(numberValue));
+  }
+});
+
+SassNumber _coerceToRad(SassNumber number) {
+  try {
+    return number.coerce(['rad'], []);
+  } on SassScriptException catch (error) {
+    if (!error.message.startsWith('Incompatible units')) rethrow;
+    throw SassScriptException('Expected ${number} to be an angle.');
+  }
+}
 
 ///
 /// Unit functions

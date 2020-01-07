@@ -1,15 +1,29 @@
 ## 1.25.0
 
 * Add functions to the built-in "sass:math" module.
-  * `clamp()`: given a `$min`, $number`, and `$max` values, clamps the `$number`
-    in between `$min` and `$max`.
-  * `hypot()`: given *n* numbers, outputs the length of the *n*-dimensional
-    vector that has components equal to each of the inputs.
-  * Exponential (all inputs must be unitless):
-    * `log($number)` or `log($number, $base)`. If no base is provided, `log()`
-      performs a natural log.
+
+  * `clamp($min, $number, $max)`. Clamps `$number` in between `$min` and `$max`.
+
+  * `hypot($numbers...)`. Given *n* numbers, outputs the length of the
+    *n*-dimensional vector that has components equal to each of the inputs.
+
+  * Exponential. All inputs must be unitless.
+    * `log($number)` or `log($number, $base)`. If no base is provided, performs
+       a natural log.
     * `pow($base, $exponent)`
     * `sqrt($number)`
+
+  * Trigonometric. The input must be an angle. If no unit is given, the input is
+    assumed to be in `rad`.
+    * `cos($number)`
+    * `sin($number)`
+    * `tan($number)`
+
+  * Inverse trigonometric. The output is in `deg`.
+    * `acos($number)`. Input must be unitless.
+    * `asin($number)`. Input must be unitless.
+    * `atan($number)`. Input must be unitless.
+    * `atan2($y, $x)`. `$y` and `$x` must have compatible units or be unitless.
 
 * Add the variables `$pi` and `$e` to the built-in "sass:math" module.
 
