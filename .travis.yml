@@ -57,7 +57,7 @@ jobs:
   # Pure Dart unit tests, defined in test/.
   - &dart-tests
     name: Dart tests | Dart stable
-    install: pub run grinder app-snapshot
+    install: pub run grinder pkg-standalone-dev
     script: tool/travis/task/dart_tests.sh
   - <<: *dart-tests
     name: Dart tests | Dart dev
