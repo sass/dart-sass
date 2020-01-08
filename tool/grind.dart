@@ -104,7 +104,7 @@ String _readAndResolveMarkdown(String path) => File(path)
 
       Match headerMatch;
       try {
-        headerMatch = "# ${match[2]}\n".allMatches(included).first;
+        headerMatch = "# ${match[2]}".allMatches(included).first;
       } on StateError {
         _matchError(match, "Could not find header.", url: p.toUri(path));
       }
