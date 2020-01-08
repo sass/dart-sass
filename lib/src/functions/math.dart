@@ -140,6 +140,7 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
 
 final _log = BuiltInCallable("log", r"$number, $base: null", (arguments) {
   var number = arguments[0].assertNumber("number");
+
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
@@ -149,6 +150,7 @@ final _log = BuiltInCallable("log", r"$number, $base: null", (arguments) {
   if (arguments[1] == sassNull) return SassNumber(math.log(numberValue));
 
   var base = arguments[1].assertNumber("base");
+
   if (base.hasUnits) {
     throw SassScriptException("\$base: Expected $base to have no units.");
   }
@@ -207,11 +209,18 @@ final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
 
 final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
+
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
 
-  return SassNumber(math.sqrt(number.value));
+  var numberValue = number.value;
+
+  if (fuzzyEquals(numberValue, 0)) {
+    numberValue = numberValue.isNegative ? -0.0 : 0;
+  }
+
+  return SassNumber(math.sqrt(numberValue));
 });
 
 ///
@@ -220,21 +229,30 @@ final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
 
 final _acos = BuiltInCallable("acos", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  number.assertNoUnits();
+
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  }
+
   var numberValue = fuzzyEquals(number.value.abs(), 1)
       ? fuzzyRound(number.value)
       : number.value;
+
   var acos = math.acos(numberValue) * 180 / math.pi;
   return SassNumber.withUnits(acos, numeratorUnits: ['deg']);
 });
 
 final _asin = BuiltInCallable("asin", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  number.assertNoUnits();
+
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  }
+
   var numberValue = number.value;
 
-  if (fuzzyEquals(numberValue, 0) && numberValue.isNegative) {
-    numberValue = -0.0;
+  if (fuzzyEquals(numberValue, 0)) {
+    numberValue = numberValue.isNegative ? -0.0 : 0;
   } else if (fuzzyEquals(numberValue.abs(), 1)) {
     numberValue = fuzzyRound(number.value);
   }
@@ -245,10 +263,17 @@ final _asin = BuiltInCallable("asin", r"$number", (arguments) {
 
 final _atan = BuiltInCallable("atan", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  number.assertNoUnits();
-  var numberValue = fuzzyEquals(number.value, 0) && number.value.isNegative
-      ? -0.0
-      : number.value;
+
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  }
+
+  var numberValue = number.value;
+
+  if (fuzzyEquals(numberValue, 0)) {
+    numberValue = numberValue.isNegative ? -0.0 : 0;
+  }
+
   var atan = math.atan(numberValue) * 180 / math.pi;
   return SassNumber.withUnits(atan, numeratorUnits: ['deg']);
 });
@@ -289,29 +314,37 @@ final _cos = BuiltInCallable("cos", r"$number", (arguments) {
 
 final _sin = BuiltInCallable("sin", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  number = _coerceToRad(number);
-  var numberValue = fuzzyEquals(number.value, 0) && number.value.isNegative
-      ? -0.0
-      : number.value;
+  var numberValue = _coerceToRad(number).value;
+
+  if (fuzzyEquals(numberValue, 0)) {
+    numberValue = numberValue.isNegative ? -0.0 : 0;
+  }
+
   return SassNumber(math.sin(numberValue));
 });
 
 final _tan = BuiltInCallable("tan", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   number = _coerceToRad(number);
+
   var asymptoteInterval = 0.5 * math.pi;
   var tanPeriod = 2 * math.pi;
 
   if (fuzzyEquals((number.value - asymptoteInterval) % tanPeriod, 0)) {
     return SassNumber(double.infinity);
-  } else if (fuzzyEquals((number.value + asymptoteInterval) % tanPeriod, 0)) {
-    return SassNumber(double.negativeInfinity);
-  } else {
-    var numberValue = fuzzyEquals(number.value, 0) && number.value.isNegative
-        ? -0.0
-        : number.value;
-    return SassNumber(math.tan(numberValue));
   }
+
+  if (fuzzyEquals((number.value + asymptoteInterval) % tanPeriod, 0)) {
+    return SassNumber(double.negativeInfinity);
+  }
+
+  var numberValue = number.value;
+
+  if (fuzzyEquals(numberValue, 0)) {
+    numberValue = numberValue.isNegative ? -0.0 : 0;
+  }
+
+  return SassNumber(math.tan(numberValue));
 });
 
 SassNumber _coerceToRad(SassNumber number) {
@@ -319,7 +352,7 @@ SassNumber _coerceToRad(SassNumber number) {
     return number.coerce(['rad'], []);
   } on SassScriptException catch (error) {
     if (!error.message.startsWith('Incompatible units')) rethrow;
-    throw SassScriptException('Expected ${number} to be an angle.');
+    throw SassScriptException('\$number: Expected ${number} to be an angle.');
   }
 }
 
