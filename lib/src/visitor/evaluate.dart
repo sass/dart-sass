@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b2a6756fe0f47ed5aec3b92b74f021198d7a770a
+// Checksum: eb095e782e2983223945d189caadc649b081a676
 //
 // ignore_for_file: unused_import
 
@@ -442,7 +442,7 @@ class _EvaluateVisitor
 
             values[name] = ConfiguredValue(value, span);
           });
-          configuration = Configuration(values);
+          configuration = Configuration(values, _callableNode);
         }
 
         _loadModule(url, "load-css()", _callableNode,
@@ -628,10 +628,15 @@ class _EvaluateVisitor
                 "\"with\".";
 
         var existingNode = _moduleNodes[url];
-        throw existingNode == null
+        var secondarySpans = {
+          if (existingNode != null) existingNode.span: "original load",
+          if (configuration == null)
+            _configuration.nodeWithSpan.span: "configuration"
+        };
+
+        throw secondarySpans.isEmpty
             ? _exception(message)
-            : _multiSpanException(
-                message, "new load", {existingNode.span: "original load"});
+            : _multiSpanException(message, "new load", secondarySpans);
       }
 
       return alreadyLoaded;
@@ -1272,7 +1277,7 @@ class _EvaluateVisitor
           _expressionNode(variable.expression));
     }
 
-    return Configuration(newValues);
+    return Configuration(newValues, node);
   }
 
   /// Remove configured values from [upstream] that have been removed from
@@ -1866,7 +1871,7 @@ class _EvaluateVisitor
                   variable.expression.accept(this).withoutSlash(),
                   variable.span,
                   _expressionNode(variable.expression))
-          });
+          }, node);
 
     _loadModule(node.url, "@use", node, (module) {
       _environment.addModule(module, node, namespace: node.namespace);

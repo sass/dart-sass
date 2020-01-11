@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6e375d7e8ccaafe80c33ec5a220bc4acf5dbc3d0
+// Checksum: e0f39c1b98cb2adf98116bd51bf03d492be953c3
 //
 // ignore_for_file: unused_import
 
@@ -804,7 +804,7 @@ class Environment {
         configuration[name] = ConfiguredValue(values[name], null, nodes[name]);
       }
     }
-    return Configuration(configuration, isImplicit: true);
+    return Configuration.implicit(configuration);
   }
 
   /// Returns a module that represents the top-level members defined in [this],

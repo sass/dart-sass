@@ -799,7 +799,7 @@ class AsyncEnvironment {
         configuration[name] = ConfiguredValue(values[name], null, nodes[name]);
       }
     }
-    return Configuration(configuration, isImplicit: true);
+    return Configuration.implicit(configuration);
   }
 
   /// Returns a module that represents the top-level members defined in [this],

@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'configured_value.dart';
 import 'util/limited_map_view.dart';
@@ -19,6 +20,11 @@ class Configuration {
   Map<String, ConfiguredValue> get values => UnmodifiableMapView(_values);
   final Map<String, ConfiguredValue> _values;
 
+  /// The node whose span indicates where the configuration was declared.
+  ///
+  /// This is `null` for implicit configurations.
+  final AstNode nodeWithSpan;
+
   /// Whether or not this configuration is implicit.
   ///
   /// Implicit configurations are created when a file containing a `@forward`
@@ -31,8 +37,18 @@ class Configuration {
   /// silently ignored in this case.
   final bool isImplicit;
 
-  Configuration(Map<String, ConfiguredValue> values, {this.isImplicit = false})
-      : _values = values;
+  /// Creates an explicit configuration with the given [values].
+  Configuration(Map<String, ConfiguredValue> values, this.nodeWithSpan)
+      : _values = values,
+        isImplicit = false;
+
+  /// Creates an implicit configuration with the given [values].
+  ///
+  /// See [isImplicit] for details.
+  Configuration.implicit(Map<String, ConfiguredValue> values)
+      : _values = values,
+        nodeWithSpan = null,
+        isImplicit = true;
 
   /// The empty configuration, which indicates that the module has not been
   /// configured.
@@ -41,6 +57,7 @@ class Configuration {
   /// ignored if the module has already been loaded.
   const Configuration.empty()
       : _values = const {},
+        nodeWithSpan = null,
         isImplicit = true;
 
   bool get isEmpty => values.isEmpty;
@@ -67,6 +84,8 @@ class Configuration {
     } else if (forward.hiddenVariables?.isNotEmpty ?? false) {
       newValues = LimitedMapView.blocklist(newValues, forward.hiddenVariables);
     }
-    return Configuration(newValues, isImplicit: isImplicit);
+    return isImplicit
+        ? Configuration.implicit(newValues)
+        : Configuration(newValues, nodeWithSpan);
   }
 }

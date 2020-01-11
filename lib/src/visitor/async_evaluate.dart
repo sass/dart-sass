@@ -437,7 +437,7 @@ class _EvaluateVisitor
 
             values[name] = ConfiguredValue(value, span);
           });
-          configuration = Configuration(values);
+          configuration = Configuration(values, _callableNode);
         }
 
         await _loadModule(url, "load-css()", _callableNode,
@@ -625,10 +625,15 @@ class _EvaluateVisitor
                 "\"with\".";
 
         var existingNode = _moduleNodes[url];
-        throw existingNode == null
+        var secondarySpans = {
+          if (existingNode != null) existingNode.span: "original load",
+          if (configuration == null)
+            _configuration.nodeWithSpan.span: "configuration"
+        };
+
+        throw secondarySpans.isEmpty
             ? _exception(message)
-            : _multiSpanException(
-                message, "new load", {existingNode.span: "original load"});
+            : _multiSpanException(message, "new load", secondarySpans);
       }
 
       return alreadyLoaded;
@@ -1274,7 +1279,7 @@ class _EvaluateVisitor
           _expressionNode(variable.expression));
     }
 
-    return Configuration(newValues);
+    return Configuration(newValues, node);
   }
 
   /// Remove configured values from [upstream] that have been removed from
@@ -1876,7 +1881,7 @@ class _EvaluateVisitor
                   (await variable.expression.accept(this)).withoutSlash(),
                   variable.span,
                   _expressionNode(variable.expression))
-          });
+          }, node);
 
     await _loadModule(node.url, "@use", node, (module) {
       _environment.addModule(module, node, namespace: node.namespace);
