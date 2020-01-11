@@ -23,7 +23,7 @@ final global = UnmodifiableListView([
   // ### RGB
   _red, _green, _blue, _mix,
 
-  BuiltInCallable.overloaded("rgb", {
+  BuiltInCallable.overloadedFunction("rgb", {
     r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgb", arguments),
     r"$red, $green, $blue": (arguments) => _rgb("rgb", arguments),
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgb", arguments),
@@ -34,7 +34,7 @@ final global = UnmodifiableListView([
     }
   }),
 
-  BuiltInCallable.overloaded("rgba", {
+  BuiltInCallable.overloadedFunction("rgba", {
     r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgba", arguments),
     r"$red, $green, $blue": (arguments) => _rgb("rgba", arguments),
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgba", arguments),
@@ -47,7 +47,7 @@ final global = UnmodifiableListView([
     }
   }),
 
-  BuiltInCallable("invert", r"$color, $weight: 100%", (arguments) {
+  _function("invert", r"$color, $weight: 100%", (arguments) {
     var weight = arguments[1].assertNumber("weight");
     if (arguments[0] is SassNumber) {
       if (weight.value != 100 || !weight.hasUnit("%")) {
@@ -68,7 +68,7 @@ final global = UnmodifiableListView([
   // ### HSL
   _hue, _saturation, _lightness, _complement,
 
-  BuiltInCallable.overloaded("hsl", {
+  BuiltInCallable.overloadedFunction("hsl", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
         _hsl("hsl", arguments),
     r"$hue, $saturation, $lightness": (arguments) => _hsl("hsl", arguments),
@@ -88,7 +88,7 @@ final global = UnmodifiableListView([
     }
   }),
 
-  BuiltInCallable.overloaded("hsla", {
+  BuiltInCallable.overloadedFunction("hsla", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
         _hsl("hsla", arguments),
     r"$hue, $saturation, $lightness": (arguments) => _hsl("hsla", arguments),
@@ -108,7 +108,7 @@ final global = UnmodifiableListView([
     }
   }),
 
-  BuiltInCallable("grayscale", r"$color", (arguments) {
+  _function("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       return _functionString('grayscale', arguments);
     }
@@ -117,13 +117,13 @@ final global = UnmodifiableListView([
     return color.changeHsl(saturation: 0);
   }),
 
-  BuiltInCallable("adjust-hue", r"$color, $degrees", (arguments) {
+  _function("adjust-hue", r"$color, $degrees", (arguments) {
     var color = arguments[0].assertColor("color");
     var degrees = arguments[1].assertNumber("degrees");
     return color.changeHsl(hue: color.hue + degrees.value);
   }),
 
-  BuiltInCallable("lighten", r"$color, $amount", (arguments) {
+  _function("lighten", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
@@ -131,7 +131,7 @@ final global = UnmodifiableListView([
             .clamp(0, 100));
   }),
 
-  BuiltInCallable("darken", r"$color, $amount", (arguments) {
+  _function("darken", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
@@ -139,7 +139,7 @@ final global = UnmodifiableListView([
             .clamp(0, 100));
   }),
 
-  BuiltInCallable.overloaded("saturate", {
+  BuiltInCallable.overloadedFunction("saturate", {
     r"$amount": (arguments) {
       var number = arguments[0].assertNumber("amount");
       return SassString("saturate(${number.toCssString()})", quotes: false);
@@ -153,7 +153,7 @@ final global = UnmodifiableListView([
     }
   }),
 
-  BuiltInCallable("desaturate", r"$color, $amount", (arguments) {
+  _function("desaturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
     return color.changeHsl(
@@ -162,12 +162,12 @@ final global = UnmodifiableListView([
   }),
 
   // ### Opacity
-  BuiltInCallable("opacify", r"$color, $amount", _opacify),
-  BuiltInCallable("fade-in", r"$color, $amount", _opacify),
-  BuiltInCallable("transparentize", r"$color, $amount", _transparentize),
-  BuiltInCallable("fade-out", r"$color, $amount", _transparentize),
+  _function("opacify", r"$color, $amount", _opacify),
+  _function("fade-in", r"$color, $amount", _opacify),
+  _function("transparentize", r"$color, $amount", _transparentize),
+  _function("fade-out", r"$color, $amount", _transparentize),
 
-  BuiltInCallable.overloaded("alpha", {
+  BuiltInCallable.overloadedFunction("alpha", {
     r"$color": (arguments) {
       var argument = arguments[0];
       if (argument is SassString &&
@@ -201,7 +201,7 @@ final global = UnmodifiableListView([
     }
   }),
 
-  BuiltInCallable("opacity", r"$color", (arguments) {
+  _function("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       return _functionString("opacity", arguments);
     }
@@ -222,7 +222,7 @@ final module = BuiltInModule("color", functions: [
   // ### RGB
   _red, _green, _blue, _mix,
 
-  BuiltInCallable("invert", r"$color, $weight: 100%", (arguments) {
+  _function("invert", r"$color, $weight: 100%", (arguments) {
     var weight = arguments[1].assertNumber("weight");
     if (arguments[0] is SassNumber) {
       if (weight.value != 100 || !weight.hasUnit("%")) {
@@ -252,7 +252,7 @@ final module = BuiltInModule("color", functions: [
   _removedColorFunction("saturate", "saturation"),
   _removedColorFunction("desaturate", "saturation", negative: true),
 
-  BuiltInCallable("grayscale", r"$color", (arguments) {
+  _function("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("grayscale", arguments.take(1));
       warn("Passing a number to color.grayscale() is deprecated.\n"
@@ -271,7 +271,7 @@ final module = BuiltInModule("color", functions: [
   _removedColorFunction("transparentize", "alpha", negative: true),
   _removedColorFunction("fade-out", "alpha", negative: true),
 
-  BuiltInCallable.overloaded("alpha", {
+  BuiltInCallable.overloadedFunction("alpha", {
     r"$color": (arguments) {
       var argument = arguments[0];
       if (argument is SassString &&
@@ -306,7 +306,7 @@ final module = BuiltInModule("color", functions: [
     }
   }),
 
-  BuiltInCallable("opacity", r"$color", (arguments) {
+  _function("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("opacity", arguments);
       warn("Passing a number to color.opacity() is deprecated.\n"
@@ -325,20 +325,19 @@ final module = BuiltInModule("color", functions: [
 
 // ### RGB
 
-final _red = BuiltInCallable("red", r"$color", (arguments) {
+final _red = _function("red", r"$color", (arguments) {
   return SassNumber(arguments.first.assertColor("color").red);
 });
 
-final _green = BuiltInCallable("green", r"$color", (arguments) {
+final _green = _function("green", r"$color", (arguments) {
   return SassNumber(arguments.first.assertColor("color").green);
 });
 
-final _blue = BuiltInCallable("blue", r"$color", (arguments) {
+final _blue = _function("blue", r"$color", (arguments) {
   return SassNumber(arguments.first.assertColor("color").blue);
 });
 
-final _mix =
-    BuiltInCallable("mix", r"$color1, $color2, $weight: 50%", (arguments) {
+final _mix = _function("mix", r"$color1, $color2, $weight: 50%", (arguments) {
   var color1 = arguments[0].assertColor("color1");
   var color2 = arguments[1].assertColor("color2");
   var weight = arguments[2].assertNumber("weight");
@@ -347,29 +346,29 @@ final _mix =
 
 // ### HSL
 
-final _hue = BuiltInCallable("hue", r"$color",
+final _hue = _function("hue", r"$color",
     (arguments) => SassNumber(arguments.first.assertColor("color").hue, "deg"));
 
-final _saturation = BuiltInCallable(
+final _saturation = _function(
     "saturation",
     r"$color",
     (arguments) =>
         SassNumber(arguments.first.assertColor("color").saturation, "%"));
 
-final _lightness = BuiltInCallable(
+final _lightness = _function(
     "lightness",
     r"$color",
     (arguments) =>
         SassNumber(arguments.first.assertColor("color").lightness, "%"));
 
-final _complement = BuiltInCallable("complement", r"$color", (arguments) {
+final _complement = _function("complement", r"$color", (arguments) {
   var color = arguments[0].assertColor("color");
   return color.changeHsl(hue: color.hue + 180);
 });
 
 // Miscellaneous
 
-final _adjust = BuiltInCallable("adjust", r"$color, $kwargs...", (arguments) {
+final _adjust = _function("adjust", r"$color, $kwargs...", (arguments) {
   var color = arguments[0].assertColor("color");
   var argumentList = arguments[1] as SassArgumentList;
   if (argumentList.asList.isNotEmpty) {
@@ -422,7 +421,7 @@ final _adjust = BuiltInCallable("adjust", r"$color, $kwargs...", (arguments) {
   }
 });
 
-final _scale = BuiltInCallable("scale", r"$color, $kwargs...", (arguments) {
+final _scale = _function("scale", r"$color, $kwargs...", (arguments) {
   var color = arguments[0].assertColor("color");
   var argumentList = arguments[1] as SassArgumentList;
   if (argumentList.asList.isNotEmpty) {
@@ -483,7 +482,7 @@ final _scale = BuiltInCallable("scale", r"$color, $kwargs...", (arguments) {
   }
 });
 
-final _change = BuiltInCallable("change", r"$color, $kwargs...", (arguments) {
+final _change = _function("change", r"$color, $kwargs...", (arguments) {
   var color = arguments[0].assertColor("color");
   var argumentList = arguments[1] as SassArgumentList;
   if (argumentList.asList.isNotEmpty) {
@@ -529,7 +528,7 @@ final _change = BuiltInCallable("change", r"$color, $kwargs...", (arguments) {
   }
 });
 
-final _ieHexStr = BuiltInCallable("ie-hex-str", r"$color", (arguments) {
+final _ieHexStr = _function("ie-hex-str", r"$color", (arguments) {
   var color = arguments[0].assertColor("color");
   String hexString(int component) =>
       component.toRadixString(16).padLeft(2, '0').toUpperCase();
@@ -548,14 +547,14 @@ SassString _functionString(String name, Iterable<Value> arguments) =>
             ")",
         quotes: false);
 
-/// Returns a [BuiltInCallable] that throws an error indicating that
+/// Returns a [_function] that throws an error indicating that
 /// `color.adjust()` should be used instead.
 ///
 /// This prints a suggested `color.adjust()` call that passes the adjustment
 /// value to [argument], with a leading minus sign if [negative] is `true`.
 BuiltInCallable _removedColorFunction(String name, String argument,
         {bool negative = false}) =>
-    BuiltInCallable(name, r"$color, $amount", (arguments) {
+    _function(name, r"$color, $amount", (arguments) {
       throw SassScriptException(
           "The function $name() isn't in the sass:color module.\n"
           "\n"
@@ -776,3 +775,8 @@ SassColor _transparentize(List<Value> arguments) {
 
 /// Like [fuzzyRound], but returns `null` if [number] is `null`.
 int _fuzzyRoundOrNull(num number) => number == null ? null : fuzzyRound(number);
+
+/// Like [new BuiltInCallable.function], but always sets the URL to `sass:math`.
+BuiltInCallable _function(
+        String name, String arguments, Value callback(List<Value> arguments)) =>
+    BuiltInCallable.function(name, arguments, callback, url: "sass:color");

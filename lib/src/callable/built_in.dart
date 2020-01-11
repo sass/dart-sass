@@ -23,14 +23,40 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// The overloads declared for this callable.
   final List<Tuple2<ArgumentDeclaration, _Callback>> _overloads;
 
-  /// Creates a callable with a single [arguments] declaration and a single
+  /// Creates a function with a single [arguments] declaration and a single
   /// [callback].
   ///
   /// The argument declaration is parsed from [arguments], which should not
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
-  BuiltInCallable(
-      String name, String arguments, Value callback(List<Value> arguments))
-      : this.parsed(name, ArgumentDeclaration.parse(arguments), callback);
+  ///
+  /// If passed, [url] is the URL of the module in which the function is
+  /// defined.
+  BuiltInCallable.function(
+      String name, String arguments, Value callback(List<Value> arguments),
+      {Object url})
+      : this.parsed(
+            name,
+            ArgumentDeclaration.parse('@function $name($arguments) {',
+                url: url),
+            callback);
+
+  /// Creates a mixin with a single [arguments] declaration and a single
+  /// [callback].
+  ///
+  /// The argument declaration is parsed from [arguments], which should not
+  /// include parentheses. Throws a [SassFormatException] if parsing fails.
+  ///
+  /// If passed, [url] is the URL of the module in which the mixin is
+  /// defined.
+  BuiltInCallable.mixin(
+      String name, String arguments, void callback(List<Value> arguments),
+      {Object url})
+      : this.parsed(name,
+            ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
+            (arguments) {
+          callback(arguments);
+          return null;
+        });
 
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
@@ -38,16 +64,24 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
       Value callback(List<Value> arguments))
       : _overloads = [Tuple2(arguments, callback)];
 
-  /// Creates a callable with multiple implementations.
+  /// Creates a function with multiple implementations.
   ///
   /// Each key/value pair in [overloads] defines the argument declaration for
   /// the overload (which should not include parentheses), and the callback to
   /// execute if that argument declaration matches. Throws a
   /// [SassFormatException] if parsing fails.
-  BuiltInCallable.overloaded(this.name, Map<String, _Callback> overloads)
+  ///
+  /// If passed, [url] is the URL of the module in which the function is
+  /// defined.
+  BuiltInCallable.overloadedFunction(
+      this.name, Map<String, _Callback> overloads,
+      {Object url})
       : _overloads = [
           for (var entry in overloads.entries)
-            Tuple2(ArgumentDeclaration.parse(entry.key), entry.value)
+            Tuple2(
+                ArgumentDeclaration.parse('@function $name(${entry.key}) {',
+                    url: url),
+                entry.value)
         ];
 
   BuiltInCallable._(this.name, this._overloads);

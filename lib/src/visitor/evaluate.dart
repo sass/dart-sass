@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d1671ce3d7f02c622bfe0849fd359ee5fc4bd037
+// Checksum: b2a6756fe0f47ed5aec3b92b74f021198d7a770a
 //
 // ignore_for_file: unused_import
 
@@ -296,47 +296,49 @@ class _EvaluateVisitor
     var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
-      BuiltInCallable("global-variable-exists", r"$name, $module: null",
-          (arguments) {
+      BuiltInCallable.function(
+          "global-variable-exists", r"$name, $module: null", (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
         return SassBoolean(_environment.globalVariableExists(
             variable.text.replaceAll("_", "-"),
             namespace: module?.text));
-      }),
+      }, url: "sass:meta"),
 
-      BuiltInCallable("variable-exists", r"$name", (arguments) {
+      BuiltInCallable.function("variable-exists", r"$name", (arguments) {
         var variable = arguments[0].assertString("name");
         return SassBoolean(
             _environment.variableExists(variable.text.replaceAll("_", "-")));
-      }),
+      }, url: "sass:meta"),
 
-      BuiltInCallable("function-exists", r"$name, $module: null", (arguments) {
+      BuiltInCallable.function("function-exists", r"$name, $module: null",
+          (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
         return SassBoolean(_environment.functionExists(
                 variable.text.replaceAll("_", "-"),
                 namespace: module?.text) ||
             _builtInFunctions.containsKey(variable.text));
-      }),
+      }, url: "sass:meta"),
 
-      BuiltInCallable("mixin-exists", r"$name, $module: null", (arguments) {
+      BuiltInCallable.function("mixin-exists", r"$name, $module: null",
+          (arguments) {
         var variable = arguments[0].assertString("name");
         var module = arguments[1].realNull?.assertString("module");
         return SassBoolean(_environment.mixinExists(
             variable.text.replaceAll("_", "-"),
             namespace: module?.text));
-      }),
+      }, url: "sass:meta"),
 
-      BuiltInCallable("content-exists", "", (arguments) {
+      BuiltInCallable.function("content-exists", "", (arguments) {
         if (!_environment.inMixin) {
           throw SassScriptException(
               "content-exists() may only be called within a mixin.");
         }
         return SassBoolean(_environment.content != null);
-      }),
+      }, url: "sass:meta"),
 
-      BuiltInCallable("module-variables", r"$module", (arguments) {
+      BuiltInCallable.function("module-variables", r"$module", (arguments) {
         var namespace = arguments[0].assertString("module");
         var module = _environment.modules[namespace.text];
         if (module == null) {
@@ -347,9 +349,9 @@ class _EvaluateVisitor
           for (var entry in module.variables.entries)
             SassString(entry.key): entry.value
         });
-      }),
+      }, url: "sass:meta"),
 
-      BuiltInCallable("module-functions", r"$module", (arguments) {
+      BuiltInCallable.function("module-functions", r"$module", (arguments) {
         var namespace = arguments[0].assertString("module");
         var module = _environment.modules[namespace.text];
         if (module == null) {
@@ -360,10 +362,10 @@ class _EvaluateVisitor
           for (var entry in module.functions.entries)
             SassString(entry.key): SassFunction(entry.value)
         });
-      }),
+      }, url: "sass:meta"),
 
-      BuiltInCallable("get-function", r"$name, $css: false, $module: null",
-          (arguments) {
+      BuiltInCallable.function(
+          "get-function", r"$name, $css: false, $module: null", (arguments) {
         var name = arguments[0].assertString("name");
         var css = arguments[1].isTruthy;
         var module = arguments[2].realNull?.assertString("module");
@@ -381,9 +383,9 @@ class _EvaluateVisitor
         if (callable != null) return SassFunction(callable);
 
         throw "Function not found: $name";
-      }),
+      }, url: "sass:meta"),
 
-      BuiltInCallable("call", r"$function, $args...", (arguments) {
+      BuiltInCallable.function("call", r"$function, $args...", (arguments) {
         var function = arguments[0];
         var args = arguments[1] as SassArgumentList;
 
@@ -419,11 +421,11 @@ class _EvaluateVisitor
               "The function ${callable.name} is asynchronous.\n"
               "This is probably caused by a bug in a Sass plugin.");
         }
-      })
+      }, url: "sass:meta")
     ];
 
     var metaMixins = [
-      BuiltInCallable("load-css", r"$module, $with: null", (arguments) {
+      BuiltInCallable.mixin("load-css", r"$module, $with: null", (arguments) {
         var url = Uri.parse(arguments[0].assertString("module").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
@@ -451,7 +453,7 @@ class _EvaluateVisitor
         _assertConfigurationIsEmpty(configuration, nameInError: true);
 
         return null;
-      })
+      }, url: "sass:meta")
     ];
 
     var metaModule = BuiltInModule("meta",
@@ -1533,27 +1535,33 @@ class _EvaluateVisitor
       throw _exception("Undefined mixin.", node.span);
     }
 
+    var nodeWithSpan = AstNode.fake(() => node.spanWithoutContent);
     if (mixin is BuiltInCallable) {
       if (node.content != null) {
         throw _exception("Mixin doesn't accept a content block.", node.span);
       }
 
-      _runBuiltInCallable(node.arguments, mixin, node);
+      _runBuiltInCallable(node.arguments, mixin, nodeWithSpan);
     } else if (mixin is UserDefinedCallable<Environment>) {
       if (node.content != null &&
           !(mixin.declaration as MixinRule).hasContent) {
-        throw _exception("Mixin doesn't accept a content block.", node.span);
+        throw MultiSpanSassRuntimeException(
+            "Mixin doesn't accept a content block.",
+            node.spanWithoutContent,
+            "invocation",
+            {mixin.declaration.arguments.spanWithName: "declaration"},
+            _stackTrace(node.spanWithoutContent));
       }
 
       var contentCallable = node.content == null
           ? null
           : UserDefinedCallable(node.content, _environment.closure());
 
-      _runUserDefinedCallable(node.arguments, mixin, node, () {
+      _runUserDefinedCallable(node.arguments, mixin, nodeWithSpan, () {
         _environment.withContent(contentCallable, () {
           _environment.asMixin(() {
             for (var statement in mixin.declaration.children) {
-              _addErrorSpan(node, () => statement.accept(this));
+              _addErrorSpan(nodeWithSpan, () => statement.accept(this));
             }
           });
           return null;
@@ -2144,8 +2152,12 @@ class _EvaluateVisitor
           var argumentWord = pluralize('argument', evaluated.named.keys.length);
           var argumentNames =
               toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
-          throw _exception(
-              "No $argumentWord named $argumentNames.", nodeWithSpan.span);
+          throw MultiSpanSassRuntimeException(
+              "No $argumentWord named $argumentNames.",
+              nodeWithSpan.span,
+              "invocation",
+              {callable.declaration.arguments.spanWithName: "declaration"},
+              _stackTrace(nodeWithSpan.span));
         });
       });
     });
@@ -2275,10 +2287,13 @@ class _EvaluateVisitor
     if (argumentList == null) return result;
     if (evaluated.named.isEmpty) return result;
     if (argumentList.wereKeywordsAccessed) return result;
-    throw _exception(
+    throw MultiSpanSassRuntimeException(
         "No ${pluralize('argument', evaluated.named.keys.length)} named "
-        "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
-        nodeWithSpan.span);
+            "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
+        nodeWithSpan.span,
+        "invocation",
+        {overload.spanWithName: "declaration"},
+        _stackTrace(nodeWithSpan.span));
   }
 
   /// Returns the evaluated values of the given [arguments].

@@ -101,8 +101,16 @@ abstract class StylesheetParser extends Parser {
     });
   }
 
-  ArgumentDeclaration parseArgumentDeclaration() =>
-      _parseSingleProduction(_argumentDeclaration);
+  ArgumentDeclaration parseArgumentDeclaration() => _parseSingleProduction(() {
+        scanner.expectChar($at, name: "@-rule");
+        identifier();
+        whitespace();
+        identifier();
+        var arguments = _argumentDeclaration();
+        whitespace();
+        scanner.expectChar($lbrace);
+        return arguments;
+      });
 
   Expression parseExpression() => _parseSingleProduction(expression);
 
@@ -1177,14 +1185,12 @@ abstract class StylesheetParser extends Parser {
 
     ContentBlock content;
     if (contentArguments != null || lookingAtChildren()) {
+      contentArguments ??= ArgumentDeclaration.empty(span: scanner.emptySpan);
+
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
       content = _withChildren(_statement, start, (children, span) {
-        return ContentBlock(
-            contentArguments ??
-                ArgumentDeclaration.empty(span: scanner.emptySpan),
-            children,
-            span);
+        return ContentBlock(contentArguments, children, span);
       });
       _inContentBlock = wasInContentBlock;
     } else {

@@ -24,19 +24,19 @@ final global = UnmodifiableListView([
 final module = BuiltInModule("map",
     functions: [_get, _merge, _remove, _keys, _values, _hasKey]);
 
-final _get = BuiltInCallable("get", r"$map, $key", (arguments) {
+final _get = _function("get", r"$map, $key", (arguments) {
   var map = arguments[0].assertMap("map");
   var key = arguments[1];
   return map.contents[key] ?? sassNull;
 });
 
-final _merge = BuiltInCallable("merge", r"$map1, $map2", (arguments) {
+final _merge = _function("merge", r"$map1, $map2", (arguments) {
   var map1 = arguments[0].assertMap("map1");
   var map2 = arguments[1].assertMap("map2");
   return SassMap({...map1.contents, ...map2.contents});
 });
 
-final _remove = BuiltInCallable.overloaded("remove", {
+final _remove = BuiltInCallable.overloadedFunction("remove", {
   // Because the signature below has an explicit `$key` argument, it doesn't
   // allow zero keys to be passed. We want to allow that case, so we add an
   // explicit overload for it.
@@ -55,20 +55,25 @@ final _remove = BuiltInCallable.overloaded("remove", {
   }
 });
 
-final _keys = BuiltInCallable(
+final _keys = _function(
     "keys",
     r"$map",
     (arguments) => SassList(
         arguments[0].assertMap("map").contents.keys, ListSeparator.comma));
 
-final _values = BuiltInCallable(
+final _values = _function(
     "values",
     r"$map",
     (arguments) => SassList(
         arguments[0].assertMap("map").contents.values, ListSeparator.comma));
 
-final _hasKey = BuiltInCallable("has-key", r"$map, $key", (arguments) {
+final _hasKey = _function("has-key", r"$map, $key", (arguments) {
   var map = arguments[0].assertMap("map");
   var key = arguments[1];
   return SassBoolean(map.contents.containsKey(key));
 });
+
+/// Like [new BuiltInCallable.function], but always sets the URL to `sass:math`.
+BuiltInCallable _function(
+        String name, String arguments, Value callback(List<Value> arguments)) =>
+    BuiltInCallable.function(name, arguments, callback, url: "sass:map");

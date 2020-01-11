@@ -23,16 +23,16 @@ final module = BuiltInModule("list", functions: [
   _separator
 ]);
 
-final _length = BuiltInCallable(
+final _length = _function(
     "length", r"$list", (arguments) => SassNumber(arguments[0].asList.length));
 
-final _nth = BuiltInCallable("nth", r"$list, $n", (arguments) {
+final _nth = _function("nth", r"$list, $n", (arguments) {
   var list = arguments[0];
   var index = arguments[1];
   return list.asList[list.sassIndexToListIndex(index, "n")];
 });
 
-final _setNth = BuiltInCallable("set-nth", r"$list, $n, $value", (arguments) {
+final _setNth = _function("set-nth", r"$list, $n, $value", (arguments) {
   var list = arguments[0];
   var index = arguments[1];
   var value = arguments[2];
@@ -41,7 +41,7 @@ final _setNth = BuiltInCallable("set-nth", r"$list, $n, $value", (arguments) {
   return arguments[0].changeListContents(newList);
 });
 
-final _join = BuiltInCallable(
+final _join = _function(
     "join", r"$list1, $list2, $separator: auto, $bracketed: auto", (arguments) {
   var list1 = arguments[0];
   var list2 = arguments[1];
@@ -75,7 +75,7 @@ final _join = BuiltInCallable(
 });
 
 final _append =
-    BuiltInCallable("append", r"$list, $val, $separator: auto", (arguments) {
+    _function("append", r"$list, $val, $separator: auto", (arguments) {
   var list = arguments[0];
   var value = arguments[1];
   var separatorParam = arguments[2].assertString("separator");
@@ -98,7 +98,7 @@ final _append =
   return list.changeListContents(newList, separator: separator);
 });
 
-final _zip = BuiltInCallable("zip", r"$lists...", (arguments) {
+final _zip = _function("zip", r"$lists...", (arguments) {
   var lists = arguments[0].asList.map((list) => list.asList).toList();
   if (lists.isEmpty) {
     return const SassList.empty(separator: ListSeparator.comma);
@@ -113,7 +113,7 @@ final _zip = BuiltInCallable("zip", r"$lists...", (arguments) {
   return SassList(results, ListSeparator.comma);
 });
 
-final _index = BuiltInCallable("index", r"$list, $value", (arguments) {
+final _index = _function("index", r"$list, $value", (arguments) {
   var list = arguments[0].asList;
   var value = arguments[1];
 
@@ -121,12 +121,17 @@ final _index = BuiltInCallable("index", r"$list, $value", (arguments) {
   return index == -1 ? sassNull : SassNumber(index + 1);
 });
 
-final _separator = BuiltInCallable(
+final _separator = _function(
     "separator",
     r"$list",
     (arguments) => arguments[0].separator == ListSeparator.comma
         ? SassString("comma", quotes: false)
         : SassString("space", quotes: false));
 
-final _isBracketed = BuiltInCallable("is-bracketed", r"$list",
+final _isBracketed = _function("is-bracketed", r"$list",
     (arguments) => SassBoolean(arguments[0].hasBrackets));
+
+/// Like [new BuiltInCallable.function], but always sets the URL to `sass:math`.
+BuiltInCallable _function(
+        String name, String arguments, Value callback(List<Value> arguments)) =>
+    BuiltInCallable.function(name, arguments, callback, url: "sass:list");

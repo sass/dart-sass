@@ -17,8 +17,8 @@ import '../callable_invocation.dart';
 /// evaluated.
 class IfExpression implements Expression, CallableInvocation {
   /// The declaration of `if()`, as though it were a normal function.
-  static final declaration =
-      ArgumentDeclaration.parse(r"$condition, $if-true, $if-false");
+  static final declaration = ArgumentDeclaration.parse(
+      r"@function if($condition, $if-true, $if-false) {");
 
   /// The arguments passed to `if()`.
   final ArgumentInvocation arguments;

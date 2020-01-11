@@ -34,25 +34,24 @@ final module = BuiltInModule("string", functions: [
   _slice, _uniqueId,
 ]);
 
-final _unquote = BuiltInCallable("unquote", r"$string", (arguments) {
+final _unquote = _function("unquote", r"$string", (arguments) {
   var string = arguments[0].assertString("string");
   if (!string.hasQuotes) return string;
   return SassString(string.text, quotes: false);
 });
 
-final _quote = BuiltInCallable("quote", r"$string", (arguments) {
+final _quote = _function("quote", r"$string", (arguments) {
   var string = arguments[0].assertString("string");
   if (string.hasQuotes) return string;
   return SassString(string.text, quotes: true);
 });
 
-final _length = BuiltInCallable("length", r"$string", (arguments) {
+final _length = _function("length", r"$string", (arguments) {
   var string = arguments[0].assertString("string");
   return SassNumber(string.sassLength);
 });
 
-final _insert =
-    BuiltInCallable("insert", r"$string, $insert, $index", (arguments) {
+final _insert = _function("insert", r"$string, $insert, $index", (arguments) {
   var string = arguments[0].assertString("string");
   var insert = arguments[1].assertString("insert");
   var index = arguments[2].assertNumber("index");
@@ -78,7 +77,7 @@ final _insert =
       quotes: string.hasQuotes);
 });
 
-final _index = BuiltInCallable("index", r"$string, $substring", (arguments) {
+final _index = _function("index", r"$string, $substring", (arguments) {
   var string = arguments[0].assertString("string");
   var substring = arguments[1].assertString("substring");
 
@@ -90,7 +89,7 @@ final _index = BuiltInCallable("index", r"$string, $substring", (arguments) {
 });
 
 final _slice =
-    BuiltInCallable("slice", r"$string, $start-at, $end-at: -1", (arguments) {
+    _function("slice", r"$string, $start-at, $end-at: -1", (arguments) {
   var string = arguments[0].assertString("string");
   var start = arguments[1].assertNumber("start-at");
   var end = arguments[2].assertNumber("end-at");
@@ -120,7 +119,7 @@ final _slice =
       quotes: string.hasQuotes);
 });
 
-final _toUpperCase = BuiltInCallable("to-upper-case", r"$string", (arguments) {
+final _toUpperCase = _function("to-upper-case", r"$string", (arguments) {
   var string = arguments[0].assertString("string");
   var buffer = StringBuffer();
   for (var i = 0; i < string.text.length; i++) {
@@ -129,7 +128,7 @@ final _toUpperCase = BuiltInCallable("to-upper-case", r"$string", (arguments) {
   return SassString(buffer.toString(), quotes: string.hasQuotes);
 });
 
-final _toLowerCase = BuiltInCallable("to-lower-case", r"$string", (arguments) {
+final _toLowerCase = _function("to-lower-case", r"$string", (arguments) {
   var string = arguments[0].assertString("string");
   var buffer = StringBuffer();
   for (var i = 0; i < string.text.length; i++) {
@@ -138,7 +137,7 @@ final _toLowerCase = BuiltInCallable("to-lower-case", r"$string", (arguments) {
   return SassString(buffer.toString(), quotes: string.hasQuotes);
 });
 
-final _uniqueId = BuiltInCallable("unique-id", "", (arguments) {
+final _uniqueId = _function("unique-id", "", (arguments) {
   // Make it difficult to guess the next ID by randomizing the increase.
   _previousUniqueId += _random.nextInt(36) + 1;
   if (_previousUniqueId > math.pow(36, 6)) {
@@ -168,3 +167,8 @@ int _codepointForIndex(int index, int lengthInCodepoints,
   if (result < 0 && !allowNegative) return 0;
   return result;
 }
+
+/// Like [new BuiltInCallable.function], but always sets the URL to `sass:math`.
+BuiltInCallable _function(
+        String name, String arguments, Value callback(List<Value> arguments)) =>
+    BuiltInCallable.function(name, arguments, callback, url: "sass:string");
