@@ -23,8 +23,9 @@ final global = UnmodifiableListView([
 
 /// The Sass math module.
 final module = BuiltInModule("math", functions: [
-  _abs, _ceil, _clamp, _compatible, _floor, _hypot, _isUnitless, _log, _max, //
-  _min, _pow, _percentage, _randomFunction, _round, _sqrt, _unit,
+  _abs, _acos, _asin, _atan, _atan2, _ceil, _clamp, _cos, _compatible, //
+  _floor, _hypot, _isUnitless, _log, _max, _min, _percentage, _pow, //
+  _randomFunction, _round, _sin, _sqrt, _tan, _unit,
 ], variables: {
   "e": SassNumber(math.e),
   "pi": SassNumber(math.pi),
@@ -51,7 +52,6 @@ final _clamp = BuiltInCallable("clamp", r"$min, $number, $max", (arguments) {
   var min = arguments[0].assertNumber("min");
   var number = arguments[1].assertNumber("number");
   var max = arguments[2].assertNumber("max");
-
   if (min.hasUnits == number.hasUnits && number.hasUnits == max.hasUnits) {
     if (min.greaterThanOrEquals(max).isTruthy) return min;
     if (min.greaterThanOrEquals(number).isTruthy) return min;
@@ -63,7 +63,6 @@ final _clamp = BuiltInCallable("clamp", r"$min, $number, $max", (arguments) {
   var arg2Name = min.hasUnits != number.hasUnits ? "\$number" : "\$max";
   var unit1 = min.hasUnits ? "has unit ${min.unitString}" : "is unitless";
   var unit2 = arg2.hasUnits ? "has unit ${arg2.unitString}" : "is unitless";
-
   throw SassScriptException(
       "\$min $unit1 but $arg2Name $unit2. Arguments must all have units or all "
       "be unitless.");
@@ -102,7 +101,6 @@ final _abs = _numberFunction("abs", (value) => value.abs());
 final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
   var numbers =
       arguments[0].asList.map((argument) => argument.assertNumber()).toList();
-
   if (numbers.isEmpty) {
     throw SassScriptException("At least one argument must be passed.");
   }
@@ -110,11 +108,12 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
   var numeratorUnits = numbers[0].numeratorUnits;
   var denominatorUnits = numbers[0].denominatorUnits;
   var subtotal = 0.0;
-
   for (var i = 0; i < numbers.length; i++) {
     var number = numbers[i];
-
-    if (number.hasUnits != numbers[0].hasUnits) {
+    if (number.hasUnits == numbers[0].hasUnits) {
+      number = number.coerce(numeratorUnits, denominatorUnits);
+      subtotal += math.pow(number.value, 2);
+    } else {
       var unit1 = numbers[0].hasUnits
           ? "has unit ${numbers[0].unitString}"
           : "is unitless";
@@ -124,11 +123,7 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
           "Argument 1 $unit1 but argument ${i + 1} $unit2. Arguments must all "
           "have units or all be unitless.");
     }
-
-    number = number.coerce(numeratorUnits, denominatorUnits);
-    subtotal += math.pow(number.value, 2);
   }
-
   return SassNumber.withUnits(math.sqrt(subtotal),
       numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
 });
@@ -143,8 +138,7 @@ final _log = BuiltInCallable("log", r"$number, $base: null", (arguments) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
 
-  var numberValue = fuzzyEquals(number.value, 0) ? 0 : number.value;
-
+  var numberValue = fuzzyRoundIfZero(number.value);
   if (arguments[1] == sassNull) return SassNumber(math.log(numberValue));
 
   var base = arguments[1].assertNumber("base");
@@ -152,17 +146,15 @@ final _log = BuiltInCallable("log", r"$number, $base: null", (arguments) {
     throw SassScriptException("\$base: Expected $base to have no units.");
   }
 
-  var baseValue = fuzzyEquals(base.value, 0) || fuzzyEquals(base.value, 1)
+  var baseValue = fuzzyEquals(base.value, 1)
       ? fuzzyRound(base.value)
-      : base.value;
-
+      : fuzzyRoundIfZero(base.value);
   return SassNumber(math.log(numberValue) / math.log(baseValue));
 });
 
 final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
   var base = arguments[0].assertNumber("base");
   var exponent = arguments[1].assertNumber("exponent");
-
   if (base.hasUnits) {
     throw SassScriptException("\$base: Expected $base to have no units.");
   } else if (exponent.hasUnits) {
@@ -170,19 +162,13 @@ final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
         "\$exponent: Expected $exponent to have no units.");
   }
 
-  var baseValue = base.value;
-  var exponentValue = exponent.value;
-
-  if (fuzzyEquals(baseValue.abs(), 1) && exponentValue.isInfinite) {
-    return SassNumber(double.nan);
-  }
-
   // Exponentiating certain real numbers leads to special behaviors. Ensure that
   // these behaviors are consistent for numbers within the precision limit.
-  if (fuzzyEquals(exponentValue, 0)) {
-    exponentValue = 0;
+  var baseValue = fuzzyRoundIfZero(base.value);
+  var exponentValue = fuzzyRoundIfZero(exponent.value);
+  if (fuzzyEquals(baseValue.abs(), 1) && exponentValue.isInfinite) {
+    return SassNumber(double.nan);
   } else if (fuzzyEquals(baseValue, 0)) {
-    baseValue = baseValue.isNegative ? -0.0 : 0;
     if (exponentValue.isFinite &&
         fuzzyIsInt(exponentValue) &&
         fuzzyAsInt(exponentValue) % 2 == 1) {
@@ -200,7 +186,6 @@ final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
       fuzzyAsInt(exponentValue) % 2 == 1) {
     exponentValue = fuzzyRound(exponentValue);
   }
-
   return SassNumber(math.pow(baseValue, exponentValue));
 });
 
@@ -210,8 +195,107 @@ final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
 
-  return SassNumber(math.sqrt(number.value));
+  var numberValue = fuzzyRoundIfZero(number.value);
+  return SassNumber(math.sqrt(numberValue));
 });
+
+num fuzzyRoundIfZero(num number) {
+  if (!fuzzyEquals(number, 0)) return number;
+  return number.isNegative ? -0.0 : 0;
+}
+
+///
+/// Trigonometric functions
+///
+
+final _acos = BuiltInCallable("acos", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  }
+
+  var numberValue = fuzzyEquals(number.value.abs(), 1)
+      ? fuzzyRound(number.value)
+      : number.value;
+  var acos = math.acos(numberValue) * 180 / math.pi;
+  return SassNumber.withUnits(acos, numeratorUnits: ['deg']);
+});
+
+final _asin = BuiltInCallable("asin", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  }
+
+  var numberValue = fuzzyEquals(number.value.abs(), 1)
+      ? fuzzyRound(number.value)
+      : fuzzyRoundIfZero(number.value);
+  var asin = math.asin(numberValue) * 180 / math.pi;
+  return SassNumber.withUnits(asin, numeratorUnits: ['deg']);
+});
+
+final _atan = BuiltInCallable("atan", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  }
+
+  var numberValue = fuzzyRoundIfZero(number.value);
+  var atan = math.atan(numberValue) * 180 / math.pi;
+  return SassNumber.withUnits(atan, numeratorUnits: ['deg']);
+});
+
+final _atan2 = BuiltInCallable("atan2", r"$y, $x", (arguments) {
+  var y = arguments[0].assertNumber("y");
+  var x = arguments[1].assertNumber("x");
+  if (y.hasUnits != x.hasUnits) {
+    var unit1 = y.hasUnits ? "has unit ${y.unitString}" : "is unitless";
+    var unit2 = x.hasUnits ? "has unit ${x.unitString}" : "is unitless";
+    throw SassScriptException(
+        "\$y $unit1 but \$x $unit2. Arguments must all have units or all be "
+        "unitless.");
+  }
+
+  x = x.coerce(y.numeratorUnits, y.denominatorUnits);
+  var xValue = fuzzyRoundIfZero(x.value);
+  var yValue = fuzzyRoundIfZero(y.value);
+  var atan2 = math.atan2(yValue, xValue) * 180 / math.pi;
+  return SassNumber.withUnits(atan2, numeratorUnits: ['deg']);
+});
+
+final _cos = BuiltInCallable("cos", r"$number", (arguments) {
+  var number = _coerceToRad(arguments[0].assertNumber("number"));
+  return SassNumber(math.cos(number.value));
+});
+
+final _sin = BuiltInCallable("sin", r"$number", (arguments) {
+  var number = _coerceToRad(arguments[0].assertNumber("number"));
+  var numberValue = fuzzyRoundIfZero(number.value);
+  return SassNumber(math.sin(numberValue));
+});
+
+final _tan = BuiltInCallable("tan", r"$number", (arguments) {
+  var number = _coerceToRad(arguments[0].assertNumber("number"));
+  var asymptoteInterval = 0.5 * math.pi;
+  var tanPeriod = 2 * math.pi;
+  if (fuzzyEquals((number.value - asymptoteInterval) % tanPeriod, 0)) {
+    return SassNumber(double.infinity);
+  } else if (fuzzyEquals((number.value + asymptoteInterval) % tanPeriod, 0)) {
+    return SassNumber(double.negativeInfinity);
+  } else {
+    var numberValue = fuzzyRoundIfZero(number.value);
+    return SassNumber(math.tan(numberValue));
+  }
+});
+
+SassNumber _coerceToRad(SassNumber number) {
+  try {
+    return number.coerce(['rad'], []);
+  } on SassScriptException catch (error) {
+    if (!error.message.startsWith('Incompatible units')) rethrow;
+    throw SassScriptException('\$number: Expected ${number} to be an angle.');
+  }
+}
 
 ///
 /// Unit functions
