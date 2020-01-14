@@ -25,7 +25,10 @@ final global = UnmodifiableListView([
 final module = BuiltInModule("math", functions: [
   _abs, _ceil, _clamp, _compatible, _floor, _hypot, _isUnitless, _max, _min, //
   _percentage, _randomFunction, _round, _unit,
-]);
+], variables: {
+  "e": SassNumber(math.e),
+  "pi": SassNumber(math.pi),
+});
 
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
