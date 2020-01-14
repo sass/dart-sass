@@ -52,7 +52,6 @@ final _clamp = BuiltInCallable("clamp", r"$min, $number, $max", (arguments) {
   var min = arguments[0].assertNumber("min");
   var number = arguments[1].assertNumber("number");
   var max = arguments[2].assertNumber("max");
-
   if (min.hasUnits == number.hasUnits && number.hasUnits == max.hasUnits) {
     if (min.greaterThanOrEquals(max).isTruthy) return min;
     if (min.greaterThanOrEquals(number).isTruthy) return min;
@@ -64,7 +63,6 @@ final _clamp = BuiltInCallable("clamp", r"$min, $number, $max", (arguments) {
   var arg2Name = min.hasUnits != number.hasUnits ? "\$number" : "\$max";
   var unit1 = min.hasUnits ? "has unit ${min.unitString}" : "is unitless";
   var unit2 = arg2.hasUnits ? "has unit ${arg2.unitString}" : "is unitless";
-
   throw SassScriptException(
       "\$min $unit1 but $arg2Name $unit2. Arguments must all have units or all "
       "be unitless.");
@@ -103,7 +101,6 @@ final _abs = _numberFunction("abs", (value) => value.abs());
 final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
   var numbers =
       arguments[0].asList.map((argument) => argument.assertNumber()).toList();
-
   if (numbers.isEmpty) {
     throw SassScriptException("At least one argument must be passed.");
   }
@@ -111,11 +108,12 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
   var numeratorUnits = numbers[0].numeratorUnits;
   var denominatorUnits = numbers[0].denominatorUnits;
   var subtotal = 0.0;
-
   for (var i = 0; i < numbers.length; i++) {
     var number = numbers[i];
-
-    if (number.hasUnits != numbers[0].hasUnits) {
+    if (number.hasUnits == numbers[0].hasUnits) {
+      number = number.coerce(numeratorUnits, denominatorUnits);
+      subtotal += math.pow(number.value, 2);
+    } else {
       var unit1 = numbers[0].hasUnits
           ? "has unit ${numbers[0].unitString}"
           : "is unitless";
@@ -125,11 +123,7 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
           "Argument 1 $unit1 but argument ${i + 1} $unit2. Arguments must all "
           "have units or all be unitless.");
     }
-
-    number = number.coerce(numeratorUnits, denominatorUnits);
-    subtotal += math.pow(number.value, 2);
   }
-
   return SassNumber.withUnits(math.sqrt(subtotal),
       numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
 });
@@ -140,32 +134,27 @@ final _hypot = BuiltInCallable("hypot", r"$numbers...", (arguments) {
 
 final _log = BuiltInCallable("log", r"$number, $base: null", (arguments) {
   var number = arguments[0].assertNumber("number");
-
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
 
-  var numberValue = fuzzyEquals(number.value, 0) ? 0 : number.value;
-
+  var numberValue = fuzzyRoundIfZero(number.value);
   if (arguments[1] == sassNull) return SassNumber(math.log(numberValue));
 
   var base = arguments[1].assertNumber("base");
-
   if (base.hasUnits) {
     throw SassScriptException("\$base: Expected $base to have no units.");
   }
 
-  var baseValue = fuzzyEquals(base.value, 0) || fuzzyEquals(base.value, 1)
+  var baseValue = fuzzyEquals(base.value, 1)
       ? fuzzyRound(base.value)
-      : base.value;
-
+      : fuzzyRoundIfZero(base.value);
   return SassNumber(math.log(numberValue) / math.log(baseValue));
 });
 
 final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
   var base = arguments[0].assertNumber("base");
   var exponent = arguments[1].assertNumber("exponent");
-
   if (base.hasUnits) {
     throw SassScriptException("\$base: Expected $base to have no units.");
   } else if (exponent.hasUnits) {
@@ -173,19 +162,13 @@ final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
         "\$exponent: Expected $exponent to have no units.");
   }
 
-  var baseValue = base.value;
-  var exponentValue = exponent.value;
-
-  if (fuzzyEquals(baseValue.abs(), 1) && exponentValue.isInfinite) {
-    return SassNumber(double.nan);
-  }
-
   // Exponentiating certain real numbers leads to special behaviors. Ensure that
   // these behaviors are consistent for numbers within the precision limit.
-  if (fuzzyEquals(exponentValue, 0)) {
-    exponentValue = 0;
+  var baseValue = fuzzyRoundIfZero(base.value);
+  var exponentValue = fuzzyRoundIfZero(exponent.value);
+  if (fuzzyEquals(baseValue.abs(), 1) && exponentValue.isInfinite) {
+    return SassNumber(double.nan);
   } else if (fuzzyEquals(baseValue, 0)) {
-    baseValue = baseValue.isNegative ? -0.0 : 0;
     if (exponentValue.isFinite &&
         fuzzyIsInt(exponentValue) &&
         fuzzyAsInt(exponentValue) % 2 == 1) {
@@ -203,25 +186,23 @@ final _pow = BuiltInCallable("pow", r"$base, $exponent", (arguments) {
       fuzzyAsInt(exponentValue) % 2 == 1) {
     exponentValue = fuzzyRound(exponentValue);
   }
-
   return SassNumber(math.pow(baseValue, exponentValue));
 });
 
 final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
 
-  var numberValue = number.value;
-
-  if (fuzzyEquals(numberValue, 0)) {
-    numberValue = numberValue.isNegative ? -0.0 : 0;
-  }
-
+  var numberValue = fuzzyRoundIfZero(number.value);
   return SassNumber(math.sqrt(numberValue));
 });
+
+num fuzzyRoundIfZero(num number) {
+  if (!fuzzyEquals(number, 0)) return number;
+  return number.isNegative ? -0.0 : 0;
+}
 
 ///
 /// Trigonometric functions
@@ -229,7 +210,6 @@ final _sqrt = BuiltInCallable("sqrt", r"$number", (arguments) {
 
 final _acos = BuiltInCallable("acos", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
@@ -237,43 +217,30 @@ final _acos = BuiltInCallable("acos", r"$number", (arguments) {
   var numberValue = fuzzyEquals(number.value.abs(), 1)
       ? fuzzyRound(number.value)
       : number.value;
-
   var acos = math.acos(numberValue) * 180 / math.pi;
   return SassNumber.withUnits(acos, numeratorUnits: ['deg']);
 });
 
 final _asin = BuiltInCallable("asin", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
 
-  var numberValue = number.value;
-
-  if (fuzzyEquals(numberValue, 0)) {
-    numberValue = numberValue.isNegative ? -0.0 : 0;
-  } else if (fuzzyEquals(numberValue.abs(), 1)) {
-    numberValue = fuzzyRound(number.value);
-  }
-
+  var numberValue = fuzzyEquals(number.value.abs(), 1)
+      ? fuzzyRound(number.value)
+      : fuzzyRoundIfZero(number.value);
   var asin = math.asin(numberValue) * 180 / math.pi;
   return SassNumber.withUnits(asin, numeratorUnits: ['deg']);
 });
 
 final _atan = BuiltInCallable("atan", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   }
 
-  var numberValue = number.value;
-
-  if (fuzzyEquals(numberValue, 0)) {
-    numberValue = numberValue.isNegative ? -0.0 : 0;
-  }
-
+  var numberValue = fuzzyRoundIfZero(number.value);
   var atan = math.atan(numberValue) * 180 / math.pi;
   return SassNumber.withUnits(atan, numeratorUnits: ['deg']);
 });
@@ -281,7 +248,6 @@ final _atan = BuiltInCallable("atan", r"$number", (arguments) {
 final _atan2 = BuiltInCallable("atan2", r"$y, $x", (arguments) {
   var y = arguments[0].assertNumber("y");
   var x = arguments[1].assertNumber("x");
-
   if (y.hasUnits != x.hasUnits) {
     var unit1 = y.hasUnits ? "has unit ${y.unitString}" : "is unitless";
     var unit2 = x.hasUnits ? "has unit ${x.unitString}" : "is unitless";
@@ -291,60 +257,35 @@ final _atan2 = BuiltInCallable("atan2", r"$y, $x", (arguments) {
   }
 
   x = x.coerce(y.numeratorUnits, y.denominatorUnits);
-  var yValue = y.value;
-  var xValue = x.value;
-
-  if (fuzzyEquals(yValue, 0)) {
-    yValue = yValue.isNegative ? -0.0 : 0;
-  }
-
-  if (fuzzyEquals(xValue, 0)) {
-    xValue = xValue.isNegative ? -0.0 : 0;
-  }
-
+  var xValue = fuzzyRoundIfZero(x.value);
+  var yValue = fuzzyRoundIfZero(y.value);
   var atan2 = math.atan2(yValue, xValue) * 180 / math.pi;
   return SassNumber.withUnits(atan2, numeratorUnits: ['deg']);
 });
 
 final _cos = BuiltInCallable("cos", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  number = _coerceToRad(number);
+  var number = _coerceToRad(arguments[0].assertNumber("number"));
   return SassNumber(math.cos(number.value));
 });
 
 final _sin = BuiltInCallable("sin", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  var numberValue = _coerceToRad(number).value;
-
-  if (fuzzyEquals(numberValue, 0)) {
-    numberValue = numberValue.isNegative ? -0.0 : 0;
-  }
-
+  var number = _coerceToRad(arguments[0].assertNumber("number"));
+  var numberValue = fuzzyRoundIfZero(number.value);
   return SassNumber(math.sin(numberValue));
 });
 
 final _tan = BuiltInCallable("tan", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  number = _coerceToRad(number);
-
+  var number = _coerceToRad(arguments[0].assertNumber("number"));
   var asymptoteInterval = 0.5 * math.pi;
   var tanPeriod = 2 * math.pi;
-
   if (fuzzyEquals((number.value - asymptoteInterval) % tanPeriod, 0)) {
     return SassNumber(double.infinity);
-  }
-
-  if (fuzzyEquals((number.value + asymptoteInterval) % tanPeriod, 0)) {
+  } else if (fuzzyEquals((number.value + asymptoteInterval) % tanPeriod, 0)) {
     return SassNumber(double.negativeInfinity);
+  } else {
+    var numberValue = fuzzyRoundIfZero(number.value);
+    return SassNumber(math.tan(numberValue));
   }
-
-  var numberValue = number.value;
-
-  if (fuzzyEquals(numberValue, 0)) {
-    numberValue = numberValue.isNegative ? -0.0 : 0;
-  }
-
-  return SassNumber(math.tan(numberValue));
 });
 
 SassNumber _coerceToRad(SassNumber number) {
