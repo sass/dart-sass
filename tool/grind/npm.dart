@@ -10,7 +10,6 @@ import 'package:grinder/grinder.dart';
 import 'package:meta/meta.dart';
 import 'package:node_preamble/preamble.dart' as preamble;
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 
 import 'utils.dart';
@@ -35,11 +34,6 @@ void _js({@required bool release}) {
     '-Dnode=true',
     '-Dversion=$version',
     '-Ddart-version=$dartVersion',
-
-    // Work around dart-lang/sdk#40152.
-    if (dartVersion >= Version.parse("2.8.0-dev.2.0"))
-      '--use-old-rti',
-
     // We use O4 because:
     //
     // * We don't care about the string representation of types.
