@@ -1,9 +1,20 @@
+## 1.24.4
+
+### JavaScript API
+
+* Fix a bug where source map generation would crash with an absolute source map
+  path and a custom importer that returns string file contents.
+
 ## 1.24.3
+
+### Command Line Interface
 
 * Fix a bug where `sass --version` would crash for certain executable
   distributions.
 
 ## 1.24.2
+
+### JavaScript API
 
 * Fix a bug introduced in the previous release that prevented custom importers
   in Node.js from loading import-only files.

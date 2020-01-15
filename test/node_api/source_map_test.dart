@@ -195,6 +195,21 @@ void main() {
       var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
       expect(map, containsPair("file", "stdin.css"));
     });
+
+    // Regression test for sass/dart-sass#922
+    test("contains a URL handled by an importer when sourceMap is absolute",
+        () {
+      var map = _renderSourceMap(RenderOptions(
+          data: '''
+        @import "other";
+        a {b: c}
+      ''',
+          importer: allowInterop(
+              (void _, void __) => NodeImporterResult(contents: 'x {y: z}')),
+          sourceMap: p.absolute("out.css.map"),
+          outFile: 'out.css'));
+      expect(map, containsPair("sources", ["other", "stdin"]));
+    });
   });
 
   test("with omitSourceMapUrl, doesn't include a source map comment", () {
