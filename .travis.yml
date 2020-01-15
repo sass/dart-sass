@@ -64,8 +64,7 @@ jobs:
     env: DART_CHANNEL=dev
   - <<: *dart-tests
     os: windows
-    # Work around dart-lang/sdk#38334 until 2.6.0 stable lands
-    env: DART_CHANNEL=dev
+    env: DART_CHANNEL=stable
   - <<: *dart-tests
     os: osx
 
