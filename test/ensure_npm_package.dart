@@ -4,15 +4,14 @@
 
 import 'dart:async';
 
+import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
 
-import 'io.dart';
-
 void hybridMain(StreamChannel<Object> channel) async {
-  ensureUpToDate("build/npm/sass.dart.js", "pub run grinder npm-package");
+  pkg.ensureExecutableUpToDate("sass", node: true);
   channel.sink.close();
 }
 

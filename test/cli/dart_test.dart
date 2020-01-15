@@ -5,18 +5,13 @@
 @TestOn('vm')
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:path/path.dart' as p;
+import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
-import '../io.dart';
 import 'shared.dart';
-
-/// The path to the location of a precompiled Sass script will be if it exists.
-final _scriptPath = p.absolute("build/sass${Platform.isWindows ? '.bat' : ''}");
 
 void main() {
   setUpAll(ensureSnapshotUpToDate);
@@ -32,23 +27,9 @@ void main() {
 
 /// Ensures that the snapshot of the Dart executable used by [runSass] is
 /// up-to-date, if one has been generated.
-void ensureSnapshotUpToDate() {
-  if (!File(_scriptPath).existsSync()) return;
-
-  ensureUpToDate(_scriptPath, "pub run grinder pkg-standalone-dev");
-}
+void ensureSnapshotUpToDate() => pkg.ensureExecutableUpToDate("sass");
 
 Future<TestProcess> runSass(Iterable<String> arguments,
-    {Map<String, String> environment}) {
-  var executable = _scriptPath;
-  var initialArguments = <String>[];
-  if (!File(_scriptPath).existsSync()) {
-    executable = Platform.executable;
-    initialArguments = ["--enable-asserts", p.absolute("bin/sass.dart")];
-  }
-
-  return TestProcess.start(executable, [...initialArguments, ...arguments],
-      workingDirectory: d.sandbox,
-      environment: environment,
-      description: "sass");
-}
+        {Map<String, String> environment}) =>
+    pkg.start("sass", arguments,
+        environment: environment, workingDirectory: d.sandbox);

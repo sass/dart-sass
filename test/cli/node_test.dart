@@ -7,7 +7,7 @@
 
 import 'dart:async';
 
-import 'package:path/path.dart' as p;
+import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:test_process/test_process.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test/test.dart';
@@ -32,7 +32,5 @@ void main() {
 
 Future<TestProcess> runSass(Iterable<String> arguments,
         {Map<String, String> environment}) =>
-    TestProcess.start("node", [p.absolute("build/npm/sass.js"), ...arguments],
-        workingDirectory: d.sandbox,
-        environment: environment,
-        description: "sass");
+    pkg.start("sass", arguments,
+        environment: environment, workingDirectory: d.sandbox, node: true);
