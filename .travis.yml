@@ -64,8 +64,7 @@ jobs:
     env: DART_CHANNEL=dev
   - <<: *dart-tests
     os: windows
-    # Work around dart-lang/sdk#38334 until 2.6.0 stable lands
-    env: DART_CHANNEL=dev
+    env: DART_CHANNEL=stable
   - <<: *dart-tests
     os: osx
 
@@ -92,9 +91,10 @@ jobs:
     node_js: lts/dubnium
   - <<: *node-tests
     os: osx
-  - <<: *node-tests
-    name: Node tests | Dart dev | Node stable
-    env: DART_CHANNEL=dev
+  # TODO(nweiz): Re-enable this when dart-lang/sdk#40152 is fixed.
+  # - <<: *node-tests
+  #   name: Node tests | Dart dev | Node stable
+  #   env: DART_CHANNEL=dev
 
   # Miscellaneous checks.
   - name: static analysis
