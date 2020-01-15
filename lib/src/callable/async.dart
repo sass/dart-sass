@@ -23,7 +23,7 @@ abstract class AsyncCallable {
   /// The callable's name.
   String get name;
 
-  @Deprecated('Use `new AsyncCallable.function` instead.')
+  @Deprecated('Use `AsyncCallable.function` instead.')
   factory AsyncCallable(String name, String arguments,
           FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
       AsyncCallable.function(name, arguments, callback);

@@ -235,7 +235,7 @@ class AsyncEnvironment {
   /// If [namespace] is passed, the module is made available under that
   /// namespace.
   ///
-  /// Throws a [SassException] if there's already a module with the given
+  /// Throws a [SassScriptException] if there's already a module with the given
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
   void addModule(Module module, AstNode nodeWithSpan, {String namespace}) {

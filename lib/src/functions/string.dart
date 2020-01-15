@@ -168,7 +168,8 @@ int _codepointForIndex(int index, int lengthInCodepoints,
   return result;
 }
 
-/// Like [new BuiltInCallable.function], but always sets the URL to `sass:math`.
+/// Like [new BuiltInCallable.function], but always sets the URL to
+/// `sass:string`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:string");

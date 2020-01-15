@@ -65,7 +65,7 @@ export 'callable/user_defined.dart';
 ///   access a string's length in code points.
 @sealed
 abstract class Callable extends AsyncCallable {
-  @Deprecated('Use `new Callable.function` instead.')
+  @Deprecated('Use `Callable.function` instead.')
   factory Callable(String name, String arguments,
           ext.Value callback(List<ext.Value> arguments)) =>
       Callable.function(name, arguments, callback);
