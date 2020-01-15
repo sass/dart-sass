@@ -15,6 +15,7 @@ export 'package:sass/src/node/render_context.dart';
 export 'package:sass/src/node/render_options.dart';
 export 'package:sass/src/node/render_result.dart';
 import 'package:sass/src/node/fiber.dart';
+import 'package:sass/src/node/promise.dart';
 import 'package:sass/src/node/render_options.dart';
 import 'package:sass/src/node/render_result.dart';
 
@@ -50,6 +51,7 @@ external FiberClass _requireFiber(String path);
 
 @JS()
 class Sass {
+  external Promise<void> run_(Object args);
   external RenderResult renderSync(RenderOptions args);
   external void render(RenderOptions args,
       void callback(RenderError error, RenderResult result));

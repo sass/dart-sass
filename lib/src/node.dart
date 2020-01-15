@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js';
 import 'dart:js_util';
 import 'dart:typed_data';
 
@@ -21,6 +22,7 @@ import 'importer/node.dart';
 import 'node/error.dart';
 import 'node/exports.dart';
 import 'node/function.dart';
+import 'node/promise.dart';
 import 'node/render_context.dart';
 import 'node/render_context_options.dart';
 import 'node/render_options.dart';
@@ -39,8 +41,8 @@ import 'visitor/serialize.dart';
 /// export that runs the normal `main()`, which is called from `package/sass.js`
 /// to run the executable when installed from npm.
 void main() {
-  exports.run_ = allowInterop(
-      (Object args) => executable.main(List.from(args as List<Object>)));
+  exports.run_ = allowInterop((Object args) =>
+      futureToPromise(executable.main(List.from(args as List<Object>))));
   exports.render = allowInterop(_render);
   exports.renderSync = allowInterop(_renderSync);
   exports.info =
