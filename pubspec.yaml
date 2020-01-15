@@ -47,7 +47,3 @@ dev_dependencies:
   test: ">=0.12.42 <2.0.0"
   xml: ">=2.4.0 <4.0.0"
   yaml: "^2.0.0"
-
-dependency_overrides:
-  source_span:
-    git: {url: git://github.com/dart-lang/source_span, ref: multi-span}
