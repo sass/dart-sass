@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: e0f39c1b98cb2adf98116bd51bf03d492be953c3
+// Checksum: b497eab76eb15ba7bfc4f1cecf71ff9f9c1fb2a5
 //
 // ignore_for_file: unused_import
 
@@ -241,7 +241,7 @@ class Environment {
   /// If [namespace] is passed, the module is made available under that
   /// namespace.
   ///
-  /// Throws a [SassException] if there's already a module with the given
+  /// Throws a [SassScriptException] if there's already a module with the given
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
   void addModule(Module<Callable> module, AstNode nodeWithSpan,
