@@ -21,8 +21,9 @@ Object newNodeSassList(SassList value) =>
     callConstructor(listConstructor, [null, null, value]);
 
 /// The JS constructor for the `sass.types.List` class.
-final Function listConstructor = createClass((_NodeSassList thisArg, int length,
-    [bool commaSeparator, SassList dartValue]) {
+final Function listConstructor = createClass('SassList',
+    (_NodeSassList thisArg, int length,
+        [bool commaSeparator, SassList dartValue]) {
   thisArg.dartValue = dartValue ??
       SassList(Iterable.generate(length, (_) => sassNull),
           (commaSeparator ?? true) ? ListSeparator.comma : ListSeparator.space);

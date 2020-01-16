@@ -141,6 +141,10 @@ void main() {
       expect(() => number.setUnit("*px"), throwsA(anything));
       expect(() => number.setUnit("px/deg/ms"), throwsA(anything));
     });
+
+    test("has a useful .constructor.name", () {
+      expect(number.constructor.name, equals("SassNumber"));
+    });
   });
 
   group("from a constructor", () {
@@ -169,6 +173,11 @@ void main() {
                 }))
               }))),
           equalsIgnoringWhitespace("a { b: 1px; }"));
+    });
+
+    test("has a useful .constructor.name", () {
+      expect(callConstructor(sass.types.Number, [123]).constructor.name,
+          equals("SassNumber"));
     });
   });
 }

@@ -102,6 +102,10 @@ void main() {
       map.setKey(0, callConstructor(sass.types.String, ["a"]));
       expect((map.getKey(0) as NodeSassString).getValue(), equals("a"));
     });
+
+    test("has a useful .constructor.name", () {
+      expect(map.constructor.name, equals("SassMap"));
+    });
   });
 
   group("from a constructor", () {
@@ -131,6 +135,11 @@ void main() {
       var map = callConstructor(sass.types.Map, [3]);
       map.setValue(1, sass.types.Boolean.TRUE);
       expect(map.getValue(1), equals(sass.types.Boolean.TRUE));
+    });
+
+    test("has a useful .constructor.name", () {
+      expect(callConstructor(sass.types.Map, [3]).constructor.name,
+          equals("SassMap"));
     });
   });
 }

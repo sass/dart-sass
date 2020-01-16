@@ -21,8 +21,8 @@ Object newNodeSassMap(SassMap value) =>
     callConstructor(mapConstructor, [null, value]);
 
 /// The JS constructor for the `sass.types.Map` class.
-final Function mapConstructor =
-    createClass((_NodeSassMap thisArg, int length, [SassMap dartValue]) {
+final Function mapConstructor = createClass('SassMap',
+    (_NodeSassMap thisArg, int length, [SassMap dartValue]) {
   thisArg.dartValue = dartValue ??
       SassMap(Map.fromIterables(Iterable.generate(length, (i) => SassNumber(i)),
           Iterable.generate(length, (_) => sassNull)));

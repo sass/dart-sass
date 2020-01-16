@@ -39,6 +39,10 @@ void main() {
       expect(args.getValue(1), isJSInstanceOf(sass.types.String));
       expect(args.getValue(2), isJSInstanceOf(sass.types.Color));
     });
+
+    test("has a useful .constructor.name", () {
+      expect(args.constructor.name, equals("SassList"));
+    });
   });
 
   group("a list", () {
@@ -107,6 +111,10 @@ void main() {
         expect(parseValue("()").getSeparator(), isFalse);
         expect(parseValue("join((), 1px)").getSeparator(), isFalse);
       });
+
+      test("has a useful .constructor.name", () {
+        expect(list.constructor.name, equals("SassList"));
+      });
     });
 
     group("from a constructor", () {
@@ -137,6 +145,11 @@ void main() {
       test("can be space-separated", () {
         var list = callConstructor(sass.types.List, [3, false]);
         expect(list.getSeparator(), isFalse);
+      });
+
+      test("has a useful .constructor.name", () {
+        expect(callConstructor(sass.types.List, [3]).constructor.name,
+            equals("SassList"));
       });
     });
   });

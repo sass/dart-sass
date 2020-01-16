@@ -58,12 +58,14 @@ void jsForEach(Object object, void callback(Object key, Object value)) {
   }
 }
 
-/// Creates a JS class with the given [constructor] and [methods].
+/// Creates a JS class with the given [name], [constructor] and [methods].
 ///
 /// Both [constructor] and [methods] should take an initial `thisArg` parameter,
 /// representing the object being constructed.
-Function createClass(Function constructor, Map<String, Function> methods) {
+Function createClass(
+    String name, Function constructor, Map<String, Function> methods) {
   var klass = allowInteropCaptureThis(constructor);
+  _defineProperty(klass, 'name', _PropertyDescriptor(value: name));
   var prototype = getProperty(klass, 'prototype');
   methods.forEach((name, body) {
     setProperty(prototype, name, allowInteropCaptureThis(body));
@@ -76,6 +78,18 @@ external Object _getPrototypeOf(Object object);
 
 @JS("Object.setPrototypeOf")
 external void _setPrototypeOf(Object object, Object prototype);
+
+@JS("Object.defineProperty")
+external void _defineProperty(
+    Object object, String name, _PropertyDescriptor prototype);
+
+@JS()
+@anonymous
+class _PropertyDescriptor {
+  external Object get value;
+
+  external factory _PropertyDescriptor({Object value});
+}
 
 @JS("Object.create")
 external Object _create(Object prototype);
