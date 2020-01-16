@@ -27,6 +27,11 @@
 
 * Add the variables `$pi` and `$e` to the built-in "sass:math" module.
 
+## 1.24.5
+
+* Highlight contextually-relevant sections of the stylesheet in error messages,
+  rather than only highlighting the section where the error was detected.
+
 ## 1.24.4
 
 ### JavaScript API

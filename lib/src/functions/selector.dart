@@ -37,7 +37,7 @@ final module = BuiltInModule("selector", functions: [
   _unify
 ]);
 
-final _nest = BuiltInCallable("nest", r"$selectors...", (arguments) {
+final _nest = _function("nest", r"$selectors...", (arguments) {
   var selectors = arguments[0].asList;
   if (selectors.isEmpty) {
     throw SassScriptException(
@@ -50,7 +50,7 @@ final _nest = BuiltInCallable("nest", r"$selectors...", (arguments) {
       .asSassList;
 });
 
-final _append = BuiltInCallable("append", r"$selectors...", (arguments) {
+final _append = _function("append", r"$selectors...", (arguments) {
   var selectors = arguments[0].asList;
   if (selectors.isEmpty) {
     throw SassScriptException(
@@ -77,7 +77,7 @@ final _append = BuiltInCallable("append", r"$selectors...", (arguments) {
 });
 
 final _extend =
-    BuiltInCallable("extend", r"$selector, $extendee, $extender", (arguments) {
+    _function("extend", r"$selector, $extendee, $extender", (arguments) {
   var selector = arguments[0].assertSelector(name: "selector");
   var target = arguments[1].assertSelector(name: "extendee");
   var source = arguments[2].assertSelector(name: "extender");
@@ -85,8 +85,8 @@ final _extend =
   return Extender.extend(selector, source, target).asSassList;
 });
 
-final _replace = BuiltInCallable(
-    "replace", r"$selector, $original, $replacement", (arguments) {
+final _replace =
+    _function("replace", r"$selector, $original, $replacement", (arguments) {
   var selector = arguments[0].assertSelector(name: "selector");
   var target = arguments[1].assertSelector(name: "original");
   var source = arguments[2].assertSelector(name: "replacement");
@@ -94,7 +94,7 @@ final _replace = BuiltInCallable(
   return Extender.replace(selector, source, target).asSassList;
 });
 
-final _unify = BuiltInCallable("unify", r"$selector1, $selector2", (arguments) {
+final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
   var selector1 = arguments[0].assertSelector(name: "selector1");
   var selector2 = arguments[1].assertSelector(name: "selector2");
 
@@ -103,7 +103,7 @@ final _unify = BuiltInCallable("unify", r"$selector1, $selector2", (arguments) {
 });
 
 final _isSuperselector =
-    BuiltInCallable("is-superselector", r"$super, $sub", (arguments) {
+    _function("is-superselector", r"$super, $sub", (arguments) {
   var selector1 = arguments[0].assertSelector(name: "super");
   var selector2 = arguments[1].assertSelector(name: "sub");
 
@@ -111,7 +111,7 @@ final _isSuperselector =
 });
 
 final _simpleSelectors =
-    BuiltInCallable("simple-selectors", r"$selector", (arguments) {
+    _function("simple-selectors", r"$selector", (arguments) {
   var selector = arguments[0].assertCompoundSelector(name: "selector");
 
   return SassList(
@@ -120,7 +120,7 @@ final _simpleSelectors =
       ListSeparator.comma);
 });
 
-final _parse = BuiltInCallable("parse", r"$selector",
+final _parse = _function("parse", r"$selector",
     (arguments) => arguments[0].assertSelector(name: "selector").asSassList);
 
 /// Adds a [ParentSelector] to the beginning of [compound], or returns `null` if
@@ -138,3 +138,9 @@ CompoundSelector _prependParent(CompoundSelector compound) {
     return CompoundSelector([ParentSelector(), ...compound.components]);
   }
 }
+
+/// Like [new BuiltInCallable.function], but always sets the URL to
+/// `sass:selector`.
+BuiltInCallable _function(
+        String name, String arguments, Value callback(List<Value> arguments)) =>
+    BuiltInCallable.function(name, arguments, callback, url: "sass:selector");

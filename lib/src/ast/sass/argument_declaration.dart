@@ -8,6 +8,7 @@ import '../../exception.dart';
 import '../../logger.dart';
 import '../../parse/scss.dart';
 import '../../utils.dart';
+import '../../util/character.dart';
 import 'argument.dart';
 import 'node.dart';
 
@@ -21,6 +22,32 @@ class ArgumentDeclaration implements SassNode {
   final String restArgument;
 
   final FileSpan span;
+
+  /// Returns [span] expanded to include an identifier immediately before the
+  /// declaration, if possible.
+  FileSpan get spanWithName {
+    var text = span.file.getText(0);
+
+    // Move backwards through and whitspace between the name and the arguments.
+    var i = span.start.offset - 1;
+    while (i > 0 && isWhitespace(text.codeUnitAt(i))) {
+      i--;
+    }
+
+    // Then move backwards through the name itself.
+    if (!isName(text.codeUnitAt(i))) return span;
+    i--;
+    while (i >= 0 && isName(text.codeUnitAt(i))) {
+      i--;
+    }
+
+    // If the name didn't start with [isNameStart], it's not a valid identifier.
+    if (!isNameStart(text.codeUnitAt(i + 1))) return span;
+
+    // Trim because it's possible that this span is empty (for example, a mixin
+    // may be declared without an argument list).
+    return span.file.span(i + 1, span.end.offset).trim();
+  }
 
   /// The name of the rest argument as written in the document, without
   /// underscores converted to hyphens and including the leading `$`.
@@ -47,16 +74,15 @@ class ArgumentDeclaration implements SassNode {
       : arguments = const [],
         restArgument = null;
 
-  /// Parses an argument declaration from [contents], which should not include
-  /// parentheses.
+  /// Parses an argument declaration from [contents], which should be of the
+  /// form `@rule name(args) {`.
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory ArgumentDeclaration.parse(String contents,
           {Object url, Logger logger}) =>
-      ScssParser("($contents)", url: url, logger: logger)
-          .parseArgumentDeclaration();
+      ScssParser(contents, url: url, logger: logger).parseArgumentDeclaration();
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
   /// for this argument declaration.
@@ -73,27 +99,34 @@ class ArgumentDeclaration implements SassNode {
       } else if (names.contains(argument.name)) {
         namedUsed++;
       } else if (argument.defaultValue == null) {
-        throw SassScriptException(
-            "Missing argument ${_originalArgumentName(argument.name)}.");
+        throw MultiSpanSassScriptException(
+            "Missing argument ${_originalArgumentName(argument.name)}.",
+            "invocation",
+            {spanWithName: "declaration"});
       }
     }
 
     if (restArgument != null) return;
 
     if (positional > arguments.length) {
-      throw SassScriptException("Only ${arguments.length} "
-          "${names.isEmpty ? '' : 'positional '}"
-          "${pluralize('argument', arguments.length)} allowed, but "
-          "${positional} ${pluralize('was', positional, plural: 'were')} "
-          "passed.");
+      throw MultiSpanSassScriptException(
+          "Only ${arguments.length} "
+              "${names.isEmpty ? '' : 'positional '}"
+              "${pluralize('argument', arguments.length)} allowed, but "
+              "${positional} ${pluralize('was', positional, plural: 'were')} "
+              "passed.",
+          "invocation",
+          {spanWithName: "declaration"});
     }
 
     if (namedUsed < names.length) {
       var unknownNames = Set.of(names)
         ..removeAll(arguments.map((argument) => argument.name));
-      throw SassScriptException(
+      throw MultiSpanSassScriptException(
           "No ${pluralize('argument', unknownNames.length)} named "
-          "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.");
+              "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
+          "invocation",
+          {spanWithName: "declaration"});
     }
   }
 

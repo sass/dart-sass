@@ -10,8 +10,8 @@ import '../value.dart';
 import '../value/external/value.dart' as ext;
 import 'async_built_in.dart';
 
-/// An interface functions and mixins that can be invoked from Sass by passing
-/// in arguments.
+/// An interface for functions and mixins that can be invoked from Sass by
+/// passing in arguments.
 ///
 /// This class represents callables that *need* to do asynchronous work. It's
 /// only compatible with the asynchonous `compile()` methods. If a callback can
@@ -23,6 +23,11 @@ abstract class AsyncCallable {
   /// The callable's name.
   String get name;
 
+  @Deprecated('Use `AsyncCallable.function` instead.')
+  factory AsyncCallable(String name, String arguments,
+          FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
+      AsyncCallable.function(name, arguments, callback);
+
   /// Creates a callable with the given [name] and [arguments] that runs
   /// [callback] when called.
   ///
@@ -30,9 +35,9 @@ abstract class AsyncCallable {
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   ///
   /// See [new Callable] for more details.
-  factory AsyncCallable(String name, String arguments,
+  factory AsyncCallable.function(String name, String arguments,
           FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
-      AsyncBuiltInCallable(name, arguments, (arguments) {
+      AsyncBuiltInCallable.function(name, arguments, (arguments) {
         var result = callback(arguments);
         if (result is ext.Value) return result as Value;
         return (result as Future<ext.Value>).then((value) => value as Value);

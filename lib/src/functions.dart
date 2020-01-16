@@ -30,7 +30,7 @@ final List<BuiltInCallable> globalFunctions = UnmodifiableListView([
 
   // This is only invoked using `call()`. Hand-authored `if()`s are parsed as
   // [IfExpression]s.
-  BuiltInCallable("if", r"$condition, $if-true, $if-false",
+  BuiltInCallable.function("if", r"$condition, $if-true, $if-false",
       (arguments) => arguments[0].isTruthy ? arguments[1] : arguments[2]),
 ]);
 

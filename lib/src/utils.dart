@@ -411,3 +411,24 @@ Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
 /// Returns a deep copy of a map that contains lists.
 Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
     mapMap<K, List<E>, K, List<E>>(map, value: (_, list) => list.toList());
+
+extension SpanExtensions on FileSpan {
+  /// Returns this span with all whitespace trimmed from both sides.
+  FileSpan trim() {
+    var text = this.text;
+
+    var start = 0;
+    while (isWhitespace(text.codeUnitAt(start))) {
+      start++;
+    }
+
+    var end = text.length - 1;
+    while (isWhitespace(text.codeUnitAt(end))) {
+      end--;
+    }
+
+    return start == 0 && end == text.length - 1
+        ? this
+        : file.span(this.start.offset + start, this.start.offset + end + 1);
+  }
+}

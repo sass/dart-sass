@@ -23,15 +23,15 @@ final global = UnmodifiableListView([
   // This is only a partial list of meta functions. The rest are defined in the
   // evaluator, because they need access to context that's only available at
   // runtime.
-  BuiltInCallable("feature-exists", r"$feature", (arguments) {
+  _function("feature-exists", r"$feature", (arguments) {
     var feature = arguments[0].assertString("feature");
     return SassBoolean(_features.contains(feature.text));
   }),
 
-  BuiltInCallable("inspect", r"$value",
+  _function("inspect", r"$value",
       (arguments) => SassString(arguments.first.toString(), quotes: false)),
 
-  BuiltInCallable("type-of", r"$value", (arguments) {
+  _function("type-of", r"$value", (arguments) {
     var value = arguments[0];
     if (value is SassArgumentList) {
       return SassString("arglist", quotes: false);
@@ -47,7 +47,7 @@ final global = UnmodifiableListView([
     return SassString("string", quotes: false);
   }),
 
-  BuiltInCallable("keywords", r"$args", (arguments) {
+  _function("keywords", r"$args", (arguments) {
     var argumentList = arguments[0];
     if (argumentList is SassArgumentList) {
       return SassMap(mapMap(argumentList.keywords,
@@ -57,3 +57,8 @@ final global = UnmodifiableListView([
     }
   })
 ]);
+
+/// Like [new BuiltInCallable.function], but always sets the URL to `sass:meta`.
+BuiltInCallable _function(
+        String name, String arguments, Value callback(List<Value> arguments)) =>
+    BuiltInCallable.function(name, arguments, callback, url: "sass:meta");

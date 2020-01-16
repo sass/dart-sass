@@ -346,6 +346,9 @@ class _SerializeVisitor
       try {
         _buffer.forSpan(
             node.valueSpanForMap, () => node.value.value.accept(this));
+      } on MultiSpanSassScriptException catch (error) {
+        throw MultiSpanSassException(error.message, node.value.span,
+            error.primaryLabel, error.secondarySpans);
       } on SassScriptException catch (error) {
         throw SassException(error.message, node.value.span);
       }
