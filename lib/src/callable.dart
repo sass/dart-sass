@@ -15,8 +15,8 @@ export 'callable/built_in.dart';
 export 'callable/plain_css.dart';
 export 'callable/user_defined.dart';
 
-/// An interface functions and mixins that can be invoked from Sass by passing
-/// in arguments.
+/// An interface for functions and mixins that can be invoked from Sass by
+/// passing in arguments.
 ///
 /// This extends [AsyncCallable] because all synchronous callables are also
 /// usable in asynchronous contexts. [Callable]s are usable with both the
@@ -65,7 +65,12 @@ export 'callable/user_defined.dart';
 ///   access a string's length in code points.
 @sealed
 abstract class Callable extends AsyncCallable {
-  /// Creates a callable with the given [name] and [arguments] that runs
+  @Deprecated('Use `Callable.function` instead.')
+  factory Callable(String name, String arguments,
+          ext.Value callback(List<ext.Value> arguments)) =>
+      Callable.function(name, arguments, callback);
+
+  /// Creates a function with the given [name] and [arguments] that runs
   /// [callback] when called.
   ///
   /// The argument declaration is parsed from [arguments], which uses the same
@@ -80,7 +85,8 @@ abstract class Callable extends AsyncCallable {
   /// For example:
   ///
   /// ```dart
-  /// new Callable("str-split", r'$string, $divider: " "', (arguments) {
+  /// new Callable.function("str-split", r'$string, $divider: " "',
+  ///     (arguments) {
   ///   var string = arguments[0].assertString("string");
   ///   var divider = arguments[1].assertString("divider");
   ///   return new SassList(
@@ -90,12 +96,12 @@ abstract class Callable extends AsyncCallable {
   /// });
   /// ```
   ///
-  /// Callables may also take variable length argument lists. These are declared
+  /// Functions may also take variable length argument lists. These are declared
   /// the same way as in Sass, and are passed as the final argument to the
   /// callback. For example:
   ///
   /// ```dart
-  /// new Callable("str-join", r'$strings...', (arguments) {
+  /// new Callable.function("str-join", r'$strings...', (arguments) {
   ///   var args = arguments.first as SassArgumentList;
   ///   var strings = args.map((arg) => arg.assertString()).toList();
   ///   return new SassString(strings.map((string) => string.text).join(),
@@ -106,8 +112,8 @@ abstract class Callable extends AsyncCallable {
   /// Note that the argument list is always an instance of [SassArgumentList],
   /// which provides access to keyword arguments using
   /// [SassArgumentList.keywords].
-  factory Callable(String name, String arguments,
+  factory Callable.function(String name, String arguments,
           ext.Value callback(List<ext.Value> arguments)) =>
-      BuiltInCallable(
+      BuiltInCallable.function(
           name, arguments, (arguments) => callback(arguments) as Value);
 }

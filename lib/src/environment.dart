@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7da67a8956ec74db270764e941b674dcc315a488
+// Checksum: b497eab76eb15ba7bfc4f1cecf71ff9f9c1fb2a5
 //
 // ignore_for_file: unused_import
 
@@ -41,15 +41,31 @@ class Environment {
   Map<String, Module<Callable>> get modules => UnmodifiableMapView(_modules);
   final Map<String, Module<Callable>> _modules;
 
+  /// A map from module namespaces to the nodes whose spans indicate where those
+  /// modules were originally loaded.
+  final Map<String, AstNode> _namespaceNodes;
+
   /// The namespaceless modules used in the current scope.
   ///
   /// This is `null` if there are no namespaceless modules.
   Set<Module<Callable>> _globalModules;
 
+  /// A map from modules in [_globalModules] to the nodes whose spans
+  /// indicate where those modules were originally loaded.
+  ///
+  /// This is `null` if there are no namespaceless modules.
+  Map<Module<Callable>, AstNode> _globalModuleNodes;
+
   /// The modules forwarded by this module.
   ///
   /// This is `null` if there are no forwarded modules.
   List<Module<Callable>> _forwardedModules;
+
+  /// A map from modules in [_forwardedModules] to the nodes whose spans
+  /// indicate where those modules were originally forwarded.
+  ///
+  /// This is `null` if there are no forwarded modules.
+  Map<Module<Callable>, AstNode> _forwardedModuleNodes;
 
   /// Modules forwarded by nested imports at each lexical scope level *beneath
   /// the global scope*.
@@ -142,8 +158,11 @@ class Environment {
   /// If [sourceMap] is `true`, this tracks variables' source locations
   Environment({bool sourceMap = false})
       : _modules = {},
+        _namespaceNodes = {},
         _globalModules = null,
+        _globalModuleNodes = null,
         _forwardedModules = null,
+        _forwardedModuleNodes = null,
         _nestedForwardedModules = null,
         _allModules = [],
         _variables = [{}],
@@ -156,8 +175,11 @@ class Environment {
 
   Environment._(
       this._modules,
+      this._namespaceNodes,
       this._globalModules,
+      this._globalModuleNodes,
       this._forwardedModules,
+      this._forwardedModuleNodes,
       this._nestedForwardedModules,
       this._allModules,
       this._variables,
@@ -180,8 +202,11 @@ class Environment {
   /// when the closure was created will be reflected.
   Environment closure() => Environment._(
       _modules,
+      _namespaceNodes,
       _globalModules,
+      _globalModuleNodes,
       _forwardedModules,
+      _forwardedModuleNodes,
       _nestedForwardedModules,
       _allModules,
       _variables.toList(),
@@ -196,6 +221,9 @@ class Environment {
   /// functions, and mixins, but not its modules.
   Environment global() => Environment._(
       {},
+      {},
+      null,
+      null,
       null,
       null,
       null,
@@ -208,16 +236,21 @@ class Environment {
 
   /// Adds [module] to the set of modules visible in this environment.
   ///
+  /// [nodeWithSpan]'s span is used to report any errors with the module.
+  ///
   /// If [namespace] is passed, the module is made available under that
   /// namespace.
   ///
   /// Throws a [SassScriptException] if there's already a module with the given
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
-  void addModule(Module<Callable> module, {String namespace}) {
+  void addModule(Module<Callable> module, AstNode nodeWithSpan,
+      {String namespace}) {
     if (namespace == null) {
       _globalModules ??= {};
+      _globalModuleNodes ??= {};
       _globalModules.add(module);
+      _globalModuleNodes[module] = nodeWithSpan;
       _allModules.add(module);
 
       for (var name in _variables.first.keys) {
@@ -229,11 +262,14 @@ class Environment {
       }
     } else {
       if (_modules.containsKey(namespace)) {
-        throw SassScriptException(
-            "There's already a module with namespace \"$namespace\".");
+        throw MultiSpanSassScriptException(
+            "There's already a module with namespace \"$namespace\".",
+            "new @use",
+            {_namespaceNodes[namespace].span: "original @use"});
       }
 
       _modules[namespace] = module;
+      _namespaceNodes[namespace] = nodeWithSpan;
       _allModules.add(module);
     }
   }
@@ -242,12 +278,15 @@ class Environment {
   /// defined in this module, according to the modifications defined by [rule].
   void forwardModule(Module<Callable> module, ForwardRule rule) {
     _forwardedModules ??= [];
+    _forwardedModuleNodes ??= {};
 
     var view = ForwardedModuleView(module, rule);
     for (var other in _forwardedModules) {
-      _assertNoConflicts(view.variables, other.variables, "variable", other);
-      _assertNoConflicts(view.functions, other.functions, "function", other);
-      _assertNoConflicts(view.mixins, other.mixins, "mixin", other);
+      _assertNoConflicts(
+          view.variables, other.variables, "variable", other, rule);
+      _assertNoConflicts(
+          view.functions, other.functions, "function", other, rule);
+      _assertNoConflicts(view.mixins, other.mixins, "mixin", other, rule);
     }
 
     // Add the original module to [_allModules] (rather than the
@@ -256,14 +295,19 @@ class Environment {
     // CSS, not for the members they expose.
     _allModules.add(module);
     _forwardedModules.add(view);
+    _forwardedModuleNodes[view] = rule;
   }
 
   /// Throws a [SassScriptException] if [newMembers] has any keys that overlap
   /// with [oldMembers].
   ///
-  /// The [type] and [oldModule] is used for error reporting.
-  void _assertNoConflicts(Map<String, Object> newMembers,
-      Map<String, Object> oldMembers, String type, Module<Callable> oldModule) {
+  /// The [type], [other], [newModuleNodeWithSpan] are used for error reporting.
+  void _assertNoConflicts(
+      Map<String, Object> newMembers,
+      Map<String, Object> oldMembers,
+      String type,
+      Module<Callable> other,
+      AstNode newModuleNodeWithSpan) {
     Map<String, Object> smaller;
     Map<String, Object> larger;
     if (newMembers.length < oldMembers.length) {
@@ -277,9 +321,10 @@ class Environment {
     for (var name in smaller.keys) {
       if (larger.containsKey(name)) {
         if (type == "variable") name = "\$$name";
-        throw SassScriptException(
-            'Module ${p.prettyUri(oldModule.url)} and the new module both '
-            'forward a $type named $name.');
+        throw MultiSpanSassScriptException(
+            'Two forwarded modules both define a $type named $name.',
+            "new @forward",
+            {_forwardedModuleNodes[other].span: "original @forward"});
       }
     }
   }
@@ -294,7 +339,9 @@ class Environment {
       if (forwarded == null) return;
 
       _globalModules ??= {};
+      _globalModuleNodes ??= {};
       _forwardedModules ??= [];
+      _forwardedModuleNodes ??= {};
 
       var forwardedVariableNames =
           forwarded.expand((module) => module.variables.keys).toSet();
@@ -314,6 +361,7 @@ class Environment {
           if (shadowed != null) {
             _globalModules.remove(module);
             _globalModules.add(shadowed);
+            _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module);
           }
         }
         for (var i = 0; i < _forwardedModules.length; i++) {
@@ -322,11 +370,17 @@ class Environment {
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
               functions: forwardedFunctionNames);
-          if (shadowed != null) _forwardedModules[i] = shadowed;
+          if (shadowed != null) {
+            _forwardedModules[i] = shadowed;
+            _forwardedModuleNodes[shadowed] =
+                _forwardedModuleNodes.remove(module);
+          }
         }
 
         _globalModules.addAll(forwarded);
+        _globalModuleNodes.addAll(module._environment._forwardedModuleNodes);
         _forwardedModules.addAll(forwarded);
+        _forwardedModuleNodes.addAll(module._environment._forwardedModuleNodes);
       } else {
         _nestedForwardedModules ??=
             List.generate(_variables.length - 1, (_) => []);
@@ -750,7 +804,7 @@ class Environment {
         configuration[name] = ConfiguredValue(values[name], null, nodes[name]);
       }
     }
-    return Configuration(configuration, isImplicit: true);
+    return Configuration.implicit(configuration);
   }
 
   /// Returns a module that represents the top-level members defined in [this],
@@ -799,11 +853,12 @@ class Environment {
       if (valueInModule == null) continue;
 
       if (value != null) {
-        throw SassScriptException(
-            'This $type is available from multiple global modules:\n' +
-                bulletedList(_globalModules
-                    .where((module) => callback(module) != null)
-                    .map((module) => p.prettyUri(module.url))));
+        throw MultiSpanSassScriptException(
+            'This $type is available from multiple global modules.',
+            '$type use', {
+          for (var entry in _globalModuleNodes.entries)
+            if (callback(entry.key) != null) entry.value.span: 'includes $type'
+        });
       }
 
       value = valueInModule;

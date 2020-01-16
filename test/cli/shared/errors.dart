@@ -132,7 +132,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "Error: Expected expression.",
           "\u001b[34m  ,\u001b[0m",
           "\u001b[34m1 |\u001b[0m a {b: \u001b[31m\u001b[0m}",
-          "\u001b[34m  |\u001b[0m       \u001b[31m^\u001b[0m",
+          "\u001b[34m  |\u001b[0m \u001b[31m      ^\u001b[0m",
           "\u001b[34m  '\u001b[0m",
           "  test.scss 1:7  root stylesheet",
         ]));

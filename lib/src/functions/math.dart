@@ -31,7 +31,7 @@ final module = BuiltInModule("math", functions: [
   _percentage, _compatible
 ]);
 
-final _percentage = BuiltInCallable("percentage", r"$number", (arguments) {
+final _percentage = _function("percentage", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   number.assertNoUnits("number");
   return SassNumber(number.value * 100, '%');
@@ -42,7 +42,7 @@ final _ceil = _numberFunction("ceil", (value) => value.ceil());
 final _floor = _numberFunction("floor", (value) => value.floor());
 final _abs = _numberFunction("abs", (value) => value.abs());
 
-final _max = BuiltInCallable("max", r"$numbers...", (arguments) {
+final _max = _function("max", r"$numbers...", (arguments) {
   SassNumber max;
   for (var value in arguments[0].asList) {
     var number = value.assertNumber();
@@ -52,7 +52,7 @@ final _max = BuiltInCallable("max", r"$numbers...", (arguments) {
   throw SassScriptException("At least one argument must be passed.");
 });
 
-final _min = BuiltInCallable("min", r"$numbers...", (arguments) {
+final _min = _function("min", r"$numbers...", (arguments) {
   SassNumber min;
   for (var value in arguments[0].asList) {
     var number = value.assertNumber();
@@ -62,7 +62,7 @@ final _min = BuiltInCallable("min", r"$numbers...", (arguments) {
   throw SassScriptException("At least one argument must be passed.");
 });
 
-final _randomFunction = BuiltInCallable("random", r"$limit: null", (arguments) {
+final _randomFunction = _function("random", r"$limit: null", (arguments) {
   if (arguments[0] == sassNull) return SassNumber(_random.nextDouble());
   var limit = arguments[0].assertNumber("limit").assertInt("limit");
   if (limit < 1) {
@@ -71,18 +71,17 @@ final _randomFunction = BuiltInCallable("random", r"$limit: null", (arguments) {
   return SassNumber(_random.nextInt(limit) + 1);
 });
 
-final _unit = BuiltInCallable("unit", r"$number", (arguments) {
+final _unit = _function("unit", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   return SassString(number.unitString, quotes: true);
 });
 
-final _isUnitless = BuiltInCallable("is-unitless", r"$number", (arguments) {
+final _isUnitless = _function("is-unitless", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   return SassBoolean(!number.hasUnits);
 });
 
-final _compatible =
-    BuiltInCallable("compatible", r"$number1, $number2", (arguments) {
+final _compatible = _function("compatible", r"$number1, $number2", (arguments) {
   var number1 = arguments[0].assertNumber("number1");
   var number2 = arguments[1].assertNumber("number2");
   return SassBoolean(number1.isComparableTo(number2));
@@ -91,10 +90,15 @@ final _compatible =
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
 BuiltInCallable _numberFunction(String name, num transform(num value)) {
-  return BuiltInCallable(name, r"$number", (arguments) {
+  return _function(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return SassNumber.withUnits(transform(number.value),
         numeratorUnits: number.numeratorUnits,
         denominatorUnits: number.denominatorUnits);
   });
 }
+
+/// Like [new BuiltInCallable.function], but always sets the URL to `sass:math`.
+BuiltInCallable _function(
+        String name, String arguments, Value callback(List<Value> arguments)) =>
+    BuiltInCallable.function(name, arguments, callback, url: "sass:math");

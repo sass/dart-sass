@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
@@ -28,6 +29,11 @@ class IncludeRule implements Statement, CallableInvocation {
   final ContentBlock content;
 
   final FileSpan span;
+
+  /// Returns this include's span, without its content block (if it has one).
+  FileSpan get spanWithoutContent => content == null
+      ? span
+      : span.file.span(span.start.offset, arguments.span.end.offset).trim();
 
   IncludeRule(this.name, this.arguments, this.span,
       {this.namespace, this.content});
