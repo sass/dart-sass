@@ -59,6 +59,10 @@ void main() {
               }))),
           equalsIgnoringWhitespace('a { b: bar; }'));
     });
+
+    test("has a useful .constructor.name", () {
+      expect(string.constructor.name, equals("SassString"));
+    });
   });
 
   group("from a constructor", () {
@@ -79,6 +83,11 @@ void main() {
                 }))
               }))),
           equalsIgnoringWhitespace("a { b: foo; }"));
+    });
+
+    test("has a useful .constructor.name", () {
+      expect(callConstructor(sass.types.String, ["foo"]).constructor.name,
+          equals("SassString"));
     });
   });
 }

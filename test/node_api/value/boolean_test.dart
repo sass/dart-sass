@@ -25,6 +25,11 @@ void main() {
       expect(value, isJSInstanceOf(sass.types.Boolean));
       expect(value.getValue(), isFalse);
     });
+
+    test("has a useful .constructor.name", () {
+      expect(parseValue<NodeSassBoolean>("true").constructor.name,
+          equals("SassBoolean"));
+    });
   });
 
   group("from a constant", () {
@@ -38,6 +43,10 @@ void main() {
       var value = sass.types.Boolean.FALSE;
       expect(value, isJSInstanceOf(sass.types.Boolean));
       expect(value.getValue(), isFalse);
+    });
+
+    test("has a useful .constructor.name", () {
+      expect(sass.types.Boolean.FALSE.constructor.name, equals("SassBoolean"));
     });
   });
 

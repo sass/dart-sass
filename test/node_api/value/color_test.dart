@@ -93,6 +93,10 @@ void main() {
       color.setB(0.5);
       expect(color.getB(), equals(1));
     });
+
+    test("has a useful .constructor.name", () {
+      expect(color.constructor.name, equals("SassColor"));
+    });
   });
 
   group("from a constructor", () {
@@ -119,6 +123,11 @@ void main() {
       expect(color.getG(), equals(0x56));
       expect(color.getB(), equals(0x78));
       expect(color.getA(), equals(0x12 / 0xff));
+    });
+
+    test("has a useful .constructor.name", () {
+      expect(callConstructor(sass.types.Color, [11, 12, 13]).constructor.name,
+          equals("SassColor"));
     });
   });
 }

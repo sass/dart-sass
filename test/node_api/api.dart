@@ -86,12 +86,19 @@ class NodeSassBooleanClass implements Function {
 }
 
 @JS()
+class Constructor {
+  external String get name;
+}
+
+@JS()
 class NodeSassBoolean {
+  external Constructor get constructor;
   external bool getValue();
 }
 
 @JS()
 class NodeSassColor {
+  external Constructor get constructor;
   external int getR();
   external void setR(num value);
   external int getG();
@@ -104,6 +111,7 @@ class NodeSassColor {
 
 @JS()
 class NodeSassList {
+  external Constructor get constructor;
   external Object getValue(int index);
   external void setValue(int index, Object value);
   external bool getSeparator();
@@ -113,6 +121,7 @@ class NodeSassList {
 
 @JS()
 class NodeSassMap {
+  external Constructor get constructor;
   external Object getValue(int index);
   external void setValue(int index, Object value);
   external Object getKey(int index);
@@ -123,11 +132,17 @@ class NodeSassMap {
 @JS()
 class NodeSassNullClass implements Function {
   external Object call();
-  external Object get NULL;
+  external NodeSassNull get NULL;
+}
+
+@JS()
+class NodeSassNull implements Function {
+  external Constructor get constructor;
 }
 
 @JS()
 class NodeSassNumber {
+  external Constructor get constructor;
   external num getValue();
   external void setValue(int value);
   external String getUnit();
@@ -136,6 +151,7 @@ class NodeSassNumber {
 
 @JS()
 class NodeSassString {
+  external Constructor get constructor;
   external String getValue();
   external void setValue(String value);
 }
