@@ -91,10 +91,9 @@ jobs:
     node_js: lts/dubnium
   - <<: *node-tests
     os: osx
-  # TODO(nweiz): Re-enable this when dart-lang/sdk#40152 is fixed.
-  # - <<: *node-tests
-  #   name: Node tests | Dart dev | Node stable
-  #   env: DART_CHANNEL=dev
+  - <<: *node-tests
+    name: Node tests | Dart dev | Node stable
+    env: DART_CHANNEL=dev
 
   # Miscellaneous checks.
   - name: static analysis
