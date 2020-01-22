@@ -27,6 +27,7 @@ import 'node/render_result.dart';
 import 'node/types.dart';
 import 'node/value.dart';
 import 'node/utils.dart';
+import 'node/worker_threads.dart';
 import 'parse/scss.dart';
 import 'syntax.dart';
 import 'value.dart';
@@ -63,26 +64,15 @@ void main() {
 /// [render]: https://github.com/sass/node-sass#options
 void _render(
     RenderOptions options, void callback(JSError error, RenderResult result)) {
-  if (options.fiber != null) {
-    options.fiber.call(allowInterop(() {
-      try {
-        callback(null, _renderSync(options));
-      } catch (error) {
-        callback(error as JSError, null);
-      }
-      return null;
-    })).run();
-  } else {
-    _renderAsync(options).then((result) {
-      callback(null, result);
-    }, onError: (Object error, StackTrace stackTrace) {
-      if (error is SassException) {
-        callback(_wrapException(error), null);
-      } else {
-        callback(_newRenderError(error.toString(), status: 3), null);
-      }
-    });
-  }
+  _renderAsync(options).then((result) {
+    callback(null, result);
+  }, onError: (Object error, StackTrace stackTrace) {
+    if (error is SassException) {
+      callback(_wrapException(error), null);
+    } else {
+      callback(_newRenderError(error.toString(), status: 3), null);
+    }
+  });
 }
 
 /// Converts Sass to CSS asynchronously.
@@ -90,29 +80,38 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   var start = DateTime.now();
   var file = options.file == null ? null : p.absolute(options.file);
   CompileResult result;
-  if (options.data != null) {
-    result = await compileStringAsync(options.data,
-        nodeImporter: _parseImporter(options, start),
-        functions: _parseFunctions(options, asynch: true),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
-        style: _parseOutputStyle(options.outputStyle),
-        useSpaces: options.indentType != 'tab',
-        indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed),
-        url: options.file == null ? 'stdin' : p.toUri(file).toString(),
-        sourceMap: _enableSourceMaps(options));
-  } else if (options.file != null) {
-    result = await compileAsync(file,
-        nodeImporter: _parseImporter(options, start),
-        functions: _parseFunctions(options, asynch: true),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
-        style: _parseOutputStyle(options.outputStyle),
-        useSpaces: options.indentType != 'tab',
-        indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed),
-        sourceMap: _enableSourceMaps(options));
+  if (isMainThread == true) {
+    var worker = Worker(p.current, WorkerOptions(workerData: {options}));
+    worker.on('message', (CompileResult msg) => result = msg);
+    worker.on('error', (JSError error) {
+      jsThrow(_wrapException(error));
+    });
   } else {
-    throw ArgumentError("Either options.data or options.file must be set.");
+    if (options.data != null) {
+      result = await compileStringAsync(options.data,
+          nodeImporter: _parseImporter(options, start),
+          functions: _parseFunctions(options, asynch: true),
+          syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+          style: _parseOutputStyle(options.outputStyle),
+          useSpaces: options.indentType != 'tab',
+          indentWidth: _parseIndentWidth(options.indentWidth),
+          lineFeed: _parseLineFeed(options.linefeed),
+          url: options.file == null ? 'stdin' : p.toUri(file).toString(),
+          sourceMap: _enableSourceMaps(options));
+    } else if (options.file != null) {
+      result = await compileAsync(file,
+          nodeImporter: _parseImporter(options, start),
+          functions: _parseFunctions(options, asynch: true),
+          syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+          style: _parseOutputStyle(options.outputStyle),
+          useSpaces: options.indentType != 'tab',
+          indentWidth: _parseIndentWidth(options.indentWidth),
+          lineFeed: _parseLineFeed(options.linefeed),
+          sourceMap: _enableSourceMaps(options));
+    } else {
+      throw ArgumentError("Either options.data or options.file must be set.");
+    }
+    ParentPort.postMessage(result, PortOptions());
   }
 
   return _newRenderResult(options, result, start);
