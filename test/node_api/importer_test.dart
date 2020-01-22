@@ -668,6 +668,8 @@ void main() {
                   "  stdin 1:9  root stylesheet")));
     });
 
+    //TODO: Remove these tests
+    /******* Deprecated fibers tests
     group("with fibers", () {
       setUpAll(() {
         try {
@@ -749,5 +751,6 @@ void main() {
                     "  stdin 1:9  root stylesheet")));
       });
     });
+    */
   });
 }
