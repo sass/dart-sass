@@ -81,7 +81,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   var file = options.file == null ? null : p.absolute(options.file);
   CompileResult result;
   if (isMainThread == true) {
-    print("Creating worker thread");
+    print(p.current);
     final worker = Worker(p.current, WorkerOptions(workerData: {options}));
     worker.on('message', (CompileResult msg) => result = msg);
     worker.on('error', (JSError error) {
@@ -112,9 +112,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");
     }
-    parentPort?.postMessage(result);
-  } else {
-    throw UnsupportedError("Failed to create worker thread.");
+    parentPort.postMessage(result, PortOptions());
   }
 
   return _newRenderResult(options, result, start);
