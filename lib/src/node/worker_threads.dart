@@ -1,7 +1,7 @@
 // Copyright 2020 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
-@JS()
+@JS("worker_threads")
 library worker_threads;
 
 import 'package:js/js.dart';
@@ -38,7 +38,14 @@ class Worker {
 
 @JS("parentPort")
 @anonymous
+class PortOptions {
+  external List get transferList;
+  external factory PortOptions({List<Object> transferList = const []});
+}
+
+@JS("parentPort")
+@anonymous
 abstract class ParentPort {
-  external factory ParentPort();
-  external void postMessage(Object message);
+  external factory ParentPort({Function postMessage});
+  external void postMessage(Object message, PortOptions options);
 }
