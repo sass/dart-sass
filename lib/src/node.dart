@@ -81,7 +81,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   var file = options.file == null ? null : p.absolute(options.file);
   CompileResult result;
   if (isMainThread == true) {
-    var worker = Worker(p.current, WorkerOptions(workerData: {options}));
+    print(p.current);
+    final worker = Worker(p.current, WorkerOptions(workerData: {options}));
     worker.on('message', (CompileResult msg) => result = msg);
     worker.on('error', (JSError error) {
       jsThrow(_wrapException(error));
@@ -111,7 +112,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");
     }
-    ParentPort.postMessage(result, PortOptions());
+    parentPort.postMessage(result, PortOptions());
   }
 
   return _newRenderResult(options, result, start);
