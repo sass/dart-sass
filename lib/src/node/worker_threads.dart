@@ -1,16 +1,19 @@
 // Copyright 2017 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
-@JS()
+@JS("worker_threads")
 library worker_threads;
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
-@JS()
-external Object _requireWorkerThreads(String path);
+typedef _WorkerThreads = void Function() Function(
+    String Function(String), String Function(String));
 
-final workers = _requireWorkerThreads("worker_threads");
+@JS('require')
+external Object _requireWorkerThreads(String name);
+
+final _worker = _requireWorkerThreads("worker_threads");
 
 @JS()
 external Object get workerData;
@@ -46,7 +49,9 @@ class PortOptions {
 @JS()
 external ParentPort get parentPort;
 
-@JS()
-class ParentPort {
-  external static void postMessage(Object message, PortOptions options);
+@JS("parentPort")
+@anonymous
+abstract class ParentPort {
+  external factory ParentPort({Function postMessage});
+  external void postMessage(Object message, PortOptions options);
 }
