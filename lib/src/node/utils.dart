@@ -94,6 +94,12 @@ class _PropertyDescriptor {
 @JS("Object.create")
 external Object _create(Object prototype);
 
+/// Sets the name of `object`'s class to `name`.
+void setClassName(Object object, String name) {
+  _defineProperty(getProperty(object, "constructor"), "name",
+      _PropertyDescriptor(value: name));
+}
+
 /// Injects [constructor] into the inheritance chain for [object]'s class.
 void injectSuperclass(Object object, Function constructor) {
   var prototype = _getPrototypeOf(object);

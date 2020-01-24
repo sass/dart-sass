@@ -21,6 +21,7 @@ final Function nullConstructor = () {
         "instead.";
   });
   injectSuperclass(sassNull, constructor);
+  setClassName(sassNull, "SassNull");
   forwardToString(constructor);
   setProperty(constructor, "NULL", sassNull);
   setToString(sassNull, () => "null");
