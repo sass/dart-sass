@@ -1,4 +1,4 @@
-## 1.25.1-test.*
+## 1.25.1-test.1
 
 * No user-visible changes.
 
