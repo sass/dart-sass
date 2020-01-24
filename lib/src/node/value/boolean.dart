@@ -21,6 +21,7 @@ final Function booleanConstructor = () {
         "Use sass.types.Boolean.TRUE or sass.types.Boolean.FALSE instead.";
   });
   injectSuperclass(sassTrue, constructor);
+  setClassName(sassTrue, "SassBoolean");
   forwardToString(constructor);
   setProperty(
       getProperty(constructor, "prototype"),

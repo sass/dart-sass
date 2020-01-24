@@ -13,7 +13,7 @@ install:
 - refreshenv
 - pub get
 - ps: Install-Product node ''
-- pub run grinder npm-package
+- pub run grinder pkg-npm-dev
 - npm install
 
 # Only run Node tests on Windows because they won't work on Travis. See

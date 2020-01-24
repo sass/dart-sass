@@ -9,8 +9,6 @@ import 'dart:math' as math;
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 
-import 'npm.dart';
-import 'standalone.dart';
 import 'utils.dart';
 
 @Task('Generate benchmark files.')
@@ -90,7 +88,8 @@ Future<void> _writeNTimes(String path, String text, num times,
 }
 
 @Task('Run benchmarks for Sass compilation speed.')
-@Depends(benchmarkGenerate, snapshot, nativeExecutable, npmReleasePackage)
+@Depends(benchmarkGenerate, "pkg-compile-snapshot", "pkg-compile-native",
+    "pkg-npm-release")
 Future<void> benchmark() async {
   var libsass = await cloneOrPull('https://github.com/sass/libsass');
   var sassc = await cloneOrPull('https://github.com/sass/sassc');
@@ -112,7 +111,7 @@ Future<void> benchmark() async {
 This was tested against:
 
 * libsass $libsassRevision and sassc $sasscRevision compiled with $gPlusPlusVersion.
-* Dart Sass $dartSassRevision on Dart $dartVersion and Node $nodeVersion.
+* Dart Sass $dartSassRevision on Dart ${Platform.version} and Node $nodeVersion.
 
 """);
 
