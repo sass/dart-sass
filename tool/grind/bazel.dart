@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cli_pkg/cli_pkg.dart' as pkg;
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 
@@ -21,7 +22,7 @@ Future<void> updateBazel() async {
   log("updating ${packageFile.path}");
   packageFile.writeAsStringSync(packageFile
       .readAsStringSync()
-      .replaceFirst(RegExp(r'"sass": "[^"]+"'), '"sass": "$version"'));
+      .replaceFirst(RegExp(r'"sass": "[^"]+"'), '"sass": "${pkg.version}"'));
 
   run("yarn", workingDirectory: p.join(repo, "sass"));
 
@@ -30,18 +31,18 @@ Future<void> updateBazel() async {
         "commit",
         "--all",
         "--message",
-        "Update Dart Sass to $version"
+        "Update Dart Sass to ${pkg.version}"
       ],
       workingDirectory: repo,
       runOptions: sassBotEnvironment);
 
   run("git",
-      arguments: ["tag", version],
+      arguments: ["tag", pkg.version.toString()],
       workingDirectory: repo,
       runOptions: sassBotEnvironment);
 
   var username = environment('GITHUB_USER');
-  var password = environment('GITHUB_AUTH');
+  var password = environment('GITHUB_TOKEN');
   await runAsync("git",
       arguments: [
         "push",
