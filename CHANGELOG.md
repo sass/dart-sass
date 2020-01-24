@@ -1,3 +1,7 @@
+## 1.25.1-test.*
+
+* No user-visible changes.
+
 ## 1.25.0
 
 * Add functions to the built-in "sass:math" module.
