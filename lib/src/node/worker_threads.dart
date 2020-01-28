@@ -1,57 +1,45 @@
 // Copyright 2017 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
-@JS("worker_threads")
+@JS("workerThreads")
 library worker_threads;
+//Import is failing here
 
 import 'package:js/js.dart';
-import 'package:js/js_util.dart';
-
-typedef _WorkerThreads = void Function() Function(
-    String Function(String), String Function(String));
-
-@JS('require')
-external Object _requireWorkerThreads(String name);
-
-final _worker = _requireWorkerThreads("worker_threads");
 
 @JS()
-external Object get workerData;
+external WorkerThreads get workerThreads;
+
+bool isMainThread = workerThreads.isMainThread;
+ParentPort parentPort = workerThreads.parentPort;
 
 @JS()
-external bool get isMainThread;
+abstract class WorkerThreads {
+  @JS('Worker')
+  external Worker get worker;
+  external bool get workerData;
+  external bool get isMainThread;
+  external ParentPort get parentPort;
+  external const factory WorkerThreads();
+}
 
 @JS()
 @anonymous
 class WorkerOptions {
   external factory WorkerOptions(
-      {List<Object> argv,
-      Object env,
-      bool eval,
-      List<String> execArgv,
-      Object workerData});
+      {Object env, bool eval, List<String> execArgv, Object workerData});
 }
 
 @JS()
 class Worker {
   external void on(String message, Function callback);
 
-  external const factory Worker(fileName, WorkerOptions options);
+  external const factory Worker(String fileName, WorkerOptions options);
 }
-
-@JS()
-@anonymous
-class PortOptions {
-  external List get transferList;
-  external factory PortOptions({List<Object> transferList = const []});
-}
-
-@JS()
-external ParentPort get parentPort;
 
 @JS("parentPort")
 @anonymous
 abstract class ParentPort {
-  external factory ParentPort({Function postMessage});
-  external void postMessage(Object message, PortOptions options);
+  external factory ParentPort();
+  external void postMessage(Object message);
 }
