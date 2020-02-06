@@ -2803,7 +2803,8 @@ class _EvaluateVisitor
     if (!_sourceMap) return null;
     if (expression is VariableExpression) {
       return _environment.getVariableNode(expression.name,
-          namespace: expression.namespace);
+              namespace: expression.namespace) ??
+          expression;
     } else {
       return expression;
     }

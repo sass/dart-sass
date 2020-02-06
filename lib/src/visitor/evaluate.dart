@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a5181b80dae7d37a33d231ca4a50487d204bb8c3
+// Checksum: f6a7ece88049e365d88091c14cc8143335a06d75
 //
 // ignore_for_file: unused_import
 
@@ -2778,7 +2778,8 @@ class _EvaluateVisitor
     if (!_sourceMap) return null;
     if (expression is VariableExpression) {
       return _environment.getVariableNode(expression.name,
-          namespace: expression.namespace);
+              namespace: expression.namespace) ??
+          expression;
     } else {
       return expression;
     }
