@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: eb095e782e2983223945d189caadc649b081a676
+// Checksum: a5181b80dae7d37a33d231ca4a50487d204bb8c3
 //
 // ignore_for_file: unused_import
 
@@ -1380,7 +1380,7 @@ class _EvaluateVisitor
       }
 
       List<ModifiableCssNode> children;
-      var environment = _environment.global();
+      var environment = _environment.forImport();
       _withEnvironment(environment, () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;

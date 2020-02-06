@@ -209,11 +209,11 @@ class AsyncEnvironment {
       _mixins.toList(),
       _content);
 
-  /// Returns a new global environment.
+  /// Returns a new environment to use for an imported file.
   ///
-  /// The returned environment shares this environment's global variables,
-  /// functions, and mixins, but not its modules.
-  AsyncEnvironment global() => AsyncEnvironment._(
+  /// The returned environment shares this environment's variables, functions,
+  /// and mixins, but not its modules.
+  AsyncEnvironment forImport() => AsyncEnvironment._(
       {},
       {},
       null,

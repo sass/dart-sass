@@ -1383,7 +1383,7 @@ class _EvaluateVisitor
       }
 
       List<ModifiableCssNode> children;
-      var environment = _environment.global();
+      var environment = _environment.forImport();
       await _withEnvironment(environment, () async {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;

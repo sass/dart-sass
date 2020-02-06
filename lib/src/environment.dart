@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b497eab76eb15ba7bfc4f1cecf71ff9f9c1fb2a5
+// Checksum: f02d694ae04ee7fb2219d7930049480eda1fd734
 //
 // ignore_for_file: unused_import
 
@@ -215,11 +215,11 @@ class Environment {
       _mixins.toList(),
       _content);
 
-  /// Returns a new global environment.
+  /// Returns a new environment to use for an imported file.
   ///
-  /// The returned environment shares this environment's global variables,
-  /// functions, and mixins, but not its modules.
-  Environment global() => Environment._(
+  /// The returned environment shares this environment's variables, functions,
+  /// and mixins, but not its modules.
+  Environment forImport() => Environment._(
       {},
       {},
       null,
