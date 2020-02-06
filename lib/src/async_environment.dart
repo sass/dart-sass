@@ -810,6 +810,20 @@ class AsyncEnvironment {
         forwarded: _forwardedModules);
   }
 
+  /// Returns a module with the same members and upstream modules as [this], but
+  /// an empty stylesheet and extender.
+  ///
+  /// This is used when resolving imports, since they need to inject forwarded
+  /// members into the current scope. It's the only situation in which a nested
+  /// environment can become a module.
+  Module toDummyModule() {
+    return _EnvironmentModule(
+        this,
+        CssStylesheet(const [], SourceFile.decoded(const []).span(0)),
+        Extender.empty,
+        forwarded: _forwardedModules);
+  }
+
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
   Module _getModule(String namespace) {

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f6a7ece88049e365d88091c14cc8143335a06d75
+// Checksum: 0ad7cedc5ee1d05297c4a8d321d492854742e8ab
 //
 // ignore_for_file: unused_import
 
@@ -1417,8 +1417,7 @@ class _EvaluateVisitor
       // Create a dummy module with empty CSS and no extensions to make forwarded
       // members available in the current import context and to combine all the
       // CSS from modules used by [stylesheet].
-      var module = environment.toModule(
-          CssStylesheet(const [], stylesheet.span), Extender.empty);
+      var module = environment.toDummyModule();
       _environment.importForwards(module);
 
       if (module.transitivelyContainsCss) {

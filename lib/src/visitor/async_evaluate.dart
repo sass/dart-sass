@@ -1420,8 +1420,7 @@ class _EvaluateVisitor
       // Create a dummy module with empty CSS and no extensions to make forwarded
       // members available in the current import context and to combine all the
       // CSS from modules used by [stylesheet].
-      var module = environment.toModule(
-          CssStylesheet(const [], stylesheet.span), Extender.empty);
+      var module = environment.toDummyModule();
       _environment.importForwards(module);
 
       if (module.transitivelyContainsCss) {

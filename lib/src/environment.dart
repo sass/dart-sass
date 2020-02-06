@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 76e7c2e929fc7d19390987069ff3a8c4b3fadfc5
+// Checksum: b5212ffc7c50a8e7e436b25c7c16eb2996da2def
 //
 // ignore_for_file: unused_import
 
@@ -812,6 +812,20 @@ class Environment {
   Module<Callable> toModule(CssStylesheet css, Extender extender) {
     assert(atRoot);
     return _EnvironmentModule(this, css, extender,
+        forwarded: _forwardedModules);
+  }
+
+  /// Returns a module with the same members and upstream modules as [this], but
+  /// an empty stylesheet and extender.
+  ///
+  /// This is used when resolving imports, since they need to inject forwarded
+  /// members into the current scope. It's the only situation in which a nested
+  /// environment can become a module.
+  Module<Callable> toDummyModule() {
+    return _EnvironmentModule(
+        this,
+        CssStylesheet(const [], SourceFile.decoded(const []).span(0)),
+        Extender.empty,
         forwarded: _forwardedModules);
   }
 
