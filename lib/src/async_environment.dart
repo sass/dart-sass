@@ -419,7 +419,12 @@ class AsyncEnvironment {
     }
 
     index = _variableIndex(name);
-    if (index == null) return _getVariableFromGlobalModule(name);
+    if (index == null) {
+      // There isn't a real variable defined as this index, but it will cause
+      // [getVariable] to short-circuit and get to this function faster next
+      // time the variable is accessed.
+      return _getVariableFromGlobalModule(name);
+    }
 
     _lastVariableName = name;
     _lastVariableIndex = index;
@@ -476,12 +481,6 @@ class AsyncEnvironment {
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
   AstNode _getVariableNodeFromGlobalModule(String name) {
-    // There isn't a real variable defined as this index, but it will cause
-    // [getVariable] to short-circuit and get to this function faster next time
-    // the variable is accessed.
-    _lastVariableName = name;
-    _lastVariableIndex = 0;
-
     if (_globalModules == null) return null;
 
     // We don't need to worry about multiple modules defining the same variable,

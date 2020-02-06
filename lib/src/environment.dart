@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f02d694ae04ee7fb2219d7930049480eda1fd734
+// Checksum: 76e7c2e929fc7d19390987069ff3a8c4b3fadfc5
 //
 // ignore_for_file: unused_import
 
@@ -426,7 +426,12 @@ class Environment {
     }
 
     index = _variableIndex(name);
-    if (index == null) return _getVariableFromGlobalModule(name);
+    if (index == null) {
+      // There isn't a real variable defined as this index, but it will cause
+      // [getVariable] to short-circuit and get to this function faster next
+      // time the variable is accessed.
+      return _getVariableFromGlobalModule(name);
+    }
 
     _lastVariableName = name;
     _lastVariableIndex = index;
@@ -483,12 +488,6 @@ class Environment {
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
   AstNode _getVariableNodeFromGlobalModule(String name) {
-    // There isn't a real variable defined as this index, but it will cause
-    // [getVariable] to short-circuit and get to this function faster next time
-    // the variable is accessed.
-    _lastVariableName = name;
-    _lastVariableIndex = 0;
-
     if (_globalModules == null) return null;
 
     // We don't need to worry about multiple modules defining the same variable,
