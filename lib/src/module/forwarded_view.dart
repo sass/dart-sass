@@ -91,5 +91,16 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.setVariable(name, value, nodeWithSpan);
   }
 
+  Object variableIdentity(String name) {
+    assert(variables.containsKey(name));
+
+    if (_rule.prefix != null) {
+      assert(name.startsWith(_rule.prefix));
+      name = name.substring(_rule.prefix.length);
+    }
+
+    return _inner.variableIdentity(name);
+  }
+
   Module<T> cloneCss() => ForwardedModuleView(_inner.cloneCss(), _rule);
 }

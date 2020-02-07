@@ -73,6 +73,12 @@ abstract class Module<T extends AsyncCallable> {
   /// named [name].
   void setVariable(String name, Value value, AstNode nodeWithSpan);
 
+  /// Returns an opaque object that will be equal to another
+  /// `variableIdentity()` return value for the same name in another module if
+  /// and only if both modules expose identical definitions of the variable in
+  /// question, as defined by the Sass spec.
+  Object variableIdentity(String name);
+
   /// Creates a copy of this module with new [css] and [extender].
   Module<T> cloneCss();
 }

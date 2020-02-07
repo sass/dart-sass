@@ -276,10 +276,11 @@ class AsyncEnvironment {
     var view = ForwardedModuleView(module, rule);
     for (var other in _forwardedModules) {
       _assertNoConflicts(
-          view.variables, other.variables, "variable", other, rule);
+          view.variables, other.variables, module, other, "variable", rule);
       _assertNoConflicts(
-          view.functions, other.functions, "function", other, rule);
-      _assertNoConflicts(view.mixins, other.mixins, "mixin", other, rule);
+          view.functions, other.functions, module, other, "function", rule);
+      _assertNoConflicts(
+          view.mixins, other.mixins, module, other, "mixin", rule);
     }
 
     // Add the original module to [_allModules] (rather than the
@@ -291,15 +292,16 @@ class AsyncEnvironment {
     _forwardedModuleNodes[view] = rule;
   }
 
-  /// Throws a [SassScriptException] if [newMembers] has any keys that overlap
-  /// with [oldMembers].
+  /// Throws a [SassScriptException] if [newMembers] from [newModule] has any
+  /// keys that overlap with [oldMembers] from [oldModule].
   ///
-  /// The [type], [other], [newModuleNodeWithSpan] are used for error reporting.
+  /// The [type] and [newModuleNodeWithSpan] are used for error reporting.
   void _assertNoConflicts(
       Map<String, Object> newMembers,
       Map<String, Object> oldMembers,
+      Module newModule,
+      Module oldModule,
       String type,
-      Module other,
       AstNode newModuleNodeWithSpan) {
     Map<String, Object> smaller;
     Map<String, Object> larger;
@@ -312,13 +314,17 @@ class AsyncEnvironment {
     }
 
     for (var name in smaller.keys) {
-      if (larger.containsKey(name)) {
-        if (type == "variable") name = "\$$name";
-        throw MultiSpanSassScriptException(
-            'Two forwarded modules both define a $type named $name.',
-            "new @forward",
-            {_forwardedModuleNodes[other].span: "original @forward"});
+      if (!larger.containsKey(name)) continue;
+      if (newModule.variableIdentity(name) ==
+          oldModule.variableIdentity(name)) {
+        continue;
       }
+
+      if (type == "variable") name = "\$$name";
+      throw MultiSpanSassScriptException(
+          'Two forwarded modules both define a $type named $name.',
+          "new @forward",
+          {_forwardedModuleNodes[oldModule].span: "original @forward"});
     }
   }
 
@@ -436,7 +442,7 @@ class AsyncEnvironment {
   /// module, or `null` if no such variable is declared in any namespaceless
   /// module.
   Value _getVariableFromGlobalModule(String name) =>
-      _fromOneModule("variable", (module) => module.variables[name]);
+      _fromOneModule(name, "variable", (module) => module.variables[name]);
 
   /// Returns the node for the variable named [name], or `null` if no such
   /// variable is declared.
@@ -553,7 +559,7 @@ class AsyncEnvironment {
       // If this module doesn't already contain a variable named [name], try
       // setting it in a global module.
       if (!_variables.first.containsKey(name) && _globalModules != null) {
-        var moduleWithName = _fromOneModule("variable",
+        var moduleWithName = _fromOneModule(name, "variable",
             (module) => module.variables.containsKey(name) ? module : null);
         if (moduleWithName != null) {
           moduleWithName.setVariable(name, value, nodeWithSpan);
@@ -636,7 +642,7 @@ class AsyncEnvironment {
   /// module, or `null` if no such function is declared in any namespaceless
   /// module.
   AsyncCallable _getFunctionFromGlobalModule(String name) =>
-      _fromOneModule("function", (module) => module.functions[name]);
+      _fromOneModule(name, "function", (module) => module.functions[name]);
 
   /// Returns the index of the last map in [_functions] that has a [name] key,
   /// or `null` if none exists.
@@ -685,7 +691,7 @@ class AsyncEnvironment {
   /// module, or `null` if no such mixin is declared in any namespaceless
   /// module.
   AsyncCallable _getMixinFromGlobalModule(String name) =>
-      _fromOneModule("mixin", (module) => module.mixins[name]);
+      _fromOneModule(name, "mixin", (module) => module.mixins[name]);
 
   /// Returns the index of the last map in [_mixins] that has a [name] key, or
   /// `null` if none exists.
@@ -841,9 +847,11 @@ class AsyncEnvironment {
   /// Returns `null` if [callback] returns `null` for all modules. Throws an
   /// error if [callback] returns non-`null` for more than one module.
   ///
+  /// The [name] is the name of the member being looked up.
+  ///
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
-  T _fromOneModule<T>(String type, T callback(Module module)) {
+  T _fromOneModule<T>(String name, String type, T callback(Module module)) {
     if (_nestedForwardedModules != null) {
       for (var modules in _nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {
@@ -856,9 +864,15 @@ class AsyncEnvironment {
     if (_globalModules == null) return null;
 
     T value;
+    Object identity;
     for (var module in _globalModules) {
       var valueInModule = callback(module);
       if (valueInModule == null) continue;
+
+      var identityFromModule = valueInModule is AsyncCallable
+          ? valueInModule
+          : module.variableIdentity(name);
+      if (identityFromModule == identity) continue;
 
       if (value != null) {
         throw MultiSpanSassScriptException(
@@ -870,6 +884,7 @@ class AsyncEnvironment {
       }
 
       value = valueInModule;
+      identity = identityFromModule;
     }
     return value;
   }
@@ -992,6 +1007,12 @@ class _EnvironmentModule implements Module {
       _environment._variableNodes.first[name] = nodeWithSpan;
     }
     return;
+  }
+
+  Object variableIdentity(String name) {
+    assert(variables.containsKey(name));
+    var module = _modulesByVariable[name];
+    return module == null ? this : module.variableIdentity(name);
   }
 
   Module cloneCss() {
