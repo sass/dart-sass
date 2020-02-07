@@ -276,11 +276,10 @@ class AsyncEnvironment {
     var view = ForwardedModuleView(module, rule);
     for (var other in _forwardedModules) {
       _assertNoConflicts(
-          view.variables, other.variables, module, other, "variable", rule);
+          view.variables, other.variables, view, other, "variable", rule);
       _assertNoConflicts(
-          view.functions, other.functions, module, other, "function", rule);
-      _assertNoConflicts(
-          view.mixins, other.mixins, module, other, "mixin", rule);
+          view.functions, other.functions, view, other, "function", rule);
+      _assertNoConflicts(view.mixins, other.mixins, view, other, "mixin", rule);
     }
 
     // Add the original module to [_allModules] (rather than the
