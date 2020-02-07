@@ -1,6 +1,7 @@
-## 1.25.1-test.1
+## 1.25.2
 
-* No user-visible changes.
+* Fix a bug where, under extremely rare circumstances, a valid variable could
+  become unassigned.
 
 ## 1.25.0
 

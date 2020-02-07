@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: eb095e782e2983223945d189caadc649b081a676
+// Checksum: 0ad7cedc5ee1d05297c4a8d321d492854742e8ab
 //
 // ignore_for_file: unused_import
 
@@ -1380,7 +1380,7 @@ class _EvaluateVisitor
       }
 
       List<ModifiableCssNode> children;
-      var environment = _environment.global();
+      var environment = _environment.forImport();
       _withEnvironment(environment, () {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -1417,8 +1417,7 @@ class _EvaluateVisitor
       // Create a dummy module with empty CSS and no extensions to make forwarded
       // members available in the current import context and to combine all the
       // CSS from modules used by [stylesheet].
-      var module = environment.toModule(
-          CssStylesheet(const [], stylesheet.span), Extender.empty);
+      var module = environment.toDummyModule();
       _environment.importForwards(module);
 
       if (module.transitivelyContainsCss) {
@@ -2778,7 +2777,8 @@ class _EvaluateVisitor
     if (!_sourceMap) return null;
     if (expression is VariableExpression) {
       return _environment.getVariableNode(expression.name,
-          namespace: expression.namespace);
+              namespace: expression.namespace) ??
+          expression;
     } else {
       return expression;
     }

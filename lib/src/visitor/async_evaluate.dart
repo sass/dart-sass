@@ -1383,7 +1383,7 @@ class _EvaluateVisitor
       }
 
       List<ModifiableCssNode> children;
-      var environment = _environment.global();
+      var environment = _environment.forImport();
       await _withEnvironment(environment, () async {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
@@ -1420,8 +1420,7 @@ class _EvaluateVisitor
       // Create a dummy module with empty CSS and no extensions to make forwarded
       // members available in the current import context and to combine all the
       // CSS from modules used by [stylesheet].
-      var module = environment.toModule(
-          CssStylesheet(const [], stylesheet.span), Extender.empty);
+      var module = environment.toDummyModule();
       _environment.importForwards(module);
 
       if (module.transitivelyContainsCss) {
@@ -2803,7 +2802,8 @@ class _EvaluateVisitor
     if (!_sourceMap) return null;
     if (expression is VariableExpression) {
       return _environment.getVariableNode(expression.name,
-          namespace: expression.namespace);
+              namespace: expression.namespace) ??
+          expression;
     } else {
       return expression;
     }

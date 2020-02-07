@@ -538,4 +538,33 @@ void sharedTests(
       });
     });
   });
+
+  test("doesn't unassign variables", () async {
+    // This is a regression test for one of the strangest errors I've ever
+    // encountered. Every bit of what's going on was necessary to reproduce it,
+    // *including* running with source maps enabled, which is why it's here and
+    // not in sass-spec.
+    await d.file("input.scss", "a {@import 'downstream'}").create();
+    await d.file("_downstream.scss", r"""
+      @import 'midstream';
+
+      $b: $c;
+      @mixin d($_) {}
+      @include d($b);
+      e {f: $b}
+    """).create();
+    await d.file("_midstream.scss", "@forward 'upstream'").create();
+    await d.file("_upstream.scss", r"$c: g").create();
+
+    var sass = await runSass(["input.scss", "output.css"]);
+    await sass.shouldExit(0);
+
+    await d.file("output.css", equalsIgnoringWhitespace("""
+      a e {
+        f: g;
+      }
+
+      /*# sourceMappingURL=output.css.map */
+    """)).validate();
+  });
 }

@@ -209,11 +209,11 @@ class AsyncEnvironment {
       _mixins.toList(),
       _content);
 
-  /// Returns a new global environment.
+  /// Returns a new environment to use for an imported file.
   ///
-  /// The returned environment shares this environment's global variables,
-  /// functions, and mixins, but not its modules.
-  AsyncEnvironment global() => AsyncEnvironment._(
+  /// The returned environment shares this environment's variables, functions,
+  /// and mixins, but not its modules.
+  AsyncEnvironment forImport() => AsyncEnvironment._(
       {},
       {},
       null,
@@ -419,7 +419,12 @@ class AsyncEnvironment {
     }
 
     index = _variableIndex(name);
-    if (index == null) return _getVariableFromGlobalModule(name);
+    if (index == null) {
+      // There isn't a real variable defined as this index, but it will cause
+      // [getVariable] to short-circuit and get to this function faster next
+      // time the variable is accessed.
+      return _getVariableFromGlobalModule(name);
+    }
 
     _lastVariableName = name;
     _lastVariableIndex = index;
@@ -476,12 +481,6 @@ class AsyncEnvironment {
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
   AstNode _getVariableNodeFromGlobalModule(String name) {
-    // There isn't a real variable defined as this index, but it will cause
-    // [getVariable] to short-circuit and get to this function faster next time
-    // the variable is accessed.
-    _lastVariableName = name;
-    _lastVariableIndex = 0;
-
     if (_globalModules == null) return null;
 
     // We don't need to worry about multiple modules defining the same variable,
@@ -808,6 +807,20 @@ class AsyncEnvironment {
   Module toModule(CssStylesheet css, Extender extender) {
     assert(atRoot);
     return _EnvironmentModule(this, css, extender,
+        forwarded: _forwardedModules);
+  }
+
+  /// Returns a module with the same members and upstream modules as [this], but
+  /// an empty stylesheet and extender.
+  ///
+  /// This is used when resolving imports, since they need to inject forwarded
+  /// members into the current scope. It's the only situation in which a nested
+  /// environment can become a module.
+  Module toDummyModule() {
+    return _EnvironmentModule(
+        this,
+        CssStylesheet(const [], SourceFile.decoded(const []).span(0)),
+        Extender.empty,
         forwarded: _forwardedModules);
   }
 
