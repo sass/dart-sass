@@ -74,6 +74,11 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
     }
   }
 
+  Object variableIdentity(String name) {
+    assert(variables.containsKey(name));
+    return _inner.variableIdentity(name);
+  }
+
   Module<T> cloneCss() => ShadowedModuleView._(
       _inner.cloneCss(), variables, variableNodes, functions, mixins);
 }

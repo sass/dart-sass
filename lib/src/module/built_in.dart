@@ -49,5 +49,10 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
     throw SassScriptException("Cannot modify built-in variable.");
   }
 
+  Object variableIdentity(String name) {
+    assert(variables.containsKey(name));
+    return this;
+  }
+
   Module<T> cloneCss() => this;
 }
