@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6666522945667f7f041530ee545444b7b40cfc80
+// Checksum: 90df4751419f38332128857f9e02d481cbd7e5a7
 //
 // ignore_for_file: unused_import
 
@@ -283,11 +283,10 @@ class Environment {
     var view = ForwardedModuleView(module, rule);
     for (var other in _forwardedModules) {
       _assertNoConflicts(
-          view.variables, other.variables, module, other, "variable", rule);
+          view.variables, other.variables, view, other, "variable", rule);
       _assertNoConflicts(
-          view.functions, other.functions, module, other, "function", rule);
-      _assertNoConflicts(
-          view.mixins, other.mixins, module, other, "mixin", rule);
+          view.functions, other.functions, view, other, "function", rule);
+      _assertNoConflicts(view.mixins, other.mixins, view, other, "mixin", rule);
     }
 
     // Add the original module to [_allModules] (rather than the
@@ -322,8 +321,9 @@ class Environment {
 
     for (var name in smaller.keys) {
       if (!larger.containsKey(name)) continue;
-      if (newModule.variableIdentity(name) ==
-          oldModule.variableIdentity(name)) {
+      if (type == "variable" &&
+          newModule.variableIdentity(name) ==
+              oldModule.variableIdentity(name)) {
         continue;
       }
 
