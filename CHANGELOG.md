@@ -1,7 +1,9 @@
-## 1.26.0
+## 1.26.0-test.1
 
 * Don't throw errors if the exact same member is loaded or forwarded from
   multiple modules at the same time.
+
+## 1.25.2
 
 * Fix a bug where, under extremely rare circumstances, a valid variable could
   become unassigned.

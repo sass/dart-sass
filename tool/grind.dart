@@ -66,7 +66,7 @@ String get _nuspec => """
     <authors>Natalie Weizenbaum</authors>
     <owners>nex3</owners>
     <projectUrl>https://github.com/sass/dart-sass</projectUrl>
-    <licenseUrl>https://github.com/sass/dart-sass/blob/${pkg.version}/LICENSE</licenseUrL>
+    <licenseUrl>https://github.com/sass/dart-sass/blob/${pkg.version}/LICENSE</licenseUrl>
     <iconUrl>https://cdn.rawgit.com/sass/sass-site/f99ee33e4f688e244c7a5902c59d61f78daccc55/source/assets/img/logos/logo-seal.png</iconUrl>
     <bugTrackerUrl>https://github.com/sass/dart-sass/issues</bugTrackerUrl>
     <description>**Sass makes CSS fun again**. Sass is an extension of CSS, adding nested rules, variables, mixins, selector inheritance, and more. It's translated to well-formatted, standard CSS using the command line tool or a web-framework plugin.
