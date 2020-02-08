@@ -314,8 +314,9 @@ class AsyncEnvironment {
 
     for (var name in smaller.keys) {
       if (!larger.containsKey(name)) continue;
-      if (newModule.variableIdentity(name) ==
-          oldModule.variableIdentity(name)) {
+      if (type == "variable" &&
+          newModule.variableIdentity(name) ==
+              oldModule.variableIdentity(name)) {
         continue;
       }
 
