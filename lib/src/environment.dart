@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 90df4751419f38332128857f9e02d481cbd7e5a7
+// Checksum: db31838dbc5c44989803274acb581263e98b488d
 //
 // ignore_for_file: unused_import
 
@@ -321,9 +321,9 @@ class Environment {
 
     for (var name in smaller.keys) {
       if (!larger.containsKey(name)) continue;
-      if (type == "variable" &&
-          newModule.variableIdentity(name) ==
-              oldModule.variableIdentity(name)) {
+      if (type == "variable"
+          ? newModule.variableIdentity(name) == oldModule.variableIdentity(name)
+          : larger[name] == smaller[name]) {
         continue;
       }
 
