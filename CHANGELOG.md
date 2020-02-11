@@ -1,5 +1,8 @@
 ## 1.26.0-test.1
 
+* `@use` rules whose URLs' basenames begin with `_` now correctly exclude that
+  `_` from the rules' namespaces.
+
 * Don't throw errors if the exact same member is loaded or forwarded from
   multiple modules at the same time.
 
