@@ -1382,7 +1382,8 @@ relase. For details, see http://bit.ly/moz-document.
 
     var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
     var dot = basename.indexOf(".");
-    var namespace = basename.substring(0, dot == -1 ? basename.length : dot);
+    var namespace = basename.substring(
+        basename.startsWith("_") ? 1 : 0, dot == -1 ? basename.length : dot);
     try {
       return Parser.parseIdentifier(namespace, logger: logger);
     } on SassFormatException {
