@@ -1,13 +1,15 @@
-## 1.26.0-test.1
+## 1.26.0-test.2
 
 * `@use` rules whose URLs' basenames begin with `_` now correctly exclude that
   `_` from the rules' namespaces.
 
-* Don't throw errors if the exact same member is loaded or forwarded from
-  multiple modules at the same time.
-
 * Fix a bug where imported forwarded members weren't visible in mixins and
   functions that were defined before the `@import`.
+
+## 1.26.0-test.1
+
+* Don't throw errors if the exact same member is loaded or forwarded from
+  multiple modules at the same time.
 
 ## 1.25.2
 
