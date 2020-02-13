@@ -40,15 +40,11 @@ class AsyncEnvironment {
   final Map<String, AstNode> _namespaceNodes;
 
   /// The namespaceless modules used in the current scope.
-  ///
-  /// This is `null` if there are no namespaceless modules.
-  Set<Module> _globalModules;
+  final Set<Module> _globalModules;
 
   /// A map from modules in [_globalModules] to the nodes whose spans
   /// indicate where those modules were originally loaded.
-  ///
-  /// This is `null` if there are no namespaceless modules.
-  Map<Module, AstNode> _globalModuleNodes;
+  final Map<Module, AstNode> _globalModuleNodes;
 
   /// The modules forwarded by this module.
   ///
@@ -153,8 +149,8 @@ class AsyncEnvironment {
   AsyncEnvironment({bool sourceMap = false})
       : _modules = {},
         _namespaceNodes = {},
-        _globalModules = null,
-        _globalModuleNodes = null,
+        _globalModules = {},
+        _globalModuleNodes = {},
         _forwardedModules = null,
         _forwardedModuleNodes = null,
         _nestedForwardedModules = null,
@@ -216,8 +212,8 @@ class AsyncEnvironment {
   AsyncEnvironment forImport() => AsyncEnvironment._(
       {},
       {},
-      null,
-      null,
+      {},
+      {},
       null,
       null,
       null,
@@ -240,8 +236,6 @@ class AsyncEnvironment {
   /// with the same name as a variable defined in this environment.
   void addModule(Module module, AstNode nodeWithSpan, {String namespace}) {
     if (namespace == null) {
-      _globalModules ??= {};
-      _globalModuleNodes ??= {};
       _globalModules.add(module);
       _globalModuleNodes[module] = nodeWithSpan;
       _allModules.add(module);
@@ -337,8 +331,6 @@ class AsyncEnvironment {
       var forwarded = module._environment._forwardedModules;
       if (forwarded == null) return;
 
-      _globalModules ??= {};
-      _globalModuleNodes ??= {};
       _forwardedModules ??= [];
       _forwardedModuleNodes ??= {};
 
@@ -487,8 +479,6 @@ class AsyncEnvironment {
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
   AstNode _getVariableNodeFromGlobalModule(String name) {
-    if (_globalModules == null) return null;
-
     // We don't need to worry about multiple modules defining the same variable,
     // because that's already been checked by [getVariable].
     for (var module in _globalModules) {
@@ -558,7 +548,7 @@ class AsyncEnvironment {
 
       // If this module doesn't already contain a variable named [name], try
       // setting it in a global module.
-      if (!_variables.first.containsKey(name) && _globalModules != null) {
+      if (!_variables.first.containsKey(name)) {
         var moduleWithName = _fromOneModule(name, "variable",
             (module) => module.variables.containsKey(name) ? module : null);
         if (moduleWithName != null) {
@@ -860,8 +850,6 @@ class AsyncEnvironment {
         }
       }
     }
-
-    if (_globalModules == null) return null;
 
     T value;
     Object identity;

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: db31838dbc5c44989803274acb581263e98b488d
+// Checksum: df5ee8bde1eec6e47c1d025041921aba01637696
 //
 // ignore_for_file: unused_import
 
@@ -46,15 +46,11 @@ class Environment {
   final Map<String, AstNode> _namespaceNodes;
 
   /// The namespaceless modules used in the current scope.
-  ///
-  /// This is `null` if there are no namespaceless modules.
-  Set<Module<Callable>> _globalModules;
+  final Set<Module<Callable>> _globalModules;
 
   /// A map from modules in [_globalModules] to the nodes whose spans
   /// indicate where those modules were originally loaded.
-  ///
-  /// This is `null` if there are no namespaceless modules.
-  Map<Module<Callable>, AstNode> _globalModuleNodes;
+  final Map<Module<Callable>, AstNode> _globalModuleNodes;
 
   /// The modules forwarded by this module.
   ///
@@ -159,8 +155,8 @@ class Environment {
   Environment({bool sourceMap = false})
       : _modules = {},
         _namespaceNodes = {},
-        _globalModules = null,
-        _globalModuleNodes = null,
+        _globalModules = {},
+        _globalModuleNodes = {},
         _forwardedModules = null,
         _forwardedModuleNodes = null,
         _nestedForwardedModules = null,
@@ -222,8 +218,8 @@ class Environment {
   Environment forImport() => Environment._(
       {},
       {},
-      null,
-      null,
+      {},
+      {},
       null,
       null,
       null,
@@ -247,8 +243,6 @@ class Environment {
   void addModule(Module<Callable> module, AstNode nodeWithSpan,
       {String namespace}) {
     if (namespace == null) {
-      _globalModules ??= {};
-      _globalModuleNodes ??= {};
       _globalModules.add(module);
       _globalModuleNodes[module] = nodeWithSpan;
       _allModules.add(module);
@@ -344,8 +338,6 @@ class Environment {
       var forwarded = module._environment._forwardedModules;
       if (forwarded == null) return;
 
-      _globalModules ??= {};
-      _globalModuleNodes ??= {};
       _forwardedModules ??= [];
       _forwardedModuleNodes ??= {};
 
@@ -494,8 +486,6 @@ class Environment {
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
   AstNode _getVariableNodeFromGlobalModule(String name) {
-    if (_globalModules == null) return null;
-
     // We don't need to worry about multiple modules defining the same variable,
     // because that's already been checked by [getVariable].
     for (var module in _globalModules) {
@@ -565,7 +555,7 @@ class Environment {
 
       // If this module doesn't already contain a variable named [name], try
       // setting it in a global module.
-      if (!_variables.first.containsKey(name) && _globalModules != null) {
+      if (!_variables.first.containsKey(name)) {
         var moduleWithName = _fromOneModule(name, "variable",
             (module) => module.variables.containsKey(name) ? module : null);
         if (moduleWithName != null) {
@@ -866,8 +856,6 @@ class Environment {
         }
       }
     }
-
-    if (_globalModules == null) return null;
 
     T value;
     Object identity;
