@@ -4,16 +4,9 @@
 
 import 'dart:async';
 
-import 'package:cli_pkg/testing.dart' as pkg;
-import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
-
-void hybridMain(StreamChannel<Object> channel) async {
-  pkg.ensureExecutableUpToDate("sass", node: true);
-  channel.sink.close();
-}
 
 /// Ensures that the NPM package is compiled and up-to-date.
 ///
@@ -23,6 +16,14 @@ Future<void> ensureNpmPackage() async {
   // path handling in the SDK.
   if (isNode && isWindows) return;
 
-  var channel = spawnHybridUri("/test/ensure_npm_package.dart");
+  var channel = spawnHybridCode("""
+    import 'package:cli_pkg/testing.dart' as pkg;
+    import 'package:stream_channel/stream_channel.dart';
+
+    void hybridMain(StreamChannel<Object> channel) async {
+      pkg.ensureExecutableUpToDate("sass", node: true);
+      channel.sink.close();
+    }
+  """);
   await channel.stream.toList();
 }
