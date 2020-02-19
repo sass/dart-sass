@@ -91,9 +91,8 @@ jobs:
     node_js: lts/dubnium
   - <<: *node-tests
     os: osx
-  - <<: *node-tests
-    name: Node tests | Dart dev | Node stable
-    env: DART_CHANNEL=dev
+  # TODO(nweiz): Test Node tests with Dart dev when dart-lang/test#1184 is
+  # fixed.
 
   # Miscellaneous checks.
   - name: static analysis
