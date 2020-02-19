@@ -184,6 +184,7 @@ jobs:
   # Deploy to Chocolatey.
   - name: Chocolatey
     if: *deploy-if
+    os: windows
     env:
       # CHOCOLATEY_TOKEN="..."
       - secure: "EnII3YAGESEl9g9rQDcrL1Sw9eww80VJP0qZHz8Da07GB0hUrDQBJ372Zs2A4qaH/GOm7cknszEPOnkE4w3IBwe5idj31Q+WJbcvqqAB1gex3bLYyStdHeohculqmPgpuEPD3yVT59viJIn6L9+GEKNtnCygDpgxMilXzDIXi6vtLqovJc6q09i7XCSnf2IVjzKv0VBSUV0lU9QOZui5/zLN0sCSzE8QKYj0QSoQ8Th3ZTuWn3/CtRYhIaw4/12oepHyXRvieMeNGnhv8O4d1lAOiXKn28COJWA+xvCOZSxIrBCc0k8VzanYftTcp1Zf0Lxkm0ObmFXWaoHATFWjkvW6G34kQrzRpUlWUMmxIxBukHc2ZFuGnVi6pL9ANI8BVh6m8M1ojRqtKCFvBbgDDdxD7qqBQSfdtssEL+m6O0U9A5/xnQxHPbuyL/Y9ww9p/ohEFaaF3MK/qjiWKQJR+TXspmNDBhFC+w2vQ6zetEx787V6POS8ma5MX1+WWOecDtaDuEMv4bzjkTuYk9tuBC4GR/KrdUNbFtcNXCk5To4Du4FBdOW/+yoVg+ZHtgOzSDehgMJMeFM2fTYNt55iwmjwDyS4XcqsWoHHCDMEhIcuXL5XV5VBENFgs98EGofja70Lp05oLH2W7100OuyG0H18lpECx15OXSFnHQh+91g="
