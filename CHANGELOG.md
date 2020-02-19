@@ -1,3 +1,7 @@
+## 1.26.0-test.3
+
+* No user-visible changes.
+
 ## 1.26.0-test.2
 
 * `@use` rules whose URLs' basenames begin with `_` now correctly exclude that
