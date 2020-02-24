@@ -1,16 +1,10 @@
-## 1.26.0-test.3
+## 1.26.0
 
-* No user-visible changes.
-
-## 1.26.0-test.2
-
-* `@use` rules whose URLs' basenames begin with `_` now correctly exclude that
-  `_` from the rules' namespaces.
+* **Potentially breaking bug fix:** `@use` rules whose URLs' basenames begin
+  with `_` now correctly exclude that `_` from the rules' namespaces.
 
 * Fix a bug where imported forwarded members weren't visible in mixins and
   functions that were defined before the `@import`.
-
-## 1.26.0-test.1
 
 * Don't throw errors if the exact same member is loaded or forwarded from
   multiple modules at the same time.
