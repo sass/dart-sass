@@ -233,6 +233,43 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
                 .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
                 .validate();
           });
+
+          // Regression test for #550
+          test("with an error that's later fixed", () async {
+            await d.file("_other.scss", "a {b: c}").create();
+            await d.file("test.scss", "@import 'other'").create();
+
+            var sass = await watch(["test.scss:out.css"]);
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await expectLater(sass.stdout, _watchingForChanges);
+            await tickIfPoll();
+
+            await d.file("_other.scss", "a {b: }").create();
+            await expectLater(
+                sass.stderr, emits('Error: Expected expression.'));
+            await expectLater(
+                sass.stderr, emitsThrough(contains('test.scss 1:9')));
+            await tickIfPoll();
+
+            await d.file("_other.scss", "q {r: s}").create();
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await tick;
+            await d
+                .file("out.css", equalsIgnoringWhitespace("q { r: s; }"))
+                .validate();
+
+            await d.file("_other.scss", "x {y: z}").create();
+            await expectLater(
+                sass.stdout, emits('Compiled test.scss to out.css.'));
+            await tick;
+            await d
+                .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                .validate();
+
+            await sass.kill();
+          });
         });
 
         test("when it's deleted and re-added", () async {
