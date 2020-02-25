@@ -13,6 +13,7 @@ import 'package:source_span/source_span.dart';
 
 import 'grind/synchronize.dart';
 
+export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
 export 'grind/sanity_check.dart';
 export 'grind/synchronize.dart';
