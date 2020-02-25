@@ -43,7 +43,8 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   for (var source in options.sourcesToDestinations.keys) {
     var destination = options.sourcesToDestinations[source];
     graph.addCanonical(FilesystemImporter('.'), p.toUri(p.canonicalize(source)),
-        p.toUri(source));
+        p.toUri(source),
+        recanonicalize: false);
     var success = await watcher.compile(source, destination, ifModified: true);
     if (!success && options.stopOnError) {
       dirWatcher.events.listen(null).cancel();

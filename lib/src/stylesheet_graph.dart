@@ -86,8 +86,14 @@ class StylesheetGraph {
   /// Returns the set of nodes that need to be recompiled because their imports
   /// changed as a result of this stylesheet being added. This does not include
   /// the new stylesheet, which can be accessed via `nodes[canonicalUrl]`.
+  ///
+  /// If [recanonicalize] is `false`, this instead avoids checking downstream
+  /// nodes' imports and always returns an empty set. It should only be set to
+  /// `false` when initially adding stylesheets, not when handling future
+  /// updates.
   Set<StylesheetNode> addCanonical(
-      Importer importer, Uri canonicalUrl, Uri originalUrl) {
+      Importer importer, Uri canonicalUrl, Uri originalUrl,
+      {bool recanonicalize = true}) {
     var node = _nodes[canonicalUrl];
     if (node != null) return const {};
 
@@ -99,7 +105,9 @@ class StylesheetGraph {
         _upstreamNodes(stylesheet, importer, canonicalUrl));
     _nodes[canonicalUrl] = node;
 
-    return _recanonicalizeImports(importer, canonicalUrl);
+    return recanonicalize
+        ? _recanonicalizeImports(importer, canonicalUrl)
+        : const {};
   }
 
   /// Returns two maps from non-canonicalized imported URLs in [stylesheet] to
