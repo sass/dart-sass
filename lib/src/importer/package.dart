@@ -47,5 +47,9 @@ class PackageImporter extends Importer {
   DateTime modificationTime(Uri url) =>
       _filesystemImporter.modificationTime(url);
 
+  bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
+      (url.scheme == 'file' || url.scheme == 'package' || url.scheme == '') &&
+      _filesystemImporter.couldCanonicalize(Uri(path: url.path), canonicalUrl);
+
   String toString() => "package:...";
 }

@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -165,16 +164,12 @@ class _Watcher {
   ///
   /// Returns whether all necessary recompilations succeeded.
   Future<bool> _handleAdd(String path) async {
-    var success = await _retryPotentialImports(path);
-    if (!success && _options.stopOnError) return false;
-
     var destination = _destinationFor(path);
-    if (destination == null) return true;
 
-    _graph.addCanonical(
+    var success = destination == null || await compile(path, destination);
+    var downstream = _graph.addCanonical(
         FilesystemImporter('.'), _canonicalize(path), p.toUri(path));
-
-    return await compile(path, destination);
+    return await _recompileDownstream(downstream) && success;
   }
 
   /// Handles a remove event for the stylesheet at [url].
@@ -182,15 +177,13 @@ class _Watcher {
   /// Returns whether all necessary recompilations succeeded.
   Future<bool> _handleRemove(String path) async {
     var url = _canonicalize(path);
-    var success = await _retryPotentialImports(path);
-    if (!success && _options.stopOnError) return false;
-    if (!_graph.nodes.containsKey(url)) return true;
 
-    var destination = _destinationFor(path);
-    if (destination != null) _delete(destination);
+    if (_graph.nodes.containsKey(url)) {
+      var destination = _destinationFor(path);
+      if (destination != null) _delete(destination);
+    }
 
-    var downstream = _graph.nodes[url].downstream;
-    _graph.remove(url);
+    var downstream = _graph.remove(FilesystemImporter('.'), url);
     return await _recompileDownstream(downstream);
   }
 
@@ -277,57 +270,5 @@ class _Watcher {
     }
 
     return null;
-  }
-
-  /// Re-runs all imports in [_graph] that might refer to [path], and recompiles
-  /// the files that contain those imports if they end up importing new
-  /// stylesheets.
-  ///
-  /// Returns whether all recompilations succeeded.
-  Future<bool> _retryPotentialImports(String path) async {
-    var name = _name(p.basename(path));
-    var changed = <StylesheetNode>[];
-    for (var node in _graph.nodes.values) {
-      var importChanged = false;
-      void recanonicalize(Uri url, StylesheetNode upstream,
-          {@required bool forImport}) {
-        if (_name(p.url.basename(url.path)) != name) return;
-        _graph.clearCanonicalize(url);
-
-        // If the import produces a different canonicalized URL than it did
-        // before, it changed and the stylesheet needs to be recompiled.
-        if (!importChanged) {
-          Uri newCanonicalUrl;
-          try {
-            newCanonicalUrl = _graph.importCache
-                .canonicalize(url,
-                    baseImporter: node.importer,
-                    baseUrl: node.canonicalUrl,
-                    forImport: forImport)
-                ?.item2;
-          } catch (_) {
-            // If the call to canonicalize failed, do nothing. We'll surface
-            // the error more nicely when we try to recompile the file.
-          }
-          importChanged = newCanonicalUrl != upstream?.canonicalUrl;
-        }
-      }
-
-      for (var entry in node.upstream.entries) {
-        recanonicalize(entry.key, entry.value, forImport: false);
-      }
-      for (var entry in node.upstreamImports.entries) {
-        recanonicalize(entry.key, entry.value, forImport: true);
-      }
-      if (importChanged) changed.add(node);
-    }
-
-    return await _recompileDownstream(changed);
-  }
-
-  /// Removes an extension from [extension], and a leading underscore if it has one.
-  String _name(String basename) {
-    basename = p.withoutExtension(basename);
-    return basename.startsWith("_") ? basename.substring(1) : basename;
   }
 }

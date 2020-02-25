@@ -1,3 +1,11 @@
+## 1.26.1
+
+### Command Line Interface
+
+* Fix a longstanding bug where `--watch` mode could enter into a state where
+  recompilation would not occur after a syntax error was introduced into a
+  dependency and then fixed.
+
 ## 1.26.0
 
 * **Potentially breaking bug fix:** `@use` rules whose URLs' basenames begin

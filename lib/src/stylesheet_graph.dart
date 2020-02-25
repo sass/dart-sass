@@ -5,6 +5,8 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
@@ -69,27 +71,35 @@ class StylesheetGraph {
     var tuple = _ignoreErrors(() => importCache.canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl));
     if (tuple == null) return null;
-    return addCanonical(tuple.item1, tuple.item2, tuple.item3);
+
+    addCanonical(tuple.item1, tuple.item2, tuple.item3);
+    return nodes[tuple.item2];
   }
 
   /// Adds the stylesheet at the canonicalized [canonicalUrl] and all the
   /// stylesheets it imports to this graph and returns its node.
   ///
-  /// Returns `null` if [importer] can't import [canonicalUrl].
-  ///
   /// If passed, the [originalUrl] represents the URL that was canonicalized
   /// into [canonicalUrl]. It's used as the URL for the parsed stylesheet, which
   /// is in turn used in error reporting.
-  StylesheetNode addCanonical(Importer importer, Uri canonicalUrl,
-      [Uri originalUrl]) {
+  ///
+  /// Returns the set of nodes that need to be recompiled because their imports
+  /// changed as a result of this stylesheet being added. This does not include
+  /// the new stylesheet, which can be accessed via `nodes[canonicalUrl]`.
+  Set<StylesheetNode> addCanonical(
+      Importer importer, Uri canonicalUrl, Uri originalUrl) {
+    var node = _nodes[canonicalUrl];
+    if (node != null) return const {};
+
     var stylesheet = _ignoreErrors(
         () => importCache.importCanonical(importer, canonicalUrl, originalUrl));
-    if (stylesheet == null) return null;
+    if (stylesheet == null) return const {};
 
-    return _nodes.putIfAbsent(
-        canonicalUrl,
-        () => StylesheetNode._(stylesheet, importer, canonicalUrl,
-            _upstreamNodes(stylesheet, importer, canonicalUrl)));
+    node = StylesheetNode._(stylesheet, importer, canonicalUrl,
+        _upstreamNodes(stylesheet, importer, canonicalUrl));
+    _nodes[canonicalUrl] = node;
+
+    return _recanonicalizeImports(importer, canonicalUrl);
   }
 
   /// Returns two maps from non-canonicalized imported URLs in [stylesheet] to
@@ -115,9 +125,9 @@ class StylesheetGraph {
   ///
   /// Throws a [StateError] if [canonicalUrl] isn't already in the dependency graph.
   ///
-  /// Removes the stylesheet from the graph entirely and returns `null` if the
-  /// stylesheet's importer can no longer import it.
-  StylesheetNode reload(Uri canonicalUrl) {
+  /// Returns `false` if the stylesheet's importer can no longer import it. The
+  /// caller is responsible for then calling [remove].
+  bool reload(Uri canonicalUrl) {
     var node = _nodes[canonicalUrl];
     if (node == null) {
       throw StateError("$canonicalUrl is not in the dependency graph.");
@@ -131,34 +141,109 @@ class StylesheetGraph {
     importCache.clearImport(canonicalUrl);
     var stylesheet = _ignoreErrors(
         () => importCache.importCanonical(node.importer, canonicalUrl));
-    if (stylesheet == null) {
-      remove(canonicalUrl);
-      return null;
-    }
+    if (stylesheet == null) return false;
     node._stylesheet = stylesheet;
 
-    node._stylesheet = stylesheet;
-    node._replaceUpstream(
-        _upstreamNodes(stylesheet, node.importer, canonicalUrl));
-    return node;
+    var upstream = _upstreamNodes(stylesheet, node.importer, canonicalUrl);
+    node._replaceUpstream(upstream.item1, upstream.item2);
+    return true;
   }
 
-  /// Removes the stylesheet at [canonicalUrl] from the stylesheet graph.
+  /// Removes the stylesheet at [canonicalUrl] (loaded by [importer]) from the
+  /// stylesheet graph.
   ///
-  /// Throws a [StateError] if [canonicalUrl] isn't already in the dependency graph.
-  void remove(Uri canonicalUrl) {
+  /// Note that [canonicalUrl] doesn't necessarily need to be in the stylesheet
+  /// graph itself. It may still be relevant to know that it's been removed,
+  /// because it could resolve import conflicts in stylesheets that *are* in the
+  /// graph.
+  ///
+  /// Returns the set of nodes that need to be recompiled because this node was
+  /// removed.
+  Set<StylesheetNode> remove(Importer importer, Uri canonicalUrl) {
     var node = _nodes.remove(canonicalUrl);
-    if (node == null) {
-      throw StateError("$canonicalUrl is not in the dependency graph.");
+    if (node != null) {
+      // Rather than spending time computing exactly which modification times
+      // should be updated, just clear the cache and let it be computed again
+      // later.
+      _transitiveModificationTimes.clear();
+      importCache.clearImport(canonicalUrl);
+      node._remove();
+    }
+
+    // We can't just recanonicalize [node.downstream] here, because it's
+    // possible that removing [node] fixed an import conflict, in which case the
+    // stylesheet with the import conflict should now be recompiled.
+    var toRecompile = _recanonicalizeImports(importer, canonicalUrl);
+    if (node != null) toRecompile.addAll(node._downstream);
+    return toRecompile;
+  }
+
+  /// Re-runs canonicalization for all URLs in the graph that could possibly
+  /// refer to [canonicalUrl] which was loaded via [Importer].
+  ///
+  /// Returns all nodes whose imports were changed.
+  Set<StylesheetNode> _recanonicalizeImports(
+      Importer importer, Uri canonicalUrl) {
+    var changed = <StylesheetNode>{};
+    for (var node in nodes.values) {
+      var newUpstream = _recanonicalizeImportsForNode(
+          node, importer, canonicalUrl,
+          forImport: false);
+      var newUpstreamImports = _recanonicalizeImportsForNode(
+          node, importer, canonicalUrl,
+          forImport: true);
+
+      if (newUpstream.isNotEmpty || newUpstreamImports.isNotEmpty) {
+        changed.add(node);
+        node._replaceUpstream(mergeMaps(node.upstream, newUpstream),
+            mergeMaps(node.upstreamImports, newUpstreamImports));
+      }
     }
 
     // Rather than spending time computing exactly which modification times
     // should be updated, just clear the cache and let it be computed again
     // later.
-    _transitiveModificationTimes.clear();
+    if (changed.isNotEmpty) _transitiveModificationTimes.clear();
 
-    importCache.clearImport(canonicalUrl);
-    node._remove();
+    return changed;
+  }
+
+  /// Re-runs canonicaliation for all URLs in [node]'s upstream nodes that could
+  /// possibly refer to [canonicalUrl] (which was loaded via [importer]) and
+  /// returns a map from differently-canonicalized URLs to their new nodes.
+  ///
+  /// If [forImport] is `true`, this re-runs canonicalization for
+  /// [node.upstreamImports]. Otherwise, it re-runs canonicalization for
+  /// [node.upstream].
+  Map<Uri, StylesheetNode> _recanonicalizeImportsForNode(
+      StylesheetNode node, Importer importer, Uri canonicalUrl,
+      {@required bool forImport}) {
+    var map = forImport ? node.upstreamImports : node.upstream;
+    var newMap = <Uri, StylesheetNode>{};
+    map.forEach((url, upstream) {
+      if (!importer.couldCanonicalize(url, canonicalUrl)) return;
+      importCache.clearCanonicalize(url);
+
+      // If the import produces a different canonicalized URL than it did
+      // before, it changed and the stylesheet needs to be recompiled.
+      Tuple3<AsyncImporter, Uri, Uri> result;
+      try {
+        result = importCache.canonicalize(url,
+            baseImporter: node.importer,
+            baseUrl: node.canonicalUrl,
+            forImport: forImport);
+      } catch (_) {
+        // If the call to canonicalize failed, we ignore the error so that
+        // it can be surfaced more gracefully when [node]'s stylesheet is
+        // recompiled.
+      }
+
+      var newCanonicalUrl = result?.item2;
+      if (newCanonicalUrl == upstream?.canonicalUrl) return;
+
+      newMap[url] = result == null ? null : nodes[result.item2];
+    });
+    return newMap;
   }
 
   /// Returns the [StylesheetNode] for the stylesheet at the given [url], which
@@ -197,17 +282,6 @@ class StylesheetGraph {
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;
     return node;
-  }
-
-  /// Clears the cached canonical version of the given [url] in [importCache].
-  ///
-  /// Also resets the cached modification times for stylesheets in the graph.
-  void clearCanonicalize(Uri url) {
-    // Rather than spending time computing exactly which modification times
-    // should be updated, just clear the cache and let it be computed again
-    // later.
-    _transitiveModificationTimes.clear();
-    importCache.clearCanonicalize(url);
   }
 
   /// Runs [callback] and returns its result.
@@ -269,19 +343,15 @@ class StylesheetNode {
     }
   }
 
-  /// Updates [upstream] and [upstreamImports] from [allUpstream] and adjusts
-  /// upstream nodes' [downstream] fields accordingly.
-  ///
-  /// The first item in [allUpstream] replaces [upstream] while the second item
-  /// replaces [upstreamImports].
-  void _replaceUpstream(
-      Tuple2<Map<Uri, StylesheetNode>, Map<Uri, StylesheetNode>> allUpstream) {
+  /// Updates [upstream] and [upstreamImports] from [newUpstream] and
+  /// [newUpstreamImports] and adjusts upstream nodes' [downstream] fields
+  /// accordingly.
+  void _replaceUpstream(Map<Uri, StylesheetNode> newUpstream,
+      Map<Uri, StylesheetNode> newUpstreamImports) {
     var oldUpstream = {...upstream.values, ...upstreamImports.values}
       ..remove(null);
-    var newUpstreamSet = {
-      ...allUpstream.item1.values,
-      ...allUpstream.item2.values
-    }..remove(null);
+    var newUpstreamSet = {...newUpstream.values, ...newUpstreamImports.values}
+      ..remove(null);
 
     for (var removed in oldUpstream.difference(newUpstreamSet)) {
       var wasRemoved = removed._downstream.remove(this);
@@ -293,8 +363,8 @@ class StylesheetNode {
       assert(wasAdded);
     }
 
-    _upstream = allUpstream.item1;
-    _upstreamImports = allUpstream.item2;
+    _upstream = newUpstream;
+    _upstreamImports = newUpstreamImports;
   }
 
   /// Removes [this] as an upstream and downstream node from all the nodes that
@@ -321,4 +391,6 @@ class StylesheetNode {
       }
     }
   }
+
+  String toString() => p.prettyUri(stylesheet.span.sourceUrl);
 }

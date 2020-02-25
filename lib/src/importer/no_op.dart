@@ -12,6 +12,7 @@ import 'result.dart';
 class NoOpImporter extends Importer {
   Uri canonicalize(Uri url) => null;
   ImporterResult load(Uri url) => null;
+  bool couldCanonicalize(Uri url, Uri canonicalUrl) => false;
 
   String toString() => "(unknown)";
 }
