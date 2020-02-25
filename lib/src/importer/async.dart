@@ -107,4 +107,13 @@ abstract class AsyncImporter {
   /// If this throws an exception, the exception is ignored and the current time
   /// is used as the modification time.
   FutureOr<DateTime> modificationTime(Uri url) => DateTime.now();
+
+  /// Without accessing the filesystem, returns whether or not passing [url] to
+  /// [canonicalize] could possibly return [canonicalUrl].
+  ///
+  /// This is expected to be very efficient, and subclasses are allowed to
+  /// return false positives if it would be inefficient to determine whether
+  /// [url] would actually resolve to [canonicalUrl]. Subclasses are not allowed
+  /// to return false negatives.
+  FutureOr<bool> couldCanonicalize(Uri url, Uri canonicalUrl) => true;
 }

@@ -39,5 +39,19 @@ class FilesystemImporter extends Importer {
 
   DateTime modificationTime(Uri url) => io.modificationTime(p.fromUri(url));
 
+  bool couldCanonicalize(Uri url, Uri canonicalUrl) {
+    if (url.scheme != 'file' && url.scheme != '') return false;
+    if (canonicalUrl.scheme != 'file') return false;
+
+    var basename = p.url.basename(url.path);
+    var canonicalBasename = p.url.basename(canonicalUrl.path);
+    if (!basename.startsWith("_") && canonicalBasename.startsWith("_")) {
+      canonicalBasename = canonicalBasename.substring(1);
+    }
+
+    return basename == canonicalBasename ||
+        basename == p.url.withoutExtension(canonicalBasename);
+  }
+
   String toString() => _loadPath;
 }

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3ca2f221c3c1503c688be49d4f7501bd9be8031a
+// Checksum: c1dd0f2a41b03bd1227a2358688bf44499b9d90c
 //
 // ignore_for_file: unused_import
 
@@ -116,7 +116,8 @@ class ImportCache {
   /// canonicalize [url] (resolved relative to [baseUrl] if it's passed).
   ///
   /// If any importers understand [url], returns that importer as well as the
-  /// canonicalized URL. Otherwise, returns `null`.
+  /// canonicalized URL and the original URL resolved relative to [baseUrl] if
+  /// applicable. Otherwise, returns `null`.
   Tuple3<Importer, Uri, Uri> canonicalize(Uri url,
       {Importer baseImporter, Uri baseUrl, bool forImport = false}) {
     if (baseImporter != null) {
