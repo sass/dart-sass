@@ -1,3 +1,8 @@
+## 1.26.2
+
+* More aggressively eliminate redundant selectors in the `selector.extend()` and
+  `selector.replace()` functions.
+
 ## 1.26.1
 
 ### Command Line Interface
