@@ -90,25 +90,28 @@ class Extender {
   /// A helper function for [extend] and [replace].
   static SelectorList _extendOrReplace(SelectorList selector,
       SelectorList source, SelectorList targets, ExtendMode mode) {
-    var extenders = Map<ComplexSelector, Extension>.fromIterable(
-        source.components,
-        value: (complex) => Extension.oneOff(complex as ComplexSelector));
-    for (var complex in targets.components) {
-      if (complex.components.length != 1) {
-        throw SassScriptException("Can't extend complex selector $complex.");
-      }
+    var extenders = {
+      for (var complex in source.components) complex: Extension.oneOff(complex)
+    };
 
-      var compound = complex.components.first as CompoundSelector;
-      var extensions = {
+    var compoundTargets = [
+      for (var complex in targets.components)
+        if (complex.components.length != 1)
+          throw SassScriptException("Can't extend complex selector $complex.")
+        else
+          complex.components.first as CompoundSelector
+    ];
+
+    var extensions = {
+      for (var compound in compoundTargets)
         for (var simple in compound.components) simple: extenders
-      };
+    };
 
-      var extender = Extender._mode(mode);
-      if (!selector.isInvisible) {
-        extender._originals.addAll(selector.components);
-      }
-      selector = extender._extendList(selector, extensions, null);
+    var extender = Extender._mode(mode);
+    if (!selector.isInvisible) {
+      extender._originals.addAll(selector.components);
     }
+    selector = extender._extendList(selector, extensions, null);
 
     return selector;
   }
