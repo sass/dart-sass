@@ -173,6 +173,32 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           ]).validate();
         });
 
+        test("when it's modified twice when watched from a directory that is also a destination", () async {
+          await d.file("test.scss", "a {b: c}").create();
+
+          var sass = await watch(["."]);
+          await expectLater(
+            sass.stdout, emits('Compiled test.scss to test.css.'));
+          await expectLater(sass.stdout, _watchingForChanges);
+          await tickIfPoll();
+
+          await d.file("test.scss", "r {o: g}").create();
+          await expectLater(
+            sass.stdout, emits('Compiled test.scss to test.css.'));
+
+          await tickIfPoll();
+
+          await d.file("test.scss", "x {y: z}").create();
+          await expectLater(
+            sass.stdout, emits('Compiled test.scss to test.css.'));
+
+          await sass.kill();
+
+          await d
+            .file("test.css", equalsIgnoringWhitespace("x { y: z; }"))
+            .validate();
+        });
+
         group("when its dependency is modified", () {
           test("through @import", () async {
             await d.file("_other.scss", "a {b: c}").create();
