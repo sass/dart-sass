@@ -267,7 +267,7 @@ class _Watcher {
           p.setExtension(p.relative(source, from: sourceDir), '.css'));
 
       // Don't compile ".css" files to their own locations.
-      if (p.relative(destination) != p.relative(source)) return destination;
+      if (!p.equals(destination, source)) return destination;
     }
 
     return null;
