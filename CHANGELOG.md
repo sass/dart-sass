@@ -1,3 +1,8 @@
+## 1.26.3
+
+* Fix a bug where `--watch` mode could go into an infinite loop compiling CSS
+  files to themselves.
+
 ## 1.26.2
 
 * More aggressively eliminate redundant selectors in the `selector.extend()` and
