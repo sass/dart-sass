@@ -34,6 +34,22 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   final Map<String, T> functions;
   final Map<String, T> mixins;
 
+  /// Like [ForwardedModuleView], but returns `inner` as-is if it doesn't need
+  /// any modification.
+  static Module<T> ifNecessary<T extends AsyncCallable>(
+      Module<T> inner, ForwardRule rule) {
+    if (rule.prefix == null &&
+        rule.shownMixinsAndFunctions == null &&
+        rule.shownVariables == null &&
+        (rule.hiddenMixinsAndFunctions == null ||
+            rule.hiddenMixinsAndFunctions.isEmpty) &&
+        (rule.hiddenVariables == null || rule.hiddenVariables.isEmpty)) {
+      return inner;
+    } else {
+      return ForwardedModuleView(inner, rule);
+    }
+  }
+
   ForwardedModuleView(this._inner, this._rule)
       : variables = _forwardedMap(_inner.variables, _rule.prefix,
             _rule.shownVariables, _rule.hiddenVariables),
@@ -102,5 +118,14 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.variableIdentity(name);
   }
 
+  bool operator ==(Object other) =>
+      other is ForwardedModuleView &&
+      _inner == other._inner &&
+      _rule == other._rule;
+
+  int get hashCode => _inner.hashCode ^ _rule.hashCode;
+
   Module<T> cloneCss() => ForwardedModuleView(_inner.cloneCss(), _rule);
+
+  String toString() => "forwarded $_inner";
 }
