@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: df5ee8bde1eec6e47c1d025041921aba01637696
+// Checksum: bf1542d44f45a40a1f56c8eec3046c61ee32c36a
 //
 // ignore_for_file: unused_import
 
@@ -55,7 +55,7 @@ class Environment {
   /// The modules forwarded by this module.
   ///
   /// This is `null` if there are no forwarded modules.
-  List<Module<Callable>> _forwardedModules;
+  Set<Module<Callable>> _forwardedModules;
 
   /// A map from modules in [_forwardedModules] to the nodes whose spans
   /// indicate where those modules were originally forwarded.
@@ -271,10 +271,10 @@ class Environment {
   /// Exposes the members in [module] to downstream modules as though they were
   /// defined in this module, according to the modifications defined by [rule].
   void forwardModule(Module<Callable> module, ForwardRule rule) {
-    _forwardedModules ??= [];
+    _forwardedModules ??= {};
     _forwardedModuleNodes ??= {};
 
-    var view = ForwardedModuleView(module, rule);
+    var view = ForwardedModuleView.ifNecessary(module, rule);
     for (var other in _forwardedModules) {
       _assertNoConflicts(
           view.variables, other.variables, view, other, "variable", rule);
@@ -338,7 +338,18 @@ class Environment {
       var forwarded = module._environment._forwardedModules;
       if (forwarded == null) return;
 
-      _forwardedModules ??= [];
+      // Omit modules from [forwarded] that are already globally available and
+      // forwarded in this module.
+      if (_forwardedModules != null) {
+        forwarded = {
+          for (var module in forwarded)
+            if (!_forwardedModules.contains(module) ||
+                !_globalModules.contains(module))
+              module
+        };
+      }
+
+      _forwardedModules ??= {};
       _forwardedModuleNodes ??= {};
 
       var forwardedVariableNames =
@@ -358,20 +369,26 @@ class Environment {
               functions: forwardedFunctionNames);
           if (shadowed != null) {
             _globalModules.remove(module);
-            _globalModules.add(shadowed);
-            _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module);
+
+            if (!shadowed.isEmpty) {
+              _globalModules.add(shadowed);
+              _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module);
+            }
           }
         }
-        for (var i = 0; i < _forwardedModules.length; i++) {
-          var module = _forwardedModules[i];
+        for (var module in _forwardedModules.toList()) {
           var shadowed = ShadowedModuleView.ifNecessary(module,
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
               functions: forwardedFunctionNames);
           if (shadowed != null) {
-            _forwardedModules[i] = shadowed;
-            _forwardedModuleNodes[shadowed] =
-                _forwardedModuleNodes.remove(module);
+            _forwardedModules.remove(module);
+
+            if (!shadowed.isEmpty) {
+              _forwardedModules.add(shadowed);
+              _forwardedModuleNodes[shadowed] =
+                  _forwardedModuleNodes.remove(module);
+            }
           }
         }
 
@@ -820,7 +837,8 @@ class Environment {
   Module<Callable> toDummyModule() {
     return _EnvironmentModule(
         this,
-        CssStylesheet(const [], SourceFile.decoded(const []).span(0)),
+        CssStylesheet(const [],
+            SourceFile.decoded(const [], url: "<dummy module>").span(0)),
         Extender.empty,
         forwarded: _forwardedModules);
   }
@@ -911,8 +929,8 @@ class _EnvironmentModule implements Module<Callable> {
 
   factory _EnvironmentModule(
       Environment environment, CssStylesheet css, Extender extender,
-      {List<Module<Callable>> forwarded}) {
-    forwarded ??= const [];
+      {Set<Module<Callable>> forwarded}) {
+    forwarded ??= const {};
     return _EnvironmentModule._(
         environment,
         css,
@@ -938,7 +956,7 @@ class _EnvironmentModule implements Module<Callable> {
 
   /// Create [_modulesByVariable] for a set of forwarded modules.
   static Map<String, Module<Callable>> _makeModulesByVariable(
-      List<Module<Callable>> forwarded) {
+      Set<Module<Callable>> forwarded) {
     if (forwarded.isEmpty) return const {};
 
     var modulesByVariable = <String, Module<Callable>>{};
@@ -1027,5 +1045,5 @@ class _EnvironmentModule implements Module<Callable> {
         transitivelyContainsExtensions: transitivelyContainsExtensions);
   }
 
-  String toString() => p.prettyUri(css.span.sourceUrl);
+  String toString() => url == null ? "<unknown url>" : p.prettyUri(url);
 }

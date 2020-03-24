@@ -9,6 +9,7 @@ import '../exception.dart';
 import '../extend/extender.dart';
 import '../module.dart';
 import '../util/limited_map_view.dart';
+import '../utils.dart';
 import '../value.dart';
 
 /// A [Module] that only exposes members that aren't shadowed by a given
@@ -29,6 +30,13 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   final Map<String, AstNode> variableNodes;
   final Map<String, T> functions;
   final Map<String, T> mixins;
+
+  /// Returns whether this module exposes no members or CSS.
+  bool get isEmpty =>
+      variables.isEmpty &&
+      functions.isEmpty &&
+      mixins.isEmpty &&
+      css.children.isEmpty;
 
   /// Like [ShadowedModuleView], but returns `null` if [inner] would be unchanged.
   static ShadowedModuleView<T> ifNecessary<T extends AsyncCallable>(
@@ -79,6 +87,17 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.variableIdentity(name);
   }
 
+  bool operator ==(Object other) =>
+      other is ShadowedModuleView &&
+      _inner == other._inner &&
+      iterableEquals(variables.keys, other.variables.keys) &&
+      iterableEquals(functions.keys, other.functions.keys) &&
+      iterableEquals(mixins.keys, other.mixins.keys);
+
+  int get hashCode => _inner.hashCode;
+
   Module<T> cloneCss() => ShadowedModuleView._(
       _inner.cloneCss(), variables, variableNodes, functions, mixins);
+
+  String toString() => "shadowed $_inner";
 }

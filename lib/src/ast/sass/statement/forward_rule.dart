@@ -116,7 +116,8 @@ class ForwardRule implements Statement {
       buffer
         ..write(" show ")
         ..write(_memberList(shownMixinsAndFunctions, shownVariables));
-    } else if (hiddenMixinsAndFunctions != null) {
+    } else if (hiddenMixinsAndFunctions != null &&
+        hiddenMixinsAndFunctions.isNotEmpty) {
       buffer
         ..write(" hide ")
         ..write(_memberList(hiddenMixinsAndFunctions, hiddenVariables));
@@ -135,7 +136,8 @@ class ForwardRule implements Statement {
   /// Returns a combined list of names of the given members.
   String _memberList(
           Iterable<String> mixinsAndFunctions, Iterable<String> variables) =>
-      shownMixinsAndFunctions
-          .followedBy(shownVariables.map((name) => "\$$name"))
-          .join(", ");
+      [
+        if (shownMixinsAndFunctions != null) ...shownMixinsAndFunctions,
+        if (shownVariables != null) for (var name in shownVariables) "\$$name"
+      ].join(", ");
 }

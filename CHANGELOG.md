@@ -1,3 +1,7 @@
+## 1.26.4
+
+* Be more memory-efficient when handling `@forward`s through `@import`s.
+
 ## 1.26.3
 
 * Fix a bug where `--watch` mode could go into an infinite loop compiling CSS

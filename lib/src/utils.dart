@@ -173,6 +173,14 @@ int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
   return codepointIndex;
 }
 
+/// Returns whether [iterable1] and [iterable2] have the same contents.
+bool iterableEquals(Iterable<Object> iterable1, Iterable<Object> iterable2) =>
+    const IterableEquality<Object>().equals(iterable1, iterable2);
+
+/// Returns a hash code for [iterable] that matches [iterableEquals].
+int iterableHash(Iterable<Object> iterable) =>
+    const IterableEquality<Object>().hash(iterable);
+
 /// Returns whether [list1] and [list2] have the same contents.
 bool listEquals(List<Object> list1, List<Object> list2) =>
     const ListEquality<Object>().equals(list1, list2);
