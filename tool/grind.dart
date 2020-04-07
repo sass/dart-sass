@@ -26,7 +26,12 @@ void main(List<String> args) {
   pkg.chocolateyNuspec = _nuspec;
   pkg.homebrewRepo = "sass/homebrew-sass";
   pkg.homebrewFormula = "sass.rb";
-  pkg.jsRequires = {"fs": "fs", "chokidar": "chokidar", "readline": "readline"};
+  pkg.jsRequires = {
+    "fs": "fs",
+    "chokidar": "chokidar",
+    "readline": "readline",
+    "workerThreads": "worker_threads"
+  };
   pkg.jsModuleMainLibrary = "lib/src/node.dart";
   pkg.npmPackageJson =
       json.decode(File("package/package.json").readAsStringSync())

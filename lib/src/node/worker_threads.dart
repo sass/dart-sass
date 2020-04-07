@@ -1,17 +1,13 @@
-// Copyright 2017 Google Inc. Use of this source code is governed by an
+// Copyright 2018 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
-@JS("workerThreads")
-library worker_threads;
-//Import is failing here
-
 import 'package:js/js.dart';
 
-@JS()
-external WorkerThreads get workerThreads;
+@JS("worker_threads")
+external WorkerThreads get worker_threads;
 
-bool isMainThread = workerThreads.isMainThread;
-ParentPort parentPort = workerThreads.parentPort;
+bool isMainThread = worker_threads?.isMainThread;
+ParentPort parentPort = worker_threads?.parentPort;
 
 @JS()
 abstract class WorkerThreads {

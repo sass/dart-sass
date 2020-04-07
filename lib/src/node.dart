@@ -81,16 +81,14 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   var file = options.file == null ? null : p.absolute(options.file);
   CompileResult result;
 
-  print(StackTrace.current);
-
   if (isMainThread == true) {
-    print(p.current);
+    print("Creating worker thread");
     final worker = Worker(p.current, WorkerOptions(workerData: {options}));
     worker.on('message', (CompileResult msg) => result = msg);
     worker.on('error', (JSError error) {
       jsThrow(_wrapException(error));
     });
-  } else {
+  } else if (isMainThread == false) {
     if (options.data != null) {
       result = await compileStringAsync(options.data,
           nodeImporter: _parseImporter(options, start),
@@ -115,7 +113,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");
     }
-    parentPort.postMessage(result);
+    parentPort?.postMessage(result);
+  } else {
+    throw UnsupportedError("Failed to create worker thread.");
   }
 
   return _newRenderResult(options, result, start);
