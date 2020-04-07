@@ -80,7 +80,6 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   var start = DateTime.now();
   var file = options.file == null ? null : p.absolute(options.file);
   CompileResult result;
-
   if (isMainThread == true) {
     print("Creating worker thread");
     final worker = Worker(p.current, WorkerOptions(workerData: {options}));
