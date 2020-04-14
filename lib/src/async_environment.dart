@@ -976,7 +976,8 @@ class _EnvironmentModule implements Module {
     if (otherMaps.isEmpty) return localMap;
 
     var allMaps = [
-      for (var map in otherMaps) if (map.isNotEmpty) map,
+      for (var map in otherMaps)
+        if (map.isNotEmpty) map,
       localMap
     ];
     if (allMaps.length == 1) return localMap;
