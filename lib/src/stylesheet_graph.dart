@@ -80,8 +80,8 @@ class StylesheetGraph {
   /// stylesheets it imports to this graph and returns its node.
   ///
   /// If passed, the [originalUrl] represents the URL that was canonicalized
-  /// into [canonicalUrl]. It's used as the URL for the parsed stylesheet, which
-  /// is in turn used in error reporting.
+  /// into [canonicalUrl]. It's used to resolve a relative canonical URL, which
+  /// importers may return for legacy reasons.
   ///
   /// Returns the set of nodes that need to be recompiled because their imports
   /// changed as a result of this stylesheet being added. This does not include

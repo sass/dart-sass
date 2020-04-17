@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c1dd0f2a41b03bd1227a2358688bf44499b9d90c
+// Checksum: 5837fc2aff225ff802224770a8f27cb07f32089f
 //
 // ignore_for_file: unused_import
 
@@ -179,8 +179,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Otherwise returns `null`.
   ///
   /// If passed, the [originalUrl] represents the URL that was canonicalized
-  /// into [canonicalUrl]. It's used as the URL for the parsed stylesheet, which
-  /// is in turn used in error reporting.
+  /// into [canonicalUrl]. It's used to resolve a relative canonical URL, which
+  /// importers may return for legacy reasons.
   ///
   /// Caches the result of the import and uses cached results if possible.
   Stylesheet importCanonical(Importer importer, Uri canonicalUrl,
