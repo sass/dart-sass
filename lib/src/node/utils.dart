@@ -37,9 +37,11 @@ final _isUndefined = JSFunction("value", "return value === undefined;");
 ///
 /// TODO(nweiz): Remove this when dart-lang/sdk#41259 is fixed in all supported
 /// SDKs.
-bool jsInstanceOf(Object value, Object type) => _jsInstanceOf.call(value, type) as bool;
+bool jsInstanceOf(Object value, Object type) =>
+    _jsInstanceOf.call(value, type) as bool;
 
-final _jsInstanceOf = JSFunction("value", "type", "return value instanceof type;");
+final _jsInstanceOf =
+    JSFunction("value", "type", "return value instanceof type;");
 
 @JS("Error")
 external Function get jsErrorConstructor;
