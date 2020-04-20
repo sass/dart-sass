@@ -7,6 +7,8 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:test/test.dart';
 
+import 'package:sass/src/node/utils.dart';
+
 import '../api.dart';
 import '../utils.dart';
 
@@ -25,5 +27,5 @@ T parseValue<T>(String source) {
 }
 
 /// A matcher that matches values that are JS `instanceof` [type].
-Matcher isJSInstanceOf(Function type) =>
-    predicate((value) => instanceof(value, type), "to be an instance of $type");
+Matcher isJSInstanceOf(Object type) =>
+    predicate((value) => jsInstanceOf(value, type), "to be an instance of $type");
