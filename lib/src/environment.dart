@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bf1542d44f45a40a1f56c8eec3046c61ee32c36a
+// Checksum: d304e1c5208019bca99df0678c3fdb4d09776a2b
 //
 // ignore_for_file: unused_import
 
@@ -983,7 +983,8 @@ class _EnvironmentModule implements Module<Callable> {
     if (otherMaps.isEmpty) return localMap;
 
     var allMaps = [
-      for (var map in otherMaps) if (map.isNotEmpty) map,
+      for (var map in otherMaps)
+        if (map.isNotEmpty) map,
       localMap
     ];
     if (allMaps.length == 1) return localMap;
