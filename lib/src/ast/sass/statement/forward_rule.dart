@@ -138,6 +138,7 @@ class ForwardRule implements Statement {
           Iterable<String> mixinsAndFunctions, Iterable<String> variables) =>
       [
         if (shownMixinsAndFunctions != null) ...shownMixinsAndFunctions,
-        if (shownVariables != null) for (var name in shownVariables) "\$$name"
+        if (shownVariables != null)
+          for (var name in shownVariables) "\$$name"
       ].join(", ");
 }
