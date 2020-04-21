@@ -33,11 +33,21 @@ bool isUndefined(Object value) => _isUndefined.call(value) as bool;
 
 final _isUndefined = JSFunction("value", "return value === undefined;");
 
+/// Returns whether or not [value] is an instance of [type] according to JS.
+///
+/// TODO(nweiz): Remove this when dart-lang/sdk#41259 is fixed in all supported
+/// SDKs.
+bool jsInstanceOf(Object value, Object type) =>
+    _jsInstanceOf.call(value, type) as bool;
+
+final _jsInstanceOf =
+    JSFunction("value", "type", "return value instanceof type;");
+
 @JS("Error")
 external Function get jsErrorConstructor;
 
 /// Returns whether [value] is a JS Error object.
-bool isJSError(Object value) => instanceof(value, jsErrorConstructor);
+bool isJSError(Object value) => jsInstanceOf(value, jsErrorConstructor);
 
 /// Invokes [function] with [thisArg] as `this`.
 Object call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
