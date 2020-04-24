@@ -54,6 +54,9 @@ class Sass {
   external void render(RenderOptions args,
       void callback(RenderError error, RenderResult result));
   external SassTypes get types;
+  external Object get NULL;
+  external NodeSassBoolean get TRUE;
+  external NodeSassBoolean get FALSE;
 }
 
 @JS()

@@ -54,4 +54,14 @@ void main() {
     expect(
         () => callConstructor(sass.types.Boolean, [true]), throwsA(anything));
   });
+
+  group("the convenience accessor", () {
+    test("sass.TRUE exists", () {
+      expect(sass.TRUE, equals(sass.types.Boolean.TRUE));
+    });
+
+    test("sass.FALSE exists", () {
+      expect(sass.FALSE, equals(sass.types.Boolean.FALSE));
+    });
+  });
 }

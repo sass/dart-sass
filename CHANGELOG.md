@@ -1,3 +1,10 @@
+## 1.26.6
+
+### JavaScript API
+
+* Add `sass.NULL`, `sass.TRUE`, and `sass.FALSE` constants to match Node Sass's
+  API.
+
 ## 1.26.5
 
 * No user-visible changes.
@@ -78,7 +85,7 @@
 
 * Highlight contextually-relevant sections of the stylesheet in error messages,
   rather than only highlighting the section where the error was detected.
-  
+
 ## 1.24.4
 
 ### JavaScript API

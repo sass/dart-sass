@@ -53,6 +53,9 @@ void main() {
       Number: numberConstructor,
       String: stringConstructor,
       Error: jsErrorConstructor);
+  exports.NULL = sassNull;
+  exports.TRUE = sassTrue;
+  exports.FALSE = sassFalse;
 }
 
 /// Converts Sass to CSS.
