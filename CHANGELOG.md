@@ -1,3 +1,7 @@
+## 1.26.5
+
+* No user-visible changes.
+
 ## 1.26.4
 
 * Be more memory-efficient when handling `@forward`s through `@import`s.
