@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 5837fc2aff225ff802224770a8f27cb07f32089f
+// Checksum: 8f54034c56e0d38fc8c90ad4d5f017628cab6190
 //
 // ignore_for_file: unused_import
 
@@ -97,14 +97,6 @@ class ImportCache {
       if (packageResolver != null) PackageImporter(packageResolver)
     ];
   }
-
-  /// Creates a cache that contains no importers.
-  const ImportCache._none()
-      : _importers = const [],
-        _logger = const Logger.stderr(),
-        _canonicalizeCache = const {},
-        _importCache = const {},
-        _resultsCache = const {};
 
   /// Canonicalizes [url] according to one of this cache's importers.
   ///

@@ -94,14 +94,6 @@ class AsyncImportCache {
     ];
   }
 
-  /// Creates a cache that contains no importers.
-  const AsyncImportCache._none()
-      : _importers = const [],
-        _logger = const Logger.stderr(),
-        _canonicalizeCache = const {},
-        _importCache = const {},
-        _resultsCache = const {};
-
   /// Canonicalizes [url] according to one of this cache's importers.
   ///
   /// Returns the importer that was used to canonicalize [url], the canonical
