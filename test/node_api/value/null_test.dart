@@ -41,4 +41,8 @@ void main() {
   test("the constructor throws", () {
     expect(() => callConstructor(sass.types.Null, []), throwsA(anything));
   });
+
+  test("the convenience accessor sass.NULL exists", () {
+    expect(sass.NULL, equals(sass.types.Null.NULL));
+  });
 }
