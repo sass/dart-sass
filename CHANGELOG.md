@@ -5,6 +5,10 @@
 * Add `sass.NULL`, `sass.TRUE`, and `sass.FALSE` constants to match Node Sass's
   API.
 
+* If a custom Node importer returns both `file` and `contents`, don't attempt to
+  read the `file`. Instead, use the `contents` provided by the importer, with
+  `file` as the canonical url.
+
 ## 1.26.5
 
 * No user-visible changes.

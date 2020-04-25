@@ -182,14 +182,15 @@ class NodeImporter {
     if (value is! NodeImporterResult) return null;
 
     var result = value as NodeImporterResult;
-    if (result.file != null) {
+    if (result.file == null) {
+      return Tuple2(result.contents ?? '', url);
+    } else if (result.contents != null) {
+      return Tuple2(result.contents, result.file);
+    } else {
       var resolved = _resolveRelativePath(result.file, previous, forImport) ??
           _resolveLoadPath(result.file, previous, forImport);
       if (resolved != null) return resolved;
-
       throw "Can't find stylesheet to import.";
-    } else {
-      return Tuple2(result.contents ?? '', url);
     }
   }
 

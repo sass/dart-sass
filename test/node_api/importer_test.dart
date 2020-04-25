@@ -30,15 +30,6 @@ void main() {
     await writeTextFile(sassPath, 'a {b: c}');
   });
 
-  test("can import a file by contents", () {
-    expect(
-        renderSync(RenderOptions(
-            data: "@import 'foo'",
-            importer: allowInterop((void _, void __) =>
-                NodeImporterResult(contents: 'a {b: c}')))),
-        equalsIgnoringWhitespace('a { b: c; }'));
-  });
-
   test("imports cascade through importers", () {
     expect(
         renderSync(RenderOptions(data: "@import 'foo'", importer: [
@@ -118,6 +109,35 @@ void main() {
                 RenderOptions(data: '@import "test"', includePaths: [sandbox])),
             equalsIgnoringWhitespace('a { b: c; }'));
       });
+    });
+  });
+
+  group("with contents", () {
+    test("imports a file by contents", () {
+      expect(
+          renderSync(RenderOptions(
+              data: "@import 'foo'",
+              importer: allowInterop((void _, void __) =>
+                  NodeImporterResult(contents: 'a {b: c}')))),
+          equalsIgnoringWhitespace('a { b: c; }'));
+    });
+
+    test("contents take precedence over file name", () {
+      expect(
+          renderSync(RenderOptions(
+              data: "@import 'foo'",
+              importer: allowInterop((void _, void __) =>
+                  NodeImporterResult(contents: 'x {y: z}', file: sassPath)))),
+          equalsIgnoringWhitespace('x { y: z; }'));
+    });
+
+    test("contents use file name as canonical url", () {
+      var result = sass.renderSync(RenderOptions(
+          data: "@import 'foo'",
+          importer: allowInterop(expectAsync2((void _, void __) {
+            return NodeImporterResult(contents: '', file: 'bar');
+          }))));
+      expect(result.stats.includedFiles, equals(['bar']));
     });
   });
 
