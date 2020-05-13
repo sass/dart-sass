@@ -46,23 +46,12 @@ class SassParser extends StylesheetParser {
 
     var buffer = InterpolationBuffer();
     do {
-      buffer.addInterpolation(almostAnyValue());
+      buffer.addInterpolation(almostAnyValue(omitComments: true));
       buffer.writeCharCode($lf);
-    } while (_endsWithComma(buffer.trailingString) && scanCharIf(isNewline));
+    } while (buffer.trailingString.trimRight().endsWith(',') &&
+        scanCharIf(isNewline));
 
     return buffer.interpolation(scanner.spanFrom(start));
-  }
-
-  // Returns true if [text] ends with a comma, ignoring whitespace and comments.
-  bool _endsWithComma(String text) {
-    var line = text.trimRight().split('\n').last;
-    var silentComment = line.lastIndexOf('//');
-    if (silentComment != -1) line = line.substring(0, silentComment);
-    line = line.trimRight();
-    while (line.endsWith('*/')) {
-      line = line.substring(0, line.lastIndexOf('/*')).trimRight();
-    }
-    return line.endsWith(',');
   }
 
   void expectStatementSeparator([String name]) {
