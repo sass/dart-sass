@@ -171,8 +171,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Otherwise returns `null`.
   ///
   /// If passed, the [originalUrl] represents the URL that was canonicalized
-  /// into [canonicalUrl]. It's used as the URL for the parsed stylesheet, which
-  /// is in turn used in error reporting.
+  /// into [canonicalUrl]. It's used to resolve a relative canonical URL, which
+  /// importers may return for legacy reasons.
   ///
   /// Caches the result of the import and uses cached results if possible.
   Future<Stylesheet> importCanonical(AsyncImporter importer, Uri canonicalUrl,
