@@ -16,7 +16,7 @@ import '../utils.dart';
 /// to have a constructor injected into their inheritance chain so that
 /// `instanceof` works properly.
 final Function booleanConstructor = () {
-  var constructor = allowInterop(([_]) {
+  var constructor = allowInterop(([dynamic _]) {
     throw "new sass.types.Boolean() isn't allowed.\n"
         "Use sass.types.Boolean.TRUE or sass.types.Boolean.FALSE instead.";
   });
