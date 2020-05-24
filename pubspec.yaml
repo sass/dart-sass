@@ -37,7 +37,7 @@ dev_dependencies:
   dart_style: "^1.2.0"
   grinder: "^0.8.0"
   js: "^0.6.0"
-  node_preamble: "^1.1.0"
+  node_preamble: "^1.4.9"
   pedantic: "^1.0.0"
   pub_semver: "^1.0.0"
   source_span: "^1.5.2"
