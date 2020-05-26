@@ -71,7 +71,7 @@ jobs:
   # Unit tests that use Node.js, defined in test/.
   #
   # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated December 2019. See
+  # They next need to be rotated April 2021. See
   # https://github.com/nodejs/Release.
   #
   # TODO(nweiz): Run Node tests on Windows when [this issue][] is fixed.
@@ -84,11 +84,11 @@ jobs:
     install: pub run grinder before-test
     script: tool/travis/task/node_tests.sh
   - <<: *node-tests
-    name: Node tests | Dart stable | Node Carbon
-    node_js: lts/carbon
-  - <<: *node-tests
     name: Node tests | Dart stable | Node Dubnium
     node_js: lts/dubnium
+  - <<: *node-tests
+    name: Node tests | Dart stable | Node Erbium
+    node_js: lts/erbium
   - <<: *node-tests
     os: osx
   - <<: *node-tests
