@@ -523,13 +523,16 @@ class Parser {
   /// case-insensitively unless [caseSensitive] is true.
   @protected
   bool scanLetter(int letter, {bool caseSensitive = false}) {
-    var start = scanner.state;
-    var actual = scanner.peekChar() == $backslash
-        ? escapeCharacter()
-        : scanner.readChar();
-    if (equalsLetter(letter, actual, caseSensitive: caseSensitive)) return true;
-
-    scanner.state = start;
+    var next = scanner.peekChar();
+    if (equalsLetter(letter, next, caseSensitive: caseSensitive)) {
+      scanner.readChar();
+      return true;
+    } else if (next == $backslash) {
+      var start = scanner.state;
+      next = escapeCharacter();
+      if (equalsLetter(letter, next, caseSensitive: caseSensitive)) return true;
+      scanner.state = start;
+    }
     return false;
   }
 
