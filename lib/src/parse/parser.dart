@@ -517,29 +517,33 @@ class Parser {
     return true;
   }
 
-  /// Consumes the next character if it's equal to [letter], ignoring ASCII
-  /// case.
+  /// Consumes the next character or escape sequence if it matches [letter].
+  ///
+  /// [letter] must be a lowercase ASCII character. It will be matched
+  /// case-insensitively unless [caseSensitive] is true.
   @protected
-  bool scanAsciiChar(int letter, {bool caseSensitive = false}) {
-    var next = scanner.peekChar();
-    if (caseSensitive ? letter == next : equalsLetterIgnoreCase(letter, next)) {
-      scanner.readChar();
-      return true;
-    }
+  bool scanLetter(int letter, {bool caseSensitive = false}) {
+    var start = scanner.state;
+    var actual = scanner.peekChar() == $backslash
+        ? escapeCharacter()
+        : scanner.readChar();
+    if (equalsLetter(letter, actual, caseSensitive: caseSensitive)) return true;
+
+    scanner.state = start;
     return false;
   }
 
-  /// Consumes the next character and asserts that it's equal to [letter],
-  /// ignoring ASCII case.
+  /// Consumes the next character or escape sequence and asserts it matches
+  /// [letter].
+  ///
+  /// [letter] must be a lowercase ASCII character. It will be matched
+  /// case-insensitively unless [caseSensitive] is true.
   @protected
-  void expectAsciiChar(int letter, {bool caseSensitive = false}) {
-    var actual = scanner.readChar();
-    if (caseSensitive
-        ? letter != actual
-        : !equalsLetterIgnoreCase(letter, actual)) {
-      scanner.error('Expected "${String.fromCharCode(letter)}".',
-          position: actual == null ? scanner.position : scanner.position - 1);
-    }
+  void expectLetter(int letter, {bool caseSensitive = false}) {
+    if (scanLetter(letter, caseSensitive: caseSensitive)) return;
+
+    scanner.error('Expected "${String.fromCharCode(letter)}".',
+        position: scanner.position);
   }
 
   // ## Utilities
@@ -604,16 +608,15 @@ class Parser {
 
   /// Consumes an identifier if its name exactly matches [text].
   ///
-  /// [text] must only contain lowercase ASCII characters. It will be matched
-  /// case-insensitively unless [caseSensitive] is true.
+  /// [text] must entirely consist of lowercase ASCII letters. It will be
+  /// matched case-insensitively unless [caseSensitive] is true.
   @protected
   bool scanIdentifier(String text, {bool caseSensitive = false}) {
     if (!lookingAtIdentifier()) return false;
 
     var start = scanner.state;
-    for (var i = 0; i < text.length; i++) {
-      var next = text.codeUnitAt(i);
-      if (_scanEscapedAsciiChar(next, caseSensitive: caseSensitive)) continue;
+    for (var letter in text.codeUnits) {
+      if (scanLetter(letter, caseSensitive: caseSensitive)) continue;
       scanner.state = start;
       return false;
     }
@@ -623,35 +626,18 @@ class Parser {
     return false;
   }
 
-  /// Consumes [letter] or an escape sequence for it.
-  ///
-  /// [letter] must be a lowercase ASCII character. It will be matched
-  /// case-insensitively unless [caseSensitive] is true.
-  bool _scanEscapedAsciiChar(int letter, {bool caseSensitive = false}) {
-    if (scanAsciiChar(letter, caseSensitive: caseSensitive)) return true;
-    var start = scanner.state;
-    if (scanner.peekChar() == $backslash) {
-      var escaped = escape().codeUnitAt(0);
-      if (!caseSensitive) escaped = toLowerCase(escaped);
-      if (escaped == letter) return true;
-      scanner.state = start;
-    }
-    return false;
-  }
-
   /// Consumes an identifier and asserts that its name exactly matches [text].
   ///
-  /// [text] must only contain lowercase ASCII characters. It will be matched
-  /// case-insensitively unless [caseSensitive] is true.
+  /// [text] must entirely consist of lowercase ASCII letters. It will be
+  /// matched case-insensitively unless [caseSensitive] is true.
   @protected
   void expectIdentifier(String text,
       {String name, bool caseSensitive = false}) {
     name ??= '"$text"';
 
     var start = scanner.position;
-    for (var i = 0; i < text.length; i++) {
-      var next = text.codeUnitAt(i);
-      if (_scanEscapedAsciiChar(next, caseSensitive: caseSensitive)) continue;
+    for (var letter in text.codeUnits) {
+      if (scanLetter(letter, caseSensitive: caseSensitive)) continue;
       scanner.error("Expected $name.", position: start);
     }
 

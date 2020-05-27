@@ -147,9 +147,12 @@ bool characterEqualsIgnoreCase(int character1, int character2) {
   return upperCase1 >= $A && upperCase1 <= $Z;
 }
 
-/// Like [characterEqualsIgnoreCase], but optimized for the fact that [letter]
-/// is known to be a lowercase ASCII letter.
-bool equalsLetterIgnoreCase(int letter, int actual) {
+/// Returns whether [actual] matches [letter].
+///
+/// [letter] must be a lowercase ASCII character. It will be matched
+/// case-insensitively unless [caseSensitive] is true.
+bool equalsLetter(int letter, int actual, {bool caseSensitive = false}) {
   assert(letter >= $a && letter <= $z);
+  if (caseSensitive) return actual == letter;
   return (actual | _asciiCaseBit) == letter;
 }

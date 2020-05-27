@@ -1800,7 +1800,7 @@ relase. For details, see http://bit.ly/moz-document.
             scanner.readChar();
             addOperator(BinaryOperator.notEquals);
           } else if (next == null ||
-              equalsLetterIgnoreCase($i, next) ||
+              equalsLetter($i, next) ||
               isWhitespace(next)) {
             addSingleExpression(_importantExpression());
           } else {
@@ -2437,7 +2437,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes a unicode range expression.
   StringExpression _unicodeRange() {
     var start = scanner.state;
-    expectAsciiChar($u);
+    expectLetter($u);
     scanner.expectChar($plus);
 
     var i = 0;
@@ -2749,11 +2749,11 @@ relase. For details, see http://bit.ly/moz-document.
         case $m:
         case $M:
           scanner.readChar();
-          if (scanAsciiChar($i)) {
-            if (!scanAsciiChar($n)) return false;
+          if (scanLetter($i)) {
+            if (!scanLetter($n)) return false;
             buffer.write("min(");
-          } else if (scanAsciiChar($a)) {
-            if (!scanAsciiChar($x)) return false;
+          } else if (scanLetter($a)) {
+            if (!scanLetter($x)) return false;
             buffer.write("max(");
           } else {
             return false;
@@ -3424,9 +3424,7 @@ relase. For details, see http://bit.ly/moz-document.
     if (character == $dot) return scanner.peekChar(1) != $dot;
     if (character == $exclamation) {
       var next = scanner.peekChar(1);
-      return next == null ||
-          equalsLetterIgnoreCase($i, next) ||
-          isWhitespace(next);
+      return next == null || equalsLetter($i, next) || isWhitespace(next);
     }
 
     return character == $lparen ||

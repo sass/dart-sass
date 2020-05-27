@@ -363,9 +363,9 @@ class SelectorParser extends Parser {
         buffer.writeCharCode(scanner.readChar());
       }
       whitespace();
-      if (!scanAsciiChar($n)) return buffer.toString();
+      if (!scanLetter($n)) return buffer.toString();
     } else {
-      expectAsciiChar($n);
+      expectLetter($n);
     }
     buffer.writeCharCode($n);
     whitespace();
