@@ -34,26 +34,26 @@ class SassString extends Value implements ext.SassString {
     if (text.length < "min(_)".length) return false;
 
     var first = text.codeUnitAt(0);
-    if (equalsLetter($c, first)) {
-      if (!equalsLetter($a, text.codeUnitAt(1))) return false;
-      if (!equalsLetter($l, text.codeUnitAt(2))) return false;
-      if (!equalsLetter($c, text.codeUnitAt(3))) return false;
+    if (equalsLetterIgnoreCase($c, first)) {
+      if (!equalsLetterIgnoreCase($a, text.codeUnitAt(1))) return false;
+      if (!equalsLetterIgnoreCase($l, text.codeUnitAt(2))) return false;
+      if (!equalsLetterIgnoreCase($c, text.codeUnitAt(3))) return false;
       return text.codeUnitAt(4) == $lparen;
-    } else if (equalsLetter($v, first)) {
-      if (!equalsLetter($a, text.codeUnitAt(1))) return false;
-      if (!equalsLetter($r, text.codeUnitAt(2))) return false;
+    } else if (equalsLetterIgnoreCase($v, first)) {
+      if (!equalsLetterIgnoreCase($a, text.codeUnitAt(1))) return false;
+      if (!equalsLetterIgnoreCase($r, text.codeUnitAt(2))) return false;
       return text.codeUnitAt(3) == $lparen;
-    } else if (equalsLetter($e, first)) {
-      if (!equalsLetter($n, text.codeUnitAt(1))) return false;
-      if (!equalsLetter($v, text.codeUnitAt(2))) return false;
+    } else if (equalsLetterIgnoreCase($e, first)) {
+      if (!equalsLetterIgnoreCase($n, text.codeUnitAt(1))) return false;
+      if (!equalsLetterIgnoreCase($v, text.codeUnitAt(2))) return false;
       return text.codeUnitAt(3) == $lparen;
-    } else if (equalsLetter($m, first)) {
+    } else if (equalsLetterIgnoreCase($m, first)) {
       var second = text.codeUnitAt(1);
-      if (equalsLetter($a, second)) {
-        if (!equalsLetter($x, text.codeUnitAt(2))) return false;
+      if (equalsLetterIgnoreCase($a, second)) {
+        if (!equalsLetterIgnoreCase($x, text.codeUnitAt(2))) return false;
         return text.codeUnitAt(3) == $lparen;
-      } else if (equalsLetter($i, second)) {
-        if (!equalsLetter($n, text.codeUnitAt(2))) return false;
+      } else if (equalsLetterIgnoreCase($i, second)) {
+        if (!equalsLetterIgnoreCase($n, text.codeUnitAt(2))) return false;
         return text.codeUnitAt(3) == $lparen;
       } else {
         return false;
@@ -67,9 +67,9 @@ class SassString extends Value implements ext.SassString {
     if (hasQuotes) return false;
     if (text.length < "var(--_)".length) return false;
 
-    return equalsLetter($v, text.codeUnitAt(0)) &&
-        equalsLetter($a, text.codeUnitAt(1)) &&
-        equalsLetter($r, text.codeUnitAt(2)) &&
+    return equalsLetterIgnoreCase($v, text.codeUnitAt(0)) &&
+        equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
+        equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
         text.codeUnitAt(3) == $lparen;
   }
 
