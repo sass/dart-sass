@@ -522,11 +522,9 @@ class Parser {
   /// Matching will be case-insensitive unless [caseSensitive] is true.
   @protected
   bool scanIdentChar(int char, {bool caseSensitive = false}) {
-    bool matches(int actual) {
-      if (caseSensitive) return actual == char;
-      if (char >= $a && char <= $z) return equalsLetterIgnoreCase(char, actual);
-      return characterEqualsIgnoreCase(char, actual);
-    }
+    bool matches(int actual) => caseSensitive
+        ? actual == char
+        : characterEqualsIgnoreCase(char, actual);
 
     var next = scanner.peekChar();
     if (matches(next)) {
