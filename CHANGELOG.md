@@ -1,5 +1,7 @@
 ## 1.26.6
 
+* Fix a bug where escape sequences were improperly recognized in `@else` rules.
+
 ### JavaScript API
 
 * Add `sass.NULL`, `sass.TRUE`, and `sass.FALSE` constants to match Node Sass's

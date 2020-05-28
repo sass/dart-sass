@@ -517,24 +517,37 @@ class Parser {
     return true;
   }
 
-  /// Consumes the next character if it's equal to [letter], ignoring ASCII
-  /// case.
+  /// Consumes the next character or escape sequence if it matches [expected].
+  ///
+  /// Matching will be case-insensitive unless [caseSensitive] is true.
   @protected
-  bool scanCharIgnoreCase(int letter) {
-    if (!equalsLetterIgnoreCase(letter, scanner.peekChar())) return false;
-    scanner.readChar();
-    return true;
+  bool scanIdentChar(int char, {bool caseSensitive = false}) {
+    bool matches(int actual) => caseSensitive
+        ? actual == char
+        : characterEqualsIgnoreCase(char, actual);
+
+    var next = scanner.peekChar();
+    if (matches(next)) {
+      scanner.readChar();
+      return true;
+    } else if (next == $backslash) {
+      var start = scanner.state;
+      if (matches(escapeCharacter())) return true;
+      scanner.state = start;
+    }
+    return false;
   }
 
-  /// Consumes the next character and asserts that it's equal to [letter],
-  /// ignoring ASCII case.
+  /// Consumes the next character or escape sequence and asserts it matches
+  /// [char].
+  ///
+  /// Matching will be case-insensitive unless [caseSensitive] is true.
   @protected
-  void expectCharIgnoreCase(int letter) {
-    var actual = scanner.readChar();
-    if (equalsLetterIgnoreCase(letter, actual)) return;
+  void expectIdentChar(int letter, {bool caseSensitive = false}) {
+    if (scanIdentChar(letter, caseSensitive: caseSensitive)) return;
 
     scanner.error('Expected "${String.fromCharCode(letter)}".',
-        position: actual == null ? scanner.position : scanner.position - 1);
+        position: scanner.position);
   }
 
   // ## Utilities
@@ -599,13 +612,12 @@ class Parser {
 
   /// Consumes an identifier if its name exactly matches [text].
   @protected
-  bool scanIdentifier(String text) {
+  bool scanIdentifier(String text, {bool caseSensitive = false}) {
     if (!lookingAtIdentifier()) return false;
 
     var start = scanner.state;
-    for (var i = 0; i < text.length; i++) {
-      var next = text.codeUnitAt(i);
-      if (scanCharIgnoreCase(next)) continue;
+    for (var letter in text.codeUnits) {
+      if (scanIdentChar(letter, caseSensitive: caseSensitive)) continue;
       scanner.state = start;
       return false;
     }
@@ -617,13 +629,13 @@ class Parser {
 
   /// Consumes an identifier and asserts that its name exactly matches [text].
   @protected
-  void expectIdentifier(String text, {String name}) {
+  void expectIdentifier(String text,
+      {String name, bool caseSensitive = false}) {
     name ??= '"$text"';
 
     var start = scanner.position;
-    for (var i = 0; i < text.length; i++) {
-      var next = text.codeUnitAt(i);
-      if (scanCharIgnoreCase(next)) continue;
+    for (var letter in text.codeUnits) {
+      if (scanIdentChar(letter, caseSensitive: caseSensitive)) continue;
       scanner.error("Expected $name.", position: start);
     }
 

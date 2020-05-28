@@ -2437,7 +2437,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes a unicode range expression.
   StringExpression _unicodeRange() {
     var start = scanner.state;
-    expectCharIgnoreCase($u);
+    expectIdentChar($u);
     scanner.expectChar($plus);
 
     var i = 0;
@@ -2749,11 +2749,11 @@ relase. For details, see http://bit.ly/moz-document.
         case $m:
         case $M:
           scanner.readChar();
-          if (scanCharIgnoreCase($i)) {
-            if (!scanCharIgnoreCase($n)) return false;
+          if (scanIdentChar($i)) {
+            if (!scanIdentChar($n)) return false;
             buffer.write("min(");
-          } else if (scanCharIgnoreCase($a)) {
-            if (!scanCharIgnoreCase($x)) return false;
+          } else if (scanIdentChar($a)) {
+            if (!scanIdentChar($x)) return false;
             buffer.write("max(");
           } else {
             return false;
