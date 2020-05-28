@@ -1,3 +1,7 @@
+## 1.26.7
+
+* No user-visible changes.
+
 ## 1.26.6
 
 * Fix a bug where escape sequences were improperly recognized in `@else` rules.
