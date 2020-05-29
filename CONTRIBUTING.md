@@ -166,7 +166,7 @@ JS and loading that JS using JS interop to best simulate the conditions under
 which it will be used in the real world.
 
 [npm]: https://www.npmjs.com/package/sass
-[JS interop]: https://pub.dartlang.org/packages/js
+[JS interop package]: https://pub.dartlang.org/packages/js
 
 The tests for the Node API live in `test/node_api`. Before running them, and any
 time you make a change to Dart Sass, run `pub run grinder before-test` to
