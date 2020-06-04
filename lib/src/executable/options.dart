@@ -388,6 +388,11 @@ class ExecutableOptions {
     return extension == ".scss" || extension == ".sass" || extension == ".css";
   }
 
+  /// Returns whether we're writing to stdout instead of a file or files.
+  bool get _writeToStdout =>
+      sourcesToDestinations.length == 1 &&
+      sourcesToDestinations.values.single == null;
+
   /// Whether to emit a source map file.
   bool get emitSourceMap {
     if (!(_options['source-map'] as bool)) {
@@ -399,10 +404,7 @@ class ExecutableOptions {
         _fail("--embed-source-map isn't allowed with --no-source-map.");
       }
     }
-
-    var writeToStdout = sourcesToDestinations.length == 1 &&
-        sourcesToDestinations.values.single == null;
-    if (!writeToStdout) return _options['source-map'] as bool;
+    if (!_writeToStdout) return _options['source-map'] as bool;
 
     if (_ifParsed('source-map-urls') == 'relative') {
       _fail(
@@ -458,7 +460,7 @@ class ExecutableOptions {
     if (url.scheme.isNotEmpty && url.scheme != 'file') return url;
 
     var path = p.fromUri(url);
-    return p.toUri(_options['source-map-urls'] == 'relative'
+    return p.toUri(_options['source-map-urls'] == 'relative' && !_writeToStdout
         ? p.relative(path, from: p.dirname(destination))
         : p.absolute(path));
   }

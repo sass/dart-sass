@@ -1,3 +1,7 @@
+## 1.26.8
+
+* Fixes an error when emitting source maps to stdout.
+
 ## 1.26.7
 
 * No user-visible changes.
