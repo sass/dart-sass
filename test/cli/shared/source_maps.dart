@@ -342,6 +342,20 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         expect(map, containsPair("file", "out.css"));
       });
     });
+
+    test("with stdout as the target", () async {
+      var sass = await runSass(["--embed-source-map", "test.scss"]);
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            "a {",
+            "  b: 3;",
+            "}",
+            "",
+            startsWith("/*# sourceMappingURL=data:")
+          ]));
+      await sass.shouldExit(0);
+    });
   });
 }
 
