@@ -52,3 +52,4 @@ dependency_overrides:
     git:
       url: git@github.com:dart-lang/test.git
       ref: restore-ipv4-node
+      path: pkgs/test
