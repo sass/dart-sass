@@ -45,5 +45,5 @@ dev_dependencies:
   test_descriptor: "^1.1.0"
   test_process: "^1.0.0-rc.1"
   # Update this constraint once dart-lang/test#1278 is resolved.
-  test: "1.14.7"
+  test: ">=0.12.42 <=1.14.7"
   yaml: "^2.0.0"
