@@ -1,3 +1,7 @@
+## 1.26.9
+
+* Use an updated version of `node_preamble` when compiling to JS.
+
 ## 1.26.8
 
 * Fixes an error when emitting source maps to stdout.
