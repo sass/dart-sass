@@ -387,10 +387,10 @@ class _EvaluateVisitor
             keywordRest: args.keywords.isEmpty
                 ? null
                 : ValueExpression(
-                    SassMap(mapMap(args.keywords,
-                        key: (String key, Value _) =>
-                            SassString(key, quotes: false),
-                        value: (String _, Value value) => value)),
+                    SassMap({
+                      for (var entry in args.keywords.entries)
+                        SassString(entry.key, quotes: false): entry.value
+                    }),
                     _callableNode.span));
 
         if (function is SassString) {
@@ -2328,9 +2328,10 @@ class _EvaluateVisitor
     var positional = [
       for (var expression in arguments.positional) await expression.accept(this)
     ];
-    var named = await mapMapAsync<String, Expression, String, Value>(
-        arguments.named,
-        value: (_, expression) => expression.accept(this));
+    var named = {
+      for (var entry in arguments.named.entries)
+        entry.key: await entry.value.accept(this)
+    };
 
     var positionalNodes = trackSpans
         ? [
@@ -2339,8 +2340,10 @@ class _EvaluateVisitor
           ]
         : null;
     var namedNodes = trackSpans
-        ? mapMap<String, Expression, String, AstNode>(arguments.named,
-            value: (_, expression) => _expressionNode(expression))
+        ? {
+            for (var entry in arguments.named.entries)
+              entry.key: _expressionNode(entry.value)
+          }
         : null;
 
     if (arguments.rest == null) {

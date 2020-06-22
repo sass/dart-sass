@@ -50,8 +50,10 @@ final global = UnmodifiableListView([
   _function("keywords", r"$args", (arguments) {
     var argumentList = arguments[0];
     if (argumentList is SassArgumentList) {
-      return SassMap(mapMap(argumentList.keywords,
-          key: (String key, Value _) => SassString(key, quotes: false)));
+      return SassMap({
+        for (var entry in argumentList.keywords.entries)
+          SassString(entry.key, quotes: false): entry.value
+      });
     } else {
       throw "\$args: $argumentList is not an argument list.";
     }

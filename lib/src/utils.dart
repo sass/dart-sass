@@ -396,29 +396,13 @@ Future<V> putIfAbsentAsync<K, V>(
   return value;
 }
 
-/// Like [mapMap], but for asynchronous [key] and [value].
-Future<Map<K2, V2>> mapMapAsync<K1, V1, K2, V2>(Map<K1, V1> map,
-    {Future<K2> key(K1 key, V1 value),
-    Future<V2> value(K1 key, V1 value)}) async {
-  key ??= (mapKey, _) async => mapKey as K2;
-  value ??= (_, mapValue) async => mapValue as V2;
-
-  var result = <K2, V2>{};
-  for (var mapKey in map.keys) {
-    var mapValue = map[mapKey];
-    result[await key(mapKey, mapValue)] = await value(mapKey, mapValue);
-  }
-  return result;
-}
-
 /// Returns a deep copy of a map that contains maps.
 Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
-    mapMap<K1, Map<K2, V>, K1, Map<K2, V>>(map,
-        value: (_, innerMap) => Map.of(innerMap));
+    {for (var entry in map.entries) entry.key: Map.of(entry.value)};
 
 /// Returns a deep copy of a map that contains lists.
 Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
-    mapMap<K, List<E>, K, List<E>>(map, value: (_, list) => list.toList());
+    {for (var entry in map.entries) entry.key: entry.value.toList()};
 
 extension SpanExtensions on FileSpan {
   /// Returns this span with all whitespace trimmed from both sides.

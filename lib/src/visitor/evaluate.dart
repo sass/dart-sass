@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 0ad7cedc5ee1d05297c4a8d321d492854742e8ab
+// Checksum: 7f6c1eeddc48b08b4ff3f95c3af19cdf8afdfb1b
 //
 // ignore_for_file: unused_import
 
@@ -394,10 +394,10 @@ class _EvaluateVisitor
             keywordRest: args.keywords.isEmpty
                 ? null
                 : ValueExpression(
-                    SassMap(mapMap(args.keywords,
-                        key: (String key, Value _) =>
-                            SassString(key, quotes: false),
-                        value: (String _, Value value) => value)),
+                    SassMap({
+                      for (var entry in args.keywords.entries)
+                        SassString(entry.key, quotes: false): entry.value
+                    }),
                     _callableNode.span));
 
         if (function is SassString) {
@@ -2311,8 +2311,10 @@ class _EvaluateVisitor
     var positional = [
       for (var expression in arguments.positional) expression.accept(this)
     ];
-    var named = mapMap<String, Expression, String, Value>(arguments.named,
-        value: (_, expression) => expression.accept(this));
+    var named = {
+      for (var entry in arguments.named.entries)
+        entry.key: entry.value.accept(this)
+    };
 
     var positionalNodes = trackSpans
         ? [
@@ -2321,8 +2323,10 @@ class _EvaluateVisitor
           ]
         : null;
     var namedNodes = trackSpans
-        ? mapMap<String, Expression, String, AstNode>(arguments.named,
-            value: (_, expression) => _expressionNode(expression))
+        ? {
+            for (var entry in arguments.named.entries)
+              entry.key: _expressionNode(entry.value)
+          }
         : null;
 
     if (arguments.rest == null) {

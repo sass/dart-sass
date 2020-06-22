@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:collection/collection.dart';
-
 import 'value.dart';
 
 /// A map from (lowercase) color names to their color values.
@@ -162,5 +160,6 @@ final colorsByName = {
 };
 
 /// A map from Sass colors to (lowercase) color names.
-final namesByColor = mapMap<String, SassColor, SassColor, String>(colorsByName,
-    key: (_, color) => color, value: (name, _) => name);
+final namesByColor = {
+  for (var entry in colorsByName.entries) entry.value: entry.key
+};
