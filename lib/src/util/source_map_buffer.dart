@@ -20,8 +20,10 @@ class SourceMapBuffer implements StringBuffer {
   /// A map from source file URLs to the corresponding [SourceFile]s.
   ///
   /// This is of a form that can be passed to [Mapping.spanFor].
-  Map<String, SourceFile> get sourceFiles => UnmodifiableMapView(
-      mapMap(_sourceFiles, key: (url, _) => url.toString()));
+  Map<String, SourceFile> get sourceFiles => UnmodifiableMapView({
+        for (var entry in _sourceFiles.entries)
+          entry.key.toString(): entry.value
+      });
   final _sourceFiles = <Uri, SourceFile>{};
 
   /// The index of the current line in [_buffer].
