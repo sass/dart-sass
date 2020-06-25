@@ -43,7 +43,8 @@ void main(List<String> args) {
       "[the Sass website]: https://sass-lang.com/install\n"
       "\n"
       "# Changes\n"
-      "\n";
+      "\n"
+      "${pkg.githubReleaseNotes}";
 
   pkg.addAllTasks();
   grind(args);
