@@ -215,10 +215,10 @@ FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
 
   // Spans may be null for dynamically-constructed ASTs.
-  var left = nodes.first.span;
+  var left = nodes.first?.span;
   if (left == null) return null;
 
-  var right = nodes.last.span;
+  var right = nodes.last?.span;
   if (right == null) return null;
 
   return left.expand(right);
