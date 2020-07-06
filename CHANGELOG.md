@@ -1,3 +1,7 @@
+## 1.26.10
+
+* Fixes a bug where two adjacent combinators could cause an error.
+
 ## 1.26.9
 
 * Use an updated version of `node_preamble` when compiling to JS.

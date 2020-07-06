@@ -1723,7 +1723,6 @@ relase. For details, see http://bit.ly/moz-document.
       }
       operators.add(operator);
 
-      assert(singleExpression != null);
       operands.add(singleExpression);
       whitespace();
       allowSlash = allowSlash && lookingAtNumber();
