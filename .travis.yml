@@ -40,8 +40,9 @@ jobs:
   # Testing
   - dart: stable
     dart_task: test
-  - dart: dev
-    dart_task: test
+  # TODO(nweiz): Enable this when dart-lang/pub#2545 is fixed.
+  # - dart: dev
+  #   dart_task: test
   - dart: stable
     os: windows
     dart_task: test
