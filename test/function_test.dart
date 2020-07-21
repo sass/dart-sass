@@ -58,10 +58,10 @@ void main() {
           0,
           'CompileRequest.global_functions: Error: Expected identifier.\n'
           '  ╷\n'
-          '1 │ (\$)\n'
-          '  │   ^\n'
+          '1 │ @function foo(\$) {\n'
+          '  │                ^\n'
           '  ╵\n'
-          '  - 1:3  root stylesheet');
+          '  - 1:16  root stylesheet');
       await _process.kill();
     });
   });
