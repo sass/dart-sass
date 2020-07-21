@@ -7,14 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
-import 'package:grinder/grinder.dart';
-import 'package:path/path.dart' as p;
+import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:test/test.dart';
 
 import 'package:sass_embedded/src/embedded_sass.pb.dart';
 import 'package:sass_embedded/src/util/length_delimited_transformer.dart';
-
-import 'utils.dart';
 
 /// A wrapper for [Process] that provides a convenient API for testing the
 /// embedded Sass process.
@@ -81,12 +78,9 @@ class EmbeddedProcess {
       bool includeParentEnvironment = true,
       bool runInShell = false,
       bool forwardOutput = false}) async {
-    var scriptOrSnapshot = executablePath;
     var process = await Process.start(
-        executablePath.endsWith(".native")
-            ? p.join(sdkDir.path, "bin", "dartaotruntime")
-            : Platform.executable,
-        [scriptOrSnapshot],
+        pkg.executableRunner("dart-sass-embedded"),
+        pkg.executableArgs("dart-sass-embedded"),
         workingDirectory: workingDirectory,
         environment: environment,
         includeParentEnvironment: includeParentEnvironment,

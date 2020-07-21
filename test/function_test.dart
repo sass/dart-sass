@@ -16,8 +16,6 @@ final _null = Value()..singleton = Value_Singleton.NULL;
 EmbeddedProcess _process;
 
 void main() {
-  ensureExecutableUpToDate();
-
   setUp(() async {
     _process = await EmbeddedProcess.start();
   });
