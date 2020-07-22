@@ -61,10 +61,7 @@ jobs:
     env: &github-env
       - GITHUB_USER=sassbot
       # GITHUB_TOKEN="..."
-      #
-      # Note that this overrides the read-only auth token that's set for all
-      # builds.
-      - secure: "l3q6m5Khk+E/UrzZzk2htn9YC6TuUJ3hDR6Ug28zeIf7+bV3/BbjgsOMP556H9p9q+9E3N4mKMeTApdaU5y1TjJZYLaYJETqHiYZDXJ0f1/2IzPOh+5OIqVF3pFhdc6GvmDG/d6b4bBCh9njvKIvWS51ej9VuizRfQI3BMRuApgmjBVkV2MM13HEhQ3dbe5856Gf00LvP6UF9o+bnIRo/udhmpYGQsEHLdrq2JgawiRylyLzW+hIfhS7wJm/JS32wV8sLJo70NCD5W74ZPmDv0zOKkX2VFbFv7y2qBmgUX8f8d8KqNVOzYEu8UTd3kIQASdOenZfg76S74EjW7o7QbLfJB8h0/BVMEhA/yaVuye2vu76ihGELAunSNvx7zlU16Z4TT7z+YSwCni7jvzWJajTiLoQXygHxJLEEjbBN/qF6gyre07g+zbBTXPIBvwm8lMqtyekbbq7sosL7/ctU4sX7qbuYaxhRvMhaZtkzS2clZajp2SFagTZvitbMNT5HE9YJTrNMgoEP7aiELAfmc02xUzNfaZ15x9G3n3RisTmkrwdLD6We2L0aPa+2LiyiBNbxH3QqyfcIMyXbDnymuphkYXq+fL3W7x0G9ZmtjWBB9tUcNe2VlD5hBhPShYbDwZKbKn9EgXHOnmZ/04ARyJbnQGUYKlZR5U2HGon7HU="
+      - secure: "KNW6oMV6PNJx4NKeMfmp1uPZkf7OY5NIP6UQVDXPwt2eInWpbIqZGCpxWnKs72FkfLIDEyM3CV9ltgfPqQUuWMZyU0z2052tMFy4F/00sGqPAw0uUriffrMTrIFgDlo8rqcC7fQfkL0ZPaGa+48O61vW9FdwUio5agBEcdWzqFBmJceyrK/sOf9VcLP6cDz+y+TPxl5X+yCgqY+vARju9zWcf7uGv2BBfUBbg48wUjcCRSGxdy6FCcKn11LLLofBmomfbxXDZGXi8GYKPFLUD/sigBQM0lCqqM9kyqWCW4//y0RblWMLJ17qFa/acXuZHxC3ZBP235gk594mHw8+NcUk51xfCHIYWYtBKLmbQtddBH/yicyA3lJJ3zDxdH6cV3rn610fYZcMGnk+FO9DrwLrZSdeheOaB09i0JX5OhaJBSp84KOHm+IHWGUB27eGGD36vS08Ms1svbiIB+hiRo4HasgHJQlyN7adlNCOYQFbzEn+a/Qxol5k+TMuOaRAX0sSl3WSkrGUO2CZtaBEjmC7PzSdJN+mKu5l6TVd8dVb/cVHI/OgKFf2L02Fhh5arR773W6vXxX56SWv67SYB4akhEeji8HaY5YWG0ie4PD3GJKi4WaE31rcmJg0aZZSDw1G1Gxci6VgK21CsSBU+wOYzyztzEXyM+iG35sWffA="
     script: skip # Don't run tests
     deploy:
       provider: script
