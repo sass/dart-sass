@@ -46,9 +46,9 @@ class SassParser extends StylesheetParser {
 
     var buffer = InterpolationBuffer();
     do {
-      buffer.addInterpolation(almostAnyValue());
+      buffer.addInterpolation(almostAnyValue(omitComments: true));
       buffer.writeCharCode($lf);
-    } while (buffer.trailingString.trimRight().endsWith(",") &&
+    } while (buffer.trailingString.trimRight().endsWith(',') &&
         scanCharIf(isNewline));
 
     return buffer.interpolation(scanner.spanFrom(start));

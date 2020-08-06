@@ -2881,6 +2881,9 @@ relase. For details, see http://bit.ly/moz-document.
   /// This respects string and comment boundaries and supports interpolation.
   /// Once this interpolation is evaluated, it's expected to be re-parsed.
   ///
+  /// If [omitComments] is true, comments will still be consumed, but they will
+  /// not be included in the returned interpolation.
+  ///
   /// Differences from [_interpolatedDeclarationValue] include:
   ///
   /// * This does not balance brackets.
@@ -2892,7 +2895,7 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// * This does not compress adjacent whitespace characters.
   @protected
-  Interpolation almostAnyValue() {
+  Interpolation almostAnyValue({bool omitComments = false}) {
     var start = scanner.state;
     var buffer = InterpolationBuffer();
 
@@ -2914,7 +2917,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $slash:
           var commentStart = scanner.position;
           if (scanComment()) {
-            buffer.write(scanner.substring(commentStart));
+            if (!omitComments) buffer.write(scanner.substring(commentStart));
           } else {
             buffer.writeCharCode(scanner.readChar());
           }
