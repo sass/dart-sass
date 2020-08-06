@@ -437,6 +437,7 @@ class Parser {
   String escape({bool identifierStart = false}) {
     // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
+    var start = scanner.position;
     scanner.expectChar($backslash);
     var value = 0;
     var first = scanner.peekChar();
@@ -459,7 +460,12 @@ class Parser {
     }
 
     if (identifierStart ? isNameStart(value) : isName(value)) {
-      return String.fromCharCode(value);
+      try {
+        return String.fromCharCode(value);
+      } on RangeError catch (error) {
+        scanner.error("Invalid Unicode code point.", position: start, length: scanner.position - start);
+        return '';
+      }
     } else if (value <= 0x1F ||
         value == 0x7F ||
         (identifierStart && isDigit(value))) {
