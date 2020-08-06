@@ -1,6 +1,8 @@
-## 1.26.11-dev
+## 1.26.11
 
 * Fixes a parsing bug with inline comments in selectors.
+
+* Improve some error messages for edge-case parse failures.
 
 ## 1.26.10
 
