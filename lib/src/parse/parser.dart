@@ -527,7 +527,7 @@ class Parser {
         : characterEqualsIgnoreCase(char, actual);
 
     var next = scanner.peekChar();
-    if (matches(next)) {
+    if (next != null && matches(next)) {
       scanner.readChar();
       return true;
     } else if (next == $backslash) {
