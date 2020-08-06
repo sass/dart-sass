@@ -1,3 +1,7 @@
+## 1.26.11-dev
+
+* Fixes a parsing bug with inline comments in selectors.
+
 ## 1.26.10
 
 * Fixes a bug where two adjacent combinators could cause an error.
