@@ -463,7 +463,8 @@ class Parser {
       try {
         return String.fromCharCode(value);
       } on RangeError catch (error) {
-        scanner.error("Invalid Unicode code point.", position: start, length: scanner.position - start);
+        scanner.error("Invalid Unicode code point.",
+            position: start, length: scanner.position - start);
         return '';
       }
     } else if (value <= 0x1F ||
