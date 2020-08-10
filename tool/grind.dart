@@ -34,17 +34,25 @@ void main(List<String> args) {
   pkg.npmReadme = _readAndResolveMarkdown("package/README.npm.md");
   pkg.standaloneName = "dart-sass";
 
-  pkg.githubReleaseNotes =
-      "To install Sass ${pkg.version}, download one of the packages below and "
-      "[add it to your PATH][], or see [the Sass website][] for full "
-      "installation instructions.\n"
-      "\n"
-      "[add it to your PATH]: https://katiek2.github.io/path-doc/\n"
-      "[the Sass website]: https://sass-lang.com/install\n"
-      "\n"
-      "# Changes\n"
-      "\n"
-      "${pkg.githubReleaseNotes}";
+  try {
+    pkg.githubReleaseNotes =
+        "To install Sass ${pkg.version}, download one of the packages below "
+        "and [add it to your PATH][], or see [the Sass website][] for full "
+        "installation instructions.\n"
+        "\n"
+        "[add it to your PATH]: https://katiek2.github.io/path-doc/\n"
+        "[the Sass website]: https://sass-lang.com/install\n"
+        "\n"
+        "# Changes\n"
+        "\n"
+        "${pkg.githubReleaseNotes}";
+  } catch (_) {
+    // `pkg.githubReleaseNotes` can fail if the CHANGELOG doesn't have an entry
+    // for the current version (which may happen for a -dev version). We don't
+    // care about those errors for most grinder tasks we run, and if we're
+    // running a release it'll call `pkg.githubReleaseNotes` again and throw the
+    // error in a way that's visible.
+  }
 
   pkg.addAllTasks();
   grind(args);
