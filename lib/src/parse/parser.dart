@@ -462,7 +462,7 @@ class Parser {
     if (identifierStart ? isNameStart(value) : isName(value)) {
       try {
         return String.fromCharCode(value);
-      } on RangeError catch (error) {
+      } on RangeError {
         scanner.error("Invalid Unicode code point.",
             position: start, length: scanner.position - start);
         return '';
