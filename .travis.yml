@@ -5,6 +5,10 @@ branches:
   # Semantic version tags and legacy branches of the form "1.2.x".
   - "/^\\d+\\.\\d+\\.(\\d+([+-].*)?|x)$/"
 
+# TODO(nweiz): Make this stable when Dart 2.10.0 launches with a fix for
+# dart-lang/pub#2545.
+dart: 2.8.1
+
 cache:
   directories:
   - $HOME/.pub-cache
@@ -33,16 +37,12 @@ jobs:
 
   ## Testing
 
-  - dart: stable
+  - dart_task: test
+  - dart: dev
     dart_task: test
-  # TODO(nweiz): Enable this when dart-lang/pub#2545 is fixed.
-  # - dart: dev
-  #   dart_task: test
-  - dart: stable
-    os: windows
+  - os: windows
     dart_task: test
-  - dart: stable
-    os: osx
+  - os: osx
     dart_task: test
 
   # Static checks
