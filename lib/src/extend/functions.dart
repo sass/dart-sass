@@ -547,7 +547,7 @@ bool _hasRoot(CompoundSelector compound) => compound.components.any((simple) =>
 ///
 /// That is, whether [list1] matches every element that [list2] matches, as well
 /// as possibly additional elements.
-bool listIsSuperslector(
+bool listIsSuperselector(
         List<ComplexSelector> list1, List<ComplexSelector> list2) =>
     list2.every((complex1) =>
         list1.any((complex2) => complex2.isSuperselector(complex1)));
@@ -763,7 +763,7 @@ bool _selectorPseudoIsSuperselector(
           } else if (simple2 is PseudoSelector &&
               simple2.name == pseudo1.name &&
               simple2.selector != null) {
-            return listIsSuperslector(simple2.selector.components, [complex]);
+            return listIsSuperselector(simple2.selector.components, [complex]);
           } else {
             return false;
           }
