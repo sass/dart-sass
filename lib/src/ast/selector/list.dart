@@ -224,7 +224,7 @@ class SelectorList extends Selector {
   /// That is, whether this matches every element that [other] matches, as well
   /// as possibly additional elements.
   bool isSuperselector(SelectorList other) =>
-      listIsSuperslector(components, other.components);
+      listIsSuperselector(components, other.components);
 
   int get hashCode => listHash(components);
 
