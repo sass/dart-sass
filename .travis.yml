@@ -73,14 +73,10 @@ jobs:
   # The versions should be kept up-to-date with the latest LTS Node releases.
   # They next need to be rotated April 2021. See
   # https://github.com/nodejs/Release.
-  #
-  # TODO(nweiz): Run Node tests on Windows when [this issue][] is fixed.
-  #
-  # [this issue]: https://travis-ci.community/t/windows-instances-hanging-before-install/250/28.
   - &node-tests
     name: Node tests | Dart stable | Node stable
     language: node_js
-    node_js: lts/*
+    node_js: node
     install: pub run grinder before-test
     script: tool/travis/task/node_tests.sh
   - <<: *node-tests
