@@ -90,6 +90,8 @@ jobs:
     name: Node tests | Dart stable | Node Erbium
     node_js: lts/erbium
   - <<: *node-tests
+    os: windows
+  - <<: *node-tests
     os: osx
   - <<: *node-tests
     name: Node tests | Dart dev | Node stable
