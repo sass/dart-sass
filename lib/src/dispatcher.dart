@@ -56,17 +56,6 @@ class Dispatcher {
         }
 
         switch (message.whichMessage()) {
-          case InboundMessage_Message.error:
-            var error = message.error;
-            stderr
-                .write("Host reported ${error.type.name.toLowerCase()} error");
-            if (error.id != -1) stderr.write(" with request ${error.id}");
-            stderr.writeln(": ${error.message}");
-            // SOFTWARE error from https://bit.ly/2poTt90
-            exitCode = 70;
-            _channel.sink.close();
-            break;
-
           case InboundMessage_Message.compileRequest:
             var request = message.compileRequest;
             var response = await callback(request);
@@ -90,13 +79,9 @@ class Dispatcher {
             break;
 
           case InboundMessage_Message.notSet:
-            // PROTOCOL error from https://bit.ly/2poTt90
-            exitCode = 76;
             throw _parseError("InboundMessage.message is not set.");
 
           default:
-            // PROTOCOL error from https://bit.ly/2poTt90
-            exitCode = 76;
             throw _parseError(
                 "Unknown message type: ${message.toDebugString()}");
         }
@@ -106,6 +91,9 @@ class Dispatcher {
         if (error.id != -1) stderr.write(" with request ${error.id}");
         stderr.writeln(": ${error.message}");
         sendError(error);
+        // PROTOCOL error from https://bit.ly/2poTt90
+        exitCode = 76;
+        _channel.sink.close();
       } catch (error, stackTrace) {
         var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
         stderr.write("Internal compiler error: $errorMessage");

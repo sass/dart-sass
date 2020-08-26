@@ -18,27 +18,18 @@ void main() {
     process = await EmbeddedProcess.start();
   });
 
-  group("gracefully handles a protocol error", () {
+  group("exits upon protocol error", () {
     test("caused by an empty message", () async {
       process.inbound.add(InboundMessage());
       await expectParseError(process, "InboundMessage.message is not set.");
-      await process.kill();
+      expect(await process.exitCode, 76);
     });
 
     test("caused by an invalid message", () async {
       process.stdin.add([1, 0, 0, 0, 0]);
       await expectParseError(
           process, "Protocol message contained an invalid tag (zero).");
-      await process.kill();
-    });
-
-    test("without shutting down the compiler", () async {
-      process.inbound.add(InboundMessage());
-      await expectParseError(process, "InboundMessage.message is not set.");
-
-      process.inbound.add(compileString("a {b: c}"));
-      await expectLater(process.outbound, emits(isSuccess("a { b: c; }")));
-      await process.kill();
+      expect(await process.exitCode, 76);
     });
   });
 
