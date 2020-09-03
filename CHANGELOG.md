@@ -1,5 +1,8 @@
 ## 1.26.11
 
+* **Potentially breaking bug fix:** `selector.nest()` now throws an error
+  if the first arguments contains the parent selector `&`.
+
 * Fixes a parsing bug with inline comments in selectors.
 
 * Improve some error messages for edge-case parse failures.
