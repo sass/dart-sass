@@ -4,6 +4,8 @@
 
 * Improve some error messages for edge-case parse failures.
 
+* Don't crash when writing `Infinity` in JS mode.
+
 ## 1.26.10
 
 * Fixes a bug where two adjacent combinators could cause an error.

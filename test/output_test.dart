@@ -44,6 +44,11 @@ void main() {
     });
 
     group("for floating-point numbers", () {
+      test("Infinity", () {
+        expect(compileString("a {b: 1e999}"),
+            equalsIgnoringWhitespace("a { b: Infinity; }"));
+      });
+
       test(">= 1e21", () {
         expect(compileString("a {b: 1.01e21}"),
             equalsIgnoringWhitespace("a { b: 101${'0' * 19}; }"));
