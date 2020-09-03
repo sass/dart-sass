@@ -549,7 +549,7 @@ class _EvaluateVisitor
             nodeWithSpan.span);
       }
 
-      callback(builtInModule);
+      _addExceptionSpan(nodeWithSpan, () => callback(builtInModule));
       return;
     }
 

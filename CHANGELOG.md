@@ -4,6 +4,8 @@
 
 * Improve some error messages for edge-case parse failures.
 
+* Throw a proper error when the same built-in module is `@use`d twice.
+
 ## 1.26.10
 
 * Fixes a bug where two adjacent combinators could cause an error.
