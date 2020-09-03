@@ -44,8 +44,13 @@ final _nest = _function("nest", r"$selectors...", (arguments) {
         "\$selectors: At least one selector must be passed.");
   }
 
+  var first = true;
   return selectors
-      .map((selector) => selector.assertSelector(allowParent: true))
+      .map((selector) {
+        var result = selector.assertSelector(allowParent: !first);
+        first = false;
+        return result;
+      })
       .reduce((parent, child) => child.resolveParentSelectors(parent))
       .asSassList;
 });
