@@ -19,7 +19,9 @@ bool fuzzyEquals(num number1, num number2) =>
 final _inverseEpsilon = 1 / epsilon;
 
 /// Returns a hash code for [number] that matches [fuzzyEquals].
-int fuzzyHashCode(num number) => (number * _inverseEpsilon).round().hashCode;
+int fuzzyHashCode(num number) => number.isInfinite || number.isNaN
+    ? number.hashCode
+    : (number * _inverseEpsilon).round().hashCode;
 
 /// Returns whether [number1] is less than [number2], and not [fuzzyEquals].
 bool fuzzyLessThan(num number1, num number2) =>

@@ -11,6 +11,8 @@
 
 * Don't crash when writing `Infinity` in JS mode.
 
+* Don't crash when using `Infinity` or `NaN` as a key in a map.
+
 ## 1.26.10
 
 * Fixes a bug where two adjacent combinators could cause an error.
