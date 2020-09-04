@@ -72,7 +72,8 @@ void format() {
 }
 
 @Task('Installs dependencies from npm.')
-void npmInstall() => run("npm", arguments: ["install"]);
+void npmInstall() =>
+    run(Platform.isWindows ? "npm.cmd" : "npm", arguments: ["install"]);
 
 @Task('Runs the tasks that are required for running tests.')
 @Depends(format, synchronize, "pkg-npm-dev", npmInstall, "pkg-standalone-dev")
