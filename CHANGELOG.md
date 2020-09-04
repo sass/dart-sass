@@ -3,6 +3,9 @@
 * **Potentially breaking bug fix:** `selector.nest()` now throws an error
   if the first arguments contains the parent selector `&`.
 
+* **Potentially breaking bug fix:** `meta.load-css()` now correctly uses the
+  name `$url` for its first argument, rather than `$module`.
+
 * Fixes a parsing bug with inline comments in selectors.
 
 * Improve some error messages for edge-case parse failures.

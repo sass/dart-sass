@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f6fe6645ccec58216ef623851bd2594de291a360
+// Checksum: 4d44059965eb6aa72d7582e468626eeef2bfcc7d
 //
 // ignore_for_file: unused_import
 
@@ -425,8 +425,8 @@ class _EvaluateVisitor
     ];
 
     var metaMixins = [
-      BuiltInCallable.mixin("load-css", r"$module, $with: null", (arguments) {
-        var url = Uri.parse(arguments[0].assertString("module").text);
+      BuiltInCallable.mixin("load-css", r"$url, $with: null", (arguments) {
+        var url = Uri.parse(arguments[0].assertString("url").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
         var configuration = const Configuration.empty();
