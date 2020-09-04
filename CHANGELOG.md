@@ -7,6 +7,8 @@
 
 * Improve some error messages for edge-case parse failures.
 
+* Throw a proper error when the same built-in module is `@use`d twice.
+
 * Don't crash when writing `Infinity` in JS mode.
 
 ## 1.26.10

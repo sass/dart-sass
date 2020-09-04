@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7f6c1eeddc48b08b4ff3f95c3af19cdf8afdfb1b
+// Checksum: f6fe6645ccec58216ef623851bd2594de291a360
 //
 // ignore_for_file: unused_import
 
@@ -552,7 +552,7 @@ class _EvaluateVisitor
             nodeWithSpan.span);
       }
 
-      callback(builtInModule);
+      _addExceptionSpan(nodeWithSpan, () => callback(builtInModule));
       return;
     }
 
