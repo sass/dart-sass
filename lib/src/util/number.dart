@@ -39,6 +39,8 @@ bool fuzzyGreaterThanOrEquals(num number1, num number2) =>
 
 /// Returns whether [number] is [fuzzyEquals] to an integer.
 bool fuzzyIsInt(num number) {
+  // Check this before is int to work around dart-lang/sdk#43325.
+  if (number.isInfinite || number.isNaN) return false;
   if (number is int) return true;
 
   // Check against 0.5 rather than 0.0 so that we catch numbers that are both
