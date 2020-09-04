@@ -11,6 +11,8 @@
 
 * Don't crash when writing `Infinity` in JS mode.
 
+* Emit a proper parse error for a `=` with no right-hand side in a function.
+
 ## 1.26.10
 
 * Fixes a bug where two adjacent combinators could cause an error.
