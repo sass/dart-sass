@@ -24,10 +24,19 @@ final global = UnmodifiableListView([
 final module = BuiltInModule("map",
     functions: [_get, _merge, _remove, _keys, _values, _hasKey]);
 
-final _get = _function("get", r"$map, $key", (arguments) {
+final _get = _function("get", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
-  var key = arguments[1];
-  return map.contents[key] ?? sassNull;
+  var allKeys = [arguments[1], ...arguments[2].asList];
+  var intermediateKeys = allKeys.sublist(0, allKeys.length - 1);
+  for (var key in intermediateKeys) {
+    var value = map.contents[key];
+    if (value is SassMap) {
+      map = value;
+    } else {
+      return sassNull;
+    }
+  }
+  return map.contents[allKeys.last] ?? sassNull;
 });
 
 final _merge = _function("merge", r"$map1, $map2", (arguments) {
