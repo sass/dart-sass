@@ -67,10 +67,19 @@ final _values = _function(
     (arguments) => SassList(
         arguments[0].assertMap("map").contents.values, ListSeparator.comma));
 
-final _hasKey = _function("has-key", r"$map, $key", (arguments) {
+final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
-  var key = arguments[1];
-  return SassBoolean(map.contents.containsKey(key));
+  var allKeys = [arguments[1], ...arguments[2].asList];
+  var intermediateKeys = allKeys.sublist(0, allKeys.length - 1);
+  for (var key in intermediateKeys) {
+    final value = map.contents[key];
+    if (value is SassMap) {
+      map = value;
+    } else {
+      return sassFalse;
+    }
+  }
+  return SassBoolean(map.contents.containsKey(allKeys.last));
 });
 
 /// Like [new BuiltInCallable.function], but always sets the URL to `sass:map`.
