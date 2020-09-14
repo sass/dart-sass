@@ -72,7 +72,7 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   var allKeys = [arguments[1], ...arguments[2].asList];
   var intermediateKeys = allKeys.sublist(0, allKeys.length - 1);
   for (var key in intermediateKeys) {
-    final value = map.contents[key];
+    var value = map.contents[key];
     if (value is SassMap) {
       map = value;
     } else {
