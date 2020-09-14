@@ -26,9 +26,8 @@ final module = BuiltInModule("map",
 
 final _get = _function("get", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
-  var allKeys = [arguments[1], ...arguments[2].asList];
-  var intermediateKeys = allKeys.sublist(0, allKeys.length - 1);
-  for (var key in intermediateKeys) {
+  var keys = [arguments[1], ...arguments[2].asList];
+  for (var key in keys.sublist(0, keys.length - 1)) {
     var value = map.contents[key];
     if (value is SassMap) {
       map = value;
@@ -36,7 +35,7 @@ final _get = _function("get", r"$map, $key, $keys...", (arguments) {
       return sassNull;
     }
   }
-  return map.contents[allKeys.last] ?? sassNull;
+  return map.contents[keys.last] ?? sassNull;
 });
 
 final _merge = _function("merge", r"$map1, $map2", (arguments) {

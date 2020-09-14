@@ -1,3 +1,7 @@
+## 1.27.0
+
+* Add support for nested maps in `map.get`.
+
 ## 1.26.11
 
 * **Potentially breaking bug fix:** `selector.nest()` now throws an error
