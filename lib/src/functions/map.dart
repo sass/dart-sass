@@ -23,23 +23,7 @@ final global = UnmodifiableListView([
 
 /// The Sass map module.
 final module = BuiltInModule("map", functions: [
-  _get, _merge, _remove, _keys, _values, _hasKey, _deepMerge, //
-  BuiltInCallable.overloadedFunction("set", {
-    r"$map, $key, $value": (arguments) {
-      var map = arguments[0].assertMap("map");
-      return _set(map, [arguments[1]], arguments[2]);
-    },
-    r"$map, $args...": (arguments) {
-      var map = arguments[0].assertMap("map");
-      var args = arguments[1].asList;
-      if (args.isEmpty) {
-        throw SassScriptException("Expected \$args to contain a key.");
-      } else if (args.length == 1) {
-        throw SassScriptException("Expected \$args to contain a value.");
-      }
-      return _set(map, args.sublist(0, args.length - 1), args.last);
-    },
-  })
+  _get, _set, _merge, _remove, _keys, _values, _hasKey, _deepMerge //
 ]);
 
 final _get = _function("get", r"$map, $key, $keys...", (arguments) {
@@ -54,6 +38,23 @@ final _get = _function("get", r"$map, $key, $keys...", (arguments) {
     }
   }
   return map.contents[keys.last] ?? sassNull;
+});
+
+final _set = BuiltInCallable.overloadedFunction("set", {
+  r"$map, $key, $value": (arguments) {
+    var map = arguments[0].assertMap("map");
+    return _setImpl(map, [arguments[1]], arguments[2]);
+  },
+  r"$map, $args...": (arguments) {
+    var map = arguments[0].assertMap("map");
+    var args = arguments[1].asList;
+    if (args.isEmpty) {
+      throw SassScriptException("Expected \$args to contain a key.");
+    } else if (args.length == 1) {
+      throw SassScriptException("Expected \$args to contain a value.");
+    }
+    return _setImpl(map, args.sublist(0, args.length - 1), args.last);
+  },
 });
 
 final _merge = _function("merge", r"$map1, $map2", (arguments) {
@@ -113,23 +114,23 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   return SassBoolean(map.contents.containsKey(keys.last));
 });
 
-SassMap _set(SassMap map, List<Value> keys, Value value) {
+/// Updates a map with the given [value].
+///
+/// If more than one key is provided, this means the map targeted for update is
+/// nested within [map]. The multiple [keys] form a path of nested maps that
+/// leads to the targetted map. If any value along the path is not a map, this
+/// creates and inserts a new map at that key.
+SassMap _setImpl(SassMap map, List<Value> keys, Value value, [int index = 0]) {
   var mutableMap = Map.of(map.contents);
-  var key = keys.first;
+  var key = keys[index];
 
-  if (keys.length == 1) {
+  if (index == keys.length - 1) {
     mutableMap[key] = value;
     return SassMap(mutableMap);
   }
 
-  SassMap nestedMap;
-  try {
-    nestedMap = mutableMap[key].assertMap();
-  } on SassScriptException {
-    nestedMap = SassMap({});
-  }
-
-  mutableMap[key] = _set(nestedMap, keys.sublist(1), value);
+  var nestedMap = mutableMap[key].tryMap() ?? SassMap({});
+  mutableMap[key] = _setImpl(nestedMap, keys, value, index + 1);
   return SassMap(mutableMap);
 }
 
