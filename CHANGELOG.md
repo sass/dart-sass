@@ -1,6 +1,10 @@
 ## 1.27.0
 
-* Add support for nested maps in `map.get`.
+* Add support for nested maps to `map.get()`.
+  For example, `map.get((a: (b: (c: d))), a, b, c)` would return `d`.
+  See [the documentation][maps] for more details.
+
+[maps]: https://sass-lang.com/documentation/modules/map
 
 ## 1.26.11
 
