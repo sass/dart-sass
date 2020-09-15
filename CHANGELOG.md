@@ -10,6 +10,10 @@
   ) // => (color: (primary: red, secondary: teal))
   ```
 
+  See [the Sass documentation][map-deep-merge] for more details.
+
+  [map-deep-merge]: https://sass-lang.com/documentation/modules/map#deep-merge
+
 ### Dart API
 
 * Add a `Value.tryMap()` function which returns the `Value` as a `SassMap` if
