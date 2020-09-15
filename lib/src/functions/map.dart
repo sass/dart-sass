@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../exception.dart';
 import '../module/built_in.dart';
 import '../value.dart';
 
@@ -21,8 +22,25 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass map module.
-final module = BuiltInModule("map",
-    functions: [_get, _merge, _remove, _keys, _values, _hasKey, _deepMerge]);
+final module = BuiltInModule("map", functions: [
+  _get, _merge, _remove, _keys, _values, _hasKey, _deepMerge, //
+  BuiltInCallable.overloadedFunction("set", {
+    r"$map, $key, $value": (arguments) {
+      var map = arguments[0].assertMap("map");
+      return _set(map, [arguments[1]], arguments[2]);
+    },
+    r"$map, $args...": (arguments) {
+      var map = arguments[0].assertMap("map");
+      var args = arguments[1].asList;
+      if (args.isEmpty) {
+        throw SassScriptException("Expected \$args to contain a key.");
+      } else if (args.length == 1) {
+        throw SassScriptException("Expected \$args to contain a value.");
+      }
+      return _set(map, args.sublist(0, args.length - 1), args.last);
+    },
+  })
+]);
 
 final _get = _function("get", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
@@ -94,6 +112,26 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   }
   return SassBoolean(map.contents.containsKey(keys.last));
 });
+
+SassMap _set(SassMap map, List<Value> keys, Value value) {
+  var mutableMap = Map.of(map.contents);
+  var key = keys.first;
+
+  if (keys.length == 1) {
+    mutableMap[key] = value;
+    return SassMap(mutableMap);
+  }
+
+  SassMap nestedMap;
+  try {
+    nestedMap = mutableMap[key].assertMap();
+  } on SassScriptException {
+    nestedMap = SassMap({});
+  }
+
+  mutableMap[key] = _set(nestedMap, keys.sublist(1), value);
+  return SassMap(mutableMap);
+}
 
 /// Merges [map1] and [map2], with values in [map2] taking precedence.
 ///
