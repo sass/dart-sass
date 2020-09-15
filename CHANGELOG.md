@@ -1,26 +1,3 @@
-## 1.27.0
-
-* Add a `map.deep-merge()` function. This works like `map.merge()`, except that
-  nested map values are *also* recursively merged. For example:
-  
-  ```
-  map.deep-merge(
-    (color: (primary: red, secondary: blue),
-    (color: (secondary: teal)
-  ) // => (color: (primary: red, secondary: teal))
-  ```
-
-  See [the Sass documentation][map-deep-merge] for more details.
-
-  [map-deep-merge]: https://sass-lang.com/documentation/modules/map#deep-merge
-
-### Dart API
-
-* Add a `Value.tryMap()` function which returns the `Value` as a `SassMap` if
-  it's a valid map, or `null` otherwise. This allows function authors to safely
-  retrieve maps even if they're internally stored as empty lists, without having
-  to catch exceptions from `Value.assertMap()`.
-
 ## 1.26.11
 
 * **Potentially breaking bug fix:** `selector.nest()` now throws an error

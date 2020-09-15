@@ -104,10 +104,6 @@ abstract class Value {
   /// (without the `$`). It's used for error reporting.
   SassMap assertMap([String name]);
 
-  /// Returns [this] as a [SassMap] if it is one (including empty lists, which
-  /// count as empty maps) or returns `null` if it's not.
-  SassMap tryMap();
-
   /// Throws a [SassScriptException] if [this] isn't a number.
   ///
   /// If this came from a function argument, [name] is the argument name

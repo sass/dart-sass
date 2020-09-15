@@ -98,8 +98,6 @@ abstract class Value implements ext.Value {
   SassMap assertMap([String name]) =>
       throw _exception("$this is not a map.", name);
 
-  SassMap tryMap() => null;
-
   SassNumber assertNumber([String name]) =>
       throw _exception("$this is not a number.", name);
 

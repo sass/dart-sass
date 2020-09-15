@@ -31,7 +31,6 @@ void main() {
       expect(value.assertColor, throwsSassScriptException);
       expect(value.assertFunction, throwsSassScriptException);
       expect(value.assertMap, throwsSassScriptException);
-      expect(value.tryMap(), isNull);
       expect(value.assertNumber, throwsSassScriptException);
       expect(value.assertString, throwsSassScriptException);
     });
@@ -57,7 +56,6 @@ void main() {
       expect(value.assertColor, throwsSassScriptException);
       expect(value.assertFunction, throwsSassScriptException);
       expect(value.assertMap, throwsSassScriptException);
-      expect(value.tryMap(), isNull);
       expect(value.assertNumber, throwsSassScriptException);
       expect(value.assertString, throwsSassScriptException);
     });
