@@ -6,6 +6,12 @@
 
   [map-get]: https://sass-lang.com/documentation/modules/map#get
 
+* Add support for nested maps in `map.has-key`.
+  For example, `map.has-key((a: (b: (c: d))), a, b, c)` would return true.
+  See [the documentation][map-has-key] for more details.
+
+  [map-has-key]: https://sass-lang.com/documentation/modules/map#has-key
+
 * Add a `map.deep-merge()` function. This works like `map.merge()`, except that
   nested map values are *also* recursively merged. For example:
 

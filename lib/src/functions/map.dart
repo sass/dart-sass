@@ -81,10 +81,18 @@ final _values = _function(
     (arguments) => SassList(
         arguments[0].assertMap("map").contents.values, ListSeparator.comma));
 
-final _hasKey = _function("has-key", r"$map, $key", (arguments) {
+final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
-  var key = arguments[1];
-  return SassBoolean(map.contents.containsKey(key));
+  var keys = [arguments[1], ...arguments[2].asList];
+  for (var key in keys.take(keys.length - 1)) {
+    var value = map.contents[key];
+    if (value is SassMap) {
+      map = value;
+    } else {
+      return sassFalse;
+    }
+  }
+  return SassBoolean(map.contents.containsKey(keys.last));
 });
 
 /// Merges [map1] and [map2], with values in [map2] taking precedence.
