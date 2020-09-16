@@ -2,10 +2,10 @@
 
 * Adds an overloaded `map.set()` function.
 
-  `set($map, $key, $value)`: Adds to or updates `$map` with the specified
+  `map.set($map, $key, $value)`: Adds to or updates `$map` with the specified
   `$key` and `$value`.
 
-  `set($map, $args...)`: Adds to or updates a map that is nested within
+  `map.set($map, $args...)`: Adds to or updates a map that is nested within
   `$map`. `$args` contains multiple keys, followed by a value. The keys
   form a path to the nested map in `$map` where the value is to be added or
   updated.
