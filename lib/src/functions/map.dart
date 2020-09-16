@@ -70,7 +70,7 @@ final _values = _function(
 final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
-  for (var key in keys.sublist(0, keys.length - 1)) {
+  for (var key in keys.take(keys.length - 1)) {
     var value = map.contents[key];
     if (value is SassMap) {
       map = value;
