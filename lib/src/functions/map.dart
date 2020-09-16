@@ -29,15 +29,7 @@ final module = BuiltInModule("map", functions: [
 final _get = _function("get", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
-  for (var key in keys.take(keys.length - 1)) {
-    var value = map.contents[key];
-    if (value is SassMap) {
-      map = value;
-    } else {
-      return sassNull;
-    }
-  }
-  return map.contents[keys.last] ?? sassNull;
+  return _getImpl(map, keys);
 });
 
 final _set = BuiltInCallable.overloadedFunction("set", {
@@ -57,10 +49,26 @@ final _set = BuiltInCallable.overloadedFunction("set", {
   },
 });
 
-final _merge = _function("merge", r"$map1, $map2", (arguments) {
-  var map1 = arguments[0].assertMap("map1");
-  var map2 = arguments[1].assertMap("map2");
-  return SassMap({...map1.contents, ...map2.contents});
+final _merge = BuiltInCallable.overloadedFunction("merge", {
+  r"$map1, $map2": (arguments) {
+    var map1 = arguments[0].assertMap("map1");
+    var map2 = arguments[1].assertMap("map2");
+    return SassMap({...map1.contents, ...map2.contents});
+  },
+  r"$map1, $args...": (arguments) {
+    var map1 = arguments[0].assertMap("map1");
+    var args = arguments[1].asList;
+    if (args.isEmpty) {
+      throw SassScriptException("Expected \$args to contain a key.");
+    } else if (args.length == 1) {
+      throw SassScriptException("Expected \$args to contain a map.");
+    }
+    var map2 = args.last.assertMap("map2");
+    var keys = args.sublist(0, args.length - 1);
+    var nestedMap = _getImpl(map1, keys).tryMap() ?? const SassMap.empty();
+    var mergedMap = SassMap({...nestedMap.contents, ...map2.contents});
+    return _setImpl(map1, keys, mergedMap);
+  },
 });
 
 final _deepMerge = _function("deep-merge", r"$map1, $map2", (arguments) {
@@ -114,11 +122,31 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   return SassBoolean(map.contents.containsKey(keys.last));
 });
 
+/// Returns the specified element from the [map]. If the value does not exist,
+/// returns null.
+///
+/// If more than one key is provided, this means the map targeted for getting is
+/// nested within [map]. The multiple [keys], excluding the last one, form a
+/// path of nested maps that leads to the targeted map. The last key is used to
+/// get the value from the targeted map. If any value along the path is not a
+/// map, this returns null.
+Value _getImpl(SassMap map, List<Value> keys) {
+  for (var key in keys.take(keys.length - 1)) {
+    var value = map.contents[key];
+    if (value is SassMap) {
+      map = value;
+    } else {
+      return sassNull;
+    }
+  }
+  return map.contents[keys.last] ?? sassNull;
+}
+
 /// Updates a map with the given [value].
 ///
 /// If more than one key is provided, this means the map targeted for update is
 /// nested within [map]. The multiple [keys] form a path of nested maps that
-/// leads to the targetted map. If any value along the path is not a map, this
+/// leads to the targeted map. If any value along the path is not a map, this
 /// creates and inserts a new map at that key.
 SassMap _setImpl(SassMap map, List<Value> keys, Value value, [int index = 0]) {
   var mutableMap = Map.of(map.contents);

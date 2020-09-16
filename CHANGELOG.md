@@ -1,5 +1,15 @@
 ## 1.27.0
 
+* Adds an overload to `map.merge()` that supports merging a nested map.
+
+  `map.merge($map1, $args...)`: `$args` contains multiple keys, followed by a
+  `map2`. The keys form a path to the nested map in `$map1`, into which map2
+  gets merged.
+
+  See [the Sass documentation][map-merge] for more details.
+
+  [map-merge]: https://sass-lang.com/documentation/modules/map#merge
+
 * Adds an overloaded `map.set()` function.
 
   `map.set($map, $key, $value)`: Adds to or updates `$map` with the specified
