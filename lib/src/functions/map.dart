@@ -27,7 +27,7 @@ final module = BuiltInModule("map",
 final _get = _function("get", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
-  for (var key in keys.sublist(0, keys.length - 1)) {
+  for (var key in keys.take(keys.length - 1)) {
     var value = map.contents[key];
     if (value is SassMap) {
       map = value;
