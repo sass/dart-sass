@@ -128,6 +128,7 @@ void main() {
 
     test("is a map", () {
       expect(value.assertMap(), equals(value));
+      expect(value.tryMap(), equals(value));
     });
 
     test("isn't any other type", () {

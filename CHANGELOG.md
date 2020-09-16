@@ -1,6 +1,37 @@
 ## 1.27.0
 
+* Add support for nested maps to `map.get()`.
+  For example, `map.get((a: (b: (c: d))), a, b, c)` would return `d`.
+  See [the documentation][map-get] for more details.
+
+  [map-get]: https://sass-lang.com/documentation/modules/map#get
+
 * Add support for nested maps in `map.has-key`.
+  For example, `map.has-key((a: (b: (c: d))), a, b, c)` would return true.
+  See [the documentation][map-has-key] for more details.
+
+  [map-has-key]: https://sass-lang.com/documentation/modules/map#has-key
+
+* Add a `map.deep-merge()` function. This works like `map.merge()`, except that
+  nested map values are *also* recursively merged. For example:
+
+  ```
+  map.deep-merge(
+    (color: (primary: red, secondary: blue),
+    (color: (secondary: teal)
+  ) // => (color: (primary: red, secondary: teal))
+  ```
+
+  See [the Sass documentation][map-deep-merge] for more details.
+
+  [map-deep-merge]: https://sass-lang.com/documentation/modules/map#deep-merge
+
+### Dart API
+
+* Add a `Value.tryMap()` function which returns the `Value` as a `SassMap` if
+  it's a valid map, or `null` otherwise. This allows function authors to safely
+  retrieve maps even if they're internally stored as empty lists, without having
+  to catch exceptions from `Value.assertMap()`.
 
 ## 1.26.11
 
