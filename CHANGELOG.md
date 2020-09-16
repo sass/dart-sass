@@ -1,5 +1,19 @@
 ## 1.27.0
 
+* Adds an overloaded `map.set()` function.
+
+  `map.set($map, $key, $value)`: Adds to or updates `$map` with the specified
+  `$key` and `$value`.
+
+  `map.set($map, $args...)`: Adds to or updates a map that is nested within
+  `$map`. `$args` contains multiple keys, followed by a value. The keys
+  form a path to the nested map in `$map` where the value is to be added or
+  updated.
+
+  See [the Sass documentation][map-set] for more details.
+
+  [map-set]: https://sass-lang.com/documentation/modules/map#set
+
 * Add support for nested maps to `map.get()`.
   For example, `map.get((a: (b: (c: d))), a, b, c)` would return `d`.
   See [the documentation][map-get] for more details.
