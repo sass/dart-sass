@@ -129,7 +129,7 @@ SassMap _setImpl(SassMap map, List<Value> keys, Value value, [int index = 0]) {
     return SassMap(mutableMap);
   }
 
-  var nestedMap = mutableMap[key].tryMap() ?? SassMap({});
+  var nestedMap = mutableMap[key].tryMap() ?? const SassMap.empty();
   mutableMap[key] = _setImpl(nestedMap, keys, value, index + 1);
   return SassMap(mutableMap);
 }
