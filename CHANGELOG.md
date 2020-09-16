@@ -1,8 +1,14 @@
 ## 1.27.0
 
+* Add support for nested maps to `map.get()`.
+  For example, `map.get((a: (b: (c: d))), a, b, c)` would return `d`.
+  See [the documentation][map-get] for more details.
+
+  [map-get]: https://sass-lang.com/documentation/modules/map#get
+
 * Add a `map.deep-merge()` function. This works like `map.merge()`, except that
   nested map values are *also* recursively merged. For example:
-  
+
   ```
   map.deep-merge(
     (color: (primary: red, secondary: blue),
