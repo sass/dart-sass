@@ -1,3 +1,12 @@
+## 1.27.0
+
+### Dart API
+
+* Add [HWB] support to the `SassColor` class, including a `SassColor.hwb()`
+  constructor, `whiteness` and `blackness` getters, and a `changeHwb()` method.
+
+[HWB]: https://en.wikipedia.org/wiki/HWB_color_model
+
 ## 1.26.11
 
 * **Potentially breaking bug fix:** `selector.nest()` now throws an error

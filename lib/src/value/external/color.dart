@@ -28,6 +28,12 @@ abstract class SassColor extends Value {
   /// This color's lightness, a percentage between `0` and `100`.
   num get lightness;
 
+  /// This color's whiteness, a percentage between `0` and `100`.
+  num get whiteness;
+
+  /// This color's blackness, a percentage between `0` and `100`.
+  num get blackness;
+
   /// This color's alpha channel, between `0` and `1`.
   num get alpha;
 
@@ -45,11 +51,21 @@ abstract class SassColor extends Value {
   factory SassColor.hsl(num hue, num saturation, num lightness, [num alpha]) =
       internal.SassColor.hsl;
 
+  /// Creates an HWB color.
+  ///
+  /// Throws a [RangeError] if [whiteness] or [blackness] aren't between `0` and
+  /// `100`, or if [alpha] isn't between `0` and `1`.
+  factory SassColor.hwb(num hue, num whiteness, num blackness, [num alpha]) =
+      internal.SassColor.hwb;
+
   /// Changes one or more of this color's RGB channels and returns the result.
   SassColor changeRgb({int red, int green, int blue, num alpha});
 
   /// Changes one or more of this color's HSL channels and returns the result.
   SassColor changeHsl({num hue, num saturation, num lightness, num alpha});
+
+  /// Changes one or more of this color's HWB channels and returns the result.
+  SassColor changeHwb({num hue, num whiteness, num blackness, num alpha});
 
   /// Returns a new copy of this color with the alpha channel set to [alpha].
   SassColor changeAlpha(num alpha);
