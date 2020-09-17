@@ -58,14 +58,14 @@ class SassColor extends Value implements ext.SassColor {
   num get whiteness {
     // Because HWB is (currently) used much less frequently than HSL or RGB, we
     // don't cache its values because we expect the memory overhead of doing so
-    // to outweight the cost of recalculating it on access.
+    // to outweigh the cost of recalculating it on access.
     return math.min(math.min(red, green), blue) / 255 * 100;
   }
 
   num get blackness {
     // Because HWB is (currently) used much less frequently than HSL or RGB, we
     // don't cache its values because we expect the memory overhead of doing so
-    // to outweight the cost of recalculating it on access.
+    // to outweigh the cost of recalculating it on access.
     return 100 - math.max(math.max(red, green), blue) / 255 * 100;
   }
 
@@ -113,6 +113,10 @@ class SassColor extends Value implements ext.SassColor {
       return fuzzyRound(channel * 255);
     }
 
+    // Because HWB is (currently) used much less frequently than HSL or RGB, we
+    // don't cache its values because we expect the memory overhead of doing so
+    // to outweigh the cost of recalculating it on access. Instead, we eagerly
+    // convert it to RGB and then convert back if necessary.
     return SassColor.rgb(
         toRgb(scaledHue + 1/3),
         toRgb(scaledHue),
