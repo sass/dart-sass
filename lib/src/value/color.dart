@@ -55,6 +55,20 @@ class SassColor extends Value implements ext.SassColor {
 
   num _lightness;
 
+  num get whiteness {
+    // Because HWB is (currently) used much less frequently than HSL or RGB, we
+    // don't cache its values because we expect the memory overhead of doing so
+    // to outweight the cost of recalculating it on access.
+    return math.min(math.min(red, green), blue) / 255 * 100;
+  }
+
+  num get blackness {
+    // Because HWB is (currently) used much less frequently than HSL or RGB, we
+    // don't cache its values because we expect the memory overhead of doing so
+    // to outweight the cost of recalculating it on access.
+    return 100 - math.max(math.max(red, green), blue) / 255 * 100;
+  }
+
   final num alpha;
 
   /// The original string representation of this color, or `null` if one is
@@ -81,6 +95,31 @@ class SassColor extends Value implements ext.SassColor {
         alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha"),
         originalSpan = null;
 
+  factory SassColor.hwb(num hue, num whiteness, num blackness, [num alpha]) {
+    // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
+    var scaledHue = hue % 360 / 360;
+    var scaledWhiteness = fuzzyAssertRange(whiteness, 0, 100, "whiteness") / 100;
+    var scaledBlackness = fuzzyAssertRange(blackness, 0, 100, "blackness") / 100;
+
+    var sum = scaledWhiteness + scaledBlackness;
+    if (sum > 1) {
+      scaledWhiteness /= sum;
+      scaledBlackness /= sum;
+    }
+
+    var factor = 1 - scaledWhiteness - scaledBlackness;
+    int toRgb(num hue) {
+      var channel = _hueToRgb(0, 1, hue) * factor + scaledWhiteness;
+      return fuzzyRound(channel * 255);
+    }
+
+    return SassColor.rgb(
+        toRgb(scaledHue + 1/3),
+        toRgb(scaledHue),
+        toRgb(scaledHue - 1/3),
+        alpha);
+  }
+
   SassColor._(this._red, this._green, this._blue, this._hue, this._saturation,
       this._lightness, this.alpha)
       : originalSpan = null;
@@ -96,6 +135,10 @@ class SassColor extends Value implements ext.SassColor {
   SassColor changeHsl({num hue, num saturation, num lightness, num alpha}) =>
       SassColor.hsl(hue ?? this.hue, saturation ?? this.saturation,
           lightness ?? this.lightness, alpha ?? this.alpha);
+
+  SassColor changeHwb({num hue, num whiteness, num blackness, num alpha}) =>
+      SassColor.hwb(hue ?? this.hue, whiteness ?? this.whiteness,
+          blackness ?? this.blackness, alpha ?? this.alpha);
 
   SassColor changeAlpha(num alpha) => SassColor._(_red, _green, _blue, _hue,
       _saturation, _lightness, fuzzyAssertRange(alpha, 0, 1, "alpha"));
@@ -177,29 +220,26 @@ class SassColor extends Value implements ext.SassColor {
             scaledSaturation -
             scaledLightness * scaledSaturation;
     var m1 = scaledLightness * 2 - m2;
-    _red = _hueToRgb(m1, m2, scaledHue + 1 / 3);
-    _green = _hueToRgb(m1, m2, scaledHue);
-    _blue = _hueToRgb(m1, m2, scaledHue - 1 / 3);
+    _red = fuzzyRound(_hueToRgb(m1, m2, scaledHue + 1 / 3) * 255);
+    _green = fuzzyRound(_hueToRgb(m1, m2, scaledHue) * 255);
+    _blue = fuzzyRound(_hueToRgb(m1, m2, scaledHue - 1 / 3) * 255);
   }
 
   /// An algorithm from the CSS3 spec:
   /// http://www.w3.org/TR/css3-color/#hsl-color.
-  int _hueToRgb(num m1, num m2, num hue) {
+  static num _hueToRgb(num m1, num m2, num hue) {
     if (hue < 0) hue += 1;
     if (hue > 1) hue -= 1;
 
-    num result;
     if (hue < 1 / 6) {
-      result = m1 + (m2 - m1) * hue * 6;
+      return m1 + (m2 - m1) * hue * 6;
     } else if (hue < 1 / 2) {
-      result = m2;
+      return m2;
     } else if (hue < 2 / 3) {
-      result = m1 + (m2 - m1) * (2 / 3 - hue) * 6;
+      return m1 + (m2 - m1) * (2 / 3 - hue) * 6;
     } else {
-      result = m1;
+      return m1;
     }
-
-    return fuzzyRound(result * 255);
   }
 
   /// Returns an `rgb()` or `rgba()` function call that will evaluate to this
