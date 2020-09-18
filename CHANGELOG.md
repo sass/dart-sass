@@ -2,9 +2,8 @@
 
 * Adds an overload to `map.merge()` that supports merging a nested map.
 
-  `map.merge($map1, $args...)`: `$args` contains multiple keys, followed by a
-  `map2`. The keys form a path to the nested map in `$map1`, into which map2
-  gets merged.
+  `map.merge($map1, $keys..., $map2)`: The `$keys` form a path to the nested map
+  in `$map1`, into which `$map2` gets merged.
 
   See [the Sass documentation][map-merge] for more details.
 

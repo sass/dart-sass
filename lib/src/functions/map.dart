@@ -29,13 +29,21 @@ final module = BuiltInModule("map", functions: [
 final _get = _function("get", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
-  return _getImpl(map, keys);
+  for (var key in keys.take(keys.length - 1)) {
+    var value = map.contents[key];
+    if (value is SassMap) {
+      map = value;
+    } else {
+      return sassNull;
+    }
+  }
+  return map.contents[keys.last] ?? sassNull;
 });
 
 final _set = BuiltInCallable.overloadedFunction("set", {
   r"$map, $key, $value": (arguments) {
     var map = arguments[0].assertMap("map");
-    return _setImpl(map, [arguments[1]], arguments[2]);
+    return _modify(map, [arguments[1]], (oldValue) => arguments[2]);
   },
   r"$map, $args...": (arguments) {
     var map = arguments[0].assertMap("map");
@@ -45,7 +53,8 @@ final _set = BuiltInCallable.overloadedFunction("set", {
     } else if (args.length == 1) {
       throw SassScriptException("Expected \$args to contain a value.");
     }
-    return _setImpl(map, args.sublist(0, args.length - 1), args.last);
+    return _modify(
+        map, args.sublist(0, args.length - 1), (oldValue) => args.last);
   },
 });
 
@@ -63,11 +72,19 @@ final _merge = BuiltInCallable.overloadedFunction("merge", {
     } else if (args.length == 1) {
       throw SassScriptException("Expected \$args to contain a map.");
     }
-    var map2 = args.last.assertMap("map2");
     var keys = args.sublist(0, args.length - 1);
-    var nestedMap = _getImpl(map1, keys).tryMap() ?? const SassMap.empty();
-    var mergedMap = SassMap({...nestedMap.contents, ...map2.contents});
-    return _setImpl(map1, keys, mergedMap);
+    var map2 = args.last.assertMap("map2");
+    SassMap _mergeCallback(Value oldMap) {
+      // If oldMap is null, this indicates there is no nested map at the key.
+      // If this is the case, set the value at the key to map2, which is akin to
+      // merging map2 into an empty map. This behavior is consistent with that
+      // of map.set().
+      return (oldMap == null)
+          ? map2
+          : SassMap({...oldMap.assertMap().contents, ...map2.contents});
+    }
+
+    return _modify(map1, keys, _mergeCallback);
   },
 });
 
@@ -122,44 +139,36 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   return SassBoolean(map.contents.containsKey(keys.last));
 });
 
-/// Returns the specified element from the [map]. If the value does not exist,
-/// returns null.
-///
-/// If more than one key is provided, this means the map targeted for getting is
-/// nested within [map]. The multiple [keys], excluding the last one, form a
-/// path of nested maps that leads to the targeted map. The last key is used to
-/// get the value from the targeted map. If any value along the path is not a
-/// map, this returns null.
-Value _getImpl(SassMap map, List<Value> keys) {
-  for (var key in keys.take(keys.length - 1)) {
-    var value = map.contents[key];
-    if (value is SassMap) {
-      map = value;
-    } else {
-      return sassNull;
-    }
-  }
-  return map.contents[keys.last] ?? sassNull;
-}
-
-/// Updates a map with the given [value].
+/// Updates the specified value in [map] by applying the [modify()] callback to
+/// it, then returns the resulting map.
 ///
 /// If more than one key is provided, this means the map targeted for update is
 /// nested within [map]. The multiple [keys] form a path of nested maps that
-/// leads to the targeted map. If any value along the path is not a map, this
-/// creates and inserts a new map at that key.
-SassMap _setImpl(SassMap map, List<Value> keys, Value value, [int index = 0]) {
-  var mutableMap = Map.of(map.contents);
-  var key = keys[index];
+/// leads to the targeted map. If any value along the path is not a map, and
+/// [overwrite] is true, this inserts a new map at that key and overwrites the
+/// current value. Otherwise, this fails and returns [map] with no changes.
+SassMap _modify(SassMap map, List<Value> keys, Value modify(Value old),
+    [bool overwrite = true]) {
+  SassMap _modifyNestedMap(SassMap map, int index) {
+    var mutableMap = Map.of(map.contents);
+    var key = keys[index];
 
-  if (index == keys.length - 1) {
-    mutableMap[key] = value;
+    if (index == keys.length - 1) {
+      mutableMap[key] = modify(mutableMap[key]);
+      return SassMap(mutableMap);
+    }
+
+    var nestedMap = mutableMap[key].tryMap();
+    if (nestedMap == null && !overwrite) {
+      return SassMap(mutableMap);
+    }
+
+    nestedMap ??= const SassMap.empty();
+    mutableMap[key] = _modifyNestedMap(nestedMap, index + 1);
     return SassMap(mutableMap);
   }
 
-  var nestedMap = mutableMap[key].tryMap() ?? const SassMap.empty();
-  mutableMap[key] = _setImpl(nestedMap, keys, value, index + 1);
-  return SassMap(mutableMap);
+  return _modifyNestedMap(map, 0);
 }
 
 /// Merges [map1] and [map2], with values in [map2] taking precedence.
