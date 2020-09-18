@@ -11,6 +11,9 @@
 
 * Don't crash when writing `Infinity` in JS mode.
 
+* Produce a better error message for positional arguments following named
+  arguments.
+
 ## 1.26.10
 
 * Fixes a bug where two adjacent combinators could cause an error.
