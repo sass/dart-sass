@@ -72,7 +72,7 @@ final _merge = BuiltInCallable.overloadedFunction("merge", {
       throw SassScriptException("Expected \$args to contain a map.");
     }
     var map2 = args.last.assertMap("map2");
-    return _modify(map1, args.sublist(0, args.length - 1), (Value oldValue) {
+    return _modify(map1, args.sublist(0, args.length - 1), (oldValue) {
       var nestedMap = oldValue?.tryMap();
       if (nestedMap == null) return map2;
       return SassMap({...nestedMap.contents, ...map2.contents});
