@@ -73,8 +73,7 @@ final _merge = BuiltInCallable.overloadedFunction("merge", {
     }
     var map2 = args.last.assertMap("map2");
     return _modify(map1, args.sublist(0, args.length - 1), (Value oldValue) {
-      if (oldValue == null) return map2;
-      var nestedMap = oldValue.tryMap();
+      var nestedMap = oldValue?.tryMap();
       if (nestedMap == null) return map2;
       return SassMap({...nestedMap.contents, ...map2.contents});
     });
@@ -151,7 +150,7 @@ SassMap _modify(SassMap map, List<Value> keys, Value modify(Value old),
       return SassMap(mutableMap);
     }
 
-    var nestedMap = mutableMap[key].tryMap();
+    var nestedMap = mutableMap[key]?.tryMap();
     if (nestedMap == null && !overwrite) {
       return SassMap(mutableMap);
     }
