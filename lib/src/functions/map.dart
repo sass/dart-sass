@@ -43,7 +43,7 @@ final _get = _function("get", r"$map, $key, $keys...", (arguments) {
 final _set = BuiltInCallable.overloadedFunction("set", {
   r"$map, $key, $value": (arguments) {
     var map = arguments[0].assertMap("map");
-    return _modify(map, [arguments[1]], (oldValue) => arguments[2]);
+    return _modify(map, [arguments[1]], (_) => arguments[2]);
   },
   r"$map, $args...": (arguments) {
     var map = arguments[0].assertMap("map");
@@ -53,8 +53,7 @@ final _set = BuiltInCallable.overloadedFunction("set", {
     } else if (args.length == 1) {
       throw SassScriptException("Expected \$args to contain a value.");
     }
-    return _modify(
-        map, args.sublist(0, args.length - 1), (oldValue) => args.last);
+    return _modify(map, args.sublist(0, args.length - 1), (_) => args.last);
   },
 });
 
@@ -72,19 +71,13 @@ final _merge = BuiltInCallable.overloadedFunction("merge", {
     } else if (args.length == 1) {
       throw SassScriptException("Expected \$args to contain a map.");
     }
-    var keys = args.sublist(0, args.length - 1);
     var map2 = args.last.assertMap("map2");
-    SassMap _mergeCallback(Value oldMap) {
-      // If oldMap is null, this indicates there is no nested map at the key.
-      // If this is the case, set the value at the key to map2, which is akin to
-      // merging map2 into an empty map. This behavior is consistent with that
-      // of map.set().
-      return (oldMap == null)
-          ? map2
-          : SassMap({...oldMap.assertMap().contents, ...map2.contents});
-    }
-
-    return _modify(map1, keys, _mergeCallback);
+    return _modify(map1, args.sublist(0, args.length - 1), (Value oldValue) {
+      if (oldValue == null) return map2;
+      var nestedMap = oldValue.tryMap();
+      if (nestedMap == null) return map2;
+      return SassMap({...nestedMap.contents, ...map2.contents});
+    });
   },
 });
 
