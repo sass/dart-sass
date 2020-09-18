@@ -265,6 +265,22 @@ final module = BuiltInModule("color", functions: [
     return color.changeHsl(saturation: 0);
   }),
 
+  // ### HWB
+  BuiltInCallable.overloadedFunction("hwb", {
+    r"$hue, $whiteness, $blackness, $alpha: 1": (arguments) => _hwb(arguments),
+    r"$channels": (arguments) {
+      var parsed = _parseChannels(
+          "hwb", [r"$hue", r"$whiteness", r"$blackness"], arguments.first);
+
+      // `hwb()` doesn't (currently) support special number or variable strings.
+      if (parsed is SassString) {
+        throw SassScriptException('Expected numeric channels, got "$parsed".');
+      } else {
+        return _hwb(parsed as List<Value>);
+      }
+    }
+  }),
+
   // ### Opacity
   _removedColorFunction("opacify", "alpha"),
   _removedColorFunction("fade-in", "alpha"),
@@ -631,6 +647,25 @@ Value _hsl(String name, List<Value> arguments) {
       hue.value,
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
+      alpha == null
+          ? null
+          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+}
+
+/// Create an HWB color from the given [arguments].
+Value _hwb(List<Value> arguments) {
+  var alpha = arguments.length > 3 ? arguments[3] : null;
+  var hue = arguments[0].assertNumber("hue");
+  var whiteness = arguments[1].assertNumber("whiteness");
+  var blackness = arguments[2].assertNumber("blackness");
+
+  whiteness.assertUnit("%", "whiteness");
+  blackness.assertUnit("%", "whiteness");
+
+  return SassColor.hwb(
+      hue.value,
+      whiteness.valueInRange(0, 100, "whiteness"),
+      blackness.valueInRange(0, 100, "whiteness"),
       alpha == null
           ? null
           : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
