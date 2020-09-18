@@ -48,6 +48,20 @@
 
   [map-deep-merge]: https://sass-lang.com/documentation/modules/map#deep-merge
 
+* Add a `map.deep-remove()` function. This allows you to remove keys from
+  nested maps by passing multiple keys. For example:
+
+  ```
+  map.deep-remove(
+    (color: (primary: red, secondary: blue)),
+    color, primary
+  ) // => (color: (secondary: blue))
+  ```
+
+  See [the Sass documentation][map-deep-remove] for more details.
+
+  [map-deep-remove]: https://sass-lang.com/documentation/modules/map#deep-remove
+
 ### Dart API
 
 * Add a `Value.tryMap()` function which returns the `Value` as a `SassMap` if

@@ -23,7 +23,15 @@ final global = UnmodifiableListView([
 
 /// The Sass map module.
 final module = BuiltInModule("map", functions: [
-  _get, _set, _merge, _remove, _keys, _values, _hasKey, _deepMerge //
+  _get,
+  _set,
+  _merge,
+  _remove,
+  _keys,
+  _values,
+  _hasKey,
+  _deepMerge,
+  _deepRemove
 ]);
 
 final _get = _function("get", r"$map, $key, $keys...", (arguments) {
@@ -86,6 +94,19 @@ final _deepMerge = _function("deep-merge", r"$map1, $map2", (arguments) {
   return _deepMergeImpl(map1, map2);
 });
 
+final _deepRemove =
+    _function("deep-remove", r"$map, $key, $keys...", (arguments) {
+  var map = arguments[0].assertMap("map");
+  var keys = [arguments[1], ...arguments[2].asList];
+  return _modify(map, keys.sublist(0, keys.length - 1), (value) {
+    var nestedMap = value.tryMap();
+    if (nestedMap?.contents?.containsKey(keys.last) ?? false) {
+      return SassMap(Map.of(nestedMap.contents)..remove(keys.last));
+    }
+    return value;
+  });
+});
+
 final _remove = BuiltInCallable.overloadedFunction("remove", {
   // Because the signature below has an explicit `$key` argument, it doesn't
   // allow zero keys to be passed. We want to allow that case, so we add an
@@ -139,7 +160,10 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
 /// leads to the targeted map. If any value along the path is not a map, and
 /// [overwrite] is true, this inserts a new map at that key and overwrites the
 /// current value. Otherwise, this fails and returns [map] with no changes.
-SassMap _modify(SassMap map, List<Value> keys, Value modify(Value old),
+///
+/// If no keys are provided, this passes [map] directly to modify and returns
+/// the result.
+Value _modify(SassMap map, List<Value> keys, Value modify(Value old),
     [bool overwrite = true]) {
   SassMap _modifyNestedMap(SassMap map, int index) {
     var mutableMap = Map.of(map.contents);
@@ -160,7 +184,7 @@ SassMap _modify(SassMap map, List<Value> keys, Value modify(Value old),
     return SassMap(mutableMap);
   }
 
-  return _modifyNestedMap(map, 0);
+  return keys.isEmpty ? modify(map) : _modifyNestedMap(map, 0);
 }
 
 /// Merges [map1] and [map2], with values in [map2] taking precedence.
