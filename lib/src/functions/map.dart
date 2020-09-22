@@ -177,6 +177,7 @@ Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old)) {
 
     var nestedMap = mutableMap[key]?.tryMap();
     if (nestedMap == null) {
+      // We pass null to `modify` here to indicate there's no existing value.
       newValue = modify(null);
       if (newValue == null) return SassMap(mutableMap);
     }
