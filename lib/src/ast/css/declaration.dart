@@ -24,5 +24,15 @@ abstract class CssDeclaration extends CssNode {
   /// the variable was used. Otherwise, this is identical to [value.span].
   FileSpan get valueSpanForMap;
 
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssDeclaration(this);
+  /// Returns whether this is a CSS Custom Property declaration.
+  bool get isCustomProperty;
+
+  /// Whether this is was originally parsed as a custom property declaration, as
+  /// opposed to using something like `#{--foo}: ...` to cause it to be parsed
+  /// as a normal Sass declaration.
+  ///
+  /// If this is `true`, [isCustomProperty] will also be `true`.
+  bool get parsedAsCustomProperty;
+
+  T accept<T>(CssVisitor<T> visitor);
 }
