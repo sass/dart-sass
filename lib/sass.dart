@@ -5,8 +5,6 @@
 /// We strongly recommend importing this library with the prefix `sass`.
 library sass;
 
-import 'dart:async';
-
 import 'package:source_maps/source_maps.dart';
 
 import 'src/async_import_cache.dart';
