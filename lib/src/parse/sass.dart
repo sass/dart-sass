@@ -314,6 +314,12 @@ class SassParser extends StylesheetParser {
     // newlines.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
+      if (next == $backslash) {
+        // Use backslash to enable multiline
+        scanner.readChar();
+        _expectNewline();
+        continue;
+      }
       if (next != $tab && next != $space) break;
       scanner.readChar();
     }
