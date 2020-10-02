@@ -1581,8 +1581,7 @@ relase. For details, see http://bit.ly/moz-document.
           break;
         }
       } else if (named.isNotEmpty) {
-        error(
-            "Positional arguments must come before keyword arguments.",
+        error("Positional arguments must come before keyword arguments.",
             expression.span);
       } else {
         positional.add(expression);
