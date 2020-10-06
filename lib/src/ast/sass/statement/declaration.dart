@@ -20,10 +20,15 @@ class Declaration extends ParentStatement {
 
   final FileSpan span;
 
+  /// Returns whether this is a CSS Custom Property declaration.
+  ///
+  /// Note that this can return `false` for declarations that will ultimately be
+  /// serialized as custom properties if they aren't *parsed as* custom
+  /// properties, such as `#{--foo}: ...`.
+  bool get isCustomProperty => name.initialPlain.startsWith('--');
+
   Declaration(this.name, this.span, {this.value, Iterable<Statement> children})
       : super(children = children == null ? null : List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
-
-  String toString() => "$name: $value;";
 }

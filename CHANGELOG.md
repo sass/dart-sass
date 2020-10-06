@@ -1,3 +1,8 @@
+## 1.26.12
+
+* Fix a bug where nesting properties beneath a Sass-syntax custom property
+  (written as `#{--foo}: ...`) would crash.
+
 ## 1.26.11
 
 * **Potentially breaking bug fix:** `selector.nest()` now throws an error
