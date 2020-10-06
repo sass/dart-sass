@@ -333,7 +333,10 @@ class _SerializeVisitor
     _write(node.name);
     _buffer.writeCharCode($colon);
 
-    if (_isParsedCustomProperty(node)) {
+    // If `node` is a custom property that was parsed as a normal Sass-syntax
+    // property (such as `#{--foo}: ...`), we serialize its value using the
+    // normal Sass property logic as well.
+    if (node.isCustomProperty && node.parsedAsCustomProperty) {
       _for(node.value, () {
         if (_isCompressed) {
           _writeFoldedValue(node);
@@ -353,20 +356,6 @@ class _SerializeVisitor
         throw SassException(error.message, node.value.span);
       }
     }
-  }
-
-  /// Returns whether [node] is a custom property that was parsed as a custom
-  /// property (rather than being dynamically generated, as in `#{--foo}: ...`).
-  ///
-  /// We only re-indent custom property values that were parsed as custom
-  /// properties, which we detect as unquoted strings. It's possible to have
-  /// false positives here, since someone could write `#{--foo}: unquoted`, but
-  /// that's unlikely enough that we can spare the extra time a no-op
-  /// reindenting will take.
-  bool _isParsedCustomProperty(CssDeclaration node) {
-    if (!node.name.value.startsWith("--")) return false;
-    var value = node.value.value;
-    return value is SassString && !value.hasQuotes;
   }
 
   /// Emits the value of [node], with all newlines followed by whitespace

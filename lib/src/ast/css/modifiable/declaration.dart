@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../value.dart';
@@ -15,13 +16,26 @@ class ModifiableCssDeclaration extends ModifiableCssNode
     implements CssDeclaration {
   final CssValue<String> name;
   final CssValue<Value> value;
+  final bool parsedAsCustomProperty;
   final FileSpan valueSpanForMap;
   final FileSpan span;
 
+  bool get isCustomProperty => name.value.startsWith('--');
+
+  /// Returns a new CSS declaration with the given properties.
   ModifiableCssDeclaration(this.name, this.value, this.span,
-      {FileSpan valueSpanForMap})
-      : valueSpanForMap = valueSpanForMap ?? span;
+      {@required bool parsedAsCustomProperty, FileSpan valueSpanForMap})
+      : parsedAsCustomProperty = parsedAsCustomProperty,
+        valueSpanForMap = valueSpanForMap ?? span {
+    if (!isCustomProperty && parsedAsCustomProperty) {
+      throw ArgumentError(
+          'sassSyntaxCustomProperty must be false if name doesn\'t begin with '
+          '"--".');
+    }
+  }
 
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssDeclaration(this);
+
+  String toString() => "$name: $value;";
 }
