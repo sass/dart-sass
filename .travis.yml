@@ -74,21 +74,26 @@ jobs:
   # They next need to be rotated April 2021. See
   # https://github.com/nodejs/Release.
   - &node-tests
-    name: Node tests | Dart stable | Node stable
+    # TODO(nweiz): Run Node tests against Dart stable once #1104 is fixed.
+    name: Node tests | Dart 2.9 | Node stable
     language: node_js
     node_js: node
     install: pub run grinder before-test
     script: tool/travis/task/node_tests.sh
+    env: DART_VERSION=2.9.3
   - <<: *node-tests
-    name: Node tests | Dart stable | Node Dubnium
+    name: Node tests | Dart 2.9 | Node Dubnium
     node_js: lts/dubnium
   - <<: *node-tests
-    name: Node tests | Dart stable | Node Erbium
+    name: Node tests | Dart 2.9 | Node Erbium
     node_js: lts/erbium
   - <<: *node-tests
     os: windows
   - <<: *node-tests
     os: osx
+  - <<: *node-tests
+    name: Node tests | Dart stable | Node stable
+    env: DART_VERSION=latest
   - <<: *node-tests
     name: Node tests | Dart dev | Node stable
     env: DART_CHANNEL=dev
@@ -146,6 +151,8 @@ jobs:
   - name: npm
     if: *deploy-if
     env:
+      # TODO(nweiz): Compile Node release with Dart stable once #1104 is fixed.
+      - DART_VERSION=2.9.3
       # NPM_TOKEN="..."
       - secure: "pwOMlV/hUTYYKrdULkhM0pHKCjXR1uWAuBbfxMxWCPH/AGkW3CP/WED8p5/Q6B8Itzca6eYg85PnkzeLl4hK9ANnYrQsHutfszGyzcqqAeWWPXm3Bq6Rqt5XpA4JCSdZBPKOLZ7yGzMCPVRMAet4fvORRU6nFCTJcm/B1JZNIAWY5TnjgcjwLa77Eo4Bflv58CTA5FyngN7hAMIo2JaassmReRHxtyVBh631IYFBvmo8vmC0gruPY0axj9a/4+F1Nx2ChOAjji0SRMJP1FSp7zOXCG+VrcqXMW3KCfBu/70szcdDVXOYYyJpCeiP6vVtRgi+9zqin9wOATIklRPMTy/zVbT4r9kfA7+GFSfsfAQ7K79VbvJQHbxon3E5JnWANjZr3q+iicX+sElL6IngoSw8pXRUHVJD979WcPTcKX+dd2KKqDR0S+rG8d7ZgyjIggCSGsyxvuX0vd/VaPmZA/4+tVfSHYxCq3P3sncVX9raP41UNFW9KyEQzKfxTs6I4U5IffFcLZRRoP1uMSdiru9cIvVCX64UTk6+TTiPXRj4o84dG/NQkYoc3EhHsRL4E7SAq827Ya1gA8GLSCJidtvGPG16VimvgT372pHPZ+l9Pb5XkMnZ+dji3o37xYTSbRESOk+pnMwq3f4lQz6YFuI+EjbO5RYCs5IxHjgW8Ak="
     script: skip
