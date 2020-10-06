@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:async';
-
 import 'package:watcher/watcher.dart';
 
 /// An output sink that writes to this process's standard error.
