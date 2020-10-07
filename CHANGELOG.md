@@ -1,3 +1,8 @@
+## 1.26.13
+
+* Fix a bug where custom property values in plain CSS were being parsed as
+  normal property values.
+
 ## 1.26.12
 
 * Fix a bug where nesting properties beneath a Sass-syntax custom property

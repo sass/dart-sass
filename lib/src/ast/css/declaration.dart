@@ -31,7 +31,8 @@ abstract class CssDeclaration extends CssNode {
   /// opposed to using something like `#{--foo}: ...` to cause it to be parsed
   /// as a normal Sass declaration.
   ///
-  /// If this is `true`, [isCustomProperty] will also be `true`.
+  /// If this is `true`, [isCustomProperty] will also be `true` and [value] will
+  /// contain a [SassString].
   bool get parsedAsCustomProperty;
 
   T accept<T>(CssVisitor<T> visitor);
