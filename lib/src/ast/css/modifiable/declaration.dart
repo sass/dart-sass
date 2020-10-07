@@ -34,7 +34,7 @@ class ModifiableCssDeclaration extends ModifiableCssNode
             '"--".');
       } else if (value.value is! SassString) {
         throw ArgumentError(
-            'If parsedAsCustomProperty is true, value contain a SassString '
+            'If parsedAsCustomProperty is true, value must contain a SassString '
             '(was `$value` of type ${value.value.runtimeType}).');
       }
     }
