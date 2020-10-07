@@ -62,6 +62,9 @@
 
   [map-deep-remove]: https://sass-lang.com/documentation/modules/map#deep-remove
 
+* Fix a bug where custom property values in plain CSS were being parsed as
+  normal property values.
+
 ### Dart API
 
 * Add a `Value.tryMap()` function which returns the `Value` as a `SassMap` if

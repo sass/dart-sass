@@ -27,10 +27,16 @@ class ModifiableCssDeclaration extends ModifiableCssNode
       {@required bool parsedAsCustomProperty, FileSpan valueSpanForMap})
       : parsedAsCustomProperty = parsedAsCustomProperty,
         valueSpanForMap = valueSpanForMap ?? span {
-    if (!isCustomProperty && parsedAsCustomProperty) {
-      throw ArgumentError(
-          'sassSyntaxCustomProperty must be false if name doesn\'t begin with '
-          '"--".');
+    if (parsedAsCustomProperty) {
+      if (!isCustomProperty) {
+        throw ArgumentError(
+            'parsedAsCustomProperty must be false if name doesn\'t begin with '
+            '"--".');
+      } else if (value.value is! SassString) {
+        throw ArgumentError(
+            'If parsedAsCustomProperty is true, value must contain a SassString '
+            '(was `$value` of type ${value.value.runtimeType}).');
+      }
     }
   }
 
