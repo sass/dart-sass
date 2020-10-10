@@ -185,6 +185,7 @@ void main() {
       expect(value.assertBoolean, throwsSassScriptException);
       expect(value.assertFunction, throwsSassScriptException);
       expect(value.assertMap, throwsSassScriptException);
+      expect(value.tryMap(), isNull);
       expect(value.assertNumber, throwsSassScriptException);
       expect(value.assertString, throwsSassScriptException);
     });

@@ -503,8 +503,11 @@ abstract class StylesheetParser extends Parser {
   /// This is only used in contexts where declarations are allowed but style
   /// rules are not, such as nested declarations. Otherwise,
   /// [_declarationOrStyleRule] is used instead.
-  @protected
-  Statement _propertyOrVariableDeclaration() {
+  ///
+  /// If [parseCustomProperties] is `true`, properties that begin with `--` will
+  /// be parsed using custom property parsing rules.
+  Statement _propertyOrVariableDeclaration(
+      {bool parseCustomProperties = true}) {
     var start = scanner.state;
 
     Interpolation name;
@@ -533,6 +536,13 @@ abstract class StylesheetParser extends Parser {
 
     whitespace();
     scanner.expectChar($colon);
+
+    if (parseCustomProperties && name.initialPlain.startsWith('--')) {
+      var value = _interpolatedDeclarationValue();
+      expectStatementSeparator("custom property");
+      return Declaration(name, scanner.spanFrom(start), value: value);
+    }
+
     whitespace();
 
     if (lookingAtChildren()) {
@@ -562,7 +572,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a statement that's allowed within a declaration.
   Statement _declarationChild() {
     if (scanner.peekChar() == $at) return _declarationAtRule();
-    return _propertyOrVariableDeclaration();
+    return _propertyOrVariableDeclaration(parseCustomProperties: false);
   }
 
   // ## At Rules
@@ -1581,7 +1591,8 @@ relase. For details, see http://bit.ly/moz-document.
           break;
         }
       } else if (named.isNotEmpty) {
-        scanner.expect("...");
+        error("Positional arguments must come before keyword arguments.",
+            expression.span);
       } else {
         positional.add(expression);
       }
