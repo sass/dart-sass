@@ -384,165 +384,14 @@ final _complement = _function("complement", r"$color", (arguments) {
 
 // Miscellaneous
 
-final _adjust = _function("adjust", r"$color, $kwargs...", (arguments) {
-  var color = arguments[0].assertColor("color");
-  var argumentList = arguments[1] as SassArgumentList;
-  if (argumentList.asList.isNotEmpty) {
-    throw SassScriptException(
-        "Only one positional argument is allowed. All other arguments must "
-        "be passed by name.");
-  }
+final _adjust = _function("adjust", r"$color, $kwargs...",
+    (arguments) => _updateComponents(arguments, adjust: true));
 
-  var keywords = Map.of(argumentList.keywords);
-  num getInRange(String name, num min, num max) =>
-      keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
+final _scale = _function("scale", r"$color, $kwargs...",
+    (arguments) => _updateComponents(arguments, scale: true));
 
-  var red = _fuzzyRoundOrNull(getInRange("red", -255, 255));
-  var green = _fuzzyRoundOrNull(getInRange("green", -255, 255));
-  var blue = _fuzzyRoundOrNull(getInRange("blue", -255, 255));
-  var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
-  var saturation = getInRange("saturation", -100, 100);
-  var lightness = getInRange("lightness", -100, 100);
-  var alpha = getInRange("alpha", -1, 1);
-
-  if (keywords.isNotEmpty) {
-    throw SassScriptException(
-        "No ${pluralize('argument', keywords.length)} named "
-        "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
-  }
-
-  var hasRgb = red != null || green != null || blue != null;
-  var hasHsl = hue != null || saturation != null || lightness != null;
-  if (hasRgb) {
-    if (hasHsl) {
-      throw SassScriptException(
-          "RGB parameters may not be passed along with HSL parameters.");
-    }
-
-    return color.changeRgb(
-        red: (color.red + (red ?? 0)).clamp(0, 255) as int,
-        green: (color.green + (green ?? 0)).clamp(0, 255) as int,
-        blue: (color.blue + (blue ?? 0)).clamp(0, 255) as int,
-        alpha: (color.alpha + (alpha ?? 0)).clamp(0, 1));
-  } else if (hasHsl) {
-    return color.changeHsl(
-        hue: color.hue + (hue ?? 0),
-        saturation: (color.saturation + (saturation ?? 0)).clamp(0, 100),
-        lightness: (color.lightness + (lightness ?? 0)).clamp(0, 100),
-        alpha: (color.alpha + (alpha ?? 0)).clamp(0, 1));
-  } else if (alpha != null) {
-    return color.changeAlpha((color.alpha + (alpha ?? 0)).clamp(0, 1));
-  } else {
-    return color;
-  }
-});
-
-final _scale = _function("scale", r"$color, $kwargs...", (arguments) {
-  var color = arguments[0].assertColor("color");
-  var argumentList = arguments[1] as SassArgumentList;
-  if (argumentList.asList.isNotEmpty) {
-    throw SassScriptException(
-        "Only one positional argument is allowed. All other arguments must "
-        "be passed by name.");
-  }
-
-  var keywords = Map.of(argumentList.keywords);
-  num getScale(String name) {
-    var value = keywords.remove(name);
-    if (value == null) return null;
-    var number = value.assertNumber(name);
-    number.assertUnit("%", name);
-    return number.valueInRange(-100, 100, name) / 100;
-  }
-
-  num scaleValue(num current, num scale, num max) {
-    if (scale == null) return current;
-    return current + (scale > 0 ? max - current : current) * scale;
-  }
-
-  var red = getScale("red");
-  var green = getScale("green");
-  var blue = getScale("blue");
-  var saturation = getScale("saturation");
-  var lightness = getScale("lightness");
-  var alpha = getScale("alpha");
-
-  if (keywords.isNotEmpty) {
-    throw SassScriptException(
-        "No ${pluralize('argument', keywords.length)} named "
-        "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
-  }
-
-  var hasRgb = red != null || green != null || blue != null;
-  var hasHsl = saturation != null || lightness != null;
-  if (hasRgb) {
-    if (hasHsl) {
-      throw SassScriptException(
-          "RGB parameters may not be passed along with HSL parameters.");
-    }
-
-    return color.changeRgb(
-        red: fuzzyRound(scaleValue(color.red, red, 255)),
-        green: fuzzyRound(scaleValue(color.green, green, 255)),
-        blue: fuzzyRound(scaleValue(color.blue, blue, 255)),
-        alpha: scaleValue(color.alpha, alpha, 1));
-  } else if (hasHsl) {
-    return color.changeHsl(
-        saturation: scaleValue(color.saturation, saturation, 100),
-        lightness: scaleValue(color.lightness, lightness, 100),
-        alpha: scaleValue(color.alpha, alpha, 1));
-  } else if (alpha != null) {
-    return color.changeAlpha(scaleValue(color.alpha, alpha, 1));
-  } else {
-    return color;
-  }
-});
-
-final _change = _function("change", r"$color, $kwargs...", (arguments) {
-  var color = arguments[0].assertColor("color");
-  var argumentList = arguments[1] as SassArgumentList;
-  if (argumentList.asList.isNotEmpty) {
-    throw SassScriptException(
-        "Only one positional argument is allowed. All other arguments must "
-        "be passed by name.");
-  }
-
-  var keywords = Map.of(argumentList.keywords);
-  num getInRange(String name, num min, num max) =>
-      keywords.remove(name)?.assertNumber(name)?.valueInRange(min, max, name);
-
-  var red = _fuzzyRoundOrNull(getInRange("red", 0, 255));
-  var green = _fuzzyRoundOrNull(getInRange("green", 0, 255));
-  var blue = _fuzzyRoundOrNull(getInRange("blue", 0, 255));
-  var hue = keywords.remove("hue")?.assertNumber("hue")?.value;
-  var saturation = getInRange("saturation", 0, 100);
-  var lightness = getInRange("lightness", 0, 100);
-  var alpha = getInRange("alpha", 0, 1);
-
-  if (keywords.isNotEmpty) {
-    throw SassScriptException(
-        "No ${pluralize('argument', keywords.length)} named "
-        "${toSentence(keywords.keys.map((name) => "\$$name"), 'or')}.");
-  }
-
-  var hasRgb = red != null || green != null || blue != null;
-  var hasHsl = hue != null || saturation != null || lightness != null;
-  if (hasRgb) {
-    if (hasHsl) {
-      throw SassScriptException(
-          "RGB parameters may not be passed along with HSL parameters.");
-    }
-
-    return color.changeRgb(red: red, green: green, blue: blue, alpha: alpha);
-  } else if (hasHsl) {
-    return color.changeHsl(
-        hue: hue, saturation: saturation, lightness: lightness, alpha: alpha);
-  } else if (alpha != null) {
-    return color.changeAlpha(alpha);
-  } else {
-    return color;
-  }
-});
+final _change = _function("change", r"$color, $kwargs...",
+    (arguments) => _updateComponents(arguments, change: true));
 
 final _ieHexStr = _function("ie-hex-str", r"$color", (arguments) {
   var color = arguments[0].assertColor("color");
@@ -553,6 +402,104 @@ final _ieHexStr = _function("ie-hex-str", r"$color", (arguments) {
       "${hexString(color.green)}${hexString(color.blue)}",
       quotes: false);
 });
+
+/// Implementation for `color.change`, `color.adjust`, and `color.scale`.
+///
+/// Exactly one of [change], [adjust], and [scale] must be true to determine
+/// which function should be executed.
+SassColor _updateComponents(List<Value> arguments,
+    {bool change = false, bool adjust = false, bool scale = false}) {
+  assert([change, adjust, scale].where((x) => x).length == 1);
+
+  var color = arguments[0].assertColor("color");
+  var argumentList = arguments[1] as SassArgumentList;
+  if (argumentList.asList.isNotEmpty) {
+    throw SassScriptException(
+        "Only one positional argument is allowed. All other arguments must "
+        "be passed by name.");
+  }
+
+  var keywords = Map.of(argumentList.keywords);
+
+  /// Gets and validates the parameter with [name] from keywords.
+  ///
+  /// [max] should be 255 for RGB channels, 1 for the alpha channel, and 100
+  /// for saturation, lightness, whiteness, and blackness.
+  num getParam(String name, num max) {
+    var number = keywords.remove(name)?.assertNumber(name);
+    if (number == null) return null;
+    if (scale) {
+      number.assertUnit("%", name);
+      return number.valueInRange(-100, 100, name) / 100;
+    }
+    return number.valueInRange(adjust ? -max : 0, max, name);
+  }
+
+  var alpha = getParam("alpha", 1);
+  var red = getParam("red", 255);
+  var green = getParam("green", 255);
+  var blue = getParam("blue", 255);
+  var hue = scale ? null : keywords.remove("hue")?.assertNumber("hue")?.value;
+  var saturation = getParam("saturation", 100);
+  var lightness = getParam("lightness", 100);
+  var whiteness = getParam("whiteness", 100);
+  var blackness = getParam("blackness", 100);
+
+  if (keywords.isNotEmpty) {
+    throw SassScriptException(
+        "No ${pluralize('argument', keywords.length)} named "
+        "${toSentence(keywords.keys.map((name) => '\$$name'), 'or')}.");
+  }
+
+  var hasRgb = red != null || green != null || blue != null;
+  var hasSl = saturation != null || lightness != null;
+  var hasWb = whiteness != null || blackness != null;
+
+  if (hasRgb && (hasSl || hasWb || hue != null)) {
+    throw SassScriptException("RGB parameters may not be passed along with "
+        "${hasWb ? 'HWB' : 'HSL'} parameters.");
+  }
+
+  if (hasSl && hasWb) {
+    throw SassScriptException(
+        "HSL parameters may not be passed along with HWB parameters.");
+  }
+
+  /// Updates [current] based on [param], clamped within [max].
+  num updateValue(num current, num param, num max) {
+    if (param == null) return current;
+    if (change) return param;
+    if (adjust) return (current + param).clamp(0, max);
+    return current + (param > 0 ? max - current : current) * param;
+  }
+
+  int updateRgb(int current, num param) =>
+      fuzzyRound(updateValue(current, param, 255));
+
+  if (hasRgb) {
+    return color.changeRgb(
+        red: updateRgb(color.red, red),
+        green: updateRgb(color.green, green),
+        blue: updateRgb(color.blue, blue),
+        alpha: updateValue(color.alpha, alpha, 1));
+  } else if (hasWb) {
+    return color.changeHwb(
+        hue: change ? hue : color.hue + (hue ?? 0),
+        whiteness: updateValue(color.whiteness, whiteness, 100),
+        blackness: updateValue(color.blackness, blackness, 100),
+        alpha: updateValue(color.alpha, alpha, 1));
+  } else if (hue != null || hasSl) {
+    return color.changeHsl(
+        hue: change ? hue : color.hue + (hue ?? 0),
+        saturation: updateValue(color.saturation, saturation, 100),
+        lightness: updateValue(color.lightness, lightness, 100),
+        alpha: updateValue(color.alpha, alpha, 1));
+  } else if (alpha != null) {
+    return color.changeAlpha(updateValue(color.alpha, alpha, 1));
+  } else {
+    return color;
+  }
+}
 
 /// Returns a string representation of [name] called with [arguments], as though
 /// it were a plain CSS function.
