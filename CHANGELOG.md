@@ -1,5 +1,13 @@
 ## 1.28.0
 
+* Add `$whiteness` and `$blackness` parameters to [`color.adjust()`],
+  [`color.change()`], and [`color.scale()`] to modify a color's [HWB] whiteness
+  and blackness components.
+
+[`color.adjust()`]: https://sass-lang.com/documentation/modules/color#adjust
+[`color.change()`]: https://sass-lang.com/documentation/modules/color#change
+[`color.scale()`]: https://sass-lang.com/documentation/modules/color#scale
+
 ### Dart API
 
 * Add [HWB] support to the `SassColor` class, including a `SassColor.hwb()`

@@ -425,14 +425,12 @@ SassColor _updateComponents(List<Value> arguments,
   ///
   /// [max] should be 255 for RGB channels, 1 for the alpha channel, and 100
   /// for saturation, lightness, whiteness, and blackness.
-  num getParam(String name, num max) {
+  num getParam(String name, num max, {bool assertPercent = false}) {
     var number = keywords.remove(name)?.assertNumber(name);
     if (number == null) return null;
-    if (scale) {
-      number.assertUnit("%", name);
-      return number.valueInRange(-100, 100, name) / 100;
-    }
-    return number.valueInRange(adjust ? -max : 0, max, name);
+    if (scale || assertPercent) number.assertUnit("%", name);
+    if (scale) max = 100;
+    return number.valueInRange(change ? 0 : -max, max, name);
   }
 
   var alpha = getParam("alpha", 1);
@@ -442,8 +440,8 @@ SassColor _updateComponents(List<Value> arguments,
   var hue = scale ? null : keywords.remove("hue")?.assertNumber("hue")?.value;
   var saturation = getParam("saturation", 100);
   var lightness = getParam("lightness", 100);
-  var whiteness = getParam("whiteness", 100);
-  var blackness = getParam("blackness", 100);
+  var whiteness = getParam("whiteness", 100, assertPercent: true);
+  var blackness = getParam("blackness", 100, assertPercent: true);
 
   if (keywords.isNotEmpty) {
     throw SassScriptException(
@@ -452,15 +450,15 @@ SassColor _updateComponents(List<Value> arguments,
   }
 
   var hasRgb = red != null || green != null || blue != null;
-  var hasSl = saturation != null || lightness != null;
-  var hasWb = whiteness != null || blackness != null;
+  var hasSL = saturation != null || lightness != null;
+  var hasWB = whiteness != null || blackness != null;
 
-  if (hasRgb && (hasSl || hasWb || hue != null)) {
+  if (hasRgb && (hasSL || hasWB || hue != null)) {
     throw SassScriptException("RGB parameters may not be passed along with "
-        "${hasWb ? 'HWB' : 'HSL'} parameters.");
+        "${hasWB ? 'HWB' : 'HSL'} parameters.");
   }
 
-  if (hasSl && hasWb) {
+  if (hasSL && hasWB) {
     throw SassScriptException(
         "HSL parameters may not be passed along with HWB parameters.");
   }
@@ -470,7 +468,7 @@ SassColor _updateComponents(List<Value> arguments,
     if (param == null) return current;
     if (change) return param;
     if (adjust) return (current + param).clamp(0, max);
-    return current + (param > 0 ? max - current : current) * param;
+    return current + (param > 0 ? max - current : current) * (param / 100);
   }
 
   int updateRgb(int current, num param) =>
@@ -482,13 +480,13 @@ SassColor _updateComponents(List<Value> arguments,
         green: updateRgb(color.green, green),
         blue: updateRgb(color.blue, blue),
         alpha: updateValue(color.alpha, alpha, 1));
-  } else if (hasWb) {
+  } else if (hasWB) {
     return color.changeHwb(
         hue: change ? hue : color.hue + (hue ?? 0),
         whiteness: updateValue(color.whiteness, whiteness, 100),
         blackness: updateValue(color.blackness, blackness, 100),
         alpha: updateValue(color.alpha, alpha, 1));
-  } else if (hue != null || hasSl) {
+  } else if (hue != null || hasSL) {
     return color.changeHsl(
         hue: change ? hue : color.hue + (hue ?? 0),
         saturation: updateValue(color.saturation, saturation, 100),
