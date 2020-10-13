@@ -98,10 +98,9 @@ jobs:
     language: dart
     dart_task: {dartanalyzer: --fatal-warnings --fatal-infos lib tool test}
 
-  # TODO(jathak): Re-enable this once dart-lang/dart_style#940 is fixed.
-  # - name: code formatting
-  #   language: dart
-  #   dart_task: dartfmt
+  - name: code formatting
+    language: dart
+    dart_task: dartfmt
 
   ## Deployment
 
