@@ -281,6 +281,18 @@ final module = BuiltInModule("color", functions: [
     }
   }),
 
+  _function(
+    "whiteness",
+    r"$color",
+    (arguments) =>
+        SassNumber(arguments.first.assertColor("color").whiteness, "%")),
+
+  _function(
+    "blackness",
+    r"$color",
+    (arguments) =>
+        SassNumber(arguments.first.assertColor("color").blackness, "%")),
+
   // ### Opacity
   _removedColorFunction("opacify", "alpha"),
   _removedColorFunction("fade-in", "alpha"),

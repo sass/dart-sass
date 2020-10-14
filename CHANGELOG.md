@@ -1,5 +1,16 @@
 ## 1.28.0
 
+* Add a [`color.hwb()`] function to `sass:color` that can express colors in [HWB] format.
+
+[`color.hwb()`]: https://sass-lang.com/documentation/modules/color#hwb
+[HWB]: https://en.wikipedia.org/wiki/HWB_color_model
+
+* Add [`color.whiteness()`] and [`color.blackness()`] functions to `sass:color`
+  to get a color's [HWB] whiteness and blackness components.
+
+[`color.whiteness()`]: https://sass-lang.com/documentation/modules/color#whiteness
+[`color.blackness()`]: https://sass-lang.com/documentation/modules/color#blackness
+
 * Add `$whiteness` and `$blackness` parameters to [`color.adjust()`],
   [`color.change()`], and [`color.scale()`] to modify a color's [HWB] whiteness
   and blackness components.
