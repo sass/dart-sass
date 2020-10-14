@@ -11,10 +11,10 @@ import 'package:path/path.dart' as p;
 
 /// Options for [run] that tell Git to commit using SassBot's name and email.
 final sassBotEnvironment = RunOptions(environment: {
-  "GIT_AUTHOR_NAME": pkg.botName,
-  "GIT_AUTHOR_EMAIL": pkg.botEmail,
-  "GIT_COMMITTER_NAME": pkg.botName,
-  "GIT_COMMITTER_EMAIL": pkg.botEmail
+  "GIT_AUTHOR_NAME": pkg.botName.value,
+  "GIT_AUTHOR_EMAIL": pkg.botEmail.value,
+  "GIT_COMMITTER_NAME": pkg.botName.value,
+  "GIT_COMMITTER_EMAIL": pkg.botEmail.value
 });
 
 /// Ensure that the `build/` directory exists.
