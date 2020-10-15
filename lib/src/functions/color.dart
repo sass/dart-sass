@@ -282,16 +282,16 @@ final module = BuiltInModule("color", functions: [
   }),
 
   _function(
-    "whiteness",
-    r"$color",
-    (arguments) =>
-        SassNumber(arguments.first.assertColor("color").whiteness, "%")),
+      "whiteness",
+      r"$color",
+      (arguments) =>
+          SassNumber(arguments.first.assertColor("color").whiteness, "%")),
 
   _function(
-    "blackness",
-    r"$color",
-    (arguments) =>
-        SassNumber(arguments.first.assertColor("color").blackness, "%")),
+      "blackness",
+      r"$color",
+      (arguments) =>
+          SassNumber(arguments.first.assertColor("color").blackness, "%")),
 
   // ### Opacity
   _removedColorFunction("opacify", "alpha"),
@@ -764,9 +764,6 @@ SassColor _transparentize(List<Value> arguments) {
   return color.changeAlpha(
       (color.alpha - amount.valueInRange(0, 1, "amount")).clamp(0, 1));
 }
-
-/// Like [fuzzyRound], but returns `null` if [number] is `null`.
-int _fuzzyRoundOrNull(num number) => number == null ? null : fuzzyRound(number);
 
 /// Like [new BuiltInCallable.function], but always sets the URL to
 /// `sass:color`.
