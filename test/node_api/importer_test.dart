@@ -139,6 +139,43 @@ void main() {
           }))));
       expect(result.stats.includedFiles, equals(['bar']));
     });
+
+    test("uses relative files within subdirectories by contents", () {
+      expect(
+          renderSync(RenderOptions(
+              data:
+                  "@use './button/rules' as button; @use './input/rules' as input",
+              importer: [
+                allowInterop((Object url, void _) {
+                  if (url != "button/rules") return null;
+                  return NodeImporterResult(
+                      contents: '@use "./styles"',
+                      file: '/__virtual__/button/rules');
+                }),
+                allowInterop((Object url, void _) {
+                  if (url != "input/rules") return null;
+                  return NodeImporterResult(
+                      contents: '@use "./styles"',
+                      file: '/__virtual__/input/rules');
+                }),
+                allowInterop((Object url, Object prev) {
+                  if (prev != "/__virtual__/button/rules") return null;
+                  if (url != "styles") return null;
+                  return NodeImporterResult(
+                      contents: 'button {color: red}',
+                      file: '/__virtual__/button/rules/styles');
+                }),
+                allowInterop((Object url, Object prev) {
+                  if (prev != "/__virtual__/input/rules") return null;
+                  if (url != "styles") return null;
+                  return NodeImporterResult(
+                      contents: 'input {color: green}',
+                      file: '/__virtual__/input/rules/styles');
+                })
+              ])),
+          equalsIgnoringWhitespace(
+              'button { color: red; } input { color: green; }'));
+    });
   });
 
   group("with a file redirect", () {

@@ -169,9 +169,12 @@ class NodeImporter {
     var resolved = forImport
         ? inImportRule(() => resolveImportPath(path))
         : resolveImportPath(path);
-    return resolved == null
-        ? null
-        : Tuple2(readFile(resolved), p.toUri(resolved).toString());
+    if (resolved == null) return null;
+    try {
+      return Tuple2(readFile(resolved), p.toUri(resolved).toString());
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Converts an importer's return [value] to a tuple that can be returned by
