@@ -1,4 +1,8 @@
-## 1.27.0
+## 1.27.1
+
+* Avoid going exponential on certain recursive `@extend` edge cases.
+
+## 1.27.1
 
 * Adds an overload to `map.merge()` that supports merging a nested map.
 
