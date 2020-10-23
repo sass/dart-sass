@@ -1,10 +1,91 @@
+## 1.27.1
+
+* **Potentially breaking bug fix:** `meta.load-css()` now correctly uses the
+  name `$url` for its first argument, rather than `$module`.
+
+## 1.27.0
+
+* Adds an overload to `map.merge()` that supports merging a nested map.
+
+  `map.merge($map1, $keys..., $map2)`: The `$keys` form a path to the nested map
+  in `$map1`, into which `$map2` gets merged.
+
+  See [the Sass documentation][map-merge] for more details.
+
+  [map-merge]: https://sass-lang.com/documentation/modules/map#merge
+
+* Adds an overloaded `map.set()` function.
+
+  `map.set($map, $key, $value)`: Adds to or updates `$map` with the specified
+  `$key` and `$value`.
+
+  `map.set($map, $keys..., $value)`: Adds to or updates a map that is nested
+  within `$map`. The `$keys` form a path to the nested map in `$map`, into
+  which `$value` is inserted.
+
+  See [the Sass documentation][map-set] for more details.
+
+  [map-set]: https://sass-lang.com/documentation/modules/map#set
+
+* Add support for nested maps to `map.get()`.
+  For example, `map.get((a: (b: (c: d))), a, b, c)` would return `d`.
+  See [the documentation][map-get] for more details.
+
+  [map-get]: https://sass-lang.com/documentation/modules/map#get
+
+* Add support for nested maps in `map.has-key`.
+  For example, `map.has-key((a: (b: (c: d))), a, b, c)` would return true.
+  See [the documentation][map-has-key] for more details.
+
+  [map-has-key]: https://sass-lang.com/documentation/modules/map#has-key
+
+* Add a `map.deep-merge()` function. This works like `map.merge()`, except that
+  nested map values are *also* recursively merged. For example:
+
+  ```
+  map.deep-merge(
+    (color: (primary: red, secondary: blue),
+    (color: (secondary: teal)
+  ) // => (color: (primary: red, secondary: teal))
+  ```
+
+  See [the Sass documentation][map-deep-merge] for more details.
+
+  [map-deep-merge]: https://sass-lang.com/documentation/modules/map#deep-merge
+
+* Add a `map.deep-remove()` function. This allows you to remove keys from
+  nested maps by passing multiple keys. For example:
+
+  ```
+  map.deep-remove(
+    (color: (primary: red, secondary: blue)),
+    color, primary
+  ) // => (color: (secondary: blue))
+  ```
+
+  See [the Sass documentation][map-deep-remove] for more details.
+
+  [map-deep-remove]: https://sass-lang.com/documentation/modules/map#deep-remove
+
+* Fix a bug where custom property values in plain CSS were being parsed as
+  normal property values.
+
+### Dart API
+
+* Add a `Value.tryMap()` function which returns the `Value` as a `SassMap` if
+  it's a valid map, or `null` otherwise. This allows function authors to safely
+  retrieve maps even if they're internally stored as empty lists, without having
+  to catch exceptions from `Value.assertMap()`.
+
+## 1.26.12
+
+* Fix a bug where nesting properties beneath a Sass-syntax custom property
+  (written as `#{--foo}: ...`) would crash.
+
 ## 1.26.11
 
 * **Potentially breaking bug fix:** `selector.nest()` now throws an error
   if the first arguments contains the parent selector `&`.
-
-* **Potentially breaking bug fix:** `meta.load-css()` now correctly uses the
-  name `$url` for its first argument, rather than `$module`.
 
 * Fixes a parsing bug with inline comments in selectors.
 
@@ -13,6 +94,9 @@
 * Throw a proper error when the same built-in module is `@use`d twice.
 
 * Don't crash when writing `Infinity` in JS mode.
+
+* Produce a better error message for positional arguments following named
+  arguments.
 
 ## 1.26.10
 

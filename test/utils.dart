@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'package:sass/src/io.dart';
@@ -31,3 +32,6 @@ Map<String, Object> embeddedSourceMap(String css) {
   expect(data.mimeType, equals("application/json"));
   return jsonDecode(data.contentAsString()) as Map<String, Object>;
 }
+
+// Like `p.prettyUri()`, but for a non-URL path.
+String prettyPath(String path) => p.prettyUri(p.toUri(path));

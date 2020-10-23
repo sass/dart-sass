@@ -18,6 +18,7 @@ import 'hybrid.dart';
 import 'node_api/api.dart';
 import 'node_api/intercept_stdout.dart';
 import 'node_api/utils.dart';
+import 'utils.dart';
 
 String sassPath;
 
@@ -294,7 +295,7 @@ a {
                 "1 │ x {y: }\n"
                 "  │       ^\n"
                 "  ╵\n"
-                "  $sassPath 1:7  root stylesheet"));
+                "  ${prettyPath(sassPath)} 1:7  root stylesheet"));
       });
     });
 
@@ -369,7 +370,7 @@ a {
                   "1 │ a {b: }\n"
                   "  │       ^\n"
                   "  ╵\n"
-                  "  $sassPath 1:7  root stylesheet"));
+                  "  ${prettyPath(sassPath)} 1:7  root stylesheet"));
         });
 
         test("sets the line, column, and filename", () {
@@ -420,7 +421,7 @@ a {
                   '1 │ a {b: 1 % a}\n'
                   '  │       ^^^^^\n'
                   '  ╵\n'
-                  '  $sassPath 1:7  root stylesheet'));
+                  '  ${prettyPath(sassPath)} 1:7  root stylesheet'));
         });
 
         test("sets the line, column, and filename", () {
@@ -494,7 +495,7 @@ a {
               "1 │ a {b: }\n"
               "  │       ^\n"
               "  ╵\n"
-              "  $sassPath 1:7  root stylesheet"));
+              "  ${prettyPath(sassPath)} 1:7  root stylesheet"));
     });
   });
 }

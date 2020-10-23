@@ -1039,8 +1039,9 @@ class _EvaluateVisitor
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
       _parent.addChild(ModifiableCssDeclaration(name, cssValue, node.span,
+          parsedAsCustomProperty: node.isCustomProperty,
           valueSpanForMap: _expressionNode(node.value)?.span));
-    } else if (name.value.startsWith('--')) {
+    } else if (name.value.startsWith('--') && node.children == null) {
       throw _exception(
           "Custom property values may not be empty.", node.value.span);
     }
@@ -2559,6 +2560,7 @@ class _EvaluateVisitor
 
   Future<void> visitCssDeclaration(CssDeclaration node) async {
     _parent.addChild(ModifiableCssDeclaration(node.name, node.value, node.span,
+        parsedAsCustomProperty: node.isCustomProperty,
         valueSpanForMap: node.valueSpanForMap));
   }
 

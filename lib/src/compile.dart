@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 193c9bc1905022e881636f4d6359c906146abcb3
+// Checksum: bca3a79dd4a5c3905b07003b123172f3c876d2de
 //
 // ignore_for_file: unused_import
 
