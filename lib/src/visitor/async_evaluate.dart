@@ -419,9 +419,9 @@ class _EvaluateVisitor
     ];
 
     var metaMixins = [
-      AsyncBuiltInCallable.mixin("load-css", r"$module, $with: null",
+      AsyncBuiltInCallable.mixin("load-css", r"$url, $with: null",
           (arguments) async {
-        var url = Uri.parse(arguments[0].assertString("module").text);
+        var url = Uri.parse(arguments[0].assertString("url").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
         var configuration = const Configuration.empty();
