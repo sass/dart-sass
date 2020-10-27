@@ -3,6 +3,8 @@
 * **Potentially breaking bug fix:** `meta.load-css()` now correctly uses the
   name `$url` for its first argument, rather than `$module`.
 
+* Don't crash when using `Infinity` or `NaN` as a key in a map.
+
 * Emit a proper parse error for a `=` with no right-hand side in a function.
 
 ## 1.27.0
