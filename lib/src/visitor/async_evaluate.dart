@@ -419,9 +419,9 @@ class _EvaluateVisitor
     ];
 
     var metaMixins = [
-      AsyncBuiltInCallable.mixin("load-css", r"$module, $with: null",
+      AsyncBuiltInCallable.mixin("load-css", r"$url, $with: null",
           (arguments) async {
-        var url = Uri.parse(arguments[0].assertString("module").text);
+        var url = Uri.parse(arguments[0].assertString("url").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
         var configuration = const Configuration.empty();
@@ -1039,8 +1039,9 @@ class _EvaluateVisitor
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
       _parent.addChild(ModifiableCssDeclaration(name, cssValue, node.span,
+          parsedAsCustomProperty: node.isCustomProperty,
           valueSpanForMap: _expressionNode(node.value)?.span));
-    } else if (name.value.startsWith('--')) {
+    } else if (name.value.startsWith('--') && node.children == null) {
       throw _exception(
           "Custom property values may not be empty.", node.value.span);
     }
@@ -2559,6 +2560,7 @@ class _EvaluateVisitor
 
   Future<void> visitCssDeclaration(CssDeclaration node) async {
     _parent.addChild(ModifiableCssDeclaration(node.name, node.value, node.span,
+        parsedAsCustomProperty: node.isCustomProperty,
         valueSpanForMap: node.valueSpanForMap));
   }
 

@@ -73,14 +73,11 @@ jobs:
   # The versions should be kept up-to-date with the latest LTS Node releases.
   # They next need to be rotated April 2021. See
   # https://github.com/nodejs/Release.
-  #
-  # TODO(nweiz): Run Node tests on Windows when [this issue][] is fixed.
-  #
-  # [this issue]: https://travis-ci.community/t/windows-instances-hanging-before-install/250/28.
   - &node-tests
-    name: Node tests | Dart stable | Node stable
+    # Run on Node 14 until laverdet/node-fibers#445 is fixed.
+    name: Node tests | Dart stable | Node 14
     language: node_js
-    node_js: lts/*
+    node_js: v14
     install: pub run grinder before-test
     script: tool/travis/task/node_tests.sh
   - <<: *node-tests
@@ -90,9 +87,11 @@ jobs:
     name: Node tests | Dart stable | Node Erbium
     node_js: lts/erbium
   - <<: *node-tests
+    os: windows
+  - <<: *node-tests
     os: osx
   - <<: *node-tests
-    name: Node tests | Dart dev | Node stable
+    name: Node tests | Dart dev | Node 14
     env: DART_CHANNEL=dev
 
   # Miscellaneous checks.

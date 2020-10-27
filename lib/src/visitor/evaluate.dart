@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f6fe6645ccec58216ef623851bd2594de291a360
+// Checksum: 485fce53ba9f381973c25a69b193a681891be098
 //
 // ignore_for_file: unused_import
 
@@ -425,8 +425,8 @@ class _EvaluateVisitor
     ];
 
     var metaMixins = [
-      BuiltInCallable.mixin("load-css", r"$module, $with: null", (arguments) {
-        var url = Uri.parse(arguments[0].assertString("module").text);
+      BuiltInCallable.mixin("load-css", r"$url, $with: null", (arguments) {
+        var url = Uri.parse(arguments[0].assertString("url").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
         var configuration = const Configuration.empty();
@@ -1041,8 +1041,9 @@ class _EvaluateVisitor
     if (cssValue != null &&
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
       _parent.addChild(ModifiableCssDeclaration(name, cssValue, node.span,
+          parsedAsCustomProperty: node.isCustomProperty,
           valueSpanForMap: _expressionNode(node.value)?.span));
-    } else if (name.value.startsWith('--')) {
+    } else if (name.value.startsWith('--') && node.children == null) {
       throw _exception(
           "Custom property values may not be empty.", node.value.span);
     }
@@ -2541,6 +2542,7 @@ class _EvaluateVisitor
 
   void visitCssDeclaration(CssDeclaration node) {
     _parent.addChild(ModifiableCssDeclaration(node.name, node.value, node.span,
+        parsedAsCustomProperty: node.isCustomProperty,
         valueSpanForMap: node.valueSpanForMap));
   }
 

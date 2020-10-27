@@ -44,6 +44,7 @@ class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
 
   ModifiableCssDeclaration visitCssDeclaration(CssDeclaration node) =>
       ModifiableCssDeclaration(node.name, node.value, node.span,
+          parsedAsCustomProperty: node.parsedAsCustomProperty,
           valueSpanForMap: node.valueSpanForMap);
 
   ModifiableCssImport visitCssImport(CssImport node) =>
