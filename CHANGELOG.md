@@ -1,3 +1,7 @@
+## 1.27.1
+
+* Emit a proper parse error for a `=` with no right-hand side in a function.
+
 ## 1.27.0
 
 * Adds an overload to `map.merge()` that supports merging a nested map.

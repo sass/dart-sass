@@ -1640,8 +1640,6 @@ relase. For details, see http://bit.ly/moz-document.
 
     List<Expression> commaExpressions;
 
-    Expression singleEqualsOperand;
-
     List<Expression> spaceExpressions;
 
     // Operators whose right-hand operands are not fully parsed yet, in order of
@@ -1718,7 +1716,9 @@ relase. For details, see http://bit.ly/moz-document.
     }
 
     void addOperator(BinaryOperator operator) {
-      if (plainCss && operator != BinaryOperator.dividedBy) {
+      if (plainCss &&
+          operator != BinaryOperator.dividedBy &&
+          operator != BinaryOperator.singleEquals) {
         scanner.error("Operators aren't allowed in plain CSS.",
             position: scanner.position - operator.operator.length,
             length: operator.operator.length);
@@ -1749,12 +1749,6 @@ relase. For details, see http://bit.ly/moz-document.
         singleExpression =
             ListExpression(spaceExpressions, ListSeparator.space);
         spaceExpressions = null;
-      }
-
-      if (singleEqualsOperand != null) {
-        singleExpression = BinaryOperationExpression(
-            BinaryOperator.singleEquals, singleEqualsOperand, singleExpression);
-        singleEqualsOperand = null;
       }
     }
 
@@ -1794,9 +1788,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $equal:
           scanner.readChar();
           if (singleEquals && scanner.peekChar() != $equal) {
-            resolveSpaceExpressions();
-            singleEqualsOperand = singleExpression;
-            singleExpression = null;
+            addOperator(BinaryOperator.singleEquals);
           } else {
             scanner.expectChar($equal);
             addOperator(BinaryOperator.equals);
@@ -2014,9 +2006,7 @@ relase. For details, see http://bit.ly/moz-document.
       return ListExpression(commaExpressions, ListSeparator.comma,
           brackets: bracketList,
           span: bracketList ? scanner.spanFrom(beforeBracket) : null);
-    } else if (bracketList &&
-        spaceExpressions != null &&
-        singleEqualsOperand == null) {
+    } else if (bracketList && spaceExpressions != null) {
       resolveOperations();
       return ListExpression(
           spaceExpressions..add(singleExpression), ListSeparator.space,
