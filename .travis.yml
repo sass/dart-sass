@@ -74,9 +74,10 @@ jobs:
   # They next need to be rotated April 2021. See
   # https://github.com/nodejs/Release.
   - &node-tests
-    name: Node tests | Dart stable | Node stable
+    # Run on Node 14 until laverdet/node-fibers#445 is fixed.
+    name: Node tests | Dart stable | Node 14
     language: node_js
-    node_js: node
+    node_js: v14
     install: pub run grinder before-test
     script: tool/travis/task/node_tests.sh
   - <<: *node-tests
@@ -90,7 +91,7 @@ jobs:
   - <<: *node-tests
     os: osx
   - <<: *node-tests
-    name: Node tests | Dart dev | Node stable
+    name: Node tests | Dart dev | Node 14
     env: DART_CHANNEL=dev
 
   # Miscellaneous checks.
