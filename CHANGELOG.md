@@ -7,6 +7,8 @@
 
 * Emit a proper parse error for a `=` with no right-hand side in a function.
 
+* Avoid going exponential on certain recursive `@extend` edge cases.
+
 ## 1.27.0
 
 * Adds an overload to `map.merge()` that supports merging a nested map.
