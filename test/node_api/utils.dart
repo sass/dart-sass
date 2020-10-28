@@ -8,6 +8,7 @@ import 'dart:js_util';
 
 import 'package:js/js.dart';
 import 'package:test/test.dart';
+import 'package:node_interop/node_interop.dart';
 
 import 'package:sass/src/io.dart';
 import 'package:sass/src/node/function.dart';
@@ -97,8 +98,8 @@ void runTestInSandbox() {
   sass;
 
   var oldWorkingDirectory = currentPath;
-  chdir(sandbox);
-  addTearDown(() => chdir(oldWorkingDirectory));
+  process.chdir(sandbox);
+  addTearDown(() => process.chdir(oldWorkingDirectory));
 }
 
 /// Sets the environment variable [name] to [value] within this process.
