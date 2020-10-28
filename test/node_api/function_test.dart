@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:js_util';
 
 import 'package:js/js.dart';
+import 'package:node_interop/js.dart';
 import 'package:test/test.dart';
 
 import '../ensure_npm_package.dart';
@@ -236,7 +237,7 @@ void main() {
           functions: jsify({
             "foo": allowInterop((void done(Object result)) {
               Timer(Duration.zero, () {
-                done(JSError("aw beans"));
+                done(JsError("aw beans"));
               });
             })
           })));
@@ -340,7 +341,7 @@ void main() {
             functions: jsify({
               "foo": allowInterop((void done(Object result)) {
                 Timer(Duration.zero, () {
-                  done(JSError("aw beans"));
+                  done(JsError("aw beans"));
                 });
               })
             }),

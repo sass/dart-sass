@@ -7,62 +7,15 @@ import 'dart:convert';
 import 'dart:js_util';
 
 import 'package:js/js.dart';
+import 'package:node_interop/fs.dart';
+import 'package:node_interop/node_interop.dart';
+import 'package:node_interop/stream.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
 import '../node/chokidar.dart';
-
-@JS()
-class _FS {
-  external Object readFileSync(String path, [String encoding]);
-  external void writeFileSync(String path, String data);
-  external bool existsSync(String path);
-  external void mkdirSync(String path);
-  external _Stat statSync(String path);
-  external void unlinkSync(String path);
-  external List<Object> readdirSync(String path);
-}
-
-@JS()
-class _Stat {
-  external bool isFile();
-  external bool isDirectory();
-  external _Date get mtime;
-}
-
-@JS()
-class _Date {
-  external int getTime();
-}
-
-@JS()
-class _Stderr {
-  external void write(String text);
-}
-
-@JS()
-class _Stdin {
-  external String read();
-
-  external void on(String event, void callback([Object object]));
-}
-
-@JS()
-class _SystemError {
-  external String get message;
-  external String get code;
-  external String get syscall;
-  external String get path;
-}
-
-@JS()
-class _Process {
-  external String get platform;
-  external Object get env;
-  external String cwd();
-}
 
 class FileSystemException {
   final String message;
@@ -74,7 +27,7 @@ class FileSystemException {
 }
 
 class Stderr {
-  final _Stderr _stderr;
+  final Writable _stderr;
 
   Stderr(this._stderr);
 
@@ -86,12 +39,6 @@ class Stderr {
 
   void flush() {}
 }
-
-@JS("fs")
-external _FS get _fs;
-
-@JS("process")
-external _Process get _process;
 
 String readFile(String path) {
   // TODO(nweiz): explicitly decode the bytes as UTF-8 like we do in the VM when
@@ -112,13 +59,13 @@ String readFile(String path) {
 
 /// Wraps `fs.readFileSync` to throw a [FileSystemException].
 Object _readFile(String path, [String encoding]) =>
-    _systemErrorToFileSystemException(() => _fs.readFileSync(path, encoding));
+    _systemErrorToFileSystemException(() => fs.readFileSync(path, encoding));
 
 void writeFile(String path, String contents) =>
-    _systemErrorToFileSystemException(() => _fs.writeFileSync(path, contents));
+    _systemErrorToFileSystemException(() => fs.writeFileSync(path, contents));
 
 void deleteFile(String path) =>
-    _systemErrorToFileSystemException(() => _fs.unlinkSync(path));
+    _systemErrorToFileSystemException(() => fs.unlinkSync(path));
 
 Future<String> readStdin() async {
   var completer = Completer<String>();
@@ -129,16 +76,16 @@ Future<String> readStdin() async {
   });
   // Node defaults all buffers to 'utf8'.
   var sink = utf8.decoder.startChunkedConversion(innerSink);
-  _stdin.on('data', allowInterop(([chunk]) {
+  process.stdin.on('data', allowInterop(([Object chunk]) {
     assert(chunk != null);
     sink.add(chunk as List<int>);
   }));
-  _stdin.on('end', allowInterop(([_]) {
+  process.stdin.on('end', allowInterop(([Object _]) {
     // Callback for 'end' receives no args.
     assert(_ == null);
     sink.close();
   }));
-  _stdin.on('error', allowInterop(([e]) {
+  process.stdin.on('error', allowInterop(([Object e]) {
     assert(e != null);
     stderr.writeln('Failed to read from stdin');
     stderr.writeln(e);
@@ -148,7 +95,7 @@ Future<String> readStdin() async {
 }
 
 /// Cleans up a Node system error's message.
-String _cleanErrorMessage(_SystemError error) {
+String _cleanErrorMessage(JsSystemError error) {
   // The error message is of the form "$code: $text, $syscall '$path'". We just
   // want the text.
   return error.message.substring("${error.code}: ".length,
@@ -161,12 +108,12 @@ bool fileExists(String path) {
     // whether the entity in question is a file or a directory. Since false
     // negatives are much more common than false positives, it works out in our
     // favor to check this first.
-    if (!_fs.existsSync(path)) return false;
+    if (!fs.existsSync(path)) return false;
 
     try {
-      return _fs.statSync(path).isFile();
+      return fs.statSync(path).isFile();
     } catch (error) {
-      var systemError = error as _SystemError;
+      var systemError = error as JsSystemError;
       if (systemError.code == 'ENOENT') return false;
       rethrow;
     }
@@ -179,12 +126,12 @@ bool dirExists(String path) {
     // whether the entity in question is a file or a directory. Since false
     // negatives are much more common than false positives, it works out in our
     // favor to check this first.
-    if (!_fs.existsSync(path)) return false;
+    if (!fs.existsSync(path)) return false;
 
     try {
-      return _fs.statSync(path).isDirectory();
+      return fs.statSync(path).isDirectory();
     } catch (error) {
-      var systemError = error as _SystemError;
+      var systemError = error as JsSystemError;
       if (systemError.code == 'ENOENT') return false;
       rethrow;
     }
@@ -194,13 +141,13 @@ bool dirExists(String path) {
 void ensureDir(String path) {
   return _systemErrorToFileSystemException(() {
     try {
-      _fs.mkdirSync(path);
+      fs.mkdirSync(path);
     } catch (error) {
-      var systemError = error as _SystemError;
+      var systemError = error as JsSystemError;
       if (systemError.code == 'EEXIST') return;
       if (systemError.code != 'ENOENT') rethrow;
       ensureDir(p.dirname(path));
-      _fs.mkdirSync(path);
+      fs.mkdirSync(path);
     }
   });
 }
@@ -208,13 +155,13 @@ void ensureDir(String path) {
 Iterable<String> listDir(String path, {bool recursive = false}) {
   return _systemErrorToFileSystemException(() {
     if (!recursive) {
-      return _fs
+      return fs
           .readdirSync(path)
           .map((child) => p.join(path, child as String))
           .where((child) => !dirExists(child));
     } else {
       Iterable<String> list(String parent) =>
-          _fs.readdirSync(parent).expand((child) {
+          fs.readdirSync(parent).expand((child) {
             var path = p.join(parent, child as String);
             return dirExists(path) ? list(path) : [path];
           });
@@ -225,55 +172,42 @@ Iterable<String> listDir(String path, {bool recursive = false}) {
 }
 
 DateTime modificationTime(String path) =>
-    _systemErrorToFileSystemException(() => DateTime.fromMillisecondsSinceEpoch(
-        _fs.statSync(path).mtime.getTime()));
+    _systemErrorToFileSystemException(() =>
+        DateTime.fromMillisecondsSinceEpoch(fs.statSync(path).mtime.getTime()));
 
 String getEnvironmentVariable(String name) =>
-    getProperty(_process.env, name) as String;
+    getProperty(process.env, name) as String;
 
-/// Runs callback and converts any [_SystemError]s it throws into
+/// Runs callback and converts any [JsSystemError]s it throws into
 /// [FileSystemException]s.
 T _systemErrorToFileSystemException<T>(T callback()) {
   try {
     return callback();
   } catch (error) {
-    var systemError = error as _SystemError;
+    var systemError = error as JsSystemError;
     throw FileSystemException._(
         _cleanErrorMessage(systemError), systemError.path);
   }
 }
 
-@JS("process.stderr")
-external _Stderr get _stderr;
+final stderr = Stderr(process.stderr);
 
-final stderr = Stderr(_stderr);
+bool get hasTerminal => process.stdout.isTTY ?? false;
 
-@JS("process.stdin")
-external _Stdin get _stdin;
+bool get isWindows => process.platform == 'win32';
 
-bool get hasTerminal => _hasTerminal ?? false;
-
-bool get isWindows => _process.platform == 'win32';
-
-bool get isMacOS => _process.platform == 'darwin';
+bool get isMacOS => process.platform == 'darwin';
 
 bool get isNode => true;
 
 // Node seems to support ANSI escapes on all terminals.
 bool get supportsAnsiEscapes => hasTerminal;
 
-String get currentPath => _process.cwd();
+String get currentPath => process.cwd();
 
-@JS("process.stdout.isTTY")
-external bool get _hasTerminal;
+int get exitCode => process.exitCode;
 
-@JS("process.exitCode")
-external int get exitCode;
-
-// TODO(nweiz): remove this ignore when dart-lang/sdk#39250 is fixed.
-// ignore: inference_failure_on_function_return_type
-@JS("process.exitCode")
-external set exitCode(int code);
+set exitCode(int code) => process.exitCode = code;
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
   var watcher = chokidar.watch(

@@ -8,6 +8,7 @@ import 'dart:js_util';
 import 'dart:typed_data';
 
 import 'package:js/js.dart';
+import 'package:node_interop/js.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
@@ -17,7 +18,6 @@ import 'compile.dart';
 import 'exception.dart';
 import 'io.dart';
 import 'importer/node.dart';
-import 'node/error.dart';
 import 'node/exports.dart';
 import 'node/function.dart';
 import 'node/render_context.dart';
@@ -65,13 +65,13 @@ void main() {
 ///
 /// [render]: https://github.com/sass/node-sass#options
 void _render(
-    RenderOptions options, void callback(JSError error, RenderResult result)) {
+    RenderOptions options, void callback(JsError error, RenderResult result)) {
   if (options.fiber != null) {
     options.fiber.call(allowInterop(() {
       try {
         callback(null, _renderSync(options));
       } catch (error) {
-        callback(error as JSError, null);
+        callback(error as JsError, null);
       }
       return null;
     })).run();
@@ -166,8 +166,8 @@ RenderResult _renderSync(RenderOptions options) {
   throw "unreachable";
 }
 
-/// Converts an exception to a [JSError].
-JSError _wrapException(Object exception) {
+/// Converts an exception to a [JsError].
+JsError _wrapException(Object exception) {
   if (exception is SassException) {
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
         line: exception.span.start.line + 1,
@@ -177,7 +177,7 @@ JSError _wrapException(Object exception) {
             : p.fromUri(exception.span.sourceUrl),
         status: 1);
   } else {
-    return JSError(exception.toString());
+    return JsError(exception.toString());
   }
 }
 
@@ -388,11 +388,11 @@ bool _enableSourceMaps(RenderOptions options) =>
     options.sourceMap is String ||
     (isTruthy(options.sourceMap) && options.outFile != null);
 
-/// Creates a [JSError] with the given fields added to it so it acts like a Node
+/// Creates a [JsError] with the given fields added to it so it acts like a Node
 /// Sass error.
-JSError _newRenderError(String message,
+JsError _newRenderError(String message,
     {int line, int column, String file, int status}) {
-  var error = JSError(message);
+  var error = JsError(message);
   setProperty(error, 'formatted', 'Error: $message');
   if (line != null) setProperty(error, 'line', line);
   if (column != null) setProperty(error, 'column', column);

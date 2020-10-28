@@ -8,6 +8,8 @@
 import 'dart:async';
 
 import 'package:js/js.dart';
+import 'package:node_interop/js.dart';
+import 'package:node_interop/node.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -275,10 +277,10 @@ void main() {
       String oldWorkingDirectory;
       setUp(() {
         oldWorkingDirectory = currentPath;
-        chdir(sandbox);
+        process.chdir(sandbox);
       });
 
-      tearDown(() => chdir(oldWorkingDirectory));
+      tearDown(() => process.chdir(oldWorkingDirectory));
 
       test("is resolved relative to the CWD", () {
         expect(
@@ -575,7 +577,7 @@ void main() {
     test("an error is returned", () {
       var error = renderSyncError(RenderOptions(
           data: "@import 'foo'",
-          importer: allowInterop((void _, void __) => JSError("oh no"))));
+          importer: allowInterop((void _, void __) => JsError("oh no"))));
 
       expect(
           error,
@@ -654,7 +656,7 @@ void main() {
               importer:
                   allowInterop((void _, void __, void done(Object result)) {
                 Timer(Duration.zero, () {
-                  done(JSError('oh no'));
+                  done(JsError('oh no'));
                 });
               }))),
           completion(toStringAndMessageEqual("oh no\n"
@@ -742,7 +744,7 @@ void main() {
                 importer:
                     allowInterop((void _, void __, void done(Object result)) {
                   Timer(Duration.zero, () {
-                    done(JSError('oh no'));
+                    done(JsError('oh no'));
                   });
                 }),
                 fiber: fiber)),
