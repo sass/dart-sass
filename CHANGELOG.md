@@ -26,6 +26,18 @@
 
 [HWB]: https://en.wikipedia.org/wiki/HWB_color_model
 
+## 1.27.1
+
+* **Potentially breaking bug fix:** `meta.load-css()` now correctly uses the
+  name `$url` for its first argument, rather than `$module`.
+
+* Don't crash when using `Infinity` or `NaN` as a key in a map.
+
+* Emit a proper parse error for a `=` with no right-hand side in a function.
+
+* Avoid going exponential on certain recursive `@extend` edge cases.
+>>>>>>> master
+
 ## 1.27.0
 
 * Adds an overload to `map.merge()` that supports merging a nested map.

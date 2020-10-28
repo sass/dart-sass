@@ -9,7 +9,6 @@
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
 
-export 'package:sass/src/node/error.dart';
 export 'package:sass/src/node/importer_result.dart';
 export 'package:sass/src/node/render_context.dart';
 export 'package:sass/src/node/render_options.dart';
@@ -24,11 +23,6 @@ final sass = _requireSass(p.absolute("build/npm/sass.dart"));
 /// The Fiber class.
 final fiber = _requireFiber("fibers");
 
-/// A `null` that's guaranteed to be represented by JavaScript's `undefined`
-/// value, not by `null`.
-@JS()
-external Object get undefined;
-
 /// A `null` that's guaranteed to be represented by JavaScript's `null` value,
 /// not by `undefined`.
 ///
@@ -38,9 +32,6 @@ final Object jsNull = _eval("null");
 
 @JS("eval")
 external Object _eval(String js);
-
-@JS("process.chdir")
-external void chdir(String directory);
 
 @JS("require")
 external Sass _requireSass(String path);

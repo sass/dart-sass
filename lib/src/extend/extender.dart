@@ -684,10 +684,20 @@ class Extender {
           .toList();
     });
 
-    return unifiedPaths
-        .where((complexes) => complexes != null)
-        .expand((l) => l)
-        .toList();
+    // If we're preserving the original selector, mark the first unification as
+    // such so [_trim] doesn't get rid of it.
+    var isOriginal = (ComplexSelector _) => false;
+    if (inOriginal && _mode != ExtendMode.replace) {
+      var original = unifiedPaths.first.first;
+      isOriginal = (complex) => complex == original;
+    }
+
+    return _trim(
+        unifiedPaths
+            .where((complexes) => complexes != null)
+            .expand((l) => l)
+            .toList(),
+        isOriginal);
   }
 
   Iterable<List<Extension>> _extendSimple(
