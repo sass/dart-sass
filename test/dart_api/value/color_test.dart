@@ -28,6 +28,12 @@ void main() {
       expect(value.lightness, equals(20.392156862745097));
     });
 
+    test("has HWB channels", () {
+      expect(value.hue, equals(210));
+      expect(value.whiteness, equals(7.0588235294117645));
+      expect(value.blackness, equals(66.27450980392157));
+    });
+
     test("has an alpha channel", () {
       expect(value.alpha, equals(1));
     });
@@ -114,6 +120,46 @@ void main() {
       });
     });
 
+    group("changeHwb()", () {
+      test("changes HWB values", () {
+        expect(value.changeHwb(hue: 120),
+            equals(SassColor.hwb(120, 7.0588235294117645, 66.27450980392157)));
+        expect(value.changeHwb(whiteness: 20),
+            equals(SassColor.hwb(210, 20, 66.27450980392157)));
+        expect(value.changeHwb(blackness: 42),
+            equals(SassColor.hwb(210, 7.0588235294117645, 42)));
+        expect(
+            value.changeHwb(alpha: 0.5),
+            equals(
+                SassColor.hwb(210, 7.0588235294117645, 66.27450980392157, 0.5)));
+        expect(
+            value.changeHwb(
+                hue: 120, whiteness: 42, blackness: 42, alpha: 0.5),
+            equals(SassColor.hwb(120, 42, 42, 0.5)));
+        expect(
+            value.changeHwb(whiteness: 50),
+            equals(SassColor.hwb(210, 43, 57)));
+      });
+
+      test("allows valid values", () {
+        expect(value.changeHwb(whiteness: 0).whiteness, equals(0));
+        expect(value.changeHwb(whiteness: 100).whiteness, equals(60.0));
+        expect(value.changeHwb(blackness: 0).blackness, equals(0));
+        expect(value.changeHwb(blackness: 100).blackness, equals(93.33333333333333));
+        expect(value.changeHwb(alpha: 0).alpha, equals(0));
+        expect(value.changeHwb(alpha: 1).alpha, equals(1));
+      });
+
+      test("disallows invalid values", () {
+        expect(() => value.changeHwb(whiteness: -0.1), throwsRangeError);
+        expect(() => value.changeHwb(whiteness: 100.1), throwsRangeError);
+        expect(() => value.changeHwb(blackness: -0.1), throwsRangeError);
+        expect(() => value.changeHwb(blackness: 100.1), throwsRangeError);
+        expect(() => value.changeHwb(alpha: -0.1), throwsRangeError);
+        expect(() => value.changeHwb(alpha: 1.1), throwsRangeError);
+      });
+    });
+
     group("changeAlpha()", () {
       test("changes the alpha value", () {
         expect(value.changeAlpha(0.5),
@@ -161,6 +207,11 @@ void main() {
       expect(value.lightness, equals(42));
     });
 
+    test("has HWB channels", () {
+      expect(value.whiteness, equals(24.313725490196077));
+      expect(value.blackness, equals(40.3921568627451));
+    });
+
     test("has an alpha channel", () {
       expect(value.alpha, equals(1));
     });
@@ -168,6 +219,7 @@ void main() {
     test("equals the same color", () {
       expect(value, equalsWithHash(SassColor.rgb(0x3E, 0x98, 0x3E)));
       expect(value, equalsWithHash(SassColor.hsl(120, 42, 42)));
+      expect(value, equalsWithHash(SassColor.hwb(120, 24.313725490196077, 40.3921568627451)));
     });
   });
 
@@ -208,6 +260,53 @@ void main() {
       expect(() => SassColor.hsl(0, 100.1, 0, 0), throwsRangeError);
       expect(() => SassColor.hsl(0, 0, 100.1, 0), throwsRangeError);
       expect(() => SassColor.hsl(0, 0, 0, 1.1), throwsRangeError);
+    });
+  });
+
+  group("new SassColor.hwb()", () {
+    SassColor value;
+    setUp(() => value = SassColor.hwb(120, 42, 42));
+
+    test("has RGB channels", () {
+      expect(value.red, equals(0x6B));
+      expect(value.green, equals(0x94));
+      expect(value.blue, equals(0x6B));
+    });
+
+    test("has HSL channels", () {
+      expect(value.hue, equals(120));
+      expect(value.saturation, equals(16.078431372549026));
+      expect(value.lightness, equals(50));
+    });
+
+    test("has HWB channels", () {
+      expect(value.whiteness, equals(41.96078431372549));
+      expect(value.blackness, equals(41.96078431372548));
+    });
+
+    test("has an alpha channel", () {
+      expect(value.alpha, equals(1));
+    });
+
+    test("equals the same color", () {
+      expect(value, equalsWithHash(SassColor.rgb(0x6B, 0x94, 0x6B)));
+      expect(value, equalsWithHash(SassColor.hsl(120, 16, 50)));
+      expect(value, equalsWithHash(SassColor.hwb(120, 42, 42)));
+    });
+
+    test("allows valid values", () {
+      expect(SassColor.hwb(0, 0, 0, 0), equals(parseValue("rgba(255, 0, 0, 0)")));
+      expect(SassColor.hwb(4320, 100, 100, 1),
+          equals(parseValue("grey")));
+    });
+
+    test("disallows invalid values", () {
+      expect(() => SassColor.hwb(0, -0.1, 0, 0), throwsRangeError);
+      expect(() => SassColor.hwb(0, 0, -0.1, 0), throwsRangeError);
+      expect(() => SassColor.hwb(0, 0, 0, -0.1), throwsRangeError);
+      expect(() => SassColor.hwb(0, 100.1, 0, 0), throwsRangeError);
+      expect(() => SassColor.hwb(0, 0, 100.1, 0), throwsRangeError);
+      expect(() => SassColor.hwb(0, 0, 0, 1.1), throwsRangeError);
     });
   });
 }
