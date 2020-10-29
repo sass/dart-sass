@@ -44,7 +44,7 @@ void main(List<String> args) {
       "\n"
       "# Changes\n"
       "\n"
-      "${pkg.githubReleaseNotes}";
+      "${pkg.githubReleaseNotes.defaultValue}";
 
   pkg.addAllTasks();
   grind(args);

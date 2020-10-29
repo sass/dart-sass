@@ -1,3 +1,7 @@
+## 1.27.2
+
+* No user-visible changes.
+
 ## 1.27.1
 
 * **Potentially breaking bug fix:** `meta.load-css()` now correctly uses the
