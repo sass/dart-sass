@@ -26,6 +26,10 @@
 
 [HWB]: https://en.wikipedia.org/wiki/HWB_color_model
 
+## 1.27.2
+
+* No user-visible changes.
+
 ## 1.27.1
 
 * **Potentially breaking bug fix:** `meta.load-css()` now correctly uses the
@@ -36,7 +40,6 @@
 * Emit a proper parse error for a `=` with no right-hand side in a function.
 
 * Avoid going exponential on certain recursive `@extend` edge cases.
->>>>>>> master
 
 ## 1.27.0
 
