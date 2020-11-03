@@ -130,22 +130,21 @@ void main() {
             equals(SassColor.hwb(210, 7.0588235294117645, 42)));
         expect(
             value.changeHwb(alpha: 0.5),
-            equals(
-                SassColor.hwb(210, 7.0588235294117645, 66.27450980392157, 0.5)));
+            equals(SassColor.hwb(
+                210, 7.0588235294117645, 66.27450980392157, 0.5)));
         expect(
-            value.changeHwb(
-                hue: 120, whiteness: 42, blackness: 42, alpha: 0.5),
+            value.changeHwb(hue: 120, whiteness: 42, blackness: 42, alpha: 0.5),
             equals(SassColor.hwb(120, 42, 42, 0.5)));
         expect(
-            value.changeHwb(whiteness: 50),
-            equals(SassColor.hwb(210, 43, 57)));
+            value.changeHwb(whiteness: 50), equals(SassColor.hwb(210, 43, 57)));
       });
 
       test("allows valid values", () {
         expect(value.changeHwb(whiteness: 0).whiteness, equals(0));
         expect(value.changeHwb(whiteness: 100).whiteness, equals(60.0));
         expect(value.changeHwb(blackness: 0).blackness, equals(0));
-        expect(value.changeHwb(blackness: 100).blackness, equals(93.33333333333333));
+        expect(value.changeHwb(blackness: 100).blackness,
+            equals(93.33333333333333));
         expect(value.changeHwb(alpha: 0).alpha, equals(0));
         expect(value.changeHwb(alpha: 1).alpha, equals(1));
       });
@@ -219,7 +218,10 @@ void main() {
     test("equals the same color", () {
       expect(value, equalsWithHash(SassColor.rgb(0x3E, 0x98, 0x3E)));
       expect(value, equalsWithHash(SassColor.hsl(120, 42, 42)));
-      expect(value, equalsWithHash(SassColor.hwb(120, 24.313725490196077, 40.3921568627451)));
+      expect(
+          value,
+          equalsWithHash(
+              SassColor.hwb(120, 24.313725490196077, 40.3921568627451)));
     });
   });
 
@@ -295,9 +297,9 @@ void main() {
     });
 
     test("allows valid values", () {
-      expect(SassColor.hwb(0, 0, 0, 0), equals(parseValue("rgba(255, 0, 0, 0)")));
-      expect(SassColor.hwb(4320, 100, 100, 1),
-          equals(parseValue("grey")));
+      expect(
+          SassColor.hwb(0, 0, 0, 0), equals(parseValue("rgba(255, 0, 0, 0)")));
+      expect(SassColor.hwb(4320, 100, 100, 1), equals(parseValue("grey")));
     });
 
     test("disallows invalid values", () {
