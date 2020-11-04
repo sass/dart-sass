@@ -3403,12 +3403,19 @@ relase. For details, see http://bit.ly/moz-document.
       scanner.state = nameStart;
       _inParentheses = wasInParentheses;
 
+      var identifier = interpolatedIdentifier();
+      var operation = _trySupportsOperation(identifier, nameStart);
+      if (operation != null) {
+        scanner.expectChar($rparen);
+        return operation;
+      }
+
       // If parsing an expression fails, try to parse an
       // `InterpolatedAnyValue` instead. But if that value runs into a
       // top-level colon, then this is probably intended to be a declaration
       // after all, so we rethrow the declaration-parsing error.
       var contents = (InterpolationBuffer()
-            ..addInterpolation(interpolatedIdentifier())
+            ..addInterpolation(identifier)
             ..addInterpolation(_interpolatedDeclarationValue(
                 allowEmpty: true, allowSemicolon: true, allowColon: false)))
           .interpolation(scanner.spanFrom(nameStart));
@@ -3422,6 +3429,42 @@ relase. For details, see http://bit.ly/moz-document.
     var value = expression();
     scanner.expectChar($rparen);
     return SupportsDeclaration(name, value, scanner.spanFrom(start));
+  }
+
+  /// If [interpolation] is followed by `"and"` or `"or"`, parse it as a supports operation.
+  ///
+  /// Otherwise, return `null` without moving the scanner position.
+  SupportsOperation _trySupportsOperation(Interpolation interpolation, LineScannerState start) {
+    if (interpolation.contents.length != 1) return null;
+    var expression = interpolation.contents.first;
+    if (expression is! Expression) return null;
+
+    var beforeWhitespace = scanner.state;
+    whitespace();
+
+    SupportsOperation operation;
+    String operator;
+    while (lookingAtIdentifier()) {
+      if (operator != null) {
+        expectIdentifier(operator);
+      } else if (scanIdentifier("and")) {
+        operator = "and";
+      } else if (scanIdentifier("or")) {
+        operator = "or";
+      } else {
+        scanner.state = beforeWhitespace;
+        return null;
+      }
+
+      whitespace();
+      var right = _supportsConditionInParens();
+      operation = SupportsOperation(
+          operation ?? SupportsInterpolation(
+            expression as Expression, interpolation.span), right, operator, scanner.spanFrom(start));
+      whitespace();
+    }
+
+    return operation;
   }
 
   // ## Characters
