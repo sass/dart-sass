@@ -98,8 +98,10 @@ class SassColor extends Value implements ext.SassColor {
   factory SassColor.hwb(num hue, num whiteness, num blackness, [num alpha]) {
     // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
     var scaledHue = hue % 360 / 360;
-    var scaledWhiteness = fuzzyAssertRange(whiteness, 0, 100, "whiteness") / 100;
-    var scaledBlackness = fuzzyAssertRange(blackness, 0, 100, "blackness") / 100;
+    var scaledWhiteness =
+        fuzzyAssertRange(whiteness, 0, 100, "whiteness") / 100;
+    var scaledBlackness =
+        fuzzyAssertRange(blackness, 0, 100, "blackness") / 100;
 
     var sum = scaledWhiteness + scaledBlackness;
     if (sum > 1) {
@@ -117,11 +119,8 @@ class SassColor extends Value implements ext.SassColor {
     // don't cache its values because we expect the memory overhead of doing so
     // to outweigh the cost of recalculating it on access. Instead, we eagerly
     // convert it to RGB and then convert back if necessary.
-    return SassColor.rgb(
-        toRgb(scaledHue + 1/3),
-        toRgb(scaledHue),
-        toRgb(scaledHue - 1/3),
-        alpha);
+    return SassColor.rgb(toRgb(scaledHue + 1 / 3), toRgb(scaledHue),
+        toRgb(scaledHue - 1 / 3), alpha);
   }
 
   SassColor._(this._red, this._green, this._blue, this._hue, this._saturation,
