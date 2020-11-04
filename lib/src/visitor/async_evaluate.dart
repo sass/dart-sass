@@ -1806,6 +1806,11 @@ class _EvaluateVisitor
     } else if (condition is SupportsDeclaration) {
       return "(${await _evaluateToCss(condition.name)}: "
           "${await _evaluateToCss(condition.value)})";
+    } else if (condition is SupportsFunction) {
+      return "${await _performInterpolation(condition.name)}("
+          "${await _performInterpolation(condition.arguments)})";
+    } else if (condition is SupportsAnything) {
+      return "(${await _performInterpolation(condition.contents)})";
     } else {
       return null;
     }
