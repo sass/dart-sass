@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 485fce53ba9f381973c25a69b193a681891be098
+// Checksum: ae80942bc5f7f9f4b92e7e4d46903578ea3b9a58
 //
 // ignore_for_file: unused_import
 
@@ -1797,6 +1797,11 @@ class _EvaluateVisitor
     } else if (condition is SupportsDeclaration) {
       return "(${_evaluateToCss(condition.name)}: "
           "${_evaluateToCss(condition.value)})";
+    } else if (condition is SupportsFunction) {
+      return "${_performInterpolation(condition.name)}("
+          "${_performInterpolation(condition.arguments)})";
+    } else if (condition is SupportsAnything) {
+      return "(${_performInterpolation(condition.contents)})";
     } else {
       return null;
     }

@@ -1,3 +1,12 @@
+## 1.29.0
+
+* Support a broader syntax for `@supports` conditions, based on the latest
+  [Editor's Draft of CSS Conditional Rules 3]. Almost all syntax will be allowed
+  (with interpolation) in the conditions' parentheses, as well as function
+  syntax such as `@supports selector(...)`.
+
+[Editor's Draft of CSS Conditional Rules 3]: https://drafts.csswg.org/css-conditional-3/#at-supports
+
 ## 1.28.0
 
 * Add a [`color.hwb()`] function to `sass:color` that can express colors in [HWB] format.

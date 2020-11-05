@@ -372,7 +372,7 @@ abstract class StylesheetParser extends Parser {
     // Parse custom properties as declarations no matter what.
     var name = nameBuffer.interpolation(scanner.spanFrom(start, beforeColon));
     if (name.initialPlain.startsWith('--')) {
-      var value = _interpolatedDeclarationValue();
+      var value = StringExpression(_interpolatedDeclarationValue());
       expectStatementSeparator("custom property");
       return Declaration(name, scanner.spanFrom(start), value: value);
     }
@@ -538,7 +538,7 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($colon);
 
     if (parseCustomProperties && name.initialPlain.startsWith('--')) {
-      var value = _interpolatedDeclarationValue();
+      var value = StringExpression(_interpolatedDeclarationValue());
       expectStatementSeparator("custom property");
       return Declaration(name, scanner.spanFrom(start), value: value);
     }
@@ -2681,8 +2681,7 @@ relase. For details, see http://bit.ly/moz-document.
         return null;
     }
 
-    buffer
-        .addInterpolation(_interpolatedDeclarationValue(allowEmpty: true).text);
+    buffer.addInterpolation(_interpolatedDeclarationValue(allowEmpty: true));
     scanner.expectChar($rparen);
     buffer.writeCharCode($rparen);
 
@@ -2808,8 +2807,7 @@ relase. For details, see http://bit.ly/moz-document.
     buffer
       ..write(name)
       ..writeCharCode($lparen)
-      ..addInterpolation(
-          _interpolatedDeclarationValue(allowEmpty: true).asInterpolation())
+      ..addInterpolation(_interpolatedDeclarationValue(allowEmpty: true))
       ..writeCharCode($rparen);
     if (!scanner.scanChar($rparen)) return false;
     return true;
@@ -2984,10 +2982,18 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// If [allowEmpty] is `false` (the default), this requires at least one token.
   ///
+  /// If [allowSemicolon] is `true`, this doesn't stop at semicolons and instead
+  /// includes them in the interpolated output.
+  ///
+  /// If [allowColon] is `false`, this stops at top-level colons.
+  ///
   /// Unlike [declarationValue], this allows interpolation.
-  StringExpression _interpolatedDeclarationValue({bool allowEmpty = false}) {
-    // NOTE: this logic is largely duplicated in Parser.declarationValue and
-    // isIdentifier in utils.dart. Most changes here should be mirrored there.
+  Interpolation _interpolatedDeclarationValue(
+      {bool allowEmpty = false,
+      bool allowSemicolon = false,
+      bool allowColon = true}) {
+    // NOTE: this logic is largely duplicated in Parser.declarationValue. Most
+    // changes here should be mirrored there.
 
     var start = scanner.state;
     var buffer = InterpolationBuffer();
@@ -3065,8 +3071,15 @@ relase. For details, see http://bit.ly/moz-document.
           break;
 
         case $semicolon:
-          if (brackets.isEmpty) break loop;
+          if (!allowSemicolon && brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
+          wroteNewline = false;
+          break;
+
+        case $colon:
+          if (!allowColon && brackets.isEmpty) break loop;
+          buffer.writeCharCode(scanner.readChar());
+          wroteNewline = false;
           break;
 
         case $u:
@@ -3103,7 +3116,7 @@ relase. For details, see http://bit.ly/moz-document.
 
     if (brackets.isNotEmpty) scanner.expectChar(brackets.last);
     if (!allowEmpty && buffer.isEmpty) scanner.error("Expected token.");
-    return StringExpression(buffer.interpolation(scanner.spanFrom(start)));
+    return buffer.interpolation(scanner.spanFrom(start));
   }
 
   /// Consumes an identifier that may contain interpolation.
@@ -3301,10 +3314,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes a `@supports` condition.
   SupportsCondition _supportsCondition() {
     var start = scanner.state;
-    var first = scanner.peekChar();
-    if (first != $lparen && first != $hash) {
-      var start = scanner.state;
-      expectIdentifier("not");
+    if (scanIdentifier("not")) {
       whitespace();
       return SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
@@ -3312,9 +3322,11 @@ relase. For details, see http://bit.ly/moz-document.
 
     var condition = _supportsConditionInParens();
     whitespace();
+    String operator;
     while (lookingAtIdentifier()) {
-      String operator;
-      if (scanIdentifier("or")) {
+      if (operator != null) {
+        expectIdentifier(operator);
+      } else if (scanIdentifier("or")) {
         operator = "or";
       } else {
         expectIdentifier("and");
@@ -3333,56 +3345,126 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes a parenthesized supports condition, or an interpolation.
   SupportsCondition _supportsConditionInParens() {
     var start = scanner.state;
-    if (scanner.peekChar() == $hash) {
-      return SupportsInterpolation(
-          singleInterpolation(), scanner.spanFrom(start));
+
+    if (_lookingAtInterpolatedIdentifier()) {
+      var identifier = interpolatedIdentifier();
+      if (identifier.asPlain?.toLowerCase() == "not") {
+        error('"not" is not a valid identifier here.', identifier.span);
+      }
+
+      if (scanner.scanChar($lparen)) {
+        var arguments = _interpolatedDeclarationValue(
+            allowEmpty: true, allowSemicolon: true);
+        scanner.expectChar($rparen);
+        return SupportsFunction(identifier, arguments, scanner.spanFrom(start));
+      } else if (identifier.contents.length != 1 ||
+          identifier.contents.first is! Expression) {
+        error("Expected @supports condition.", identifier.span);
+      } else {
+        return SupportsInterpolation(
+            identifier.contents.first as Expression, scanner.spanFrom(start));
+      }
     }
 
     scanner.expectChar($lparen);
     whitespace();
-    var next = scanner.peekChar();
-    if (next == $lparen || next == $hash) {
-      var condition = _supportsCondition();
+    if (scanIdentifier("not")) {
       whitespace();
+      var condition = _supportsConditionInParens();
+      scanner.expectChar($rparen);
+      return SupportsNegation(condition, scanner.spanFrom(start));
+    } else if (scanner.peekChar() == $lparen) {
+      var condition = _supportsCondition();
       scanner.expectChar($rparen);
       return condition;
     }
 
-    if (next == $n || next == $N) {
-      var negation = _trySupportsNegation();
-      if (negation != null) {
+    // Unfortunately, we may have to backtrack here. The grammar is:
+    //
+    //       Expression ":" Expression
+    //     | InterpolatedIdentifier InterpolatedAnyValue?
+    //
+    // These aren't ambiguous because this `InterpolatedAnyValue` is forbidden
+    // from containing a top-level colon, but we still have to parse the full
+    // expression to figure out if there's a colon after it.
+    //
+    // We could avoid the overhead of a full expression parse by looking ahead
+    // for a colon (outside of balanced brackets), but in practice we expect the
+    // vast majority of real uses to be `Expression ":" Expression`, so it makes
+    // sense to parse that case faster in exchange for less code complexity and
+    // a slower backtracking case.
+    Expression name;
+    var nameStart = scanner.state;
+    var wasInParentheses = _inParentheses;
+    try {
+      name = expression();
+      scanner.expectChar($colon);
+    } on FormatException catch (_) {
+      scanner.state = nameStart;
+      _inParentheses = wasInParentheses;
+
+      var identifier = interpolatedIdentifier();
+      var operation = _trySupportsOperation(identifier, nameStart);
+      if (operation != null) {
         scanner.expectChar($rparen);
-        return negation;
+        return operation;
       }
+
+      // If parsing an expression fails, try to parse an
+      // `InterpolatedAnyValue` instead. But if that value runs into a
+      // top-level colon, then this is probably intended to be a declaration
+      // after all, so we rethrow the declaration-parsing error.
+      var contents = (InterpolationBuffer()
+            ..addInterpolation(identifier)
+            ..addInterpolation(_interpolatedDeclarationValue(
+                allowEmpty: true, allowSemicolon: true, allowColon: false)))
+          .interpolation(scanner.spanFrom(nameStart));
+      if (scanner.peekChar() == $colon) rethrow;
+
+      scanner.expectChar($rparen);
+      return SupportsAnything(contents, scanner.spanFrom(start));
     }
 
-    var name = expression();
-    scanner.expectChar($colon);
     whitespace();
     var value = expression();
     scanner.expectChar($rparen);
     return SupportsDeclaration(name, value, scanner.spanFrom(start));
   }
 
-  /// Tries to consume a negated supports condition.
+  /// If [interpolation] is followed by `"and"` or `"or"`, parse it as a supports operation.
   ///
-  /// Returns `null` if it fails.
-  SupportsNegation _trySupportsNegation() {
-    var start = scanner.state;
-    if (!scanIdentifier("not") || scanner.isDone) {
-      scanner.state = start;
-      return null;
-    }
+  /// Otherwise, return `null` without moving the scanner position.
+  SupportsOperation _trySupportsOperation(Interpolation interpolation, LineScannerState start) {
+    if (interpolation.contents.length != 1) return null;
+    var expression = interpolation.contents.first;
+    if (expression is! Expression) return null;
 
-    var next = scanner.peekChar();
-    if (!isWhitespace(next) && next != $lparen) {
-      scanner.state = start;
-      return null;
-    }
-
+    var beforeWhitespace = scanner.state;
     whitespace();
-    return SupportsNegation(
-        _supportsConditionInParens(), scanner.spanFrom(start));
+
+    SupportsOperation operation;
+    String operator;
+    while (lookingAtIdentifier()) {
+      if (operator != null) {
+        expectIdentifier(operator);
+      } else if (scanIdentifier("and")) {
+        operator = "and";
+      } else if (scanIdentifier("or")) {
+        operator = "or";
+      } else {
+        scanner.state = beforeWhitespace;
+        return null;
+      }
+
+      whitespace();
+      var right = _supportsConditionInParens();
+      operation = SupportsOperation(
+          operation ?? SupportsInterpolation(
+            expression as Expression, interpolation.span), right, operator, scanner.spanFrom(start));
+      whitespace();
+    }
+
+    return operation;
   }
 
   // ## Characters
