@@ -1,3 +1,8 @@
+## 1.29.1
+
+* Fix a bug where `@at-root (without: all)` wouldn't properly remove a
+  `@keyframes` context when parsing selectors.
+
 ## 1.29.0
 
 * Support a broader syntax for `@supports` conditions, based on the latest

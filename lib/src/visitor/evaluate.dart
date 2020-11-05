@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ae80942bc5f7f9f4b92e7e4d46903578ea3b9a58
+// Checksum: cb09019ddd970869d4861ee85625b32ee40de981
 //
 // ignore_for_file: unused_import
 
@@ -970,7 +970,7 @@ class _EvaluateVisitor
       };
     }
 
-    if (query.excludesMedia) {
+    if (_mediaQueries != null && query.excludesName('media')) {
       var innerScope = scope;
       scope = (callback) => _withMediaQueries(null, () => innerScope(callback));
     }

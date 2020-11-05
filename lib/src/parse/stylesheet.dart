@@ -3434,7 +3434,8 @@ relase. For details, see http://bit.ly/moz-document.
   /// If [interpolation] is followed by `"and"` or `"or"`, parse it as a supports operation.
   ///
   /// Otherwise, return `null` without moving the scanner position.
-  SupportsOperation _trySupportsOperation(Interpolation interpolation, LineScannerState start) {
+  SupportsOperation _trySupportsOperation(
+      Interpolation interpolation, LineScannerState start) {
     if (interpolation.contents.length != 1) return null;
     var expression = interpolation.contents.first;
     if (expression is! Expression) return null;
@@ -3459,8 +3460,12 @@ relase. For details, see http://bit.ly/moz-document.
       whitespace();
       var right = _supportsConditionInParens();
       operation = SupportsOperation(
-          operation ?? SupportsInterpolation(
-            expression as Expression, interpolation.span), right, operator, scanner.spanFrom(start));
+          operation ??
+              SupportsInterpolation(
+                  expression as Expression, interpolation.span),
+          right,
+          operator,
+          scanner.spanFrom(start));
       whitespace();
     }
 

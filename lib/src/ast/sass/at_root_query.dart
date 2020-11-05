@@ -28,11 +28,6 @@ class AtRootQuery {
   /// Whether this includes or excludes style rules.
   final bool _rule;
 
-  /// Whether this excludes `@media` rules.
-  ///
-  /// Note that this takes [include] into account.
-  bool get excludesMedia => _all ? !include : excludesName("media");
-
   /// Whether this excludes style rules.
   ///
   /// Note that this takes [include] into account.
@@ -61,18 +56,13 @@ class AtRootQuery {
   /// Returns whether [this] excludes [node].
   bool excludes(CssParentNode node) {
     if (_all) return !include;
-    if (_rule && node is CssStyleRule) return !include;
-    return excludesName(_nameFor(node));
+    if (node is CssStyleRule) return excludesStyleRules;
+    if (node is CssMediaRule) return excludesName("media");
+    if (node is CssSupportsRule) return excludesName("supports");
+    if (node is CssAtRule) return excludesName(node.name.value.toLowerCase());
+    return false;
   }
 
-  /// Returns whether [this] excludes a node with the given [name].
-  bool excludesName(String name) => names.contains(name) != include;
-
-  /// Returns the at-rule name for [node], or `null` if it's not an at-rule.
-  String _nameFor(CssParentNode node) {
-    if (node is CssMediaRule) return "media";
-    if (node is CssSupportsRule) return "supports";
-    if (node is CssAtRule) return node.name.value.toLowerCase();
-    return null;
-  }
+  /// Returns whether [this] excludes an at-rule with the given [name].
+  bool excludesName(String name) => (_all || names.contains(name)) != include;
 }
