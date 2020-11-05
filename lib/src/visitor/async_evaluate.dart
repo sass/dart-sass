@@ -968,7 +968,7 @@ class _EvaluateVisitor
       };
     }
 
-    if (query.excludesMedia) {
+    if (_mediaQueries != null && query.excludesName('media')) {
       var innerScope = scope;
       scope = (callback) => _withMediaQueries(null, () => innerScope(callback));
     }
