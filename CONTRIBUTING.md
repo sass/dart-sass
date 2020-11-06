@@ -106,12 +106,10 @@ To create a new spec:
     much about finding exactly the right place, we'll sort that out during code
     review.
 
-  * Create an `input.scss` or `input.sass` file that exercises your language
-    change.
-
-  * If you're testing successful output, create an `expected_output.css` file
-    with the output that should be produced. If you're testing an error, instead
-    create an `error` file with the expected error message.
+  * Following the [spec style guide][], create an `hrx` file that exercises your
+    language change, verifying that the change produces expected output/errors.
+    
+    [spec style guide]: https://github.com/sass/sass-spec/blob/master/STYLE_GUIDE.md
 
 * If you're adding a new language feature, it probably won't be supported by
   Ruby Sass or LibSass yet. You can indicate this and keep tests passing by
