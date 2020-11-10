@@ -168,4 +168,17 @@ void main() {
       return true;
     })));
   });
+
+  test("avoids importer when only load() returns null", () {
+    expect(() {
+      compileString('@import "orange";', importers: [
+        TestImporter((url) => Uri.parse("u:$url"), (url) => null)
+      ]);
+    }, throwsA(predicate((error) {
+      expect(error, const TypeMatcher<SassException>());
+      expect(error.toString(),
+          startsWith("Error: Can't find stylesheet to import"));
+      return true;
+    })));
+  });
 }
