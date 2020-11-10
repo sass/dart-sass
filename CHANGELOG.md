@@ -3,6 +3,11 @@
 * Fix a bug where `@at-root (without: all)` wouldn't properly remove a
   `@keyframes` context when parsing selectors.
 
+### Dart API
+
+* Fix a bug that prevented importers from returning null when loading from a
+  URL that they had already canonicalized.
+
 ## 1.29.0
 
 * Support a broader syntax for `@supports` conditions, based on the latest
