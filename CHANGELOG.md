@@ -1,3 +1,7 @@
+## 1.30.0
+
+* The generated main function now returns a promise.
+
 ## 1.29.1
 
 * Fix a bug where `@at-root (without: all)` wouldn't properly remove a
