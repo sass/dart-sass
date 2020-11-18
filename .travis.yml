@@ -29,7 +29,8 @@ before_install:
 before_script:
 - pub run grinder protobuf
 # Format the generated code or else the formatter task will get upset.
-- dartfmt -w --fix lib/src/embedded_sass.pb*
+# TODO(awjin): Re-enable this once dart-lang/sdk#42989 is fixed.
+# - dartfmt -w --fix lib/src/embedded_sass.pb*
 - pub run grinder pkg-standalone-dev
 
 jobs:
@@ -47,7 +48,8 @@ jobs:
 
   # Static checks
   - dart_task: {dartanalyzer: --fatal-warnings ./}
-  - dart_task: dartfmt
+  # TODO(awjin): Re-enable this once dart-lang/sdk#42989 is fixed.
+  # - dart_task: dartfmt
 
   ## Deploying
 
