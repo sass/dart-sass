@@ -160,6 +160,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     if (tuple == null) return null;
     var stylesheet =
         await importCanonical(tuple.item1, tuple.item2, tuple.item3);
+    if (stylesheet == null) return null;
     return Tuple2(tuple.item1, stylesheet);
   }
 
