@@ -45,7 +45,5 @@ dev_dependencies:
   stream_channel: ">=1.0.0 <3.0.0"
   test_descriptor: "^1.1.0"
   test_process: "^1.0.0-rc.1"
-  # TODO(nweiz): Allow higher versions of test once dart-lang/test#1382 is
-  # fixed.
-  test: ">=0.12.42 <1.15.5"
+  test: ">=0.12.42 <2.0.0"
   yaml: "^2.0.0"
