@@ -1,7 +1,12 @@
-## 1.29.1
+## 1.30.0
 
 * Fix a bug where `@at-root (without: all)` wouldn't properly remove a
   `@keyframes` context when parsing selectors.
+
+### Node JS API
+
+* The generated `main()` function in `sass.js` now returns a `Promise` that
+  completes when the executable is finished running.
 
 ### Dart API
 
