@@ -4,8 +4,6 @@
 
 @TestOn('vm')
 
-import 'dart:async';
-
 import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
