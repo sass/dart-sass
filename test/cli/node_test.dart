@@ -5,8 +5,6 @@
 @TestOn('vm')
 @Tags(['node'])
 
-import 'dart:async';
-
 import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:test_process/test_process.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
