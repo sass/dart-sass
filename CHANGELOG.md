@@ -1,3 +1,8 @@
+## 1.31.0
+
+* Add support for parsing `clamp()` as a special math function, the same way
+  `calc()` is parsed.
+
 ## 1.30.0
 
 * Fix a bug where `@at-root (without: all)` wouldn't properly remove a

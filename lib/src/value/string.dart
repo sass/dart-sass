@@ -35,10 +35,19 @@ class SassString extends Value implements ext.SassString {
 
     var first = text.codeUnitAt(0);
     if (equalsLetterIgnoreCase($c, first)) {
-      if (!equalsLetterIgnoreCase($a, text.codeUnitAt(1))) return false;
-      if (!equalsLetterIgnoreCase($l, text.codeUnitAt(2))) return false;
-      if (!equalsLetterIgnoreCase($c, text.codeUnitAt(3))) return false;
-      return text.codeUnitAt(4) == $lparen;
+      var second = text.codeUnitAt(1);
+      if (equalsLetterIgnoreCase($l, second)) {
+        if (!equalsLetterIgnoreCase($a, text.codeUnitAt(2))) return false;
+        if (!equalsLetterIgnoreCase($m, text.codeUnitAt(3))) return false;
+        if (!equalsLetterIgnoreCase($p, text.codeUnitAt(4))) return false;
+        return text.codeUnitAt(5) == $lparen;
+      } else if (equalsLetterIgnoreCase($a, second)) {
+        if (!equalsLetterIgnoreCase($l, text.codeUnitAt(2))) return false;
+        if (!equalsLetterIgnoreCase($c, text.codeUnitAt(3))) return false;
+        return text.codeUnitAt(4) == $lparen;
+      } else {
+        return false;
+      }
     } else if (equalsLetterIgnoreCase($v, first)) {
       if (!equalsLetterIgnoreCase($a, text.codeUnitAt(1))) return false;
       if (!equalsLetterIgnoreCase($r, text.codeUnitAt(2))) return false;
