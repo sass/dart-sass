@@ -48,24 +48,9 @@ void main(List<String> args) {
           ? (source_maps.SingleMapping map) => sourceMap = map
           : null;
 
-      var importers = request.importers.map((importer) {
-        switch (importer.whichImporter()) {
-          case InboundMessage_CompileRequest_Importer_Importer.path:
-            return sass.FilesystemImporter(importer.path);
-
-          case InboundMessage_CompileRequest_Importer_Importer.importerId:
-            return Importer(dispatcher, request.id, importer.importerId);
-
-          case InboundMessage_CompileRequest_Importer_Importer.fileImporterId:
-            throw "CompileRequest.Importer.fileImporterId is not yet supported";
-
-          case InboundMessage_CompileRequest_Importer_Importer.notSet:
-            throw mandatoryError("Importer.importer");
-        }
-
-        // dart-lang/sdk#38790
-        throw "Unknown Importer.importer $importer.";
-      });
+      var importers = request.importers.map((importer) =>
+          _decodeImporter(dispatcher, request, importer) ??
+          (throw mandatoryError("Importer.importer")));
 
       var globalFunctions = request.globalFunctions.map((signature) =>
           hostCallable(dispatcher, functions, request.id, signature));
@@ -76,6 +61,7 @@ void main(List<String> args) {
           result = sass.compileString(input.source,
               logger: logger,
               importers: importers,
+              importer: _decodeImporter(dispatcher, request, input.importer),
               functions: globalFunctions,
               syntax: syntaxToSyntax(input.syntax),
               style: style,
@@ -118,4 +104,27 @@ void main(List<String> args) {
           ..stackTrace = error.trace.toString());
     }
   });
+}
+
+/// Converts [importer] into an [Importer].
+sass.Importer _decodeImporter(
+    Dispatcher dispatcher,
+    InboundMessage_CompileRequest request,
+    InboundMessage_CompileRequest_Importer importer) {
+  switch (importer.whichImporter()) {
+    case InboundMessage_CompileRequest_Importer_Importer.path:
+      return sass.FilesystemImporter(importer.path);
+
+    case InboundMessage_CompileRequest_Importer_Importer.importerId:
+      return Importer(dispatcher, request.id, importer.importerId);
+
+    case InboundMessage_CompileRequest_Importer_Importer.fileImporterId:
+      throw "CompileRequest.Importer.fileImporterId is not yet supported";
+
+    case InboundMessage_CompileRequest_Importer_Importer.notSet:
+      return null;
+  }
+
+  // dart-lang/sdk#38790
+  throw "Unknown Importer.importer $importer.";
 }

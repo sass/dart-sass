@@ -18,10 +18,12 @@ InboundMessage compileString(String css,
     String url,
     bool sourceMap,
     Iterable<InboundMessage_CompileRequest_Importer> importers,
+    InboundMessage_CompileRequest_Importer importer,
     Iterable<String> functions}) {
   var input = InboundMessage_CompileRequest_StringInput()..source = css;
   if (syntax != null) input.syntax = syntax;
   if (url != null) input.url = url;
+  if (importer != null) input.importer = importer;
 
   var request = InboundMessage_CompileRequest()..string = input;
   if (id != null) request.id = id;

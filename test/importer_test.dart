@@ -411,6 +411,22 @@ void main() {
     });
   });
 
+  test("handles an importer for a string compile request", () async {
+    process.inbound.add(compileString("@import 'other'",
+        importer: InboundMessage_CompileRequest_Importer()..importerId = 1));
+    await _canonicalize(process);
+
+    var request = getImportRequest(await process.outbound.next);
+    process.inbound.add(InboundMessage()
+      ..importResponse = (InboundMessage_ImportResponse()
+        ..id = request.id
+        ..success = (InboundMessage_ImportResponse_ImportSuccess()
+          ..contents = "a {b: 1px + 2px}")));
+
+    await expectLater(process.outbound, emits(isSuccess("a { b: 3px; }")));
+    await process.kill();
+  });
+
   group("load paths", () {
     test("are used to load imports", () async {
       await d.dir("dir", [d.file("other.scss", "a {b: c}")]).create();
