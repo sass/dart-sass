@@ -25,20 +25,20 @@ void main() {
     test("encodes an empty message", () {
       sink.add([]);
       sink.close();
-      expect(collectBytes(stream), completion(equals([0, 0, 0, 0])));
+      expect(collectBytes(stream), completion(equals([0])));
     });
 
     test("encodes a message of length 1", () {
       sink.add([123]);
       sink.close();
-      expect(collectBytes(stream), completion(equals([1, 0, 0, 0, 123])));
+      expect(collectBytes(stream), completion(equals([1, 123])));
     });
 
     test("encodes a message of length greater than 256", () {
       sink.add(List.filled(300, 1));
       sink.close();
       expect(collectBytes(stream),
-          completion(equals([44, 1, 0, 0, ...List.filled(300, 1)])));
+          completion(equals([172, 2, ...List.filled(300, 1)])));
     });
 
     test("encodes multiple messages", () {
@@ -46,10 +46,8 @@ void main() {
       sink.add([20, 30]);
       sink.add([40, 50, 60]);
       sink.close();
-      expect(
-          collectBytes(stream),
-          completion(equals(
-              [1, 0, 0, 0, 10, 2, 0, 0, 0, 20, 30, 3, 0, 0, 0, 40, 50, 60])));
+      expect(collectBytes(stream),
+          completion(equals([1, 10, 2, 20, 30, 3, 40, 50, 60])));
     });
   });
 
@@ -64,75 +62,62 @@ void main() {
 
     group("decodes an empty message", () {
       test("from a single chunk", () {
-        sink.add([0, 0, 0, 0]);
-        expect(queue, emits(isEmpty));
-      });
-
-      test("from multiple chunks", () {
-        sink.add([0, 0]);
-        sink.add([0, 0]);
-        expect(queue, emits(isEmpty));
-      });
-
-      test("from one chunk per byte", () {
-        sink..add([0])..add([0])..add([0])..add([0]);
+        sink.add([0]);
         expect(queue, emits(isEmpty));
       });
 
       test("from a chunk that contains more data", () {
-        sink.add([0, 0, 0, 0, 1, 0, 0, 0, 100]);
+        sink.add([0, 1, 100]);
         expect(queue, emits(isEmpty));
       });
     });
 
     group("decodes a longer message", () {
       test("from a single chunk", () {
-        sink.add([4, 0, 0, 0, 1, 2, 3, 4]);
-        expect(queue, emits([1, 2, 3, 4]));
+        sink.add([172, 2, ...List.filled(300, 1)]);
+        expect(queue, emits(List.filled(300, 1)));
       });
 
       test("from multiple chunks", () {
-        sink..add([4, 0])..add([0, 0, 1, 2])..add([3, 4]);
-        expect(queue, emits([1, 2, 3, 4]));
+        sink..add([172])..add([2, 1])..add(List.filled(299, 1));
+        expect(queue, emits(List.filled(300, 1)));
       });
 
       test("from one chunk per byte", () {
-        for (var byte in [4, 0, 0, 0, 1, 2, 3, 4]) {
+        for (var byte in [172, 2, ...List.filled(300, 1)]) {
           sink.add([byte]);
         }
-        expect(queue, emits([1, 2, 3, 4]));
+        expect(queue, emits(List.filled(300, 1)));
       });
 
       test("from a chunk that contains more data", () {
-        sink.add([4, 0, 0, 0, 1, 2, 3, 4, 1, 0, 0, 0]);
-        expect(queue, emits([1, 2, 3, 4]));
-      });
-
-      test("of length greater than 256", () {
-        sink.add([44, 1, 0, 0, ...List.filled(300, 1)]);
+        sink.add([172, 2, ...List.filled(300, 1), 1, 10]);
         expect(queue, emits(List.filled(300, 1)));
       });
     });
 
     group("decodes multiple messages", () {
       test("from single chunk", () {
-        sink.add([4, 0, 0, 0, 1, 2, 3, 4, 2, 0, 0, 0, 101, 102]);
+        sink.add([4, 1, 2, 3, 4, 2, 101, 102]);
         expect(queue, emits([1, 2, 3, 4]));
         expect(queue, emits([101, 102]));
       });
 
       test("from multiple chunks", () {
-        sink..add([4, 0])..add([0, 0, 1, 2, 3, 4, 2, 0])..add([0, 0, 101, 102]);
+        sink
+          ..add([4])
+          ..add([1, 2, 3, 4, 172])
+          ..add([2, ...List.filled(300, 1)]);
         expect(queue, emits([1, 2, 3, 4]));
-        expect(queue, emits([101, 102]));
+        expect(queue, emits(List.filled(300, 1)));
       });
 
       test("from one chunk per byte", () {
-        for (var byte in [4, 0, 0, 0, 1, 2, 3, 4, 2, 0, 0, 0, 101, 102]) {
+        for (var byte in [4, 1, 2, 3, 4, 172, 2, ...List.filled(300, 1)]) {
           sink.add([byte]);
         }
         expect(queue, emits([1, 2, 3, 4]));
-        expect(queue, emits([101, 102]));
+        expect(queue, emits(List.filled(300, 1)));
       });
     });
   });

@@ -26,7 +26,7 @@ void main() {
     });
 
     test("caused by an invalid message", () async {
-      process.stdin.add([1, 0, 0, 0, 0]);
+      process.stdin.add([1, 0]);
       await expectParseError(
           process, "Protocol message contained an invalid tag (zero).");
       expect(await process.exitCode, 76);

@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:async/async.dart';
 import 'package:stream_channel/stream_channel.dart';
+import 'package:typed_data/typed_data.dart';
 
 /// A [StreamChannelTransformer] that converts a channel that sends and receives
 /// arbitrarily-chunked binary data to one that sends and receives packets of
@@ -21,17 +22,16 @@ final StreamChannelTransformer<Uint8List, List<int>> lengthDelimited =
 /// into a stream of packet contents.
 final lengthDelimitedDecoder =
     StreamTransformer<List<int>, Uint8List>.fromBind((stream) {
-  // The buffer into which the four-byte little-endian length of the next packet
-  // will be written.
-  var lengthBuffer = Uint8List(4);
+  // The number of bits we've consumed so far to fill out [nextMessageLength].
+  int nextMessageLengthBits = 0;
 
-  // The index of the next byte to write to [lengthBuffer]. Once this is equal
-  // to [lengthBuffer.length], the full length is available.
-  var lengthBufferIndex = 0;
-
-  // The length of the next message, in bytes, read from [lengthBuffer] once
-  // it's full.
-  int nextMessageLength;
+  // The length of the next message, in bytes.
+  //
+  // This is built up from a [varint]. Once it's fully consumed, [buffer] is
+  // initialized.
+  //
+  // [varint]: https://developers.google.com/protocol-buffers/docs/encoding#varints
+  int nextMessageLength = 0;
 
   // The buffer into which the packet data itself is written. Initialized once
   // [nextMessageLength] is known.
@@ -53,47 +53,51 @@ final lengthDelimitedDecoder =
     // multiple messages.
     var i = 0;
 
-    // Adds bytes from [chunk] to [destination] at [destinationIndex] without
-    // overflowing the bounds of [destination], and increments [i] for each byte
-    // written.
-    //
-    // Returns the number of bytes written.
-    int writeFromChunk(Uint8List destination, int destinationIndex) {
-      var bytesToWrite =
-          math.min(destination.length - destinationIndex, chunk.length - i);
-      destination.setRange(
-          destinationIndex, destinationIndex + bytesToWrite, chunk, i);
-      i += bytesToWrite;
-      return bytesToWrite;
-    }
-
     while (i < chunk.length) {
       // We can be in one of two states here:
       //
-      // * Both [nextMessageLength] and [buffer] are `null`, in which case we're
-      //   waiting until we have four bytes in [lengthBuffer] to know how big of
-      //   a buffer to allocate.
+      // * [buffer] is `null`, in which case we're adding data to
+      //   [nextMessageLength] until we reach a byte with its most significant
+      //   bit set to 0.
       //
-      // * Neither [nextMessageLength] nor [buffer] are `null`, in which case
-      //   we're waiting for [buffer] to have [nextMessageLength] in it before
-      //   we send it to [queue.local.sink] and start waiting for the next
-      //   message.
-      if (nextMessageLength == null) {
-        lengthBufferIndex += writeFromChunk(lengthBuffer, lengthBufferIndex);
-        if (lengthBufferIndex < 4) return;
+      // * [buffer] is not `null`, in which case we're waiting for [buffer] to
+      //   have [nextMessageLength] bytes in it before we send it to
+      //   [queue.local.sink] and start waiting for the next message.
+      if (buffer == null) {
+        var byte = chunk[i];
 
-        nextMessageLength =
-            ByteData.view(lengthBuffer.buffer).getUint32(0, Endian.little);
+        // Varints encode data in the 7 lower bits of each byte, which we access
+        // by masking with 0x7f = 0b01111111.
+        nextMessageLength += (byte & 0x7f) << nextMessageLengthBits;
+        nextMessageLengthBits += 7;
+        i++;
+
+        // If the byte is higher than 0x7f = 0b01111111, that means its high bit
+        // is set which and so there are more bytes to consume before we know
+        // the full message length.
+        if (byte > 0x7f) continue;
+
+        // Otherwise, [nextMessageLength] is now finalized and we can allocate
+        // the data buffer.
         buffer = Uint8List(nextMessageLength);
         bufferIndex = 0;
       }
 
-      bufferIndex += writeFromChunk(buffer, bufferIndex);
+      // Copy as many bytes as we can from [chunk] to [buffer], making sure not
+      // to try to copy more than the buffer can hold (if the chunk has another
+      // message after the current one) or more than the chunk has available (if
+      // the current message is split across multiple chunks).
+      var bytesToWrite =
+          math.min(buffer.length - bufferIndex, chunk.length - i);
+      buffer.setRange(bufferIndex, bufferIndex + bytesToWrite, chunk, i);
+      i += bytesToWrite;
+      bufferIndex += bytesToWrite;
       if (bufferIndex < nextMessageLength) return;
 
-      sink.add(Uint8List.view(buffer.buffer, 0, nextMessageLength));
-      lengthBufferIndex = 0;
-      nextMessageLength = null;
+      // Once we've filled the buffer, emit it and reset our state.
+      sink.add(buffer);
+      nextMessageLength = 0;
+      nextMessageLengthBits = 0;
       buffer = null;
       bufferIndex = null;
     }
@@ -106,9 +110,22 @@ final lengthDelimitedDecoder =
 final lengthDelimitedEncoder =
     StreamTransformer<Uint8List, List<int>>.fromHandlers(
         handleData: (message, sink) {
-  var messageLength = Uint8List(4);
-  ByteData.view(messageLength.buffer)
-      .setUint32(0, message.length, Endian.little);
-  sink.add(messageLength);
+  var length = message.length;
+  if (length == 0) {
+    sink.add([0]);
+    return;
+  }
+
+  // Write the length in varint format, 7 bits at a time from least to most
+  // significant.
+  var lengthBuffer = Uint8Buffer();
+  while (length > 0) {
+    // The highest-order bit indicates whether more bytes are necessary to fully
+    // express the number. The lower 7 bits indicate the number's value.
+    lengthBuffer.add((length > 0x7f ? 0x80 : 0) | (length & 0x7f));
+    length >>= 7;
+  }
+
+  sink.add(Uint8List.view(lengthBuffer.buffer, 0, lengthBuffer.length));
   sink.add(message);
 });
