@@ -3,6 +3,9 @@
 * Add support for parsing `clamp()` as a special math function, the same way
   `calc()` is parsed.
 
+* Properly load files in case-sensitive Windows directories with upper-case
+  names.
+
 ## 1.30.0
 
 * Fix a bug where `@at-root (without: all)` wouldn't properly remove a

@@ -17,26 +17,36 @@ export 'io/interface.dart'
 ///
 /// We can't know for sure because different Mac OS systems are configured
 /// differently.
-bool get couldBeCaseInsensitive => isWindows || isMacOS;
+bool get _couldBeCaseInsensitive => isWindows || isMacOS;
+
+/// Returns the canonical form of `path` on disk.
+String canonicalize(String path) => _couldBeCaseInsensitive
+    ? _realCasePath(p.absolute(p.normalize(path)))
+    : p.canonicalize(path);
 
 /// Returns `path` with the case updated to match the path's case on disk.
 ///
 /// This only updates `path`'s basename. It always returns `path` as-is on
-/// operating systems other than Windows or Mac OS, since they almost never uses
+/// operating systems other than Windows or Mac OS, since they almost never use
 /// case-insensitive filesystems.
-String realCasePath(String path) {
+String _realCasePath(String path) {
   // TODO(nweiz): Use an SDK function for this when dart-lang/sdk#35370 and/or
-  // nodejs/node#24942 are fixed.
+  // nodejs/node#24942 are fixed, or at least use FFI functions.
 
-  if (!couldBeCaseInsensitive) return path;
+  if (!_couldBeCaseInsensitive) return path;
 
-  var basename = p.basename(path);
-  var matches = listDir(p.dirname(path))
-      .where((realPath) => equalsIgnoreCase(p.basename(realPath), basename))
-      .toList();
+  var realCasePath = p.rootPrefix(path);
+  for (var component in p.split(path.substring(realCasePath.length))) {
+    var matches = listDir(realCasePath)
+        .where((realPath) => equalsIgnoreCase(p.basename(realPath), component))
+        .toList();
 
-  // If the file doesn't exist, or if there are multiple options (meaning the
-  // filesystem isn't actually case-insensitive), return `path` as-is.
-  if (matches.length != 1) return path;
-  return matches.first;
+    realCasePath = matches.length != 1
+        // If the file doesn't exist, or if there are multiple options (meaning
+        // the filesystem isn't actually case-insensitive), use `component` as-is.
+        ? p.join(realCasePath, component)
+        : matches[0];
+  }
+
+  return realCasePath;
 }
