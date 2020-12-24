@@ -21,7 +21,7 @@ bool get _couldBeCaseInsensitive => isWindows || isMacOS;
 
 /// Returns the canonical form of `path` on disk.
 String canonicalize(String path) => _couldBeCaseInsensitive
-    ? realCasePath(p.absolute(p.normalize(resolved)))
+    ? _realCasePath(p.absolute(p.normalize(path)))
     : p.canonicalize(path);
 
 /// Returns `path` with the case updated to match the path's case on disk.
@@ -33,7 +33,7 @@ String _realCasePath(String path) {
   // TODO(nweiz): Use an SDK function for this when dart-lang/sdk#35370 and/or
   // nodejs/node#24942 are fixed, or at least use FFI functions.
 
-  if (!couldBeCaseInsensitive) return path;
+  if (!_couldBeCaseInsensitive) return path;
 
   var realCasePath = p.rootPrefix(path);
   for (var component in p.split(path.substring(realCasePath.length))) {
