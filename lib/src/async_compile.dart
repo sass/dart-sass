@@ -44,7 +44,7 @@ Future<CompileResult> compileAsync(String path,
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= AsyncImportCache.none(logger: logger);
     stylesheet = await importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(p.canonicalize(path)), p.toUri(path));
+        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path));
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),

@@ -23,10 +23,7 @@ class FilesystemImporter extends Importer {
   Uri canonicalize(Uri url) {
     if (url.scheme != 'file' && url.scheme != '') return null;
     var resolved = resolveImportPath(p.join(_loadPath, p.fromUri(url)));
-    // Avoid `p.canonicalize()` to work around dart-lang/path#102.
-    return resolved == null
-        ? null
-        : p.toUri(io.realCasePath(p.absolute(p.normalize(resolved))));
+    return resolved == null ? null : p.toUri(io.canonicalize(resolved));
   }
 
   ImporterResult load(Uri url) {

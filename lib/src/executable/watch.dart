@@ -41,8 +41,8 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   var watcher = _Watcher(options, graph);
   for (var source in options.sourcesToDestinations.keys) {
     var destination = options.sourcesToDestinations[source];
-    graph.addCanonical(FilesystemImporter('.'), p.toUri(p.canonicalize(source)),
-        p.toUri(source),
+    graph.addCanonical(
+        FilesystemImporter('.'), p.toUri(canonicalize(source)), p.toUri(source),
         recanonicalize: false);
     var success = await watcher.compile(source, destination, ifModified: true);
     if (!success && options.stopOnError) {
@@ -188,7 +188,7 @@ class _Watcher {
   }
 
   /// Returns the canonical URL for the stylesheet path [path].
-  Uri _canonicalize(String path) => p.toUri(p.canonicalize(path));
+  Uri _canonicalize(String path) => p.toUri(canonicalize(path));
 
   /// Combine [WatchEvent]s that happen in quick succession.
   ///

@@ -17,14 +17,19 @@ export 'io/interface.dart'
 ///
 /// We can't know for sure because different Mac OS systems are configured
 /// differently.
-bool get couldBeCaseInsensitive => isWindows || isMacOS;
+bool get _couldBeCaseInsensitive => isWindows || isMacOS;
+
+/// Returns the canonical form of `path` on disk.
+String canonicalize(String path) => _couldBeCaseInsensitive
+    ? realCasePath(p.absolute(p.normalize(resolved)))
+    : p.canonicalize(path);
 
 /// Returns `path` with the case updated to match the path's case on disk.
 ///
 /// This only updates `path`'s basename. It always returns `path` as-is on
 /// operating systems other than Windows or Mac OS, since they almost never use
 /// case-insensitive filesystems.
-String realCasePath(String path) {
+String _realCasePath(String path) {
   // TODO(nweiz): Use an SDK function for this when dart-lang/sdk#35370 and/or
   // nodejs/node#24942 are fixed, or at least use FFI functions.
 
