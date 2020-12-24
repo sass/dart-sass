@@ -23,18 +23,13 @@ class FilesystemImporter extends Importer {
   Uri canonicalize(Uri url) {
     if (url.scheme != 'file' && url.scheme != '') return null;
     var resolved = resolveImportPath(p.join(_loadPath, p.fromUri(url)));
-    return resolved == null ? null : p.toUri(p.canonicalize(resolved));
+    return resolved == null ? null : p.toUri(io.canonicalize(resolved));
   }
 
   ImporterResult load(Uri url) {
     var path = p.fromUri(url);
     return ImporterResult(io.readFile(path),
-        sourceMapUrl:
-            // [io.realCasePath] will short-circuit on case-sensitive
-            // filesystems anyway, but we still avoid calling it here so we
-            // don't have to re-parse the URL.
-            io.couldBeCaseInsensitive ? p.toUri(io.realCasePath(path)) : url,
-        syntax: Syntax.forPath(path));
+        sourceMapUrl: url, syntax: Syntax.forPath(path));
   }
 
   DateTime modificationTime(Uri url) => io.modificationTime(p.fromUri(url));

@@ -1,3 +1,8 @@
+## 1.30.1
+
+* Properly load files in case-sensitive Windows directories with upper-case
+  names.
+
 ## 1.30.0
 
 * Fix a bug where `@at-root (without: all)` wouldn't properly remove a
