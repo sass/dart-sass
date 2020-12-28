@@ -1,4 +1,7 @@
-## 1.30.1
+## 1.31.0
+
+* Add support for parsing `clamp()` as a special math function, the same way
+  `calc()` is parsed.
 
 * Properly load files in case-sensitive Windows directories with upper-case
   names.

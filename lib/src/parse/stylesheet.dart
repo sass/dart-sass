@@ -901,6 +901,7 @@ abstract class StylesheetParser extends Parser {
       case "and":
       case "or":
       case "not":
+      case "clamp":
         error("Invalid function name.", scanner.spanFrom(start));
         break;
     }
@@ -2677,6 +2678,16 @@ relase. For details, see http://bit.ly/moz-document.
         var contents = _tryUrlContents(start);
         return contents == null ? null : StringExpression(contents);
 
+      case "clamp":
+        // Vendor-prefixed clamp() functions aren't parsed specially, because
+        // no browser has ever supported clamp() with a prefix.
+        if (name != "clamp") return null;
+        if (!scanner.scanChar($lparen)) return null;
+        buffer = InterpolationBuffer()
+          ..write(name)
+          ..writeCharCode($lparen);
+        break;
+
       default:
         return null;
     }
@@ -2727,7 +2738,17 @@ relase. For details, see http://bit.ly/moz-document.
 
         case $c:
         case $C:
-          if (!_tryMinMaxFunction(buffer, "calc")) return false;
+          switch (scanner.peekChar(1)) {
+            case $a:
+            case $A:
+              if (!_tryMinMaxFunction(buffer, "calc")) return false;
+              break;
+
+            case $l:
+            case $L:
+              if (!_tryMinMaxFunction(buffer, "clamp")) return false;
+              break;
+          }
           break;
 
         case $e:
