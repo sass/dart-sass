@@ -231,9 +231,11 @@ final module = BuiltInModule("color", functions: [
       }
 
       var result = _functionString("invert", arguments.take(1));
-      warn("Passing a number to color.invert() is deprecated.\n"
+      warn(
+          "Passing a number to color.invert() is deprecated.\n"
           "\n"
-          "Recommendation: $result");
+          "Recommendation: $result",
+          deprecation: true);
       return result;
     }
 
@@ -255,9 +257,11 @@ final module = BuiltInModule("color", functions: [
   _function("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("grayscale", arguments.take(1));
-      warn("Passing a number to color.grayscale() is deprecated.\n"
+      warn(
+          "Passing a number to color.grayscale() is deprecated.\n"
           "\n"
-          "Recommendation: $result");
+          "Recommendation: $result",
+          deprecation: true);
       return result;
     }
 
@@ -306,9 +310,11 @@ final module = BuiltInModule("color", functions: [
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart)) {
         var result = _functionString("alpha", arguments);
-        warn("Using color.alpha() for a Microsoft filter is deprecated.\n"
+        warn(
+            "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
-            "Recommendation: $result");
+            "Recommendation: $result",
+            deprecation: true);
         return result;
       }
 
@@ -322,9 +328,11 @@ final module = BuiltInModule("color", functions: [
           argument.text.contains(_microsoftFilterStart))) {
         // Support the proprietary Microsoft alpha() function.
         var result = _functionString("alpha", arguments);
-        warn("Using color.alpha() for a Microsoft filter is deprecated.\n"
+        warn(
+            "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
-            "Recommendation: $result");
+            "Recommendation: $result",
+            deprecation: true);
         return result;
       }
 
@@ -337,9 +345,11 @@ final module = BuiltInModule("color", functions: [
   _function("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("opacity", arguments);
-      warn("Passing a number to color.opacity() is deprecated.\n"
+      warn(
+          "Passing a number to color.opacity() is deprecated.\n"
           "\n"
-          "Recommendation: $result");
+          "Recommendation: $result",
+          deprecation: true);
       return result;
     }
 

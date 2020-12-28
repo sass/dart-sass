@@ -1,3 +1,8 @@
+## 1.32.0
+
+* Properly mark some warnings emitted by `sass:color` functions as deprecation
+  warnings.
+
 ## 1.31.0
 
 * Add support for parsing `clamp()` as a special math function, the same way
