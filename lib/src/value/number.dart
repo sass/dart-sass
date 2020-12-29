@@ -496,7 +496,15 @@ class SassNumber extends Value implements ext.SassNumber {
     num num2;
     if (hasUnits) {
       num1 = value;
-      num2 = other.coerceValueToMatch(this);
+      try {
+        num2 = other.coerceValueToMatch(this);
+      } on SassScriptException {
+        // If the conversion fails, re-run it in the other direction. This will
+        // generate an error message that prints [this] before [other], which is
+        // more readable.
+        this.coerceValueToMatch(other);
+        rethrow; // This should be unreachable.
+      }
     } else {
       num1 = coerceValueToMatch(other);
       num2 = other.value;
