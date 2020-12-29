@@ -83,6 +83,11 @@ abstract class SassNumber extends Value {
   /// Returns whether [this] has [unit] as its only unit (and as a numerator).
   bool hasUnit(String unit);
 
+  /// Returns whether [this] can be coerced to the given [unit].
+  ///
+  /// This always returns `true` for a unitless number.
+  bool compatibleWithUnit(String unit);
+
   /// Throws a [SassScriptException] unless [this] has [unit] as its only unit
   /// (and as a numerator).
   ///

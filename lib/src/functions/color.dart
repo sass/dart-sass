@@ -120,6 +120,7 @@ final global = UnmodifiableListView([
   _function("adjust-hue", r"$color, $degrees", (arguments) {
     var color = arguments[0].assertColor("color");
     var degrees = arguments[1].assertNumber("degrees");
+    _checkAngle(degrees);
     return color.changeHsl(hue: color.hue + degrees.value);
   }),
 
@@ -447,9 +448,11 @@ SassColor _updateComponents(List<Value> arguments,
   ///
   /// [max] should be 255 for RGB channels, 1 for the alpha channel, and 100
   /// for saturation, lightness, whiteness, and blackness.
-  num getParam(String name, num max, {bool assertPercent = false}) {
+  num getParam(String name, num max,
+      {bool checkPercent = false, bool assertPercent = false}) {
     var number = keywords.remove(name)?.assertNumber(name);
     if (number == null) return null;
+    if (!scale && checkPercent) _checkPercent(number, name);
     if (scale || assertPercent) number.assertUnit("%", name);
     if (scale) max = 100;
     return number.valueInRange(change ? 0 : -max, max, name);
@@ -459,9 +462,13 @@ SassColor _updateComponents(List<Value> arguments,
   var red = getParam("red", 255);
   var green = getParam("green", 255);
   var blue = getParam("blue", 255);
-  var hue = scale ? null : keywords.remove("hue")?.assertNumber("hue")?.value;
-  var saturation = getParam("saturation", 100);
-  var lightness = getParam("lightness", 100);
+
+  var hueNumber = scale ? null : keywords.remove("hue")?.assertNumber("hue");
+  if (hueNumber != null) _checkAngle(hueNumber, "hue");
+  var hue = hueNumber?.value;
+
+  var saturation = getParam("saturation", 100, checkPercent: true);
+  var lightness = getParam("lightness", 100, checkPercent: true);
   var whiteness = getParam("whiteness", 100, assertPercent: true);
   var blackness = getParam("blackness", 100, assertPercent: true);
 
@@ -610,6 +617,10 @@ Value _hsl(String name, List<Value> arguments) {
   var saturation = arguments[1].assertNumber("saturation");
   var lightness = arguments[2].assertNumber("lightness");
 
+  _checkAngle(hue, "hue");
+  _checkPercent(saturation, "saturation");
+  _checkPercent(lightness, "lightness");
+
   return SassColor.hsl(
       hue.value,
       saturation.value.clamp(0, 100),
@@ -618,6 +629,56 @@ Value _hsl(String name, List<Value> arguments) {
           ? null
           : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
 }
+
+/// Prints a deprecation warning if [hue] has a unit other than `deg`.
+void _checkAngle(SassNumber angle, [String name]) {
+  if (!angle.hasUnits || angle.hasUnit('deg')) return;
+
+  var message = StringBuffer()
+    ..writeln("\$$name: Passing a unit other than deg is deprecated.")
+    ..writeln();
+
+  if (angle.compatibleWithUnit('deg')) {
+    message
+      ..writeln(
+          "You're passing $angle, which is currently (incorrectly) converted "
+          "to ${SassNumber(angle.value, 'deg')}.")
+      ..writeln("Soon, it will instead be correctly converted to "
+          "${angle.coerce(['deg'], [])}.")
+      ..writeln();
+
+    var actualUnit = angle.numeratorUnits.first;
+    message
+      ..writeln("To preserve current behavior: \$$name * 1deg/1$actualUnit")
+      ..writeln("To migrate to new behavior: 0deg + \$$name")
+      ..writeln();
+  } else {
+    message
+      ..writeln("To preserve current behavior: \$$name${_removeUnits(angle)}")
+      ..writeln();
+  }
+
+  message.write("See https://sass-lang.com/d/color-units");
+  warn(message.toString(), deprecation: true);
+}
+
+/// Prints a deprecation warning if [number] doesn't have unit `%`.
+void _checkPercent(SassNumber number, String name) {
+  if (number.hasUnit('%')) return;
+
+  warn("\$$name: Passing a number without unit % is deprecated.\n"
+      "\n"
+      "To preserve current behavior: \$$name${_removeUnits(number)} * 1%",
+       deprecation: true);
+}
+
+/// Returns the right-hand side of an expression that would remove all units
+/// from `$number` but leaves the value the same.
+///
+/// Used for constructing deprecation messages.
+String _removeUnits(SassNumber number) =>
+    number.denominatorUnits.map((unit) => " * 1$unit").join() +
+    number.numeratorUnits.map((unit) => " / 1$unit").join();
 
 /// Create an HWB color from the given [arguments].
 Value _hwb(List<Value> arguments) {

@@ -1,5 +1,15 @@
 ## 1.32.0
 
+* Deprecate passing non-`%` numbers as lightness and saturation to `hsl()`,
+  `hsla()`, `color.adjust()`, and `color.change()`. This matches the CSS
+  specification, which also requires `%` for all lightness and saturation
+  parameters. See [the Sass website][color-units] for more details.
+
+* Deprecate passing numbers with units other than `deg` as the hue to `hsl()`,
+  `hsla()`, `adjust-hue()`, `color.adjust()`, and `color.change()`. Unitless
+  numbers *are* still allowed here, since they're allowed by CSS. See [the Sass
+  website][color-units] for more details.
+
 * Improve error messages about incompatible units.
 
 * Properly mark some warnings emitted by `sass:color` functions as deprecation
@@ -23,6 +33,9 @@
   which work like `SassNumber.coerceToMatch()` and
   `SassNumber.coerceValueToMatch()` except they throw exceptions when converting
   unitless values to or from units.
+
+* Add `SassNumber.compatibleWithUnit()`, which returns whether the number can be
+  coerced to a single numerator unit.
 
 ## 1.31.0
 

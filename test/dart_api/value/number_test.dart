@@ -75,6 +75,10 @@ void main() {
           throwsSassScriptException);
     });
 
+    test("is compatible with any unit", () {
+      expect(value.compatibleWithUnit("px"), isTrue);
+    });
+
     group("valueInRange()", () {
       test("returns its value within a given range", () {
         expect(value.valueInRange(0, 123), equals(123));
@@ -267,6 +271,18 @@ void main() {
           throwsSassScriptException);
     });
 
+    test("is compatible with the same unit", () {
+      expect(value.compatibleWithUnit("px"), isTrue);
+    });
+
+    test("is compatible with a compatible unit", () {
+      expect(value.compatibleWithUnit("in"), isTrue);
+    });
+
+    test("is incompatible with an incompatible unit", () {
+      expect(value.compatibleWithUnit("abc"), isFalse);
+    });
+
     test("equals the same number", () {
       expect(value, equalsWithHash(SassNumber(123, "px")));
     });
@@ -385,6 +401,14 @@ void main() {
     test("can't convert its value to incompatible units", () {
       expect(() => value.convertValueToMatch(SassNumber(456, "abc")),
           throwsSassScriptException);
+    });
+
+    test("is incompatible with the numerator unit", () {
+      expect(value.compatibleWithUnit("px"), isFalse);
+    });
+
+    test("is incompatible with the denominator unit", () {
+      expect(value.compatibleWithUnit("ms"), isFalse);
     });
 
     test("equals the same number", () {

@@ -60,7 +60,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     expect(
         sass.stderr,
         emitsInOrder([
-          "Error: Incompatible units deg and px.",
+          "Error: 1px and 1deg have incompatible units.",
           "  ,",
           "1 | a {b: 1px + 1deg}",
           "  |       ^^^^^^^^^^",

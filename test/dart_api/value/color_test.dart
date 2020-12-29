@@ -250,9 +250,9 @@ void main() {
 
   group("new SassColor.hsl()", () {
     test("allows valid values", () {
-      expect(SassColor.hsl(0, 0, 0, 0), equals(parseValue("hsla(0, 0, 0, 0)")));
+      expect(SassColor.hsl(0, 0, 0, 0), equals(parseValue("hsla(0, 0%, 0%, 0)")));
       expect(SassColor.hsl(4320, 100, 100, 1),
-          equals(parseValue("hsl(4320, 100, 100)")));
+          equals(parseValue("hsl(4320, 100%, 100%)")));
     });
 
     test("disallows invalid values", () {

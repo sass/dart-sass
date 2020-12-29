@@ -235,6 +235,13 @@ class SassNumber extends Value implements ext.SassNumber {
       denominatorUnits.isEmpty &&
       numeratorUnits.first == unit;
 
+  bool compatibleWithUnit(String unit) {
+    if (denominatorUnits.isNotEmpty) return false;
+    if (numeratorUnits.isEmpty) return true;
+    return numeratorUnits.length == 1 &&
+        _conversionFactor(numeratorUnits.first, unit) != null;
+  }
+
   void assertUnit(String unit, [String name]) {
     if (hasUnit(unit)) return;
     throw _exception('Expected $this to have unit "$unit".', name);
@@ -502,7 +509,7 @@ class SassNumber extends Value implements ext.SassNumber {
         // If the conversion fails, re-run it in the other direction. This will
         // generate an error message that prints [this] before [other], which is
         // more readable.
-        this.coerceValueToMatch(other);
+        coerceValueToMatch(other);
         rethrow; // This should be unreachable.
       }
     } else {
