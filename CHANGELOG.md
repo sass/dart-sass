@@ -1,3 +1,42 @@
+## 1.32.0
+
+* Deprecate passing non-`%` numbers as lightness and saturation to `hsl()`,
+  `hsla()`, `color.adjust()`, and `color.change()`. This matches the CSS
+  specification, which also requires `%` for all lightness and saturation
+  parameters. See [the Sass website][color-units] for more details.
+
+* Deprecate passing numbers with units other than `deg` as the hue to `hsl()`,
+  `hsla()`, `adjust-hue()`, `color.adjust()`, and `color.change()`. Unitless
+  numbers *are* still allowed here, since they're allowed by CSS. See [the Sass
+  website][color-units] for more details.
+
+* Improve error messages about incompatible units.
+
+* Properly mark some warnings emitted by `sass:color` functions as deprecation
+  warnings.
+  
+### Dart API
+
+* Rename `SassNumber.valueInUnits()` to `SassNumber.coerceValue()`. The old name
+  remains, but is now deprecated.
+
+* Rename `SassNumber.coerceValueToUnit()`, a shorthand for
+  `SassNumber.coerceValue()` that takes a single numerator unit.
+
+* Add `SassNumber.coerceToMatch()` and `SassNumber.coerceValueToMatch()`, which
+  work like `SassNumber.coerce()` and `SassNumber.coerceValue()` but take a
+  `SassNumber` whose units should be matched rather than taking the units
+  explicitly. These generate better error messages than `SassNumber.coerce()`
+  and `SassNumber.coerceValue()`.
+
+* Add `SassNumber.convertToMatch()` and `SassNumber.convertValueToMatch()`,
+  which work like `SassNumber.coerceToMatch()` and
+  `SassNumber.coerceValueToMatch()` except they throw exceptions when converting
+  unitless values to or from units.
+
+* Add `SassNumber.compatibleWithUnit()`, which returns whether the number can be
+  coerced to a single numerator unit.
+
 ## 1.31.0
 
 * Add support for parsing `clamp()` as a special math function, the same way

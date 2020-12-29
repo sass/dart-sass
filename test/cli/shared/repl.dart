@@ -287,7 +287,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             sass.stdout,
             emitsInOrder([
               '>> @use "other"',
-              "Error: Incompatible units s and px.",
+              "Error: 1px and 1s have incompatible units.",
               "  ,",
               r"1 | $var: 1px + 1s;",
               "  |       ^^^^^^^^",

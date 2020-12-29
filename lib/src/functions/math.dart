@@ -41,20 +41,17 @@ final _clamp = _function("clamp", r"$min, $number, $max", (arguments) {
   var min = arguments[0].assertNumber("min");
   var number = arguments[1].assertNumber("number");
   var max = arguments[2].assertNumber("max");
-  if (min.hasUnits == number.hasUnits && number.hasUnits == max.hasUnits) {
-    if (min.greaterThanOrEquals(max).isTruthy) return min;
-    if (min.greaterThanOrEquals(number).isTruthy) return min;
-    if (number.greaterThanOrEquals(max).isTruthy) return max;
-    return number;
-  }
 
-  var arg2 = min.hasUnits != number.hasUnits ? number : max;
-  var arg2Name = min.hasUnits != number.hasUnits ? "\$number" : "\$max";
-  var unit1 = min.hasUnits ? "has unit ${min.unitString}" : "is unitless";
-  var unit2 = arg2.hasUnits ? "has unit ${arg2.unitString}" : "is unitless";
-  throw SassScriptException(
-      "\$min $unit1 but $arg2Name $unit2. Arguments must all have units or all "
-      "be unitless.");
+  // Even though we don't use the resulting values, `convertValueToMatch`
+  // generates more user-friendly exceptions than [greaterThanOrEquals] since it
+  // has more context about parameter names.
+  number.convertValueToMatch(min, "number", "min");
+  max.convertValueToMatch(min, "max", "min");
+
+  if (min.greaterThanOrEquals(max).isTruthy) return min;
+  if (min.greaterThanOrEquals(number).isTruthy) return min;
+  if (number.greaterThanOrEquals(max).isTruthy) return max;
+  return number;
 });
 
 final _floor = _numberFunction("floor", (value) => value.floor());
@@ -94,27 +91,16 @@ final _hypot = _function("hypot", r"$numbers...", (arguments) {
     throw SassScriptException("At least one argument must be passed.");
   }
 
-  var numeratorUnits = numbers[0].numeratorUnits;
-  var denominatorUnits = numbers[0].denominatorUnits;
   var subtotal = 0.0;
   for (var i = 0; i < numbers.length; i++) {
     var number = numbers[i];
-    if (number.hasUnits == numbers[0].hasUnits) {
-      number = number.coerce(numeratorUnits, denominatorUnits);
-      subtotal += math.pow(number.value, 2);
-    } else {
-      var unit1 = numbers[0].hasUnits
-          ? "has unit ${numbers[0].unitString}"
-          : "is unitless";
-      var unit2 =
-          number.hasUnits ? "has unit ${number.unitString}" : "is unitless";
-      throw SassScriptException(
-          "Argument 1 $unit1 but argument ${i + 1} $unit2. Arguments must all "
-          "have units or all be unitless.");
-    }
+    var value = number.convertValueToMatch(
+        numbers[0], "numbers[${i + 1}]", "numbers[1]");
+    subtotal += math.pow(value, 2);
   }
   return SassNumber.withUnits(math.sqrt(subtotal),
-      numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
+      numeratorUnits: numbers[0].numeratorUnits,
+      denominatorUnits: numbers[0].denominatorUnits);
 });
 
 ///
@@ -232,42 +218,36 @@ final _atan = _function("atan", r"$number", (arguments) {
 final _atan2 = _function("atan2", r"$y, $x", (arguments) {
   var y = arguments[0].assertNumber("y");
   var x = arguments[1].assertNumber("x");
-  if (y.hasUnits != x.hasUnits) {
-    var unit1 = y.hasUnits ? "has unit ${y.unitString}" : "is unitless";
-    var unit2 = x.hasUnits ? "has unit ${x.unitString}" : "is unitless";
-    throw SassScriptException(
-        "\$y $unit1 but \$x $unit2. Arguments must all have units or all be "
-        "unitless.");
-  }
 
-  x = x.coerce(y.numeratorUnits, y.denominatorUnits);
-  var xValue = _fuzzyRoundIfZero(x.value);
+  var xValue = _fuzzyRoundIfZero(x.convertValueToMatch(y, 'x', 'y'));
   var yValue = _fuzzyRoundIfZero(y.value);
   var atan2 = math.atan2(yValue, xValue) * 180 / math.pi;
   return SassNumber.withUnits(atan2, numeratorUnits: ['deg']);
 });
 
 final _cos = _function("cos", r"$number", (arguments) {
-  var number = _coerceToRad(arguments[0].assertNumber("number"));
-  return SassNumber(math.cos(number.value));
+  var value =
+      arguments[0].assertNumber("number").coerceValueToUnit("rad", "number");
+  return SassNumber(math.cos(value));
 });
 
 final _sin = _function("sin", r"$number", (arguments) {
-  var number = _coerceToRad(arguments[0].assertNumber("number"));
-  var numberValue = _fuzzyRoundIfZero(number.value);
-  return SassNumber(math.sin(numberValue));
+  var value = _fuzzyRoundIfZero(
+      arguments[0].assertNumber("number").coerceValueToUnit("rad", "number"));
+  return SassNumber(math.sin(value));
 });
 
 final _tan = _function("tan", r"$number", (arguments) {
-  var number = _coerceToRad(arguments[0].assertNumber("number"));
+  var value =
+      arguments[0].assertNumber("number").coerceValueToUnit("rad", "number");
   var asymptoteInterval = 0.5 * math.pi;
   var tanPeriod = 2 * math.pi;
-  if (fuzzyEquals((number.value - asymptoteInterval) % tanPeriod, 0)) {
+  if (fuzzyEquals((value - asymptoteInterval) % tanPeriod, 0)) {
     return SassNumber(double.infinity);
-  } else if (fuzzyEquals((number.value + asymptoteInterval) % tanPeriod, 0)) {
+  } else if (fuzzyEquals((value + asymptoteInterval) % tanPeriod, 0)) {
     return SassNumber(double.negativeInfinity);
   } else {
-    var numberValue = _fuzzyRoundIfZero(number.value);
+    var numberValue = _fuzzyRoundIfZero(value);
     return SassNumber(math.tan(numberValue));
   }
 });
@@ -320,15 +300,6 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
 num _fuzzyRoundIfZero(num number) {
   if (!fuzzyEquals(number, 0)) return number;
   return number.isNegative ? -0.0 : 0;
-}
-
-SassNumber _coerceToRad(SassNumber number) {
-  try {
-    return number.coerce(['rad'], []);
-  } on SassScriptException catch (error) {
-    if (!error.message.startsWith('Incompatible units')) rethrow;
-    throw SassScriptException('\$number: Expected ${number} to be an angle.');
-  }
 }
 
 /// Returns a [Callable] named [name] that transforms a number's value
