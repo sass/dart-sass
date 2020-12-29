@@ -1,7 +1,28 @@
 ## 1.32.0
 
+* Improve error messages about incompatible units.
+
 * Properly mark some warnings emitted by `sass:color` functions as deprecation
   warnings.
+  
+### Dart API
+
+* Rename `SassNumber.valueInUnits()` to `SassNumber.coerceValue()`. The old name
+  remains, but is now deprecated.
+
+* Rename `SassNumber.coerceValueToUnit()`, a shorthand for
+  `SassNumber.coerceValue()` that takes a single numerator unit.
+
+* Add `SassNumber.coerceToMatch()` and `SassNumber.coerceValueToMatch()`, which
+  work like `SassNumber.coerce()` and `SassNumber.coerceValue()` but take a
+  `SassNumber` whose units should be matched rather than taking the units
+  explicitly. These generate better error messages than `SassNumber.coerce()`
+  and `SassNumber.coerceValue()`.
+
+* Add `SassNumber.convertToMatch()` and `SassNumber.convertValueToMatch()`,
+  which work like `SassNumber.coerceToMatch()` and
+  `SassNumber.coerceValueToMatch()` except they throw exceptions when converting
+  unitless values to or from units.
 
 ## 1.31.0
 

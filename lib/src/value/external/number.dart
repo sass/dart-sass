@@ -96,20 +96,105 @@ abstract class SassNumber extends Value {
   /// (without the `$`). It's used for error reporting.
   void assertNoUnits([String name]);
 
+  /// Returns a copy of this number, converted to the same units as [other].
+  ///
+  /// Unlike [convertToMatch], this does *not* throw an error if this number is
+  /// unitless and [other] is not, or vice versa. Instead, it treats all
+  /// unitless numbers as convertable to and from all units without changing the
+  /// value.
+  ///
+  /// Note that [coerceValueToMatch] is generally more efficient if the value is
+  /// going to be accessed directly.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  SassNumber coerceToMatch(SassNumber other, [String name, String otherName]);
+
+  /// Returns [value], converted to the same units as [other].
+  ///
+  /// Unlike [convertValueToMatch], this does *not* throw an error if this
+  /// number is unitless and [other] is not, or vice versa. Instead, it treats
+  /// all unitless numbers as convertable to and from all units without changing
+  /// the value.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  num coerceValueToMatch(SassNumber other, [String name, String otherName]);
+
+  /// Returns a copy of this number, converted to the same units as [other].
+  ///
+  /// Note that [convertValueToMatch] is generally more efficient if the value
+  /// is going to be accessed directly.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units, or if either number is unitless but the other is
+  /// not.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  SassNumber convertToMatch(SassNumber other, [String name, String otherName]);
+
+  /// Returns [value], converted to the same units as [other].
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units, or if either number is unitless but the other is
+  /// not.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  num convertValueToMatch(SassNumber other, [String name, String otherName]);
+
   /// Returns a copy of this number, converted to the units represented by
   /// [newNumerators] and [newDenominators].
   ///
-  /// Note that [valueInUnits] is generally more efficient if the value is going
+  /// This does *not* throw an error if this number is unitless and
+  /// [newNumerators]/[newDenominators] are not empty, or vice versa. Instead,
+  /// it treats all unitless numbers as convertable to and from all units
+  /// without changing the value.
+  ///
+  /// Note that [coerceValue] is generally more efficient if the value is going
   /// to be accessed directly.
   ///
   /// Throws a [SassScriptException] if this number's units aren't compatible
   /// with [newNumerators] and [newDenominators].
-  SassNumber coerce(List<String> newNumerators, List<String> newDenominators);
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
+      [String name]);
 
   /// Returns [value], converted to the units represented by [newNumerators] and
   /// [newDenominators].
   ///
+  /// This does *not* throw an error if this number is unitless and
+  /// [newNumerators]/[newDenominators] are not empty, or vice versa. Instead,
+  /// it treats all unitless numbers as convertable to and from all units
+  /// without changing the value.
+  ///
   /// Throws a [SassScriptException] if this number's units aren't compatible
   /// with [newNumerators] and [newDenominators].
-  num valueInUnits(List<String> newNumerators, List<String> newDenominators);
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  num coerceValue(List<String> newNumerators, List<String> newDenominators,
+      [String name]);
+
+  /// This has been renamed [coerceValue] for consistency with [coerceToMatch],
+  /// [coerceValueToMatch], [convertToMatch], and [convertValueToMatch].
+  @deprecated
+  num valueInUnits(List<String> newNumerators, List<String> newDenominators,
+      [String name]);
+
+  /// A shorthand for [coerceValue] with only one numerator unit.
+  num coerceValueToUnit(String unit, [String name]);
 }

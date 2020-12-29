@@ -37,6 +37,11 @@ String pluralize(String name, int number, {String plural}) {
   return '${name}s';
 }
 
+/// Returns `a $word` or `an $word` depending on whether [word] starts with a
+/// vowel.
+String a(String word) =>
+    [$a, $e, $i, $o, $u].contains(word.codeUnitAt(0)) ? "an $word" : "a $word";
+
 /// Returns a bulleted list of items in [bullets].
 String bulletedList(Iterable<String> bullets) {
   return bullets.map((element) {

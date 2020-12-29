@@ -4,6 +4,7 @@
 
 import 'dart:math';
 
+import 'package:meta/meta.dart';
 import 'package:tuple/tuple.dart';
 
 import '../exception.dart';
@@ -16,7 +17,7 @@ import 'external/value.dart' as ext;
 /// A nested map containing unit conversion rates.
 ///
 /// `1unit1 * _conversions[unit1][unit2] = 1unit2`.
-final _conversions = {
+const _conversions = {
   // Length
   "in": {
     "in": 1,
@@ -140,6 +141,22 @@ final _conversions = {
   },
 };
 
+/// A map from human-readable names of unit types to the units that fall into
+/// those types.
+const _unitsByType = {
+  "length": ["in", "cm", "pc", "mm", "q", "pt", "px"],
+  "angle": ["deg", "grad", "rad", "turn"],
+  "time": ["s", "ms"],
+  "frequency": ["Hz", "kHz"],
+  "pixel density": ["dpi", "dpcm", "dppx"]
+};
+
+/// A map from units to the human-readable names of those unit types.
+final _typesByUnit = {
+  for (var entry in _unitsByType.entries)
+    for (var unit in entry.value) unit: entry.key
+};
+
 // TODO(nweiz): If it's faster, add subclasses specifically for unitless numbers
 // and numbers with only a single numerator unit. These should be opaque to
 // users of SassNumber.
@@ -228,16 +245,111 @@ class SassNumber extends Value implements ext.SassNumber {
     throw _exception('Expected $this to have no units.', name);
   }
 
-  SassNumber coerce(List<String> newNumerators, List<String> newDenominators) =>
-      SassNumber.withUnits(valueInUnits(newNumerators, newDenominators),
+  SassNumber coerceToMatch(ext.SassNumber other,
+          [String name, String otherName]) =>
+      SassNumber.withUnits(coerceValueToMatch(other, name, otherName),
+          numeratorUnits: other.numeratorUnits,
+          denominatorUnits: other.denominatorUnits);
+
+  num coerceValueToMatch(ext.SassNumber other,
+          [String name, String otherName]) =>
+      _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
+          coerceUnitless: true, name: name, other: other, otherName: otherName);
+
+  SassNumber convertToMatch(ext.SassNumber other,
+          [String name, String otherName]) =>
+      SassNumber.withUnits(convertValueToMatch(other, name, otherName),
+          numeratorUnits: other.numeratorUnits,
+          denominatorUnits: other.denominatorUnits);
+
+  num convertValueToMatch(ext.SassNumber other,
+          [String name, String otherName]) =>
+      _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
+          coerceUnitless: false,
+          name: name,
+          other: other,
+          otherName: otherName);
+
+  SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
+          [String name]) =>
+      SassNumber.withUnits(coerceValue(newNumerators, newDenominators, name),
           numeratorUnits: newNumerators, denominatorUnits: newDenominators);
 
-  num valueInUnits(List<String> newNumerators, List<String> newDenominators) {
-    if ((newNumerators.isEmpty && newDenominators.isEmpty) ||
-        (numeratorUnits.isEmpty && denominatorUnits.isEmpty) ||
-        (listEquals(numeratorUnits, newNumerators) &&
-            listEquals(denominatorUnits, newDenominators))) {
+  num coerceValue(List<String> newNumerators, List<String> newDenominators,
+          [String name]) =>
+      _coerceOrConvertValue(newNumerators, newDenominators,
+          coerceUnitless: true, name: name);
+
+  num coerceValueToUnit(String unit, [String name]) =>
+      coerceValue([unit], [], name);
+
+  @deprecated
+  num valueInUnits(List<String> newNumerators, List<String> newDenominators,
+          [String name]) =>
+      coerceValue(newNumerators, newDenominators, name);
+
+  /// Converts [value] to [newNumerators] and [newDenominators].
+  ///
+  /// If [coerceUnitless] is `true`, this considers unitless numbers convertable
+  /// to and from any unit. Otherwise, it will throw a [SassScriptException] for
+  /// such a conversion.
+  ///
+  /// If [other] is passed, it should be the number from which [newNumerators]
+  /// and [newDenominators] are derived. The [name] and [otherName] are the Sass
+  /// function parameter names of [this] and [other], respectively, used for
+  /// error reporting.
+  num _coerceOrConvertValue(
+      List<String> newNumerators, List<String> newDenominators,
+      {@required bool coerceUnitless,
+      String name,
+      ext.SassNumber other,
+      String otherName}) {
+    assert(
+        other == null ||
+            (listEquals(other.numeratorUnits, newNumerators) &&
+                listEquals(other.denominatorUnits, newDenominators)),
+        "Expected $other to have units "
+        "${_unitString(newNumerators, newDenominators)}.");
+
+    if (listEquals(numeratorUnits, newNumerators) &&
+        listEquals(denominatorUnits, newDenominators)) {
       return this.value;
+    }
+
+    var otherHasUnits = newNumerators.isNotEmpty || newDenominators.isNotEmpty;
+    if (coerceUnitless && (!hasUnits || !otherHasUnits)) return this.value;
+
+    SassScriptException _compatibilityException() {
+      if (other != null) {
+        var message = StringBuffer("$this and");
+        if (otherName != null) message.write(" \$$otherName:");
+        message.write(" $other have incompatible units");
+        if (!hasUnits || !otherHasUnits) {
+          message.write(" (one has units and the other doesn't)");
+        }
+        return _exception("$message.", name);
+      } else if (!otherHasUnits) {
+        return _exception("Expected $this to have no units.", name);
+      } else {
+        if (newNumerators.length == 1 && newDenominators.isEmpty) {
+          var type = _typesByUnit[newNumerators.first];
+          if (type != null) {
+            // If we're converting to a unit of a named type, use that type name
+            // and make it clear exactly which units are convertible.
+            return _exception(
+                "Expected $this to have ${a(type)} unit "
+                "(${_unitsByType[type].join(', ')}).",
+                name);
+          }
+        }
+
+        var unit =
+            pluralize('unit', newNumerators.length + newDenominators.length);
+        return _exception(
+            "Expected $this to have $unit "
+            "${_unitString(newNumerators, newDenominators)}.",
+            name);
+      }
     }
 
     var value = this.value;
@@ -248,11 +360,7 @@ class SassNumber extends Value implements ext.SassNumber {
         if (factor == null) return false;
         value *= factor;
         return true;
-      }, orElse: () {
-        throw SassScriptException("Incompatible units "
-            "${_unitString(numeratorUnits, denominatorUnits)} and "
-            "${_unitString(newNumerators, newDenominators)}.");
-      });
+      }, orElse: () => throw _compatibilityException());
     }
 
     var oldDenominators = denominatorUnits.toList();
@@ -262,17 +370,11 @@ class SassNumber extends Value implements ext.SassNumber {
         if (factor == null) return false;
         value /= factor;
         return true;
-      }, orElse: () {
-        throw SassScriptException("Incompatible units "
-            "${_unitString(numeratorUnits, denominatorUnits)} and "
-            "${_unitString(newNumerators, newDenominators)}.");
-      });
+      }, orElse: () => throw _compatibilityException());
     }
 
     if (oldNumerators.isNotEmpty || oldDenominators.isNotEmpty) {
-      throw SassScriptException("Incompatible units "
-          "${_unitString(numeratorUnits, denominatorUnits)} and "
-          "${_unitString(newNumerators, newDenominators)}.");
+      throw _compatibilityException();
     }
 
     return value;
@@ -394,9 +496,9 @@ class SassNumber extends Value implements ext.SassNumber {
     num num2;
     if (hasUnits) {
       num1 = value;
-      num2 = other.valueInUnits(numeratorUnits, denominatorUnits);
+      num2 = other.coerceValueToMatch(this);
     } else {
-      num1 = valueInUnits(other.numeratorUnits, other.denominatorUnits);
+      num1 = coerceValueToMatch(other);
       num2 = other.value;
     }
 
