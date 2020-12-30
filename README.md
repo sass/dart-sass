@@ -13,7 +13,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
       <br>
       <a href="https://travis-ci.com/github/sass/dart-sass"><img alt="Travis build status" src="https://travis-ci.com/sass/dart-sass.svg?branch=master"></a>
       <br>
-      <a href="https://ci.appveyor.com/project/nex3/dart-sass"><img alt="Appveyor build status" src="https://ci.appveyor.com/api/projects/status/84rl9hvu8uoecgef?svg=true"></a>
+      <a href="(https://gitter.im/sass/sass?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)"><img alt="Gitter" src="(https://badges.gitter.im/sass/sass.svg"></a>
     </td>
   </tr>
 </table>
