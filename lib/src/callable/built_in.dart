@@ -7,7 +7,6 @@ import 'package:tuple/tuple.dart';
 import '../ast/sass.dart';
 import '../callable.dart';
 import '../value.dart';
-import 'async_built_in.dart';
 
 typedef _Callback = Value Function(List<Value> arguments);
 

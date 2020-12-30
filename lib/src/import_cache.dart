@@ -15,7 +15,6 @@ import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
 import 'importer.dart';
-import 'importer/result.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';

@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import '../importer.dart';
-import 'result.dart';
 
 /// An importer that never imports any stylesheets.
 ///
