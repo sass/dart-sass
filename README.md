@@ -12,8 +12,13 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
       <a href="https://pub.dartlang.org/packages/sass"><img alt="Pub version" src="https://img.shields.io/pub/v/sass.svg"></a>
       <br>
       <a href="https://travis-ci.com/github/sass/dart-sass"><img alt="Travis build status" src="https://travis-ci.com/sass/dart-sass.svg?branch=master"></a>
+    </td>
+    <td>
+      <a href="https://twitter.com/SassCSS"><img alt="@SassCSS on Twitter" src="https://img.shields.io/twitter/follow/SassCSS?label=%40SassCSS&style=social"></a>
       <br>
-      <a href="https://gitter.im/sass/sass?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge"><img alt="Gitter" src="https://badges.gitter.im/sass/sass.svg"></a>
+      <a href="https://stackoverflow.com/questions/tagged/sass"><img alt="stackoverflow" src="https://img.shields.io/stackexchange/stackoverflow/t/sass?label=Sass%20questions&logo=stackoverflow&style=social"></a>
+      <br>
+      <a href="https://gitter.im/sass/sass?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge"><img alt="Gitter" src="https://img.shields.io/gitter/room/sass/sass?label=chat&logo=gitter&style=social"></a>
     </td>
   </tr>
 </table>
