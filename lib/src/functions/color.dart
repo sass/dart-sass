@@ -666,10 +666,11 @@ void _checkAngle(SassNumber angle, [String name]) {
 void _checkPercent(SassNumber number, String name) {
   if (number.hasUnit('%')) return;
 
-  warn("\$$name: Passing a number without unit % is deprecated.\n"
+  warn(
+      "\$$name: Passing a number without unit % is deprecated.\n"
       "\n"
       "To preserve current behavior: \$$name${_removeUnits(number)} * 1%",
-       deprecation: true);
+      deprecation: true);
 }
 
 /// Returns the right-hand side of an expression that would remove all units
