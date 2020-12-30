@@ -6,9 +6,6 @@ import 'package:source_span/source_span.dart';
 
 import '../../../ast/sass.dart';
 import '../../../visitor/interface/expression.dart';
-import '../expression.dart';
-import '../argument_invocation.dart';
-import '../callable_invocation.dart';
 
 /// A ternary expression.
 ///

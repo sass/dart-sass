@@ -19,7 +19,6 @@ import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import '../value.dart';
-import '../value/color.dart';
 import 'parser.dart';
 
 /// The base class for both the SCSS and indented syntax parsers.

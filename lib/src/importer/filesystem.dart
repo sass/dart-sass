@@ -8,7 +8,6 @@ import 'package:path/path.dart' as p;
 import '../importer.dart';
 import '../io.dart' as io;
 import '../syntax.dart';
-import 'result.dart';
 import 'utils.dart';
 
 /// An importer that loads files from a load path on the filesystem.

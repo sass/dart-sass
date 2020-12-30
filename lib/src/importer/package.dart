@@ -6,8 +6,6 @@ import 'package:meta/meta.dart';
 
 import '../importer.dart';
 import '../sync_package_resolver.dart';
-import 'filesystem.dart';
-import 'result.dart';
 
 /// A filesystem importer to use when resolving the results of `package:` URLs.
 ///
