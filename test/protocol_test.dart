@@ -242,7 +242,7 @@ void main() {
       process.inbound.add(compileString("a {b: 1px + 1em}"));
 
       var failure = getCompileFailure(await process.outbound.next);
-      expect(failure.message, equals("Incompatible units em and px."));
+      expect(failure.message, equals("1px and 1em have incompatible units."));
       expect(failure.span.text, "1px + 1em");
       expect(failure.span.start, equals(location(6, 0, 6)));
       expect(failure.span.end, equals(location(15, 0, 15)));
