@@ -8,10 +8,14 @@ import 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
     if (dart.library.js) 'io/node.dart';
 import 'utils.dart';
+import 'util/character.dart';
 
 export 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
     if (dart.library.js) 'io/node.dart';
+
+/// A cache of return values for directories in [_realCasePath].
+final _realCaseCache = <String, String>{};
 
 /// Returns whether the current operating system might be case-insensitive.
 ///
@@ -35,18 +39,43 @@ String _realCasePath(String path) {
 
   if (!_couldBeCaseInsensitive) return path;
 
-  var realCasePath = p.rootPrefix(path);
-  for (var component in p.split(path.substring(realCasePath.length))) {
-    var matches = listDir(realCasePath)
-        .where((realPath) => equalsIgnoreCase(p.basename(realPath), component))
-        .toList();
-
-    realCasePath = matches.length != 1
-        // If the file doesn't exist, or if there are multiple options (meaning
-        // the filesystem isn't actually case-insensitive), use `component` as-is.
-        ? p.join(realCasePath, component)
-        : matches[0];
+  if (isWindows) {
+    // Drive names are *always* case-insensitive, so convert them to uppercase.
+    var prefix = p.rootPrefix(path);
+    if (prefix.isNotEmpty && isAlphabetic(prefix.codeUnitAt(0))) {
+      path = prefix.toUpperCase() + path.substring(prefix.length);
+    }
   }
 
-  return realCasePath;
+  String helper(String path) {
+    var dirname = p.dirname(path);
+    if (dirname == path) return path;
+
+    return _realCaseCache.putIfAbsent(path, () {
+      var realDirname = helper(dirname);
+      var basename = p.basename(path);
+
+      try {
+        var matches = listDir(realDirname)
+            .where(
+                (realPath) => equalsIgnoreCase(p.basename(realPath), basename))
+            .toList();
+
+        return matches.length != 1
+            // If the file doesn't exist, or if there are multiple options (meaning
+            // the filesystem isn't actually case-insensitive), use `basename`
+            // as-is.
+            ? p.join(realDirname, basename)
+            : matches[0];
+      } on FileSystemException catch (_) {
+        // If there's an error listing a directory, it's likely because we're
+        // trying to reach too far out of the current directory into something
+        // we don't have permissions for. In that case, just assume we have the
+        // real path.
+        return path;
+      }
+    });
+  }
+
+  return helper(path);
 }
