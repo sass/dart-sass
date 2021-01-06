@@ -1,3 +1,8 @@
+## 1.32.1
+
+* Don't emit permissions errors on Windows and OS X when trying to determine the
+  real case of path names.
+
 ## 1.32.0
 
 * Deprecate passing non-`%` numbers as lightness and saturation to `hsl()`,
