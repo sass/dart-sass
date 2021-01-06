@@ -70,7 +70,7 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
         // dart-lang/sdk#38790
         throw "Unknown FunctionCallResponse.result $response.";
       } on ProtocolError catch (error) {
-        error.id = -1;
+        error.id = errorId;
         stderr.writeln("Host caused ${error.type.name.toLowerCase()} error: "
             "${error.message}");
         dispatcher.sendError(error);

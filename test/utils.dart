@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'package:sass_embedded/src/embedded_sass.pb.dart';
+import 'package:sass_embedded/src/utils.dart';
 
 import 'embedded_process.dart';
 
@@ -39,7 +40,7 @@ InboundMessage compileString(String css,
 /// [message] on its protobuf stream and prints a notice on stderr.
 Future<void> expectParseError(EmbeddedProcess process, message) async {
   await expectLater(process.outbound,
-      emits(isProtocolError(-1, ProtocolError_ErrorType.PARSE, message)));
+      emits(isProtocolError(errorId, ProtocolError_ErrorType.PARSE, message)));
 
   var stderrPrefix = "Host caused parse error: ";
   await expectLater(
@@ -56,7 +57,7 @@ Future<void> expectParamsError(EmbeddedProcess process, int id, message) async {
       emits(isProtocolError(id, ProtocolError_ErrorType.PARAMS, message)));
 
   var stderrPrefix = "Host caused params error"
-      "${id == -1 ? '' : " with request $id"}: ";
+      "${id == errorId ? '' : " with request $id"}: ";
   await expectLater(
       process.stderr,
       message is String

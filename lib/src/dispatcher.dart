@@ -86,9 +86,9 @@ class Dispatcher {
                 "Unknown message type: ${message.toDebugString()}");
         }
       } on ProtocolError catch (error) {
-        error.id = _inboundId(message) ?? -1;
+        error.id = _inboundId(message) ?? errorId;
         stderr.write("Host caused ${error.type.name.toLowerCase()} error");
-        if (error.id != -1) stderr.write(" with request ${error.id}");
+        if (error.id != errorId) stderr.write(" with request ${error.id}");
         stderr.writeln(": ${error.message}");
         sendError(error);
         // PROTOCOL error from https://bit.ly/2poTt90
@@ -99,7 +99,7 @@ class Dispatcher {
         stderr.write("Internal compiler error: $errorMessage");
         sendError(ProtocolError()
           ..type = ProtocolError_ErrorType.INTERNAL
-          ..id = _inboundId(message) ?? -1
+          ..id = _inboundId(message) ?? errorId
           ..message = errorMessage);
         _channel.sink.close();
       }

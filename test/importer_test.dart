@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'package:sass_embedded/src/embedded_sass.pb.dart';
+import 'package:sass_embedded/src/utils.dart';
 
 import 'embedded_process.dart';
 import 'utils.dart';
@@ -30,7 +31,7 @@ void main() {
 
       await expectParamsError(
           process,
-          -1,
+          errorId,
           "Response ID ${request.id + 1} doesn't match any outstanding "
           "requests.");
       await process.kill();
@@ -47,7 +48,7 @@ void main() {
 
       await expectParamsError(
           process,
-          -1,
+          errorId,
           "Request ID ${request.id} doesn't match response type "
           "InboundMessage_ImportResponse.");
       await process.kill();
@@ -505,7 +506,7 @@ Future<void> _canonicalize(EmbeddedProcess process) async {
 /// [message] on its protobuf stream and causes the compilation to fail.
 Future<void> _expectImportParamsError(EmbeddedProcess process, message) async {
   await expectLater(process.outbound,
-      emits(isProtocolError(-1, ProtocolError_ErrorType.PARAMS, message)));
+      emits(isProtocolError(errorId, ProtocolError_ErrorType.PARAMS, message)));
 
   var failure = getCompileFailure(await process.outbound.next);
   expect(failure.message, equals('Protocol error: $message'));
