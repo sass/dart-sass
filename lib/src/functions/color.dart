@@ -233,7 +233,8 @@ final module = BuiltInModule("color", functions: [
 
       var result = _functionString("invert", arguments.take(1));
       warn(
-          "Passing a number to color.invert() is deprecated.\n"
+          "Passing a number (${arguments[0]}) to color.invert() is "
+          "deprecated.\n"
           "\n"
           "Recommendation: $result",
           deprecation: true);
@@ -259,7 +260,8 @@ final module = BuiltInModule("color", functions: [
     if (arguments[0] is SassNumber) {
       var result = _functionString("grayscale", arguments.take(1));
       warn(
-          "Passing a number to color.grayscale() is deprecated.\n"
+          "Passing a number (${arguments[0]}) to color.grayscale() is "
+          "deprecated.\n"
           "\n"
           "Recommendation: $result",
           deprecation: true);
@@ -347,7 +349,8 @@ final module = BuiltInModule("color", functions: [
     if (arguments[0] is SassNumber) {
       var result = _functionString("opacity", arguments);
       warn(
-          "Passing a number to color.opacity() is deprecated.\n"
+          "Passing a number (${arguments[0]} to color.opacity() is "
+          "deprecated.\n"
           "\n"
           "Recommendation: $result",
           deprecation: true);
@@ -635,7 +638,7 @@ void _checkAngle(SassNumber angle, [String name]) {
   if (!angle.hasUnits || angle.hasUnit('deg')) return;
 
   var message = StringBuffer()
-    ..writeln("\$$name: Passing a unit other than deg is deprecated.")
+    ..writeln("\$$name: Passing a unit other than deg ($angle) is deprecated.")
     ..writeln();
 
   if (angle.compatibleWithUnit('deg')) {
@@ -667,7 +670,7 @@ void _checkPercent(SassNumber number, String name) {
   if (number.hasUnit('%')) return;
 
   warn(
-      "\$$name: Passing a number without unit % is deprecated.\n"
+      "\$$name: Passing a number without unit % ($number) is deprecated.\n"
       "\n"
       "To preserve current behavior: \$$name${_removeUnits(number)} * 1%",
       deprecation: true);

@@ -1,3 +1,8 @@
+## 1.32.2
+
+* Print the actual number that was received in unit deprecation warnings for
+  color functions.
+
 ## 1.32.1
 
 * Don't emit permissions errors on Windows and OS X when trying to determine the
