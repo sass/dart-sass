@@ -8,6 +8,10 @@ import 'package:source_span/source_span.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide SourceSpan;
 
+/// The special ID that indicates an error that's not associated with a specific
+/// inbound request ID.
+const errorId = 0xffffffff;
+
 /// Returns a [ProtocolError] indicating that a mandatory field with the given
 /// [fieldName] was missing.
 ProtocolError mandatoryError(String fieldName) =>
@@ -16,10 +20,9 @@ ProtocolError mandatoryError(String fieldName) =>
 /// Returns a [ProtocolError] indicating that the parameters for an inbound
 /// message were invalid.
 ProtocolError paramsError(String message) => ProtocolError()
-  // Set the ID to -1 by default, because that's the required value for errors
-  // that aren't associated with a specific inbound request ID. This will be
-  // overwritten by the dispatcher if a request ID is available.
-  ..id = -1
+  // Set the ID to [errorId] by default. This will be overwritten by the
+  // dispatcher if a request ID is available.
+  ..id = errorId
   ..type = ProtocolError_ErrorType.PARAMS
   ..message = message;
 

@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import 'package:sass_embedded/src/embedded_sass.pb.dart';
+import 'package:sass_embedded/src/utils.dart';
 
 import 'embedded_process.dart';
 import 'utils.dart';
@@ -391,7 +392,8 @@ void main() {
         group("without alpha:", () {
           group("hue", () {
             test("0", () async {
-              expect(await _protofy('hsl(0, 50%, 50%)'), _rgb(191, 64, 64, 1.0));
+              expect(
+                  await _protofy('hsl(0, 50%, 50%)'), _rgb(191, 64, 64, 1.0));
             });
 
             test("360", () async {
@@ -400,24 +402,25 @@ void main() {
             });
 
             test("below 0", () async {
-              expect(
-                  await _protofy('hsl(-100, 50%, 50%)'), _rgb(106, 64, 191, 1.0));
+              expect(await _protofy('hsl(-100, 50%, 50%)'),
+                  _rgb(106, 64, 191, 1.0));
             });
 
             test("between 0 and 360", () async {
-              expect(
-                  await _protofy('hsl(100, 50%, 50%)'), _rgb(106, 191, 64, 1.0));
+              expect(await _protofy('hsl(100, 50%, 50%)'),
+                  _rgb(106, 191, 64, 1.0));
             });
 
             test("above 360", () async {
-              expect(
-                  await _protofy('hsl(560, 50%, 50%)'), _rgb(64, 149, 191, 1.0));
+              expect(await _protofy('hsl(560, 50%, 50%)'),
+                  _rgb(64, 149, 191, 1.0));
             });
           });
 
           group("saturation", () {
             test("0", () async {
-              expect(await _protofy('hsl(0, 0%, 50%)'), _rgb(128, 128, 128, 1.0));
+              expect(
+                  await _protofy('hsl(0, 0%, 50%)'), _rgb(128, 128, 128, 1.0));
             });
 
             test("100", () async {
@@ -425,7 +428,8 @@ void main() {
             });
 
             test("in the middle", () async {
-              expect(await _protofy('hsl(0, 42%, 50%)'), _rgb(181, 74, 74, 1.0));
+              expect(
+                  await _protofy('hsl(0, 42%, 50%)'), _rgb(181, 74, 74, 1.0));
             });
           });
 
@@ -435,12 +439,13 @@ void main() {
             });
 
             test("100", () async {
-              expect(
-                  await _protofy('hsl(0, 50%, 100%)'), _rgb(255, 255, 255, 1.0));
+              expect(await _protofy('hsl(0, 50%, 100%)'),
+                  _rgb(255, 255, 255, 1.0));
             });
 
             test("in the middle", () async {
-              expect(await _protofy('hsl(0, 50%, 42%)'), _rgb(161, 54, 54, 1.0));
+              expect(
+                  await _protofy('hsl(0, 50%, 42%)'), _rgb(161, 54, 54, 1.0));
             });
           });
         });
@@ -1242,7 +1247,7 @@ Future<void> _expectDeprotofyError(Value value, message) async {
       ..id = request.id
       ..success = value));
 
-  await expectParamsError(_process, -1, message);
+  await expectParamsError(_process, errorId, message);
   await _process.kill();
 }
 
