@@ -43,7 +43,7 @@ jobs:
           PR_BRANCH: "${{ github.base_ref }}"
           CURRENT_BRANCH: "${{ github.ref }}"
           PR_BODY: "${{ github.event.pull_request.body }}"
-      - name: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 2.6
           working-directory: sass-spec
