@@ -151,8 +151,8 @@ jobs:
       - name: Deploy
         run: dart pub run grinder pkg-github-release pkg-github-linux
         env:
-          GITHUB_TOKEN: "${{ secrets.SASSBOT_GITHUB_TOKEN }}"
-          GITHUB_USER: sassbot
+          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+          GH_USER: sassbot
 
   deploy_github_macos:
     name: "Deploy Github: Mac OS"
@@ -167,8 +167,8 @@ jobs:
       - name: Deploy
         run: dart pub run grinder pkg-github-macos
         env:
-          GITHUB_TOKEN: "${{ secrets.SASSBOT_GITHUB_TOKEN }}"
-          GITHUB_USER: sassbot
+          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+          GH_USER: sassbot
 
   deploy_github_windows:
     name: "Deploy Github: Windows"
@@ -183,8 +183,8 @@ jobs:
       - name: Deploy
         run: dart pub run grinder pkg-github-windows
         env:
-          GITHUB_TOKEN: "${{ secrets.SASSBOT_GITHUB_TOKEN }}"
-          GITHUB_USER: sassbot
+          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+          GH_USER: sassbot
 
   deploy_npm:
     name: Deploy npm
@@ -247,8 +247,8 @@ jobs:
       - name: Deploy
         run: dart pub run grinder pkg-homebrew-update
         env:
-          GITHUB_TOKEN: "${{ secrets.SASSBOT_GITHUB_TOKEN }}"
-          GITHUB_USER: sassbot
+          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+          GH_USER: sassbot
 
   deploy_chocolatey:
     name: "Deploy Chocolatey"
