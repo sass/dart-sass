@@ -186,7 +186,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           await expectLater(
               sass.stdout, emits('Compiled test.scss to test.css.'));
 
-          await tickIfPoll();
+          // When using the native Node.js watcher on Linux, the "modify" event
+          // from writing test.css can interfere with the "modify" event from
+          // updating test.scss below, so we wait a tick to keep them from
+          // overlapping.
+          await tick;
 
           await d.file("test.scss", "x {y: z}").create();
           await expectLater(
