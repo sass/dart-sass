@@ -2,7 +2,8 @@ name: CI
 
 env:
   # Run on Node 14 because node-fibers doesn't support odd-numbered Node
-  # versions.
+  # versions. Note: when changing this, also change
+  # jobs.node_tests.strategy.matrix.node_version.
   DEFAULT_NODE_VERSION: 14
 
 on:
@@ -88,7 +89,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node_version: ["${{ env.DEFAULT_NODE_VERSION }}"]
+        node_version: [14]
         include:
           # Include LTS versions on Ubuntu
           - os: ubuntu-latest
