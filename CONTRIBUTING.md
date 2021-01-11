@@ -72,7 +72,7 @@ Before you send a pull request, we recommend you run the following steps:
   can also just check that there aren't any warnings in there.
 
 * `pub run test -x node` will run the tests for the Dart VM API. These are a
-  good sanity check, but they aren't comprehensive; Travis CI will also run
+  good sanity check, but they aren't comprehensive; GitHub Actions will also run
   Node.js API tests and Sass language tests, all of which must pass before your
   pull request is merged. See [Changing the Language](#changing-the-language)
   and [Changing the Node API](#changing-the-node-api) for more details.
