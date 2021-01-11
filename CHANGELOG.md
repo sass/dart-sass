@@ -1,3 +1,7 @@
+## 1.32.3
+
+* Optimize `==` for numbers that have different units.
+
 ## 1.32.2
 
 * Print the actual number that was received in unit deprecation warnings for

@@ -620,16 +620,26 @@ class SassNumber extends Value implements ext.SassNumber {
 
   bool operator ==(Object other) {
     if (other is SassNumber) {
-      // Unitless numbers are convertable to unit numbers, but not equal, so we
-      // special-case unitless here.
-      if (hasUnits != other.hasUnits) return false;
-      if (!hasUnits) return fuzzyEquals(value, other.value);
-
-      try {
-        return _coerceUnits(other, fuzzyEquals);
-      } on SassScriptException {
+      if (numeratorUnits.length != other.numeratorUnits.length ||
+          denominatorUnits.length != other.denominatorUnits.length) {
         return false;
       }
+      if (!hasUnits) return fuzzyEquals(value, other.value);
+
+      if (!listEquals(_canonicalizeUnitList(numeratorUnits),
+              _canonicalizeUnitList(other.numeratorUnits)) ||
+          !listEquals(_canonicalizeUnitList(denominatorUnits),
+              _canonicalizeUnitList(other.denominatorUnits))) {
+        return false;
+      }
+
+      return fuzzyEquals(
+          value *
+              _canonicalMultiplier(numeratorUnits) /
+              _canonicalMultiplier(denominatorUnits),
+          other.value *
+              _canonicalMultiplier(other.numeratorUnits) /
+              _canonicalMultiplier(other.denominatorUnits));
     } else {
       return false;
     }
@@ -638,6 +648,23 @@ class SassNumber extends Value implements ext.SassNumber {
   int get hashCode => fuzzyHashCode(value *
       _canonicalMultiplier(numeratorUnits) /
       _canonicalMultiplier(denominatorUnits));
+
+  /// Converts a unit list (such as [numeratorUnits]) into an equivalent list in
+  /// a canonical form, to make it easier to check whether two numbers have
+  /// compatible units.
+  List<String> _canonicalizeUnitList(List<String> units) {
+    if (units.isEmpty) return units;
+    if (units.length == 1) {
+      var type = _typesByUnit[units.first];
+      return type == null ? units : [_unitsByType[type].first];
+    }
+
+    return units.map((unit) {
+      var type = _typesByUnit[unit];
+      return type == null ? unit : _unitsByType[type].first;
+    }).toList()
+      ..sort();
+  }
 
   /// Returns a multiplier that encapsulates unit equivalence in [units].
   ///
