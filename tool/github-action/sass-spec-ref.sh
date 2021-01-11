@@ -3,9 +3,10 @@
 # license that can be found in the LICENSE file or at
 # https://opensource.org/licenses/MIT.
 
-# Echoes the sass-spec Git ref that should be checked out for the current Travis
-# run. If we're running specs for a pull request which refers to a sass-spec
-# pull request, we'll run against the latter rather than sass-spec master.
+# Echoes the sass-spec Git ref that should be checked out for the current GitHub
+# Actions run. If we're running specs for a pull request which refers to a
+# sass-spec pull request, we'll run against the latter rather than sass-spec
+# master.
 
 GITHUB_REF=${PR_REF:-$CURRENT_REF}
 if [[ "$GITHUB_REF" == refs/heads/feature.* ]]; then

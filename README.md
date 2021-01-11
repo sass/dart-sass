@@ -11,7 +11,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
     <td valign="middle">
       <a href="https://pub.dartlang.org/packages/sass"><img alt="Pub version" src="https://img.shields.io/pub/v/sass.svg"></a>
       <br>
-      <a href="https://travis-ci.com/github/sass/dart-sass"><img alt="Travis build status" src="https://travis-ci.com/sass/dart-sass.svg?branch=master"></a>
+      <a href="https://github.com/sass/dart-sass/actions"><img alt="GitHub actions build status" src="https://github.com/sass/dart-sass/workflows/CI/badge.svg"></a>
     </td>
     <td>
       <a href="https://twitter.com/SassCSS"><img alt="@SassCSS on Twitter" src="https://img.shields.io/twitter/follow/SassCSS?label=%40SassCSS&style=social"></a>

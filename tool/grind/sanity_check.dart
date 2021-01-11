@@ -13,10 +13,9 @@ import 'utils.dart';
 
 @Task('Verify that the package is in a good state to release.')
 void sanityCheckBeforeRelease() {
-  var travisTag = environment("TRAVIS_TAG");
-  if (travisTag != pkg.version.toString()) {
-    fail("TRAVIS_TAG $travisTag is different than pubspec version "
-        "${pkg.version}.");
+  var ref = environment("GITHUB_REF");
+  if (ref != pkg.version.toString()) {
+    fail("GITHUB_REF $ref is different than pubspec version ${pkg.version}.");
   }
 
   if (listEquals(pkg.version.preRelease, ["dev"])) {
