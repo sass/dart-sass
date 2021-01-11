@@ -14,7 +14,7 @@ import 'utils.dart';
 @Task('Verify that the package is in a good state to release.')
 void sanityCheckBeforeRelease() {
   var ref = environment("GITHUB_REF");
-  if (ref != pkg.version.toString()) {
+  if (ref != "refs/tags/${pkg.version}") {
     fail("GITHUB_REF $ref is different than pubspec version ${pkg.version}.");
   }
 
