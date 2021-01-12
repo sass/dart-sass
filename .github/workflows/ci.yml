@@ -258,7 +258,7 @@ jobs:
     name: "Deploy Chocolatey"
     runs-on: windows-latest
     needs: [sanity_checks]
-    if: "startsWith('refs/tags/', github.ref) && github.repository == 'sass/dart-sass'"
+    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
       - uses: actions/checkout@v2
