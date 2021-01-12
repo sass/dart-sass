@@ -7,15 +7,21 @@
 # run. If we're running specs for a pull request which refers to a sass-spec
 # pull request, we'll run against the latter rather than sass-spec master.
 
-GITHUB_REF=${PR_REF:-$CURRENT_REF}
-if [[ "$GITHUB_REF" == refs/heads/feature.* ]]; then
-  default="${GITHUB_REF:11}"
+if [ -z "$PR_BRANCH" ]; then
+  # Remove the "refs/heads/" prefix
+  current_branch="${CURRENT_REF:11}"
+else
+  current_branch="$PR_BRANCH"
+fi
+
+if [[ "$current_branch" == feature.* ]]; then
+  default="$current_branch"
 else
   default=master
 fi
 
-# We don't have a PR_REF so we are not in a pull request
-if [ "$GITHUB_REF" == "$CURRENT_REF" ]; then
+# We don't have a PR_BRANCH so we are not in a pull request
+if [ -z "$PR_BRANCH" ]; then
   >&2 echo "Ref: $default."
   echo "$default"
   exit 0
