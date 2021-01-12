@@ -1,3 +1,7 @@
+## 1.32.4
+
+* No user-visible changes.
+
 ## 1.32.3
 
 * Optimize `==` for numbers that have different units.
