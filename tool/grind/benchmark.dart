@@ -171,7 +171,7 @@ I ran five instances of each configuration and recorded the fastest time.
     ],
   ];
 
-      var libsassIncompatible = {"Duomo"};
+  var libsassIncompatible = {"Duomo"};
 
   for (var info in benchmarks) {
     var path = p.join('build/benchmark', info[0]);
@@ -183,7 +183,7 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("Running on a file containing $description:");
     buffer.writeln();
 
-    var sasscTime;
+    Duration sasscTime;
     if (!libsassIncompatible.contains(info[1])) {
       sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [path]);
       buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
