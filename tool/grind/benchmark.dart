@@ -59,6 +59,10 @@ Future<void> benchmarkGenerate() async {
   await runAsync("npm", arguments: ["install"], workingDirectory: susy);
   File("${sources.path}/susy.scss")
       .writeAsStringSync("@import '../susy/test/scss/test.scss'");
+
+  await cloneOrCheckout("https://github.com/zaydek/duomo", "v0.7.12");
+  File("${sources.path}/duomo.scss")
+      .writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
 }
 
 /// Writes [times] instances of [text] to [path].
@@ -160,7 +164,14 @@ I ran five instances of each configuration and recorded the fastest time.
       "Susy",
       "test cases for the computation-intensive Susy grid framework"
     ],
+    [
+      "duomo.scss",
+      "Duomo",
+      "the output of the numerically-intensive Duomo framework"
+    ],
   ];
+
+  var libsassIncompatible = {"Duomo"};
 
   for (var info in benchmarks) {
     var path = p.join('build/benchmark', info[0]);
@@ -172,17 +183,20 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("Running on a file containing $description:");
     buffer.writeln();
 
-    var sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [path]);
-    buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
+    Duration sasscTime;
+    if (!libsassIncompatible.contains(info[1])) {
+      sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [path]);
+      buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
+    }
 
     var scriptSnapshotTime = await _benchmark(Platform.executable,
-        ['--no-enable-asserts', p.join('build', 'sass.dart.snapshot'), path]);
+        ['--no-enable-asserts', p.join('build', 'sass.snapshot'), path]);
     buffer.writeln("* Dart Sass from a script snapshot: "
         "${_formatTime(scriptSnapshotTime)}");
 
     var nativeExecutableTime = await _benchmark(
         p.join(sdkDir.path, 'bin/dartaotruntime'),
-        [p.join('build', 'sass.dart.native'), path]);
+        [p.join('build', 'sass.native'), path]);
     buffer.writeln("* Dart Sass native executable: "
         "${_formatTime(nativeExecutableTime)}");
 
@@ -194,7 +208,9 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln('Based on these numbers, Dart Sass from a native executable '
         'is approximately:');
     buffer.writeln();
-    buffer.writeln('* ${_compare(nativeExecutableTime, sasscTime)} libsass');
+    if (sasscTime != null) {
+      buffer.writeln('* ${_compare(nativeExecutableTime, sasscTime)} libsass');
+    }
     buffer.writeln(
         '* ${_compare(nativeExecutableTime, nodeTime)} Dart Sass on Node');
     buffer.writeln();
