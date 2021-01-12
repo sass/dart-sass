@@ -41,8 +41,8 @@ Future<void> updateBazel() async {
       workingDirectory: repo,
       runOptions: sassBotEnvironment);
 
-  var username = environment('GITHUB_USER');
-  var password = environment('GITHUB_TOKEN');
+  var username = environment('GH_USER');
+  var password = environment('GH_TOKEN');
   await runAsync("git",
       arguments: [
         "push",

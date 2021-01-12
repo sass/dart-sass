@@ -218,6 +218,9 @@ jobs:
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
         run: dart pub run grinder update-bazel
+        env:
+          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+          GH_USER: sassbot
 
   deploy_pub:
     name: "Deploy Pub"
