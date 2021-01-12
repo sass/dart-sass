@@ -24,7 +24,15 @@ Future<void> updateBazel() async {
       .readAsStringSync()
       .replaceFirst(RegExp(r'"sass": "[^"]+"'), '"sass": "${pkg.version}"'));
 
-  run("yarn", workingDirectory: p.join(repo, "sass"));
+  try {
+    run("yarn", workingDirectory: p.join(repo, "sass"));
+  } on ProcessException catch (error) {
+    if (error.stderr.contains("Couldn't find any versions for \"sass\"")) {
+      log("The new sass version doesn't seem to be available yet, waiting 10s...");
+      await Future.delayed(Duration(seconds: 10));
+      run("yarn", workingDirectory: p.join(repo, "sass"));
+    }
+  }
 
   run("git",
       arguments: [
