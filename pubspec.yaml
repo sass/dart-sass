@@ -5,7 +5,7 @@ author: Sass Team
 homepage: https://github.com/sass/dart-sass-embedded
 
 environment:
-  sdk: '>=2.4.0 <3.0.0'
+  sdk: '>=2.10.0 <3.0.0'
 
 executables:
   dart-sass-embedded: dart_sass_embedded

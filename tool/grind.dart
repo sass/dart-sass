@@ -24,11 +24,11 @@ protobuf() async {
   if (Platform.isWindows) {
     File('build/protoc-gen-dart.bat').writeAsStringSync('''
 @echo off
-pub run protoc_plugin %*
+dart pub run protoc_plugin %*
 ''');
   } else {
     File('build/protoc-gen-dart')
-        .writeAsStringSync('pub run protoc_plugin "\$@"');
+        .writeAsStringSync('dart pub run protoc_plugin "\$@"');
     run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
   }
 
