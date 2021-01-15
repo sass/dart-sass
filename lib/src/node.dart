@@ -65,13 +65,13 @@ void main() {
 ///
 /// [render]: https://github.com/sass/node-sass#options
 void _render(
-    RenderOptions options, void callback(JsError error, RenderResult result)) {
+    RenderOptions options, void callback(Object error, RenderResult result)) {
   if (options.fiber != null) {
     options.fiber.call(allowInterop(() {
       try {
         callback(null, _renderSync(options));
       } catch (error) {
-        callback(error as JsError, null);
+        callback(error, null);
       }
       return null;
     })).run();

@@ -1,3 +1,10 @@
+## 1.32.5
+
+### JS API
+
+* Avoid possible mangled error messages when custom functions or importers throw
+  unexpected exceptions.
+
 ## 1.32.4
 
 * No user-visible changes.
