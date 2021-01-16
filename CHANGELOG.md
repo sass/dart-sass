@@ -1,3 +1,7 @@
+## 1.32.5
+
+* Use an updated version of `node_preamble` when compiling to JS.
+
 ## 1.32.4
 
 * No user-visible changes.
