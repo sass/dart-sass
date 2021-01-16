@@ -2,6 +2,9 @@
 
 ### JS API
 
+* Fix a few infrequent errors when calling `render()` with `fiber` multiple
+  times simultaneously.
+
 * Avoid possible mangled error messages when custom functions or importers throw
   unexpected exceptions.
 
