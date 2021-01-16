@@ -1,6 +1,6 @@
 ## 1.32.5
 
-* Use an updated version of `node_preamble` when compiling to JS.
+* Fixes Electron support when `nodeIntegration` is disabled
 
 ## 1.32.4
 
