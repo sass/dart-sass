@@ -4,6 +4,10 @@
   units, the iteration variable now matches the unit of the initial number. This
   matches the behavior of Ruby Sass and LibSass.
 
+### Node JS API
+
+* Fixes Electron support when `nodeIntegration` is disabled
+
 ## 1.32.4
 
 * No user-visible changes.
