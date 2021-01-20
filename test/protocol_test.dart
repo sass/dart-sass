@@ -259,7 +259,7 @@ void main() {
 
       var failure = getCompileFailure(await process.outbound.next);
       expect(failure.message, startsWith("Cannot open file: "));
-      expect(failure.message.split(":").last.trim(),
+      expect(failure.message.replaceFirst("Cannot open file: ", "").trim(),
           equalsPath(d.path('test.scss')));
       expect(failure.span, equals(SourceSpan()));
       expect(failure.stackTrace, isEmpty);
