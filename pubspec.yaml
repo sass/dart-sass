@@ -41,7 +41,6 @@ dev_dependencies:
   node_preamble: "^1.1.0"
   pedantic: "^1.0.0"
   pub_semver: "^1.0.0"
-  source_span: "^1.5.2"
   stream_channel: ">=1.0.0 <3.0.0"
   test_descriptor: "^1.1.0"
   test_process: "^1.0.0-rc.1"
