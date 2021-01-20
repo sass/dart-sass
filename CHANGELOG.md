@@ -1,3 +1,9 @@
+## 1.32.5
+
+* **Potentially breaking bug fix:** When using `@for` with numbers that have
+  units, the iteration variable now matches the unit of the initial number. This
+  matches the behavior of Ruby Sass and LibSass.
+
 ## 1.32.4
 
 * No user-visible changes.
