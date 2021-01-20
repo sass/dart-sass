@@ -1,3 +1,7 @@
+## 1.32.5
+
+* Fixes Electron support when `nodeIntegration` is disabled
+
 ## 1.32.4
 
 * No user-visible changes.
