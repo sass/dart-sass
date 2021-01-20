@@ -29,7 +29,7 @@ Future<void> updateBazel() async {
   } on ProcessException catch (error) {
     if (error.stderr.contains("Couldn't find any versions for \"sass\"")) {
       log("The new sass version doesn't seem to be available yet, waiting 30s...");
-      await Future<void>.delayed(Duration(seconds: 30));
+      await Future<void>.delayed(Duration(minutes: 2));
       run("yarn", workingDirectory: p.join(repo, "sass"));
     }
   }
