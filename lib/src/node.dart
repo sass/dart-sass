@@ -65,13 +65,13 @@ void main() {
 ///
 /// [render]: https://github.com/sass/node-sass#options
 void _render(
-    RenderOptions options, void callback(JsError error, RenderResult result)) {
+    RenderOptions options, void callback(Object error, RenderResult result)) {
   if (options.fiber != null) {
     options.fiber.call(allowInterop(() {
       try {
         callback(null, _renderSync(options));
       } catch (error) {
-        callback(error as JsError, null);
+        callback(error, null);
       }
       return null;
     })).run();
@@ -212,8 +212,12 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
           })
         ];
         var result = Function.apply(callback as Function, jsArguments);
-        return unwrapValue(
-            isUndefined(result) ? options.fiber.yield() : result);
+        return unwrapValue(isUndefined(result)
+            // Run `fiber.yield()` in runZoned() so that Dart resets the current
+            // zone once it's done. Otherwise, interweaving fibers can leave
+            // `Zone.current` in an inconsistent state.
+            ? runZoned(() => options.fiber.yield())
+            : result);
       }));
     } else if (!asynch) {
       result.add(BuiltInCallable.parsed(
@@ -283,7 +287,11 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
           // [importer] calls `done()` synchronously.
           scheduleMicrotask(() => fiber.run(result));
         }));
-        if (isUndefined(result)) return options.fiber.yield();
+
+        // Run `fiber.yield()` in runZoned() so that Dart resets the current
+        // zone once it's done. Otherwise, interweaving fibers can leave
+        // `Zone.current` in an inconsistent state.
+        if (isUndefined(result)) return runZoned(() => options.fiber.yield());
         return result;
       }) as JSFunction;
     }).toList();

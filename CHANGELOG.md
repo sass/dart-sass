@@ -6,7 +6,13 @@
 
 ### Node JS API
 
-* Fixes Electron support when `nodeIntegration` is disabled
+* Fix a few infrequent errors when calling `render()` with `fiber` multiple
+  times simultaneously.
+
+* Avoid possible mangled error messages when custom functions or importers throw
+  unexpected exceptions.
+
+* Fix Electron support when `nodeIntegration` is disabled.
 
 ## 1.32.4
 
