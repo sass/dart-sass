@@ -1203,12 +1203,12 @@ class _EvaluateVisitor
     var toNumber = await _addExceptionSpanAsync(
         node.to, () async => (await node.to.accept(this)).assertNumber());
 
-    var from = _addExceptionSpan(
-        node.from,
-        () => fromNumber
-            .coerce(toNumber.numeratorUnits, toNumber.denominatorUnits)
+    var from = _addExceptionSpan(node.from, () => fromNumber.assertInt());
+    var to = _addExceptionSpan(
+        node.to,
+        () => toNumber
+            .coerce(fromNumber.numeratorUnits, fromNumber.denominatorUnits)
             .assertInt());
-    var to = _addExceptionSpan(node.to, () => toNumber.assertInt());
 
     var direction = from > to ? -1 : 1;
     if (!node.isExclusive) to += direction;
@@ -1218,7 +1218,11 @@ class _EvaluateVisitor
       var nodeWithSpan = _expressionNode(node.from);
       for (var i = from; i != to; i += direction) {
         _environment.setLocalVariable(
-            node.variable, SassNumber(i), nodeWithSpan);
+            node.variable,
+            SassNumber.withUnits(i,
+                numeratorUnits: fromNumber.numeratorUnits,
+                denominatorUnits: fromNumber.denominatorUnits),
+            nodeWithSpan);
         var result = await _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;

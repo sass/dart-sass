@@ -42,7 +42,7 @@ jobs:
           git -C sass-spec checkout FETCH_HEAD
         env:
           PR_BRANCH: "${{ github.base_ref }}"
-          CURRENT_BRANCH: "${{ github.ref }}"
+          CURRENT_REF: "${{ github.ref }}"
           PR_BODY: "${{ github.event.pull_request.body }}"
       - uses: ruby/setup-ruby@v1
         with:

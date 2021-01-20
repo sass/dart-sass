@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: cb09019ddd970869d4861ee85625b32ee40de981
+// Checksum: 0e9e7b6b99be25500cfd6469b0366190e92c43f4
 //
 // ignore_for_file: unused_import
 
@@ -1201,12 +1201,12 @@ class _EvaluateVisitor
     var toNumber =
         _addExceptionSpan(node.to, () => node.to.accept(this).assertNumber());
 
-    var from = _addExceptionSpan(
-        node.from,
-        () => fromNumber
-            .coerce(toNumber.numeratorUnits, toNumber.denominatorUnits)
+    var from = _addExceptionSpan(node.from, () => fromNumber.assertInt());
+    var to = _addExceptionSpan(
+        node.to,
+        () => toNumber
+            .coerce(fromNumber.numeratorUnits, fromNumber.denominatorUnits)
             .assertInt());
-    var to = _addExceptionSpan(node.to, () => toNumber.assertInt());
 
     var direction = from > to ? -1 : 1;
     if (!node.isExclusive) to += direction;
@@ -1216,7 +1216,11 @@ class _EvaluateVisitor
       var nodeWithSpan = _expressionNode(node.from);
       for (var i = from; i != to; i += direction) {
         _environment.setLocalVariable(
-            node.variable, SassNumber(i), nodeWithSpan);
+            node.variable,
+            SassNumber.withUnits(i,
+                numeratorUnits: fromNumber.numeratorUnits,
+                denominatorUnits: fromNumber.denominatorUnits),
+            nodeWithSpan);
         var result = _handleReturn<Statement>(
             node.children, (child) => child.accept(this));
         if (result != null) return result;
