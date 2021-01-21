@@ -62,9 +62,7 @@ jobs:
       - run: dart pub run grinder protobuf
       - name: Deploy
         run: dart pub run grinder pkg-github-release pkg-github-linux
-        env:
-          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-          GH_USER: sassbot
+        env: {GH_BEARER_TOKEN: "${{ github.token }}"}
 
   deploy_github_macos:
     name: "Deploy Github: Mac OS"
@@ -81,9 +79,7 @@ jobs:
       - run: dart pub run grinder protobuf
       - name: Deploy
         run: dart pub run grinder pkg-github-macos
-        env:
-          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-          GH_USER: sassbot
+        env: {GH_BEARER_TOKEN: "${{ github.token }}"}
 
   deploy_github_windows:
     name: "Deploy Github: Windows"
@@ -100,6 +96,4 @@ jobs:
       - run: dart pub run grinder protobuf
       - name: Deploy
         run: dart pub run grinder pkg-github-windows
-        env:
-          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-          GH_USER: sassbot
+        env: {GH_BEARER_TOKEN: "${{ github.token }}"}
