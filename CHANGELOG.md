@@ -1,3 +1,10 @@
+## 1.32.6
+
+### Dart API
+
+* All range checks for `SassColor` constructors now throw `RangeError`s with
+  `start` and `end` set.
+
 ## 1.32.5
 
 * **Potentially breaking bug fix:** When using `@for` with numbers that have
