@@ -1,3 +1,9 @@
+## 1.32.6
+
+### Node JS API
+
+* Fix Electron support when `nodeIntegration` is disabled.
+
 ## 1.32.5
 
 * **Potentially breaking bug fix:** When using `@for` with numbers that have
