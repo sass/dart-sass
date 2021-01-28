@@ -89,5 +89,6 @@ num fuzzyCheckRange(num number, num min, num max) {
 num fuzzyAssertRange(num number, num min, num max, [String name]) {
   var result = fuzzyCheckRange(number, min, max);
   if (result != null) return result;
-  throw RangeError.value(number, name, "must be between $min and $max.");
+  throw RangeError.range(
+      number, min, max, name, "must be between $min and $max");
 }
