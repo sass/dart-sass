@@ -86,7 +86,7 @@ num fuzzyCheckRange(num number, num min, num max) {
 ///
 /// If [number] is [fuzzyEquals] to [min] or [max], it's clamped to the
 /// appropriate value. [name] is used in error reporting.
-num fuzzyAssertRange(num number, num min, num max, [String name]) {
+num fuzzyAssertRange(num number, int min, int max, [String name]) {
   var result = fuzzyCheckRange(number, min, max);
   if (result != null) return result;
   throw RangeError.range(
