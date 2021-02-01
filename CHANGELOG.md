@@ -1,5 +1,9 @@
 ## 1.32.6
 
+### Node JS API
+
+* Fix Electron support when `nodeIntegration` is disabled.
+
 ### Dart API
 
 * All range checks for `SassColor` constructors now throw `RangeError`s with
