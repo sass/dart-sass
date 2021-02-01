@@ -1,3 +1,7 @@
+## 1.32.7
+
+* Improve the performance of unitless and single-unit numbers.
+
 ## 1.32.6
 
 ### Node JS API
