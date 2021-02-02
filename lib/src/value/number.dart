@@ -19,7 +19,7 @@ import 'number/unitless.dart';
 
 /// A nested map containing unit conversion rates.
 ///
-/// `1unit1 * _conversions[unit1][unit2] = 1unit2`.
+/// `1unit1 * _conversions[unit2][unit1] = 1unit2`.
 const _conversions = {
   // Length
   "in": {
@@ -228,18 +228,6 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     throw _exception(
         "Expected $this to be within $min$unitString and $max$unitString.",
         name);
-  }
-
-  bool hasUnit(String unit) =>
-      numeratorUnits.length == 1 &&
-      denominatorUnits.isEmpty &&
-      numeratorUnits.first == unit;
-
-  bool compatibleWithUnit(String unit) {
-    if (denominatorUnits.isNotEmpty) return false;
-    if (numeratorUnits.isEmpty) return true;
-    return numeratorUnits.length == 1 &&
-        conversionFactor(numeratorUnits.first, unit) != null;
   }
 
   void assertUnit(String unit, [String name]) {
@@ -580,7 +568,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
 
   /// Returns the number of [unit1]s per [unit2].
   ///
-  /// Equivalently, `1unit1 * conversionFactor(unit1, unit2) = 1unit2`.
+  /// Equivalently, `1unit2 * conversionFactor(unit1, unit2) = 1unit1`.
   @protected
   num conversionFactor(String unit1, String unit2) {
     if (unit1 == unit2) return 1;

@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../util/number.dart';
@@ -14,6 +15,7 @@ import '../number.dart';
 
 /// A specialized subclass of [SassNumber] for numbers that have exactly one
 /// numerator unit.
+@sealed
 class SingleUnitSassNumber extends SassNumber {
   final String _unit;
 
@@ -84,13 +86,13 @@ class SingleUnitSassNumber extends SassNumber {
   SassNumber _coerceToUnit(String unit) {
     if (_unit == unit) return this;
 
-    var factor = conversionFactor(_unit, unit);
+    var factor = conversionFactor(unit, _unit);
     return factor == null ? null : SingleUnitSassNumber(value * factor, unit);
   }
 
   /// Like [coerceValueToUnit], except that it returns `null` if coercion fails.
   num _coerceValueToUnit(String unit) {
-    var factor = conversionFactor(_unit, unit);
+    var factor = conversionFactor(unit, _unit);
     return factor == null ? null : value * factor;
   }
 
@@ -99,9 +101,9 @@ class SingleUnitSassNumber extends SassNumber {
     var newNumerators = otherNumerators;
     var mutableOtherDenominators = otherDenominators.toList();
     removeFirstWhere<String>(mutableOtherDenominators, (denominator) {
-      var factor = conversionFactor(_unit, denominator);
+      var factor = conversionFactor(denominator, _unit);
       if (factor == null) return false;
-      value /= factor;
+      value *= factor;
       return true;
     }, orElse: () {
       newNumerators = [_unit, ...newNumerators];
@@ -116,8 +118,9 @@ class SingleUnitSassNumber extends SassNumber {
   Value unaryMinus() => SingleUnitSassNumber(-value, _unit);
 
   bool operator ==(Object other) {
-    if (other is SassNumber) {
-      return !other.hasUnits && fuzzyEquals(value, other.value);
+    if (other is SingleUnitSassNumber) {
+      var factor = conversionFactor(other._unit, _unit);
+      return factor != null && fuzzyEquals(value * factor, other.value);
     } else {
       return false;
     }

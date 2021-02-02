@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../util/number.dart';
@@ -10,6 +11,7 @@ import '../external/value.dart' as ext;
 import '../number.dart';
 
 /// A specialized subclass of [SassNumber] for numbers that have no units.
+@sealed
 class UnitlessSassNumber extends SassNumber {
   List<String> get numeratorUnits => const [];
 
@@ -131,13 +133,8 @@ class UnitlessSassNumber extends SassNumber {
 
   Value unaryMinus() => UnitlessSassNumber(-value);
 
-  bool operator ==(Object other) {
-    if (other is SassNumber) {
-      return !other.hasUnits && fuzzyEquals(value, other.value);
-    } else {
-      return false;
-    }
-  }
+  bool operator ==(Object other) =>
+      other is UnitlessSassNumber && fuzzyEquals(value, other.value);
 
   int get hashCode => fuzzyHashCode(value);
 }
