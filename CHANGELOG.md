@@ -2,6 +2,7 @@
 
 * Allow `@forward...with` to take arguments that have a `!default` flag without
   a trailing comma.
+* Allow the null safety release of stream_transform.
 
 ## 1.32.7
 
