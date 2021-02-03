@@ -61,8 +61,8 @@ abstract class SassNumber extends Value {
 
   /// Creates a number with full [numeratorUnits] and [denominatorUnits].
   factory SassNumber.withUnits(num value,
-      {Iterable<String> numeratorUnits,
-      Iterable<String> denominatorUnits}) = internal.SassNumber.withUnits;
+      {List<String> numeratorUnits,
+      List<String> denominatorUnits}) = internal.SassNumber.withUnits;
 
   /// Returns [value] as an [int], if it's an integer value according to
   /// [isInt].

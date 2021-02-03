@@ -13,10 +13,13 @@ import '../utils.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';
 import 'external/value.dart' as ext;
+import 'number/complex.dart';
+import 'number/single_unit.dart';
+import 'number/unitless.dart';
 
 /// A nested map containing unit conversion rates.
 ///
-/// `1unit1 * _conversions[unit1][unit2] = 1unit2`.
+/// `1unit1 * _conversions[unit2][unit1] = 1unit2`.
 const _conversions = {
   // Length
   "in": {
@@ -157,24 +160,14 @@ final _typesByUnit = {
     for (var unit in entry.value) unit: entry.key
 };
 
-// TODO(nweiz): If it's faster, add subclasses specifically for unitless numbers
-// and numbers with only a single numerator unit. These should be opaque to
-// users of SassNumber.
-
-class SassNumber extends Value implements ext.SassNumber {
+abstract class SassNumber extends Value implements ext.SassNumber {
   static const precision = ext.SassNumber.precision;
 
   final num value;
 
-  final List<String> numeratorUnits;
-
-  final List<String> denominatorUnits;
-
   /// The representation of this number as two slash-separated numbers, if it
   /// has one.
   final Tuple2<SassNumber, SassNumber> asSlash;
-
-  bool get hasUnits => numeratorUnits.isNotEmpty || denominatorUnits.isNotEmpty;
 
   bool get isInt => fuzzyIsInt(value);
 
@@ -184,35 +177,42 @@ class SassNumber extends Value implements ext.SassNumber {
   String get unitString =>
       hasUnits ? _unitString(numeratorUnits, denominatorUnits) : '';
 
-  SassNumber(num value, [String unit])
-      : this.withUnits(value, numeratorUnits: unit == null ? null : [unit]);
+  factory SassNumber(num value, [String unit]) => unit == null
+      ? UnitlessSassNumber(value)
+      : SingleUnitSassNumber(value, unit);
 
-  SassNumber.withUnits(this.value,
-      {Iterable<String> numeratorUnits, Iterable<String> denominatorUnits})
-      : numeratorUnits = numeratorUnits == null
-            ? const []
-            : List.unmodifiable(numeratorUnits),
-        denominatorUnits = denominatorUnits == null
-            ? const []
-            : List.unmodifiable(denominatorUnits),
-        asSlash = null;
+  factory SassNumber.withUnits(num value,
+      {List<String> numeratorUnits, List<String> denominatorUnits}) {
+    var emptyNumerator = numeratorUnits == null || numeratorUnits.isEmpty;
+    var emptyDenominator = denominatorUnits == null || denominatorUnits.isEmpty;
+    if (emptyNumerator && emptyDenominator) return UnitlessSassNumber(value);
 
-  SassNumber._(this.value, this.numeratorUnits, this.denominatorUnits,
-      [this.asSlash]);
+    if (emptyDenominator && numeratorUnits.length == 1) {
+      return SingleUnitSassNumber(value, numeratorUnits[0]);
+    } else {
+      return ComplexSassNumber(
+          value,
+          emptyNumerator ? const [] : List.unmodifiable(numeratorUnits),
+          emptyDenominator ? const [] : List.unmodifiable(denominatorUnits));
+    }
+  }
+
+  @protected
+  SassNumber.protected(this.value, this.asSlash);
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);
 
+  /// Returns a number with the same units as [this] but with [value] as its
+  /// value.
+  @protected
+  SassNumber withValue(num value);
+
   /// Returns a copy of [this] without [asSlash] set.
-  SassNumber withoutSlash() {
-    if (asSlash == null) return this;
-    return SassNumber._(value, numeratorUnits, denominatorUnits);
-  }
+  SassNumber withoutSlash() => asSlash == null ? this : withValue(value);
 
   /// Returns a copy of [this] with [this.asSlash] set to a tuple containing
   /// [numerator] and [denominator].
-  SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      SassNumber._(value, numeratorUnits, denominatorUnits,
-          Tuple2(numerator, denominator));
+  SassNumber withSlash(SassNumber numerator, SassNumber denominator);
 
   SassNumber assertNumber([String name]) => this;
 
@@ -228,18 +228,6 @@ class SassNumber extends Value implements ext.SassNumber {
     throw _exception(
         "Expected $this to be within $min$unitString and $max$unitString.",
         name);
-  }
-
-  bool hasUnit(String unit) =>
-      numeratorUnits.length == 1 &&
-      denominatorUnits.isEmpty &&
-      numeratorUnits.first == unit;
-
-  bool compatibleWithUnit(String unit) {
-    if (denominatorUnits.isNotEmpty) return false;
-    if (numeratorUnits.isEmpty) return true;
-    return numeratorUnits.length == 1 &&
-        _conversionFactor(numeratorUnits.first, unit) != null;
   }
 
   void assertUnit(String unit, [String name]) {
@@ -363,7 +351,7 @@ class SassNumber extends Value implements ext.SassNumber {
     var oldNumerators = numeratorUnits.toList();
     for (var newNumerator in newNumerators) {
       removeFirstWhere<String>(oldNumerators, (oldNumerator) {
-        var factor = _conversionFactor(newNumerator, oldNumerator);
+        var factor = conversionFactor(newNumerator, oldNumerator);
         if (factor == null) return false;
         value *= factor;
         return true;
@@ -373,7 +361,7 @@ class SassNumber extends Value implements ext.SassNumber {
     var oldDenominators = denominatorUnits.toList();
     for (var newDenominator in newDenominators) {
       removeFirstWhere<String>(oldDenominators, (oldDenominator) {
-        var factor = _conversionFactor(newDenominator, oldDenominator);
+        var factor = conversionFactor(newDenominator, oldDenominator);
         if (factor == null) return false;
         value /= factor;
         return true;
@@ -431,22 +419,26 @@ class SassNumber extends Value implements ext.SassNumber {
 
   Value modulo(Value other) {
     if (other is SassNumber) {
-      return _coerceNumber(other, (num1, num2) {
-        if (num2 > 0) return num1 % num2;
-        if (num2 == 0) return double.nan;
-
-        // Dart has different mod-negative semantics than Ruby, and thus than
-        // Sass.
-        var result = num1 % num2;
-        return result == 0 ? 0 : result + num2;
-      });
+      return withValue(_coerceUnits(other, moduloLikeSass));
     }
     throw SassScriptException('Undefined operation "$this % $other".');
   }
 
+  /// Return [num1] modulo [num2], using Sass's modulo semantics, which it
+  /// inherited from Ruby and which differ from Dart's.
+  num moduloLikeSass(num num1, num num2) {
+    if (num2 > 0) return num1 % num2;
+    if (num2 == 0) return double.nan;
+
+    // Dart has different mod-negative semantics than Ruby, and thus than
+    // Sass.
+    var result = num1 % num2;
+    return result == 0 ? 0 : result + num2;
+  }
+
   Value plus(Value other) {
     if (other is SassNumber) {
-      return _coerceNumber(other, (num1, num2) => num1 + num2);
+      return withValue(_coerceUnits(other, (num1, num2) => num1 + num2));
     }
     if (other is! SassColor) return super.plus(other);
     throw SassScriptException('Undefined operation "$this + $other".');
@@ -454,7 +446,7 @@ class SassNumber extends Value implements ext.SassNumber {
 
   Value minus(Value other) {
     if (other is SassNumber) {
-      return _coerceNumber(other, (num1, num2) => num1 - num2);
+      return withValue(_coerceUnits(other, (num1, num2) => num1 - num2));
     }
     if (other is! SassColor) return super.minus(other);
     throw SassScriptException('Undefined operation "$this - $other".');
@@ -462,98 +454,77 @@ class SassNumber extends Value implements ext.SassNumber {
 
   Value times(Value other) {
     if (other is SassNumber) {
-      return _multiplyUnits(value * other.value, numeratorUnits,
-          denominatorUnits, other.numeratorUnits, other.denominatorUnits);
+      if (!other.hasUnits) return withValue(value * other.value);
+      return multiplyUnits(
+          value * other.value, other.numeratorUnits, other.denominatorUnits);
     }
     throw SassScriptException('Undefined operation "$this * $other".');
   }
 
   Value dividedBy(Value other) {
     if (other is SassNumber) {
-      return _multiplyUnits(value / other.value, numeratorUnits,
-          denominatorUnits, other.denominatorUnits, other.numeratorUnits);
+      if (!other.hasUnits) return withValue(value / other.value);
+      return multiplyUnits(
+          value / other.value, other.denominatorUnits, other.numeratorUnits);
     }
     return super.dividedBy(other);
   }
 
   Value unaryPlus() => this;
 
-  Value unaryMinus() => SassNumber.withUnits(-value,
-      numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
-
-  /// Converts [other]'s value to be compatible with this number's, calls
-  /// [operation] with the resulting numbers, and wraps the result in a
-  /// [SassNumber].
-  ///
-  /// Throws a [SassScriptException] if the two numbers' units are incompatible.
-  SassNumber _coerceNumber(
-      SassNumber other, num operation(num num1, num num2)) {
-    var result = _coerceUnits(other, operation);
-    return SassNumber.withUnits(result,
-        numeratorUnits: hasUnits ? numeratorUnits : other.numeratorUnits,
-        denominatorUnits: hasUnits ? denominatorUnits : other.denominatorUnits);
-  }
-
   /// Converts [other]'s value to be compatible with this number's, and calls
   /// [operation] with the resulting numbers.
   ///
   /// Throws a [SassScriptException] if the two numbers' units are incompatible.
+  @protected
   T _coerceUnits<T>(SassNumber other, T operation(num num1, num num2)) {
-    num num1;
-    num num2;
-    if (hasUnits) {
-      num1 = value;
-      try {
-        num2 = other.coerceValueToMatch(this);
-      } on SassScriptException {
-        // If the conversion fails, re-run it in the other direction. This will
-        // generate an error message that prints [this] before [other], which is
-        // more readable.
-        coerceValueToMatch(other);
-        rethrow; // This should be unreachable.
-      }
-    } else {
-      num1 = coerceValueToMatch(other);
-      num2 = other.value;
+    try {
+      return operation(value, other.coerceValueToMatch(this));
+    } on SassScriptException {
+      // If the conversion fails, re-run it in the other direction. This will
+      // generate an error message that prints [this] before [other], which is
+      // more readable.
+      coerceValueToMatch(other);
+      rethrow; // This should be unreachable.
     }
-
-    return operation(num1, num2);
   }
 
-  /// Returns a new number that's equivalent to `value numerators1/denominators1
-  /// * 1 numerators2/denominators2`.
-  SassNumber _multiplyUnits(
-      num value,
-      List<String> numerators1,
-      List<String> denominators1,
-      List<String> numerators2,
-      List<String> denominators2) {
+  /// Returns a new number that's equivalent to `value
+  /// this.numeratorUnits/this.denominatorUnits * 1
+  /// otherNumerators/otherDenominators`.
+  @protected
+  SassNumber multiplyUnits(
+      num value, List<String> otherNumerators, List<String> otherDenominators) {
     // Short-circuit without allocating any new unit lists if possible.
-    if (numerators1.isEmpty) {
-      if (denominators2.isEmpty &&
-          !_areAnyConvertible(denominators1, numerators2)) {
+    if (numeratorUnits.isEmpty) {
+      if (otherDenominators.isEmpty &&
+          !_areAnyConvertible(denominatorUnits, otherNumerators)) {
         return SassNumber.withUnits(value,
-            numeratorUnits: numerators2, denominatorUnits: denominators1);
-      } else if (denominators1.isEmpty) {
+            numeratorUnits: otherNumerators,
+            denominatorUnits: denominatorUnits);
+      } else if (denominatorUnits.isEmpty) {
         return SassNumber.withUnits(value,
-            numeratorUnits: numerators2, denominatorUnits: denominators2);
+            numeratorUnits: otherNumerators,
+            denominatorUnits: otherDenominators);
       }
-    } else if (numerators2.isEmpty) {
-      if (denominators2.isEmpty) {
+    } else if (otherNumerators.isEmpty) {
+      if (otherDenominators.isEmpty) {
         return SassNumber.withUnits(value,
-            numeratorUnits: numerators1, denominatorUnits: denominators2);
-      } else if (denominators1.isEmpty &&
-          !_areAnyConvertible(numerators1, denominators2)) {
+            numeratorUnits: numeratorUnits,
+            denominatorUnits: otherDenominators);
+      } else if (denominatorUnits.isEmpty &&
+          !_areAnyConvertible(numeratorUnits, otherDenominators)) {
         return SassNumber.withUnits(value,
-            numeratorUnits: numerators1, denominatorUnits: denominators2);
+            numeratorUnits: numeratorUnits,
+            denominatorUnits: otherDenominators);
       }
     }
 
     var newNumerators = <String>[];
-    var mutableDenominators2 = denominators2.toList();
-    for (var numerator in numerators1) {
-      removeFirstWhere<String>(mutableDenominators2, (denominator) {
-        var factor = _conversionFactor(numerator, denominator);
+    var mutableOtherDenominators = otherDenominators.toList();
+    for (var numerator in numeratorUnits) {
+      removeFirstWhere<String>(mutableOtherDenominators, (denominator) {
+        var factor = conversionFactor(numerator, denominator);
         if (factor == null) return false;
         value /= factor;
         return true;
@@ -563,10 +534,10 @@ class SassNumber extends Value implements ext.SassNumber {
       });
     }
 
-    var mutableDenominators1 = denominators1.toList();
-    for (var numerator in numerators2) {
-      removeFirstWhere<String>(mutableDenominators1, (denominator) {
-        var factor = _conversionFactor(numerator, denominator);
+    var mutableDenominatorUnits = denominatorUnits.toList();
+    for (var numerator in otherNumerators) {
+      removeFirstWhere<String>(mutableDenominatorUnits, (denominator) {
+        var factor = conversionFactor(numerator, denominator);
         if (factor == null) return false;
         value /= factor;
         return true;
@@ -578,7 +549,8 @@ class SassNumber extends Value implements ext.SassNumber {
 
     return SassNumber.withUnits(value,
         numeratorUnits: newNumerators,
-        denominatorUnits: mutableDenominators1..addAll(mutableDenominators2));
+        denominatorUnits: mutableDenominatorUnits
+          ..addAll(mutableOtherDenominators));
   }
 
   /// Returns whether there exists a unit in [units1] that can be converted to a
@@ -596,8 +568,9 @@ class SassNumber extends Value implements ext.SassNumber {
 
   /// Returns the number of [unit1]s per [unit2].
   ///
-  /// Equivalently, `1unit1 * _conversionFactor(unit1, unit2) = 1unit2`.
-  num _conversionFactor(String unit1, String unit2) {
+  /// Equivalently, `1unit2 * conversionFactor(unit1, unit2) = 1unit1`.
+  @protected
+  num conversionFactor(String unit1, String unit2) {
     if (unit1 == unit2) return 1;
     var innerMap = _conversions[unit1];
     if (innerMap == null) return null;
@@ -670,13 +643,17 @@ class SassNumber extends Value implements ext.SassNumber {
   ///
   /// That is, if `X units1 == Y units2`, `X * _canonicalMultiplier(units1) == Y
   /// * _canonicalMultiplier(units2)`.
-  num _canonicalMultiplier(List<String> units) =>
-      units.fold(1, (multiplier, unit) {
-        var innerMap = _conversions[unit];
-        return innerMap == null
-            ? multiplier
-            : multiplier / innerMap.values.first;
-      });
+  num _canonicalMultiplier(List<String> units) => units.fold(
+      1, (multiplier, unit) => multiplier * canonicalMultiplierForUnit(unit));
+
+  /// Returns a multiplier that encapsulates unit equivalence with [unit].
+  ///
+  /// That is, if `X unit1 == Y unit2`, `X * canonicalMultiplierForUnit(unit1)
+  /// == Y * canonicalMultiplierForUnit(unit2)`.
+  num canonicalMultiplierForUnit(String unit) {
+    var innerMap = _conversions[unit];
+    return innerMap == null ? 1 : 1 / innerMap.values.first;
+  }
 
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String name]) =>
