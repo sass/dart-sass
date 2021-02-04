@@ -39,7 +39,9 @@ void main(List<String> args) {
         request.style == InboundMessage_CompileRequest_OutputStyle.COMPRESSED
             ? sass.OutputStyle.compressed
             : sass.OutputStyle.expanded;
-    var logger = Logger(dispatcher, request.id);
+    var color = request.alertColor ?? false;
+    var ascii = request.alertAscii ?? false;
+    var logger = Logger(dispatcher, request.id, color: color, ascii: ascii);
 
     try {
       String result;
@@ -59,6 +61,7 @@ void main(List<String> args) {
         case InboundMessage_CompileRequest_Input.string:
           var input = request.string;
           result = sass.compileString(input.source,
+              color: color,
               logger: logger,
               importers: importers,
               importer: _decodeImporter(dispatcher, request, input.importer),
@@ -72,6 +75,7 @@ void main(List<String> args) {
         case InboundMessage_CompileRequest_Input.path:
           try {
             result = sass.compile(request.path,
+                color: color,
                 logger: logger,
                 importers: importers,
                 functions: globalFunctions,
@@ -97,11 +101,14 @@ void main(List<String> args) {
       }
       return OutboundMessage_CompileResponse()..success = success;
     } on sass.SassException catch (error) {
+      var formatted = withGlyphs(() => error.toString(color: color),
+          ascii: request.alertAscii);
       return OutboundMessage_CompileResponse()
         ..failure = (OutboundMessage_CompileResponse_CompileFailure()
           ..message = error.message
           ..span = protofySpan(error.span)
-          ..stackTrace = error.trace.toString());
+          ..stackTrace = error.trace.toString()
+          ..formatted = formatted);
     }
   });
 }

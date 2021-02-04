@@ -2,8 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:sass/sass.dart' as sass;
 import 'package:source_span/source_span.dart';
+import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide SourceSpan;
@@ -56,4 +58,18 @@ sass.Syntax syntaxToSyntax(InboundMessage_Syntax syntax) {
     default:
       throw "Unknown syntax $syntax.";
   }
+}
+
+/// Returns [string] with every line indented [indentation] spaces.
+String indent(String string, int indentation) =>
+    string.split("\n").map((line) => (" " * indentation) + line).join("\n");
+
+/// Returns the result of running [callback] with the global ASCII config set
+/// to [ascii].
+T withGlyphs<T>(T callback(), {@required bool ascii}) {
+  var currentConfig = term_glyph.ascii;
+  term_glyph.ascii = ascii;
+  var result = callback();
+  term_glyph.ascii = currentConfig;
+  return result;
 }

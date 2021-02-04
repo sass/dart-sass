@@ -14,6 +14,8 @@ import 'embedded_process.dart';
 /// string.
 InboundMessage compileString(String css,
     {int id,
+    bool alertColor,
+    bool alertAscii,
     InboundMessage_Syntax syntax,
     InboundMessage_CompileRequest_OutputStyle style,
     String url,
@@ -32,6 +34,8 @@ InboundMessage compileString(String css,
   if (style != null) request.style = style;
   if (sourceMap != null) request.sourceMap = sourceMap;
   if (functions != null) request.globalFunctions.addAll(functions);
+  if (alertColor != null) request.alertColor = alertColor;
+  if (alertAscii != null) request.alertAscii = alertAscii;
 
   return InboundMessage()..compileRequest = request;
 }

@@ -97,22 +97,6 @@ void main() {
       await expectLater(process.outbound, emits(isSuccess(equals("a{b:3px}"))));
       await process.kill();
     });
-
-    test("expanded mode when nested mode is passed", () async {
-      process.inbound.add(compileString("a {b: 1px + 2px}",
-          style: InboundMessage_CompileRequest_OutputStyle.NESTED));
-      await expectLater(
-          process.outbound, emits(isSuccess(equals("a {\n  b: 3px;\n}"))));
-      await process.kill();
-    });
-
-    test("expanded mode when compact mode is passed", () async {
-      process.inbound.add(compileString("a {b: 1px + 2px}",
-          style: InboundMessage_CompileRequest_OutputStyle.COMPACT));
-      await expectLater(
-          process.outbound, emits(isSuccess(equals("a {\n  b: 3px;\n}"))));
-      await process.kill();
-    });
   });
 
   test("doesn't include a source map by default", () async {
@@ -145,31 +129,74 @@ void main() {
   });
 
   group("emits a log event", () {
-    test("for a @debug rule", () async {
-      process.inbound.add(compileString("a {@debug hello}"));
+    group("for a @debug rule", () {
+      test("with correct fields", () async {
+        process.inbound.add(compileString("a {@debug hello}"));
 
-      var logEvent = getLogEvent(await process.outbound.next);
-      expect(logEvent.compilationId, equals(0));
-      expect(logEvent.type, equals(OutboundMessage_LogEvent_Type.DEBUG));
-      expect(logEvent.message, equals("hello"));
-      expect(logEvent.span.text, equals("@debug hello"));
-      expect(logEvent.span.start, equals(location(3, 0, 3)));
-      expect(logEvent.span.end, equals(location(15, 0, 15)));
-      expect(logEvent.span.context, equals("a {@debug hello}"));
-      expect(logEvent.stackTrace, isEmpty);
-      await process.kill();
+        var logEvent = getLogEvent(await process.outbound.next);
+        expect(logEvent.compilationId, equals(0));
+        expect(logEvent.type, equals(OutboundMessage_LogEvent_Type.DEBUG));
+        expect(logEvent.message, equals("hello"));
+        expect(logEvent.span.text, equals("@debug hello"));
+        expect(logEvent.span.start, equals(location(3, 0, 3)));
+        expect(logEvent.span.end, equals(location(15, 0, 15)));
+        expect(logEvent.span.context, equals("a {@debug hello}"));
+        expect(logEvent.stackTrace, isEmpty);
+        expect(logEvent.formatted, equals('-:1 DEBUG: hello\n'));
+        await process.kill();
+      });
+
+      test("formatted with terminal colors", () async {
+        process.inbound
+            .add(compileString("a {@debug hello}", alertColor: true));
+        var logEvent = getLogEvent(await process.outbound.next);
+        expect(
+            logEvent.formatted, equals('-:1 \u001b[1mDebug\u001b[0m: hello\n'));
+        await process.kill();
+      });
     });
 
-    test("for a @warn rule", () async {
-      process.inbound.add(compileString("a {@warn hello}"));
+    group("for a @warn rule", () {
+      test("with correct fields", () async {
+        process.inbound.add(compileString("a {@warn hello}"));
 
-      var logEvent = getLogEvent(await process.outbound.next);
-      expect(logEvent.compilationId, equals(0));
-      expect(logEvent.type, equals(OutboundMessage_LogEvent_Type.WARNING));
-      expect(logEvent.message, equals("hello"));
-      expect(logEvent.span, equals(SourceSpan()));
-      expect(logEvent.stackTrace, equals("- 1:4  root stylesheet\n"));
-      await process.kill();
+        var logEvent = getLogEvent(await process.outbound.next);
+        expect(logEvent.compilationId, equals(0));
+        expect(logEvent.type, equals(OutboundMessage_LogEvent_Type.WARNING));
+        expect(logEvent.message, equals("hello"));
+        expect(logEvent.span, equals(SourceSpan()));
+        expect(logEvent.stackTrace, equals("- 1:4  root stylesheet\n"));
+        expect(
+            logEvent.formatted,
+            equals('WARNING: hello\n'
+                '    - 1:4  root stylesheet\n'));
+        await process.kill();
+      });
+
+      test("formatted with terminal colors", () async {
+        process.inbound.add(compileString("a {@warn hello}", alertColor: true));
+        var logEvent = getLogEvent(await process.outbound.next);
+        expect(
+            logEvent.formatted,
+            equals('\x1B[33m\x1B[1mWarning\x1B[0m: hello\n'
+                '    - 1:4  root stylesheet\n'));
+        await process.kill();
+      });
+
+      test("encoded in ASCII", () async {
+        process.inbound
+            .add(compileString("a {@debug a && b}", alertAscii: true));
+        var logEvent = getLogEvent(await process.outbound.next);
+        expect(
+            logEvent.formatted,
+            equals('WARNING on line 1, column 13: \n'
+                'In Sass, "&&" means two copies of the parent selector. You probably want to use "and" instead.\n'
+                '  ,\n'
+                '1 | a {@debug a && b}\n'
+                '  |             ^^\n'
+                '  \'\n'));
+        await process.kill();
+      });
     });
 
     test("for a parse-time deprecation warning", () async {
@@ -342,6 +369,55 @@ a {
       expect(failure.span.context, equals("a {b: 1px + 2px}"));
       expect(failure.stackTrace, equals("- 1:11  root stylesheet\n"));
       await process.kill();
+    });
+
+    group("and provides a formatted", () {
+      test("message", () async {
+        process.inbound.add(compileString("a {b: 1px + 1em}"));
+
+        var failure = getCompileFailure(await process.outbound.next);
+        expect(
+            failure.formatted,
+            equals('Error: 1px and 1em have incompatible units.\n'
+                '  ╷\n'
+                '1 │ a {b: 1px + 1em}\n'
+                '  │       ^^^^^^^^^\n'
+                '  ╵\n'
+                '  - 1:7  root stylesheet'));
+        await process.kill();
+      });
+
+      test("message with terminal colors", () async {
+        process.inbound
+            .add(compileString("a {b: 1px + 1em}", alertColor: true));
+
+        var failure = getCompileFailure(await process.outbound.next);
+        expect(
+            failure.formatted,
+            equals('Error: 1px and 1em have incompatible units.\n'
+                '\x1B[34m  ╷\x1B[0m\n'
+                '\x1B[34m1 │\x1B[0m a {b: \x1B[31m1px + 1em\x1B[0m}\n'
+                '\x1B[34m  │\x1B[0m \x1B[31m      ^^^^^^^^^\x1B[0m\n'
+                '\x1B[34m  ╵\x1B[0m\n'
+                '  - 1:7  root stylesheet'));
+        await process.kill();
+      });
+
+      test("message with ASCII encoding", () async {
+        process.inbound
+            .add(compileString("a {b: 1px + 1em}", alertAscii: true));
+
+        var failure = getCompileFailure(await process.outbound.next);
+        expect(
+            failure.formatted,
+            equals('Error: 1px and 1em have incompatible units.\n'
+                '  ,\n'
+                '1 | a {b: 1px + 1em}\n'
+                '  |       ^^^^^^^^^\n'
+                '  \'\n'
+                '  - 1:7  root stylesheet'));
+        await process.kill();
+      });
     });
   });
 }
