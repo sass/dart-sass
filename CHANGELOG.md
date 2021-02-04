@@ -1,3 +1,8 @@
+## 1.32.8
+
+* Allow `@forward...with` to take arguments that have a `!default` flag without
+  a trailing comma.
+
 ## 1.32.7
 
 * Improve the performance of unitless and single-unit numbers.
@@ -63,7 +68,7 @@
 
 * Properly mark some warnings emitted by `sass:color` functions as deprecation
   warnings.
-  
+
 ### Dart API
 
 * Rename `SassNumber.valueInUnits()` to `SassNumber.coerceValue()`. The old name
