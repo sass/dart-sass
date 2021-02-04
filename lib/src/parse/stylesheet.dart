@@ -1432,6 +1432,7 @@ relase. For details, see http://bit.ly/moz-document.
         var flag = identifier();
         if (flag == 'default') {
           guarded = true;
+          whitespace();
         } else {
           error("Invalid flag name.", scanner.spanFrom(flagStart));
         }
