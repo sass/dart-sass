@@ -1,10 +1,9 @@
-## 1.32.8
+## 1.32.7
+
+* Allow the null safety release of stream_transform.
 
 * Allow `@forward...with` to take arguments that have a `!default` flag without
   a trailing comma.
-* Allow the null safety release of stream_transform.
-
-## 1.32.7
 
 * Improve the performance of unitless and single-unit numbers.
 
