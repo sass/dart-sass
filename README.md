@@ -275,7 +275,7 @@ As such, if a change would break compatibility with less than 2% of the global
 market share of browser according to [StatCounter GlobalStats][], we may release
 a minor version of Dart Sass with that change.
 
-[StatCounter GlobalStats]: http://gs.statcounter.com/
+[StatCounter GlobalStats]: https://gs.statcounter.com/
 
 ### Node.js Compatibility
 
