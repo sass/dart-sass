@@ -11,8 +11,13 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:test/test.dart';
+import 'package:path/path.dart' as p;
+
+import 'package:sass/src/io.dart';
+import 'package:sass/src/value/number.dart';
 
 import '../ensure_npm_package.dart';
+import '../hybrid.dart';
 import 'api.dart';
 import 'utils.dart';
 
@@ -177,6 +182,166 @@ void main() {
           data: "a {b: foo()}",
           functions: jsify({"foo": allowInterop(expectAsync0(() => null))})));
       expect(error.toString(), contains('must be a Sass value type'));
+    });
+  });
+
+  group('this', () {
+    String sassPath;
+    setUp(() async {
+      sassPath = p.join(sandbox, 'test.scss');
+    });
+
+    test('includes default option values', () {
+      renderSync(RenderOptions(
+        data: 'a {b: foo()}',
+        functions: jsify({
+          'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+            var options = this_.options;
+            expect(options.includePaths, equals(p.current));
+            expect(options.precision, equals(SassNumber.precision));
+            expect(options.style, equals(1));
+            expect(options.indentType, equals(0));
+            expect(options.indentWidth, equals(2));
+            expect(options.linefeed, equals('\n'));
+            return callConstructor(sass.types.Number, [12]);
+          }))
+        }),
+      ));
+    });
+
+    test('includes the data when rendering via data', () {
+      renderSync(RenderOptions(
+        data: 'a {b: foo()}',
+        functions: jsify({
+          'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+            expect(this_.options.data, equals('a {b: foo()}'));
+            expect(this_.options.file, isNull);
+            return callConstructor(sass.types.Number, [12]);
+          }))
+        }),
+      ));
+    });
+
+    test('includes the filename when rendering via file', () async {
+      await writeTextFile(sassPath, 'a {b: foo()}');
+      renderSync(RenderOptions(
+        file: sassPath,
+        functions: jsify({
+          'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+            expect(this_.options.data, isNull);
+            expect(this_.options.file, equals(sassPath));
+            return callConstructor(sass.types.Number, [12]);
+          }))
+        }),
+      ));
+    });
+
+    test('includes other include paths', () {
+      renderSync(RenderOptions(
+        data: 'a {b: foo()}',
+        includePaths: [sandbox],
+        functions: jsify({
+          'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+            expect(this_.options.includePaths,
+                equals('${p.current}${isWindows ? ';' : ':'}$sandbox'));
+            return callConstructor(sass.types.Number, [12]);
+          }))
+        }),
+      ));
+    });
+
+    group('can override', () {
+      test('indentWidth', () {
+        renderSync(RenderOptions(
+          data: 'a {b: foo()}',
+          indentWidth: 5,
+          functions: jsify({
+            'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+              expect(this_.options.indentWidth, equals(5));
+              return callConstructor(sass.types.Number, [12]);
+            }))
+          }),
+        ));
+      });
+
+      test('indentType', () {
+        renderSync(RenderOptions(
+          data: 'a {b: foo()}',
+          indentType: 'tab',
+          functions: jsify({
+            'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+              expect(this_.options.indentType, equals(1));
+              return callConstructor(sass.types.Number, [12]);
+            }))
+          }),
+        ));
+      });
+
+      test('linefeed', () {
+        renderSync(RenderOptions(
+          data: 'a {b: foo()}',
+          linefeed: 'cr',
+          functions: jsify({
+            'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+              expect(this_.options.linefeed, equals('\r'));
+              return callConstructor(sass.types.Number, [12]);
+            }))
+          }),
+        ));
+      });
+    });
+
+    test('has a circular reference', () {
+      renderSync(RenderOptions(
+        data: 'a {b: foo()}',
+        functions: jsify({
+          'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+            expect(this_.options.context, same(this_));
+            return callConstructor(sass.types.Number, [12]);
+          }))
+        }),
+      ));
+    });
+
+    group('includes render stats with', () {
+      test('a start time', () {
+        var start = DateTime.now();
+        renderSync(RenderOptions(
+          data: 'a {b: foo()}',
+          functions: jsify({
+            'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+              expect(this_.options.result.stats.start,
+                  greaterThanOrEqualTo(start.millisecondsSinceEpoch));
+              return callConstructor(sass.types.Number, [12]);
+            }))
+          }),
+        ));
+      });
+
+      test('a data entry', () {
+        renderSync(RenderOptions(
+          data: 'a {b: foo()}',
+          functions: jsify({
+            'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+              expect(this_.options.result.stats.entry, equals('data'));
+              return callConstructor(sass.types.Number, [12]);
+            }))
+          }),
+        ));
+      });
+
+      test('a file entry', () async {
+        await writeTextFile(sassPath, 'a {b: foo()}');
+        renderSync(RenderOptions(
+          file: sassPath,
+          functions: jsify({
+            'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
+              expect(this_.options.result.stats.entry, equals(sassPath));
+              return callConstructor(sass.types.Number, [12]);
+            }))
+          }),
+        ));
+      });
     });
   });
 

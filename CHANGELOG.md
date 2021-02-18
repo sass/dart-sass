@@ -1,3 +1,8 @@
+## 1.32.8
+
+* Allows a custom function to access the `render()` options object within its
+  local context, as `this.options`.
+
 ## 1.32.7
 
 * Allow the null safety release of stream_transform.
