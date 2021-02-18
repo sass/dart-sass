@@ -1,3 +1,7 @@
+## 1.32.8
+
+* Update chokidar version for Node API tests.
+
 ## 1.32.7
 
 * Allow the null safety release of stream_transform.
