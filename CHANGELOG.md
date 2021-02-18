@@ -1,8 +1,10 @@
 ## 1.32.8
 
+* Update chokidar version for Node API tests.
+
 ### JavaScript API
 
-* Allows a custom function to access the `render()` options object within its
+* Allow a custom function to access the `render()` options object within its
   local context, as `this.options`.
 
 ## 1.32.7

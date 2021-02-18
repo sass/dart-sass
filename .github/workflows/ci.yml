@@ -44,13 +44,12 @@ jobs:
           PR_BRANCH: "${{ github.base_ref }}"
           CURRENT_REF: "${{ github.ref }}"
           PR_BODY: "${{ github.event.pull_request.body }}"
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.6
-          working-directory: sass-spec
-          bundler-cache: true
+      - uses: actions/setup-node@v2
+        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
+      - run: npm install
+        working-directory: sass-spec
       - name: Run specs
-        run: bundle exec sass-spec.rb --dart .. $extra_args
+        run: npm run sass-spec -- --dart .. $extra_args
         working-directory: sass-spec
         env: {extra_args: "${{ matrix.async_args }}"}
 

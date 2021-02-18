@@ -44,8 +44,8 @@ one above, the
 2. In this repository, run `pub get`. This will install all of the Dart
    dependencies.
 
-3. [Install Node.js][]. This is only necessary if you're making changes to Dart
-   Sass's Node API.
+3. [Install Node.js][]. This is only necessary if you're making changes to the
+  language or to Dart Sass's Node API.
 
 [Install the Dart SDK]: https://www.dartlang.org/install
 [Install Node.js]: https://nodejs.org/en/download/
@@ -91,13 +91,13 @@ To create a new spec:
 
 * [Fork sass-spec](https://help.github.com/articles/fork-a-repo/).
 
-* Install [Ruby][] and [Bundler][].
+* [Install Node.js][] v14.14 or newer.
 
 * ```sh
   # Replace $USER with your GitHub username.
   git clone https://github.com/$USER/sass-spec
   cd sass-spec
-  bundle install
+  npm install
   ```
 
 * For each test case you want to add:
@@ -108,18 +108,16 @@ To create a new spec:
 
   * Following the [spec style guide][], create an `hrx` file that exercises your
     language change, verifying that the change produces expected output/errors.
-    
+
     [spec style guide]: https://github.com/sass/sass-spec/blob/master/STYLE_GUIDE.md
 
 * If you're adding a new language feature, it probably won't be supported by
-  Ruby Sass or LibSass yet. You can indicate this and keep tests passing by
-  adding an `options.yml` file like this to the directory containing your
-  tests:
+  LibSass yet. You can indicate this and keep tests passing by adding an
+  `options.yml` file like this to the directory containing your tests:
 
   ```yaml
   ---
   :todo:
-  - ruby-sass
   - libsass
   ```
 
@@ -131,16 +129,16 @@ To create a new spec:
 
   ```sh
   # Replace .. with the path to dart-sass if it's not the parent directory.
-  bundle exec sass-spec.rb --dart ..
+  npm run sass-spec -- --dart ..
   ```
 
   * You can also run specs within a single directory:
 
     ```sh
-    bundle exec sass-spec.rb --dart .. spec/my/new/feature
+    npm run sass-spec --dart .. spec/my/new/feature
     ```
 
-  * If you pass the `--interactive` flag, `sass-spec.rb` will stop each time a
+  * If you pass the `--interactive` flag, the spec runner will stop each time a
     spec fails and ask you what to do about the failure.
 
 * Once you've added specs and they're passing for Dart Sass, create a pull
@@ -151,9 +149,6 @@ To create a new spec:
 * Finally, create a pull request for Dart Sass with a link to the sass-spec pull
   request at the end of the message. This tells Dart Sass to test against your
   new sass-spec tests.
-
-[Ruby]: https://www.ruby-lang.org/en/
-[Bundler]: http://bundler.io/
 
 ### Changing the Node API
 
@@ -209,7 +204,7 @@ automating.
 All files in the project must start with the following header.
 
 ```dart
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// Copyright 2021 Google LLC. Use of this source code is governed by an
+// MIT-style license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
 ```
