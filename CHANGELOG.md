@@ -1,5 +1,7 @@
 ## 1.32.8
 
+### JavaScript API
+
 * Allows a custom function to access the `render()` options object within its
   local context, as `this.options`.
 
