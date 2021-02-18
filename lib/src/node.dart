@@ -96,7 +96,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   if (options.data != null) {
     result = await compileStringAsync(options.data,
         nodeImporter: _parseImporter(options, start),
-        functions: _parseFunctions(options, asynch: true),
+        functions: _parseFunctions(options, start, asynch: true),
         syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
@@ -107,7 +107,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   } else if (options.file != null) {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
-        functions: _parseFunctions(options, asynch: true),
+        functions: _parseFunctions(options, start, asynch: true),
         syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
@@ -135,7 +135,7 @@ RenderResult _renderSync(RenderOptions options) {
     if (options.data != null) {
       result = compileString(options.data,
           nodeImporter: _parseImporter(options, start),
-          functions: _parseFunctions(options).cast(),
+          functions: _parseFunctions(options, start).cast(),
           syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
@@ -146,7 +146,7 @@ RenderResult _renderSync(RenderOptions options) {
     } else if (options.file != null) {
       result = compile(file,
           nodeImporter: _parseImporter(options, start),
-          functions: _parseFunctions(options).cast(),
+          functions: _parseFunctions(options, start).cast(),
           syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
           style: _parseOutputStyle(options.outputStyle),
           useSpaces: options.indentType != 'tab',
@@ -186,7 +186,7 @@ JsError _wrapException(Object exception) {
 ///
 /// This is typed to always return [AsyncCallable], but in practice it will
 /// return a `List<Callable>` if [asynch] is `false`.
-List<AsyncCallable> _parseFunctions(RenderOptions options,
+List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     {bool asynch = false}) {
   if (options.functions == null) return const [];
 
@@ -200,6 +200,8 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
           'Invalid signature "${signature}": ${error.message}', error.span);
     }
 
+    var context = _contextWithOptions(options, start);
+
     if (options.fiber != null) {
       result.add(BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
         var fiber = options.fiber.current;
@@ -211,7 +213,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
             scheduleMicrotask(() => fiber.run(result));
           })
         ];
-        var result = Function.apply(callback as Function, jsArguments);
+        var result = (callback as JSFunction).apply(context, jsArguments);
         return unwrapValue(isUndefined(result)
             // Run `fiber.yield()` in runZoned() so that Dart resets the current
             // zone once it's done. Otherwise, interweaving fibers can leave
@@ -223,8 +225,8 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
       result.add(BuiltInCallable.parsed(
           tuple.item1,
           tuple.item2,
-          (arguments) => unwrapValue(Function.apply(
-              callback as Function, arguments.map(wrapValue).toList()))));
+          (arguments) => unwrapValue((callback as JSFunction)
+              .apply(context, arguments.map(wrapValue).toList()))));
     } else {
       result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
           (arguments) async {
@@ -233,7 +235,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options,
           ...arguments.map(wrapValue),
           allowInterop(([Object result]) => completer.complete(result))
         ];
-        var result = Function.apply(callback as Function, jsArguments);
+        var result = (callback as JSFunction).apply(context, jsArguments);
         return unwrapValue(
             isUndefined(result) ? await completer.future : result);
       }));
@@ -254,27 +256,8 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
     importers = [options.importer as JSFunction];
   }
 
-  var includePaths = List<String>.from(options.includePaths ?? []);
-
   RenderContext context;
-  if (importers.isNotEmpty) {
-    context = RenderContext(
-        options: RenderContextOptions(
-            file: options.file,
-            data: options.data,
-            includePaths:
-                ([p.current, ...includePaths]).join(isWindows ? ';' : ':'),
-            precision: SassNumber.precision,
-            style: 1,
-            indentType: options.indentType == 'tab' ? 1 : 0,
-            indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
-            linefeed: _parseLineFeed(options.linefeed).text,
-            result: RenderResult(
-                stats: RenderResultStats(
-                    start: start.millisecondsSinceEpoch,
-                    entry: options.file ?? 'data'))));
-    context.options.context = context;
-  }
+  if (importers.isNotEmpty) context = _contextWithOptions(options, start);
 
   if (options.fiber != null) {
     importers = importers.map((importer) {
@@ -297,7 +280,30 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
     }).toList();
   }
 
+  var includePaths = List<String>.from(options.includePaths ?? []);
   return NodeImporter(context, includePaths, importers);
+}
+
+/// Creates a `this` context that contains the render options.
+RenderContext _contextWithOptions(RenderOptions options, DateTime start) {
+  var includePaths = List<String>.from(options.includePaths ?? []);
+  var context = RenderContext(
+      options: RenderContextOptions(
+          file: options.file,
+          data: options.data,
+          includePaths:
+              ([p.current, ...includePaths]).join(isWindows ? ';' : ':'),
+          precision: SassNumber.precision,
+          style: 1,
+          indentType: options.indentType == 'tab' ? 1 : 0,
+          indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
+          linefeed: _parseLineFeed(options.linefeed).text,
+          result: RenderResult(
+              stats: RenderResultStats(
+                  start: start.millisecondsSinceEpoch,
+                  entry: options.file ?? 'data'))));
+  context.options.context = context;
+  return context;
 }
 
 /// Parse [style] into an [OutputStyle].

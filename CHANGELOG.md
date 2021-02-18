@@ -2,6 +2,11 @@
 
 * Update chokidar version for Node API tests.
 
+### JavaScript API
+
+* Allow a custom function to access the `render()` options object within its
+  local context, as `this.options`.
+
 ## 1.32.7
 
 * Allow the null safety release of stream_transform.
