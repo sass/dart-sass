@@ -1,6 +1,6 @@
 ## 1.32.8
 
-* Allow the null safety release of args.
+* Allow the null safety release of args and watcher.
 
 * Update chokidar version for Node API tests.
 
