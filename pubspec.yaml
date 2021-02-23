@@ -29,7 +29,7 @@ dependencies:
   string_scanner: ">=0.1.5 <2.0.0"
   term_glyph: "^1.0.0"
   tuple: "^1.0.0"
-  watcher: "^0.9.6"
+  watcher: ">=0.9.6 <2.0.0"
 
 dev_dependencies:
   archive: ">=1.0.0 <3.0.0"
