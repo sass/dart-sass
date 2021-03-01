@@ -30,8 +30,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
-        with: {release-channel: "${{ matrix.dart_channel }}"}
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       # Set up the environment to run the sass-spec runner which is written in Ruby
       - name: Set up sass-spec
@@ -66,8 +66,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
-        with: {release-channel: "${{ matrix.dart_channel }}"}
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - run: dart pub run grinder pkg-standalone-dev
       - name: Run tests
@@ -104,8 +104,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
-        with: {release-channel: "${{ matrix.dart_channel }}"}
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - uses: actions/setup-node@v2
         with: {node-version: "${{ matrix.node_version }}"}
@@ -120,7 +120,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Analyze dart
         run: dartanalyzer --fatal-warnings --fatal-infos lib tool test
@@ -133,7 +133,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Run checks
         run: dart pub run grinder sanity-check-before-release
@@ -146,7 +146,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
         run: dart pub run grinder pkg-github-release pkg-github-linux
@@ -162,7 +162,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
         run: dart pub run grinder pkg-github-macos
@@ -178,7 +178,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
         run: dart pub run grinder pkg-github-windows
@@ -194,7 +194,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - uses: actions/setup-node@v2
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
@@ -211,7 +211,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - uses: actions/setup-node@v2
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
@@ -229,7 +229,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - uses: actions/setup-node@v2
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
@@ -245,7 +245,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
         run: dart pub run grinder pkg-homebrew-update
@@ -261,7 +261,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
         run: dart pub run grinder pkg-chocolatey-deploy
