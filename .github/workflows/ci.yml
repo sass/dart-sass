@@ -25,8 +25,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: arduino/setup-protoc@v1
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
-      - uses: cedx/setup-dart@v2
-        with: {release-channel: "${{ matrix.dart_channel }}"}
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - run: dart pub run grinder protobuf
       - run: dart pub run grinder pkg-standalone-dev
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: arduino/setup-protoc@v1
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart pub run grinder protobuf
       - name: Analyze dart
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: arduino/setup-protoc@v1
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart pub run grinder protobuf
       - name: Deploy
@@ -74,7 +74,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: arduino/setup-protoc@v1
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart pub run grinder protobuf
       - name: Deploy
@@ -91,7 +91,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: arduino/setup-protoc@v1
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart pub run grinder protobuf
       - name: Deploy
