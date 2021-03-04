@@ -1,5 +1,7 @@
 ## 1.32.9
 
+* Fix a typo in a deprecation warning.
+
 ### Dart API
 
 * Allow the null safety release of args and watcher.
