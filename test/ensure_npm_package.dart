@@ -15,6 +15,7 @@ Future<void> ensureNpmPackage() async {
   if (isNode && isWindows) return;
 
   var channel = spawnHybridCode("""
+    // @dart=2.11
     import 'package:cli_pkg/testing.dart' as pkg;
     import 'package:stream_channel/stream_channel.dart';
 

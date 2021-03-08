@@ -27,6 +27,7 @@ Future<void> deleteDirectory(String path) =>
 /// Returns the result of [expression] if it's JSON-serializable.
 Future<Object> runHybridExpression(String expression, [Object message]) async {
   var channel = spawnHybridCode('''
+    // @dart=2.11
     import 'dart:async';
     import 'dart:convert';
     import 'dart:io';
