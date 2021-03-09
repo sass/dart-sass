@@ -4,7 +4,7 @@
 
 @TestOn('vm')
 
-import 'package:package_resolver/package_resolver.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -93,10 +93,10 @@ void main() {
       await d
           .file("test.scss", '@import "package:fake_package/test";')
           .create();
-      var resolver = SyncPackageResolver.config(
-          {"fake_package": p.toUri(d.path('subdir'))});
+      var config =
+          PackageConfig([Package('fake_package', p.toUri(d.path('subdir/')))]);
 
-      var css = compile(d.path("test.scss"), packageResolver: resolver);
+      var css = compile(d.path("test.scss"), packageConfig: config);
       expect(css, equals("a {\n  b: 3;\n}"));
     });
 
@@ -109,10 +109,10 @@ void main() {
       await d
           .file("test.scss", '@import "package:fake_package/test";')
           .create();
-      var resolver = SyncPackageResolver.config(
-          {"fake_package": p.toUri(d.path('subdir'))});
+      var config =
+          PackageConfig([Package('fake_package', p.toUri(d.path('subdir/')))]);
 
-      var css = compile(d.path("test.scss"), packageResolver: resolver);
+      var css = compile(d.path("test.scss"), packageConfig: config);
       expect(css, equals("a {\n  b: 3;\n}"));
     });
 
@@ -120,9 +120,9 @@ void main() {
       await d
           .file("test.scss", '@import "package:fake_package/test_aux";')
           .create();
-      var resolver = SyncPackageResolver.config({});
 
-      expect(() => compile(d.path("test.scss"), packageResolver: resolver),
+      expect(
+          () => compile(d.path("test.scss"), packageConfig: PackageConfig([])),
           throwsA(const TypeMatcher<SassRuntimeException>()));
     });
   });
@@ -166,9 +166,9 @@ void main() {
       expect(css, equals("a {\n  b: from-importer;\n}"));
     });
 
-    test("importers take precedence over packageResolver", () async {
+    test("importers take precedence over packageConfig", () async {
       await d.dir("package",
-          [d.file("other.scss", "a {b: from-package-resolver}")]).create();
+          [d.file("other.scss", "a {b: from-package-config}")]).create();
       await d.dir(
           "importer", [d.file("other.scss", "a {b: from-importer}")]).create();
       await d
@@ -177,11 +177,11 @@ void main() {
 
       var css = compile(d.path("test.scss"),
           importers: [
-            PackageImporter(SyncPackageResolver.config(
-                {"fake_package": p.toUri(d.path('importer'))}))
+            PackageImporter(PackageConfig(
+                [Package('fake_package', p.toUri(d.path('importer/')))]))
           ],
-          packageResolver: SyncPackageResolver.config(
-              {"fake_package": p.toUri(d.path('package'))}));
+          packageConfig: PackageConfig(
+              [Package('fake_package', p.toUri(d.path('package/')))]));
       expect(css, equals("a {\n  b: from-importer;\n}"));
     });
   });

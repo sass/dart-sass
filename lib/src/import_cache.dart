@@ -5,11 +5,12 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6ac1ee07d6b46134f1616d82782180f1cc3b6d81
+// Checksum: 31432610e32afefcc7adcda592b811ec50e9b47f
 //
 // ignore_for_file: unused_import
 
 import 'package:collection/collection.dart';
+import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
@@ -18,7 +19,6 @@ import 'importer.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'sync_package_resolver.dart';
 import 'utils.dart'; // ignore: unused_import
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
@@ -58,16 +58,14 @@ class ImportCache {
   /// * Each load path specified in the `SASS_PATH` environment variable, which
   ///   should be semicolon-separated on Windows and colon-separated elsewhere.
   ///
-  /// * `package:` resolution using [packageResolver], which is a
-  ///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
+  /// * `package:` resolution using [packageConfig], which is a
+  ///   [`PackageConfig`][] from the `package_config` package. Note that
   ///   this is a shorthand for adding a [PackageImporter] to [importers].
   ///
-  /// [`SyncPackageResolver`]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+  /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
   ImportCache(Iterable<Importer> importers,
-      {Iterable<String> loadPaths,
-      SyncPackageResolver packageResolver,
-      Logger logger})
-      : _importers = _toImporters(importers, loadPaths, packageResolver),
+      {Iterable<String> loadPaths, PackageConfig packageConfig, Logger logger})
+      : _importers = _toImporters(importers, loadPaths, packageConfig),
         _logger = logger ?? const Logger.stderr(),
         _canonicalizeCache = {},
         _importCache = {},
@@ -81,10 +79,10 @@ class ImportCache {
         _importCache = {},
         _resultsCache = {};
 
-  /// Converts the user's [importers], [loadPaths], and [packageResolver]
+  /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
   static List<Importer> _toImporters(Iterable<Importer> importers,
-      Iterable<String> loadPaths, SyncPackageResolver packageResolver) {
+      Iterable<String> loadPaths, PackageConfig packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
     return [
       ...?importers,
@@ -93,7 +91,7 @@ class ImportCache {
       if (sassPath != null)
         for (var path in sassPath.split(isWindows ? ';' : ':'))
           FilesystemImporter(path),
-      if (packageResolver != null) PackageImporter(packageResolver)
+      if (packageConfig != null) PackageImporter(packageConfig)
     ];
   }
 

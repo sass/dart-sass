@@ -44,7 +44,7 @@ void main() {
     var changelogVersion = firstLine.substring(3);
 
     var pubspec = loadYaml(File("pubspec.yaml").readAsStringSync(),
-        sourceUrl: "pubspec.yaml") as Map<Object, Object>;
+        sourceUrl: Uri(path: "pubspec.yaml")) as Map<dynamic, dynamic>;
     expect(pubspec, containsPair("version", isA<String>()));
     var pubspecVersion = pubspec["version"] as String;
 
