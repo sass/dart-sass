@@ -15,7 +15,6 @@ import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'sync_package_resolver.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/async_evaluate.dart';
@@ -77,7 +76,6 @@ Future<CompileResult> compileStringAsync(String source,
     NodeImporter nodeImporter,
     Iterable<AsyncImporter> importers,
     Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver,
     AsyncImporter importer,
     Iterable<AsyncCallable> functions,
     OutputStyle style,

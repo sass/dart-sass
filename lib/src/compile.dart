@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b2cd6037efa37e300daa45ebed20cb4b61526161
+// Checksum: ef27d750f1d5305373fe9e712cf99697a21e0689
 //
 // ignore_for_file: unused_import
 
@@ -25,7 +25,6 @@ import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'sync_package_resolver.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/evaluate.dart';
@@ -87,7 +86,6 @@ CompileResult compileString(String source,
     NodeImporter nodeImporter,
     Iterable<Importer> importers,
     Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver,
     Importer importer,
     Iterable<Callable> functions,
     OutputStyle style,

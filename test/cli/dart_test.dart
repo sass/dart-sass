@@ -4,6 +4,8 @@
 
 @TestOn('vm')
 
+import 'dart:convert';
+
 import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -30,4 +32,4 @@ void ensureSnapshotUpToDate() => pkg.ensureExecutableUpToDate("sass");
 Future<TestProcess> runSass(Iterable<String> arguments,
         {Map<String, String> environment}) =>
     pkg.start("sass", arguments,
-        environment: environment, workingDirectory: d.sandbox);
+        environment: environment, workingDirectory: d.sandbox, encoding: utf8);

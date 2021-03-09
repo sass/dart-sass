@@ -5,6 +5,7 @@
 /// We strongly recommend importing this library with the prefix `sass`.
 library sass;
 
+import 'package:package_config/package_config_types.dart';
 import 'package:source_maps/source_maps.dart';
 
 import 'src/async_import_cache.dart';
@@ -14,7 +15,6 @@ import 'src/exception.dart';
 import 'src/import_cache.dart';
 import 'src/importer.dart';
 import 'src/logger.dart';
-import 'src/sync_package_resolver.dart';
 import 'src/syntax.dart';
 import 'src/visitor/serialize.dart';
 
@@ -48,11 +48,11 @@ export 'src/warn.dart' show warn;
 /// * Each load path specified in the `SASS_PATH` environment variable, which
 ///   should be semicolon-separated on Windows and colon-separated elsewhere.
 ///
-/// * `package:` resolution using [packageResolver], which is a
-///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
+/// * `package:` resolution using [packageConfig], which is a
+///   [`PackageConfig`][] from the `package_resolver` package. Note that
 ///   this is a shorthand for adding a [PackageImporter] to [importers].
 ///
-/// [`SyncPackageResolver`]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+/// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
 ///
 /// Dart functions that can be called from Sass may be passed using [functions].
 /// Each [Callable] defines a top-level function that will be invoked when the
@@ -90,7 +90,7 @@ String compile(String path,
     Logger logger,
     Iterable<Importer> importers,
     Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver,
+    PackageConfig packageConfig,
     Iterable<Callable> functions,
     OutputStyle style,
     void sourceMap(SingleMapping map),
@@ -99,9 +99,7 @@ String compile(String path,
   var result = c.compile(path,
       logger: logger,
       importCache: ImportCache(importers,
-          logger: logger,
-          loadPaths: loadPaths,
-          packageResolver: packageResolver),
+          logger: logger, loadPaths: loadPaths, packageConfig: packageConfig),
       functions: functions,
       style: style,
       sourceMap: sourceMap != null,
@@ -132,11 +130,11 @@ String compile(String path,
 /// * Each load path specified in the `SASS_PATH` environment variable, which
 ///   should be semicolon-separated on Windows and colon-separated elsewhere.
 ///
-/// * `package:` resolution using [packageResolver], which is a
-///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
+/// * `package:` resolution using [packageConfig], which is a
+///   [`PackageConfig`][] from the `package_resolver` package. Note that
 ///   this is a shorthand for adding a [PackageImporter] to [importers].
 ///
-/// [`SyncPackageResolver`]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+/// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
 ///
 /// Dart functions that can be called from Sass may be passed using [functions].
 /// Each [Callable] defines a top-level function that will be invoked when the
@@ -178,7 +176,7 @@ String compileString(String source,
     bool color = false,
     Logger logger,
     Iterable<Importer> importers,
-    SyncPackageResolver packageResolver,
+    PackageConfig packageConfig,
     Iterable<String> loadPaths,
     Iterable<Callable> functions,
     OutputStyle style,
@@ -192,9 +190,7 @@ String compileString(String source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
       importCache: ImportCache(importers,
-          logger: logger,
-          packageResolver: packageResolver,
-          loadPaths: loadPaths),
+          logger: logger, packageConfig: packageConfig, loadPaths: loadPaths),
       functions: functions,
       style: style,
       importer: importer,
@@ -214,7 +210,7 @@ Future<String> compileAsync(String path,
     {bool color = false,
     Logger logger,
     Iterable<AsyncImporter> importers,
-    SyncPackageResolver packageResolver,
+    PackageConfig packageConfig,
     Iterable<String> loadPaths,
     Iterable<AsyncCallable> functions,
     OutputStyle style,
@@ -223,9 +219,7 @@ Future<String> compileAsync(String path,
   var result = await c.compileAsync(path,
       logger: logger,
       importCache: AsyncImportCache(importers,
-          logger: logger,
-          loadPaths: loadPaths,
-          packageResolver: packageResolver),
+          logger: logger, loadPaths: loadPaths, packageConfig: packageConfig),
       functions: functions,
       style: style,
       sourceMap: sourceMap != null);
@@ -243,7 +237,7 @@ Future<String> compileStringAsync(String source,
     bool color = false,
     Logger logger,
     Iterable<AsyncImporter> importers,
-    SyncPackageResolver packageResolver,
+    PackageConfig packageConfig,
     Iterable<String> loadPaths,
     Iterable<AsyncCallable> functions,
     OutputStyle style,
@@ -257,9 +251,7 @@ Future<String> compileStringAsync(String source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
       importCache: AsyncImportCache(importers,
-          logger: logger,
-          packageResolver: packageResolver,
-          loadPaths: loadPaths),
+          logger: logger, packageConfig: packageConfig, loadPaths: loadPaths),
       functions: functions,
       style: style,
       importer: importer,

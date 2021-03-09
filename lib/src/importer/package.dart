@@ -3,9 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:package_config/package_config_types.dart';
 
 import '../importer.dart';
-import '../sync_package_resolver.dart';
 
 /// A filesystem importer to use when resolving the results of `package:` URLs.
 ///
@@ -17,24 +17,24 @@ final _filesystemImporter = FilesystemImporter('.');
 @sealed
 class PackageImporter extends Importer {
   /// The resolver that converts `package:` imports to `file:`.
-  final SyncPackageResolver _packageResolver;
+  final PackageConfig _packageConfig;
 
   /// Creates an importer that loads stylesheets from `package:` URLs according
-  /// to [packageResolver], which is a [SyncPackageResolver][] from the
-  /// `package_resolver` package.
+  /// to [packageConfig], which is a [PackageConfig][] from the `package_config`
+  /// package.
   ///
-  /// [SyncPackageResolver]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
-  PackageImporter(this._packageResolver);
+  /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
+  PackageImporter(this._packageConfig);
 
   Uri canonicalize(Uri url) {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
     if (url.scheme != 'package') return null;
 
-    var resolved = _packageResolver.resolveUri(url);
+    var resolved = _packageConfig.resolve(url);
     if (resolved == null) throw "Unknown package.";
 
     if (resolved.scheme.isNotEmpty && resolved.scheme != 'file') {
-      throw "Unsupported URL ${resolved}.";
+      throw "Unsupported URL $resolved.";
     }
 
     return _filesystemImporter.canonicalize(resolved);
