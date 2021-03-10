@@ -1038,7 +1038,7 @@ abstract class StylesheetParser extends Parser {
     whitespaceWithoutComments();
 
     var clauses = [IfClause(condition, children)];
-    IfClause lastClause;
+    ElseClause lastClause;
 
     while (scanElse(ifIndentation)) {
       whitespace();
@@ -1046,7 +1046,7 @@ abstract class StylesheetParser extends Parser {
         whitespace();
         clauses.add(IfClause(expression(), this.children(child)));
       } else {
-        lastClause = IfClause.last(this.children(child));
+        lastClause = ElseClause(this.children(child));
         break;
       }
     }

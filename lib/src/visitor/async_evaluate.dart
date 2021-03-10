@@ -1326,7 +1326,7 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitIfRule(IfRule node) async {
-    var clause = node.lastClause;
+    IfRuleClause clause = node.lastClause;
     for (var clauseToCheck in node.clauses) {
       if ((await clauseToCheck.expression.accept(this)).isTruthy) {
         clause = clauseToCheck;

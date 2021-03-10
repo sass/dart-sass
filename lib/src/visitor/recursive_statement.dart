@@ -78,18 +78,19 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
 
   T visitIfRule(IfRule node) {
     for (var clause in node.clauses) {
-      _visitIfClause(clause);
+      visitExpression(clause.expression);
+      for (var child in clause.children) {
+        child.accept(this);
+      }
     }
-    if (node.lastClause != null) _visitIfClause(node.lastClause);
-    return null;
-  }
 
-  /// Visits [clause]'s expression and children.
-  void _visitIfClause(IfClause clause) {
-    if (clause.expression != null) visitExpression(clause.expression);
-    for (var child in clause.children) {
-      child.accept(this);
+    if (node.lastClause != null) {
+      for (var child in node.lastClause.children) {
+        child.accept(this);
+      }
     }
+
+    return null;
   }
 
   T visitImportRule(ImportRule node) {

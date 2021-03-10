@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 53b9e481e4baa9aac2024f07ab79bfe79ac738ab
+// Checksum: 919e6c70df46bb19149017bea4bac888da37c388
 //
 // ignore_for_file: unused_import
 
@@ -1324,7 +1324,7 @@ class _EvaluateVisitor
   }
 
   Value visitIfRule(IfRule node) {
-    var clause = node.lastClause;
+    IfRuleClause clause = node.lastClause;
     for (var clauseToCheck in node.clauses) {
       if (clauseToCheck.expression.accept(this).isTruthy) {
         clause = clauseToCheck;
