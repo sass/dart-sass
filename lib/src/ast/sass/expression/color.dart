@@ -11,7 +11,7 @@ import '../expression.dart';
 /// A color literal.
 class ColorExpression implements Expression {
   /// The value of this color.
-  final SassColor value;
+  final SassColor/*!*/ value;
 
   FileSpan get span => value.originalSpan;
 

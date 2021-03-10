@@ -33,7 +33,7 @@ class Interpolation implements SassNode {
     return first is String ? first : '';
   }
 
-  Interpolation(Iterable<Object /* String | Expression */ > contents, this.span)
+  Interpolation(Iterable<Object/*!*/ /* String | Expression */ > contents, this.span)
       : contents = List.unmodifiable(contents) {
     for (var i = 0; i < this.contents.length; i++) {
       if (this.contents[i] is! String && this.contents[i] is! Expression) {

@@ -54,7 +54,7 @@ class AtRootQuery {
       AtRootQueryParser(contents, url: url, logger: logger).parse();
 
   /// Returns whether [this] excludes [node].
-  bool excludes(CssParentNode node) {
+  bool excludes(CssParentNode/*!*/ node) {
     if (_all) return !include;
     if (node is CssStyleRule) return excludesStyleRules;
     if (node is CssMediaRule) return excludesName("media");

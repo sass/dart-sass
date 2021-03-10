@@ -18,7 +18,7 @@ class MapExpression implements Expression {
 
   final FileSpan span;
 
-  MapExpression(Iterable<Tuple2<Expression, Expression>> pairs, this.span)
+  MapExpression(Iterable<Tuple2<Expression/*!*/, Expression/*!*/>> pairs, this.span)
       : pairs = List.unmodifiable(pairs);
 
   T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitMapExpression(this);

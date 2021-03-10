@@ -24,7 +24,7 @@ class ListExpression implements Expression {
 
   final FileSpan span;
 
-  ListExpression(Iterable<Expression> contents, ListSeparator separator,
+  ListExpression(Iterable<Expression/*!*/> contents, ListSeparator separator,
       {bool brackets = false, FileSpan span})
       : this._(List.unmodifiable(contents), separator, brackets, span);
 

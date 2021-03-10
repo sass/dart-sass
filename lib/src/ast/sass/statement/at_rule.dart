@@ -19,7 +19,7 @@ class AtRule extends ParentStatement {
 
   final FileSpan span;
 
-  AtRule(this.name, this.span, {this.value, Iterable<Statement> children})
+  AtRule(this.name, this.span, {this.value, Iterable<Statement/*!*/> children})
       : super(children == null ? null : List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);

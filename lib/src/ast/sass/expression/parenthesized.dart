@@ -10,7 +10,7 @@ import '../expression.dart';
 /// An expression wrapped in parentheses.
 class ParenthesizedExpression implements Expression {
   /// The internal expression.
-  final Expression expression;
+  final Expression/*!*/ expression;
 
   final FileSpan span;
 

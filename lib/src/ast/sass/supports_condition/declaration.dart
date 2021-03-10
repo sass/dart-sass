@@ -11,10 +11,10 @@ import '../supports_condition.dart';
 /// supported.
 class SupportsDeclaration implements SupportsCondition {
   /// The name of the declaration being tested.
-  final Expression name;
+  final Expression/*!*/ name;
 
   /// The value of the declaration being tested.
-  final Expression value;
+  final Expression/*!*/ value;
 
   final FileSpan span;
 

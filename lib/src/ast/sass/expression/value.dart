@@ -14,7 +14,7 @@ import '../expression.dart';
 /// constructed dynamically, as for the `call()` function.
 class ValueExpression implements Expression {
   /// The embedded value.
-  final Value value;
+  final Value/*!*/ value;
 
   final FileSpan span;
 

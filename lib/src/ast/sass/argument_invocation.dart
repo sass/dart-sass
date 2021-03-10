@@ -27,7 +27,7 @@ class ArgumentInvocation implements SassNode {
   bool get isEmpty => positional.isEmpty && named.isEmpty && rest == null;
 
   ArgumentInvocation(
-      Iterable<Expression> positional, Map<String, Expression> named, this.span,
+      Iterable<Expression/*!*/> positional, Map<String, Expression/*!*/> named, this.span,
       {this.rest, this.keywordRest})
       : positional = List.unmodifiable(positional),
         named = Map.unmodifiable(named) {

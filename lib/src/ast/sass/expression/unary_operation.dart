@@ -11,10 +11,10 @@ import '../expression.dart';
 /// A unary operator, as in `+$var` or `not fn()`.
 class UnaryOperationExpression implements Expression {
   /// The operator being invoked.
-  final UnaryOperator operator;
+  final UnaryOperator/*!*/ operator;
 
   /// The operand.
-  final Expression operand;
+  final Expression/*!*/ operand;
 
   final FileSpan span;
 

@@ -13,7 +13,7 @@ class ConfiguredVariable implements SassNode {
   final String name;
 
   /// The variable's value.
-  final Expression expression;
+  final Expression/*!*/ expression;
 
   /// Whether the variable can be further configured by outer modules.
   ///

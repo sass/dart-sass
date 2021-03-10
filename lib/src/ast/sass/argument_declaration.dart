@@ -25,7 +25,7 @@ class ArgumentDeclaration implements SassNode {
 
   /// Returns [span] expanded to include an identifier immediately before the
   /// declaration, if possible.
-  FileSpan get spanWithName {
+  FileSpan/*!*/ get spanWithName {
     var text = span.file.getText(0);
 
     // Move backwards through and whitspace between the name and the arguments.

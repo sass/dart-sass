@@ -15,10 +15,10 @@ class BinaryOperationExpression implements Expression {
   final BinaryOperator operator;
 
   /// The left-hand operand.
-  final Expression left;
+  final Expression /*!*/ left;
 
   /// The right-hand operand.
-  final Expression right;
+  final Expression /*!*/ right;
 
   /// Whether this is a [BinaryOperator.dividedBy] operation that may be
   /// interpreted as slash-separated numbers.
