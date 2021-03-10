@@ -22,5 +22,5 @@ class NumberExpression implements Expression {
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitNumberExpression(this);
 
-  String toString() => "${value}${unit ?? ''}";
+  String toString() => "$value${unit ?? ''}";
 }

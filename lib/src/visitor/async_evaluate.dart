@@ -584,7 +584,7 @@ class _EvaluateVisitor
       }
 
       try {
-        await callback(module);
+        callback(module);
       } on SassRuntimeException {
         rethrow;
       } on MultiSpanSassException catch (error) {

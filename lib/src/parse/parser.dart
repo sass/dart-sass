@@ -445,7 +445,6 @@ class Parser {
       return "";
     } else if (isNewline(first)) {
       scanner.error("Expected escape sequence.");
-      return null;
     } else if (isHex(first)) {
       for (var i = 0; i < 6; i++) {
         var next = scanner.peekChar();
@@ -465,7 +464,6 @@ class Parser {
       } on RangeError {
         scanner.error("Invalid Unicode code point.",
             position: start, length: scanner.position - start);
-        return '';
       }
     } else if (value <= 0x1F ||
         value == 0x7F ||
@@ -491,7 +489,6 @@ class Parser {
       return 0xFFFD;
     } else if (isNewline(first)) {
       scanner.error("Expected escape sequence.");
-      return 0;
     } else if (isHex(first)) {
       var value = 0;
       for (var i = 0; i < 6; i++) {

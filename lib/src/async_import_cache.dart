@@ -12,7 +12,7 @@ import 'importer.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'utils.dart'; // ignore: unused_import
+import 'utils.dart';
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
 class AsyncImportCache {
