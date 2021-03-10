@@ -10,6 +10,7 @@ import 'package:tuple/tuple.dart';
 import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'importer.dart';
+import 'util/nullable.dart';
 import 'visitor/find_dependencies.dart';
 
 /// A graph of the import relationships between stylesheets, available via
@@ -66,6 +67,7 @@ class StylesheetGraph {
   ///
   /// Returns `null` if the import cache can't find a stylesheet at [url].
   StylesheetNode _add(Uri url, [Importer baseImporter, Uri baseUrl]) {
+    // TODO: no as
     var tuple = _ignoreErrors(() => importCache.canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl));
     if (tuple == null) return null;
@@ -95,6 +97,7 @@ class StylesheetGraph {
     var node = _nodes[canonicalUrl];
     if (node != null) return const {};
 
+    // TODO: no as
     var stylesheet = _ignoreErrors(
         () => importCache.importCanonical(importer, canonicalUrl, originalUrl));
     if (stylesheet == null) return const {};
@@ -145,6 +148,7 @@ class StylesheetGraph {
     _transitiveModificationTimes.clear();
 
     importCache.clearImport(canonicalUrl);
+    // TODO: no as
     var stylesheet = _ignoreErrors(
         () => importCache.importCanonical(node.importer, canonicalUrl));
     if (stylesheet == null) return false;
@@ -260,6 +264,7 @@ class StylesheetGraph {
   StylesheetNode _nodeFor(
       Uri url, Importer baseImporter, Uri baseUrl, Set<Uri> active,
       {bool forImport = false}) {
+    // TODO: no as
     var tuple = _ignoreErrors(() => importCache.canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport));
 
@@ -278,6 +283,7 @@ class StylesheetGraph {
     /// error will be produced during compilation.
     if (active.contains(canonicalUrl)) return null;
 
+    // TODO: no as
     var stylesheet = _ignoreErrors(
         () => importCache.importCanonical(importer, canonicalUrl, resolvedUrl));
     if (stylesheet == null) return null;
@@ -354,10 +360,10 @@ class StylesheetNode {
   /// accordingly.
   void _replaceUpstream(Map<Uri, StylesheetNode> newUpstream,
       Map<Uri, StylesheetNode> newUpstreamImports) {
-    var oldUpstream = {...upstream.values, ...upstreamImports.values}
-      ..remove(null);
-    var newUpstreamSet = {...newUpstream.values, ...newUpstreamImports.values}
-      ..remove(null);
+    var oldUpstream =
+        {...upstream.values, ...upstreamImports.values}.removeNull();
+    var newUpstreamSet =
+        {...newUpstream.values, ...newUpstreamImports.values}.removeNull();
 
     for (var removed in oldUpstream.difference(newUpstreamSet)) {
       var wasRemoved = removed._downstream.remove(this);
@@ -398,5 +404,6 @@ class StylesheetNode {
     }
   }
 
-  String toString() => p.prettyUri(stylesheet.span.sourceUrl);
+  String toString() =>
+      stylesheet.span?.sourceUrl.andThen(p.prettyUri) ?? '<unknown>';
 }

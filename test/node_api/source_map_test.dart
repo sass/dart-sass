@@ -29,7 +29,7 @@ void main() {
 
   group("a basic invocation", () {
     String css;
-    Map<String, Object> map;
+    /*late*/ Map<String, Object> /*!*/ map;
     setUp(() {
       var result = sass.renderSync(
           RenderOptions(data: "a {b: c}", sourceMap: true, outFile: "out.css"));
@@ -38,7 +38,7 @@ void main() {
     });
 
     test("includes correct mappings", () {
-      SingleMapping expectedMap;
+      /*late*/ SingleMapping /*!*/ expectedMap;
       dart_sass.compileString("a {b: c}",
           sourceMap: (map) => expectedMap = map);
       expectedMap.targetUrl = "out.css";
@@ -158,7 +158,7 @@ void main() {
     test("emits a source map", () {
       var result = sass.renderSync(
           RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
-      var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+      var map = _jsonUtf8.decode(result.map) as Map<String, Object> /*!*/;
       expect(map, containsPair("sources", ["stdin"]));
     });
 
@@ -168,7 +168,7 @@ void main() {
 
       var result = sass.renderSync(RenderOptions(
           file: p.join(sandbox, "test.scss"), sourceMap: "out.css.map"));
-      var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+      var map = _jsonUtf8.decode(result.map) as Map<String, Object> /*!*/;
       expect(
           map,
           containsPair(
@@ -182,7 +182,7 @@ void main() {
 
       var result = sass.renderSync(RenderOptions(
           file: p.join(sandbox, "test"), sourceMap: "out.css.map"));
-      var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+      var map = _jsonUtf8.decode(result.map) as Map<String, Object> /*!*/;
       expect(
           map,
           containsPair(
@@ -192,7 +192,7 @@ void main() {
     test("derives the target URL from stdin", () {
       var result = sass.renderSync(
           RenderOptions(data: "a {b: c}", sourceMap: "out.css.map"));
-      var map = _jsonUtf8.decode(result.map) as Map<String, Object>;
+      var map = _jsonUtf8.decode(result.map) as Map<String, Object> /*!*/;
       expect(map, containsPair("file", "stdin.css"));
     });
 
@@ -332,4 +332,4 @@ void main() {
 
 /// Renders [options] and returns the decoded source map.
 Map<String, Object> _renderSourceMap(RenderOptions options) =>
-    _jsonUtf8.decode(sass.renderSync(options).map) as Map<String, Object>;
+    _jsonUtf8.decode(sass.renderSync(options).map) as Map<String, Object> /*!*/;

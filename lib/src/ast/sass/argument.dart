@@ -23,8 +23,11 @@ class Argument implements SassNode {
   ///
   /// This isn't particularly efficient, and should only be used for error
   /// messages.
-  String get originalName =>
-      defaultValue == null ? span.text : declarationName(span);
+  String get originalName {
+    var span = this.span;
+    if (span == null) return '\$$name';
+    return defaultValue == null ? span.text : declarationName(span);
+  }
 
   Argument(this.name, {this.defaultValue, this.span});
 

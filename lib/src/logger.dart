@@ -26,7 +26,7 @@ abstract class Logger {
   /// a deprecation warning. Implementations should surface all this information
   /// to the end user.
   void warn(String message,
-      {FileSpan span, Trace trace, bool deprecation = false});
+      {FileSpan span, Trace trace, bool /*!*/ deprecation = false});
 
   /// Emits a debugging message associated with the given [span].
   void debug(String message, SourceSpan span);
@@ -35,6 +35,6 @@ abstract class Logger {
 /// A logger that emits no messages.
 class _QuietLogger implements Logger {
   void warn(String message,
-      {FileSpan span, Trace trace, bool deprecation = false}) {}
+      {FileSpan span, Trace trace, bool /*!*/ deprecation = false}) {}
   void debug(String message, SourceSpan span) {}
 }

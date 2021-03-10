@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:js/js.dart';
+import 'package:meta/meta.dart';
 
 import 'render_context_options.dart';
 
@@ -11,5 +12,5 @@ import 'render_context_options.dart';
 class RenderContext {
   external RenderContextOptions get options;
 
-  external factory RenderContext({RenderContextOptions options});
+  external factory RenderContext({@required RenderContextOptions options});
 }

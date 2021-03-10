@@ -15,7 +15,7 @@ import 'silent_comment.dart';
 /// This declares a mixin that's invoked using `@include`.
 class MixinRule extends CallableDeclaration {
   /// Whether the mixin contains a `@content` rule.
-  final bool hasContent;
+  final bool /*!*/ hasContent;
 
   /// Creates a [MixinRule].
   ///
@@ -23,7 +23,7 @@ class MixinRule extends CallableDeclaration {
   /// recursively contains a `@content` rule. Otherwise, invoking this mixin
   /// won't work correctly.
   MixinRule(String name, ArgumentDeclaration arguments,
-      Iterable<Statement> children, FileSpan span,
+      Iterable<Statement /*!*/ > children, FileSpan span,
       {this.hasContent = false, SilentComment comment})
       : super(name, arguments, children, span, comment: comment);
 

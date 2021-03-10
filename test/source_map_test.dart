@@ -682,6 +682,7 @@ void main() {
         x {y: $map}
       """, sourceMap: (_) {});
     }, throwsA(predicate((untypedError) {
+      // TODO: no dynamic
       var error = untypedError as SourceSpanException;
       expect(error.span.text, equals(r"$map"));
       return true;

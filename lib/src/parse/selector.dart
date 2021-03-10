@@ -208,7 +208,8 @@ class SelectorParser extends Parser {
         : identifier();
     whitespace();
 
-    var modifier = isAlphabetic(scanner.peekChar())
+    next = scanner.peekChar();
+    var modifier = next != null && isAlphabetic(next)
         ? String.fromCharCode(scanner.readChar())
         : null;
 

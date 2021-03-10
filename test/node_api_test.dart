@@ -20,11 +20,11 @@ import 'node_api/intercept_stdout.dart';
 import 'node_api/utils.dart';
 import 'utils.dart';
 
-String sassPath;
-
 void main() {
   setUpAll(ensureNpmPackage);
   useSandbox();
+
+  /*late*/ String sassPath;
 
   setUp(() async {
     sassPath = p.join(sandbox, 'test.scss');
@@ -311,12 +311,11 @@ a {
       });
 
       test("includes timing information", () {
-        var result = sass.renderSync(RenderOptions(file: sassPath));
-        expect(result.stats.start, const TypeMatcher<int>());
-        expect(result.stats.end, const TypeMatcher<int>());
-        expect(result.stats.start, lessThanOrEqualTo(result.stats.end));
-        expect(result.stats.duration,
-            equals(result.stats.end - result.stats.start));
+        var stats = sass.renderSync(RenderOptions(file: sassPath)).stats /*!*/;
+        expect(stats.start, const TypeMatcher<int>());
+        expect(stats.end, const TypeMatcher<int>());
+        expect(stats.start, lessThanOrEqualTo(stats.end));
+        expect(stats.duration, equals(stats.end - stats.start));
       });
 
       group("has includedFiles which", () {
@@ -351,7 +350,7 @@ a {
     });
 
     group("the error object", () {
-      RenderError error;
+      /*late*/ RenderError error;
       group("for a parse error in a file", () {
         setUp(() async {
           await writeTextFile(sassPath, "a {b: }");

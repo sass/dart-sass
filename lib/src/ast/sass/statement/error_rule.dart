@@ -13,7 +13,7 @@ import '../statement.dart';
 /// This emits an error and stops execution.
 class ErrorRule implements Statement {
   /// The expression to evaluate for the error message.
-  final Expression expression;
+  final Expression /*!*/ expression;
 
   final FileSpan span;
 

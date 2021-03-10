@@ -8,7 +8,8 @@ import 'package:test/test.dart';
 
 /// Creates a directory in the system temp directory and returns its path.
 Future<String> createTempDir() async => (await runHybridExpression(
-    '(await Directory.systemTemp.createTemp("dart_sass_")).path')) as String;
+        '(await Directory.systemTemp.createTemp("dart_sass_")).path'))
+    as String /*!*/;
 
 /// Writes [text] to [path].
 Future<void> writeTextFile(String path, String text) => runHybridExpression(

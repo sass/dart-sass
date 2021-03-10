@@ -58,7 +58,8 @@ String readFile(String path) {
 }
 
 /// Wraps `fs.readFileSync` to throw a [FileSystemException].
-Object _readFile(String path, [String encoding]) =>
+Object /*!*/ _readFile(String path, [String encoding]) =>
+    // TODO: no as
     _systemErrorToFileSystemException(() => fs.readFileSync(path, encoding));
 
 void writeFile(String path, String contents) =>
@@ -157,12 +158,12 @@ Iterable<String> listDir(String path, {bool recursive = false}) {
     if (!recursive) {
       return fs
           .readdirSync(path)
-          .map((child) => p.join(path, child as String))
+          .map((child) => p.join(path, child as String /*!*/))
           .where((child) => !dirExists(child));
     } else {
       Iterable<String> list(String parent) =>
           fs.readdirSync(parent).expand((child) {
-            var path = p.join(parent, child as String);
+            var path = p.join(parent, child as String /*!*/);
             return dirExists(path) ? list(path) : [path];
           });
 
@@ -236,6 +237,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
     controller = StreamController<WatchEvent>(onCancel: () {
       watcher.close();
     });
+    // TODO: no !
     completer.complete(controller.stream);
   }));
 

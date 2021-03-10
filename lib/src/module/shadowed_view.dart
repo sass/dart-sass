@@ -44,9 +44,9 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
           {Set<String> variables,
           Set<String> functions,
           Set<String> mixins}) =>
-      _needsBlacklist(inner.variables, variables) ||
-              _needsBlacklist(inner.functions, functions) ||
-              _needsBlacklist(inner.mixins, mixins)
+      _needsBlocklist(inner.variables, variables) ||
+              _needsBlocklist(inner.functions, functions) ||
+              _needsBlocklist(inner.mixins, mixins)
           ? ShadowedModuleView(inner,
               variables: variables, functions: functions, mixins: mixins)
           : null;
@@ -64,14 +64,14 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
       this.functions, this.mixins);
 
   /// Returns a view of [map] with all keys in [blocklist] omitted.
-  static Map<String, V> _shadowedMap<V>(
-      Map<String, V> map, Set<String> blocklist) {
-    if (map == null || !_needsBlacklist(map, blocklist)) return map;
-    return LimitedMapView.blocklist(map, blocklist);
-  }
+  static Map<String, V> /*!*/ _shadowedMap<V, M extends Map<String, V> /*!*/ >(
+          M /*!*/ map, Set<String> blocklist) =>
+      map == null || blocklist == null || !_needsBlocklist(map, blocklist)
+          ? map
+          : LimitedMapView.blocklist(map, blocklist);
 
   /// Returns whether any of [map]'s keys are in [blocklist].
-  static bool _needsBlacklist(Map<String, Object> map, Set<String> blocklist) =>
+  static bool _needsBlocklist(Map<String, Object> map, Set<String> blocklist) =>
       blocklist != null && map.isNotEmpty && blocklist.any(map.containsKey);
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {

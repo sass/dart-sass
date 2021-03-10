@@ -37,8 +37,8 @@ import '../module.dart';
 import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
-import '../util/fixed_length_list_builder.dart';
 import '../utils.dart';
+import '../util/nullable.dart';
 import '../value.dart';
 import '../warn.dart';
 import 'interface/css.dart';
@@ -92,7 +92,7 @@ class AsyncEvaluator {
   /// The visitor that evaluates each expression and statement.
   final _EvaluateVisitor _visitor;
 
-  /// The importer to use to resolve `@use` rules in [_importer].
+  /// The importer to use to resolve `@use` rules in [_visitor].
   final AsyncImporter _importer;
 
   /// Creates an evaluator.
@@ -109,7 +109,7 @@ class AsyncEvaluator {
 
   Future<void> use(UseRule use) => _visitor.runStatement(_importer, use);
 
-  Future<Value> evaluate(Expression expression) =>
+  Future<Value /*!*/ > evaluate(Expression expression) =>
       _visitor.runExpression(_importer, expression);
 
   Future<void> setVariable(VariableDeclaration declaration) =>
@@ -119,8 +119,8 @@ class AsyncEvaluator {
 /// A visitor that executes Sass code to produce a CSS tree.
 class _EvaluateVisitor
     implements
-        StatementVisitor<Future<Value>>,
-        ExpressionVisitor<Future<Value>>,
+        StatementVisitor<Future<Value> /*!*/ >,
+        ExpressionVisitor<Future<Value /*!*/ >>,
         CssVisitor<Future<void>> {
   /// The import cache used to import other stylesheets.
   final AsyncImportCache _importCache;
@@ -137,14 +137,14 @@ class _EvaluateVisitor
   final _builtInModules = <Uri, Module>{};
 
   /// All modules that have been loaded and evaluated so far.
-  final _modules = <Uri, Module>{};
+  final _modules = <Uri /*!*/, Module>{};
 
   /// A map from canonical module URLs to the nodes whose spans indicate where
   /// those modules were originally loaded.
   ///
   /// This is not guaranteed to have a node for every module in [_modules]. For
   /// example, the entrypoint module was not loaded by a node.
-  final _moduleNodes = <Uri, AstNode>{};
+  final _moduleNodes = <Uri /*!*/, AstNode>{};
 
   /// The logger to use to print warnings.
   final Logger _logger;
@@ -165,7 +165,7 @@ class _EvaluateVisitor
   List<CssMediaQuery> _mediaQueries;
 
   /// The current parent node in the output CSS tree.
-  ModifiableCssParentNode _parent;
+  /*late*/ ModifiableCssParentNode _parent;
 
   /// The name of the current declaration parent.
   String _declarationName;
@@ -229,6 +229,7 @@ class _EvaluateVisitor
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
+  // TODO: no cast
   final _stack = <Tuple2<String, AstNode>>[];
 
   /// Whether we're running in Node Sass-compatibility mode.
@@ -243,14 +244,14 @@ class _EvaluateVisitor
   AsyncImporter _importer;
 
   /// The stylesheet that's currently being evaluated.
-  Stylesheet _stylesheet;
+  /*late*/ Stylesheet _stylesheet;
 
   /// The root stylesheet node.
-  ModifiableCssStylesheet _root;
+  /*late*/ ModifiableCssStylesheet _root;
 
   /// The first index in [_root.children] after the initial block of CSS
   /// imports.
-  int _endOfImports;
+  /*late*/ int _endOfImports;
 
   /// Plain-CSS imports that didn't appear in the initial block of CSS imports.
   ///
@@ -259,11 +260,11 @@ class _EvaluateVisitor
   ///
   /// This is `null` unless there are any out-of-order imports in the current
   /// stylesheet.
-  List<ModifiableCssImport> _outOfOrderImports;
+  /*late*/ List<ModifiableCssImport> _outOfOrderImports;
 
   /// The extender that tracks extensions and style rules for the current
   /// module.
-  Extender _extender;
+  /*late*/ Extender _extender;
 
   /// The configuration for the current module.
   ///
@@ -372,7 +373,7 @@ class _EvaluateVisitor
         var callable = css
             ? PlainCssCallable(name.text)
             : _addExceptionSpan(
-                _callableNode,
+                _callableNode /*!*/,
                 () => _getFunction(name.text.replaceAll("_", "-"),
                     namespace: module?.text));
         if (callable != null) return SassFunction(callable);
@@ -385,8 +386,9 @@ class _EvaluateVisitor
         var function = arguments[0];
         var args = arguments[1] as SassArgumentList;
 
-        var invocation = ArgumentInvocation([], {}, _callableNode.span,
-            rest: ValueExpression(args, _callableNode.span),
+        var callableNode = _callableNode /*!*/;
+        var invocation = ArgumentInvocation([], {}, callableNode.span,
+            rest: ValueExpression(args, callableNode.span),
             keywordRest: args.keywords.isEmpty
                 ? null
                 : ValueExpression(
@@ -394,7 +396,7 @@ class _EvaluateVisitor
                       for (var entry in args.keywords.entries)
                         SassString(entry.key, quotes: false): entry.value
                     }),
-                    _callableNode.span));
+                    callableNode.span));
 
         if (function is SassString) {
           warn(
@@ -402,17 +404,18 @@ class _EvaluateVisitor
               "in Dart Sass 2.0.0. Use call(get-function($function)) instead.",
               deprecation: true);
 
+          var callableNode = _callableNode /*!*/;
           var expression = FunctionExpression(
-              Interpolation([function.text], _callableNode.span),
+              Interpolation([function.text], callableNode.span),
               invocation,
-              _callableNode.span);
+              callableNode.span);
           return await expression.accept(this);
         }
 
         var callable = function.assertFunction("function").callable;
         if (callable is AsyncCallable) {
           return await _runFunctionCallable(
-              invocation, callable, _callableNode);
+              invocation, callable, _callableNode /*!*/);
         } else {
           throw SassScriptException(
               "The function ${callable.name} is asynchronous.\n"
@@ -427,10 +430,11 @@ class _EvaluateVisitor
         var url = Uri.parse(arguments[0].assertString("url").text);
         var withMap = arguments[1].realNull?.assertMap("with")?.contents;
 
+        var callableNode = _callableNode /*!*/;
         var configuration = const Configuration.empty();
         if (withMap != null) {
           var values = <String, ConfiguredValue>{};
-          var span = _callableNode.span;
+          var span = callableNode.span;
           withMap.forEach((variable, value) {
             var name =
                 variable.assertString("with key").text.replaceAll("_", "-");
@@ -438,14 +442,14 @@ class _EvaluateVisitor
               throw "The variable \$$name was configured twice.";
             }
 
-            values[name] = ConfiguredValue(value, span);
+            values[name] = ConfiguredValue(value, span, callableNode);
           });
-          configuration = Configuration(values, _callableNode);
+          configuration = Configuration(values, callableNode);
         }
 
-        await _loadModule(url, "load-css()", _callableNode,
+        await _loadModule(url, "load-css()", callableNode,
             (module) => _combineCss(module, clone: true).accept(this),
-            baseUrl: _callableNode.span?.sourceUrl,
+            baseUrl: callableNode.span?.sourceUrl,
             configuration: configuration,
             namesInErrors: true);
         _assertConfigurationIsEmpty(configuration, nameInError: true);
@@ -467,7 +471,8 @@ class _EvaluateVisitor
     }
   }
 
-  Future<EvaluateResult> run(AsyncImporter importer, Stylesheet node) async {
+  Future<EvaluateResult> run(
+      AsyncImporter importer, Stylesheet /*!*/ node) async {
     return _withWarnCallback(() async {
       var url = node.span?.sourceUrl;
       if (url != null) {
@@ -499,7 +504,7 @@ class _EvaluateVisitor
   T _withWarnCallback<T>(T callback()) {
     return withWarnCallback(
         (message, deprecation) => _warn(
-            message, _importSpan ?? _callableNode.span,
+            message, _importSpan ?? _callableNode?.span,
             deprecation: deprecation),
         callback);
   }
@@ -507,7 +512,7 @@ class _EvaluateVisitor
   /// Runs [callback] with [importer] as [_importer] and a fake [_stylesheet]
   /// with [nodeWithSpan]'s source span.
   Future<T> _withFakeStylesheet<T>(AsyncImporter importer, AstNode nodeWithSpan,
-      FutureOr<T> callback()) async {
+      FutureOr<T> /*!*/ callback()) async {
     var oldImporter = _importer;
     _importer = importer;
     var oldStylesheet = _stylesheet;
@@ -537,19 +542,19 @@ class _EvaluateVisitor
   ///
   /// The [stackFrame] and [nodeWithSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
-  Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeWithSpan,
-      void callback(Module module),
+  Future<void> _loadModule(Uri url, String stackFrame,
+      AstNode /*!*/ nodeWithSpan, void callback(Module module),
       {Uri baseUrl,
       Configuration configuration,
       bool namesInErrors = false}) async {
     var builtInModule = _builtInModules[url];
     if (builtInModule != null) {
-      if (configuration != null && !configuration.isImplicit) {
+      if (configuration is ExplicitConfiguration) {
         throw _exception(
             namesInErrors
                 ? "Built-in module $url can't be configured."
                 : "Built-in modules can't be configured.",
-            nodeWithSpan.span);
+            configuration.nodeWithSpan.span);
       }
 
       _addExceptionSpan(nodeWithSpan, () => callback(builtInModule));
@@ -562,19 +567,21 @@ class _EvaluateVisitor
       var importer = result.item1;
       var stylesheet = result.item2;
 
-      var canonicalUrl = stylesheet.span.sourceUrl;
-      if (_activeModules.containsKey(canonicalUrl)) {
+      var canonicalUrl = stylesheet.span?.sourceUrl;
+      if (canonicalUrl != null && _activeModules.containsKey(canonicalUrl)) {
         var message = namesInErrors
             ? "Module loop: ${p.prettyUri(canonicalUrl)} is already being "
                 "loaded."
             : "Module loop: this module is already being loaded.";
-        var previousLoad = _activeModules[canonicalUrl];
-        throw previousLoad == null
-            ? _exception(message)
-            : _multiSpanException(
-                message, "new load", {previousLoad.span: "original load"});
+
+        throw _activeModules[canonicalUrl].andThen((previousLoad) {
+              var span = previousLoad.span;
+              return _multiSpanException(message, "new load",
+                  {if (span != null) span: "original load"});
+            }) ??
+            _exception(message);
       }
-      _activeModules[canonicalUrl] = nodeWithSpan;
+      if (canonicalUrl != null) _activeModules[canonicalUrl] = nodeWithSpan;
 
       Module module;
       try {
@@ -616,22 +623,26 @@ class _EvaluateVisitor
       {Configuration configuration,
       AstNode nodeWithSpan,
       bool namesInErrors = false}) async {
-    var url = stylesheet.span.sourceUrl;
+    var url = stylesheet.span?.sourceUrl;
 
+    // TODO: no !
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
-      if (!(configuration ?? _configuration).isImplicit) {
+      var currentConfiguration = configuration ?? _configuration;
+      if (currentConfiguration is ExplicitConfiguration) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
             : "This module was already loaded, so it can't be configured using "
                 "\"with\".";
 
-        var existingNode = _moduleNodes[url];
+        var existingSpan = _moduleNodes[url]?.span;
+        var configurationSpan = configuration == null
+            ? currentConfiguration.nodeWithSpan.span
+            : null;
         var secondarySpans = {
-          if (existingNode != null) existingNode.span: "original load",
-          if (configuration == null)
-            _configuration.nodeWithSpan.span: "configuration"
+          if (existingSpan != null) existingSpan: "original load",
+          if (configurationSpan != null) configurationSpan: "configuration"
         };
 
         throw secondarySpans.isEmpty
@@ -662,8 +673,8 @@ class _EvaluateVisitor
       var oldConfiguration = _configuration;
       _importer = importer;
       _stylesheet = stylesheet;
-      _root = ModifiableCssStylesheet(stylesheet.span);
-      _parent = _root;
+      var root = _root = ModifiableCssStylesheet(stylesheet.span);
+      _parent = root;
       _endOfImports = 0;
       _outOfOrderImports = null;
       _extender = extender;
@@ -677,7 +688,7 @@ class _EvaluateVisitor
 
       await visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
-          ? _root
+          ? root
           : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
 
       _importer = oldImporter;
@@ -697,8 +708,11 @@ class _EvaluateVisitor
     });
 
     var module = environment.toModule(css, extender);
-    _modules[url] = module;
-    _moduleNodes[url] = nodeWithSpan;
+    if (url != null) {
+      _modules[url] = module;
+      if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
+    }
+
     return module;
   }
 
@@ -707,12 +721,12 @@ class _EvaluateVisitor
   List<ModifiableCssNode> _addOutOfOrderImports() {
     if (_outOfOrderImports == null) return _root.children;
 
-    var statements = FixedLengthListBuilder<ModifiableCssNode>(
-        _root.children.length + _outOfOrderImports.length)
-      ..addRange(_root.children, 0, _endOfImports)
-      ..addAll(_outOfOrderImports)
-      ..addRange(_root.children, _endOfImports);
-    return statements.build();
+    return [
+      ..._root.children.take(_endOfImports),
+      // TODO: no !
+      ..._outOfOrderImports,
+      ..._root.children.skip(_endOfImports)
+    ];
   }
 
   /// Returns a new stylesheet containing [root]'s CSS as well as the CSS of all
@@ -764,7 +778,8 @@ class _EvaluateVisitor
     // canonical URL). It's important that we create this in topological order,
     // so that by the time we're processing a module we've already filled in all
     // its downstream extenders and we can use them to extend that module.
-    var downstreamExtenders = <Uri, List<Extender>>{};
+    // TODO: var
+    var downstreamExtenders = <Uri /*!*/, List<Extender>>{};
 
     /// Extensions that haven't yet been satisfied by some upstream module. This
     /// adds extensions when they're defined but not satisfied, and removes them
@@ -787,6 +802,7 @@ class _EvaluateVisitor
       if (module.extender.isEmpty) continue;
 
       for (var upstream in module.upstream) {
+        if (upstream.url == null) continue;
         downstreamExtenders
             .putIfAbsent(upstream.url, () => [])
             .add(module.extender);
@@ -866,18 +882,19 @@ class _EvaluateVisitor
 
   Future<Value> visitAtRootRule(AtRootRule node) async {
     var query = AtRootQuery.defaultQuery;
-    if (node.query != null) {
+    var unparsedQuery = node.query;
+    if (unparsedQuery != null) {
       var resolved =
-          await _performInterpolation(node.query, warnForColor: true);
+          await _performInterpolation(unparsedQuery, warnForColor: true);
       query = _adjustParseError(
-          node.query, () => AtRootQuery.parse(resolved, logger: _logger));
+          unparsedQuery, () => AtRootQuery.parse(resolved, logger: _logger));
     }
 
     var parent = _parent;
     var included = <ModifiableCssParentNode>[];
     while (parent is! CssStylesheet) {
       if (!query.excludes(parent)) included.add(parent);
-      parent = parent.parent;
+      parent = parent.parent /*!*/;
     }
     var root = _trimIncluded(included);
 
@@ -892,17 +909,20 @@ class _EvaluateVisitor
       return null;
     }
 
-    var innerCopy =
-        included.isEmpty ? null : included.first.copyWithoutChildren();
-    var outerCopy = innerCopy;
-    for (var node in included.skip(1)) {
-      var copy = node.copyWithoutChildren();
-      copy.addChild(outerCopy);
-      outerCopy = copy;
+    var innerCopy = root;
+    if (included.isNotEmpty) {
+      innerCopy = included.first.copyWithoutChildren();
+      var outerCopy = innerCopy;
+      for (var node in included.skip(1)) {
+        var copy = node.copyWithoutChildren();
+        copy.addChild(outerCopy);
+        outerCopy = copy;
+      }
+
+      root.addChild(outerCopy);
     }
 
-    if (outerCopy != null) root.addChild(outerCopy);
-    await _scopeForAtRoot(node, innerCopy ?? root, query, included)(() async {
+    await _scopeForAtRoot(node, innerCopy, query, included)(() async {
       for (var child in node.children) {
         await child.accept(this);
       }
@@ -911,8 +931,8 @@ class _EvaluateVisitor
     return null;
   }
 
-  /// Destructively trims a trailing sublist that matches the current list of
-  /// parents from [nodes].
+  /// Destructively trims a trailing sublist from [nodes] that matches the
+  /// current list of parents.
   ///
   /// [nodes] should be a list of parents included by an `@at-root` rule, from
   /// innermost to outermost. If it contains a trailing sublist that's
@@ -930,13 +950,14 @@ class _EvaluateVisitor
     for (; i < nodes.length; i++) {
       while (parent != nodes[i]) {
         innermostContiguous = null;
-        parent = parent.parent;
+        parent = parent.parent /*!*/;
       }
       innermostContiguous ??= i;
-      parent = parent.parent;
+      parent = parent.parent /*!*/;
     }
 
     if (parent != _root) return _root;
+    // TODO: no !
     var root = nodes[innermostContiguous];
     nodes.removeRange(innermostContiguous, nodes.length);
     return root;
@@ -1033,9 +1054,8 @@ class _EvaluateVisitor
     if (_declarationName != null) {
       name = CssValue("$_declarationName-${name.value}", name.span);
     }
-    var cssValue = node.value == null
-        ? null
-        : CssValue(await node.value.accept(this), node.value.span);
+    var cssValue = await node.value.andThen(
+        (value) async => CssValue(await value.accept(this), value.span));
 
     // If the value is an empty list, preserve it, because converting it to CSS
     // will throw an error that we want the user to see.
@@ -1043,10 +1063,11 @@ class _EvaluateVisitor
         (!cssValue.value.isBlank || _isEmptyList(cssValue.value))) {
       _parent.addChild(ModifiableCssDeclaration(name, cssValue, node.span,
           parsedAsCustomProperty: node.isCustomProperty,
-          valueSpanForMap: _expressionNode(node.value)?.span));
-    } else if (name.value.startsWith('--') && node.children == null) {
+          valueSpanForMap:
+              _sourceMap ? null : _expressionNode(node.value).span));
+    } else if (name.value.startsWith('--') && cssValue != null) {
       throw _exception(
-          "Custom property values may not be empty.", node.value.span);
+          "Custom property values may not be empty.", cssValue.span);
     }
 
     if (node.children != null) {
@@ -1086,7 +1107,7 @@ class _EvaluateVisitor
   /// Destructures [value] and assigns it to [variables], as in an `@each`
   /// statement.
   void _setMultipleVariables(
-      List<String> variables, Value value, AstNode nodeWithSpan) {
+      List<String> variables, Value value, AstNode /*!*/ nodeWithSpan) {
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
@@ -1156,10 +1177,8 @@ class _EvaluateVisitor
 
     var name = await _interpolationToValue(node.name);
 
-    var value = node.value == null
-        ? null
-        : await _interpolationToValue(node.value,
-            trim: true, warnForColor: true);
+    var value = await node.value.andThen((value) =>
+        _interpolationToValue(value, trim: true, warnForColor: true));
 
     if (node.children == null) {
       _parent.addChild(
@@ -1342,7 +1361,9 @@ class _EvaluateVisitor
 
     return await _environment.scope(
         () => _handleReturn<Statement>(
-            clause.children, (child) => child.accept(this)),
+            // TODO: no !
+            clause.children,
+            (child) => child.accept(this)),
         semiGlobal: true,
         when: clause.hasDeclarations);
   }
@@ -1366,15 +1387,18 @@ class _EvaluateVisitor
       var importer = result.item1;
       var stylesheet = result.item2;
 
-      var url = stylesheet.span.sourceUrl;
-      if (_activeModules.containsKey(url)) {
-        var previousLoad = _activeModules[url];
-        throw previousLoad == null
-            ? _exception("This file is already being loaded.")
-            : _multiSpanException("This file is already being loaded.",
-                "new load", {previousLoad.span: "original load"});
+      var url = stylesheet.span?.sourceUrl;
+      if (url != null) {
+        if (_activeModules.containsKey(url)) {
+          throw _activeModules[url].andThen((previousLoad) {
+                var span = previousLoad.span;
+                return _multiSpanException("This file is already being loaded.",
+                    "new load", {if (span != null) span: "original load"});
+              }) ??
+              _exception("This file is already being loaded.");
+        }
+        _activeModules[url] = import;
       }
-      _activeModules[url] = import;
 
       // If the imported stylesheet doesn't use any modules, we can inject its
       // CSS directly into the current stylesheet. If it does use modules, we
@@ -1463,15 +1487,16 @@ class _EvaluateVisitor
       assert(_importSpan == null);
       _importSpan = span;
 
-      if (_nodeImporter != null) {
-        var stylesheet = await _importLikeNode(url, forImport);
-        if (stylesheet != null) return Tuple2(null, stylesheet);
-      } else {
-        var tuple = await _importCache.import(Uri.parse(url),
+      var importCache = _importCache;
+      if (importCache != null) {
+        var tuple = await importCache.import(Uri.parse(url),
             baseImporter: _importer,
             baseUrl: baseUrl ?? _stylesheet?.span?.sourceUrl,
             forImport: forImport);
         if (tuple != null) return tuple;
+      } else {
+        var stylesheet = await _importLikeNode(url, forImport);
+        if (stylesheet != null) return Tuple2(null, stylesheet);
       }
 
       if (url.startsWith('package:') && isNode) {
@@ -1486,6 +1511,7 @@ class _EvaluateVisitor
     } catch (error) {
       String message;
       try {
+        // TODO: as String!
         message = error.message as String;
       } catch (_) {
         message = error.toString();
@@ -1520,19 +1546,15 @@ class _EvaluateVisitor
     // here should be mirrored there.
 
     var url = await _interpolationToValue(import.url);
-    var supports = import.supports;
-    var resolvedSupports = supports is SupportsDeclaration
-        ? "${await _evaluateToCss(supports.name)}: "
-            "${await _evaluateToCss(supports.value)}"
-        : (supports == null ? null : await _visitSupportsCondition(supports));
-    var mediaQuery =
-        import.media == null ? null : await _visitMediaQueries(import.media);
+    var supports = await import.supports.andThen((supports) async => CssValue(
+        "supports(${supports is SupportsDeclaration ? "${await _evaluateToCss(supports.name)}: "
+            "${await _evaluateToCss(supports.value)}" : await supports.andThen(_visitSupportsCondition)})",
+        supports.span));
+    var rawMedia = import.media;
+    var mediaQuery = await rawMedia.andThen(_visitMediaQueries);
 
     var node = ModifiableCssImport(url, import.span,
-        supports: resolvedSupports == null
-            ? null
-            : CssValue("supports($resolvedSupports)", import.supports.span),
-        media: mediaQuery);
+        supports: supports, media: mediaQuery);
 
     if (_parent != _root) {
       _parent.addChild(node);
@@ -1540,8 +1562,7 @@ class _EvaluateVisitor
       _root.addChild(node);
       _endOfImports++;
     } else {
-      _outOfOrderImports ??= [];
-      _outOfOrderImports.add(node);
+      (_outOfOrderImports ??= []).add(node);
     }
     return null;
   }
@@ -1563,18 +1584,17 @@ class _EvaluateVisitor
     } else if (mixin is UserDefinedCallable<AsyncEnvironment>) {
       if (node.content != null &&
           !(mixin.declaration as MixinRule).hasContent) {
+        var declarationSpan = mixin.declaration.arguments.spanWithName;
         throw MultiSpanSassRuntimeException(
             "Mixin doesn't accept a content block.",
             node.spanWithoutContent,
             "invocation",
-            {mixin.declaration.arguments.spanWithName: "declaration"},
+            {if (declarationSpan != null) declarationSpan: "declaration"},
             _stackTrace(node.spanWithoutContent));
       }
 
-      var contentCallable = node.content == null
-          ? null
-          : UserDefinedCallable(node.content, _environment.closure());
-
+      var contentCallable = node.content.andThen(
+          (content) => UserDefinedCallable(content, _environment.closure()));
       await _runUserDefinedCallable(node.arguments, mixin, nodeWithSpan,
           () async {
         await _environment.withContent(contentCallable, () async {
@@ -1625,9 +1645,8 @@ class _EvaluateVisitor
     }
 
     var queries = await _visitMediaQueries(node.query);
-    var mergedQueries = _mediaQueries == null
-        ? null
-        : _mergeMediaQueries(_mediaQueries, queries);
+    var mergedQueries = _mediaQueries
+        .andThen((mediaQueries) => _mergeMediaQueries(mediaQueries, queries));
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
     await _withParent(
@@ -1823,7 +1842,8 @@ class _EvaluateVisitor
     } else if (condition is SupportsAnything) {
       return "(${await _performInterpolation(condition.contents)})";
     } else {
-      return null;
+      throw ArgumentError(
+          "Unknown supports condition type ${condition.runtimeType}.");
     }
   }
 
@@ -2036,8 +2056,9 @@ class _EvaluateVisitor
 
     // ignore: prefer_is_empty
     var condition = positional.length > 0 ? positional[0] : named["condition"];
-    var ifTrue = positional.length > 1 ? positional[1] : named["if-true"];
-    var ifFalse = positional.length > 2 ? positional[2] : named["if-false"];
+    var ifTrue = positional.length > 1 ? positional[1] : named["if-true"] /*!*/;
+    var ifFalse =
+        positional.length > 2 ? positional[2] : named["if-false"] /*!*/;
 
     return await ((await condition.accept(this)).isTruthy ? ifTrue : ifFalse)
         .accept(this);
@@ -2066,12 +2087,15 @@ class _EvaluateVisitor
     for (var pair in node.pairs) {
       var keyValue = await pair.item1.accept(this);
       var valueValue = await pair.item2.accept(this);
-      if (map.containsKey(keyValue)) {
+
+      var oldValue = map[keyValue];
+      if (oldValue != null) {
+        var oldValueSpan = keyNodes[keyValue]?.span;
         throw MultiSpanSassRuntimeException(
             'Duplicate key.',
             pair.item1.span,
             'second key',
-            {keyNodes[keyValue].span: 'first key'},
+            {if (oldValueSpan != null) oldValueSpan: 'first key'},
             _stackTrace(pair.item1.span));
       }
       map[keyValue] = valueValue;
@@ -2121,14 +2145,16 @@ class _EvaluateVisitor
 
   /// Evaluates the arguments in [arguments] as applied to [callable], and
   /// invokes [run] in a scope with those arguments defined.
-  Future<Value> _runUserDefinedCallable(
+  Future<V> _runUserDefinedCallable<V extends Value>(
       ArgumentInvocation arguments,
       UserDefinedCallable<AsyncEnvironment> callable,
       AstNode nodeWithSpan,
-      Future<Value> run()) async {
+      Future<V> run()) async {
     var evaluated = await _evaluateArguments(arguments);
 
-    var name = callable.name == null ? "@content" : callable.name + "()";
+    var name = callable.name;
+    if (name != "@content") name += "()";
+
     return await _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
@@ -2144,7 +2170,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 declaredArguments[i].name,
                 evaluated.positional[i].withoutSlash(),
-                _sourceMap ? evaluated.positionalNodes[i] : null);
+                evaluated.positionalNodes.andGet(i));
           }
 
           for (var i = evaluated.positional.length;
@@ -2156,14 +2182,13 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 argument.name,
                 value.withoutSlash(),
-                _sourceMap
-                    ? evaluated.namedNodes[argument.name] ??
-                        _expressionNode(argument.defaultValue)
-                    : null);
+                evaluated.namedNodes.andGet(argument.name) ??
+                    _expressionNode(argument.defaultValue));
           }
 
           SassArgumentList argumentList;
-          if (callable.declaration.arguments.restArgument != null) {
+          var restArgument = callable.declaration.arguments.restArgument;
+          if (restArgument != null) {
             var rest = evaluated.positional.length > declaredArguments.length
                 ? evaluated.positional.sublist(declaredArguments.length)
                 : const <Value>[];
@@ -2174,9 +2199,7 @@ class _EvaluateVisitor
                     ? ListSeparator.comma
                     : evaluated.separator);
             _environment.setLocalVariable(
-                callable.declaration.arguments.restArgument,
-                argumentList,
-                nodeWithSpan);
+                restArgument, argumentList, nodeWithSpan);
           }
 
           var result = await run();
@@ -2188,11 +2211,12 @@ class _EvaluateVisitor
           var argumentWord = pluralize('argument', evaluated.named.keys.length);
           var argumentNames =
               toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
+          var declarationSpan = callable.declaration.arguments.spanWithName;
           throw MultiSpanSassRuntimeException(
               "No $argumentWord named $argumentNames.",
               nodeWithSpan.span,
               "invocation",
-              {callable.declaration.arguments.spanWithName: "declaration"},
+              {if (declarationSpan != null) declarationSpan: "declaration"},
               _stackTrace(nodeWithSpan.span));
         });
       });
@@ -2203,13 +2227,8 @@ class _EvaluateVisitor
   Future<Value> _runFunctionCallable(ArgumentInvocation arguments,
       AsyncCallable callable, AstNode nodeWithSpan) async {
     if (callable is AsyncBuiltInCallable) {
-      var result = await _runBuiltInCallable(arguments, callable, nodeWithSpan);
-      if (result == null) {
-        throw _exception(
-            "Custom functions may not return Dart's null.", nodeWithSpan.span);
-      }
-
-      return result.withoutSlash();
+      return (await _runBuiltInCallable(arguments, callable, nodeWithSpan))
+          .withoutSlash();
     } else if (callable is UserDefinedCallable<AsyncEnvironment>) {
       return (await _runUserDefinedCallable(arguments, callable, nodeWithSpan,
               () async {
@@ -2240,6 +2259,7 @@ class _EvaluateVisitor
         buffer.write(await _evaluateToCss(argument));
       }
 
+      // TODO: no !
       var rest = await arguments.rest?.accept(this);
       if (rest != null) {
         if (!first) buffer.write(", ");
@@ -2249,7 +2269,7 @@ class _EvaluateVisitor
 
       return SassString(buffer.toString(), quotes: false);
     } else {
-      return null;
+      throw ArgumentError('Unknown callable type ${callable.runtimeType}.');
     }
   }
 
@@ -2314,6 +2334,7 @@ class _EvaluateVisitor
     } catch (error) {
       String message;
       try {
+        // TODO: as String!
         message = error.message as String;
       } catch (_) {
         message = error.toString();
@@ -2325,12 +2346,14 @@ class _EvaluateVisitor
     if (argumentList == null) return result;
     if (evaluated.named.isEmpty) return result;
     if (argumentList.wereKeywordsAccessed) return result;
+
+    var declarationSpan = overload.spanWithName;
     throw MultiSpanSassRuntimeException(
         "No ${pluralize('argument', evaluated.named.keys.length)} named "
             "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
         nodeWithSpan.span,
         "invocation",
-        {overload.spanWithName: "declaration"},
+        {if (declarationSpan != null) declarationSpan: "declaration"},
         _stackTrace(nodeWithSpan.span));
   }
 
@@ -2363,16 +2386,17 @@ class _EvaluateVisitor
           }
         : null;
 
-    if (arguments.rest == null) {
+    var restArgs = arguments.rest;
+    if (restArgs == null) {
       return _ArgumentResults(positional, named, ListSeparator.undecided,
           positionalNodes: positionalNodes, namedNodes: namedNodes);
     }
 
-    var rest = await arguments.rest.accept(this);
-    var restNodeForSpan = trackSpans ? _expressionNode(arguments.rest) : null;
+    var rest = await restArgs.accept(this);
+    var restNodeForSpan = trackSpans ? _expressionNode(restArgs) : null;
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
-      _addRestMap(named, rest, arguments.rest);
+      _addRestMap(named, rest, restArgs, (value) => value);
       namedNodes?.addAll({
         for (var key in rest.contents.keys)
           (key as SassString).text: restNodeForSpan
@@ -2393,16 +2417,17 @@ class _EvaluateVisitor
       positionalNodes?.add(restNodeForSpan);
     }
 
-    if (arguments.keywordRest == null) {
+    var keywordRestArgs = arguments.keywordRest;
+    if (keywordRestArgs == null) {
       return _ArgumentResults(positional, named, separator,
           positionalNodes: positionalNodes, namedNodes: namedNodes);
     }
 
-    var keywordRest = await arguments.keywordRest.accept(this);
+    var keywordRest = await keywordRestArgs.accept(this);
     var keywordRestNodeForSpan =
-        trackSpans ? _expressionNode(arguments.keywordRest) : null;
+        trackSpans ? _expressionNode(keywordRestArgs) : null;
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, arguments.keywordRest);
+      _addRestMap(named, keywordRest, keywordRestArgs, (value) => value);
       namedNodes?.addAll({
         for (var key in keywordRest.contents.keys)
           (key as SassString).text: keywordRestNodeForSpan
@@ -2412,7 +2437,7 @@ class _EvaluateVisitor
     } else {
       throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",
-          arguments.keywordRest.span);
+          keywordRestArgs.span);
     }
   }
 
@@ -2423,14 +2448,15 @@ class _EvaluateVisitor
   /// for macros such as `if()`.
   Future<Tuple2<List<Expression>, Map<String, Expression>>>
       _evaluateMacroArguments(CallableInvocation invocation) async {
-    if (invocation.arguments.rest == null) {
+    var restArgs = invocation.arguments.rest;
+    if (restArgs == null) {
       return Tuple2(
           invocation.arguments.positional, invocation.arguments.named);
     }
 
     var positional = invocation.arguments.positional.toList();
     var named = Map.of(invocation.arguments.named);
-    var rest = await invocation.arguments.rest.accept(this);
+    var rest = await restArgs.accept(this);
     if (rest is SassMap) {
       _addRestMap(named, rest, invocation, (value) => ValueExpression(value));
     } else if (rest is SassList) {
@@ -2444,11 +2470,10 @@ class _EvaluateVisitor
       positional.add(ValueExpression(rest));
     }
 
-    if (invocation.arguments.keywordRest == null) {
-      return Tuple2(positional, named);
-    }
+    var keywordRestArgs = invocation.arguments.keywordRest;
+    if (keywordRestArgs == null) return Tuple2(positional, named);
 
-    var keywordRest = await invocation.arguments.keywordRest.accept(this);
+    var keywordRest = await keywordRestArgs.accept(this);
     if (keywordRest is SassMap) {
       _addRestMap(
           named, keywordRest, invocation, (value) => ValueExpression(value));
@@ -2456,7 +2481,7 @@ class _EvaluateVisitor
     } else {
       throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",
-          invocation.span);
+          keywordRestArgs.span);
     }
   }
 
@@ -2472,8 +2497,7 @@ class _EvaluateVisitor
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
   void _addRestMap<T>(Map<String, T> values, SassMap map, AstNode nodeWithSpan,
-      [T convert(Value value)]) {
-    convert ??= (value) => value as T;
+      T convert(Value value)) {
     map.contents.forEach((key, value) {
       if (key is SassString) {
         values[key.text] = convert(value);
@@ -2493,16 +2517,15 @@ class _EvaluateVisitor
       _addExceptionSpan(
           nodeWithSpan, () => arguments.verify(positional, MapKeySet(named)));
 
-  Future<Value> visitSelectorExpression(SelectorExpression node) async {
-    if (_styleRuleIgnoringAtRoot == null) return sassNull;
-    return _styleRuleIgnoringAtRoot.originalSelector.asSassList;
-  }
+  Future<Value> visitSelectorExpression(SelectorExpression node) async =>
+      _styleRuleIgnoringAtRoot?.originalSelector.asSassList ?? sassNull;
 
   Future<SassString> visitStringExpression(StringExpression node) async {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
     return SassString(
-        (await mapAsync(node.text.contents, (value) async {
+        // TODO: no Object
+        (await mapAsync(node.text.contents, (Object value) async {
           if (value is String) return value;
           var expression = value as Expression;
           var result = await expression.accept(this);
@@ -2592,8 +2615,7 @@ class _EvaluateVisitor
       _root.addChild(modifiableNode);
       _endOfImports++;
     } else {
-      _outOfOrderImports ??= [];
-      _outOfOrderImports.add(modifiableNode);
+      (_outOfOrderImports ??= []).add(modifiableNode);
     }
   }
 
@@ -2618,9 +2640,9 @@ class _EvaluateVisitor
           "Media rules may not be used within nested declarations.", node.span);
     }
 
-    var mergedQueries = _mediaQueries == null
-        ? null
-        : _mergeMediaQueries(_mediaQueries, node.queries);
+    // TODO: no !, no as
+    var mergedQueries = _mediaQueries.andThen(
+        (mediaQueries) => _mergeMediaQueries(mediaQueries, node.queries));
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
     await _withParent(
@@ -2768,7 +2790,8 @@ class _EvaluateVisitor
   /// values passed into the interpolation.
   Future<String> _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) async {
-    return (await mapAsync(interpolation.contents, (value) async {
+    // TODO: no Object
+    return (await mapAsync(interpolation.contents, (Object value) async {
       if (value is String) return value;
       var expression = value as Expression;
       var result = await expression.accept(this);
@@ -2817,13 +2840,15 @@ class _EvaluateVisitor
   /// where that variable was originally declared. Otherwise, this will just
   /// return [expression].
   ///
-  /// Returns `null` if [_sourceMap] is `false`.
-  ///
   /// This returns an [AstNode] rather than a [FileSpan] so we can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  AstNode _expressionNode(Expression expression) {
-    if (!_sourceMap) return null;
+  AstNode _expressionNode(Expression /*!*/ expression) {
+    // If we aren't making a source map this doesn't matter, but we still return
+    // the expression so we don't have to make the type (and everything
+    // downstream of it) nullable.
+    if (!_sourceMap) return expression;
+
     if (expression is VariableExpression) {
       return _environment.getVariableNode(expression.name,
               namespace: expression.namespace) ??
@@ -2844,9 +2869,11 @@ class _EvaluateVisitor
   Future<T> _withParent<S extends ModifiableCssParentNode, T>(
       S node, Future<T> callback(),
       {bool through(CssNode node), bool scopeWhen = true}) async {
+    // TODO: no as
     _addChild(node, through: through);
 
     var oldParent = _parent;
+    // TODO: no as
     _parent = node;
     var result = await _environment.scope(callback, when: scopeWhen);
     _parent = oldParent;
@@ -2864,7 +2891,7 @@ class _EvaluateVisitor
     var parent = _parent;
     if (through != null) {
       while (through(parent)) {
-        parent = parent.parent;
+        parent = parent.parent /*!*/;
       }
 
       // If the parent has a (visible) following sibling, we shouldn't add to
@@ -2877,6 +2904,7 @@ class _EvaluateVisitor
       }
     }
 
+    // TODO: no as
     parent.addChild(node);
   }
 
@@ -2921,11 +2949,10 @@ class _EvaluateVisitor
 
   /// Creates a new stack frame with location information from [member] and
   /// [span].
-  Frame _stackFrame(String member, FileSpan span) {
-    var url = span.sourceUrl;
-    if (url != null && _importCache != null) url = _importCache.humanize(url);
-    return frameForSpan(span, member, url: url);
-  }
+  Frame _stackFrame(String member, FileSpan /*?*/ span) => frameForSpan(
+      span, member,
+      url:
+          span?.sourceUrl.andThen((url) => _importCache?.humanize(url) ?? url));
 
   /// Returns a stack trace at the current point.
   ///
@@ -2955,7 +2982,7 @@ class _EvaluateVisitor
   ///
   /// The primary span is taken from the current stack trace span.
   SassRuntimeException _multiSpanException(String message, String primaryLabel,
-          Map<FileSpan, String> secondaryLabels) =>
+          Map<FileSpan /*!*/, String> secondaryLabels) =>
       MultiSpanSassRuntimeException(message, _stack.last.item2.span,
           primaryLabel, secondaryLabels, _stackTrace());
 
@@ -2970,19 +2997,24 @@ class _EvaluateVisitor
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  T _adjustParseError<T>(AstNode nodeWithSpan, T callback()) {
+  T _adjustParseError<T>(AstNode /*!*/ nodeWithSpan, T callback()) {
     try {
       return callback();
     } on SassFormatException catch (error) {
-      var errorText = error.span.file.getText(0);
-      var span = nodeWithSpan.span;
-      var syntheticFile = span.file
+      var errorSpan = error.span;
+      if (errorSpan == null) rethrow;
+
+      var nodeSpan = nodeWithSpan.span;
+      if (nodeSpan == null) rethrow;
+
+      var errorText = errorSpan.file.getText(0);
+      var syntheticFile = nodeSpan.file
           .getText(0)
-          .replaceRange(span.start.offset, span.end.offset, errorText);
+          .replaceRange(nodeSpan.start.offset, nodeSpan.end.offset, errorText);
       var syntheticSpan =
-          SourceFile.fromString(syntheticFile, url: span.file.url).span(
-              span.start.offset + error.span.start.offset,
-              span.start.offset + error.span.end.offset);
+          SourceFile.fromString(syntheticFile, url: nodeSpan.file.url).span(
+              nodeSpan.start.offset + errorSpan.start.offset,
+              nodeSpan.start.offset + errorSpan.end.offset);
       throw _exception(error.message, syntheticSpan);
     }
   }
@@ -2993,7 +3025,7 @@ class _EvaluateVisitor
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  T _addExceptionSpan<T>(AstNode nodeWithSpan, T callback()) {
+  T _addExceptionSpan<T>(AstNode /*!*/ nodeWithSpan, T callback()) {
     try {
       return callback();
     } on MultiSpanSassScriptException catch (error) {
@@ -3010,7 +3042,7 @@ class _EvaluateVisitor
 
   /// Like [_addExceptionSpan], but for an asynchronous [callback].
   Future<T> _addExceptionSpanAsync<T>(
-      AstNode nodeWithSpan, Future<T> callback()) async {
+      AstNode /*!*/ nodeWithSpan, Future<T> callback()) async {
     try {
       return await callback();
     } on MultiSpanSassScriptException catch (error) {
@@ -3032,7 +3064,9 @@ class _EvaluateVisitor
     try {
       return await callback();
     } on SassRuntimeException catch (error) {
-      if (!error.span.text.startsWith("@error")) rethrow;
+      var span = error.span;
+      if (span == null) rethrow;
+      if (span.text.startsWith("@error")) rethrow;
       throw SassRuntimeException(
           error.message, nodeWithSpan.span, _stackTrace());
     }
@@ -3074,8 +3108,7 @@ class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
       _visitor._addChild(node);
       _visitor._endOfImports++;
     } else {
-      _visitor._outOfOrderImports ??= [];
-      _visitor._outOfOrderImports.add(node);
+      (_visitor._outOfOrderImports ??= []).add(node);
     }
   }
 
@@ -3087,9 +3120,9 @@ class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     // Whether [node.query] has been merged with [_visitor._mediaQueries]. If it
     // has been merged, merging again is a no-op; if it hasn't been merged,
     // merging again will fail.
-    var hasBeenMerged = _visitor._mediaQueries == null ||
-        _visitor._mergeMediaQueries(_visitor._mediaQueries, node.queries) !=
-            null;
+    var mediaQueries = _visitor._mediaQueries;
+    var hasBeenMerged = mediaQueries == null ||
+        _visitor._mergeMediaQueries(mediaQueries, node.queries) != null;
 
     _visitor._addChild(node,
         through: (node) =>
@@ -3128,7 +3161,7 @@ class EvaluateResult {
 /// The result of evaluating arguments to a function or mixin.
 class _ArgumentResults {
   /// Arguments passed by position.
-  final List<Value> positional;
+  final List<Value /*!*/ > positional;
 
   /// The [AstNode]s that hold the spans for each [positional] argument, or
   /// `null` if source span tracking is disabled.
@@ -3136,7 +3169,7 @@ class _ArgumentResults {
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  final List<AstNode> positionalNodes;
+  final List<AstNode /*!*/ > positionalNodes;
 
   /// Arguments passed by name.
   final Map<String, Value> named;
@@ -3147,7 +3180,7 @@ class _ArgumentResults {
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  final Map<String, AstNode> namedNodes;
+  final Map<String, AstNode /*!*/ > namedNodes;
 
   /// The separator used for the rest argument list, if any.
   final ListSeparator separator;

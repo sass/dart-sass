@@ -186,8 +186,10 @@ I ran five instances of each configuration and recorded the fastest time.
     Duration sasscTime;
     if (!libsassIncompatible.contains(info[1])) {
       sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [path]);
-      buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
+      buffer.writeln("* sassc: ${_formatTime(sasscTime)}"); // TODO: no !
     }
+
+    // TODO: no as
 
     var scriptSnapshotTime = await _benchmark(Platform.executable,
         ['--no-enable-asserts', p.join('build', 'sass.snapshot'), path]);
@@ -244,7 +246,7 @@ Future<Duration> _benchmark(String executable, List<String> arguments) async {
   // chance to warm up at the OS level.
   await _benchmarkOnce(executable, arguments);
 
-  Duration lowest;
+  /*late*/ Duration lowest;
   for (var i = 0; i < 5; i++) {
     var duration = await _benchmarkOnce(executable, arguments);
     if (lowest == null || duration < lowest) lowest = duration;
@@ -261,8 +263,12 @@ Future<Duration> _benchmarkOnce(
     fail("Process failed with exit code ${result.exitCode}\n${result.stderr}");
   }
 
-  var match =
-      RegExp(r"(\d+)m(\d+)\.(\d+)s").firstMatch(result.stderr as String);
+  var match = RegExp(r"(\d+)m(\d+)\.(\d+)s")
+      .firstMatch(result.stderr as String); // TODO: no !
+  if (match == null) {
+    fail("Process didn't print the expected format:\n${result.stderr}");
+  }
+
   return Duration(
       minutes: int.parse(match[1]),
       seconds: int.parse(match[2]),

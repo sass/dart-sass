@@ -10,16 +10,15 @@ import 'value.dart';
 /// A variable value that's been configured for a [Configuration].
 class ConfiguredValue {
   /// The value of the variable.
-  final Value value;
+  final Value /*!*/ value;
 
   /// The span where the variable's configuration was written.
   final FileSpan configurationSpan;
 
   /// The [AstNode] where the variable's value originated.
   ///
-  /// This is used to generate source maps and can be `null` if source map
-  /// generation is disabled.
-  final AstNode assignmentNode;
+  /// This is used to generate source maps.
+  final AstNode /*?*/ assignmentNode;
 
-  ConfiguredValue(this.value, this.configurationSpan, [this.assignmentNode]);
+  ConfiguredValue(this.value, this.configurationSpan, this.assignmentNode);
 }

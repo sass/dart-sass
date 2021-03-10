@@ -27,7 +27,7 @@ class VariableDeclaration implements Statement {
   SilentComment comment;
 
   /// The value the variable is being assigned to.
-  final Expression expression;
+  final Expression /*!*/ expression;
 
   /// Whether this is a guarded assignment.
   ///

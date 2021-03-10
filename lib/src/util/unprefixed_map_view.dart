@@ -15,10 +15,10 @@ import 'dart:collection';
 /// `@used with` to mark configured variables as used.
 class UnprefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The wrapped map.
-  final Map<String, V> _map;
+  final Map<String /*!*/, V> _map;
 
   /// The prefix to remove from the map keys.
-  final String _prefix;
+  final String /*!*/ _prefix;
 
   Iterable<String> get keys => _UnprefixedKeys(this);
 

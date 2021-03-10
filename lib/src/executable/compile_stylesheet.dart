@@ -155,6 +155,8 @@ String _writeSourceMap(
     url = Uri.dataFromString(sourceMapText,
         mimeType: 'application/json', encoding: utf8);
   } else {
+    // [destination] can't be null here because --embed-source-map is
+    // incompatible with writing to stdout.
     var sourceMapPath = destination + '.map';
     ensureDir(p.dirname(sourceMapPath));
     writeFile(sourceMapPath, sourceMapText);

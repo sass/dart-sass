@@ -118,7 +118,8 @@ int opposite(int character) {
     case $lbracket:
       return $rbracket;
     default:
-      return null;
+      throw ArgumentError(
+          '"${String.fromCharCode(character)}" isn\'t a brace-like character.');
   }
 }
 

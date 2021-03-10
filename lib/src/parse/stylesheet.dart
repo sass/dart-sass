@@ -18,6 +18,7 @@ import '../interpolation_buffer.dart';
 import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
+import '../util/nullable.dart';
 import '../value.dart';
 import 'parser.dart';
 
@@ -85,7 +86,17 @@ abstract class StylesheetParser extends Parser {
       var start = scanner.state;
       // Allow a byte-order mark at the beginning of the document.
       scanner.scanChar(0xFEFF);
-      var statements = this.statements(() => _statement(root: true));
+      var statements = this.statements(() {
+        // Handle this specially so that [atRule] always returns a non-nullable
+        // Statement.
+        if (scanner.scan('@charset')) {
+          whitespace();
+          string();
+          return null;
+        }
+
+        _statement(root: true);
+      });
       scanner.expectDone();
 
       /// Ensure that all gloal variable assignments produce a variable in this
@@ -111,7 +122,7 @@ abstract class StylesheetParser extends Parser {
         return arguments;
       });
 
-  Expression parseExpression() => _parseSingleProduction(expression);
+  Expression /*!*/ parseExpression() => _parseSingleProduction(expression);
 
   VariableDeclaration parseVariableDeclaration() =>
       _parseSingleProduction(() => lookingAtIdentifier()
@@ -178,7 +189,7 @@ abstract class StylesheetParser extends Parser {
 
       case $rbrace:
         scanner.error('unmatched "}".', length: 1);
-        return null;
+        break;
 
       default:
         return _inStyleRule || _inUnknownAtRule || _inMixin || _inContentBlock
@@ -207,6 +218,7 @@ abstract class StylesheetParser extends Parser {
     start ??= scanner.state;
 
     var name = variableName();
+    // TODO: no start!
     if (namespace != null) _assertPublic(name, () => scanner.spanFrom(start));
 
     if (plainCss) {
@@ -492,6 +504,7 @@ abstract class StylesheetParser extends Parser {
 
       _inStyleRule = wasInStyleRule;
 
+      // TODO: no start!
       return StyleRule(interpolation, children, scanner.spanFrom(start));
     });
   }
@@ -585,7 +598,7 @@ abstract class StylesheetParser extends Parser {
   /// If [root] is `true`, this parses at-rules that are allowed only at the
   /// root of the stylesheet.
   @protected
-  Statement atRule(Statement child(), {bool root = false}) {
+  Statement /*!*/ atRule(Statement /*!*/ child(), {bool root = false}) {
     // NOTE: this logic is largely duplicated in CssParser.atRule. Most changes
     // here should be mirrored there.
 
@@ -604,11 +617,6 @@ abstract class StylesheetParser extends Parser {
     switch (name.asPlain) {
       case "at-root":
         return _atRootRule(start);
-      case "charset":
-        _isUseAllowed = wasUseAllowed;
-        if (!root) _disallowedAtRule(start);
-        string();
-        return null;
       case "content":
         return _contentRule(start);
       case "debug":
@@ -947,6 +955,7 @@ abstract class StylesheetParser extends Parser {
     return _withChildren(child, start, (children, span) {
       _inControlDirective = wasInControlDirective;
 
+      // TODO: no exclusive!
       return ForRule(variable, from, to, children, span, exclusive: exclusive);
     });
   }
@@ -967,9 +976,9 @@ abstract class StylesheetParser extends Parser {
     }
 
     Set<String> shownMixinsAndFunctions;
-    Set<String> shownVariables;
+    Set<String> /*?*/ shownVariables;
     Set<String> hiddenMixinsAndFunctions;
-    Set<String> hiddenVariables;
+    Set<String> /*?*/ hiddenVariables;
     if (scanIdentifier("show")) {
       var members = _memberList();
       shownMixinsAndFunctions = members.item1;
@@ -1200,6 +1209,7 @@ abstract class StylesheetParser extends Parser {
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
       content = _withChildren(_statement, start, (children, span) {
+        // TODO: no !
         return ContentBlock(contentArguments, children, span);
       });
       _inContentBlock = wasInContentBlock;
@@ -1384,6 +1394,8 @@ relase. For details, see http://bit.ly/moz-document.
 
   /// Parses the namespace of a `@use` rule from an `as` clause, or returns the
   /// default namespace from its URL.
+  ///
+  /// Returns `null` to indicate a `@use` rule without a URL.
   String _useNamespace(Uri url, LineScannerState start) {
     if (scanIdentifier("as")) {
       whitespace();
@@ -1620,8 +1632,9 @@ relase. For details, see http://bit.ly/moz-document.
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
   @protected
-  Expression expression(
+  Expression /*!*/ expression(
       {bool bracketList = false, bool singleEquals = false, bool until()}) {
+    // TODO: no ! throughout
     if (until != null && until()) scanner.error("Expected expression.");
 
     LineScannerState beforeBracket;
@@ -1639,9 +1652,9 @@ relase. For details, see http://bit.ly/moz-document.
     var start = scanner.state;
     var wasInParentheses = _inParentheses;
 
-    List<Expression> commaExpressions;
+    List<Expression /*!*/ > commaExpressions;
 
-    List<Expression> spaceExpressions;
+    List<Expression /*!*/ > spaceExpressions;
 
     // Operators whose right-hand operands are not fully parsed yet, in order of
     // appearance in the document. Because a low-precedence operator will cause
@@ -1651,14 +1664,20 @@ relase. For details, see http://bit.ly/moz-document.
 
     // The left-hand sides of [operators]. `operands[n]` is the left-hand side
     // of `operators[n]`.
-    List<Expression> operands;
+    List<Expression /*!*/ > operands;
 
     /// Whether the single expression parsed so far may be interpreted as
     /// slash-separated numbers.
     var allowSlash = lookingAtNumber();
 
-    /// The leftmost expression that's been fully-parsed. Never `null`.
-    var singleExpression = _singleExpression();
+    /// The leftmost expression that's been fully-parsed. This can be null in
+    /// special cases where the expression begins with a sub-expression but has
+    /// a later character that indicates that the outer expression isn't done,
+    /// as here:
+    ///
+    ///     foo, bar
+    ///         ^
+    Expression singleExpression = _singleExpression();
 
     // Resets the scanner state to the state it was at at the beginning of the
     // expression, except for [_inParentheses].
@@ -1673,6 +1692,10 @@ relase. For details, see http://bit.ly/moz-document.
     }
 
     void resolveOneOperation() {
+      if (operators == null) {
+        throw StateError("operators must be set for resolveOneOperation().");
+      }
+
       var operator = operators.removeLast();
       if (operator != BinaryOperator.dividedBy) allowSlash = false;
       if (allowSlash && !_inParentheses) {
@@ -2145,7 +2168,7 @@ relase. For details, see http://bit.ly/moz-document.
       default:
         if (first != null && first >= 0x80) return identifierLike();
         scanner.error("Expected expression.");
-        return null;
+        break;
     }
   }
 
@@ -2332,6 +2355,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes a unary operation expression.
   UnaryOperationExpression _unaryOperation() {
     var start = scanner.state;
+    // TODO: no !
     var operator = _unaryOperatorFor(scanner.readChar());
     if (operator == null) {
       scanner.error("Expected unary operator.", position: scanner.position - 1);
@@ -2675,8 +2699,8 @@ relase. For details, see http://bit.ly/moz-document.
         break;
 
       case "url":
-        var contents = _tryUrlContents(start);
-        return contents == null ? null : StringExpression(contents);
+        return _tryUrlContents(start)
+            .andThen((contents) => StringExpression(contents));
 
       case "clamp":
         // Vendor-prefixed clamp() functions aren't parsed specially, because
@@ -3023,6 +3047,7 @@ relase. For details, see http://bit.ly/moz-document.
     var wroteNewline = false;
     loop:
     while (true) {
+      // TODO: no next!s
       var next = scanner.peekChar();
       switch (next) {
         case $backslash:
@@ -3293,17 +3318,19 @@ relase. For details, see http://bit.ly/moz-document.
       buffer.add(expression());
     } else {
       var next = scanner.peekChar();
-      var isAngle = next == $langle || next == $rangle;
-      if (isAngle || next == $equal) {
+      if (next == $langle || next == $rangle || next == $equal) {
         buffer.writeCharCode($space);
         buffer.writeCharCode(scanner.readChar());
-        if (isAngle && scanner.scanChar($equal)) buffer.writeCharCode($equal);
+        if ((next == $langle || next == $rangle) && scanner.scanChar($equal)) {
+          buffer.writeCharCode($equal);
+        }
         buffer.writeCharCode($space);
 
         whitespace();
         buffer.add(_expressionUntilComparison());
 
-        if (isAngle && scanner.scanChar(next)) {
+        // TODO: no !
+        if ((next == $langle || next == $rangle) && scanner.scanChar(next)) {
           buffer.writeCharCode($space);
           buffer.writeCharCode(next);
           if (scanner.scanChar($equal)) buffer.writeCharCode($equal);
@@ -3559,8 +3586,8 @@ relase. For details, see http://bit.ly/moz-document.
 
   /// Consumes a block of [child] statements and passes them, as well as the
   /// span from [start] to the end of the child block, to [create].
-  T _withChildren<T>(Statement child(), LineScannerState start,
-      T create(List<Statement> children, FileSpan span)) {
+  T _withChildren<T>(Statement /*!*/ child(), LineScannerState start,
+      T create(List<Statement /*!*/ > children, FileSpan span)) {
     var result = create(children(child), scanner.spanFrom(start));
     whitespaceWithoutComments();
     return result;
@@ -3648,7 +3675,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// whitespace. This is necessary to ensure that the source span for the
   /// parent rule doesn't cover whitespace after the rule.
   @protected
-  List<Statement> children(Statement child());
+  List<Statement /*!*/ > children(Statement /*!*/ child());
 
   /// Consumes top-level statements.
   ///

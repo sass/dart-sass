@@ -148,11 +148,12 @@ class SelectorList extends Selector {
   bool _complexContainsParentSelector(ComplexSelector complex) =>
       complex.components.any((component) =>
           component is CompoundSelector &&
-          component.components.any((simple) =>
-              simple is ParentSelector ||
-              (simple is PseudoSelector &&
-                  simple.selector != null &&
-                  simple.selector._containsParentSelector)));
+          component.components.any((simple) {
+            if (simple is ParentSelector) return true;
+            if (simple is! PseudoSelector) return true;
+            var selector = (simple as PseudoSelector).selector;
+            return selector != null && selector._containsParentSelector;
+          }));
 
   /// Returns a new [CompoundSelector] based on [compound] with all
   /// [ParentSelector]s replaced with [parent].
@@ -160,10 +161,11 @@ class SelectorList extends Selector {
   /// Returns `null` if [compound] doesn't contain any [ParentSelector]s.
   Iterable<ComplexSelector> _resolveParentSelectorsCompound(
       CompoundSelector compound, SelectorList parent) {
-    var containsSelectorPseudo = compound.components.any((simple) =>
-        simple is PseudoSelector &&
-        simple.selector != null &&
-        simple.selector._containsParentSelector);
+    var containsSelectorPseudo = compound.components.any((simple) {
+      if (simple is! PseudoSelector) return false;
+      var selector = (simple as PseudoSelector).selector;
+      return selector != null && selector._containsParentSelector;
+    });
     if (!containsSelectorPseudo &&
         compound.components.first is! ParentSelector) {
       return null;
@@ -171,14 +173,12 @@ class SelectorList extends Selector {
 
     var resolvedMembers = containsSelectorPseudo
         ? compound.components.map((simple) {
-            if (simple is PseudoSelector) {
-              if (simple.selector == null) return simple;
-              if (!simple.selector._containsParentSelector) return simple;
-              return simple.withSelector(simple.selector
-                  .resolveParentSelectors(parent, implicitParent: false));
-            } else {
-              return simple;
-            }
+            if (simple is! PseudoSelector) return simple;
+            var selector = (simple as PseudoSelector).selector;
+            if (selector == null) return simple;
+            if (!selector._containsParentSelector) return simple;
+            return (simple as PseudoSelector).withSelector(
+                selector.resolveParentSelectors(parent, implicitParent: false));
           })
         : compound.components;
 

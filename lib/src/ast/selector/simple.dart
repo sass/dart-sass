@@ -17,13 +17,13 @@ abstract class SimpleSelector extends Selector {
   /// Specifity is represented in base 1000. The spec says this should be
   /// "sufficiently high"; it's extremely unlikely that any single selector
   /// sequence will contain 1000 simple selectors.
-  int get minSpecificity => 1000;
+  int /*!*/ get minSpecificity => 1000;
 
   /// The maximum possible specificity that this selector can have.
   ///
   /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
   /// can have a range of possible specificities.
-  int get maxSpecificity => minSpecificity;
+  int /*!*/ get maxSpecificity => minSpecificity;
 
   SimpleSelector();
 

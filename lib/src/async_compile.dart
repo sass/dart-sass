@@ -24,7 +24,7 @@ import 'visitor/serialize.dart';
 /// the node-sass compatible API and the executable.
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
-Future<CompileResult> compileAsync(String path,
+Future<CompileResult> compileAsync(String /*!*/ path,
     {Syntax syntax,
     Logger logger,
     AsyncImportCache importCache,
@@ -51,6 +51,7 @@ Future<CompileResult> compileAsync(String path,
   }
 
   return await _compileStylesheet(
+      // TODO: no !
       stylesheet,
       logger,
       importCache,
@@ -135,11 +136,12 @@ Future<CompileResult> _compileStylesheet(
       sourceMap: sourceMap,
       charset: charset);
 
-  if (serializeResult.sourceMap != null && importCache != null) {
+  var resultSourceMap = serializeResult.sourceMap;
+  if (resultSourceMap != null && importCache != null) {
     // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
     // is fixed.
     mapInPlace<String>(
-        serializeResult.sourceMap.urls,
+        resultSourceMap.urls,
         (url) => url == ''
             ? Uri.dataFromString(stylesheet.span.file.getText(0),
                     encoding: utf8)

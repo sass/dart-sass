@@ -53,7 +53,7 @@ abstract class Value {
   ///
   /// All SassScript values can be used as lists. Maps count as lists of pairs,
   /// and all other values count as single-value lists.
-  bool get hasBrackets;
+  bool /*!*/ get hasBrackets;
 
   /// This value as a list.
   ///

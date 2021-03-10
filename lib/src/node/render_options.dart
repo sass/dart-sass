@@ -9,23 +9,23 @@ import 'fiber.dart';
 @JS()
 @anonymous
 class RenderOptions {
-  external String get file;
-  external String get data;
-  external dynamic get importer;
-  external dynamic get functions;
-  external List<Object /* String */ > get includePaths;
-  external bool get indentedSyntax;
-  external bool get omitSourceMapUrl;
-  external String get outFile;
-  external String get outputStyle;
-  external String get indentType;
-  external dynamic get indentWidth;
-  external String get linefeed;
-  external FiberClass get fiber;
-  external Object get sourceMap;
-  external bool get sourceMapContents;
-  external bool get sourceMapEmbed;
-  external String get sourceMapRoot;
+  external String /*?*/ /*?*/ get file;
+  external String /*?*/ get data;
+  external Object /*?*/ get importer;
+  external Object /*?*/ get functions;
+  external List<Object /* String */ > /*?*/ get includePaths;
+  external bool /*?*/ get indentedSyntax;
+  external bool /*?*/ get omitSourceMapUrl;
+  external String /*?*/ get outFile;
+  external String /*?*/ get outputStyle;
+  external String /*?*/ get indentType;
+  external Object /*?*/ get indentWidth;
+  external String /*?*/ get linefeed;
+  external FiberClass /*?*/ get fiber;
+  external Object /*?*/ get sourceMap;
+  external bool /*?*/ get sourceMapContents;
+  external bool /*?*/ get sourceMapEmbed;
+  external String /*?*/ get sourceMapRoot;
 
   external factory RenderOptions(
       {String file,

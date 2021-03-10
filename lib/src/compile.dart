@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ef27d750f1d5305373fe9e712cf99697a21e0689
+// Checksum: a3fcd1e07a08124e0a60ff933944368e49ac0999
 //
 // ignore_for_file: unused_import
 
@@ -34,7 +34,7 @@ import 'visitor/serialize.dart';
 /// the node-sass compatible API and the executable.
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
-CompileResult compile(String path,
+CompileResult compile(String /*!*/ path,
     {Syntax syntax,
     Logger logger,
     ImportCache importCache,
@@ -61,6 +61,7 @@ CompileResult compile(String path,
   }
 
   return _compileStylesheet(
+      // TODO: no !
       stylesheet,
       logger,
       importCache,
@@ -145,11 +146,12 @@ CompileResult _compileStylesheet(
       sourceMap: sourceMap,
       charset: charset);
 
-  if (serializeResult.sourceMap != null && importCache != null) {
+  var resultSourceMap = serializeResult.sourceMap;
+  if (resultSourceMap != null && importCache != null) {
     // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
     // is fixed.
     mapInPlace<String>(
-        serializeResult.sourceMap.urls,
+        resultSourceMap.urls,
         (url) => url == ''
             ? Uri.dataFromString(stylesheet.span.file.getText(0),
                     encoding: utf8)

@@ -92,7 +92,7 @@ void main() {
   });
 
   test("uses an importer's source map URL", () {
-    SingleMapping map;
+    /*late*/ SingleMapping map;
     compileString('@import "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
@@ -107,7 +107,7 @@ void main() {
   });
 
   test("uses a data: source map URL if the importer doesn't provide one", () {
-    SingleMapping map;
+    /*late*/ SingleMapping map;
     compileString('@import "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
@@ -128,9 +128,10 @@ void main() {
       compileString('@import "orange";', importers: [
         TestImporter((url) {
           throw "this import is bad actually";
-        }, expectAsync1((_) => null, count: 0))
+        }, expectAsync1((_) => null, count: 0)) // TODO: no as
       ]);
     }, throwsA(predicate((error) {
+      // TODO: no dynamic
       expect(error, const TypeMatcher<SassException>());
       expect(
           error.toString(), startsWith("Error: this import is bad actually"));
@@ -146,6 +147,7 @@ void main() {
         })
       ]);
     }, throwsA(predicate((error) {
+      // TODO: no dynamic
       expect(error, const TypeMatcher<SassException>());
       expect(
           error.toString(), startsWith("Error: this import is bad actually"));
@@ -161,6 +163,7 @@ void main() {
         })
       ]);
     }, throwsA(predicate((error) {
+      // TODO: no dynamic
       expect(error, const TypeMatcher<SassException>());
       // FormatException.toString() starts with "FormatException:", but
       // the error message should not.
@@ -175,6 +178,7 @@ void main() {
         TestImporter((url) => Uri.parse("u:$url"), (url) => null)
       ]);
     }, throwsA(predicate((error) {
+      // TODO: no dynamic
       expect(error, const TypeMatcher<SassException>());
       expect(error.toString(),
           startsWith("Error: Can't find stylesheet to import"));

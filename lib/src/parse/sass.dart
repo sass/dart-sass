@@ -14,8 +14,9 @@ import 'stylesheet.dart';
 
 /// A parser for the indented syntax.
 class SassParser extends StylesheetParser {
-  int get currentIndentation => _currentIndentation;
-  var _currentIndentation = 0;
+  int /*!*/ get currentIndentation => _currentIndentation;
+  // TODO: var
+  int /*!*/ _currentIndentation = 0;
 
   /// The indentation level of the next source line after the scanner's
   /// position, or `null` if that hasn't been computed yet.
@@ -24,7 +25,7 @@ class SassParser extends StylesheetParser {
   int _nextIndentation;
 
   /// The beginning of the next source line after the scanner's position, or
-  /// `null` if that hasn't been computed yet.
+  /// `null` if the next indentation hasn't been computed yet.
   ///
   /// A source line is any line that's not entirely whitespace.
   LineScannerState _nextIndentationEnd;
@@ -116,7 +117,7 @@ class SassParser extends StylesheetParser {
     }
   }
 
-  bool scanElse(int ifIndentation) {
+  bool scanElse(int /*!*/ ifIndentation) {
     if (_peekIndentation() != ifIndentation) return false;
     var start = scanner.state;
     var startIndentation = currentIndentation;
@@ -136,7 +137,8 @@ class SassParser extends StylesheetParser {
   List<Statement> children(Statement child()) {
     var children = <Statement>[];
     _whileIndentedLower(() {
-      children.add(_child(child));
+      var parsedChild = _child(child);
+      if (parsedChild != null) children.add(parsedChild);
     });
     return children;
   }
@@ -236,9 +238,8 @@ class SassParser extends StylesheetParser {
       }
     } while (scanner.scan("//"));
 
-    lastSilentComment =
+    return lastSilentComment =
         SilentComment(buffer.toString(), scanner.spanFrom(start));
-    return lastSilentComment;
   }
 
   /// Consumes an indented-style loud context.
@@ -390,9 +391,11 @@ class SassParser extends StylesheetParser {
 
   /// Consumes indentation whitespace and returns the indentation level of the
   /// next line.
-  int _readIndentation() {
-    if (_nextIndentation == null) _peekIndentation();
-    _currentIndentation = _nextIndentation;
+  int /*!*/ _readIndentation() {
+    // TODO: This "!" is totally bogus
+    var nextIndentation = _nextIndentation;
+    if (nextIndentation == null) _peekIndentation();
+    var currentIndentation = _currentIndentation = nextIndentation;
     scanner.state = _nextIndentationEnd;
     _nextIndentation = null;
     _nextIndentationEnd = null;
@@ -400,8 +403,9 @@ class SassParser extends StylesheetParser {
   }
 
   /// Returns the indentation level of the next line.
-  int _peekIndentation() {
-    if (_nextIndentation != null) return _nextIndentation;
+  int /*!*/ _peekIndentation() {
+    var nextIndentation = _nextIndentation;
+    if (nextIndentation != null) return nextIndentation;
 
     if (scanner.isDone) {
       _nextIndentation = 0;
@@ -419,7 +423,7 @@ class SassParser extends StylesheetParser {
     do {
       containsTab = false;
       containsSpace = false;
-      _nextIndentation = 0;
+      nextIndentation = 0;
 
       while (true) {
         var next = scanner.peekChar();
@@ -430,7 +434,7 @@ class SassParser extends StylesheetParser {
         } else {
           break;
         }
-        _nextIndentation++;
+        nextIndentation++;
         scanner.readChar();
       }
 
@@ -444,10 +448,12 @@ class SassParser extends StylesheetParser {
 
     _checkIndentationConsistency(containsTab, containsSpace);
 
-    if (_nextIndentation > 0) _spaces ??= containsSpace;
+    _nextIndentation = nextIndentation;
+    // TODO: no !
+    if (nextIndentation > 0) _spaces ??= containsSpace;
     _nextIndentationEnd = scanner.state;
     scanner.state = start;
-    return _nextIndentation;
+    return nextIndentation;
   }
 
   /// Ensures that the document uses consistent characters for indentation.

@@ -72,7 +72,7 @@ abstract class IfRuleClause {
 /// An `@if` or `@else if` clause in an `@if` rule.
 class IfClause extends IfRuleClause {
   /// The expression to evaluate to determine whether to run this rule.
-  final Expression expression;
+  final Expression /*!*/ expression;
 
   IfClause(this.expression, Iterable<Statement /*!*/ > children)
       : super(children);

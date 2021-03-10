@@ -15,7 +15,7 @@ abstract class CssDeclaration extends CssNode {
   CssValue<String> get name;
 
   /// The value of this declaration.
-  CssValue<Value> get value;
+  CssValue<Value /*!*/ > get value;
 
   /// The span for [value] that should be emitted to the source map.
   ///

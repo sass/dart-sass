@@ -26,7 +26,7 @@ class PackageImporter extends Importer {
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
   PackageImporter(this._packageConfig);
 
-  Uri canonicalize(Uri url) {
+  Uri /*?*/ canonicalize(Uri url) {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
     if (url.scheme != 'package') return null;
 
@@ -40,7 +40,7 @@ class PackageImporter extends Importer {
     return _filesystemImporter.canonicalize(resolved);
   }
 
-  ImporterResult load(Uri url) => _filesystemImporter.load(url);
+  ImporterResult /*?*/ load(Uri url) => _filesystemImporter.load(url);
 
   DateTime modificationTime(Uri url) =>
       _filesystemImporter.modificationTime(url);

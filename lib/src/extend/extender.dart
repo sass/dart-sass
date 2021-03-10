@@ -14,6 +14,7 @@ import '../ast/selector.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
 import '../utils.dart';
+import '../util/nullable.dart';
 import 'empty_extender.dart';
 import 'extension.dart';
 import 'merged_extension.dart';
@@ -34,7 +35,7 @@ class Extender {
 
   /// A map from all extended simple selectors to the sources of those
   /// extensions.
-  final Map<SimpleSelector, Map<ComplexSelector, Extension>> _extensions;
+  final Map<SimpleSelector, Map<ComplexSelector, Extension> /*!*/ > _extensions;
 
   /// A map from all simple selectors in extenders to the extensions that those
   /// extenders define.
@@ -143,9 +144,9 @@ class Extender {
   /// returned.
   Iterable<Extension> extensionsWhereTarget(
       bool callback(SimpleSelector target)) sync* {
-    for (var target in _extensions.keys) {
-      if (!callback(target)) continue;
-      for (var extension in _extensions[target].values) {
+    for (var entry in _extensions.entries) {
+      if (!callback(entry.key)) continue;
+      for (var extension in entry.value.values) {
         if (extension is MergedExtension) {
           yield* extension
               .unmerge()
@@ -167,7 +168,7 @@ class Extender {
   /// The [mediaContext] is the media query context in which the selector was
   /// defined, or `null` if it was defined at the top level of the document.
   ModifiableCssValue<SelectorList> addSelector(
-      SelectorList selector, FileSpan span,
+      SelectorList selector, FileSpan /*?*/ span,
       [List<CssMediaQuery> mediaContext]) {
     var originalSelector = selector;
     if (!originalSelector.isInvisible) {
@@ -200,13 +201,15 @@ class Extender {
       SelectorList list, ModifiableCssValue<SelectorList> selector) {
     for (var complex in list.components) {
       for (var component in complex.components) {
-        if (component is CompoundSelector) {
-          for (var simple in component.components) {
-            _selectors.putIfAbsent(simple, () => {}).add(selector);
+        if (component is! CompoundSelector) continue;
 
-            if (simple is PseudoSelector && simple.selector != null) {
-              _registerSelector(simple.selector, selector);
-            }
+        for (var simple in (component as CompoundSelector).components) {
+          _selectors.putIfAbsent(simple, () => {}).add(selector);
+          if (simple is! PseudoSelector) return;
+
+          var selectorInPseudo = (simple as PseudoSelector).selector;
+          if (selectorInPseudo != null) {
+            _registerSelector(selectorInPseudo, selector);
           }
         }
       }
@@ -295,13 +298,16 @@ class Extender {
   ///     .z.b {@extend .c}
   ///
   /// Returns `null` if there are no extensions to add.
-  Map<SimpleSelector, Map<ComplexSelector, Extension>>
-      _extendExistingExtensions(List<Extension> extensions,
-          Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions) {
-    Map<SimpleSelector, Map<ComplexSelector, Extension>> additionalExtensions;
+  Map<SimpleSelector /*!*/, Map<ComplexSelector, Extension>>
+      _extendExistingExtensions(
+          List<Extension> extensions,
+          Map<SimpleSelector, Map<ComplexSelector, Extension> /*!*/ >
+              newExtensions) {
+    Map<SimpleSelector /*!*/, Map<ComplexSelector, Extension>>
+        additionalExtensions;
 
     for (var extension in extensions.toList()) {
-      var sources = _extensions[extension.target];
+      var sources = _extensions[extension.target] /*!*/;
 
       // [_extendExistingSelectors] would have thrown already.
       List<ComplexSelector> selectors;
@@ -371,6 +377,9 @@ class Extender {
         selector.value = _extendList(
             selector.value, newExtensions, _mediaContexts[selector]);
       } on SassException catch (error) {
+        if (selector.span == null) rethrow;
+
+        // TODO(nweiz): Make this a MultiSpanSassException.
         throw SassException(
             "From ${selector.span.message('')}\n"
             "${error.message}",
@@ -724,8 +733,7 @@ class Extender {
       }
     }
 
-    var result = withoutPseudo(simple);
-    return result == null ? null : [result];
+    return withoutPseudo(simple).andThen((result) => [result]);
   }
 
   /// Returns a one-off [Extension] whose extender is composed solely of a

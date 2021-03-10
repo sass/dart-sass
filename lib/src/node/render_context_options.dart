@@ -10,17 +10,17 @@ import 'render_result.dart';
 @JS()
 @anonymous
 class RenderContextOptions {
-  external String get file;
-  external String get data;
-  external String get includePaths;
-  external int get precision;
-  external int get style;
-  external int get indentType;
-  external int get indentWidth;
-  external String get linefeed;
-  external RenderContext get context;
-  external set context(RenderContext value);
-  external RenderResult get result;
+  external String /*?*/ get file;
+  external String /*?*/ get data;
+  external String /*?*/ get includePaths;
+  external int /*?*/ get precision;
+  external int /*?*/ get style;
+  external int /*?*/ get indentType;
+  external int /*?*/ get indentWidth;
+  external String /*?*/ get linefeed;
+  external RenderContext /*?*/ get context;
+  external set context(RenderContext /*?*/ value);
+  external RenderResult /*?*/ get result;
 
   external factory RenderContextOptions(
       {String file,

@@ -10,7 +10,7 @@ import '../utils.dart';
 /// begin with `_` or `-`.
 ///
 /// Note that [PublicMemberMap.length] is *not* `O(1)`.
-class PublicMemberMapView<V> extends UnmodifiableMapBase<String, V> {
+class PublicMemberMapView<V> extends UnmodifiableMapBase<String /*!*/, V> {
   /// The wrapped map.
   final Map<String, V> _inner;
 

@@ -21,13 +21,13 @@ class ArgumentInvocation implements SassNode {
   /// The second rest argument, which is expected to only contain a keyword map.
   final Expression keywordRest;
 
-  final FileSpan span;
+  final FileSpan /*?*/ span;
 
   /// Returns whether this invocation passes no arguments.
   bool get isEmpty => positional.isEmpty && named.isEmpty && rest == null;
 
-  ArgumentInvocation(
-      Iterable<Expression> positional, Map<String, Expression> named, this.span,
+  ArgumentInvocation(Iterable<Expression /*!*/ > positional,
+      Map<String, Expression /*!*/ > named, this.span,
       {this.rest, this.keywordRest})
       : positional = List.unmodifiable(positional),
         named = Map.unmodifiable(named) {

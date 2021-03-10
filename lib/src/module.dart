@@ -22,7 +22,7 @@ abstract class Module<T extends AsyncCallable> {
   List<Module<T>> get upstream;
 
   /// The module's variables.
-  Map<String, Value> get variables;
+  Map<String /*!*/, Value /*!*/ > /*!*/ get variables;
 
   /// The nodes where each variable in [_variables] was defined.
   ///
@@ -34,19 +34,19 @@ abstract class Module<T extends AsyncCallable> {
   ///
   /// Implementations must ensure that this has the same keys as [variables] if
   /// it's not `null`.
-  Map<String, AstNode> get variableNodes;
+  Map<String /*!*/, AstNode /*!*/ > get variableNodes;
 
   /// The module's functions.
   ///
   /// Implementations must ensure that each [AsyncCallable] is stored under its
   /// own name.
-  Map<String, T> get functions;
+  Map<String /*!*/, T> /*!*/ get functions;
 
   /// The module's mixins.
   ///
   /// Implementations must ensure that each [AsyncCallable] is stored under its
   /// own name.
-  Map<String, T> get mixins;
+  Map<String /*!*/, T> /*!*/ get mixins;
 
   /// The extensions defined in this module, which is also able to update
   /// [css]'s style rules in-place based on downstream extensions.
@@ -71,13 +71,13 @@ abstract class Module<T extends AsyncCallable> {
   ///
   /// Throws a [SassScriptException] if this module doesn't define a variable
   /// named [name].
-  void setVariable(String name, Value value, AstNode nodeWithSpan);
+  void setVariable(String name, Value /*!*/ value, AstNode /*?*/ nodeWithSpan);
 
   /// Returns an opaque object that will be equal to another
   /// `variableIdentity()` return value for the same name in another module if
   /// and only if both modules expose identical definitions of the variable in
   /// question, as defined by the Sass spec.
-  Object variableIdentity(String name);
+  Object variableIdentity(String /*!*/ name);
 
   /// Creates a copy of this module with new [css] and [extender].
   Module<T> cloneCss();

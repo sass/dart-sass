@@ -37,7 +37,7 @@ class CssParser extends ScssParser {
         scanner.spanFrom(start));
   }
 
-  Statement atRule(Statement child(), {bool root = false}) {
+  Statement atRule(Statement /*!*/ child(), {bool root = false}) {
     // NOTE: this logic is largely duplicated in CssParser.atRule. Most changes
     // here should be mirrored there.
 
@@ -66,12 +66,6 @@ class CssParser extends ScssParser {
             scanner.spanFrom(start));
         break;
 
-      case "charset":
-        string();
-        if (!root) {
-          error("This at-rule is not allowed here.", scanner.spanFrom(start));
-        }
-        return null;
       case "import":
         return _cssImportRule(start);
       case "media":

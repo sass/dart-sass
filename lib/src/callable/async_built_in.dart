@@ -11,7 +11,8 @@ import '../value.dart';
 import 'async.dart';
 
 /// An [AsyncBuiltInCallable]'s callback.
-typedef _Callback = FutureOr<Value> Function(List<Value> arguments);
+typedef _Callback = FutureOr<Value /*!*/ > /*!*/ Function(
+    List<Value /*!*/ > arguments);
 
 /// A callable defined in Dart code.
 ///
@@ -37,7 +38,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
   AsyncBuiltInCallable.function(String name, String arguments,
-      FutureOr<Value> callback(List<Value> arguments), {Object url})
+      FutureOr<Value /*!*/ > callback(List<Value> arguments), {Object url})
       : this.parsed(
             name,
             ArgumentDeclaration.parse('@function $name($arguments) {',
@@ -73,6 +74,6 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ArgumentDeclaration].
   Tuple2<ArgumentDeclaration, _Callback> callbackFor(
-          int positional, Set<String> names) =>
+          int positional, Set<String /*!*/ > names) =>
       Tuple2(_arguments, _callback);
 }

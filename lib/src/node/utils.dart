@@ -29,7 +29,7 @@ void jsThrow(Object error) => _jsThrow.call(error);
 final _jsThrow = JSFunction("error", "throw error;");
 
 /// Returns whether or not [value] is the JS `undefined` value.
-bool isUndefined(Object value) => _isUndefined.call(value) as bool;
+bool isUndefined(Object /*?*/ value) => _isUndefined.call(value) as bool;
 
 final _isUndefined = JSFunction("value", "return value === undefined;");
 
@@ -50,12 +50,13 @@ external Function get jsErrorConstructor;
 bool isJSError(Object value) => jsInstanceOf(value, jsErrorConstructor);
 
 /// Invokes [function] with [thisArg] as `this`.
-Object call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
+Object /*?*/ call2(
+        JSFunction function, Object thisArg, Object arg1, Object arg2) =>
     function.apply(thisArg, [arg1, arg2]);
 
 /// Invokes [function] with [thisArg] as `this`.
-Object call3(JSFunction function, Object thisArg, Object arg1, Object arg2,
-        Object arg3) =>
+Object /*?*/ call3(JSFunction function, Object thisArg, Object arg1,
+        Object arg2, Object arg3) =>
     function.apply(thisArg, [arg1, arg2, arg3]);
 
 @JS("Object.keys")
@@ -84,14 +85,14 @@ Function createClass(
 }
 
 @JS("Object.getPrototypeOf")
-external Object _getPrototypeOf(Object object);
+external Object /*?*/ _getPrototypeOf(Object object);
 
 @JS("Object.setPrototypeOf")
-external void _setPrototypeOf(Object object, Object prototype);
+external void _setPrototypeOf(Object /*!*/ object, Object prototype);
 
 @JS("Object.defineProperty")
 external void _defineProperty(
-    Object object, String name, _PropertyDescriptor prototype);
+    Object /*!*/ object, String name, _PropertyDescriptor prototype);
 
 @JS()
 @anonymous
@@ -102,7 +103,7 @@ class _PropertyDescriptor {
 }
 
 @JS("Object.create")
-external Object _create(Object prototype);
+external Object _create(Object /*!*/ prototype);
 
 /// Sets the name of `object`'s class to `name`.
 void setClassName(Object object, String name) {

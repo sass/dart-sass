@@ -22,6 +22,8 @@ class SassString extends Value implements ext.SassString {
 
   final bool hasQuotes;
 
+  // TODO: late
+
   int get sassLength {
     _sassLength ??= text.runes.length;
     return _sassLength;
@@ -109,7 +111,7 @@ class SassString extends Value implements ext.SassString {
 
   SassString assertString([String name]) => this;
 
-  Value plus(Value other) {
+  Value plus(Value /*!*/ other) {
     if (other is SassString) {
       return SassString(text + other.text, quotes: hasQuotes);
     } else {

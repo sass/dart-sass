@@ -11,22 +11,22 @@ import 'value.dart';
 @sealed
 abstract class SassColor extends Value {
   /// This color's red channel, between `0` and `255`.
-  int get red;
+  int /*!*/ get red;
 
   /// This color's green channel, between `0` and `255`.
-  int get green;
+  int /*!*/ get green;
 
   /// This color's blue channel, between `0` and `255`.
-  int get blue;
+  int /*!*/ get blue;
 
   /// This color's hue, between `0` and `360`.
-  num get hue;
+  num /*!*/ get hue;
 
   /// This color's saturation, a percentage between `0` and `100`.
-  num get saturation;
+  num /*!*/ get saturation;
 
   /// This color's lightness, a percentage between `0` and `100`.
-  num get lightness;
+  num /*!*/ get lightness;
 
   /// This color's whiteness, a percentage between `0` and `100`.
   num get whiteness;

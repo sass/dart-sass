@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../ast/sass.dart';
+import '../util/nullable.dart';
 import 'interface/statement.dart';
 
 /// A visitor that recursively traverses each statement in a Sass AST.
@@ -21,14 +22,14 @@ import 'interface/statement.dart';
 /// * [visitExpression]
 abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
   void visitAtRootRule(AtRootRule node) {
-    if (node.query != null) visitInterpolation(node.query);
-    visitChildren(node);
+    node.query.andThen(visitInterpolation);
+    visitChildren(node.children);
   }
 
   void visitAtRule(AtRule node) {
     visitInterpolation(node.name);
-    if (node.value != null) visitInterpolation(node.value);
-    if (node.children != null) visitChildren(node);
+    node.value.andThen(visitInterpolation);
+    node.children.andThen(visitChildren);
   }
 
   void visitContentBlock(ContentBlock node) => visitCallableDeclaration(node);
@@ -43,13 +44,13 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
 
   void visitDeclaration(Declaration node) {
     visitInterpolation(node.name);
-    if (node.value != null) visitExpression(node.value);
-    if (node.children != null) visitChildren(node);
+    node.value.andThen(visitExpression);
+    node.children.andThen(visitChildren);
   }
 
   void visitEachRule(EachRule node) {
     visitExpression(node.list);
-    visitChildren(node);
+    visitChildren(node.children);
   }
 
   void visitErrorRule(ErrorRule node) {
@@ -63,7 +64,7 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
   void visitForRule(ForRule node) {
     visitExpression(node.from);
     visitExpression(node.to);
-    visitChildren(node);
+    visitChildren(node.children);
   }
 
   void visitForwardRule(ForwardRule node) {}
@@ -78,26 +79,26 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
       }
     }
 
-    if (node.lastClause != null) {
-      for (var child in node.lastClause.children) {
+    node.lastClause.andThen((lastClause) {
+      for (var child in lastClause.children) {
         child.accept(this);
       }
-    }
+    });
   }
 
   void visitImportRule(ImportRule node) {
     for (var import in node.imports) {
       if (import is StaticImport) {
         visitInterpolation(import.url);
-        if (import.supports != null) visitSupportsCondition(import.supports);
-        if (import.media != null) visitInterpolation(import.media);
+        import.supports.andThen(visitSupportsCondition);
+        import.media.andThen(visitInterpolation);
       }
     }
   }
 
   void visitIncludeRule(IncludeRule node) {
     visitArgumentInvocation(node.arguments);
-    if (node.content != null) visitContentBlock(node.content);
+    node.content.andThen(visitContentBlock);
   }
 
   void visitLoudComment(LoudComment node) {
@@ -106,7 +107,7 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
 
   void visitMediaRule(MediaRule node) {
     visitInterpolation(node.query);
-    visitChildren(node);
+    visitChildren(node.children);
   }
 
   void visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
@@ -119,14 +120,14 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
 
   void visitStyleRule(StyleRule node) {
     visitInterpolation(node.selector);
-    visitChildren(node);
+    visitChildren(node.children);
   }
 
-  void visitStylesheet(Stylesheet node) => visitChildren(node);
+  void visitStylesheet(Stylesheet node) => visitChildren(node.children);
 
   void visitSupportsRule(SupportsRule node) {
     visitSupportsCondition(node.condition);
-    visitChildren(node);
+    visitChildren(node.children);
   }
 
   void visitUseRule(UseRule node) {}
@@ -141,7 +142,7 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
 
   void visitWhileRule(WhileRule node) {
     visitExpression(node.condition);
-    visitChildren(node);
+    visitChildren(node.children);
   }
 
   /// Visits each of [node]'s expressions and children.
@@ -151,9 +152,9 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
   @protected
   void visitCallableDeclaration(CallableDeclaration node) {
     for (var argument in node.arguments.arguments) {
-      if (argument.defaultValue != null) visitExpression(argument.defaultValue);
+      argument.defaultValue.andThen(visitExpression);
     }
-    visitChildren(node);
+    visitChildren(node.children);
   }
 
   /// Visits each expression in an [invocation].
@@ -168,12 +169,8 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
     for (var expression in invocation.named.values) {
       visitExpression(expression);
     }
-    if (invocation.rest != null) {
-      visitExpression(invocation.rest);
-    }
-    if (invocation.keywordRest != null) {
-      visitExpression(invocation.keywordRest);
-    }
+    invocation.rest.andThen(visitExpression);
+    invocation.keywordRest.andThen(visitExpression);
   }
 
   /// Visits each expression in [condition].
@@ -195,13 +192,13 @@ abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
     }
   }
 
-  /// Visits each of [node]'s children.
+  /// Visits each child in [children].
   ///
   /// The default implementation of the visit methods for all [ParentStatement]s
   /// call this.
   @protected
-  void visitChildren(ParentStatement node) {
-    for (var child in node.children) {
+  void visitChildren(List<Statement> children) {
+    for (var child in children) {
       child.accept(this);
     }
   }

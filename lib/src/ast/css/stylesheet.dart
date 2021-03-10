@@ -13,13 +13,13 @@ import 'node.dart';
 ///
 /// This is the root plain CSS node. It contains top-level statements.
 class CssStylesheet extends CssParentNode {
-  final List<CssNode> children;
+  final List<CssNode /*!*/ > children;
   final FileSpan span;
   bool get isGroupEnd => false;
   bool get isChildless => false;
 
   /// Creates an unmodifiable stylesheet containing [children].
-  CssStylesheet(Iterable<CssNode> children, this.span)
+  CssStylesheet(Iterable<CssNode /*!*/ > children, this.span)
       // Use [UnmodifiableListView] rather than [List.unmodifiable] because
       // the underlying nodes are mutable anyway, so it's better to have the
       // whole thing consistently represent mutation of the underlying data.

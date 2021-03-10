@@ -8,7 +8,7 @@ import '../callable.dart';
 ///
 /// This can't be used for mixins.
 class PlainCssCallable implements Callable {
-  final String name;
+  final String /*!*/ name;
 
   PlainCssCallable(this.name);
 

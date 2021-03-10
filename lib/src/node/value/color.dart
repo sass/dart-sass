@@ -16,7 +16,7 @@ class _NodeSassColor {
 }
 
 /// Creates a new `sass.types.Color` object wrapping [value].
-Object newNodeSassColor(SassColor value) =>
+Object /*!*/ newNodeSassColor(SassColor value) =>
     callConstructor(colorConstructor, [null, null, null, null, value]);
 
 /// The JS constructor for the `sass.types.Color` class.
@@ -35,7 +35,7 @@ final Function colorConstructor = createClass('SassColor',
   //
   // The latter takes an integer that's interpreted as the hex value 0xAARRGGBB.
   num red;
-  if (green == null) {
+  if (green == null || blue == null) {
     var argb = redOrArgb as int;
     alpha = (argb >> 24) / 0xff;
     red = (argb >> 16) % 0x100;

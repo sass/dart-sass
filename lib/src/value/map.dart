@@ -26,7 +26,8 @@ class SassMap extends Value implements ext.SassMap {
   /// Returns an empty map.
   const SassMap.empty() : contents = const {};
 
-  SassMap(Map<Value, Value> contents) : contents = Map.unmodifiable(contents);
+  SassMap(Map<Value /*!*/, Value /*!*/ > contents)
+      : contents = Map.unmodifiable(contents);
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitMap(this);
 

@@ -59,6 +59,8 @@ class PseudoSelector extends SimpleSelector {
   /// both non-`null`, the selector follows the argument.
   final SelectorList selector;
 
+  // TODO: late
+
   int get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
     return _minSpecificity;
@@ -74,6 +76,7 @@ class PseudoSelector extends SimpleSelector {
   int _maxSpecificity;
 
   bool get isInvisible {
+    var selector = this.selector;
     if (selector == null) return false;
 
     // We don't consider `:not(%foo)` to be invisible because, semantically, it
@@ -158,6 +161,7 @@ class PseudoSelector extends SimpleSelector {
       return;
     }
 
+    var selector = this.selector;
     if (selector == null) {
       _minSpecificity = super.minSpecificity;
       _maxSpecificity = super.maxSpecificity;
@@ -165,21 +169,23 @@ class PseudoSelector extends SimpleSelector {
     }
 
     if (name == 'not') {
-      _minSpecificity = 0;
-      _maxSpecificity = 0;
+      var minSpecificity = 0;
+      var maxSpecificity = 0;
       for (var complex in selector.components) {
-        _minSpecificity = math.max(_minSpecificity, complex.minSpecificity);
-        _maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
+        minSpecificity = math.max(_minSpecificity, complex.minSpecificity);
+        maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
       }
     } else {
       // This is higher than any selector's specificity can actually be.
-      _minSpecificity = math.pow(super.minSpecificity, 3) as int;
-      _maxSpecificity = 0;
+      var minSpecificity = math.pow(super.minSpecificity, 3) as int;
+      var maxSpecificity = 0;
       for (var complex in selector.components) {
-        _minSpecificity = math.min(_minSpecificity, complex.minSpecificity);
-        _maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
+        minSpecificity = math.min(_minSpecificity, complex.minSpecificity);
+        maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
       }
     }
+    _minSpecificity = minSpecificity;
+    _maxSpecificity = maxSpecificity;
   }
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitPseudoSelector(this);

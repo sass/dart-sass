@@ -9,8 +9,8 @@ import '../importer.dart';
 /// This is used for stylesheets which don't support relative imports, such as
 /// those created from Dart code with plain strings.
 class NoOpImporter extends Importer {
-  Uri canonicalize(Uri url) => null;
-  ImporterResult load(Uri url) => null;
+  Uri /*?*/ canonicalize(Uri url) => null;
+  ImporterResult /*?*/ load(Uri url) => null;
   bool couldCanonicalize(Uri url, Uri canonicalUrl) => false;
 
   String toString() => "(unknown)";

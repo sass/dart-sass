@@ -12,6 +12,7 @@ import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import 'ast/node.dart';
 import 'util/character.dart';
+import 'util/nullable.dart';
 
 /// The URL used in stack traces when no source URL is available.
 final _noSourceUrl = Uri.parse("-");
@@ -147,6 +148,7 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
 }
 
 /// Returns the first element of [iterable], or `null` if the iterable is empty.
+// TODO(nweiz): Use package:collection
 T firstOrNull<T>(Iterable<T> iterable) {
   var iterator = iterable.iterator;
   return iterator.moveNext() ? iterator.current : null;
@@ -204,10 +206,10 @@ int mapHash(Map<Object, Object> map) =>
 ///
 /// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
 /// passed, it's used instead.
-Frame frameForSpan(SourceSpan span, String member, {Uri url}) => Frame(
-    url ?? span.sourceUrl ?? _noSourceUrl,
-    span.start.line + 1,
-    span.start.column + 1,
+Frame frameForSpan(SourceSpan /*?*/ span, String member, {Uri url}) => Frame(
+    url ?? span?.sourceUrl ?? _noSourceUrl,
+    span.andThen((span) => span.start.line + 1) ?? 1,
+    span.andThen((span) => span.start.column + 1) ?? 1,
     member);
 
 /// Returns a source span that covers the spans of both the first and last nodes
@@ -218,11 +220,10 @@ Frame frameForSpan(SourceSpan span, String member, {Uri url}) => Frame(
 FileSpan spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
 
-  // Spans may be null for dynamically-constructed ASTs.
-  var left = nodes.first?.span;
+  var left = nodes.first.span;
   if (left == null) return null;
 
-  var right = nodes.last?.span;
+  var right = nodes.last.span;
   if (right == null) return null;
 
   return left.expand(right);
@@ -304,7 +305,7 @@ List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
       growable: false);
 
   var selections = List<List<T>>.generate(
-      list1.length, (_) => List<T>(list2.length),
+      list1.length, (_) => List<T>.filled(list2.length, null),
       growable: false);
 
   for (var i = 0; i < list1.length; i++) {
@@ -334,7 +335,8 @@ List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
 ///
 /// By default, throws a [StateError] if no value matches. If [orElse] is
 /// passed, its return value is used instead.
-T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
+T /*!*/ removeFirstWhere<T>(List<T> list, bool test(T value),
+    {T /*!*/ orElse()}) {
   T toRemove;
   for (var element in list) {
     if (!test(element)) continue;
@@ -357,8 +359,9 @@ T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
 void mapAddAll2<K1, K2, V>(
     Map<K1, Map<K2, V>> destination, Map<K1, Map<K2, V>> source) {
   source.forEach((key, inner) {
-    if (destination.containsKey(key)) {
-      destination[key].addAll(inner);
+    var innerDestination = destination[key];
+    if (innerDestination != null) {
+      innerDestination.addAll(inner);
     } else {
       destination[key] = inner;
     }
@@ -394,7 +397,7 @@ Future<Iterable<F>> mapAsync<E, F>(
 /// same key.
 Future<V> putIfAbsentAsync<K, V>(
     Map<K, V> map, K key, Future<V> ifAbsent()) async {
-  if (map.containsKey(key)) return map[key];
+  if (map.containsKey(key)) return map[key] /*!*/;
   var value = await ifAbsent();
   map[key] = value;
   return value;

@@ -49,7 +49,11 @@ class SourceMapBuffer implements StringBuffer {
   /// Specifically, this associates the point at the beginning of the written
   /// text with [span.start] and the point at the end of the written text with
   /// [span.end].
+  ///
+  /// Just calls `callback()` if [span] is `null`.
   T forSpan<T>(FileSpan span, T callback()) {
+    if (span == null) return callback();
+
     var wasInSpan = _inSpan;
     _inSpan = true;
     _addEntry(span.start, _targetLocation);

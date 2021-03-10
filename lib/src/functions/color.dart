@@ -10,6 +10,7 @@ import '../callable.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
+import '../util/nullable.dart';
 import '../utils.dart';
 import '../value.dart';
 import '../warn.dart';
@@ -29,7 +30,10 @@ final global = UnmodifiableListView([
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgb", arguments),
     r"$channels": (arguments) {
       var parsed = _parseChannels(
-          "rgb", [r"$red", r"$green", r"$blue"], arguments.first);
+          // TODO: no !
+          "rgb",
+          [r"$red", r"$green", r"$blue"],
+          arguments.first);
       return parsed is SassString ? parsed : _rgb("rgb", parsed as List<Value>);
     }
   }),
@@ -40,7 +44,10 @@ final global = UnmodifiableListView([
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgba", arguments),
     r"$channels": (arguments) {
       var parsed = _parseChannels(
-          "rgba", [r"$red", r"$green", r"$blue"], arguments.first);
+          // TODO: no !
+          "rgba",
+          [r"$red", r"$green", r"$blue"],
+          arguments.first);
       return parsed is SassString
           ? parsed
           : _rgb("rgba", parsed as List<Value>);
@@ -547,6 +554,7 @@ SassString _functionString(String name, Iterable<Value> arguments) =>
 /// value to [argument], with a leading minus sign if [negative] is `true`.
 BuiltInCallable _removedColorFunction(String name, String argument,
         {bool negative = false}) =>
+    // TODO: no as
     _function(name, r"$color, $amount", (arguments) {
       throw SassScriptException(
           "The function $name() isn't in the sass:color module.\n"
@@ -574,9 +582,8 @@ Value _rgb(String name, List<Value> arguments) {
       fuzzyRound(_percentageOrUnitless(red, 255, "red")),
       fuzzyRound(_percentageOrUnitless(green, 255, "green")),
       fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
-      alpha == null
-          ? null
-          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+      alpha.andThen((alpha) =>
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
 }
 
 Value _rgbTwoArg(String name, List<Value> arguments) {
@@ -628,9 +635,8 @@ Value _hsl(String name, List<Value> arguments) {
       hue.value,
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
-      alpha == null
-          ? null
-          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+      alpha.andThen((alpha) =>
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
 }
 
 /// Prints a deprecation warning if [hue] has a unit other than `deg`.
@@ -698,9 +704,8 @@ Value _hwb(List<Value> arguments) {
       hue.value,
       whiteness.valueInRange(0, 100, "whiteness"),
       blackness.valueInRange(0, 100, "whiteness"),
-      alpha == null
-          ? null
-          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+      alpha.andThen((alpha) =>
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
 }
 
 Object /* SassString | List<Value> */ _parseChannels(
@@ -735,14 +740,10 @@ Object /* SassString | List<Value> */ _parseChannels(
   }
 
   var maybeSlashSeparated = list[2];
-  if (maybeSlashSeparated is SassNumber &&
-      maybeSlashSeparated.asSlash != null) {
-    return [
-      list[0],
-      list[1],
-      maybeSlashSeparated.asSlash.item1,
-      maybeSlashSeparated.asSlash.item2
-    ];
+  if (maybeSlashSeparated is SassNumber) {
+    var slash = maybeSlashSeparated.asSlash;
+    if (slash == null) return list;
+    return [list[0], list[1], slash.item1, slash.item2];
   } else if (maybeSlashSeparated is SassString &&
       !maybeSlashSeparated.hasQuotes &&
       maybeSlashSeparated.text.contains("/")) {
@@ -844,4 +845,5 @@ SassColor _transparentize(List<Value> arguments) {
 /// `sass:color`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
+    // TODO: no as
     BuiltInCallable.function(name, arguments, callback, url: "sass:color");

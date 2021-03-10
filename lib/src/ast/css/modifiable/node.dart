@@ -28,8 +28,9 @@ abstract class ModifiableCssNode extends CssNode {
 
   /// Whether this node has a visible sibling after it.
   bool get hasFollowingSibling {
-    if (_parent == null) return false;
-    var siblings = _parent.children;
+    var parent = _parent;
+    if (parent == null) return false;
+    var siblings = parent.children;
     for (var i = _indexInParent + 1; i < siblings.length; i++) {
       var sibling = siblings[i];
       if (!_isInvisible(sibling)) return true;
@@ -43,7 +44,7 @@ abstract class ModifiableCssNode extends CssNode {
   /// This can return a false negative for a comment node in compressed mode,
   /// since the AST doesn't know the output style, but that's an extremely
   /// narrow edge case so we don't worry about it.
-  bool _isInvisible(CssNode node) {
+  bool _isInvisible(CssNode /*!*/ node) {
     if (node is CssParentNode) {
       // An unknown at-rule is never invisible. Because we don't know the
       // semantics of unknown rules, we can't guarantee that (for example)
@@ -63,13 +64,14 @@ abstract class ModifiableCssNode extends CssNode {
   ///
   /// Throws a [StateError] if [parent] is `null`.
   void remove() {
-    if (_parent == null) {
+    var parent = _parent;
+    if (parent == null) {
       throw StateError("Can't remove a node without a parent.");
     }
 
-    _parent._children.removeAt(_indexInParent);
-    for (var i = _indexInParent; i < _parent._children.length; i++) {
-      _parent._children[i]._indexInParent--;
+    parent._children.removeAt(_indexInParent);
+    for (var i = _indexInParent; i < parent._children.length; i++) {
+      parent._children[i]._indexInParent--;
     }
     _parent = null;
   }

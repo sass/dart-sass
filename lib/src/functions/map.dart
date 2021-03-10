@@ -100,7 +100,9 @@ final _deepRemove =
   var keys = [arguments[1], ...arguments[2].asList];
   return _modify(map, keys.take(keys.length - 1), (value) {
     var nestedMap = value?.tryMap();
-    if (nestedMap?.contents?.containsKey(keys.last) ?? false) {
+    if (nestedMap != null && nestedMap.contents?.containsKey(keys.last) ??
+        false) {
+      // TODO: no !
       return SassMap(Map.of(nestedMap.contents)..remove(keys.last));
     }
     return value;
@@ -167,6 +169,7 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
 Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old)) {
   var keyIterator = keys.iterator;
   SassMap _modifyNestedMap(SassMap map, [Value newValue]) {
+    // TODO: no as throughout
     var mutableMap = Map.of(map.contents);
     var key = keyIterator.current;
 
@@ -187,7 +190,7 @@ Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old)) {
     return SassMap(mutableMap);
   }
 
-  return keyIterator.moveNext() ? _modifyNestedMap(map) : modify(map);
+  return keyIterator.moveNext() ? _modifyNestedMap(map) : modify(map) /*!*/;
 }
 
 /// Merges [map1] and [map2], with values in [map2] taking precedence.
@@ -235,4 +238,5 @@ SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
 /// Like [new BuiltInCallable.function], but always sets the URL to `sass:map`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
+    // TODO: no as
     BuiltInCallable.function(name, arguments, callback, url: "sass:map");

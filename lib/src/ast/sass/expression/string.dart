@@ -26,7 +26,7 @@ class StringExpression implements Expression {
 
   /// Returns Sass source for a quoted string that, when evaluated, will have
   /// [text] as its contents.
-  static String quoteText(String text) =>
+  static String /*!*/ quoteText(String text) =>
       StringExpression.plain(text, null, quotes: true)
           .asInterpolation(static: true)
           .asPlain;
@@ -51,9 +51,9 @@ class StringExpression implements Expression {
   Interpolation asInterpolation({bool static = false, int quote}) {
     if (!hasQuotes) return text;
 
-    quote ??= hasQuotes ? _bestQuote() : null;
+    quote ??= _bestQuote();
     var buffer = InterpolationBuffer();
-    if (quote != null) buffer.writeCharCode(quote);
+    buffer.writeCharCode(quote);
     for (var value in text.contents) {
       assert(value is Expression || value is String);
       if (value is Expression) {
@@ -85,7 +85,7 @@ class StringExpression implements Expression {
         }
       }
     }
-    if (quote != null) buffer.writeCharCode(quote);
+    buffer.writeCharCode(quote);
 
     return buffer.interpolation(text.span);
   }

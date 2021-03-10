@@ -77,14 +77,8 @@ void main() {
   test("gracefully handles a custom function throwing", () {
     expect(() {
       compileString('a {b: foo()}',
+          // TODO: no as
           functions: [Callable("foo", "", (arguments) => throw "heck")]);
-    }, throwsA(const TypeMatcher<SassException>()));
-  });
-
-  test("gracefully handles a custom function returning null", () {
-    expect(() {
-      compileString('a {b: foo()}',
-          functions: [Callable("foo", "", (arguments) => null)]);
     }, throwsA(const TypeMatcher<SassException>()));
   });
 
@@ -125,6 +119,7 @@ void main() {
         expect(list.keywords, contains("bar"));
         expect(list.keywords["bar"].assertNumber().value, equals(1));
         return list.keywords["bar"];
+        // TODO: no as
       }))
     ]);
 

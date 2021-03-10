@@ -16,7 +16,7 @@ import 'utils.dart';
 
 void main() {
   group("an argument list", () {
-    NodeSassList args;
+    /*late*/ NodeSassList args;
     setUp(() {
       renderSync(RenderOptions(
           data: "a {b: foo(1, 'a', blue)}",

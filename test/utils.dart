@@ -29,7 +29,7 @@ Map<String, Object> embeddedSourceMap(String css) {
   var match = _sourceMapCommentRegExp.firstMatch(css);
   var data = Uri.parse(match[1]).data;
   expect(data.mimeType, equals("application/json"));
-  return jsonDecode(data.contentAsString()) as Map<String, Object>;
+  return jsonDecode(data.contentAsString()) as Map<String, Object> /*!*/;
 }
 
 // Like `p.prettyUri()`, but for a non-URL path.

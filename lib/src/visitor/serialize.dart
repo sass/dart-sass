@@ -188,9 +188,9 @@ class _SerializeVisitor
         return;
       }
 
-      if (node.span != null) {
-        minimumIndentation =
-            math.min(minimumIndentation, node.span.start.column);
+      var span = node.span;
+      if (span != null) {
+        minimumIndentation = math.min(minimumIndentation, span.start.column);
       }
 
       _writeIndentation();
@@ -205,9 +205,10 @@ class _SerializeVisitor
       _buffer.writeCharCode($at);
       _write(node.name);
 
-      if (node.value != null) {
+      var value = node.value;
+      if (value != null) {
         _buffer.writeCharCode($space);
-        _write(node.value);
+        _write(value);
       }
     });
 
@@ -242,14 +243,16 @@ class _SerializeVisitor
       _writeOptionalSpace();
       _for(node.url, () => _writeImportUrl(node.url.value));
 
-      if (node.supports != null) {
+      var supports = node.supports;
+      if (supports != null) {
         _writeOptionalSpace();
-        _write(node.supports);
+        _write(supports);
       }
 
-      if (node.media != null) {
+      var media = node.media;
+      if (media != null) {
         _writeOptionalSpace();
-        _writeBetween(node.media, _commaSeparator, _visitMediaQuery);
+        _writeBetween(media, _commaSeparator, _visitMediaQuery);
       }
     });
   }
@@ -389,9 +392,9 @@ class _SerializeVisitor
       return;
     }
 
-    if (node.value.span != null) {
-      minimumIndentation =
-          math.min(minimumIndentation, node.name.span.start.column);
+    var span = node.value.span;
+    if (span != null) {
+      minimumIndentation = math.min(minimumIndentation, span.start.column);
     }
 
     _writeWithIndent(value, minimumIndentation);
@@ -426,7 +429,7 @@ class _SerializeVisitor
   /// [_indentation] for each non-empty line after the first.
   ///
   /// Compresses trailing empty lines of [text] into a single trailing space.
-  void _writeWithIndent(String text, int minimumIndentation) {
+  void _writeWithIndent(String text, int /*!*/ minimumIndentation) {
     var scanner = LineScanner(text);
 
     // Write the first line as-is.
@@ -607,10 +610,10 @@ class _SerializeVisitor
       throw SassScriptException("$map isn't a valid CSS value.");
     }
     _buffer.writeCharCode($lparen);
-    _writeBetween<Value>(map.contents.keys, ", ", (key) {
-      _writeMapElement(key);
+    _writeBetween<MapEntry<Value, Value>>(map.contents.entries, ", ", (entry) {
+      _writeMapElement(entry.key);
       _buffer.write(": ");
-      _writeMapElement(map.contents[key]);
+      _writeMapElement(entry.value);
     });
     _buffer.writeCharCode($rparen);
   }
@@ -630,10 +633,11 @@ class _SerializeVisitor
   }
 
   void visitNumber(SassNumber value) {
-    if (value.asSlash != null) {
-      visitNumber(value.asSlash.item1);
+    var asSlash = value.asSlash;
+    if (asSlash != null) {
+      visitNumber(asSlash.item1);
       _buffer.writeCharCode($slash);
-      visitNumber(value.asSlash.item2);
+      visitNumber(asSlash.item2);
       return;
     }
 
@@ -932,17 +936,19 @@ class _SerializeVisitor
   void visitAttributeSelector(AttributeSelector attribute) {
     _buffer.writeCharCode($lbracket);
     _buffer.write(attribute.name);
-    if (attribute.op != null) {
+
+    var value = attribute.value;
+    if (value != null) {
       _buffer.write(attribute.op);
-      if (Parser.isIdentifier(attribute.value) &&
+      if (Parser.isIdentifier(value) &&
           // Emit identifiers that start with `--` with quotes, because IE11
           // doesn't consider them to be valid identifiers.
-          !attribute.value.startsWith('--')) {
-        _buffer.write(attribute.value);
+          !value.startsWith('--')) {
+        _buffer.write(value);
 
         if (attribute.modifier != null) _buffer.writeCharCode($space);
       } else {
-        _visitQuotedString(attribute.value);
+        _visitQuotedString(value);
         if (attribute.modifier != null) _writeOptionalSpace();
       }
       if (attribute.modifier != null) _buffer.write(attribute.modifier);
@@ -994,7 +1000,7 @@ class _SerializeVisitor
     _buffer.write(id.name);
   }
 
-  void visitSelectorList(SelectorList list) {
+  void visitSelectorList(SelectorList /*!*/ list) {
     var complexes = _inspect
         ? list.components
         : list.components.where((complex) => !complex.isInvisible);
@@ -1026,10 +1032,11 @@ class _SerializeVisitor
   }
 
   void visitPseudoSelector(PseudoSelector pseudo) {
+    var innerSelector = pseudo.selector;
     // `:not(%a)` is semantically identical to `*`.
-    if (pseudo.selector != null &&
+    if (innerSelector != null &&
         pseudo.name == 'not' &&
-        pseudo.selector.isInvisible) {
+        innerSelector.isInvisible) {
       return;
     }
 
@@ -1043,7 +1050,7 @@ class _SerializeVisitor
       _buffer.write(pseudo.argument);
       if (pseudo.selector != null) _buffer.writeCharCode($space);
     }
-    if (pseudo.selector != null) visitSelectorList(pseudo.selector);
+    if (innerSelector != null) visitSelectorList(innerSelector);
     _buffer.writeCharCode($rparen);
   }
 
@@ -1087,6 +1094,7 @@ class _SerializeVisitor
         if (previous != null) {
           if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
           _writeLineFeed();
+          // TODO: no !
           if (previous.isGroupEnd) _writeLineFeed();
         }
         previous = child;

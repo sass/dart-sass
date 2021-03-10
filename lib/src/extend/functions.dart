@@ -27,8 +27,8 @@ final _subselectorPseudos = {'matches', 'any', 'nth-child', 'nth-last-child'};
 /// matched by both [complex1] and [complex2].
 ///
 /// If no such list can be produced, returns `null`.
-List<List<ComplexSelectorComponent>> unifyComplex(
-    List<List<ComplexSelectorComponent>> complexes) {
+List<List<ComplexSelectorComponent /*!*/ >> unifyComplex(
+    List<List<ComplexSelectorComponent /*!*/ >> complexes) {
   assert(complexes.isNotEmpty);
 
   if (complexes.length == 1) return complexes;

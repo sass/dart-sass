@@ -18,7 +18,7 @@ class InterpolationBuffer implements StringSink {
   /// The contents of the [Interpolation] so far.
   ///
   /// This contains [String]s and [Expression]s.
-  final _contents = [];
+  final _contents = <Object>[];
 
   /// Returns whether this buffer has no contents.
   bool get isEmpty => _contents.isEmpty && _text.isEmpty;

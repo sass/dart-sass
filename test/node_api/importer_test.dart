@@ -21,11 +21,13 @@ import '../hybrid.dart';
 import 'api.dart';
 import 'utils.dart';
 
-String sassPath;
+// TODO: no dynamic
 
 void main() {
   setUpAll(ensureNpmPackage);
   useSandbox();
+
+  /*late*/ String sassPath;
 
   setUp(() async {
     sassPath = p.join(sandbox, 'test.scss');

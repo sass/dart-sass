@@ -26,6 +26,7 @@ abstract class AsyncCallable {
   @Deprecated('Use `AsyncCallable.function` instead.')
   factory AsyncCallable(String name, String arguments,
           FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
+      // TODO: no as
       AsyncCallable.function(name, arguments, callback);
 
   /// Creates a callable with the given [name] and [arguments] that runs
@@ -37,6 +38,7 @@ abstract class AsyncCallable {
   /// See [new Callable] for more details.
   factory AsyncCallable.function(String name, String arguments,
           FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
+      // TODO: no as
       AsyncBuiltInCallable.function(name, arguments, (arguments) {
         var result = callback(arguments);
         if (result is ext.Value) return result as Value;

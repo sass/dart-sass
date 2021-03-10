@@ -13,7 +13,7 @@ import '../statement.dart';
 /// This prints a Sass value for debugging purposes.
 class DebugRule implements Statement {
   /// The expression to print.
-  final Expression expression;
+  final Expression /*!*/ expression;
 
   final FileSpan span;
 

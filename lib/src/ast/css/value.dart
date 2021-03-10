@@ -10,9 +10,9 @@ import '../node.dart';
 ///
 /// This is used to associate a span with a value that doesn't otherwise track
 /// its span.
-class CssValue<T> implements AstNode {
+class CssValue<T extends Object /*!*/ > implements AstNode {
   /// The value.
-  final T value;
+  final T /*!*/ value;
 
   /// The span associated with the value.
   final FileSpan span;

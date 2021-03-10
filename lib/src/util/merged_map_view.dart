@@ -5,6 +5,8 @@
 import 'dart:collection';
 
 import '../utils.dart';
+import '../util/nullable.dart';
+import 'nullable.dart';
 
 /// An unmodifiable view of multiple maps merged together as though they were a
 /// single map.
@@ -31,7 +33,7 @@ class MergedMapView<K, V> extends MapBase<K, V> {
   /// Each map must have the default notion of equality. The underlying maps'
   /// values may change independently of this view, but their set of keys may
   /// not.
-  MergedMapView(Iterable<Map<K, V>> maps) {
+  MergedMapView(Iterable<Map<K, V> /*!*/ > maps) {
     for (var map in maps) {
       if (map is MergedMapView<K, V>) {
         // Flatten nested merged views to avoid O(depth) overhead.
@@ -44,10 +46,7 @@ class MergedMapView<K, V> extends MapBase<K, V> {
     }
   }
 
-  V operator [](Object key) {
-    var child = _mapsByKey[key];
-    return child == null ? null : child[key];
-  }
+  V operator [](Object key) => _mapsByKey[key].andGet(key);
 
   operator []=(K key, V value) {
     var child = _mapsByKey[key];
@@ -58,7 +57,7 @@ class MergedMapView<K, V> extends MapBase<K, V> {
     child[key] = value;
   }
 
-  V remove(Object key) {
+  V /*?*/ remove(Object key) {
     throw UnsupportedError("Entries may not be removed from MergedMapView.");
   }
 

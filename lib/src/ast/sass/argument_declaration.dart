@@ -26,6 +26,9 @@ class ArgumentDeclaration implements SassNode {
   /// Returns [span] expanded to include an identifier immediately before the
   /// declaration, if possible.
   FileSpan get spanWithName {
+    var span = this.span;
+    if (span == null) return null;
+
     var text = span.file.getText(0);
 
     // Move backwards through and whitspace between the name and the arguments.
@@ -57,6 +60,9 @@ class ArgumentDeclaration implements SassNode {
   String get originalRestArgument {
     if (restArgument == null) return null;
 
+    var span = this.span;
+    if (span == null) return '\$$restArgument';
+
     var text = span.text;
     var fromDollar = text.substring(text.lastIndexOf("\$"));
     return fromDollar.substring(0, text.indexOf("."));
@@ -86,7 +92,7 @@ class ArgumentDeclaration implements SassNode {
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
   /// for this argument declaration.
-  void verify(int positional, Set<String> names) {
+  void verify(int positional, Set<String /*!*/ > names) {
     var namedUsed = 0;
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
@@ -133,7 +139,7 @@ class ArgumentDeclaration implements SassNode {
   /// Returns the argument named [name] with a leading `$` and its original
   /// underscores (which are otherwise converted to hyphens).
   String _originalArgumentName(String name) {
-    if (name == restArgument) return originalRestArgument;
+    if (name == restArgument) return originalRestArgument /*!*/;
 
     for (var argument in arguments) {
       if (argument.name == name) return argument.originalName;
@@ -144,7 +150,7 @@ class ArgumentDeclaration implements SassNode {
 
   /// Returns whether [positional] and [names] are valid for this argument
   /// declaration.
-  bool matches(int positional, Set<String> names) {
+  bool matches(int positional, Set<String /*!*/ > names) {
     var namedUsed = 0;
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];

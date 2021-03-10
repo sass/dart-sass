@@ -15,7 +15,7 @@ import 'silent_comment.dart';
 /// This declares a function that's invoked using normal CSS function syntax.
 class FunctionRule extends CallableDeclaration {
   FunctionRule(String name, ArgumentDeclaration arguments,
-      Iterable<Statement> children, FileSpan span,
+      Iterable<Statement /*!*/ > children, FileSpan span,
       {SilentComment comment})
       : super(name, arguments, children, span, comment: comment);
 

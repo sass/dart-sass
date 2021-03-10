@@ -31,7 +31,7 @@ class UseRule implements Statement {
       {Iterable<ConfiguredVariable> configuration})
       : configuration = configuration == null
             ? const []
-            : List.unmodifiable(configuration) {
+            : List<ConfiguredVariable>.unmodifiable(configuration) {
     for (var variable in this.configuration) {
       if (variable.isGuarded) {
         throw ArgumentError.value(variable, "configured variable",

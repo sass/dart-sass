@@ -38,12 +38,13 @@ class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
   /// Returns a [LimitedMapView] that doesn't allow keys in [blocklist].
   ///
   /// The [blocklist] must have the same notion of equality as the [map].
-  LimitedMapView.blocklist(this._map, Set<K> blocklist)
+  LimitedMapView.blocklist(this._map, Set<K> /*!*/ blocklist)
       : _keys = {
           for (var key in _map.keys)
             if (!blocklist.contains(key)) key
         };
 
+  // TODO: no as
   V operator [](Object key) => _keys.contains(key) ? _map[key] : null;
   bool containsKey(Object key) => _keys.contains(key);
 

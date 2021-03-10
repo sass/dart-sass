@@ -9,6 +9,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../util/number.dart';
 import '../../utils.dart';
+import '../../util/nullable.dart';
 import '../../value.dart';
 import '../external/value.dart' as ext;
 import '../number.dart';
@@ -85,16 +86,13 @@ class SingleUnitSassNumber extends SassNumber {
   /// returns `null` if coercion fails.
   SassNumber _coerceToUnit(String unit) {
     if (_unit == unit) return this;
-
-    var factor = conversionFactor(unit, _unit);
-    return factor == null ? null : SingleUnitSassNumber(value * factor, unit);
+    return conversionFactor(unit, _unit)
+        .andThen((factor) => SingleUnitSassNumber(value * factor, unit));
   }
 
   /// Like [coerceValueToUnit], except that it returns `null` if coercion fails.
-  num _coerceValueToUnit(String unit) {
-    var factor = conversionFactor(unit, _unit);
-    return factor == null ? null : value * factor;
-  }
+  num _coerceValueToUnit(String unit) =>
+      conversionFactor(unit, _unit).andThen((factor) => value * factor);
 
   SassNumber multiplyUnits(
       num value, List<String> otherNumerators, List<String> otherDenominators) {

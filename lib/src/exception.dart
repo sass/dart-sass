@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
+import 'util/nullable.dart';
 import 'utils.dart';
 import 'value.dart';
 
@@ -17,14 +18,13 @@ class SassException extends SourceSpanException {
   /// This includes [span].
   Trace get trace => Trace([frameForSpan(span, "root stylesheet")]);
 
-  FileSpan get span => super.span as FileSpan;
+  FileSpan /*?*/ get span => super.span as FileSpan;
 
-  SassException(String message, FileSpan span) : super(message, span);
+  SassException(String message, FileSpan /*?*/ span) : super(message, span);
 
   String toString({Object color}) {
-    var buffer = StringBuffer()
-      ..writeln("Error: $message")
-      ..write(span.highlight(color: color));
+    var buffer = StringBuffer("Error: $message");
+    span?.highlight(color: color).andThen(buffer.write);
 
     for (var frame in trace.toString().split("\n")) {
       if (frame.isEmpty) continue;
@@ -84,7 +84,7 @@ class MultiSpanSassException extends SassException
   final Map<FileSpan, String> secondarySpans;
 
   MultiSpanSassException(String message, FileSpan span, this.primaryLabel,
-      Map<FileSpan, String> secondarySpans)
+      Map<FileSpan /*!*/, String> secondarySpans)
       : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message, span);
 
@@ -98,12 +98,14 @@ class MultiSpanSassException extends SassException
       useColor = true;
     }
 
-    var buffer = StringBuffer()
-      ..writeln("Error: $message")
-      ..write(span.highlightMultiple(primaryLabel, secondarySpans,
-          color: useColor,
-          primaryColor: primaryColor,
-          secondaryColor: secondaryColor));
+    var buffer = StringBuffer("Error: $message");
+
+    span
+        ?.highlightMultiple(primaryLabel, secondarySpans,
+            color: useColor,
+            primaryColor: primaryColor,
+            secondaryColor: secondaryColor)
+        .andThen(buffer.write);
 
     for (var frame in trace.toString().split("\n")) {
       if (frame.isEmpty) continue;
@@ -127,17 +129,21 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
     implements SassRuntimeException {
   final Trace trace;
 
-  MultiSpanSassRuntimeException(String message, FileSpan span,
-      String primaryLabel, Map<FileSpan, String> secondarySpans, this.trace)
+  MultiSpanSassRuntimeException(
+      String message,
+      FileSpan span,
+      String primaryLabel,
+      Map<FileSpan /*!*/, String> secondarySpans,
+      this.trace)
       : super(message, span, primaryLabel, secondarySpans);
 }
 
 /// An exception thrown when Sass parsing has failed.
 class SassFormatException extends SassException
     implements SourceSpanFormatException {
-  String get source => span.file.getText(0);
+  String get source => span?.file.getText(0);
 
-  int get offset => span.start.offset;
+  int get offset => span?.start.offset;
 
   SassFormatException(String message, FileSpan span) : super(message, span);
 }
@@ -165,8 +171,8 @@ class MultiSpanSassScriptException extends SassScriptException {
   /// See [MultiSourceSpanException.secondarySpans].
   final Map<FileSpan, String> secondarySpans;
 
-  MultiSpanSassScriptException(
-      String message, this.primaryLabel, Map<FileSpan, String> secondarySpans)
+  MultiSpanSassScriptException(String message, this.primaryLabel,
+      Map<FileSpan /*!*/, String> secondarySpans)
       : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message);
 }

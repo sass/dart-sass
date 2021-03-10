@@ -10,13 +10,13 @@ import '../supports_condition.dart';
 import 'parent.dart';
 
 /// A `@supports` rule.
-class SupportsRule extends ParentStatement {
+class SupportsRule extends ParentStatement<List<Statement> /*!*/ > {
   /// The condition that selects what browsers this rule targets.
   final SupportsCondition condition;
 
   final FileSpan span;
 
-  SupportsRule(this.condition, Iterable<Statement> children, this.span)
+  SupportsRule(this.condition, Iterable<Statement /*!*/ > children, this.span)
       : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this);

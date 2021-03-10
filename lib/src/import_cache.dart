@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 181b14d1635a824cb4387d7b5ce70bbf5a30c7df
+// Checksum: 1196dc4a7cad43b056f32e5e76aeff4362973276
 //
 // ignore_for_file: unused_import
 
@@ -38,10 +38,11 @@ class ImportCache {
   ///
   /// This cache isn't used for relative imports, because they're
   /// context-dependent.
-  final Map<Tuple2<Uri, bool>, Tuple3<Importer, Uri, Uri>> _canonicalizeCache;
+  final Map<Tuple2<Uri, bool>, Tuple3<Importer, Uri, Uri> /*?*/ >
+      _canonicalizeCache;
 
   /// The parsed stylesheets for each canonicalized import URL.
-  final Map<Uri, Stylesheet> _importCache;
+  final Map<Uri, Stylesheet /*?*/ > _importCache;
 
   /// The import results for each canonicalized import URL.
   final Map<Uri, ImporterResult> _resultsCache;
@@ -113,13 +114,14 @@ class ImportCache {
   Tuple3<Importer, Uri, Uri> canonicalize(Uri url,
       {Importer baseImporter, Uri baseUrl, bool forImport = false}) {
     if (baseImporter != null) {
-      var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
+      var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
       var canonicalUrl = _canonicalize(baseImporter, resolvedUrl, forImport);
       if (canonicalUrl != null) {
         return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
       }
     }
 
+    // TODO: no as
     return _canonicalizeCache.putIfAbsent(Tuple2(url, forImport), () {
       for (var importer in _importers) {
         var canonicalUrl = _canonicalize(importer, url, forImport);
@@ -178,6 +180,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Caches the result of the import and uses cached results if possible.
   Stylesheet importCanonical(Importer importer, Uri canonicalUrl,
       [Uri originalUrl]) {
+    // TODO: no as
     return _importCache.putIfAbsent(canonicalUrl, () {
       var result = importer.load(canonicalUrl);
       if (result == null) return null;
@@ -200,9 +203,11 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     // Display the URL with the shortest path length.
     var url = minBy(
         _canonicalizeCache.values
-            .where((tuple) => tuple?.item2 == canonicalUrl)
+            .whereNotNull()
+            .where((tuple) => tuple.item2 == canonicalUrl)
             .map((tuple) => tuple.item3),
-        (url) => url.path.length);
+        // TODO: no Uri
+        (Uri url) => url.path.length);
     if (url == null) return canonicalUrl;
 
     // Use the canonicalized basename so that we display e.g.

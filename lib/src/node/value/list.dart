@@ -17,7 +17,7 @@ class _NodeSassList {
 }
 
 /// Creates a new `sass.types.List` object wrapping [value].
-Object newNodeSassList(SassList value) =>
+Object /*!*/ newNodeSassList(SassList value) =>
     callConstructor(listConstructor, [null, null, value]);
 
 /// The JS constructor for the `sass.types.List` class.

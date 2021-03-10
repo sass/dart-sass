@@ -46,11 +46,13 @@ String resolveImportPath(String path) {
   var extension = p.extension(path);
   if (extension == '.sass' || extension == '.scss' || extension == '.css') {
     return _ifInImport(() => _exactlyOne(
+            // TODO: no !, as
             _tryPath('${p.withoutExtension(path)}.import$extension'))) ??
         _exactlyOne(_tryPath(path));
   }
 
   return _ifInImport(
+          // TODO: no !, as
           () => _exactlyOne(_tryPathWithExtensions('$path.import'))) ??
       _exactlyOne(_tryPathWithExtensions(path)) ??
       _tryPathAsDirectory(path);

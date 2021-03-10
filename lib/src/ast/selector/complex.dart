@@ -31,34 +31,33 @@ class ComplexSelector extends Selector {
   ///
   /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
   /// can have a range of possible specificities.
-  int get minSpecificity {
+  int /*!*/ get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
     return _minSpecificity;
   }
 
-  int _minSpecificity;
+  /*late final*/ int _minSpecificity;
 
   /// The maximum possible specificity that this selector can have.
   ///
   /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
   /// can have a range of possible specificities.
-  int get maxSpecificity {
+  int /*!*/ get maxSpecificity {
     if (_maxSpecificity == null) _computeSpecificity();
     return _maxSpecificity;
   }
 
-  int _maxSpecificity;
+  /*late final*/ int _maxSpecificity;
 
+  // TODO: make late
   bool get isInvisible {
-    if (_isInvisible != null) return _isInvisible;
-    _isInvisible = components.any(
+    return _isInvisible ??= components.any(
         (component) => component is CompoundSelector && component.isInvisible);
-    return _isInvisible;
   }
 
   bool _isInvisible;
 
-  ComplexSelector(Iterable<ComplexSelectorComponent> components,
+  ComplexSelector(Iterable<ComplexSelectorComponent /*!*/ > components,
       {this.lineBreak = false})
       : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {

@@ -7,8 +7,8 @@ import 'package:js/js.dart';
 @JS()
 @anonymous
 class NodeImporterResult {
-  external String get file;
-  external String get contents;
+  external String /*?*/ get file;
+  external String /*?*/ get contents;
 
   external factory NodeImporterResult({String file, String contents});
 }

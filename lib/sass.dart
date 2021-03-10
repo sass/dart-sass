@@ -16,6 +16,7 @@ import 'src/import_cache.dart';
 import 'src/importer.dart';
 import 'src/logger.dart';
 import 'src/syntax.dart';
+import 'src/util/nullable.dart';
 import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
@@ -93,7 +94,7 @@ String compile(String path,
     PackageConfig packageConfig,
     Iterable<Callable> functions,
     OutputStyle style,
-    void sourceMap(SingleMapping map),
+    void sourceMap(SingleMapping /*!*/ map),
     bool charset = true}) {
   logger ??= Logger.stderr(color: color);
   var result = c.compile(path,
@@ -107,7 +108,7 @@ String compile(String path,
       style: style,
       sourceMap: sourceMap != null,
       charset: charset);
-  if (sourceMap != null) sourceMap(result.sourceMap);
+  result.sourceMap.andThen(sourceMap);
   return result.css;
 }
 
@@ -185,7 +186,7 @@ String compileString(String source,
     OutputStyle style,
     Importer importer,
     Object url,
-    void sourceMap(SingleMapping map),
+    void sourceMap(SingleMapping /*!*/ map),
     bool charset = true,
     @Deprecated("Use syntax instead.") bool indented = false}) {
   logger ??= Logger.stderr(color: color);
@@ -203,7 +204,7 @@ String compileString(String source,
       url: url,
       sourceMap: sourceMap != null,
       charset: charset);
-  if (sourceMap != null) sourceMap(result.sourceMap);
+  result.sourceMap.andThen(sourceMap);
   return result.css;
 }
 
@@ -232,7 +233,7 @@ Future<String> compileAsync(String path,
       functions: functions,
       style: style,
       sourceMap: sourceMap != null);
-  if (sourceMap != null) sourceMap(result.sourceMap);
+  result.sourceMap.andThen(sourceMap);
   return result.css;
 }
 
@@ -270,6 +271,6 @@ Future<String> compileStringAsync(String source,
       url: url,
       sourceMap: sourceMap != null,
       charset: charset);
-  if (sourceMap != null) sourceMap(result.sourceMap);
+  result.sourceMap.andThen(sourceMap);
   return result.css;
 }

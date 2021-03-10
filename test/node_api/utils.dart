@@ -12,6 +12,7 @@ import 'package:node_interop/node_interop.dart';
 
 import 'package:sass/src/io.dart';
 import 'package:sass/src/node/function.dart';
+import 'package:sass/src/util/nullable.dart';
 
 import '../hybrid.dart';
 import 'api.dart';
@@ -19,15 +20,22 @@ import 'api.dart';
 @JS('process.env')
 external Object get _environment;
 
-String sandbox;
+String get sandbox {
+  var sandbox = _sandbox;
+  if (sandbox != null) return sandbox;
+  fail("useSandbox() must be called in any test file that uses the sandbox "
+      "field.");
+}
+
+String _sandbox;
 
 void useSandbox() {
   setUp(() async {
-    sandbox = await createTempDir();
+    _sandbox = await createTempDir();
   });
 
   tearDown(() async {
-    if (sandbox != null) await deleteDirectory(sandbox);
+    await _sandbox.andThen(deleteDirectory);
   });
 }
 

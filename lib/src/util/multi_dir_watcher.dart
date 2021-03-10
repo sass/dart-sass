@@ -16,7 +16,7 @@ class MultiDirWatcher {
   /// A map from paths to the event streams for those paths.
   ///
   /// No key in this map is a parent directories of any other key in this map.
-  final _watchers = <String, Stream<WatchEvent>>{};
+  final _watchers = p.PathMap<Stream<WatchEvent>>();
 
   /// The stream of events from all directories that are being watched.
   Stream<WatchEvent> get events => _group.stream;
@@ -37,7 +37,10 @@ class MultiDirWatcher {
   /// from [directory].
   Future<void> watch(String directory) {
     var isParentOfExistingDir = false;
-    for (var existingDir in _watchers.keys.toList()) {
+    for (var entry in _watchers.entries.toList()) {
+      var existingDir = entry.key /*!*/; // dart-lang/path#100
+      var existingWatcher = entry.value;
+
       if (!isParentOfExistingDir &&
           (p.equals(existingDir, directory) ||
               p.isWithin(existingDir, directory))) {
@@ -45,7 +48,8 @@ class MultiDirWatcher {
       }
 
       if (p.isWithin(directory, existingDir)) {
-        _group.remove(_watchers.remove(existingDir));
+        _watchers.remove(existingDir);
+        _group.remove(existingWatcher);
         isParentOfExistingDir = true;
       }
     }

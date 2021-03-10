@@ -16,7 +16,7 @@ class _NodeSassNumber {
 }
 
 /// Creates a new `sass.types.Number` object wrapping [value].
-Object newNodeSassNumber(SassNumber value) =>
+Object /*!*/ newNodeSassNumber(SassNumber value) =>
     callConstructor(numberConstructor, [null, null, value]);
 
 /// The JS constructor for the `sass.types.Number` class.

@@ -25,10 +25,10 @@ abstract class SassString extends Value {
   /// contain characters that aren't valid in identifiers, such as
   /// `url(http://example.com)`. Unfortunately, it also means that we don't
   /// consider `foo` and `f\6F\6F` the same string.
-  String get text;
+  String /*!*/ get text;
 
   /// Whether this string has quotes.
-  bool get hasQuotes;
+  bool /*!*/ get hasQuotes;
 
   /// Sass's notion of the length of this string.
   ///
@@ -41,16 +41,18 @@ abstract class SassString extends Value {
   ///
   /// This returns the same value as `text.runes.length`, but it's more
   /// efficient.
-  int get sassLength;
+  int /*!*/ get sassLength;
 
   /// Creates an empty string.
   ///
   /// The [quotes] argument defaults to `false`.
+  // TODO: no required
   factory SassString.empty({bool quotes}) = internal.SassString.empty;
 
   /// Creates a string with the given [text].
   ///
   /// The [quotes] argument defaults to `false`.
+  // TODO: no ?
   factory SassString(String text, {bool quotes}) = internal.SassString;
 
   /// Converts [sassIndex] into a Dart-style index into [text].

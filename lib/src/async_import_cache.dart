@@ -31,11 +31,11 @@ class AsyncImportCache {
   ///
   /// This cache isn't used for relative imports, because they're
   /// context-dependent.
-  final Map<Tuple2<Uri, bool>, Tuple3<AsyncImporter, Uri, Uri>>
+  final Map<Tuple2<Uri, bool>, Tuple3<AsyncImporter, Uri, Uri> /*?*/ >
       _canonicalizeCache;
 
   /// The parsed stylesheets for each canonicalized import URL.
-  final Map<Uri, Stylesheet> _importCache;
+  final Map<Uri, Stylesheet /*?*/ > _importCache;
 
   /// The import results for each canonicalized import URL.
   final Map<Uri, ImporterResult> _resultsCache;
@@ -107,7 +107,7 @@ class AsyncImportCache {
   Future<Tuple3<AsyncImporter, Uri, Uri>> canonicalize(Uri url,
       {AsyncImporter baseImporter, Uri baseUrl, bool forImport = false}) async {
     if (baseImporter != null) {
-      var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
+      var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
       var canonicalUrl =
           await _canonicalize(baseImporter, resolvedUrl, forImport);
       if (canonicalUrl != null) {
@@ -115,6 +115,7 @@ class AsyncImportCache {
       }
     }
 
+    // TODO: no as
     return await putIfAbsentAsync(_canonicalizeCache, Tuple2(url, forImport),
         () async {
       for (var importer in _importers) {
@@ -176,6 +177,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Caches the result of the import and uses cached results if possible.
   Future<Stylesheet> importCanonical(AsyncImporter importer, Uri canonicalUrl,
       [Uri originalUrl]) async {
+    // TODO: no as
     return await putIfAbsentAsync(_importCache, canonicalUrl, () async {
       var result = await importer.load(canonicalUrl);
       if (result == null) return null;
@@ -198,9 +200,11 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     // Display the URL with the shortest path length.
     var url = minBy(
         _canonicalizeCache.values
-            .where((tuple) => tuple?.item2 == canonicalUrl)
+            .whereNotNull()
+            .where((tuple) => tuple.item2 == canonicalUrl)
             .map((tuple) => tuple.item3),
-        (url) => url.path.length);
+        // TODO: no Uri
+        (Uri url) => url.path.length);
     if (url == null) return canonicalUrl;
 
     // Use the canonicalized basename so that we display e.g.

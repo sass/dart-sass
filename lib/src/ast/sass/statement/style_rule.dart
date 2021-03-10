@@ -12,7 +12,7 @@ import 'parent.dart';
 /// A style rule.
 ///
 /// This applies style declarations to elements that match a given selector.
-class StyleRule extends ParentStatement {
+class StyleRule extends ParentStatement<List<Statement> /*!*/ > {
   /// The selector to which the declaration will be applied.
   ///
   /// This is only parsed after the interpolation has been resolved.
@@ -20,7 +20,7 @@ class StyleRule extends ParentStatement {
 
   final FileSpan span;
 
-  StyleRule(this.selector, Iterable<Statement> children, this.span)
+  StyleRule(this.selector, Iterable<Statement /*!*/ > children, this.span)
       : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this);

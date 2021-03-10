@@ -12,6 +12,8 @@ import 'package:sass/sass.dart';
 
 import 'test_importer.dart';
 
+// TODO: no required
+
 void main() {
   group("with @warn", () {
     test("passes the message and stack trace to the logger", () {
@@ -229,8 +231,8 @@ void main() {
 
 /// A [Logger] whose [warn] and [debug] methods are provided by callbacks.
 class _TestLogger implements Logger {
-  final void Function(String, {FileSpan span, Trace trace, bool deprecation})
-      _warn;
+  final void Function(String,
+      {FileSpan span, Trace trace, bool /*!*/ deprecation}) _warn;
   final void Function(String, SourceSpan) _debug;
 
   _TestLogger.withWarn(this._warn) : _debug = const Logger.stderr().debug;

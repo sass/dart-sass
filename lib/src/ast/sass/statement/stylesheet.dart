@@ -23,8 +23,8 @@ import 'variable_declaration.dart';
 /// A Sass stylesheet.
 ///
 /// This is the root Sass node. It contains top-level statements.
-class Stylesheet extends ParentStatement {
-  final FileSpan span;
+class Stylesheet extends ParentStatement<List<Statement> /*!*/ > {
+  final FileSpan /*?*/ span;
 
   /// Whether this was parsed from a plain CSS stylesheet.
   final bool plainCss;
@@ -37,7 +37,8 @@ class Stylesheet extends ParentStatement {
   List<ForwardRule> get forwards => UnmodifiableListView(_forwards);
   final _forwards = <ForwardRule>[];
 
-  Stylesheet(Iterable<Statement> children, this.span, {this.plainCss = false})
+  Stylesheet(Iterable<Statement /*!*/ > children, this.span,
+      {this.plainCss = false})
       : super(List.unmodifiable(children)) {
     for (var child in this.children) {
       if (child is UseRule) {
@@ -57,7 +58,7 @@ class Stylesheet extends ParentStatement {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parse(String contents, Syntax syntax,
+  factory Stylesheet.parse(String /*!*/ contents, Syntax syntax,
       {Object url, Logger logger}) {
     switch (syntax) {
       case Syntax.sass:
