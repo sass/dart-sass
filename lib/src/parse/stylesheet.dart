@@ -595,8 +595,8 @@ abstract class StylesheetParser extends Parser {
     whitespace();
 
     // We want to set [_isUseAllowed] to `false` *unless* we're parsing
-    // `@charset`, `@forward`, or `@use`. To avoid double-comparing the rule
-    // name, we always set it to `false` and then set it back to its previous
+    // `@charset`, `@forward`, `@use`, or `@debug`. To avoid double-comparing the
+    // rule name, we always set it to `false` and then set it back to its previous
     // value if we're parsing an allowed rule.
     var wasUseAllowed = _isUseAllowed;
     _isUseAllowed = false;
@@ -612,6 +612,7 @@ abstract class StylesheetParser extends Parser {
       case "content":
         return _contentRule(start);
       case "debug":
+        _isUseAllowed = wasUseAllowed;
         return _debugRule(start);
       case "each":
         return _eachRule(start, child);
