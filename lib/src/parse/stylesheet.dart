@@ -373,7 +373,7 @@ abstract class StylesheetParser extends Parser {
     if (name.initialPlain.startsWith('--')) {
       var value = StringExpression(_interpolatedDeclarationValue());
       expectStatementSeparator("custom property");
-      return Declaration(name, scanner.spanFrom(start), value: value);
+      return Declaration(name, value, scanner.spanFrom(start));
     }
 
     if (scanner.scanChar($colon)) {
@@ -389,7 +389,7 @@ abstract class StylesheetParser extends Parser {
     var postColonWhitespace = rawText(whitespace);
     if (lookingAtChildren()) {
       return _withChildren(_declarationChild, start,
-          (children, span) => Declaration(name, span, children: children));
+          (children, span) => Declaration.nested(name, children, span));
     }
 
     midBuffer.write(postColonWhitespace);
@@ -433,10 +433,10 @@ abstract class StylesheetParser extends Parser {
           _declarationChild,
           start,
           (children, span) =>
-              Declaration(name, span, value: value, children: children));
+              Declaration.nested(name, children, span, value: value));
     } else {
       expectStatementSeparator();
-      return Declaration(name, scanner.spanFrom(start), value: value);
+      return Declaration(name, value, scanner.spanFrom(start));
     }
   }
 
@@ -539,7 +539,7 @@ abstract class StylesheetParser extends Parser {
     if (parseCustomProperties && name.initialPlain.startsWith('--')) {
       var value = StringExpression(_interpolatedDeclarationValue());
       expectStatementSeparator("custom property");
-      return Declaration(name, scanner.spanFrom(start), value: value);
+      return Declaration(name, value, scanner.spanFrom(start));
     }
 
     whitespace();
@@ -549,7 +549,7 @@ abstract class StylesheetParser extends Parser {
         scanner.error("Nested declarations aren't allowed in plain CSS.");
       }
       return _withChildren(_declarationChild, start,
-          (children, span) => Declaration(name, span, children: children));
+          (children, span) => Declaration.nested(name, children, span));
     }
 
     var value = expression();
@@ -561,10 +561,10 @@ abstract class StylesheetParser extends Parser {
           _declarationChild,
           start,
           (children, span) =>
-              Declaration(name, span, value: value, children: children));
+              Declaration.nested(name, children, span, value: value));
     } else {
       expectStatementSeparator();
-      return Declaration(name, scanner.spanFrom(start), value: value);
+      return Declaration(name, value, scanner.spanFrom(start));
     }
   }
 

@@ -17,6 +17,9 @@ class Declaration extends ParentStatement {
   final Interpolation name;
 
   /// The value of this declaration.
+  ///
+  /// If [children] is `null`, this is never `null`. Otherwise, it may or may
+  /// not be `null`.
   final Expression value;
 
   final FileSpan span;
@@ -30,13 +33,25 @@ class Declaration extends ParentStatement {
   /// If this is `true`, then `value` will be a [StringExpression].
   bool get isCustomProperty => name.initialPlain.startsWith('--');
 
-  Declaration(this.name, this.span, {this.value, Iterable<Statement> children})
-      : super(
-            children = children == null ? null : List.unmodifiable(children)) {
+  Declaration(this.name, Expression /*!*/ value, this.span)
+      : value = value,
+        super(null) {
     if (isCustomProperty && value is! StringExpression) {
       throw ArgumentError(
           'Declarations whose names begin with "--" must have StringExpression '
           'values (was `$value` of type ${value.runtimeType}).');
+    }
+  }
+
+  /// Creates a declaration with children.
+  ///
+  /// For these declaraions, a value is optional.
+  Declaration.nested(this.name, Iterable<Statement /*!*/ > children, this.span,
+      {this.value})
+      : super(List.unmodifiable(children)) {
+    if (isCustomProperty && value is! StringExpression) {
+      throw ArgumentError(
+          'Declarations whose names begin with "--" may not be nested.');
     }
   }
 
