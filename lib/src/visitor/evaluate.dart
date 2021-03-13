@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 919e6c70df46bb19149017bea4bac888da37c388
+// Checksum: e129cd22922df1f120a08d5a4ef022f6648ba0dd
 //
 // ignore_for_file: unused_import
 
@@ -164,7 +164,10 @@ class _EvaluateVisitor
   Environment _environment;
 
   /// The style rule that defines the current parent selector, if any.
-  ModifiableCssStyleRule _styleRule;
+  ///
+  /// This doesn't take into consideration any intermediate `@at-root` rules. In
+  /// the common case where those rules are relevant, use [_styleRule] instead.
+  ModifiableCssStyleRule _styleRuleIgnoringAtRoot;
 
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
@@ -197,8 +200,8 @@ class _EvaluateVisitor
   /// Whether we're currently building the output of an unknown at rule.
   var _inUnknownAtRule = false;
 
-  /// Whether we're currently building the output of a style rule.
-  bool get _inStyleRule => _styleRule != null && !_atRootExcludingStyleRule;
+  ModifiableCssStyleRule get _styleRule =>
+      _atRootExcludingStyleRule ? null : _styleRuleIgnoringAtRoot;
 
   /// Whether we're directly within an `@at-root` rule that excludes style
   /// rules.
@@ -667,7 +670,7 @@ class _EvaluateVisitor
       _endOfImports = 0;
       _outOfOrderImports = null;
       _extender = extender;
-      _styleRule = null;
+      _styleRuleIgnoringAtRoot = null;
       _mediaQueries = null;
       _declarationName = null;
       _inUnknownAtRule = false;
@@ -687,7 +690,7 @@ class _EvaluateVisitor
       _endOfImports = oldEndOfImports;
       _outOfOrderImports = oldOutOfOrderImports;
       _extender = oldExtender;
-      _styleRule = oldStyleRule;
+      _styleRuleIgnoringAtRoot = oldStyleRule;
       _mediaQueries = oldMediaQueries;
       _declarationName = oldDeclarationName;
       _inUnknownAtRule = oldInUnknownAtRule;
@@ -1023,7 +1026,7 @@ class _EvaluateVisitor
   }
 
   Value visitDeclaration(Declaration node) {
-    if (!_inStyleRule && !_inUnknownAtRule && !_inKeyframes) {
+    if (_styleRule == null && !_inUnknownAtRule && !_inKeyframes) {
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
@@ -1102,7 +1105,8 @@ class _EvaluateVisitor
   }
 
   Value visitExtendRule(ExtendRule node) {
-    if (!_inStyleRule || _declarationName != null) {
+    var styleRule = _styleRule;
+    if (styleRule == null || _declarationName != null) {
       throw _exception(
           "@extend may only be used within style rules.", node.span);
     }
@@ -1135,7 +1139,7 @@ class _EvaluateVisitor
       }
 
       _extender.addExtension(
-          _styleRule.selector, compound.components.first, node, _mediaQueries);
+          styleRule.selector, compound.components.first, node, _mediaQueries);
     }
 
     return null;
@@ -1171,7 +1175,8 @@ class _EvaluateVisitor
     }
 
     _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
-      if (!_inStyleRule || _inKeyframes) {
+      var styleRule = _styleRule;
+      if (styleRule == null || _inKeyframes) {
         for (var child in node.children) {
           child.accept(this);
         }
@@ -1180,7 +1185,7 @@ class _EvaluateVisitor
         // declarations immediately inside it have somewhere to go.
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
-        _withParent(_styleRule.copyWithoutChildren(), () {
+        _withParent(styleRule.copyWithoutChildren(), () {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -1623,7 +1628,8 @@ class _EvaluateVisitor
     _withParent(ModifiableCssMediaRule(mergedQueries ?? queries, node.span),
         () {
       _withMediaQueries(mergedQueries ?? queries, () {
-        if (!_inStyleRule) {
+        var styleRule = _styleRule;
+        if (styleRule == null) {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -1633,7 +1639,7 @@ class _EvaluateVisitor
           //
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
-          _withParent(_styleRule.copyWithoutChildren(), () {
+          _withParent(styleRule.copyWithoutChildren(), () {
             for (var child in node.children) {
               child.accept(this);
             }
@@ -1724,7 +1730,7 @@ class _EvaluateVisitor
     parsedSelector = _addExceptionSpan(
         node.selector,
         () => parsedSelector.resolveParentSelectors(
-            _styleRule?.originalSelector,
+            _styleRuleIgnoringAtRoot?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
     var selector = _extender.addSelector(
@@ -1744,7 +1750,7 @@ class _EvaluateVisitor
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    if (!_inStyleRule && _parent.children.isNotEmpty) {
+    if (_styleRule == null && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
       lastChild.isGroupEnd = true;
     }
@@ -1765,7 +1771,8 @@ class _EvaluateVisitor
     var condition =
         CssValue(_visitSupportsCondition(node.condition), node.condition.span);
     _withParent(ModifiableCssSupportsRule(condition, node.span), () {
-      if (!_inStyleRule) {
+      var styleRule = _styleRule;
+      if (styleRule == null) {
         for (var child in node.children) {
           child.accept(this);
         }
@@ -1775,7 +1782,7 @@ class _EvaluateVisitor
         //
         // For example, "a {@supports (a: b) {b: c}}" should produce "@supports
         // (a: b) {a {b: c}}".
-        _withParent(_styleRule.copyWithoutChildren(), () {
+        _withParent(styleRule.copyWithoutChildren(), () {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -2470,8 +2477,8 @@ class _EvaluateVisitor
           nodeWithSpan, () => arguments.verify(positional, MapKeySet(named)));
 
   Value visitSelectorExpression(SelectorExpression node) {
-    if (_styleRule == null) return sassNull;
-    return _styleRule.originalSelector.asSassList;
+    if (_styleRuleIgnoringAtRoot == null) return sassNull;
+    return _styleRuleIgnoringAtRoot.originalSelector.asSassList;
   }
 
   SassString visitStringExpression(StringExpression node) {
@@ -2601,7 +2608,8 @@ class _EvaluateVisitor
     _withParent(
         ModifiableCssMediaRule(mergedQueries ?? node.queries, node.span), () {
       _withMediaQueries(mergedQueries ?? node.queries, () {
-        if (!_inStyleRule) {
+        var styleRule = _styleRule;
+        if (styleRule == null) {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -2611,7 +2619,7 @@ class _EvaluateVisitor
           //
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
-          _withParent(_styleRule.copyWithoutChildren(), () {
+          _withParent(styleRule.copyWithoutChildren(), () {
             for (var child in node.children) {
               child.accept(this);
             }
@@ -2634,8 +2642,9 @@ class _EvaluateVisitor
           "Style rules may not be used within nested declarations.", node.span);
     }
 
+    var styleRule = _styleRule;
     var originalSelector = node.selector.value.resolveParentSelectors(
-        _styleRule?.originalSelector,
+        styleRule?.originalSelector,
         implicitParent: !_atRootExcludingStyleRule);
     var selector = _extender.addSelector(
         originalSelector, node.selector.span, _mediaQueries);
@@ -2652,7 +2661,7 @@ class _EvaluateVisitor
     }, through: (node) => node is CssStyleRule, scopeWhen: false);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    if (!_inStyleRule && _parent.children.isNotEmpty) {
+    if (styleRule == null && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
       lastChild.isGroupEnd = true;
     }
@@ -2675,7 +2684,8 @@ class _EvaluateVisitor
     }
 
     _withParent(ModifiableCssSupportsRule(node.condition, node.span), () {
-      if (!_inStyleRule) {
+      var styleRule = _styleRule;
+      if (styleRule == null) {
         for (var child in node.children) {
           child.accept(this);
         }
@@ -2685,7 +2695,7 @@ class _EvaluateVisitor
         //
         // For example, "a {@supports (a: b) {b: c}}" should produce "@supports
         // (a: b) {a {b: c}}".
-        _withParent(_styleRule.copyWithoutChildren(), () {
+        _withParent(styleRule.copyWithoutChildren(), () {
           for (var child in node.children) {
             child.accept(this);
           }
@@ -2847,10 +2857,10 @@ class _EvaluateVisitor
 
   /// Runs [callback] with [rule] as the current style rule.
   T _withStyleRule<T>(ModifiableCssStyleRule rule, T callback()) {
-    var oldRule = _styleRule;
-    _styleRule = rule;
+    var oldRule = _styleRuleIgnoringAtRoot;
+    _styleRuleIgnoringAtRoot = rule;
     var result = callback();
-    _styleRule = oldRule;
+    _styleRuleIgnoringAtRoot = oldRule;
     return result;
   }
 

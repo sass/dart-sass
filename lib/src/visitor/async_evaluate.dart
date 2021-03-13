@@ -156,7 +156,10 @@ class _EvaluateVisitor
   AsyncEnvironment _environment;
 
   /// The style rule that defines the current parent selector, if any.
-  ModifiableCssStyleRule _styleRule;
+  ///
+  /// This doesn't take into consideration any intermediate `@at-root` rules. In
+  /// the common case where those rules are relevant, use [_styleRule] instead.
+  ModifiableCssStyleRule _styleRuleIgnoringAtRoot;
 
   /// The current media queries, if any.
   List<CssMediaQuery> _mediaQueries;
@@ -189,8 +192,8 @@ class _EvaluateVisitor
   /// Whether we're currently building the output of an unknown at rule.
   var _inUnknownAtRule = false;
 
-  /// Whether we're currently building the output of a style rule.
-  bool get _inStyleRule => _styleRule != null && !_atRootExcludingStyleRule;
+  ModifiableCssStyleRule get _styleRule =>
+      _atRootExcludingStyleRule ? null : _styleRuleIgnoringAtRoot;
 
   /// Whether we're directly within an `@at-root` rule that excludes style
   /// rules.
@@ -664,7 +667,7 @@ class _EvaluateVisitor
       _endOfImports = 0;
       _outOfOrderImports = null;
       _extender = extender;
-      _styleRule = null;
+      _styleRuleIgnoringAtRoot = null;
       _mediaQueries = null;
       _declarationName = null;
       _inUnknownAtRule = false;
@@ -684,7 +687,7 @@ class _EvaluateVisitor
       _endOfImports = oldEndOfImports;
       _outOfOrderImports = oldOutOfOrderImports;
       _extender = oldExtender;
-      _styleRule = oldStyleRule;
+      _styleRuleIgnoringAtRoot = oldStyleRule;
       _mediaQueries = oldMediaQueries;
       _declarationName = oldDeclarationName;
       _inUnknownAtRule = oldInUnknownAtRule;
@@ -1021,7 +1024,7 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitDeclaration(Declaration node) async {
-    if (!_inStyleRule && !_inUnknownAtRule && !_inKeyframes) {
+    if (_styleRule == null && !_inUnknownAtRule && !_inKeyframes) {
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
@@ -1101,7 +1104,8 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitExtendRule(ExtendRule node) async {
-    if (!_inStyleRule || _declarationName != null) {
+    var styleRule = _styleRule;
+    if (styleRule == null || _declarationName != null) {
       throw _exception(
           "@extend may only be used within style rules.", node.span);
     }
@@ -1135,7 +1139,7 @@ class _EvaluateVisitor
       }
 
       _extender.addExtension(
-          _styleRule.selector, compound.components.first, node, _mediaQueries);
+          styleRule.selector, compound.components.first, node, _mediaQueries);
     }
 
     return null;
@@ -1173,7 +1177,8 @@ class _EvaluateVisitor
 
     await _withParent(ModifiableCssAtRule(name, node.span, value: value),
         () async {
-      if (!_inStyleRule || _inKeyframes) {
+      var styleRule = _styleRule;
+      if (styleRule == null || _inKeyframes) {
         for (var child in node.children) {
           await child.accept(this);
         }
@@ -1182,7 +1187,7 @@ class _EvaluateVisitor
         // declarations immediately inside it have somewhere to go.
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
-        await _withParent(_styleRule.copyWithoutChildren(), () async {
+        await _withParent(styleRule.copyWithoutChildren(), () async {
           for (var child in node.children) {
             await child.accept(this);
           }
@@ -1628,7 +1633,8 @@ class _EvaluateVisitor
     await _withParent(
         ModifiableCssMediaRule(mergedQueries ?? queries, node.span), () async {
       await _withMediaQueries(mergedQueries ?? queries, () async {
-        if (!_inStyleRule) {
+        var styleRule = _styleRule;
+        if (styleRule == null) {
           for (var child in node.children) {
             await child.accept(this);
           }
@@ -1638,7 +1644,7 @@ class _EvaluateVisitor
           //
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
-          await _withParent(_styleRule.copyWithoutChildren(), () async {
+          await _withParent(styleRule.copyWithoutChildren(), () async {
             for (var child in node.children) {
               await child.accept(this);
             }
@@ -1732,7 +1738,7 @@ class _EvaluateVisitor
     parsedSelector = _addExceptionSpan(
         node.selector,
         () => parsedSelector.resolveParentSelectors(
-            _styleRule?.originalSelector,
+            _styleRuleIgnoringAtRoot?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
     var selector = _extender.addSelector(
@@ -1752,7 +1758,7 @@ class _EvaluateVisitor
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    if (!_inStyleRule && _parent.children.isNotEmpty) {
+    if (_styleRule == null && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
       lastChild.isGroupEnd = true;
     }
@@ -1774,7 +1780,8 @@ class _EvaluateVisitor
         await _visitSupportsCondition(node.condition), node.condition.span);
     await _withParent(ModifiableCssSupportsRule(condition, node.span),
         () async {
-      if (!_inStyleRule) {
+      var styleRule = _styleRule;
+      if (styleRule == null) {
         for (var child in node.children) {
           await child.accept(this);
         }
@@ -1784,7 +1791,7 @@ class _EvaluateVisitor
         //
         // For example, "a {@supports (a: b) {b: c}}" should produce "@supports
         // (a: b) {a {b: c}}".
-        await _withParent(_styleRule.copyWithoutChildren(), () async {
+        await _withParent(styleRule.copyWithoutChildren(), () async {
           for (var child in node.children) {
             await child.accept(this);
           }
@@ -2487,8 +2494,8 @@ class _EvaluateVisitor
           nodeWithSpan, () => arguments.verify(positional, MapKeySet(named)));
 
   Future<Value> visitSelectorExpression(SelectorExpression node) async {
-    if (_styleRule == null) return sassNull;
-    return _styleRule.originalSelector.asSassList;
+    if (_styleRuleIgnoringAtRoot == null) return sassNull;
+    return _styleRuleIgnoringAtRoot.originalSelector.asSassList;
   }
 
   Future<SassString> visitStringExpression(StringExpression node) async {
@@ -2620,7 +2627,8 @@ class _EvaluateVisitor
         ModifiableCssMediaRule(mergedQueries ?? node.queries, node.span),
         () async {
       await _withMediaQueries(mergedQueries ?? node.queries, () async {
-        if (!_inStyleRule) {
+        var styleRule = _styleRule;
+        if (styleRule == null) {
           for (var child in node.children) {
             await child.accept(this);
           }
@@ -2630,7 +2638,7 @@ class _EvaluateVisitor
           //
           // For example, "a {@media screen {b: c}}" should produce
           // "@media screen {a {b: c}}".
-          await _withParent(_styleRule.copyWithoutChildren(), () async {
+          await _withParent(styleRule.copyWithoutChildren(), () async {
             for (var child in node.children) {
               await child.accept(this);
             }
@@ -2653,8 +2661,9 @@ class _EvaluateVisitor
           "Style rules may not be used within nested declarations.", node.span);
     }
 
+    var styleRule = _styleRule;
     var originalSelector = node.selector.value.resolveParentSelectors(
-        _styleRule?.originalSelector,
+        styleRule?.originalSelector,
         implicitParent: !_atRootExcludingStyleRule);
     var selector = _extender.addSelector(
         originalSelector, node.selector.span, _mediaQueries);
@@ -2671,7 +2680,7 @@ class _EvaluateVisitor
     }, through: (node) => node is CssStyleRule, scopeWhen: false);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    if (!_inStyleRule && _parent.children.isNotEmpty) {
+    if (styleRule == null && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
       lastChild.isGroupEnd = true;
     }
@@ -2695,7 +2704,8 @@ class _EvaluateVisitor
 
     await _withParent(ModifiableCssSupportsRule(node.condition, node.span),
         () async {
-      if (!_inStyleRule) {
+      var styleRule = _styleRule;
+      if (styleRule == null) {
         for (var child in node.children) {
           await child.accept(this);
         }
@@ -2705,7 +2715,7 @@ class _EvaluateVisitor
         //
         // For example, "a {@supports (a: b) {b: c}}" should produce "@supports
         // (a: b) {a {b: c}}".
-        await _withParent(_styleRule.copyWithoutChildren(), () async {
+        await _withParent(styleRule.copyWithoutChildren(), () async {
           for (var child in node.children) {
             await child.accept(this);
           }
@@ -2873,10 +2883,10 @@ class _EvaluateVisitor
   /// Runs [callback] with [rule] as the current style rule.
   Future<T> _withStyleRule<T>(
       ModifiableCssStyleRule rule, Future<T> callback()) async {
-    var oldRule = _styleRule;
-    _styleRule = rule;
+    var oldRule = _styleRuleIgnoringAtRoot;
+    _styleRuleIgnoringAtRoot = rule;
     var result = await callback();
-    _styleRule = oldRule;
+    _styleRuleIgnoringAtRoot = oldRule;
     return result;
   }
 
