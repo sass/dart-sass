@@ -466,7 +466,7 @@ bool _mustUnify(List<ComplexSelectorComponent> complex1,
 bool _isUnique(SimpleSelector simple) =>
     simple is IDSelector || (simple is PseudoSelector && simple.isElement);
 
-/// Returns all orderings of initial subseqeuences of [queue1] and [queue2].
+/// Returns all orderings of initial subsequences of [queue1] and [queue2].
 ///
 /// The [done] callback is used to determine the extent of the initial
 /// subsequences. It's called with each queue until it returns `true`.

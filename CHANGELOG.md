@@ -568,7 +568,7 @@
 
   * Recognize `::slotted()` as a superselector of other `::slotted()` selectors.
 
-  * Regonize `:current()` with a vendor prefix as a superselector.
+  * Recognize `:current()` with a vendor prefix as a superselector.
 
 ## 1.22.10
 

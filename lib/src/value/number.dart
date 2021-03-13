@@ -285,7 +285,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
 
   /// Converts [value] to [newNumerators] and [newDenominators].
   ///
-  /// If [coerceUnitless] is `true`, this considers unitless numbers convertable
+  /// If [coerceUnitless] is `true`, this considers unitless numbers convertible
   /// to and from any unit. Otherwise, it will throw a [SassScriptException] for
   /// such a conversion.
   ///
@@ -557,14 +557,14 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   /// unit in [units2].
   bool _areAnyConvertible(List<String> units1, List<String> units2) {
     return units1.any((unit1) {
-      if (!_isConvertable(unit1)) return units2.contains(unit1);
+      if (!_isConvertible(unit1)) return units2.contains(unit1);
       var innerMap = _conversions[unit1];
       return units2.any(innerMap.containsKey);
     });
   }
 
   /// Returns whether [unit] can be converted to or from any other units.
-  bool _isConvertable(String unit) => _conversions.containsKey(unit);
+  bool _isConvertible(String unit) => _conversions.containsKey(unit);
 
   /// Returns the number of [unit1]s per [unit2].
   ///

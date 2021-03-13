@@ -377,7 +377,7 @@ class Extender {
             error.span);
       }
 
-      // If no extends actually happenedit (for example becaues unification
+      // If no extends actually happened (for example because unification
       // failed), we don't need to re-register the selector.
       if (identical(oldValue, selector.value)) continue;
       _registerSelector(selector.value, selector);

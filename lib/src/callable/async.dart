@@ -14,7 +14,7 @@ import 'async_built_in.dart';
 /// passing in arguments.
 ///
 /// This class represents callables that *need* to do asynchronous work. It's
-/// only compatible with the asynchonous `compile()` methods. If a callback can
+/// only compatible with the asynchronous `compile()` methods. If a callback can
 /// work synchronously, it should be a [Callable] instead.
 ///
 /// See [Callable] for more details.

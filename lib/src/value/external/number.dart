@@ -105,7 +105,7 @@ abstract class SassNumber extends Value {
   ///
   /// Unlike [convertToMatch], this does *not* throw an error if this number is
   /// unitless and [other] is not, or vice versa. Instead, it treats all
-  /// unitless numbers as convertable to and from all units without changing the
+  /// unitless numbers as convertible to and from all units without changing the
   /// value.
   ///
   /// Note that [coerceValueToMatch] is generally more efficient if the value is
@@ -123,7 +123,7 @@ abstract class SassNumber extends Value {
   ///
   /// Unlike [convertValueToMatch], this does *not* throw an error if this
   /// number is unitless and [other] is not, or vice versa. Instead, it treats
-  /// all unitless numbers as convertable to and from all units without changing
+  /// all unitless numbers as convertible to and from all units without changing
   /// the value.
   ///
   /// Throws a [SassScriptException] if this number's units aren't compatible
@@ -164,7 +164,7 @@ abstract class SassNumber extends Value {
   ///
   /// This does *not* throw an error if this number is unitless and
   /// [newNumerators]/[newDenominators] are not empty, or vice versa. Instead,
-  /// it treats all unitless numbers as convertable to and from all units
+  /// it treats all unitless numbers as convertible to and from all units
   /// without changing the value.
   ///
   /// Note that [coerceValue] is generally more efficient if the value is going
@@ -183,7 +183,7 @@ abstract class SassNumber extends Value {
   ///
   /// This does *not* throw an error if this number is unitless and
   /// [newNumerators]/[newDenominators] are not empty, or vice versa. Instead,
-  /// it treats all unitless numbers as convertable to and from all units
+  /// it treats all unitless numbers as convertible to and from all units
   /// without changing the value.
   ///
   /// Throws a [SassScriptException] if this number's units aren't compatible

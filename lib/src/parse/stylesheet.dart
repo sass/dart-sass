@@ -88,7 +88,7 @@ abstract class StylesheetParser extends Parser {
       var statements = this.statements(() => _statement(root: true));
       scanner.expectDone();
 
-      /// Ensure that all gloal variable assignments produce a variable in this
+      /// Ensure that all global variable assignments produce a variable in this
       /// stylesheet, even if they aren't evaluated. See sass/language#50.
       statements.addAll(_globalVariables.values.map((declaration) =>
           VariableDeclaration(declaration.name,
@@ -1259,11 +1259,11 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a `@moz-document` rule.
   ///
-  /// Gecko's `@-moz-document` diverges from [the specificiation][] allows the
+  /// Gecko's `@-moz-document` diverges from [the specification][] allows the
   /// `url-prefix` and `domain` functions to omit quotation marks, contrary to
   /// the standard.
   ///
-  /// [the specificiation]: http://www.w3.org/TR/css3-conditional/
+  /// [the specification]: http://www.w3.org/TR/css3-conditional/
   @protected
   AtRule mozDocumentRule(LineScannerState start, Interpolation name) {
     var valueStart = scanner.state;
@@ -2345,7 +2345,7 @@ relase. For details, see http://bit.ly/moz-document.
     return UnaryOperationExpression(operator, operand, scanner.spanFrom(start));
   }
 
-  /// Returns the unsary operator corresponding to [character], or `null` if
+  /// Returns the unary operator corresponding to [character], or `null` if
   /// the character is not a unary operator.
   UnaryOperator _unaryOperatorFor(int character) {
     switch (character) {

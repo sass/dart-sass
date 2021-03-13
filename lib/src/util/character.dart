@@ -42,7 +42,7 @@ bool isNameStart(int character) =>
 bool isName(int character) =>
     isNameStart(character) || isDigit(character) || character == $minus;
 
-/// Returns whether [character] is a hexadeicmal digit.
+/// Returns whether [character] is a hexadecimal digit.
 bool isHex(int character) {
   if (character == null) return false;
   if (isDigit(character)) return true;

@@ -13,7 +13,7 @@ import '../style_rule.dart';
 ///
 /// Almost all CSS nodes are the modifiable classes under the covers. However,
 /// modification should only be done within the evaluation step, so the
-/// unmodifiable types are used elsewhere to enfore that constraint.
+/// unmodifiable types are used elsewhere to enforce that constraint.
 abstract class ModifiableCssNode extends CssNode {
   /// The node that contains this, or `null` for the root [CssStylesheet] node.
   ModifiableCssParentNode get parent => _parent;

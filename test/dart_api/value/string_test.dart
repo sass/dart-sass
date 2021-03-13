@@ -142,7 +142,7 @@ void main() {
     });
   });
 
-  group("an unquoted Unicde", () {
+  group("an unquoted Unicode", () {
     SassString value;
     setUp(() => value = parseValue("a👭b👬c") as SassString);
 
