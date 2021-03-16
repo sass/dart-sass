@@ -57,8 +57,11 @@ class AsyncImportCache {
   ///   this is a shorthand for adding a [PackageImporter] to [importers].
   ///
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
-  AsyncImportCache(Iterable<AsyncImporter> importers,
-      {Iterable<String> loadPaths, PackageConfig packageConfig, Logger logger})
+  AsyncImportCache(
+      {Iterable<AsyncImporter> importers,
+      Iterable<String> loadPaths,
+      PackageConfig packageConfig,
+      Logger logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
         _logger = logger ?? const Logger.stderr(),
         _canonicalizeCache = {},

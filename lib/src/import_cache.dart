@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6cda9ea7b0ce46a5194d5179843daa83c16dfc05
+// Checksum: 181b14d1635a824cb4387d7b5ce70bbf5a30c7df
 //
 // ignore_for_file: unused_import
 
@@ -63,8 +63,11 @@ class ImportCache {
   ///   this is a shorthand for adding a [PackageImporter] to [importers].
   ///
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
-  ImportCache(Iterable<Importer> importers,
-      {Iterable<String> loadPaths, PackageConfig packageConfig, Logger logger})
+  ImportCache(
+      {Iterable<Importer> importers,
+      Iterable<String> loadPaths,
+      PackageConfig packageConfig,
+      Logger logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
         _logger = logger ?? const Logger.stderr(),
         _canonicalizeCache = {},

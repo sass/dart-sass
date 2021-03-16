@@ -52,7 +52,7 @@ Future<void> main(List<String> args) async {
     }
 
     var graph = StylesheetGraph(
-        ImportCache([], loadPaths: options.loadPaths, logger: options.logger));
+        ImportCache(loadPaths: options.loadPaths, logger: options.logger));
     if (options.watch) {
       await watch(options, graph);
       return;

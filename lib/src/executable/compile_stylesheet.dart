@@ -58,7 +58,7 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   CompileResult result;
   try {
     if (options.asynchronous) {
-      var importCache = AsyncImportCache([],
+      var importCache = AsyncImportCache(
           loadPaths: options.loadPaths, logger: options.logger);
 
       result = source == null
