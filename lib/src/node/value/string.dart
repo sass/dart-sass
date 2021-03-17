@@ -16,12 +16,12 @@ class _NodeSassString {
 }
 
 /// Creates a new `sass.types.String` object wrapping [value].
-Object /*!*/ newNodeSassString(SassString value) =>
+Object newNodeSassString(SassString value) =>
     callConstructor(stringConstructor, [null, value]);
 
 /// The JS constructor for the `sass.types.String` class.
 final Function stringConstructor = createClass('SassString',
-    (_NodeSassString thisArg, String value, [SassString dartValue]) {
+    (_NodeSassString thisArg, String value, [SassString? dartValue]) {
   thisArg.dartValue = dartValue ?? SassString(value, quotes: false);
 }, {
   'getValue': (_NodeSassString thisArg) => thisArg.dartValue.text,

@@ -27,7 +27,7 @@ class SingleUnitSassNumber extends SassNumber {
   bool get hasUnits => true;
 
   SingleUnitSassNumber(num value, this._unit,
-      [Tuple2<SassNumber, SassNumber> asSlash])
+      [Tuple2<SassNumber, SassNumber>? asSlash])
       : super.protected(value, asSlash);
 
   SassNumber withValue(num value) => SingleUnitSassNumber(value, _unit);
@@ -40,21 +40,21 @@ class SingleUnitSassNumber extends SassNumber {
   bool compatibleWithUnit(String unit) => conversionFactor(_unit, unit) != null;
 
   SassNumber coerceToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       convertToMatch(other, name, otherName);
 
   num coerceValueToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       convertValueToMatch(other, name, otherName);
 
   SassNumber convertToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       (other is SingleUnitSassNumber ? _coerceToUnit(other._unit) : null) ??
       // Call this to generate a consistent error message.
       super.convertToMatch(other, name, otherName);
 
   num convertValueToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       (other is SingleUnitSassNumber
           ? _coerceValueToUnit(other._unit)
           : null) ??
@@ -62,7 +62,7 @@ class SingleUnitSassNumber extends SassNumber {
       super.convertValueToMatch(other, name, otherName);
 
   SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
-          [String name]) =>
+          [String? name]) =>
       (newNumerators.length == 1 && newDenominators.isEmpty
           ? _coerceToUnit(newNumerators[0])
           : null) ??
@@ -70,36 +70,36 @@ class SingleUnitSassNumber extends SassNumber {
       super.coerce(newNumerators, newDenominators, name);
 
   num coerceValue(List<String> newNumerators, List<String> newDenominators,
-          [String name]) =>
+          [String? name]) =>
       (newNumerators.length == 1 && newDenominators.isEmpty
           ? _coerceValueToUnit(newNumerators[0])
           : null) ??
       // Call this to generate a consistent error message.
       super.coerceValue(newNumerators, newDenominators, name);
 
-  num coerceValueToUnit(String unit, [String name]) =>
+  num coerceValueToUnit(String unit, [String? name]) =>
       _coerceValueToUnit(unit) ??
       // Call this to generate a consistent error message.
       super.coerceValueToUnit(unit, name);
 
   /// A shorthand for [coerce] with only one numerator unit, except that it
   /// returns `null` if coercion fails.
-  SassNumber _coerceToUnit(String unit) {
+  SassNumber? _coerceToUnit(String unit) {
     if (_unit == unit) return this;
     return conversionFactor(unit, _unit)
         .andThen((factor) => SingleUnitSassNumber(value * factor, unit));
   }
 
   /// Like [coerceValueToUnit], except that it returns `null` if coercion fails.
-  num _coerceValueToUnit(String unit) =>
+  num? _coerceValueToUnit(String unit) =>
       conversionFactor(unit, _unit).andThen((factor) => value * factor);
 
   SassNumber multiplyUnits(
       num value, List<String> otherNumerators, List<String> otherDenominators) {
     var newNumerators = otherNumerators;
     var mutableOtherDenominators = otherDenominators.toList();
-    removeFirstWhere<String>(mutableOtherDenominators, (denominator) {
-      var factor = conversionFactor(denominator, _unit);
+    removeFirstWhere<String?>(mutableOtherDenominators, (denominator) {
+      var factor = conversionFactor(denominator!, _unit);
       if (factor == null) return false;
       value *= factor;
       return true;

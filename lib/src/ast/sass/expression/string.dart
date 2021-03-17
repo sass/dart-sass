@@ -22,18 +22,18 @@ class StringExpression implements Expression {
   /// Whether [this] has quotes.
   final bool hasQuotes;
 
-  FileSpan get span => text.span;
+  FileSpan? get span => text.span;
 
   /// Returns Sass source for a quoted string that, when evaluated, will have
   /// [text] as its contents.
-  static String /*!*/ quoteText(String text) =>
+  static String quoteText(String text) =>
       StringExpression.plain(text, null, quotes: true)
           .asInterpolation(static: true)
-          .asPlain;
+          .asPlain!;
 
   StringExpression(this.text, {bool quotes = false}) : hasQuotes = quotes;
 
-  StringExpression.plain(String text, FileSpan span, {bool quotes = false})
+  StringExpression.plain(String text, FileSpan? span, {bool quotes = false})
       : text = Interpolation([text], span),
         hasQuotes = quotes;
 
@@ -48,7 +48,7 @@ class StringExpression implements Expression {
   /// If [static] is true, this escapes any `#{` sequences in the string. If
   /// [quote] is passed, it uses that character as the quote mark; otherwise, it
   /// determines the best quote to add by looking at the string.
-  Interpolation asInterpolation({bool static = false, int quote}) {
+  Interpolation asInterpolation({bool static = false, int? quote}) {
     if (!hasQuotes) return text;
 
     quote ??= _bestQuote();

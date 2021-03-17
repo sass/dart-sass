@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a3fcd1e07a08124e0a60ff933944368e49ac0999
+// Checksum: 8053f105aefbe04ac104613c7eab7251d7798655
 //
 // ignore_for_file: unused_import
 
@@ -34,21 +34,21 @@ import 'visitor/serialize.dart';
 /// the node-sass compatible API and the executable.
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
-CompileResult compile(String /*!*/ path,
-    {Syntax syntax,
-    Logger logger,
-    ImportCache importCache,
-    NodeImporter nodeImporter,
-    Iterable<Callable> functions,
-    OutputStyle style,
+CompileResult compile(String path,
+    {Syntax? syntax,
+    Logger? logger,
+    ImportCache? importCache,
+    NodeImporter? nodeImporter,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
     bool useSpaces = true,
-    int indentWidth,
-    LineFeed lineFeed,
+    int? indentWidth,
+    LineFeed? lineFeed,
     bool sourceMap = false,
     bool charset = true}) {
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
-  Stylesheet stylesheet;
+  Stylesheet? stylesheet;
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= ImportCache.none(logger: logger);
@@ -62,7 +62,7 @@ CompileResult compile(String /*!*/ path,
 
   return _compileStylesheet(
       // TODO: no !
-      stylesheet,
+      stylesheet!,
       logger,
       importCache,
       nodeImporter,
@@ -81,19 +81,19 @@ CompileResult compile(String /*!*/ path,
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
 CompileResult compileString(String source,
-    {Syntax syntax,
-    Logger logger,
-    ImportCache importCache,
-    NodeImporter nodeImporter,
-    Iterable<Importer> importers,
-    Iterable<String> loadPaths,
-    Importer importer,
-    Iterable<Callable> functions,
-    OutputStyle style,
+    {Syntax? syntax,
+    Logger? logger,
+    ImportCache? importCache,
+    NodeImporter? nodeImporter,
+    Iterable<Importer>? importers,
+    Iterable<String>? loadPaths,
+    Importer? importer,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
     bool useSpaces = true,
-    int indentWidth,
-    LineFeed lineFeed,
-    Object url,
+    int? indentWidth,
+    LineFeed? lineFeed,
+    Object? url,
     bool sourceMap = false,
     bool charset = true}) {
   var stylesheet =
@@ -119,15 +119,15 @@ CompileResult compileString(String source,
 /// Arguments are handled as for [compileString].
 CompileResult _compileStylesheet(
     Stylesheet stylesheet,
-    Logger logger,
-    ImportCache importCache,
-    NodeImporter nodeImporter,
+    Logger? logger,
+    ImportCache? importCache,
+    NodeImporter? nodeImporter,
     Importer importer,
-    Iterable<Callable> functions,
-    OutputStyle style,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
     bool useSpaces,
-    int indentWidth,
-    LineFeed lineFeed,
+    int? indentWidth,
+    LineFeed? lineFeed,
     bool sourceMap,
     bool charset) {
   var evaluateResult = evaluate(stylesheet,
@@ -153,7 +153,7 @@ CompileResult _compileStylesheet(
     mapInPlace<String>(
         resultSourceMap.urls,
         (url) => url == ''
-            ? Uri.dataFromString(stylesheet.span.file.getText(0),
+            ? Uri.dataFromString(stylesheet.span!.file.getText(0),
                     encoding: utf8)
                 .toString()
             : importCache.sourceMapUrl(Uri.parse(url)).toString());

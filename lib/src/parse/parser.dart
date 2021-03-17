@@ -28,11 +28,11 @@ class Parser {
   /// Parses [text] as a CSS identifier and returns the result.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  static String parseIdentifier(String text, {Logger logger}) =>
+  static String parseIdentifier(String text, {Logger? logger}) =>
       Parser(text, logger: logger)._parseIdentifier();
 
   /// Returns whether [text] is a valid CSS identifier.
-  static bool isIdentifier(String text, {Logger logger}) {
+  static bool isIdentifier(String text, {Logger? logger}) {
     try {
       parseIdentifier(text, logger: logger);
       return true;
@@ -44,11 +44,11 @@ class Parser {
   /// Returns whether [text] starts like a variable declaration.
   ///
   /// Ignores everything after the `:`.
-  static bool isVariableDeclarationLike(String text, {Logger logger}) =>
+  static bool isVariableDeclarationLike(String text, {Logger? logger}) =>
       Parser(text, logger: logger)._isVariableDeclarationLike();
 
   @protected
-  Parser(String contents, {Object url, Logger logger})
+  Parser(String contents, {Object? url, Logger? logger})
       : scanner = SpanScanner(contents, sourceUrl: url),
         logger = logger ?? const Logger.stderr();
 
@@ -325,7 +325,7 @@ class Parser {
         case $lparen:
         case $lbrace:
         case $lbracket:
-          buffer.writeCharCode(next);
+          buffer.writeCharCode(next!);
           brackets.add(opposite(scanner.readChar()));
           wroteNewline = false;
           break;
@@ -334,7 +334,7 @@ class Parser {
         case $rbrace:
         case $rbracket:
           if (brackets.isEmpty) break loop;
-          buffer.writeCharCode(next);
+          buffer.writeCharCode(next!);
           scanner.expectChar(brackets.removeLast());
           wroteNewline = false;
           break;
@@ -375,7 +375,7 @@ class Parser {
 
   /// Consumes a `url()` token if possible, and returns `null` otherwise.
   @protected
-  String tryUrl() {
+  String? tryUrl() {
     // NOTE: this logic is largely duplicated in ScssParser._tryUrlContents.
     // Most changes here should be mirrored there.
 
@@ -514,7 +514,7 @@ class Parser {
   //
   // Returns whether or not the character was consumed.
   @protected
-  bool scanCharIf(bool condition(int character)) {
+  bool scanCharIf(bool condition(int? character)) {
     var next = scanner.peekChar();
     if (!condition(next)) return false;
     scanner.readChar();
@@ -592,7 +592,7 @@ class Parser {
   ///
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
   @protected
-  bool lookingAtIdentifier([int forward]) {
+  bool lookingAtIdentifier([int? forward]) {
     // See also [ScssParser._lookingAtInterpolatedIdentifier].
 
     forward ??= 0;
@@ -634,7 +634,7 @@ class Parser {
   /// Consumes an identifier and asserts that its name exactly matches [text].
   @protected
   void expectIdentifier(String text,
-      {String name, bool caseSensitive = false}) {
+      {String? name, bool caseSensitive = false}) {
     name ??= '"$text"';
 
     var start = scanner.position;
@@ -657,7 +657,7 @@ class Parser {
 
   /// Prints a warning to standard error, associated with [span].
   @protected
-  void warn(String message, FileSpan span) => logger.warn(message, span: span);
+  void warn(String message, FileSpan? span) => logger.warn(message, span: span);
 
   /// Throws an error associated with [span].
   @protected
@@ -681,7 +681,7 @@ class Parser {
   /// If [message] is passed, prints that as well. This is intended for use when
   /// debugging parser failures.
   @protected
-  void debug([Object message]) {
+  void debug([Object? message]) {
     if (message == null) {
       print(scanner.emptySpan.highlight(color: true));
     } else {
@@ -696,7 +696,7 @@ class Parser {
     try {
       return callback();
     } on SourceSpanFormatException catch (error) {
-      var span = error.span as FileSpan /*!*/;
+      var span = error.span as FileSpan;
       if (startsWithIgnoreCase(error.message, "expected") && span.length == 0) {
         var startPosition = _firstNewlineBefore(span.start.offset);
         if (startPosition != span.start.offset) {
@@ -718,7 +718,7 @@ class Parser {
   /// rather than the line where the problem actually occurred.
   int _firstNewlineBefore(int position) {
     var index = position - 1;
-    int lastNewline;
+    int? lastNewline;
     while (index >= 0) {
       var codeUnit = scanner.string.codeUnitAt(index);
       if (!isWhitespace(codeUnit)) return lastNewline ?? position;

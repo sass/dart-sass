@@ -26,7 +26,7 @@ class ForwardRule implements Statement {
   /// If this is non-`null`, [hiddenMixinsAndFunctions] and [hiddenVariables]
   /// are guaranteed to both be `null` and [shownVariables] is guaranteed to be
   /// non-`null`.
-  final Set<String> shownMixinsAndFunctions;
+  final Set<String>? shownMixinsAndFunctions;
 
   /// The set of variable names (without `$`) that may be accessed from the
   /// forwarded module.
@@ -37,7 +37,7 @@ class ForwardRule implements Statement {
   /// If this is non-`null`, [hiddenMixinsAndFunctions] and [hiddenVariables]
   /// are guaranteed to both be `null` and [shownMixinsAndFunctions] is
   /// guaranteed to be non-`null`.
-  final Set<String> shownVariables;
+  final Set<String>? shownVariables;
 
   /// The set of mixin and function names that may not be accessed from the
   /// forwarded module.
@@ -48,7 +48,7 @@ class ForwardRule implements Statement {
   /// If this is non-`null`, [shownMixinsAndFunctions] and [shownVariables] are
   /// guaranteed to both be `null` and [hiddenVariables] is guaranteed to be
   /// non-`null`.
-  final Set<String> hiddenMixinsAndFunctions;
+  final Set<String>? hiddenMixinsAndFunctions;
 
   /// The set of variable names (without `$`) that may be accessed from the
   /// forwarded module.
@@ -59,11 +59,11 @@ class ForwardRule implements Statement {
   /// If this is non-`null`, [shownMixinsAndFunctions] and [shownVariables] are
   /// guaranteed to both be `null` and [hiddenMixinsAndFunctions] is guaranteed
   /// to be non-`null`.
-  final Set<String> hiddenVariables;
+  final Set<String>? hiddenVariables;
 
   /// The prefix to add to the beginning of the names of members of the used
   /// module, or `null` if member names are used as-is.
-  final String prefix;
+  final String? prefix;
 
   /// A list of variable assignments used to configure the loaded modules.
   final List<ConfiguredVariable> configuration;
@@ -72,7 +72,7 @@ class ForwardRule implements Statement {
 
   /// Creates a `@forward` rule that allows all members to be accessed.
   ForwardRule(this.url, this.span,
-      {this.prefix, Iterable<ConfiguredVariable> configuration})
+      {this.prefix, Iterable<ConfiguredVariable>? configuration})
       : shownMixinsAndFunctions = null,
         shownVariables = null,
         hiddenMixinsAndFunctions = null,
@@ -84,7 +84,7 @@ class ForwardRule implements Statement {
   /// [shownMixinsAndFunctions] and [shownVariables] to be accessed.
   ForwardRule.show(this.url, Iterable<String> shownMixinsAndFunctions,
       Iterable<String> shownVariables, this.span,
-      {this.prefix, Iterable<ConfiguredVariable> configuration})
+      {this.prefix, Iterable<ConfiguredVariable>? configuration})
       : shownMixinsAndFunctions =
             UnmodifiableSetView(Set.of(shownMixinsAndFunctions)),
         shownVariables = UnmodifiableSetView(Set.of(shownVariables)),
@@ -97,7 +97,7 @@ class ForwardRule implements Statement {
   /// [hiddenMixinsAndFunctions] and [hiddenVariables] to be accessed.
   ForwardRule.hide(this.url, Iterable<String> hiddenMixinsAndFunctions,
       Iterable<String> hiddenVariables, this.span,
-      {this.prefix, Iterable<ConfiguredVariable> configuration})
+      {this.prefix, Iterable<ConfiguredVariable>? configuration})
       : shownMixinsAndFunctions = null,
         shownVariables = null,
         hiddenMixinsAndFunctions =
@@ -106,7 +106,7 @@ class ForwardRule implements Statement {
         configuration =
             configuration == null ? const [] : List.unmodifiable(configuration);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this)!;
 
   String toString() {
     var buffer =
@@ -117,12 +117,12 @@ class ForwardRule implements Statement {
     if (shownMixinsAndFunctions != null) {
       buffer
         ..write(" show ")
-        ..write(_memberList(shownMixinsAndFunctions, shownVariables /*!*/));
+        ..write(_memberList(shownMixinsAndFunctions, shownVariables!));
     } else if (hiddenMixinsAndFunctions != null &&
         hiddenMixinsAndFunctions.isNotEmpty) {
       buffer
         ..write(" hide ")
-        ..write(_memberList(hiddenMixinsAndFunctions, hiddenVariables /*!*/));
+        ..write(_memberList(hiddenMixinsAndFunctions, hiddenVariables!));
     }
 
     var prefix = this.prefix;

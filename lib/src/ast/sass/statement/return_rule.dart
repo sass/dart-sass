@@ -13,7 +13,7 @@ import '../statement.dart';
 /// This exits from the current function body with a return value.
 class ReturnRule implements Statement {
   /// The value to return from this function.
-  final Expression /*!*/ expression;
+  final Expression expression;
 
   final FileSpan span;
 

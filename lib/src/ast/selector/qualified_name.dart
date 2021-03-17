@@ -14,7 +14,7 @@ class QualifiedName {
   /// If this is `null`, [name] belongs to the default namespace. If it's the
   /// empty string, [name] belongs to no namespace. If it's `*`, [name] belongs
   /// to any namespace. Otherwise, [name] belongs to the given namespace.
-  final String namespace;
+  final String? namespace;
 
   QualifiedName(this.name, {this.namespace});
 

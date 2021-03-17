@@ -27,7 +27,7 @@ final _disallowedFunctionNames =
 class CssParser extends ScssParser {
   bool get plainCss => true;
 
-  CssParser(String contents, {Object url, Logger logger})
+  CssParser(String contents, {Object? url, Logger? logger})
       : super(contents, url: url, logger: logger);
 
   void silentComment() {
@@ -37,7 +37,7 @@ class CssParser extends ScssParser {
         scanner.spanFrom(start));
   }
 
-  Statement atRule(Statement /*!*/ child(), {bool root = false}) {
+  Statement atRule(Statement child(), {bool root = false}) {
     // NOTE: this logic is largely duplicated in CssParser.atRule. Most changes
     // here should be mirrored there.
 
@@ -106,7 +106,7 @@ class CssParser extends ScssParser {
   Expression identifierLike() {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
-    var plain = identifier.asPlain;
+    var plain = identifier.asPlain!;
 
     var specialFunction = trySpecialFunction(plain.toLowerCase(), start);
     if (specialFunction != null) return specialFunction;

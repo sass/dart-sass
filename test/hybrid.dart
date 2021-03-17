@@ -8,8 +8,7 @@ import 'package:test/test.dart';
 
 /// Creates a directory in the system temp directory and returns its path.
 Future<String> createTempDir() async => (await runHybridExpression(
-        '(await Directory.systemTemp.createTemp("dart_sass_")).path'))
-    as String /*!*/;
+    '(await Directory.systemTemp.createTemp("dart_sass_")).path')) as String;
 
 /// Writes [text] to [path].
 Future<void> writeTextFile(String path, String text) => runHybridExpression(
@@ -26,7 +25,8 @@ Future<void> deleteDirectory(String path) =>
 /// Runs [expression], which may be asynchronous, in a hybrid isolate.
 ///
 /// Returns the result of [expression] if it's JSON-serializable.
-Future<Object> runHybridExpression(String expression, [Object message]) async {
+Future<Object?> runHybridExpression(String expression,
+    [Object? message]) async {
   var channel = spawnHybridCode('''
     import 'dart:async';
     import 'dart:convert';

@@ -23,8 +23,8 @@ import 'variable_declaration.dart';
 /// A Sass stylesheet.
 ///
 /// This is the root Sass node. It contains top-level statements.
-class Stylesheet extends ParentStatement<List<Statement> /*!*/ > {
-  final FileSpan /*?*/ span;
+class Stylesheet extends ParentStatement<List<Statement>> {
+  final FileSpan? span;
 
   /// Whether this was parsed from a plain CSS stylesheet.
   final bool plainCss;
@@ -37,8 +37,7 @@ class Stylesheet extends ParentStatement<List<Statement> /*!*/ > {
   List<ForwardRule> get forwards => UnmodifiableListView(_forwards);
   final _forwards = <ForwardRule>[];
 
-  Stylesheet(Iterable<Statement /*!*/ > children, this.span,
-      {this.plainCss = false})
+  Stylesheet(Iterable<Statement> children, this.span, {this.plainCss = false})
       : super(List.unmodifiable(children)) {
     for (var child in this.children) {
       if (child is UseRule) {
@@ -58,8 +57,8 @@ class Stylesheet extends ParentStatement<List<Statement> /*!*/ > {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parse(String /*!*/ contents, Syntax syntax,
-      {Object url, Logger logger}) {
+  factory Stylesheet.parse(String contents, Syntax syntax,
+      {Object? url, Logger? logger}) {
     switch (syntax) {
       case Syntax.sass:
         return Stylesheet.parseSass(contents, url: url, logger: logger);
@@ -77,7 +76,8 @@ class Stylesheet extends ParentStatement<List<Statement> /*!*/ > {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseSass(String contents, {Object url, Logger logger}) =>
+  factory Stylesheet.parseSass(String contents,
+          {Object? url, Logger? logger}) =>
       SassParser(contents, url: url, logger: logger).parse();
 
   /// Parses an SCSS stylesheet from [contents].
@@ -85,7 +85,8 @@ class Stylesheet extends ParentStatement<List<Statement> /*!*/ > {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseScss(String contents, {Object url, Logger logger}) =>
+  factory Stylesheet.parseScss(String contents,
+          {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parse();
 
   /// Parses a plain CSS stylesheet from [contents].
@@ -93,10 +94,10 @@ class Stylesheet extends ParentStatement<List<Statement> /*!*/ > {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseCss(String contents, {Object url, Logger logger}) =>
+  factory Stylesheet.parseCss(String contents, {Object? url, Logger? logger}) =>
       CssParser(contents, url: url, logger: logger).parse();
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this)!;
 
   String toString() => children.join(" ");
 }

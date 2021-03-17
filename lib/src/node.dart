@@ -67,7 +67,7 @@ void main() {
 ///
 /// [render]: https://github.com/sass/node-sass#options
 void _render(
-    RenderOptions options, void callback(Object error, RenderResult result)) {
+    RenderOptions options, void callback(Object? error, RenderResult? result)) {
   var fiber = options.fiber;
   if (fiber != null) {
     fiber.call(allowInterop(() {
@@ -213,7 +213,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
         var currentFiber = fiber.current;
         var jsArguments = [
           ...arguments.map(wrapValue),
-          allowInterop(([Object result]) {
+          allowInterop(([Object? result]) {
             // Schedule a microtask so we don't try to resume the running fiber
             // if [importer] calls `done()` synchronously.
             scheduleMicrotask(() => currentFiber.run(result));
@@ -239,7 +239,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
         var completer = Completer<Object>();
         var jsArguments = [
           ...arguments.map(wrapValue),
-          allowInterop(([Object result]) => completer.complete(result))
+          allowInterop(([Object? result]) => completer.complete(result))
         ];
         var result = (callback as JSFunction).apply(context, jsArguments);
         return unwrapValue(
@@ -253,23 +253,23 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
 /// Parses [importer] and [includePaths] from [RenderOptions] into a
 /// [NodeImporter].
 NodeImporter _parseImporter(RenderOptions options, DateTime start) {
-  List<JSFunction /*!*/ > importers;
+  List<JSFunction> importers;
   if (options.importer == null) {
     importers = [];
-  } else if (options.importer is List<Object /*?*/ >) {
-    importers = (options.importer as List<Object /*?*/ >).cast();
+  } else if (options.importer is List<Object?>) {
+    importers = (options.importer as List<Object?>).cast();
   } else {
-    importers = [options.importer as JSFunction /*!*/];
+    importers = [options.importer as JSFunction];
   }
 
-  RenderContext context;
+  late RenderContext context;
   if (importers.isNotEmpty) context = _contextWithOptions(options, start);
 
   var fiber = options.fiber;
   if (fiber != null) {
     importers = importers.map((importer) {
       return allowInteropCaptureThis(
-          (Object thisArg, String url, String previous, [Object _]) {
+          (Object thisArg, String url, String previous, [Object? _]) {
         var currentFiber = fiber.current;
         var result = call3(importer, thisArg, url, previous,
             allowInterop((Object result) {
@@ -314,20 +314,20 @@ RenderContext _contextWithOptions(RenderOptions options, DateTime start) {
 }
 
 /// Parse [style] into an [OutputStyle].
-OutputStyle _parseOutputStyle(String style) {
+OutputStyle _parseOutputStyle(String? style) {
   if (style == null || style == 'expanded') return OutputStyle.expanded;
   if (style == 'compressed') return OutputStyle.compressed;
   throw ArgumentError('Unsupported output style "$style".');
 }
 
 /// Parses the indentation width into an [int].
-int _parseIndentWidth(Object width) {
+int? _parseIndentWidth(Object? width) {
   if (width == null) return null;
   return width is int ? width : int.parse(width.toString());
 }
 
 /// Parses the name of a line feed type into a [LineFeed].
-LineFeed _parseLineFeed(String str) {
+LineFeed _parseLineFeed(String? str) {
   switch (str) {
     case 'cr':
       return LineFeed.cr;
@@ -346,15 +346,15 @@ RenderResult _newRenderResult(
   var end = DateTime.now();
 
   var css = result.css;
-  Uint8List sourceMapBytes;
+  Uint8List? sourceMapBytes;
   if (_enableSourceMaps(options)) {
     var sourceMapOption = options.sourceMap;
     var sourceMapPath = sourceMapOption is String
         ? sourceMapOption as String
-        : options.outFile /*!*/ + '.map';
+        : options.outFile! + '.map';
     var sourceMapDir = p.dirname(sourceMapPath);
 
-    var sourceMap = result.sourceMap /*!*/;
+    var sourceMap = result.sourceMap!;
     sourceMap.sourceRoot = options.sourceMapRoot;
     var outFile = options.outFile;
     if (outFile == null) {
@@ -415,7 +415,7 @@ bool _enableSourceMaps(RenderOptions options) =>
 /// Creates a [JsError] with the given fields added to it so it acts like a Node
 /// Sass error.
 JsError _newRenderError(String message,
-    {int line, int column, String file, int status}) {
+    {int? line, int? column, String? file, int? status}) {
   var error = JsError(message);
   setProperty(error, 'formatted', 'Error: $message');
   if (line != null) setProperty(error, 'line', line);

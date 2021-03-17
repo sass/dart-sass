@@ -54,8 +54,8 @@ class SelectorList extends Selector {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SelectorList.parse(String contents,
-          {Object url,
-          Logger logger,
+          {Object? url,
+          Logger? logger,
           bool allowParent = true,
           bool allowPlaceholder = true}) =>
       SelectorParser(contents,
@@ -71,7 +71,7 @@ class SelectorList extends Selector {
   /// both this and [other].
   ///
   /// If no such list can be produced, returns `null`.
-  SelectorList unify(SelectorList other) {
+  SelectorList? unify(SelectorList other) {
     var contents = components.expand((complex1) {
       return other.components.expand((complex2) {
         var unified = unifyComplex([complex1.components, complex2.components]);
@@ -91,7 +91,7 @@ class SelectorList extends Selector {
   /// The given [parent] may be `null`, indicating that this has no parents. If
   /// so, this list is returned as-is if it doesn't contain any explicit
   /// [ParentSelector]s. If it does, this throws a [SassScriptException].
-  SelectorList resolveParentSelectors(SelectorList parent,
+  SelectorList resolveParentSelectors(SelectorList? parent,
       {bool implicitParent = true}) {
     if (parent == null) {
       if (!_containsParentSelector) return this;
@@ -151,7 +151,7 @@ class SelectorList extends Selector {
           component.components.any((simple) {
             if (simple is ParentSelector) return true;
             if (simple is! PseudoSelector) return true;
-            var selector = (simple as PseudoSelector).selector;
+            var selector = simple.selector;
             return selector != null && selector._containsParentSelector;
           }));
 
@@ -159,11 +159,11 @@ class SelectorList extends Selector {
   /// [ParentSelector]s replaced with [parent].
   ///
   /// Returns `null` if [compound] doesn't contain any [ParentSelector]s.
-  Iterable<ComplexSelector> _resolveParentSelectorsCompound(
+  Iterable<ComplexSelector>? _resolveParentSelectorsCompound(
       CompoundSelector compound, SelectorList parent) {
     var containsSelectorPseudo = compound.components.any((simple) {
       if (simple is! PseudoSelector) return false;
-      var selector = (simple as PseudoSelector).selector;
+      var selector = simple.selector;
       return selector != null && selector._containsParentSelector;
     });
     if (!containsSelectorPseudo &&
@@ -174,10 +174,10 @@ class SelectorList extends Selector {
     var resolvedMembers = containsSelectorPseudo
         ? compound.components.map((simple) {
             if (simple is! PseudoSelector) return simple;
-            var selector = (simple as PseudoSelector).selector;
+            var selector = simple.selector;
             if (selector == null) return simple;
             if (!selector._containsParentSelector) return simple;
-            return (simple as PseudoSelector).withSelector(
+            return simple.withSelector(
                 selector.resolveParentSelectors(parent, implicitParent: false));
           })
         : compound.components;
@@ -200,7 +200,7 @@ class SelectorList extends Selector {
             'Parent "$complex" is incompatible with this selector.');
       }
 
-      var last = lastComponent as CompoundSelector;
+      var last = lastComponent;
       var suffix = (compound.components.first as ParentSelector).suffix;
       if (suffix != null) {
         last = CompoundSelector([

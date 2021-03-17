@@ -78,7 +78,10 @@ void main() {
     expect(() {
       compileString('a {b: foo()}',
           // TODO: no as
-          functions: [Callable("foo", "", (arguments) => throw "heck")]);
+          functions: [
+            Callable("foo", "",
+                ((arguments) => throw "heck") as Value Function(List<Value>))
+          ]);
     }, throwsA(const TypeMatcher<SassException>()));
   });
 
@@ -112,15 +115,18 @@ void main() {
 
   test("supports keyword arguments", () {
     var css = compileString(r'a {b: foo($bar: 1)}', functions: [
-      Callable("foo", r"$args...", expectAsync1((arguments) {
-        expect(arguments, hasLength(1));
-        var list = arguments[0] as SassArgumentList;
-        expect(list.asList, hasLength(0));
-        expect(list.keywords, contains("bar"));
-        expect(list.keywords["bar"].assertNumber().value, equals(1));
-        return list.keywords["bar"];
-        // TODO: no as
-      }))
+      Callable(
+          "foo",
+          r"$args...",
+          expectAsync1((arguments) {
+            expect(arguments, hasLength(1));
+            var list = arguments[0] as SassArgumentList;
+            expect(list.asList, hasLength(0));
+            expect(list.keywords, contains("bar"));
+            expect(list.keywords["bar"]!.assertNumber().value, equals(1));
+            return list.keywords["bar"]!;
+            // TODO: no as
+          } as Value Function(List<Value>)))
     ]);
 
     expect(css, equalsIgnoringWhitespace("a { b: 1; }"));

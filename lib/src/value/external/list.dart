@@ -13,14 +13,15 @@ import 'value.dart';
 abstract class SassList extends Value {
   ListSeparator get separator;
 
-  bool /*!*/ get hasBrackets;
+  bool get hasBrackets;
 
   /// Returns an empty list with the given [separator] and [brackets].
   ///
   /// The [separator] defaults to [ListSeparator.undecided], and [brackets] defaults to `false`.
   // TODO: No ? for brackets
-  const factory SassList.empty({ListSeparator separator, bool brackets}) =
-      internal.SassList.empty;
+  const factory SassList.empty(
+      {ListSeparator? separator,
+      required bool brackets}) = internal.SassList.empty;
 
   /// Returns an empty list with the given [separator] and [brackets].
   factory SassList(Iterable<Value> contents, ListSeparator separator,

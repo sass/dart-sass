@@ -26,7 +26,7 @@ class ExtendRule implements Statement {
   ExtendRule(this.selector, this.span, {bool optional = false})
       : isOptional = optional;
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitExtendRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitExtendRule(this)!;
 
   String toString() => "@extend $selector";
 }

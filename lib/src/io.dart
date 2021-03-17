@@ -24,7 +24,7 @@ final _realCaseCache = <String, String>{};
 bool get _couldBeCaseInsensitive => isWindows || isMacOS;
 
 /// Returns the canonical form of `path` on disk.
-String canonicalize(String /*!*/ path) => _couldBeCaseInsensitive
+String canonicalize(String path) => _couldBeCaseInsensitive
     ? _realCasePath(p.absolute(p.normalize(path)))
     : p.canonicalize(path);
 

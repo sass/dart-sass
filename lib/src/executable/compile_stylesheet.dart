@@ -30,7 +30,7 @@ import 'options.dart';
 /// or that of a file it imports is more recent than [destination]'s
 /// modification time. Note that these modification times are cached by [graph].
 Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
-    String source, String destination,
+    String? source, String? destination,
     {bool ifModified = false}) async {
   var importer = FilesystemImporter('.');
   if (ifModified) {
@@ -121,7 +121,7 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   if (options.color) buffer.write('\u001b[32m');
 
   var sourceName = source == null ? 'stdin' : p.prettyUri(p.toUri(source));
-  var destinationName = p.prettyUri(p.toUri(destination));
+  var destinationName = p.prettyUri(p.toUri(destination!));
   buffer.write('Compiled $sourceName to $destinationName.');
   if (options.color) buffer.write('\u001b[0m');
   print(buffer);
@@ -136,7 +136,7 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
 ///
 /// Returns the source map comment to add to the end of the CSS file.
 String _writeSourceMap(
-    ExecutableOptions options, SingleMapping sourceMap, String destination) {
+    ExecutableOptions options, SingleMapping? sourceMap, String? destination) {
   if (sourceMap == null) return "";
 
   if (destination != null) {
@@ -157,7 +157,7 @@ String _writeSourceMap(
   } else {
     // [destination] can't be null here because --embed-source-map is
     // incompatible with writing to stdout.
-    var sourceMapPath = destination + '.map';
+    var sourceMapPath = destination! + '.map';
     ensureDir(p.dirname(sourceMapPath));
     writeFile(sourceMapPath, sourceMapText);
 

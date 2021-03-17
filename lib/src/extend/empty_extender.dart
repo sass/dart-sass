@@ -25,15 +25,15 @@ class EmptyExtender implements Extender {
       const [];
 
   ModifiableCssValue<SelectorList> addSelector(
-      SelectorList selector, FileSpan /*!*/ span,
-      [List<CssMediaQuery> mediaContext]) {
+      SelectorList selector, FileSpan span,
+      [List<CssMediaQuery>? mediaContext]) {
     throw UnsupportedError(
         "addSelector() can't be called for a const Extender.");
   }
 
   void addExtension(
       CssValue<SelectorList> extender, SimpleSelector target, ExtendRule extend,
-      [List<CssMediaQuery> mediaContext]) {
+      [List<CssMediaQuery>? mediaContext]) {
     throw UnsupportedError(
         "addExtension() can't be called for a const Extender.");
   }

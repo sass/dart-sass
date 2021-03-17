@@ -90,7 +90,7 @@ class _Watcher {
   }
 
   /// Deletes the file at [path] and prints a message about it.
-  void _delete(String /*!*/ path) {
+  void _delete(String path) {
     try {
       deleteFile(path);
       var buffer = StringBuffer();
@@ -211,7 +211,7 @@ class _Watcher {
 
       return [
         for (var entry in typeForPath.entries)
-          WatchEvent(entry.value, entry.key)
+          WatchEvent(entry.value, entry.key!)
       ];
     });
   }
@@ -220,8 +220,7 @@ class _Watcher {
   /// necessary.
   ///
   /// Returns whether all recompilations succeeded.
-  Future<bool> _recompileDownstream(
-      Iterable<StylesheetNode /*!*/ > nodes) async {
+  Future<bool> _recompileDownstream(Iterable<StylesheetNode> nodes) async {
     var seen = <StylesheetNode>{};
     var toRecompile = Queue.of(nodes);
 
@@ -257,7 +256,7 @@ class _Watcher {
   /// the CSS file it should be compiled to.
   ///
   /// Otherwise, returns `null`.
-  String _destinationFor(String source) {
+  String? _destinationFor(String source) {
     var destination = _sourcesToDestinations(_options)[source];
     if (destination != null) return destination;
     if (p.basename(source).startsWith('_')) return null;
@@ -279,10 +278,10 @@ class _Watcher {
 /// Exposes [options.sourcesToDestinations] as a non-nullable map, since stdin
 /// inputs and stdout outputs aren't allowed in `--watch` mode.
 Map<String, String> _sourcesToDestinations(ExecutableOptions options) =>
-    options.sourcesToDestinations.cast<String /*!*/, String /*!*/ >();
+    options.sourcesToDestinations.cast<String, String>();
 
 /// Exposes [options.sourcesDirectoriesToDestinations] as a non-nullable map,
 /// since stdin inputs and stdout outputs aren't allowed in `--watch` mode.
 Map<String, String> _sourceDirectoriesToDestinations(
         ExecutableOptions options) =>
-    options.sourceDirectoriesToDestinations.cast<String /*!*/, String /*!*/ >();
+    options.sourceDirectoriesToDestinations.cast<String, String>();

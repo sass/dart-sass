@@ -15,7 +15,7 @@ import 'content_block.dart';
 class IncludeRule implements Statement, CallableInvocation {
   /// The namespace of the mixin being invoked, or `null` if it's invoked
   /// without a namespace.
-  final String namespace;
+  final String? namespace;
 
   /// The name of the mixin being invoked, with underscores converted to
   /// hyphens.
@@ -26,19 +26,19 @@ class IncludeRule implements Statement, CallableInvocation {
 
   /// The block that will be invoked for [ContentRule]s in the mixin being
   /// invoked, or `null` if this doesn't pass a content block.
-  final ContentBlock content;
+  final ContentBlock? content;
 
   final FileSpan span;
 
   /// Returns this include's span, without its content block (if it has one).
   FileSpan get spanWithoutContent => content == null
       ? span
-      : span.file.span(span.start.offset, arguments.span.end.offset).trim();
+      : span.file.span(span.start.offset, arguments.span!.end.offset).trim();
 
   IncludeRule(this.name, this.arguments, this.span,
       {this.namespace, this.content});
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this)!;
 
   String toString() {
     var buffer = StringBuffer("@include ");

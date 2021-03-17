@@ -51,29 +51,29 @@ class PseudoSelector extends SimpleSelector {
   ///
   /// This is `null` if there's no argument. If [argument] and [selector] are
   /// both non-`null`, the selector follows the argument.
-  final String argument;
+  final String? argument;
 
   /// The selector argument passed to this selector.
   ///
   /// This is `null` if there's no selector. If [argument] and [selector] are
   /// both non-`null`, the selector follows the argument.
-  final SelectorList selector;
+  final SelectorList? selector;
 
   // TODO: late
 
   int get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
-    return _minSpecificity;
+    return _minSpecificity!;
   }
 
-  int _minSpecificity;
+  int? _minSpecificity;
 
   int get maxSpecificity {
     if (_maxSpecificity == null) _computeSpecificity();
-    return _maxSpecificity;
+    return _maxSpecificity!;
   }
 
-  int _maxSpecificity;
+  int? _maxSpecificity;
 
   bool get isInvisible {
     var selector = this.selector;
@@ -126,7 +126,7 @@ class PseudoSelector extends SimpleSelector {
     return PseudoSelector(name + suffix, element: isElement);
   }
 
-  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+  List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (compound.length == 1 && compound.first is UniversalSelector) {
       return compound.first.unify([this]);
     }
@@ -172,16 +172,16 @@ class PseudoSelector extends SimpleSelector {
       var minSpecificity = 0;
       var maxSpecificity = 0;
       for (var complex in selector.components) {
-        minSpecificity = math.max(_minSpecificity, complex.minSpecificity);
-        maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
+        minSpecificity = math.max(_minSpecificity!, complex.minSpecificity);
+        maxSpecificity = math.max(_maxSpecificity!, complex.maxSpecificity);
       }
     } else {
       // This is higher than any selector's specificity can actually be.
       var minSpecificity = math.pow(super.minSpecificity, 3) as int;
       var maxSpecificity = 0;
       for (var complex in selector.components) {
-        minSpecificity = math.min(_minSpecificity, complex.minSpecificity);
-        maxSpecificity = math.max(_maxSpecificity, complex.maxSpecificity);
+        minSpecificity = math.min(_minSpecificity!, complex.minSpecificity);
+        maxSpecificity = math.max(_maxSpecificity!, complex.maxSpecificity);
       }
     }
     _minSpecificity = minSpecificity;

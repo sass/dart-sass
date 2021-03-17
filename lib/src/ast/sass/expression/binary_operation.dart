@@ -15,26 +15,26 @@ class BinaryOperationExpression implements Expression {
   final BinaryOperator operator;
 
   /// The left-hand operand.
-  final Expression /*!*/ left;
+  final Expression left;
 
   /// The right-hand operand.
-  final Expression /*!*/ right;
+  final Expression right;
 
   /// Whether this is a [BinaryOperator.dividedBy] operation that may be
   /// interpreted as slash-separated numbers.
   final bool allowsSlash;
 
-  FileSpan get span {
+  FileSpan? get span {
     // Avoid creating a bunch of intermediate spans for multiple binary
     // expressions in a row by moving to the left- and right-most expressions.
     var left = this.left;
     while (left is BinaryOperationExpression) {
-      left = (left as BinaryOperationExpression).left;
+      left = left.left;
     }
 
     var right = this.right;
     while (right is BinaryOperationExpression) {
-      right = (right as BinaryOperationExpression).right;
+      right = right.right;
     }
     return spanForList([left, right]);
   }
@@ -49,7 +49,7 @@ class BinaryOperationExpression implements Expression {
         allowsSlash = true;
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
-      visitor.visitBinaryOperationExpression(this);
+      visitor.visitBinaryOperationExpression(this)!;
 
   String toString() {
     var buffer = StringBuffer();

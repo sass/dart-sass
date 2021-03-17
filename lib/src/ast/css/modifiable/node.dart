@@ -16,13 +16,13 @@ import '../style_rule.dart';
 /// unmodifiable types are used elsewhere to enfore that constraint.
 abstract class ModifiableCssNode extends CssNode {
   /// The node that contains this, or `null` for the root [CssStylesheet] node.
-  ModifiableCssParentNode get parent => _parent;
-  ModifiableCssParentNode _parent;
+  ModifiableCssParentNode? get parent => _parent;
+  ModifiableCssParentNode? _parent;
 
   /// The index of [this] in `parent.children`.
   ///
   /// This makes [remove] more efficient.
-  int _indexInParent;
+  int? _indexInParent;
 
   var isGroupEnd = false;
 
@@ -31,7 +31,7 @@ abstract class ModifiableCssNode extends CssNode {
     var parent = _parent;
     if (parent == null) return false;
     var siblings = parent.children;
-    for (var i = _indexInParent + 1; i < siblings.length; i++) {
+    for (var i = _indexInParent! + 1; i < siblings.length; i++) {
       var sibling = siblings[i];
       if (!_isInvisible(sibling)) return true;
     }
@@ -44,7 +44,7 @@ abstract class ModifiableCssNode extends CssNode {
   /// This can return a false negative for a comment node in compressed mode,
   /// since the AST doesn't know the output style, but that's an extremely
   /// narrow edge case so we don't worry about it.
-  bool _isInvisible(CssNode /*!*/ node) {
+  bool _isInvisible(CssNode node) {
     if (node is CssParentNode) {
       // An unknown at-rule is never invisible. Because we don't know the
       // semantics of unknown rules, we can't guarantee that (for example)
@@ -69,8 +69,8 @@ abstract class ModifiableCssNode extends CssNode {
       throw StateError("Can't remove a node without a parent.");
     }
 
-    parent._children.removeAt(_indexInParent);
-    for (var i = _indexInParent; i < parent._children.length; i++) {
+    parent._children.removeAt(_indexInParent!);
+    for (var i = _indexInParent!; i < parent._children.length; i++) {
       parent._children[i]._indexInParent--;
     }
     _parent = null;

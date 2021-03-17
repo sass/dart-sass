@@ -130,7 +130,7 @@ class ExecutableOptions {
   final ArgResults _options;
 
   /// Whether to print the version of Sass and exit.
-  bool get version => _options['version'] as bool /*!*/;
+  bool get version => _options['version'] as bool;
 
 // TODO:
 // /// Whether to run an interactive shell.
@@ -150,11 +150,11 @@ class ExecutableOptions {
 //   }();
 
   /// Whether to run an interactive shell.
-  /*late*/ bool /*!*/ get interactive {
-    if (_interactive != null) return _interactive;
+  /*late*/ bool get interactive {
+    if (_interactive != null) return _interactive!;
 
     // TODO: remove ?
-    var interactive = (_interactive = _options['interactive'] as bool);
+    var interactive = (_interactive = _options['interactive'] as bool?)!;
     if (!interactive) return false;
 
     var invalidOptions = [
@@ -169,26 +169,26 @@ class ExecutableOptions {
     return true;
   }
 
-  bool _interactive;
+  bool? _interactive;
 
   /// Whether to parse the source file with the indented syntax.
   ///
   /// This may be `null`, indicating that this should be determined by each
   /// stylesheet's extension.
-  bool get indented => _ifParsed('indented') as bool /*!*/;
+  bool get indented => _ifParsed('indented') as bool;
 
   /// Whether to use ANSI terminal colors.
   bool get color => _options.wasParsed('color')
-      ? _options['color'] as bool /*!*/
+      ? _options['color'] as bool
       : supportsAnsiEscapes;
 
   /// Whether to use non-ASCII Unicode glyphs.
   bool get unicode => _options.wasParsed('unicode')
-      ? _options['unicode'] as bool /*!*/
+      ? _options['unicode'] as bool
       : !term_glyph.ascii;
 
   /// Whether to silence normal output.
-  bool get quiet => _options['quiet'] as bool /*!*/;
+  bool get quiet => _options['quiet'] as bool;
 
   /// The logger to use to emit messages from Sass.
   Logger get logger => quiet ? Logger.quiet : Logger.stderr(color: color);
@@ -200,35 +200,36 @@ class ExecutableOptions {
 
   /// Whether to include a `@charset` declaration or a BOM if the stylesheet
   /// contains any non-ASCII characters.
-  bool get charset => _options['charset'] as bool /*!*/;
+  bool get charset => _options['charset'] as bool;
 
   /// The set of paths Sass in which should look for imported files.
-  List<String> get loadPaths => _options['load-path'] as List<String> /*!*/;
+  List<String> get loadPaths => _options['load-path'] as List<String>;
 
   /// Whether to run the evaluator in asynchronous mode, for debugging purposes.
-  bool get asynchronous => _options['async'] as bool /*!*/;
+  bool get asynchronous => _options['async'] as bool;
 
   /// Whether to print the full Dart stack trace on exceptions.
-  bool get trace => _options['trace'] as bool /*!*/;
+  bool get trace => _options['trace'] as bool;
 
   /// Whether to update only files that have changed since the last compilation.
-  bool get update => _options['update'] as bool /*!*/;
+  bool get update => _options['update'] as bool;
 
   /// Whether to continuously watch the filesystem for changes.
-  bool get watch => _options['watch'] as bool /*!*/;
+  bool get watch => _options['watch'] as bool;
 
   /// Whether to manually poll for changes when watching.
-  bool get poll => _options['poll'] as bool /*!*/;
+  bool get poll => _options['poll'] as bool;
 
   /// Whether to stop compiling additional files once one file produces an
   /// error.
-  bool get stopOnError => _options['stop-on-error'] as bool /*!*/;
+  bool get stopOnError => _options['stop-on-error'] as bool;
 
   /// Whether to emit error messages as CSS stylesheets
   bool get emitErrorCss =>
-      _options['error-css'] as bool /*!*/ ??
+      _options['error-css'] as bool ??
       // TODO: remove as
-      sourcesToDestinations.values.any((destination) => destination != null);
+      sourcesToDestinations.values.any(
+          ((destination) => destination != null) as bool Function(String?));
 
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.
@@ -238,30 +239,30 @@ class ExecutableOptions {
   /// A `null` source indicates that a stylesheet should be read from standard
   /// input. A `null` destination indicates that a stylesheet should be written
   /// to standard output.
-  Map<String, String> /*!*/ get sourcesToDestinations {
+  Map<String?, String?> get sourcesToDestinations {
     _ensureSources();
-    return _sourcesToDestinations;
+    return _sourcesToDestinations!;
   }
 
-  Map<String, String> _sourcesToDestinations;
+  Map<String?, String?>? _sourcesToDestinations;
 
   /// A map from source directories to the destination directories where the
   /// compiled CSS for stylesheets in the source directories should be written.
   ///
   /// Considers keys to be the same if they represent the same path on disk.
-  Map<String, String> /*!*/ get sourceDirectoriesToDestinations {
+  Map<String?, String> get sourceDirectoriesToDestinations {
     _ensureSources();
     return _sourceDirectoriesToDestinations;
   }
 
-  /*late final*/ Map<String, String> _sourceDirectoriesToDestinations;
+  late final Map<String?, String> _sourceDirectoriesToDestinations;
 
   /// Ensure that both [sourcesToDestinations] and [sourceDirectories] have been
   /// computed.
   void _ensureSources() {
     if (_sourcesToDestinations != null) return;
 
-    var stdin = _options['stdin'] as bool /*!*/;
+    var stdin = _options['stdin'] as bool;
     if (_options.rest.isEmpty && !stdin) _fail("Compile Sass to CSS.");
 
     var directories = <String>{};
@@ -324,8 +325,8 @@ class ExecutableOptions {
           }
         }
 
-        var map = p.PathMap<
-            String /*?*/ >(); // p.PathMap.of() doesn't support null keys.
+        var map =
+            p.PathMap<String?>(); // p.PathMap.of() doesn't support null keys.
         map[source] = destination;
         _sourcesToDestinations = UnmodifiableMapView(map);
       }
@@ -338,7 +339,7 @@ class ExecutableOptions {
     // Track [seen] separately from `sourcesToDestinations.keys` because we want
     // to report errors for sources as users entered them, rather than after
     // directories have been resolved.
-    var seen = <String /*!*/ >{};
+    var seen = <String>{};
     var sourcesToDestinations = p.PathMap<String>();
     var sourceDirectoriesToDestinations = p.PathMap<String>();
     for (var argument in _options.rest) {
@@ -402,8 +403,7 @@ class ExecutableOptions {
 
   /// Returns the sub-map of [sourcesToDestinations] for the given [source] and
   /// [destination] directories.
-  Map<String, String> _listSourceDirectory(
-      String /*!*/ source, String /*!*/ destination) {
+  Map<String, String> _listSourceDirectory(String source, String destination) {
     return {
       for (var path in listDir(source, recursive: true))
         if (_isEntrypoint(path) &&
@@ -437,7 +437,7 @@ class ExecutableOptions {
         _fail("--embed-source-map isn't allowed with --no-source-map.");
       }
     }
-    if (!_writeToStdout) return _options['source-map'] as bool /*!*/;
+    if (!_writeToStdout) return _options['source-map'] as bool;
 
     if (_ifParsed('source-map-urls') == 'relative') {
       _fail(
@@ -445,7 +445,7 @@ class ExecutableOptions {
     }
 
     if (_options['embed-source-map'] as bool) {
-      return _options['source-map'] as bool /*!*/;
+      return _options['source-map'] as bool;
     } else if (_ifParsed('source-map') == true) {
       _fail(
           "When printing to stdout, --source-map requires --embed-source-map.");
@@ -461,10 +461,10 @@ class ExecutableOptions {
   }
 
   /// Whether to embed the generated source map as a data URL in the output CSS.
-  bool get embedSourceMap => _options['embed-source-map'] as bool /*!*/;
+  bool get embedSourceMap => _options['embed-source-map'] as bool;
 
   /// Whether to embed the source files in the generated source map.
-  bool get embedSources => _options['embed-sources'] as bool /*!*/;
+  bool get embedSources => _options['embed-sources'] as bool;
 
   /// Parses options from [args].
   ///
@@ -489,20 +489,20 @@ class ExecutableOptions {
   /// [destination]) according to the `source-map-urls` option.
   ///
   /// If [url] isn't a `file:` URL, returns it as-is.
-  Uri sourceMapUrl(Uri url, String destination) {
+  Uri sourceMapUrl(Uri url, String? destination) {
     if (url.scheme.isNotEmpty && url.scheme != 'file') return url;
 
     var path = p.fromUri(url);
     return p.toUri(_options['source-map-urls'] == 'relative' && !_writeToStdout
         // [destination] can't be null here because --source-map-urls=relative
         // is incompatible with writing to stdout.
-        ? p.relative(path, from: p.dirname(destination /*!*/))
+        ? p.relative(path, from: p.dirname(destination!))
         : p.absolute(path));
   }
 
   /// Returns the value of [name] in [options] if it was explicitly provided by
   /// the user, and `null` otherwise.
-  Object _ifParsed(String name) =>
+  Object? _ifParsed(String name) =>
       _options.wasParsed(name) ? _options[name] : null;
 }
 

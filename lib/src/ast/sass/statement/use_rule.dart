@@ -20,7 +20,7 @@ class UseRule implements Statement {
 
   /// The namespace for members of the used module, or `null` if the members
   /// can be accessed without a namespace.
-  final String namespace;
+  final String? namespace;
 
   /// A list of variable assignments used to configure the loaded modules.
   final List<ConfiguredVariable> configuration;
@@ -28,7 +28,7 @@ class UseRule implements Statement {
   final FileSpan span;
 
   UseRule(this.url, this.namespace, this.span,
-      {Iterable<ConfiguredVariable> configuration})
+      {Iterable<ConfiguredVariable>? configuration})
       : configuration = configuration == null
             ? const []
             : List<ConfiguredVariable>.unmodifiable(configuration) {
@@ -45,10 +45,10 @@ class UseRule implements Statement {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory UseRule.parse(String contents, {Object url, Logger logger}) =>
+  factory UseRule.parse(String contents, {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parseUseRule();
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this)!;
 
   String toString() {
     var buffer =

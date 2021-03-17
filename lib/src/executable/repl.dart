@@ -52,7 +52,7 @@ void _logError(SassException error, StackTrace stackTrace, String line,
     Repl repl, ExecutableOptions options, TrackingLogger logger) {
   // If the error doesn't come from the repl line, or if something was logged
   // after the user's input, just print the error normally.
-  if (error.span.sourceUrl != null ||
+  if (error.span!.sourceUrl != null ||
       (!options.quiet && (logger.emittedDebug || logger.emittedWarning))) {
     print(error.toString(color: options.color));
     return;
@@ -62,17 +62,17 @@ void _logError(SassException error, StackTrace stackTrace, String line,
   var buffer = StringBuffer();
   if (options.color) buffer.write("\u001b[31m");
 
-  var spacesBeforeError = repl.prompt.length + error.span.start.column;
-  if (options.color && error.span.start.column < line.length) {
+  var spacesBeforeError = repl.prompt.length + error.span!.start.column;
+  if (options.color && error.span!.start.column < line.length) {
     // Position the cursor at the beginning of the error text.
     buffer.write("\u001b[1F\u001b[${spacesBeforeError}C");
     // Rewrite the bad input, this time in red text.
-    buffer.writeln(error.span.text);
+    buffer.writeln(error.span!.text);
   }
 
   // Write arrows underneath the error text.
   buffer.write(" " * spacesBeforeError);
-  buffer.writeln("^" * math.max(1, error.span.length));
+  buffer.writeln("^" * math.max(1, error.span!.length));
   if (options.color) buffer.write("\u001b[0m");
 
   buffer.writeln("Error: ${error.message}");

@@ -21,13 +21,13 @@ class FilesystemImporter extends Importer {
   /// Creates an importer that loads files relative to [loadPath].
   FilesystemImporter(String loadPath) : _loadPath = p.absolute(loadPath);
 
-  Uri /*?*/ canonicalize(Uri url) {
+  Uri? canonicalize(Uri url) {
     if (url.scheme != 'file' && url.scheme != '') return null;
     return resolveImportPath(p.join(_loadPath, p.fromUri(url)))
         .andThen((resolved) => p.toUri(io.canonicalize(resolved)));
   }
 
-  ImporterResult /*?*/ load(Uri url) {
+  ImporterResult? load(Uri url) {
     var path = p.fromUri(url);
     return ImporterResult(io.readFile(path),
         sourceMapUrl: url, syntax: Syntax.forPath(path));

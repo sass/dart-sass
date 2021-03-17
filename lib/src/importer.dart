@@ -31,9 +31,9 @@ abstract class Importer extends AsyncImporter {
   /// those created from Dart code with plain strings.
   static final Importer noOp = NoOpImporter();
 
-  Uri /*?*/ canonicalize(Uri url);
+  Uri? canonicalize(Uri url);
 
-  ImporterResult /*?*/ load(Uri url);
+  ImporterResult? load(Uri url);
 
   DateTime modificationTime(Uri url) => DateTime.now();
 

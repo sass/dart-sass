@@ -15,13 +15,13 @@ class ModifiableCssStyleRule extends ModifiableCssParentNode
     implements CssStyleRule {
   final ModifiableCssValue<SelectorList> selector;
   final SelectorList originalSelector;
-  final FileSpan span;
+  final FileSpan? span;
 
   /// Creates a new [ModifiableCssStyleRule].
   ///
   /// If [originalSelector] isn't passed, it defaults to [selector.value].
   ModifiableCssStyleRule(ModifiableCssValue<SelectorList> selector, this.span,
-      {SelectorList originalSelector})
+      {SelectorList? originalSelector})
       : selector = selector,
         originalSelector = originalSelector ?? selector.value;
 

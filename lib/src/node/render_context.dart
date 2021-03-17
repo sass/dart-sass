@@ -12,5 +12,5 @@ import 'render_context_options.dart';
 class RenderContext {
   external RenderContextOptions get options;
 
-  external factory RenderContext({@required RenderContextOptions options});
+  external factory RenderContext({required RenderContextOptions options});
 }

@@ -16,7 +16,7 @@ abstract class Logger {
 
   /// Creates a logger that prints warnings to standard error, with terminal
   /// colors if [color] is `true` (default `false`).
-  const factory Logger.stderr({bool color}) = StderrLogger;
+  const factory Logger.stderr({required bool color}) = StderrLogger;
 
   /// Emits a warning with the given [message].
   ///
@@ -26,7 +26,7 @@ abstract class Logger {
   /// a deprecation warning. Implementations should surface all this information
   /// to the end user.
   void warn(String message,
-      {FileSpan span, Trace trace, bool /*!*/ deprecation = false});
+      {FileSpan? span, Trace? trace, bool deprecation = false});
 
   /// Emits a debugging message associated with the given [span].
   void debug(String message, SourceSpan span);
@@ -35,6 +35,6 @@ abstract class Logger {
 /// A logger that emits no messages.
 class _QuietLogger implements Logger {
   void warn(String message,
-      {FileSpan span, Trace trace, bool /*!*/ deprecation = false}) {}
+      {FileSpan? span, Trace? trace, bool deprecation = false}) {}
   void debug(String message, SourceSpan span) {}
 }

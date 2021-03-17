@@ -57,7 +57,7 @@ final _clamp = _function("clamp", r"$min, $number, $max", (arguments) {
 final _floor = _numberFunction("floor", (value) => value.floor());
 
 final _max = _function("max", r"$numbers...", (arguments) {
-  SassNumber max;
+  SassNumber? max;
   for (var value in arguments[0].asList) {
     var number = value.assertNumber();
     if (max == null || max.lessThan(number).isTruthy) max = number;
@@ -67,7 +67,7 @@ final _max = _function("max", r"$numbers...", (arguments) {
 });
 
 final _min = _function("min", r"$numbers...", (arguments) {
-  SassNumber min;
+  SassNumber? min;
   for (var value in arguments[0].asList) {
     var number = value.assertNumber();
     if (min == null || min.greaterThan(number).isTruthy) min = number;
@@ -319,4 +319,5 @@ BuiltInCallable _numberFunction(String name, num transform(num value)) {
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     // TODO: no as
-    BuiltInCallable.function(name, arguments, callback, url: "sass:math");
+    BuiltInCallable.function(name, arguments as String, callback,
+        url: "sass:math");

@@ -13,7 +13,7 @@ class NumberExpression implements Expression {
   final num value;
 
   /// The number's unit, or `null`.
-  final String unit;
+  final String? unit;
 
   final FileSpan span;
 

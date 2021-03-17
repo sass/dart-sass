@@ -10,13 +10,13 @@ import 'node.dart';
 /// A SassScript expression in a Sass syntax tree.
 abstract class Expression implements SassNode {
   /// Calls the appropriate visit method on [visitor].
-  T /*!*/ accept<T>(ExpressionVisitor<T> visitor);
+  T accept<T>(ExpressionVisitor<T> visitor);
 
   /// Parses an expression from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Expression.parse(String contents, {Object url, Logger logger}) =>
+  factory Expression.parse(String contents, {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parseExpression();
 }

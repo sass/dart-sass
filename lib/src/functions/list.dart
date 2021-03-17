@@ -135,4 +135,5 @@ final _isBracketed = _function("is-bracketed", r"$list",
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     // TODO: no as
-    BuiltInCallable.function(name, arguments, callback, url: "sass:list");
+    BuiltInCallable.function(name, arguments as String, callback,
+        url: "sass:list");

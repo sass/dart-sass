@@ -12,17 +12,17 @@ import 'parent.dart';
 /// An `@at-root` rule.
 ///
 /// This moves it contents "up" the tree through parent nodes.
-class AtRootRule extends ParentStatement<List<Statement> /*!*/ > {
+class AtRootRule extends ParentStatement<List<Statement>> {
   /// The query specifying which statements this should move its contents
   /// through.
-  final Interpolation query;
+  final Interpolation? query;
 
   final FileSpan span;
 
-  AtRootRule(Iterable<Statement /*!*/ > children, this.span, {this.query})
+  AtRootRule(Iterable<Statement> children, this.span, {this.query})
       : super(List.unmodifiable(children));
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRootRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRootRule(this)!;
 
   String toString() {
     var buffer = StringBuffer("@at-root ");

@@ -18,11 +18,11 @@ class SassException extends SourceSpanException {
   /// This includes [span].
   Trace get trace => Trace([frameForSpan(span, "root stylesheet")]);
 
-  FileSpan /*?*/ get span => super.span as FileSpan;
+  FileSpan? get span => super.span as FileSpan?;
 
-  SassException(String message, FileSpan /*?*/ span) : super(message, span);
+  SassException(String message, FileSpan? span) : super(message, span);
 
-  String toString({Object color}) {
+  String toString({Object? color}) {
     var buffer = StringBuffer("Error: $message");
     span?.highlight(color: color).andThen(buffer.write);
 
@@ -83,14 +83,14 @@ class MultiSpanSassException extends SassException
   final String primaryLabel;
   final Map<FileSpan, String> secondarySpans;
 
-  MultiSpanSassException(String message, FileSpan span, this.primaryLabel,
-      Map<FileSpan /*!*/, String> secondarySpans)
+  MultiSpanSassException(String message, FileSpan? span, this.primaryLabel,
+      Map<FileSpan, String> secondarySpans)
       : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message, span);
 
-  String toString({Object color, String secondaryColor}) {
+  String toString({Object? color, String? secondaryColor}) {
     var useColor = false;
-    String primaryColor;
+    String? primaryColor;
     if (color is String) {
       useColor = true;
       primaryColor = color;
@@ -120,7 +120,7 @@ class MultiSpanSassException extends SassException
 class SassRuntimeException extends SassException {
   final Trace trace;
 
-  SassRuntimeException(String message, FileSpan span, this.trace)
+  SassRuntimeException(String message, FileSpan? span, this.trace)
       : super(message, span);
 }
 
@@ -129,12 +129,8 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
     implements SassRuntimeException {
   final Trace trace;
 
-  MultiSpanSassRuntimeException(
-      String message,
-      FileSpan span,
-      String primaryLabel,
-      Map<FileSpan /*!*/, String> secondarySpans,
-      this.trace)
+  MultiSpanSassRuntimeException(String message, FileSpan? span,
+      String primaryLabel, Map<FileSpan, String> secondarySpans, this.trace)
       : super(message, span, primaryLabel, secondarySpans);
 }
 
@@ -145,7 +141,7 @@ class SassFormatException extends SassException
 
   int get offset => span?.start.offset;
 
-  SassFormatException(String message, FileSpan span) : super(message, span);
+  SassFormatException(String message, FileSpan? span) : super(message, span);
 }
 
 /// An exception thrown by SassScript.
@@ -171,8 +167,8 @@ class MultiSpanSassScriptException extends SassScriptException {
   /// See [MultiSourceSpanException.secondarySpans].
   final Map<FileSpan, String> secondarySpans;
 
-  MultiSpanSassScriptException(String message, this.primaryLabel,
-      Map<FileSpan /*!*/, String> secondarySpans)
+  MultiSpanSassScriptException(
+      String message, this.primaryLabel, Map<FileSpan, String> secondarySpans)
       : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message);
 }

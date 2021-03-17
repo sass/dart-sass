@@ -11,8 +11,8 @@ import 'callable_declaration.dart';
 
 /// An anonymous block of code that's invoked for a [ContentRule].
 class ContentBlock extends CallableDeclaration {
-  ContentBlock(ArgumentDeclaration arguments,
-      Iterable<Statement /*!*/ > children, FileSpan span)
+  ContentBlock(ArgumentDeclaration arguments, Iterable<Statement> children,
+      FileSpan span)
       : super("@content", arguments, children, span);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentBlock(this);

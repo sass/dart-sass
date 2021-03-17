@@ -12,7 +12,7 @@ import 'utils.dart';
 
 void main() {
   group("true", () {
-    /*late*/ Value /*!*/ value;
+    late Value value;
     setUp(() => value = parseValue("true"));
 
     test("is truthy", () {
@@ -38,7 +38,7 @@ void main() {
   });
 
   group("false", () {
-    /*late*/ Value /*!*/ value;
+    late Value value;
     setUp(() => value = parseValue("false"));
 
     test("is falsey", () {

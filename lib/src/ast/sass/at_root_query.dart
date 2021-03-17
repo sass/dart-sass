@@ -50,11 +50,11 @@ class AtRootQuery {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory AtRootQuery.parse(String contents, {Object url, Logger logger}) =>
+  factory AtRootQuery.parse(String contents, {Object? url, Logger? logger}) =>
       AtRootQueryParser(contents, url: url, logger: logger).parse();
 
   /// Returns whether [this] excludes [node].
-  bool excludes(CssParentNode /*!*/ node) {
+  bool excludes(CssParentNode node) {
     if (_all) return !include;
     if (node is CssStyleRule) return excludesStyleRules;
     if (node is CssMediaRule) return excludesName("media");

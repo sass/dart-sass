@@ -16,7 +16,7 @@ import '../interpolation.dart';
 class FunctionExpression implements Expression, CallableInvocation {
   /// The namespace of the function being invoked, or `null` if it's invoked
   /// without a namespace.
-  final String namespace;
+  final String? namespace;
 
   /// The name of the function being invoked.
   ///
@@ -30,7 +30,7 @@ class FunctionExpression implements Expression, CallableInvocation {
   /// The arguments to pass to the function.
   final ArgumentInvocation arguments;
 
-  final FileSpan span;
+  final FileSpan? span;
 
   FunctionExpression(this.name, this.arguments, this.span, {this.namespace});
 

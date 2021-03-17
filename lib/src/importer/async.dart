@@ -72,7 +72,7 @@ abstract class AsyncImporter {
   /// same result. Calling [canonicalize] with a URL returned by [canonicalize]
   /// must return that URL. Calling [canonicalize] with a URL relative to one
   /// returned by [canonicalize] must return a meaningful result.
-  FutureOr<Uri /*?*/ > /*!*/ canonicalize(Uri url);
+  FutureOr<Uri?> canonicalize(Uri url);
 
   /// Loads the Sass text for the given [url], or returns `null` if
   /// this importer can't find the stylesheet it refers to.
@@ -93,7 +93,7 @@ abstract class AsyncImporter {
   /// will be used as the wrapped exception's message; otherwise, the exception
   /// object's `toString()` will be used. This means it's safe for importers to
   /// throw plain strings.
-  FutureOr<ImporterResult /*?*/ > /*!*/ load(Uri url);
+  FutureOr<ImporterResult?> load(Uri url);
 
   /// Returns the time that the Sass file at [url] was last modified.
   ///

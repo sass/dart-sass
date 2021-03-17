@@ -17,13 +17,13 @@ abstract class SimpleSelector extends Selector {
   /// Specifity is represented in base 1000. The spec says this should be
   /// "sufficiently high"; it's extremely unlikely that any single selector
   /// sequence will contain 1000 simple selectors.
-  int /*!*/ get minSpecificity => 1000;
+  int get minSpecificity => 1000;
 
   /// The maximum possible specificity that this selector can have.
   ///
   /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
   /// can have a range of possible specificities.
-  int /*!*/ get maxSpecificity => minSpecificity;
+  int get maxSpecificity => minSpecificity;
 
   SimpleSelector();
 
@@ -35,7 +35,7 @@ abstract class SimpleSelector extends Selector {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SimpleSelector.parse(String contents,
-          {Object url, Logger logger, bool allowParent = true}) =>
+          {Object? url, Logger? logger, bool allowParent = true}) =>
       SelectorParser(contents,
               url: url, logger: logger, allowParent: allowParent)
           .parseSimpleSelector();
@@ -57,7 +57,7 @@ abstract class SimpleSelector extends Selector {
   ///
   /// Returns `null` if unification is impossible—for example, if there are
   /// multiple ID selectors.
-  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+  List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (compound.length == 1 && compound.first is UniversalSelector) {
       return compound.first.unify([this]);
     }

@@ -33,7 +33,7 @@ class Stderr {
 
   void write(Object object) => _stderr.write(object.toString());
 
-  void writeln([Object object]) {
+  void writeln([Object? object]) {
     _stderr.write("${object ?? ''}\n");
   }
 
@@ -58,9 +58,10 @@ String readFile(String path) {
 }
 
 /// Wraps `fs.readFileSync` to throw a [FileSystemException].
-Object /*!*/ _readFile(String path, [String encoding]) =>
+Object _readFile(String path, [String? encoding]) =>
     // TODO: no as
-    _systemErrorToFileSystemException(() => fs.readFileSync(path, encoding));
+    _systemErrorToFileSystemException(
+        (() => fs.readFileSync(path, encoding)) as Object Function());
 
 void writeFile(String path, String contents) =>
     _systemErrorToFileSystemException(() => fs.writeFileSync(path, contents));
@@ -81,7 +82,7 @@ Future<String> readStdin() async {
     assert(chunk != null);
     sink.add(chunk as List<int>);
   }));
-  process.stdin.on('end', allowInterop(([Object _]) {
+  process.stdin.on('end', allowInterop(([Object? _]) {
     // Callback for 'end' receives no args.
     assert(_ == null);
     sink.close();
@@ -158,12 +159,12 @@ Iterable<String> listDir(String path, {bool recursive = false}) {
     if (!recursive) {
       return fs
           .readdirSync(path)
-          .map((child) => p.join(path, child as String /*!*/))
+          .map((child) => p.join(path, child as String))
           .where((child) => !dirExists(child));
     } else {
       Iterable<String> list(String parent) =>
           fs.readdirSync(parent).expand((child) {
-            var path = p.join(parent, child as String /*!*/);
+            var path = p.join(parent, child as String);
             return dirExists(path) ? list(path) : [path];
           });
 
@@ -176,8 +177,8 @@ DateTime modificationTime(String path) =>
     _systemErrorToFileSystemException(() =>
         DateTime.fromMillisecondsSinceEpoch(fs.statSync(path).mtime.getTime()));
 
-String getEnvironmentVariable(String name) =>
-    getProperty(process.env, name) as String;
+String? getEnvironmentVariable(String name) =>
+    getProperty(process.env, name) as String?;
 
 /// Runs callback and converts any [JsSystemError]s it throws into
 /// [FileSystemException]s.
@@ -216,7 +217,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
 
   // Don't assign the controller until after the ready event fires. Otherwise,
   // Chokidar will give us a bunch of add events for files that already exist.
-  StreamController<WatchEvent> controller;
+  StreamController<WatchEvent>? controller;
   watcher
     ..on(
         'add',
@@ -238,7 +239,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
       watcher.close();
     });
     // TODO: no !
-    completer.complete(controller.stream);
+    completer.complete(controller!.stream);
   }));
 
   return completer.future;

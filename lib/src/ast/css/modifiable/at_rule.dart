@@ -12,9 +12,9 @@ import 'node.dart';
 /// A modifiable version of [CssAtRule] for use in the evaluation step.
 class ModifiableCssAtRule extends ModifiableCssParentNode implements CssAtRule {
   final CssValue<String> name;
-  final CssValue<String> value;
+  final CssValue<String>? value;
   final bool isChildless;
-  final FileSpan span;
+  final FileSpan? span;
 
   ModifiableCssAtRule(this.name, this.span,
       {bool childless = false, this.value})

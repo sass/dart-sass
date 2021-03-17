@@ -117,9 +117,9 @@ class NodeSassList {
 class NodeSassMap {
   external Constructor get constructor;
   external Object getValue(int index);
-  external void setValue(int index, Object value);
+  external void setValue(int index, Object? value);
   external Object getKey(int index);
-  external void setKey(int index, Object value);
+  external void setKey(int index, Object? value);
   external int getLength();
 }
 

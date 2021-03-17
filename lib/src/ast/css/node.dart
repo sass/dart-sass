@@ -23,7 +23,7 @@ abstract class CssNode extends AstNode {
 /// A [CssNode] that can have child statements.
 abstract class CssParentNode extends CssNode {
   /// The child statements of this node.
-  List<CssNode /*!*/ > get children;
+  List<CssNode> get children;
 
   /// Whether the rule has no children and should be emitted without curly
   /// braces.

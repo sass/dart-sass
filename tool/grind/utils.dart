@@ -24,8 +24,8 @@ void ensureBuild() {
 
 /// Returns the environment variable named [name], or throws an exception if it
 /// can't be found.
-String /*!*/ environment(String name) {
-  var value = Platform.environment[name]; // TODO: no !
+String environment(String name) {
+  var value = Platform.environment[name]!; // TODO: no !
   if (value == null) fail("Required environment variable $name not found.");
   return value;
 }

@@ -20,7 +20,7 @@ class Extension {
   /// The selector that's being extended.
   ///
   /// `null` for one-off extensions.
-  final SimpleSelector target;
+  final SimpleSelector? target;
 
   /// The minimum specificity required for any selector generated from this
   /// extender.
@@ -35,25 +35,25 @@ class Extension {
 
   /// The media query context to which this extend is restricted, or `null` if
   /// it can apply within any context.
-  final List<CssMediaQuery> mediaContext;
+  final List<CssMediaQuery>? mediaContext;
 
   /// The span in which [extender] was defined.
   ///
   /// `null` for one-off extensions.
-  final FileSpan extenderSpan;
+  final FileSpan? extenderSpan;
 
   /// The span for an `@extend` rule that defined this extension.
   ///
   /// If any extend rule for this is extension is mandatory, this is guaranteed
   /// to be a span for a mandatory rule.
-  final FileSpan span;
+  final FileSpan? span;
 
   /// Creates a new extension.
   ///
   /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
   Extension(ComplexSelector extender, this.target, this.extenderSpan, this.span,
       this.mediaContext,
-      {int specificity, bool optional = false})
+      {int? specificity, bool optional = false})
       : extender = extender,
         specificity = specificity ?? extender.maxSpecificity,
         isOptional = optional,
@@ -63,7 +63,7 @@ class Extension {
   ///
   /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
   Extension.oneOff(ComplexSelector extender,
-      {int specificity, this.isOriginal = false})
+      {int? specificity, this.isOriginal = false})
       : extender = extender,
         target = null,
         extenderSpan = null,
@@ -74,7 +74,7 @@ class Extension {
 
   /// Asserts that the [mediaContext] for a selector is compatible with the
   /// query context for this extender.
-  void assertCompatibleMediaContext(List<CssMediaQuery> mediaContext) {
+  void assertCompatibleMediaContext(List<CssMediaQuery>? mediaContext) {
     if (this.mediaContext == null) return;
     if (mediaContext != null && listEquals(this.mediaContext, mediaContext)) {
       return;

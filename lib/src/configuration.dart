@@ -46,7 +46,7 @@ class Configuration {
   /// Removes a variable with [name] from this configuration, returning it.
   ///
   /// If no such variable exists in this configuration, returns null.
-  ConfiguredValue remove(String name) => isEmpty ? null : _values.remove(name);
+  ConfiguredValue? remove(String name) => isEmpty ? null : _values.remove(name);
 
   /// Creates a new configuration from this one based on a `@forward` rule.
   Configuration throughForward(ForwardRule forward) {
@@ -86,7 +86,7 @@ class Configuration {
 /// silently ignored in this case.
 class ExplicitConfiguration extends Configuration {
   /// The node whose span indicates where the configuration was declared.
-  final AstNode /*!*/ nodeWithSpan;
+  final AstNode nodeWithSpan;
 
   ExplicitConfiguration._(
       Map<String, ConfiguredValue> values, this.nodeWithSpan)

@@ -25,7 +25,7 @@ void main() {
             "Run pub run grinder to update it.";
 
         var target = File(targetPath).readAsStringSync();
-        var match = checksumPattern.firstMatch(target); // TODO: no !
+        var match = checksumPattern.firstMatch(target)!; // TODO: no !
         if (match == null) fail(message);
 
         var source = File(sourcePath).readAsBytesSync();
@@ -48,7 +48,7 @@ void main() {
     var pubspec = loadYaml(File("pubspec.yaml").readAsStringSync(),
         sourceUrl: Uri(path: "pubspec.yaml")) as Map<dynamic, dynamic>;
     expect(pubspec, containsPair("version", isA<String>()));
-    var pubspecVersion = pubspec["version"] as String /*!*/;
+    var pubspecVersion = pubspec["version"] as String;
 
     expect(pubspecVersion,
         anyOf(equals(changelogVersion), equals("$changelogVersion-dev")));

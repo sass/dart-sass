@@ -33,8 +33,8 @@ void main(List<String> args) {
           as Map<String, Object>;
   pkg.npmReadme.fn = () => _readAndResolveMarkdown("package/README.npm.md");
   pkg.standaloneName.value = "dart-sass";
-  pkg.githubUser.fn = () => Platform.environment["GH_USER"] /*!*/;
-  pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"] /*!*/;
+  pkg.githubUser.fn = () => Platform.environment["GH_USER"]!;
+  pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"]!;
 
   pkg.githubReleaseNotes.fn = () =>
       "To install Sass ${pkg.version}, download one of the packages below "
@@ -110,7 +110,7 @@ final _readAndResolveRegExp = RegExp(
 String _readAndResolveMarkdown(String path) => File(path)
         .readAsStringSync()
         .replaceAllMapped(_readAndResolveRegExp, (match) {
-      String included;
+      late String included;
       try {
         included = File(p.join(p.dirname(path), p.fromUri(match[1])))
             .readAsStringSync();
@@ -118,7 +118,7 @@ String _readAndResolveMarkdown(String path) => File(path)
         _matchError(match, error.toString(), url: p.toUri(path));
       }
 
-      Match headerMatch;
+      late Match headerMatch;
       try {
         headerMatch = "# ${match[2]}".allMatches(included).first;
       } on StateError {
@@ -141,7 +141,7 @@ String _readAndResolveMarkdown(String path) => File(path)
     });
 
 /// Throws a nice [SourceSpanException] associated with [match].
-void _matchError(Match match, String message, {Object url}) {
+void _matchError(Match match, String message, {Object? url}) {
   var file = SourceFile.fromString(match.input, url: url);
   throw SourceSpanException(message, file.span(match.start, match.end));
 }

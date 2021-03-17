@@ -22,14 +22,14 @@ class ListExpression implements Expression {
   /// Whether the list has square brackets or not.
   final bool hasBrackets;
 
-  final FileSpan span;
+  final FileSpan? span;
 
-  ListExpression(Iterable<Expression /*!*/ > contents, ListSeparator separator,
-      {bool brackets = false, FileSpan span})
+  ListExpression(Iterable<Expression> contents, ListSeparator separator,
+      {bool brackets = false, FileSpan? span})
       : this._(List.unmodifiable(contents), separator, brackets, span);
 
   ListExpression._(List<Expression> contents, this.separator, this.hasBrackets,
-      FileSpan span)
+      FileSpan? span)
       : contents = contents,
         span = span ?? spanForList(contents);
 

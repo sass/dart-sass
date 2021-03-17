@@ -130,7 +130,7 @@ final _parse = _function("parse", r"$selector",
 
 /// Adds a [ParentSelector] to the beginning of [compound], or returns `null` if
 /// that wouldn't produce a valid selector.
-CompoundSelector _prependParent(CompoundSelector compound) {
+CompoundSelector? _prependParent(CompoundSelector compound) {
   var first = compound.components.first;
   if (first is UniversalSelector) return null;
   if (first is TypeSelector) {
@@ -149,4 +149,5 @@ CompoundSelector _prependParent(CompoundSelector compound) {
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     // TODO: no as
-    BuiltInCallable.function(name, arguments, callback, url: "sass:selector");
+    BuiltInCallable.function(name, arguments as String, callback,
+        url: "sass:selector");

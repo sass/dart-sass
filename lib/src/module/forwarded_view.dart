@@ -22,7 +22,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The rule that determines how this module's members should be exposed.
   final ForwardRule _rule;
 
-  Uri get url => _inner.url;
+  Uri? get url => _inner.url;
   List<Module<T>> get upstream => _inner.upstream;
   Extender get extender => _inner.extender;
   CssStylesheet get css => _inner.css;
@@ -31,7 +31,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
       _inner.transitivelyContainsExtensions;
 
   final Map<String, Value> variables;
-  final Map<String, AstNode> variableNodes;
+  final Map<String, AstNode>? variableNodes;
   final Map<String, T> functions;
   final Map<String, T> mixins;
 
@@ -65,8 +65,8 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   /// [safelist], with the given [prefix], if given.
   ///
   /// Only one of [blocklist] or [safelist] may be non-`null`.
-  static Map<String, V> /*!*/ _forwardedMap<V>(Map<String, V> /*!*/ map,
-      String prefix, Set<String> safelist, Set<String> blocklist) {
+  static Map<String, V> _forwardedMap<V>(Map<String, V> map, String? prefix,
+      Set<String>? safelist, Set<String>? blocklist) {
     assert(safelist == null || blocklist == null);
     if (prefix == null &&
         safelist == null &&
@@ -87,7 +87,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return map;
   }
 
-  void setVariable(String name, Value value, AstNode nodeWithSpan) {
+  void setVariable(String name, Value value, AstNode? nodeWithSpan) {
     var shownVariables = _rule.shownVariables;
     var hiddenVariables = _rule.hiddenVariables;
     if (shownVariables != null && !shownVariables.contains(name)) {

@@ -29,7 +29,7 @@ void jsThrow(Object error) => _jsThrow.call(error);
 final _jsThrow = JSFunction("error", "throw error;");
 
 /// Returns whether or not [value] is the JS `undefined` value.
-bool isUndefined(Object /*?*/ value) => _isUndefined.call(value) as bool;
+bool isUndefined(Object? value) => _isUndefined.call(value) as bool;
 
 final _isUndefined = JSFunction("value", "return value === undefined;");
 
@@ -50,22 +50,21 @@ external Function get jsErrorConstructor;
 bool isJSError(Object value) => jsInstanceOf(value, jsErrorConstructor);
 
 /// Invokes [function] with [thisArg] as `this`.
-Object /*?*/ call2(
-        JSFunction function, Object thisArg, Object arg1, Object arg2) =>
+Object? call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
     function.apply(thisArg, [arg1, arg2]);
 
 /// Invokes [function] with [thisArg] as `this`.
-Object /*?*/ call3(JSFunction function, Object thisArg, Object arg1,
-        Object arg2, Object arg3) =>
+Object? call3(JSFunction function, Object thisArg, Object arg1, Object arg2,
+        Object arg3) =>
     function.apply(thisArg, [arg1, arg2, arg3]);
 
 @JS("Object.keys")
-external List<String> _keys(Object object);
+external List<String> _keys(Object? object);
 
 /// Invokes [callback] for each key/value pair in [object].
-void jsForEach(Object object, void callback(Object key, Object value)) {
+void jsForEach(Object? object, void callback(Object key, Object? value)) {
   for (var key in _keys(object)) {
-    callback(key, getProperty(object, key));
+    callback(key, getProperty(object!, key));
   }
 }
 
@@ -85,25 +84,25 @@ Function createClass(
 }
 
 @JS("Object.getPrototypeOf")
-external Object /*?*/ _getPrototypeOf(Object object);
+external Object? _getPrototypeOf(Object object);
 
 @JS("Object.setPrototypeOf")
-external void _setPrototypeOf(Object /*!*/ object, Object prototype);
+external void _setPrototypeOf(Object object, Object prototype);
 
 @JS("Object.defineProperty")
 external void _defineProperty(
-    Object /*!*/ object, String name, _PropertyDescriptor prototype);
+    Object object, String name, _PropertyDescriptor prototype);
 
 @JS()
 @anonymous
 class _PropertyDescriptor {
   external Object get value;
 
-  external factory _PropertyDescriptor({Object value});
+  external factory _PropertyDescriptor({Object? value});
 }
 
 @JS("Object.create")
-external Object _create(Object /*!*/ prototype);
+external Object _create(Object prototype);
 
 /// Sets the name of `object`'s class to `name`.
 void setClassName(Object object, String name) {
@@ -113,7 +112,7 @@ void setClassName(Object object, String name) {
 
 /// Injects [constructor] into the inheritance chain for [object]'s class.
 void injectSuperclass(Object object, Function constructor) {
-  var prototype = _getPrototypeOf(object);
+  var prototype = _getPrototypeOf(object)!;
   var parent = _getPrototypeOf(prototype);
   if (parent != null) {
     _setPrototypeOf(getProperty(constructor, 'prototype'), parent);
@@ -122,7 +121,7 @@ void injectSuperclass(Object object, Function constructor) {
 }
 
 /// Returns whether [value] is truthy according to JavaScript.
-bool isTruthy(Object value) => value != false && value != null;
+bool isTruthy(Object? value) => value != false && value != null;
 
 @JS('Buffer.from')
 external Uint8List _buffer(String text, String encoding);

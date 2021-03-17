@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1196dc4a7cad43b056f32e5e76aeff4362973276
+// Checksum: 703b475d60d087c6a7944358a9cee6d1da44a958
 //
 // ignore_for_file: unused_import
 
@@ -38,11 +38,10 @@ class ImportCache {
   ///
   /// This cache isn't used for relative imports, because they're
   /// context-dependent.
-  final Map<Tuple2<Uri, bool>, Tuple3<Importer, Uri, Uri> /*?*/ >
-      _canonicalizeCache;
+  final Map<Tuple2<Uri, bool>, Tuple3<Importer, Uri, Uri>?> _canonicalizeCache;
 
   /// The parsed stylesheets for each canonicalized import URL.
-  final Map<Uri, Stylesheet /*?*/ > _importCache;
+  final Map<Uri, Stylesheet?> _importCache;
 
   /// The import results for each canonicalized import URL.
   final Map<Uri, ImporterResult> _resultsCache;
@@ -65,10 +64,10 @@ class ImportCache {
   ///
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
   ImportCache(
-      {Iterable<Importer> importers,
-      Iterable<String> loadPaths,
-      PackageConfig packageConfig,
-      Logger logger})
+      {Iterable<Importer>? importers,
+      Iterable<String>? loadPaths,
+      PackageConfig? packageConfig,
+      Logger? logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
         _logger = logger ?? const Logger.stderr(),
         _canonicalizeCache = {},
@@ -76,7 +75,7 @@ class ImportCache {
         _resultsCache = {};
 
   /// Creates an import cache without any globally-available importers.
-  ImportCache.none({Logger logger})
+  ImportCache.none({Logger? logger})
       : _importers = const [],
         _logger = logger ?? const Logger.stderr(),
         _canonicalizeCache = {},
@@ -85,8 +84,8 @@ class ImportCache {
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
-  static List<Importer> _toImporters(Iterable<Importer> importers,
-      Iterable<String> loadPaths, PackageConfig packageConfig) {
+  static List<Importer> _toImporters(Iterable<Importer>? importers,
+      Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
     return [
       ...?importers,
@@ -111,8 +110,8 @@ class ImportCache {
   /// If any importers understand [url], returns that importer as well as the
   /// canonicalized URL and the original URL resolved relative to [baseUrl] if
   /// applicable. Otherwise, returns `null`.
-  Tuple3<Importer, Uri, Uri> canonicalize(Uri url,
-      {Importer baseImporter, Uri baseUrl, bool forImport = false}) {
+  Tuple3<Importer, Uri, Uri>? canonicalize(Uri url,
+      {Importer? baseImporter, Uri? baseUrl, bool forImport = false}) {
     if (baseImporter != null) {
       var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
       var canonicalUrl = _canonicalize(baseImporter, resolvedUrl, forImport);
@@ -136,7 +135,7 @@ class ImportCache {
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
   /// returns a relative URL.
-  Uri _canonicalize(Importer importer, Uri url, bool forImport) {
+  Uri? _canonicalize(Importer importer, Uri url, bool forImport) {
     var result = (forImport
         ? inImportRule(() => importer.canonicalize(url))
         : importer.canonicalize(url));
@@ -158,8 +157,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// parsed stylesheet. Otherwise, returns `null`.
   ///
   /// Caches the result of the import and uses cached results if possible.
-  Tuple2<Importer, Stylesheet> import(Uri url,
-      {Importer baseImporter, Uri baseUrl, bool forImport = false}) {
+  Tuple2<Importer, Stylesheet>? import(Uri url,
+      {Importer? baseImporter, Uri? baseUrl, bool forImport = false}) {
     var tuple = canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport);
     if (tuple == null) return null;
@@ -178,8 +177,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// importers may return for legacy reasons.
   ///
   /// Caches the result of the import and uses cached results if possible.
-  Stylesheet importCanonical(Importer importer, Uri canonicalUrl,
-      [Uri originalUrl]) {
+  Stylesheet? importCanonical(Importer importer, Uri canonicalUrl,
+      [Uri? originalUrl]) {
     // TODO: no as
     return _importCache.putIfAbsent(canonicalUrl, () {
       var result = importer.load(canonicalUrl);

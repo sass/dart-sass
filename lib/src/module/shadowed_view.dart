@@ -18,7 +18,7 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The wrapped module.
   final Module<T> _inner;
 
-  Uri get url => _inner.url;
+  Uri? get url => _inner.url;
   List<Module<T>> get upstream => _inner.upstream;
   Extender get extender => _inner.extender;
   CssStylesheet get css => _inner.css;
@@ -39,11 +39,11 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
       css.children.isEmpty;
 
   /// Like [ShadowedModuleView], but returns `null` if [inner] would be unchanged.
-  static ShadowedModuleView<T> ifNecessary<T extends AsyncCallable>(
+  static ShadowedModuleView<T>? ifNecessary<T extends AsyncCallable>(
           Module<T> inner,
-          {Set<String> variables,
-          Set<String> functions,
-          Set<String> mixins}) =>
+          {Set<String>? variables,
+          Set<String>? functions,
+          Set<String>? mixins}) =>
       _needsBlocklist(inner.variables, variables) ||
               _needsBlocklist(inner.functions, functions) ||
               _needsBlocklist(inner.mixins, mixins)
@@ -54,7 +54,7 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   /// Returns a view of [inner] that doesn't include the given [variables],
   /// [functions], or [mixins].
   ShadowedModuleView(this._inner,
-      {Set<String> variables, Set<String> functions, Set<String> mixins})
+      {Set<String>? variables, Set<String>? functions, Set<String>? mixins})
       : variables = _shadowedMap(_inner.variables, variables),
         variableNodes = _shadowedMap(_inner.variableNodes, variables),
         functions = _shadowedMap(_inner.functions, functions),
@@ -64,17 +64,18 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
       this.functions, this.mixins);
 
   /// Returns a view of [map] with all keys in [blocklist] omitted.
-  static Map<String, V> /*!*/ _shadowedMap<V, M extends Map<String, V> /*!*/ >(
-          M /*!*/ map, Set<String> blocklist) =>
+  static Map<String, V> _shadowedMap<V, M extends Map<String, V>>(
+          M map, Set<String>? blocklist) =>
       map == null || blocklist == null || !_needsBlocklist(map, blocklist)
           ? map
           : LimitedMapView.blocklist(map, blocklist);
 
   /// Returns whether any of [map]'s keys are in [blocklist].
-  static bool _needsBlocklist(Map<String, Object> map, Set<String> blocklist) =>
+  static bool _needsBlocklist(
+          Map<String, Object?> map, Set<String>? blocklist) =>
       blocklist != null && map.isNotEmpty && blocklist.any(map.containsKey);
 
-  void setVariable(String name, Value value, AstNode nodeWithSpan) {
+  void setVariable(String name, Value value, AstNode? nodeWithSpan) {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
     } else {

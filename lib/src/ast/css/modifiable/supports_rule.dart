@@ -12,8 +12,8 @@ import 'node.dart';
 /// A modifiable version of [CssSupportsRule] for use in the evaluation step.
 class ModifiableCssSupportsRule extends ModifiableCssParentNode
     implements CssSupportsRule {
-  final CssValue<String /*!*/ > condition;
-  final FileSpan span;
+  final CssValue<String> condition;
+  final FileSpan? span;
 
   ModifiableCssSupportsRule(this.condition, this.span);
 

@@ -27,7 +27,7 @@ abstract class AsyncCallable {
   factory AsyncCallable(String name, String arguments,
           FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
       // TODO: no as
-      AsyncCallable.function(name, arguments, callback);
+      AsyncCallable.function(name, arguments as String, callback);
 
   /// Creates a callable with the given [name] and [arguments] that runs
   /// [callback] when called.
@@ -39,9 +39,9 @@ abstract class AsyncCallable {
   factory AsyncCallable.function(String name, String arguments,
           FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
       // TODO: no as
-      AsyncBuiltInCallable.function(name, arguments, (arguments) {
+      AsyncBuiltInCallable.function(name, arguments as String, (arguments) {
         var result = callback(arguments);
         if (result is ext.Value) return result as Value;
-        return (result as Future<ext.Value>).then((value) => value as Value);
+        return result.then((value) => value as Value);
       });
 }

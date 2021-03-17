@@ -38,7 +38,7 @@ class MultiDirWatcher {
   Future<void> watch(String directory) {
     var isParentOfExistingDir = false;
     for (var entry in _watchers.entries.toList()) {
-      var existingDir = entry.key /*!*/; // dart-lang/path#100
+      var existingDir = entry.key!; // dart-lang/path#100
       var existingWatcher = entry.value;
 
       if (!isParentOfExistingDir &&

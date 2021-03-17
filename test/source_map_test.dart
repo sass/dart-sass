@@ -681,10 +681,10 @@ void main() {
         $map: (a: b);
         x {y: $map}
       """, sourceMap: (_) {});
-    }, throwsA(predicate((untypedError) {
+    }, throwsA(predicate((dynamic untypedError) {
       // TODO: no dynamic
       var error = untypedError as SourceSpanException;
-      expect(error.span.text, equals(r"$map"));
+      expect(error.span!.text, equals(r"$map"));
       return true;
     })));
   });
@@ -711,14 +711,14 @@ void main() {
 ///
 /// This also re-indents the input strings with [_reindent].
 void _expectSourceMap(String sass, String scss, String css,
-    {Importer importer, OutputStyle style}) {
+    {Importer? importer, OutputStyle? style}) {
   _expectSassSourceMap(sass, css, importer: importer, style: style);
   _expectScssSourceMap(scss, css, importer: importer, style: style);
 }
 
 /// Like [_expectSourceMap], but with only SCSS source.
 void _expectScssSourceMap(String scss, String css,
-    {Importer importer, OutputStyle style}) {
+    {Importer? importer, OutputStyle? style}) {
   var scssTuple = _extractLocations(_reindent(scss));
   var scssText = scssTuple.item1;
   var scssLocations = _tuplesToMap(scssTuple.item2);
@@ -727,7 +727,7 @@ void _expectScssSourceMap(String scss, String css,
   var cssText = cssTuple.item1;
   var cssLocations = cssTuple.item2;
 
-  SingleMapping scssMap;
+  late SingleMapping scssMap;
   var scssOutput = compileString(scssText,
       sourceMap: (map) => scssMap = map, importer: importer, style: style);
   expect(scssOutput, equals(cssText));
@@ -736,7 +736,7 @@ void _expectScssSourceMap(String scss, String css,
 
 /// Like [_expectSourceMap], but with only indented source.
 void _expectSassSourceMap(String sass, String css,
-    {Importer importer, OutputStyle style}) {
+    {Importer? importer, OutputStyle? style}) {
   var sassTuple = _extractLocations(_reindent(sass));
   var sassText = sassTuple.item1;
   var sassLocations = _tuplesToMap(sassTuple.item2);
@@ -745,7 +745,7 @@ void _expectSassSourceMap(String sass, String css,
   var cssText = cssTuple.item1;
   var cssLocations = cssTuple.item2;
 
-  SingleMapping sassMap;
+  late SingleMapping sassMap;
   var sassOutput = compileString(sassText,
       indented: true,
       sourceMap: (map) => sassMap = map,
@@ -831,7 +831,7 @@ void _expectMapMatches(
   for (var tuple in targetLocations) {
     var name = tuple.item1;
     var expectedTarget = tuple.item2;
-    var expectedSource = sourceLocations[name];
+    var expectedSource = sourceLocations[name]!;
 
     if (!entryIter.moveNext()) {
       fail('Missing mapping "$name", expected '

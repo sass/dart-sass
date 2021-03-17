@@ -27,7 +27,7 @@ String get sandbox {
       "field.");
 }
 
-String _sandbox;
+String? _sandbox;
 
 void useSandbox() {
   setUp(() async {
@@ -41,7 +41,7 @@ void useSandbox() {
 
 /// Validates that a [RenderError]'s `toString()` and `message` both equal
 /// [text].
-Matcher toStringAndMessageEqual(String text) => predicate((error) {
+Matcher toStringAndMessageEqual(String text) => predicate((dynamic error) {
       expect(error.toString(), equals("Error: $text"));
       expect(error.message, equals(text));
       expect(error.formatted, equals("Error: $text"));
@@ -54,7 +54,7 @@ Future<String> render(RenderOptions options) {
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(error, isNull);
-    completer.complete(utf8.decode(result.css));
+    completer.complete(utf8.decode(result.css!));
   })));
   return completer.future;
 }
@@ -73,7 +73,7 @@ Future<RenderError> renderError(RenderOptions options) {
 
 /// Returns the result of rendering via [options] as a string.
 String renderSync(RenderOptions options) =>
-    utf8.decode(sass.renderSync(options).css);
+    utf8.decode(sass.renderSync(options).css!);
 
 /// Like [renderSync], but goes through the untyped JS API.
 ///
@@ -81,7 +81,7 @@ String renderSync(RenderOptions options) =>
 /// type errors.
 String renderSyncJS(Map<String, Object> options) {
   var result = _renderSyncJS.call(sass, jsify(options)) as RenderResult;
-  return utf8.decode(result.css);
+  return utf8.decode(result.css!);
 }
 
 final _renderSyncJS =
@@ -111,7 +111,7 @@ void runTestInSandbox() {
 }
 
 /// Sets the environment variable [name] to [value] within this process.
-void setEnvironmentVariable(String name, String value) {
+void setEnvironmentVariable(String name, String? value) {
   setProperty(_environment, name, value);
 }
 

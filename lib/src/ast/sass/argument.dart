@@ -14,9 +14,9 @@ class Argument implements SassNode {
   final String name;
 
   /// The default value of this argument, or `null` if none was declared.
-  final Expression defaultValue;
+  final Expression? defaultValue;
 
-  final FileSpan span;
+  final FileSpan? span;
 
   /// The variable name as written in the document, without underscores
   /// converted to hyphens and including the leading `$`.

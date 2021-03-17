@@ -32,11 +32,11 @@ class InterpolationBuffer implements StringSink {
     _text.clear();
   }
 
-  void write(Object obj) => _text.write(obj);
-  void writeAll(Iterable<Object> objects, [String separator = '']) =>
+  void write(Object? obj) => _text.write(obj);
+  void writeAll(Iterable<Object?> objects, [String separator = '']) =>
       _text.writeAll(objects, separator);
   void writeCharCode(int character) => _text.writeCharCode(character);
-  void writeln([Object obj = '']) => _text.writeln(obj);
+  void writeln([Object? obj = '']) => _text.writeln(obj);
 
   /// Adds [expression] to this buffer.
   void add(Expression expression) {
@@ -69,7 +69,7 @@ class InterpolationBuffer implements StringSink {
 
   /// Creates an [Interpolation] with the given [span] from the contents of this
   /// buffer.
-  Interpolation interpolation(FileSpan span) {
+  Interpolation interpolation(FileSpan? span) {
     return Interpolation(
         [..._contents, if (_text.isNotEmpty) _text.toString()], span);
   }

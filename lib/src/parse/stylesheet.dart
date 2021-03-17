@@ -45,7 +45,7 @@ abstract class StylesheetParser extends Parser {
   /// Whether the current mixin contains at least one `@content` rule.
   ///
   /// This is `null` unless [_inMixin] is `true`.
-  bool _mixinHasContent;
+  bool? _mixinHasContent;
 
   /// Whether the parser is currently parsing a content block passed to a mixin.
   var _inContentBlock = false;
@@ -74,9 +74,9 @@ abstract class StylesheetParser extends Parser {
 
   /// The silent comment this parser encountered previously.
   @protected
-  SilentComment lastSilentComment;
+  SilentComment? lastSilentComment;
 
-  StylesheetParser(String contents, {Object url, Logger logger})
+  StylesheetParser(String contents, {Object? url, Logger? logger})
       : super(contents, url: url, logger: logger);
 
   // ## Statements
@@ -122,7 +122,7 @@ abstract class StylesheetParser extends Parser {
         return arguments;
       });
 
-  Expression /*!*/ parseExpression() => _parseSingleProduction(expression);
+  Expression parseExpression() => _parseSingleProduction(expression);
 
   VariableDeclaration parseVariableDeclaration() =>
       _parseSingleProduction(() => lookingAtIdentifier()
@@ -212,14 +212,14 @@ abstract class StylesheetParser extends Parser {
   /// used for the declaration.
   @protected
   VariableDeclaration variableDeclarationWithoutNamespace(
-      [String namespace, LineScannerState start]) {
+      [String? namespace, LineScannerState? start]) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     start ??= scanner.state;
 
     var name = variableName();
     // TODO: no start!
-    if (namespace != null) _assertPublic(name, () => scanner.spanFrom(start));
+    if (namespace != null) _assertPublic(name, () => scanner.spanFrom(start!));
 
     if (plainCss) {
       error("Sass variables aren't allowed in plain CSS.",
@@ -482,7 +482,7 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a [StyleRule], optionally with a [buffer] that may contain some
   /// text that has already been parsed.
-  StyleRule _styleRule([InterpolationBuffer buffer, LineScannerState start]) {
+  StyleRule _styleRule([InterpolationBuffer? buffer, LineScannerState? start]) {
     _isUseAllowed = false;
     start ??= scanner.state;
 
@@ -505,7 +505,7 @@ abstract class StylesheetParser extends Parser {
       _inStyleRule = wasInStyleRule;
 
       // TODO: no start!
-      return StyleRule(interpolation, children, scanner.spanFrom(start));
+      return StyleRule(interpolation, children, scanner.spanFrom(start!));
     });
   }
 
@@ -598,7 +598,7 @@ abstract class StylesheetParser extends Parser {
   /// If [root] is `true`, this parses at-rules that are allowed only at the
   /// root of the stylesheet.
   @protected
-  Statement /*!*/ atRule(Statement /*!*/ child(), {bool root = false}) {
+  Statement atRule(Statement child(), {bool root = false}) {
     // NOTE: this logic is largely duplicated in CssParser.atRule. Most changes
     // here should be mirrored there.
 
@@ -719,7 +719,7 @@ abstract class StylesheetParser extends Parser {
         error(
             "@function rules may not contain "
             "${statement is StyleRule ? "style rules" : "declarations"}.",
-            statement.span);
+            statement.span!);
       }
     }
 
@@ -934,7 +934,7 @@ abstract class StylesheetParser extends Parser {
     expectIdentifier("from");
     whitespace();
 
-    bool exclusive;
+    bool? exclusive;
     var from = expression(until: () {
       if (!lookingAtIdentifier()) return false;
       if (scanIdentifier("to")) {
@@ -956,7 +956,7 @@ abstract class StylesheetParser extends Parser {
       _inControlDirective = wasInControlDirective;
 
       // TODO: no exclusive!
-      return ForRule(variable, from, to, children, span, exclusive: exclusive);
+      return ForRule(variable, from, to, children, span, exclusive: exclusive!);
     });
   }
 
@@ -967,7 +967,7 @@ abstract class StylesheetParser extends Parser {
     var url = _urlString();
     whitespace();
 
-    String prefix;
+    String? prefix;
     if (scanIdentifier("as")) {
       whitespace();
       prefix = identifier(normalize: true);
@@ -975,10 +975,10 @@ abstract class StylesheetParser extends Parser {
       whitespace();
     }
 
-    Set<String> shownMixinsAndFunctions;
-    Set<String> /*?*/ shownVariables;
-    Set<String> hiddenMixinsAndFunctions;
-    Set<String> /*?*/ hiddenVariables;
+    Set<String>? shownMixinsAndFunctions;
+    Set<String>? shownVariables;
+    Set<String>? hiddenMixinsAndFunctions;
+    Set<String>? hiddenVariables;
     if (scanIdentifier("show")) {
       var members = _memberList();
       shownMixinsAndFunctions = members.item1;
@@ -999,11 +999,11 @@ abstract class StylesheetParser extends Parser {
 
     if (shownMixinsAndFunctions != null) {
       return ForwardRule.show(
-          url, shownMixinsAndFunctions, shownVariables, span,
+          url, shownMixinsAndFunctions, shownVariables!, span,
           prefix: prefix, configuration: configuration);
     } else if (hiddenMixinsAndFunctions != null) {
       return ForwardRule.hide(
-          url, hiddenMixinsAndFunctions, hiddenVariables, span,
+          url, hiddenMixinsAndFunctions, hiddenVariables!, span,
           prefix: prefix, configuration: configuration);
     } else {
       return ForwardRule(url, span,
@@ -1047,7 +1047,7 @@ abstract class StylesheetParser extends Parser {
     whitespaceWithoutComments();
 
     var clauses = [IfClause(condition, children)];
-    ElseClause lastClause;
+    ElseClause? lastClause;
 
     while (scanElse(ifIndentation)) {
       whitespace();
@@ -1146,8 +1146,8 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a supports condition and/or a media query after an `@import`.
   ///
   /// Returns `null` if neither type of query can be found.
-  Tuple2<SupportsCondition, Interpolation> tryImportQueries() {
-    SupportsCondition supports;
+  Tuple2<SupportsCondition?, Interpolation?>? tryImportQueries() {
+    SupportsCondition? supports;
     if (scanIdentifier("supports")) {
       scanner.expectChar($lparen);
       var start = scanner.state;
@@ -1180,7 +1180,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   IncludeRule _includeRule(LineScannerState start) {
-    String namespace;
+    String? namespace;
     var name = identifier();
     if (scanner.scanChar($dot)) {
       namespace = name;
@@ -1195,14 +1195,14 @@ abstract class StylesheetParser extends Parser {
         : ArgumentInvocation.empty(scanner.emptySpan);
     whitespace();
 
-    ArgumentDeclaration contentArguments;
+    ArgumentDeclaration? contentArguments;
     if (scanIdentifier("using")) {
       whitespace();
       contentArguments = _argumentDeclaration();
       whitespace();
     }
 
-    ContentBlock content;
+    ContentBlock? content;
     if (contentArguments != null || lookingAtChildren()) {
       contentArguments ??= ArgumentDeclaration.empty(span: scanner.emptySpan);
 
@@ -1210,7 +1210,7 @@ abstract class StylesheetParser extends Parser {
       _inContentBlock = true;
       content = _withChildren(_statement, start, (children, span) {
         // TODO: no !
-        return ContentBlock(contentArguments, children, span);
+        return ContentBlock(contentArguments!, children, span);
       });
       _inContentBlock = wasInContentBlock;
     } else {
@@ -1218,7 +1218,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     var span =
-        scanner.spanFrom(start, start).expand((content ?? arguments).span);
+        scanner.spanFrom(start, start).expand((content ?? arguments).span!);
     return IncludeRule(name, arguments, span,
         namespace: namespace, content: content);
   }
@@ -1258,7 +1258,7 @@ abstract class StylesheetParser extends Parser {
     _mixinHasContent = false;
 
     return _withChildren(_statement, start, (children, span) {
-      var hadContent = _mixinHasContent;
+      var hadContent = _mixinHasContent!;
       _inMixin = false;
       _mixinHasContent = null;
 
@@ -1396,7 +1396,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// default namespace from its URL.
   ///
   /// Returns `null` to indicate a `@use` rule without a URL.
-  String _useNamespace(Uri url, LineScannerState start) {
+  String? _useNamespace(Uri url, LineScannerState start) {
     if (scanIdentifier("as")) {
       whitespace();
       return scanner.scanChar($asterisk) ? null : identifier();
@@ -1420,7 +1420,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// `!default` flag.
   ///
   /// Returns `null` if there is no `with` clause.
-  List<ConfiguredVariable> _configuration({bool allowGuarded = false}) {
+  List<ConfiguredVariable>? _configuration({bool allowGuarded = false}) {
     if (!scanIdentifier("with")) return null;
 
     var variableNames = <String>{};
@@ -1498,7 +1498,7 @@ relase. For details, see http://bit.ly/moz-document.
     var wasInUnknownAtRule = _inUnknownAtRule;
     _inUnknownAtRule = true;
 
-    Interpolation value;
+    Interpolation? value;
     var next = scanner.peekChar();
     if (next != $exclamation && !atEndOfStatement()) value = almostAnyValue();
 
@@ -1535,13 +1535,13 @@ relase. For details, see http://bit.ly/moz-document.
     whitespace();
     var arguments = <Argument>[];
     var named = <String>{};
-    String restArgument;
+    String? restArgument;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
       var name = variableName();
       whitespace();
 
-      Expression defaultValue;
+      Expression? defaultValue;
       if (scanner.scanChar($colon)) {
         whitespace();
         defaultValue = _expressionUntilComma();
@@ -1556,7 +1556,7 @@ relase. For details, see http://bit.ly/moz-document.
       arguments.add(Argument(name,
           span: scanner.spanFrom(variableStart), defaultValue: defaultValue));
       if (!named.add(name)) {
-        error("Duplicate argument.", arguments.last.span);
+        error("Duplicate argument.", arguments.last.span!);
       }
 
       if (!scanner.scanChar($comma)) break;
@@ -1581,8 +1581,8 @@ relase. For details, see http://bit.ly/moz-document.
 
     var positional = <Expression>[];
     var named = <String, Expression>{};
-    Expression rest;
-    Expression keywordRest;
+    Expression? rest;
+    Expression? keywordRest;
     while (_lookingAtExpression()) {
       var expression = _expressionUntilComma(singleEquals: !mixin);
       whitespace();
@@ -1605,7 +1605,7 @@ relase. For details, see http://bit.ly/moz-document.
         }
       } else if (named.isNotEmpty) {
         error("Positional arguments must come before keyword arguments.",
-            expression.span);
+            expression.span!);
       } else {
         positional.add(expression);
       }
@@ -1632,12 +1632,12 @@ relase. For details, see http://bit.ly/moz-document.
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
   @protected
-  Expression /*!*/ expression(
-      {bool bracketList = false, bool singleEquals = false, bool until()}) {
+  Expression expression(
+      {bool bracketList = false, bool singleEquals = false, bool until()?}) {
     // TODO: no ! throughout
     if (until != null && until()) scanner.error("Expected expression.");
 
-    LineScannerState beforeBracket;
+    late LineScannerState beforeBracket;
     if (bracketList) {
       beforeBracket = scanner.state;
       scanner.expectChar($lbracket);
@@ -1652,19 +1652,19 @@ relase. For details, see http://bit.ly/moz-document.
     var start = scanner.state;
     var wasInParentheses = _inParentheses;
 
-    List<Expression /*!*/ > commaExpressions;
+    List<Expression>? commaExpressions;
 
-    List<Expression /*!*/ > spaceExpressions;
+    List<Expression>? spaceExpressions;
 
     // Operators whose right-hand operands are not fully parsed yet, in order of
     // appearance in the document. Because a low-precedence operator will cause
     // parsing to finish for all preceding higher-precedence operators, this is
     // naturally ordered from lowest to highest precedence.
-    List<BinaryOperator> operators;
+    List<BinaryOperator>? operators;
 
     // The left-hand sides of [operators]. `operands[n]` is the left-hand side
     // of `operators[n]`.
-    List<Expression /*!*/ > operands;
+    List<Expression>? operands;
 
     /// Whether the single expression parsed so far may be interpreted as
     /// slash-separated numbers.
@@ -1677,7 +1677,7 @@ relase. For details, see http://bit.ly/moz-document.
     ///
     ///     foo, bar
     ///         ^
-    Expression singleExpression = _singleExpression();
+    Expression? singleExpression = _singleExpression();
 
     // Resets the scanner state to the state it was at at the beginning of the
     // expression, except for [_inParentheses].
@@ -1696,20 +1696,20 @@ relase. For details, see http://bit.ly/moz-document.
         throw StateError("operators must be set for resolveOneOperation().");
       }
 
-      var operator = operators.removeLast();
+      var operator = operators!.removeLast();
       if (operator != BinaryOperator.dividedBy) allowSlash = false;
       if (allowSlash && !_inParentheses) {
         singleExpression = BinaryOperationExpression.slash(
-            operands.removeLast(), singleExpression);
+            operands!.removeLast(), singleExpression!);
       } else {
         singleExpression = BinaryOperationExpression(
-            operator, operands.removeLast(), singleExpression);
+            operator, operands!.removeLast(), singleExpression!);
       }
     }
 
     void resolveOperations() {
       if (operators == null) return;
-      while (operators.isNotEmpty) {
+      while (operators!.isNotEmpty) {
         resolveOneOperation();
       }
     }
@@ -1730,7 +1730,7 @@ relase. For details, see http://bit.ly/moz-document.
 
         spaceExpressions ??= [];
         resolveOperations();
-        spaceExpressions.add(singleExpression);
+        spaceExpressions!.add(singleExpression!);
         allowSlash = number;
       } else if (!number) {
         allowSlash = false;
@@ -1752,13 +1752,13 @@ relase. For details, see http://bit.ly/moz-document.
 
       operators ??= [];
       operands ??= [];
-      while (operators.isNotEmpty &&
-          operators.last.precedence >= operator.precedence) {
+      while (operators!.isNotEmpty &&
+          operators!.last.precedence >= operator.precedence) {
         resolveOneOperation();
       }
-      operators.add(operator);
+      operators!.add(operator);
 
-      operands.add(singleExpression);
+      operands!.add(singleExpression!);
       whitespace();
       allowSlash = allowSlash && lookingAtNumber();
       singleExpression = _singleExpression();
@@ -1769,9 +1769,9 @@ relase. For details, see http://bit.ly/moz-document.
       resolveOperations();
 
       if (spaceExpressions != null) {
-        spaceExpressions.add(singleExpression);
+        spaceExpressions!.add(singleExpression!);
         singleExpression =
-            ListExpression(spaceExpressions, ListSeparator.space);
+            ListExpression(spaceExpressions!, ListSeparator.space);
         spaceExpressions = null;
       }
     }
@@ -2006,7 +2006,7 @@ relase. For details, see http://bit.ly/moz-document.
           if (singleExpression == null) scanner.error("Expected expression.");
 
           resolveSpaceExpressions();
-          commaExpressions.add(singleExpression);
+          commaExpressions!.add(singleExpression!);
           scanner.readChar();
           allowSlash = true;
           singleExpression = null;
@@ -2026,23 +2026,23 @@ relase. For details, see http://bit.ly/moz-document.
     if (commaExpressions != null) {
       resolveSpaceExpressions();
       _inParentheses = wasInParentheses;
-      if (singleExpression != null) commaExpressions.add(singleExpression);
-      return ListExpression(commaExpressions, ListSeparator.comma,
+      if (singleExpression != null) commaExpressions!.add(singleExpression!);
+      return ListExpression(commaExpressions!, ListSeparator.comma,
           brackets: bracketList,
           span: bracketList ? scanner.spanFrom(beforeBracket) : null);
     } else if (bracketList && spaceExpressions != null) {
       resolveOperations();
       return ListExpression(
-          spaceExpressions..add(singleExpression), ListSeparator.space,
+          spaceExpressions!..add(singleExpression!), ListSeparator.space,
           brackets: true, span: scanner.spanFrom(beforeBracket));
     } else {
       resolveSpaceExpressions();
       if (bracketList) {
         singleExpression = ListExpression(
-            [singleExpression], ListSeparator.undecided,
+            [singleExpression!], ListSeparator.undecided,
             brackets: true, span: scanner.spanFrom(beforeBracket));
       }
-      return singleExpression;
+      return singleExpression!;
     }
   }
 
@@ -2356,7 +2356,7 @@ relase. For details, see http://bit.ly/moz-document.
   UnaryOperationExpression _unaryOperation() {
     var start = scanner.state;
     // TODO: no !
-    var operator = _unaryOperatorFor(scanner.readChar());
+    var operator = _unaryOperatorFor(scanner.readChar())!;
     if (operator == null) {
       scanner.error("Expected unary operator.", position: scanner.position - 1);
     } else if (plainCss && operator != UnaryOperator.divide) {
@@ -2371,7 +2371,7 @@ relase. For details, see http://bit.ly/moz-document.
 
   /// Returns the unsary operator corresponding to [character], or `null` if
   /// the character is not a unary operator.
-  UnaryOperator _unaryOperatorFor(int character) {
+  UnaryOperator? _unaryOperatorFor(int character) {
     switch (character) {
       case $plus:
         return UnaryOperator.plus;
@@ -2399,7 +2399,7 @@ relase. For details, see http://bit.ly/moz-document.
     number += _tryDecimal(allowTrailingDot: scanner.position != start.position);
     number *= _tryExponent();
 
-    String unit;
+    String? unit;
     if (scanner.scanChar($percent)) {
       unit = "%";
     } else if (lookingAtIdentifier() &&
@@ -2619,7 +2619,7 @@ relase. For details, see http://bit.ly/moz-document.
         scanner.readChar();
 
         if (plain == null) {
-          error("Interpolation isn't allowed in namespaces.", identifier.span);
+          error("Interpolation isn't allowed in namespaces.", identifier.span!);
         }
 
         if (scanner.peekChar() == $dollar) {
@@ -2651,7 +2651,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Otherwise, returns `null`. [start] is the location before the beginning of
   /// [name].
   @protected
-  Expression trySpecialFunction(String name, LineScannerState start) {
+  Expression? trySpecialFunction(String name, LineScannerState start) {
     var normalized = unvendor(name);
 
     InterpolationBuffer buffer;
@@ -2862,7 +2862,7 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// [start] is the position before the beginning of the name. [name] is the
   /// function's name; it defaults to `"url"`.
-  Interpolation _tryUrlContents(LineScannerState start, {String name}) {
+  Interpolation? _tryUrlContents(LineScannerState start, {String? name}) {
     // NOTE: this logic is largely duplicated in Parser.tryUrl. Most changes
     // here should be mirrored there.
 
@@ -3102,7 +3102,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $lparen:
         case $lbrace:
         case $lbracket:
-          buffer.writeCharCode(next);
+          buffer.writeCharCode(next!);
           brackets.add(opposite(scanner.readChar()));
           wroteNewline = false;
           break;
@@ -3111,7 +3111,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $rbrace:
         case $rbracket:
           if (brackets.isEmpty) break loop;
-          buffer.writeCharCode(next);
+          buffer.writeCharCode(next!);
           scanner.expectChar(brackets.removeLast());
           wroteNewline = false;
           break;
@@ -3330,7 +3330,7 @@ relase. For details, see http://bit.ly/moz-document.
         buffer.add(_expressionUntilComparison());
 
         // TODO: no !
-        if ((next == $langle || next == $rangle) && scanner.scanChar(next)) {
+        if ((next == $langle || next == $rangle) && scanner.scanChar(next!)) {
           buffer.writeCharCode($space);
           buffer.writeCharCode(next);
           if (scanner.scanChar($equal)) buffer.writeCharCode($equal);
@@ -3370,7 +3370,7 @@ relase. For details, see http://bit.ly/moz-document.
 
     var condition = _supportsConditionInParens();
     whitespace();
-    String operator;
+    String? operator;
     while (lookingAtIdentifier()) {
       if (operator != null) {
         expectIdentifier(operator);
@@ -3397,7 +3397,7 @@ relase. For details, see http://bit.ly/moz-document.
     if (_lookingAtInterpolatedIdentifier()) {
       var identifier = interpolatedIdentifier();
       if (identifier.asPlain?.toLowerCase() == "not") {
-        error('"not" is not a valid identifier here.', identifier.span);
+        error('"not" is not a valid identifier here.', identifier.span!);
       }
 
       if (scanner.scanChar($lparen)) {
@@ -3407,7 +3407,7 @@ relase. For details, see http://bit.ly/moz-document.
         return SupportsFunction(identifier, arguments, scanner.spanFrom(start));
       } else if (identifier.contents.length != 1 ||
           identifier.contents.first is! Expression) {
-        error("Expected @supports condition.", identifier.span);
+        error("Expected @supports condition.", identifier.span!);
       } else {
         return SupportsInterpolation(
             identifier.contents.first as Expression, scanner.spanFrom(start));
@@ -3482,7 +3482,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// If [interpolation] is followed by `"and"` or `"or"`, parse it as a supports operation.
   ///
   /// Otherwise, return `null` without moving the scanner position.
-  SupportsOperation _trySupportsOperation(
+  SupportsOperation? _trySupportsOperation(
       Interpolation interpolation, LineScannerState start) {
     if (interpolation.contents.length != 1) return null;
     var expression = interpolation.contents.first;
@@ -3491,8 +3491,8 @@ relase. For details, see http://bit.ly/moz-document.
     var beforeWhitespace = scanner.state;
     whitespace();
 
-    SupportsOperation operation;
-    String operator;
+    SupportsOperation? operation;
+    String? operator;
     while (lookingAtIdentifier()) {
       if (operator != null) {
         expectIdentifier(operator);
@@ -3508,9 +3508,7 @@ relase. For details, see http://bit.ly/moz-document.
       whitespace();
       var right = _supportsConditionInParens();
       operation = SupportsOperation(
-          operation ??
-              SupportsInterpolation(
-                  expression as Expression, interpolation.span),
+          operation ?? SupportsInterpolation(expression, interpolation.span),
           right,
           operator,
           scanner.spanFrom(start));
@@ -3586,8 +3584,8 @@ relase. For details, see http://bit.ly/moz-document.
 
   /// Consumes a block of [child] statements and passes them, as well as the
   /// span from [start] to the end of the child block, to [create].
-  T _withChildren<T>(Statement /*!*/ child(), LineScannerState start,
-      T create(List<Statement /*!*/ > children, FileSpan span)) {
+  T _withChildren<T>(Statement child(), LineScannerState start,
+      T create(List<Statement> children, FileSpan span)) {
     var result = create(children(child), scanner.spanFrom(start));
     whitespaceWithoutComments();
     return result;
@@ -3649,7 +3647,7 @@ relase. For details, see http://bit.ly/moz-document.
   ///
   /// This consumes whitespace, but nothing else, including comments.
   @protected
-  void expectStatementSeparator([String name]);
+  void expectStatementSeparator([String? name]);
 
   /// Whether the scanner is positioned at the end of a statement.
   @protected
@@ -3675,12 +3673,12 @@ relase. For details, see http://bit.ly/moz-document.
   /// whitespace. This is necessary to ensure that the source span for the
   /// parent rule doesn't cover whitespace after the rule.
   @protected
-  List<Statement /*!*/ > children(Statement /*!*/ child());
+  List<Statement> children(Statement child());
 
   /// Consumes top-level statements.
   ///
   /// The [statement] callback may return `null`, indicating that a statement
   /// was consumed that shouldn't be added to the AST.
   @protected
-  List<Statement> statements(Statement statement());
+  List<Statement> statements(Statement? statement());
 }

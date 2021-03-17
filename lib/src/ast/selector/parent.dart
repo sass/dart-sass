@@ -15,7 +15,7 @@ class ParentSelector extends SimpleSelector {
   ///
   /// This is assumed to be a valid identifier suffix. It may be `null`,
   /// indicating that the parent selector will not be modified.
-  final String suffix;
+  final String? suffix;
 
   ParentSelector({this.suffix});
 

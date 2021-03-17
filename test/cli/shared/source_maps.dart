@@ -18,7 +18,7 @@ import '../../utils.dart';
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   group("for a simple compilation", () {
-    Map<String, Object> map;
+    late Map<String, Object> map;
     setUp(() async {
       await d.file("test.scss", "a {b: 1 + 2}").create();
 
@@ -35,7 +35,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("contains mappings", () {
-      /*late*/ SingleMapping sourceMap;
+      late SingleMapping sourceMap;
       sass.compileString("a {b: 1 + 2}", sourceMap: (map) => sourceMap = map);
       expect(map, containsPair("mappings", sourceMap.toJson()["mappings"]));
     });
@@ -278,7 +278,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test.scss", "a {b: 1 + 2}").create();
     });
 
-    Map<String, Object> map;
+    Map<String, Object>? map;
     group("with the target in the same directory", () {
       setUp(() async {
         await (await runSass(["--embed-source-map", "test.scss", "out.css"]))
@@ -288,7 +288,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       test("contains mappings in the generated CSS", () {
-        SingleMapping sourceMap;
+        late SingleMapping sourceMap;
         sass.compileString("a {b: 1 + 2}", sourceMap: (map) => sourceMap = map);
         expect(map, containsPair("mappings", sourceMap.toJson()["mappings"]));
       });
@@ -360,4 +360,4 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
 /// Reads the file at [path] within [d.sandbox] and JSON-decodes it.
 Map<String, Object> _readJson(String path) =>
-    jsonDecode(readFile(d.path(path))) as Map<String, Object> /*!*/;
+    jsonDecode(readFile(d.path(path))) as Map<String, Object>;

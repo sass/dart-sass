@@ -44,11 +44,11 @@ import 'interface/value.dart';
 /// If [charset] is `true`, this will include a `@charset` declaration or a BOM
 /// if the stylesheet contains any non-ASCII characters.
 SerializeResult serialize(CssNode node,
-    {OutputStyle style,
+    {OutputStyle? style,
     bool inspect = false,
     bool useSpaces = true,
-    int indentWidth,
-    LineFeed lineFeed,
+    int? indentWidth,
+    LineFeed? lineFeed,
     bool sourceMap = false,
     bool charset = true}) {
   indentWidth ??= 2;
@@ -137,12 +137,12 @@ class _SerializeVisitor
   bool get _isCompressed => _style == OutputStyle.compressed;
 
   _SerializeVisitor(
-      {OutputStyle style,
+      {OutputStyle? style,
       bool inspect = false,
       bool quote = true,
       bool useSpaces = true,
-      int indentWidth,
-      LineFeed lineFeed,
+      int? indentWidth,
+      LineFeed? lineFeed,
       bool sourceMap = true})
       : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
         _style = style ?? OutputStyle.expanded,
@@ -155,7 +155,7 @@ class _SerializeVisitor
   }
 
   void visitCssStylesheet(CssStylesheet node) {
-    CssNode previous;
+    CssNode? previous;
     for (var i = 0; i < node.children.length; i++) {
       var child = node.children[i];
       if (_isInvisible(child)) continue;
@@ -405,12 +405,12 @@ class _SerializeVisitor
   ///
   /// Returns `null` if [text] contains no newlines, and -1 if it contains
   /// newlines but no lines are indented.
-  int _minimumIndentation(String text) {
+  int? _minimumIndentation(String text) {
     var scanner = LineScanner(text);
     while (!scanner.isDone && scanner.readChar() != $lf) {}
     if (scanner.isDone) return scanner.peekChar(-1) == $lf ? -1 : null;
 
-    int min;
+    int? min;
     while (!scanner.isDone) {
       while (!scanner.isDone) {
         var next = scanner.peekChar();
@@ -429,7 +429,7 @@ class _SerializeVisitor
   /// [_indentation] for each non-empty line after the first.
   ///
   /// Compresses trailing empty lines of [text] into a single trailing space.
-  void _writeWithIndent(String text, int /*!*/ minimumIndentation) {
+  void _writeWithIndent(String text, int minimumIndentation) {
     var scanner = LineScanner(text);
 
     // Write the first line as-is.
@@ -697,8 +697,8 @@ class _SerializeVisitor
   /// Otherwise, returns [text] as-is.
   String _removeExponent(String text) {
     // Don't allocate this until we know [text] contains exponent notation.
-    StringBuffer buffer;
-    int exponent;
+    StringBuffer? buffer;
+    late int exponent;
     for (var i = 0; i < text.length; i++) {
       var codeUnit = text.codeUnitAt(i);
       if (codeUnit != $e) continue;
@@ -962,7 +962,7 @@ class _SerializeVisitor
   }
 
   void visitComplexSelector(ComplexSelector complex) {
-    ComplexSelectorComponent lastComponent;
+    ComplexSelectorComponent? lastComponent;
     for (var component in complex.components) {
       if (lastComponent != null &&
           !_omitSpacesAround(lastComponent) &&
@@ -1000,7 +1000,7 @@ class _SerializeVisitor
     _buffer.write(id.name);
   }
 
-  void visitSelectorList(SelectorList /*!*/ list) {
+  void visitSelectorList(SelectorList list) {
     var complexes = _inspect
         ? list.components
         : list.components.where((complex) => !complex.isInvisible);
@@ -1085,7 +1085,7 @@ class _SerializeVisitor
     }
 
     _writeLineFeed();
-    CssNode previous;
+    CssNode? previous;
     _indent(() {
       for (var i = 0; i < children.length; i++) {
         var child = children[i];
@@ -1095,7 +1095,7 @@ class _SerializeVisitor
           if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
           _writeLineFeed();
           // TODO: no !
-          if (previous.isGroupEnd) _writeLineFeed();
+          if (previous!.isGroupEnd) _writeLineFeed();
         }
         previous = child;
 
@@ -1112,7 +1112,7 @@ class _SerializeVisitor
   }
 
   /// Whether [node] requires a semicolon to be written after it.
-  bool _requiresSemicolon(CssNode node) =>
+  bool _requiresSemicolon(CssNode? node) =>
       node is CssParentNode ? node.isChildless : node is! CssComment;
 
   /// Writes a line feed, unless this emitting compressed CSS.
@@ -1241,13 +1241,13 @@ class SerializeResult {
   /// The source map indicating how the source files map to [css].
   ///
   /// This is `null` if source mapping was disabled for this compilation.
-  final SingleMapping sourceMap;
+  final SingleMapping? sourceMap;
 
   /// A map from source file URLs to the corresponding [SourceFile]s.
   ///
   /// This can be passed to [sourceMap]'s [Mapping.spanFor] method. It's `null`
   /// if source mapping was disabled for this compilation.
-  final Map<String, SourceFile> sourceFiles;
+  final Map<String, SourceFile>? sourceFiles;
 
   SerializeResult(this.css, {this.sourceMap, this.sourceFiles});
 }

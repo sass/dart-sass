@@ -13,7 +13,7 @@ class Stderr {
   /// by a newline.
   ///
   /// If [object] is `null`, just writes a newline.
-  void writeln([Object object]) {}
+  void writeln([Object? object]) {}
 
   /// Flushes any buffered text.
   void flush() {}
@@ -88,10 +88,10 @@ DateTime modificationTime(String path) => throw '';
 
 /// Returns the value of the environment variable with the given [name], or
 /// `null` if it's not set.
-String /*?*/ getEnvironmentVariable(String name) => throw '';
+String? getEnvironmentVariable(String name) => throw '';
 
 /// Gets and sets the exit code that the process will use when it exits.
-int /*!*/ exitCode;
+int exitCode;
 
 /// Recursively watches the directory at [path] for modifications.
 ///

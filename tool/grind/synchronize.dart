@@ -197,7 +197,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
         _buffer.write("void");
       }
     } else if (node.name.name == "Module") {
-      _skip(node.name.beginToken);
+      _skipNode(node);
       _buffer.write("Module<Callable>");
     } else {
       super.visitTypeName(node);
@@ -206,7 +206,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   /// Writes [_source] to [_buffer] up to the beginning of [token], then puts
   /// [_position] after [token] so it doesn't get written.
-  void _skip(Token token) {
+  void _skip(Token? token) {
     if (token == null) return;
     _buffer.write(_source.substring(_position, token.offset));
     _position = token.end;

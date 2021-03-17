@@ -71,7 +71,7 @@ Future<void> benchmarkGenerate() async {
 /// it's written after [text]. If the file already exists and is the expected
 /// length, it's not written.
 Future<void> _writeNTimes(String path, String text, num times,
-    {String header, String footer}) async {
+    {String? header, String? footer}) async {
   var file = File(path);
   var expectedLength = (header == null ? 0 : header.length + 1) +
       (text.length + 1) * times +
@@ -183,7 +183,7 @@ I ran five instances of each configuration and recorded the fastest time.
     buffer.writeln("Running on a file containing $description:");
     buffer.writeln();
 
-    Duration sasscTime;
+    Duration? sasscTime;
     if (!libsassIncompatible.contains(info[1])) {
       sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [path]);
       buffer.writeln("* sassc: ${_formatTime(sasscTime)}"); // TODO: no !
@@ -246,7 +246,7 @@ Future<Duration> _benchmark(String executable, List<String> arguments) async {
   // chance to warm up at the OS level.
   await _benchmarkOnce(executable, arguments);
 
-  /*late*/ Duration lowest;
+  late Duration lowest;
   for (var i = 0; i < 5; i++) {
     var duration = await _benchmarkOnce(executable, arguments);
     if (lowest == null || duration < lowest) lowest = duration;
@@ -264,15 +264,15 @@ Future<Duration> _benchmarkOnce(
   }
 
   var match = RegExp(r"(\d+)m(\d+)\.(\d+)s")
-      .firstMatch(result.stderr as String); // TODO: no !
+      .firstMatch(result.stderr as String)!; // TODO: no !
   if (match == null) {
     fail("Process didn't print the expected format:\n${result.stderr}");
   }
 
   return Duration(
-      minutes: int.parse(match[1]),
-      seconds: int.parse(match[2]),
-      milliseconds: int.parse(match[3]));
+      minutes: int.parse(match[1]!),
+      seconds: int.parse(match[2]!),
+      milliseconds: int.parse(match[3]!));
 }
 
 String _formatTime(Duration duration) =>

@@ -17,12 +17,12 @@ class _NodeSassMap {
 }
 
 /// Creates a new `sass.types.Map` object wrapping [value].
-Object /*!*/ newNodeSassMap(SassMap value) =>
+Object newNodeSassMap(SassMap value) =>
     callConstructor(mapConstructor, [null, value]);
 
 /// The JS constructor for the `sass.types.Map` class.
 final Function mapConstructor = createClass('SassMap',
-    (_NodeSassMap thisArg, int length, [SassMap dartValue]) {
+    (_NodeSassMap thisArg, int length, [SassMap? dartValue]) {
   thisArg.dartValue = dartValue ??
       SassMap(Map.fromIterables(Iterable.generate(length, (i) => SassNumber(i)),
           Iterable.generate(length, (_) => sassNull)));
@@ -38,7 +38,7 @@ final Function mapConstructor = createClass('SassMap',
 
     var newKey = unwrapValue(key);
     // TODO: no var
-    var newMap = <Value, Value /*!*/ >{};
+    Map<Value, Value?> newMap = <Value, Value>{};
     var i = 0;
     for (var oldKey in thisArg.dartValue.contents.keys) {
       if (i == index) {
@@ -53,7 +53,7 @@ final Function mapConstructor = createClass('SassMap',
     }
 
     // TODO: no as
-    thisArg.dartValue = SassMap(newMap);
+    thisArg.dartValue = SassMap(newMap as Map<Value, Value>);
   },
   'setValue': (_NodeSassMap thisArg, int index, Object value) {
     var key = thisArg.dartValue.contents.keys.elementAt(index);

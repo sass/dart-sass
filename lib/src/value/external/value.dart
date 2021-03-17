@@ -53,7 +53,7 @@ abstract class Value {
   ///
   /// All SassScript values can be used as lists. Maps count as lists of pairs,
   /// and all other values count as single-value lists.
-  bool /*!*/ get hasBrackets;
+  bool get hasBrackets;
 
   /// This value as a list.
   ///
@@ -63,7 +63,7 @@ abstract class Value {
 
   /// Returns Dart's `null` value if this is [sassNull], and returns [this]
   /// otherwise.
-  Value get realNull;
+  Value? get realNull;
 
   /// Converts [sassIndex] into a Dart-style index into the list returned by
   /// [asList].
@@ -75,7 +75,7 @@ abstract class Value {
   /// number isn't an integer, or if that integer isn't a valid index for
   /// [asList]. If [sassIndex] came from a function argument, [name] is the
   /// argument name (without the `$`). It's used for error reporting.
-  int sassIndexToListIndex(Value sassIndex, [String name]);
+  int sassIndexToListIndex(Value sassIndex, [String? name]);
 
   /// Throws a [SassScriptException] if [this] isn't a boolean.
   ///
@@ -84,41 +84,41 @@ abstract class Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SassBoolean assertBoolean([String name]);
+  SassBoolean assertBoolean([String? name]);
 
   /// Throws a [SassScriptException] if [this] isn't a color.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SassColor assertColor([String name]);
+  SassColor assertColor([String? name]);
 
   /// Throws a [SassScriptException] if [this] isn't a function reference.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SassFunction assertFunction([String name]);
+  SassFunction assertFunction([String? name]);
 
   /// Throws a [SassScriptException] if [this] isn't a map.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SassMap assertMap([String name]);
+  SassMap assertMap([String? name]);
 
   /// Returns [this] as a [SassMap] if it is one (including empty lists, which
   /// count as empty maps) or returns `null` if it's not.
-  SassMap tryMap();
+  SassMap? tryMap();
 
   /// Throws a [SassScriptException] if [this] isn't a number.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SassNumber assertNumber([String name]);
+  SassNumber assertNumber([String? name]);
 
   /// Throws a [SassScriptException] if [this] isn't a string.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SassString assertString([String name]);
+  SassString assertString([String? name]);
 
   /// Returns a valid CSS representation of [this].
   ///

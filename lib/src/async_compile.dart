@@ -24,21 +24,21 @@ import 'visitor/serialize.dart';
 /// the node-sass compatible API and the executable.
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
-Future<CompileResult> compileAsync(String /*!*/ path,
-    {Syntax syntax,
-    Logger logger,
-    AsyncImportCache importCache,
-    NodeImporter nodeImporter,
-    Iterable<AsyncCallable> functions,
-    OutputStyle style,
+Future<CompileResult> compileAsync(String path,
+    {Syntax? syntax,
+    Logger? logger,
+    AsyncImportCache? importCache,
+    NodeImporter? nodeImporter,
+    Iterable<AsyncCallable>? functions,
+    OutputStyle? style,
     bool useSpaces = true,
-    int indentWidth,
-    LineFeed lineFeed,
+    int? indentWidth,
+    LineFeed? lineFeed,
     bool sourceMap = false,
     bool charset = true}) async {
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
-  Stylesheet stylesheet;
+  Stylesheet? stylesheet;
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= AsyncImportCache.none(logger: logger);
@@ -52,7 +52,7 @@ Future<CompileResult> compileAsync(String /*!*/ path,
 
   return await _compileStylesheet(
       // TODO: no !
-      stylesheet,
+      stylesheet!,
       logger,
       importCache,
       nodeImporter,
@@ -71,19 +71,19 @@ Future<CompileResult> compileAsync(String /*!*/ path,
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
 Future<CompileResult> compileStringAsync(String source,
-    {Syntax syntax,
-    Logger logger,
-    AsyncImportCache importCache,
-    NodeImporter nodeImporter,
-    Iterable<AsyncImporter> importers,
-    Iterable<String> loadPaths,
-    AsyncImporter importer,
-    Iterable<AsyncCallable> functions,
-    OutputStyle style,
+    {Syntax? syntax,
+    Logger? logger,
+    AsyncImportCache? importCache,
+    NodeImporter? nodeImporter,
+    Iterable<AsyncImporter>? importers,
+    Iterable<String>? loadPaths,
+    AsyncImporter? importer,
+    Iterable<AsyncCallable>? functions,
+    OutputStyle? style,
     bool useSpaces = true,
-    int indentWidth,
-    LineFeed lineFeed,
-    Object url,
+    int? indentWidth,
+    LineFeed? lineFeed,
+    Object? url,
     bool sourceMap = false,
     bool charset = true}) async {
   var stylesheet =
@@ -109,15 +109,15 @@ Future<CompileResult> compileStringAsync(String source,
 /// Arguments are handled as for [compileStringAsync].
 Future<CompileResult> _compileStylesheet(
     Stylesheet stylesheet,
-    Logger logger,
-    AsyncImportCache importCache,
-    NodeImporter nodeImporter,
+    Logger? logger,
+    AsyncImportCache? importCache,
+    NodeImporter? nodeImporter,
     AsyncImporter importer,
-    Iterable<AsyncCallable> functions,
-    OutputStyle style,
+    Iterable<AsyncCallable>? functions,
+    OutputStyle? style,
     bool useSpaces,
-    int indentWidth,
-    LineFeed lineFeed,
+    int? indentWidth,
+    LineFeed? lineFeed,
     bool sourceMap,
     bool charset) async {
   var evaluateResult = await evaluateAsync(stylesheet,
@@ -143,7 +143,7 @@ Future<CompileResult> _compileStylesheet(
     mapInPlace<String>(
         resultSourceMap.urls,
         (url) => url == ''
-            ? Uri.dataFromString(stylesheet.span.file.getText(0),
+            ? Uri.dataFromString(stylesheet.span!.file.getText(0),
                     encoding: utf8)
                 .toString()
             : importCache.sourceMapUrl(Uri.parse(url)).toString());
@@ -167,13 +167,13 @@ class CompileResult {
   /// The source map indicating how the source files map to [css].
   ///
   /// This is `null` if source mapping was disabled for this compilation.
-  SingleMapping get sourceMap => _serialize.sourceMap;
+  SingleMapping? get sourceMap => _serialize.sourceMap;
 
   /// A map from source file URLs to the corresponding [SourceFile]s.
   ///
   /// This can be passed to [sourceMap]'s [Mapping.spanFor] method. It's `null`
   /// if source mapping was disabled for this compilation.
-  Map<String, SourceFile> get sourceFiles => _serialize.sourceFiles;
+  Map<String, SourceFile>? get sourceFiles => _serialize.sourceFiles;
 
   /// The set that will eventually populate the JS API's
   /// `result.stats.includedFiles` field.

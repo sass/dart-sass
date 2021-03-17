@@ -42,18 +42,20 @@ Future<T> inImportRuleAsync<T>(Future<T> callback()) async {
 ///
 /// This tries to fill in extensions and partial prefixes and check for a
 /// directory default. If no file can be found, it returns `null`.
-String resolveImportPath(String path) {
+String? resolveImportPath(String path) {
   var extension = p.extension(path);
   if (extension == '.sass' || extension == '.scss' || extension == '.css') {
-    return _ifInImport(() => _exactlyOne(
-            // TODO: no !, as
-            _tryPath('${p.withoutExtension(path)}.import$extension'))) ??
+    return _ifInImport((() => _exactlyOne(
+                // TODO: no !, as
+                _tryPath('${p.withoutExtension(path)}.import$extension'))!)
+            as String Function()) ??
         _exactlyOne(_tryPath(path));
   }
 
   return _ifInImport(
           // TODO: no !, as
-          () => _exactlyOne(_tryPathWithExtensions('$path.import'))) ??
+          (() => _exactlyOne(_tryPathWithExtensions('$path.import'))!) as String
+              Function()) ??
       _exactlyOne(_tryPathWithExtensions(path)) ??
       _tryPathAsDirectory(path);
 }
@@ -77,11 +79,12 @@ List<String> _tryPath(String path) {
 /// index file exists.
 ///
 /// Otherwise, returns `null`.
-String _tryPathAsDirectory(String path) {
+String? _tryPathAsDirectory(String path) {
   if (!dirExists(path)) return null;
 
-  return _ifInImport(() =>
-          _exactlyOne(_tryPathWithExtensions(p.join(path, 'index.import')))) ??
+  return _ifInImport((() => _exactlyOne(
+              _tryPathWithExtensions(p.join(path, 'index.import')))!)
+          as String Function()) ??
       _exactlyOne(_tryPathWithExtensions(p.join(path, 'index')));
 }
 
@@ -89,7 +92,7 @@ String _tryPathAsDirectory(String path) {
 ///
 /// If it contains no paths, returns `null`. If it contains more than one,
 /// throws an exception.
-String _exactlyOne(List<String> paths) {
+String? _exactlyOne(List<String> paths) {
   if (paths.isEmpty) return null;
   if (paths.length == 1) return paths.first;
 
@@ -100,4 +103,4 @@ String _exactlyOne(List<String> paths) {
 /// If [_inImportRule] is `true`, invokes callback and returns the result.
 ///
 /// Otherwise, returns `null`.
-T _ifInImport<T>(T callback()) => _inImportRule ? callback() : null;
+T? _ifInImport<T>(T callback()) => _inImportRule ? callback() : null;

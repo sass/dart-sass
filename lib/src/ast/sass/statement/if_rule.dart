@@ -27,14 +27,14 @@ class IfRule implements Statement {
   /// The final, unconditional `@else` clause.
   ///
   /// This is `null` if there is no unconditional `@else`.
-  final ElseClause lastClause;
+  final ElseClause? lastClause;
 
   final FileSpan span;
 
   IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
       : clauses = List.unmodifiable(clauses);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this)!;
 
   String toString() {
     var first = true;
@@ -57,7 +57,7 @@ abstract class IfRuleClause {
   /// Whether any of [children] is a variable, function, or mixin declaration.
   final bool hasDeclarations;
 
-  IfRuleClause(Iterable<Statement /*!*/ > children)
+  IfRuleClause(Iterable<Statement> children)
       : this._(List.unmodifiable(children));
 
   IfRuleClause._(this.children)
@@ -72,17 +72,16 @@ abstract class IfRuleClause {
 /// An `@if` or `@else if` clause in an `@if` rule.
 class IfClause extends IfRuleClause {
   /// The expression to evaluate to determine whether to run this rule.
-  final Expression /*!*/ expression;
+  final Expression expression;
 
-  IfClause(this.expression, Iterable<Statement /*!*/ > children)
-      : super(children);
+  IfClause(this.expression, Iterable<Statement> children) : super(children);
 
   String toString() => "@if $expression {${children.join(' ')}}";
 }
 
 /// An `@else` clause in an `@if` rule.
 class ElseClause extends IfRuleClause {
-  ElseClause(Iterable<Statement /*!*/ > children) : super(children);
+  ElseClause(Iterable<Statement> children) : super(children);
 
   String toString() => "@else {${children.join(' ')}}";
 }

@@ -12,10 +12,10 @@ class Chokidar {
 @JS()
 @anonymous
 class ChokidarOptions {
-  external bool /*?*/ get disableGlobbing;
-  external bool /*?*/ get usePolling;
+  external bool? get disableGlobbing;
+  external bool? get usePolling;
 
-  external factory ChokidarOptions({bool disableGlobbing, bool usePolling});
+  external factory ChokidarOptions({bool? disableGlobbing, bool? usePolling});
 }
 
 @JS()

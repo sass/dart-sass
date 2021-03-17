@@ -15,7 +15,7 @@ import 'variable_declaration.dart';
 ///
 /// This has a generic parameter so that its subclasses can choose whether or
 /// not their children lists are nullable.
-abstract class ParentStatement<T extends List<Statement> /*?*/ >
+abstract class ParentStatement<T extends List<Statement>?>
     implements Statement {
   /// The child statements of this statement.
   final T children;

@@ -9,7 +9,7 @@ import 'package:sass/src/exception.dart';
 
 /// Parses [source] by way of a function call.
 Value parseValue(String source) {
-  /*late*/ Value value;
+  late Value value;
   compileString("a {b: foo(($source))}", functions: [
     Callable("foo", r"$arg", expectAsync1((arguments) {
       expect(arguments, hasLength(1));
@@ -27,7 +27,7 @@ final throwsSassScriptException =
 /// Like [equals], but asserts that the hash codes of the values are the same as
 /// well.
 // TODO: no dynamic
-Matcher equalsWithHash(Object expected) => predicate((actual) {
+Matcher equalsWithHash(Object expected) => predicate((dynamic actual) {
       expect(actual, equals(expected));
       expect(actual.hashCode, equals(expected.hashCode),
           reason: "Expected $actual's hash code to equal $expected's.");

@@ -92,7 +92,7 @@ void main() {
   });
 
   test("uses an importer's source map URL", () {
-    /*late*/ SingleMapping map;
+    late SingleMapping map;
     compileString('@import "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
@@ -107,7 +107,7 @@ void main() {
   });
 
   test("uses a data: source map URL if the importer doesn't provide one", () {
-    /*late*/ SingleMapping map;
+    late SingleMapping map;
     compileString('@import "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
@@ -126,11 +126,13 @@ void main() {
   test("wraps an error in canonicalize()", () {
     expect(() {
       compileString('@import "orange";', importers: [
-        TestImporter((url) {
-          throw "this import is bad actually";
-        }, expectAsync1((_) => null, count: 0)) // TODO: no as
+        TestImporter(
+            (url) {
+              throw "this import is bad actually";
+            } as Uri Function(Uri),
+            expectAsync1((_) => null, count: 0)) // TODO: no as
       ]);
-    }, throwsA(predicate((error) {
+    }, throwsA(predicate((dynamic error) {
       // TODO: no dynamic
       expect(error, const TypeMatcher<SassException>());
       expect(
@@ -146,7 +148,7 @@ void main() {
           throw "this import is bad actually";
         })
       ]);
-    }, throwsA(predicate((error) {
+    }, throwsA(predicate((dynamic error) {
       // TODO: no dynamic
       expect(error, const TypeMatcher<SassException>());
       expect(
@@ -162,7 +164,7 @@ void main() {
           throw FormatException("bad format somehow");
         })
       ]);
-    }, throwsA(predicate((error) {
+    }, throwsA(predicate((dynamic error) {
       // TODO: no dynamic
       expect(error, const TypeMatcher<SassException>());
       // FormatException.toString() starts with "FormatException:", but
@@ -177,7 +179,7 @@ void main() {
       compileString('@import "orange";', importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) => null)
       ]);
-    }, throwsA(predicate((error) {
+    }, throwsA(predicate((dynamic error) {
       // TODO: no dynamic
       expect(error, const TypeMatcher<SassException>());
       expect(error.toString(),

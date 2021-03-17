@@ -103,7 +103,7 @@ final _deepRemove =
     if (nestedMap != null && nestedMap.contents?.containsKey(keys.last) ??
         false) {
       // TODO: no !
-      return SassMap(Map.of(nestedMap.contents)..remove(keys.last));
+      return SassMap(Map.of(nestedMap!.contents)..remove(keys.last));
     }
     return value;
   });
@@ -166,31 +166,31 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
 ///
 /// If no keys are provided, this passes [map] directly to modify and returns
 /// the result.
-Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old)) {
+Value _modify(SassMap map, Iterable<Value> keys, Value? modify(Value? old)) {
   var keyIterator = keys.iterator;
-  SassMap _modifyNestedMap(SassMap map, [Value newValue]) {
+  SassMap _modifyNestedMap(SassMap map, [Value? newValue]) {
     // TODO: no as throughout
     var mutableMap = Map.of(map.contents);
     var key = keyIterator.current;
 
     if (!keyIterator.moveNext()) {
       mutableMap[key] = newValue ?? modify(mutableMap[key]);
-      return SassMap(mutableMap);
+      return SassMap(mutableMap as Map<Value, Value>);
     }
 
     var nestedMap = mutableMap[key]?.tryMap();
     if (nestedMap == null) {
       // We pass null to `modify` here to indicate there's no existing value.
       newValue = modify(null);
-      if (newValue == null) return SassMap(mutableMap);
+      if (newValue == null) return SassMap(mutableMap as Map<Value, Value>);
     }
 
     nestedMap ??= const SassMap.empty();
     mutableMap[key] = _modifyNestedMap(nestedMap, newValue);
-    return SassMap(mutableMap);
+    return SassMap(mutableMap as Map<Value, Value>);
   }
 
-  return keyIterator.moveNext() ? _modifyNestedMap(map) : modify(map) /*!*/;
+  return keyIterator.moveNext() ? _modifyNestedMap(map) : modify(map)!;
 }
 
 /// Merges [map1] and [map2], with values in [map2] taking precedence.
@@ -239,4 +239,5 @@ SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     // TODO: no as
-    BuiltInCallable.function(name, arguments, callback, url: "sass:map");
+    BuiltInCallable.function(name, arguments as String, callback,
+        url: "sass:map");

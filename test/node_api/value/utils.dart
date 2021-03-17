@@ -14,7 +14,7 @@ import '../utils.dart';
 
 /// Parses [source] by way of a function call.
 T parseValue<T>(String source) {
-  /*late*/ T value;
+  late T value;
   renderSync(RenderOptions(
       data: "a {b: foo(($source))}",
       functions: jsify({
@@ -29,5 +29,5 @@ T parseValue<T>(String source) {
 /// A matcher that matches values that are JS `instanceof` [type].
 Matcher isJSInstanceOf(Object type) => predicate(
     // TODO: no dynamic
-    (value) => jsInstanceOf(value, type),
+    (dynamic value) => jsInstanceOf(value, type),
     "to be an instance of $type");

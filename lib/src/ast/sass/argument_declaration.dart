@@ -19,13 +19,13 @@ class ArgumentDeclaration implements SassNode {
 
   /// The name of the rest argument (as in `$args...`), or `null` if none was
   /// declared.
-  final String restArgument;
+  final String? restArgument;
 
-  final FileSpan span;
+  final FileSpan? span;
 
   /// Returns [span] expanded to include an identifier immediately before the
   /// declaration, if possible.
-  FileSpan get spanWithName {
+  FileSpan? get spanWithName {
     var span = this.span;
     if (span == null) return null;
 
@@ -57,7 +57,7 @@ class ArgumentDeclaration implements SassNode {
   ///
   /// This isn't particularly efficient, and should only be used for error
   /// messages.
-  String get originalRestArgument {
+  String? get originalRestArgument {
     if (restArgument == null) return null;
 
     var span = this.span;
@@ -87,12 +87,12 @@ class ArgumentDeclaration implements SassNode {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory ArgumentDeclaration.parse(String contents,
-          {Object url, Logger logger}) =>
+          {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parseArgumentDeclaration();
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
   /// for this argument declaration.
-  void verify(int positional, Set<String /*!*/ > names) {
+  void verify(int positional, Set<String> names) {
     var namedUsed = 0;
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
@@ -108,7 +108,7 @@ class ArgumentDeclaration implements SassNode {
         throw MultiSpanSassScriptException(
             "Missing argument ${_originalArgumentName(argument.name)}.",
             "invocation",
-            {spanWithName: "declaration"});
+            {spanWithName!: "declaration"});
       }
     }
 
@@ -122,7 +122,7 @@ class ArgumentDeclaration implements SassNode {
               "$positional ${pluralize('was', positional, plural: 'were')} "
               "passed.",
           "invocation",
-          {spanWithName: "declaration"});
+          {spanWithName!: "declaration"});
     }
 
     if (namedUsed < names.length) {
@@ -132,14 +132,14 @@ class ArgumentDeclaration implements SassNode {
           "No ${pluralize('argument', unknownNames.length)} named "
               "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
           "invocation",
-          {spanWithName: "declaration"});
+          {spanWithName!: "declaration"});
     }
   }
 
   /// Returns the argument named [name] with a leading `$` and its original
   /// underscores (which are otherwise converted to hyphens).
   String _originalArgumentName(String name) {
-    if (name == restArgument) return originalRestArgument /*!*/;
+    if (name == restArgument) return originalRestArgument!;
 
     for (var argument in arguments) {
       if (argument.name == name) return argument.originalName;
@@ -150,7 +150,7 @@ class ArgumentDeclaration implements SassNode {
 
   /// Returns whether [positional] and [names] are valid for this argument
   /// declaration.
-  bool matches(int positional, Set<String /*!*/ > names) {
+  bool matches(int positional, Set<String> names) {
     var namedUsed = 0;
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];

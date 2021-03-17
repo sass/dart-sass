@@ -9,7 +9,7 @@ import '../expression.dart';
 
 /// A null literal.
 class NullExpression implements Expression {
-  final FileSpan span;
+  final FileSpan? span;
 
   NullExpression(this.span);
 

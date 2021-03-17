@@ -131,8 +131,8 @@ void main() {
           renderSync(RenderOptions(
               data: "a {b: last(1px, 2em)}",
               functions: jsify({
-                r"last($value1, $value2)":
-                    allowInterop(expectAsync2((value1, value2) => value2))
+                r"last($value1, $value2)": allowInterop(
+                    expectAsync2((dynamic value1, dynamic value2) => value2))
               }))),
           equalsIgnoringWhitespace("a { b: 2em; }"));
     });
@@ -142,8 +142,8 @@ void main() {
           renderSync(RenderOptions(
               data: r"a {b: last($value2: 1px, $value1: 2em)}",
               functions: jsify({
-                r"last($value1, $value2)":
-                    allowInterop(expectAsync2((value1, value2) => value2))
+                r"last($value1, $value2)": allowInterop(
+                    expectAsync2((dynamic value1, dynamic value2) => value2))
               }))),
           equalsIgnoringWhitespace("a { b: 1px; }"));
     });
@@ -153,8 +153,8 @@ void main() {
           renderSync(RenderOptions(
               data: "a {b: last((1px 2em)...)}",
               functions: jsify({
-                r"last($value1, $value2)":
-                    allowInterop(expectAsync2((value1, value2) => value2))
+                r"last($value1, $value2)": allowInterop(
+                    expectAsync2((dynamic value1, dynamic value2) => value2))
               }))),
           equalsIgnoringWhitespace("a { b: 2em; }"));
     });
@@ -188,7 +188,7 @@ void main() {
   });
 
   group('this', () {
-    String sassPath;
+    late String sassPath;
     setUp(() async {
       sassPath = p.join(sandbox, 'test.scss');
     });
@@ -312,7 +312,7 @@ void main() {
           data: 'a {b: foo()}',
           functions: jsify({
             'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
-              expect(this_.options.result.stats.start,
+              expect(this_.options.result!.stats!.start,
                   greaterThanOrEqualTo(start.millisecondsSinceEpoch));
               return callConstructor(sass.types.Number, [12]);
             }))
@@ -325,7 +325,7 @@ void main() {
           data: 'a {b: foo()}',
           functions: jsify({
             'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
-              expect(this_.options.result.stats.entry, equals('data'));
+              expect(this_.options.result!.stats!.entry, equals('data'));
               return callConstructor(sass.types.Number, [12]);
             }))
           }),
@@ -338,7 +338,7 @@ void main() {
           file: sassPath,
           functions: jsify({
             'foo': allowInteropCaptureThis(expectAsync1((RenderContext this_) {
-              expect(this_.options.result.stats.entry, equals(sassPath));
+              expect(this_.options.result!.stats!.entry, equals(sassPath));
               return callConstructor(sass.types.Number, [12]);
             }))
           }),
@@ -371,7 +371,7 @@ void main() {
           render(RenderOptions(
               data: "a {b: foo()}",
               functions: jsify({
-                "foo": allowInterop((void done(Object result)) {
+                "foo": allowInterop((void done(Object? result)) {
                   Timer(Duration.zero, () {
                     done(callConstructor(sass.types.Number, [1]));
                   });
@@ -415,7 +415,7 @@ void main() {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
           functions: jsify({
-            "foo": allowInterop((void done(Object result)) {
+            "foo": allowInterop((void done(Object? result)) {
               Timer(Duration.zero, () {
                 done(callConstructor(sass.types.Error, ["aw beans"]));
               });
@@ -428,7 +428,7 @@ void main() {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
           functions: jsify({
-            "foo": allowInterop((void done(Object result)) {
+            "foo": allowInterop((void done(Object? result)) {
               Timer(Duration.zero, () {
                 done(null);
               });
@@ -483,7 +483,7 @@ void main() {
             render(RenderOptions(
                 data: "a {b: foo()}",
                 functions: jsify({
-                  "foo": allowInterop((void done(Object result)) {
+                  "foo": allowInterop((void done(Object? result)) {
                     Timer(Duration.zero, () {
                       done(callConstructor(sass.types.Number, [1]));
                     });
@@ -520,7 +520,7 @@ void main() {
         var error = await renderError(RenderOptions(
             data: "a {b: foo()}",
             functions: jsify({
-              "foo": allowInterop((void done(Object result)) {
+              "foo": allowInterop((void done(Object? result)) {
                 Timer(Duration.zero, () {
                   done(null);
                 });
@@ -553,7 +553,8 @@ void main() {
         renderSync(RenderOptions(
             data: "a {b: call(id(get-function('str-length')), 'foo')}",
             functions: jsify({
-              r"id($value)": allowInterop(expectAsync1((value) => value))
+              r"id($value)":
+                  allowInterop(expectAsync1((dynamic value) => value))
             }))),
         equalsIgnoringWhitespace("a { b: 3; }"));
   });

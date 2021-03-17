@@ -12,7 +12,7 @@ class BooleanExpression implements Expression {
   /// The value of this expression.
   final bool value;
 
-  final FileSpan span;
+  final FileSpan? span;
 
   BooleanExpression(this.value, this.span);
 

@@ -24,7 +24,7 @@ Future<void> main(List<String> args) async {
   // has been printed to stderr.
   //
   // If [trace] is passed, its terse representation is printed after the error.
-  void printError(String error, StackTrace stackTrace) {
+  void printError(String error, StackTrace? stackTrace) {
     if (printedError) stderr.writeln();
     printedError = true;
     stderr.writeln(error);
@@ -35,7 +35,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  /*late*/ ExecutableOptions options;
+  late ExecutableOptions options;
   try {
     options = ExecutableOptions.parse(args);
     term_glyph.ascii = !options.unicode;

@@ -15,12 +15,12 @@ class Interpolation implements SassNode {
   /// [String]s.
   final List<Object /* String | Expression */ > contents;
 
-  final FileSpan /*?*/ span;
+  final FileSpan? span;
 
   /// If this contains no interpolated expressions, returns its text contents.
   ///
   /// Otherwise, returns `null`.
-  String get asPlain {
+  String? get asPlain {
     if (contents.isEmpty) return '';
     if (contents.length > 1) return null;
     var first = contents.first;
@@ -33,8 +33,7 @@ class Interpolation implements SassNode {
     return first is String ? first : '';
   }
 
-  Interpolation(
-      Iterable<Object /*!*/ /* String | Expression */ > contents, this.span)
+  Interpolation(Iterable<Object /* String | Expression */ > contents, this.span)
       : contents = List.unmodifiable(contents) {
     for (var i = 0; i < this.contents.length; i++) {
       if (this.contents[i] is! String && this.contents[i] is! Expression) {

@@ -8,7 +8,7 @@ import '../ast/sass.dart';
 import '../callable.dart';
 import '../value.dart';
 
-typedef _Callback = Value /*!*/ Function(List<Value /*!*/ > arguments);
+typedef _Callback = Value Function(List<Value> arguments);
 
 /// A callable defined in Dart code.
 ///
@@ -30,8 +30,9 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  BuiltInCallable.function(String name, String arguments,
-      Value /*!*/ callback(List<Value /*!*/ > arguments), {Object url})
+  BuiltInCallable.function(
+      String name, String arguments, Value callback(List<Value> arguments),
+      {Object? url})
       : this.parsed(
             name,
             ArgumentDeclaration.parse('@function $name($arguments) {',
@@ -46,9 +47,9 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the mixin is
   /// defined.
-  BuiltInCallable.mixin(String name, String arguments,
-      void callback(List<Value /*!*/ > arguments),
-      {Object url})
+  BuiltInCallable.mixin(
+      String name, String arguments, void callback(List<Value> arguments),
+      {Object? url})
       : this.parsed(name,
             ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
             (arguments) {
@@ -59,9 +60,9 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
   BuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
-      Value /*!*/ callback(List<Value /*!*/ > arguments))
+      Value callback(List<Value> arguments))
       // TODO: no as
-      : _overloads = [Tuple2(arguments, callback)];
+      : _overloads = [Tuple2(arguments as ArgumentDeclaration, callback)];
 
   /// Creates a function with multiple implementations.
   ///
@@ -75,8 +76,8 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   BuiltInCallable.overloadedFunction(
       // TODO: use _Callback
       this.name,
-      Map<String, Value /*!*/ Function(List<Value /*!*/ > arguments)> overloads,
-      {Object url})
+      Map<String, Value Function(List<Value> arguments)> overloads,
+      {Object? url})
       : _overloads = [
           for (var entry in overloads.entries)
             Tuple2(
@@ -94,9 +95,9 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ArgumentDeclaration].
   Tuple2<ArgumentDeclaration, _Callback> callbackFor(
-      int positional, Set<String /*!*/ > names) {
-    Tuple2<ArgumentDeclaration, _Callback> /*!*/ fuzzyMatch;
-    int minMismatchDistance;
+      int positional, Set<String> names) {
+    Tuple2<ArgumentDeclaration, _Callback> fuzzyMatch;
+    int? minMismatchDistance;
 
     for (var overload in _overloads) {
       // Ideally, find an exact match.

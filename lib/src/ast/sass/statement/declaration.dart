@@ -20,7 +20,7 @@ class Declaration extends ParentStatement {
   ///
   /// If [children] is `null`, this is never `null`. Otherwise, it may or may
   /// not be `null`.
-  final Expression value;
+  final Expression? value;
 
   final FileSpan span;
 
@@ -33,7 +33,7 @@ class Declaration extends ParentStatement {
   /// If this is `true`, then `value` will be a [StringExpression].
   bool get isCustomProperty => name.initialPlain.startsWith('--');
 
-  Declaration(this.name, Expression /*!*/ value, this.span)
+  Declaration(this.name, Expression value, this.span)
       : value = value,
         super(null) {
     if (isCustomProperty && value is! StringExpression) {
@@ -46,7 +46,7 @@ class Declaration extends ParentStatement {
   /// Creates a declaration with children.
   ///
   /// For these declaraions, a value is optional.
-  Declaration.nested(this.name, Iterable<Statement /*!*/ > children, this.span,
+  Declaration.nested(this.name, Iterable<Statement> children, this.span,
       {this.value})
       : super(List.unmodifiable(children)) {
     if (isCustomProperty && value is! StringExpression) {
@@ -55,5 +55,5 @@ class Declaration extends ParentStatement {
     }
   }
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this)!;
 }

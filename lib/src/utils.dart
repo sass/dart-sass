@@ -18,7 +18,7 @@ import 'util/nullable.dart';
 final _noSourceUrl = Uri.parse("-");
 
 /// Converts [iter] into a sentence, separating each word with [conjunction].
-String toSentence(Iterable<Object> iter, [String conjunction]) {
+String toSentence(Iterable<Object> iter, [String? conjunction]) {
   conjunction ??= "and";
   if (iter.length == 1) return iter.first.toString();
   return iter.take(iter.length - 1).join(", ") + " $conjunction ${iter.last}";
@@ -32,7 +32,7 @@ String indent(String string, int indentation) =>
 ///
 /// By default, this just adds "s" to the end of [name] to get the plural. If
 /// [plural] is passed, that's used instead.
-String pluralize(String name, int number, {String plural}) {
+String pluralize(String name, int number, {String? plural}) {
   if (number == 1) return name;
   if (plural != null) return plural;
   return '${name}s';
@@ -70,7 +70,7 @@ String trimAscii(String string, {bool excludeEscape = false}) {
   return start == null
       ? ""
       : string.substring(
-          start, _lastNonWhitespace(string, excludeEscape: excludeEscape) + 1);
+          start, _lastNonWhitespace(string, excludeEscape: excludeEscape)! + 1);
 }
 
 /// Like [String.trimLeft], but only trims ASCII whitespace.
@@ -90,7 +90,7 @@ String trimAsciiRight(String string, {bool excludeEscape = false}) {
 
 /// Returns the index of the first character in [string] that's not ASCII
 /// whitespace, or [null] if [string] is entirely spaces.
-int _firstNonWhitespace(String string) {
+int? _firstNonWhitespace(String string) {
   for (var i = 0; i < string.length; i++) {
     if (!isWhitespace(string.codeUnitAt(i))) return i;
   }
@@ -102,7 +102,7 @@ int _firstNonWhitespace(String string) {
 ///
 /// If [excludeEscape] is `true`, this doesn't move past whitespace that's
 /// included in a CSS escape.
-int _lastNonWhitespace(String string, {bool excludeEscape = false}) {
+int? _lastNonWhitespace(String string, {bool excludeEscape = false}) {
   for (var i = string.length - 1; i >= 0; i--) {
     var codeUnit = string.codeUnitAt(i);
     if (!isWhitespace(codeUnit)) {
@@ -149,7 +149,7 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
 
 /// Returns the first element of [iterable], or `null` if the iterable is empty.
 // TODO(nweiz): Use package:collection
-T firstOrNull<T>(Iterable<T> iterable) {
+T? firstOrNull<T>(Iterable<T> iterable) {
   var iterator = iterable.iterator;
   return iterator.moveNext() ? iterator.current : null;
 }
@@ -188,8 +188,8 @@ int iterableHash(Iterable<Object> iterable) =>
     const IterableEquality<Object>().hash(iterable);
 
 /// Returns whether [list1] and [list2] have the same contents.
-bool listEquals(List<Object> list1, List<Object> list2) =>
-    const ListEquality<Object>().equals(list1, list2);
+bool listEquals(List<Object?>? list1, List<Object?>? list2) =>
+    const ListEquality<Object?>().equals(list1, list2);
 
 /// Returns a hash code for [list] that matches [listEquals].
 int listHash(List<Object> list) => const ListEquality<Object>().hash(list);
@@ -206,7 +206,7 @@ int mapHash(Map<Object, Object> map) =>
 ///
 /// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
 /// passed, it's used instead.
-Frame frameForSpan(SourceSpan /*?*/ span, String member, {Uri url}) => Frame(
+Frame frameForSpan(SourceSpan? span, String member, {Uri? url}) => Frame(
     url ?? span?.sourceUrl ?? _noSourceUrl,
     span.andThen((span) => span.start.line + 1) ?? 1,
     span.andThen((span) => span.start.column + 1) ?? 1,
@@ -217,7 +217,7 @@ Frame frameForSpan(SourceSpan /*?*/ span, String member, {Uri url}) => Frame(
 ///
 /// If [nodes] is empty, or if either the first or last node has a `null` span,
 /// returns `null`.
-FileSpan spanForList(List<AstNode> nodes) {
+FileSpan? spanForList(List<AstNode> nodes) {
   if (nodes.isEmpty) return null;
 
   var left = nodes.first.span;
@@ -255,7 +255,7 @@ String unvendor(String name) {
 }
 
 /// Returns whether [string1] and [string2] are equal, ignoring ASCII case.
-bool equalsIgnoreCase(String string1, String string2) {
+bool equalsIgnoreCase(String? string1, String string2) {
   if (identical(string1, string2)) return true;
   if (string1 == null || string2 == null) return false;
   if (string1.length != string2.length) return false;
@@ -297,15 +297,15 @@ void mapInPlace<T>(List<T> list, T function(T element)) {
 /// list. If it returns `null`, the elements are considered unequal; otherwise,
 /// it should return the element to include in the return value.
 List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
-    {T select(T element1, T element2)}) {
+    {T? select(T element1, T element2)?}) {
   select ??= (element1, element2) => element1 == element2 ? element1 : null;
 
   var lengths = List.generate(
       list1.length + 1, (_) => List.filled(list2.length + 1, 0),
       growable: false);
 
-  var selections = List<List<T>>.generate(
-      list1.length, (_) => List<T>.filled(list2.length, null),
+  var selections = List<List<T?>>.generate(
+      list1.length, (_) => List<T?>.filled(list2.length, null),
       growable: false);
 
   for (var i = 0; i < list1.length; i++) {
@@ -335,9 +335,8 @@ List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
 ///
 /// By default, throws a [StateError] if no value matches. If [orElse] is
 /// passed, its return value is used instead.
-T /*!*/ removeFirstWhere<T>(List<T> list, bool test(T value),
-    {T /*!*/ orElse()}) {
-  T toRemove;
+T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()?}) {
+  T? toRemove;
   for (var element in list) {
     if (!test(element)) continue;
     toRemove = element;
@@ -397,7 +396,7 @@ Future<Iterable<F>> mapAsync<E, F>(
 /// same key.
 Future<V> putIfAbsentAsync<K, V>(
     Map<K, V> map, K key, Future<V> ifAbsent()) async {
-  if (map.containsKey(key)) return map[key] /*!*/;
+  if (map.containsKey(key)) return map[key]!;
   var value = await ifAbsent();
   map[key] = value;
   return value;

@@ -23,8 +23,8 @@ class SassArgumentList extends SassList implements ext.SassArgumentList {
   bool get wereKeywordsAccessed => _wereKeywordsAccessed;
   var _wereKeywordsAccessed = false;
 
-  SassArgumentList(Iterable<Value /*!*/ > contents,
-      Map<String /*!*/, Value /*!*/ > keywords, ListSeparator separator)
+  SassArgumentList(Iterable<Value> contents, Map<String, Value> keywords,
+      ListSeparator separator)
       : _keywords = Map.unmodifiable(keywords),
         super(contents, separator);
 }

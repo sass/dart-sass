@@ -458,7 +458,7 @@ SassColor _updateComponents(List<Value> arguments,
   ///
   /// [max] should be 255 for RGB channels, 1 for the alpha channel, and 100
   /// for saturation, lightness, whiteness, and blackness.
-  num getParam(String name, num max,
+  num? getParam(String name, num max,
       {bool checkPercent = false, bool assertPercent = false}) {
     var number = keywords.remove(name)?.assertNumber(name);
     if (number == null) return null;
@@ -503,14 +503,14 @@ SassColor _updateComponents(List<Value> arguments,
   }
 
   /// Updates [current] based on [param], clamped within [max].
-  num updateValue(num current, num param, num max) {
+  num updateValue(num current, num? param, num max) {
     if (param == null) return current;
     if (change) return param;
     if (adjust) return (current + param).clamp(0, max);
     return current + (param > 0 ? max - current : current) * (param / 100);
   }
 
-  int updateRgb(int current, num param) =>
+  int updateRgb(int current, num? param) =>
       fuzzyRound(updateValue(current, param, 255));
 
   if (hasRgb) {
@@ -555,15 +555,18 @@ SassString _functionString(String name, Iterable<Value> arguments) =>
 BuiltInCallable _removedColorFunction(String name, String argument,
         {bool negative = false}) =>
     // TODO: no as
-    _function(name, r"$color, $amount", (arguments) {
-      throw SassScriptException(
-          "The function $name() isn't in the sass:color module.\n"
-          "\n"
-          "Recommendation: color.adjust(${arguments[0]}, \$$argument: "
-          "${negative ? '-' : ''}${arguments[1]})\n"
-          "\n"
-          "More info: https://sass-lang.com/documentation/functions/color#$name");
-    });
+    _function(
+        name,
+        r"$color, $amount",
+        (arguments) {
+          throw SassScriptException(
+              "The function $name() isn't in the sass:color module.\n"
+              "\n"
+              "Recommendation: color.adjust(${arguments[0]}, \$$argument: "
+              "${negative ? '-' : ''}${arguments[1]})\n"
+              "\n"
+              "More info: https://sass-lang.com/documentation/functions/color#$name");
+        } as Value Function(List<Value>));
 
 Value _rgb(String name, List<Value> arguments) {
   var alpha = arguments.length > 3 ? arguments[3] : null;
@@ -640,7 +643,7 @@ Value _hsl(String name, List<Value> arguments) {
 }
 
 /// Prints a deprecation warning if [hue] has a unit other than `deg`.
-void _checkAngle(SassNumber angle, [String name]) {
+void _checkAngle(SassNumber angle, [String? name]) {
   if (!angle.hasUnits || angle.hasUnit('deg')) return;
 
   var message = StringBuffer()
@@ -846,4 +849,5 @@ SassColor _transparentize(List<Value> arguments) {
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     // TODO: no as
-    BuiltInCallable.function(name, arguments, callback, url: "sass:color");
+    BuiltInCallable.function(name, arguments as String, callback,
+        url: "sass:color");

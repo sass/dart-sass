@@ -16,7 +16,7 @@ import 'utils.dart';
 
 void main() {
   group("an argument list", () {
-    /*late*/ NodeSassList args;
+    late NodeSassList args;
     setUp(() {
       renderSync(RenderOptions(
           data: "a {b: foo(1, 'a', blue)}",
@@ -47,7 +47,7 @@ void main() {
 
   group("a list", () {
     group("from a parameter", () {
-      NodeSassList list;
+      late NodeSassList list;
       setUp(() {
         list = parseValue<NodeSassList>("1, 'a', blue");
       });

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: cd1babbf1959dde9f4a31d720a7a48e613ad6aa9
+// Checksum: d53a246eab6683937dcd59a335320de94b316f34
 //
 // ignore_for_file: unused_import
 
@@ -51,25 +51,25 @@ class Environment {
 
   /// A map from modules in [_globalModules] to the nodes whose spans
   /// indicate where those modules were originally loaded.
-  final Map<Module<Callable>, AstNode /*!*/ > _globalModuleNodes;
+  final Map<Module<Callable>, AstNode> _globalModuleNodes;
 
   /// The modules forwarded by this module.
   ///
   /// This is `null` if there are no forwarded modules.
-  Set<Module<Callable>> _forwardedModules;
+  Set<Module<Callable>>? _forwardedModules;
 
   /// A map from modules in [_forwardedModules] to the nodes whose spans
   /// indicate where those modules were originally forwarded.
   ///
   /// This is `null` if there are no forwarded modules.
-  Map<Module<Callable>, AstNode /*!*/ > _forwardedModuleNodes;
+  Map<Module<Callable>, AstNode>? _forwardedModuleNodes;
 
   /// Modules forwarded by nested imports at each lexical scope level *beneath
   /// the global scope*.
   ///
   /// This is `null` until it's needed, since most environments won't ever use
   /// this.
-  List<List<Module<Callable>>> _nestedForwardedModules;
+  List<List<Module<Callable>>>? _nestedForwardedModules;
 
   /// Modules from [_modules], [_globalModules], and [_forwardedModules], in the
   /// order in which they were `@use`d.
@@ -81,7 +81,7 @@ class Environment {
   ///
   /// The first element is the global scope, and each successive element is
   /// deeper in the tree.
-  final List<Map<String /*!*/, Value /*!*/ >> _variables;
+  final List<Map<String, Value>> _variables;
 
   /// The nodes where each variable in [_variables] was defined.
   ///
@@ -90,12 +90,12 @@ class Environment {
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  final List<Map<String /*!*/, AstNode /*!*/ >> _variableNodes;
+  final List<Map<String, AstNode>>? _variableNodes;
 
   /// A map of variable names to their indices in [_variables].
   ///
   /// This map is filled in as-needed, and may not be complete.
-  final Map<String /*!*/, int> _variableIndices;
+  final Map<String, int> _variableIndices;
 
   /// A list of functions defined at each lexical scope level.
   ///
@@ -125,8 +125,8 @@ class Environment {
 
   /// The content block passed to the lexically-enclosing mixin, or `null` if
   /// this is not in a mixin, or if no content block was passed.
-  UserDefinedCallable<Environment> get content => _content;
-  UserDefinedCallable<Environment> _content;
+  UserDefinedCallable<Environment>? get content => _content;
+  UserDefinedCallable<Environment>? _content;
 
   /// Whether the environment is lexically at the root of the document.
   bool get atRoot => _variables.length == 1;
@@ -145,10 +145,10 @@ class Environment {
   ///
   /// This is cached to speed up repeated references to the same variable, as
   /// well as references to the last variable's [FileSpan].
-  String _lastVariableName;
+  String? _lastVariableName;
 
   /// The index in [_variables] of the last variable that was accessed.
-  int _lastVariableIndex;
+  int? _lastVariableIndex;
 
   /// Creates an [Environment].
   ///
@@ -242,7 +242,7 @@ class Environment {
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
   void addModule(Module<Callable> module, AstNode nodeWithSpan,
-      {String namespace}) {
+      {String? namespace}) {
     if (namespace == null) {
       _globalModules.add(module);
       _globalModuleNodes[module] = nodeWithSpan;
@@ -354,7 +354,8 @@ class Environment {
       }
 
       // TODO: var
-      var forwardedModuleNodes = (_forwardedModuleNodes ??= {});
+      Map<Module<Callable>, AstNode?> forwardedModuleNodes =
+          (_forwardedModuleNodes ??= {});
 
       var forwardedVariableNames =
           forwarded.expand((module) => module.variables.keys).toSet();
@@ -376,13 +377,13 @@ class Environment {
 
             if (!shadowed.isEmpty) {
               _globalModules.add(shadowed);
-              _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module);
+              _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module)!;
             }
           }
         }
 
         // TODO: no !
-        for (var module in forwardedModules.toList()) {
+        for (var module in forwardedModules!.toList()) {
           var shadowed = ShadowedModuleView.ifNecessary(module,
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
@@ -434,11 +435,11 @@ class Environment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose variables named [name].
-  Value getVariable(String name, {String namespace}) {
+  Value? getVariable(String name, {String? namespace}) {
     if (namespace != null) return _getModule(namespace).variables[name];
 
     if (_lastVariableName == name) {
-      return _variables[_lastVariableIndex][name] ??
+      return _variables[_lastVariableIndex!][name] ??
           _getVariableFromGlobalModule(name);
     }
 
@@ -466,7 +467,7 @@ class Environment {
   /// Returns the value of the variable named [name] from a namespaceless
   /// module, or `null` if no such variable is declared in any namespaceless
   /// module.
-  Value _getVariableFromGlobalModule(String name) =>
+  Value? _getVariableFromGlobalModule(String name) =>
       _fromOneModule(name, "variable", (module) => module.variables[name]);
 
   /// Returns the node for the variable named [name], or `null` if no such
@@ -477,7 +478,7 @@ class Environment {
   /// [FileSpan] so we can avoid calling [AstNode.span] if the span isn't
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
-  AstNode getVariableNode(String name, {String namespace}) {
+  AstNode? getVariableNode(String name, {String? namespace}) {
     var variableNodes = _variableNodes;
     if (variableNodes == null) {
       throw StateError(
@@ -485,10 +486,10 @@ class Environment {
           "passed in.");
     }
 
-    if (namespace != null) return _getModule(namespace).variableNodes[name];
+    if (namespace != null) return _getModule(namespace).variableNodes![name];
 
     if (_lastVariableName == name) {
-      return variableNodes[_lastVariableIndex][name] ??
+      return variableNodes[_lastVariableIndex!][name] ??
           _getVariableNodeFromGlobalModule(name);
     }
 
@@ -517,11 +518,11 @@ class Environment {
   /// [FileSpan] so we can avoid calling [AstNode.span] if the span isn't
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
-  AstNode _getVariableNodeFromGlobalModule(String name) {
+  AstNode? _getVariableNodeFromGlobalModule(String name) {
     // We don't need to worry about multiple modules defining the same variable,
     // because that's already been checked by [getVariable].
     for (var module in _globalModules) {
-      var value = module.variableNodes[name];
+      var value = module.variableNodes![name];
       if (value != null) return value;
     }
     return null;
@@ -534,7 +535,7 @@ class Environment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
-  bool globalVariableExists(String name, {String namespace}) {
+  bool globalVariableExists(String name, {String? namespace}) {
     if (namespace != null) {
       return _getModule(namespace).variables.containsKey(name);
     }
@@ -544,7 +545,7 @@ class Environment {
 
   /// Returns the index of the last map in [_variables] that has a [name] key,
   /// or `null` if none exists.
-  int _variableIndex(String name) {
+  int? _variableIndex(String name) {
     for (var i = _variables.length - 1; i >= 0; i--) {
       if (_variables[i].containsKey(name)) return i;
     }
@@ -569,8 +570,8 @@ class Environment {
   /// defined with the given namespace, if no variable with the given [name] is
   /// defined in module with the given namespace, or if no [namespace] is passed
   /// and multiple global modules define variables named [name].
-  void setVariable(String name, Value /*!*/ value, AstNode /*?*/ nodeWithSpan,
-      {String namespace, bool global = false}) {
+  void setVariable(String name, Value value, AstNode? nodeWithSpan,
+      {String? namespace, bool global = false}) {
     if (namespace != null) {
       _getModule(namespace).setVariable(name, value, nodeWithSpan);
       return;
@@ -616,7 +617,7 @@ class Environment {
     }
 
     var index = _lastVariableName == name
-        ? _lastVariableIndex /*!*/
+        ? _lastVariableIndex!
         : _variableIndices.putIfAbsent(
             name, () => _variableIndex(name) ?? _variables.length - 1);
     if (!_inSemiGlobalScope && index == 0) {
@@ -627,7 +628,7 @@ class Environment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variables[index][name] = value;
-    _variableNodes?.andGet(index)[name] = nodeWithSpan;
+    _variableNodes?.andGet(index)![name] = nodeWithSpan!;
   }
 
   /// Sets the variable named [name] to [value], associated with
@@ -639,14 +640,14 @@ class Environment {
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  void setLocalVariable(String name, Value value, AstNode /*?*/ nodeWithSpan) {
+  void setLocalVariable(String name, Value value, AstNode? nodeWithSpan) {
     var index = _variables.length - 1;
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
     _variables[index][name] = value;
     if (nodeWithSpan != null) {
-      _variableNodes?.andGet(index)[name] = nodeWithSpan;
+      _variableNodes?.andGet(index)![name] = nodeWithSpan;
     }
   }
 
@@ -655,7 +656,7 @@ class Environment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
-  Callable getFunction(String name, {String namespace}) {
+  Callable? getFunction(String name, {String? namespace}) {
     if (namespace != null) return _getModule(namespace).functions[name];
 
     var index = _functionIndices[name];
@@ -673,12 +674,12 @@ class Environment {
   /// Returns the value of the function named [name] from a namespaceless
   /// module, or `null` if no such function is declared in any namespaceless
   /// module.
-  Callable _getFunctionFromGlobalModule(String name) =>
+  Callable? _getFunctionFromGlobalModule(String name) =>
       _fromOneModule(name, "function", (module) => module.functions[name]);
 
   /// Returns the index of the last map in [_functions] that has a [name] key,
   /// or `null` if none exists.
-  int _functionIndex(String name) {
+  int? _functionIndex(String name) {
     for (var i = _functions.length - 1; i >= 0; i--) {
       if (_functions[i].containsKey(name)) return i;
     }
@@ -689,7 +690,7 @@ class Environment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
-  bool functionExists(String name, {String namespace}) =>
+  bool functionExists(String name, {String? namespace}) =>
       getFunction(name, namespace: namespace) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
@@ -704,7 +705,7 @@ class Environment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose mixins named [name].
-  Callable getMixin(String name, {String namespace}) {
+  Callable? getMixin(String name, {String? namespace}) {
     if (namespace != null) return _getModule(namespace).mixins[name];
 
     var index = _mixinIndices[name];
@@ -722,12 +723,12 @@ class Environment {
   /// Returns the value of the mixin named [name] from a namespaceless
   /// module, or `null` if no such mixin is declared in any namespaceless
   /// module.
-  Callable _getMixinFromGlobalModule(String name) =>
+  Callable? _getMixinFromGlobalModule(String name) =>
       _fromOneModule(name, "mixin", (module) => module.mixins[name]);
 
   /// Returns the index of the last map in [_mixins] that has a [name] key, or
   /// `null` if none exists.
-  int _mixinIndex(String name) {
+  int? _mixinIndex(String name) {
     for (var i = _mixins.length - 1; i >= 0; i--) {
       if (_mixins[i].containsKey(name)) return i;
     }
@@ -738,7 +739,7 @@ class Environment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
-  bool mixinExists(String name, {String namespace}) =>
+  bool mixinExists(String name, {String? namespace}) =>
       getMixin(name, namespace: namespace) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
@@ -749,7 +750,7 @@ class Environment {
   }
 
   /// Sets [content] as [this.content] for the duration of [callback].
-  void withContent(UserDefinedCallable<Environment> content, void callback()) {
+  void withContent(UserDefinedCallable<Environment>? content, void callback()) {
     var oldContent = _content;
     _content = content;
     callback();
@@ -827,7 +828,7 @@ class Environment {
     for (var i = 0; i < _variables.length; i++) {
       var values = _variables[i];
       var nodes =
-          _variableNodes == null ? <String, AstNode>{} : _variableNodes[i];
+          _variableNodes == null ? <String, AstNode>{} : _variableNodes![i];
       // TODO: var nodes = _variableNodes.andGet(i) ?? <String, AstNode>{};
       for (var entry in values.entries) {
         // Implicit configurations are never invalid, making [configurationSpan]
@@ -884,8 +885,8 @@ class Environment {
   ///
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
-  T _fromOneModule<T>(
-      String name, String type, T /*?*/ callback(Module<Callable> module)) {
+  T? _fromOneModule<T>(
+      String name, String type, T? callback(Module<Callable> module)) {
     var nestedForwardedModules = _nestedForwardedModules;
     if (nestedForwardedModules != null) {
       for (var modules in nestedForwardedModules.reversed) {
@@ -896,21 +897,22 @@ class Environment {
       }
     }
 
-    T value;
-    Object identity;
+    T? value;
+    Object? identity;
     for (var module in _globalModules) {
       var valueInModule = callback(module);
       if (valueInModule == null) continue;
 
-      var identityFromModule = valueInModule is Callable
+      Object? identityFromModule = valueInModule is Callable
           ? valueInModule
           : module.variableIdentity(name);
       if (identityFromModule == identity) continue;
 
       if (value != null) {
         // TODO no !, as
-        var spans = _globalModuleNodes.entries.map(
-            (entry) => callback(entry.key).andThen((_) => entry.value.span));
+        var spans = _globalModuleNodes.entries.map((entry) =>
+            callback(entry.key)
+                .andThen(((_) => entry.value.span!) as FileSpan Function(T)?));
 
         throw MultiSpanSassScriptException(
             'This $type is available from multiple global modules.',
@@ -929,11 +931,11 @@ class Environment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements Module<Callable> {
-  Uri get url => css?.span.sourceUrl;
+  Uri? get url => css?.span!.sourceUrl;
 
   final List<Module<Callable>> upstream;
   final Map<String, Value> variables;
-  final Map<String, AstNode> variableNodes;
+  final Map<String, AstNode>? variableNodes;
   final Map<String, Callable> functions;
   final Map<String, Callable> mixins;
   final Extender extender;
@@ -954,7 +956,7 @@ class _EnvironmentModule implements Module<Callable> {
 
   factory _EnvironmentModule(
       Environment environment, CssStylesheet css, Extender extender,
-      {Set<Module<Callable>> forwarded}) {
+      {Set<Module<Callable>>? forwarded}) {
     forwarded ??= const {};
     return _EnvironmentModule._(
         environment,
@@ -966,7 +968,7 @@ class _EnvironmentModule implements Module<Callable> {
         environment._variableNodes.andThen((nodes) => _memberMap(
             // TODO: no !
             nodes.first,
-            forwarded.map((module) => module.variableNodes /*!*/))),
+            forwarded!.map((module) => module.variableNodes!))),
         _memberMap(environment._functions.first,
             forwarded.map((module) => module.functions)),
         _memberMap(environment._mixins.first,
@@ -1026,11 +1028,11 @@ class _EnvironmentModule implements Module<Callable> {
       this.variableNodes,
       this.functions,
       this.mixins,
-      {@required this.transitivelyContainsCss,
-      @required this.transitivelyContainsExtensions})
+      {required this.transitivelyContainsCss,
+      required this.transitivelyContainsExtensions})
       : upstream = _environment._allModules;
 
-  void setVariable(String name, Value value, AstNode nodeWithSpan) {
+  void setVariable(String name, Value value, AstNode? nodeWithSpan) {
     var module = _modulesByVariable[name];
     if (module != null) {
       module.setVariable(name, value, nodeWithSpan);

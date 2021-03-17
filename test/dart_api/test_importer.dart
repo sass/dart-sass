@@ -8,7 +8,7 @@ import 'package:sass/sass.dart';
 /// closures.
 class TestImporter extends Importer {
   final Uri Function(Uri url) _canonicalize;
-  final ImporterResult /*!*/ Function(Uri url) _load;
+  final ImporterResult Function(Uri url) _load;
 
   TestImporter(this._canonicalize, this._load);
 

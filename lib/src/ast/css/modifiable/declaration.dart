@@ -17,14 +17,14 @@ class ModifiableCssDeclaration extends ModifiableCssNode
   final CssValue<String> name;
   final CssValue<Value> value;
   final bool parsedAsCustomProperty;
-  final FileSpan valueSpanForMap;
-  final FileSpan span;
+  final FileSpan? valueSpanForMap;
+  final FileSpan? span;
 
   bool get isCustomProperty => name.value.startsWith('--');
 
   /// Returns a new CSS declaration with the given properties.
   ModifiableCssDeclaration(this.name, this.value, this.span,
-      {@required bool parsedAsCustomProperty, FileSpan valueSpanForMap})
+      {required bool parsedAsCustomProperty, FileSpan? valueSpanForMap})
       : parsedAsCustomProperty = parsedAsCustomProperty,
         valueSpanForMap = valueSpanForMap ?? span {
     if (parsedAsCustomProperty) {

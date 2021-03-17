@@ -12,7 +12,7 @@ abstract class CssAtRule extends CssParentNode {
   CssValue<String> get name;
 
   /// The value of this rule.
-  CssValue<String> get value;
+  CssValue<String>? get value;
 
   /// Whether the rule has no children.
   ///
