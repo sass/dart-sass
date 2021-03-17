@@ -6,8 +6,6 @@
 // See tool/grind/synchronize.dart for details.
 //
 // Checksum: 0e9e7b6b99be25500cfd6469b0366190e92c43f4
-//
-// ignore_for_file: unused_import
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;

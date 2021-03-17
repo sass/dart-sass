@@ -6,8 +6,6 @@
 // See tool/grind/synchronize.dart for details.
 //
 // Checksum: 6ac1ee07d6b46134f1616d82782180f1cc3b6d81
-//
-// ignore_for_file: unused_import
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;

@@ -83,22 +83,20 @@ class _Visitor extends RecursiveAstVisitor<void> {
 // DO NOT EDIT. This file was generated from ${p.basename(path)}.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ${sha1.convert(utf8.encode(_source))}
-//
-// ignore_for_file: unused_import
-""");
+// Checksum: ${sha1.convert(utf8.encode(_source))}""");
 
     if (p.basename(path) == 'async_evaluate.dart') {
       _buffer.writeln();
       _buffer.writeln("import 'async_evaluate.dart' show EvaluateResult;");
       _buffer.writeln("export 'async_evaluate.dart' show EvaluateResult;");
-      _buffer.writeln();
     } else if (p.basename(path) == 'async_compile.dart') {
+      _buffer.writeln("//\n// ignore_for_file: unused_import");
       _buffer.writeln();
       _buffer.writeln("import 'async_compile.dart';");
       _buffer.writeln("export 'async_compile.dart';");
-      _buffer.writeln();
     }
+
+    _buffer.writeln();
 
     _position = afterHeader;
   }
