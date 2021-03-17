@@ -535,7 +535,7 @@ class _EvaluateVisitor
   /// The [stackFrame] and [nodeWithSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
   Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeWithSpan,
-      void callback(Module module),
+      FutureOr<void> callback(Module module),
       {Uri baseUrl,
       Configuration configuration,
       bool namesInErrors = false}) async {
