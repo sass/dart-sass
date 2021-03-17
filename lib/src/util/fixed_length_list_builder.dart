@@ -14,7 +14,7 @@ class FixedLengthListBuilder<T> {
   var _index = 0;
 
   /// Creates a new builder that creates a list of length [length].
-  FixedLengthListBuilder(int length) : _list = List(length);
+  FixedLengthListBuilder(int length) : _list = List.filled(length, null);
 
   /// Adds [element] to the next available space in the list.
   ///

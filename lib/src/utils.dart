@@ -304,7 +304,7 @@ List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
       growable: false);
 
   var selections = List<List<T>>.generate(
-      list1.length, (_) => List<T>(list2.length),
+      list1.length, (_) => List<T>.filled(list2.length, null),
       growable: false);
 
   for (var i = 0; i < list1.length; i++) {
