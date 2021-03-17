@@ -79,7 +79,7 @@ abstract class Value implements ext.Value {
     if (index == 0) throw _exception("List index may not be 0.", name);
     if (index.abs() > lengthAsList) {
       throw _exception(
-          "Invalid index $sassIndex for a list with ${lengthAsList} elements.",
+          "Invalid index $sassIndex for a list with $lengthAsList elements.",
           name);
     }
 

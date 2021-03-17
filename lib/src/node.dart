@@ -197,7 +197,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
       tuple = ScssParser(signature as String).parseSignature();
     } on SassFormatException catch (error) {
       throw SassFormatException(
-          'Invalid signature "${signature}": ${error.message}', error.span);
+          'Invalid signature "$signature": ${error.message}', error.span);
     }
 
     var context = _contextWithOptions(options, start);

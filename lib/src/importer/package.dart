@@ -34,7 +34,7 @@ class PackageImporter extends Importer {
     if (resolved == null) throw "Unknown package.";
 
     if (resolved.scheme.isNotEmpty && resolved.scheme != 'file') {
-      throw "Unsupported URL ${resolved}.";
+      throw "Unsupported URL $resolved.";
     }
 
     return _filesystemImporter.canonicalize(resolved);

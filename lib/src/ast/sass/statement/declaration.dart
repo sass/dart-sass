@@ -36,7 +36,7 @@ class Declaration extends ParentStatement {
     if (isCustomProperty && value is! StringExpression) {
       throw ArgumentError(
           'Declarations whose names begin with "--" must have StringExpression '
-          'values (was `${value}` of type ${value.runtimeType}).');
+          'values (was `$value` of type ${value.runtimeType}).');
     }
   }
 

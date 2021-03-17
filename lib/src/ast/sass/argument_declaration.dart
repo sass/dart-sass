@@ -113,7 +113,7 @@ class ArgumentDeclaration implements SassNode {
           "Only ${arguments.length} "
               "${names.isEmpty ? '' : 'positional '}"
               "${pluralize('argument', arguments.length)} allowed, but "
-              "${positional} ${pluralize('was', positional, plural: 'were')} "
+              "$positional ${pluralize('was', positional, plural: 'were')} "
               "passed.",
           "invocation",
           {spanWithName: "declaration"});
