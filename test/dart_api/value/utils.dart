@@ -26,8 +26,7 @@ final throwsSassScriptException =
 
 /// Like [equals], but asserts that the hash codes of the values are the same as
 /// well.
-// TODO: no dynamic
-Matcher equalsWithHash(Object expected) => predicate((dynamic actual) {
+Matcher equalsWithHash(Object expected) => predicate((actual) {
       expect(actual, equals(expected));
       expect(actual.hashCode, equals(expected.hashCode),
           reason: "Expected $actual's hash code to equal $expected's.");

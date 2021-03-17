@@ -59,7 +59,11 @@ class AsyncBuiltInCallable implements AsyncCallable {
             ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
             (arguments) async {
           await callback(arguments);
-          return null;
+          // We could encode the fact that functions return values and mixins
+          // don't in the type system, but that would get very messy very
+          // quickly so it's easier to just return Sass's `null` for mixins and
+          // simply ignore it at the call site.
+          return sassNull;
         });
 
   /// Creates a callable with a single [arguments] declaration and a single

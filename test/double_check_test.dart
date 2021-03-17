@@ -25,7 +25,7 @@ void main() {
             "Run pub run grinder to update it.";
 
         var target = File(targetPath).readAsStringSync();
-        var match = checksumPattern.firstMatch(target)!; // TODO: no !
+        var match = checksumPattern.firstMatch(target);
         if (match == null) fail(message);
 
         var source = File(sourcePath).readAsBytesSync();

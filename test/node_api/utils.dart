@@ -54,7 +54,7 @@ Future<String> render(RenderOptions options) {
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(error, isNull);
-    completer.complete(utf8.decode(result.css!));
+    completer.complete(utf8.decode(result.css));
   })));
   return completer.future;
 }
@@ -73,7 +73,7 @@ Future<RenderError> renderError(RenderOptions options) {
 
 /// Returns the result of rendering via [options] as a string.
 String renderSync(RenderOptions options) =>
-    utf8.decode(sass.renderSync(options).css!);
+    utf8.decode(sass.renderSync(options).css);
 
 /// Like [renderSync], but goes through the untyped JS API.
 ///
@@ -81,7 +81,7 @@ String renderSync(RenderOptions options) =>
 /// type errors.
 String renderSyncJS(Map<String, Object> options) {
   var result = _renderSyncJS.call(sass, jsify(options)) as RenderResult;
-  return utf8.decode(result.css!);
+  return utf8.decode(result.css);
 }
 
 final _renderSyncJS =

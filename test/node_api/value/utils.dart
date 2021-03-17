@@ -28,6 +28,4 @@ T parseValue<T>(String source) {
 
 /// A matcher that matches values that are JS `instanceof` [type].
 Matcher isJSInstanceOf(Object type) => predicate(
-    // TODO: no dynamic
-    (dynamic value) => jsInstanceOf(value, type),
-    "to be an instance of $type");
+    (value) => jsInstanceOf(value!, type), "to be an instance of $type");

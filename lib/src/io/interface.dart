@@ -91,7 +91,8 @@ DateTime modificationTime(String path) => throw '';
 String? getEnvironmentVariable(String name) => throw '';
 
 /// Gets and sets the exit code that the process will use when it exits.
-int exitCode;
+int get exitCode => throw '';
+set exitCode(int value) => throw '';
 
 /// Recursively watches the directory at [path] for modifications.
 ///

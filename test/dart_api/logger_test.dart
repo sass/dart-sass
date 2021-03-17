@@ -12,8 +12,6 @@ import 'package:sass/sass.dart';
 
 import 'test_importer.dart';
 
-// TODO: no required
-
 void main() {
   group("with @warn", () {
     test("passes the message and stack trace to the logger", () {
@@ -22,10 +20,10 @@ void main() {
         @mixin foo {@warn heck}
         @include foo;
       ''', logger: _TestLogger.withWarn((message,
-              {span, required trace, deprecation}) {
+              {span, trace, deprecation = false}) {
         expect(message, equals("heck"));
         expect(span, isNull);
-        expect(trace.frames.first.member, equals('foo()'));
+        expect(trace!.frames.first.member, equals('foo()'));
         expect(deprecation, isFalse);
         mustBeCalled();
       }));
@@ -33,8 +31,8 @@ void main() {
 
     test("stringifies the argument", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString('@warn #abc',
-          logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
+      compileString('@warn #abc', logger:
+          _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
         expect(message, equals("#abc"));
         mustBeCalled();
       }));
@@ -42,8 +40,8 @@ void main() {
 
     test("doesn't inspect the argument", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString('@warn null',
-          logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
+      compileString('@warn null', logger:
+          _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
         expect(message, isEmpty);
         mustBeCalled();
       }));
@@ -80,10 +78,10 @@ void main() {
   test("with a parser warning passes the message and span", () {
     var mustBeCalled = expectAsync0(() {});
     compileString('a {b: c && d}', logger:
-        _TestLogger.withWarn((message, {required span, trace, deprecation}) {
+        _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
       expect(message, contains('"&&" means two copies'));
 
-      expect(span.start.line, equals(0));
+      expect(span!.start.line, equals(0));
       expect(span.start.column, equals(8));
       expect(span.end.line, equals(0));
       expect(span.end.column, equals(10));
@@ -99,16 +97,16 @@ void main() {
     compileString('''
         @mixin foo {#{blue} {x: y}}
         @include foo;
-      ''', logger: _TestLogger.withWarn((message,
-            {required span, required trace, deprecation}) {
+      ''', logger:
+            _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
       expect(message, contains("color value blue"));
 
-      expect(span.start.line, equals(0));
+      expect(span!.start.line, equals(0));
       expect(span.start.column, equals(22));
       expect(span.end.line, equals(0));
       expect(span.end.column, equals(26));
 
-      expect(trace.frames.first.member, equals('foo()'));
+      expect(trace!.frames.first.member, equals('foo()'));
       expect(deprecation, isFalse);
       mustBeCalled();
     }));
@@ -127,15 +125,15 @@ void main() {
             return sassNull;
           }))
         ], logger: _TestLogger.withWarn((message,
-                {required span, required trace, deprecation}) {
+                {span, trace, deprecation = false}) {
           expect(message, equals("heck"));
 
-          expect(span.start.line, equals(0));
+          expect(span!.start.line, equals(0));
           expect(span.start.column, equals(33));
           expect(span.end.line, equals(0));
           expect(span.end.column, equals(38));
 
-          expect(trace.frames.first.member, equals('bar()'));
+          expect(trace!.frames.first.member, equals('bar()'));
           expect(deprecation, isFalse);
           mustBeCalled();
         }));
@@ -152,15 +150,15 @@ void main() {
             return sassNull;
           }))
         ], logger: _TestLogger.withWarn((message,
-                {required span, required trace, deprecation}) {
+                {span, trace, deprecation = false}) {
           expect(message, equals("heck"));
 
-          expect(span.start.line, equals(0));
+          expect(span!.start.line, equals(0));
           expect(span.start.column, equals(33));
           expect(span.end.line, equals(0));
           expect(span.end.column, equals(38));
 
-          expect(trace.frames.first.member, equals('bar()'));
+          expect(trace!.frames.first.member, equals('bar()'));
           expect(deprecation, isFalse);
           mustBeCalled();
         }));
@@ -178,15 +176,15 @@ void main() {
             return sassNull;
           }))
         ], logger: _TestLogger.withWarn((message,
-                {required span, required trace, deprecation}) {
+                {span, trace, deprecation = false}) {
           expect(message, equals("heck"));
 
-          expect(span.start.line, equals(0));
+          expect(span!.start.line, equals(0));
           expect(span.start.column, equals(33));
           expect(span.end.line, equals(0));
           expect(span.end.column, equals(38));
 
-          expect(trace.frames.first.member, equals('bar()'));
+          expect(trace!.frames.first.member, equals('bar()'));
           expect(deprecation, isFalse);
           mustBeCalled();
         }));
@@ -200,16 +198,16 @@ void main() {
           warn("heck");
           return ImporterResult("", indented: false);
         })
-      ], logger: _TestLogger.withWarn((message,
-          {required span, required trace, deprecation}) {
+      ], logger:
+          _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
         expect(message, equals("heck"));
 
-        expect(span.start.line, equals(0));
+        expect(span!.start.line, equals(0));
         expect(span.start.column, equals(8));
         expect(span.end.line, equals(0));
         expect(span.end.column, equals(13));
 
-        expect(trace.frames.first.member, equals('@import'));
+        expect(trace!.frames.first.member, equals('@import'));
         expect(deprecation, isFalse);
         mustBeCalled();
       }));
@@ -222,7 +220,8 @@ void main() {
           warn("heck", deprecation: true);
           return sassNull;
         }))
-      ], logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
+      ], logger:
+          _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
         expect(message, equals("heck"));
         expect(deprecation, isTrue);
         mustBeCalled();
@@ -237,8 +236,8 @@ void main() {
 
 /// A [Logger] whose [warn] and [debug] methods are provided by callbacks.
 class _TestLogger implements Logger {
-  final void Function(String,
-      {FileSpan? span, Trace? trace, required bool deprecation}) _warn;
+  final void Function(String, {FileSpan? span, Trace? trace, bool deprecation})
+      _warn;
   final void Function(String, SourceSpan) _debug;
 
   _TestLogger.withWarn(this._warn) : _debug = const Logger.stderr().debug;

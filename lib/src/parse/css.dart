@@ -64,7 +64,6 @@ class CssParser extends ScssParser {
         almostAnyValue();
         error("This at-rule isn't allowed in plain CSS.",
             scanner.spanFrom(start));
-        break;
 
       case "import":
         return _cssImportRule(start);

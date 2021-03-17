@@ -255,7 +255,7 @@ String unvendor(String name) {
 }
 
 /// Returns whether [string1] and [string2] are equal, ignoring ASCII case.
-bool equalsIgnoreCase(String? string1, String string2) {
+bool equalsIgnoreCase(String? string1, String? string2) {
   if (identical(string1, string2)) return true;
   if (string1 == null || string2 == null) return false;
   if (string1.length != string2.length) return false;

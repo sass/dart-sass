@@ -40,11 +40,10 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   static Module<T> ifNecessary<T extends AsyncCallable>(
       Module<T> inner, ForwardRule rule) {
     if (rule.prefix == null &&
-            rule.shownMixinsAndFunctions == null &&
-            rule.shownVariables == null &&
-            rule?.hiddenMixinsAndFunctions?.isEmpty ??
-        false && rule?.hiddenVariables?.isEmpty ??
-        false) {
+        rule.shownMixinsAndFunctions == null &&
+        rule.shownVariables == null &&
+        (rule.hiddenMixinsAndFunctions?.isEmpty ?? false) &&
+        (rule.hiddenVariables?.isEmpty ?? false)) {
       return inner;
     } else {
       return ForwardedModuleView(inner, rule);

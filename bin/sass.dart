@@ -35,7 +35,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  late ExecutableOptions options;
+  ExecutableOptions? options;
   try {
     options = ExecutableOptions.parse(args);
     term_glyph.ascii = !options.unicode;
@@ -68,7 +68,9 @@ Future<void> main(List<String> args) async {
         // dart-lang/sdk#33400.
         () {
           try {
-            if (destination != null && !options.emitErrorCss) {
+            if (destination != null &&
+                // dart-lang/sdk#45348
+                !options!.emitErrorCss) {
               deleteFile(destination);
             }
           } on FileSystemException {

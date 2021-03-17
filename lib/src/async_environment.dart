@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
@@ -342,12 +341,11 @@ class AsyncEnvironment {
                 !_globalModules.contains(module))
               module
         };
-        forwardedModules = _forwardedModules = {};
+      } else {
+        forwardedModules = _forwardedModules ??= {};
       }
 
-      // TODO: var
-      Map<Module<AsyncCallable>, AstNode?> forwardedModuleNodes =
-          (_forwardedModuleNodes ??= {});
+      var forwardedModuleNodes = _forwardedModuleNodes ??= {};
 
       var forwardedVariableNames =
           forwarded.expand((module) => module.variables.keys).toSet();
@@ -374,8 +372,7 @@ class AsyncEnvironment {
           }
         }
 
-        // TODO: no !
-        for (var module in forwardedModules!.toList()) {
+        for (var module in forwardedModules.toList()) {
           var shadowed = ShadowedModuleView.ifNecessary(module,
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
@@ -386,7 +383,7 @@ class AsyncEnvironment {
             if (!shadowed.isEmpty) {
               forwardedModules.add(shadowed);
               forwardedModuleNodes[shadowed] =
-                  forwardedModuleNodes.remove(module);
+                  forwardedModuleNodes.remove(module)!;
             }
           }
         }
@@ -821,9 +818,7 @@ class AsyncEnvironment {
     var configuration = <String, ConfiguredValue>{};
     for (var i = 0; i < _variables.length; i++) {
       var values = _variables[i];
-      var nodes =
-          _variableNodes == null ? <String, AstNode>{} : _variableNodes![i];
-      // TODO: var nodes = _variableNodes.andGet(i) ?? <String, AstNode>{};
+      var nodes = _variableNodes.andGet(i) ?? <String, AstNode>{};
       for (var entry in values.entries) {
         // Implicit configurations are never invalid, making [configurationSpan]
         // unnecessary, so we pass null here to avoid having to compute it.
@@ -902,10 +897,8 @@ class AsyncEnvironment {
       if (identityFromModule == identity) continue;
 
       if (value != null) {
-        // TODO no !, as
-        var spans = _globalModuleNodes.entries.map((entry) =>
-            callback(entry.key)
-                .andThen(((_) => entry.value.span!) as FileSpan Function(T)?));
+        var spans = _globalModuleNodes.entries.map(
+            (entry) => callback(entry.key).andThen((_) => entry.value.span));
 
         throw MultiSpanSassScriptException(
             'This $type is available from multiple global modules.',
@@ -924,7 +917,7 @@ class AsyncEnvironment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements Module {
-  Uri? get url => css?.span!.sourceUrl;
+  Uri? get url => css.span?.sourceUrl;
 
   final List<Module> upstream;
   final Map<String, Value> variables;
@@ -959,8 +952,8 @@ class _EnvironmentModule implements Module {
         _memberMap(environment._variables.first,
             forwarded.map((module) => module.variables)),
         environment._variableNodes.andThen((nodes) => _memberMap(
-            // TODO: no !
             nodes.first,
+            // `forwarded!` due to dart-lang/sdk#45348
             forwarded!.map((module) => module.variableNodes!))),
         _memberMap(environment._functions.first,
             forwarded.map((module) => module.functions)),

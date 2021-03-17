@@ -19,7 +19,7 @@ void setToString(Object object, String body()) =>
 
 /// Adds a `toString()` method to [klass] that forwards to Dart's `toString()`.
 void forwardToString(Function klass) {
-  setProperty(getProperty(klass, 'prototype'), 'toString',
+  setProperty(getProperty(klass, 'prototype') as Object, 'toString',
       allowInteropCaptureThis((Object thisArg) => thisArg.toString()));
 }
 
@@ -62,9 +62,9 @@ Object? call3(JSFunction function, Object thisArg, Object arg1, Object arg2,
 external List<String> _keys(Object? object);
 
 /// Invokes [callback] for each key/value pair in [object].
-void jsForEach(Object? object, void callback(Object key, Object? value)) {
+void jsForEach(Object object, void callback(Object key, Object? value)) {
   for (var key in _keys(object)) {
-    callback(key, getProperty(object!, key));
+    callback(key, getProperty(object, key));
   }
 }
 
@@ -76,7 +76,7 @@ Function createClass(
     String name, Function constructor, Map<String, Function> methods) {
   var klass = allowInteropCaptureThis(constructor);
   _defineProperty(klass, 'name', _PropertyDescriptor(value: name));
-  var prototype = getProperty(klass, 'prototype');
+  var prototype = getProperty(klass, 'prototype') as Object;
   methods.forEach((name, body) {
     setProperty(prototype, name, allowInteropCaptureThis(body));
   });
@@ -106,7 +106,7 @@ external Object _create(Object prototype);
 
 /// Sets the name of `object`'s class to `name`.
 void setClassName(Object object, String name) {
-  _defineProperty(getProperty(object, "constructor"), "name",
+  _defineProperty(getProperty(object, "constructor") as Object, "name",
       _PropertyDescriptor(value: name));
 }
 
@@ -115,9 +115,10 @@ void injectSuperclass(Object object, Function constructor) {
   var prototype = _getPrototypeOf(object)!;
   var parent = _getPrototypeOf(prototype);
   if (parent != null) {
-    _setPrototypeOf(getProperty(constructor, 'prototype'), parent);
+    _setPrototypeOf(getProperty(constructor, 'prototype') as Object, parent);
   }
-  _setPrototypeOf(prototype, _create(getProperty(constructor, 'prototype')));
+  _setPrototypeOf(
+      prototype, _create(getProperty(constructor, 'prototype') as Object));
 }
 
 /// Returns whether [value] is truthy according to JavaScript.

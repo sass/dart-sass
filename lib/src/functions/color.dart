@@ -30,10 +30,7 @@ final global = UnmodifiableListView([
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgb", arguments),
     r"$channels": (arguments) {
       var parsed = _parseChannels(
-          // TODO: no !
-          "rgb",
-          [r"$red", r"$green", r"$blue"],
-          arguments.first);
+          "rgb", [r"$red", r"$green", r"$blue"], arguments.first);
       return parsed is SassString ? parsed : _rgb("rgb", parsed as List<Value>);
     }
   }),
@@ -44,10 +41,7 @@ final global = UnmodifiableListView([
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgba", arguments),
     r"$channels": (arguments) {
       var parsed = _parseChannels(
-          // TODO: no !
-          "rgba",
-          [r"$red", r"$green", r"$blue"],
-          arguments.first);
+          "rgba", [r"$red", r"$green", r"$blue"], arguments.first);
       return parsed is SassString
           ? parsed
           : _rgb("rgba", parsed as List<Value>);
@@ -554,19 +548,15 @@ SassString _functionString(String name, Iterable<Value> arguments) =>
 /// value to [argument], with a leading minus sign if [negative] is `true`.
 BuiltInCallable _removedColorFunction(String name, String argument,
         {bool negative = false}) =>
-    // TODO: no as
-    _function(
-        name,
-        r"$color, $amount",
-        (arguments) {
-          throw SassScriptException(
-              "The function $name() isn't in the sass:color module.\n"
-              "\n"
-              "Recommendation: color.adjust(${arguments[0]}, \$$argument: "
-              "${negative ? '-' : ''}${arguments[1]})\n"
-              "\n"
-              "More info: https://sass-lang.com/documentation/functions/color#$name");
-        } as Value Function(List<Value>));
+    _function(name, r"$color, $amount", (arguments) {
+      throw SassScriptException(
+          "The function $name() isn't in the sass:color module.\n"
+          "\n"
+          "Recommendation: color.adjust(${arguments[0]}, \$$argument: "
+          "${negative ? '-' : ''}${arguments[1]})\n"
+          "\n"
+          "More info: https://sass-lang.com/documentation/functions/color#$name");
+    });
 
 Value _rgb(String name, List<Value> arguments) {
   var alpha = arguments.length > 3 ? arguments[3] : null;
@@ -848,6 +838,4 @@ SassColor _transparentize(List<Value> arguments) {
 /// `sass:color`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
-    // TODO: no as
-    BuiltInCallable.function(name, arguments as String, callback,
-        url: "sass:color");
+    BuiltInCallable.function(name, arguments, callback, url: "sass:color");

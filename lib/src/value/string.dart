@@ -22,14 +22,7 @@ class SassString extends Value implements ext.SassString {
 
   final bool hasQuotes;
 
-  // TODO: late
-
-  int get sassLength {
-    _sassLength ??= text.runes.length;
-    return _sassLength!;
-  }
-
-  int? _sassLength;
+  late final int sassLength = text.runes.length;
 
   bool get isSpecialNumber {
     if (hasQuotes) return false;

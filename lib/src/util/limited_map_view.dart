@@ -44,8 +44,7 @@ class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
             if (!blocklist.contains(key)) key
         };
 
-  // TODO: no as
-  V? operator [](Object? key) => _keys.contains(key) ? _map[key as K] : null;
+  V? operator [](Object? key) => _keys.contains(key) ? _map[key] : null;
   bool containsKey(Object? key) => _keys.contains(key);
 
   V? remove(Object? key) => _keys.contains(key) ? _map.remove(key) : null;

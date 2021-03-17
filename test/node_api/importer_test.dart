@@ -21,8 +21,6 @@ import '../hybrid.dart';
 import 'api.dart';
 import 'utils.dart';
 
-// TODO: no dynamic
-
 void main() {
   setUpAll(ensureNpmPackage);
   useSandbox();
@@ -141,7 +139,7 @@ void main() {
           importer: allowInterop(expectAsync2((void _, void __) {
             return NodeImporterResult(contents: '', file: 'bar');
           }))));
-      expect(result.stats!.includedFiles, equals(['bar']));
+      expect(result.stats.includedFiles, equals(['bar']));
     });
   });
 
@@ -244,7 +242,7 @@ void main() {
           file: basePath,
           importer: allowInterop(
               (void _, void __) => NodeImporterResult(file: 'test'))));
-      expect(result.stats!.includedFiles, equals([basePath, sassPath]));
+      expect(result.stats.includedFiles, equals([basePath, sassPath]));
     });
 
     test("is resolved relative to include paths", () async {
@@ -329,7 +327,7 @@ void main() {
     test("is the exact imported text", () {
       renderSync(RenderOptions(
           data: "@import 'foo'",
-          importer: allowInterop(expectAsync2((dynamic url, dynamic _) {
+          importer: allowInterop(expectAsync2((url, _) {
             expect(url, equals('foo'));
             return NodeImporterResult(contents: '');
           }))));
@@ -339,7 +337,7 @@ void main() {
     test("doesn't remove ./", () {
       renderSync(RenderOptions(
           data: "@import './foo'",
-          importer: allowInterop(expectAsync2((dynamic url, dynamic _) {
+          importer: allowInterop(expectAsync2((url, _) {
             expect(url, equals('./foo'));
             return NodeImporterResult(contents: '');
           }))));
@@ -348,7 +346,7 @@ void main() {
     test("isn't resolved relative to the current file", () {
       renderSync(RenderOptions(
           data: "@import 'foo/bar'",
-          importer: allowInterop(expectAsync2((dynamic url, dynamic _) {
+          importer: allowInterop(expectAsync2((url, _) {
             if (url == 'foo/bar') {
               return NodeImporterResult(contents: "@import 'baz'");
             } else {
@@ -364,7 +362,7 @@ void main() {
           importer: allowInterop(expectAsync2((void _, void __) {
             return NodeImporterResult(contents: '');
           }))));
-      expect(result.stats!.includedFiles, equals(['foo']));
+      expect(result.stats.includedFiles, equals(['foo']));
     });
   });
 
@@ -375,7 +373,7 @@ void main() {
 
       renderSync(RenderOptions(
           file: importPath,
-          importer: allowInterop(expectAsync2((dynamic _, dynamic prev) {
+          importer: allowInterop(expectAsync2((_, prev) {
             expect(prev, equals(p.absolute(importPath)));
             return NodeImporterResult(contents: '');
           }))));
@@ -391,7 +389,7 @@ void main() {
 
       renderSync(RenderOptions(
           file: import1Path,
-          importer: allowInterop(expectAsync2((dynamic url, dynamic prev) {
+          importer: allowInterop(expectAsync2((url, prev) {
             if (url == 'foo') {
               return NodeImporterResult(file: 'import2');
             } else {
@@ -405,7 +403,7 @@ void main() {
     test('is "stdin" for string stylesheets', () async {
       renderSync(RenderOptions(
           data: '@import "foo"',
-          importer: allowInterop(expectAsync2((dynamic _, dynamic prev) {
+          importer: allowInterop(expectAsync2((_, prev) {
             expect(prev, equals('stdin'));
             return NodeImporterResult(contents: '');
           }))));
@@ -413,11 +411,11 @@ void main() {
 
     test("is the imported string for imports from importers", () async {
       renderSync(RenderOptions(data: '@import "foo"', importer: [
-        allowInterop(expectAsync2((dynamic url, dynamic _) {
+        allowInterop(expectAsync2((url, _) {
           if (url != "foo") return null;
           return NodeImporterResult(contents: '@import "bar"');
         }, count: 2)),
-        allowInterop(expectAsync2((dynamic url, dynamic prev) {
+        allowInterop(expectAsync2((url, prev) {
           expect(url, equals("bar"));
           expect(prev, equals("foo"));
           return NodeImporterResult(contents: '');
@@ -431,7 +429,7 @@ void main() {
       renderSync(RenderOptions(
           data: '@import "foo"',
           importer: allowInteropCaptureThis(
-              expectAsync3((RenderContext this_, dynamic _, dynamic __) {
+              expectAsync3((RenderContext this_, _, __) {
             var options = this_.options;
             expect(options.includePaths, equals(p.current));
             expect(options.precision, equals(SassNumber.precision));
@@ -448,7 +446,7 @@ void main() {
       renderSync(RenderOptions(
           data: '@import "foo"',
           importer: allowInteropCaptureThis(
-              expectAsync3((RenderContext this_, dynamic _, dynamic __) {
+              expectAsync3((RenderContext this_, _, __) {
             expect(this_.options.data, equals('@import "foo"'));
             expect(this_.options.file, isNull);
             return NodeImporterResult(contents: '');
@@ -460,7 +458,7 @@ void main() {
       renderSync(RenderOptions(
           file: sassPath,
           importer: allowInteropCaptureThis(
-              expectAsync3((RenderContext this_, dynamic _, dynamic __) {
+              expectAsync3((RenderContext this_, _, __) {
             expect(this_.options.data, isNull);
             expect(this_.options.file, equals(sassPath));
             return NodeImporterResult(contents: '');
@@ -472,7 +470,7 @@ void main() {
           data: '@import "foo"',
           includePaths: [sandbox],
           importer: allowInteropCaptureThis(
-              expectAsync3((RenderContext this_, dynamic _, dynamic __) {
+              expectAsync3((RenderContext this_, _, __) {
             expect(this_.options.includePaths,
                 equals("${p.current}${isWindows ? ';' : ':'}$sandbox"));
             return NodeImporterResult(contents: '');
@@ -485,7 +483,7 @@ void main() {
             data: '@import "foo"',
             indentWidth: 5,
             importer: allowInteropCaptureThis(
-                expectAsync3((RenderContext this_, dynamic _, dynamic __) {
+                expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.indentWidth, equals(5));
               return NodeImporterResult(contents: '');
             }))));
@@ -496,7 +494,7 @@ void main() {
             data: '@import "foo"',
             indentType: 'tab',
             importer: allowInteropCaptureThis(
-                expectAsync3((RenderContext this_, dynamic _, dynamic __) {
+                expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.indentType, equals(1));
               return NodeImporterResult(contents: '');
             }))));
@@ -507,7 +505,7 @@ void main() {
             data: '@import "foo"',
             linefeed: 'cr',
             importer: allowInteropCaptureThis(
-                expectAsync3((RenderContext this_, dynamic _, dynamic __) {
+                expectAsync3((RenderContext this_, _, __) {
               expect(this_.options.linefeed, equals('\r'));
               return NodeImporterResult(contents: '');
             }))));
@@ -518,7 +516,7 @@ void main() {
       renderSync(RenderOptions(
           data: '@import "foo"',
           importer: allowInteropCaptureThis(
-              expectAsync3((RenderContext this_, dynamic _, dynamic __) {
+              expectAsync3((RenderContext this_, _, __) {
             expect(this_.options.context, same(this_));
             return NodeImporterResult(contents: '');
           }))));
@@ -530,8 +528,8 @@ void main() {
         renderSync(RenderOptions(
             data: '@import "foo"',
             importer: allowInteropCaptureThis(
-                expectAsync3((RenderContext this_, dynamic _, dynamic __) {
-              expect(this_.options.result!.stats!.start,
+                expectAsync3((RenderContext this_, _, __) {
+              expect(this_.options.result.stats.start,
                   greaterThanOrEqualTo(start.millisecondsSinceEpoch));
               return NodeImporterResult(contents: '');
             }))));
@@ -541,8 +539,8 @@ void main() {
         renderSync(RenderOptions(
             data: '@import "foo"',
             importer: allowInteropCaptureThis(
-                expectAsync3((RenderContext this_, dynamic _, dynamic __) {
-              expect(this_.options.result!.stats!.entry, equals('data'));
+                expectAsync3((RenderContext this_, _, __) {
+              expect(this_.options.result.stats.entry, equals('data'));
               return NodeImporterResult(contents: '');
             }))));
       });
@@ -552,8 +550,8 @@ void main() {
         renderSync(RenderOptions(
             file: sassPath,
             importer: allowInteropCaptureThis(
-                expectAsync3((RenderContext this_, dynamic _, dynamic __) {
-              expect(this_.options.result!.stats!.entry, equals(sassPath));
+                expectAsync3((RenderContext this_, _, __) {
+              expect(this_.options.result.stats.entry, equals(sassPath));
               return NodeImporterResult(contents: '');
             }))));
       });

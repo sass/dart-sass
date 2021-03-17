@@ -360,8 +360,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
         if (factor == null) return false;
         value *= factor;
         return true;
-        // TODO: no as
-      }, orElse: (() => throw _compatibilityException()) as String Function()?);
+      }, orElse: () => throw _compatibilityException());
     }
 
     var oldDenominators = denominatorUnits.toList();
@@ -371,8 +370,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
         if (factor == null) return false;
         value /= factor;
         return true;
-        // TODO: no as
-      }, orElse: (() => throw _compatibilityException()) as String Function()?);
+      }, orElse: () => throw _compatibilityException());
     }
 
     if (oldNumerators.isNotEmpty || oldDenominators.isNotEmpty) {

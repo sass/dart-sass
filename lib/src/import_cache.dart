@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 703b475d60d087c6a7944358a9cee6d1da44a958
+// Checksum: 950db49eb9e3a85f35bc4a3d7cfe029fb60ae498
 //
 // ignore_for_file: unused_import
 
@@ -120,7 +120,6 @@ class ImportCache {
       }
     }
 
-    // TODO: no as
     return _canonicalizeCache.putIfAbsent(Tuple2(url, forImport), () {
       for (var importer in _importers) {
         var canonicalUrl = _canonicalize(importer, url, forImport);
@@ -179,7 +178,6 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Caches the result of the import and uses cached results if possible.
   Stylesheet? importCanonical(Importer importer, Uri canonicalUrl,
       [Uri? originalUrl]) {
-    // TODO: no as
     return _importCache.putIfAbsent(canonicalUrl, () {
       var result = importer.load(canonicalUrl);
       if (result == null) return null;
@@ -200,13 +198,12 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Returns [canonicalUrl] as-is if it hasn't been loaded by this cache.
   Uri humanize(Uri canonicalUrl) {
     // Display the URL with the shortest path length.
-    var url = minBy(
+    var url = minBy<Uri, int>(
         _canonicalizeCache.values
             .whereNotNull()
             .where((tuple) => tuple.item2 == canonicalUrl)
             .map((tuple) => tuple.item3),
-        // TODO: no Uri
-        (Uri url) => url.path.length);
+        (url) => url.path.length);
     if (url == null) return canonicalUrl;
 
     // Use the canonicalized basename so that we display e.g.

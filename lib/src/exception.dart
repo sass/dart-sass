@@ -137,9 +137,9 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
 /// An exception thrown when Sass parsing has failed.
 class SassFormatException extends SassException
     implements SourceSpanFormatException {
-  String get source => span?.file.getText(0);
+  String? get source => span?.file.getText(0);
 
-  int get offset => span?.start.offset;
+  int? get offset => span?.start.offset;
 
   SassFormatException(String message, FileSpan? span) : super(message, span);
 }

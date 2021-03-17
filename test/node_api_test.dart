@@ -302,31 +302,31 @@ a {
     group("the result object", () {
       test("includes the filename", () {
         var result = sass.renderSync(RenderOptions(file: sassPath));
-        expect(result.stats!.entry, equals(sassPath));
+        expect(result.stats.entry, equals(sassPath));
       });
 
       test("includes data without a filename", () {
         var result = sass.renderSync(RenderOptions(data: 'a {b: c}'));
-        expect(result.stats!.entry, equals('data'));
+        expect(result.stats.entry, equals('data'));
       });
 
       test("includes timing information", () {
-        var stats = sass.renderSync(RenderOptions(file: sassPath)).stats!;
+        var stats = sass.renderSync(RenderOptions(file: sassPath)).stats;
         expect(stats.start, const TypeMatcher<int>());
         expect(stats.end, const TypeMatcher<int>());
         expect(stats.start, lessThanOrEqualTo(stats.end));
-        expect(stats.duration, equals(stats.end! - stats.start!));
+        expect(stats.duration, equals(stats.end - stats.start));
       });
 
       group("has includedFiles which", () {
         test("contains the root path if available", () {
           var result = sass.renderSync(RenderOptions(file: sassPath));
-          expect(result.stats!.includedFiles, equals([sassPath]));
+          expect(result.stats.includedFiles, equals([sassPath]));
         });
 
         test("doesn't contain the root path if it's not available", () {
           var result = sass.renderSync(RenderOptions(data: 'a {b: c}'));
-          expect(result.stats!.includedFiles, isEmpty);
+          expect(result.stats.includedFiles, isEmpty);
         });
 
         test("contains imported paths", () async {
@@ -334,7 +334,7 @@ a {
           await writeTextFile(importerPath, '@import "test"');
 
           var result = sass.renderSync(RenderOptions(file: importerPath));
-          expect(result.stats!.includedFiles,
+          expect(result.stats.includedFiles,
               unorderedEquals([importerPath, sassPath]));
         });
 
@@ -343,7 +343,7 @@ a {
           await writeTextFile(importerPath, '@import "test"; @import "test";');
 
           var result = sass.renderSync(RenderOptions(file: importerPath));
-          expect(result.stats!.includedFiles,
+          expect(result.stats.includedFiles,
               unorderedEquals([importerPath, sassPath]));
         });
       });

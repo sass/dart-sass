@@ -71,7 +71,8 @@ abstract class ModifiableCssNode extends CssNode {
 
     parent._children.removeAt(_indexInParent!);
     for (var i = _indexInParent!; i < parent._children.length; i++) {
-      parent._children[i]._indexInParent--;
+      var child = parent._children[i];
+      child._indexInParent = child._indexInParent! - 1;
     }
     _parent = null;
   }

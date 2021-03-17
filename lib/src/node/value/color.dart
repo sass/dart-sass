@@ -17,7 +17,8 @@ class _NodeSassColor {
 
 /// Creates a new `sass.types.Color` object wrapping [value].
 Object newNodeSassColor(SassColor value) =>
-    callConstructor(colorConstructor, [null, null, null, null, value]);
+    callConstructor(colorConstructor, [null, null, null, null, value])
+        as Object;
 
 /// The JS constructor for the `sass.types.Color` class.
 final Function colorConstructor = createClass('SassColor',

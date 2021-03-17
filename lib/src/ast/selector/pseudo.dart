@@ -59,8 +59,6 @@ class PseudoSelector extends SimpleSelector {
   /// both non-`null`, the selector follows the argument.
   final SelectorList? selector;
 
-  // TODO: late
-
   int get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
     return _minSpecificity!;
@@ -175,6 +173,8 @@ class PseudoSelector extends SimpleSelector {
         minSpecificity = math.max(_minSpecificity!, complex.minSpecificity);
         maxSpecificity = math.max(_maxSpecificity!, complex.maxSpecificity);
       }
+      _minSpecificity = minSpecificity;
+      _maxSpecificity = maxSpecificity;
     } else {
       // This is higher than any selector's specificity can actually be.
       var minSpecificity = math.pow(super.minSpecificity, 3) as int;
@@ -183,9 +183,9 @@ class PseudoSelector extends SimpleSelector {
         minSpecificity = math.min(_minSpecificity!, complex.minSpecificity);
         maxSpecificity = math.max(_maxSpecificity!, complex.maxSpecificity);
       }
+      _minSpecificity = minSpecificity;
+      _maxSpecificity = maxSpecificity;
     }
-    _minSpecificity = minSpecificity;
-    _maxSpecificity = maxSpecificity;
   }
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitPseudoSelector(this);

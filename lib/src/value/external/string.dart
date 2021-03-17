@@ -46,14 +46,12 @@ abstract class SassString extends Value {
   /// Creates an empty string.
   ///
   /// The [quotes] argument defaults to `false`.
-  // TODO: no required
-  factory SassString.empty({required bool quotes}) = internal.SassString.empty;
+  factory SassString.empty({bool quotes}) = internal.SassString.empty;
 
   /// Creates a string with the given [text].
   ///
   /// The [quotes] argument defaults to `false`.
-  // TODO: no ?
-  factory SassString(String text, {required bool quotes}) = internal.SassString;
+  factory SassString(String text, {bool quotes}) = internal.SassString;
 
   /// Converts [sassIndex] into a Dart-style index into [text].
   ///

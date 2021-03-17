@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 8053f105aefbe04ac104613c7eab7251d7798655
+// Checksum: 399932f6eea5cbf7a1c7851ca9e1b5455e14564c
 //
 // ignore_for_file: unused_import
 
@@ -53,7 +53,7 @@ CompileResult compile(String path,
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= ImportCache.none(logger: logger);
     stylesheet = importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path));
+        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path))!;
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),
@@ -61,8 +61,7 @@ CompileResult compile(String path,
   }
 
   return _compileStylesheet(
-      // TODO: no !
-      stylesheet!,
+      stylesheet,
       logger,
       importCache,
       nodeImporter,

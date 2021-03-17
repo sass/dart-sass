@@ -58,8 +58,7 @@ class NodeImporter {
   /// environment variable.
   static Iterable<String> _addSassPath(Iterable<String> includePaths) sync* {
     yield* includePaths;
-    // TODO: no !
-    var sassPath = getEnvironmentVariable("SASS_PATH")!;
+    var sassPath = getEnvironmentVariable("SASS_PATH");
     if (sassPath == null) return;
     yield* sassPath.split(isWindows ? ';' : ':');
   }
@@ -179,10 +178,8 @@ class NodeImporter {
     if (isJSError(value)) throw value;
     if (value is! NodeImporterResult) return null;
 
-    // TODO: no var rename
-    var result = value;
-    var file = result.file;
-    var contents = result.contents;
+    var file = value.file;
+    var contents = value.contents;
     if (file == null) {
       return Tuple2(contents ?? '', url);
     } else if (contents != null) {

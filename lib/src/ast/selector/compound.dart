@@ -19,18 +19,16 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   /// This is never empty.
   final List<SimpleSelector> components;
 
-  // TODO: late for specificities
-
   /// The minimum possible specificity that this selector can have.
   ///
   /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
   /// can have a range of possible specificities.
   int get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
-    return _minSpecificity;
+    return _minSpecificity!;
   }
 
-  late final int _minSpecificity;
+  int? _minSpecificity;
 
   /// The maximum possible specificity that this selector can have.
   ///
@@ -41,7 +39,7 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
     return _maxSpecificity!;
   }
 
-  late final int? _maxSpecificity;
+  int? _maxSpecificity;
 
   bool get isInvisible => components.any((component) => component.isInvisible);
 
@@ -77,12 +75,14 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
 
   /// Computes [_minSpecificity] and [_maxSpecificity].
   void _computeSpecificity() {
-    _minSpecificity = 0;
-    _maxSpecificity = 0;
+    var minSpecificity = 0;
+    var maxSpecificity = 0;
     for (var simple in components) {
-      _minSpecificity += simple.minSpecificity;
-      _maxSpecificity += simple.maxSpecificity;
+      minSpecificity += simple.minSpecificity;
+      maxSpecificity += simple.maxSpecificity;
     }
+    _minSpecificity = minSpecificity;
+    _maxSpecificity = maxSpecificity;
   }
 
   int get hashCode => listHash(components);

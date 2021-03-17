@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
@@ -67,10 +66,8 @@ class StylesheetGraph {
   ///
   /// Returns `null` if the import cache can't find a stylesheet at [url].
   StylesheetNode? _add(Uri url, [Importer? baseImporter, Uri? baseUrl]) {
-    // TODO: no as
-    var tuple = _ignoreErrors((() => importCache.canonicalize(url,
-        baseImporter: baseImporter,
-        baseUrl: baseUrl)!) as Tuple3<Importer, Uri, Uri> Function());
+    var tuple = _ignoreErrors(() => importCache.canonicalize(url,
+        baseImporter: baseImporter, baseUrl: baseUrl));
     if (tuple == null) return null;
 
     addCanonical(tuple.item1, tuple.item2, tuple.item3);
@@ -98,10 +95,8 @@ class StylesheetGraph {
     var node = _nodes[canonicalUrl];
     if (node != null) return const {};
 
-    // TODO: no as
-    var stylesheet = _ignoreErrors((() =>
-            importCache.importCanonical(importer, canonicalUrl, originalUrl)!)
-        as Stylesheet Function());
+    var stylesheet = _ignoreErrors(
+        () => importCache.importCanonical(importer, canonicalUrl, originalUrl));
     if (stylesheet == null) return const {};
 
     node = StylesheetNode._(stylesheet, importer, canonicalUrl,
@@ -150,10 +145,8 @@ class StylesheetGraph {
     _transitiveModificationTimes.clear();
 
     importCache.clearImport(canonicalUrl);
-    // TODO: no as
-    var stylesheet = _ignoreErrors((() =>
-            importCache.importCanonical(node.importer, canonicalUrl)!)
-        as Stylesheet Function());
+    var stylesheet = _ignoreErrors(
+        () => importCache.importCanonical(node.importer, canonicalUrl));
     if (stylesheet == null) return false;
     node._stylesheet = stylesheet;
 
@@ -267,11 +260,8 @@ class StylesheetGraph {
   StylesheetNode? _nodeFor(
       Uri url, Importer baseImporter, Uri baseUrl, Set<Uri> active,
       {bool forImport = false}) {
-    // TODO: no as
-    var tuple = _ignoreErrors((() => importCache.canonicalize(url,
-        baseImporter: baseImporter,
-        baseUrl: baseUrl,
-        forImport: forImport)!) as Tuple3<Importer, Uri, Uri> Function());
+    var tuple = _ignoreErrors(() => importCache.canonicalize(url,
+        baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport));
 
     // If an import fails, let the evaluator surface that error rather than
     // surfacing it here.
@@ -288,10 +278,8 @@ class StylesheetGraph {
     /// error will be produced during compilation.
     if (active.contains(canonicalUrl)) return null;
 
-    // TODO: no as
-    var stylesheet = _ignoreErrors((() =>
-            importCache.importCanonical(importer, canonicalUrl, resolvedUrl)!)
-        as Stylesheet Function());
+    var stylesheet = _ignoreErrors(
+        () => importCache.importCanonical(importer, canonicalUrl, resolvedUrl));
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);

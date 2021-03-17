@@ -117,7 +117,6 @@ class AsyncImportCache {
       }
     }
 
-    // TODO: no as
     return await putIfAbsentAsync(_canonicalizeCache, Tuple2(url, forImport),
         () async {
       for (var importer in _importers) {
@@ -181,7 +180,6 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Caches the result of the import and uses cached results if possible.
   Future<Stylesheet?> importCanonical(AsyncImporter importer, Uri canonicalUrl,
       [Uri? originalUrl]) async {
-    // TODO: no as
     return await putIfAbsentAsync(_importCache, canonicalUrl, () async {
       var result = await importer.load(canonicalUrl);
       if (result == null) return null;
@@ -202,13 +200,12 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Returns [canonicalUrl] as-is if it hasn't been loaded by this cache.
   Uri humanize(Uri canonicalUrl) {
     // Display the URL with the shortest path length.
-    var url = minBy(
+    var url = minBy<Uri, int>(
         _canonicalizeCache.values
             .whereNotNull()
             .where((tuple) => tuple.item2 == canonicalUrl)
             .map((tuple) => tuple.item3),
-        // TODO: no Uri
-        (Uri url) => url.path.length);
+        (url) => url.path.length);
     if (url == null) return canonicalUrl;
 
     // Use the canonicalized basename so that we display e.g.

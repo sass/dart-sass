@@ -189,7 +189,6 @@ abstract class StylesheetParser extends Parser {
 
       case $rbrace:
         scanner.error('unmatched "}".', length: 1);
-        break;
 
       default:
         return _inStyleRule || _inUnknownAtRule || _inMixin || _inContentBlock
@@ -212,14 +211,13 @@ abstract class StylesheetParser extends Parser {
   /// used for the declaration.
   @protected
   VariableDeclaration variableDeclarationWithoutNamespace(
-      [String? namespace, LineScannerState? start]) {
+      [String? namespace, LineScannerState? start_]) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
-    start ??= scanner.state;
+    var start = start_ ?? scanner.state; // dart-lang/sdk#45348
 
     var name = variableName();
-    // TODO: no start!
-    if (namespace != null) _assertPublic(name, () => scanner.spanFrom(start!));
+    if (namespace != null) _assertPublic(name, () => scanner.spanFrom(start));
 
     if (plainCss) {
       error("Sass variables aren't allowed in plain CSS.",
@@ -482,9 +480,10 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a [StyleRule], optionally with a [buffer] that may contain some
   /// text that has already been parsed.
-  StyleRule _styleRule([InterpolationBuffer? buffer, LineScannerState? start]) {
+  StyleRule _styleRule(
+      [InterpolationBuffer? buffer, LineScannerState? start_]) {
     _isUseAllowed = false;
-    start ??= scanner.state;
+    var start = start_ ?? scanner.state; // dart-lang/sdk#45348
 
     var interpolation = styleRuleSelector();
     if (buffer != null) {
@@ -504,8 +503,7 @@ abstract class StylesheetParser extends Parser {
 
       _inStyleRule = wasInStyleRule;
 
-      // TODO: no start!
-      return StyleRule(interpolation, children, scanner.spanFrom(start!));
+      return StyleRule(interpolation, children, scanner.spanFrom(start));
     });
   }
 
@@ -910,7 +908,6 @@ abstract class StylesheetParser extends Parser {
       case "not":
       case "clamp":
         error("Invalid function name.", scanner.spanFrom(start));
-        break;
     }
 
     whitespace();
@@ -954,9 +951,8 @@ abstract class StylesheetParser extends Parser {
 
     return _withChildren(child, start, (children, span) {
       _inControlDirective = wasInControlDirective;
-
-      // TODO: no exclusive!
-      return ForRule(variable, from, to, children, span, exclusive: exclusive!);
+      return ForRule(variable, from, to, children, span,
+          exclusive: exclusive!); // dart-lang/sdk#45348
     });
   }
 
@@ -1204,14 +1200,16 @@ abstract class StylesheetParser extends Parser {
 
     ContentBlock? content;
     if (contentArguments != null || lookingAtChildren()) {
-      contentArguments ??= ArgumentDeclaration.empty(span: scanner.emptySpan);
-
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
-      content = _withChildren(_statement, start, (children, span) {
-        // TODO: no !
-        return ContentBlock(contentArguments!, children, span);
-      });
+      content = _withChildren(
+          _statement,
+          start,
+          (children, span) => ContentBlock(
+              contentArguments ??
+                  ArgumentDeclaration.empty(span: scanner.emptySpan),
+              children,
+              span));
       _inContentBlock = wasInContentBlock;
     } else {
       expectStatementSeparator();
@@ -1634,10 +1632,9 @@ relase. For details, see http://bit.ly/moz-document.
   @protected
   Expression expression(
       {bool bracketList = false, bool singleEquals = false, bool until()?}) {
-    // TODO: no ! throughout
     if (until != null && until()) scanner.error("Expected expression.");
 
-    late LineScannerState beforeBracket;
+    LineScannerState? beforeBracket;
     if (bracketList) {
       beforeBracket = scanner.state;
       scanner.expectChar($lbracket);
@@ -1652,19 +1649,25 @@ relase. For details, see http://bit.ly/moz-document.
     var start = scanner.state;
     var wasInParentheses = _inParentheses;
 
-    List<Expression>? commaExpressions;
+    // We use the convention below of referring to nullable variables that are
+    // shared across anonymous functions in this method with a trailling
+    // underscore. This allows us to copy them to non-underscored local
+    // variables to make it easier for Dart's type system to reason about their
+    // local nullability.
 
-    List<Expression>? spaceExpressions;
+    List<Expression>? commaExpressions_;
 
-    // Operators whose right-hand operands are not fully parsed yet, in order of
+    List<Expression>? spaceExpressions_;
+
+    // Operators whose right-hand operands_ are not fully parsed yet, in order of
     // appearance in the document. Because a low-precedence operator will cause
-    // parsing to finish for all preceding higher-precedence operators, this is
+    // parsing to finish for all preceding higher-precedence operators_, this is
     // naturally ordered from lowest to highest precedence.
-    List<BinaryOperator>? operators;
+    List<BinaryOperator>? operators_;
 
-    // The left-hand sides of [operators]. `operands[n]` is the left-hand side
-    // of `operators[n]`.
-    List<Expression>? operands;
+    // The left-hand sides of [operators_]. `operands_[n]` is the left-hand side
+    // of `operators_[n]`.
+    List<Expression>? operands_;
 
     /// Whether the single expression parsed so far may be interpreted as
     /// slash-separated numbers.
@@ -1677,44 +1680,51 @@ relase. For details, see http://bit.ly/moz-document.
     ///
     ///     foo, bar
     ///         ^
-    Expression? singleExpression = _singleExpression();
+    Expression? singleExpression_ = _singleExpression();
 
     // Resets the scanner state to the state it was at at the beginning of the
     // expression, except for [_inParentheses].
     void resetState() {
-      commaExpressions = null;
-      spaceExpressions = null;
-      operators = null;
-      operands = null;
+      commaExpressions_ = null;
+      spaceExpressions_ = null;
+      operators_ = null;
+      operands_ = null;
       scanner.state = start;
       allowSlash = lookingAtNumber();
-      singleExpression = _singleExpression();
+      singleExpression_ = _singleExpression();
     }
 
     void resolveOneOperation() {
-      if (operators == null) {
-        throw StateError("operators must be set for resolveOneOperation().");
+      var operator = operators_!.removeLast();
+      var operands = operands_!;
+
+      var singleExpression = singleExpression_;
+      if (singleExpression == null) {
+        scanner.error("Expected expression.",
+            position: scanner.position - operator.operator.length,
+            length: operator.operator.length);
       }
 
-      var operator = operators!.removeLast();
       if (operator != BinaryOperator.dividedBy) allowSlash = false;
       if (allowSlash && !_inParentheses) {
-        singleExpression = BinaryOperationExpression.slash(
-            operands!.removeLast(), singleExpression!);
+        singleExpression_ = BinaryOperationExpression.slash(
+            operands.removeLast(), singleExpression);
       } else {
-        singleExpression = BinaryOperationExpression(
-            operator, operands!.removeLast(), singleExpression!);
+        singleExpression_ = BinaryOperationExpression(
+            operator, operands.removeLast(), singleExpression);
       }
     }
 
     void resolveOperations() {
+      var operators = operators_;
       if (operators == null) return;
-      while (operators!.isNotEmpty) {
+      while (operators.isNotEmpty) {
         resolveOneOperation();
       }
     }
 
     void addSingleExpression(Expression expression, {bool number = false}) {
+      var singleExpression = singleExpression_;
       if (singleExpression != null) {
         // If we discover we're parsing a list whose first element is a division
         // operation, and we're in parentheses, reparse outside of a paren
@@ -1728,15 +1738,15 @@ relase. For details, see http://bit.ly/moz-document.
           }
         }
 
-        spaceExpressions ??= [];
+        var spaceExpressions = spaceExpressions_ ??= [];
         resolveOperations();
-        spaceExpressions!.add(singleExpression!);
+        spaceExpressions.add(singleExpression);
         allowSlash = number;
       } else if (!number) {
         allowSlash = false;
       }
 
-      singleExpression = expression;
+      singleExpression_ = expression;
     }
 
     void addOperator(BinaryOperator operator) {
@@ -1750,29 +1760,40 @@ relase. For details, see http://bit.ly/moz-document.
 
       allowSlash = allowSlash && operator == BinaryOperator.dividedBy;
 
-      operators ??= [];
-      operands ??= [];
-      while (operators!.isNotEmpty &&
-          operators!.last.precedence >= operator.precedence) {
+      var operators = operators_ ??= [];
+      var operands = operands_ ??= [];
+      while (operators.isNotEmpty &&
+          operators.last.precedence >= operator.precedence) {
         resolveOneOperation();
       }
-      operators!.add(operator);
+      operators.add(operator);
 
-      operands!.add(singleExpression!);
+      var singleExpression = singleExpression_;
+      if (singleExpression == null) {
+        scanner.error("Expected expression.",
+            position: scanner.position - operator.operator.length,
+            length: operator.operator.length);
+      }
+      operands.add(singleExpression);
+
       whitespace();
       allowSlash = allowSlash && lookingAtNumber();
-      singleExpression = _singleExpression();
-      allowSlash = allowSlash && singleExpression is NumberExpression;
+      singleExpression_ = _singleExpression();
+      allowSlash = allowSlash && singleExpression_ is NumberExpression;
     }
 
     void resolveSpaceExpressions() {
       resolveOperations();
 
+      var spaceExpressions = spaceExpressions_;
       if (spaceExpressions != null) {
-        spaceExpressions!.add(singleExpression!);
-        singleExpression =
-            ListExpression(spaceExpressions!, ListSeparator.space);
-        spaceExpressions = null;
+        var singleExpression = singleExpression_;
+        if (singleExpression == null) scanner.error("Expected expression.");
+
+        spaceExpressions.add(singleExpression);
+        singleExpression_ =
+            ListExpression(spaceExpressions, ListSeparator.space);
+        spaceExpressions_ = null;
       }
     }
 
@@ -1854,7 +1875,7 @@ relase. For details, see http://bit.ly/moz-document.
           break;
 
         case $plus:
-          if (singleExpression == null) {
+          if (singleExpression_ == null) {
             addSingleExpression(_unaryOperation());
           } else {
             scanner.readChar();
@@ -1866,12 +1887,12 @@ relase. For details, see http://bit.ly/moz-document.
           var next = scanner.peekChar(1);
           if ((isDigit(next) || next == $dot) &&
               // Make sure `1-2` parses as `1 - 2`, not `1 (-2)`.
-              (singleExpression == null ||
+              (singleExpression_ == null ||
                   isWhitespace(scanner.peekChar(-1)))) {
             addSingleExpression(_number(), number: true);
           } else if (_lookingAtInterpolatedIdentifier()) {
             addSingleExpression(identifierLike());
-          } else if (singleExpression == null) {
+          } else if (singleExpression_ == null) {
             addSingleExpression(_unaryOperation());
           } else {
             scanner.readChar();
@@ -1880,7 +1901,7 @@ relase. For details, see http://bit.ly/moz-document.
           break;
 
         case $slash:
-          if (singleExpression == null) {
+          if (singleExpression_ == null) {
             addSingleExpression(_unaryOperation());
           } else {
             scanner.readChar();
@@ -2002,14 +2023,15 @@ relase. For details, see http://bit.ly/moz-document.
             }
           }
 
-          commaExpressions ??= [];
+          var commaExpressions = commaExpressions_ ??= [];
+          var singleExpression = singleExpression_;
           if (singleExpression == null) scanner.error("Expected expression.");
 
           resolveSpaceExpressions();
-          commaExpressions!.add(singleExpression!);
+          commaExpressions.add(singleExpression);
           scanner.readChar();
           allowSlash = true;
-          singleExpression = null;
+          singleExpression_ = null;
           break;
 
         default:
@@ -2023,26 +2045,29 @@ relase. For details, see http://bit.ly/moz-document.
     }
 
     if (bracketList) scanner.expectChar($rbracket);
+
+    var commaExpressions = commaExpressions_;
+    var spaceExpressions = spaceExpressions_;
     if (commaExpressions != null) {
       resolveSpaceExpressions();
       _inParentheses = wasInParentheses;
-      if (singleExpression != null) commaExpressions!.add(singleExpression!);
-      return ListExpression(commaExpressions!, ListSeparator.comma,
-          brackets: bracketList,
-          span: bracketList ? scanner.spanFrom(beforeBracket) : null);
+      var singleExpression = singleExpression_;
+      if (singleExpression != null) commaExpressions.add(singleExpression);
+      return ListExpression(commaExpressions, ListSeparator.comma,
+          brackets: bracketList, span: beforeBracket.andThen(scanner.spanFrom));
     } else if (bracketList && spaceExpressions != null) {
       resolveOperations();
       return ListExpression(
-          spaceExpressions!..add(singleExpression!), ListSeparator.space,
-          brackets: true, span: scanner.spanFrom(beforeBracket));
+          spaceExpressions..add(singleExpression_!), ListSeparator.space,
+          brackets: true, span: beforeBracket.andThen(scanner.spanFrom));
     } else {
       resolveSpaceExpressions();
       if (bracketList) {
-        singleExpression = ListExpression(
-            [singleExpression!], ListSeparator.undecided,
-            brackets: true, span: scanner.spanFrom(beforeBracket));
+        singleExpression_ = ListExpression(
+            [singleExpression_!], ListSeparator.undecided,
+            brackets: true, span: beforeBracket.andThen(scanner.spanFrom));
       }
-      return singleExpression!;
+      return singleExpression_!;
     }
   }
 
@@ -2095,7 +2120,6 @@ relase. For details, see http://bit.ly/moz-document.
         } else {
           return identifierLike();
         }
-        break;
 
       case $0:
       case $1:
@@ -2108,7 +2132,6 @@ relase. For details, see http://bit.ly/moz-document.
       case $8:
       case $9:
         return _number();
-        break;
 
       case $a:
       case $b:
@@ -2163,12 +2186,10 @@ relase. For details, see http://bit.ly/moz-document.
       case $_:
       case $backslash:
         return identifierLike();
-        break;
 
       default:
         if (first != null && first >= 0x80) return identifierLike();
         scanner.error("Expected expression.");
-        break;
     }
   }
 
@@ -2355,8 +2376,7 @@ relase. For details, see http://bit.ly/moz-document.
   /// Consumes a unary operation expression.
   UnaryOperationExpression _unaryOperation() {
     var start = scanner.state;
-    // TODO: no !
-    var operator = _unaryOperatorFor(scanner.readChar())!;
+    var operator = _unaryOperatorFor(scanner.readChar());
     if (operator == null) {
       scanner.error("Expected unary operator.", position: scanner.position - 1);
     } else if (plainCss && operator != UnaryOperator.divide) {
@@ -3047,7 +3067,6 @@ relase. For details, see http://bit.ly/moz-document.
     var wroteNewline = false;
     loop:
     while (true) {
-      // TODO: no next!s
       var next = scanner.peekChar();
       switch (next) {
         case $backslash:
@@ -3102,7 +3121,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $lparen:
         case $lbrace:
         case $lbracket:
-          buffer.writeCharCode(next!);
+          buffer.writeCharCode(next!); // dart-lang/sdk#45357
           brackets.add(opposite(scanner.readChar()));
           wroteNewline = false;
           break;
@@ -3111,7 +3130,7 @@ relase. For details, see http://bit.ly/moz-document.
         case $rbrace:
         case $rbracket:
           if (brackets.isEmpty) break loop;
-          buffer.writeCharCode(next!);
+          buffer.writeCharCode(next!); // dart-lang/sdk#45357
           scanner.expectChar(brackets.removeLast());
           wroteNewline = false;
           break;
@@ -3329,8 +3348,8 @@ relase. For details, see http://bit.ly/moz-document.
         whitespace();
         buffer.add(_expressionUntilComparison());
 
-        // TODO: no !
         if ((next == $langle || next == $rangle) && scanner.scanChar(next!)) {
+          // dart-lang/sdk#45356
           buffer.writeCharCode($space);
           buffer.writeCharCode(next);
           if (scanner.scanChar($equal)) buffer.writeCharCode($equal);

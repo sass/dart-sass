@@ -8,7 +8,6 @@ import 'package:path/path.dart' as p;
 import '../importer.dart';
 import '../io.dart' as io;
 import '../syntax.dart';
-import '../utils.dart';
 import '../util/nullable.dart';
 import 'utils.dart';
 

@@ -681,8 +681,7 @@ void main() {
         $map: (a: b);
         x {y: $map}
       """, sourceMap: (_) {});
-    }, throwsA(predicate((dynamic untypedError) {
-      // TODO: no dynamic
+    }, throwsA(predicate((untypedError) {
       var error = untypedError as SourceSpanException;
       expect(error.span!.text, equals(r"$map"));
       return true;
@@ -904,8 +903,7 @@ String _mapToString(SingleMapping map, String sourceText, String targetText) {
   var entryIter = entries.iterator..moveNext();
   while (!targetScanner.isDone) {
     var entry = entryIter.current;
-    if (entry != null &&
-        targetScanner.line == entry.target.line &&
+    if (targetScanner.line == entry.target.line &&
         targetScanner.column == entry.target.column) {
       var name = entryNames[Tuple2(entry.source.line, entry.source.column)];
       targetBuffer.write("{{$name}}");

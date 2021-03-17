@@ -35,7 +35,7 @@ Future<Object?> runHybridExpression(String expression,
     import 'package:stream_channel/stream_channel.dart';
 
     hybridMain(StreamChannel channel, message) async {
-      var result = await ${expression};
+      var result = await $expression;
       channel.sink.add(_isJsonSafe(result) ? jsonEncode(result) : 'null');
       channel.sink.close();
     }

@@ -68,8 +68,7 @@ abstract class Callable extends AsyncCallable {
   @Deprecated('Use `Callable.function` instead.')
   factory Callable(String name, String arguments,
           ext.Value callback(List<ext.Value> arguments)) =>
-      // TODO: no as
-      Callable.function(name, arguments as String, callback);
+      Callable.function(name, arguments, callback);
 
   /// Creates a function with the given [name] and [arguments] that runs
   /// [callback] when called.
@@ -116,8 +115,5 @@ abstract class Callable extends AsyncCallable {
   factory Callable.function(String name, String arguments,
           ext.Value callback(List<ext.Value> arguments)) =>
       BuiltInCallable.function(
-          // TODO: no as
-          name,
-          arguments as String,
-          (arguments) => callback(arguments) as Value);
+          name, arguments, (arguments) => callback(arguments) as Value);
 }

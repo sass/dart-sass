@@ -13,6 +13,7 @@ import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
 import 'test_importer.dart';
+import '../utils.dart';
 
 void main() {
   test("uses an importer to resolve an @import", () {
@@ -126,14 +127,11 @@ void main() {
   test("wraps an error in canonicalize()", () {
     expect(() {
       compileString('@import "orange";', importers: [
-        TestImporter(
-            (url) {
-              throw "this import is bad actually";
-            } as Uri Function(Uri),
-            expectAsync1((_) => null, count: 0)) // TODO: no as
+        TestImporter((url) {
+          throw "this import is bad actually";
+        }, expectNever1)
       ]);
-    }, throwsA(predicate((dynamic error) {
-      // TODO: no dynamic
+    }, throwsA(predicate((error) {
       expect(error, const TypeMatcher<SassException>());
       expect(
           error.toString(), startsWith("Error: this import is bad actually"));
@@ -148,8 +146,7 @@ void main() {
           throw "this import is bad actually";
         })
       ]);
-    }, throwsA(predicate((dynamic error) {
-      // TODO: no dynamic
+    }, throwsA(predicate((error) {
       expect(error, const TypeMatcher<SassException>());
       expect(
           error.toString(), startsWith("Error: this import is bad actually"));
@@ -164,8 +161,7 @@ void main() {
           throw FormatException("bad format somehow");
         })
       ]);
-    }, throwsA(predicate((dynamic error) {
-      // TODO: no dynamic
+    }, throwsA(predicate((error) {
       expect(error, const TypeMatcher<SassException>());
       // FormatException.toString() starts with "FormatException:", but
       // the error message should not.
@@ -179,8 +175,7 @@ void main() {
       compileString('@import "orange";', importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) => null)
       ]);
-    }, throwsA(predicate((dynamic error) {
-      // TODO: no dynamic
+    }, throwsA(predicate((error) {
       expect(error, const TypeMatcher<SassException>());
       expect(error.toString(),
           startsWith("Error: Can't find stylesheet to import"));

@@ -1085,25 +1085,25 @@ class _SerializeVisitor
     }
 
     _writeLineFeed();
-    CssNode? previous;
+    CssNode? previous_;
     _indent(() {
       for (var i = 0; i < children.length; i++) {
         var child = children[i];
         if (_isInvisible(child)) continue;
 
+        var previous = previous_; // dart-lang/sdk#45348
         if (previous != null) {
           if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
           _writeLineFeed();
-          // TODO: no !
-          if (previous!.isGroupEnd) _writeLineFeed();
+          if (previous.isGroupEnd) _writeLineFeed();
         }
-        previous = child;
+        previous_ = child;
 
         child.accept(this);
       }
     });
 
-    if (_requiresSemicolon(previous) && !_isCompressed) {
+    if (_requiresSemicolon(previous_!) && !_isCompressed) {
       _buffer.writeCharCode($semicolon);
     }
     _writeLineFeed();

@@ -9,6 +9,7 @@ import '../exception.dart';
 import '../extend/extender.dart';
 import '../module.dart';
 import '../util/limited_map_view.dart';
+import '../util/nullable.dart';
 import '../utils.dart';
 import '../value.dart';
 
@@ -27,7 +28,7 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
       _inner.transitivelyContainsExtensions;
 
   final Map<String, Value> variables;
-  final Map<String, AstNode> variableNodes;
+  final Map<String, AstNode>? variableNodes;
   final Map<String, T> functions;
   final Map<String, T> mixins;
 
@@ -56,7 +57,8 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   ShadowedModuleView(this._inner,
       {Set<String>? variables, Set<String>? functions, Set<String>? mixins})
       : variables = _shadowedMap(_inner.variables, variables),
-        variableNodes = _shadowedMap(_inner.variableNodes, variables),
+        variableNodes =
+            _inner.variableNodes.andThen((map) => _shadowedMap(map, variables)),
         functions = _shadowedMap(_inner.functions, functions),
         mixins = _shadowedMap(_inner.mixins, mixins);
 
@@ -64,9 +66,9 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
       this.functions, this.mixins);
 
   /// Returns a view of [map] with all keys in [blocklist] omitted.
-  static Map<String, V> _shadowedMap<V, M extends Map<String, V>>(
-          M map, Set<String>? blocklist) =>
-      map == null || blocklist == null || !_needsBlocklist(map, blocklist)
+  static Map<String, V> _shadowedMap<V>(
+          Map<String, V> map, Set<String>? blocklist) =>
+      blocklist == null || !_needsBlocklist(map, blocklist)
           ? map
           : LimitedMapView.blocklist(map, blocklist);
 

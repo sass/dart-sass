@@ -61,8 +61,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// [callback].
   BuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
       Value callback(List<Value> arguments))
-      // TODO: no as
-      : _overloads = [Tuple2(arguments as ArgumentDeclaration, callback)];
+      : _overloads = [Tuple2(arguments, callback)];
 
   /// Creates a function with multiple implementations.
   ///
@@ -74,9 +73,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
   BuiltInCallable.overloadedFunction(
-      // TODO: use _Callback
-      this.name,
-      Map<String, Value Function(List<Value> arguments)> overloads,
+      this.name, Map<String, _Callback> overloads,
       {Object? url})
       : _overloads = [
           for (var entry in overloads.entries)
@@ -96,7 +93,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// [ArgumentDeclaration].
   Tuple2<ArgumentDeclaration, _Callback> callbackFor(
       int positional, Set<String> names) {
-    Tuple2<ArgumentDeclaration, _Callback> fuzzyMatch;
+    Tuple2<ArgumentDeclaration, _Callback>? fuzzyMatch;
     int? minMismatchDistance;
 
     for (var overload in _overloads) {
@@ -117,7 +114,8 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
       fuzzyMatch = overload;
     }
 
-    return fuzzyMatch;
+    if (fuzzyMatch != null) return fuzzyMatch;
+    throw StateError("BuiltInCallable $name may not have empty overloads.");
   }
 
   /// Returns a copy of this callable with the given [name].

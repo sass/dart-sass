@@ -42,8 +42,8 @@ Future<CompileResult> compileAsync(String path,
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= AsyncImportCache.none(logger: logger);
-    stylesheet = await importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path));
+    stylesheet = (await importCache.importCanonical(
+        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path)))!;
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),
@@ -51,8 +51,7 @@ Future<CompileResult> compileAsync(String path,
   }
 
   return await _compileStylesheet(
-      // TODO: no !
-      stylesheet!,
+      stylesheet,
       logger,
       importCache,
       nodeImporter,

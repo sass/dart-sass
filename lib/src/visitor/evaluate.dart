@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c527823c670e27437320a11255efb5e86f1b712d
+// Checksum: 54af55cd11a583e5fca273e00f38831af26f0111
 //
 // ignore_for_file: unused_import
 
@@ -16,7 +16,6 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -237,7 +236,6 @@ class _EvaluateVisitor
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  // TODO: no cast
   final _stack = <Tuple2<String, AstNode>>[];
 
   /// Whether we're running in Node Sass-compatibility mode.
@@ -433,7 +431,7 @@ class _EvaluateVisitor
     var metaMixins = [
       BuiltInCallable.mixin("load-css", r"$url, $with: null", (arguments) {
         var url = Uri.parse(arguments[0].assertString("url").text);
-        var withMap = arguments[1].realNull?.assertMap("with")?.contents;
+        var withMap = arguments[1].realNull?.assertMap("with").contents;
 
         var callableNode = _callableNode!;
         var configuration = const Configuration.empty();
@@ -629,8 +627,7 @@ class _EvaluateVisitor
       bool namesInErrors = false}) {
     var url = stylesheet.span?.sourceUrl;
 
-    // TODO: no !
-    var alreadyLoaded = _modules[url!];
+    var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       var currentConfiguration = configuration ?? _configuration;
       if (currentConfiguration is ExplicitConfiguration) {
@@ -723,12 +720,12 @@ class _EvaluateVisitor
   /// Returns a copy of [_root.children] with [_outOfOrderImports] inserted
   /// after [_endOfImports], if necessary.
   List<ModifiableCssNode> _addOutOfOrderImports() {
-    if (_outOfOrderImports == null) return _root.children;
+    var outOfOrderImports = _outOfOrderImports;
+    if (outOfOrderImports == null) return _root.children;
 
     return [
       ..._root.children.take(_endOfImports),
-      // TODO: no !
-      ..._outOfOrderImports!,
+      ...outOfOrderImports,
       ..._root.children.skip(_endOfImports)
     ];
   }
@@ -782,8 +779,7 @@ class _EvaluateVisitor
     // canonical URL). It's important that we create this in topological order,
     // so that by the time we're processing a module we've already filled in all
     // its downstream extenders and we can use them to extend that module.
-    // TODO: var
-    Map<Uri?, List<Extender>> downstreamExtenders = <Uri, List<Extender>>{};
+    var downstreamExtenders = <Uri, List<Extender>>{};
 
     /// Extensions that haven't yet been satisfied by some upstream module. This
     /// adds extensions when they're defined but not satisfied, and removes them
@@ -806,10 +802,9 @@ class _EvaluateVisitor
       if (module.extender.isEmpty) continue;
 
       for (var upstream in module.upstream) {
-        if (upstream.url == null) continue;
-        downstreamExtenders
-            .putIfAbsent(upstream.url, () => [])
-            .add(module.extender);
+        var url = upstream.url;
+        if (url == null) continue;
+        downstreamExtenders.putIfAbsent(url, () => []).add(module.extender);
       }
 
       // Remove all extensions that are now satisfied after adding downstream
@@ -825,8 +820,7 @@ class _EvaluateVisitor
   }
 
   /// Throws an exception indicating that [extension] is unsatisfied.
-  @alwaysThrows
-  void _throwForUnsatisfiedExtension(Extension extension) {
+  Never _throwForUnsatisfiedExtension(Extension extension) {
     throw SassException(
         'The target selector was not found.\n'
         'Use "@extend ${extension.target} !optional" to avoid this error.',
@@ -949,8 +943,7 @@ class _EvaluateVisitor
 
     var parent = _parent;
     int? innermostContiguous;
-    var i = 0;
-    for (; i < nodes.length; i++) {
+    for (var i = 0; i < nodes.length; i++) {
       while (parent != nodes[i]) {
         innermostContiguous = null;
         parent = parent.parent!;
@@ -960,7 +953,6 @@ class _EvaluateVisitor
     }
 
     if (parent != _root) return _root;
-    // TODO: no !
     var root = nodes[innermostContiguous!];
     nodes.removeRange(innermostContiguous, nodes.length);
     return root;
@@ -1057,8 +1049,8 @@ class _EvaluateVisitor
     if (_declarationName != null) {
       name = CssValue("$_declarationName-${name.value}", name.span);
     }
-    var cssValue = node.value
-        .andThen((value) => CssValue(value.accept(this), value.span))!;
+    var cssValue =
+        node.value.andThen((value) => CssValue(value.accept(this), value.span));
 
     // If the value is an empty list, preserve it, because converting it to CSS
     // will throw an error that we want the user to see.
@@ -1073,11 +1065,12 @@ class _EvaluateVisitor
           "Custom property values may not be empty.", cssValue.span);
     }
 
-    if (node.children != null) {
+    var children = node.children;
+    if (children != null) {
       var oldDeclarationName = _declarationName;
       _declarationName = name.value;
       _environment.scope(() {
-        for (var child in node.children) {
+        for (var child in children) {
           child.accept(this);
         }
       }, when: node.hasDeclarations);
@@ -1198,7 +1191,7 @@ class _EvaluateVisitor
     _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
       var styleRule = _styleRule;
       if (styleRule == null || _inKeyframes) {
-        for (var child in node.children) {
+        for (var child in node.children!) {
           child.accept(this);
         }
       } else {
@@ -1207,7 +1200,7 @@ class _EvaluateVisitor
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
         _withParent(styleRule.copyWithoutChildren(), () {
-          for (var child in node.children) {
+          for (var child in node.children!) {
             child.accept(this);
           }
         }, scopeWhen: false);
@@ -1361,8 +1354,7 @@ class _EvaluateVisitor
 
     return _environment.scope(
         () => _handleReturn<Statement>(
-            // TODO: no !
-            clause!.children,
+            clause!.children, // dart-lang/sdk#45348
             (child) => child.accept(this)),
         semiGlobal: true,
         when: clause.hasDeclarations);
@@ -1489,7 +1481,7 @@ class _EvaluateVisitor
       if (importCache != null) {
         var tuple = importCache.import(Uri.parse(url),
             baseImporter: _importer,
-            baseUrl: baseUrl ?? _stylesheet?.span?.sourceUrl,
+            baseUrl: baseUrl ?? _stylesheet.span?.sourceUrl,
             forImport: forImport);
         if (tuple != null) return tuple;
       } else {
@@ -1509,12 +1501,11 @@ class _EvaluateVisitor
     } catch (error) {
       String? message;
       try {
-        // TODO: as String!
-        message = error.message as String?;
+        message = (error as dynamic).message as String;
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message!);
+      throw _exception(message);
     } finally {
       _importSpan = null;
     }
@@ -1642,9 +1633,8 @@ class _EvaluateVisitor
     }
 
     var queries = _visitMediaQueries(node.query);
-    var mergedQueries = _mediaQueries.andThen(((mediaQueries) =>
-            _mergeMediaQueries(mediaQueries, queries)!)
-        as List<CssMediaQuery> Function(List<CssMediaQuery>)?);
+    var mergedQueries = _mediaQueries
+        .andThen((mediaQueries) => _mergeMediaQueries(mediaQueries, queries));
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
     _withParent(ModifiableCssMediaRule(mergedQueries ?? queries, node.span),
@@ -1941,7 +1931,7 @@ class _EvaluateVisitor
 
   // ## Expressions
 
-  Value? visitBinaryOperationExpression(BinaryOperationExpression node) {
+  Value visitBinaryOperationExpression(BinaryOperationExpression node) {
     return _addExceptionSpan(node, () {
       var left = node.left.accept(this);
       switch (node.operator) {
@@ -1999,13 +1989,13 @@ class _EvaluateVisitor
           } else {
             return result;
           }
-          break;
 
         case BinaryOperator.modulo:
           var right = node.right.accept(this);
           return left.modulo(right);
+
         default:
-          return null;
+          throw ArgumentError("Unknown binary operator ${node.operator}.");
       }
     });
   }
@@ -2165,7 +2155,7 @@ class _EvaluateVisitor
               i++) {
             var argument = declaredArguments[i];
             var value = evaluated.named.remove(argument.name) ??
-                argument.defaultValue!.accept(this);
+                argument.defaultValue!.accept<Value>(this);
             _environment.setLocalVariable(
                 argument.name,
                 value.withoutSlash(),
@@ -2244,8 +2234,7 @@ class _EvaluateVisitor
         buffer.write(_evaluateToCss(argument));
       }
 
-      // TODO: no !
-      var rest = arguments.rest?.accept(this)!;
+      var rest = arguments.rest?.accept(this);
       if (rest != null) {
         if (!first) buffer.write(", ");
         buffer.write(_serialize(rest, arguments.rest!));
@@ -2280,7 +2269,7 @@ class _EvaluateVisitor
         i++) {
       var argument = declaredArguments[i];
       evaluated.positional.add(evaluated.named.remove(argument.name) ??
-          argument.defaultValue?.accept(this)!);
+          argument.defaultValue!.accept(this));
     }
 
     SassArgumentList? argumentList;
@@ -2319,12 +2308,11 @@ class _EvaluateVisitor
     } catch (error) {
       String? message;
       try {
-        // TODO: as String!
-        message = error.message as String?;
+        message = (error as dynamic).message as String;
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message!, nodeWithSpan.span);
+      throw _exception(message, nodeWithSpan.span);
     }
     _callableNode = oldCallableNode;
 
@@ -2378,7 +2366,7 @@ class _EvaluateVisitor
     }
 
     var rest = restArgs.accept(this);
-    var restNodeForSpan = trackSpans ? _expressionNode(restArgs) : null;
+    var restNodeForSpan = _expressionNode(restArgs);
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
       _addRestMap(named, rest, restArgs, (value) => value);
@@ -2409,8 +2397,7 @@ class _EvaluateVisitor
     }
 
     var keywordRest = keywordRestArgs.accept(this);
-    var keywordRestNodeForSpan =
-        trackSpans ? _expressionNode(keywordRestArgs) : null;
+    var keywordRestNodeForSpan = _expressionNode(keywordRestArgs);
     if (keywordRest is SassMap) {
       _addRestMap(named, keywordRest, keywordRestArgs, (value) => value);
       namedNodes?.addAll({
@@ -2509,8 +2496,7 @@ class _EvaluateVisitor
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
     return SassString(
-        // TODO: no Object
-        node.text.contents.map((Object value) {
+        node.text.contents.map((value) {
           if (value is String) return value;
           var expression = value as Expression;
           var result = expression.accept(this);
@@ -2624,10 +2610,8 @@ class _EvaluateVisitor
           "Media rules may not be used within nested declarations.", node.span);
     }
 
-    // TODO: no !, no as
-    var mergedQueries = _mediaQueries.andThen(((mediaQueries) =>
-            _mergeMediaQueries(mediaQueries, node.queries)!)
-        as List<CssMediaQuery> Function(List<CssMediaQuery>)?);
+    var mergedQueries = _mediaQueries.andThen(
+        (mediaQueries) => _mergeMediaQueries(mediaQueries, node.queries));
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
     _withParent(
@@ -2771,8 +2755,7 @@ class _EvaluateVisitor
   /// values passed into the interpolation.
   String _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) {
-    // TODO: no Object
-    return interpolation.contents.map((Object value) {
+    return interpolation.contents.map((value) {
       if (value is String) return value;
       var expression = value as Expression;
       var result = expression.accept(this);
@@ -2847,12 +2830,10 @@ class _EvaluateVisitor
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   T _withParent<S extends ModifiableCssParentNode, T>(S node, T callback(),
       {bool through(CssNode node)?, bool scopeWhen = true}) {
-    // TODO: no as
-    _addChild(node as ModifiableCssNode, through: through);
+    _addChild(node, through: through);
 
     var oldParent = _parent;
-    // TODO: no as
-    _parent = node as ModifiableCssParentNode;
+    _parent = node;
     var result = _environment.scope(callback, when: scopeWhen);
     _parent = oldParent;
 
@@ -2882,8 +2863,7 @@ class _EvaluateVisitor
       }
     }
 
-    // TODO: no as
-    parent.addChild(node as ModifiableCssNode);
+    parent.addChild(node);
   }
 
   /// Runs [callback] with [rule] as the current style rule.

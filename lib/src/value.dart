@@ -201,7 +201,7 @@ abstract class Value implements ext.Value {
           result.add(complex.text);
         } else if (complex is SassList &&
             complex.separator == ListSeparator.space) {
-          var string = complex._selectorString();
+          var string = complex._selectorStringOrNull();
           if (string == null) return null;
           result.add(string);
         } else {

@@ -148,6 +148,4 @@ CompoundSelector? _prependParent(CompoundSelector compound) {
 /// `sass:selector`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
-    // TODO: no as
-    BuiltInCallable.function(name, arguments as String, callback,
-        url: "sass:selector");
+    BuiltInCallable.function(name, arguments, callback, url: "sass:selector");

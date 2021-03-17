@@ -45,17 +45,13 @@ Future<T> inImportRuleAsync<T>(Future<T> callback()) async {
 String? resolveImportPath(String path) {
   var extension = p.extension(path);
   if (extension == '.sass' || extension == '.scss' || extension == '.css') {
-    return _ifInImport((() => _exactlyOne(
-                // TODO: no !, as
-                _tryPath('${p.withoutExtension(path)}.import$extension'))!)
-            as String Function()) ??
+    return _ifInImport<String?>(() => _exactlyOne(
+            _tryPath('${p.withoutExtension(path)}.import$extension'))) ??
         _exactlyOne(_tryPath(path));
   }
 
-  return _ifInImport(
-          // TODO: no !, as
-          (() => _exactlyOne(_tryPathWithExtensions('$path.import'))!) as String
-              Function()) ??
+  return _ifInImport<String?>(
+          () => _exactlyOne(_tryPathWithExtensions('$path.import'))) ??
       _exactlyOne(_tryPathWithExtensions(path)) ??
       _tryPathAsDirectory(path);
 }
@@ -82,9 +78,8 @@ List<String> _tryPath(String path) {
 String? _tryPathAsDirectory(String path) {
   if (!dirExists(path)) return null;
 
-  return _ifInImport((() => _exactlyOne(
-              _tryPathWithExtensions(p.join(path, 'index.import')))!)
-          as String Function()) ??
+  return _ifInImport<String?>(() =>
+          _exactlyOne(_tryPathWithExtensions(p.join(path, 'index.import')))) ??
       _exactlyOne(_tryPathWithExtensions(p.join(path, 'index')));
 }
 

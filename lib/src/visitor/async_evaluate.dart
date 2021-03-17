@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -229,7 +228,6 @@ class _EvaluateVisitor
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  // TODO: no cast
   final _stack = <Tuple2<String, AstNode>>[];
 
   /// Whether we're running in Node Sass-compatibility mode.
@@ -428,7 +426,7 @@ class _EvaluateVisitor
       AsyncBuiltInCallable.mixin("load-css", r"$url, $with: null",
           (arguments) async {
         var url = Uri.parse(arguments[0].assertString("url").text);
-        var withMap = arguments[1].realNull?.assertMap("with")?.contents;
+        var withMap = arguments[1].realNull?.assertMap("with").contents;
 
         var callableNode = _callableNode!;
         var configuration = const Configuration.empty();
@@ -624,8 +622,7 @@ class _EvaluateVisitor
       bool namesInErrors = false}) async {
     var url = stylesheet.span?.sourceUrl;
 
-    // TODO: no !
-    var alreadyLoaded = _modules[url!];
+    var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       var currentConfiguration = configuration ?? _configuration;
       if (currentConfiguration is ExplicitConfiguration) {
@@ -718,12 +715,12 @@ class _EvaluateVisitor
   /// Returns a copy of [_root.children] with [_outOfOrderImports] inserted
   /// after [_endOfImports], if necessary.
   List<ModifiableCssNode> _addOutOfOrderImports() {
-    if (_outOfOrderImports == null) return _root.children;
+    var outOfOrderImports = _outOfOrderImports;
+    if (outOfOrderImports == null) return _root.children;
 
     return [
       ..._root.children.take(_endOfImports),
-      // TODO: no !
-      ..._outOfOrderImports!,
+      ...outOfOrderImports,
       ..._root.children.skip(_endOfImports)
     ];
   }
@@ -777,8 +774,7 @@ class _EvaluateVisitor
     // canonical URL). It's important that we create this in topological order,
     // so that by the time we're processing a module we've already filled in all
     // its downstream extenders and we can use them to extend that module.
-    // TODO: var
-    Map<Uri?, List<Extender>> downstreamExtenders = <Uri, List<Extender>>{};
+    var downstreamExtenders = <Uri, List<Extender>>{};
 
     /// Extensions that haven't yet been satisfied by some upstream module. This
     /// adds extensions when they're defined but not satisfied, and removes them
@@ -801,10 +797,9 @@ class _EvaluateVisitor
       if (module.extender.isEmpty) continue;
 
       for (var upstream in module.upstream) {
-        if (upstream.url == null) continue;
-        downstreamExtenders
-            .putIfAbsent(upstream.url, () => [])
-            .add(module.extender);
+        var url = upstream.url;
+        if (url == null) continue;
+        downstreamExtenders.putIfAbsent(url, () => []).add(module.extender);
       }
 
       // Remove all extensions that are now satisfied after adding downstream
@@ -820,8 +815,7 @@ class _EvaluateVisitor
   }
 
   /// Throws an exception indicating that [extension] is unsatisfied.
-  @alwaysThrows
-  void _throwForUnsatisfiedExtension(Extension extension) {
+  Never _throwForUnsatisfiedExtension(Extension extension) {
     throw SassException(
         'The target selector was not found.\n'
         'Use "@extend ${extension.target} !optional" to avoid this error.',
@@ -945,8 +939,7 @@ class _EvaluateVisitor
 
     var parent = _parent;
     int? innermostContiguous;
-    var i = 0;
-    for (; i < nodes.length; i++) {
+    for (var i = 0; i < nodes.length; i++) {
       while (parent != nodes[i]) {
         innermostContiguous = null;
         parent = parent.parent!;
@@ -956,7 +949,6 @@ class _EvaluateVisitor
     }
 
     if (parent != _root) return _root;
-    // TODO: no !
     var root = nodes[innermostContiguous!];
     nodes.removeRange(innermostContiguous, nodes.length);
     return root;
@@ -1054,7 +1046,7 @@ class _EvaluateVisitor
       name = CssValue("$_declarationName-${name.value}", name.span);
     }
     var cssValue = await node.value.andThen(
-        (value) async => CssValue(await value.accept(this), value.span))!;
+        (value) async => CssValue(await value.accept(this), value.span));
 
     // If the value is an empty list, preserve it, because converting it to CSS
     // will throw an error that we want the user to see.
@@ -1069,11 +1061,12 @@ class _EvaluateVisitor
           "Custom property values may not be empty.", cssValue.span);
     }
 
-    if (node.children != null) {
+    var children = node.children;
+    if (children != null) {
       var oldDeclarationName = _declarationName;
       _declarationName = name.value;
       await _environment.scope(() async {
-        for (var child in node.children) {
+        for (var child in children) {
           await child.accept(this);
         }
       }, when: node.hasDeclarations);
@@ -1197,7 +1190,7 @@ class _EvaluateVisitor
         () async {
       var styleRule = _styleRule;
       if (styleRule == null || _inKeyframes) {
-        for (var child in node.children) {
+        for (var child in node.children!) {
           await child.accept(this);
         }
       } else {
@@ -1206,7 +1199,7 @@ class _EvaluateVisitor
         //
         // For example, "a {@foo {b: c}}" should produce "@foo {a {b: c}}".
         await _withParent(styleRule.copyWithoutChildren(), () async {
-          for (var child in node.children) {
+          for (var child in node.children!) {
             await child.accept(this);
           }
         }, scopeWhen: false);
@@ -1360,8 +1353,7 @@ class _EvaluateVisitor
 
     return await _environment.scope(
         () => _handleReturn<Statement>(
-            // TODO: no !
-            clause!.children,
+            clause!.children, // dart-lang/sdk#45348
             (child) => child.accept(this)),
         semiGlobal: true,
         when: clause.hasDeclarations);
@@ -1490,7 +1482,7 @@ class _EvaluateVisitor
       if (importCache != null) {
         var tuple = await importCache.import(Uri.parse(url),
             baseImporter: _importer,
-            baseUrl: baseUrl ?? _stylesheet?.span?.sourceUrl,
+            baseUrl: baseUrl ?? _stylesheet.span?.sourceUrl,
             forImport: forImport);
         if (tuple != null) return tuple;
       } else {
@@ -1510,12 +1502,11 @@ class _EvaluateVisitor
     } catch (error) {
       String? message;
       try {
-        // TODO: as String!
-        message = error.message as String?;
+        message = (error as dynamic).message as String;
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message!);
+      throw _exception(message);
     } finally {
       _importSpan = null;
     }
@@ -1645,9 +1636,8 @@ class _EvaluateVisitor
     }
 
     var queries = await _visitMediaQueries(node.query);
-    var mergedQueries = _mediaQueries.andThen(((mediaQueries) =>
-            _mergeMediaQueries(mediaQueries, queries)!)
-        as List<CssMediaQuery> Function(List<CssMediaQuery>)?);
+    var mergedQueries = _mediaQueries
+        .andThen((mediaQueries) => _mergeMediaQueries(mediaQueries, queries));
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
     await _withParent(
@@ -1950,8 +1940,7 @@ class _EvaluateVisitor
 
   // ## Expressions
 
-  Future<Value?> visitBinaryOperationExpression(
-      BinaryOperationExpression node) {
+  Future<Value> visitBinaryOperationExpression(BinaryOperationExpression node) {
     return _addExceptionSpanAsync(node, () async {
       var left = await node.left.accept(this);
       switch (node.operator) {
@@ -2009,13 +1998,13 @@ class _EvaluateVisitor
           } else {
             return result;
           }
-          break;
 
         case BinaryOperator.modulo:
           var right = await node.right.accept(this);
           return left.modulo(right);
+
         default:
-          return null;
+          throw ArgumentError("Unknown binary operator ${node.operator}.");
       }
     });
   }
@@ -2179,7 +2168,7 @@ class _EvaluateVisitor
               i++) {
             var argument = declaredArguments[i];
             var value = evaluated.named.remove(argument.name) ??
-                await argument.defaultValue!.accept(this);
+                await argument.defaultValue!.accept<Future<Value>>(this);
             _environment.setLocalVariable(
                 argument.name,
                 value.withoutSlash(),
@@ -2260,8 +2249,7 @@ class _EvaluateVisitor
         buffer.write(await _evaluateToCss(argument));
       }
 
-      // TODO: no !
-      var rest = (await arguments.rest?.accept(this))!;
+      var rest = await arguments.rest?.accept(this);
       if (rest != null) {
         if (!first) buffer.write(", ");
         buffer.write(_serialize(rest, arguments.rest!));
@@ -2296,7 +2284,7 @@ class _EvaluateVisitor
         i++) {
       var argument = declaredArguments[i];
       evaluated.positional.add(evaluated.named.remove(argument.name) ??
-          (await argument.defaultValue?.accept(this))!);
+          await argument.defaultValue!.accept(this));
     }
 
     SassArgumentList? argumentList;
@@ -2335,12 +2323,11 @@ class _EvaluateVisitor
     } catch (error) {
       String? message;
       try {
-        // TODO: as String!
-        message = error.message as String?;
+        message = (error as dynamic).message as String;
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message!, nodeWithSpan.span);
+      throw _exception(message, nodeWithSpan.span);
     }
     _callableNode = oldCallableNode;
 
@@ -2394,7 +2381,7 @@ class _EvaluateVisitor
     }
 
     var rest = await restArgs.accept(this);
-    var restNodeForSpan = trackSpans ? _expressionNode(restArgs) : null;
+    var restNodeForSpan = _expressionNode(restArgs);
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
       _addRestMap(named, rest, restArgs, (value) => value);
@@ -2425,8 +2412,7 @@ class _EvaluateVisitor
     }
 
     var keywordRest = await keywordRestArgs.accept(this);
-    var keywordRestNodeForSpan =
-        trackSpans ? _expressionNode(keywordRestArgs) : null;
+    var keywordRestNodeForSpan = _expressionNode(keywordRestArgs);
     if (keywordRest is SassMap) {
       _addRestMap(named, keywordRest, keywordRestArgs, (value) => value);
       namedNodes?.addAll({
@@ -2525,8 +2511,7 @@ class _EvaluateVisitor
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
     return SassString(
-        // TODO: no Object
-        (await mapAsync(node.text.contents, (Object value) async {
+        (await mapAsync(node.text.contents, (value) async {
           if (value is String) return value;
           var expression = value as Expression;
           var result = await expression.accept(this);
@@ -2641,10 +2626,8 @@ class _EvaluateVisitor
           "Media rules may not be used within nested declarations.", node.span);
     }
 
-    // TODO: no !, no as
-    var mergedQueries = _mediaQueries.andThen(((mediaQueries) =>
-            _mergeMediaQueries(mediaQueries, node.queries)!)
-        as List<CssMediaQuery> Function(List<CssMediaQuery>)?);
+    var mergedQueries = _mediaQueries.andThen(
+        (mediaQueries) => _mergeMediaQueries(mediaQueries, node.queries));
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
     await _withParent(
@@ -2792,8 +2775,7 @@ class _EvaluateVisitor
   /// values passed into the interpolation.
   Future<String> _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) async {
-    // TODO: no Object
-    return (await mapAsync(interpolation.contents, (Object value) async {
+    return (await mapAsync(interpolation.contents, (value) async {
       if (value is String) return value;
       var expression = value as Expression;
       var result = await expression.accept(this);
@@ -2871,12 +2853,10 @@ class _EvaluateVisitor
   Future<T> _withParent<S extends ModifiableCssParentNode, T>(
       S node, Future<T> callback(),
       {bool through(CssNode node)?, bool scopeWhen = true}) async {
-    // TODO: no as
-    _addChild(node as ModifiableCssNode, through: through);
+    _addChild(node, through: through);
 
     var oldParent = _parent;
-    // TODO: no as
-    _parent = node as ModifiableCssParentNode;
+    _parent = node;
     var result = await _environment.scope(callback, when: scopeWhen);
     _parent = oldParent;
 
@@ -2906,8 +2886,7 @@ class _EvaluateVisitor
       }
     }
 
-    // TODO: no as
-    parent.addChild(node as ModifiableCssNode);
+    parent.addChild(node);
   }
 
   /// Runs [callback] with [rule] as the current style rule.

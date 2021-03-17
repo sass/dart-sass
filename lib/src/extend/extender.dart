@@ -181,8 +181,11 @@ class Extender {
       try {
         selector = _extendList(originalSelector, _extensions, mediaContext);
       } on SassException catch (error) {
+        var span = error.span;
+        if (span == null) rethrow;
+
         throw SassException(
-            "From ${error.span!.message('')}\n"
+            "From ${span.message('')}\n"
             "${error.message}",
             span);
       }
@@ -313,8 +316,11 @@ class Extender {
             extension.extender, newExtensions, extension.mediaContext);
         if (selectors == null) continue;
       } on SassException catch (error) {
+        var extenderSpan = extension.extenderSpan;
+        if (extenderSpan == null) rethrow;
+
         throw SassException(
-            "From ${extension.extenderSpan!.message('')}\n"
+            "From ${extenderSpan.message('')}\n"
             "${error.message}",
             error.span);
       }
@@ -490,8 +496,7 @@ class Extender {
     }
     if (extended == null) return list;
 
-    return SelectorList(_trim(extended, _originals.contains)
-        .where((complex) => complex != null));
+    return SelectorList(_trim(extended, _originals.contains));
   }
 
   /// Extends [complex] using [extensions], and returns the contents of a
@@ -549,8 +554,7 @@ class Extender {
     return paths(extendedNotExpanded).expand((path) {
       return weave(path.map((complex) => complex.components).toList())
           .map((components) {
-        var outputComplex = ComplexSelector(
-            components as Iterable<ComplexSelectorComponent>,
+        var outputComplex = ComplexSelector(components,
             lineBreak: complex.lineBreak ||
                 path.any((inputComplex) => inputComplex.lineBreak));
 

@@ -8,7 +8,7 @@ class NodeImporter {
   NodeImporter(Object context, Iterable<String> includePaths,
       Iterable<Object> importers);
 
-  Tuple2<String, String> load(String url, Uri? previous, bool forImport) =>
+  Tuple2<String, String>? load(String url, Uri? previous, bool forImport) =>
       throw '';
 
   Future<Tuple2<String, String>?> loadAsync(

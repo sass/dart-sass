@@ -13,8 +13,6 @@ import '../visitor/interface/value.dart';
 import 'external/value.dart' as ext;
 
 class SassColor extends Value implements ext.SassColor {
-  // TODO: lates all around
-
   int get red {
     if (_red == null) _hslToRgb();
     return _red!;
@@ -113,8 +111,7 @@ class SassColor extends Value implements ext.SassColor {
 
     var factor = 1 - scaledWhiteness - scaledBlackness;
     int toRgb(num hue) {
-      // TODO: var
-      num channel = _hueToRgb(0, 1, hue) * factor + scaledWhiteness;
+      var channel = _hueToRgb(0, 1, hue) * factor + scaledWhiteness;
       return fuzzyRound(channel * 255);
     }
 

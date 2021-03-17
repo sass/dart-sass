@@ -17,7 +17,7 @@ class _NodeSassString {
 
 /// Creates a new `sass.types.String` object wrapping [value].
 Object newNodeSassString(SassString value) =>
-    callConstructor(stringConstructor, [null, value]);
+    callConstructor(stringConstructor, [null, value]) as Object;
 
 /// The JS constructor for the `sass.types.String` class.
 final Function stringConstructor = createClass('SassString',

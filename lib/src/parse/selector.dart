@@ -263,7 +263,6 @@ class SelectorParser extends Parser {
 
       default:
         scanner.error('Expected "]".', position: start.position);
-        throw "Unreachable";
     }
   }
 

@@ -27,6 +27,8 @@ class AtRule extends ParentStatement {
   String toString() {
     var buffer = StringBuffer("@$name");
     if (value != null) buffer.write(" $value");
+
+    var children = this.children;
     return children == null ? "$buffer;" : "$buffer {${children.join(" ")}}";
   }
 }

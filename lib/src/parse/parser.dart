@@ -283,7 +283,6 @@ class Parser {
     var wroteNewline = false;
     loop:
     while (true) {
-      // TODO: no next!
       var next = scanner.peekChar();
       switch (next) {
         case $backslash:
@@ -325,7 +324,7 @@ class Parser {
         case $lparen:
         case $lbrace:
         case $lbracket:
-          buffer.writeCharCode(next!);
+          buffer.writeCharCode(next!); // dart-lang/sdk#45357
           brackets.add(opposite(scanner.readChar()));
           wroteNewline = false;
           break;
@@ -334,7 +333,7 @@ class Parser {
         case $rbrace:
         case $rbracket:
           if (brackets.isEmpty) break loop;
-          buffer.writeCharCode(next!);
+          buffer.writeCharCode(next!); // dart-lang/sdk#45357
           scanner.expectChar(brackets.removeLast());
           wroteNewline = false;
           break;
@@ -661,8 +660,7 @@ class Parser {
 
   /// Throws an error associated with [span].
   @protected
-  @alwaysThrows
-  void error(String message, FileSpan span) =>
+  Never error(String message, FileSpan span) =>
       throw StringScannerException(message, span, scanner.string);
 
   /// Runs callback and, if it throws a [SourceSpanFormatException], rethrows it

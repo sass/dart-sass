@@ -16,7 +16,7 @@ abstract class Logger {
 
   /// Creates a logger that prints warnings to standard error, with terminal
   /// colors if [color] is `true` (default `false`).
-  const factory Logger.stderr({required bool color}) = StderrLogger;
+  const factory Logger.stderr({bool color}) = StderrLogger;
 
   /// Emits a warning with the given [message].
   ///

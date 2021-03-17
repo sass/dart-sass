@@ -29,8 +29,7 @@ extension NullableMapExtension<K, V> on Map<K, V>? {
   /// This is the equivalent of `map?.[key]`, if such a thing existed.
   V? andGet(Object? key) {
     var self = this;
-    // TODO: no as
-    return self == null ? null : self[key as K];
+    return self == null ? null : self[key];
   }
 }
 
@@ -38,7 +37,7 @@ extension SetExtension<T> on Set<T?> {
   /// Destructively removes the `null` element from this set, if it exists, and
   /// returns a view of it casted to a non-nullable type.
   Set<T> removeNull() {
-    this.remove(null);
-    return this.cast<T>();
+    remove(null);
+    return cast<T>();
   }
 }

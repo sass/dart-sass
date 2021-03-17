@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:args/args.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 import 'package:tuple/tuple.dart';
@@ -123,8 +122,7 @@ class ExecutableOptions {
   static String get usage => _parser.usage;
 
   /// Shorthand for throwing a [UsageException] with the given [message].
-  @alwaysThrows
-  static void _fail(String message) => throw UsageException(message);
+  static Never _fail(String message) => throw UsageException(message);
 
   /// The parsed options passed by the user to the executable.
   final ArgResults _options;
@@ -132,30 +130,9 @@ class ExecutableOptions {
   /// Whether to print the version of Sass and exit.
   bool get version => _options['version'] as bool;
 
-// TODO:
-// /// Whether to run an interactive shell.
-//   late final bool interactive = () {
-//     if (!(_options['interactive'] as bool)) return false;
-
-//     var invalidOptions = [
-//       'stdin', 'indented', 'style', 'source-map', 'source-map-urls', //
-//       'embed-sources', 'embed-source-map', 'update', 'watch'
-//     ];
-//     for (var option in invalidOptions) {
-//       if (_options.wasParsed(option)) {
-//         throw UsageException("--$option isn't allowed with --interactive.");
-//       }
-//     }
-//     return true;
-//   }();
-
   /// Whether to run an interactive shell.
-  /*late*/ bool get interactive {
-    if (_interactive != null) return _interactive!;
-
-    // TODO: remove ?
-    var interactive = (_interactive = _options['interactive'] as bool?)!;
-    if (!interactive) return false;
+  late final bool interactive = () {
+    if (!(_options['interactive'] as bool)) return false;
 
     var invalidOptions = [
       'stdin', 'indented', 'style', 'source-map', 'source-map-urls', //
@@ -167,9 +144,7 @@ class ExecutableOptions {
       }
     }
     return true;
-  }
-
-  bool? _interactive;
+  }();
 
   /// Whether to parse the source file with the indented syntax.
   ///
@@ -226,10 +201,8 @@ class ExecutableOptions {
 
   /// Whether to emit error messages as CSS stylesheets
   bool get emitErrorCss =>
-      _options['error-css'] as bool ??
-      // TODO: remove as
-      sourcesToDestinations.values.any(
-          ((destination) => destination != null) as bool Function(String?));
+      _options['error-css'] as bool? ??
+      sourcesToDestinations.values.any((destination) => destination != null);
 
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.

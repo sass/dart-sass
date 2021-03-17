@@ -21,7 +21,6 @@ import 'importer/node.dart';
 import 'node/exports.dart';
 import 'node/function.dart';
 import 'node/render_context.dart';
-import 'node/render_context_options.dart';
 import 'node/render_options.dart';
 import 'node/render_result.dart';
 import 'node/types.dart';
@@ -29,7 +28,6 @@ import 'node/value.dart';
 import 'node/utils.dart';
 import 'parse/scss.dart';
 import 'syntax.dart';
-import 'utils.dart';
 import 'util/nullable.dart';
 import 'value.dart';
 import 'visitor/serialize.dart';
@@ -177,8 +175,8 @@ RenderResult _renderSync(RenderOptions options) {
 JsError _wrapException(Object exception) {
   if (exception is SassException) {
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
-        line: exception.span?.start.line + 1,
-        column: exception.span?.start.column + 1,
+        line: exception.span.andThen((span) => span.start.line + 1),
+        column: exception.span.andThen((span) => span.start.column + 1),
         file: exception.span?.sourceUrl.andThen(p.fromUri) ?? 'stdin',
         status: 1);
   } else {
@@ -193,10 +191,11 @@ JsError _wrapException(Object exception) {
 /// return a `List<Callable>` if [asynch] is `false`.
 List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     {bool asynch = false}) {
-  if (options.functions == null) return const [];
+  var functions = options.functions;
+  if (functions == null) return const [];
 
   var result = <AsyncCallable>[];
-  jsForEach(options.functions, (signature, callback) {
+  jsForEach(functions, (signature, callback) {
     Tuple2<String, ArgumentDeclaration> tuple;
     try {
       tuple = ScssParser(signature as String).parseSignature();
@@ -305,8 +304,8 @@ RenderContext _contextWithOptions(RenderOptions options, DateTime start) {
           indentType: options.indentType == 'tab' ? 1 : 0,
           indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
           linefeed: _parseLineFeed(options.linefeed).text,
-          result: RenderResult(
-              stats: RenderResultStats(
+          result: RenderContextResult(
+              stats: RenderContextResultStats(
                   start: start.millisecondsSinceEpoch,
                   entry: options.file ?? 'data'))));
   context.options.context = context;
@@ -349,9 +348,8 @@ RenderResult _newRenderResult(
   Uint8List? sourceMapBytes;
   if (_enableSourceMaps(options)) {
     var sourceMapOption = options.sourceMap;
-    var sourceMapPath = sourceMapOption is String
-        ? sourceMapOption as String
-        : options.outFile! + '.map';
+    var sourceMapPath =
+        sourceMapOption is String ? sourceMapOption : options.outFile! + '.map';
     var sourceMapDir = p.dirname(sourceMapPath);
 
     var sourceMap = result.sourceMap!;

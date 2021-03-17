@@ -9,8 +9,6 @@ import 'import_rule.dart';
 import 'mixin_rule.dart';
 import 'variable_declaration.dart';
 
-// TODO: make this generic over nullable children.
-
 /// A [Statement] that can have child statements.
 ///
 /// This has a generic parameter so that its subclasses can choose whether or

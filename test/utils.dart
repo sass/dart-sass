@@ -32,5 +32,10 @@ Map<String, Object> embeddedSourceMap(String css) {
   return jsonDecode(data.contentAsString()) as Map<String, Object>;
 }
 
+/// Returns a function with one argument that fails the test if it's ever
+/// called.
+Never Function(Object? arg) get expectNever1 =>
+    expectAsync1((_) => throw '', count: 0);
+
 // Like `p.prettyUri()`, but for a non-URL path.
 String prettyPath(String path) => p.prettyUri(p.toUri(path));
