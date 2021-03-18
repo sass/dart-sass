@@ -24,7 +24,7 @@ import '../color_names.dart';
 import '../configuration.dart';
 import '../configured_value.dart';
 import '../exception.dart';
-import '../extend/extender.dart';
+import '../extend/extension_store.dart';
 import '../extend/extension.dart';
 import '../functions.dart';
 import '../functions/meta.dart' as meta;
@@ -260,9 +260,9 @@ class _EvaluateVisitor
   /// stylesheet.
   late List<ModifiableCssImport>? _outOfOrderImports;
 
-  /// The extender that tracks extensions and style rules for the current
+  /// The extension store that tracks extensions and style rules for the current
   /// module.
-  late Extender _extender;
+  late ExtensionStore _extensionStore;
 
   /// The configuration for the current module.
   ///
@@ -651,7 +651,7 @@ class _EvaluateVisitor
 
     var environment = AsyncEnvironment(sourceMap: _sourceMap);
     late CssStylesheet css;
-    var extender = Extender();
+    var extensionStore = ExtensionStore();
     await _withEnvironment(environment, () async {
       var oldImporter = _importer;
       var oldStylesheet = _stylesheet;
@@ -659,7 +659,7 @@ class _EvaluateVisitor
       var oldParent = _parent;
       var oldEndOfImports = _endOfImports;
       var oldOutOfOrderImports = _outOfOrderImports;
-      var oldExtender = _extender;
+      var oldExtensionStore = _extensionStore;
       var oldStyleRule = _styleRule;
       var oldMediaQueries = _mediaQueries;
       var oldDeclarationName = _declarationName;
@@ -673,7 +673,7 @@ class _EvaluateVisitor
       _parent = root;
       _endOfImports = 0;
       _outOfOrderImports = null;
-      _extender = extender;
+      _extensionStore = extensionStore;
       _styleRuleIgnoringAtRoot = null;
       _mediaQueries = null;
       _declarationName = null;
@@ -693,7 +693,7 @@ class _EvaluateVisitor
       _parent = oldParent;
       _endOfImports = oldEndOfImports;
       _outOfOrderImports = oldOutOfOrderImports;
-      _extender = oldExtender;
+      _extensionStore = oldExtensionStore;
       _styleRuleIgnoringAtRoot = oldStyleRule;
       _mediaQueries = oldMediaQueries;
       _declarationName = oldDeclarationName;
@@ -703,7 +703,7 @@ class _EvaluateVisitor
       _configuration = oldConfiguration;
     });
 
-    var module = environment.toModule(css, extender);
+    var module = environment.toModule(css, extensionStore);
     if (url != null) {
       _modules[url] = module;
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
@@ -734,8 +734,8 @@ class _EvaluateVisitor
   /// that they don't modify [root] or its dependencies.
   CssStylesheet _combineCss(Module root, {bool clone = false}) {
     if (!root.upstream.any((module) => module.transitivelyContainsCss)) {
-      var selectors = root.extender.simpleSelectors;
-      var unsatisfiedExtension = firstOrNull(root.extender
+      var selectors = root.extensionStore.simpleSelectors;
+      var unsatisfiedExtension = firstOrNull(root.extensionStore
           .extensionsWhereTarget((target) => !selectors.contains(target)));
       if (unsatisfiedExtension != null) {
         _throwForUnsatisfiedExtension(unsatisfiedExtension);
@@ -770,11 +770,12 @@ class _EvaluateVisitor
   /// Extends the selectors in each module with the extensions defined in
   /// downstream modules.
   void _extendModules(List<Module> sortedModules) {
-    // All the extenders directly downstream of a given module (indexed by its
-    // canonical URL). It's important that we create this in topological order,
-    // so that by the time we're processing a module we've already filled in all
-    // its downstream extenders and we can use them to extend that module.
-    var downstreamExtenders = <Uri, List<Extender>>{};
+    // All the [ExtensionStore]s directly downstream of a given module (indexed
+    // by its canonical URL). It's important that we create this in topological
+    // order, so that by the time we're processing a module we've already filled
+    // in all its downstream [ExtensionStore]s and we can use them to extend
+    // that module.
+    var downstreamExtensionStores = <Uri, List<ExtensionStore>>{};
 
     /// Extensions that haven't yet been satisfied by some upstream module. This
     /// adds extensions when they're defined but not satisfied, and removes them
@@ -782,31 +783,35 @@ class _EvaluateVisitor
     var unsatisfiedExtensions = Set<Extension>.identity();
 
     for (var module in sortedModules) {
-      // Create a snapshot of the simple selectors currently in the extender so
-      // that we don't consider an extension "satisfied" below because of a
-      // simple selector added by another (sibling) extension.
-      var originalSelectors = module.extender.simpleSelectors.toSet();
+      // Create a snapshot of the simple selectors currently in the
+      // [ExtensionStore] so that we don't consider an extension "satisfied"
+      // below because of a simple selector added by another (sibling)
+      // extension.
+      var originalSelectors = module.extensionStore.simpleSelectors.toSet();
 
       // Add all as-yet-unsatisfied extensions before adding downstream
-      // extenders, because those are all in [unsatisfiedExtensions] already.
-      unsatisfiedExtensions.addAll(module.extender.extensionsWhereTarget(
+      // [ExtensionStore]s, because those are all in [unsatisfiedExtensions]
+      // already.
+      unsatisfiedExtensions.addAll(module.extensionStore.extensionsWhereTarget(
           (target) => !originalSelectors.contains(target)));
 
-      var extenders = downstreamExtenders[module.url];
-      if (extenders != null) module.extender.addExtensions(extenders);
-      if (module.extender.isEmpty) continue;
+      downstreamExtensionStores[module.url]
+          .andThen(module.extensionStore.addExtensions);
+      if (module.extensionStore.isEmpty) continue;
 
       for (var upstream in module.upstream) {
         var url = upstream.url;
         if (url == null) continue;
-        downstreamExtenders.putIfAbsent(url, () => []).add(module.extender);
+        downstreamExtensionStores
+            .putIfAbsent(url, () => [])
+            .add(module.extensionStore);
       }
 
       // Remove all extensions that are now satisfied after adding downstream
-      // extenders so it counts any downstream extensions that have been newly
-      // satisfied.
-      unsatisfiedExtensions.removeAll(
-          module.extender.extensionsWhereTarget(originalSelectors.contains));
+      // [ExtensionStore]s so it counts any downstream extensions that have been
+      // newly satisfied.
+      unsatisfiedExtensions.removeAll(module.extensionStore
+          .extensionsWhereTarget(originalSelectors.contains));
     }
 
     if (unsatisfiedExtensions.isNotEmpty) {
@@ -1151,7 +1156,7 @@ class _EvaluateVisitor
             targetText.span);
       }
 
-      _extender.addExtension(
+      _extensionStore.addExtension(
           styleRule.selector, compound.components.first, node, _mediaQueries);
     }
 
@@ -1751,7 +1756,7 @@ class _EvaluateVisitor
             _styleRuleIgnoringAtRoot?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule));
 
-    var selector = _extender.addSelector(
+    var selector = _extensionStore.addSelector(
         parsedSelector, node.selector.span, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
         originalSelector: parsedSelector);
@@ -2672,7 +2677,7 @@ class _EvaluateVisitor
     var originalSelector = node.selector.value.resolveParentSelectors(
         styleRule?.originalSelector,
         implicitParent: !_atRootExcludingStyleRule);
-    var selector = _extender.addSelector(
+    var selector = _extensionStore.addSelector(
         originalSelector, node.selector.span, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
         originalSelector: originalSelector);

@@ -4,9 +4,9 @@
 
 /// This library contains utility functions related to extending selectors.
 ///
-/// These functions aren't private methods on [Extender] because they also need
-/// to be accessible from elsewhere in the codebase. In addition, they aren't
-/// instance methods on other objects because their APIs aren't a good
+/// These functions aren't private methods on [ExtensionStore] because they also
+/// need to be accessible from elsewhere in the codebase. In addition, they
+/// aren't instance methods on other objects because their APIs aren't a good
 /// fit—usually because they deal with raw component lists rather than selector
 /// classes, to reduce allocations.
 

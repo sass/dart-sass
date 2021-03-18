@@ -7,7 +7,7 @@ import '../ast/node.dart';
 import '../ast/sass.dart';
 import '../callable.dart';
 import '../exception.dart';
-import '../extend/extender.dart';
+import '../extend/extension_store.dart';
 import '../module.dart';
 import '../util/limited_map_view.dart';
 import '../util/nullable.dart';
@@ -24,7 +24,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
 
   Uri? get url => _inner.url;
   List<Module<T>> get upstream => _inner.upstream;
-  Extender get extender => _inner.extender;
+  ExtensionStore get extensionStore => _inner.extensionStore;
   CssStylesheet get css => _inner.css;
   bool get transitivelyContainsCss => _inner.transitivelyContainsCss;
   bool get transitivelyContainsExtensions =>

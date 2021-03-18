@@ -15,16 +15,16 @@ import '../ast/sass.dart';
 import '../exception.dart';
 import '../utils.dart';
 import '../util/nullable.dart';
-import 'empty_extender.dart';
+import 'empty_extension_store.dart';
 import 'extension.dart';
 import 'merged_extension.dart';
 import 'functions.dart';
 import 'mode.dart';
 
 /// Tracks selectors and extensions, and applies the latter to the former.
-class Extender {
-  /// An [Extender] that contains no extensions and can have no extensions added.
-  static const empty = EmptyExtender();
+class ExtensionStore {
+  /// An [ExtensionStore] that contains no extensions and can have no extensions added.
+  static const empty = EmptyExtensionStore();
 
   /// A map from all simple selectors in the stylesheet to the selector lists
   /// that contain them.
@@ -108,7 +108,7 @@ class Extender {
         for (var simple in compound.components) simple: extenders
     };
 
-    var extender = Extender._mode(mode);
+    var extender = ExtensionStore._mode(mode);
     if (!selector.isInvisible) {
       extender._originals.addAll(selector.components);
     }
@@ -123,9 +123,9 @@ class Extender {
   /// extensions.
   Set<SimpleSelector> get simpleSelectors => MapKeySet(_selectors);
 
-  Extender() : this._mode(ExtendMode.normal);
+  ExtensionStore() : this._mode(ExtendMode.normal);
 
-  Extender._mode(this._mode)
+  ExtensionStore._mode(this._mode)
       : _selectors = {},
         _extensions = {},
         _extensionsByExtender = {},
@@ -133,8 +133,13 @@ class Extender {
         _sourceSpecificity = Map.identity(),
         _originals = Set.identity();
 
-  Extender._(this._selectors, this._extensions, this._extensionsByExtender,
-      this._mediaContexts, this._sourceSpecificity, this._originals)
+  ExtensionStore._(
+      this._selectors,
+      this._extensions,
+      this._extensionsByExtender,
+      this._mediaContexts,
+      this._sourceSpecificity,
+      this._originals)
       : _mode = ExtendMode.normal;
 
   /// Returns all mandatory extensions in this extender for whose targets
@@ -400,7 +405,7 @@ class Extender {
   ///
   /// These extensions will extend all selectors already in [this], but they
   /// will *not* extend other extensions from [extenders].
-  void addExtensions(Iterable<Extender> extenders) {
+  void addExtensions(Iterable<ExtensionStore> extensionStores) {
     // Extensions already in [this] whose extenders are extended by
     // [extensions], and thus which need to be updated.
     List<Extension>? extensionsToExtend;
@@ -410,13 +415,13 @@ class Extender {
     Set<ModifiableCssValue<SelectorList>>? selectorsToExtend;
 
     // An extension map with the same structure as [_extensions] that only
-    // includes extensions from [extenders].
+    // includes extensions from [extensionStores].
     Map<SimpleSelector, Map<ComplexSelector, Extension>?>? newExtensions;
 
-    for (var extender in extenders) {
-      if (extender.isEmpty) continue;
-      _sourceSpecificity.addAll(extender._sourceSpecificity);
-      extender._extensions.forEach((target, newSources) {
+    for (var extensionStore in extensionStores) {
+      if (extensionStore.isEmpty) continue;
+      _sourceSpecificity.addAll(extensionStore._sourceSpecificity);
+      extensionStore._extensions.forEach((target, newSources) {
         // Private selectors can't be extended across module boundaries.
         if (target is PlaceholderSelector && target.isPrivate) return;
 
@@ -437,10 +442,10 @@ class Extender {
         // Add [newSources] to [_extensions].
         var existingSources = _extensions[target];
         if (existingSources == null) {
-          _extensions[target] = extender._extensions[target]!;
+          _extensions[target] = extensionStore._extensions[target]!;
           if (extensionsForTarget != null || selectorsForTarget != null) {
             newExtensions ??= {};
-            newExtensions![target] = extender._extensions[target];
+            newExtensions![target] = extensionStore._extensions[target];
           }
         } else {
           newSources.forEach((extender, extension) {
@@ -924,8 +929,8 @@ class Extender {
 
   /// Returns a copy of [this] that extends new selectors, as well as a map from
   /// the selectors extended by [this] to the selectors extended by the new
-  /// [Extender].
-  Tuple2<Extender,
+  /// [ExtensionStore].
+  Tuple2<ExtensionStore,
       Map<CssValue<SelectorList>, ModifiableCssValue<SelectorList>>> clone() {
     var newSelectors =
         <SimpleSelector, Set<ModifiableCssValue<SelectorList>>>{};
@@ -949,7 +954,7 @@ class Extender {
     });
 
     return Tuple2(
-        Extender._(
+        ExtensionStore._(
             newSelectors,
             copyMapOfMap(_extensions),
             copyMapOfList(_extensionsByExtender),

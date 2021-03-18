@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 9d25f8e34c8e566be536523b873c21757b591bfc
+// Checksum: f76eacd7d649c2bc26f0c2745a9e892c79dfcde3
 //
 // ignore_for_file: unused_import
 
@@ -21,7 +21,7 @@ import 'callable.dart';
 import 'configuration.dart';
 import 'configured_value.dart';
 import 'exception.dart';
-import 'extend/extender.dart';
+import 'extend/extension_store.dart';
 import 'module.dart';
 import 'module/forwarded_view.dart';
 import 'module/shadowed_view.dart';
@@ -837,15 +837,15 @@ class Environment {
 
   /// Returns a module that represents the top-level members defined in [this],
   /// that contains [css] as its CSS tree, which can be extended using
-  /// [extender].
-  Module<Callable> toModule(CssStylesheet css, Extender extender) {
+  /// [extensionStore].
+  Module<Callable> toModule(CssStylesheet css, ExtensionStore extensionStore) {
     assert(atRoot);
-    return _EnvironmentModule(this, css, extender,
+    return _EnvironmentModule(this, css, extensionStore,
         forwarded: _forwardedModules);
   }
 
   /// Returns a module with the same members and upstream modules as [this], but
-  /// an empty stylesheet and extender.
+  /// an empty stylesheet and extension store.
   ///
   /// This is used when resolving imports, since they need to inject forwarded
   /// members into the current scope. It's the only situation in which a nested
@@ -855,7 +855,7 @@ class Environment {
         this,
         CssStylesheet(const [],
             SourceFile.decoded(const [], url: "<dummy module>").span(0)),
-        Extender.empty,
+        ExtensionStore.empty,
         forwarded: _forwardedModules);
   }
 
@@ -931,7 +931,7 @@ class _EnvironmentModule implements Module<Callable> {
   final Map<String, AstNode>? variableNodes;
   final Map<String, Callable> functions;
   final Map<String, Callable> mixins;
-  final Extender extender;
+  final ExtensionStore extensionStore;
   final CssStylesheet css;
   final bool transitivelyContainsCss;
   final bool transitivelyContainsExtensions;
@@ -948,13 +948,13 @@ class _EnvironmentModule implements Module<Callable> {
   final Map<String, Module<Callable>> _modulesByVariable;
 
   factory _EnvironmentModule(
-      Environment environment, CssStylesheet css, Extender extender,
+      Environment environment, CssStylesheet css, ExtensionStore extensionStore,
       {Set<Module<Callable>>? forwarded}) {
     forwarded ??= const {};
     return _EnvironmentModule._(
         environment,
         css,
-        extender,
+        extensionStore,
         _makeModulesByVariable(forwarded),
         _memberMap(environment._variables.first,
             forwarded.map((module) => module.variables)),
@@ -969,7 +969,7 @@ class _EnvironmentModule implements Module<Callable> {
         transitivelyContainsCss: css.children.isNotEmpty ||
             environment._allModules
                 .any((module) => module.transitivelyContainsCss),
-        transitivelyContainsExtensions: !extender.isEmpty ||
+        transitivelyContainsExtensions: !extensionStore.isEmpty ||
             environment._allModules
                 .any((module) => module.transitivelyContainsExtensions));
   }
@@ -1015,7 +1015,7 @@ class _EnvironmentModule implements Module<Callable> {
   _EnvironmentModule._(
       this._environment,
       this.css,
-      this.extender,
+      this.extensionStore,
       this._modulesByVariable,
       this.variables,
       this.variableNodes,
@@ -1052,11 +1052,11 @@ class _EnvironmentModule implements Module<Callable> {
   Module<Callable> cloneCss() {
     if (css.children.isEmpty) return this;
 
-    var newCssAndExtender = cloneCssStylesheet(css, extender);
+    var newCssAndExtensionStore = cloneCssStylesheet(css, extensionStore);
     return _EnvironmentModule._(
         _environment,
-        newCssAndExtender.item1,
-        newCssAndExtender.item2,
+        newCssAndExtensionStore.item1,
+        newCssAndExtensionStore.item2,
         _modulesByVariable,
         variables,
         variableNodes,

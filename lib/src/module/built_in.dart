@@ -8,7 +8,7 @@ import '../ast/css.dart';
 import '../ast/node.dart';
 import '../callable.dart';
 import '../exception.dart';
-import '../extend/extender.dart';
+import '../extend/extension_store.dart';
 import '../module.dart';
 import '../value.dart';
 
@@ -21,7 +21,7 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
 
   List<Module<T>> get upstream => const [];
   Map<String, AstNode> get variableNodes => const {};
-  Extender get extender => Extender.empty;
+  ExtensionStore get extensionStore => ExtensionStore.empty;
   CssStylesheet get css => CssStylesheet.empty(url: url);
   bool get transitivelyContainsCss => false;
   bool get transitivelyContainsExtensions => false;

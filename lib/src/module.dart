@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 import 'ast/css.dart';
 import 'ast/node.dart';
 import 'callable.dart';
-import 'extend/extender.dart';
+import 'extend/extension_store.dart';
 import 'value.dart';
 
 /// The interface for a Sass module.
@@ -50,7 +50,7 @@ abstract class Module<T extends AsyncCallable> {
 
   /// The extensions defined in this module, which is also able to update
   /// [css]'s style rules in-place based on downstream extensions.
-  Extender get extender;
+  ExtensionStore get extensionStore;
 
   /// The module's CSS tree.
   CssStylesheet get css;
