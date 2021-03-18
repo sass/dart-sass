@@ -692,12 +692,12 @@ Value _hwb(List<Value> arguments) {
   var blackness = arguments[2].assertNumber("blackness");
 
   whiteness.assertUnit("%", "whiteness");
-  blackness.assertUnit("%", "whiteness");
+  blackness.assertUnit("%", "blackness");
 
   return SassColor.hwb(
       hue.value,
       whiteness.valueInRange(0, 100, "whiteness"),
-      blackness.valueInRange(0, 100, "whiteness"),
+      blackness.valueInRange(0, 100, "blackness"),
       alpha == null
           ? null
           : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
