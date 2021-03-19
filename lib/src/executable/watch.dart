@@ -82,7 +82,11 @@ class _Watcher {
       exitCode = 65;
       return false;
     } on FileSystemException catch (error, stackTrace) {
-      _printError("Error reading ${p.relative(error.path)}: ${error.message}.",
+      var path = error.path;
+      _printError(
+          path == null
+              ? error.message
+              : "Error reading ${p.relative(path)}: ${error.message}.",
           stackTrace);
       exitCode = 66;
       return false;

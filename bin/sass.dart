@@ -88,7 +88,11 @@ Future<void> main(List<String> args) async {
         if (exitCode != 66) exitCode = 65;
         if (options.stopOnError) return;
       } on FileSystemException catch (error, stackTrace) {
-        printError("Error reading ${p.relative(error.path)}: ${error.message}.",
+        var path = error.path;
+        printError(
+            path == null
+                ? error.message
+                : "Error reading ${p.relative(path)}: ${error.message}.",
             options.trace ? stackTrace : null);
 
         // Error 66 indicates no input.

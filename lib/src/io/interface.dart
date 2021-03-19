@@ -22,7 +22,7 @@ class Stderr {
 /// An error thrown by [readFile].
 class FileSystemException {
   String get message => throw '';
-  String get path => throw '';
+  String? get path => throw '';
 }
 
 /// The standard error for the current process.
