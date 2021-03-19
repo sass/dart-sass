@@ -30,7 +30,7 @@ class FunctionExpression implements Expression, CallableInvocation {
   /// The arguments to pass to the function.
   final ArgumentInvocation arguments;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   FunctionExpression(this.name, this.arguments, this.span, {this.namespace});
 

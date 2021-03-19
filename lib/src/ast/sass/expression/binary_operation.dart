@@ -5,7 +5,6 @@
 import 'package:source_span/source_span.dart';
 import 'package:charcode/charcode.dart';
 
-import '../../../utils.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
@@ -24,7 +23,7 @@ class BinaryOperationExpression implements Expression {
   /// interpreted as slash-separated numbers.
   final bool allowsSlash;
 
-  FileSpan? get span {
+  FileSpan get span {
     // Avoid creating a bunch of intermediate spans for multiple binary
     // expressions in a row by moving to the left- and right-most expressions.
     var left = this.left;
@@ -36,7 +35,7 @@ class BinaryOperationExpression implements Expression {
     while (right is BinaryOperationExpression) {
       right = right.right;
     }
-    return spanForList([left, right]);
+    return left.span.expand(right.span);
   }
 
   BinaryOperationExpression(this.operator, this.left, this.right)

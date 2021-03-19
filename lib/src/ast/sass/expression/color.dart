@@ -13,7 +13,7 @@ class ColorExpression implements Expression {
   /// The value of this color.
   final SassColor value;
 
-  FileSpan? get span => value.originalSpan;
+  FileSpan get span => value.originalSpan!;
 
   ColorExpression(this.value);
 

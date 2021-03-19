@@ -10,6 +10,7 @@ import '../ast/selector.dart';
 import '../callable.dart';
 import '../exception.dart';
 import '../extend/extension_store.dart';
+import '../functions.dart';
 import '../module/built_in.dart';
 import '../value.dart';
 
@@ -87,7 +88,8 @@ final _extend =
   var target = arguments[1].assertSelector(name: "extendee");
   var source = arguments[2].assertSelector(name: "extender");
 
-  return ExtensionStore.extend(selector, source, target).asSassList;
+  return ExtensionStore.extend(selector, source, target, currentCallableSpan)
+      .asSassList;
 });
 
 final _replace =
@@ -96,7 +98,8 @@ final _replace =
   var target = arguments[1].assertSelector(name: "original");
   var source = arguments[2].assertSelector(name: "replacement");
 
-  return ExtensionStore.replace(selector, source, target).asSassList;
+  return ExtensionStore.replace(selector, source, target, currentCallableSpan)
+      .asSassList;
 });
 
 final _unify = _function("unify", r"$selector1, $selector2", (arguments) {

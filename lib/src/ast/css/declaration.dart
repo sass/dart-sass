@@ -22,7 +22,7 @@ abstract class CssDeclaration extends CssNode {
   /// When the declaration's expression is just a variable, this is the span
   /// where that variable was declared whereas [value.span] is the span where
   /// the variable was used. Otherwise, this is identical to [value.span].
-  FileSpan? get valueSpanForMap;
+  FileSpan get valueSpanForMap;
 
   /// Returns whether this is a CSS Custom Property declaration.
   bool get isCustomProperty;

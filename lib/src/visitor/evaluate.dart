@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 52761b53fe4aa8212132088b2447d54028aa9f7c
+// Checksum: 6c0d909812330091658fa30b673c5f529917e30b
 //
 // ignore_for_file: unused_import
 
@@ -445,14 +445,14 @@ class _EvaluateVisitor
               throw "The variable \$$name was configured twice.";
             }
 
-            values[name] = ConfiguredValue(value, span, callableNode);
+            values[name] = ConfiguredValue.explicit(value, span, callableNode);
           });
-          configuration = Configuration(values, callableNode);
+          configuration = ExplicitConfiguration(values, callableNode);
         }
 
         _loadModule(url, "load-css()", callableNode,
             (module) => _combineCss(module, clone: true).accept(this),
-            baseUrl: callableNode.span?.sourceUrl,
+            baseUrl: callableNode.span.sourceUrl,
             configuration: configuration,
             namesInErrors: true);
         _assertConfigurationIsEmpty(configuration, nameInError: true);
@@ -475,8 +475,8 @@ class _EvaluateVisitor
   }
 
   EvaluateResult run(Importer? importer, Stylesheet node) {
-    return _withWarnCallback(() {
-      var url = node.span?.sourceUrl;
+    return _withWarnCallback(node, () {
+      var url = node.span.sourceUrl;
       if (url != null) {
         _activeModules[url] = null;
         if (_asNodeSass) {
@@ -495,18 +495,25 @@ class _EvaluateVisitor
   }
 
   Value runExpression(Importer? importer, Expression expression) =>
-      _withWarnCallback(() => _withFakeStylesheet(
-          importer, expression, () => expression.accept(this)));
+      _withWarnCallback(
+          expression,
+          () => _withFakeStylesheet(
+              importer, expression, () => expression.accept(this)));
 
   void runStatement(Importer? importer, Statement statement) =>
-      _withWarnCallback(() => _withFakeStylesheet(
-          importer, statement, () => statement.accept(this)));
+      _withWarnCallback(
+          statement,
+          () => _withFakeStylesheet(
+              importer, statement, () => statement.accept(this)));
 
   /// Runs [callback] with a definition for the top-level `warn` function.
-  T _withWarnCallback<T>(T callback()) {
+  ///
+  /// If no other span can be found to report a warning, falls back on
+  /// [nodeWithSpan]'s.
+  T _withWarnCallback<T>(AstNode nodeWithSpan, T callback()) {
     return withWarnCallback(
         (message, deprecation) => _warn(
-            message, _importSpan ?? _callableNode?.span,
+            message, _importSpan ?? _callableNode?.span ?? nodeWithSpan.span,
             deprecation: deprecation),
         callback);
   }
@@ -569,18 +576,16 @@ class _EvaluateVisitor
       var importer = result.item1;
       var stylesheet = result.item2;
 
-      var canonicalUrl = stylesheet.span?.sourceUrl;
+      var canonicalUrl = stylesheet.span.sourceUrl;
       if (canonicalUrl != null && _activeModules.containsKey(canonicalUrl)) {
         var message = namesInErrors
             ? "Module loop: ${p.prettyUri(canonicalUrl)} is already being "
                 "loaded."
             : "Module loop: this module is already being loaded.";
 
-        throw _activeModules[canonicalUrl].andThen((previousLoad) {
-              var span = previousLoad.span;
-              return _multiSpanException(message, "new load",
-                  {if (span != null) span: "original load"});
-            }) ??
+        throw _activeModules[canonicalUrl].andThen((previousLoad) =>
+                _multiSpanException(message, "new load",
+                    {previousLoad.span: "original load"})) ??
             _exception(message);
       }
       if (canonicalUrl != null) _activeModules[canonicalUrl] = nodeWithSpan;
@@ -625,7 +630,7 @@ class _EvaluateVisitor
       {Configuration? configuration,
       AstNode? nodeWithSpan,
       bool namesInErrors = false}) {
-    var url = stylesheet.span?.sourceUrl;
+    var url = stylesheet.span.sourceUrl;
 
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
@@ -1273,8 +1278,7 @@ class _EvaluateVisitor
                     if (!variable.isGuarded) variable.name
                 });
 
-      _assertConfigurationIsEmpty(newConfiguration,
-          only: {for (var variable in node.configuration) variable.name});
+      _assertConfigurationIsEmpty(newConfiguration);
     } else {
       _configuration = adjustedConfiguration;
       _loadModule(node.url, "@forward", node, (module) {
@@ -1286,7 +1290,7 @@ class _EvaluateVisitor
     return null;
   }
 
-  /// Updates [configuration] to include [node]'s configuration and return the
+  /// Updates [configuration] to include [node]'s configuration and returns the
   /// result.
   Configuration _addForwardConfiguration(
       Configuration configuration, ForwardRule node) {
@@ -1300,13 +1304,17 @@ class _EvaluateVisitor
         }
       }
 
-      newValues[variable.name] = ConfiguredValue(
+      newValues[variable.name] = ConfiguredValue.explicit(
           variable.expression.accept(this).withoutSlash(),
           variable.span,
           _expressionNode(variable.expression));
     }
 
-    return Configuration(newValues, node);
+    if (configuration is ExplicitConfiguration || configuration.isEmpty) {
+      return ExplicitConfiguration(newValues, node);
+    } else {
+      return Configuration.implicit(newValues);
+    }
   }
 
   /// Remove configured values from [upstream] that have been removed from
@@ -1329,17 +1337,19 @@ class _EvaluateVisitor
   /// variable in the error message. This should only be `true` if the name
   /// won't be obvious from the source span.
   void _assertConfigurationIsEmpty(Configuration configuration,
-      {Set<String>? only, bool nameInError = false}) {
-    configuration.values.forEach((name, value) {
-      if (only != null && !only.contains(name)) return;
+      {bool nameInError = false}) {
+    // By definition, implicit configurations are allowed to only use a subset
+    // of their values.
+    if (configuration is! ExplicitConfiguration) return;
 
-      throw _exception(
-          nameInError
-              ? "\$$name was not declared with !default in the @used module."
-              : "This variable was not declared with !default in the @used "
-                  "module.",
-          value.configurationSpan);
-    });
+    var entry = configuration.values.entries.first;
+    throw _exception(
+        nameInError
+            ? "\$${entry.key} was not declared with !default in the @used "
+                "module."
+            : "This variable was not declared with !default in the @used "
+                "module.",
+        entry.value.configurationSpan);
   }
 
   Value? visitFunctionRule(FunctionRule node) {
@@ -1383,14 +1393,12 @@ class _EvaluateVisitor
       var importer = result.item1;
       var stylesheet = result.item2;
 
-      var url = stylesheet.span?.sourceUrl;
+      var url = stylesheet.span.sourceUrl;
       if (url != null) {
         if (_activeModules.containsKey(url)) {
-          throw _activeModules[url].andThen((previousLoad) {
-                var span = previousLoad.span;
-                return _multiSpanException("This file is already being loaded.",
-                    "new load", {if (span != null) span: "original load"});
-              }) ??
+          throw _activeModules[url].andThen((previousLoad) =>
+                  _multiSpanException("This file is already being loaded.",
+                      "new load", {previousLoad.span: "original load"})) ??
               _exception("This file is already being loaded.");
         }
         _activeModules[url] = import;
@@ -1476,7 +1484,7 @@ class _EvaluateVisitor
   ///
   /// This first tries loading [url] relative to [baseUrl], which defaults to
   /// `_stylesheet.span.sourceUrl`.
-  Tuple2<Importer?, Stylesheet> _loadStylesheet(String url, FileSpan? span,
+  Tuple2<Importer?, Stylesheet> _loadStylesheet(String url, FileSpan span,
       {Uri? baseUrl, bool forImport = false}) {
     try {
       assert(_importSpan == null);
@@ -1486,7 +1494,7 @@ class _EvaluateVisitor
       if (importCache != null) {
         var tuple = importCache.import(Uri.parse(url),
             baseImporter: _importer,
-            baseUrl: baseUrl ?? _stylesheet.span?.sourceUrl,
+            baseUrl: baseUrl ?? _stylesheet.span.sourceUrl,
             forImport: forImport);
         if (tuple != null) return tuple;
       } else {
@@ -1520,8 +1528,8 @@ class _EvaluateVisitor
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
   Stylesheet? _importLikeNode(String originalUrl, bool forImport) {
-    var result = _nodeImporter!
-        .load(originalUrl, _stylesheet.span?.sourceUrl, forImport);
+    var result =
+        _nodeImporter!.load(originalUrl, _stylesheet.span.sourceUrl, forImport);
     if (result == null) return null;
 
     var contents = result.item1;
@@ -1578,12 +1586,11 @@ class _EvaluateVisitor
     } else if (mixin is UserDefinedCallable<Environment>) {
       if (node.content != null &&
           !(mixin.declaration as MixinRule).hasContent) {
-        var declarationSpan = mixin.declaration.arguments.spanWithName;
         throw MultiSpanSassRuntimeException(
             "Mixin doesn't accept a content block.",
             node.spanWithoutContent,
             "invocation",
-            {if (declarationSpan != null) declarationSpan: "declaration"},
+            {mixin.declaration.arguments.spanWithName: "declaration"},
             _stackTrace(node.spanWithoutContent));
       }
 
@@ -1899,9 +1906,9 @@ class _EvaluateVisitor
   Value? visitUseRule(UseRule node) {
     var configuration = node.configuration.isEmpty
         ? const Configuration.empty()
-        : Configuration({
+        : ExplicitConfiguration({
             for (var variable in node.configuration)
-              variable.name: ConfiguredValue(
+              variable.name: ConfiguredValue.explicit(
                   variable.expression.accept(this).withoutSlash(),
                   variable.span,
                   _expressionNode(variable.expression))
@@ -2193,12 +2200,11 @@ class _EvaluateVisitor
           var argumentWord = pluralize('argument', evaluated.named.keys.length);
           var argumentNames =
               toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
-          var declarationSpan = callable.declaration.arguments.spanWithName;
           throw MultiSpanSassRuntimeException(
               "No $argumentWord named $argumentNames.",
               nodeWithSpan.span,
               "invocation",
-              {if (declarationSpan != null) declarationSpan: "declaration"},
+              {callable.declaration.arguments.spanWithName: "declaration"},
               _stackTrace(nodeWithSpan.span));
         });
       });
@@ -2297,7 +2303,8 @@ class _EvaluateVisitor
 
     Value result;
     try {
-      result = callback(evaluated.positional);
+      result = withCurrentCallableNode(
+          nodeWithSpan, () => callback(evaluated.positional));
     } on SassRuntimeException {
       rethrow;
     } on MultiSpanSassScriptException catch (error) {
@@ -2325,13 +2332,12 @@ class _EvaluateVisitor
     if (evaluated.named.isEmpty) return result;
     if (argumentList.wereKeywordsAccessed) return result;
 
-    var declarationSpan = overload.spanWithName;
     throw MultiSpanSassRuntimeException(
         "No ${pluralize('argument', evaluated.named.keys.length)} named "
             "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
         nodeWithSpan.span,
         "invocation",
-        {if (declarationSpan != null) declarationSpan: "declaration"},
+        {overload.spanWithName: "declaration"},
         _stackTrace(nodeWithSpan.span));
   }
 
@@ -2425,35 +2431,39 @@ class _EvaluateVisitor
   /// for macros such as `if()`.
   Tuple2<List<Expression>, Map<String, Expression>> _evaluateMacroArguments(
       CallableInvocation invocation) {
-    var restArgs = invocation.arguments.rest;
-    if (restArgs == null) {
+    var restArgs_ = invocation.arguments.rest;
+    if (restArgs_ == null) {
       return Tuple2(
           invocation.arguments.positional, invocation.arguments.named);
     }
+    var restArgs = restArgs_; // dart-lang/sdk#45348
 
     var positional = invocation.arguments.positional.toList();
     var named = Map.of(invocation.arguments.named);
     var rest = restArgs.accept(this);
     if (rest is SassMap) {
-      _addRestMap(named, rest, invocation, (value) => ValueExpression(value));
+      _addRestMap(named, rest, invocation,
+          (value) => ValueExpression(value, restArgs.span));
     } else if (rest is SassList) {
-      positional.addAll(rest.asList.map((value) => ValueExpression(value)));
+      positional.addAll(
+          rest.asList.map((value) => ValueExpression(value, restArgs.span)));
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
-          named[key] = ValueExpression(value);
+          named[key] = ValueExpression(value, restArgs.span);
         });
       }
     } else {
-      positional.add(ValueExpression(rest));
+      positional.add(ValueExpression(rest, restArgs.span));
     }
 
-    var keywordRestArgs = invocation.arguments.keywordRest;
-    if (keywordRestArgs == null) return Tuple2(positional, named);
+    var keywordRestArgs_ = invocation.arguments.keywordRest;
+    if (keywordRestArgs_ == null) return Tuple2(positional, named);
+    var keywordRestArgs = keywordRestArgs_; // dart-lang/sdk#45348
 
     var keywordRest = keywordRestArgs.accept(this);
     if (keywordRest is SassMap) {
-      _addRestMap(
-          named, keywordRest, invocation, (value) => ValueExpression(value));
+      _addRestMap(named, keywordRest, invocation,
+          (value) => ValueExpression(value, keywordRestArgs.span));
       return Tuple2(positional, named);
     } else {
       throw _exception(
@@ -2770,7 +2780,8 @@ class _EvaluateVisitor
           namesByColor.containsKey(result)) {
         var alternative = BinaryOperationExpression(
             BinaryOperator.plus,
-            StringExpression(Interpolation([""], null), quotes: true),
+            StringExpression(Interpolation([""], interpolation.span),
+                quotes: true),
             expression);
         _warn(
             "You probably don't mean to use the color value "
@@ -2909,9 +2920,8 @@ class _EvaluateVisitor
 
   /// Creates a new stack frame with location information from [member] and
   /// [span].
-  Frame _stackFrame(String member, FileSpan? span) => frameForSpan(span, member,
-      url:
-          span?.sourceUrl.andThen((url) => _importCache?.humanize(url) ?? url));
+  Frame _stackFrame(String member, FileSpan span) => frameForSpan(span, member,
+      url: span.sourceUrl.andThen((url) => _importCache?.humanize(url) ?? url));
 
   /// Returns a stack trace at the current point.
   ///
@@ -2925,7 +2935,7 @@ class _EvaluateVisitor
   }
 
   /// Emits a warning with the given [message] about the given [span].
-  void _warn(String message, FileSpan? span, {bool deprecation = false}) =>
+  void _warn(String message, FileSpan span, {bool deprecation = false}) =>
       _logger.warn(message,
           span: span, trace: _stackTrace(span), deprecation: deprecation);
 
@@ -2960,20 +2970,15 @@ class _EvaluateVisitor
     try {
       return callback();
     } on SassFormatException catch (error) {
-      var errorSpan = error.span;
-      if (errorSpan == null) rethrow;
-
-      var nodeSpan = nodeWithSpan.span;
-      if (nodeSpan == null) rethrow;
-
-      var errorText = errorSpan.file.getText(0);
-      var syntheticFile = nodeSpan.file
+      var errorText = error.span.file.getText(0);
+      var span = nodeWithSpan.span;
+      var syntheticFile = span.file
           .getText(0)
-          .replaceRange(nodeSpan.start.offset, nodeSpan.end.offset, errorText);
+          .replaceRange(span.start.offset, span.end.offset, errorText);
       var syntheticSpan =
-          SourceFile.fromString(syntheticFile, url: nodeSpan.file.url).span(
-              nodeSpan.start.offset + errorSpan.start.offset,
-              nodeSpan.start.offset + errorSpan.end.offset);
+          SourceFile.fromString(syntheticFile, url: span.file.url).span(
+              span.start.offset + error.span.start.offset,
+              span.start.offset + error.span.end.offset);
       throw _exception(error.message, syntheticSpan);
     }
   }
@@ -3006,9 +3011,7 @@ class _EvaluateVisitor
     try {
       return callback();
     } on SassRuntimeException catch (error) {
-      var span = error.span;
-      if (span == null) rethrow;
-      if (span.text.startsWith("@error")) rethrow;
+      if (error.span.text.startsWith("@error")) rethrow;
       throw SassRuntimeException(
           error.message, nodeWithSpan.span, _stackTrace());
     }

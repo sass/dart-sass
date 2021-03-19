@@ -33,7 +33,7 @@ class IncludeRule implements Statement, CallableInvocation {
   /// Returns this include's span, without its content block (if it has one).
   FileSpan get spanWithoutContent => content == null
       ? span
-      : span.file.span(span.start.offset, arguments.span!.end.offset).trim();
+      : span.file.span(span.start.offset, arguments.span.end.offset).trim();
 
   IncludeRule(this.name, this.arguments, this.span,
       {this.namespace, this.content});

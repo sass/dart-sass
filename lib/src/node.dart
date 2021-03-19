@@ -175,9 +175,9 @@ RenderResult _renderSync(RenderOptions options) {
 JsError _wrapException(Object exception) {
   if (exception is SassException) {
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
-        line: exception.span.andThen((span) => span.start.line + 1),
-        column: exception.span.andThen((span) => span.start.column + 1),
-        file: exception.span?.sourceUrl.andThen(p.fromUri) ?? 'stdin',
+        line: exception.span.start.line + 1,
+        column: exception.span.start.column + 1,
+        file: exception.span.sourceUrl.andThen(p.fromUri) ?? 'stdin',
         status: 1);
   } else {
     return JsError(exception.toString());

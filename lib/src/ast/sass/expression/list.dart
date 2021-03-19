@@ -5,7 +5,6 @@
 import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../utils.dart';
 import '../../../value.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
@@ -22,16 +21,15 @@ class ListExpression implements Expression {
   /// Whether the list has square brackets or not.
   final bool hasBrackets;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   ListExpression(Iterable<Expression> contents, ListSeparator separator,
-      {bool brackets = false, FileSpan? span})
+      {bool brackets = false, required FileSpan span})
       : this._(List.unmodifiable(contents), separator, brackets, span);
 
-  ListExpression._(List<Expression> contents, this.separator, this.hasBrackets,
-      FileSpan? span)
-      : contents = contents,
-        span = span ?? spanForList(contents);
+  ListExpression._(
+      List<Expression> contents, this.separator, this.hasBrackets, this.span)
+      : contents = contents;
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitListExpression(this);

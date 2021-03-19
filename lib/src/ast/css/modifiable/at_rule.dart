@@ -14,7 +14,7 @@ class ModifiableCssAtRule extends ModifiableCssParentNode implements CssAtRule {
   final CssValue<String> name;
   final CssValue<String>? value;
   final bool isChildless;
-  final FileSpan? span;
+  final FileSpan span;
 
   ModifiableCssAtRule(this.name, this.span,
       {bool childless = false, this.value})

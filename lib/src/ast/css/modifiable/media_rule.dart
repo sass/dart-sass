@@ -13,7 +13,7 @@ import 'node.dart';
 class ModifiableCssMediaRule extends ModifiableCssParentNode
     implements CssMediaRule {
   final List<CssMediaQuery> queries;
-  final FileSpan? span;
+  final FileSpan span;
 
   ModifiableCssMediaRule(Iterable<CssMediaQuery> queries, this.span)
       : queries = List.unmodifiable(queries) {

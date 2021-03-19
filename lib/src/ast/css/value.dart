@@ -15,7 +15,7 @@ class CssValue<T extends Object> implements AstNode {
   final T value;
 
   /// The span associated with the value.
-  final FileSpan? span;
+  final FileSpan span;
 
   CssValue(this.value, this.span);
 

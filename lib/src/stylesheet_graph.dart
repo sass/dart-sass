@@ -399,5 +399,5 @@ class StylesheetNode {
   }
 
   String toString() =>
-      stylesheet.span?.sourceUrl.andThen(p.prettyUri) ?? '<unknown>';
+      stylesheet.span.sourceUrl.andThen(p.prettyUri) ?? '<unknown>';
 }

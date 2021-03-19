@@ -823,7 +823,7 @@ class AsyncEnvironment {
         // Implicit configurations are never invalid, making [configurationSpan]
         // unnecessary, so we pass null here to avoid having to compute it.
         configuration[entry.key] =
-            ConfiguredValue(entry.value, null, nodes[entry.key]);
+            ConfiguredValue.implicit(entry.value, nodes[entry.key]);
       }
     }
     return Configuration.implicit(configuration);
@@ -917,7 +917,7 @@ class AsyncEnvironment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements Module {
-  Uri? get url => css.span?.sourceUrl;
+  Uri? get url => css.span.sourceUrl;
 
   final List<Module> upstream;
   final Map<String, Value> variables;

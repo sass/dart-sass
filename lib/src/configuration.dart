@@ -26,11 +26,6 @@ class Configuration {
   Map<String, ConfiguredValue> get values => UnmodifiableMapView(_values);
   final Map<String, ConfiguredValue> _values;
 
-  /// Creates an explicit configuration with the given [values].
-  factory Configuration(
-          Map<String, ConfiguredValue> values, AstNode nodeWithSpan) =
-      ExplicitConfiguration._;
-
   /// Creates an implicit configuration with the given [values].
   Configuration.implicit(this._values);
 
@@ -78,8 +73,6 @@ class Configuration {
 /// A [Configuratoin] that was created with an explicit `with` clause of a
 /// `@use` rule.
 ///
-/// This is as opposed to *implicit* configurations, which are
-///
 /// Both types of configuration pass through `@forward` rules, but explicit
 /// configurations will cause an error if attempting to use them on a module
 /// that has already been loaded, while implicit configurations will be
@@ -88,11 +81,10 @@ class ExplicitConfiguration extends Configuration {
   /// The node whose span indicates where the configuration was declared.
   final AstNode nodeWithSpan;
 
-  ExplicitConfiguration._(
-      Map<String, ConfiguredValue> values, this.nodeWithSpan)
+  ExplicitConfiguration(Map<String, ConfiguredValue> values, this.nodeWithSpan)
       : super.implicit(values);
 
   /// Returns a copy of [this] with the given [values] map.
   Configuration _withValues(Map<String, ConfiguredValue> values) =>
-      Configuration(values, nodeWithSpan);
+      ExplicitConfiguration(values, nodeWithSpan);
 }

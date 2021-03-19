@@ -13,7 +13,7 @@ class LoudComment implements Statement {
   /// The interpolated text of this comment, including comment characters.
   final Interpolation text;
 
-  FileSpan? get span => text.span;
+  FileSpan get span => text.span;
 
   LoudComment(this.text);
 

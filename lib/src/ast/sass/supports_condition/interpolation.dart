@@ -12,7 +12,7 @@ class SupportsInterpolation implements SupportsCondition {
   /// The expression in the interpolation.
   final Expression expression;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   SupportsInterpolation(this.expression, this.span);
 

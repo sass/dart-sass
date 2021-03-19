@@ -15,7 +15,7 @@ class Interpolation implements SassNode {
   /// [String]s.
   final List<Object /* String | Expression */ > contents;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   /// If this contains no interpolated expressions, returns its text contents.
   ///

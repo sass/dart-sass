@@ -16,7 +16,7 @@ class UnaryOperationExpression implements Expression {
   /// The operand.
   final Expression operand;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   UnaryOperationExpression(this.operator, this.operand, this.span);
 

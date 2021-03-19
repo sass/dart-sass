@@ -656,7 +656,7 @@ class Parser {
 
   /// Prints a warning to standard error, associated with [span].
   @protected
-  void warn(String message, FileSpan? span) => logger.warn(message, span: span);
+  void warn(String message, FileSpan span) => logger.warn(message, span: span);
 
   /// Throws an error associated with [span].
   @protected

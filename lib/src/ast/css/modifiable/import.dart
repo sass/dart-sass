@@ -23,7 +23,7 @@ class ModifiableCssImport extends ModifiableCssNode implements CssImport {
   /// The media query attached to this import.
   final List<CssMediaQuery>? media;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   ModifiableCssImport(this.url, this.span,
       {this.supports, Iterable<CssMediaQuery>? media})

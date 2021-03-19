@@ -21,14 +21,11 @@ class ArgumentDeclaration implements SassNode {
   /// declared.
   final String? restArgument;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   /// Returns [span] expanded to include an identifier immediately before the
   /// declaration, if possible.
-  FileSpan? get spanWithName {
-    var span = this.span;
-    if (span == null) return null;
-
+  FileSpan get spanWithName {
     var text = span.file.getText(0);
 
     // Move backwards through and whitspace between the name and the arguments.
@@ -60,9 +57,6 @@ class ArgumentDeclaration implements SassNode {
   String? get originalRestArgument {
     if (restArgument == null) return null;
 
-    var span = this.span;
-    if (span == null) return '\$$restArgument';
-
     var text = span.text;
     var fromDollar = text.substring(text.lastIndexOf("\$"));
     return fromDollar.substring(0, text.indexOf("."));
@@ -72,11 +66,11 @@ class ArgumentDeclaration implements SassNode {
   bool get isEmpty => arguments.isEmpty && restArgument == null;
 
   ArgumentDeclaration(Iterable<Argument> arguments,
-      {this.restArgument, this.span})
+      {this.restArgument, required this.span})
       : arguments = List.unmodifiable(arguments);
 
   /// Creates a declaration that declares no arguments.
-  ArgumentDeclaration.empty({this.span})
+  ArgumentDeclaration.empty({required this.span})
       : arguments = const [],
         restArgument = null;
 
@@ -108,7 +102,7 @@ class ArgumentDeclaration implements SassNode {
         throw MultiSpanSassScriptException(
             "Missing argument ${_originalArgumentName(argument.name)}.",
             "invocation",
-            {spanWithName!: "declaration"});
+            {spanWithName: "declaration"});
       }
     }
 
@@ -122,7 +116,7 @@ class ArgumentDeclaration implements SassNode {
               "$positional ${pluralize('was', positional, plural: 'were')} "
               "passed.",
           "invocation",
-          {spanWithName!: "declaration"});
+          {spanWithName: "declaration"});
     }
 
     if (namedUsed < names.length) {
@@ -132,7 +126,7 @@ class ArgumentDeclaration implements SassNode {
           "No ${pluralize('argument', unknownNames.length)} named "
               "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
           "invocation",
-          {spanWithName!: "declaration"});
+          {spanWithName: "declaration"});
     }
   }
 

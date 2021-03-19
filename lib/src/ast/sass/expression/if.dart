@@ -20,7 +20,7 @@ class IfExpression implements Expression, CallableInvocation {
   /// The arguments passed to `if()`.
   final ArgumentInvocation arguments;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   IfExpression(this.arguments, this.span);
 

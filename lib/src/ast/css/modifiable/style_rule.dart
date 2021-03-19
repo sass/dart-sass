@@ -15,7 +15,7 @@ class ModifiableCssStyleRule extends ModifiableCssParentNode
     implements CssStyleRule {
   final ModifiableCssValue<SelectorList> selector;
   final SelectorList originalSelector;
-  final FileSpan? span;
+  final FileSpan span;
 
   /// Creates a new [ModifiableCssStyleRule].
   ///

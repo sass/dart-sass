@@ -16,8 +16,8 @@ class ModifiableCssDeclaration extends ModifiableCssNode
   final CssValue<String> name;
   final CssValue<Value> value;
   final bool parsedAsCustomProperty;
-  final FileSpan? valueSpanForMap;
-  final FileSpan? span;
+  final FileSpan valueSpanForMap;
+  final FileSpan span;
 
   bool get isCustomProperty => name.value.startsWith('--');
 

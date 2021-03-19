@@ -35,7 +35,7 @@ class MergedExtension extends Extension {
         right.mediaContext != null &&
         !listEquals(left.mediaContext, right.mediaContext)) {
       throw SassException(
-          "From ${left.span!.message('')}\n"
+          "From ${left.span.message('')}\n"
           "You may not @extend the same selector from within different media "
           "queries.",
           right.span);

@@ -12,7 +12,8 @@ class ConfiguredValue {
   /// The value of the variable.
   final Value value;
 
-  /// The span where the variable's configuration was written.
+  /// The span where the variable's configuration was written, or `null` if this
+  /// value was configured implicitly.
   final FileSpan? configurationSpan;
 
   /// The [AstNode] where the variable's value originated.
@@ -20,5 +21,13 @@ class ConfiguredValue {
   /// This is used to generate source maps.
   final AstNode? assignmentNode;
 
-  ConfiguredValue(this.value, this.configurationSpan, this.assignmentNode);
+  /// Creates a variable value that's been configured explicitly with a `with`
+  /// clause.
+  ConfiguredValue.explicit(
+      this.value, this.configurationSpan, this.assignmentNode);
+
+  /// Creates a variable value that's implicitly configured by setting a
+  /// variable prior to an `@import` of a file that contains a `@forward`.
+  ConfiguredValue.implicit(this.value, this.assignmentNode)
+      : configurationSpan = null;
 }

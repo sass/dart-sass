@@ -10,9 +10,7 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
-import 'ast/node.dart';
 import 'util/character.dart';
-import 'util/nullable.dart';
 
 /// The URL used in stack traces when no source URL is available.
 final _noSourceUrl = Uri.parse("-");
@@ -206,28 +204,11 @@ int mapHash(Map<Object, Object> map) =>
 ///
 /// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
 /// passed, it's used instead.
-Frame frameForSpan(SourceSpan? span, String member, {Uri? url}) => Frame(
-    url ?? span?.sourceUrl ?? _noSourceUrl,
-    span.andThen((span) => span.start.line + 1) ?? 1,
-    span.andThen((span) => span.start.column + 1) ?? 1,
+Frame frameForSpan(SourceSpan span, String member, {Uri? url}) => Frame(
+    url ?? span.sourceUrl ?? _noSourceUrl,
+    span.start.line + 1,
+    span.start.column + 1,
     member);
-
-/// Returns a source span that covers the spans of both the first and last nodes
-/// in [nodes].
-///
-/// If [nodes] is empty, or if either the first or last node has a `null` span,
-/// returns `null`.
-FileSpan? spanForList(List<AstNode> nodes) {
-  if (nodes.isEmpty) return null;
-
-  var left = nodes.first.span;
-  if (left == null) return null;
-
-  var right = nodes.last.span;
-  if (right == null) return null;
-
-  return left.expand(right);
-}
 
 /// Returns the variable name (including the leading `$`) from a [span] that
 /// covers a variable declaration, which includes the variable name as well as

@@ -717,7 +717,7 @@ abstract class StylesheetParser extends Parser {
         error(
             "@function rules may not contain "
             "${statement is StyleRule ? "style rules" : "declarations"}.",
-            statement.span!);
+            statement.span);
       }
     }
 
@@ -1216,7 +1216,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     var span =
-        scanner.spanFrom(start, start).expand((content ?? arguments).span!);
+        scanner.spanFrom(start, start).expand((content ?? arguments).span);
     return IncludeRule(name, arguments, span,
         namespace: namespace, content: content);
   }
@@ -1554,7 +1554,7 @@ relase. For details, see http://bit.ly/moz-document.
       arguments.add(Argument(name,
           span: scanner.spanFrom(variableStart), defaultValue: defaultValue));
       if (!named.add(name)) {
-        error("Duplicate argument.", arguments.last.span!);
+        error("Duplicate argument.", arguments.last.span);
       }
 
       if (!scanner.scanChar($comma)) break;
@@ -1603,7 +1603,7 @@ relase. For details, see http://bit.ly/moz-document.
         }
       } else if (named.isNotEmpty) {
         error("Positional arguments must come before keyword arguments.",
-            expression.span!);
+            expression.span);
       } else {
         positional.add(expression);
       }
@@ -1791,8 +1791,9 @@ relase. For details, see http://bit.ly/moz-document.
         if (singleExpression == null) scanner.error("Expected expression.");
 
         spaceExpressions.add(singleExpression);
-        singleExpression_ =
-            ListExpression(spaceExpressions, ListSeparator.space);
+        singleExpression_ = ListExpression(
+            spaceExpressions, ListSeparator.space,
+            span: spaceExpressions.first.span.expand(singleExpression.span));
         spaceExpressions_ = null;
       }
     }
@@ -2054,18 +2055,18 @@ relase. For details, see http://bit.ly/moz-document.
       var singleExpression = singleExpression_;
       if (singleExpression != null) commaExpressions.add(singleExpression);
       return ListExpression(commaExpressions, ListSeparator.comma,
-          brackets: bracketList, span: beforeBracket.andThen(scanner.spanFrom));
+          brackets: bracketList, span: scanner.spanFrom(beforeBracket!));
     } else if (bracketList && spaceExpressions != null) {
       resolveOperations();
       return ListExpression(
           spaceExpressions..add(singleExpression_!), ListSeparator.space,
-          brackets: true, span: beforeBracket.andThen(scanner.spanFrom));
+          brackets: true, span: scanner.spanFrom(beforeBracket!));
     } else {
       resolveSpaceExpressions();
       if (bracketList) {
         singleExpression_ = ListExpression(
             [singleExpression_!], ListSeparator.undecided,
-            brackets: true, span: beforeBracket.andThen(scanner.spanFrom));
+            brackets: true, span: scanner.spanFrom(beforeBracket!));
       }
       return singleExpression_!;
     }
@@ -2603,7 +2604,8 @@ relase. For details, see http://bit.ly/moz-document.
     if (plain != null) {
       if (plain == "if") {
         var invocation = _argumentInvocation();
-        return IfExpression(invocation, spanForList([identifier, invocation]));
+        return IfExpression(
+            invocation, identifier.span.expand(invocation.span));
       } else if (plain == "not") {
         whitespace();
         return UnaryOperationExpression(
@@ -2639,7 +2641,7 @@ relase. For details, see http://bit.ly/moz-document.
         scanner.readChar();
 
         if (plain == null) {
-          error("Interpolation isn't allowed in namespaces.", identifier.span!);
+          error("Interpolation isn't allowed in namespaces.", identifier.span);
         }
 
         if (scanner.peekChar() == $dollar) {
@@ -3416,7 +3418,7 @@ relase. For details, see http://bit.ly/moz-document.
     if (_lookingAtInterpolatedIdentifier()) {
       var identifier = interpolatedIdentifier();
       if (identifier.asPlain?.toLowerCase() == "not") {
-        error('"not" is not a valid identifier here.', identifier.span!);
+        error('"not" is not a valid identifier here.', identifier.span);
       }
 
       if (scanner.scanChar($lparen)) {
@@ -3426,7 +3428,7 @@ relase. For details, see http://bit.ly/moz-document.
         return SupportsFunction(identifier, arguments, scanner.spanFrom(start));
       } else if (identifier.contents.length != 1 ||
           identifier.contents.first is! Expression) {
-        error("Expected @supports condition.", identifier.span!);
+        error("Expected @supports condition.", identifier.span);
       } else {
         return SupportsInterpolation(
             identifier.contents.first as Expression, scanner.spanFrom(start));

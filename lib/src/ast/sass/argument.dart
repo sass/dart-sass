@@ -16,20 +16,17 @@ class Argument implements SassNode {
   /// The default value of this argument, or `null` if none was declared.
   final Expression? defaultValue;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   /// The variable name as written in the document, without underscores
   /// converted to hyphens and including the leading `$`.
   ///
   /// This isn't particularly efficient, and should only be used for error
   /// messages.
-  String get originalName {
-    var span = this.span;
-    if (span == null) return '\$$name';
-    return defaultValue == null ? span.text : declarationName(span);
-  }
+  String get originalName =>
+      defaultValue == null ? span.text : declarationName(span);
 
-  Argument(this.name, {this.defaultValue, this.span});
+  Argument(this.name, {this.defaultValue, required this.span});
 
   String toString() => defaultValue == null ? name : "$name: $defaultValue";
 }

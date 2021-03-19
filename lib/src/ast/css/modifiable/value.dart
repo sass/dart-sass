@@ -9,7 +9,7 @@ import '../value.dart';
 /// A modifiable version of [CssValue] for use in the evaluation step.
 class ModifiableCssValue<T extends Object> implements CssValue<T> {
   T value;
-  final FileSpan? span;
+  final FileSpan span;
 
   ModifiableCssValue(this.value, this.span);
 

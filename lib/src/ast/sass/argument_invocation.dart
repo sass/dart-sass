@@ -21,7 +21,7 @@ class ArgumentInvocation implements SassNode {
   /// The second rest argument, which is expected to only contain a keyword map.
   final Expression? keywordRest;
 
-  final FileSpan? span;
+  final FileSpan span;
 
   /// Returns whether this invocation passes no arguments.
   bool get isEmpty => positional.isEmpty && named.isEmpty && rest == null;

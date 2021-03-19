@@ -188,10 +188,7 @@ class _SerializeVisitor
         return;
       }
 
-      var span = node.span;
-      if (span != null) {
-        minimumIndentation = math.min(minimumIndentation, span.start.column);
-      }
+      minimumIndentation = math.min(minimumIndentation, node.span.start.column);
 
       _writeIndentation();
       _writeWithIndent(node.text, minimumIndentation);
@@ -392,11 +389,8 @@ class _SerializeVisitor
       return;
     }
 
-    var span = node.value.span;
-    if (span != null) {
-      minimumIndentation = math.min(minimumIndentation, span.start.column);
-    }
-
+    minimumIndentation =
+        math.min(minimumIndentation, node.value.span.start.column);
     _writeWithIndent(value, minimumIndentation);
   }
 

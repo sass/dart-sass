@@ -24,7 +24,7 @@ import 'variable_declaration.dart';
 ///
 /// This is the root Sass node. It contains top-level statements.
 class Stylesheet extends ParentStatement<List<Statement>> {
-  final FileSpan? span;
+  final FileSpan span;
 
   /// Whether this was parsed from a plain CSS stylesheet.
   final bool plainCss;

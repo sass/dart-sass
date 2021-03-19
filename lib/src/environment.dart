@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f76eacd7d649c2bc26f0c2745a9e892c79dfcde3
+// Checksum: 321e236c574d6623660d9a1ce6d9b7507442a318
 //
 // ignore_for_file: unused_import
 
@@ -829,7 +829,7 @@ class Environment {
         // Implicit configurations are never invalid, making [configurationSpan]
         // unnecessary, so we pass null here to avoid having to compute it.
         configuration[entry.key] =
-            ConfiguredValue(entry.value, null, nodes[entry.key]);
+            ConfiguredValue.implicit(entry.value, nodes[entry.key]);
       }
     }
     return Configuration.implicit(configuration);
@@ -924,7 +924,7 @@ class Environment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements Module<Callable> {
-  Uri? get url => css.span?.sourceUrl;
+  Uri? get url => css.span.sourceUrl;
 
   final List<Module<Callable>> upstream;
   final Map<String, Value> variables;

@@ -142,7 +142,7 @@ Future<CompileResult> _compileStylesheet(
     mapInPlace<String>(
         resultSourceMap.urls,
         (url) => url == ''
-            ? Uri.dataFromString(stylesheet.span!.file.getText(0),
+            ? Uri.dataFromString(stylesheet.span.file.getText(0),
                     encoding: utf8)
                 .toString()
             : importCache.sourceMapUrl(Uri.parse(url)).toString());

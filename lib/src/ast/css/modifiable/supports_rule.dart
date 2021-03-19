@@ -13,7 +13,7 @@ import 'node.dart';
 class ModifiableCssSupportsRule extends ModifiableCssParentNode
     implements CssSupportsRule {
   final CssValue<String> condition;
-  final FileSpan? span;
+  final FileSpan span;
 
   ModifiableCssSupportsRule(this.condition, this.span);
 

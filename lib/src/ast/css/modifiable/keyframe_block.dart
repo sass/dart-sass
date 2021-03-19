@@ -13,7 +13,7 @@ import 'node.dart';
 class ModifiableCssKeyframeBlock extends ModifiableCssParentNode
     implements CssKeyframeBlock {
   final CssValue<List<String>> selector;
-  final FileSpan? span;
+  final FileSpan span;
 
   ModifiableCssKeyframeBlock(this.selector, this.span);
 

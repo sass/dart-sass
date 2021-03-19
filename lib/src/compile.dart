@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 399932f6eea5cbf7a1c7851ca9e1b5455e14564c
+// Checksum: dcb7cfbedf1e1189808c0056debf6a68bd387dab
 //
 // ignore_for_file: unused_import
 
@@ -152,7 +152,7 @@ CompileResult _compileStylesheet(
     mapInPlace<String>(
         resultSourceMap.urls,
         (url) => url == ''
-            ? Uri.dataFromString(stylesheet.span!.file.getText(0),
+            ? Uri.dataFromString(stylesheet.span.file.getText(0),
                     encoding: utf8)
                 .toString()
             : importCache.sourceMapUrl(Uri.parse(url)).toString());

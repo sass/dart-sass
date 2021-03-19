@@ -17,7 +17,7 @@ class NoSourceMapBuffer implements SourceMapBuffer {
   int get length => _buffer.length;
   Map<String, SourceFile> get sourceFiles => const {};
 
-  T forSpan<T>(SourceSpan? span, T callback()) => callback();
+  T forSpan<T>(SourceSpan span, T callback()) => callback();
   void write(Object? object) => _buffer.write(object);
   void writeAll(Iterable<Object?> objects, [String separator = ""]) =>
       _buffer.writeAll(objects, separator);

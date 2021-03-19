@@ -12,7 +12,7 @@ import 'node.dart';
 /// A modifiable version of [CssComment] for use in the evaluation step.
 class ModifiableCssComment extends ModifiableCssNode implements CssComment {
   final String text;
-  final FileSpan? span;
+  final FileSpan span;
 
   bool get isPreserved => text.codeUnitAt(2) == $exclamation;
 
