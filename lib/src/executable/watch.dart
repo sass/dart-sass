@@ -211,6 +211,7 @@ class _Watcher {
 
       return [
         for (var entry in typeForPath.entries)
+          // PathMap always has nullable keys
           WatchEvent(entry.value, entry.key!)
       ];
     });

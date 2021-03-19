@@ -19,7 +19,7 @@ class ContentRule implements Statement {
 
   ContentRule(this.arguments, this.span);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentRule(this);
 
   String toString() =>
       arguments.isEmpty ? "@content;" : "@content($arguments);";

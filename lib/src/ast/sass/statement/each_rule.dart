@@ -26,7 +26,7 @@ class EachRule extends ParentStatement<List<Statement>> {
       : variables = List.unmodifiable(variables),
         super(List.unmodifiable(children));
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);
 
   String toString() =>
       "@each ${variables.map((variable) => '\$' + variable).join(', ')} in "

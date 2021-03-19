@@ -19,7 +19,7 @@ class DebugRule implements Statement {
 
   DebugRule(this.expression, this.span);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitDebugRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitDebugRule(this);
 
   String toString() => "@debug $expression;";
 }

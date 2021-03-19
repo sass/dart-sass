@@ -106,7 +106,7 @@ class ForwardRule implements Statement {
         configuration =
             configuration == null ? const [] : List.unmodifiable(configuration);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this);
 
   String toString() {
     var buffer =

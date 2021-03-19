@@ -22,7 +22,7 @@ class AtRule extends ParentStatement {
   AtRule(this.name, this.span, {this.value, Iterable<Statement>? children})
       : super(children == null ? null : List.unmodifiable(children));
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);
 
   String toString() {
     var buffer = StringBuffer("@$name");

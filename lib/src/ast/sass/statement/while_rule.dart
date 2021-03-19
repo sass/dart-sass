@@ -22,7 +22,7 @@ class WhileRule extends ParentStatement<List<Statement>> {
   WhileRule(this.condition, Iterable<Statement> children, this.span)
       : super(List<Statement>.unmodifiable(children));
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitWhileRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitWhileRule(this);
 
   String toString() => "@while $condition {${children.join(" ")}}";
 }

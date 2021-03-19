@@ -953,7 +953,7 @@ class _EnvironmentModule implements Module {
             forwarded.map((module) => module.variables)),
         environment._variableNodes.andThen((nodes) => _memberMap(
             nodes.first,
-            // `forwarded!` due to dart-lang/sdk#45348
+            // dart-lang/sdk#45348
             forwarded!.map((module) => module.variableNodes!))),
         _memberMap(environment._functions.first,
             forwarded.map((module) => module.functions)),

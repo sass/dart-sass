@@ -18,7 +18,7 @@ class ImportRule implements Statement {
   ImportRule(Iterable<Import> imports, this.span)
       : imports = List.unmodifiable(imports);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitImportRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitImportRule(this);
 
   String toString() => "@import ${imports.join(', ')};";
 }

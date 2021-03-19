@@ -55,5 +55,5 @@ class Declaration extends ParentStatement {
     }
   }
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
 }

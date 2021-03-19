@@ -36,23 +36,23 @@ List<List<ComplexSelectorComponent>>? unifyComplex(
   List<SimpleSelector>? unifiedBase;
   for (var complex in complexes) {
     var base = complex.last;
-    if (base is CompoundSelector) {
-      if (unifiedBase == null) {
-        unifiedBase = base.components;
-      } else {
-        for (var simple in base.components) {
-          unifiedBase = simple.unify(unifiedBase!);
-          if (unifiedBase == null) return null;
-        }
-      }
+    if (base is! CompoundSelector) return null;
+
+    assert(base.components.isNotEmpty);
+    if (unifiedBase == null) {
+      unifiedBase = base.components;
     } else {
-      return null;
+      for (var simple in base.components) {
+        unifiedBase = simple.unify(unifiedBase!); // dart-lang/sdk#45348
+        if (unifiedBase == null) return null;
+      }
     }
   }
 
   var complexesWithoutBases = complexes
       .map((complex) => complex.sublist(0, complex.length - 1))
       .toList();
+  // By the time we make it here, [unifiedBase] must be non-null.
   complexesWithoutBases.last.add(CompoundSelector(unifiedBase!));
   return weave(complexesWithoutBases);
 }
@@ -63,13 +63,14 @@ List<List<ComplexSelectorComponent>>? unifyComplex(
 /// If no such selector can be produced, returns `null`.
 CompoundSelector? unifyCompound(
     List<SimpleSelector> compound1, List<SimpleSelector> compound2) {
-  List<SimpleSelector>? result = compound2;
+  var result = compound2;
   for (var simple in compound1) {
-    result = simple.unify(result!);
-    if (result == null) return null;
+    var unified = simple.unify(result);
+    if (unified == null) return null;
+    result = unified;
   }
 
-  return CompoundSelector(result!);
+  return CompoundSelector(result);
 }
 
 /// Returns a [SimpleSelector] that matches only elements that are matched by
@@ -726,7 +727,12 @@ bool _simpleIsSuperselectorOfCompound(
 bool _selectorPseudoIsSuperselector(
     PseudoSelector pseudo1, CompoundSelector compound2,
     {Iterable<ComplexSelectorComponent>? parents}) {
-  var selector1 = pseudo1.selector!;
+  var selector1_ = pseudo1.selector;
+  if (selector1_ == null) {
+    throw ArgumentError("Selector $pseudo1 must have a selector argument.");
+  }
+  var selector1 = selector1_; // dart-lang/sdk#45348
+
   switch (pseudo1.normalizedName) {
     case 'matches':
     case 'any':

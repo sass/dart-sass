@@ -312,25 +312,17 @@ List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
   return backtrack(list1.length - 1, list2.length - 1);
 }
 
-/// Removes and returns the first value in [list] that matches [test].
+/// Removes the first value in [list] that matches [test].
 ///
-/// By default, throws a [StateError] if no value matches. If [orElse] is
-/// passed, its return value is used instead.
-T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()?}) {
-  T? toRemove;
-  for (var element in list) {
-    if (!test(element)) continue;
-    toRemove = element;
-    break;
+/// If [orElse] is passed, calls it if no value matches.
+void removeFirstWhere<T>(List<T> list, bool test(T value), {void orElse()?}) {
+  for (var i = 0; i < list.length; i++) {
+    if (!test(list[i])) continue;
+    list.removeAt(i);
+    return;
   }
 
-  if (toRemove == null) {
-    if (orElse != null) return orElse();
-    throw StateError("No such element.");
-  } else {
-    list.remove(toRemove);
-    return toRemove;
-  }
+  if (orElse != null) orElse();
 }
 
 /// Like [Map.addAll], but for two-layer maps.

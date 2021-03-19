@@ -19,7 +19,7 @@ class SupportsRule extends ParentStatement<List<Statement>> {
   SupportsRule(this.condition, Iterable<Statement> children, this.span)
       : super(List.unmodifiable(children));
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this);
 
   String toString() => "@supports $condition {${children.join(' ')}}";
 }

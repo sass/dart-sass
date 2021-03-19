@@ -97,7 +97,7 @@ class Stylesheet extends ParentStatement<List<Statement>> {
   factory Stylesheet.parseCss(String contents, {Object? url, Logger? logger}) =>
       CssParser(contents, url: url, logger: logger).parse();
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);
 
   String toString() => children.join(" ");
 }

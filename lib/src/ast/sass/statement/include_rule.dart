@@ -38,7 +38,7 @@ class IncludeRule implements Statement, CallableInvocation {
   IncludeRule(this.name, this.arguments, this.span,
       {this.namespace, this.content});
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 
   String toString() {
     var buffer = StringBuffer("@include ");

@@ -23,7 +23,7 @@ class StyleRule extends ParentStatement<List<Statement>> {
   StyleRule(this.selector, Iterable<Statement> children, this.span)
       : super(List.unmodifiable(children));
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this);
 
   String toString() => "$selector {${children.join(" ")}}";
 }

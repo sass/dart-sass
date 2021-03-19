@@ -48,7 +48,7 @@ class UseRule implements Statement {
   factory UseRule.parse(String contents, {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parseUseRule();
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);
 
   String toString() {
     var buffer =

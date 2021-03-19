@@ -34,7 +34,7 @@ class IfRule implements Statement {
   IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
       : clauses = List.unmodifiable(clauses);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
 
   String toString() {
     var first = true;

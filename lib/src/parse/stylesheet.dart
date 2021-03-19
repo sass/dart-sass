@@ -3350,8 +3350,9 @@ relase. For details, see http://bit.ly/moz-document.
         whitespace();
         buffer.add(_expressionUntilComparison());
 
-        if ((next == $langle || next == $rangle) && scanner.scanChar(next!)) {
-          // dart-lang/sdk#45356
+        if ((next == $langle || next == $rangle) &&
+            // dart-lang/sdk#45356
+            scanner.scanChar(next!)) {
           buffer.writeCharCode($space);
           buffer.writeCharCode(next);
           if (scanner.scanChar($equal)) buffer.writeCharCode($equal);

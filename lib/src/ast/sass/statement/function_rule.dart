@@ -19,7 +19,7 @@ class FunctionRule extends CallableDeclaration {
       {SilentComment? comment})
       : super(name, arguments, children, span, comment: comment);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);
 
   String toString() => "@function $name($arguments) {${children.join(' ')}}";
 }

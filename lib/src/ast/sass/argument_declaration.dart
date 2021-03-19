@@ -49,19 +49,6 @@ class ArgumentDeclaration implements SassNode {
     return span.file.span(i + 1, span.end.offset).trim();
   }
 
-  /// The name of the rest argument as written in the document, without
-  /// underscores converted to hyphens and including the leading `$`.
-  ///
-  /// This isn't particularly efficient, and should only be used for error
-  /// messages.
-  String? get originalRestArgument {
-    if (restArgument == null) return null;
-
-    var text = span.text;
-    var fromDollar = text.substring(text.lastIndexOf("\$"));
-    return fromDollar.substring(0, text.indexOf("."));
-  }
-
   /// Returns whether this declaration takes no arguments.
   bool get isEmpty => arguments.isEmpty && restArgument == null;
 
@@ -133,7 +120,11 @@ class ArgumentDeclaration implements SassNode {
   /// Returns the argument named [name] with a leading `$` and its original
   /// underscores (which are otherwise converted to hyphens).
   String _originalArgumentName(String name) {
-    if (name == restArgument) return originalRestArgument!;
+    if (name == restArgument) {
+      var text = span.text;
+      var fromDollar = text.substring(text.lastIndexOf("\$"));
+      return fromDollar.substring(0, text.indexOf("."));
+    }
 
     for (var argument in arguments) {
       if (argument.name == name) return argument.originalName;

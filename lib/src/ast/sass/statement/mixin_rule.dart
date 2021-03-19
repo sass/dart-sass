@@ -27,7 +27,7 @@ class MixinRule extends CallableDeclaration {
       {this.hasContent = false, SilentComment? comment})
       : super(name, arguments, children, span, comment: comment);
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
 
   String toString() {
     var buffer = StringBuffer("@mixin $name");

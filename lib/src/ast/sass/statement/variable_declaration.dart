@@ -72,7 +72,7 @@ class VariableDeclaration implements Statement {
       ScssParser(contents, url: url, logger: logger).parseVariableDeclaration();
 
   T accept<T>(StatementVisitor<T> visitor) =>
-      visitor.visitVariableDeclaration(this)!;
+      visitor.visitVariableDeclaration(this);
 
   String toString() {
     var buffer = StringBuffer("\$");

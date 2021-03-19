@@ -98,14 +98,13 @@ class SingleUnitSassNumber extends SassNumber {
       num value, List<String> otherNumerators, List<String> otherDenominators) {
     var newNumerators = otherNumerators;
     var mutableOtherDenominators = otherDenominators.toList();
-    removeFirstWhere<String?>(mutableOtherDenominators, (denominator) {
-      var factor = conversionFactor(denominator!, _unit);
+    removeFirstWhere<String>(mutableOtherDenominators, (denominator) {
+      var factor = conversionFactor(denominator, _unit);
       if (factor == null) return false;
       value *= factor;
       return true;
     }, orElse: () {
       newNumerators = [_unit, ...newNumerators];
-      return null;
     });
 
     return SassNumber.withUnits(value,

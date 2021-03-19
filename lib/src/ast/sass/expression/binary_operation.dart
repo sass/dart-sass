@@ -48,7 +48,7 @@ class BinaryOperationExpression implements Expression {
         allowsSlash = true;
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
-      visitor.visitBinaryOperationExpression(this)!;
+      visitor.visitBinaryOperationExpression(this);
 
   String toString() {
     var buffer = StringBuffer();

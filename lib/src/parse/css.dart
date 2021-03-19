@@ -105,7 +105,7 @@ class CssParser extends ScssParser {
   Expression identifierLike() {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
-    var plain = identifier.asPlain!;
+    var plain = identifier.asPlain!; // CSS doesn't allow non-plain identifiers
 
     var specialFunction = trySpecialFunction(plain.toLowerCase(), start);
     if (specialFunction != null) return specialFunction;

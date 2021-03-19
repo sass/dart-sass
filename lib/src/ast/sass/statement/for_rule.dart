@@ -33,7 +33,7 @@ class ForRule extends ParentStatement<List<Statement>> {
       : isExclusive = exclusive,
         super(List.unmodifiable(children));
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);
 
   String toString() =>
       "@for \$$variable from $from ${isExclusive ? 'to' : 'through'} $to "

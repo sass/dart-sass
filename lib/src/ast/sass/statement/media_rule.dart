@@ -21,7 +21,7 @@ class MediaRule extends ParentStatement<List<Statement>> {
   MediaRule(this.query, Iterable<Statement> children, this.span)
       : super(List.unmodifiable(children));
 
-  T accept<T>(StatementVisitor<T> visitor) => visitor.visitMediaRule(this)!;
+  T accept<T>(StatementVisitor<T> visitor) => visitor.visitMediaRule(this);
 
   String toString() => "@media $query {${children.join(" ")}}";
 }
