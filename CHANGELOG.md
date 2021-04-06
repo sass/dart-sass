@@ -4,6 +4,13 @@
 
 * Allow the null safety release of args and watcher.
 
+### JavaScript API
+
+* Drop support for Chokidar 2.x. This version was incompatible with Node 14, but
+  due to shortcomings in npm's version resolver sometimes still ended up
+  installed anyway. Only declaring support for 3.0.0 should ensure compatibility
+  going forward.
+
 ## 1.32.8
 
 * Update chokidar version for Node API tests.
