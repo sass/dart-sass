@@ -533,11 +533,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
         if (factor == null) return false;
         value /= factor;
         return true;
-      },
-          orElse: () {
-            newNumerators.add(numerator);
-            return null;
-          } as String Function()?);
+      }, orElse: () => newNumerators.add(numerator));
     }
 
     var mutableDenominatorUnits = denominatorUnits.toList();
@@ -547,11 +543,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
         if (factor == null) return false;
         value /= factor;
         return true;
-      },
-          orElse: () {
-            newNumerators.add(numerator);
-            return null;
-          } as String Function()?);
+      }, orElse: () => newNumerators.add(numerator));
     }
 
     return SassNumber.withUnits(value,

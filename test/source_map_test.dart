@@ -907,7 +907,10 @@ String _mapToString(SingleMapping map, String sourceText, String targetText) {
         targetScanner.column == entry.target.column) {
       var name = entryNames[Tuple2(entry.source.line, entry.source.column)];
       targetBuffer.write("{{$name}}");
-      entryIter.moveNext();
+      if (!entryIter.moveNext()) {
+        targetBuffer.write(targetScanner.rest);
+        break;
+      }
     }
 
     targetBuffer.writeCharCode(targetScanner.readChar());

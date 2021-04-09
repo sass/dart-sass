@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f094bb66f285333969530af129201a999636e72f
+// Checksum: d0e1d0b2e493163e931c957d869473aa57c5b46b
 //
 // ignore_for_file: unused_import
 
@@ -172,7 +172,10 @@ class _EvaluateVisitor
   List<CssMediaQuery>? _mediaQueries;
 
   /// The current parent node in the output CSS tree.
-  late ModifiableCssParentNode _parent;
+  ModifiableCssParentNode get _parent => _assertInModule(__parent, "__parent");
+  set _parent(ModifiableCssParentNode value) => __parent = value;
+
+  ModifiableCssParentNode? __parent;
 
   /// The name of the current declaration parent.
   String? _declarationName;
@@ -250,14 +253,20 @@ class _EvaluateVisitor
   Importer? _importer;
 
   /// The stylesheet that's currently being evaluated.
-  late Stylesheet _stylesheet;
+  Stylesheet get _stylesheet => _assertInModule(__stylesheet, "_stylesheet");
+  set _stylesheet(Stylesheet value) => __stylesheet = value;
+  Stylesheet? __stylesheet;
 
   /// The root stylesheet node.
-  late ModifiableCssStylesheet _root;
+  ModifiableCssStylesheet get _root => _assertInModule(__root, "_root");
+  set _root(ModifiableCssStylesheet value) => __root = value;
+  ModifiableCssStylesheet? __root;
 
   /// The first index in [_root.children] after the initial block of CSS
   /// imports.
-  late int _endOfImports;
+  int get _endOfImports => _assertInModule(__endOfImports, "_endOfImports");
+  set _endOfImports(int value) => __endOfImports = value;
+  int? __endOfImports;
 
   /// Plain-CSS imports that didn't appear in the initial block of CSS imports.
   ///
@@ -266,11 +275,14 @@ class _EvaluateVisitor
   ///
   /// This is `null` unless there are any out-of-order imports in the current
   /// stylesheet.
-  late List<ModifiableCssImport>? _outOfOrderImports;
+  List<ModifiableCssImport>? _outOfOrderImports;
 
   /// The extension store that tracks extensions and style rules for the current
   /// module.
-  late ExtensionStore _extensionStore;
+  ExtensionStore get _extensionStore =>
+      _assertInModule(__extensionStore, "_extensionStore");
+  set _extensionStore(ExtensionStore value) => __extensionStore = value;
+  ExtensionStore? __extensionStore;
 
   /// The configuration for the current module.
   ///
@@ -518,20 +530,31 @@ class _EvaluateVisitor
         callback);
   }
 
+  /// Asserts that [value] is not `null` and returns it.
+  ///
+  /// This is used for fields that are set whenever the evaluator is evaluating
+  /// a module, which is to say essentially all the time (unless running via
+  /// [runExpression] or [runStatement]).
+  T _assertInModule<T>(T? value, String name) {
+    if (value != null) return value;
+    throw StateError("Can't access $name outside of a module.");
+  }
+
   /// Runs [callback] with [importer] as [_importer] and a fake [_stylesheet]
   /// with [nodeWithSpan]'s source span.
   T _withFakeStylesheet<T>(
       Importer? importer, AstNode nodeWithSpan, T callback()) {
     var oldImporter = _importer;
     _importer = importer;
-    var oldStylesheet = _stylesheet;
+
+    assert(__stylesheet == null);
     _stylesheet = Stylesheet(const [], nodeWithSpan.span);
 
     try {
       return callback();
     } finally {
       _importer = oldImporter;
-      _stylesheet = oldStylesheet;
+      __stylesheet = null;
     }
   }
 
@@ -664,12 +687,12 @@ class _EvaluateVisitor
     var extensionStore = ExtensionStore();
     _withEnvironment(environment, () {
       var oldImporter = _importer;
-      var oldStylesheet = _stylesheet;
-      var oldRoot = _root;
-      var oldParent = _parent;
-      var oldEndOfImports = _endOfImports;
+      var oldStylesheet = __stylesheet;
+      var oldRoot = __root;
+      var oldParent = __parent;
+      var oldEndOfImports = __endOfImports;
       var oldOutOfOrderImports = _outOfOrderImports;
-      var oldExtensionStore = _extensionStore;
+      var oldExtensionStore = __extensionStore;
       var oldStyleRule = _styleRule;
       var oldMediaQueries = _mediaQueries;
       var oldDeclarationName = _declarationName;
@@ -679,7 +702,7 @@ class _EvaluateVisitor
       var oldConfiguration = _configuration;
       _importer = importer;
       _stylesheet = stylesheet;
-      var root = _root = ModifiableCssStylesheet(stylesheet.span);
+      var root = __root = ModifiableCssStylesheet(stylesheet.span);
       _parent = root;
       _endOfImports = 0;
       _outOfOrderImports = null;
@@ -698,12 +721,12 @@ class _EvaluateVisitor
           : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
 
       _importer = oldImporter;
-      _stylesheet = oldStylesheet;
-      _root = oldRoot;
-      _parent = oldParent;
-      _endOfImports = oldEndOfImports;
+      __stylesheet = oldStylesheet;
+      __root = oldRoot;
+      __parent = oldParent;
+      __endOfImports = oldEndOfImports;
       _outOfOrderImports = oldOutOfOrderImports;
-      _extensionStore = oldExtensionStore;
+      __extensionStore = oldExtensionStore;
       _styleRuleIgnoringAtRoot = oldStyleRule;
       _mediaQueries = oldMediaQueries;
       _declarationName = oldDeclarationName;
@@ -1088,7 +1111,7 @@ class _EvaluateVisitor
       _parent.addChild(ModifiableCssDeclaration(name, cssValue, node.span,
           parsedAsCustomProperty: node.isCustomProperty,
           valueSpanForMap:
-              _sourceMap ? null : node.value.andThen(_expressionNode)?.span));
+              _sourceMap ? node.value.andThen(_expressionNode)?.span : null));
     } else if (name.value.startsWith('--') && cssValue != null) {
       throw _exception(
           "Custom property values may not be empty.", cssValue.span);
@@ -1361,6 +1384,7 @@ class _EvaluateVisitor
     // By definition, implicit configurations are allowed to only use a subset
     // of their values.
     if (configuration is! ExplicitConfiguration) return;
+    if (configuration.isEmpty) return;
 
     var entry = configuration.values.entries.first;
     throw _exception(
@@ -3041,7 +3065,7 @@ class _EvaluateVisitor
     try {
       return callback();
     } on SassRuntimeException catch (error) {
-      if (error.span.text.startsWith("@error")) rethrow;
+      if (!error.span.text.startsWith("@error")) rethrow;
       throw SassRuntimeException(
           error.message, nodeWithSpan.span, _stackTrace());
     }

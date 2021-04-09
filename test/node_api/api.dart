@@ -43,7 +43,7 @@ external FiberClass _requireFiber(String path);
 class Sass {
   external RenderResult renderSync(RenderOptions args);
   external void render(RenderOptions args,
-      void callback(RenderError error, RenderResult result));
+      void callback(RenderError? error, RenderResult? result));
   external SassTypes get types;
   external Object get NULL;
   external NodeSassBoolean get TRUE;

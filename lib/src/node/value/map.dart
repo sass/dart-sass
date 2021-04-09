@@ -22,9 +22,11 @@ Object newNodeSassMap(SassMap value) =>
 
 /// The JS constructor for the `sass.types.Map` class.
 final Function mapConstructor = createClass('SassMap',
-    (_NodeSassMap thisArg, int length, [SassMap? dartValue]) {
+    (_NodeSassMap thisArg, int? length, [SassMap? dartValue]) {
   thisArg.dartValue = dartValue ??
-      SassMap(Map.fromIterables(Iterable.generate(length, (i) => SassNumber(i)),
+      SassMap(Map.fromIterables(
+          // Either [dartValue] or [length] must be passed.
+          Iterable.generate(length!, (i) => SassNumber(i)),
           Iterable.generate(length, (_) => sassNull)));
 }, {
   'getKey': (_NodeSassMap thisArg, int index) =>

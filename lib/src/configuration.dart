@@ -68,6 +68,13 @@ class Configuration {
   /// Returns a copy of [this] with the given [values] map.
   Configuration _withValues(Map<String, ConfiguredValue> values) =>
       Configuration.implicit(values);
+
+  String toString() =>
+      "(" +
+      values.entries
+          .map((entry) => "\$${entry.key}: ${entry.value}")
+          .join(", ") +
+      ")";
 }
 
 /// A [Configuratoin] that was created with an explicit `with` clause of a

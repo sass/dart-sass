@@ -150,7 +150,7 @@ class ExecutableOptions {
   ///
   /// This may be `null`, indicating that this should be determined by each
   /// stylesheet's extension.
-  bool get indented => _ifParsed('indented') as bool;
+  bool? get indented => _ifParsed('indented') as bool?;
 
   /// Whether to use ANSI terminal colors.
   bool get color => _options.wasParsed('color')
@@ -357,7 +357,7 @@ class ExecutableOptions {
         // A colon 2 characters after the separator may also be a Windows
         // drive letter.
         if (nextColon == i + 2 && _isWindowsPath(argument, i + 1)) {
-          nextColon = argument.indexOf(':', nextColon);
+          nextColon = argument.indexOf(':', nextColon + 1);
         }
         if (nextColon != -1) _fail('"$argument" may only contain one ":".');
 

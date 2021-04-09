@@ -150,7 +150,7 @@ class SelectorList extends Selector {
           component is CompoundSelector &&
           component.components.any((simple) {
             if (simple is ParentSelector) return true;
-            if (simple is! PseudoSelector) return true;
+            if (simple is! PseudoSelector) return false;
             var selector = simple.selector;
             return selector != null && selector._containsParentSelector;
           }));

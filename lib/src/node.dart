@@ -235,7 +235,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     } else {
       result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
           (arguments) async {
-        var completer = Completer<Object>();
+        var completer = Completer<Object?>();
         var jsArguments = [
           ...arguments.map(wrapValue),
           allowInterop(([Object? result]) => completer.complete(result))
@@ -261,8 +261,9 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
     importers = [options.importer as JSFunction];
   }
 
-  late RenderContext context;
-  if (importers.isNotEmpty) context = _contextWithOptions(options, start);
+  var context = importers.isNotEmpty
+      ? _contextWithOptions(options, start)
+      : const Object();
 
   var fiber = options.fiber;
   if (fiber != null) {

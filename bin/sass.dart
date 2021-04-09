@@ -121,7 +121,7 @@ Future<void> main(List<String> args) async {
 
 /// Loads and returns the current version of Sass.
 Future<String> _loadVersion() async {
-  if (bool.hasEnvironment('version')) {
+  if (const bool.hasEnvironment('version')) {
     var version = const String.fromEnvironment('version');
     if (const bool.fromEnvironment('node')) {
       version += " compiled with dart2js "

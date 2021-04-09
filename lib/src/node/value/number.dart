@@ -21,9 +21,10 @@ Object newNodeSassNumber(SassNumber value) =>
 
 /// The JS constructor for the `sass.types.Number` class.
 final Function numberConstructor = createClass('SassNumber',
-    (_NodeSassNumber thisArg, num value,
+    (_NodeSassNumber thisArg, num? value,
         [String? unit, SassNumber? dartValue]) {
-  thisArg.dartValue = dartValue ?? _parseNumber(value, unit);
+  // Either [dartValue] or [value] must be passed.
+  thisArg.dartValue = dartValue ?? _parseNumber(value!, unit);
 }, {
   'getValue': (_NodeSassNumber thisArg) => thisArg.dartValue.value,
   'setValue': (_NodeSassNumber thisArg, num value) {

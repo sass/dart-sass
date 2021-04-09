@@ -35,7 +35,7 @@ void useSandbox() {
   });
 
   tearDown(() async {
-    await _sandbox.andThen(deleteDirectory);
+    await sandbox.andThen(deleteDirectory);
   });
 }
 
@@ -54,7 +54,7 @@ Future<String> render(RenderOptions options) {
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(error, isNull);
-    completer.complete(utf8.decode(result.css));
+    completer.complete(utf8.decode(result!.css));
   })));
   return completer.future;
 }
@@ -66,7 +66,7 @@ Future<RenderError> renderError(RenderOptions options) {
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(result, isNull);
-    completer.complete(error);
+    completer.complete(error!);
   })));
   return completer.future;
 }

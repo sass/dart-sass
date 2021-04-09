@@ -95,7 +95,7 @@ abstract class StylesheetParser extends Parser {
           return null;
         }
 
-        _statement(root: true);
+        return _statement(root: true);
       });
       scanner.expectDone();
 
@@ -2055,7 +2055,8 @@ relase. For details, see http://bit.ly/moz-document.
       var singleExpression = singleExpression_;
       if (singleExpression != null) commaExpressions.add(singleExpression);
       return ListExpression(commaExpressions, ListSeparator.comma,
-          brackets: bracketList, span: scanner.spanFrom(beforeBracket!));
+          brackets: bracketList,
+          span: scanner.spanFrom(beforeBracket ?? start));
     } else if (bracketList && spaceExpressions != null) {
       resolveOperations();
       return ListExpression(

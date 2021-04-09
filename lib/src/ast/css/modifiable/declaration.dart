@@ -25,7 +25,7 @@ class ModifiableCssDeclaration extends ModifiableCssNode
   ModifiableCssDeclaration(this.name, this.value, this.span,
       {required bool parsedAsCustomProperty, FileSpan? valueSpanForMap})
       : parsedAsCustomProperty = parsedAsCustomProperty,
-        valueSpanForMap = valueSpanForMap ?? span {
+        valueSpanForMap = valueSpanForMap ?? value.span {
     if (parsedAsCustomProperty) {
       if (!isCustomProperty) {
         throw ArgumentError(

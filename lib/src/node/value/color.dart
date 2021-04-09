@@ -22,7 +22,7 @@ Object newNodeSassColor(SassColor value) =>
 
 /// The JS constructor for the `sass.types.Color` class.
 final Function colorConstructor = createClass('SassColor',
-    (_NodeSassColor thisArg, num redOrArgb,
+    (_NodeSassColor thisArg, num? redOrArgb,
         [num? green, num? blue, num? alpha, SassColor? dartValue]) {
   if (dartValue != null) {
     thisArg.dartValue = dartValue;
@@ -43,7 +43,8 @@ final Function colorConstructor = createClass('SassColor',
     green = (argb >> 8) % 0x100;
     blue = argb % 0x100;
   } else {
-    red = redOrArgb;
+    // Either [dartValue] or [redOrArgb] must be passed.
+    red = redOrArgb!;
   }
 
   thisArg.dartValue = SassColor.rgb(

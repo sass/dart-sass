@@ -23,8 +23,9 @@ class SassException extends SourceSpanException {
   SassException(String message, FileSpan span) : super(message, span);
 
   String toString({Object? color}) {
-    var buffer = StringBuffer("Error: $message");
-    span.highlight(color: color).andThen(buffer.write);
+    var buffer = StringBuffer()
+      ..writeln("Error: $message")
+      ..write(span.highlight(color: color));
 
     for (var frame in trace.toString().split("\n")) {
       if (frame.isEmpty) continue;
