@@ -2232,7 +2232,7 @@ class _EvaluateVisitor
                 argument.name,
                 value.withoutSlash(),
                 evaluated.namedNodes.andGet(argument.name) ??
-                    _expressionNode(argument.defaultValue!));
+                    argument.defaultValue.andThen(_expressionNode));
           }
 
           SassArgumentList? argumentList;

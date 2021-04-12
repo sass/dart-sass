@@ -1200,16 +1200,12 @@ abstract class StylesheetParser extends Parser {
 
     ContentBlock? content;
     if (contentArguments != null || lookingAtChildren()) {
+      var contentArguments_ = contentArguments ??
+          ArgumentDeclaration.empty(span: scanner.emptySpan);
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
-      content = _withChildren(
-          _statement,
-          start,
-          (children, span) => ContentBlock(
-              contentArguments ??
-                  ArgumentDeclaration.empty(span: scanner.emptySpan),
-              children,
-              span));
+      content = _withChildren(_statement, start,
+          (children, span) => ContentBlock(contentArguments_, children, span));
       _inContentBlock = wasInContentBlock;
     } else {
       expectStatementSeparator();
@@ -1724,8 +1720,7 @@ relase. For details, see http://bit.ly/moz-document.
     }
 
     void addSingleExpression(Expression expression, {bool number = false}) {
-      var singleExpression = singleExpression_;
-      if (singleExpression != null) {
+      if (singleExpression_ != null) {
         // If we discover we're parsing a list whose first element is a division
         // operation, and we're in parentheses, reparse outside of a paren
         // context. This ensures that `(1/2 1)` doesn't perform division on its
@@ -1740,7 +1735,10 @@ relase. For details, see http://bit.ly/moz-document.
 
         var spaceExpressions = spaceExpressions_ ??= [];
         resolveOperations();
-        spaceExpressions.add(singleExpression);
+
+        // [singleExpression_] was non-null before, and [resolveOperations]
+        // can't make it null, it can only change it.
+        spaceExpressions.add(singleExpression_!);
         allowSlash = number;
       } else if (!number) {
         allowSlash = false;
@@ -2025,11 +2023,14 @@ relase. For details, see http://bit.ly/moz-document.
           }
 
           var commaExpressions = commaExpressions_ ??= [];
-          var singleExpression = singleExpression_;
-          if (singleExpression == null) scanner.error("Expected expression.");
 
+          if (singleExpression_ == null) scanner.error("Expected expression.");
           resolveSpaceExpressions();
-          commaExpressions.add(singleExpression);
+
+          // [resolveSpaceExpressions can modify [singleExpression_], but it
+          // can't set it to null`.
+          commaExpressions.add(singleExpression_!);
+
           scanner.readChar();
           allowSlash = true;
           singleExpression_ = null;

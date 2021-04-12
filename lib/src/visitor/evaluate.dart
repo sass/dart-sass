@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d0e1d0b2e493163e931c957d869473aa57c5b46b
+// Checksum: 01a7ae41ae622e64443597ea82b27b7aeb73d260
 //
 // ignore_for_file: unused_import
 
@@ -2219,7 +2219,7 @@ class _EvaluateVisitor
                 argument.name,
                 value.withoutSlash(),
                 evaluated.namedNodes.andGet(argument.name) ??
-                    _expressionNode(argument.defaultValue!));
+                    argument.defaultValue.andThen(_expressionNode));
           }
 
           SassArgumentList? argumentList;

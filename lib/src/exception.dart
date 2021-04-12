@@ -99,7 +99,7 @@ class MultiSpanSassException extends SassException
       useColor = true;
     }
 
-    var buffer = StringBuffer("Error: $message");
+    var buffer = StringBuffer("Error: $message\n");
 
     span
         .highlightMultiple(primaryLabel, secondarySpans,

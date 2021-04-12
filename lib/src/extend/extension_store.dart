@@ -215,7 +215,7 @@ class ExtensionStore {
 
         for (var simple in component.components) {
           _selectors.putIfAbsent(simple, () => {}).add(selector);
-          if (simple is! PseudoSelector) return;
+          if (simple is! PseudoSelector) continue;
 
           var selectorInPseudo = simple.selector;
           if (selectorInPseudo != null) {

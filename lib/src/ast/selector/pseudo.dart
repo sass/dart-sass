@@ -170,8 +170,8 @@ class PseudoSelector extends SimpleSelector {
       var minSpecificity = 0;
       var maxSpecificity = 0;
       for (var complex in selector.components) {
-        minSpecificity = math.max(_minSpecificity!, complex.minSpecificity);
-        maxSpecificity = math.max(_maxSpecificity!, complex.maxSpecificity);
+        minSpecificity = math.max(minSpecificity, complex.minSpecificity);
+        maxSpecificity = math.max(maxSpecificity, complex.maxSpecificity);
       }
       _minSpecificity = minSpecificity;
       _maxSpecificity = maxSpecificity;
@@ -180,8 +180,8 @@ class PseudoSelector extends SimpleSelector {
       var minSpecificity = math.pow(super.minSpecificity, 3) as int;
       var maxSpecificity = 0;
       for (var complex in selector.components) {
-        minSpecificity = math.min(_minSpecificity!, complex.minSpecificity);
-        maxSpecificity = math.max(_maxSpecificity!, complex.maxSpecificity);
+        minSpecificity = math.min(minSpecificity, complex.minSpecificity);
+        maxSpecificity = math.max(maxSpecificity, complex.maxSpecificity);
       }
       _minSpecificity = minSpecificity;
       _maxSpecificity = maxSpecificity;

@@ -390,7 +390,7 @@ class _SerializeVisitor
     }
 
     minimumIndentation =
-        math.min(minimumIndentation, node.value.span.start.column);
+        math.min(minimumIndentation, node.name.span.start.column);
     _writeWithIndent(value, minimumIndentation);
   }
 

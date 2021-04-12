@@ -785,7 +785,7 @@ bool _selectorPseudoIsSuperselector(
       return compound2.components.any((pseudo2) {
         if (pseudo2 is! PseudoSelector) return false;
         if (pseudo2.name != pseudo1.name) return false;
-        if (pseudo2.argument == pseudo1.argument) return false;
+        if (pseudo2.argument != pseudo1.argument) return false;
         var selector2 = pseudo2.selector;
         if (selector2 == null) return false;
         return selector1.isSuperselector(selector2);
