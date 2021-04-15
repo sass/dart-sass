@@ -14,7 +14,7 @@ abstract class SimpleSelector extends Selector {
   /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
   /// can have a range of possible specificities.
   ///
-  /// Specifity is represented in base 1000. The spec says this should be
+  /// Specificity is represented in base 1000. The spec says this should be
   /// "sufficiently high"; it's extremely unlikely that any single selector
   /// sequence will contain 1000 simple selectors.
   int get minSpecificity => 1000;
@@ -48,7 +48,7 @@ abstract class SimpleSelector extends Selector {
   SimpleSelector addSuffix(String suffix) =>
       throw SassScriptException('Invalid parent selector "$this"');
 
-  /// Returns the compoments of a [CompoundSelector] that matches only elements
+  /// Returns the components of a [CompoundSelector] that matches only elements
   /// matched by both this and [compound].
   ///
   /// By default, this just returns a copy of [compound] with this selector
