@@ -22,12 +22,7 @@ class SassString extends Value implements ext.SassString {
 
   final bool hasQuotes;
 
-  int get sassLength {
-    _sassLength ??= text.runes.length;
-    return _sassLength;
-  }
-
-  int _sassLength;
+  late final int sassLength = text.runes.length;
 
   bool get isSpecialNumber {
     if (hasQuotes) return false;
@@ -89,11 +84,11 @@ class SassString extends Value implements ext.SassString {
 
   SassString(this.text, {bool quotes = true}) : hasQuotes = quotes;
 
-  int sassIndexToStringIndex(ext.Value sassIndex, [String name]) =>
+  int sassIndexToStringIndex(ext.Value sassIndex, [String? name]) =>
       codepointIndexToCodeUnitIndex(
           text, sassIndexToRuneIndex(sassIndex, name));
 
-  int sassIndexToRuneIndex(ext.Value sassIndex, [String name]) {
+  int sassIndexToRuneIndex(ext.Value sassIndex, [String? name]) {
     var index = sassIndex.assertNumber(name).assertInt(name);
     if (index == 0) throw _exception("String index may not be 0.", name);
     if (index.abs() > sassLength) {
@@ -107,7 +102,7 @@ class SassString extends Value implements ext.SassString {
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitString(this);
 
-  SassString assertString([String name]) => this;
+  SassString assertString([String? name]) => this;
 
   Value plus(Value other) {
     if (other is SassString) {
@@ -122,6 +117,6 @@ class SassString extends Value implements ext.SassString {
   int get hashCode => text.hashCode;
 
   /// Throws a [SassScriptException] with the given [message].
-  SassScriptException _exception(String message, [String name]) =>
+  SassScriptException _exception(String message, [String? name]) =>
       SassScriptException(name == null ? message : "\$$name: $message");
 }

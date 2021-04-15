@@ -10,7 +10,7 @@ import '../statement.dart';
 import 'parent.dart';
 
 /// A `@media` rule.
-class MediaRule extends ParentStatement {
+class MediaRule extends ParentStatement<List<Statement>> {
   /// The query that determines on which platforms the styles will be in effect.
   ///
   /// This is only parsed after the interpolation has been resolved.

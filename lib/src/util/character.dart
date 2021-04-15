@@ -11,15 +11,15 @@ import 'package:charcode/charcode.dart';
 const _asciiCaseBit = 0x20;
 
 /// Returns whether [character] is an ASCII whitespace character.
-bool isWhitespace(int character) =>
+bool isWhitespace(int? character) =>
     isSpaceOrTab(character) || isNewline(character);
 
 /// Returns whether [character] is an ASCII newline.
-bool isNewline(int character) =>
+bool isNewline(int? character) =>
     character == $lf || character == $cr || character == $ff;
 
 /// Returns whether [character] is a space or a tab character.
-bool isSpaceOrTab(int character) => character == $space || character == $tab;
+bool isSpaceOrTab(int? character) => character == $space || character == $tab;
 
 /// Returns whether [character] is a letter or number.
 bool isAlphanumeric(int character) =>
@@ -31,7 +31,7 @@ bool isAlphabetic(int character) =>
     (character >= $A && character <= $Z);
 
 /// Returns whether [character] is a number.
-bool isDigit(int character) =>
+bool isDigit(int? character) =>
     character != null && character >= $0 && character <= $9;
 
 /// Returns whether [character] is legal as the start of a Sass identifier.
@@ -43,7 +43,7 @@ bool isName(int character) =>
     isNameStart(character) || isDigit(character) || character == $minus;
 
 /// Returns whether [character] is a hexadeicmal digit.
-bool isHex(int character) {
+bool isHex(int? character) {
   if (character == null) return false;
   if (isDigit(character)) return true;
   if (character >= $a && character <= $f) return true;
@@ -57,7 +57,7 @@ bool isHighSurrogate(int character) =>
 
 // Returns whether [character] can start a simple selector other than a type
 // selector.
-bool isSimpleSelectorStart(int character) =>
+bool isSimpleSelectorStart(int? character) =>
     character == $asterisk ||
     character == $lbracket ||
     character == $dot ||
@@ -118,7 +118,8 @@ int opposite(int character) {
     case $lbracket:
       return $rbracket;
     default:
-      return null;
+      throw ArgumentError(
+          '"${String.fromCharCode(character)}" isn\'t a brace-like character.');
   }
 }
 

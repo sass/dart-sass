@@ -23,7 +23,7 @@ class ImporterResult {
   /// automatically from [contents].
   Uri get sourceMapUrl =>
       _sourceMapUrl ?? Uri.dataFromString(contents, encoding: utf8);
-  final Uri _sourceMapUrl;
+  final Uri? _sourceMapUrl;
 
   /// The syntax to use to parse the stylesheet.
   final Syntax syntax;
@@ -37,9 +37,9 @@ class ImporterResult {
   /// because old clients may still be passing the deprecated [indented]
   /// parameter instead.
   ImporterResult(this.contents,
-      {Uri sourceMapUrl,
-      Syntax syntax,
-      @Deprecated("Use the syntax parameter instead.") bool indented})
+      {Uri? sourceMapUrl,
+      Syntax? syntax,
+      @Deprecated("Use the syntax parameter instead.") bool? indented})
       : _sourceMapUrl = sourceMapUrl,
         syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
     if (sourceMapUrl?.scheme == '') {

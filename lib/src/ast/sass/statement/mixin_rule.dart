@@ -24,7 +24,7 @@ class MixinRule extends CallableDeclaration {
   /// won't work correctly.
   MixinRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,
-      {this.hasContent = false, SilentComment comment})
+      {this.hasContent = false, SilentComment? comment})
       : super(name, arguments, children, span, comment: comment);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);

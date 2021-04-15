@@ -24,7 +24,7 @@ class SourceMapBuffer implements StringBuffer {
         for (var entry in _sourceFiles.entries)
           entry.key.toString(): entry.value
       });
-  final _sourceFiles = <Uri, SourceFile>{};
+  final _sourceFiles = <Uri?, SourceFile>{};
 
   /// The index of the current line in [_buffer].
   var _line = 0;
@@ -91,7 +91,7 @@ class SourceMapBuffer implements StringBuffer {
   void clear() =>
       throw UnsupportedError("SourceMapBuffer.clear() is not supported.");
 
-  void write(Object object) {
+  void write(Object? object) {
     var string = object.toString();
     _buffer.write(string);
 
@@ -104,7 +104,7 @@ class SourceMapBuffer implements StringBuffer {
     }
   }
 
-  void writeAll(Iterable<Object> objects, [String separator = ""]) =>
+  void writeAll(Iterable<Object?> objects, [String separator = ""]) =>
       write(objects.join(separator));
 
   void writeCharCode(int charCode) {
@@ -116,7 +116,7 @@ class SourceMapBuffer implements StringBuffer {
     }
   }
 
-  void writeln([Object object = ""]) {
+  void writeln([Object? object = ""]) {
     // Special-case the common case.
     if (identical(object, "")) {
       _buffer.writeln();
@@ -160,7 +160,7 @@ class SourceMapBuffer implements StringBuffer {
   /// forward by the number of characters and lines in [prefix].
   ///
   /// [SingleMapping.targetUrl] will be `null`.
-  SingleMapping buildSourceMap({String prefix}) {
+  SingleMapping buildSourceMap({String? prefix}) {
     if (prefix == null || prefix.isEmpty) {
       return SingleMapping.fromEntries(_entries);
     }

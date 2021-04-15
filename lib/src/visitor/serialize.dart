@@ -44,11 +44,11 @@ import 'interface/value.dart';
 /// If [charset] is `true`, this will include a `@charset` declaration or a BOM
 /// if the stylesheet contains any non-ASCII characters.
 SerializeResult serialize(CssNode node,
-    {OutputStyle style,
+    {OutputStyle? style,
     bool inspect = false,
     bool useSpaces = true,
-    int indentWidth,
-    LineFeed lineFeed,
+    int? indentWidth,
+    LineFeed? lineFeed,
     bool sourceMap = false,
     bool charset = true}) {
   indentWidth ??= 2;
@@ -137,12 +137,12 @@ class _SerializeVisitor
   bool get _isCompressed => _style == OutputStyle.compressed;
 
   _SerializeVisitor(
-      {OutputStyle style,
+      {OutputStyle? style,
       bool inspect = false,
       bool quote = true,
       bool useSpaces = true,
-      int indentWidth,
-      LineFeed lineFeed,
+      int? indentWidth,
+      LineFeed? lineFeed,
       bool sourceMap = true})
       : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
         _style = style ?? OutputStyle.expanded,
@@ -155,7 +155,7 @@ class _SerializeVisitor
   }
 
   void visitCssStylesheet(CssStylesheet node) {
-    CssNode previous;
+    CssNode? previous;
     for (var i = 0; i < node.children.length; i++) {
       var child = node.children[i];
       if (_isInvisible(child)) continue;
@@ -188,10 +188,7 @@ class _SerializeVisitor
         return;
       }
 
-      if (node.span != null) {
-        minimumIndentation =
-            math.min(minimumIndentation, node.span.start.column);
-      }
+      minimumIndentation = math.min(minimumIndentation, node.span.start.column);
 
       _writeIndentation();
       _writeWithIndent(node.text, minimumIndentation);
@@ -205,9 +202,10 @@ class _SerializeVisitor
       _buffer.writeCharCode($at);
       _write(node.name);
 
-      if (node.value != null) {
+      var value = node.value;
+      if (value != null) {
         _buffer.writeCharCode($space);
-        _write(node.value);
+        _write(value);
       }
     });
 
@@ -242,14 +240,16 @@ class _SerializeVisitor
       _writeOptionalSpace();
       _for(node.url, () => _writeImportUrl(node.url.value));
 
-      if (node.supports != null) {
+      var supports = node.supports;
+      if (supports != null) {
         _writeOptionalSpace();
-        _write(node.supports);
+        _write(supports);
       }
 
-      if (node.media != null) {
+      var media = node.media;
+      if (media != null) {
         _writeOptionalSpace();
-        _writeBetween(node.media, _commaSeparator, _visitMediaQuery);
+        _writeBetween(media, _commaSeparator, _visitMediaQuery);
       }
     });
   }
@@ -389,11 +389,8 @@ class _SerializeVisitor
       return;
     }
 
-    if (node.value.span != null) {
-      minimumIndentation =
-          math.min(minimumIndentation, node.name.span.start.column);
-    }
-
+    minimumIndentation =
+        math.min(minimumIndentation, node.name.span.start.column);
     _writeWithIndent(value, minimumIndentation);
   }
 
@@ -402,12 +399,12 @@ class _SerializeVisitor
   ///
   /// Returns `null` if [text] contains no newlines, and -1 if it contains
   /// newlines but no lines are indented.
-  int _minimumIndentation(String text) {
+  int? _minimumIndentation(String text) {
     var scanner = LineScanner(text);
     while (!scanner.isDone && scanner.readChar() != $lf) {}
     if (scanner.isDone) return scanner.peekChar(-1) == $lf ? -1 : null;
 
-    int min;
+    int? min;
     while (!scanner.isDone) {
       while (!scanner.isDone) {
         var next = scanner.peekChar();
@@ -607,10 +604,10 @@ class _SerializeVisitor
       throw SassScriptException("$map isn't a valid CSS value.");
     }
     _buffer.writeCharCode($lparen);
-    _writeBetween<Value>(map.contents.keys, ", ", (key) {
-      _writeMapElement(key);
+    _writeBetween<MapEntry<Value, Value>>(map.contents.entries, ", ", (entry) {
+      _writeMapElement(entry.key);
       _buffer.write(": ");
-      _writeMapElement(map.contents[key]);
+      _writeMapElement(entry.value);
     });
     _buffer.writeCharCode($rparen);
   }
@@ -630,10 +627,11 @@ class _SerializeVisitor
   }
 
   void visitNumber(SassNumber value) {
-    if (value.asSlash != null) {
-      visitNumber(value.asSlash.item1);
+    var asSlash = value.asSlash;
+    if (asSlash != null) {
+      visitNumber(asSlash.item1);
       _buffer.writeCharCode($slash);
-      visitNumber(value.asSlash.item2);
+      visitNumber(asSlash.item2);
       return;
     }
 
@@ -693,8 +691,8 @@ class _SerializeVisitor
   /// Otherwise, returns [text] as-is.
   String _removeExponent(String text) {
     // Don't allocate this until we know [text] contains exponent notation.
-    StringBuffer buffer;
-    int exponent;
+    StringBuffer? buffer;
+    late int exponent;
     for (var i = 0; i < text.length; i++) {
       var codeUnit = text.codeUnitAt(i);
       if (codeUnit != $e) continue;
@@ -932,17 +930,19 @@ class _SerializeVisitor
   void visitAttributeSelector(AttributeSelector attribute) {
     _buffer.writeCharCode($lbracket);
     _buffer.write(attribute.name);
-    if (attribute.op != null) {
+
+    var value = attribute.value;
+    if (value != null) {
       _buffer.write(attribute.op);
-      if (Parser.isIdentifier(attribute.value) &&
+      if (Parser.isIdentifier(value) &&
           // Emit identifiers that start with `--` with quotes, because IE11
           // doesn't consider them to be valid identifiers.
-          !attribute.value.startsWith('--')) {
-        _buffer.write(attribute.value);
+          !value.startsWith('--')) {
+        _buffer.write(value);
 
         if (attribute.modifier != null) _buffer.writeCharCode($space);
       } else {
-        _visitQuotedString(attribute.value);
+        _visitQuotedString(value);
         if (attribute.modifier != null) _writeOptionalSpace();
       }
       if (attribute.modifier != null) _buffer.write(attribute.modifier);
@@ -956,7 +956,7 @@ class _SerializeVisitor
   }
 
   void visitComplexSelector(ComplexSelector complex) {
-    ComplexSelectorComponent lastComponent;
+    ComplexSelectorComponent? lastComponent;
     for (var component in complex.components) {
       if (lastComponent != null &&
           !_omitSpacesAround(lastComponent) &&
@@ -1026,10 +1026,11 @@ class _SerializeVisitor
   }
 
   void visitPseudoSelector(PseudoSelector pseudo) {
+    var innerSelector = pseudo.selector;
     // `:not(%a)` is semantically identical to `*`.
-    if (pseudo.selector != null &&
+    if (innerSelector != null &&
         pseudo.name == 'not' &&
-        pseudo.selector.isInvisible) {
+        innerSelector.isInvisible) {
       return;
     }
 
@@ -1043,7 +1044,7 @@ class _SerializeVisitor
       _buffer.write(pseudo.argument);
       if (pseudo.selector != null) _buffer.writeCharCode($space);
     }
-    if (pseudo.selector != null) visitSelectorList(pseudo.selector);
+    if (innerSelector != null) visitSelectorList(innerSelector);
     _buffer.writeCharCode($rparen);
   }
 
@@ -1078,24 +1079,25 @@ class _SerializeVisitor
     }
 
     _writeLineFeed();
-    CssNode previous;
+    CssNode? previous_;
     _indent(() {
       for (var i = 0; i < children.length; i++) {
         var child = children[i];
         if (_isInvisible(child)) continue;
 
+        var previous = previous_; // dart-lang/sdk#45348
         if (previous != null) {
           if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
           _writeLineFeed();
           if (previous.isGroupEnd) _writeLineFeed();
         }
-        previous = child;
+        previous_ = child;
 
         child.accept(this);
       }
     });
 
-    if (_requiresSemicolon(previous) && !_isCompressed) {
+    if (_requiresSemicolon(previous_!) && !_isCompressed) {
       _buffer.writeCharCode($semicolon);
     }
     _writeLineFeed();
@@ -1104,7 +1106,7 @@ class _SerializeVisitor
   }
 
   /// Whether [node] requires a semicolon to be written after it.
-  bool _requiresSemicolon(CssNode node) =>
+  bool _requiresSemicolon(CssNode? node) =>
       node is CssParentNode ? node.isChildless : node is! CssComment;
 
   /// Writes a line feed, unless this emitting compressed CSS.
@@ -1233,13 +1235,13 @@ class SerializeResult {
   /// The source map indicating how the source files map to [css].
   ///
   /// This is `null` if source mapping was disabled for this compilation.
-  final SingleMapping sourceMap;
+  final SingleMapping? sourceMap;
 
   /// A map from source file URLs to the corresponding [SourceFile]s.
   ///
   /// This can be passed to [sourceMap]'s [Mapping.spanFor] method. It's `null`
   /// if source mapping was disabled for this compilation.
-  final Map<String, SourceFile> sourceFiles;
+  final Map<String, SourceFile>? sourceFiles;
 
   SerializeResult(this.css, {this.sourceMap, this.sourceFiles});
 }

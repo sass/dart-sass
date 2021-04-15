@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import '../importer.dart';
 import '../io.dart' as io;
 import '../syntax.dart';
+import '../util/nullable.dart';
 import 'utils.dart';
 
 /// An importer that loads files from a load path on the filesystem.
@@ -19,13 +20,13 @@ class FilesystemImporter extends Importer {
   /// Creates an importer that loads files relative to [loadPath].
   FilesystemImporter(String loadPath) : _loadPath = p.absolute(loadPath);
 
-  Uri canonicalize(Uri url) {
+  Uri? canonicalize(Uri url) {
     if (url.scheme != 'file' && url.scheme != '') return null;
-    var resolved = resolveImportPath(p.join(_loadPath, p.fromUri(url)));
-    return resolved == null ? null : p.toUri(io.canonicalize(resolved));
+    return resolveImportPath(p.join(_loadPath, p.fromUri(url)))
+        .andThen((resolved) => p.toUri(io.canonicalize(resolved)));
   }
 
-  ImporterResult load(Uri url) {
+  ImporterResult? load(Uri url) {
     var path = p.fromUri(url);
     return ImporterResult(io.readFile(path),
         sourceMapUrl: url, syntax: Syntax.forPath(path));

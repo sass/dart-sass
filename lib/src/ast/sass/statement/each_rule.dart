@@ -12,7 +12,7 @@ import 'parent.dart';
 /// An `@each` rule.
 ///
 /// This iterates over values in a list or map.
-class EachRule extends ParentStatement {
+class EachRule extends ParentStatement<List<Statement>> {
   /// The variables assigned for each iteration.
   final List<String> variables;
 

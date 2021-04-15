@@ -14,7 +14,7 @@ class Argument implements SassNode {
   final String name;
 
   /// The default value of this argument, or `null` if none was declared.
-  final Expression defaultValue;
+  final Expression? defaultValue;
 
   final FileSpan span;
 
@@ -26,7 +26,7 @@ class Argument implements SassNode {
   String get originalName =>
       defaultValue == null ? span.text : declarationName(span);
 
-  Argument(this.name, {this.defaultValue, this.span});
+  Argument(this.name, {this.defaultValue, required this.span});
 
   String toString() => defaultValue == null ? name : "$name: $defaultValue";
 }

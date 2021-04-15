@@ -16,7 +16,7 @@ void main() {
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
-        expect(variable.comment.docComment, equals('Results my vary.'));
+        expect(variable.comment!.docComment, equals('Results my vary.'));
       });
 
       test('attach to function rules', () {
@@ -29,7 +29,7 @@ void main() {
         final stylesheet = Stylesheet.parseScss(contents);
         final function = stylesheet.children.whereType<FunctionRule>().first;
 
-        expect(function.comment.docComment, equals('A fun function!'));
+        expect(function.comment!.docComment, equals('A fun function!'));
       });
 
       test('attach to mixin rules', () {
@@ -43,7 +43,7 @@ void main() {
         final stylesheet = Stylesheet.parseScss(contents);
         final mix = stylesheet.children.whereType<MixinRule>().first;
 
-        expect(mix.comment.docComment, equals('Mysterious mixin.'));
+        expect(mix.comment!.docComment, equals('Mysterious mixin.'));
       });
 
       test('are null when there are no triple-slash comments', () {
@@ -54,7 +54,7 @@ void main() {
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
-        expect(variable.comment.docComment, isNull);
+        expect(variable.comment!.docComment, isNull);
       });
 
       test('are not carried over across members', () {
@@ -75,8 +75,8 @@ void main() {
         final mix = stylesheet.children.whereType<MixinRule>().first;
         final function = stylesheet.children.whereType<FunctionRule>().first;
 
-        expect(mix.comment.docComment, equals('Mysterious mixin.'));
-        expect(function.comment.docComment, equals('A fun function!'));
+        expect(mix.comment!.docComment, equals('Mysterious mixin.'));
+        expect(function.comment!.docComment, equals('A fun function!'));
       });
 
       test('do not include double-slash comments', () {
@@ -92,7 +92,7 @@ void main() {
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
-        expect(variable.comment.docComment, equals('Line 1\nLine 2\nLine 3'));
+        expect(variable.comment!.docComment, equals('Line 1\nLine 2\nLine 3'));
       });
     });
 
@@ -105,7 +105,7 @@ $vary: 5.16em''';
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
-        expect(variable.comment.docComment, equals('Results my vary.'));
+        expect(variable.comment!.docComment, equals('Results my vary.'));
       });
 
       test('attach to function rules', () {
@@ -117,7 +117,7 @@ $vary: 5.16em''';
         final stylesheet = Stylesheet.parseSass(contents);
         final function = stylesheet.children.whereType<FunctionRule>().first;
 
-        expect(function.comment.docComment, equals('A fun function!'));
+        expect(function.comment!.docComment, equals('A fun function!'));
       });
 
       test('attach to mixin rules', () {
@@ -130,7 +130,7 @@ $vary: 5.16em''';
         final stylesheet = Stylesheet.parseSass(contents);
         final mix = stylesheet.children.whereType<MixinRule>().first;
 
-        expect(mix.comment.docComment, equals('Mysterious mixin.'));
+        expect(mix.comment!.docComment, equals('Mysterious mixin.'));
       });
 
       test('are null when there are no triple-slash comments', () {
@@ -141,7 +141,7 @@ $vary: 5.16em''';
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
-        expect(variable.comment.docComment, isNull);
+        expect(variable.comment!.docComment, isNull);
       });
 
       test('are not carried over across members', () {
@@ -160,8 +160,8 @@ $vary: 5.16em''';
         final mix = stylesheet.children.whereType<MixinRule>().first;
         final function = stylesheet.children.whereType<FunctionRule>().first;
 
-        expect(mix.comment.docComment, equals('Mysterious mixin.'));
-        expect(function.comment.docComment, equals('A fun function!'));
+        expect(mix.comment!.docComment, equals('Mysterious mixin.'));
+        expect(function.comment!.docComment, equals('A fun function!'));
       });
 
       test('do not include double-slash comments', () {
@@ -176,7 +176,7 @@ $vary: 5.16em''';
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
-        expect(variable.comment.docComment, equals('Line 1\nLine 2'));
+        expect(variable.comment!.docComment, equals('Line 1\nLine 2'));
       });
 
       test('are compacted into one from adjacent comments', () {
@@ -192,7 +192,7 @@ $vary: 5.16em''';
             stylesheet.children.whereType<VariableDeclaration>().first;
 
         expect(stylesheet.children.length, equals(2));
-        expect(variable.comment.docComment,
+        expect(variable.comment!.docComment,
             equals('Line 1\nLine 2\nLine 3\nLine 4'));
       });
     });

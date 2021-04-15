@@ -13,14 +13,14 @@ import 'stylesheet.dart';
 /// A parser for the CSS-compatible syntax.
 class ScssParser extends StylesheetParser {
   bool get indented => false;
-  int get currentIndentation => null;
+  int get currentIndentation => 0;
 
-  ScssParser(String contents, {Object url, Logger logger})
+  ScssParser(String contents, {Object? url, Logger? logger})
       : super(contents, url: url, logger: logger);
 
   Interpolation styleRuleSelector() => almostAnyValue();
 
-  void expectStatementSeparator([String name]) {
+  void expectStatementSeparator([String? name]) {
     whitespaceWithoutComments();
     if (scanner.isDone) return;
     var next = scanner.peekChar();
@@ -101,7 +101,7 @@ class ScssParser extends StylesheetParser {
     }
   }
 
-  List<Statement> statements(Statement statement()) {
+  List<Statement> statements(Statement? statement()) {
     var statements = <Statement>[];
     whitespaceWithoutComments();
     while (!scanner.isDone) {
@@ -157,9 +157,8 @@ class ScssParser extends StylesheetParser {
           scanner.spanFrom(start));
     }
 
-    lastSilentComment = SilentComment(
+    return lastSilentComment = SilentComment(
         scanner.substring(start.position), scanner.spanFrom(start));
-    return lastSilentComment;
   }
 
   /// Consumes a statement-level loud comment block.

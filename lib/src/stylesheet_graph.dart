@@ -3,13 +3,13 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'importer.dart';
+import 'util/nullable.dart';
 import 'visitor/find_dependencies.dart';
 
 /// A graph of the import relationships between stylesheets, available via
@@ -36,7 +36,7 @@ class StylesheetGraph {
   ///
   /// Returns `true` if the import cache can't find a stylesheet at [url].
   bool modifiedSince(Uri url, DateTime since,
-      [Importer baseImporter, Uri baseUrl]) {
+      [Importer? baseImporter, Uri? baseUrl]) {
     DateTime transitiveModificationTime(StylesheetNode node) {
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
@@ -65,7 +65,7 @@ class StylesheetGraph {
   /// import [url] (resolved relative to [baseUrl] if it's passed).
   ///
   /// Returns `null` if the import cache can't find a stylesheet at [url].
-  StylesheetNode _add(Uri url, [Importer baseImporter, Uri baseUrl]) {
+  StylesheetNode? _add(Uri url, [Importer? baseImporter, Uri? baseUrl]) {
     var tuple = _ignoreErrors(() => importCache.canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl));
     if (tuple == null) return null;
@@ -113,7 +113,7 @@ class StylesheetGraph {
   ///
   /// The first map contains stylesheets depended on via `@use` and `@forward`
   /// while the second map contains those depended on via `@import`.
-  Tuple2<Map<Uri, StylesheetNode>, Map<Uri, StylesheetNode>> _upstreamNodes(
+  Tuple2<Map<Uri, StylesheetNode?>, Map<Uri, StylesheetNode?>> _upstreamNodes(
       Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
     var active = {baseUrl};
     var tuple = findDependencies(stylesheet);
@@ -221,18 +221,18 @@ class StylesheetGraph {
   /// If [forImport] is `true`, this re-runs canonicalization for
   /// [node.upstreamImports]. Otherwise, it re-runs canonicalization for
   /// [node.upstream].
-  Map<Uri, StylesheetNode> _recanonicalizeImportsForNode(
+  Map<Uri, StylesheetNode?> _recanonicalizeImportsForNode(
       StylesheetNode node, Importer importer, Uri canonicalUrl,
-      {@required bool forImport}) {
+      {required bool forImport}) {
     var map = forImport ? node.upstreamImports : node.upstream;
-    var newMap = <Uri, StylesheetNode>{};
+    var newMap = <Uri, StylesheetNode?>{};
     map.forEach((url, upstream) {
       if (!importer.couldCanonicalize(url, canonicalUrl)) return;
       importCache.clearCanonicalize(url);
 
       // If the import produces a different canonicalized URL than it did
       // before, it changed and the stylesheet needs to be recompiled.
-      Tuple3<AsyncImporter, Uri, Uri> result;
+      Tuple3<AsyncImporter, Uri, Uri>? result;
       try {
         result = importCache.canonicalize(url,
             baseImporter: node.importer,
@@ -257,7 +257,7 @@ class StylesheetGraph {
   ///
   /// The [active] set should contain the canonical URLs that are currently
   /// being imported. It's used to detect circular imports.
-  StylesheetNode _nodeFor(
+  StylesheetNode? _nodeFor(
       Uri url, Importer baseImporter, Uri baseUrl, Set<Uri> active,
       {bool forImport = false}) {
     var tuple = _ignoreErrors(() => importCache.canonicalize(url,
@@ -295,7 +295,7 @@ class StylesheetGraph {
   /// If [callback] throws any errors, ignores them and returns `null`. This is
   /// used to wrap calls to the import cache, since importer errors should be
   /// surfaced by the compilation process rather than the graph.
-  T _ignoreErrors<T>(T callback()) {
+  T? _ignoreErrors<T>(T callback()) {
     try {
       return callback();
     } catch (_) {
@@ -325,23 +325,23 @@ class StylesheetNode {
   /// the stylesheets those rules refer to.
   ///
   /// This may have `null` values, which indicate failed loads.
-  Map<Uri, StylesheetNode> get upstream => UnmodifiableMapView(_upstream);
-  Map<Uri, StylesheetNode> _upstream;
+  Map<Uri, StylesheetNode?> get upstream => UnmodifiableMapView(_upstream);
+  Map<Uri, StylesheetNode?> _upstream;
 
   /// A map from non-canonicalized `@import` URLs in [stylesheet] to the
   /// stylesheets those imports refer to.
   ///
   /// This may have `null` values, which indicate failed imports.
-  Map<Uri, StylesheetNode> get upstreamImports =>
+  Map<Uri, StylesheetNode?> get upstreamImports =>
       UnmodifiableMapView(_upstreamImports);
-  Map<Uri, StylesheetNode> _upstreamImports;
+  Map<Uri, StylesheetNode?> _upstreamImports;
 
   /// The stylesheets that import [stylesheet].
   Set<StylesheetNode> get downstream => UnmodifiableSetView(_downstream);
   final _downstream = <StylesheetNode>{};
 
   StylesheetNode._(this._stylesheet, this.importer, this.canonicalUrl,
-      Tuple2<Map<Uri, StylesheetNode>, Map<Uri, StylesheetNode>> allUpstream)
+      Tuple2<Map<Uri, StylesheetNode?>, Map<Uri, StylesheetNode?>> allUpstream)
       : _upstream = allUpstream.item1,
         _upstreamImports = allUpstream.item2 {
     for (var node in upstream.values.followedBy(upstreamImports.values)) {
@@ -352,12 +352,12 @@ class StylesheetNode {
   /// Updates [upstream] and [upstreamImports] from [newUpstream] and
   /// [newUpstreamImports] and adjusts upstream nodes' [downstream] fields
   /// accordingly.
-  void _replaceUpstream(Map<Uri, StylesheetNode> newUpstream,
-      Map<Uri, StylesheetNode> newUpstreamImports) {
-    var oldUpstream = {...upstream.values, ...upstreamImports.values}
-      ..remove(null);
-    var newUpstreamSet = {...newUpstream.values, ...newUpstreamImports.values}
-      ..remove(null);
+  void _replaceUpstream(Map<Uri, StylesheetNode?> newUpstream,
+      Map<Uri, StylesheetNode?> newUpstreamImports) {
+    var oldUpstream =
+        {...upstream.values, ...upstreamImports.values}.removeNull();
+    var newUpstreamSet =
+        {...newUpstream.values, ...newUpstreamImports.values}.removeNull();
 
     for (var removed in oldUpstream.difference(newUpstreamSet)) {
       var wasRemoved = removed._downstream.remove(this);
@@ -398,5 +398,6 @@ class StylesheetNode {
     }
   }
 
-  String toString() => p.prettyUri(stylesheet.span.sourceUrl);
+  String toString() =>
+      stylesheet.span.sourceUrl.andThen(p.prettyUri) ?? '<unknown>';
 }

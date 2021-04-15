@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../value.dart';
@@ -24,9 +23,9 @@ class ModifiableCssDeclaration extends ModifiableCssNode
 
   /// Returns a new CSS declaration with the given properties.
   ModifiableCssDeclaration(this.name, this.value, this.span,
-      {@required bool parsedAsCustomProperty, FileSpan valueSpanForMap})
+      {required bool parsedAsCustomProperty, FileSpan? valueSpanForMap})
       : parsedAsCustomProperty = parsedAsCustomProperty,
-        valueSpanForMap = valueSpanForMap ?? span {
+        valueSpanForMap = valueSpanForMap ?? value.span {
     if (parsedAsCustomProperty) {
       if (!isCustomProperty) {
         throw ArgumentError(

@@ -15,7 +15,7 @@ import 'content_block.dart';
 class IncludeRule implements Statement, CallableInvocation {
   /// The namespace of the mixin being invoked, or `null` if it's invoked
   /// without a namespace.
-  final String namespace;
+  final String? namespace;
 
   /// The name of the mixin being invoked, with underscores converted to
   /// hyphens.
@@ -26,7 +26,7 @@ class IncludeRule implements Statement, CallableInvocation {
 
   /// The block that will be invoked for [ContentRule]s in the mixin being
   /// invoked, or `null` if this doesn't pass a content block.
-  final ContentBlock content;
+  final ContentBlock? content;
 
   final FileSpan span;
 

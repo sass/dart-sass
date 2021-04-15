@@ -8,15 +8,15 @@ import 'package:js/js.dart';
 @anonymous
 class FiberClass {
   // Work around sdk#31490.
-  external Fiber call(Object function());
+  external Fiber call(Object? function());
 
   external Fiber get current;
 
-  external Object yield([Object value]);
+  external Object yield([Object? value]);
 }
 
 @JS()
 @anonymous
 class Fiber {
-  external Object run([Object value]);
+  external Object run([Object? value]);
 }

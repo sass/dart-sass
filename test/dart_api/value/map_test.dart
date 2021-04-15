@@ -12,7 +12,7 @@ import 'utils.dart';
 
 void main() {
   group("a map with contents", () {
-    SassMap value;
+    late SassMap value;
     setUp(() => value = parseValue("(a: b, c: d)") as SassMap);
 
     test("has an undecided separator", () {
@@ -141,7 +141,7 @@ void main() {
   });
 
   group("an empty map", () {
-    SassMap value;
+    late SassMap value;
     setUp(() => value = parseValue("map-remove((a: b), a)") as SassMap);
 
     test("has an undecided separator", () {
