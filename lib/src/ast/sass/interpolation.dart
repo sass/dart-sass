@@ -20,7 +20,7 @@ class Interpolation implements SassNode {
   /// If this contains no interpolated expressions, returns its text contents.
   ///
   /// Otherwise, returns `null`.
-  String get asPlain {
+  String? get asPlain {
     if (contents.isEmpty) return '';
     if (contents.length > 1) return null;
     var first = contents.first;

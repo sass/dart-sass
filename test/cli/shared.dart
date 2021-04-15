@@ -13,11 +13,11 @@ import 'package:test_process/test_process.dart';
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(
     Future<TestProcess> runSass(Iterable<String> arguments,
-        {Map<String, String> environment})) {
+        {Map<String, String>? environment})) {
   /// Runs the executable on [arguments] plus an output file, then verifies that
   /// the contents of the output file match [expected].
   Future<void> expectCompiles(List<String> arguments, Object expected,
-      {Map<String, String> environment}) async {
+      {Map<String, String>? environment}) async {
     var sass = await runSass([...arguments, "out.css", "--no-source-map"],
         environment: environment);
     await sass.shouldExit(0);

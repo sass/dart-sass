@@ -7,27 +7,27 @@ import 'package:tuple/tuple.dart';
 import '../ast/css.dart';
 import '../ast/css/modifiable.dart';
 import '../ast/selector.dart';
-import '../extend/extender.dart';
+import '../extend/extension_store.dart';
 import 'interface/css.dart';
 
 /// Returns deep copies of both [stylesheet] and [extender].
 ///
 /// The [extender] must be associated with [stylesheet].
-Tuple2<ModifiableCssStylesheet, Extender> cloneCssStylesheet(
-    CssStylesheet stylesheet, Extender extender) {
-  var result = extender.clone();
-  var newExtender = result.item1;
+Tuple2<ModifiableCssStylesheet, ExtensionStore> cloneCssStylesheet(
+    CssStylesheet stylesheet, ExtensionStore extensionStore) {
+  var result = extensionStore.clone();
+  var newExtensionStore = result.item1;
   var oldToNewSelectors = result.item2;
 
   return Tuple2(
       _CloneCssVisitor(oldToNewSelectors).visitCssStylesheet(stylesheet),
-      newExtender);
+      newExtensionStore);
 }
 
 /// A visitor that creates a deep (and mutable) copy of a [CssStylesheet].
 class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
   /// A map from selectors in the original stylesheet to selectors generated for
-  /// the new stylesheet using [Extender.clone].
+  /// the new stylesheet using [ExtensionStore.clone].
   final Map<CssValue<SelectorList>, ModifiableCssValue<SelectorList>>
       _oldToNewSelectors;
 
@@ -62,8 +62,8 @@ class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
     var newSelector = _oldToNewSelectors[node.selector];
     if (newSelector == null) {
       throw StateError(
-          "The Extender and CssStylesheet passed to cloneCssStylesheet() must "
-          "come from the same compilation.");
+          "The ExtensionStore and CssStylesheet passed to cloneCssStylesheet() "
+          "must come from the same compilation.");
     }
 
     return _visitChildren(

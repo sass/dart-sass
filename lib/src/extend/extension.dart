@@ -14,33 +14,18 @@ import '../utils.dart';
 /// The target of the extension is represented externally, in the map that
 /// contains this extender.
 class Extension {
-  /// The selector in which the `@extend` appeared.
-  final ComplexSelector extender;
+  /// The extender (such as `A` in `A {@extend B}`).
+  final Extender extender;
 
   /// The selector that's being extended.
-  ///
-  /// `null` for one-off extensions.
   final SimpleSelector target;
 
-  /// The minimum specificity required for any selector generated from this
-  /// extender.
-  final int specificity;
+  /// The media query context to which this extension is restricted, or `null`
+  /// if it can apply within any context.
+  final List<CssMediaQuery>? mediaContext;
 
   /// Whether this extension is optional.
   final bool isOptional;
-
-  /// Whether this is a one-off extender representing a selector that was
-  /// originally in the document, rather than one defined with `@extend`.
-  final bool isOriginal;
-
-  /// The media query context to which this extend is restricted, or `null` if
-  /// it can apply within any context.
-  final List<CssMediaQuery> mediaContext;
-
-  /// The span in which [extender] was defined.
-  ///
-  /// `null` for one-off extensions.
-  final FileSpan extenderSpan;
 
   /// The span for an `@extend` rule that defined this extension.
   ///
@@ -51,43 +36,68 @@ class Extension {
   /// Creates a new extension.
   ///
   /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
-  Extension(ComplexSelector extender, this.target, this.extenderSpan, this.span,
-      this.mediaContext,
-      {int specificity, bool optional = false})
-      : extender = extender,
-        specificity = specificity ?? extender.maxSpecificity,
-        isOptional = optional,
-        isOriginal = false;
+  Extension(
+      ComplexSelector extender, FileSpan extenderSpan, this.target, this.span,
+      {this.mediaContext, bool optional = false})
+      : extender = Extender(extender, extenderSpan),
+        isOptional = optional {
+    this.extender._extension = this;
+  }
 
-  /// Creates a one-off extension that's not intended to be modified over time.
+  Extension withExtender(ComplexSelector newExtender) =>
+      Extension(newExtender, extender.span, target, span,
+          mediaContext: mediaContext, optional: isOptional);
+
+  String toString() =>
+      "$extender {@extend $target${isOptional ? ' !optional' : ''}}";
+}
+
+/// A selector that's extending another selector, such as `A` in `A {@extend
+/// B}`.
+class Extender {
+  /// The selector in which the `@extend` appeared.
+  final ComplexSelector selector;
+
+  /// The minimum specificity required for any selector generated from this
+  /// extender.
+  final int specificity;
+
+  /// Whether this extender represents a selector that was originally in the
+  /// document, rather than one defined with `@extend`.
+  final bool isOriginal;
+
+  /// The extension that created this [Extender].
+  ///
+  /// Not all [Extender]s are created by extensions. Some simply represent the
+  /// original selectors that exist in the document.
+  Extension? _extension;
+
+  /// The span in which this selector was defined.
+  final FileSpan span;
+
+  /// Creates a new extender.
   ///
   /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
-  Extension.oneOff(ComplexSelector extender,
-      {int specificity, this.isOriginal = false})
-      : extender = extender,
-        target = null,
-        extenderSpan = null,
-        specificity = specificity ?? extender.maxSpecificity,
-        isOptional = true,
-        mediaContext = null,
-        span = null;
+  Extender(this.selector, this.span, {int? specificity, bool original = false})
+      : specificity = specificity ?? selector.maxSpecificity,
+        isOriginal = original;
 
   /// Asserts that the [mediaContext] for a selector is compatible with the
   /// query context for this extender.
-  void assertCompatibleMediaContext(List<CssMediaQuery> mediaContext) {
-    if (this.mediaContext == null) return;
-    if (mediaContext != null && listEquals(this.mediaContext, mediaContext)) {
+  void assertCompatibleMediaContext(List<CssMediaQuery>? mediaContext) {
+    var extension = _extension;
+    if (extension == null) return;
+
+    var expectedMediaContext = extension.mediaContext;
+    if (expectedMediaContext == null) return;
+    if (mediaContext != null &&
+        listEquals(expectedMediaContext, mediaContext)) {
       return;
     }
 
     throw SassException(
-        "You may not @extend selectors across media queries.", span);
+        "You may not @extend selectors across media queries.", extension.span);
   }
 
-  Extension withExtender(ComplexSelector newExtender) =>
-      Extension(newExtender, target, extenderSpan, span, mediaContext,
-          specificity: specificity, optional: isOptional);
-
-  String toString() =>
-      "$extender {@extend $target${isOptional ? ' !optional' : ''}}";
+  String toString() => selector.toString();
 }

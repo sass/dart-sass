@@ -16,7 +16,7 @@ class SassNull extends Value {
 
   bool get isBlank => true;
 
-  Value get realNull => null;
+  Value? get realNull => null;
 
   const SassNull._();
 

@@ -18,14 +18,15 @@ class _NodeSassList {
 
 /// Creates a new `sass.types.List` object wrapping [value].
 Object newNodeSassList(SassList value) =>
-    callConstructor(listConstructor, [null, null, value]);
+    callConstructor(listConstructor, [null, null, value]) as Object;
 
 /// The JS constructor for the `sass.types.List` class.
 final Function listConstructor = createClass('SassList',
-    (_NodeSassList thisArg, int length,
-        [bool commaSeparator, SassList dartValue]) {
+    (_NodeSassList thisArg, int? length,
+        [bool? commaSeparator, SassList? dartValue]) {
   thisArg.dartValue = dartValue ??
-      SassList(Iterable.generate(length, (_) => sassNull),
+      // Either [dartValue] or [length] must be passed.
+      SassList(Iterable.generate(length!, (_) => sassNull),
           (commaSeparator ?? true) ? ListSeparator.comma : ListSeparator.space);
 }, {
   'getValue': (_NodeSassList thisArg, int index) =>

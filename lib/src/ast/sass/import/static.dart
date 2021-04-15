@@ -18,11 +18,11 @@ class StaticImport implements Import {
 
   /// The supports condition attached to this import, or `null` if no condition
   /// is attached.
-  final SupportsCondition supports;
+  final SupportsCondition? supports;
 
   /// The media query attached to this import, or `null` if no condition is
   /// attached.
-  final Interpolation media;
+  final Interpolation? media;
 
   final FileSpan span;
 

@@ -57,7 +57,7 @@ final _clamp = _function("clamp", r"$min, $number, $max", (arguments) {
 final _floor = _numberFunction("floor", (value) => value.floor());
 
 final _max = _function("max", r"$numbers...", (arguments) {
-  SassNumber max;
+  SassNumber? max;
   for (var value in arguments[0].asList) {
     var number = value.assertNumber();
     if (max == null || max.lessThan(number).isTruthy) max = number;
@@ -67,7 +67,7 @@ final _max = _function("max", r"$numbers...", (arguments) {
 });
 
 final _min = _function("min", r"$numbers...", (arguments) {
-  SassNumber min;
+  SassNumber? min;
   for (var value in arguments[0].asList) {
     var number = value.assertNumber();
     if (min == null || min.greaterThan(number).isTruthy) min = number;
@@ -144,10 +144,11 @@ final _pow = _function("pow", r"$base, $exponent", (arguments) {
   if (fuzzyEquals(baseValue.abs(), 1) && exponentValue.isInfinite) {
     return SassNumber(double.nan);
   } else if (fuzzyEquals(baseValue, 0)) {
-    if (exponentValue.isFinite &&
-        fuzzyIsInt(exponentValue) &&
-        fuzzyAsInt(exponentValue) % 2 == 1) {
-      exponentValue = fuzzyRound(exponentValue);
+    if (exponentValue.isFinite) {
+      var intExponent = fuzzyAsInt(exponentValue);
+      if (intExponent != null && intExponent % 2 == 1) {
+        exponentValue = fuzzyRound(exponentValue);
+      }
     }
   } else if (baseValue.isFinite &&
       fuzzyLessThan(baseValue, 0) &&
@@ -156,10 +157,11 @@ final _pow = _function("pow", r"$base, $exponent", (arguments) {
     exponentValue = fuzzyRound(exponentValue);
   } else if (baseValue.isInfinite &&
       fuzzyLessThan(baseValue, 0) &&
-      exponentValue.isFinite &&
-      fuzzyIsInt(exponentValue) &&
-      fuzzyAsInt(exponentValue) % 2 == 1) {
-    exponentValue = fuzzyRound(exponentValue);
+      exponentValue.isFinite) {
+    var intExponent = fuzzyAsInt(exponentValue);
+    if (intExponent != null && intExponent % 2 == 1) {
+      exponentValue = fuzzyRound(exponentValue);
+    }
   }
   return SassNumber(math.pow(baseValue, exponentValue));
 });

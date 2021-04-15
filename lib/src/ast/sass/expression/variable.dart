@@ -11,7 +11,7 @@ import '../expression.dart';
 class VariableExpression implements Expression {
   /// The namespace of the variable being referenced, or `null` if it's
   /// referenced without a namespace.
-  final String namespace;
+  final String? namespace;
 
   /// The name of this variable, with underscores converted to hyphens.
   final String name;

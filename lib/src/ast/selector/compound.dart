@@ -25,10 +25,10 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   /// can have a range of possible specificities.
   int get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
-    return _minSpecificity;
+    return _minSpecificity!;
   }
 
-  int _minSpecificity;
+  int? _minSpecificity;
 
   /// The maximum possible specificity that this selector can have.
   ///
@@ -36,10 +36,10 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   /// can have a range of possible specificities.
   int get maxSpecificity {
     if (_maxSpecificity == null) _computeSpecificity();
-    return _maxSpecificity;
+    return _maxSpecificity!;
   }
 
-  int _maxSpecificity;
+  int? _maxSpecificity;
 
   bool get isInvisible => components.any((component) => component.isInvisible);
 
@@ -58,7 +58,7 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory CompoundSelector.parse(String contents,
-          {Object url, Logger logger, bool allowParent = true}) =>
+          {Object? url, Logger? logger, bool allowParent = true}) =>
       SelectorParser(contents,
               url: url, logger: logger, allowParent: allowParent)
           .parseCompoundSelector();
@@ -75,12 +75,14 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
 
   /// Computes [_minSpecificity] and [_maxSpecificity].
   void _computeSpecificity() {
-    _minSpecificity = 0;
-    _maxSpecificity = 0;
+    var minSpecificity = 0;
+    var maxSpecificity = 0;
     for (var simple in components) {
-      _minSpecificity += simple.minSpecificity;
-      _maxSpecificity += simple.maxSpecificity;
+      minSpecificity += simple.minSpecificity;
+      maxSpecificity += simple.maxSpecificity;
     }
+    _minSpecificity = minSpecificity;
+    _maxSpecificity = maxSpecificity;
   }
 
   int get hashCode => listHash(components);

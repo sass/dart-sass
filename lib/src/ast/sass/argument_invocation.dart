@@ -16,10 +16,10 @@ class ArgumentInvocation implements SassNode {
   final Map<String, Expression> named;
 
   /// The first rest argument (as in `$args...`).
-  final Expression rest;
+  final Expression? rest;
 
   /// The second rest argument, which is expected to only contain a keyword map.
-  final Expression keywordRest;
+  final Expression? keywordRest;
 
   final FileSpan span;
 

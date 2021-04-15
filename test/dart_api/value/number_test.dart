@@ -14,7 +14,7 @@ import 'utils.dart';
 
 void main() {
   group("a unitless integer", () {
-    SassNumber value;
+    late SassNumber value;
     setUp(() => value = parseValue("123") as SassNumber);
 
     test("has the correct value", () {
@@ -139,7 +139,7 @@ void main() {
   });
 
   group("a unitless double", () {
-    SassNumber value;
+    late SassNumber value;
     setUp(() => value = parseValue("123.456") as SassNumber);
 
     test("has the correct value", () {
@@ -154,7 +154,7 @@ void main() {
   });
 
   group("a unitless fuzzy integer", () {
-    SassNumber value;
+    late SassNumber value;
     setUp(() => value = parseValue("123.000000000001") as SassNumber);
 
     test("has the correct value", () {
@@ -197,7 +197,7 @@ void main() {
   });
 
   group("an integer with a single numerator unit", () {
-    SassNumber value;
+    late SassNumber value;
     setUp(() => value = parseValue("123px") as SassNumber);
 
     test("has that unit", () {
@@ -312,7 +312,7 @@ void main() {
   });
 
   group("an integer with numerator and denominator units", () {
-    SassNumber value;
+    late SassNumber value;
     setUp(() => value = parseValue("123px / 5ms") as SassNumber);
 
     test("has those units", () {

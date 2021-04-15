@@ -15,6 +15,8 @@ import 'package:dart_style/dart_style.dart';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:sass/src/util/nullable.dart';
+
 /// The files to compile to synchronous versions.
 final sources = const {
   'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
@@ -166,7 +168,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
       _write(arguments.first);
 
       _buffer.write(".${_synchronizeName(node.methodName.name)}");
-      if (node.typeArguments != null) _write(node.typeArguments);
+      node.typeArguments.andThen(_write);
       _buffer.write("(");
 
       _position = arguments[1].beginToken.offset;
@@ -186,15 +188,16 @@ class _Visitor extends RecursiveAstVisitor<void> {
   void visitTypeName(TypeName node) {
     if (["Future", "FutureOr"].contains(node.name.name)) {
       _skip(node.name.beginToken);
-      if (node.typeArguments != null) {
-        _skip(node.typeArguments.leftBracket);
-        node.typeArguments.arguments.first.accept(this);
-        _skip(node.typeArguments.rightBracket);
+      var typeArguments = node.typeArguments;
+      if (typeArguments != null) {
+        _skip(typeArguments.leftBracket);
+        typeArguments.arguments.first.accept(this);
+        _skip(typeArguments.rightBracket);
       } else {
         _buffer.write("void");
       }
     } else if (node.name.name == "Module") {
-      _skip(node.name.beginToken);
+      _skipNode(node);
       _buffer.write("Module<Callable>");
     } else {
       super.visitTypeName(node);
@@ -203,7 +206,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   /// Writes [_source] to [_buffer] up to the beginning of [token], then puts
   /// [_position] after [token] so it doesn't get written.
-  void _skip(Token token) {
+  void _skip(Token? token) {
     if (token == null) return;
     _buffer.write(_source.substring(_position, token.offset));
     _position = token.end;
@@ -212,7 +215,6 @@ class _Visitor extends RecursiveAstVisitor<void> {
   /// Writes [_source] to [_buffer] up to the beginning of [node], then puts
   /// [_position] after [node] so it doesn't get written.
   void _skipNode(AstNode node) {
-    if (node == null) return;
     _writeTo(node);
     _position = node.endToken.end;
   }

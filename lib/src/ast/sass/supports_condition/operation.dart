@@ -31,7 +31,7 @@ class SupportsOperation implements SupportsCondition {
   }
 
   String toString() =>
-      "${_parenthesize(left)} ${operator} ${_parenthesize(right)}";
+      "${_parenthesize(left)} $operator ${_parenthesize(right)}";
 
   String _parenthesize(SupportsCondition condition) =>
       condition is SupportsNegation ||
