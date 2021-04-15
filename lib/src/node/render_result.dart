@@ -10,11 +10,13 @@ import 'package:js/js.dart';
 @anonymous
 class RenderResult {
   external Uint8List get css;
-  external Uint8List get map;
+  external Uint8List? get map;
   external RenderResultStats get stats;
 
   external factory RenderResult(
-      {Uint8List css, Uint8List map, RenderResultStats stats});
+      {required Uint8List css,
+      Uint8List? map,
+      required RenderResultStats stats});
 }
 
 @JS()
@@ -27,9 +29,9 @@ class RenderResultStats {
   external List<Object /* String */ > get includedFiles;
 
   external factory RenderResultStats(
-      {String entry,
-      int start,
-      int end,
-      int duration,
-      List<String> includedFiles});
+      {required String entry,
+      required int start,
+      required int end,
+      required int duration,
+      required List<String> includedFiles});
 }

@@ -81,7 +81,7 @@ final _merge = BuiltInCallable.overloadedFunction("merge", {
     }
     var map2 = args.last.assertMap("map2");
     return _modify(map1, args.take(args.length - 1), (oldValue) {
-      var nestedMap = oldValue?.tryMap();
+      var nestedMap = oldValue.tryMap();
       if (nestedMap == null) return map2;
       return SassMap({...nestedMap.contents, ...map2.contents});
     });
@@ -99,12 +99,12 @@ final _deepRemove =
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
   return _modify(map, keys.take(keys.length - 1), (value) {
-    var nestedMap = value?.tryMap();
-    if (nestedMap?.contents?.containsKey(keys.last) ?? false) {
+    var nestedMap = value.tryMap();
+    if (nestedMap != null && nestedMap.contents.containsKey(keys.last)) {
       return SassMap(Map.of(nestedMap.contents)..remove(keys.last));
     }
     return value;
-  });
+  }, addNesting: false);
 });
 
 final _remove = BuiltInCallable.overloadedFunction("remove", {
@@ -157,33 +157,31 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
 ///
 /// If more than one key is provided, this means the map targeted for update is
 /// nested within [map]. The multiple [keys] form a path of nested maps that
-/// leads to the targeted map. If any value along the path is not a map, and
-/// `modify(null)` returns null, this inserts a new map at that key and
-/// overwrites the current value. Otherwise, this fails and returns [map] with
-/// no changes.
+/// leads to the targeted value, which is passed to [modify].
+///
+/// If any value along the path (other than the last one) is not a map and
+/// [addNesting] is `true`, this creates nested maps to match [keys] and passes
+/// [sassNull] to [modify]. Otherwise, this fails and returns [map] with no
+/// changes.
 ///
 /// If no keys are provided, this passes [map] directly to modify and returns
 /// the result.
-Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old)) {
+Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old),
+    {bool addNesting = true}) {
   var keyIterator = keys.iterator;
-  SassMap _modifyNestedMap(SassMap map, [Value newValue]) {
+  SassMap _modifyNestedMap(SassMap map) {
     var mutableMap = Map.of(map.contents);
     var key = keyIterator.current;
 
     if (!keyIterator.moveNext()) {
-      mutableMap[key] = newValue ?? modify(mutableMap[key]);
+      mutableMap[key] = modify(mutableMap[key] ?? sassNull);
       return SassMap(mutableMap);
     }
 
     var nestedMap = mutableMap[key]?.tryMap();
-    if (nestedMap == null) {
-      // We pass null to `modify` here to indicate there's no existing value.
-      newValue = modify(null);
-      if (newValue == null) return SassMap(mutableMap);
-    }
+    if (nestedMap == null && !addNesting) return SassMap(mutableMap);
 
-    nestedMap ??= const SassMap.empty();
-    mutableMap[key] = _modifyNestedMap(nestedMap, newValue);
+    mutableMap[key] = _modifyNestedMap(nestedMap ?? const SassMap.empty());
     return SassMap(mutableMap);
   }
 

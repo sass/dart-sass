@@ -27,7 +27,7 @@ final _disallowedFunctionNames =
 class CssParser extends ScssParser {
   bool get plainCss => true;
 
-  CssParser(String contents, {Object url, Logger logger})
+  CssParser(String contents, {Object? url, Logger? logger})
       : super(contents, url: url, logger: logger);
 
   void silentComment() {
@@ -64,14 +64,7 @@ class CssParser extends ScssParser {
         almostAnyValue();
         error("This at-rule isn't allowed in plain CSS.",
             scanner.spanFrom(start));
-        break;
 
-      case "charset":
-        string();
-        if (!root) {
-          error("This at-rule is not allowed here.", scanner.spanFrom(start));
-        }
-        return null;
       case "import":
         return _cssImportRule(start);
       case "media":
@@ -112,7 +105,7 @@ class CssParser extends ScssParser {
   Expression identifierLike() {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
-    var plain = identifier.asPlain;
+    var plain = identifier.asPlain!; // CSS doesn't allow non-plain identifiers
 
     var specialFunction = trySpecialFunction(plain.toLowerCase(), start);
     if (specialFunction != null) return specialFunction;

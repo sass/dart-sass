@@ -33,8 +33,8 @@ class SelectorParser extends Parser {
   final bool _allowPlaceholder;
 
   SelectorParser(String contents,
-      {Object url,
-      Logger logger,
+      {Object? url,
+      Logger? logger,
       bool allowParent = true,
       bool allowPlaceholder = true})
       : _allowParent = allowParent,
@@ -158,7 +158,7 @@ class SelectorParser extends Parser {
   ///
   /// If [allowParent] is passed, it controls whether the parent selector `&` is
   /// allowed. Otherwise, it defaults to [_allowParent].
-  SimpleSelector _simpleSelector({bool allowParent}) {
+  SimpleSelector _simpleSelector({bool? allowParent}) {
     var start = scanner.state;
     allowParent ??= _allowParent;
     switch (scanner.peekChar()) {
@@ -208,7 +208,8 @@ class SelectorParser extends Parser {
         : identifier();
     whitespace();
 
-    var modifier = isAlphabetic(scanner.peekChar())
+    next = scanner.peekChar();
+    var modifier = next != null && isAlphabetic(next)
         ? String.fromCharCode(scanner.readChar())
         : null;
 
@@ -262,7 +263,6 @@ class SelectorParser extends Parser {
 
       default:
         scanner.error('Expected "]".', position: start.position);
-        throw "Unreachable";
     }
   }
 
@@ -306,8 +306,8 @@ class SelectorParser extends Parser {
     whitespace();
 
     var unvendored = unvendor(name);
-    String argument;
-    SelectorList selector;
+    String? argument;
+    SelectorList? selector;
     if (element) {
       if (_selectorPseudoElements.contains(unvendored)) {
         selector = _selectorList();

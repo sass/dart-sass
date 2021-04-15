@@ -9,7 +9,8 @@ import 'package:collection/collection.dart';
 import '../ast/selector.dart';
 import '../callable.dart';
 import '../exception.dart';
-import '../extend/extender.dart';
+import '../extend/extension_store.dart';
+import '../functions.dart';
 import '../module/built_in.dart';
 import '../value.dart';
 
@@ -87,7 +88,8 @@ final _extend =
   var target = arguments[1].assertSelector(name: "extendee");
   var source = arguments[2].assertSelector(name: "extender");
 
-  return Extender.extend(selector, source, target).asSassList;
+  return ExtensionStore.extend(selector, source, target, currentCallableSpan)
+      .asSassList;
 });
 
 final _replace =
@@ -96,7 +98,8 @@ final _replace =
   var target = arguments[1].assertSelector(name: "original");
   var source = arguments[2].assertSelector(name: "replacement");
 
-  return Extender.replace(selector, source, target).asSassList;
+  return ExtensionStore.replace(selector, source, target, currentCallableSpan)
+      .asSassList;
 });
 
 final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
@@ -130,7 +133,7 @@ final _parse = _function("parse", r"$selector",
 
 /// Adds a [ParentSelector] to the beginning of [compound], or returns `null` if
 /// that wouldn't produce a valid selector.
-CompoundSelector _prependParent(CompoundSelector compound) {
+CompoundSelector? _prependParent(CompoundSelector compound) {
   var first = compound.components.first;
   if (first is UniversalSelector) return null;
   if (first is TypeSelector) {

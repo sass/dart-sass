@@ -186,7 +186,7 @@ void main() {
   });
 
   group('this', () {
-    String sassPath;
+    late String sassPath;
     setUp(() async {
       sassPath = p.join(sandbox, 'test.scss');
     });
@@ -369,7 +369,7 @@ void main() {
           render(RenderOptions(
               data: "a {b: foo()}",
               functions: jsify({
-                "foo": allowInterop((void done(Object result)) {
+                "foo": allowInterop((void done(Object? result)) {
                   Timer(Duration.zero, () {
                     done(callConstructor(sass.types.Number, [1]));
                   });
@@ -413,7 +413,7 @@ void main() {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
           functions: jsify({
-            "foo": allowInterop((void done(Object result)) {
+            "foo": allowInterop((void done(Object? result)) {
               Timer(Duration.zero, () {
                 done(callConstructor(sass.types.Error, ["aw beans"]));
               });
@@ -426,7 +426,7 @@ void main() {
       var error = await renderError(RenderOptions(
           data: "a {b: foo()}",
           functions: jsify({
-            "foo": allowInterop((void done(Object result)) {
+            "foo": allowInterop((void done(Object? result)) {
               Timer(Duration.zero, () {
                 done(null);
               });
@@ -481,7 +481,7 @@ void main() {
             render(RenderOptions(
                 data: "a {b: foo()}",
                 functions: jsify({
-                  "foo": allowInterop((void done(Object result)) {
+                  "foo": allowInterop((void done(Object? result)) {
                     Timer(Duration.zero, () {
                       done(callConstructor(sass.types.Number, [1]));
                     });
@@ -518,7 +518,7 @@ void main() {
         var error = await renderError(RenderOptions(
             data: "a {b: foo()}",
             functions: jsify({
-              "foo": allowInterop((void done(Object result)) {
+              "foo": allowInterop((void done(Object? result)) {
                 Timer(Duration.zero, () {
                   done(null);
                 });

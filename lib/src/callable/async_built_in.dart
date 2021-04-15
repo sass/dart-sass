@@ -37,7 +37,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
   AsyncBuiltInCallable.function(String name, String arguments,
-      FutureOr<Value> callback(List<Value> arguments), {Object url})
+      FutureOr<Value> callback(List<Value> arguments), {Object? url})
       : this.parsed(
             name,
             ArgumentDeclaration.parse('@function $name($arguments) {',
@@ -54,12 +54,16 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// defined.
   AsyncBuiltInCallable.mixin(String name, String arguments,
       FutureOr<void> callback(List<Value> arguments),
-      {Object url})
+      {Object? url})
       : this.parsed(name,
             ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
             (arguments) async {
           await callback(arguments);
-          return null;
+          // We could encode the fact that functions return values and mixins
+          // don't in the type system, but that would get very messy very
+          // quickly so it's easier to just return Sass's `null` for mixins and
+          // simply ignore it at the call site.
+          return sassNull;
         });
 
   /// Creates a callable with a single [arguments] declaration and a single

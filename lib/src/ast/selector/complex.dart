@@ -33,10 +33,10 @@ class ComplexSelector extends Selector {
   /// can have a range of possible specificities.
   int get minSpecificity {
     if (_minSpecificity == null) _computeSpecificity();
-    return _minSpecificity;
+    return _minSpecificity!;
   }
 
-  int _minSpecificity;
+  int? _minSpecificity;
 
   /// The maximum possible specificity that this selector can have.
   ///
@@ -44,19 +44,13 @@ class ComplexSelector extends Selector {
   /// can have a range of possible specificities.
   int get maxSpecificity {
     if (_maxSpecificity == null) _computeSpecificity();
-    return _maxSpecificity;
+    return _maxSpecificity!;
   }
 
-  int _maxSpecificity;
+  int? _maxSpecificity;
 
-  bool get isInvisible {
-    if (_isInvisible != null) return _isInvisible;
-    _isInvisible = components.any(
-        (component) => component is CompoundSelector && component.isInvisible);
-    return _isInvisible;
-  }
-
-  bool _isInvisible;
+  late final bool isInvisible = components.any(
+      (component) => component is CompoundSelector && component.isInvisible);
 
   ComplexSelector(Iterable<ComplexSelectorComponent> components,
       {this.lineBreak = false})
@@ -77,14 +71,16 @@ class ComplexSelector extends Selector {
 
   /// Computes [_minSpecificity] and [_maxSpecificity].
   void _computeSpecificity() {
-    _minSpecificity = 0;
-    _maxSpecificity = 0;
+    var minSpecificity = 0;
+    var maxSpecificity = 0;
     for (var component in components) {
       if (component is CompoundSelector) {
-        _minSpecificity += component.minSpecificity;
-        _maxSpecificity += component.maxSpecificity;
+        minSpecificity += component.minSpecificity;
+        maxSpecificity += component.maxSpecificity;
       }
     }
+    _minSpecificity = minSpecificity;
+    _maxSpecificity = maxSpecificity;
   }
 
   int get hashCode => listHash(components);

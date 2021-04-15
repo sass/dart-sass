@@ -16,21 +16,22 @@ import '../style_rule.dart';
 /// unmodifiable types are used elsewhere to enfore that constraint.
 abstract class ModifiableCssNode extends CssNode {
   /// The node that contains this, or `null` for the root [CssStylesheet] node.
-  ModifiableCssParentNode get parent => _parent;
-  ModifiableCssParentNode _parent;
+  ModifiableCssParentNode? get parent => _parent;
+  ModifiableCssParentNode? _parent;
 
   /// The index of [this] in `parent.children`.
   ///
   /// This makes [remove] more efficient.
-  int _indexInParent;
+  int? _indexInParent;
 
   var isGroupEnd = false;
 
   /// Whether this node has a visible sibling after it.
   bool get hasFollowingSibling {
-    if (_parent == null) return false;
-    var siblings = _parent.children;
-    for (var i = _indexInParent + 1; i < siblings.length; i++) {
+    var parent = _parent;
+    if (parent == null) return false;
+    var siblings = parent.children;
+    for (var i = _indexInParent! + 1; i < siblings.length; i++) {
       var sibling = siblings[i];
       if (!_isInvisible(sibling)) return true;
     }
@@ -63,13 +64,15 @@ abstract class ModifiableCssNode extends CssNode {
   ///
   /// Throws a [StateError] if [parent] is `null`.
   void remove() {
-    if (_parent == null) {
+    var parent = _parent;
+    if (parent == null) {
       throw StateError("Can't remove a node without a parent.");
     }
 
-    _parent._children.removeAt(_indexInParent);
-    for (var i = _indexInParent; i < _parent._children.length; i++) {
-      _parent._children[i]._indexInParent--;
+    parent._children.removeAt(_indexInParent!);
+    for (var i = _indexInParent!; i < parent._children.length; i++) {
+      var child = parent._children[i];
+      child._indexInParent = child._indexInParent! - 1;
     }
     _parent = null;
   }

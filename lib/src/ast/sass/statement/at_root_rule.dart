@@ -12,10 +12,10 @@ import 'parent.dart';
 /// An `@at-root` rule.
 ///
 /// This moves it contents "up" the tree through parent nodes.
-class AtRootRule extends ParentStatement {
+class AtRootRule extends ParentStatement<List<Statement>> {
   /// The query specifying which statements this should move its contents
   /// through.
-  final Interpolation query;
+  final Interpolation? query;
 
   final FileSpan span;
 

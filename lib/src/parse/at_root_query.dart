@@ -10,7 +10,7 @@ import 'parser.dart';
 
 /// A parser for `@at-root` queries.
 class AtRootQueryParser extends Parser {
-  AtRootQueryParser(String contents, {Object url, Logger logger})
+  AtRootQueryParser(String contents, {Object? url, Logger? logger})
       : super(contents, url: url, logger: logger);
 
   AtRootQuery parse() {

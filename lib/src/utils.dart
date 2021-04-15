@@ -10,14 +10,13 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
-import 'ast/node.dart';
 import 'util/character.dart';
 
 /// The URL used in stack traces when no source URL is available.
 final _noSourceUrl = Uri.parse("-");
 
 /// Converts [iter] into a sentence, separating each word with [conjunction].
-String toSentence(Iterable<Object> iter, [String conjunction]) {
+String toSentence(Iterable<Object> iter, [String? conjunction]) {
   conjunction ??= "and";
   if (iter.length == 1) return iter.first.toString();
   return iter.take(iter.length - 1).join(", ") + " $conjunction ${iter.last}";
@@ -31,7 +30,7 @@ String indent(String string, int indentation) =>
 ///
 /// By default, this just adds "s" to the end of [name] to get the plural. If
 /// [plural] is passed, that's used instead.
-String pluralize(String name, int number, {String plural}) {
+String pluralize(String name, int number, {String? plural}) {
   if (number == 1) return name;
   if (plural != null) return plural;
   return '${name}s';
@@ -69,7 +68,7 @@ String trimAscii(String string, {bool excludeEscape = false}) {
   return start == null
       ? ""
       : string.substring(
-          start, _lastNonWhitespace(string, excludeEscape: excludeEscape) + 1);
+          start, _lastNonWhitespace(string, excludeEscape: excludeEscape)! + 1);
 }
 
 /// Like [String.trimLeft], but only trims ASCII whitespace.
@@ -89,7 +88,7 @@ String trimAsciiRight(String string, {bool excludeEscape = false}) {
 
 /// Returns the index of the first character in [string] that's not ASCII
 /// whitespace, or [null] if [string] is entirely spaces.
-int _firstNonWhitespace(String string) {
+int? _firstNonWhitespace(String string) {
   for (var i = 0; i < string.length; i++) {
     if (!isWhitespace(string.codeUnitAt(i))) return i;
   }
@@ -101,7 +100,7 @@ int _firstNonWhitespace(String string) {
 ///
 /// If [excludeEscape] is `true`, this doesn't move past whitespace that's
 /// included in a CSS escape.
-int _lastNonWhitespace(String string, {bool excludeEscape = false}) {
+int? _lastNonWhitespace(String string, {bool excludeEscape = false}) {
   for (var i = string.length - 1; i >= 0; i--) {
     var codeUnit = string.codeUnitAt(i);
     if (!isWhitespace(codeUnit)) {
@@ -147,7 +146,8 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
 }
 
 /// Returns the first element of [iterable], or `null` if the iterable is empty.
-T firstOrNull<T>(Iterable<T> iterable) {
+// TODO(nweiz): Use package:collection
+T? firstOrNull<T>(Iterable<T> iterable) {
   var iterator = iterable.iterator;
   return iterator.moveNext() ? iterator.current : null;
 }
@@ -186,8 +186,8 @@ int iterableHash(Iterable<Object> iterable) =>
     const IterableEquality<Object>().hash(iterable);
 
 /// Returns whether [list1] and [list2] have the same contents.
-bool listEquals(List<Object> list1, List<Object> list2) =>
-    const ListEquality<Object>().equals(list1, list2);
+bool listEquals(List<Object?>? list1, List<Object?>? list2) =>
+    const ListEquality<Object?>().equals(list1, list2);
 
 /// Returns a hash code for [list] that matches [listEquals].
 int listHash(List<Object> list) => const ListEquality<Object>().hash(list);
@@ -204,29 +204,11 @@ int mapHash(Map<Object, Object> map) =>
 ///
 /// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
 /// passed, it's used instead.
-Frame frameForSpan(SourceSpan span, String member, {Uri url}) => Frame(
+Frame frameForSpan(SourceSpan span, String member, {Uri? url}) => Frame(
     url ?? span.sourceUrl ?? _noSourceUrl,
     span.start.line + 1,
     span.start.column + 1,
     member);
-
-/// Returns a source span that covers the spans of both the first and last nodes
-/// in [nodes].
-///
-/// If [nodes] is empty, or if either the first or last node has a `null` span,
-/// returns `null`.
-FileSpan spanForList(List<AstNode> nodes) {
-  if (nodes.isEmpty) return null;
-
-  // Spans may be null for dynamically-constructed ASTs.
-  var left = nodes.first?.span;
-  if (left == null) return null;
-
-  var right = nodes.last?.span;
-  if (right == null) return null;
-
-  return left.expand(right);
-}
 
 /// Returns the variable name (including the leading `$`) from a [span] that
 /// covers a variable declaration, which includes the variable name as well as
@@ -254,7 +236,7 @@ String unvendor(String name) {
 }
 
 /// Returns whether [string1] and [string2] are equal, ignoring ASCII case.
-bool equalsIgnoreCase(String string1, String string2) {
+bool equalsIgnoreCase(String? string1, String? string2) {
   if (identical(string1, string2)) return true;
   if (string1 == null || string2 == null) return false;
   if (string1.length != string2.length) return false;
@@ -296,15 +278,15 @@ void mapInPlace<T>(List<T> list, T function(T element)) {
 /// list. If it returns `null`, the elements are considered unequal; otherwise,
 /// it should return the element to include in the return value.
 List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
-    {T select(T element1, T element2)}) {
+    {T? select(T element1, T element2)?}) {
   select ??= (element1, element2) => element1 == element2 ? element1 : null;
 
   var lengths = List.generate(
       list1.length + 1, (_) => List.filled(list2.length + 1, 0),
       growable: false);
 
-  var selections = List<List<T>>.generate(
-      list1.length, (_) => List<T>(list2.length),
+  var selections = List<List<T?>>.generate(
+      list1.length, (_) => List<T?>.filled(list2.length, null),
       growable: false);
 
   for (var i = 0; i < list1.length; i++) {
@@ -330,25 +312,17 @@ List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
   return backtrack(list1.length - 1, list2.length - 1);
 }
 
-/// Removes and returns the first value in [list] that matches [test].
+/// Removes the first value in [list] that matches [test].
 ///
-/// By default, throws a [StateError] if no value matches. If [orElse] is
-/// passed, its return value is used instead.
-T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
-  T toRemove;
-  for (var element in list) {
-    if (!test(element)) continue;
-    toRemove = element;
-    break;
+/// If [orElse] is passed, calls it if no value matches.
+void removeFirstWhere<T>(List<T> list, bool test(T value), {void orElse()?}) {
+  for (var i = 0; i < list.length; i++) {
+    if (!test(list[i])) continue;
+    list.removeAt(i);
+    return;
   }
 
-  if (toRemove == null) {
-    if (orElse != null) return orElse();
-    throw StateError("No such element.");
-  } else {
-    list.remove(toRemove);
-    return toRemove;
-  }
+  if (orElse != null) orElse();
 }
 
 /// Like [Map.addAll], but for two-layer maps.
@@ -357,8 +331,9 @@ T removeFirstWhere<T>(List<T> list, bool test(T value), {T orElse()}) {
 void mapAddAll2<K1, K2, V>(
     Map<K1, Map<K2, V>> destination, Map<K1, Map<K2, V>> source) {
   source.forEach((key, inner) {
-    if (destination.containsKey(key)) {
-      destination[key].addAll(inner);
+    var innerDestination = destination[key];
+    if (innerDestination != null) {
+      innerDestination.addAll(inner);
     } else {
       destination[key] = inner;
     }
@@ -394,7 +369,7 @@ Future<Iterable<F>> mapAsync<E, F>(
 /// same key.
 Future<V> putIfAbsentAsync<K, V>(
     Map<K, V> map, K key, Future<V> ifAbsent()) async {
-  if (map.containsKey(key)) return map[key];
+  if (map.containsKey(key)) return map[key]!;
   var value = await ifAbsent();
   map[key] = value;
   return value;

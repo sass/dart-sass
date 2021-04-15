@@ -12,7 +12,7 @@ import 'utils.dart';
 
 void main() {
   group("an unquoted ASCII string", () {
-    SassString value;
+    late SassString value;
     setUp(() => value = parseValue("foobar") as SassString);
 
     test("has the correct text", () {
@@ -125,7 +125,7 @@ void main() {
   });
 
   group("a quoted ASCII string", () {
-    SassString value;
+    late SassString value;
     setUp(() => value = parseValue('"foobar"') as SassString);
 
     test("has the correct text", () {
@@ -143,7 +143,7 @@ void main() {
   });
 
   group("an unquoted Unicde", () {
-    SassString value;
+    late SassString value;
     setUp(() => value = parseValue("a👭b👬c") as SassString);
 
     test("sassLength returns the length", () {

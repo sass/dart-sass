@@ -15,10 +15,10 @@ abstract class CssImport extends CssNode {
   CssValue<String> get url;
 
   /// The supports condition attached to this import.
-  CssValue<String> get supports;
+  CssValue<String>? get supports;
 
   /// The media query attached to this import.
-  List<CssMediaQuery> get media;
+  List<CssMediaQuery>? get media;
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitCssImport(this);
 }

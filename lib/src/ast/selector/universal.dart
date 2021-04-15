@@ -14,7 +14,7 @@ class UniversalSelector extends SimpleSelector {
   /// it's the empty string, this matches all elements that aren't in any
   /// namespace. If it's `*`, this matches all elements in any namespace.
   /// Otherwise, it matches all elements in the given namespace.
-  final String namespace;
+  final String? namespace;
 
   int get minSpecificity => 0;
 
@@ -23,7 +23,7 @@ class UniversalSelector extends SimpleSelector {
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitUniversalSelector(this);
 
-  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+  List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
       var unified = unifyUniversalAndElement(this, compound.first);
       if (unified == null) return null;

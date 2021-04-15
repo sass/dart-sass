@@ -27,55 +27,61 @@ class IfRule implements Statement {
   /// The final, unconditional `@else` clause.
   ///
   /// This is `null` if there is no unconditional `@else`.
-  final IfClause lastClause;
+  final ElseClause? lastClause;
 
   final FileSpan span;
 
   IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
-      : clauses = List.unmodifiable(clauses) {
-    assert(clauses.every((clause) => clause.expression != null));
-    assert(lastClause?.expression == null);
-  }
+      : clauses = List.unmodifiable(clauses);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
 
   String toString() {
     var first = true;
-    return clauses.map((clause) {
-      var name = first ? 'if' : 'else';
-      first = false;
-      return '@$name ${clause.expression} {${clause.children.join(" ")}}';
-    }).join(' ');
+    var result = clauses
+        .map((clause) =>
+            "@${first ? 'if' : 'else if'} {${clause.children.join(' ')}}")
+        .join(' ');
+
+    var lastClause = this.lastClause;
+    if (lastClause != null) result += " $lastClause";
+    return result;
   }
 }
 
-/// A single clause in an `@if` rule.
-class IfClause {
-  /// The expression to evaluate to determine whether to run this rule, or
-  /// `null` if this is the final unconditional `@else` clause.
-  final Expression expression;
-
+/// The superclass of `@if` and `@else` clauses.
+abstract class IfRuleClause {
   /// The statements to evaluate if this clause matches.
   final List<Statement> children;
 
   /// Whether any of [children] is a variable, function, or mixin declaration.
   final bool hasDeclarations;
 
-  IfClause(Expression expression, Iterable<Statement> children)
-      : this._(expression, List.unmodifiable(children));
+  IfRuleClause(Iterable<Statement> children)
+      : this._(List.unmodifiable(children));
 
-  IfClause.last(Iterable<Statement> children)
-      : this._(null, List.unmodifiable(children));
-
-  IfClause._(this.expression, this.children)
+  IfRuleClause._(this.children)
       : hasDeclarations = children.any((child) =>
             child is VariableDeclaration ||
             child is FunctionRule ||
             child is MixinRule ||
             (child is ImportRule &&
                 child.imports.any((import) => import is DynamicImport)));
+}
 
-  String toString() =>
-      (expression == null ? "@else" : "@if $expression") +
-      " {${children.join(' ')}}";
+/// An `@if` or `@else if` clause in an `@if` rule.
+class IfClause extends IfRuleClause {
+  /// The expression to evaluate to determine whether to run this rule.
+  final Expression expression;
+
+  IfClause(this.expression, Iterable<Statement> children) : super(children);
+
+  String toString() => "@if $expression {${children.join(' ')}}";
+}
+
+/// An `@else` clause in an `@if` rule.
+class ElseClause extends IfRuleClause {
+  ElseClause(Iterable<Statement> children) : super(children);
+
+  String toString() => "@else {${children.join(' ')}}";
 }

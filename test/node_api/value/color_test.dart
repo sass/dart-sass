@@ -18,7 +18,7 @@ import 'utils.dart';
 
 void main() {
   group("from a parameter", () {
-    NodeSassColor color;
+    late NodeSassColor color;
     setUp(() {
       color = parseValue<NodeSassColor>("rgba(42, 84, 126, 0.42)");
     });

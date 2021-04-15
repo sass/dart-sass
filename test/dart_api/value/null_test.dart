@@ -11,7 +11,7 @@ import 'package:sass/sass.dart';
 import 'utils.dart';
 
 void main() {
-  Value value;
+  late Value value;
   setUp(() => value = parseValue("null"));
 
   test("is falsey", () {
