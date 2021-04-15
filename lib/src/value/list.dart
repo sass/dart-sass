@@ -69,7 +69,7 @@ class ListSeparator {
 
   /// A separator that hasn't yet been determined.
   ///
-  /// Singleton lists and empty lists don't have separators defiend. This means
+  /// Singleton lists and empty lists don't have separators defined. This means
   /// that list functions will prefer other lists' separators if possible.
   static const undecided = ListSeparator._("undecided", null);
 

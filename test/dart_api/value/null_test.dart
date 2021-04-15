@@ -14,7 +14,7 @@ void main() {
   late Value value;
   setUp(() => value = parseValue("null"));
 
-  test("is falsey", () {
+  test("is falsy", () {
     expect(value.isTruthy, isFalse);
   });
 

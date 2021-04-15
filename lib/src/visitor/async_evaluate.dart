@@ -128,7 +128,7 @@ class _EvaluateVisitor
   /// compiled to Node.js.
   final NodeImporter? _nodeImporter;
 
-  /// Built-in functions that are globally-acessible, even under the new module
+  /// Built-in functions that are globally-accessible, even under the new module
   /// system.
   final _builtInFunctions = <String, AsyncCallable>{};
 
@@ -278,7 +278,7 @@ class _EvaluateVisitor
 
   /// The configuration for the current module.
   ///
-  /// If this is empty, that indicates that the current module is not confiured.
+  /// If this is empty, that indicates that the current module is not configured.
   var _configuration = const Configuration.empty();
 
   /// Creates a new visitor.
@@ -1897,7 +1897,7 @@ class _EvaluateVisitor
     }
   }
 
-  /// Evlauates [condition] and converts it to a plain CSS string, with
+  /// Evaluates [condition] and converts it to a plain CSS string, with
   /// parentheses if necessary.
   ///
   /// If [operator] is passed, it's the operator for the surrounding
@@ -2592,7 +2592,7 @@ class _EvaluateVisitor
   // stylesheets that themselves contain `@use` rules, and CSS included via the
   // `load-css()` function. When we load a module using one of these constructs,
   // we first convert it to CSS (we can't evaluate it as Sass directly because
-  // it may be used elsewhere and it must only be evaluatedonce). Then we
+  // it may be used elsewhere and it must only be evaluated once). Then we
   // execute that CSS more or less as though it were Sass (we can't inject it
   // into the stylesheet as-is because the `@import` may be nested in other
   // rules). That's what these rules implement.

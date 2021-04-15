@@ -315,7 +315,7 @@ void sharedTests(
 
   // Regression test for an issue mentioned in sass/linter#15
   test(
-      "gracefully reports errors for binary operations with parentheized "
+      "gracefully reports errors for binary operations with parenthesized "
       "operands", () async {
     var sass = await runSass(["--no-unicode", "-"]);
     sass.stdin.writeln("a {b: (#123) + (#456)}");

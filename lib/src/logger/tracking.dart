@@ -15,7 +15,7 @@ class TrackingLogger implements Logger {
   bool get emittedWarning => _emittedWarning;
   bool _emittedWarning = false;
 
-  /// WHether [debug] has been called on this logger.
+  /// Whether [debug] has been called on this logger.
   bool get emittedDebug => _emittedDebug;
   bool _emittedDebug = false;
 

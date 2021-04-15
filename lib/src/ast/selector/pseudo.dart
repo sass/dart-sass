@@ -80,7 +80,7 @@ class PseudoSelector extends SimpleSelector {
     // We don't consider `:not(%foo)` to be invisible because, semantically, it
     // means "doesn't match this selector that matches nothing", so it's
     // equivalent to *. If the entire compound selector is composed of `:not`s
-    // with invisible lists, the serialier emits it as `*`.
+    // with invisible lists, the serializer emits it as `*`.
     return name != 'not' && selector.isInvisible;
   }
 
@@ -138,7 +138,7 @@ class PseudoSelector extends SimpleSelector {
         // [compound] has a different one than [this], unification fails.
         if (isElement) return null;
 
-        // Otherwise, this is a pseudo selector and should come before pseduo
+        // Otherwise, this is a pseudo selector and should come before pseudo
         // elements.
         result.add(this);
         addedThis = true;
