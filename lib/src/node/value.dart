@@ -23,7 +23,7 @@ export 'value/string.dart';
 /// Unwraps a value wrapped with [wrapValue].
 ///
 /// If [object] is a JS error, throws it.
-Value unwrapValue(Object object) {
+Value unwrapValue(Object? object) {
   if (object != null) {
     if (object is Value) return object;
     var value = getProperty(object, 'dartValue');

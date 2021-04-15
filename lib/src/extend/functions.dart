@@ -4,9 +4,9 @@
 
 /// This library contains utility functions related to extending selectors.
 ///
-/// These functions aren't private methods on [Extender] because they also need
-/// to be accessible from elsewhere in the codebase. In addition, they aren't
-/// instance methods on other objects because their APIs aren't a good
+/// These functions aren't private methods on [ExtensionStore] because they also
+/// need to be accessible from elsewhere in the codebase. In addition, they
+/// aren't instance methods on other objects because their APIs aren't a good
 /// fit—usually because they deal with raw component lists rather than selector
 /// classes, to reduce allocations.
 
@@ -27,33 +27,33 @@ final _subselectorPseudos = {'matches', 'any', 'nth-child', 'nth-last-child'};
 /// matched by both [complex1] and [complex2].
 ///
 /// If no such list can be produced, returns `null`.
-List<List<ComplexSelectorComponent>> unifyComplex(
+List<List<ComplexSelectorComponent>>? unifyComplex(
     List<List<ComplexSelectorComponent>> complexes) {
   assert(complexes.isNotEmpty);
 
   if (complexes.length == 1) return complexes;
 
-  List<SimpleSelector> unifiedBase;
+  List<SimpleSelector>? unifiedBase;
   for (var complex in complexes) {
     var base = complex.last;
-    if (base is CompoundSelector) {
-      if (unifiedBase == null) {
-        unifiedBase = base.components;
-      } else {
-        for (var simple in base.components) {
-          unifiedBase = simple.unify(unifiedBase);
-          if (unifiedBase == null) return null;
-        }
-      }
+    if (base is! CompoundSelector) return null;
+
+    assert(base.components.isNotEmpty);
+    if (unifiedBase == null) {
+      unifiedBase = base.components;
     } else {
-      return null;
+      for (var simple in base.components) {
+        unifiedBase = simple.unify(unifiedBase!); // dart-lang/sdk#45348
+        if (unifiedBase == null) return null;
+      }
     }
   }
 
   var complexesWithoutBases = complexes
       .map((complex) => complex.sublist(0, complex.length - 1))
       .toList();
-  complexesWithoutBases.last.add(CompoundSelector(unifiedBase));
+  // By the time we make it here, [unifiedBase] must be non-null.
+  complexesWithoutBases.last.add(CompoundSelector(unifiedBase!));
   return weave(complexesWithoutBases);
 }
 
@@ -61,12 +61,13 @@ List<List<ComplexSelectorComponent>> unifyComplex(
 /// both [compound1] and [compound2].
 ///
 /// If no such selector can be produced, returns `null`.
-CompoundSelector unifyCompound(
+CompoundSelector? unifyCompound(
     List<SimpleSelector> compound1, List<SimpleSelector> compound2) {
   var result = compound2;
   for (var simple in compound1) {
-    result = simple.unify(result);
-    if (result == null) return null;
+    var unified = simple.unify(result);
+    if (unified == null) return null;
+    result = unified;
   }
 
   return CompoundSelector(result);
@@ -77,10 +78,10 @@ CompoundSelector unifyCompound(
 /// [UniversalSelector]s or [TypeSelector]s.
 ///
 /// If no such selector can be produced, returns `null`.
-SimpleSelector unifyUniversalAndElement(
+SimpleSelector? unifyUniversalAndElement(
     SimpleSelector selector1, SimpleSelector selector2) {
-  String namespace1;
-  String name1;
+  String? namespace1;
+  String? name1;
   if (selector1 is UniversalSelector) {
     namespace1 = selector1.namespace;
   } else if (selector1 is TypeSelector) {
@@ -91,8 +92,8 @@ SimpleSelector unifyUniversalAndElement(
         'must be a UniversalSelector or a TypeSelector');
   }
 
-  String namespace2;
-  String name2;
+  String? namespace2;
+  String? name2;
   if (selector2 is UniversalSelector) {
     namespace2 = selector2.namespace;
   } else if (selector2 is TypeSelector) {
@@ -103,7 +104,7 @@ SimpleSelector unifyUniversalAndElement(
         'must be a UniversalSelector or a TypeSelector');
   }
 
-  String namespace;
+  String? namespace;
   if (namespace1 == namespace2 || namespace2 == '*') {
     namespace = namespace1;
   } else if (namespace1 == '*') {
@@ -112,7 +113,7 @@ SimpleSelector unifyUniversalAndElement(
     return null;
   }
 
-  String name;
+  String? name;
   if (name1 == name2 || name2 == null) {
     name = name1;
   } else if (name1 == null || name1 == '*') {
@@ -179,7 +180,7 @@ List<List<ComplexSelectorComponent>> weave(
 /// identical to the intersection of all elements matched by `A X` and all
 /// elements matched by `B X`. Some `AB_i` are elided to reduce the size of
 /// the output.
-Iterable<List<ComplexSelectorComponent>> _weaveParents(
+Iterable<List<ComplexSelectorComponent>>? _weaveParents(
     List<ComplexSelectorComponent> parents1,
     List<ComplexSelectorComponent> parents2) {
   var queue1 = Queue.of(parents1);
@@ -246,7 +247,7 @@ Iterable<List<ComplexSelectorComponent>> _weaveParents(
 
 /// If the first element of [queue] has a `::root` selector, removes and returns
 /// that element.
-CompoundSelector _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
+CompoundSelector? _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
   if (queue.isEmpty) return null;
   var first = queue.first;
   if (first is CompoundSelector) {
@@ -264,7 +265,7 @@ CompoundSelector _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
 ///
 /// If there are no combinators to be merged, returns an empty list. If the
 /// combinators can't be merged, returns `null`.
-List<Combinator> _mergeInitialCombinators(
+List<Combinator>? _mergeInitialCombinators(
     Queue<ComplexSelectorComponent> components1,
     Queue<ComplexSelectorComponent> components2) {
   var combinators1 = <Combinator>[];
@@ -290,10 +291,10 @@ List<Combinator> _mergeInitialCombinators(
 ///
 /// If there are no combinators to be merged, returns an empty list. If the
 /// sequences can't be merged, returns `null`.
-List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
+List<List<List<ComplexSelectorComponent>>>? _mergeFinalCombinators(
     Queue<ComplexSelectorComponent> components1,
     Queue<ComplexSelectorComponent> components2,
-    [QueueList<List<List<ComplexSelectorComponent>>> result]) {
+    [QueueList<List<List<ComplexSelectorComponent>>>? result]) {
   result ??= QueueList();
   if ((components1.isEmpty || components1.last is! Combinator) &&
       (components2.isEmpty || components2.last is! Combinator)) {
@@ -435,7 +436,7 @@ List<List<List<ComplexSelectorComponent>>> _mergeFinalCombinators(
       components1.removeLast();
     }
     result.addFirst([
-      [components2.removeLast(), combinator2]
+      [components2.removeLast(), combinator2!]
     ]);
     return _mergeFinalCombinators(components1, components2, result);
   }
@@ -662,7 +663,7 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
 /// know if the parent selectors in the selector argument match [parents].
 bool compoundIsSuperselector(
     CompoundSelector compound1, CompoundSelector compound2,
-    {Iterable<ComplexSelectorComponent> parents}) {
+    {Iterable<ComplexSelectorComponent>? parents}) {
   // Every selector in [compound1.components] must have a matching selector in
   // [compound2.components].
   for (var simple1 in compound1.components) {
@@ -700,17 +701,16 @@ bool _simpleIsSuperselectorOfCompound(
     if (simple == theirSimple) return true;
 
     // Some selector pseudoclasses can match normal selectors.
-    if (theirSimple is PseudoSelector &&
-        theirSimple.selector != null &&
-        _subselectorPseudos.contains(theirSimple.normalizedName)) {
-      return theirSimple.selector.components.every((complex) {
-        if (complex.components.length != 1) return false;
-        var compound = complex.components.single as CompoundSelector;
-        return compound.components.contains(simple);
-      });
-    } else {
-      return false;
-    }
+    if (theirSimple is! PseudoSelector) return false;
+    var selector = theirSimple.selector;
+    if (selector == null) return false;
+    if (!_subselectorPseudos.contains(theirSimple.normalizedName)) return false;
+
+    return selector.components.every((complex) {
+      if (complex.components.length != 1) return false;
+      var compound = complex.components.single as CompoundSelector;
+      return compound.components.contains(simple);
+    });
   });
 }
 
@@ -726,29 +726,34 @@ bool _simpleIsSuperselectorOfCompound(
 /// know if the parent selectors in the selector argument match [parents].
 bool _selectorPseudoIsSuperselector(
     PseudoSelector pseudo1, CompoundSelector compound2,
-    {Iterable<ComplexSelectorComponent> parents}) {
+    {Iterable<ComplexSelectorComponent>? parents}) {
+  var selector1_ = pseudo1.selector;
+  if (selector1_ == null) {
+    throw ArgumentError("Selector $pseudo1 must have a selector argument.");
+  }
+  var selector1 = selector1_; // dart-lang/sdk#45348
+
   switch (pseudo1.normalizedName) {
     case 'matches':
     case 'any':
-      var pseudos = _selectorPseudosNamed(compound2, pseudo1.name);
-      return pseudos.any((pseudo2) {
-            return pseudo1.selector.isSuperselector(pseudo2.selector);
-          }) ||
-          pseudo1.selector.components.any((complex1) => complexIsSuperselector(
+      var selectors = _selectorPseudoArgs(compound2, pseudo1.name);
+      return selectors
+              .any((selector2) => selector1.isSuperselector(selector2)) ||
+          selector1.components.any((complex1) => complexIsSuperselector(
               complex1.components, [...?parents, compound2]));
 
     case 'has':
     case 'host':
     case 'host-context':
-      return _selectorPseudosNamed(compound2, pseudo1.name)
-          .any((pseudo2) => pseudo1.selector.isSuperselector(pseudo2.selector));
+      return _selectorPseudoArgs(compound2, pseudo1.name)
+          .any((selector2) => selector1.isSuperselector(selector2));
 
     case 'slotted':
-      return _selectorPseudosNamed(compound2, pseudo1.name, isClass: false)
-          .any((pseudo2) => pseudo1.selector.isSuperselector(pseudo2.selector));
+      return _selectorPseudoArgs(compound2, pseudo1.name, isClass: false)
+          .any((selector2) => selector1.isSuperselector(selector2));
 
     case 'not':
-      return pseudo1.selector.components.every((complex) {
+      return selector1.components.every((complex) {
         return compound2.components.any((simple2) {
           if (simple2 is TypeSelector) {
             var compound1 = complex.components.last;
@@ -761,9 +766,10 @@ bool _selectorPseudoIsSuperselector(
                 compound1.components.any(
                     (simple1) => simple1 is IDSelector && simple1 != simple2);
           } else if (simple2 is PseudoSelector &&
-              simple2.name == pseudo1.name &&
-              simple2.selector != null) {
-            return listIsSuperselector(simple2.selector.components, [complex]);
+              simple2.name == pseudo1.name) {
+            var selector2 = simple2.selector;
+            if (selector2 == null) return false;
+            return listIsSuperselector(selector2.components, [complex]);
           } else {
             return false;
           }
@@ -771,27 +777,31 @@ bool _selectorPseudoIsSuperselector(
       });
 
     case 'current':
-      return _selectorPseudosNamed(compound2, pseudo1.name)
-          .any((pseudo2) => pseudo1.selector == pseudo2.selector);
+      return _selectorPseudoArgs(compound2, pseudo1.name)
+          .any((selector2) => selector1 == selector2);
 
     case 'nth-child':
     case 'nth-last-child':
-      return compound2.components.any((pseudo2) =>
-          pseudo2 is PseudoSelector &&
-          pseudo2.name == pseudo1.name &&
-          pseudo2.argument == pseudo1.argument &&
-          pseudo1.selector.isSuperselector(pseudo2.selector));
+      return compound2.components.any((pseudo2) {
+        if (pseudo2 is! PseudoSelector) return false;
+        if (pseudo2.name != pseudo1.name) return false;
+        if (pseudo2.argument != pseudo1.argument) return false;
+        var selector2 = pseudo2.selector;
+        if (selector2 == null) return false;
+        return selector1.isSuperselector(selector2);
+      });
 
     default:
       throw "unreachable";
   }
 }
 
-/// Returns all pseudo selectors in [compound] that have a selector argument,
-/// and that have the given [name].
-Iterable<PseudoSelector> _selectorPseudosNamed(
+/// Returns all the selector arguments of pseudo selectors in [compound] with
+/// the given [name].
+Iterable<SelectorList> _selectorPseudoArgs(
         CompoundSelector compound, String name, {bool isClass = true}) =>
-    compound.components.whereType<PseudoSelector>().where((pseudo) =>
-        pseudo.isClass == isClass &&
-        pseudo.selector != null &&
-        pseudo.name == name);
+    compound.components
+        .whereType<PseudoSelector>()
+        .where((pseudo) => pseudo.isClass == isClass && pseudo.name == name)
+        .map((pseudo) => pseudo.selector)
+        .whereNotNull();

@@ -18,16 +18,16 @@ class NoSourceMapBuffer implements SourceMapBuffer {
   Map<String, SourceFile> get sourceFiles => const {};
 
   T forSpan<T>(SourceSpan span, T callback()) => callback();
-  void write(Object object) => _buffer.write(object);
-  void writeAll(Iterable<Object> objects, [String separator = ""]) =>
+  void write(Object? object) => _buffer.write(object);
+  void writeAll(Iterable<Object?> objects, [String separator = ""]) =>
       _buffer.writeAll(objects, separator);
   void writeCharCode(int charCode) => _buffer.writeCharCode(charCode);
-  void writeln([Object object = ""]) => _buffer.writeln(object);
+  void writeln([Object? object = ""]) => _buffer.writeln(object);
   String toString() => _buffer.toString();
 
   void clear() =>
       throw UnsupportedError("SourceMapBuffer.clear() is not supported.");
 
-  SingleMapping buildSourceMap({String prefix}) => throw UnsupportedError(
+  SingleMapping buildSourceMap({String? prefix}) => throw UnsupportedError(
       "NoSourceMapBuffer.buildSourceMap() is not supported.");
 }

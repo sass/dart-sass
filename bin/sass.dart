@@ -24,7 +24,7 @@ Future<void> main(List<String> args) async {
   // has been printed to stderr.
   //
   // If [trace] is passed, its terse representation is printed after the error.
-  void printError(String error, StackTrace stackTrace) {
+  void printError(String error, StackTrace? stackTrace) {
     if (printedError) stderr.writeln();
     printedError = true;
     stderr.writeln(error);
@@ -35,7 +35,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  ExecutableOptions options;
+  ExecutableOptions? options;
   try {
     options = ExecutableOptions.parse(args);
     term_glyph.ascii = !options.unicode;
@@ -52,7 +52,7 @@ Future<void> main(List<String> args) async {
     }
 
     var graph = StylesheetGraph(
-        ImportCache([], loadPaths: options.loadPaths, logger: options.logger));
+        ImportCache(loadPaths: options.loadPaths, logger: options.logger));
     if (options.watch) {
       await watch(options, graph);
       return;
@@ -68,7 +68,9 @@ Future<void> main(List<String> args) async {
         // dart-lang/sdk#33400.
         () {
           try {
-            if (destination != null && !options.emitErrorCss) {
+            if (destination != null &&
+                // dart-lang/sdk#45348
+                !options!.emitErrorCss) {
               deleteFile(destination);
             }
           } on FileSystemException {
@@ -86,7 +88,11 @@ Future<void> main(List<String> args) async {
         if (exitCode != 66) exitCode = 65;
         if (options.stopOnError) return;
       } on FileSystemException catch (error, stackTrace) {
-        printError("Error reading ${p.relative(error.path)}: ${error.message}.",
+        var path = error.path;
+        printError(
+            path == null
+                ? error.message
+                : "Error reading ${p.relative(path)}: ${error.message}.",
             options.trace ? stackTrace : null);
 
         // Error 66 indicates no input.
@@ -115,12 +121,14 @@ Future<void> main(List<String> args) async {
 
 /// Loads and returns the current version of Sass.
 Future<String> _loadVersion() async {
-  var version = const String.fromEnvironment('version');
-  if (const bool.fromEnvironment('node')) {
-    version += " compiled with dart2js "
-        "${const String.fromEnvironment('dart-version')}";
+  if (const bool.hasEnvironment('version')) {
+    var version = const String.fromEnvironment('version');
+    if (const bool.fromEnvironment('node')) {
+      version += " compiled with dart2js "
+          "${const String.fromEnvironment('dart-version')}";
+    }
+    return version;
   }
-  if (version != null) return version;
 
   var libDir =
       p.fromUri(await Isolate.resolvePackageUri(Uri.parse('package:sass/')));

@@ -16,7 +16,7 @@ import 'silent_comment.dart';
 class FunctionRule extends CallableDeclaration {
   FunctionRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,
-      {SilentComment comment})
+      {SilentComment? comment})
       : super(name, arguments, children, span, comment: comment);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);

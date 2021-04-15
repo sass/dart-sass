@@ -19,7 +19,7 @@ class UnitlessSassNumber extends SassNumber {
 
   bool get hasUnits => false;
 
-  UnitlessSassNumber(num value, [Tuple2<SassNumber, SassNumber> asSlash])
+  UnitlessSassNumber(num value, [Tuple2<SassNumber, SassNumber>? asSlash])
       : super.protected(value, asSlash);
 
   SassNumber withValue(num value) => UnitlessSassNumber(value);
@@ -32,37 +32,37 @@ class UnitlessSassNumber extends SassNumber {
   bool compatibleWithUnit(String unit) => true;
 
   SassNumber coerceToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       (other as SassNumber).withValue(value);
 
   num coerceValueToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       value;
 
   SassNumber convertToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       other.hasUnits
           // Call this to generate a consistent error message.
           ? super.convertToMatch(other, name, otherName)
           : this;
 
   num convertValueToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       other.hasUnits
           // Call this to generate a consistent error message.
           ? super.convertValueToMatch(other, name, otherName)
           : value;
 
   SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
-          [String name]) =>
+          [String? name]) =>
       SassNumber.withUnits(value,
           numeratorUnits: newNumerators, denominatorUnits: newDenominators);
 
   num coerceValue(List<String> newNumerators, List<String> newDenominators,
-          [String name]) =>
+          [String? name]) =>
       value;
 
-  num coerceValueToUnit(String unit, [String name]) => value;
+  num coerceValueToUnit(String unit, [String? name]) => value;
 
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {

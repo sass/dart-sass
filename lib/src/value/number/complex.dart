@@ -24,7 +24,7 @@ class ComplexSassNumber extends SassNumber {
             List.unmodifiable(denominatorUnits));
 
   ComplexSassNumber._(num value, this.numeratorUnits, this.denominatorUnits,
-      [Tuple2<SassNumber, SassNumber> asSlash])
+      [Tuple2<SassNumber, SassNumber>? asSlash])
       : super.protected(value, asSlash) {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
   }

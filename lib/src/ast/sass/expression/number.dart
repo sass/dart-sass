@@ -13,7 +13,7 @@ class NumberExpression implements Expression {
   final num value;
 
   /// The number's unit, or `null`.
-  final String unit;
+  final String? unit;
 
   final FileSpan span;
 
@@ -22,5 +22,5 @@ class NumberExpression implements Expression {
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitNumberExpression(this);
 
-  String toString() => "${value}${unit ?? ''}";
+  String toString() => "$value${unit ?? ''}";
 }

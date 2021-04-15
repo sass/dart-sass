@@ -33,7 +33,7 @@ class Stderr {
 
   void write(Object object) => _stderr.write(object.toString());
 
-  void writeln([Object object]) {
+  void writeln([Object? object]) {
     _stderr.write("${object ?? ''}\n");
   }
 
@@ -58,7 +58,7 @@ String readFile(String path) {
 }
 
 /// Wraps `fs.readFileSync` to throw a [FileSystemException].
-Object _readFile(String path, [String encoding]) =>
+Object? _readFile(String path, [String? encoding]) =>
     _systemErrorToFileSystemException(() => fs.readFileSync(path, encoding));
 
 void writeFile(String path, String contents) =>
@@ -76,20 +76,18 @@ Future<String> readStdin() async {
   });
   // Node defaults all buffers to 'utf8'.
   var sink = utf8.decoder.startChunkedConversion(innerSink);
-  process.stdin.on('data', allowInterop(([Object chunk]) {
-    assert(chunk != null);
+  process.stdin.on('data', allowInterop(([Object? chunk]) {
     sink.add(chunk as List<int>);
   }));
-  process.stdin.on('end', allowInterop(([Object _]) {
+  process.stdin.on('end', allowInterop(([Object? _]) {
     // Callback for 'end' receives no args.
     assert(_ == null);
     sink.close();
   }));
-  process.stdin.on('error', allowInterop(([Object e]) {
-    assert(e != null);
+  process.stdin.on('error', allowInterop(([Object? e]) {
     stderr.writeln('Failed to read from stdin');
     stderr.writeln(e);
-    completer.completeError(e);
+    completer.completeError(e!);
   }));
   return completer.future;
 }
@@ -175,8 +173,8 @@ DateTime modificationTime(String path) =>
     _systemErrorToFileSystemException(() =>
         DateTime.fromMillisecondsSinceEpoch(fs.statSync(path).mtime.getTime()));
 
-String getEnvironmentVariable(String name) =>
-    getProperty(process.env, name) as String;
+String? getEnvironmentVariable(String name) =>
+    getProperty(process.env as Object, name) as String?;
 
 /// Runs callback and converts any [JsSystemError]s it throws into
 /// [FileSystemException]s.
@@ -192,7 +190,13 @@ T _systemErrorToFileSystemException<T>(T callback()) {
 
 final stderr = Stderr(process.stderr);
 
-bool get hasTerminal => process.stdout.isTTY ?? false;
+/// We can't use [process.stdout.isTTY] from `node_interop` because of
+/// pulyaevskiy/node-interop#93: it declares `isTTY` as always non-nullably
+/// available, but in practice it's undefined if stdout isn't a TTY.
+@JS('process.stdout.isTTY')
+external bool? get isTTY;
+
+bool get hasTerminal => isTTY == true;
 
 bool get isWindows => process.platform == 'win32';
 
@@ -215,7 +219,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
 
   // Don't assign the controller until after the ready event fires. Otherwise,
   // Chokidar will give us a bunch of add events for files that already exist.
-  StreamController<WatchEvent> controller;
+  StreamController<WatchEvent>? controller;
   watcher
     ..on(
         'add',
@@ -233,10 +237,12 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
 
   var completer = Completer<Stream<WatchEvent>>();
   watcher.on('ready', allowInterop(() {
-    controller = StreamController<WatchEvent>(onCancel: () {
+    // dart-lang/sdk#45348
+    var stream = (controller = StreamController<WatchEvent>(onCancel: () {
       watcher.close();
-    });
-    completer.complete(controller.stream);
+    }))
+        .stream;
+    completer.complete(stream);
   }));
 
   return completer.future;

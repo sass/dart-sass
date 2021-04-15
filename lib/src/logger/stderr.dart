@@ -18,7 +18,7 @@ class StderrLogger implements Logger {
   const StderrLogger({this.color = false});
 
   void warn(String message,
-      {FileSpan span, Trace trace, bool deprecation = false}) {
+      {FileSpan? span, Trace? trace, bool deprecation = false}) {
     if (color) {
       // Bold yellow.
       stderr.write('\u001b[33m\u001b[1m');

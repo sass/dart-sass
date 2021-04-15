@@ -17,12 +17,14 @@ class _NodeSassNumber {
 
 /// Creates a new `sass.types.Number` object wrapping [value].
 Object newNodeSassNumber(SassNumber value) =>
-    callConstructor(numberConstructor, [null, null, value]);
+    callConstructor(numberConstructor, [null, null, value]) as Object;
 
 /// The JS constructor for the `sass.types.Number` class.
 final Function numberConstructor = createClass('SassNumber',
-    (_NodeSassNumber thisArg, num value, [String unit, SassNumber dartValue]) {
-  thisArg.dartValue = dartValue ?? _parseNumber(value, unit);
+    (_NodeSassNumber thisArg, num? value,
+        [String? unit, SassNumber? dartValue]) {
+  // Either [dartValue] or [value] must be passed.
+  thisArg.dartValue = dartValue ?? _parseNumber(value!, unit);
 }, {
   'getValue': (_NodeSassNumber thisArg) => thisArg.dartValue.value,
   'setValue': (_NodeSassNumber thisArg, num value) {
@@ -42,7 +44,7 @@ final Function numberConstructor = createClass('SassNumber',
 
 /// Parses a [SassNumber] from [value] and [unit], using Node Sass's unit
 /// format.
-SassNumber _parseNumber(num value, String unit) {
+SassNumber _parseNumber(num value, String? unit) {
   if (unit == null || unit.isEmpty) return SassNumber(value);
   if (!unit.contains("*") && !unit.contains("/")) {
     return SassNumber(value, unit);

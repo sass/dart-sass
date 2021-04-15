@@ -43,7 +43,7 @@ external FiberClass _requireFiber(String path);
 class Sass {
   external RenderResult renderSync(RenderOptions args);
   external void render(RenderOptions args,
-      void callback(RenderError error, RenderResult result));
+      void callback(RenderError? error, RenderResult? result));
   external SassTypes get types;
   external Object get NULL;
   external NodeSassBoolean get TRUE;
@@ -117,9 +117,9 @@ class NodeSassList {
 class NodeSassMap {
   external Constructor get constructor;
   external Object getValue(int index);
-  external void setValue(int index, Object value);
+  external void setValue(int index, Object? value);
   external Object getKey(int index);
-  external void setKey(int index, Object value);
+  external void setKey(int index, Object? value);
   external int getLength();
 }
 

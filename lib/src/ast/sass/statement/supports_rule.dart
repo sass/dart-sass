@@ -10,7 +10,7 @@ import '../supports_condition.dart';
 import 'parent.dart';
 
 /// A `@supports` rule.
-class SupportsRule extends ParentStatement {
+class SupportsRule extends ParentStatement<List<Statement>> {
   /// The condition that selects what browsers this rule targets.
   final SupportsCondition condition;
 

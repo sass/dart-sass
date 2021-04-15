@@ -74,7 +74,7 @@ abstract class SassString extends Value {
   /// number isn't an integer, or if that integer isn't a valid index for this
   /// string. If [sassIndex] came from a function argument, [name] is the
   /// argument name (without the `$`). It's used for error reporting.
-  int sassIndexToStringIndex(Value sassIndex, [String name]);
+  int sassIndexToStringIndex(Value sassIndex, [String? name]);
 
   /// Converts [sassIndex] into a Dart-style index into [text]`.runes`.
   ///
@@ -87,5 +87,5 @@ abstract class SassString extends Value {
   /// number isn't an integer, or if that integer isn't a valid index for this
   /// string. If [sassIndex] came from a function argument, [name] is the
   /// argument name (without the `$`). It's used for error reporting.
-  int sassIndexToRuneIndex(Value sassIndex, [String name]);
+  int sassIndexToRuneIndex(Value sassIndex, [String? name]);
 }

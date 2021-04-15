@@ -24,7 +24,7 @@ final Function booleanConstructor = () {
   setClassName(sassTrue, "SassBoolean");
   forwardToString(constructor);
   setProperty(
-      getProperty(constructor, "prototype"),
+      getProperty(constructor, "prototype") as Object,
       "getValue",
       allowInteropCaptureThis(
           (Object thisArg) => identical(thisArg, sassTrue)));

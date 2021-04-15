@@ -10,6 +10,7 @@ import '../callable.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
+import '../util/nullable.dart';
 import '../utils.dart';
 import '../value.dart';
 import '../warn.dart';
@@ -451,7 +452,7 @@ SassColor _updateComponents(List<Value> arguments,
   ///
   /// [max] should be 255 for RGB channels, 1 for the alpha channel, and 100
   /// for saturation, lightness, whiteness, and blackness.
-  num getParam(String name, num max,
+  num? getParam(String name, num max,
       {bool checkPercent = false, bool assertPercent = false}) {
     var number = keywords.remove(name)?.assertNumber(name);
     if (number == null) return null;
@@ -496,14 +497,14 @@ SassColor _updateComponents(List<Value> arguments,
   }
 
   /// Updates [current] based on [param], clamped within [max].
-  num updateValue(num current, num param, num max) {
+  num updateValue(num current, num? param, num max) {
     if (param == null) return current;
     if (change) return param;
     if (adjust) return (current + param).clamp(0, max);
     return current + (param > 0 ? max - current : current) * (param / 100);
   }
 
-  int updateRgb(int current, num param) =>
+  int updateRgb(int current, num? param) =>
       fuzzyRound(updateValue(current, param, 255));
 
   if (hasRgb) {
@@ -574,9 +575,8 @@ Value _rgb(String name, List<Value> arguments) {
       fuzzyRound(_percentageOrUnitless(red, 255, "red")),
       fuzzyRound(_percentageOrUnitless(green, 255, "green")),
       fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
-      alpha == null
-          ? null
-          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+      alpha.andThen((alpha) =>
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
 }
 
 Value _rgbTwoArg(String name, List<Value> arguments) {
@@ -628,13 +628,12 @@ Value _hsl(String name, List<Value> arguments) {
       hue.value,
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
-      alpha == null
-          ? null
-          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+      alpha.andThen((alpha) =>
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
 }
 
 /// Prints a deprecation warning if [hue] has a unit other than `deg`.
-void _checkAngle(SassNumber angle, [String name]) {
+void _checkAngle(SassNumber angle, [String? name]) {
   if (!angle.hasUnits || angle.hasUnit('deg')) return;
 
   var message = StringBuffer()
@@ -698,9 +697,8 @@ Value _hwb(List<Value> arguments) {
       hue.value,
       whiteness.valueInRange(0, 100, "whiteness"),
       blackness.valueInRange(0, 100, "whiteness"),
-      alpha == null
-          ? null
-          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"));
+      alpha.andThen((alpha) =>
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
 }
 
 Object /* SassString | List<Value> */ _parseChannels(
@@ -735,14 +733,10 @@ Object /* SassString | List<Value> */ _parseChannels(
   }
 
   var maybeSlashSeparated = list[2];
-  if (maybeSlashSeparated is SassNumber &&
-      maybeSlashSeparated.asSlash != null) {
-    return [
-      list[0],
-      list[1],
-      maybeSlashSeparated.asSlash.item1,
-      maybeSlashSeparated.asSlash.item2
-    ];
+  if (maybeSlashSeparated is SassNumber) {
+    var slash = maybeSlashSeparated.asSlash;
+    if (slash == null) return list;
+    return [list[0], list[1], slash.item1, slash.item2];
   } else if (maybeSlashSeparated is SassString &&
       !maybeSlashSeparated.hasQuotes &&
       maybeSlashSeparated.text.contains("/")) {

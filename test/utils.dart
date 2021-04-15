@@ -23,14 +23,19 @@ Future<void> get tick =>
 /// Loads and decodes the source map embedded as a `data:` URI in [css].
 ///
 /// Throws a [TestFailure] if [css] doesn't have such a source map.
-Map<String, Object> embeddedSourceMap(String css) {
+Map<String, dynamic> embeddedSourceMap(String css) {
   expect(css, matches(_sourceMapCommentRegExp));
 
-  var match = _sourceMapCommentRegExp.firstMatch(css);
-  var data = Uri.parse(match[1]).data;
+  var match = _sourceMapCommentRegExp.firstMatch(css)!;
+  var data = Uri.parse(match[1]!).data!;
   expect(data.mimeType, equals("application/json"));
-  return jsonDecode(data.contentAsString()) as Map<String, Object>;
+  return jsonDecode(data.contentAsString()) as Map<String, dynamic>;
 }
+
+/// Returns a function with one argument that fails the test if it's ever
+/// called.
+Never Function(Object? arg) get expectNever1 =>
+    expectAsync1((_) => throw '', count: 0);
 
 // Like `p.prettyUri()`, but for a non-URL path.
 String prettyPath(String path) => p.prettyUri(p.toUri(path));

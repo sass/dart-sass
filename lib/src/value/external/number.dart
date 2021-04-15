@@ -51,18 +51,18 @@ abstract class SassNumber extends Value {
   /// If [this] is an integer according to [isInt], returns [value] as an [int].
   ///
   /// Otherwise, returns `null`.
-  int get asInt;
+  int? get asInt;
 
   /// Creates a number, optionally with a single numerator unit.
   ///
   /// This matches the numbers that can be written as literals.
   /// [SassNumber.withUnits] can be used to construct more complex units.
-  factory SassNumber(num value, [String unit]) = internal.SassNumber;
+  factory SassNumber(num value, [String? unit]) = internal.SassNumber;
 
   /// Creates a number with full [numeratorUnits] and [denominatorUnits].
   factory SassNumber.withUnits(num value,
-      {List<String> numeratorUnits,
-      List<String> denominatorUnits}) = internal.SassNumber.withUnits;
+      {List<String>? numeratorUnits,
+      List<String>? denominatorUnits}) = internal.SassNumber.withUnits;
 
   /// Returns [value] as an [int], if it's an integer value according to
   /// [isInt].
@@ -70,7 +70,7 @@ abstract class SassNumber extends Value {
   /// Throws a [SassScriptException] if [value] isn't an integer. If this came
   /// from a function argument, [name] is the argument name (without the `$`).
   /// It's used for error reporting.
-  int assertInt([String name]);
+  int assertInt([String? name]);
 
   /// If [value] is between [min] and [max], returns it.
   ///
@@ -78,7 +78,7 @@ abstract class SassNumber extends Value {
   /// appropriate value. Otherwise, this throws a [SassScriptException]. If this
   /// came from a function argument, [name] is the argument name (without the
   /// `$`). It's used for error reporting.
-  num valueInRange(num min, num max, [String name]);
+  num valueInRange(num min, num max, [String? name]);
 
   /// Returns whether [this] has [unit] as its only unit (and as a numerator).
   bool hasUnit(String unit);
@@ -93,13 +93,13 @@ abstract class SassNumber extends Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  void assertUnit(String unit, [String name]);
+  void assertUnit(String unit, [String? name]);
 
   /// Throws a [SassScriptException] unless [this] has no units.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  void assertNoUnits([String name]);
+  void assertNoUnits([String? name]);
 
   /// Returns a copy of this number, converted to the same units as [other].
   ///
@@ -117,7 +117,7 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  SassNumber coerceToMatch(SassNumber other, [String name, String otherName]);
+  SassNumber coerceToMatch(SassNumber other, [String? name, String? otherName]);
 
   /// Returns [value], converted to the same units as [other].
   ///
@@ -132,7 +132,7 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  num coerceValueToMatch(SassNumber other, [String name, String otherName]);
+  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]);
 
   /// Returns a copy of this number, converted to the same units as [other].
   ///
@@ -146,7 +146,8 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  SassNumber convertToMatch(SassNumber other, [String name, String otherName]);
+  SassNumber convertToMatch(SassNumber other,
+      [String? name, String? otherName]);
 
   /// Returns [value], converted to the same units as [other].
   ///
@@ -157,7 +158,7 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  num convertValueToMatch(SassNumber other, [String name, String otherName]);
+  num convertValueToMatch(SassNumber other, [String? name, String? otherName]);
 
   /// Returns a copy of this number, converted to the units represented by
   /// [newNumerators] and [newDenominators].
@@ -176,7 +177,7 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
-      [String name]);
+      [String? name]);
 
   /// Returns [value], converted to the units represented by [newNumerators] and
   /// [newDenominators].
@@ -192,14 +193,14 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   num coerceValue(List<String> newNumerators, List<String> newDenominators,
-      [String name]);
+      [String? name]);
 
   /// This has been renamed [coerceValue] for consistency with [coerceToMatch],
   /// [coerceValueToMatch], [convertToMatch], and [convertValueToMatch].
   @deprecated
   num valueInUnits(List<String> newNumerators, List<String> newDenominators,
-      [String name]);
+      [String? name]);
 
   /// A shorthand for [coerceValue] with only one numerator unit.
-  num coerceValueToUnit(String unit, [String name]);
+  num coerceValueToUnit(String unit, [String? name]);
 }

@@ -16,7 +16,7 @@ import 'utils.dart';
 
 void main() {
   group("from a parameter", () {
-    NodeSassMap map;
+    late NodeSassMap map;
     setUp(() {
       map = parseValue<NodeSassMap>("(a: 2, 1: blue, red: b)");
     });

@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
@@ -15,11 +14,12 @@ import 'callable.dart';
 import 'configuration.dart';
 import 'configured_value.dart';
 import 'exception.dart';
-import 'extend/extender.dart';
+import 'extend/extension_store.dart';
 import 'module.dart';
 import 'module/forwarded_view.dart';
 import 'module/shadowed_view.dart';
 import 'util/merged_map_view.dart';
+import 'util/nullable.dart';
 import 'util/public_member_map_view.dart';
 import 'utils.dart';
 import 'value.dart';
@@ -48,20 +48,20 @@ class AsyncEnvironment {
   /// The modules forwarded by this module.
   ///
   /// This is `null` if there are no forwarded modules.
-  Set<Module> _forwardedModules;
+  Set<Module>? _forwardedModules;
 
   /// A map from modules in [_forwardedModules] to the nodes whose spans
   /// indicate where those modules were originally forwarded.
   ///
   /// This is `null` if there are no forwarded modules.
-  Map<Module, AstNode> _forwardedModuleNodes;
+  Map<Module, AstNode>? _forwardedModuleNodes;
 
   /// Modules forwarded by nested imports at each lexical scope level *beneath
   /// the global scope*.
   ///
   /// This is `null` until it's needed, since most environments won't ever use
   /// this.
-  List<List<Module>> _nestedForwardedModules;
+  List<List<Module>>? _nestedForwardedModules;
 
   /// Modules from [_modules], [_globalModules], and [_forwardedModules], in the
   /// order in which they were `@use`d.
@@ -82,7 +82,7 @@ class AsyncEnvironment {
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  final List<Map<String, AstNode>> _variableNodes;
+  final List<Map<String, AstNode>>? _variableNodes;
 
   /// A map of variable names to their indices in [_variables].
   ///
@@ -117,8 +117,8 @@ class AsyncEnvironment {
 
   /// The content block passed to the lexically-enclosing mixin, or `null` if
   /// this is not in a mixin, or if no content block was passed.
-  UserDefinedCallable<AsyncEnvironment> get content => _content;
-  UserDefinedCallable<AsyncEnvironment> _content;
+  UserDefinedCallable<AsyncEnvironment>? get content => _content;
+  UserDefinedCallable<AsyncEnvironment>? _content;
 
   /// Whether the environment is lexically at the root of the document.
   bool get atRoot => _variables.length == 1;
@@ -137,10 +137,10 @@ class AsyncEnvironment {
   ///
   /// This is cached to speed up repeated references to the same variable, as
   /// well as references to the last variable's [FileSpan].
-  String _lastVariableName;
+  String? _lastVariableName;
 
   /// The index in [_variables] of the last variable that was accessed.
-  int _lastVariableIndex;
+  int? _lastVariableIndex;
 
   /// Creates an [AsyncEnvironment].
   ///
@@ -233,7 +233,7 @@ class AsyncEnvironment {
   /// Throws a [SassScriptException] if there's already a module with the given
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
-  void addModule(Module module, AstNode nodeWithSpan, {String namespace}) {
+  void addModule(Module module, AstNode nodeWithSpan, {String? namespace}) {
     if (namespace == null) {
       _globalModules.add(module);
       _globalModuleNodes[module] = nodeWithSpan;
@@ -248,10 +248,11 @@ class AsyncEnvironment {
       }
     } else {
       if (_modules.containsKey(namespace)) {
+        var span = _namespaceNodes[namespace]?.span;
         throw MultiSpanSassScriptException(
             "There's already a module with namespace \"$namespace\".",
             "new @use",
-            {_namespaceNodes[namespace].span: "original @use"});
+            {if (span != null) span: "original @use"});
       }
 
       _modules[namespace] = module;
@@ -263,16 +264,16 @@ class AsyncEnvironment {
   /// Exposes the members in [module] to downstream modules as though they were
   /// defined in this module, according to the modifications defined by [rule].
   void forwardModule(Module module, ForwardRule rule) {
-    _forwardedModules ??= {};
-    _forwardedModuleNodes ??= {};
+    var forwardedModules = (_forwardedModules ??= {});
+    var forwardedModuleNodes = (_forwardedModuleNodes ??= {});
 
     var view = ForwardedModuleView.ifNecessary(module, rule);
-    for (var other in _forwardedModules) {
+    for (var other in forwardedModules) {
       _assertNoConflicts(
-          view.variables, other.variables, view, other, "variable", rule);
+          view.variables, other.variables, view, other, "variable");
       _assertNoConflicts(
-          view.functions, other.functions, view, other, "function", rule);
-      _assertNoConflicts(view.mixins, other.mixins, view, other, "mixin", rule);
+          view.functions, other.functions, view, other, "function");
+      _assertNoConflicts(view.mixins, other.mixins, view, other, "mixin");
     }
 
     // Add the original module to [_allModules] (rather than the
@@ -280,8 +281,8 @@ class AsyncEnvironment {
     // `==`. This is safe because upstream modules are only used for collating
     // CSS, not for the members they expose.
     _allModules.add(module);
-    _forwardedModules.add(view);
-    _forwardedModuleNodes[view] = rule;
+    forwardedModules.add(view);
+    forwardedModuleNodes[view] = rule;
   }
 
   /// Throws a [SassScriptException] if [newMembers] from [newModule] has any
@@ -293,8 +294,7 @@ class AsyncEnvironment {
       Map<String, Object> oldMembers,
       Module newModule,
       Module oldModule,
-      String type,
-      AstNode newModuleNodeWithSpan) {
+      String type) {
     Map<String, Object> smaller;
     Map<String, Object> larger;
     if (newMembers.length < oldMembers.length) {
@@ -314,10 +314,11 @@ class AsyncEnvironment {
       }
 
       if (type == "variable") name = "\$$name";
+      var span = _forwardedModuleNodes?[oldModule]?.span;
       throw MultiSpanSassScriptException(
           'Two forwarded modules both define a $type named $name.',
           "new @forward",
-          {_forwardedModuleNodes[oldModule].span: "original @forward"});
+          {if (span != null) span: "original @forward"});
     }
   }
 
@@ -332,17 +333,19 @@ class AsyncEnvironment {
 
       // Omit modules from [forwarded] that are already globally available and
       // forwarded in this module.
-      if (_forwardedModules != null) {
+      var forwardedModules = _forwardedModules;
+      if (forwardedModules != null) {
         forwarded = {
           for (var module in forwarded)
-            if (!_forwardedModules.contains(module) ||
+            if (!forwardedModules.contains(module) ||
                 !_globalModules.contains(module))
               module
         };
+      } else {
+        forwardedModules = _forwardedModules ??= {};
       }
 
-      _forwardedModules ??= {};
-      _forwardedModuleNodes ??= {};
+      var forwardedModuleNodes = _forwardedModuleNodes ??= {};
 
       var forwardedVariableNames =
           forwarded.expand((module) => module.variables.keys).toSet();
@@ -364,34 +367,38 @@ class AsyncEnvironment {
 
             if (!shadowed.isEmpty) {
               _globalModules.add(shadowed);
-              _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module);
+              _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module)!;
             }
           }
         }
-        for (var module in _forwardedModules.toList()) {
+
+        for (var module in forwardedModules.toList()) {
           var shadowed = ShadowedModuleView.ifNecessary(module,
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
               functions: forwardedFunctionNames);
           if (shadowed != null) {
-            _forwardedModules.remove(module);
+            forwardedModules.remove(module);
 
             if (!shadowed.isEmpty) {
-              _forwardedModules.add(shadowed);
-              _forwardedModuleNodes[shadowed] =
-                  _forwardedModuleNodes.remove(module);
+              forwardedModules.add(shadowed);
+              forwardedModuleNodes[shadowed] =
+                  forwardedModuleNodes.remove(module)!;
             }
           }
         }
 
         _globalModules.addAll(forwarded);
-        _globalModuleNodes.addAll(module._environment._forwardedModuleNodes);
-        _forwardedModules.addAll(forwarded);
-        _forwardedModuleNodes.addAll(module._environment._forwardedModuleNodes);
+        _globalModuleNodes
+            .addAll(module._environment._forwardedModuleNodes ?? const {});
+        forwardedModules.addAll(forwarded);
+        forwardedModuleNodes
+            .addAll(module._environment._forwardedModuleNodes ?? const {});
       } else {
-        _nestedForwardedModules ??=
-            List.generate(_variables.length - 1, (_) => []);
-        _nestedForwardedModules.last.addAll(forwarded);
+        (_nestedForwardedModules ??=
+                List.generate(_variables.length - 1, (_) => []))
+            .last
+            .addAll(forwarded);
       }
 
       // Remove existing member definitions that are now shadowed by the
@@ -399,7 +406,7 @@ class AsyncEnvironment {
       for (var variable in forwardedVariableNames) {
         _variableIndices.remove(variable);
         _variables.last.remove(variable);
-        if (_variableNodes != null) _variableNodes.last.remove(variable);
+        _variableNodes?.last.remove(variable);
       }
       for (var function in forwardedFunctionNames) {
         _functionIndices.remove(function);
@@ -417,11 +424,11 @@ class AsyncEnvironment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose variables named [name].
-  Value getVariable(String name, {String namespace}) {
+  Value? getVariable(String name, {String? namespace}) {
     if (namespace != null) return _getModule(namespace).variables[name];
 
     if (_lastVariableName == name) {
-      return _variables[_lastVariableIndex][name] ??
+      return _variables[_lastVariableIndex!][name] ??
           _getVariableFromGlobalModule(name);
     }
 
@@ -449,7 +456,7 @@ class AsyncEnvironment {
   /// Returns the value of the variable named [name] from a namespaceless
   /// module, or `null` if no such variable is declared in any namespaceless
   /// module.
-  Value _getVariableFromGlobalModule(String name) =>
+  Value? _getVariableFromGlobalModule(String name) =>
       _fromOneModule(name, "variable", (module) => module.variables[name]);
 
   /// Returns the node for the variable named [name], or `null` if no such
@@ -460,11 +467,18 @@ class AsyncEnvironment {
   /// [FileSpan] so we can avoid calling [AstNode.span] if the span isn't
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
-  AstNode getVariableNode(String name, {String namespace}) {
-    if (namespace != null) return _getModule(namespace).variableNodes[name];
+  AstNode? getVariableNode(String name, {String? namespace}) {
+    var variableNodes = _variableNodes;
+    if (variableNodes == null) {
+      throw StateError(
+          "getVariableNodes() should only be called if sourceMap = true was "
+          "passed in.");
+    }
+
+    if (namespace != null) return _getModule(namespace).variableNodes![name];
 
     if (_lastVariableName == name) {
-      return _variableNodes[_lastVariableIndex][name] ??
+      return variableNodes[_lastVariableIndex!][name] ??
           _getVariableNodeFromGlobalModule(name);
     }
 
@@ -472,7 +486,7 @@ class AsyncEnvironment {
     if (index != null) {
       _lastVariableName = name;
       _lastVariableIndex = index;
-      return _variableNodes[index][name] ??
+      return variableNodes[index][name] ??
           _getVariableNodeFromGlobalModule(name);
     }
 
@@ -482,8 +496,7 @@ class AsyncEnvironment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
-    return _variableNodes[index][name] ??
-        _getVariableNodeFromGlobalModule(name);
+    return variableNodes[index][name] ?? _getVariableNodeFromGlobalModule(name);
   }
 
   /// Returns the node for the variable named [name] from a namespaceless
@@ -494,11 +507,11 @@ class AsyncEnvironment {
   /// [FileSpan] so we can avoid calling [AstNode.span] if the span isn't
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
-  AstNode _getVariableNodeFromGlobalModule(String name) {
+  AstNode? _getVariableNodeFromGlobalModule(String name) {
     // We don't need to worry about multiple modules defining the same variable,
     // because that's already been checked by [getVariable].
     for (var module in _globalModules) {
-      var value = module.variableNodes[name];
+      var value = module.variableNodes![name];
       if (value != null) return value;
     }
     return null;
@@ -511,7 +524,7 @@ class AsyncEnvironment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
-  bool globalVariableExists(String name, {String namespace}) {
+  bool globalVariableExists(String name, {String? namespace}) {
     if (namespace != null) {
       return _getModule(namespace).variables.containsKey(name);
     }
@@ -521,7 +534,7 @@ class AsyncEnvironment {
 
   /// Returns the index of the last map in [_variables] that has a [name] key,
   /// or `null` if none exists.
-  int _variableIndex(String name) {
+  int? _variableIndex(String name) {
     for (var i = _variables.length - 1; i >= 0; i--) {
       if (_variables[i].containsKey(name)) return i;
     }
@@ -546,8 +559,8 @@ class AsyncEnvironment {
   /// defined with the given namespace, if no variable with the given [name] is
   /// defined in module with the given namespace, or if no [namespace] is passed
   /// and multiple global modules define variables named [name].
-  void setVariable(String name, Value value, AstNode nodeWithSpan,
-      {String namespace, bool global = false}) {
+  void setVariable(String name, Value value, AstNode? nodeWithSpan,
+      {String? namespace, bool global = false}) {
     if (namespace != null) {
       _getModule(namespace).setVariable(name, value, nodeWithSpan);
       return;
@@ -574,14 +587,15 @@ class AsyncEnvironment {
       }
 
       _variables.first[name] = value;
-      if (_variableNodes != null) _variableNodes.first[name] = nodeWithSpan;
+      if (nodeWithSpan != null) _variableNodes?.first[name] = nodeWithSpan;
       return;
     }
 
-    if (_nestedForwardedModules != null &&
+    var nestedForwardedModules = _nestedForwardedModules;
+    if (nestedForwardedModules != null &&
         !_variableIndices.containsKey(name) &&
         _variableIndex(name) == null) {
-      for (var modules in _nestedForwardedModules.reversed) {
+      for (var modules in nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {
           if (module.variables.containsKey(name)) {
             module.setVariable(name, value, nodeWithSpan);
@@ -592,7 +606,7 @@ class AsyncEnvironment {
     }
 
     var index = _lastVariableName == name
-        ? _lastVariableIndex
+        ? _lastVariableIndex!
         : _variableIndices.putIfAbsent(
             name, () => _variableIndex(name) ?? _variables.length - 1);
     if (!_inSemiGlobalScope && index == 0) {
@@ -603,7 +617,7 @@ class AsyncEnvironment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variables[index][name] = value;
-    if (_variableNodes != null) _variableNodes[index][name] = nodeWithSpan;
+    _variableNodes?[index][name] = nodeWithSpan!;
   }
 
   /// Sets the variable named [name] to [value], associated with
@@ -615,13 +629,15 @@ class AsyncEnvironment {
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  void setLocalVariable(String name, Value value, AstNode nodeWithSpan) {
+  void setLocalVariable(String name, Value value, AstNode? nodeWithSpan) {
     var index = _variables.length - 1;
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
     _variables[index][name] = value;
-    if (_variableNodes != null) _variableNodes[index][name] = nodeWithSpan;
+    if (nodeWithSpan != null) {
+      _variableNodes?[index][name] = nodeWithSpan;
+    }
   }
 
   /// Returns the value of the function named [name], optionally with the given
@@ -629,7 +645,7 @@ class AsyncEnvironment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
-  AsyncCallable getFunction(String name, {String namespace}) {
+  AsyncCallable? getFunction(String name, {String? namespace}) {
     if (namespace != null) return _getModule(namespace).functions[name];
 
     var index = _functionIndices[name];
@@ -647,12 +663,12 @@ class AsyncEnvironment {
   /// Returns the value of the function named [name] from a namespaceless
   /// module, or `null` if no such function is declared in any namespaceless
   /// module.
-  AsyncCallable _getFunctionFromGlobalModule(String name) =>
+  AsyncCallable? _getFunctionFromGlobalModule(String name) =>
       _fromOneModule(name, "function", (module) => module.functions[name]);
 
   /// Returns the index of the last map in [_functions] that has a [name] key,
   /// or `null` if none exists.
-  int _functionIndex(String name) {
+  int? _functionIndex(String name) {
     for (var i = _functions.length - 1; i >= 0; i--) {
       if (_functions[i].containsKey(name)) return i;
     }
@@ -663,7 +679,7 @@ class AsyncEnvironment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
-  bool functionExists(String name, {String namespace}) =>
+  bool functionExists(String name, {String? namespace}) =>
       getFunction(name, namespace: namespace) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
@@ -678,7 +694,7 @@ class AsyncEnvironment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose mixins named [name].
-  AsyncCallable getMixin(String name, {String namespace}) {
+  AsyncCallable? getMixin(String name, {String? namespace}) {
     if (namespace != null) return _getModule(namespace).mixins[name];
 
     var index = _mixinIndices[name];
@@ -696,12 +712,12 @@ class AsyncEnvironment {
   /// Returns the value of the mixin named [name] from a namespaceless
   /// module, or `null` if no such mixin is declared in any namespaceless
   /// module.
-  AsyncCallable _getMixinFromGlobalModule(String name) =>
+  AsyncCallable? _getMixinFromGlobalModule(String name) =>
       _fromOneModule(name, "mixin", (module) => module.mixins[name]);
 
   /// Returns the index of the last map in [_mixins] that has a [name] key, or
   /// `null` if none exists.
-  int _mixinIndex(String name) {
+  int? _mixinIndex(String name) {
     for (var i = _mixins.length - 1; i >= 0; i--) {
       if (_mixins[i].containsKey(name)) return i;
     }
@@ -712,7 +728,7 @@ class AsyncEnvironment {
   ///
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
-  bool mixinExists(String name, {String namespace}) =>
+  bool mixinExists(String name, {String? namespace}) =>
       getMixin(name, namespace: namespace) != null;
 
   /// Sets the variable named [name] to [value] in the current scope.
@@ -723,7 +739,7 @@ class AsyncEnvironment {
   }
 
   /// Sets [content] as [this.content] for the duration of [callback].
-  Future<void> withContent(UserDefinedCallable<AsyncEnvironment> content,
+  Future<void> withContent(UserDefinedCallable<AsyncEnvironment>? content,
       Future<void> callback()) async {
     var oldContent = _content;
     _content = content;
@@ -802,12 +818,12 @@ class AsyncEnvironment {
     var configuration = <String, ConfiguredValue>{};
     for (var i = 0; i < _variables.length; i++) {
       var values = _variables[i];
-      var nodes =
-          _variableNodes == null ? <String, AstNode>{} : _variableNodes[i];
-      for (var name in values.keys) {
+      var nodes = _variableNodes?[i] ?? <String, AstNode>{};
+      for (var entry in values.entries) {
         // Implicit configurations are never invalid, making [configurationSpan]
         // unnecessary, so we pass null here to avoid having to compute it.
-        configuration[name] = ConfiguredValue(values[name], null, nodes[name]);
+        configuration[entry.key] =
+            ConfiguredValue.implicit(entry.value, nodes[entry.key]);
       }
     }
     return Configuration.implicit(configuration);
@@ -815,15 +831,15 @@ class AsyncEnvironment {
 
   /// Returns a module that represents the top-level members defined in [this],
   /// that contains [css] as its CSS tree, which can be extended using
-  /// [extender].
-  Module toModule(CssStylesheet css, Extender extender) {
+  /// [extensionStore].
+  Module toModule(CssStylesheet css, ExtensionStore extensionStore) {
     assert(atRoot);
-    return _EnvironmentModule(this, css, extender,
+    return _EnvironmentModule(this, css, extensionStore,
         forwarded: _forwardedModules);
   }
 
   /// Returns a module with the same members and upstream modules as [this], but
-  /// an empty stylesheet and extender.
+  /// an empty stylesheet and extension store.
   ///
   /// This is used when resolving imports, since they need to inject forwarded
   /// members into the current scope. It's the only situation in which a nested
@@ -833,7 +849,7 @@ class AsyncEnvironment {
         this,
         CssStylesheet(const [],
             SourceFile.decoded(const [], url: "<dummy module>").span(0)),
-        Extender.empty,
+        ExtensionStore.empty,
         forwarded: _forwardedModules);
   }
 
@@ -858,9 +874,10 @@ class AsyncEnvironment {
   ///
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
-  T _fromOneModule<T>(String name, String type, T callback(Module module)) {
-    if (_nestedForwardedModules != null) {
-      for (var modules in _nestedForwardedModules.reversed) {
+  T? _fromOneModule<T>(String name, String type, T? callback(Module module)) {
+    var nestedForwardedModules = _nestedForwardedModules;
+    if (nestedForwardedModules != null) {
+      for (var modules in nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {
           var value = callback(module);
           if (value != null) return value;
@@ -868,23 +885,26 @@ class AsyncEnvironment {
       }
     }
 
-    T value;
-    Object identity;
+    T? value;
+    Object? identity;
     for (var module in _globalModules) {
       var valueInModule = callback(module);
       if (valueInModule == null) continue;
 
-      var identityFromModule = valueInModule is AsyncCallable
+      Object? identityFromModule = valueInModule is AsyncCallable
           ? valueInModule
           : module.variableIdentity(name);
       if (identityFromModule == identity) continue;
 
       if (value != null) {
+        var spans = _globalModuleNodes.entries.map(
+            (entry) => callback(entry.key).andThen((_) => entry.value.span));
+
         throw MultiSpanSassScriptException(
             'This $type is available from multiple global modules.',
             '$type use', {
-          for (var entry in _globalModuleNodes.entries)
-            if (callback(entry.key) != null) entry.value.span: 'includes $type'
+          for (var span in spans)
+            if (span != null) span: 'includes $type'
         });
       }
 
@@ -897,14 +917,14 @@ class AsyncEnvironment {
 
 /// A module that represents the top-level members defined in an [Environment].
 class _EnvironmentModule implements Module {
-  Uri get url => css.span.sourceUrl;
+  Uri? get url => css.span.sourceUrl;
 
   final List<Module> upstream;
   final Map<String, Value> variables;
-  final Map<String, AstNode> variableNodes;
+  final Map<String, AstNode>? variableNodes;
   final Map<String, AsyncCallable> functions;
   final Map<String, AsyncCallable> mixins;
-  final Extender extender;
+  final ExtensionStore extensionStore;
   final CssStylesheet css;
   final bool transitivelyContainsCss;
   final bool transitivelyContainsExtensions;
@@ -920,21 +940,21 @@ class _EnvironmentModule implements Module {
   /// defined at all.
   final Map<String, Module> _modulesByVariable;
 
-  factory _EnvironmentModule(
-      AsyncEnvironment environment, CssStylesheet css, Extender extender,
-      {Set<Module> forwarded}) {
+  factory _EnvironmentModule(AsyncEnvironment environment, CssStylesheet css,
+      ExtensionStore extensionStore,
+      {Set<Module>? forwarded}) {
     forwarded ??= const {};
     return _EnvironmentModule._(
         environment,
         css,
-        extender,
+        extensionStore,
         _makeModulesByVariable(forwarded),
         _memberMap(environment._variables.first,
             forwarded.map((module) => module.variables)),
-        environment._variableNodes == null
-            ? null
-            : _memberMap(environment._variableNodes.first,
-                forwarded.map((module) => module.variableNodes)),
+        environment._variableNodes.andThen((nodes) => _memberMap(
+            nodes.first,
+            // dart-lang/sdk#45348
+            forwarded!.map((module) => module.variableNodes!))),
         _memberMap(environment._functions.first,
             forwarded.map((module) => module.functions)),
         _memberMap(environment._mixins.first,
@@ -942,7 +962,7 @@ class _EnvironmentModule implements Module {
         transitivelyContainsCss: css.children.isNotEmpty ||
             environment._allModules
                 .any((module) => module.transitivelyContainsCss),
-        transitivelyContainsExtensions: !extender.isEmpty ||
+        transitivelyContainsExtensions: !extensionStore.isEmpty ||
             environment._allModules
                 .any((module) => module.transitivelyContainsExtensions));
   }
@@ -987,17 +1007,17 @@ class _EnvironmentModule implements Module {
   _EnvironmentModule._(
       this._environment,
       this.css,
-      this.extender,
+      this.extensionStore,
       this._modulesByVariable,
       this.variables,
       this.variableNodes,
       this.functions,
       this.mixins,
-      {@required this.transitivelyContainsCss,
-      @required this.transitivelyContainsExtensions})
+      {required this.transitivelyContainsCss,
+      required this.transitivelyContainsExtensions})
       : upstream = _environment._allModules;
 
-  void setVariable(String name, Value value, AstNode nodeWithSpan) {
+  void setVariable(String name, Value value, AstNode? nodeWithSpan) {
     var module = _modulesByVariable[name];
     if (module != null) {
       module.setVariable(name, value, nodeWithSpan);
@@ -1009,8 +1029,8 @@ class _EnvironmentModule implements Module {
     }
 
     _environment._variables.first[name] = value;
-    if (_environment._variableNodes != null) {
-      _environment._variableNodes.first[name] = nodeWithSpan;
+    if (nodeWithSpan != null) {
+      _environment._variableNodes?.first[name] = nodeWithSpan;
     }
     return;
   }
@@ -1024,11 +1044,11 @@ class _EnvironmentModule implements Module {
   Module cloneCss() {
     if (css.children.isEmpty) return this;
 
-    var newCssAndExtender = cloneCssStylesheet(css, extender);
+    var newCssAndExtensionStore = cloneCssStylesheet(css, extensionStore);
     return _EnvironmentModule._(
         _environment,
-        newCssAndExtender.item1,
-        newCssAndExtender.item2,
+        newCssAndExtensionStore.item1,
+        newCssAndExtensionStore.item2,
         _modulesByVariable,
         variables,
         variableNodes,

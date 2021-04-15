@@ -27,7 +27,7 @@ class SassList extends Value implements ext.SassList {
 
   int get lengthAsList => asList.length;
 
-  const SassList.empty({ListSeparator separator, bool brackets = false})
+  const SassList.empty({ListSeparator? separator, bool brackets = false})
       : _contents = const [],
         separator = separator ?? ListSeparator.undecided,
         hasBrackets = brackets;
@@ -43,10 +43,10 @@ class SassList extends Value implements ext.SassList {
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitList(this);
 
-  SassMap assertMap([String name]) =>
+  SassMap assertMap([String? name]) =>
       asList.isEmpty ? const SassMap.empty() : super.assertMap(name);
 
-  SassMap tryMap() => asList.isEmpty ? const SassMap.empty() : null;
+  SassMap? tryMap() => asList.isEmpty ? const SassMap.empty() : null;
 
   bool operator ==(Object other) =>
       (other is SassList &&
@@ -79,7 +79,7 @@ class ListSeparator {
   ///
   /// If the separator of a list has not been decided, this value will be
   /// `null`.
-  final String separator;
+  final String? separator;
 
   const ListSeparator._(this._name, this.separator);
 

@@ -5,11 +5,12 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6ac1ee07d6b46134f1616d82782180f1cc3b6d81
+// Checksum: 950db49eb9e3a85f35bc4a3d7cfe029fb60ae498
 //
 // ignore_for_file: unused_import
 
 import 'package:collection/collection.dart';
+import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
@@ -18,8 +19,7 @@ import 'importer.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'sync_package_resolver.dart';
-import 'utils.dart'; // ignore: unused_import
+import 'utils.dart';
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
 class ImportCache {
@@ -38,10 +38,10 @@ class ImportCache {
   ///
   /// This cache isn't used for relative imports, because they're
   /// context-dependent.
-  final Map<Tuple2<Uri, bool>, Tuple3<Importer, Uri, Uri>> _canonicalizeCache;
+  final Map<Tuple2<Uri, bool>, Tuple3<Importer, Uri, Uri>?> _canonicalizeCache;
 
   /// The parsed stylesheets for each canonicalized import URL.
-  final Map<Uri, Stylesheet> _importCache;
+  final Map<Uri, Stylesheet?> _importCache;
 
   /// The import results for each canonicalized import URL.
   final Map<Uri, ImporterResult> _resultsCache;
@@ -58,33 +58,34 @@ class ImportCache {
   /// * Each load path specified in the `SASS_PATH` environment variable, which
   ///   should be semicolon-separated on Windows and colon-separated elsewhere.
   ///
-  /// * `package:` resolution using [packageResolver], which is a
-  ///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
+  /// * `package:` resolution using [packageConfig], which is a
+  ///   [`PackageConfig`][] from the `package_config` package. Note that
   ///   this is a shorthand for adding a [PackageImporter] to [importers].
   ///
-  /// [`SyncPackageResolver`]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
-  ImportCache(Iterable<Importer> importers,
-      {Iterable<String> loadPaths,
-      SyncPackageResolver packageResolver,
-      Logger logger})
-      : _importers = _toImporters(importers, loadPaths, packageResolver),
+  /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
+  ImportCache(
+      {Iterable<Importer>? importers,
+      Iterable<String>? loadPaths,
+      PackageConfig? packageConfig,
+      Logger? logger})
+      : _importers = _toImporters(importers, loadPaths, packageConfig),
         _logger = logger ?? const Logger.stderr(),
         _canonicalizeCache = {},
         _importCache = {},
         _resultsCache = {};
 
   /// Creates an import cache without any globally-available importers.
-  ImportCache.none({Logger logger})
+  ImportCache.none({Logger? logger})
       : _importers = const [],
         _logger = logger ?? const Logger.stderr(),
         _canonicalizeCache = {},
         _importCache = {},
         _resultsCache = {};
 
-  /// Converts the user's [importers], [loadPaths], and [packageResolver]
+  /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
-  static List<Importer> _toImporters(Iterable<Importer> importers,
-      Iterable<String> loadPaths, SyncPackageResolver packageResolver) {
+  static List<Importer> _toImporters(Iterable<Importer>? importers,
+      Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
     return [
       ...?importers,
@@ -93,7 +94,7 @@ class ImportCache {
       if (sassPath != null)
         for (var path in sassPath.split(isWindows ? ';' : ':'))
           FilesystemImporter(path),
-      if (packageResolver != null) PackageImporter(packageResolver)
+      if (packageConfig != null) PackageImporter(packageConfig)
     ];
   }
 
@@ -109,10 +110,10 @@ class ImportCache {
   /// If any importers understand [url], returns that importer as well as the
   /// canonicalized URL and the original URL resolved relative to [baseUrl] if
   /// applicable. Otherwise, returns `null`.
-  Tuple3<Importer, Uri, Uri> canonicalize(Uri url,
-      {Importer baseImporter, Uri baseUrl, bool forImport = false}) {
+  Tuple3<Importer, Uri, Uri>? canonicalize(Uri url,
+      {Importer? baseImporter, Uri? baseUrl, bool forImport = false}) {
     if (baseImporter != null) {
-      var resolvedUrl = baseUrl != null ? baseUrl.resolveUri(url) : url;
+      var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
       var canonicalUrl = _canonicalize(baseImporter, resolvedUrl, forImport);
       if (canonicalUrl != null) {
         return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
@@ -133,7 +134,7 @@ class ImportCache {
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
   /// returns a relative URL.
-  Uri _canonicalize(Importer importer, Uri url, bool forImport) {
+  Uri? _canonicalize(Importer importer, Uri url, bool forImport) {
     var result = (forImport
         ? inImportRule(() => importer.canonicalize(url))
         : importer.canonicalize(url));
@@ -155,8 +156,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// parsed stylesheet. Otherwise, returns `null`.
   ///
   /// Caches the result of the import and uses cached results if possible.
-  Tuple2<Importer, Stylesheet> import(Uri url,
-      {Importer baseImporter, Uri baseUrl, bool forImport = false}) {
+  Tuple2<Importer, Stylesheet>? import(Uri url,
+      {Importer? baseImporter, Uri? baseUrl, bool forImport = false}) {
     var tuple = canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport);
     if (tuple == null) return null;
@@ -175,8 +176,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// importers may return for legacy reasons.
   ///
   /// Caches the result of the import and uses cached results if possible.
-  Stylesheet importCanonical(Importer importer, Uri canonicalUrl,
-      [Uri originalUrl]) {
+  Stylesheet? importCanonical(Importer importer, Uri canonicalUrl,
+      [Uri? originalUrl]) {
     return _importCache.putIfAbsent(canonicalUrl, () {
       var result = importer.load(canonicalUrl);
       if (result == null) return null;
@@ -197,9 +198,10 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Returns [canonicalUrl] as-is if it hasn't been loaded by this cache.
   Uri humanize(Uri canonicalUrl) {
     // Display the URL with the shortest path length.
-    var url = minBy(
+    var url = minBy<Uri, int>(
         _canonicalizeCache.values
-            .where((tuple) => tuple?.item2 == canonicalUrl)
+            .whereNotNull()
+            .where((tuple) => tuple.item2 == canonicalUrl)
             .map((tuple) => tuple.item3),
         (url) => url.path.length);
     if (url == null) return canonicalUrl;

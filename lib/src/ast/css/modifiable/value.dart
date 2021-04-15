@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 import '../value.dart';
 
 /// A modifiable version of [CssValue] for use in the evaluation step.
-class ModifiableCssValue<T> implements CssValue<T> {
+class ModifiableCssValue<T extends Object> implements CssValue<T> {
   T value;
   final FileSpan span;
 

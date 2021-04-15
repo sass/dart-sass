@@ -32,7 +32,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// defined.
   BuiltInCallable.function(
       String name, String arguments, Value callback(List<Value> arguments),
-      {Object url})
+      {Object? url})
       : this.parsed(
             name,
             ArgumentDeclaration.parse('@function $name($arguments) {',
@@ -49,12 +49,12 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// defined.
   BuiltInCallable.mixin(
       String name, String arguments, void callback(List<Value> arguments),
-      {Object url})
+      {Object? url})
       : this.parsed(name,
             ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
             (arguments) {
           callback(arguments);
-          return null;
+          return sassNull;
         });
 
   /// Creates a callable with a single [arguments] declaration and a single
@@ -74,7 +74,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// defined.
   BuiltInCallable.overloadedFunction(
       this.name, Map<String, _Callback> overloads,
-      {Object url})
+      {Object? url})
       : _overloads = [
           for (var entry in overloads.entries)
             Tuple2(
@@ -93,8 +93,8 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// [ArgumentDeclaration].
   Tuple2<ArgumentDeclaration, _Callback> callbackFor(
       int positional, Set<String> names) {
-    Tuple2<ArgumentDeclaration, _Callback> fuzzyMatch;
-    int minMismatchDistance;
+    Tuple2<ArgumentDeclaration, _Callback>? fuzzyMatch;
+    int? minMismatchDistance;
 
     for (var overload in _overloads) {
       // Ideally, find an exact match.
@@ -114,7 +114,8 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
       fuzzyMatch = overload;
     }
 
-    return fuzzyMatch;
+    if (fuzzyMatch != null) return fuzzyMatch;
+    throw StateError("BuiltInCallable $name may not have empty overloads.");
   }
 
   /// Returns a copy of this callable with the given [name].

@@ -167,33 +167,38 @@ abstract class SassNumber extends Value implements ext.SassNumber {
 
   /// The representation of this number as two slash-separated numbers, if it
   /// has one.
-  final Tuple2<SassNumber, SassNumber> asSlash;
+  final Tuple2<SassNumber, SassNumber>? asSlash;
 
   bool get isInt => fuzzyIsInt(value);
 
-  int get asInt => fuzzyAsInt(value);
+  int? get asInt => fuzzyAsInt(value);
 
   /// Returns a human readable string representation of this number's units.
   String get unitString =>
       hasUnits ? _unitString(numeratorUnits, denominatorUnits) : '';
 
-  factory SassNumber(num value, [String unit]) => unit == null
+  factory SassNumber(num value, [String? unit]) => unit == null
       ? UnitlessSassNumber(value)
       : SingleUnitSassNumber(value, unit);
 
   factory SassNumber.withUnits(num value,
-      {List<String> numeratorUnits, List<String> denominatorUnits}) {
-    var emptyNumerator = numeratorUnits == null || numeratorUnits.isEmpty;
-    var emptyDenominator = denominatorUnits == null || denominatorUnits.isEmpty;
-    if (emptyNumerator && emptyDenominator) return UnitlessSassNumber(value);
-
-    if (emptyDenominator && numeratorUnits.length == 1) {
-      return SingleUnitSassNumber(value, numeratorUnits[0]);
+      {List<String>? numeratorUnits, List<String>? denominatorUnits}) {
+    if (denominatorUnits == null || denominatorUnits.isEmpty) {
+      if (numeratorUnits == null || numeratorUnits.isEmpty) {
+        return UnitlessSassNumber(value);
+      } else if (numeratorUnits.length == 1) {
+        return SingleUnitSassNumber(value, numeratorUnits[0]);
+      } else {
+        return ComplexSassNumber(
+            value, List.unmodifiable(numeratorUnits), const []);
+      }
     } else {
       return ComplexSassNumber(
           value,
-          emptyNumerator ? const [] : List.unmodifiable(numeratorUnits),
-          emptyDenominator ? const [] : List.unmodifiable(denominatorUnits));
+          numeratorUnits == null || numeratorUnits.isEmpty
+              ? const []
+              : List.unmodifiable(numeratorUnits),
+          List.unmodifiable(denominatorUnits));
     }
   }
 
@@ -214,15 +219,15 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   /// [numerator] and [denominator].
   SassNumber withSlash(SassNumber numerator, SassNumber denominator);
 
-  SassNumber assertNumber([String name]) => this;
+  SassNumber assertNumber([String? name]) => this;
 
-  int assertInt([String name]) {
+  int assertInt([String? name]) {
     var integer = fuzzyAsInt(value);
     if (integer != null) return integer;
     throw _exception("$this is not an int.", name);
   }
 
-  num valueInRange(num min, num max, [String name]) {
+  num valueInRange(num min, num max, [String? name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
     throw _exception(
@@ -230,35 +235,35 @@ abstract class SassNumber extends Value implements ext.SassNumber {
         name);
   }
 
-  void assertUnit(String unit, [String name]) {
+  void assertUnit(String unit, [String? name]) {
     if (hasUnit(unit)) return;
     throw _exception('Expected $this to have unit "$unit".', name);
   }
 
-  void assertNoUnits([String name]) {
+  void assertNoUnits([String? name]) {
     if (!hasUnits) return;
     throw _exception('Expected $this to have no units.', name);
   }
 
   SassNumber coerceToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       SassNumber.withUnits(coerceValueToMatch(other, name, otherName),
           numeratorUnits: other.numeratorUnits,
           denominatorUnits: other.denominatorUnits);
 
   num coerceValueToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
           coerceUnitless: true, name: name, other: other, otherName: otherName);
 
   SassNumber convertToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       SassNumber.withUnits(convertValueToMatch(other, name, otherName),
           numeratorUnits: other.numeratorUnits,
           denominatorUnits: other.denominatorUnits);
 
   num convertValueToMatch(ext.SassNumber other,
-          [String name, String otherName]) =>
+          [String? name, String? otherName]) =>
       _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
           coerceUnitless: false,
           name: name,
@@ -266,21 +271,21 @@ abstract class SassNumber extends Value implements ext.SassNumber {
           otherName: otherName);
 
   SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
-          [String name]) =>
+          [String? name]) =>
       SassNumber.withUnits(coerceValue(newNumerators, newDenominators, name),
           numeratorUnits: newNumerators, denominatorUnits: newDenominators);
 
   num coerceValue(List<String> newNumerators, List<String> newDenominators,
-          [String name]) =>
+          [String? name]) =>
       _coerceOrConvertValue(newNumerators, newDenominators,
           coerceUnitless: true, name: name);
 
-  num coerceValueToUnit(String unit, [String name]) =>
+  num coerceValueToUnit(String unit, [String? name]) =>
       coerceValue([unit], [], name);
 
   @deprecated
   num valueInUnits(List<String> newNumerators, List<String> newDenominators,
-          [String name]) =>
+          [String? name]) =>
       coerceValue(newNumerators, newDenominators, name);
 
   /// Converts [value] to [newNumerators] and [newDenominators].
@@ -295,10 +300,10 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   /// error reporting.
   num _coerceOrConvertValue(
       List<String> newNumerators, List<String> newDenominators,
-      {@required bool coerceUnitless,
-      String name,
-      ext.SassNumber other,
-      String otherName}) {
+      {required bool coerceUnitless,
+      String? name,
+      ext.SassNumber? other,
+      String? otherName}) {
     assert(
         other == null ||
             (listEquals(other.numeratorUnits, newNumerators) &&
@@ -333,7 +338,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
             // and make it clear exactly which units are convertible.
             return _exception(
                 "Expected $this to have ${a(type)} unit "
-                "(${_unitsByType[type].join(', ')}).",
+                "(${_unitsByType[type]!.join(', ')}).",
                 name);
           }
         }
@@ -528,10 +533,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
         if (factor == null) return false;
         value /= factor;
         return true;
-      }, orElse: () {
-        newNumerators.add(numerator);
-        return null;
-      });
+      }, orElse: () => newNumerators.add(numerator));
     }
 
     var mutableDenominatorUnits = denominatorUnits.toList();
@@ -541,10 +543,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
         if (factor == null) return false;
         value /= factor;
         return true;
-      }, orElse: () {
-        newNumerators.add(numerator);
-        return null;
-      });
+      }, orElse: () => newNumerators.add(numerator));
     }
 
     return SassNumber.withUnits(value,
@@ -557,20 +556,17 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   /// unit in [units2].
   bool _areAnyConvertible(List<String> units1, List<String> units2) {
     return units1.any((unit1) {
-      if (!_isConvertible(unit1)) return units2.contains(unit1);
       var innerMap = _conversions[unit1];
+      if (innerMap == null) return units2.contains(unit1);
       return units2.any(innerMap.containsKey);
     });
   }
-
-  /// Returns whether [unit] can be converted to or from any other units.
-  bool _isConvertible(String unit) => _conversions.containsKey(unit);
 
   /// Returns the number of [unit1]s per [unit2].
   ///
   /// Equivalently, `1unit2 * conversionFactor(unit1, unit2) = 1unit1`.
   @protected
-  num conversionFactor(String unit1, String unit2) {
+  num? conversionFactor(String unit1, String unit2) {
     if (unit1 == unit2) return 1;
     var innerMap = _conversions[unit1];
     if (innerMap == null) return null;
@@ -629,12 +625,12 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     if (units.isEmpty) return units;
     if (units.length == 1) {
       var type = _typesByUnit[units.first];
-      return type == null ? units : [_unitsByType[type].first];
+      return type == null ? units : [_unitsByType[type]!.first];
     }
 
     return units.map((unit) {
       var type = _typesByUnit[unit];
-      return type == null ? unit : _unitsByType[type].first;
+      return type == null ? unit : _unitsByType[type]!.first;
     }).toList()
       ..sort();
   }
@@ -656,6 +652,6 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   }
 
   /// Throws a [SassScriptException] with the given [message].
-  SassScriptException _exception(String message, [String name]) =>
+  SassScriptException _exception(String message, [String? name]) =>
       SassScriptException(name == null ? message : "\$$name: $message");
 }
