@@ -1336,7 +1336,7 @@ abstract class StylesheetParser extends Parser {
       if (needsDeprecationWarning) {
         logger.warn("""
 @-moz-document is deprecated and support will be removed from Sass in a future
-relase. For details, see http://bit.ly/moz-document.
+release. For details, see http://bit.ly/moz-document.
 """, span: span, deprecation: true);
       }
 
