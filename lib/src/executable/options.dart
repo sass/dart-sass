@@ -81,6 +81,7 @@ class ExecutableOptions {
     parser
       ..addSeparator(_separator('Other'))
       ..addFlag('watch',
+          abbr: 'w',
           help: 'Watch stylesheets and recompile when they change.',
           negatable: false)
       ..addFlag('poll',

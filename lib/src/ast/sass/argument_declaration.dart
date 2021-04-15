@@ -28,7 +28,7 @@ class ArgumentDeclaration implements SassNode {
   FileSpan get spanWithName {
     var text = span.file.getText(0);
 
-    // Move backwards through and whitspace between the name and the arguments.
+    // Move backwards through any whitespace between the name and the arguments.
     var i = span.start.offset - 1;
     while (i > 0 && isWhitespace(text.codeUnitAt(i))) {
       i--;

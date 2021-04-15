@@ -1,8 +1,6 @@
 ## 1.32.9
 
-### Dart API
-
-* Allow the null safety release of args and watcher.
+* Fix a typo in a deprecation warning.
 
 ### JavaScript API
 
@@ -10,6 +8,14 @@
   due to shortcomings in npm's version resolver sometimes still ended up
   installed anyway. Only declaring support for 3.0.0 should ensure compatibility
   going forward.
+
+### Dart API
+
+* Allow the null safety release of args and watcher.
+
+### Command Line Interface
+
+* Add a `-w` shorthand for the `--watch` flag.
 
 ## 1.32.8
 
@@ -575,7 +581,7 @@
 
   * Recognize `::slotted()` as a superselector of other `::slotted()` selectors.
 
-  * Regonize `:current()` with a vendor prefix as a superselector.
+  * Recognize `:current()` with a vendor prefix as a superselector.
 
 ## 1.22.10
 

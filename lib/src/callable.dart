@@ -40,7 +40,7 @@ export 'callable/user_defined.dart';
 ///   instead.
 ///
 /// * When manipulating values like lists, strings, and numbers that have
-///   metadata (comma versus sepace separated, bracketed versus unbracketed,
+///   metadata (comma versus space separated, bracketed versus unbracketed,
 ///   quoted versus unquoted, units), the output metadata should match the input
 ///   metadata. For lists, the [Value.changeList] method can be used to do this
 ///   automatically.

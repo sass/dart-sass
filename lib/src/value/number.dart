@@ -290,7 +290,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
 
   /// Converts [value] to [newNumerators] and [newDenominators].
   ///
-  /// If [coerceUnitless] is `true`, this considers unitless numbers convertable
+  /// If [coerceUnitless] is `true`, this considers unitless numbers convertible
   /// to and from any unit. Otherwise, it will throw a [SassScriptException] for
   /// such a conversion.
   ///

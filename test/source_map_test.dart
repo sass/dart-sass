@@ -32,7 +32,7 @@ void main() {
         """);
       });
 
-      test("with a mutliline selector", () {
+      test("with a multiline selector", () {
         _expectSourceMap("""
           {{1}}foo,
           bar
@@ -754,7 +754,7 @@ void _expectSassSourceMap(String sass, String css,
   _expectMapMatches(sassMap, sassText, cssText, sassLocations, cssLocations);
 }
 
-/// Returns [string] with leading whitepsace stripped from each line so that the
+/// Returns [string] with leading whitespace stripped from each line so that the
 /// least-indented line has zero indentation.
 String _reindent(String string) {
   var lines = trimAsciiRight(string).split("\n");

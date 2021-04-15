@@ -206,7 +206,7 @@ SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
   }
 
   // Because values in `map2` take precedence over `map1`, we just check if any
-  // entires in `map1` don't have corresponding keys in `map2`, or if they're
+  // entries in `map1` don't have corresponding keys in `map2`, or if they're
   // maps that need to be merged in their own right.
   map1.contents.forEach((key, value) {
     var resultValue = result[key];
