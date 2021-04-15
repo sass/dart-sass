@@ -12,7 +12,7 @@ import 'parent.dart';
 /// A `@for` rule.
 ///
 /// This iterates a set number of times.
-class ForRule extends ParentStatement {
+class ForRule extends ParentStatement<List<Statement>> {
   /// The name of the variable that will contain the index value.
   final String variable;
 

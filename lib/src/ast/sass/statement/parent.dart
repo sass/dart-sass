@@ -10,9 +10,13 @@ import 'mixin_rule.dart';
 import 'variable_declaration.dart';
 
 /// A [Statement] that can have child statements.
-abstract class ParentStatement implements Statement {
+///
+/// This has a generic parameter so that its subclasses can choose whether or
+/// not their children lists are nullable.
+abstract class ParentStatement<T extends List<Statement>?>
+    implements Statement {
   /// The child statements of this statement.
-  final List<Statement> children;
+  final T children;
 
   /// Whether any of [children] is a variable, function, or mixin declaration,
   /// or a dynamic import rule.

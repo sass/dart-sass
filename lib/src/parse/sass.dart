@@ -21,24 +21,24 @@ class SassParser extends StylesheetParser {
   /// position, or `null` if that hasn't been computed yet.
   ///
   /// A source line is any line that's not entirely whitespace.
-  int _nextIndentation;
+  int? _nextIndentation;
 
   /// The beginning of the next source line after the scanner's position, or
-  /// `null` if that hasn't been computed yet.
+  /// `null` if the next indentation hasn't been computed yet.
   ///
   /// A source line is any line that's not entirely whitespace.
-  LineScannerState _nextIndentationEnd;
+  LineScannerState? _nextIndentationEnd;
 
   /// Whether the document is indented using spaces or tabs.
   ///
   /// If this is `true`, the document is indented using spaces. If it's `false`,
   /// the document is indented using tabs. If it's `null`, we haven't yet seen
   /// the indentation character used by the document.
-  bool _spaces;
+  bool? _spaces;
 
   bool get indented => true;
 
-  SassParser(String contents, {Object url, Logger logger})
+  SassParser(String contents, {Object? url, Logger? logger})
       : super(contents, url: url, logger: logger);
 
   Interpolation styleRuleSelector() {
@@ -54,12 +54,12 @@ class SassParser extends StylesheetParser {
     return buffer.interpolation(scanner.spanFrom(start));
   }
 
-  void expectStatementSeparator([String name]) {
+  void expectStatementSeparator([String? name]) {
     if (!atEndOfStatement()) _expectNewline();
     if (_peekIndentation() <= currentIndentation) return;
     scanner.error(
         "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
-        position: _nextIndentationEnd.position);
+        position: _nextIndentationEnd!.position);
   }
 
   bool atEndOfStatement() {
@@ -136,12 +136,13 @@ class SassParser extends StylesheetParser {
   List<Statement> children(Statement child()) {
     var children = <Statement>[];
     _whileIndentedLower(() {
-      children.add(_child(child));
+      var parsedChild = _child(child);
+      if (parsedChild != null) children.add(parsedChild);
     });
     return children;
   }
 
-  List<Statement> statements(Statement statement()) {
+  List<Statement> statements(Statement? statement()) {
     var first = scanner.peekChar();
     if (first == $tab || first == $space) {
       scanner.error("Indenting at the beginning of the document is illegal.",
@@ -163,7 +164,7 @@ class SassParser extends StylesheetParser {
   /// This consumes children that are allowed at all levels of the document; the
   /// [child] parameter is called to consume any children that are specifically
   /// allowed in the caller's context.
-  Statement _child(Statement child()) {
+  Statement? _child(Statement? child()) {
     switch (scanner.peekChar()) {
       // Ignore empty lines.
       case $cr:
@@ -173,25 +174,19 @@ class SassParser extends StylesheetParser {
 
       case $dollar:
         return variableDeclarationWithoutNamespace();
-        break;
 
       case $slash:
         switch (scanner.peekChar(1)) {
           case $slash:
             return _silentComment();
-            break;
           case $asterisk:
             return _loudComment();
-            break;
           default:
             return child();
-            break;
         }
-        break;
 
       default:
         return child();
-        break;
     }
   }
 
@@ -236,9 +231,8 @@ class SassParser extends StylesheetParser {
       }
     } while (scanner.scan("//"));
 
-    lastSilentComment =
+    return lastSilentComment =
         SilentComment(buffer.toString(), scanner.spanFrom(start));
-    return lastSilentComment;
   }
 
   /// Consumes an indented-style loud context.
@@ -340,7 +334,6 @@ class SassParser extends StylesheetParser {
     switch (scanner.peekChar()) {
       case $semicolon:
         scanner.error("semicolons aren't allowed in the indented syntax.");
-        return;
       case $cr:
         scanner.readChar();
         if (scanner.peekChar() == $lf) scanner.readChar();
@@ -373,7 +366,7 @@ class SassParser extends StylesheetParser {
   /// runs [body] to consume the next statement.
   void _whileIndentedLower(void body()) {
     var parentIndentation = currentIndentation;
-    int childIndentation;
+    int? childIndentation;
     while (_peekIndentation() > parentIndentation) {
       var indentation = _readIndentation();
       childIndentation ??= indentation;
@@ -391,9 +384,9 @@ class SassParser extends StylesheetParser {
   /// Consumes indentation whitespace and returns the indentation level of the
   /// next line.
   int _readIndentation() {
-    if (_nextIndentation == null) _peekIndentation();
-    _currentIndentation = _nextIndentation;
-    scanner.state = _nextIndentationEnd;
+    var currentIndentation =
+        _currentIndentation = _nextIndentation ??= _peekIndentation();
+    scanner.state = _nextIndentationEnd!;
     _nextIndentation = null;
     _nextIndentationEnd = null;
     return currentIndentation;
@@ -401,7 +394,8 @@ class SassParser extends StylesheetParser {
 
   /// Returns the indentation level of the next line.
   int _peekIndentation() {
-    if (_nextIndentation != null) return _nextIndentation;
+    var cached = _nextIndentation;
+    if (cached != null) return cached;
 
     if (scanner.isDone) {
       _nextIndentation = 0;
@@ -414,13 +408,10 @@ class SassParser extends StylesheetParser {
       scanner.error("Expected newline.", position: scanner.position);
     }
 
-    bool containsTab;
-    bool containsSpace;
+    var containsTab = false;
+    var containsSpace = false;
+    var nextIndentation = 0;
     do {
-      containsTab = false;
-      containsSpace = false;
-      _nextIndentation = 0;
-
       while (true) {
         var next = scanner.peekChar();
         if (next == $space) {
@@ -430,7 +421,7 @@ class SassParser extends StylesheetParser {
         } else {
           break;
         }
-        _nextIndentation++;
+        nextIndentation++;
         scanner.readChar();
       }
 
@@ -444,10 +435,11 @@ class SassParser extends StylesheetParser {
 
     _checkIndentationConsistency(containsTab, containsSpace);
 
-    if (_nextIndentation > 0) _spaces ??= containsSpace;
+    _nextIndentation = nextIndentation;
+    if (nextIndentation > 0) _spaces ??= containsSpace;
     _nextIndentationEnd = scanner.state;
     scanner.state = start;
-    return _nextIndentation;
+    return nextIndentation;
   }
 
   /// Ensures that the document uses consistent characters for indentation.

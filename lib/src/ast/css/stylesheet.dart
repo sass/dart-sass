@@ -26,7 +26,7 @@ class CssStylesheet extends CssParentNode {
       : children = UnmodifiableListView(children);
 
   /// Creates an empty stylesheet with the given source URL.
-  CssStylesheet.empty({Object url})
+  CssStylesheet.empty({Object? url})
       : children = const [],
         span = SourceFile.decoded(const [], url: url).span(0, 0);
 

@@ -18,7 +18,7 @@ class ValueExpression implements Expression {
 
   final FileSpan span;
 
-  ValueExpression(this.value, [this.span]);
+  ValueExpression(this.value, this.span);
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitValueExpression(this);

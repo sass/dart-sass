@@ -26,7 +26,8 @@ class MergedExtension extends Extension {
   /// Throws an [ArgumentError] if [left] and [right] don't have the same
   /// extender and target.
   static Extension merge(Extension left, Extension right) {
-    if (left.extender != right.extender || left.target != right.target) {
+    if (left.extender.selector != right.extender.selector ||
+        left.target != right.target) {
       throw ArgumentError("$left and $right aren't the same extension.");
     }
 
@@ -49,20 +50,23 @@ class MergedExtension extends Extension {
   }
 
   MergedExtension._(this.left, this.right)
-      : super(left.extender, left.target, left.extenderSpan, left.span,
-            left.mediaContext ?? right.mediaContext,
-            specificity: left.specificity, optional: true);
+      : super(
+            left.extender.selector, left.extender.span, left.target, left.span,
+            mediaContext: left.mediaContext ?? right.mediaContext,
+            optional: true);
 
-  /// Returns all leaf-node [Extension]s in the tree or [MergedExtension]s.
+  /// Returns all leaf-node [Extension]s in the tree of [MergedExtension]s.
   Iterable<Extension> unmerge() sync* {
+    var left = this.left;
     if (left is MergedExtension) {
-      yield* (left as MergedExtension).unmerge();
+      yield* left.unmerge();
     } else {
       yield left;
     }
 
+    var right = this.right;
     if (right is MergedExtension) {
-      yield* (right as MergedExtension).unmerge();
+      yield* right.unmerge();
     } else {
       yield right;
     }

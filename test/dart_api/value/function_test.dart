@@ -12,7 +12,7 @@ import 'utils.dart';
 
 void main() {
   group("a function value", () {
-    SassFunction value;
+    late SassFunction value;
     setUp(() => value = parseValue("get-function('red')") as SassFunction);
 
     test("has a callable with the given name", () {

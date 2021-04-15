@@ -21,11 +21,11 @@ class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// Creates a new prefixed map view.
   PrefixedMapView(this._map, this._prefix);
 
-  V operator [](Object key) => key is String && key.startsWith(_prefix)
+  V? operator [](Object? key) => key is String && key.startsWith(_prefix)
       ? _map[key.substring(_prefix.length)]
       : null;
 
-  bool containsKey(Object key) => key is String && key.startsWith(_prefix)
+  bool containsKey(Object? key) => key is String && key.startsWith(_prefix)
       ? _map.containsKey(key.substring(_prefix.length))
       : false;
 }
@@ -33,7 +33,7 @@ class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
 /// The implementation of [PrefixedMapViews.keys].
 class _PrefixedKeys extends IterableBase<String> {
   /// The view whose keys are being iterated over.
-  final PrefixedMapView<Object> _view;
+  final PrefixedMapView<Object?> _view;
 
   int get length => _view.length;
   Iterator<String> get iterator =>
@@ -41,5 +41,5 @@ class _PrefixedKeys extends IterableBase<String> {
 
   _PrefixedKeys(this._view);
 
-  bool contains(Object key) => _view.containsKey(key);
+  bool contains(Object? key) => _view.containsKey(key);
 }

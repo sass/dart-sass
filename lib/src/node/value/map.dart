@@ -18,13 +18,15 @@ class _NodeSassMap {
 
 /// Creates a new `sass.types.Map` object wrapping [value].
 Object newNodeSassMap(SassMap value) =>
-    callConstructor(mapConstructor, [null, value]);
+    callConstructor(mapConstructor, [null, value]) as Object;
 
 /// The JS constructor for the `sass.types.Map` class.
 final Function mapConstructor = createClass('SassMap',
-    (_NodeSassMap thisArg, int length, [SassMap dartValue]) {
+    (_NodeSassMap thisArg, int? length, [SassMap? dartValue]) {
   thisArg.dartValue = dartValue ??
-      SassMap(Map.fromIterables(Iterable.generate(length, (i) => SassNumber(i)),
+      SassMap(Map.fromIterables(
+          // Either [dartValue] or [length] must be passed.
+          Iterable.generate(length!, (i) => SassNumber(i)),
           Iterable.generate(length, (_) => sassNull)));
 }, {
   'getKey': (_NodeSassMap thisArg, int index) =>
@@ -39,14 +41,14 @@ final Function mapConstructor = createClass('SassMap',
     var newKey = unwrapValue(key);
     var newMap = <Value, Value>{};
     var i = 0;
-    for (var oldKey in thisArg.dartValue.contents.keys) {
+    for (var oldEntry in thisArg.dartValue.contents.entries) {
       if (i == index) {
-        newMap[newKey] = oldMap[oldKey];
+        newMap[newKey] = oldEntry.value;
       } else {
-        if (newKey == oldKey) {
+        if (newKey == oldEntry.key) {
           throw ArgumentError.value(key, 'key', "is already in the map");
         }
-        newMap[oldKey] = oldMap[oldKey];
+        newMap[oldEntry.key] = oldEntry.value;
       }
       i++;
     }

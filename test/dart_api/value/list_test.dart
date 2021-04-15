@@ -12,7 +12,7 @@ import 'utils.dart';
 
 void main() {
   group("a comma-separated list", () {
-    Value value;
+    late Value value;
     setUp(() => value = parseValue("a, b, c"));
 
     test("is comma-separated", () {
@@ -125,7 +125,7 @@ void main() {
   });
 
   group("a single-element list", () {
-    Value value;
+    late Value value;
     setUp(() => value = parseValue("[1]"));
 
     test("has an undecided separator", () {
@@ -152,7 +152,7 @@ void main() {
   });
 
   group("an empty list", () {
-    Value value;
+    late Value value;
     setUp(() => value = parseValue("()"));
 
     test("has an undecided separator", () {
@@ -169,7 +169,7 @@ void main() {
 
     test("counts as an empty map", () {
       expect(value.assertMap().contents, isEmpty);
-      expect(value.tryMap().contents, isEmpty);
+      expect(value.tryMap()!.contents, isEmpty);
     });
 
     test("isn't any other type", () {
@@ -191,7 +191,7 @@ void main() {
   });
 
   group("a scalar value", () {
-    Value value;
+    late Value value;
     setUp(() => value = parseValue("blue"));
 
     test("has an undecided separator", () {

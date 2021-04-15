@@ -16,7 +16,7 @@ import 'utils.dart';
 
 void main() {
   group("from a parameter", () {
-    NodeSassString string;
+    late NodeSassString string;
     setUp(() {
       string = parseValue<NodeSassString>("abc");
     });

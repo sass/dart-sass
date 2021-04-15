@@ -64,7 +64,7 @@ abstract class Value implements ext.Value {
 
   /// Returns Dart's `null` value if this is [sassNull], and returns [this]
   /// otherwise.
-  Value get realNull => this;
+  Value? get realNull => this;
 
   const Value();
 
@@ -74,36 +74,36 @@ abstract class Value implements ext.Value {
   /// It's not guaranteed to be stable across versions.
   T accept<T>(ValueVisitor<T> visitor);
 
-  int sassIndexToListIndex(ext.Value sassIndex, [String name]) {
+  int sassIndexToListIndex(ext.Value sassIndex, [String? name]) {
     var index = sassIndex.assertNumber(name).assertInt(name);
     if (index == 0) throw _exception("List index may not be 0.", name);
     if (index.abs() > lengthAsList) {
       throw _exception(
-          "Invalid index $sassIndex for a list with ${lengthAsList} elements.",
+          "Invalid index $sassIndex for a list with $lengthAsList elements.",
           name);
     }
 
     return index < 0 ? lengthAsList + index : index - 1;
   }
 
-  SassBoolean assertBoolean([String name]) =>
+  SassBoolean assertBoolean([String? name]) =>
       throw _exception("$this is not a boolean.", name);
 
-  SassColor assertColor([String name]) =>
+  SassColor assertColor([String? name]) =>
       throw _exception("$this is not a color.", name);
 
-  SassFunction assertFunction([String name]) =>
+  SassFunction assertFunction([String? name]) =>
       throw _exception("$this is not a function reference.", name);
 
-  SassMap assertMap([String name]) =>
+  SassMap assertMap([String? name]) =>
       throw _exception("$this is not a map.", name);
 
-  SassMap tryMap() => null;
+  SassMap? tryMap() => null;
 
-  SassNumber assertNumber([String name]) =>
+  SassNumber assertNumber([String? name]) =>
       throw _exception("$this is not a number.", name);
 
-  SassString assertString([String name]) =>
+  SassString assertString([String? name]) =>
       throw _exception("$this is not a string.", name);
 
   /// Parses [this] as a selector list, in the same manner as the
@@ -115,7 +115,7 @@ abstract class Value implements ext.Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SelectorList assertSelector({String name, bool allowParent = false}) {
+  SelectorList assertSelector({String? name, bool allowParent = false}) {
     var string = _selectorString(name);
     try {
       return SelectorList.parse(string, allowParent: allowParent);
@@ -135,7 +135,8 @@ abstract class Value implements ext.Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SimpleSelector assertSimpleSelector({String name, bool allowParent = false}) {
+  SimpleSelector assertSimpleSelector(
+      {String? name, bool allowParent = false}) {
     var string = _selectorString(name);
     try {
       return SimpleSelector.parse(string, allowParent: allowParent);
@@ -156,7 +157,7 @@ abstract class Value implements ext.Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   CompoundSelector assertCompoundSelector(
-      {String name, bool allowParent = false}) {
+      {String? name, bool allowParent = false}) {
     var string = _selectorString(name);
     try {
       return CompoundSelector.parse(string, allowParent: allowParent);
@@ -172,7 +173,7 @@ abstract class Value implements ext.Value {
   ///
   /// Throws a [SassScriptException] if [this] isn't a type or a structure that
   /// can be parsed as a selector.
-  String _selectorString([String name]) {
+  String _selectorString([String? name]) {
     var string = _selectorStringOrNull();
     if (string != null) return string;
 
@@ -187,7 +188,7 @@ abstract class Value implements ext.Value {
   ///
   /// Returns `null` if [this] isn't a type or a structure that can be parsed as
   /// a selector.
-  String _selectorStringOrNull() {
+  String? _selectorStringOrNull() {
     if (this is SassString) return (this as SassString).text;
     if (this is! SassList) return null;
     var list = this as SassList;
@@ -200,7 +201,7 @@ abstract class Value implements ext.Value {
           result.add(complex.text);
         } else if (complex is SassList &&
             complex.separator == ListSeparator.space) {
-          var string = complex._selectorString();
+          var string = complex._selectorStringOrNull();
           if (string == null) return null;
           result.add(string);
         } else {
@@ -222,7 +223,7 @@ abstract class Value implements ext.Value {
   /// Returns a new list containing [contents] that defaults to this value's
   /// separator and brackets.
   SassList changeListContents(Iterable<Value> contents,
-      {ListSeparator separator, bool brackets}) {
+      {ListSeparator? separator, bool? brackets}) {
     return SassList(contents, separator ?? this.separator,
         brackets: brackets ?? hasBrackets);
   }
@@ -346,6 +347,6 @@ abstract class Value implements ext.Value {
   String toString() => serializeValue(this, inspect: true);
 
   /// Throws a [SassScriptException] with the given [message].
-  SassScriptException _exception(String message, [String name]) =>
+  SassScriptException _exception(String message, [String? name]) =>
       SassScriptException(name == null ? message : "\$$name: $message");
 }

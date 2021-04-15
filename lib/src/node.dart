@@ -21,7 +21,6 @@ import 'importer/node.dart';
 import 'node/exports.dart';
 import 'node/function.dart';
 import 'node/render_context.dart';
-import 'node/render_context_options.dart';
 import 'node/render_options.dart';
 import 'node/render_result.dart';
 import 'node/types.dart';
@@ -29,6 +28,7 @@ import 'node/value.dart';
 import 'node/utils.dart';
 import 'parse/scss.dart';
 import 'syntax.dart';
+import 'util/nullable.dart';
 import 'value.dart';
 import 'visitor/serialize.dart';
 
@@ -65,9 +65,10 @@ void main() {
 ///
 /// [render]: https://github.com/sass/node-sass#options
 void _render(
-    RenderOptions options, void callback(Object error, RenderResult result)) {
-  if (options.fiber != null) {
-    options.fiber.call(allowInterop(() {
+    RenderOptions options, void callback(Object? error, RenderResult? result)) {
+  var fiber = options.fiber;
+  if (fiber != null) {
+    fiber.call(allowInterop(() {
       try {
         callback(null, _renderSync(options));
       } catch (error) {
@@ -91,10 +92,12 @@ void _render(
 /// Converts Sass to CSS asynchronously.
 Future<RenderResult> _renderAsync(RenderOptions options) async {
   var start = DateTime.now();
-  var file = options.file == null ? null : p.absolute(options.file);
   CompileResult result;
-  if (options.data != null) {
-    result = await compileStringAsync(options.data,
+
+  var data = options.data;
+  var file = options.file.andThen(p.absolute);
+  if (data != null) {
+    result = await compileStringAsync(data,
         nodeImporter: _parseImporter(options, start),
         functions: _parseFunctions(options, start, asynch: true),
         syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
@@ -102,9 +105,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed),
-        url: options.file == null ? 'stdin' : p.toUri(file).toString(),
+        url: file == null ? 'stdin' : p.toUri(file).toString(),
         sourceMap: _enableSourceMaps(options));
-  } else if (options.file != null) {
+  } else if (file != null) {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
         functions: _parseFunctions(options, start, asynch: true),
@@ -130,10 +133,12 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
 RenderResult _renderSync(RenderOptions options) {
   try {
     var start = DateTime.now();
-    var file = options.file == null ? null : p.absolute(options.file);
     CompileResult result;
-    if (options.data != null) {
-      result = compileString(options.data,
+
+    var data = options.data;
+    var file = options.file.andThen(p.absolute);
+    if (data != null) {
+      result = compileString(data,
           nodeImporter: _parseImporter(options, start),
           functions: _parseFunctions(options, start).cast(),
           syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
@@ -141,9 +146,9 @@ RenderResult _renderSync(RenderOptions options) {
           useSpaces: options.indentType != 'tab',
           indentWidth: _parseIndentWidth(options.indentWidth),
           lineFeed: _parseLineFeed(options.linefeed),
-          url: options.file == null ? 'stdin' : p.toUri(file).toString(),
+          url: file == null ? 'stdin' : p.toUri(file).toString(),
           sourceMap: _enableSourceMaps(options));
-    } else if (options.file != null) {
+    } else if (file != null) {
       result = compile(file,
           nodeImporter: _parseImporter(options, start),
           functions: _parseFunctions(options, start).cast(),
@@ -172,9 +177,7 @@ JsError _wrapException(Object exception) {
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
         line: exception.span.start.line + 1,
         column: exception.span.start.column + 1,
-        file: exception.span.sourceUrl == null
-            ? 'stdin'
-            : p.fromUri(exception.span.sourceUrl),
+        file: exception.span.sourceUrl.andThen(p.fromUri) ?? 'stdin',
         status: 1);
   } else {
     return JsError(exception.toString());
@@ -188,29 +191,31 @@ JsError _wrapException(Object exception) {
 /// return a `List<Callable>` if [asynch] is `false`.
 List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     {bool asynch = false}) {
-  if (options.functions == null) return const [];
+  var functions = options.functions;
+  if (functions == null) return const [];
 
   var result = <AsyncCallable>[];
-  jsForEach(options.functions, (signature, callback) {
+  jsForEach(functions, (signature, callback) {
     Tuple2<String, ArgumentDeclaration> tuple;
     try {
       tuple = ScssParser(signature as String).parseSignature();
     } on SassFormatException catch (error) {
       throw SassFormatException(
-          'Invalid signature "${signature}": ${error.message}', error.span);
+          'Invalid signature "$signature": ${error.message}', error.span);
     }
 
     var context = _contextWithOptions(options, start);
 
-    if (options.fiber != null) {
+    var fiber = options.fiber;
+    if (fiber != null) {
       result.add(BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
-        var fiber = options.fiber.current;
+        var currentFiber = fiber.current;
         var jsArguments = [
           ...arguments.map(wrapValue),
-          allowInterop(([Object result]) {
+          allowInterop(([Object? result]) {
             // Schedule a microtask so we don't try to resume the running fiber
             // if [importer] calls `done()` synchronously.
-            scheduleMicrotask(() => fiber.run(result));
+            scheduleMicrotask(() => currentFiber.run(result));
           })
         ];
         var result = (callback as JSFunction).apply(context, jsArguments);
@@ -218,7 +223,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
             // Run `fiber.yield()` in runZoned() so that Dart resets the current
             // zone once it's done. Otherwise, interweaving fibers can leave
             // `Zone.current` in an inconsistent state.
-            ? runZoned(() => options.fiber.yield())
+            ? runZoned(() => fiber.yield())
             : result);
       }));
     } else if (!asynch) {
@@ -230,10 +235,10 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     } else {
       result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
           (arguments) async {
-        var completer = Completer<Object>();
+        var completer = Completer<Object?>();
         var jsArguments = [
           ...arguments.map(wrapValue),
-          allowInterop(([Object result]) => completer.complete(result))
+          allowInterop(([Object? result]) => completer.complete(result))
         ];
         var result = (callback as JSFunction).apply(context, jsArguments);
         return unwrapValue(
@@ -250,31 +255,33 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
   List<JSFunction> importers;
   if (options.importer == null) {
     importers = [];
-  } else if (options.importer is List<Object>) {
-    importers = (options.importer as List<Object>).cast();
+  } else if (options.importer is List<Object?>) {
+    importers = (options.importer as List<Object?>).cast();
   } else {
     importers = [options.importer as JSFunction];
   }
 
-  RenderContext context;
-  if (importers.isNotEmpty) context = _contextWithOptions(options, start);
+  var context = importers.isNotEmpty
+      ? _contextWithOptions(options, start)
+      : const Object();
 
-  if (options.fiber != null) {
+  var fiber = options.fiber;
+  if (fiber != null) {
     importers = importers.map((importer) {
       return allowInteropCaptureThis(
-          (Object thisArg, String url, String previous, [Object _]) {
-        var fiber = options.fiber.current;
+          (Object thisArg, String url, String previous, [Object? _]) {
+        var currentFiber = fiber.current;
         var result = call3(importer, thisArg, url, previous,
             allowInterop((Object result) {
           // Schedule a microtask so we don't try to resume the running fiber if
           // [importer] calls `done()` synchronously.
-          scheduleMicrotask(() => fiber.run(result));
+          scheduleMicrotask(() => currentFiber.run(result));
         }));
 
         // Run `fiber.yield()` in runZoned() so that Dart resets the current
         // zone once it's done. Otherwise, interweaving fibers can leave
         // `Zone.current` in an inconsistent state.
-        if (isUndefined(result)) return runZoned(() => options.fiber.yield());
+        if (isUndefined(result)) return runZoned(() => fiber.yield());
         return result;
       }) as JSFunction;
     }).toList();
@@ -298,8 +305,8 @@ RenderContext _contextWithOptions(RenderOptions options, DateTime start) {
           indentType: options.indentType == 'tab' ? 1 : 0,
           indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
           linefeed: _parseLineFeed(options.linefeed).text,
-          result: RenderResult(
-              stats: RenderResultStats(
+          result: RenderContextResult(
+              stats: RenderContextResultStats(
                   start: start.millisecondsSinceEpoch,
                   entry: options.file ?? 'data'))));
   context.options.context = context;
@@ -307,20 +314,20 @@ RenderContext _contextWithOptions(RenderOptions options, DateTime start) {
 }
 
 /// Parse [style] into an [OutputStyle].
-OutputStyle _parseOutputStyle(String style) {
+OutputStyle _parseOutputStyle(String? style) {
   if (style == null || style == 'expanded') return OutputStyle.expanded;
   if (style == 'compressed') return OutputStyle.compressed;
   throw ArgumentError('Unsupported output style "$style".');
 }
 
 /// Parses the indentation width into an [int].
-int _parseIndentWidth(Object width) {
+int? _parseIndentWidth(Object? width) {
   if (width == null) return null;
   return width is int ? width : int.parse(width.toString());
 }
 
 /// Parses the name of a line feed type into a [LineFeed].
-LineFeed _parseLineFeed(String str) {
+LineFeed _parseLineFeed(String? str) {
   switch (str) {
     case 'cr':
       return LineFeed.cr;
@@ -339,29 +346,31 @@ RenderResult _newRenderResult(
   var end = DateTime.now();
 
   var css = result.css;
-  Uint8List sourceMapBytes;
+  Uint8List? sourceMapBytes;
   if (_enableSourceMaps(options)) {
-    var sourceMapPath = options.sourceMap is String
-        ? options.sourceMap as String
-        : options.outFile + '.map';
+    var sourceMapOption = options.sourceMap;
+    var sourceMapPath =
+        sourceMapOption is String ? sourceMapOption : options.outFile! + '.map';
     var sourceMapDir = p.dirname(sourceMapPath);
 
-    result.sourceMap.sourceRoot = options.sourceMapRoot;
-    if (options.outFile == null) {
-      if (options.file == null) {
-        result.sourceMap.targetUrl = 'stdin.css';
+    var sourceMap = result.sourceMap!;
+    sourceMap.sourceRoot = options.sourceMapRoot;
+    var outFile = options.outFile;
+    if (outFile == null) {
+      var file = options.file;
+      if (file == null) {
+        sourceMap.targetUrl = 'stdin.css';
       } else {
-        result.sourceMap.targetUrl =
-            p.toUri(p.setExtension(options.file, '.css')).toString();
+        sourceMap.targetUrl = p.toUri(p.setExtension(file, '.css')).toString();
       }
     } else {
-      result.sourceMap.targetUrl =
-          p.toUri(p.relative(options.outFile, from: sourceMapDir)).toString();
+      sourceMap.targetUrl =
+          p.toUri(p.relative(outFile, from: sourceMapDir)).toString();
     }
 
     var sourceMapDirUrl = p.toUri(sourceMapDir).toString();
-    for (var i = 0; i < result.sourceMap.urls.length; i++) {
-      var source = result.sourceMap.urls[i];
+    for (var i = 0; i < sourceMap.urls.length; i++) {
+      var source = sourceMap.urls[i];
       if (source == "stdin") continue;
 
       // URLs handled by Node importers that directly return file contents are
@@ -369,19 +378,19 @@ RenderResult _newRenderResult(
       // not be intended as `file:` URLs, but there's nothing we can do about it
       // either way so we keep them as-is.
       if (p.url.isRelative(source) || p.url.isRootRelative(source)) continue;
-      result.sourceMap.urls[i] = p.url.relative(source, from: sourceMapDirUrl);
+      sourceMap.urls[i] = p.url.relative(source, from: sourceMapDirUrl);
     }
 
-    var json = result.sourceMap
-        .toJson(includeSourceContents: isTruthy(options.sourceMapContents));
+    var json = sourceMap.toJson(
+        includeSourceContents: isTruthy(options.sourceMapContents));
     sourceMapBytes = utf8Encode(jsonEncode(json));
 
     if (!isTruthy(options.omitSourceMapUrl)) {
       var url = isTruthy(options.sourceMapEmbed)
           ? Uri.dataFromBytes(sourceMapBytes, mimeType: "application/json")
-          : p.toUri(options.outFile == null
+          : p.toUri(outFile == null
               ? sourceMapPath
-              : p.relative(sourceMapPath, from: p.dirname(options.outFile)));
+              : p.relative(sourceMapPath, from: p.dirname(outFile)));
       css += "\n\n/*# sourceMappingURL=$url */";
     }
   }
@@ -405,7 +414,7 @@ bool _enableSourceMaps(RenderOptions options) =>
 /// Creates a [JsError] with the given fields added to it so it acts like a Node
 /// Sass error.
 JsError _newRenderError(String message,
-    {int line, int column, String file, int status}) {
+    {int? line, int? column, String? file, int? status}) {
   var error = JsError(message);
   setProperty(error, 'formatted', 'Error: $message');
   if (line != null) setProperty(error, 'line', line);

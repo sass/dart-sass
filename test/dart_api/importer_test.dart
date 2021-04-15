@@ -13,6 +13,7 @@ import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
 import 'test_importer.dart';
+import '../utils.dart';
 
 void main() {
   test("uses an importer to resolve an @import", () {
@@ -92,7 +93,7 @@ void main() {
   });
 
   test("uses an importer's source map URL", () {
-    SingleMapping map;
+    late SingleMapping map;
     compileString('@import "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
@@ -107,7 +108,7 @@ void main() {
   });
 
   test("uses a data: source map URL if the importer doesn't provide one", () {
-    SingleMapping map;
+    late SingleMapping map;
     compileString('@import "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
@@ -128,7 +129,7 @@ void main() {
       compileString('@import "orange";', importers: [
         TestImporter((url) {
           throw "this import is bad actually";
-        }, expectAsync1((_) => null, count: 0))
+        }, expectNever1)
       ]);
     }, throwsA(predicate((error) {
       expect(error, const TypeMatcher<SassException>());

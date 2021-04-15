@@ -11,7 +11,7 @@ import 'parser.dart';
 
 /// A parser for `@media` queries.
 class MediaQueryParser extends Parser {
-  MediaQueryParser(String contents, {Object url, Logger logger})
+  MediaQueryParser(String contents, {Object? url, Logger? logger})
       : super(contents, url: url, logger: logger);
 
   List<CssMediaQuery> parse() {
@@ -29,8 +29,8 @@ class MediaQueryParser extends Parser {
   /// Consumes a single media query.
   CssMediaQuery _mediaQuery() {
     // This is somewhat duplicated in StylesheetParser._mediaQuery.
-    String modifier;
-    String type;
+    String? modifier;
+    String? type;
     if (scanner.peekChar() != $lparen) {
       var identifier1 = identifier();
       whitespace();
