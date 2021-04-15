@@ -6,6 +6,10 @@
 
 * Allow the null safety release of args and watcher.
 
+### Command Line Interface
+
+* Add a `-w` shorthand for the `--watch` flag.
+
 ## 1.32.8
 
 * Update chokidar version for Node API tests.
