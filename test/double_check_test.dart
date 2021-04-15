@@ -21,14 +21,16 @@ void main() {
 
     synchronize.sources.forEach((sourcePath, targetPath) {
       test(targetPath, () {
+        var message = "$targetPath is out-of-date.\n"
+            "Run pub run grinder to update it.";
+
         var target = File(targetPath).readAsStringSync();
-        var actualHash = checksumPattern.firstMatch(target)[1];
+        var match = checksumPattern.firstMatch(target);
+        if (match == null) fail(message);
 
         var source = File(sourcePath).readAsBytesSync();
         var expectedHash = sha1.convert(source).toString();
-        expect(actualHash, equals(expectedHash),
-            reason: "$targetPath is out-of-date.\n"
-                "Run pub run grinder to update it.");
+        expect(match[1], equals(expectedHash), reason: message);
       });
     });
   },
@@ -44,7 +46,7 @@ void main() {
     var changelogVersion = firstLine.substring(3);
 
     var pubspec = loadYaml(File("pubspec.yaml").readAsStringSync(),
-        sourceUrl: "pubspec.yaml") as Map<Object, Object>;
+        sourceUrl: Uri(path: "pubspec.yaml")) as Map<dynamic, dynamic>;
     expect(pubspec, containsPair("version", isA<String>()));
     var pubspecVersion = pubspec["version"] as String;
 

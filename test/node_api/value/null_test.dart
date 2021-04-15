@@ -14,7 +14,7 @@ import 'utils.dart';
 
 void main() {
   group("from a parameter", () {
-    NodeSassNull value;
+    late NodeSassNull value;
     setUp(() {
       value = parseValue<NodeSassNull>("null");
     });

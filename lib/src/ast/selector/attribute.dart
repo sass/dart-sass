@@ -17,7 +17,7 @@ class AttributeSelector extends SimpleSelector {
   ///
   /// If this is `null`, this matches any element with the given property,
   /// regardless of this value. It's `null` if and only if [value] is `null`.
-  final AttributeOperator op;
+  final AttributeOperator? op;
 
   /// An assertion about the value of [name].
   ///
@@ -25,7 +25,7 @@ class AttributeSelector extends SimpleSelector {
   ///
   /// If this is `null`, this matches any element with the given property,
   /// regardless of this value. It's `null` if and only if [op] is `null`.
-  final String value;
+  final String? value;
 
   /// The modifier which indicates how the attribute selector should be
   /// processed.
@@ -35,7 +35,7 @@ class AttributeSelector extends SimpleSelector {
   /// [case-sensitivity]: https://www.w3.org/TR/selectors-4/#attribute-case
   ///
   /// If [op] is `null`, this is always `null` as well.
-  final String modifier;
+  final String? modifier;
 
   /// Creates an attribute selector that matches any element with a property of
   /// the given name.

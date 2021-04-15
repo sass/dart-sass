@@ -13,9 +13,9 @@ class ColorExpression implements Expression {
   /// The value of this color.
   final SassColor value;
 
-  FileSpan get span => value.originalSpan;
+  final FileSpan span;
 
-  ColorExpression(this.value);
+  ColorExpression(this.value) : span = value.originalSpan!;
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitColorExpression(this);

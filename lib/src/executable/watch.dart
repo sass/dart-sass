@@ -20,8 +20,8 @@ import 'options.dart';
 /// Watches all the files in [graph] for changes and updates them as necessary.
 Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   var directoriesToWatch = [
-    ...options.sourceDirectoriesToDestinations.keys,
-    ...options.sourcesToDestinations.keys.map(p.dirname),
+    ..._sourceDirectoriesToDestinations(options).keys,
+    for (var dir in _sourcesToDestinations(options).keys) p.dirname(dir),
     ...options.loadPaths
   ];
 
@@ -39,12 +39,12 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   // they currently exist. This ensures that changes that come in update a
   // known-good state.
   var watcher = _Watcher(options, graph);
-  for (var source in options.sourcesToDestinations.keys) {
-    var destination = options.sourcesToDestinations[source];
-    graph.addCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(source)), p.toUri(source),
+  for (var entry in _sourcesToDestinations(options).entries) {
+    graph.addCanonical(FilesystemImporter('.'),
+        p.toUri(canonicalize(entry.key)), p.toUri(entry.key),
         recanonicalize: false);
-    var success = await watcher.compile(source, destination, ifModified: true);
+    var success =
+        await watcher.compile(entry.key, entry.value, ifModified: true);
     if (!success && options.stopOnError) {
       dirWatcher.events.listen(null).cancel();
       return;
@@ -82,7 +82,11 @@ class _Watcher {
       exitCode = 65;
       return false;
     } on FileSystemException catch (error, stackTrace) {
-      _printError("Error reading ${p.relative(error.path)}: ${error.message}.",
+      var path = error.path;
+      _printError(
+          path == null
+              ? error.message
+              : "Error reading ${p.relative(path)}: ${error.message}.",
           stackTrace);
       exitCode = 66;
       return false;
@@ -150,12 +154,13 @@ class _Watcher {
   /// Returns whether all necessary recompilations succeeded.
   Future<bool> _handleModify(String path) async {
     var url = _canonicalize(path);
-    if (!_graph.nodes.containsKey(url)) return _handleAdd(path);
 
-    // Access the node ahead-of-time because it's possible that
-    // `_graph.reload()` notices the file has been deleted and removes it from
-    // the graph.
+    // It's important to access the node ahead-of-time because it's possible
+    // that `_graph.reload()` notices the file has been deleted and removes it
+    // from the graph.
     var node = _graph.nodes[url];
+    if (node == null) return _handleAdd(path);
+
     _graph.reload(url);
     return await _recompileDownstream([node]);
   }
@@ -208,8 +213,11 @@ class _Watcher {
         }
       }
 
-      return typeForPath.keys
-          .map((path) => WatchEvent(typeForPath[path], path));
+      return [
+        for (var entry in typeForPath.entries)
+          // PathMap always has nullable keys
+          WatchEvent(entry.value, entry.key!)
+      ];
     });
   }
 
@@ -253,17 +261,16 @@ class _Watcher {
   /// the CSS file it should be compiled to.
   ///
   /// Otherwise, returns `null`.
-  String _destinationFor(String source) {
-    var destination = _options.sourcesToDestinations[source];
+  String? _destinationFor(String source) {
+    var destination = _sourcesToDestinations(_options)[source];
     if (destination != null) return destination;
     if (p.basename(source).startsWith('_')) return null;
 
-    for (var sourceDir in _options.sourceDirectoriesToDestinations.keys) {
-      if (!p.isWithin(sourceDir, source)) continue;
+    for (var entry in _sourceDirectoriesToDestinations(_options).entries) {
+      if (!p.isWithin(entry.key, source)) continue;
 
-      var destination = p.join(
-          _options.sourceDirectoriesToDestinations[sourceDir],
-          p.setExtension(p.relative(source, from: sourceDir), '.css'));
+      var destination = p.join(entry.value,
+          p.setExtension(p.relative(source, from: entry.key), '.css'));
 
       // Don't compile ".css" files to their own locations.
       if (!p.equals(destination, source)) return destination;
@@ -272,3 +279,14 @@ class _Watcher {
     return null;
   }
 }
+
+/// Exposes [options.sourcesToDestinations] as a non-nullable map, since stdin
+/// inputs and stdout outputs aren't allowed in `--watch` mode.
+Map<String, String> _sourcesToDestinations(ExecutableOptions options) =>
+    options.sourcesToDestinations.cast<String, String>();
+
+/// Exposes [options.sourcesDirectoriesToDestinations] as a non-nullable map,
+/// since stdin inputs and stdout outputs aren't allowed in `--watch` mode.
+Map<String, String> _sourceDirectoriesToDestinations(
+        ExecutableOptions options) =>
+    options.sourceDirectoriesToDestinations.cast<String, String>();

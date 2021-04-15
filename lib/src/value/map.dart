@@ -30,7 +30,7 @@ class SassMap extends Value implements ext.SassMap {
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitMap(this);
 
-  SassMap assertMap([String name]) => this;
+  SassMap assertMap([String? name]) => this;
 
   SassMap tryMap() => this;
 

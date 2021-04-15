@@ -19,7 +19,7 @@ class ArgumentDeclaration implements SassNode {
 
   /// The name of the rest argument (as in `$args...`), or `null` if none was
   /// declared.
-  final String restArgument;
+  final String? restArgument;
 
   final FileSpan span;
 
@@ -49,28 +49,15 @@ class ArgumentDeclaration implements SassNode {
     return span.file.span(i + 1, span.end.offset).trim();
   }
 
-  /// The name of the rest argument as written in the document, without
-  /// underscores converted to hyphens and including the leading `$`.
-  ///
-  /// This isn't particularly efficient, and should only be used for error
-  /// messages.
-  String get originalRestArgument {
-    if (restArgument == null) return null;
-
-    var text = span.text;
-    var fromDollar = text.substring(text.lastIndexOf("\$"));
-    return fromDollar.substring(0, text.indexOf("."));
-  }
-
   /// Returns whether this declaration takes no arguments.
   bool get isEmpty => arguments.isEmpty && restArgument == null;
 
   ArgumentDeclaration(Iterable<Argument> arguments,
-      {this.restArgument, this.span})
+      {this.restArgument, required this.span})
       : arguments = List.unmodifiable(arguments);
 
   /// Creates a declaration that declares no arguments.
-  ArgumentDeclaration.empty({this.span})
+  ArgumentDeclaration.empty({required this.span})
       : arguments = const [],
         restArgument = null;
 
@@ -81,7 +68,7 @@ class ArgumentDeclaration implements SassNode {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory ArgumentDeclaration.parse(String contents,
-          {Object url, Logger logger}) =>
+          {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parseArgumentDeclaration();
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
@@ -113,7 +100,7 @@ class ArgumentDeclaration implements SassNode {
           "Only ${arguments.length} "
               "${names.isEmpty ? '' : 'positional '}"
               "${pluralize('argument', arguments.length)} allowed, but "
-              "${positional} ${pluralize('was', positional, plural: 'were')} "
+              "$positional ${pluralize('was', positional, plural: 'were')} "
               "passed.",
           "invocation",
           {spanWithName: "declaration"});
@@ -133,7 +120,11 @@ class ArgumentDeclaration implements SassNode {
   /// Returns the argument named [name] with a leading `$` and its original
   /// underscores (which are otherwise converted to hyphens).
   String _originalArgumentName(String name) {
-    if (name == restArgument) return originalRestArgument;
+    if (name == restArgument) {
+      var text = span.text;
+      var fromDollar = text.substring(text.lastIndexOf("\$"));
+      return fromDollar.substring(0, text.indexOf("."));
+    }
 
     for (var argument in arguments) {
       if (argument.name == name) return argument.originalName;

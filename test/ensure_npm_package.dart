@@ -18,7 +18,7 @@ Future<void> ensureNpmPackage() async {
     import 'package:cli_pkg/testing.dart' as pkg;
     import 'package:stream_channel/stream_channel.dart';
 
-    void hybridMain(StreamChannel<Object> channel) async {
+    void hybridMain(StreamChannel<Object?> channel) async {
       pkg.ensureExecutableUpToDate("sass", node: true);
       channel.sink.close();
     }

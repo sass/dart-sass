@@ -16,7 +16,7 @@ import 'utils.dart';
 
 void main() {
   group("from a parameter", () {
-    NodeSassNumber number;
+    late NodeSassNumber number;
     setUp(() {
       number = parseValue<NodeSassNumber>("1px");
     });

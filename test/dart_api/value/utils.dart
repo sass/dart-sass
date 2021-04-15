@@ -9,7 +9,7 @@ import 'package:sass/src/exception.dart';
 
 /// Parses [source] by way of a function call.
 Value parseValue(String source) {
-  Value value;
+  late Value value;
   compileString("a {b: foo(($source))}", functions: [
     Callable("foo", r"$arg", expectAsync1((arguments) {
       expect(arguments, hasLength(1));

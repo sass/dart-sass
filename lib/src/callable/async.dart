@@ -40,6 +40,6 @@ abstract class AsyncCallable {
       AsyncBuiltInCallable.function(name, arguments, (arguments) {
         var result = callback(arguments);
         if (result is ext.Value) return result as Value;
-        return (result as Future<ext.Value>).then((value) => value as Value);
+        return result.then((value) => value as Value);
       });
 }

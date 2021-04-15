@@ -21,7 +21,7 @@ class ModifiableCssStyleRule extends ModifiableCssParentNode
   ///
   /// If [originalSelector] isn't passed, it defaults to [selector.value].
   ModifiableCssStyleRule(ModifiableCssValue<SelectorList> selector, this.span,
-      {SelectorList originalSelector})
+      {SelectorList? originalSelector})
       : selector = selector,
         originalSelector = originalSelector ?? selector.value;
 

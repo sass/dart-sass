@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../ast/sass.dart';
+import '../util/nullable.dart';
 import 'interface/statement.dart';
 
 /// A visitor that recursively traverses each statement in a Sass AST.
@@ -19,141 +20,129 @@ import 'interface/statement.dart';
 /// * [visitChildren]
 /// * [visitInterpolation]
 /// * [visitExpression]
-///
-/// The default implementation of the visit methods all return `null`.
-abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
-  T visitAtRootRule(AtRootRule node) {
-    if (node.query != null) visitInterpolation(node.query);
-    return visitChildren(node);
+abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
+  void visitAtRootRule(AtRootRule node) {
+    node.query.andThen(visitInterpolation);
+    visitChildren(node.children);
   }
 
-  T visitAtRule(AtRule node) {
+  void visitAtRule(AtRule node) {
     visitInterpolation(node.name);
-    if (node.value != null) visitInterpolation(node.value);
-    return node.children == null ? null : visitChildren(node);
+    node.value.andThen(visitInterpolation);
+    node.children.andThen(visitChildren);
   }
 
-  T visitContentBlock(ContentBlock node) => visitCallableDeclaration(node);
+  void visitContentBlock(ContentBlock node) => visitCallableDeclaration(node);
 
-  T visitContentRule(ContentRule node) {
+  void visitContentRule(ContentRule node) {
     visitArgumentInvocation(node.arguments);
-    return null;
   }
 
-  T visitDebugRule(DebugRule node) {
+  void visitDebugRule(DebugRule node) {
     visitExpression(node.expression);
-    return null;
   }
 
-  T visitDeclaration(Declaration node) {
+  void visitDeclaration(Declaration node) {
     visitInterpolation(node.name);
-    if (node.value != null) visitExpression(node.value);
-    return node.children == null ? null : visitChildren(node);
+    node.value.andThen(visitExpression);
+    node.children.andThen(visitChildren);
   }
 
-  T visitEachRule(EachRule node) {
+  void visitEachRule(EachRule node) {
     visitExpression(node.list);
-    return visitChildren(node);
+    visitChildren(node.children);
   }
 
-  T visitErrorRule(ErrorRule node) {
+  void visitErrorRule(ErrorRule node) {
     visitExpression(node.expression);
-    return null;
   }
 
-  T visitExtendRule(ExtendRule node) {
+  void visitExtendRule(ExtendRule node) {
     visitInterpolation(node.selector);
-    return null;
   }
 
-  T visitForRule(ForRule node) {
+  void visitForRule(ForRule node) {
     visitExpression(node.from);
     visitExpression(node.to);
-    return visitChildren(node);
+    visitChildren(node.children);
   }
 
-  T visitForwardRule(ForwardRule node) => null;
+  void visitForwardRule(ForwardRule node) {}
 
-  T visitFunctionRule(FunctionRule node) => visitCallableDeclaration(node);
+  void visitFunctionRule(FunctionRule node) => visitCallableDeclaration(node);
 
-  T visitIfRule(IfRule node) {
+  void visitIfRule(IfRule node) {
     for (var clause in node.clauses) {
-      _visitIfClause(clause);
+      visitExpression(clause.expression);
+      for (var child in clause.children) {
+        child.accept(this);
+      }
     }
-    if (node.lastClause != null) _visitIfClause(node.lastClause);
-    return null;
+
+    node.lastClause.andThen((lastClause) {
+      for (var child in lastClause.children) {
+        child.accept(this);
+      }
+    });
   }
 
-  /// Visits [clause]'s expression and children.
-  void _visitIfClause(IfClause clause) {
-    if (clause.expression != null) visitExpression(clause.expression);
-    for (var child in clause.children) {
-      child.accept(this);
-    }
-  }
-
-  T visitImportRule(ImportRule node) {
+  void visitImportRule(ImportRule node) {
     for (var import in node.imports) {
       if (import is StaticImport) {
         visitInterpolation(import.url);
-        if (import.supports != null) visitSupportsCondition(import.supports);
-        if (import.media != null) visitInterpolation(import.media);
+        import.supports.andThen(visitSupportsCondition);
+        import.media.andThen(visitInterpolation);
       }
     }
-    return null;
   }
 
-  T visitIncludeRule(IncludeRule node) {
+  void visitIncludeRule(IncludeRule node) {
     visitArgumentInvocation(node.arguments);
-    return node.content == null ? null : visitContentBlock(node.content);
+    node.content.andThen(visitContentBlock);
   }
 
-  T visitLoudComment(LoudComment node) {
+  void visitLoudComment(LoudComment node) {
     visitInterpolation(node.text);
-    return null;
   }
 
-  T visitMediaRule(MediaRule node) {
+  void visitMediaRule(MediaRule node) {
     visitInterpolation(node.query);
-    return visitChildren(node);
+    visitChildren(node.children);
   }
 
-  T visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
+  void visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
 
-  T visitReturnRule(ReturnRule node) {
+  void visitReturnRule(ReturnRule node) {
     visitExpression(node.expression);
-    return null;
   }
 
-  T visitSilentComment(SilentComment node) => null;
+  void visitSilentComment(SilentComment node) {}
 
-  T visitStyleRule(StyleRule node) {
+  void visitStyleRule(StyleRule node) {
     visitInterpolation(node.selector);
-    return visitChildren(node);
+    visitChildren(node.children);
   }
 
-  T visitStylesheet(Stylesheet node) => visitChildren(node);
+  void visitStylesheet(Stylesheet node) => visitChildren(node.children);
 
-  T visitSupportsRule(SupportsRule node) {
+  void visitSupportsRule(SupportsRule node) {
     visitSupportsCondition(node.condition);
-    return visitChildren(node);
+    visitChildren(node.children);
   }
 
-  T visitUseRule(UseRule node) => null;
+  void visitUseRule(UseRule node) {}
 
-  T visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     visitExpression(node.expression);
-    return null;
   }
 
-  T visitWarnRule(WarnRule node) {
+  void visitWarnRule(WarnRule node) {
     visitExpression(node.expression);
-    return null;
   }
 
-  T visitWhileRule(WhileRule node) {
+  void visitWhileRule(WhileRule node) {
     visitExpression(node.condition);
-    return visitChildren(node);
+    visitChildren(node.children);
   }
 
   /// Visits each of [node]'s expressions and children.
@@ -161,11 +150,11 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
   /// The default implementations of [visitFunctionRule] and [visitMixinRule]
   /// call this.
   @protected
-  T visitCallableDeclaration(CallableDeclaration node) {
+  void visitCallableDeclaration(CallableDeclaration node) {
     for (var argument in node.arguments.arguments) {
-      if (argument.defaultValue != null) visitExpression(argument.defaultValue);
+      argument.defaultValue.andThen(visitExpression);
     }
-    return visitChildren(node);
+    visitChildren(node.children);
   }
 
   /// Visits each expression in an [invocation].
@@ -180,12 +169,8 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
     for (var expression in invocation.named.values) {
       visitExpression(expression);
     }
-    if (invocation.rest != null) {
-      visitExpression(invocation.rest);
-    }
-    if (invocation.keywordRest != null) {
-      visitExpression(invocation.keywordRest);
-    }
+    invocation.rest.andThen(visitExpression);
+    invocation.keywordRest.andThen(visitExpression);
   }
 
   /// Visits each expression in [condition].
@@ -207,16 +192,15 @@ abstract class RecursiveStatementVisitor<T> implements StatementVisitor<T> {
     }
   }
 
-  /// Visits each of [node]'s children.
+  /// Visits each child in [children].
   ///
   /// The default implementation of the visit methods for all [ParentStatement]s
-  /// call this and return its result.
+  /// call this.
   @protected
-  T visitChildren(ParentStatement node) {
-    for (var child in node.children) {
+  void visitChildren(List<Statement> children) {
+    for (var child in children) {
       child.accept(this);
     }
-    return null;
   }
 
   /// Visits each expression in an [interpolation].

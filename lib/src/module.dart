@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 import 'ast/css.dart';
 import 'ast/node.dart';
 import 'callable.dart';
-import 'extend/extender.dart';
+import 'extend/extension_store.dart';
 import 'value.dart';
 
 /// The interface for a Sass module.
@@ -16,7 +16,7 @@ abstract class Module<T extends AsyncCallable> {
   ///
   /// This may be `null` if the module was loaded from a string without a URL
   /// provided.
-  Uri get url;
+  Uri? get url;
 
   /// Modules that this module uses.
   List<Module<T>> get upstream;
@@ -34,7 +34,7 @@ abstract class Module<T extends AsyncCallable> {
   ///
   /// Implementations must ensure that this has the same keys as [variables] if
   /// it's not `null`.
-  Map<String, AstNode> get variableNodes;
+  Map<String, AstNode>? get variableNodes;
 
   /// The module's functions.
   ///
@@ -50,7 +50,7 @@ abstract class Module<T extends AsyncCallable> {
 
   /// The extensions defined in this module, which is also able to update
   /// [css]'s style rules in-place based on downstream extensions.
-  Extender get extender;
+  ExtensionStore get extensionStore;
 
   /// The module's CSS tree.
   CssStylesheet get css;
@@ -71,7 +71,7 @@ abstract class Module<T extends AsyncCallable> {
   ///
   /// Throws a [SassScriptException] if this module doesn't define a variable
   /// named [name].
-  void setVariable(String name, Value value, AstNode nodeWithSpan);
+  void setVariable(String name, Value value, AstNode? nodeWithSpan);
 
   /// Returns an opaque object that will be equal to another
   /// `variableIdentity()` return value for the same name in another module if

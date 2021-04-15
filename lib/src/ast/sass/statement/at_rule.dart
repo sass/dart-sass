@@ -15,11 +15,11 @@ class AtRule extends ParentStatement {
   final Interpolation name;
 
   /// The value of this rule.
-  final Interpolation value;
+  final Interpolation? value;
 
   final FileSpan span;
 
-  AtRule(this.name, this.span, {this.value, Iterable<Statement> children})
+  AtRule(this.name, this.span, {this.value, Iterable<Statement>? children})
       : super(children == null ? null : List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);
@@ -27,6 +27,8 @@ class AtRule extends ParentStatement {
   String toString() {
     var buffer = StringBuffer("@$name");
     if (value != null) buffer.write(" $value");
+
+    var children = this.children;
     return children == null ? "$buffer;" : "$buffer {${children.join(" ")}}";
   }
 }

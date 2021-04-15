@@ -22,7 +22,7 @@ class IDSelector extends SimpleSelector {
 
   IDSelector addSuffix(String suffix) => IDSelector(name + suffix);
 
-  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+  List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     // A given compound selector may only contain one ID.
     if (compound.any((simple) => simple is IDSelector && simple != this)) {
       return null;

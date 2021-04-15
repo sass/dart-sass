@@ -44,10 +44,7 @@ class MergedMapView<K, V> extends MapBase<K, V> {
     }
   }
 
-  V operator [](Object key) {
-    var child = _mapsByKey[key];
-    return child == null ? null : child[key];
-  }
+  V? operator [](Object? key) => _mapsByKey[key as K]?[key];
 
   operator []=(K key, V value) {
     var child = _mapsByKey[key];
@@ -58,7 +55,7 @@ class MergedMapView<K, V> extends MapBase<K, V> {
     child[key] = value;
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     throw UnsupportedError("Entries may not be removed from MergedMapView.");
   }
 
@@ -66,5 +63,5 @@ class MergedMapView<K, V> extends MapBase<K, V> {
     throw UnsupportedError("Entries may not be removed from MergedMapView.");
   }
 
-  bool containsKey(Object key) => _mapsByKey.containsKey(key);
+  bool containsKey(Object? key) => _mapsByKey.containsKey(key);
 }

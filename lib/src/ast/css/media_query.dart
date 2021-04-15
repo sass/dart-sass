@@ -11,12 +11,12 @@ class CssMediaQuery {
   /// The modifier, probably either "not" or "only".
   ///
   /// This may be `null` if no modifier is in use.
-  final String modifier;
+  final String? modifier;
 
   /// The media type, for example "screen" or "print".
   ///
   /// This may be `null`. If so, [features] will not be empty.
-  final String type;
+  final String? type;
 
   /// Feature queries, including parentheses.
   final List<String> features;
@@ -33,11 +33,11 @@ class CssMediaQuery {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   static List<CssMediaQuery> parseList(String contents,
-          {Object url, Logger logger}) =>
+          {Object? url, Logger? logger}) =>
       MediaQueryParser(contents, url: url, logger: logger).parse();
 
   /// Creates a media query specifies a type and, optionally, features.
-  CssMediaQuery(this.type, {this.modifier, Iterable<String> features})
+  CssMediaQuery(this.type, {this.modifier, Iterable<String>? features})
       : features = features == null ? const [] : List.unmodifiable(features);
 
   /// Creates a media query that only specifies features.
@@ -59,8 +59,8 @@ class CssMediaQuery {
           CssMediaQuery.condition([...this.features, ...other.features]));
     }
 
-    String modifier;
-    String type;
+    String? modifier;
+    String? type;
     List<String> features;
     if ((ourModifier == 'not') != (theirModifier == 'not')) {
       if (ourType == theirType) {
