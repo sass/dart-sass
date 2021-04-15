@@ -81,13 +81,6 @@ void main() {
     }, throwsA(const TypeMatcher<SassException>()));
   });
 
-  test("gracefully handles a custom function returning null", () {
-    expect(() {
-      compileString('a {b: foo()}',
-          functions: [Callable("foo", "", (arguments) => null)]);
-    }, throwsA(const TypeMatcher<SassException>()));
-  });
-
   test("supports default argument values", () {
     var css = compileString('a {b: foo()}', functions: [
       Callable("foo", r"$arg: 1", expectAsync1((arguments) {
@@ -123,8 +116,8 @@ void main() {
         var list = arguments[0] as SassArgumentList;
         expect(list.asList, hasLength(0));
         expect(list.keywords, contains("bar"));
-        expect(list.keywords["bar"].assertNumber().value, equals(1));
-        return list.keywords["bar"];
+        expect(list.keywords["bar"]!.assertNumber().value, equals(1));
+        return list.keywords["bar"]!;
       }))
     ]);
 

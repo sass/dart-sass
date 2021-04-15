@@ -13,7 +13,7 @@ import 'utils.dart';
 
 void main() {
   group("an RGB color", () {
-    SassColor value;
+    late SassColor value;
     setUp(() => value = parseValue("#123456") as SassColor);
 
     test("has RGB channels", () {
@@ -191,7 +191,7 @@ void main() {
   });
 
   group("an HSL color", () {
-    SassColor value;
+    late SassColor value;
     setUp(() => value = parseValue("hsl(120, 42%, 42%)") as SassColor);
 
     test("has RGB channels", () {
@@ -267,7 +267,7 @@ void main() {
   });
 
   group("new SassColor.hwb()", () {
-    SassColor value;
+    late SassColor value;
     setUp(() => value = SassColor.hwb(120, 42, 42));
 
     test("has RGB channels", () {

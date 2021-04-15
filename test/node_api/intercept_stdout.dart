@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:js/js.dart';
 
 typedef _InterceptStdout = void Function() Function(
-    String Function(String), String Function(String));
+    String Function(String)?, String Function(String));
 
 @JS('require')
 external _InterceptStdout _require(String name);
@@ -19,8 +19,8 @@ final _interceptStdout = _require("intercept-stdout");
 ///
 /// Note that the piped text is not necessarily separated by lines.
 Stream<String> interceptStderr() {
-  void Function() unhook;
-  StreamController<String> controller;
+  late void Function() unhook;
+  late StreamController<String> controller;
   controller = StreamController(onListen: () {
     unhook = _interceptStdout(null, allowInterop((text) {
       controller.add(text);

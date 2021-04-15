@@ -18,10 +18,10 @@ class PublicMemberMapView<V> extends UnmodifiableMapBase<String, V> {
 
   PublicMemberMapView(this._inner);
 
-  bool containsKey(Object key) =>
+  bool containsKey(Object? key) =>
       key is String && isPublic(key) && _inner.containsKey(key);
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (key is String && isPublic(key)) return _inner[key];
     return null;
   }

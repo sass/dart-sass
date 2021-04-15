@@ -17,12 +17,12 @@ class Types {
   external set Error(Function function);
 
   external factory Types(
-      {Function Boolean,
-      Function Color,
-      Function List,
-      Function Map,
-      Function Null,
-      Function Number,
-      Function String,
-      Function Error});
+      {Function? Boolean,
+      Function? Color,
+      Function? List,
+      Function? Map,
+      Function? Null,
+      Function? Number,
+      Function? String,
+      Function? Error});
 }

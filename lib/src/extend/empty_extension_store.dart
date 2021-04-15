@@ -10,15 +10,15 @@ import '../ast/css.dart';
 import '../ast/css/modifiable.dart';
 import '../ast/selector.dart';
 import '../ast/sass.dart';
-import 'extender.dart';
+import 'extension_store.dart';
 import 'extension.dart';
 
-class EmptyExtender implements Extender {
+class EmptyExtensionStore implements ExtensionStore {
   bool get isEmpty => true;
 
   Set<SimpleSelector> get simpleSelectors => const UnmodifiableSetView.empty();
 
-  const EmptyExtender();
+  const EmptyExtensionStore();
 
   Iterable<Extension> extensionsWhereTarget(
           bool callback(SimpleSelector target)) =>
@@ -26,24 +26,24 @@ class EmptyExtender implements Extender {
 
   ModifiableCssValue<SelectorList> addSelector(
       SelectorList selector, FileSpan span,
-      [List<CssMediaQuery> mediaContext]) {
+      [List<CssMediaQuery>? mediaContext]) {
     throw UnsupportedError(
-        "addSelector() can't be called for a const Extender.");
+        "addSelector() can't be called for a const ExtensionStore.");
   }
 
   void addExtension(
       CssValue<SelectorList> extender, SimpleSelector target, ExtendRule extend,
-      [List<CssMediaQuery> mediaContext]) {
+      [List<CssMediaQuery>? mediaContext]) {
     throw UnsupportedError(
-        "addExtension() can't be called for a const Extender.");
+        "addExtension() can't be called for a const ExtensionStore.");
   }
 
-  void addExtensions(Iterable<Extender> extenders) {
+  void addExtensions(Iterable<ExtensionStore> extenders) {
     throw UnsupportedError(
-        "addExtensions() can't be called for a const Extender.");
+        "addExtensions() can't be called for a const ExtensionStore.");
   }
 
-  Tuple2<Extender,
+  Tuple2<ExtensionStore,
           Map<CssValue<SelectorList>, ModifiableCssValue<SelectorList>>>
-      clone() => const Tuple2(EmptyExtender(), {});
+      clone() => const Tuple2(EmptyExtensionStore(), {});
 }

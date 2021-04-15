@@ -28,11 +28,11 @@ class Parser {
   /// Parses [text] as a CSS identifier and returns the result.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  static String parseIdentifier(String text, {Logger logger}) =>
+  static String parseIdentifier(String text, {Logger? logger}) =>
       Parser(text, logger: logger)._parseIdentifier();
 
   /// Returns whether [text] is a valid CSS identifier.
-  static bool isIdentifier(String text, {Logger logger}) {
+  static bool isIdentifier(String text, {Logger? logger}) {
     try {
       parseIdentifier(text, logger: logger);
       return true;
@@ -44,11 +44,11 @@ class Parser {
   /// Returns whether [text] starts like a variable declaration.
   ///
   /// Ignores everything after the `:`.
-  static bool isVariableDeclarationLike(String text, {Logger logger}) =>
+  static bool isVariableDeclarationLike(String text, {Logger? logger}) =>
       Parser(text, logger: logger)._isVariableDeclarationLike();
 
   @protected
-  Parser(String contents, {Object url, Logger logger})
+  Parser(String contents, {Object? url, Logger? logger})
       : scanner = SpanScanner(contents, sourceUrl: url),
         logger = logger ?? const Logger.stderr();
 
@@ -224,8 +224,7 @@ class Parser {
 
     var quote = scanner.readChar();
     if (quote != $single_quote && quote != $double_quote) {
-      scanner.error("Expected string.",
-          position: quote == null ? scanner.position : scanner.position - 1);
+      scanner.error("Expected string.", position: scanner.position - 1);
     }
 
     var buffer = StringBuffer();
@@ -325,7 +324,7 @@ class Parser {
         case $lparen:
         case $lbrace:
         case $lbracket:
-          buffer.writeCharCode(next);
+          buffer.writeCharCode(next!); // dart-lang/sdk#45357
           brackets.add(opposite(scanner.readChar()));
           wroteNewline = false;
           break;
@@ -334,7 +333,7 @@ class Parser {
         case $rbrace:
         case $rbracket:
           if (brackets.isEmpty) break loop;
-          buffer.writeCharCode(next);
+          buffer.writeCharCode(next!); // dart-lang/sdk#45357
           scanner.expectChar(brackets.removeLast());
           wroteNewline = false;
           break;
@@ -375,7 +374,7 @@ class Parser {
 
   /// Consumes a `url()` token if possible, and returns `null` otherwise.
   @protected
-  String tryUrl() {
+  String? tryUrl() {
     // NOTE: this logic is largely duplicated in ScssParser._tryUrlContents.
     // Most changes here should be mirrored there.
 
@@ -445,7 +444,6 @@ class Parser {
       return "";
     } else if (isNewline(first)) {
       scanner.error("Expected escape sequence.");
-      return null;
     } else if (isHex(first)) {
       for (var i = 0; i < 6; i++) {
         var next = scanner.peekChar();
@@ -465,7 +463,6 @@ class Parser {
       } on RangeError {
         scanner.error("Invalid Unicode code point.",
             position: start, length: scanner.position - start);
-        return '';
       }
     } else if (value <= 0x1F ||
         value == 0x7F ||
@@ -491,7 +488,6 @@ class Parser {
       return 0xFFFD;
     } else if (isNewline(first)) {
       scanner.error("Expected escape sequence.");
-      return 0;
     } else if (isHex(first)) {
       var value = 0;
       for (var i = 0; i < 6; i++) {
@@ -517,7 +513,7 @@ class Parser {
   //
   // Returns whether or not the character was consumed.
   @protected
-  bool scanCharIf(bool condition(int character)) {
+  bool scanCharIf(bool condition(int? character)) {
     var next = scanner.peekChar();
     if (!condition(next)) return false;
     scanner.readChar();
@@ -595,7 +591,7 @@ class Parser {
   ///
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
   @protected
-  bool lookingAtIdentifier([int forward]) {
+  bool lookingAtIdentifier([int? forward]) {
     // See also [ScssParser._lookingAtInterpolatedIdentifier].
 
     forward ??= 0;
@@ -637,7 +633,7 @@ class Parser {
   /// Consumes an identifier and asserts that its name exactly matches [text].
   @protected
   void expectIdentifier(String text,
-      {String name, bool caseSensitive = false}) {
+      {String? name, bool caseSensitive = false}) {
     name ??= '"$text"';
 
     var start = scanner.position;
@@ -664,8 +660,7 @@ class Parser {
 
   /// Throws an error associated with [span].
   @protected
-  @alwaysThrows
-  void error(String message, FileSpan span) =>
+  Never error(String message, FileSpan span) =>
       throw StringScannerException(message, span, scanner.string);
 
   /// Runs callback and, if it throws a [SourceSpanFormatException], rethrows it
@@ -684,7 +679,7 @@ class Parser {
   /// If [message] is passed, prints that as well. This is intended for use when
   /// debugging parser failures.
   @protected
-  void debug([Object message]) {
+  void debug([Object? message]) {
     if (message == null) {
       print(scanner.emptySpan.highlight(color: true));
     } else {
@@ -721,7 +716,7 @@ class Parser {
   /// rather than the line where the problem actually occurred.
   int _firstNewlineBefore(int position) {
     var index = position - 1;
-    int lastNewline;
+    int? lastNewline;
     while (index >= 0) {
       var codeUnit = scanner.string.codeUnitAt(index);
       if (!isWhitespace(codeUnit)) return lastNewline ?? position;

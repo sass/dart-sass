@@ -21,7 +21,7 @@ class TypeSelector extends SimpleSelector {
   TypeSelector addSuffix(String suffix) => TypeSelector(
       QualifiedName(name.name + suffix, namespace: name.namespace));
 
-  List<SimpleSelector> unify(List<SimpleSelector> compound) {
+  List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
       var unified = unifyUniversalAndElement(this, compound.first);
       if (unified == null) return null;

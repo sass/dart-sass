@@ -18,13 +18,13 @@ import 'silent_comment.dart';
 class VariableDeclaration implements Statement {
   /// The namespace of the variable being set, or `null` if it's defined or set
   /// without a namespace.
-  final String namespace;
+  final String? namespace;
 
   /// The name of the variable.
   final String name;
 
   /// The comment immediately preceding this declaration.
-  SilentComment comment;
+  SilentComment? comment;
 
   /// The value the variable is being assigned to.
   final Expression expression;
@@ -52,7 +52,7 @@ class VariableDeclaration implements Statement {
       {this.namespace,
       bool guarded = false,
       bool global = false,
-      SilentComment comment})
+      SilentComment? comment})
       : isGuarded = guarded,
         isGlobal = global,
         comment = comment {
@@ -68,7 +68,7 @@ class VariableDeclaration implements Statement {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory VariableDeclaration.parse(String contents,
-          {Object url, Logger logger}) =>
+          {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parseVariableDeclaration();
 
   T accept<T>(StatementVisitor<T> visitor) =>

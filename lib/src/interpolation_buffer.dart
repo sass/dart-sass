@@ -18,7 +18,7 @@ class InterpolationBuffer implements StringSink {
   /// The contents of the [Interpolation] so far.
   ///
   /// This contains [String]s and [Expression]s.
-  final _contents = [];
+  final _contents = <Object>[];
 
   /// Returns whether this buffer has no contents.
   bool get isEmpty => _contents.isEmpty && _text.isEmpty;
@@ -32,11 +32,11 @@ class InterpolationBuffer implements StringSink {
     _text.clear();
   }
 
-  void write(Object obj) => _text.write(obj);
-  void writeAll(Iterable<Object> objects, [String separator = '']) =>
+  void write(Object? obj) => _text.write(obj);
+  void writeAll(Iterable<Object?> objects, [String separator = '']) =>
       _text.writeAll(objects, separator);
   void writeCharCode(int character) => _text.writeCharCode(character);
-  void writeln([Object obj = '']) => _text.writeln(obj);
+  void writeln([Object? obj = '']) => _text.writeln(obj);
 
   /// Adds [expression] to this buffer.
   void add(Expression expression) {

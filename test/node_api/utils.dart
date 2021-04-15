@@ -12,6 +12,7 @@ import 'package:node_interop/node_interop.dart';
 
 import 'package:sass/src/io.dart';
 import 'package:sass/src/node/function.dart';
+import 'package:sass/src/util/nullable.dart';
 
 import '../hybrid.dart';
 import 'api.dart';
@@ -19,21 +20,28 @@ import 'api.dart';
 @JS('process.env')
 external Object get _environment;
 
-String sandbox;
+String get sandbox {
+  var sandbox = _sandbox;
+  if (sandbox != null) return sandbox;
+  fail("useSandbox() must be called in any test file that uses the sandbox "
+      "field.");
+}
+
+String? _sandbox;
 
 void useSandbox() {
   setUp(() async {
-    sandbox = await createTempDir();
+    _sandbox = await createTempDir();
   });
 
   tearDown(() async {
-    if (sandbox != null) await deleteDirectory(sandbox);
+    await sandbox.andThen(deleteDirectory);
   });
 }
 
 /// Validates that a [RenderError]'s `toString()` and `message` both equal
 /// [text].
-Matcher toStringAndMessageEqual(String text) => predicate((error) {
+Matcher toStringAndMessageEqual(String text) => predicate((dynamic error) {
       expect(error.toString(), equals("Error: $text"));
       expect(error.message, equals(text));
       expect(error.formatted, equals("Error: $text"));
@@ -46,7 +54,7 @@ Future<String> render(RenderOptions options) {
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(error, isNull);
-    completer.complete(utf8.decode(result.css));
+    completer.complete(utf8.decode(result!.css));
   })));
   return completer.future;
 }
@@ -58,7 +66,7 @@ Future<RenderError> renderError(RenderOptions options) {
   sass.render(options,
       allowInterop(Zone.current.bindBinaryCallbackGuarded((error, result) {
     expect(result, isNull);
-    completer.complete(error);
+    completer.complete(error!);
   })));
   return completer.future;
 }
@@ -103,7 +111,7 @@ void runTestInSandbox() {
 }
 
 /// Sets the environment variable [name] to [value] within this process.
-void setEnvironmentVariable(String name, String value) {
+void setEnvironmentVariable(String name, String? value) {
   setProperty(_environment, name, value);
 }
 

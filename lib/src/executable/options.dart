@@ -7,9 +7,9 @@ import 'dart:collection';
 import 'package:args/args.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
+import 'package:tuple/tuple.dart';
 
 import '../../sass.dart';
 import '../io.dart';
@@ -122,8 +122,7 @@ class ExecutableOptions {
   static String get usage => _parser.usage;
 
   /// Shorthand for throwing a [UsageException] with the given [message].
-  @alwaysThrows
-  static void _fail(String message) => throw UsageException(message);
+  static Never _fail(String message) => throw UsageException(message);
 
   /// The parsed options passed by the user to the executable.
   final ArgResults _options;
@@ -132,10 +131,8 @@ class ExecutableOptions {
   bool get version => _options['version'] as bool;
 
   /// Whether to run an interactive shell.
-  bool get interactive {
-    if (_interactive != null) return _interactive;
-    _interactive = _options['interactive'] as bool;
-    if (!_interactive) return false;
+  late final bool interactive = () {
+    if (!(_options['interactive'] as bool)) return false;
 
     var invalidOptions = [
       'stdin', 'indented', 'style', 'source-map', 'source-map-urls', //
@@ -147,15 +144,13 @@ class ExecutableOptions {
       }
     }
     return true;
-  }
-
-  bool _interactive;
+  }();
 
   /// Whether to parse the source file with the indented syntax.
   ///
   /// This may be `null`, indicating that this should be determined by each
   /// stylesheet's extension.
-  bool get indented => _ifParsed('indented') as bool;
+  bool? get indented => _ifParsed('indented') as bool?;
 
   /// Whether to use ANSI terminal colors.
   bool get color => _options.wasParsed('color')
@@ -206,7 +201,7 @@ class ExecutableOptions {
 
   /// Whether to emit error messages as CSS stylesheets
   bool get emitErrorCss =>
-      _options['error-css'] as bool ??
+      _options['error-css'] as bool? ??
       sourcesToDestinations.values.any((destination) => destination != null);
 
   /// A map from source paths to the destination paths where the compiled CSS
@@ -217,23 +212,23 @@ class ExecutableOptions {
   /// A `null` source indicates that a stylesheet should be read from standard
   /// input. A `null` destination indicates that a stylesheet should be written
   /// to standard output.
-  Map<String, String> get sourcesToDestinations {
+  Map<String?, String?> get sourcesToDestinations {
     _ensureSources();
-    return _sourcesToDestinations;
+    return _sourcesToDestinations!;
   }
 
-  Map<String, String> _sourcesToDestinations;
+  Map<String?, String?>? _sourcesToDestinations;
 
   /// A map from source directories to the destination directories where the
   /// compiled CSS for stylesheets in the source directories should be written.
   ///
   /// Considers keys to be the same if they represent the same path on disk.
-  Map<String, String> get sourceDirectoriesToDestinations {
+  Map<String?, String> get sourceDirectoriesToDestinations {
     _ensureSources();
     return _sourceDirectoriesToDestinations;
   }
 
-  Map<String, String> _sourceDirectoriesToDestinations;
+  late final Map<String?, String> _sourceDirectoriesToDestinations;
 
   /// Ensure that both [sourcesToDestinations] and [sourceDirectories] have been
   /// computed.
@@ -302,8 +297,11 @@ class ExecutableOptions {
             _fail("--watch is not allowed when printing to stdout.");
           }
         }
-        _sourcesToDestinations =
-            UnmodifiableMapView(p.PathMap.of({source: destination}));
+
+        var map =
+            p.PathMap<String?>(); // p.PathMap.of() doesn't support null keys.
+        map[source] = destination;
+        _sourcesToDestinations = UnmodifiableMapView(map);
       }
       _sourceDirectoriesToDestinations = const {};
       return;
@@ -326,25 +324,9 @@ class ExecutableOptions {
         continue;
       }
 
-      String source;
-      String destination;
-      for (var i = 0; i < argument.length; i++) {
-        // A colon at position 1 may be a Windows drive letter and not a
-        // separator.
-        if (i == 1 && _isWindowsPath(argument, i - 1)) continue;
-
-        if (argument.codeUnitAt(i) == $colon) {
-          if (source == null) {
-            source = argument.substring(0, i);
-            destination = argument.substring(i + 1);
-          } else if (i != source.length + 2 ||
-              !_isWindowsPath(argument, i - 1)) {
-            // A colon 2 characters after the separator may also be a Windows
-            // drive letter.
-            _fail('"$argument" may only contain one ":".');
-          }
-        }
-      }
+      var sourceAndDestination = _splitSourceAndDestination(argument);
+      var source = sourceAndDestination.item1;
+      var destination = sourceAndDestination.item2;
 
       if (!seen.add(source)) _fail('Duplicate source "$source".');
 
@@ -360,6 +342,30 @@ class ExecutableOptions {
     _sourcesToDestinations = UnmodifiableMapView(sourcesToDestinations);
     _sourceDirectoriesToDestinations =
         UnmodifiableMapView(sourceDirectoriesToDestinations);
+  }
+
+  /// Splits an argument that contains a colon and returns its source and its
+  /// destination component.
+  Tuple2<String, String> _splitSourceAndDestination(String argument) {
+    for (var i = 0; i < argument.length; i++) {
+      // A colon at position 1 may be a Windows drive letter and not a
+      // separator.
+      if (i == 1 && _isWindowsPath(argument, i - 1)) continue;
+
+      if (argument.codeUnitAt(i) == $colon) {
+        var nextColon = argument.indexOf(':', i + 1);
+        // A colon 2 characters after the separator may also be a Windows
+        // drive letter.
+        if (nextColon == i + 2 && _isWindowsPath(argument, i + 1)) {
+          nextColon = argument.indexOf(':', nextColon + 1);
+        }
+        if (nextColon != -1) _fail('"$argument" may only contain one ":".');
+
+        return Tuple2(argument.substring(0, i), argument.substring(i + 1));
+      }
+    }
+
+    throw ArgumentError('Expected "$argument" to contain a colon.');
   }
 
   /// Returns whether [string] contains an absolute Windows path at [index].
@@ -456,18 +462,20 @@ class ExecutableOptions {
   /// [destination]) according to the `source-map-urls` option.
   ///
   /// If [url] isn't a `file:` URL, returns it as-is.
-  Uri sourceMapUrl(Uri url, String destination) {
+  Uri sourceMapUrl(Uri url, String? destination) {
     if (url.scheme.isNotEmpty && url.scheme != 'file') return url;
 
     var path = p.fromUri(url);
     return p.toUri(_options['source-map-urls'] == 'relative' && !_writeToStdout
-        ? p.relative(path, from: p.dirname(destination))
+        // [destination] can't be null here because --source-map-urls=relative
+        // is incompatible with writing to stdout.
+        ? p.relative(path, from: p.dirname(destination!))
         : p.absolute(path));
   }
 
   /// Returns the value of [name] in [options] if it was explicitly provided by
   /// the user, and `null` otherwise.
-  Object _ifParsed(String name) =>
+  Object? _ifParsed(String name) =>
       _options.wasParsed(name) ? _options[name] : null;
 }
 

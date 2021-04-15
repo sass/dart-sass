@@ -15,45 +15,45 @@ import 'external/value.dart' as ext;
 class SassColor extends Value implements ext.SassColor {
   int get red {
     if (_red == null) _hslToRgb();
-    return _red;
+    return _red!;
   }
 
-  int _red;
+  int? _red;
 
   int get green {
     if (_green == null) _hslToRgb();
-    return _green;
+    return _green!;
   }
 
-  int _green;
+  int? _green;
 
   int get blue {
     if (_blue == null) _hslToRgb();
-    return _blue;
+    return _blue!;
   }
 
-  int _blue;
+  int? _blue;
 
   num get hue {
     if (_hue == null) _rgbToHsl();
-    return _hue;
+    return _hue!;
   }
 
-  num _hue;
+  num? _hue;
 
   num get saturation {
     if (_saturation == null) _rgbToHsl();
-    return _saturation;
+    return _saturation!;
   }
 
-  num _saturation;
+  num? _saturation;
 
   num get lightness {
     if (_lightness == null) _rgbToHsl();
-    return _lightness;
+    return _lightness!;
   }
 
-  num _lightness;
+  num? _lightness;
 
   num get whiteness {
     // Because HWB is (currently) used much less frequently than HSL or RGB, we
@@ -73,29 +73,29 @@ class SassColor extends Value implements ext.SassColor {
 
   /// The original string representation of this color, or `null` if one is
   /// unavailable.
-  String get original => originalSpan?.text;
+  String? get original => originalSpan?.text;
 
   /// The span tracking the location in which this color was originally defined.
   ///
   /// This is tracked as a span to avoid extra substring allocations.
-  final FileSpan originalSpan;
+  final FileSpan? originalSpan;
 
   SassColor.rgb(this._red, this._green, this._blue,
-      [num alpha, this.originalSpan])
+      [num? alpha, this.originalSpan])
       : alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
     RangeError.checkValueInInterval(red, 0, 255, "red");
     RangeError.checkValueInInterval(green, 0, 255, "green");
     RangeError.checkValueInInterval(blue, 0, 255, "blue");
   }
 
-  SassColor.hsl(num hue, num saturation, num lightness, [num alpha])
+  SassColor.hsl(num hue, num saturation, num lightness, [num? alpha])
       : _hue = hue % 360,
         _saturation = fuzzyAssertRange(saturation, 0, 100, "saturation"),
         _lightness = fuzzyAssertRange(lightness, 0, 100, "lightness"),
         alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha"),
         originalSpan = null;
 
-  factory SassColor.hwb(num hue, num whiteness, num blackness, [num alpha]) {
+  factory SassColor.hwb(num hue, num whiteness, num blackness, [num? alpha]) {
     // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
     var scaledHue = hue % 360 / 360;
     var scaledWhiteness =
@@ -129,17 +129,18 @@ class SassColor extends Value implements ext.SassColor {
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitColor(this);
 
-  SassColor assertColor([String name]) => this;
+  SassColor assertColor([String? name]) => this;
 
-  SassColor changeRgb({int red, int green, int blue, num alpha}) =>
+  SassColor changeRgb({int? red, int? green, int? blue, num? alpha}) =>
       SassColor.rgb(red ?? this.red, green ?? this.green, blue ?? this.blue,
           alpha ?? this.alpha);
 
-  SassColor changeHsl({num hue, num saturation, num lightness, num alpha}) =>
+  SassColor changeHsl(
+          {num? hue, num? saturation, num? lightness, num? alpha}) =>
       SassColor.hsl(hue ?? this.hue, saturation ?? this.saturation,
           lightness ?? this.lightness, alpha ?? this.alpha);
 
-  SassColor changeHwb({num hue, num whiteness, num blackness, num alpha}) =>
+  SassColor changeHwb({num? hue, num? whiteness, num? blackness, num? alpha}) =>
       SassColor.hwb(hue ?? this.hue, whiteness ?? this.whiteness,
           blackness ?? this.blackness, alpha ?? this.alpha);
 
@@ -198,11 +199,11 @@ class SassColor extends Value implements ext.SassColor {
       _hue = (240 + 60 * (scaledRed - scaledGreen) / delta) % 360;
     }
 
-    _lightness = 50 * (max + min);
+    var lightness = _lightness = 50 * (max + min);
 
     if (max == min) {
       _saturation = 0;
-    } else if (_lightness < 50) {
+    } else if (lightness < 50) {
       _saturation = 100 * delta / (max + min);
     } else {
       _saturation = 100 * delta / (2 - max - min);

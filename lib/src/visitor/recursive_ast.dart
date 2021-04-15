@@ -11,82 +11,72 @@ import 'recursive_statement.dart';
 ///
 /// This extends [RecursiveStatementVisitor] to traverse each expression in
 /// addition to each statement.
-///
-/// The default implementation of the visit methods all return `null`.
-abstract class RecursiveAstVisitor<T> extends RecursiveStatementVisitor<T>
-    implements ExpressionVisitor<T> {
+abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
+    implements ExpressionVisitor<void> {
   void visitExpression(Expression expression) {
     expression.accept(this);
   }
 
-  T visitBinaryOperationExpression(BinaryOperationExpression node) {
+  void visitBinaryOperationExpression(BinaryOperationExpression node) {
     node.left.accept(this);
     node.right.accept(this);
-    return null;
   }
 
-  T visitBooleanExpression(BooleanExpression node) => null;
+  void visitBooleanExpression(BooleanExpression node) {}
 
-  T visitColorExpression(ColorExpression node) => null;
+  void visitColorExpression(ColorExpression node) {}
 
-  T visitForwardRule(ForwardRule node) {
+  void visitForwardRule(ForwardRule node) {
     for (var variable in node.configuration) {
       variable.expression.accept(this);
     }
-    return null;
   }
 
-  T visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     visitInterpolation(node.name);
     visitArgumentInvocation(node.arguments);
-    return null;
   }
 
-  T visitIfExpression(IfExpression node) {
+  void visitIfExpression(IfExpression node) {
     visitArgumentInvocation(node.arguments);
-    return null;
   }
 
-  T visitListExpression(ListExpression node) {
+  void visitListExpression(ListExpression node) {
     for (var item in node.contents) {
       item.accept(this);
     }
-    return null;
   }
 
-  T visitMapExpression(MapExpression node) {
+  void visitMapExpression(MapExpression node) {
     for (var pair in node.pairs) {
       pair.item1.accept(this);
       pair.item2.accept(this);
     }
-    return null;
   }
 
-  T visitNullExpression(NullExpression node) => null;
+  void visitNullExpression(NullExpression node) {}
 
-  T visitNumberExpression(NumberExpression node) => null;
+  void visitNumberExpression(NumberExpression node) {}
 
-  T visitParenthesizedExpression(ParenthesizedExpression node) =>
-      node.expression.accept(this);
+  void visitParenthesizedExpression(ParenthesizedExpression node) {}
 
-  T visitSelectorExpression(SelectorExpression node) => null;
+  void visitSelectorExpression(SelectorExpression node) {}
 
-  T visitStringExpression(StringExpression node) {
+  void visitStringExpression(StringExpression node) {
     visitInterpolation(node.text);
-    return null;
   }
 
-  T visitUnaryOperationExpression(UnaryOperationExpression node) =>
-      node.operand.accept(this);
+  void visitUnaryOperationExpression(UnaryOperationExpression node) {
+    node.operand.accept(this);
+  }
 
-  T visitUseRule(UseRule node) {
+  void visitUseRule(UseRule node) {
     for (var variable in node.configuration) {
       variable.expression.accept(this);
     }
-    return null;
   }
 
-  T visitValueExpression(ValueExpression node) => null;
+  void visitValueExpression(ValueExpression node) {}
 
-  T visitVariableExpression(VariableExpression node) => null;
+  void visitVariableExpression(VariableExpression node) {}
 }

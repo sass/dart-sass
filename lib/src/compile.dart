@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b2cd6037efa37e300daa45ebed20cb4b61526161
+// Checksum: dcb7cfbedf1e1189808c0056debf6a68bd387dab
 //
 // ignore_for_file: unused_import
 
@@ -25,7 +25,6 @@ import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'sync_package_resolver.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/evaluate.dart';
@@ -36,25 +35,25 @@ import 'visitor/serialize.dart';
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
 CompileResult compile(String path,
-    {Syntax syntax,
-    Logger logger,
-    ImportCache importCache,
-    NodeImporter nodeImporter,
-    Iterable<Callable> functions,
-    OutputStyle style,
+    {Syntax? syntax,
+    Logger? logger,
+    ImportCache? importCache,
+    NodeImporter? nodeImporter,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
     bool useSpaces = true,
-    int indentWidth,
-    LineFeed lineFeed,
+    int? indentWidth,
+    LineFeed? lineFeed,
     bool sourceMap = false,
     bool charset = true}) {
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
-  Stylesheet stylesheet;
+  Stylesheet? stylesheet;
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= ImportCache.none(logger: logger);
     stylesheet = importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path));
+        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path))!;
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),
@@ -81,20 +80,19 @@ CompileResult compile(String path,
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
 CompileResult compileString(String source,
-    {Syntax syntax,
-    Logger logger,
-    ImportCache importCache,
-    NodeImporter nodeImporter,
-    Iterable<Importer> importers,
-    Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver,
-    Importer importer,
-    Iterable<Callable> functions,
-    OutputStyle style,
+    {Syntax? syntax,
+    Logger? logger,
+    ImportCache? importCache,
+    NodeImporter? nodeImporter,
+    Iterable<Importer>? importers,
+    Iterable<String>? loadPaths,
+    Importer? importer,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
     bool useSpaces = true,
-    int indentWidth,
-    LineFeed lineFeed,
-    Object url,
+    int? indentWidth,
+    LineFeed? lineFeed,
+    Object? url,
     bool sourceMap = false,
     bool charset = true}) {
   var stylesheet =
@@ -120,15 +118,15 @@ CompileResult compileString(String source,
 /// Arguments are handled as for [compileString].
 CompileResult _compileStylesheet(
     Stylesheet stylesheet,
-    Logger logger,
-    ImportCache importCache,
-    NodeImporter nodeImporter,
+    Logger? logger,
+    ImportCache? importCache,
+    NodeImporter? nodeImporter,
     Importer importer,
-    Iterable<Callable> functions,
-    OutputStyle style,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
     bool useSpaces,
-    int indentWidth,
-    LineFeed lineFeed,
+    int? indentWidth,
+    LineFeed? lineFeed,
     bool sourceMap,
     bool charset) {
   var evaluateResult = evaluate(stylesheet,
@@ -147,11 +145,12 @@ CompileResult _compileStylesheet(
       sourceMap: sourceMap,
       charset: charset);
 
-  if (serializeResult.sourceMap != null && importCache != null) {
+  var resultSourceMap = serializeResult.sourceMap;
+  if (resultSourceMap != null && importCache != null) {
     // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
     // is fixed.
     mapInPlace<String>(
-        serializeResult.sourceMap.urls,
+        resultSourceMap.urls,
         (url) => url == ''
             ? Uri.dataFromString(stylesheet.span.file.getText(0),
                     encoding: utf8)

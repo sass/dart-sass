@@ -14,7 +14,7 @@ class SassFunction extends Value implements internal.SassFunction {
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunction(this);
 
-  SassFunction assertFunction([String name]) => this;
+  SassFunction assertFunction([String? name]) => this;
 
   bool operator ==(Object other) =>
       other is SassFunction && callable == other.callable;

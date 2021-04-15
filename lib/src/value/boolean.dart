@@ -23,7 +23,7 @@ class SassBoolean extends Value implements ext.SassBoolean {
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitBoolean(this);
 
-  SassBoolean assertBoolean([String name]) => this;
+  SassBoolean assertBoolean([String? name]) => this;
 
   Value unaryNot() => value ? sassFalse : sassTrue;
 }

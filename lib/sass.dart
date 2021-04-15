@@ -5,6 +5,7 @@
 /// We strongly recommend importing this library with the prefix `sass`.
 library sass;
 
+import 'package:package_config/package_config_types.dart';
 import 'package:source_maps/source_maps.dart';
 
 import 'src/async_import_cache.dart';
@@ -14,8 +15,8 @@ import 'src/exception.dart';
 import 'src/import_cache.dart';
 import 'src/importer.dart';
 import 'src/logger.dart';
-import 'src/sync_package_resolver.dart';
 import 'src/syntax.dart';
+import 'src/util/nullable.dart';
 import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
@@ -48,11 +49,11 @@ export 'src/warn.dart' show warn;
 /// * Each load path specified in the `SASS_PATH` environment variable, which
 ///   should be semicolon-separated on Windows and colon-separated elsewhere.
 ///
-/// * `package:` resolution using [packageResolver], which is a
-///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
+/// * `package:` resolution using [packageConfig], which is a
+///   [`PackageConfig`][] from the `package_resolver` package. Note that
 ///   this is a shorthand for adding a [PackageImporter] to [importers].
 ///
-/// [`SyncPackageResolver`]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+/// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
 ///
 /// Dart functions that can be called from Sass may be passed using [functions].
 /// Each [Callable] defines a top-level function that will be invoked when the
@@ -87,26 +88,27 @@ export 'src/warn.dart' show warn;
 /// Throws a [SassException] if conversion fails.
 String compile(String path,
     {bool color = false,
-    Logger logger,
-    Iterable<Importer> importers,
-    Iterable<String> loadPaths,
-    SyncPackageResolver packageResolver,
-    Iterable<Callable> functions,
-    OutputStyle style,
-    void sourceMap(SingleMapping map),
+    Logger? logger,
+    Iterable<Importer>? importers,
+    Iterable<String>? loadPaths,
+    PackageConfig? packageConfig,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
+    void sourceMap(SingleMapping map)?,
     bool charset = true}) {
   logger ??= Logger.stderr(color: color);
   var result = c.compile(path,
       logger: logger,
-      importCache: ImportCache(importers,
+      importCache: ImportCache(
+          importers: importers,
           logger: logger,
           loadPaths: loadPaths,
-          packageResolver: packageResolver),
+          packageConfig: packageConfig),
       functions: functions,
       style: style,
       sourceMap: sourceMap != null,
       charset: charset);
-  if (sourceMap != null) sourceMap(result.sourceMap);
+  result.sourceMap.andThen(sourceMap);
   return result.css;
 }
 
@@ -132,11 +134,11 @@ String compile(String path,
 /// * Each load path specified in the `SASS_PATH` environment variable, which
 ///   should be semicolon-separated on Windows and colon-separated elsewhere.
 ///
-/// * `package:` resolution using [packageResolver], which is a
-///   [`SyncPackageResolver`][] from the `package_resolver` package. Note that
+/// * `package:` resolution using [packageConfig], which is a
+///   [`PackageConfig`][] from the `package_resolver` package. Note that
 ///   this is a shorthand for adding a [PackageImporter] to [importers].
 ///
-/// [`SyncPackageResolver`]: https://www.dartdocs.org/documentation/package_resolver/latest/package_resolver/SyncPackageResolver-class.html
+/// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
 ///
 /// Dart functions that can be called from Sass may be passed using [functions].
 /// Each [Callable] defines a top-level function that will be invoked when the
@@ -174,26 +176,27 @@ String compile(String path,
 ///
 /// Throws a [SassException] if conversion fails.
 String compileString(String source,
-    {Syntax syntax,
+    {Syntax? syntax,
     bool color = false,
-    Logger logger,
-    Iterable<Importer> importers,
-    SyncPackageResolver packageResolver,
-    Iterable<String> loadPaths,
-    Iterable<Callable> functions,
-    OutputStyle style,
-    Importer importer,
-    Object url,
-    void sourceMap(SingleMapping map),
+    Logger? logger,
+    Iterable<Importer>? importers,
+    PackageConfig? packageConfig,
+    Iterable<String>? loadPaths,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
+    Importer? importer,
+    Object? url,
+    void sourceMap(SingleMapping map)?,
     bool charset = true,
     @Deprecated("Use syntax instead.") bool indented = false}) {
   logger ??= Logger.stderr(color: color);
   var result = c.compileString(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
-      importCache: ImportCache(importers,
+      importCache: ImportCache(
+          importers: importers,
           logger: logger,
-          packageResolver: packageResolver,
+          packageConfig: packageConfig,
           loadPaths: loadPaths),
       functions: functions,
       style: style,
@@ -201,7 +204,7 @@ String compileString(String source,
       url: url,
       sourceMap: sourceMap != null,
       charset: charset);
-  if (sourceMap != null) sourceMap(result.sourceMap);
+  result.sourceMap.andThen(sourceMap);
   return result.css;
 }
 
@@ -212,24 +215,25 @@ String compileString(String source,
 /// slower, so [compile] should be preferred if possible.
 Future<String> compileAsync(String path,
     {bool color = false,
-    Logger logger,
-    Iterable<AsyncImporter> importers,
-    SyncPackageResolver packageResolver,
-    Iterable<String> loadPaths,
-    Iterable<AsyncCallable> functions,
-    OutputStyle style,
-    void sourceMap(SingleMapping map)}) async {
+    Logger? logger,
+    Iterable<AsyncImporter>? importers,
+    PackageConfig? packageConfig,
+    Iterable<String>? loadPaths,
+    Iterable<AsyncCallable>? functions,
+    OutputStyle? style,
+    void sourceMap(SingleMapping map)?}) async {
   logger ??= Logger.stderr(color: color);
   var result = await c.compileAsync(path,
       logger: logger,
-      importCache: AsyncImportCache(importers,
+      importCache: AsyncImportCache(
+          importers: importers,
           logger: logger,
           loadPaths: loadPaths,
-          packageResolver: packageResolver),
+          packageConfig: packageConfig),
       functions: functions,
       style: style,
       sourceMap: sourceMap != null);
-  if (sourceMap != null) sourceMap(result.sourceMap);
+  result.sourceMap.andThen(sourceMap);
   return result.css;
 }
 
@@ -239,26 +243,27 @@ Future<String> compileAsync(String path,
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compileString] should be preferred if possible.
 Future<String> compileStringAsync(String source,
-    {Syntax syntax,
+    {Syntax? syntax,
     bool color = false,
-    Logger logger,
-    Iterable<AsyncImporter> importers,
-    SyncPackageResolver packageResolver,
-    Iterable<String> loadPaths,
-    Iterable<AsyncCallable> functions,
-    OutputStyle style,
-    AsyncImporter importer,
-    Object url,
-    void sourceMap(SingleMapping map),
+    Logger? logger,
+    Iterable<AsyncImporter>? importers,
+    PackageConfig? packageConfig,
+    Iterable<String>? loadPaths,
+    Iterable<AsyncCallable>? functions,
+    OutputStyle? style,
+    AsyncImporter? importer,
+    Object? url,
+    void sourceMap(SingleMapping map)?,
     bool charset = true,
     @Deprecated("Use syntax instead.") bool indented = false}) async {
   logger ??= Logger.stderr(color: color);
   var result = await c.compileStringAsync(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
-      importCache: AsyncImportCache(importers,
+      importCache: AsyncImportCache(
+          importers: importers,
           logger: logger,
-          packageResolver: packageResolver,
+          packageConfig: packageConfig,
           loadPaths: loadPaths),
       functions: functions,
       style: style,
@@ -266,6 +271,6 @@ Future<String> compileStringAsync(String source,
       url: url,
       sourceMap: sourceMap != null,
       charset: charset);
-  if (sourceMap != null) sourceMap(result.sourceMap);
+  result.sourceMap.andThen(sourceMap);
   return result.css;
 }

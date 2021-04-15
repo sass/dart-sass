@@ -18,7 +18,7 @@ class SilentComment implements Statement {
   ///
   /// The leading slashes and space on each line is removed. Returns `null` when
   /// there is no documentation comment.
-  String get docComment {
+  String? get docComment {
     var buffer = StringBuffer();
     for (var line in text.split('\n')) {
       var scanner = StringScanner(line.trim());
