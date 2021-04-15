@@ -314,7 +314,7 @@ class AsyncEnvironment {
       }
 
       if (type == "variable") name = "\$$name";
-      var span = _forwardedModuleNodes.andGet(oldModule)?.span;
+      var span = _forwardedModuleNodes?[oldModule]?.span;
       throw MultiSpanSassScriptException(
           'Two forwarded modules both define a $type named $name.',
           "new @forward",
@@ -617,7 +617,7 @@ class AsyncEnvironment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variables[index][name] = value;
-    _variableNodes?.andGet(index)![name] = nodeWithSpan!;
+    _variableNodes?[index][name] = nodeWithSpan!;
   }
 
   /// Sets the variable named [name] to [value], associated with
@@ -636,7 +636,7 @@ class AsyncEnvironment {
     _variableIndices[name] = index;
     _variables[index][name] = value;
     if (nodeWithSpan != null) {
-      _variableNodes?.andGet(index)![name] = nodeWithSpan;
+      _variableNodes?[index][name] = nodeWithSpan;
     }
   }
 
@@ -818,7 +818,7 @@ class AsyncEnvironment {
     var configuration = <String, ConfiguredValue>{};
     for (var i = 0; i < _variables.length; i++) {
       var values = _variables[i];
-      var nodes = _variableNodes.andGet(i) ?? <String, AstNode>{};
+      var nodes = _variableNodes?[i] ?? <String, AstNode>{};
       for (var entry in values.entries) {
         // Implicit configurations are never invalid, making [configurationSpan]
         // unnecessary, so we pass null here to avoid having to compute it.

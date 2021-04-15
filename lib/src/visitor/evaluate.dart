@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 01a7ae41ae622e64443597ea82b27b7aeb73d260
+// Checksum: 6b82405fdc448ac69ca703bc6bffbb8d50f3fced
 //
 // ignore_for_file: unused_import
 
@@ -2206,7 +2206,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 declaredArguments[i].name,
                 evaluated.positional[i].withoutSlash(),
-                evaluated.positionalNodes.andGet(i));
+                evaluated.positionalNodes?[i]);
           }
 
           for (var i = evaluated.positional.length;
@@ -2218,7 +2218,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 argument.name,
                 value.withoutSlash(),
-                evaluated.namedNodes.andGet(argument.name) ??
+                evaluated.namedNodes?[argument.name] ??
                     argument.defaultValue.andThen(_expressionNode));
           }
 

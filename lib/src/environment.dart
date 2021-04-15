@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1ef0f32701764f4b160ef045ca162b38653e0504
+// Checksum: bb0b47fc04e32f36a0f87dc73bdfe3f89dc51aa4
 //
 // ignore_for_file: unused_import
 
@@ -322,7 +322,7 @@ class Environment {
       }
 
       if (type == "variable") name = "\$$name";
-      var span = _forwardedModuleNodes.andGet(oldModule)?.span;
+      var span = _forwardedModuleNodes?[oldModule]?.span;
       throw MultiSpanSassScriptException(
           'Two forwarded modules both define a $type named $name.',
           "new @forward",
@@ -625,7 +625,7 @@ class Environment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variables[index][name] = value;
-    _variableNodes?.andGet(index)![name] = nodeWithSpan!;
+    _variableNodes?[index][name] = nodeWithSpan!;
   }
 
   /// Sets the variable named [name] to [value], associated with
@@ -644,7 +644,7 @@ class Environment {
     _variableIndices[name] = index;
     _variables[index][name] = value;
     if (nodeWithSpan != null) {
-      _variableNodes?.andGet(index)![name] = nodeWithSpan;
+      _variableNodes?[index][name] = nodeWithSpan;
     }
   }
 
@@ -824,7 +824,7 @@ class Environment {
     var configuration = <String, ConfiguredValue>{};
     for (var i = 0; i < _variables.length; i++) {
       var values = _variables[i];
-      var nodes = _variableNodes.andGet(i) ?? <String, AstNode>{};
+      var nodes = _variableNodes?[i] ?? <String, AstNode>{};
       for (var entry in values.entries) {
         // Implicit configurations are never invalid, making [configurationSpan]
         // unnecessary, so we pass null here to avoid having to compute it.

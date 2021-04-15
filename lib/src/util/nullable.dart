@@ -13,26 +13,6 @@ extension NullableExtension<T> on T? {
   }
 }
 
-extension NullableListExtension<T> on List<T>? {
-  /// If [this] is `null`, returns `null`. Otherwise, returns `this[index]`.
-  ///
-  /// This is the equivalent of `list?.[key]`, if such a thing existed.
-  T? andGet(int index) {
-    var self = this;
-    return self == null ? null : self[index];
-  }
-}
-
-extension NullableMapExtension<K, V> on Map<K, V>? {
-  /// If [this] is `null`, returns `null`. Otherwise, returns `this[key]`.
-  ///
-  /// This is the equivalent of `map?.[key]`, if such a thing existed.
-  V? andGet(Object? key) {
-    var self = this;
-    return self == null ? null : self[key];
-  }
-}
-
 extension SetExtension<T> on Set<T?> {
   /// Destructively removes the `null` element from this set, if it exists, and
   /// returns a view of it casted to a non-nullable type.

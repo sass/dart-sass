@@ -2219,7 +2219,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 declaredArguments[i].name,
                 evaluated.positional[i].withoutSlash(),
-                evaluated.positionalNodes.andGet(i));
+                evaluated.positionalNodes?[i]);
           }
 
           for (var i = evaluated.positional.length;
@@ -2231,7 +2231,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 argument.name,
                 value.withoutSlash(),
-                evaluated.namedNodes.andGet(argument.name) ??
+                evaluated.namedNodes?[argument.name] ??
                     argument.defaultValue.andThen(_expressionNode));
           }
 

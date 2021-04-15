@@ -5,8 +5,6 @@
 import 'dart:collection';
 
 import '../utils.dart';
-import '../util/nullable.dart';
-import 'nullable.dart';
 
 /// An unmodifiable view of multiple maps merged together as though they were a
 /// single map.
@@ -46,7 +44,7 @@ class MergedMapView<K, V> extends MapBase<K, V> {
     }
   }
 
-  V? operator [](Object? key) => _mapsByKey[key as K].andGet(key);
+  V? operator [](Object? key) => _mapsByKey[key as K]?[key];
 
   operator []=(K key, V value) {
     var child = _mapsByKey[key];
