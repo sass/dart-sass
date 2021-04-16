@@ -1,3 +1,7 @@
+## 1.32.10
+
+* No user-visible changes.
+
 ## 1.32.9
 
 * Fix a typo in a deprecation warning.
