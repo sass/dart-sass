@@ -1,3 +1,8 @@
+## 1.32.10
+
+* Fix a bug where bogus indented syntax errors were reported for lines that
+  contained only whitespace.
+
 ## 1.32.9
 
 * Fix a typo in a deprecation warning.

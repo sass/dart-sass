@@ -408,10 +408,14 @@ class SassParser extends StylesheetParser {
       scanner.error("Expected newline.", position: scanner.position);
     }
 
-    var containsTab = false;
-    var containsSpace = false;
-    var nextIndentation = 0;
+    late bool containsTab;
+    late bool containsSpace;
+    late int nextIndentation;
     do {
+      containsTab = false;
+      containsSpace = false;
+       nextIndentation = 0;
+
       while (true) {
         var next = scanner.peekChar();
         if (next == $space) {
