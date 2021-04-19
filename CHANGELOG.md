@@ -1,11 +1,11 @@
 ## 1.32.11
 
-* No user-visible changes.
+* Fix a bug where bogus indented syntax errors were reported for lines that
+  contained only whitespace.
 
 ## 1.32.10
 
-* Fix a bug where bogus indented syntax errors were reported for lines that
-  contained only whitespace.
+* No user-visible changes.
 
 ## 1.32.9
 
