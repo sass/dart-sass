@@ -328,7 +328,7 @@ class ExtensionStore {
       }
 
       var containsExtension = selectors.first == extension.extender.selector;
-      var first = false;
+      var first = true;
       for (var complex in selectors) {
         // If the output contains the original complex selector, there's no
         // need to recreate it.

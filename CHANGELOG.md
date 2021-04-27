@@ -1,3 +1,9 @@
+## 1.32.12
+
+* Fix a bug that disallowed more than one module from extending the same
+  selector from a module if that selector itself extended a selector from
+  another upstream module.
+
 ## 1.32.11
 
 * Fix a bug where bogus indented syntax errors were reported for lines that
