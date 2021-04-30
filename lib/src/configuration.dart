@@ -77,7 +77,7 @@ class Configuration {
       ")";
 }
 
-/// A [Configuratoin] that was created with an explicit `with` clause of a
+/// A [Configuration] that was created with an explicit `with` clause of a
 /// `@use` rule.
 ///
 /// Both types of configuration pass through `@forward` rules, but explicit
