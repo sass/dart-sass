@@ -71,8 +71,8 @@ class StringExpression implements Expression {
     return buffer.interpolation(text.span);
   }
 
-  /// Writes to [buffer] the contents of a string (without quotes) that evalutes
-  /// to [text] according to Sass's parsing logic.
+  /// Writes to [buffer] the contents of a string (without quotes) that
+  /// evaluates to [text] according to Sass's parsing logic.
   ///
   /// This always adds an escape sequence before [quote]. If [static] is true,
   /// it also escapes any `#{` sequences in the string.
