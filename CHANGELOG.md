@@ -1,3 +1,7 @@
+## 1.32.13
+
+* Use the proper parameter names in error messages about `string.slice`
+
 ## 1.32.12
 
 * Fix a bug that disallowed more than one module from extending the same

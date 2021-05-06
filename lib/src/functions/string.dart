@@ -93,8 +93,8 @@ final _slice =
   var string = arguments[0].assertString("string");
   var start = arguments[1].assertNumber("start-at");
   var end = arguments[2].assertNumber("end-at");
-  start.assertNoUnits("start");
-  end.assertNoUnits("end");
+  start.assertNoUnits("start-at");
+  end.assertNoUnits("end-at");
 
   var lengthInCodepoints = string.sassLength;
 
