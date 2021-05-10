@@ -414,7 +414,7 @@ class SassParser extends StylesheetParser {
     do {
       containsTab = false;
       containsSpace = false;
-       nextIndentation = 0;
+      nextIndentation = 0;
 
       while (true) {
         var next = scanner.peekChar();

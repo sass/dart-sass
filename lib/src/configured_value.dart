@@ -17,9 +17,7 @@ class ConfiguredValue {
   final FileSpan? configurationSpan;
 
   /// The [AstNode] where the variable's value originated.
-  ///
-  /// This is used to generate source maps.
-  final AstNode? assignmentNode;
+  final AstNode assignmentNode;
 
   /// Creates a variable value that's been configured explicitly with a `with`
   /// clause.

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: acaafcfe17e8cb582fb01ea8b95afaf871af4eed
+// Checksum: 6351ed2d303a58943ce6be39dc794fb46286fd64
 //
 // ignore_for_file: unused_import
 
@@ -306,7 +306,7 @@ class _EvaluateVisitor
         _sourceMap = sourceMap,
         // The default environment is overridden in [_execute] for full
         // stylesheets, but for [AsyncEvaluator] this environment is used.
-        _environment = Environment(sourceMap: sourceMap) {
+        _environment = Environment() {
     var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
@@ -682,7 +682,7 @@ class _EvaluateVisitor
       return alreadyLoaded;
     }
 
-    var environment = Environment(sourceMap: _sourceMap);
+    var environment = Environment();
     late CssStylesheet css;
     var extensionStore = ExtensionStore();
     _withEnvironment(environment, () {
@@ -2206,7 +2206,7 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 declaredArguments[i].name,
                 evaluated.positional[i].withoutSlash(),
-                evaluated.positionalNodes?[i]);
+                evaluated.positionalNodes[i]);
           }
 
           for (var i = evaluated.positional.length;
@@ -2218,8 +2218,8 @@ class _EvaluateVisitor
             _environment.setLocalVariable(
                 argument.name,
                 value.withoutSlash(),
-                evaluated.namedNodes?[argument.name] ??
-                    argument.defaultValue.andThen(_expressionNode));
+                evaluated.namedNodes[argument.name] ??
+                    _expressionNode(argument.defaultValue!));
           }
 
           SassArgumentList? argumentList;
@@ -2310,7 +2310,7 @@ class _EvaluateVisitor
   /// body.
   Value _runBuiltInCallable(ArgumentInvocation arguments,
       BuiltInCallable callable, AstNode nodeWithSpan) {
-    var evaluated = _evaluateArguments(arguments, trackSpans: false);
+    var evaluated = _evaluateArguments(arguments);
 
     var oldCallableNode = _callableNode;
     _callableNode = nodeWithSpan;
@@ -2390,12 +2390,12 @@ class _EvaluateVisitor
   }
 
   /// Returns the evaluated values of the given [arguments].
-  ///
-  /// If [trackSpans] is `true`, this tracks the source spans of the arguments
-  /// being passed in. It defaults to [_sourceMap].
-  _ArgumentResults _evaluateArguments(ArgumentInvocation arguments,
-      {bool? trackSpans}) {
-    trackSpans ??= _sourceMap;
+  _ArgumentResults _evaluateArguments(ArgumentInvocation arguments) {
+    // TODO(nweiz): This used to avoid tracking source spans for arguments if
+    // [_sourceMap]s was false or it was being called from
+    // [_runBuiltInCallable]. We always have to track them now to produce better
+    // warnings for /-as-division, but once those warnings are gone we should go
+    // back to tracking conditionally.
 
     var positional = [
       for (var expression in arguments.positional) expression.accept(this)
@@ -2405,23 +2405,18 @@ class _EvaluateVisitor
         entry.key: entry.value.accept(this)
     };
 
-    var positionalNodes = trackSpans
-        ? [
-            for (var expression in arguments.positional)
-              _expressionNode(expression)
-          ]
-        : null;
-    var namedNodes = trackSpans
-        ? {
-            for (var entry in arguments.named.entries)
-              entry.key: _expressionNode(entry.value)
-          }
-        : null;
+    var positionalNodes = [
+      for (var expression in arguments.positional) _expressionNode(expression)
+    ];
+    var namedNodes = {
+      for (var entry in arguments.named.entries)
+        entry.key: _expressionNode(entry.value)
+    };
 
     var restArgs = arguments.rest;
     if (restArgs == null) {
-      return _ArgumentResults(positional, named, ListSeparator.undecided,
-          positionalNodes: positionalNodes, namedNodes: namedNodes);
+      return _ArgumentResults(positional, positionalNodes, named, namedNodes,
+          ListSeparator.undecided);
     }
 
     var rest = restArgs.accept(this);
@@ -2429,42 +2424,42 @@ class _EvaluateVisitor
     var separator = ListSeparator.undecided;
     if (rest is SassMap) {
       _addRestMap(named, rest, restArgs, (value) => value);
-      namedNodes?.addAll({
+      namedNodes.addAll({
         for (var key in rest.contents.keys)
           (key as SassString).text: restNodeForSpan
       });
     } else if (rest is SassList) {
       positional.addAll(rest.asList);
-      positionalNodes?.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
+      positionalNodes.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
       separator = rest.separator;
 
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
           named[key] = value;
-          if (namedNodes != null) namedNodes[key] = restNodeForSpan;
+          namedNodes[key] = restNodeForSpan;
         });
       }
     } else {
       positional.add(rest);
-      positionalNodes?.add(restNodeForSpan);
+      positionalNodes.add(restNodeForSpan);
     }
 
     var keywordRestArgs = arguments.keywordRest;
     if (keywordRestArgs == null) {
-      return _ArgumentResults(positional, named, separator,
-          positionalNodes: positionalNodes, namedNodes: namedNodes);
+      return _ArgumentResults(
+          positional, positionalNodes, named, namedNodes, separator);
     }
 
     var keywordRest = keywordRestArgs.accept(this);
     var keywordRestNodeForSpan = _expressionNode(keywordRestArgs);
     if (keywordRest is SassMap) {
       _addRestMap(named, keywordRest, keywordRestArgs, (value) => value);
-      namedNodes?.addAll({
+      namedNodes.addAll({
         for (var key in keywordRest.contents.keys)
           (key as SassString).text: keywordRestNodeForSpan
       });
-      return _ArgumentResults(positional, named, separator,
-          positionalNodes: positionalNodes, namedNodes: namedNodes);
+      return _ArgumentResults(
+          positional, positionalNodes, named, namedNodes, separator);
     } else {
       throw _exception(
           "Variable keyword arguments must be a map (was $keywordRest).",
@@ -2870,10 +2865,10 @@ class _EvaluateVisitor
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
   AstNode _expressionNode(Expression expression) {
-    // If we aren't making a source map this doesn't matter, but we still return
-    // the expression so we don't have to make the type (and everything
-    // downstream of it) nullable.
-    if (!_sourceMap) return expression;
+    // TODO(nweiz): This used to return [expression] as-is if source map
+    // generation was disabled. We always have to track the original location
+    // now to produce better warnings for /-as-division, but once those warnings
+    // are gone we should go back to short-circuiting.
 
     if (expression is VariableExpression) {
       return _environment.getVariableNode(expression.name,
@@ -3146,28 +3141,26 @@ class _ArgumentResults {
   /// Arguments passed by position.
   final List<Value> positional;
 
-  /// The [AstNode]s that hold the spans for each [positional] argument, or
-  /// `null` if source span tracking is disabled.
+  /// The [AstNode]s that hold the spans for each [positional] argument.
   ///
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  final List<AstNode>? positionalNodes;
+  final List<AstNode> positionalNodes;
 
   /// Arguments passed by name.
   final Map<String, Value> named;
 
-  /// The [AstNode]s that hold the spans for each [named] argument, or `null` if
-  /// source span tracking is disabled.
+  /// The [AstNode]s that hold the spans for each [named] argument.
   ///
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  final Map<String, AstNode>? namedNodes;
+  final Map<String, AstNode> namedNodes;
 
   /// The separator used for the rest argument list, if any.
   final ListSeparator separator;
 
-  _ArgumentResults(this.positional, this.named, this.separator,
-      {this.positionalNodes, this.namedNodes});
+  _ArgumentResults(this.positional, this.positionalNodes, this.named,
+      this.namedNodes, this.separator);
 }
