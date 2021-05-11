@@ -1918,7 +1918,7 @@ class _EvaluateVisitor
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
         var override = _configuration.remove(node.name);
-        if (override != null) {
+        if (override != null && override.value != sassNull) {
           _addExceptionSpan(node, () {
             _environment.setVariable(
                 node.name, override.value, override.assignmentNode,

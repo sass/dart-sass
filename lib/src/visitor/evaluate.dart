@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: acaafcfe17e8cb582fb01ea8b95afaf871af4eed
+// Checksum: 648f9a2041613a8f11c46986b4b4d4ccbaa0c489
 //
 // ignore_for_file: unused_import
 
@@ -1910,7 +1910,7 @@ class _EvaluateVisitor
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
         var override = _configuration.remove(node.name);
-        if (override != null) {
+        if (override != null && override.value != sassNull) {
           _addExceptionSpan(node, () {
             _environment.setVariable(
                 node.name, override.value, override.assignmentNode,
