@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3e8746ad4514a9aff33701f3ca4fa02f3594fb3a
+// Checksum: 1546b59aa219428e5e9458b8f0360192b544d073
 //
 // ignore_for_file: unused_import
 
@@ -2128,7 +2128,8 @@ class _EvaluateVisitor
     var ifTrue = positional.length > 1 ? positional[1] : named["if-true"]!;
     var ifFalse = positional.length > 2 ? positional[2] : named["if-false"]!;
 
-    return (condition.accept(this).isTruthy ? ifTrue : ifFalse).accept(this);
+    var result = condition.accept(this).isTruthy ? ifTrue : ifFalse;
+    return _withoutSlash(result.accept(this), _expressionNode(result));
   }
 
   SassNull visitNullExpression(NullExpression node) => sassNull;
@@ -2234,11 +2235,8 @@ class _EvaluateVisitor
           var minLength =
               math.min(evaluated.positional.length, declaredArguments.length);
           for (var i = 0; i < minLength; i++) {
-            var nodeForSpan = evaluated.positionalNodes[i];
-            _environment.setLocalVariable(
-                declaredArguments[i].name,
-                _withoutSlash(evaluated.positional[i], nodeForSpan),
-                nodeForSpan);
+            _environment.setLocalVariable(declaredArguments[i].name,
+                evaluated.positional[i], evaluated.positionalNodes[i]);
           }
 
           for (var i = evaluated.positional.length;
@@ -2246,11 +2244,13 @@ class _EvaluateVisitor
               i++) {
             var argument = declaredArguments[i];
             var value = evaluated.named.remove(argument.name) ??
-                argument.defaultValue!.accept<Value>(this);
-            var nodeForSpan = evaluated.namedNodes[argument.name] ??
-                _expressionNode(argument.defaultValue!);
+                _withoutSlash(argument.defaultValue!.accept<Value>(this),
+                    _expressionNode(argument.defaultValue!));
             _environment.setLocalVariable(
-                argument.name, _withoutSlash(value, nodeForSpan), nodeForSpan);
+                argument.name,
+                value,
+                evaluated.namedNodes[argument.name] ??
+                    _expressionNode(argument.defaultValue!));
           }
 
           SassArgumentList? argumentList;
@@ -2359,7 +2359,8 @@ class _EvaluateVisitor
         i++) {
       var argument = declaredArguments[i];
       evaluated.positional.add(evaluated.named.remove(argument.name) ??
-          argument.defaultValue!.accept(this));
+          _withoutSlash(
+              argument.defaultValue!.accept(this), argument.defaultValue!));
     }
 
     SassArgumentList? argumentList;
@@ -2428,21 +2429,21 @@ class _EvaluateVisitor
     // warnings for /-as-division, but once those warnings are gone we should go
     // back to tracking conditionally.
 
-    var positional = [
-      for (var expression in arguments.positional) expression.accept(this)
-    ];
-    var named = {
-      for (var entry in arguments.named.entries)
-        entry.key: entry.value.accept(this)
-    };
+    var positional = <Value>[];
+    var positionalNodes = <AstNode>[];
+    for (var expression in arguments.positional) {
+      var nodeForSpan = _expressionNode(expression);
+      positional.add(_withoutSlash(expression.accept(this), nodeForSpan));
+      positionalNodes.add(nodeForSpan);
+    }
 
-    var positionalNodes = [
-      for (var expression in arguments.positional) _expressionNode(expression)
-    ];
-    var namedNodes = {
-      for (var entry in arguments.named.entries)
-        entry.key: _expressionNode(entry.value)
-    };
+    var named = <String, Value>{};
+    var namedNodes = <String, AstNode>{};
+    for (var entry in arguments.named.entries) {
+      var nodeForSpan = _expressionNode(entry.value);
+      named[entry.key] = _withoutSlash(entry.value.accept(this), nodeForSpan);
+      namedNodes[entry.key] = nodeForSpan;
+    }
 
     var restArgs = arguments.rest;
     if (restArgs == null) {
@@ -2460,18 +2461,19 @@ class _EvaluateVisitor
           (key as SassString).text: restNodeForSpan
       });
     } else if (rest is SassList) {
-      positional.addAll(rest.asList);
+      positional.addAll(
+          rest.asList.map((value) => _withoutSlash(value, restNodeForSpan)));
       positionalNodes.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
       separator = rest.separator;
 
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
-          named[key] = value;
+          named[key] = _withoutSlash(value, restNodeForSpan);
           namedNodes[key] = restNodeForSpan;
         });
       }
     } else {
-      positional.add(rest);
+      positional.add(_withoutSlash(rest, restNodeForSpan));
       positionalNodes.add(restNodeForSpan);
     }
 
@@ -2515,19 +2517,22 @@ class _EvaluateVisitor
     var positional = invocation.arguments.positional.toList();
     var named = Map.of(invocation.arguments.named);
     var rest = restArgs.accept(this);
+    var restNodeForSpan = _expressionNode(restArgs);
     if (rest is SassMap) {
       _addRestMap(named, rest, invocation,
           (value) => ValueExpression(value, restArgs.span));
     } else if (rest is SassList) {
-      positional.addAll(
-          rest.asList.map((value) => ValueExpression(value, restArgs.span)));
+      positional.addAll(rest.asList.map((value) => ValueExpression(
+          _withoutSlash(value, restNodeForSpan), restArgs.span)));
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
-          named[key] = ValueExpression(value, restArgs.span);
+          named[key] = ValueExpression(
+              _withoutSlash(value, restNodeForSpan), restArgs.span);
         });
       }
     } else {
-      positional.add(ValueExpression(rest, restArgs.span));
+      positional.add(
+          ValueExpression(_withoutSlash(rest, restNodeForSpan), restArgs.span));
     }
 
     var keywordRestArgs_ = invocation.arguments.keywordRest;
@@ -2535,9 +2540,15 @@ class _EvaluateVisitor
     var keywordRestArgs = keywordRestArgs_; // dart-lang/sdk#45348
 
     var keywordRest = keywordRestArgs.accept(this);
+    var keywordRestNodeForSpan = _expressionNode(keywordRestArgs);
     if (keywordRest is SassMap) {
-      _addRestMap(named, keywordRest, invocation,
-          (value) => ValueExpression(value, keywordRestArgs.span));
+      _addRestMap(
+          named,
+          keywordRest,
+          invocation,
+          (value) => ValueExpression(
+              _withoutSlash(value, keywordRestNodeForSpan),
+              keywordRestArgs.span));
       return Tuple2(positional, named);
     } else {
       throw _exception(
@@ -2559,9 +2570,10 @@ class _EvaluateVisitor
   /// real work to manufacture a source span.
   void _addRestMap<T>(Map<String, T> values, SassMap map, AstNode nodeWithSpan,
       T convert(Value value)) {
+    var expressionNode = _expressionNode(nodeWithSpan);
     map.contents.forEach((key, value) {
       if (key is SassString) {
-        values[key.text] = convert(value);
+        values[key.text] = convert(_withoutSlash(value, expressionNode));
       } else {
         throw _exception(
             "Variable keyword argument map must have string keys.\n"
@@ -2895,7 +2907,7 @@ class _EvaluateVisitor
   /// This returns an [AstNode] rather than a [FileSpan] so we can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  AstNode _expressionNode(Expression expression) {
+  AstNode _expressionNode(AstNode expression) {
     // TODO(nweiz): This used to return [expression] as-is if source map
     // generation was disabled. We always have to track the original location
     // now to produce better warnings for /-as-division, but once those warnings

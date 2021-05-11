@@ -7,6 +7,14 @@
 
 * Add a `list.slash()` function that returns a slash-separated list.
 
+* **Potentially breaking bug fix:** The heuristics around when potentially
+  slash-separated numbers are converted to slash-free numbers—for example, when
+  `1/2` will be printed as `0.5` rather than `1/2`—have been slightly expanded.
+  Previously, a number would be made slash-free if it was passed as an argument
+  to a *user-defined function*, but not to a *built-in function*. Now it will be
+  made slash-free in both cases. This is a behavioral change, but it's unlikely
+  to affect any real-world stylesheets.
+
 ## 1.32.13
 
 * Use the proper parameter names in error messages about `string.slice`
