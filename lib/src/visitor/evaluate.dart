@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1546b59aa219428e5e9458b8f0360192b544d073
+// Checksum: 21d03e5b2631b77c590036153fa3d9078e031136
 //
 // ignore_for_file: unused_import
 
@@ -2900,9 +2900,9 @@ class _EvaluateVisitor
 
   /// Returns the [AstNode] whose span should be used for [expression].
   ///
-  /// If [expression] is a variable reference and [_sourceMap] is `true`,
-  /// [AstNode]'s span will be the span where that variable was originally
-  /// declared. Otherwise, this will just return [expression].
+  /// If [expression] is a variable reference, [AstNode]'s span will be the span
+  /// where that variable was originally declared. Otherwise, this will just
+  /// return [expression].
   ///
   /// This returns an [AstNode] rather than a [FileSpan] so we can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do

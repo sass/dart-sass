@@ -2925,9 +2925,9 @@ class _EvaluateVisitor
 
   /// Returns the [AstNode] whose span should be used for [expression].
   ///
-  /// If [expression] is a variable reference and [_sourceMap] is `true`,
-  /// [AstNode]'s span will be the span where that variable was originally
-  /// declared. Otherwise, this will just return [expression].
+  /// If [expression] is a variable reference, [AstNode]'s span will be the span
+  /// where that variable was originally declared. Otherwise, this will just
+  /// return [expression].
   ///
   /// This returns an [AstNode] rather than a [FileSpan] so we can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do

@@ -116,7 +116,7 @@ void main() {
     });
   });
 
-  test("a slash-separated list is space-separated", () {
+  test("a slash-separated list is slash-separated", () {
     expect(parseValue("list.slash(a, b, c)").separator,
         equals(ListSeparator.slash));
   });

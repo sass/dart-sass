@@ -740,7 +740,7 @@ Object /* SassString | List<Value> */ _parseChannels(
   var list = channels.asList;
   if (list.length > 3) {
     throw SassScriptException("Only 3 elements allowed, but ${list.length} "
-        "${pluralize('was', list.length, plural: 'were')} passed.");
+        "were passed.");
   } else if (list.length < 3) {
     if (list.any((value) => value.isVar) ||
         (list.isNotEmpty && _isVarSlash(list.last))) {
