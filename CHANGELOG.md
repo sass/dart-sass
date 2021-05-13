@@ -17,6 +17,10 @@
 
 ## 1.32.13
 
+* **Potentially breaking bug fix:** Null values in `@use` and `@forward`
+  configurations no longer override the `!default` variable, matching the
+  behavior of the equivalent code using `@import`.
+
 * Use the proper parameter names in error messages about `string.slice`
 
 ## 1.32.12
