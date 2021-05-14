@@ -211,6 +211,10 @@ class NodeImporter {
   }
 
   /// Returns the [RenderContext] in which to invoke importers.
-  RenderContext _renderContext(bool fromImport) => RenderContext(
-      options: _options as RenderContextOptions, fromImport: fromImport);
+  RenderContext _renderContext(bool fromImport) {
+    var context = RenderContext(
+        options: _options as RenderContextOptions, fromImport: fromImport);
+    context.options.context = context;
+    return context;
+  }
 }

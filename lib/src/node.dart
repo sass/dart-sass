@@ -205,6 +205,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     }
 
     var context = RenderContext(options: _contextOptions(options, start));
+    context.options.context = context;
 
     var fiber = options.fiber;
     if (fiber != null) {
