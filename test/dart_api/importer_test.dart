@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
+import 'from_import_importer.dart';
 import 'test_importer.dart';
 import '../utils.dart';
 
@@ -181,5 +182,24 @@ void main() {
           startsWith("Error: Can't find stylesheet to import"));
       return true;
     })));
+  });
+
+  group("currentLoadFromImport is", () {
+    test("true from an @import", () {
+      compileString('@import "foo"', importers: [FromImportImporter(true)]);
+    });
+
+    test("false from a @use", () {
+      compileString('@use "foo"', importers: [FromImportImporter(false)]);
+    });
+
+    test("false from a @forward", () {
+      compileString('@forward "foo"', importers: [FromImportImporter(false)]);
+    });
+
+    test("false from meta.load-css", () {
+      compileString('@use "sass:meta"; @include meta.load-css("")',
+          importers: [FromImportImporter(false)]);
+    });
   });
 }
