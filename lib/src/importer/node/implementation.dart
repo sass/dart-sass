@@ -13,6 +13,7 @@ import '../../node/function.dart';
 import '../../node/importer_result.dart';
 import '../../node/utils.dart';
 import '../../util/nullable.dart';
+import '../../node/render_context.dart';
 import '../utils.dart';
 
 /// An importer that encapsulates Node Sass's import logic.
@@ -40,8 +41,12 @@ import '../utils.dart';
 ///   4. Filesystem imports relative to an `includePaths` path.
 ///   5. Filesystem imports relative to a `SASS_PATH` path.
 class NodeImporter {
-  /// The `this` context in which importer functions are invoked.
-  final Object _context;
+  /// The options for the `this` context in which importer functions are
+  /// invoked.
+  ///
+  /// This is typed as [Object] because the public interface of [NodeImporter]
+  /// is shared with the VM, which can't handle JS interop types.
+  final Object _options;
 
   /// The include paths passed in by the user.
   final List<String> _includePaths;
@@ -50,7 +55,7 @@ class NodeImporter {
   final List<JSFunction> _importers;
 
   NodeImporter(
-      this._context, Iterable<String> includePaths, Iterable<Object> importers)
+      this._options, Iterable<String> includePaths, Iterable<Object> importers)
       : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
         _importers = List.unmodifiable(importers.cast());
 
@@ -78,7 +83,8 @@ class NodeImporter {
     // The previous URL is always an absolute file path for filesystem imports.
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
-      var value = call2(importer, _context, url, previousString);
+      var value =
+          call2(importer, _renderContext(forImport), url, previousString);
       if (value != null) {
         return _handleImportResult(url, previous, value, forImport);
       }
@@ -103,7 +109,8 @@ class NodeImporter {
     // The previous URL is always an absolute file path for filesystem imports.
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
-      var value = await _callImporterAsync(importer, url, previousString);
+      var value =
+          await _callImporterAsync(importer, url, previousString, forImport);
       if (value != null) {
         return _handleImportResult(url, previous, value, forImport);
       }
@@ -193,13 +200,17 @@ class NodeImporter {
   }
 
   /// Calls an importer that may or may not be asynchronous.
-  Future<Object?> _callImporterAsync(
-      JSFunction importer, String url, String previousString) async {
+  Future<Object?> _callImporterAsync(JSFunction importer, String url,
+      String previousString, bool forImport) async {
     var completer = Completer<Object>();
 
-    var result = call3(importer, _context, url, previousString,
+    var result = call3(importer, _renderContext(forImport), url, previousString,
         allowInterop(completer.complete));
     if (isUndefined(result)) return await completer.future;
     return result;
   }
+
+  /// Returns the [RenderContext] in which to invoke importers.
+  RenderContext _renderContext(bool fromImport) => RenderContext(
+      options: _options as RenderContextOptions, fromImport: fromImport);
 }

@@ -204,7 +204,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
           'Invalid signature "$signature": ${error.message}', error.span);
     }
 
-    var context = _contextWithOptions(options, start);
+    var context = RenderContext(options: _contextOptions(options, start));
 
     var fiber = options.fiber;
     if (fiber != null) {
@@ -261,9 +261,8 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
     importers = [options.importer as JSFunction];
   }
 
-  var context = importers.isNotEmpty
-      ? _contextWithOptions(options, start)
-      : const Object();
+  var contextOptions =
+      importers.isNotEmpty ? _contextOptions(options, start) : Object();
 
   var fiber = options.fiber;
   if (fiber != null) {
@@ -288,29 +287,26 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
   }
 
   var includePaths = List<String>.from(options.includePaths ?? []);
-  return NodeImporter(context, includePaths, importers);
+  return NodeImporter(contextOptions, includePaths, importers);
 }
 
-/// Creates a `this` context that contains the render options.
-RenderContext _contextWithOptions(RenderOptions options, DateTime start) {
+/// Creates the [RenderContextOptions] for the `this` context in which custom
+/// functions and importers will be evaluated.
+RenderContextOptions _contextOptions(RenderOptions options, DateTime start) {
   var includePaths = List<String>.from(options.includePaths ?? []);
-  var context = RenderContext(
-      options: RenderContextOptions(
-          file: options.file,
-          data: options.data,
-          includePaths:
-              ([p.current, ...includePaths]).join(isWindows ? ';' : ':'),
-          precision: SassNumber.precision,
-          style: 1,
-          indentType: options.indentType == 'tab' ? 1 : 0,
-          indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
-          linefeed: _parseLineFeed(options.linefeed).text,
-          result: RenderContextResult(
-              stats: RenderContextResultStats(
-                  start: start.millisecondsSinceEpoch,
-                  entry: options.file ?? 'data'))));
-  context.options.context = context;
-  return context;
+  return RenderContextOptions(
+      file: options.file,
+      data: options.data,
+      includePaths: ([p.current, ...includePaths]).join(isWindows ? ';' : ':'),
+      precision: SassNumber.precision,
+      style: 1,
+      indentType: options.indentType == 'tab' ? 1 : 0,
+      indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
+      linefeed: _parseLineFeed(options.linefeed).text,
+      result: RenderContextResult(
+          stats: RenderContextResultStats(
+              start: start.millisecondsSinceEpoch,
+              entry: options.file ?? 'data')));
 }
 
 /// Parse [style] into an [OutputStyle].
