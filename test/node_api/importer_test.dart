@@ -556,6 +556,48 @@ void main() {
             }))));
       });
     });
+
+    group("includes a fromImport field that's", () {
+      test("true for an @import", () {
+        renderSync(RenderOptions(
+            data: '@import "foo"',
+            importer: allowInteropCaptureThis(
+                expectAsync3((RenderContext this_, _, __) {
+              expect(this_.fromImport, isTrue);
+              return NodeImporterResult(contents: '');
+            }))));
+      });
+
+      test("false for a @use", () {
+        renderSync(RenderOptions(
+            data: '@use "foo"',
+            importer: allowInteropCaptureThis(
+                expectAsync3((RenderContext this_, _, __) {
+              expect(this_.fromImport, isFalse);
+              return NodeImporterResult(contents: '');
+            }))));
+      });
+
+      test("false for a @forward", () {
+        renderSync(RenderOptions(
+            data: '@forward "foo"',
+            importer: allowInteropCaptureThis(
+                expectAsync3((RenderContext this_, _, __) {
+              expect(this_.fromImport, isFalse);
+              return NodeImporterResult(contents: '');
+            }))));
+      });
+
+      test("false for meta.load-css()", () {
+        renderSync(RenderOptions(
+            data: '@use "sass:meta"; @include meta.load-css("foo")',
+            importer: allowInteropCaptureThis(
+                expectAsync3((RenderContext this_, _, __) {
+              expect(this_.fromImport, isFalse);
+              return NodeImporterResult(contents: '');
+            }))));
+      });
+    });
   });
 
   group("gracefully handles an error when", () {

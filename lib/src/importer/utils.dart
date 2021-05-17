@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+
 import 'package:path/path.dart' as p;
 
 import '../io.dart';
@@ -13,30 +15,12 @@ import '../io.dart';
 /// canonicalization should be identical for `@import` and `@use` rules. It's
 /// admittedly hacky to set this globally, but `@import` will eventually be
 /// removed, at which point we can delete this and have one consistent behavior.
-bool _inImportRule = false;
+bool get fromImport => Zone.current[#_inImportRule] as bool? ?? false;
 
-/// Runs [callback] in a context where [resolveImportPath] uses `@import`
-/// semantics rather than `@use` semantics.
-T inImportRule<T>(T callback()) {
-  var wasInImportRule = _inImportRule;
-  _inImportRule = true;
-  try {
-    return callback();
-  } finally {
-    _inImportRule = wasInImportRule;
-  }
-}
-
-/// Like [inImportRule], but asynchronous.
-Future<T> inImportRuleAsync<T>(Future<T> callback()) async {
-  var wasInImportRule = _inImportRule;
-  _inImportRule = true;
-  try {
-    return await callback();
-  } finally {
-    _inImportRule = wasInImportRule;
-  }
-}
+/// Runs [callback] in a context where [inImportRule] returns `true` and
+/// [resolveImportPath] uses `@import` semantics rather than `@use` semantics.
+T inImportRule<T>(T callback()) =>
+    runZoned(callback, zoneValues: {#_inImportRule: true});
 
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///
@@ -95,7 +79,7 @@ String? _exactlyOne(List<String> paths) {
       paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n");
 }
 
-/// If [_inImportRule] is `true`, invokes callback and returns the result.
+/// If [fromImport] is `true`, invokes callback and returns the result.
 ///
 /// Otherwise, returns `null`.
-T? _ifInImport<T>(T callback()) => _inImportRule ? callback() : null;
+T? _ifInImport<T>(T callback()) => fromImport ? callback() : null;
