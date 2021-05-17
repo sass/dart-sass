@@ -8,8 +8,10 @@ import 'package:js/js.dart';
 @anonymous
 class RenderContext {
   external RenderContextOptions get options;
+  external bool? get fromImport;
 
-  external factory RenderContext({required RenderContextOptions options});
+  external factory RenderContext(
+      {required RenderContextOptions options, bool? fromImport});
 }
 
 @JS()

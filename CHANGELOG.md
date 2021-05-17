@@ -1,3 +1,21 @@
+## 1.33.0
+
+### JS API
+
+* The `this` context for importers now has a `fromImport` field, which is `true`
+  if the importer is being invoked from an `@import` and `false` otherwise.
+  Importers should only use this to determine whether to load [import-only
+  files].
+
+[import-only files]: https://sass-lang.com/documentation/at-rules/import#import-only-files
+
+### Dart API
+
+* Add an `Importer.fromImport` getter, which is `true` if the current
+  `Importer.canonicalize()` call comes from an `@import` rule and `false`
+  otherwise. Importers should only use this to determine whether to load
+  [import-only files].
+
 ## 1.32.13
 
 * **Potentially breaking bug fix:** Null values in `@use` and `@forward`

@@ -4,7 +4,10 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import 'result.dart';
+import 'utils.dart' as utils;
 
 /// An interface for importers that resolves URLs in `@import`s to the contents
 /// of Sass files.
@@ -20,6 +23,22 @@ import 'result.dart';
 ///
 /// Subclasses should extend [AsyncImporter], not implement it.
 abstract class AsyncImporter {
+  /// Whether the current [canonicalize] invocation comes from an `@import`
+  /// rule.
+  ///
+  /// When evaluating `@import` rules, URLs should canonicalize to an
+  /// [import-only file] if one exists for the URL being canonicalized.
+  /// Otherwise, canonicalization should be identical for `@import` and `@use`
+  /// rules.
+  ///
+  /// [import-only file]: https://sass-lang.com/documentation/at-rules/import#import-only-files
+  ///
+  /// Subclasses should only access this from within calls to [canonicalize].
+  /// Outside of that context, its value is undefined and subject to change.
+  @protected
+  @nonVirtual
+  bool get fromImport => utils.fromImport;
+
   /// If [url] is recognized by this importer, returns its canonical format.
   ///
   /// Note that canonical URLs *must* be absolute, including a scheme. Returning

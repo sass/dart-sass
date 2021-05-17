@@ -5,7 +5,7 @@
 import 'package:tuple/tuple.dart';
 
 class NodeImporter {
-  NodeImporter(Object context, Iterable<String> includePaths,
+  NodeImporter(Object options, Iterable<String> includePaths,
       Iterable<Object> importers);
 
   Tuple2<String, String>? load(String url, Uri? previous, bool forImport) =>
