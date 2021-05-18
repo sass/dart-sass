@@ -13,7 +13,7 @@ import 'embedded_process.dart';
 import 'utils.dart';
 
 void main() {
-  EmbeddedProcess process;
+  late EmbeddedProcess process;
   setUp(() async {
     process = await EmbeddedProcess.start();
   });
@@ -119,7 +119,7 @@ void main() {
         process.outbound,
         emits(isSuccess("a { b: 3px; }", sourceMap: (map) {
           var mapping = source_maps.parse(map);
-          var span = mapping.spanFor(2, 5);
+          var span = mapping.spanFor(2, 5)!;
           expect(span.start.line, equals(0));
           expect(span.start.column, equals(3));
           expect(span.end, equals(span.start));

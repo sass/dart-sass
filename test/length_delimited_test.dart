@@ -12,8 +12,8 @@ import 'package:test/test.dart';
 
 void main() {
   group("encoder", () {
-    Sink<List<int>> sink;
-    Stream<List<int>> stream;
+    late Sink<List<int>> sink;
+    late Stream<List<int>> stream;
     setUp(() {
       var controller = StreamController<List<int>>();
       sink = controller.sink;
@@ -52,8 +52,8 @@ void main() {
   });
 
   group("decoder", () {
-    Sink<List<int>> sink;
-    StreamQueue<Uint8List> queue;
+    late Sink<List<int>> sink;
+    late StreamQueue<Uint8List> queue;
     setUp(() {
       var controller = StreamController<List<int>>();
       sink = controller.sink;

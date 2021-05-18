@@ -29,5 +29,5 @@ class FunctionRegistry {
   /// Returns the compiler-side function associated with [id].
   ///
   /// If no such function exists, returns `null`.
-  sass.SassFunction operator [](int id) => _functionsById[id];
+  sass.SassFunction? operator [](int id) => _functionsById[id];
 }

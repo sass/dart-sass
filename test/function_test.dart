@@ -14,7 +14,7 @@ final _true = Value()..singleton = Value_Singleton.TRUE;
 final _false = Value()..singleton = Value_Singleton.FALSE;
 final _null = Value()..singleton = Value_Singleton.NULL;
 
-EmbeddedProcess _process;
+late EmbeddedProcess _process;
 
 void main() {
   setUp(() async {
@@ -67,7 +67,7 @@ void main() {
 
   group("includes in FunctionCallRequest", () {
     var compilationId = 1234;
-    OutboundMessage_FunctionCallRequest request;
+    late OutboundMessage_FunctionCallRequest request;
     setUp(() async {
       _process.inbound.add(compileString("a {b: foo()}",
           id: compilationId, functions: ["foo()"]));
@@ -1232,7 +1232,7 @@ Future<String> _deprotofy(Value value, {bool inspect = false}) async {
 
   var success = await getCompileSuccess(await _process.outbound.next);
   expect(_process.kill(), completes);
-  return RegExp(r"  b: (.*);").firstMatch(success.css)[1];
+  return RegExp(r"  b: (.*);").firstMatch(success.css)![1]!;
 }
 
 /// Asserts that [value] causes a parameter error with a message matching

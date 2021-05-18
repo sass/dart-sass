@@ -13,16 +13,16 @@ import 'embedded_process.dart';
 /// Returns a [InboundMessage] that compiles the given plain CSS
 /// string.
 InboundMessage compileString(String css,
-    {int id,
-    bool alertColor,
-    bool alertAscii,
-    InboundMessage_Syntax syntax,
-    InboundMessage_CompileRequest_OutputStyle style,
-    String url,
-    bool sourceMap,
-    Iterable<InboundMessage_CompileRequest_Importer> importers,
-    InboundMessage_CompileRequest_Importer importer,
-    Iterable<String> functions}) {
+    {int? id,
+    bool? alertColor,
+    bool? alertAscii,
+    InboundMessage_Syntax? syntax,
+    InboundMessage_CompileRequest_OutputStyle? style,
+    String? url,
+    bool? sourceMap,
+    Iterable<InboundMessage_CompileRequest_Importer>? importers,
+    InboundMessage_CompileRequest_Importer? importer,
+    Iterable<String>? functions}) {
   var input = InboundMessage_CompileRequest_StringInput()..source = css;
   if (syntax != null) input.syntax = syntax;
   if (url != null) input.url = url;

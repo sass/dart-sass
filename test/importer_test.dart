@@ -13,7 +13,7 @@ import 'embedded_process.dart';
 import 'utils.dart';
 
 void main() {
-  EmbeddedProcess process;
+  late EmbeddedProcess process;
   setUp(() async {
     process = await EmbeddedProcess.start();
   });
@@ -101,7 +101,7 @@ void main() {
     group("includes in CanonicalizeRequest", () {
       var compilationId = 1234;
       var importerId = 5679;
-      OutboundMessage_CanonicalizeRequest request;
+      late OutboundMessage_CanonicalizeRequest request;
       setUp(() async {
         process.inbound.add(compileString("@import 'other'",
             id: compilationId,
@@ -256,7 +256,7 @@ void main() {
     group("includes in ImportRequest", () {
       var compilationId = 1234;
       var importerId = 5678;
-      OutboundMessage_ImportRequest request;
+      late OutboundMessage_ImportRequest request;
       setUp(() async {
         process.inbound.add(compileString("@import 'other'",
             id: compilationId,

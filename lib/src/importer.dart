@@ -4,7 +4,6 @@
 
 import 'dart:cli';
 
-import 'package:meta/meta.dart';
 import 'package:sass/sass.dart' as sass;
 
 import 'dispatcher.dart';
@@ -24,7 +23,7 @@ class Importer extends sass.Importer {
 
   Importer(this._dispatcher, this._compilationId, this._importerId);
 
-  Uri canonicalize(Uri url) {
+  Uri? canonicalize(Uri url) {
     return waitFor(() async {
       var response = await _dispatcher
           .sendCanonicalizeRequest(OutboundMessage_CanonicalizeRequest()
@@ -42,9 +41,6 @@ class Importer extends sass.Importer {
         case InboundMessage_CanonicalizeResponse_Result.notSet:
           return null;
       }
-
-      // dart-lang/sdk#38790
-      throw "Unknown CanonicalizeResponse.result $response.";
     }());
   }
 
@@ -70,11 +66,7 @@ class Importer extends sass.Importer {
 
         case InboundMessage_ImportResponse_Result.notSet:
           _sendAndThrow(mandatoryError("ImportResponse.result"));
-          break; // dart-lang/sdk#34048
       }
-
-      // dart-lang/sdk#38790
-      throw "Unknown ImporterResponse.result $response.";
     }());
   }
 
@@ -96,8 +88,7 @@ class Importer extends sass.Importer {
 
   /// Sends [error] to the remote endpoint, and also throws it so that the Sass
   /// compilation fails.
-  @alwaysThrows
-  void _sendAndThrow(ProtocolError error) {
+  Never _sendAndThrow(ProtocolError error) {
     _dispatcher.sendError(error);
     throw "Protocol error: ${error.message}";
   }

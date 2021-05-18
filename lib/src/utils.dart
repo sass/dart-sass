@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:sass/sass.dart' as sass;
 import 'package:source_span/source_span.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
@@ -66,7 +65,7 @@ String indent(String string, int indentation) =>
 
 /// Returns the result of running [callback] with the global ASCII config set
 /// to [ascii].
-T withGlyphs<T>(T callback(), {@required bool ascii}) {
+T withGlyphs<T>(T callback(), {required bool ascii}) {
   var currentConfig = term_glyph.ascii;
   term_glyph.ascii = ascii;
   var result = callback();

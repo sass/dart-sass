@@ -166,15 +166,10 @@ sass.Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
         default:
           throw "Unknown Value.singleton ${value.singleton}";
       }
-      // dart-lang/sdk#39304
-      throw "Unreachable"; // ignore: dead_code
 
     case Value_Value.notSet:
       throw mandatoryError("Value.value");
   }
-
-  // dart-lang/sdk#38790
-  throw "Unknown Value.value $value.";
 }
 
 /// Converts [separator] to its Sass representation.

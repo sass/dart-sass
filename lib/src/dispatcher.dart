@@ -23,7 +23,7 @@ class Dispatcher {
   /// The completers are located at indexes in this list matching the request
   /// IDs. `null` elements indicate IDs whose requests have been responded to,
   /// and which are therefore free to re-use.
-  final _outstandingRequests = <Completer<GeneratedMessage>>[];
+  final _outstandingRequests = <Completer<GeneratedMessage>?>[];
 
   /// Creates a [Dispatcher] that sends and receives encoded protocol buffers
   /// over [channel].
@@ -47,7 +47,7 @@ class Dispatcher {
       // for new input.
       await Future.value();
 
-      InboundMessage message;
+      InboundMessage? message;
       try {
         try {
           message = InboundMessage.fromBuffer(binaryMessage);
@@ -182,7 +182,7 @@ class Dispatcher {
 
   /// Returns the id for [message] if it it's a request, or `null`
   /// otherwise.
-  int _inboundId(InboundMessage message) {
+  int? _inboundId(InboundMessage? message) {
     if (message == null) return null;
     switch (message.whichMessage()) {
       case InboundMessage_Message.compileRequest:
@@ -210,7 +210,7 @@ class Dispatcher {
         message.functionCallRequest.id = id;
         break;
       default:
-        return null;
+        break;
     }
   }
 }

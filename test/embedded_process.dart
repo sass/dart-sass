@@ -26,11 +26,11 @@ class EmbeddedProcess {
 
   /// A [StreamQueue] that emits each outbound protocol buffer from the process.
   StreamQueue<OutboundMessage> get outbound => _outbound;
-  StreamQueue<OutboundMessage> _outbound;
+  late StreamQueue<OutboundMessage> _outbound;
 
   /// A [StreamQueue] that emits each line of stderr from the process.
   StreamQueue<String> get stderr => _stderr;
-  StreamQueue<String> _stderr;
+  late StreamQueue<String> _stderr;
 
   /// A splitter that can emit new copies of [outbound].
   final StreamSplitter<OutboundMessage> _outboundSplitter;
@@ -49,7 +49,7 @@ class EmbeddedProcess {
   final _log = <String>[];
 
   /// Whether [_log] has been passed to [printOnFailure] yet.
-  bool _loggedOutput = false;
+  var _loggedOutput = false;
 
   /// Returns a [Future] which completes to the exit code of the process, once
   /// it completes.
@@ -60,8 +60,11 @@ class EmbeddedProcess {
 
   /// Completes to [_process]'s exit code if it's exited, otherwise completes to
   /// `null` immediately.
-  Future<int> get _exitCodeOrNull async =>
-      await exitCode.timeout(Duration.zero, onTimeout: () => null);
+  Future<int?> get _exitCodeOrNull async {
+    var exitCode =
+        await this.exitCode.timeout(Duration.zero, onTimeout: () => -1);
+    return exitCode == -1 ? null : exitCode;
+  }
 
   /// Starts a process.
   ///
@@ -73,8 +76,8 @@ class EmbeddedProcess {
   /// [stderr] will be printed to the console as they appear. This is only
   /// intended to be set temporarily to help when debugging test failures.
   static Future<EmbeddedProcess> start(
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment = true,
       bool runInShell = false,
       bool forwardOutput = false}) async {

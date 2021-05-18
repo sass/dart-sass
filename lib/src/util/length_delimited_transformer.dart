@@ -23,7 +23,7 @@ final StreamChannelTransformer<Uint8List, List<int>> lengthDelimited =
 final lengthDelimitedDecoder =
     StreamTransformer<List<int>, Uint8List>.fromBind((stream) {
   // The number of bits we've consumed so far to fill out [nextMessageLength].
-  int nextMessageLengthBits = 0;
+  var nextMessageLengthBits = 0;
 
   // The length of the next message, in bytes.
   //
@@ -31,16 +31,16 @@ final lengthDelimitedDecoder =
   // initialized.
   //
   // [varint]: https://developers.google.com/protocol-buffers/docs/encoding#varints
-  int nextMessageLength = 0;
+  var nextMessageLength = 0;
 
   // The buffer into which the packet data itself is written. Initialized once
   // [nextMessageLength] is known.
-  Uint8List buffer;
+  Uint8List? buffer;
 
   // The index of the next byte to write to [buffer]. Once this is equal to
   // [buffer.length] (or equivalently [nextMessageLength]), the full packet is
   // available.
-  int bufferIndex;
+  var bufferIndex = 0;
 
   // It seems a little silly to use a nested [StreamTransformer] here, but we
   // need the outer one to establish a closure context so we can share state
@@ -54,6 +54,8 @@ final lengthDelimitedDecoder =
     var i = 0;
 
     while (i < chunk.length) {
+      var buffer_ = buffer; // dart-lang/language#1536
+
       // We can be in one of two states here:
       //
       // * [buffer] is `null`, in which case we're adding data to
@@ -63,7 +65,7 @@ final lengthDelimitedDecoder =
       // * [buffer] is not `null`, in which case we're waiting for [buffer] to
       //   have [nextMessageLength] bytes in it before we send it to
       //   [queue.local.sink] and start waiting for the next message.
-      if (buffer == null) {
+      if (buffer_ == null) {
         var byte = chunk[i];
 
         // Varints encode data in the 7 lower bits of each byte, which we access
@@ -79,7 +81,7 @@ final lengthDelimitedDecoder =
 
         // Otherwise, [nextMessageLength] is now finalized and we can allocate
         // the data buffer.
-        buffer = Uint8List(nextMessageLength);
+        buffer_ = buffer = Uint8List(nextMessageLength);
         bufferIndex = 0;
       }
 
@@ -88,18 +90,17 @@ final lengthDelimitedDecoder =
       // message after the current one) or more than the chunk has available (if
       // the current message is split across multiple chunks).
       var bytesToWrite =
-          math.min(buffer.length - bufferIndex, chunk.length - i);
-      buffer.setRange(bufferIndex, bufferIndex + bytesToWrite, chunk, i);
+          math.min(buffer_.length - bufferIndex, chunk.length - i);
+      buffer_.setRange(bufferIndex, bufferIndex + bytesToWrite, chunk, i);
       i += bytesToWrite;
       bufferIndex += bytesToWrite;
       if (bufferIndex < nextMessageLength) return;
 
       // Once we've filled the buffer, emit it and reset our state.
-      sink.add(buffer);
+      sink.add(buffer_);
       nextMessageLength = 0;
       nextMessageLengthBits = 0;
       buffer = null;
-      bufferIndex = null;
     }
   }));
 });

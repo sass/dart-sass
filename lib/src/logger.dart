@@ -47,9 +47,9 @@ class Logger implements sass.Logger {
   }
 
   void warn(String message,
-      {FileSpan span, Trace trace, bool deprecation = false}) {
+      {FileSpan? span, Trace? trace, bool deprecation = false}) {
     var formatted = withGlyphs(() {
-      var buffer = new StringBuffer();
+      var buffer = StringBuffer();
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
         if (deprecation) buffer.write('Deprecation ');

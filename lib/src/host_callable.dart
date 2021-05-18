@@ -23,7 +23,7 @@ import 'value.dart';
 /// Throws a [ProtocolError] if [signature] is invalid.
 sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
     int compilationId, String signature,
-    {int id}) {
+    {int? id}) {
   var openParen = signature.indexOf('(');
   if (openParen == -1) {
     throw paramsError(
@@ -38,7 +38,7 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
 
   var name = signature.substring(0, openParen);
   try {
-    return sass.Callable(
+    return sass.Callable.function(
         name, signature.substring(openParen + 1, signature.length - 1),
         (arguments) {
       var request = OutboundMessage_FunctionCallRequest()
@@ -66,9 +66,6 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
           case InboundMessage_FunctionCallResponse_Result.notSet:
             throw mandatoryError('FunctionCallResponse.result');
         }
-
-        // dart-lang/sdk#38790
-        throw "Unknown FunctionCallResponse.result $response.";
       } on ProtocolError catch (error) {
         error.id = errorId;
         stderr.writeln("Host caused ${error.type.name.toLowerCase()} error: "

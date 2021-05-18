@@ -39,13 +39,12 @@ void main(List<String> args) {
         request.style == InboundMessage_CompileRequest_OutputStyle.COMPRESSED
             ? sass.OutputStyle.compressed
             : sass.OutputStyle.expanded;
-    var color = request.alertColor ?? false;
-    var ascii = request.alertAscii ?? false;
-    var logger = Logger(dispatcher, request.id, color: color, ascii: ascii);
+    var logger = Logger(dispatcher, request.id,
+        color: request.alertColor, ascii: request.alertAscii);
 
     try {
       String result;
-      source_maps.SingleMapping sourceMap;
+      source_maps.SingleMapping? sourceMap;
       var sourceMapCallback = request.sourceMap
           ? (source_maps.SingleMapping map) => sourceMap = map
           : null;
@@ -61,7 +60,7 @@ void main(List<String> args) {
         case InboundMessage_CompileRequest_Input.string:
           var input = request.string;
           result = sass.compileString(input.source,
-              color: color,
+              color: request.alertColor,
               logger: logger,
               importers: importers,
               importer: _decodeImporter(dispatcher, request, input.importer),
@@ -75,7 +74,7 @@ void main(List<String> args) {
         case InboundMessage_CompileRequest_Input.path:
           try {
             result = sass.compile(request.path,
-                color: color,
+                color: request.alertColor,
                 logger: logger,
                 importers: importers,
                 functions: globalFunctions,
@@ -97,11 +96,13 @@ void main(List<String> args) {
       var success = OutboundMessage_CompileResponse_CompileSuccess()
         ..css = result;
       if (sourceMap != null) {
-        success.sourceMap = json.encode(sourceMap.toJson());
+        // dart-lang/language#1536
+        success.sourceMap = json.encode(sourceMap!.toJson());
       }
       return OutboundMessage_CompileResponse()..success = success;
     } on sass.SassException catch (error) {
-      var formatted = withGlyphs(() => error.toString(color: color),
+      var formatted = withGlyphs(
+          () => error.toString(color: request.alertColor),
           ascii: request.alertAscii);
       return OutboundMessage_CompileResponse()
         ..failure = (OutboundMessage_CompileResponse_CompileFailure()
@@ -114,7 +115,7 @@ void main(List<String> args) {
 }
 
 /// Converts [importer] into an [Importer].
-sass.Importer _decodeImporter(
+sass.Importer? _decodeImporter(
     Dispatcher dispatcher,
     InboundMessage_CompileRequest request,
     InboundMessage_CompileRequest_Importer importer) {
@@ -131,7 +132,4 @@ sass.Importer _decodeImporter(
     case InboundMessage_CompileRequest_Importer_Importer.notSet:
       return null;
   }
-
-  // dart-lang/sdk#38790
-  throw "Unknown Importer.importer $importer.";
 }
