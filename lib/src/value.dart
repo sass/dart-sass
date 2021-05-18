@@ -195,27 +195,32 @@ abstract class Value implements ext.Value {
     if (list.asList.isEmpty) return null;
 
     var result = <String>[];
-    if (list.separator == ListSeparator.comma) {
-      for (var complex in list.asList) {
-        if (complex is SassString) {
-          result.add(complex.text);
-        } else if (complex is SassList &&
-            complex.separator == ListSeparator.space) {
-          var string = complex._selectorStringOrNull();
-          if (string == null) return null;
-          result.add(string);
-        } else {
-          return null;
+    switch (list.separator) {
+      case ListSeparator.comma:
+        for (var complex in list.asList) {
+          if (complex is SassString) {
+            result.add(complex.text);
+          } else if (complex is SassList &&
+              complex.separator == ListSeparator.space) {
+            var string = complex._selectorStringOrNull();
+            if (string == null) return null;
+            result.add(string);
+          } else {
+            return null;
+          }
         }
-      }
-    } else {
-      for (var compound in list.asList) {
-        if (compound is SassString) {
-          result.add(compound.text);
-        } else {
-          return null;
+        break;
+      case ListSeparator.slash:
+        return null;
+      default:
+        for (var compound in list.asList) {
+          if (compound is SassString) {
+            result.add(compound.text);
+          } else {
+            return null;
+          }
         }
-      }
+        break;
     }
     return result.join(list.separator == ListSeparator.comma ? ', ' : ' ');
   }

@@ -1,5 +1,20 @@
 ## 1.33.0
 
+* Deprecate the use of `/` for division. The new `math.div()` function should be
+  used instead. See [this page][] for details.
+
+  [this page]: https://sass-lang.com/documentation/breaking-changes/slash-div
+
+* Add a `list.slash()` function that returns a slash-separated list.
+
+* **Potentially breaking bug fix:** The heuristics around when potentially
+  slash-separated numbers are converted to slash-free numbers—for example, when
+  `1/2` will be printed as `0.5` rather than `1/2`—have been slightly expanded.
+  Previously, a number would be made slash-free if it was passed as an argument
+  to a *user-defined function*, but not to a *built-in function*. Now it will be
+  made slash-free in both cases. This is a behavioral change, but it's unlikely
+  to affect any real-world stylesheets.
+
 ### JS API
 
 * The `this` context for importers now has a `fromImport` field, which is `true`

@@ -705,6 +705,25 @@ Object /* SassString | List<Value> */ _parseChannels(
     String name, List<String> argumentNames, Value channels) {
   if (channels.isVar) return _functionString(name, [channels]);
 
+  var originalChannels = channels;
+  Value? alphaFromSlashList;
+  if (channels.separator == ListSeparator.slash) {
+    var list = channels.asList;
+    if (list.length != 2) {
+      throw SassScriptException(
+          "Only 2 slash-separated elements allowed, but ${list.length} "
+          "${pluralize('was', list.length, plural: 'were')} passed.");
+    }
+
+    channels = list[0];
+
+    alphaFromSlashList = list[1];
+    if (!alphaFromSlashList.isSpecialNumber) {
+      alphaFromSlashList.assertNumber("alpha");
+    }
+    if (list[0].isVar) return _functionString(name, [originalChannels]);
+  }
+
   var isCommaSeparated = channels.separator == ListSeparator.comma;
   var isBracketed = channels.hasBrackets;
   if (isCommaSeparated || isBracketed) {
@@ -720,17 +739,19 @@ Object /* SassString | List<Value> */ _parseChannels(
 
   var list = channels.asList;
   if (list.length > 3) {
-    throw SassScriptException(
-        "Only 3 elements allowed, but ${list.length} were passed.");
+    throw SassScriptException("Only 3 elements allowed, but ${list.length} "
+        "were passed.");
   } else if (list.length < 3) {
     if (list.any((value) => value.isVar) ||
         (list.isNotEmpty && _isVarSlash(list.last))) {
-      return _functionString(name, [channels]);
+      return _functionString(name, [originalChannels]);
     } else {
       var argument = argumentNames[list.length];
       throw SassScriptException("Missing element $argument.");
     }
   }
+
+  if (alphaFromSlashList != null) return [...list, alphaFromSlashList];
 
   var maybeSlashSeparated = list[2];
   if (maybeSlashSeparated is SassNumber) {

@@ -12,6 +12,7 @@ import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
 import '../value.dart';
+import '../warn.dart';
 
 /// The global definitions of Sass math functions.
 final global = UnmodifiableListView([
@@ -25,7 +26,7 @@ final global = UnmodifiableListView([
 final module = BuiltInModule("math", functions: [
   _abs, _acos, _asin, _atan, _atan2, _ceil, _clamp, _cos, _compatible, //
   _floor, _hypot, _isUnitless, _log, _max, _min, _percentage, _pow, //
-  _randomFunction, _round, _sin, _sqrt, _tan, _unit,
+  _randomFunction, _round, _sin, _sqrt, _tan, _unit, _div
 ], variables: {
   "e": SassNumber(math.e),
   "pi": SassNumber(math.pi),
@@ -293,6 +294,18 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
     throw SassScriptException("\$limit: Must be greater than 0, was $limit.");
   }
   return SassNumber(_random.nextInt(limit) + 1);
+});
+
+final _div = _function("div", r"$number1, $number2", (arguments) {
+  var number1 = arguments[0];
+  var number2 = arguments[1];
+
+  if (number1 is! SassNumber || number2 is! SassNumber) {
+    warn("math.div() will only support number arguments in a future release.\n"
+        "Use list.slash() instead for a slash separator.");
+  }
+
+  return number1.dividedBy(number2);
 });
 
 ///

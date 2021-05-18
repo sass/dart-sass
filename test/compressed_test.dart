@@ -109,6 +109,13 @@ void main() {
         expect(_compile("a {b: x, y, z}"), equals("a{b:x,y,z}"));
       });
 
+      test("don't include spaces around slashes", () {
+        expect(_compile("""
+          @use "sass:list";
+          a {b: list.slash(x, y, z)}
+        """), equals("a{b:x/y/z}"));
+      });
+
       test("do include spaces when space-separated", () {
         expect(_compile("a {b: x y z}"), equals("a{b:x y z}"));
       });

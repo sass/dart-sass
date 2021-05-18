@@ -10,7 +10,6 @@ import '../exception.dart';
 import '../extend/extension_store.dart';
 import '../module.dart';
 import '../util/limited_map_view.dart';
-import '../util/nullable.dart';
 import '../util/prefixed_map_view.dart';
 import '../value.dart';
 
@@ -31,7 +30,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
       _inner.transitivelyContainsExtensions;
 
   final Map<String, Value> variables;
-  final Map<String, AstNode>? variableNodes;
+  final Map<String, AstNode> variableNodes;
   final Map<String, T> functions;
   final Map<String, T> mixins;
 
@@ -53,8 +52,8 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   ForwardedModuleView(this._inner, this._rule)
       : variables = _forwardedMap(_inner.variables, _rule.prefix,
             _rule.shownVariables, _rule.hiddenVariables),
-        variableNodes = _inner.variableNodes.andThen((inner) => _forwardedMap(
-            inner, _rule.prefix, _rule.shownVariables, _rule.hiddenVariables)),
+        variableNodes = _forwardedMap(_inner.variableNodes, _rule.prefix,
+            _rule.shownVariables, _rule.hiddenVariables),
         functions = _forwardedMap(_inner.functions, _rule.prefix,
             _rule.shownMixinsAndFunctions, _rule.hiddenMixinsAndFunctions),
         mixins = _forwardedMap(_inner.mixins, _rule.prefix,
@@ -86,7 +85,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return map;
   }
 
-  void setVariable(String name, Value value, AstNode? nodeWithSpan) {
+  void setVariable(String name, Value value, AstNode nodeWithSpan) {
     var shownVariables = _rule.shownVariables;
     var hiddenVariables = _rule.hiddenVariables;
     if (shownVariables != null && !shownVariables.contains(name)) {

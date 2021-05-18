@@ -26,15 +26,13 @@ abstract class Module<T extends AsyncCallable> {
 
   /// The nodes where each variable in [_variables] was defined.
   ///
-  /// This is `null` if source mapping is disabled.
-  ///
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
   ///
   /// Implementations must ensure that this has the same keys as [variables] if
   /// it's not `null`.
-  Map<String, AstNode>? get variableNodes;
+  Map<String, AstNode> get variableNodes;
 
   /// The module's functions.
   ///
@@ -71,7 +69,7 @@ abstract class Module<T extends AsyncCallable> {
   ///
   /// Throws a [SassScriptException] if this module doesn't define a variable
   /// named [name].
-  void setVariable(String name, Value value, AstNode? nodeWithSpan);
+  void setVariable(String name, Value value, AstNode nodeWithSpan);
 
   /// Returns an opaque object that will be equal to another
   /// `variableIdentity()` return value for the same name in another module if

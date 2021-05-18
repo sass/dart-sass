@@ -44,7 +44,7 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
           : UnmodifiableMapView(
               {for (var callable in callables) callable.name: callable}));
 
-  void setVariable(String name, Value value, AstNode? nodeWithSpan) {
+  void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
     }

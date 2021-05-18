@@ -20,7 +20,7 @@ final global = UnmodifiableListView([
 /// The Sass list module.
 final module = BuiltInModule("list", functions: [
   _length, _nth, _setNth, _join, _append, _zip, _index, _isBracketed, //
-  _separator
+  _separator, _slash
 ]);
 
 final _length = _function(
@@ -61,9 +61,11 @@ final _join = _function(
     separator = ListSeparator.space;
   } else if (separatorParam.text == "comma") {
     separator = ListSeparator.comma;
+  } else if (separatorParam.text == "slash") {
+    separator = ListSeparator.slash;
   } else {
     throw SassScriptException(
-        '\$separator: Must be "space", "comma", or "auto".');
+        '\$separator: Must be "space", "comma", "slash", or "auto".');
   }
 
   var bracketed = bracketedParam is SassString && bracketedParam.text == 'auto'
@@ -89,9 +91,11 @@ final _append =
     separator = ListSeparator.space;
   } else if (separatorParam.text == "comma") {
     separator = ListSeparator.comma;
+  } else if (separatorParam.text == "slash") {
+    separator = ListSeparator.slash;
   } else {
     throw SassScriptException(
-        '\$separator: Must be "space", "comma", or "auto".');
+        '\$separator: Must be "space", "comma", "slash", or "auto".');
   }
 
   var newList = [...list.asList, value];
@@ -121,15 +125,28 @@ final _index = _function("index", r"$list, $value", (arguments) {
   return index == -1 ? sassNull : SassNumber(index + 1);
 });
 
-final _separator = _function(
-    "separator",
-    r"$list",
-    (arguments) => arguments[0].separator == ListSeparator.comma
-        ? SassString("comma", quotes: false)
-        : SassString("space", quotes: false));
+final _separator = _function("separator", r"$list", (arguments) {
+  switch (arguments[0].separator) {
+    case ListSeparator.comma:
+      return SassString("comma", quotes: false);
+    case ListSeparator.slash:
+      return SassString("slash", quotes: false);
+    default:
+      return SassString("space", quotes: false);
+  }
+});
 
 final _isBracketed = _function("is-bracketed", r"$list",
     (arguments) => SassBoolean(arguments[0].hasBrackets));
+
+final _slash = _function("slash", r"$elements...", (arguments) {
+  var list = arguments[0].asList;
+  if (list.length < 2) {
+    throw SassScriptException("At least two elements are required.");
+  }
+
+  return SassList(list, ListSeparator.slash);
+});
 
 /// Like [new BuiltInCallable.function], but always sets the URL to `sass:list`.
 BuiltInCallable _function(

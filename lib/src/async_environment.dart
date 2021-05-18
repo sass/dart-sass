@@ -25,6 +25,11 @@ import 'utils.dart';
 import 'value.dart';
 import 'visitor/clone_css.dart';
 
+// TODO(nweiz): This used to avoid tracking source spans for variables if source
+// map generation was disabled. We always have to track them now to produce
+// better warnings for /-as-division, but once those warnings are gone we should
+// go back to tracking conditionally.
+
 /// The lexical environment in which Sass is executed.
 ///
 /// This tracks lexically-scoped information, such as variables, functions, and
@@ -77,12 +82,10 @@ class AsyncEnvironment {
 
   /// The nodes where each variable in [_variables] was defined.
   ///
-  /// This is `null` if source mapping is disabled.
-  ///
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  final List<Map<String, AstNode>>? _variableNodes;
+  final List<Map<String, AstNode>> _variableNodes;
 
   /// A map of variable names to their indices in [_variables].
   ///
@@ -145,7 +148,7 @@ class AsyncEnvironment {
   /// Creates an [AsyncEnvironment].
   ///
   /// If [sourceMap] is `true`, this tracks variables' source locations
-  AsyncEnvironment({bool sourceMap = false})
+  AsyncEnvironment()
       : _modules = {},
         _namespaceNodes = {},
         _globalModules = {},
@@ -155,7 +158,7 @@ class AsyncEnvironment {
         _nestedForwardedModules = null,
         _allModules = [],
         _variables = [{}],
-        _variableNodes = sourceMap ? [{}] : null,
+        _variableNodes = [{}],
         _variableIndices = {},
         _functions = [{}],
         _functionIndices = {},
@@ -199,7 +202,7 @@ class AsyncEnvironment {
       _nestedForwardedModules,
       _allModules,
       _variables.toList(),
-      _variableNodes?.toList(),
+      _variableNodes.toList(),
       _functions.toList(),
       _mixins.toList(),
       _content);
@@ -218,7 +221,7 @@ class AsyncEnvironment {
       null,
       [],
       _variables.toList(),
-      _variableNodes?.toList(),
+      _variableNodes.toList(),
       _functions.toList(),
       _mixins.toList(),
       _content);
@@ -406,7 +409,7 @@ class AsyncEnvironment {
       for (var variable in forwardedVariableNames) {
         _variableIndices.remove(variable);
         _variables.last.remove(variable);
-        _variableNodes?.last.remove(variable);
+        _variableNodes.last.remove(variable);
       }
       for (var function in forwardedFunctionNames) {
         _functionIndices.remove(function);
@@ -468,17 +471,10 @@ class AsyncEnvironment {
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
   AstNode? getVariableNode(String name, {String? namespace}) {
-    var variableNodes = _variableNodes;
-    if (variableNodes == null) {
-      throw StateError(
-          "getVariableNodes() should only be called if sourceMap = true was "
-          "passed in.");
-    }
-
-    if (namespace != null) return _getModule(namespace).variableNodes![name];
+    if (namespace != null) return _getModule(namespace).variableNodes[name];
 
     if (_lastVariableName == name) {
-      return variableNodes[_lastVariableIndex!][name] ??
+      return _variableNodes[_lastVariableIndex!][name] ??
           _getVariableNodeFromGlobalModule(name);
     }
 
@@ -486,7 +482,7 @@ class AsyncEnvironment {
     if (index != null) {
       _lastVariableName = name;
       _lastVariableIndex = index;
-      return variableNodes[index][name] ??
+      return _variableNodes[index][name] ??
           _getVariableNodeFromGlobalModule(name);
     }
 
@@ -496,7 +492,8 @@ class AsyncEnvironment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
-    return variableNodes[index][name] ?? _getVariableNodeFromGlobalModule(name);
+    return _variableNodes[index][name] ??
+        _getVariableNodeFromGlobalModule(name);
   }
 
   /// Returns the node for the variable named [name] from a namespaceless
@@ -511,7 +508,7 @@ class AsyncEnvironment {
     // We don't need to worry about multiple modules defining the same variable,
     // because that's already been checked by [getVariable].
     for (var module in _globalModules) {
-      var value = module.variableNodes![name];
+      var value = module.variableNodes[name];
       if (value != null) return value;
     }
     return null;
@@ -559,7 +556,7 @@ class AsyncEnvironment {
   /// defined with the given namespace, if no variable with the given [name] is
   /// defined in module with the given namespace, or if no [namespace] is passed
   /// and multiple global modules define variables named [name].
-  void setVariable(String name, Value value, AstNode? nodeWithSpan,
+  void setVariable(String name, Value value, AstNode nodeWithSpan,
       {String? namespace, bool global = false}) {
     if (namespace != null) {
       _getModule(namespace).setVariable(name, value, nodeWithSpan);
@@ -587,7 +584,7 @@ class AsyncEnvironment {
       }
 
       _variables.first[name] = value;
-      if (nodeWithSpan != null) _variableNodes?.first[name] = nodeWithSpan;
+      _variableNodes.first[name] = nodeWithSpan;
       return;
     }
 
@@ -617,7 +614,7 @@ class AsyncEnvironment {
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variables[index][name] = value;
-    _variableNodes?[index][name] = nodeWithSpan!;
+    _variableNodes[index][name] = nodeWithSpan;
   }
 
   /// Sets the variable named [name] to [value], associated with
@@ -629,15 +626,13 @@ class AsyncEnvironment {
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  void setLocalVariable(String name, Value value, AstNode? nodeWithSpan) {
+  void setLocalVariable(String name, Value value, AstNode nodeWithSpan) {
     var index = _variables.length - 1;
     _lastVariableName = name;
     _lastVariableIndex = index;
     _variableIndices[name] = index;
     _variables[index][name] = value;
-    if (nodeWithSpan != null) {
-      _variableNodes?[index][name] = nodeWithSpan;
-    }
+    _variableNodes[index][name] = nodeWithSpan;
   }
 
   /// Returns the value of the function named [name], optionally with the given
@@ -789,7 +784,7 @@ class AsyncEnvironment {
     _inSemiGlobalScope = semiGlobal;
 
     _variables.add({});
-    _variableNodes?.add({});
+    _variableNodes.add({});
     _functions.add({});
     _mixins.add({});
     _nestedForwardedModules?.add([]);
@@ -818,12 +813,12 @@ class AsyncEnvironment {
     var configuration = <String, ConfiguredValue>{};
     for (var i = 0; i < _variables.length; i++) {
       var values = _variables[i];
-      var nodes = _variableNodes?[i] ?? <String, AstNode>{};
+      var nodes = _variableNodes[i];
       for (var entry in values.entries) {
         // Implicit configurations are never invalid, making [configurationSpan]
         // unnecessary, so we pass null here to avoid having to compute it.
         configuration[entry.key] =
-            ConfiguredValue.implicit(entry.value, nodes[entry.key]);
+            ConfiguredValue.implicit(entry.value, nodes[entry.key]!);
       }
     }
     return Configuration.implicit(configuration);
@@ -921,7 +916,7 @@ class _EnvironmentModule implements Module {
 
   final List<Module> upstream;
   final Map<String, Value> variables;
-  final Map<String, AstNode>? variableNodes;
+  final Map<String, AstNode> variableNodes;
   final Map<String, AsyncCallable> functions;
   final Map<String, AsyncCallable> mixins;
   final ExtensionStore extensionStore;
@@ -951,10 +946,8 @@ class _EnvironmentModule implements Module {
         _makeModulesByVariable(forwarded),
         _memberMap(environment._variables.first,
             forwarded.map((module) => module.variables)),
-        environment._variableNodes.andThen((nodes) => _memberMap(
-            nodes.first,
-            // dart-lang/sdk#45348
-            forwarded!.map((module) => module.variableNodes!))),
+        _memberMap(environment._variableNodes.first,
+            forwarded.map((module) => module.variableNodes)),
         _memberMap(environment._functions.first,
             forwarded.map((module) => module.functions)),
         _memberMap(environment._mixins.first,
@@ -1017,7 +1010,7 @@ class _EnvironmentModule implements Module {
       required this.transitivelyContainsExtensions})
       : upstream = _environment._allModules;
 
-  void setVariable(String name, Value value, AstNode? nodeWithSpan) {
+  void setVariable(String name, Value value, AstNode nodeWithSpan) {
     var module = _modulesByVariable[name];
     if (module != null) {
       module.setVariable(name, value, nodeWithSpan);
@@ -1029,9 +1022,7 @@ class _EnvironmentModule implements Module {
     }
 
     _environment._variables.first[name] = value;
-    if (nodeWithSpan != null) {
-      _environment._variableNodes?.first[name] = nodeWithSpan;
-    }
+    _environment._variableNodes.first[name] = nodeWithSpan;
     return;
   }
 

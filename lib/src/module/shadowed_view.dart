@@ -9,7 +9,6 @@ import '../exception.dart';
 import '../extend/extension_store.dart';
 import '../module.dart';
 import '../util/limited_map_view.dart';
-import '../util/nullable.dart';
 import '../utils.dart';
 import '../value.dart';
 
@@ -28,7 +27,7 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
       _inner.transitivelyContainsExtensions;
 
   final Map<String, Value> variables;
-  final Map<String, AstNode>? variableNodes;
+  final Map<String, AstNode> variableNodes;
   final Map<String, T> functions;
   final Map<String, T> mixins;
 
@@ -57,8 +56,7 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   ShadowedModuleView(this._inner,
       {Set<String>? variables, Set<String>? functions, Set<String>? mixins})
       : variables = _shadowedMap(_inner.variables, variables),
-        variableNodes =
-            _inner.variableNodes.andThen((map) => _shadowedMap(map, variables)),
+        variableNodes = _shadowedMap(_inner.variableNodes, variables),
         functions = _shadowedMap(_inner.functions, functions),
         mixins = _shadowedMap(_inner.mixins, mixins);
 
@@ -77,7 +75,7 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
           Map<String, Object?> map, Set<String>? blocklist) =>
       blocklist != null && map.isNotEmpty && blocklist.any(map.containsKey);
 
-  void setVariable(String name, Value value, AstNode? nodeWithSpan) {
+  void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
     } else {
