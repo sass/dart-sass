@@ -103,7 +103,7 @@ int asDecimal(int character) {
 ///
 /// Assumes that [number] is less than 10.
 int decimalCharFor(int number) {
-  assert(number < 10);
+  assert(number < 10, "Expected ${number} to be a digit from 0 to 9.");
   return $0 + number;
 }
 
