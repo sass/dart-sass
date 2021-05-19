@@ -681,6 +681,8 @@ class _SerializeVisitor
     // have to do is clamp doubles that are close to being integers.
     var integer = fuzzyAsInt(number);
     if (integer != null) {
+      // Node.js still uses exponential notation for integers, so we have to
+      // handle it here.
       _buffer.write(_removeExponent(integer.toString()));
       return;
     }
@@ -744,6 +746,10 @@ class _SerializeVisitor
       for (var i = 0; i < additionalZeroes; i++) {
         buffer.writeCharCode($0);
       }
+
+      // Format this like a double so we can still pass it to [_writeDecimal].
+      buffer.writeCharCode($dot);
+      buffer.writeCharCode($0);
       return buffer.toString();
     } else {
       var result = StringBuffer();
@@ -761,7 +767,7 @@ class _SerializeVisitor
   /// Assuming [text] is a double written without exponent notation, writes it
   /// to [_buffer] with at most [SassNumber.precision] digits after the decimal.
   void _writeDecimal(String text) {
-    assert(RegExp(r"-?\d+.\d+").hasMatch(text),
+    assert(RegExp(r"-?\d+\.\d+").hasMatch(text),
         '"$text" should be a double written without exponent notation.');
 
     // Dart serializes all doubles with a trailing `.0`, even if they have
