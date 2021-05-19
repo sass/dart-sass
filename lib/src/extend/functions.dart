@@ -21,7 +21,13 @@ import '../utils.dart';
 /// subselectors of their arguments.
 ///
 /// For example, `.foo` is a superselector of `:matches(.foo)`.
-final _subselectorPseudos = {'matches', 'any', 'nth-child', 'nth-last-child'};
+final _subselectorPseudos = {
+  'is',
+  'matches',
+  'any',
+  'nth-child',
+  'nth-last-child'
+};
 
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by both [complex1] and [complex2].
@@ -734,6 +740,7 @@ bool _selectorPseudoIsSuperselector(
   var selector1 = selector1_; // dart-lang/sdk#45348
 
   switch (pseudo1.normalizedName) {
+    case 'is':
     case 'matches':
     case 'any':
       var selectors = _selectorPseudoArgs(compound2, pseudo1.name);

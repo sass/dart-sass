@@ -13,6 +13,7 @@ import 'parser.dart';
 /// Pseudo-class selectors that take unadorned selectors as arguments.
 final _selectorPseudoClasses = {
   "not",
+  "is",
   "matches",
   "current",
   "any",
