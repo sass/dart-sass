@@ -700,7 +700,7 @@ class _SerializeVisitor
       return;
     }
 
-    _writeDecimal(text);
+    _writeRounded(text);
   }
 
   /// If [text] is written in exponent notation, returns a string representation
@@ -746,10 +746,6 @@ class _SerializeVisitor
       for (var i = 0; i < additionalZeroes; i++) {
         buffer.writeCharCode($0);
       }
-
-      // Format this like a double so we can still pass it to [_writeDecimal].
-      buffer.writeCharCode($dot);
-      buffer.writeCharCode($0);
       return buffer.toString();
     } else {
       var result = StringBuffer();
@@ -764,27 +760,20 @@ class _SerializeVisitor
     }
   }
 
-  /// Assuming [text] is a double written without exponent notation, writes it
-  /// to [_buffer] with at most [SassNumber.precision] digits after the decimal.
-  void _writeDecimal(String text) {
-    assert(RegExp(r"-?\d+\.\d+").hasMatch(text),
-        '"$text" should be a double written without exponent notation.');
+  /// Assuming [text] is a number written without exponent notation, rounds it
+  /// to [SassNumber.precision] digits after the decimal and writes the result
+  /// to [_buffer].
+  void _writeRounded(String text) {
+    assert(RegExp(r"^-?\d+(\.\d+)?$").hasMatch(text),
+        '"$text" should be a number written without exponent notation.');
 
     // Dart serializes all doubles with a trailing `.0`, even if they have
     // integer values. In that case we definitely don't need to adjust for
     // precision, so we can just write the number as-is without the `.0`.
     if (text.endsWith(".0")) {
-      _buffer.write(text.substring(0, text.length - 1));
+      _buffer.write(text.substring(0, text.length - 2));
       return;
     }
-
-    // Consume through the decimal point (which we assume to exist). Don't
-    // actually write to [_buffer] yet because, if the number starts with `-0`,
-    // we might not want to write the minus sign if the decimal portion turns
-    // out to be insignificant.
-    var textIndex = 0;
-    var negative = text.codeUnitAt(0) == $minus;
-    if (negative) textIndex++;
 
     // We need to ensure that we write at most [SassNumber.precision] digits
     // after the decimal point, and that we round appropriately if necessary. To
@@ -792,11 +781,21 @@ class _SerializeVisitor
     // after the decimal point), which we then write to [_buffer] as text. We
     // start writing after the first digit to give us room to round up to a
     // higher decimal place than was represented in the original number.
-    var digits = Uint8List(text.length);
+    var digits = Uint8List(text.length + 1);
     var digitsIndex = 1;
 
     // Write the digits before the decimal to [digits].
+    var textIndex = 0;
+    var negative = text.codeUnitAt(0) == $minus;
+    if (negative) textIndex++;
     while (true) {
+      if (textIndex == text.length) {
+        // If we get here, [text] has no decmial point. It definitely doesn't
+        // need to be rounded; we can write it as-is.
+        _buffer.write(text);
+        return;
+      }
+
       var codeUnit = text.codeUnitAt(textIndex++);
       if (codeUnit == $dot) break;
       digits[digitsIndex++] = asDecimal(codeUnit);
