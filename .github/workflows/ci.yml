@@ -97,10 +97,9 @@ jobs:
           - os: ubuntu-latest
             dart_channel: stable
             node_version: 10
-# TODO(nweiz): Re-enable these when dart-lang/sdk#44181 or dart-lang/test#1363 is fixed.
-#          - os: ubuntu-latest
-#            dart_channel: dev
-#            node_version: "${{ env.DEFAULT_NODE_VERSION }}"
+          - os: ubuntu-latest
+            dart_channel: dev
+            node_version: "${{ env.DEFAULT_NODE_VERSION }}"
 
     steps:
       - uses: actions/checkout@v2
