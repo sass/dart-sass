@@ -3,7 +3,7 @@
 * Deprecate the use of `/` for division. The new `math.div()` function should be
   used instead. See [this page][] for details.
 
-  [this page]: https://sass-lang.com/documentation/breaking-changes/slash-div
+[this page]: https://sass-lang.com/documentation/breaking-changes/slash-div
 
 * Add a `list.slash()` function that returns a slash-separated list.
 
@@ -17,7 +17,7 @@
 
 * [`:is()`][] now behaves identically to `:matches()`.
 
-  [`:is()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:is
+[`:is()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:is
   
 * Fix a bug where non-integer numbers that were very close to integer
   values would be incorrectly formatted in CSS.
