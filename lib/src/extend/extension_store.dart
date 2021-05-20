@@ -818,9 +818,13 @@ class ExtensionStore {
           // become `.foo:not(.bar)`. However, this is a narrow edge case and
           // supporting it properly would make this code and the code calling it
           // a lot more complicated, so it's not supported for now.
-          if (innerPseudo.normalizedName != 'matches') return [];
+          if (innerPseudo.normalizedName != 'is' &&
+              innerPseudo.normalizedName != 'matches') {
+            return [];
+          }
           return innerSelector.components;
 
+        case 'is':
         case 'matches':
         case 'any':
         case 'current':
