@@ -15,6 +15,12 @@
   made slash-free in both cases. This is a behavioral change, but it's unlikely
   to affect any real-world stylesheets.
 
+* Fix a bug where non-integer numbers that were very close to integer
+  values would be incorrectly formatted in CSS.
+
+* Fix a bug where very small number and very large negative numbers would be
+  incorrectly formatted in CSS.
+
 ### JS API
 
 * The `this` context for importers now has a `fromImport` field, which is `true`

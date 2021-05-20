@@ -121,6 +121,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
+        # TODO(nweiz): Use the latest Dart when dart-lang/sdk#45488
+        with: {sdk: 2.12.4}
       - run: dart pub get
       - name: Analyze dart
         run: dartanalyzer --fatal-warnings --fatal-infos lib tool test
