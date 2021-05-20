@@ -97,10 +97,9 @@ jobs:
           - os: ubuntu-latest
             dart_channel: stable
             node_version: 10
-# TODO(nweiz): Re-enable these when dart-lang/sdk#44181 or dart-lang/test#1363 is fixed.
-#          - os: ubuntu-latest
-#            dart_channel: dev
-#            node_version: "${{ env.DEFAULT_NODE_VERSION }}"
+          - os: ubuntu-latest
+            dart_channel: dev
+            node_version: "${{ env.DEFAULT_NODE_VERSION }}"
 
     steps:
       - uses: actions/checkout@v2
@@ -121,6 +120,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
+        # TODO(nweiz): Use the latest Dart when dart-lang/sdk#45488
+        with: {sdk: 2.12.4}
       - run: dart pub get
       - name: Analyze dart
         run: dartanalyzer --fatal-warnings --fatal-infos lib tool test

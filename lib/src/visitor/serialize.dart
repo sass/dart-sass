@@ -16,7 +16,6 @@ import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../color_names.dart';
 import '../exception.dart';
-import '../io.dart';
 import '../parse/parser.dart';
 import '../utils.dart';
 import '../util/character.dart';
@@ -682,31 +681,26 @@ class _SerializeVisitor
     // have to do is clamp doubles that are close to being integers.
     var integer = fuzzyAsInt(number);
     if (integer != null) {
-      // Node.js prints integers at least 1e21 using exponential notation.
-      _buffer.write(isNode && integer >= 1e21
-          ? _removeExponent(integer.toString())
-          : integer.toString());
+      // Node.js still uses exponential notation for integers, so we have to
+      // handle it here.
+      _buffer.write(_removeExponent(integer.toString()));
       return;
     }
 
-    // Dart and Node both print doubles at least 1e21 using exponential
-    // notation.
-    var text =
-        number >= 1e21 ? _removeExponent(number.toString()) : number.toString();
+    var text = _removeExponent(number.toString());
 
     // Any double that's less than `SassNumber.precision + 2` digits long is
     // guaranteed to be safe to emit directly, since it'll contain at most `0.`
     // followed by [SassNumber.precision] digits.
     var canWriteDirectly = text.length < SassNumber.precision + 2;
 
-    if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
-
     if (canWriteDirectly) {
+      if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
       _buffer.write(text);
       return;
     }
 
-    _writeDecimal(text);
+    _writeRounded(text);
   }
 
   /// If [text] is written in exponent notation, returns a string representation
@@ -716,6 +710,8 @@ class _SerializeVisitor
   String _removeExponent(String text) {
     // Don't allocate this until we know [text] contains exponent notation.
     StringBuffer? buffer;
+    var negative = text.codeUnitAt(0) == $minus;
+
     late int exponent;
     for (var i = 0; i < text.length; i++) {
       var codeUnit = text.codeUnitAt(i);
@@ -727,7 +723,12 @@ class _SerializeVisitor
       // If the number has more than one significant digit, the second
       // character will be a decimal point that we don't want to include in
       // the generated number.
-      if (i > 2) buffer.write(text.substring(2, i));
+      if (negative) {
+        buffer.writeCharCode(text.codeUnitAt(1));
+        if (i > 3) buffer.write(text.substring(3, i));
+      } else {
+        if (i > 2) buffer.write(text.substring(2, i));
+      }
 
       exponent = int.parse(text.substring(i + 1, text.length));
       break;
@@ -737,8 +738,11 @@ class _SerializeVisitor
     if (exponent > 0) {
       // Write an additional zero for each exponent digits other than those
       // already written to the buffer. We subtract 1 from `buffer.length`
-      // because the first digit doesn't count towards the exponent.
-      var additionalZeroes = exponent - (buffer.length - 1);
+      // because the first digit doesn't count towards the exponent. Subtract 1
+      // more for negative numbers because of the `-` written to the buffer.
+      var additionalZeroes =
+          exponent - (buffer.length - 1 - (negative ? 1 : 0));
+
       for (var i = 0; i < additionalZeroes; i++) {
         buffer.writeCharCode($0);
       }
@@ -756,62 +760,114 @@ class _SerializeVisitor
     }
   }
 
-  /// Assuming [text] is a double written without exponent notation, writes it
-  /// to [_buffer] with at most [SassNumber.precision] digits after the decimal.
-  void _writeDecimal(String text) {
-    // Write up until the decimal point, or to the end of [text] if it has no
-    // decimal point.
-    var textIndex = 0;
-    for (; textIndex < text.length; textIndex++) {
-      var codeUnit = text.codeUnitAt(textIndex);
-      if (codeUnit == $dot) {
-        // Most integer-value doubles will have been converted to ints using
-        // [fuzzyAsInt] in [_writeNumber]. However, that logic isn't rock-solid
-        // for very large doubles due to floating-point imprecision, so we
-        // handle that case here as well.
-        if (textIndex == text.length - 2 &&
-            text.codeUnitAt(text.length - 1) == $0) {
-          return;
-        }
+  /// Assuming [text] is a number written without exponent notation, rounds it
+  /// to [SassNumber.precision] digits after the decimal and writes the result
+  /// to [_buffer].
+  void _writeRounded(String text) {
+    assert(RegExp(r"^-?\d+(\.\d+)?$").hasMatch(text),
+        '"$text" should be a number written without exponent notation.');
 
-        _buffer.writeCharCode(codeUnit);
-        textIndex++;
-        break;
-      }
-
-      _buffer.writeCharCode(codeUnit);
+    // Dart serializes all doubles with a trailing `.0`, even if they have
+    // integer values. In that case we definitely don't need to adjust for
+    // precision, so we can just write the number as-is without the `.0`.
+    if (text.endsWith(".0")) {
+      _buffer.write(text.substring(0, text.length - 2));
+      return;
     }
-    if (textIndex == text.length) return;
 
     // We need to ensure that we write at most [SassNumber.precision] digits
     // after the decimal point, and that we round appropriately if necessary. To
-    // do this, we maintain an intermediate buffer of decimal digits, which we
-    // then convert to text.
-    var digits = Uint8List(SassNumber.precision);
-    var digitsIndex = 0;
-    while (textIndex < text.length && digitsIndex < digits.length) {
+    // do this, we maintain an intermediate buffer of digits (both before and
+    // after the decimal point), which we then write to [_buffer] as text. We
+    // start writing after the first digit to give us room to round up to a
+    // higher decimal place than was represented in the original number.
+    var digits = Uint8List(text.length + 1);
+    var digitsIndex = 1;
+
+    // Write the digits before the decimal to [digits].
+    var textIndex = 0;
+    var negative = text.codeUnitAt(0) == $minus;
+    if (negative) textIndex++;
+    while (true) {
+      if (textIndex == text.length) {
+        // If we get here, [text] has no decmial point. It definitely doesn't
+        // need to be rounded; we can write it as-is.
+        _buffer.write(text);
+        return;
+      }
+
+      var codeUnit = text.codeUnitAt(textIndex++);
+      if (codeUnit == $dot) break;
+      digits[digitsIndex++] = asDecimal(codeUnit);
+    }
+    var firstFractionalDigit = digitsIndex;
+
+    // Only write at most [precision] digits after the decimal. If there aren't
+    // that many digits left in the number, write it as-is since no rounding or
+    // truncation is needed.
+    var indexAfterPrecision = textIndex + SassNumber.precision;
+    if (indexAfterPrecision >= text.length) {
+      _buffer.write(text);
+      return;
+    }
+
+    // Write the digits after the decimal to [digits].
+    while (textIndex < indexAfterPrecision) {
       digits[digitsIndex++] = asDecimal(text.codeUnitAt(textIndex++));
     }
 
-    // Round the trailing digits in [digits] up if necessary. We can be
-    // confident this won't cause us to need to round anything before the
-    // decimal, because otherwise the number would be [fuzzyIsInt].
-    if (textIndex != text.length &&
-        asDecimal(text.codeUnitAt(textIndex)) >= 5) {
-      while (digitsIndex >= 0) {
+    // Round the trailing digits in [digits] up if necessary.
+    if (asDecimal(text.codeUnitAt(textIndex)) >= 5) {
+      while (true) {
+        // [digitsIndex] is guaranteed to be >0 here because we added a leading
+        // 0 to [digits] when we constructed it, so even if we round everything
+        // up [newDigit] will always be 1 when digitsIndex is 1.
         var newDigit = ++digits[digitsIndex - 1];
         if (newDigit != 10) break;
         digitsIndex--;
       }
     }
 
-    // Remove trailing zeros.
-    while (digitsIndex > 0 && digits[digitsIndex - 1] == 0) {
+    // At most one of the following loops will actually execute. If we rounded
+    // digits up before the decimal point, the first loop will set those digits
+    // to 0 (rather than 10, which is not a valid decimal digit). On the other
+    // hand, if we have trailing zeros left after the decimal point, the second
+    // loop will move [digitsIndex] before them and cause them not to be
+    // written. Either way, [digitsIndex] will end up >= [firstFractionalDigit].
+    for (; digitsIndex < firstFractionalDigit; digitsIndex++) {
+      digits[digitsIndex] = 0;
+    }
+    while (digitsIndex > firstFractionalDigit && digits[digitsIndex - 1] == 0) {
       digitsIndex--;
     }
 
-    for (var i = 0; i < digitsIndex; i++) {
-      _buffer.writeCharCode(decimalCharFor(digits[i]));
+    // Omit the minus sign if the number ended up being rounded to exactly zero,
+    // write "0" explicit to avoid adding a minus sign or omitting the number
+    // entirely in compressed mode.
+    if (digitsIndex == 2 && digits[0] == 0 && digits[1] == 0) {
+      _buffer.writeCharCode($0);
+      return;
+    }
+
+    if (negative) _buffer.writeCharCode($minus);
+
+    // Write the digits before the decimal point to [_buffer]. Omit the leading
+    // 0 that's added to [digits] to accommodate rounding, and in compressed
+    // mode omit the 0 before the decimal point as well.
+    var writtenIndex = 0;
+    if (digits[0] == 0) {
+      writtenIndex++;
+      if (_isCompressed && digits[1] == 0) writtenIndex++;
+    }
+    for (; writtenIndex < firstFractionalDigit; writtenIndex++) {
+      _buffer.writeCharCode(decimalCharFor(digits[writtenIndex]));
+    }
+
+    if (digitsIndex > firstFractionalDigit) {
+      _buffer.writeCharCode($dot);
+      for (; writtenIndex < digitsIndex; writtenIndex++) {
+        _buffer.writeCharCode(decimalCharFor(digits[writtenIndex]));
+      }
     }
   }
 

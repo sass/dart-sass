@@ -18,6 +18,12 @@
 * [`:is()`][] now behaves identically to `:matches()`.
 
   [`:is()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:is
+  
+* Fix a bug where non-integer numbers that were very close to integer
+  values would be incorrectly formatted in CSS.
+
+* Fix a bug where very small number and very large negative numbers would be
+  incorrectly formatted in CSS.
 
 ### JS API
 
