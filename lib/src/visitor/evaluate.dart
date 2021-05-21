@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7eb518e3fd9269a2117e8f4a4b4149ca05e3ec25
+// Checksum: 1d5f3cb78c4567e19f106241ee67c70f4ae01df1
 //
 // ignore_for_file: unused_import
 
@@ -84,12 +84,14 @@ EvaluateResult evaluate(Stylesheet stylesheet,
         Importer? importer,
         Iterable<Callable>? functions,
         Logger? logger,
+        bool quietDeps = false,
         bool sourceMap = false}) =>
     _EvaluateVisitor(
             importCache: importCache,
             nodeImporter: nodeImporter,
             functions: functions,
             logger: logger,
+            quietDeps: quietDeps,
             sourceMap: sourceMap)
         .run(importer, stylesheet);
 
@@ -162,6 +164,15 @@ class _EvaluateVisitor
   /// We only want to emit one warning per location, to avoid blowing up users'
   /// consoles with redundant warnings.
   final _warningsEmitted = <Tuple2<String, SourceSpan>>{};
+
+  // The importer from which the entrypoint stylesheet was loaded.
+  late final Importer? _originalImporter;
+
+  /// Whether to avoid emitting warnings for files loaded from dependencies.
+  ///
+  /// A "dependency" in this context is any stylesheet loaded through an
+  /// importer other than [_originalImporter].
+  final bool _quietDeps;
 
   /// Whether to track source map information.
   final bool _sourceMap;
@@ -259,6 +270,12 @@ class _EvaluateVisitor
   /// stylesheet.
   Importer? _importer;
 
+  /// Whether we're in a dependency.
+  ///
+  /// A dependency is defined as a stylesheet imported by an importer other than
+  /// the original. In Node importers, nothing is considered a dependency.
+  bool get _inDependency => !_asNodeSass && _importer != _originalImporter;
+
   /// The stylesheet that's currently being evaluated.
   Stylesheet get _stylesheet => _assertInModule(__stylesheet, "_stylesheet");
   set _stylesheet(Stylesheet value) => __stylesheet = value;
@@ -304,12 +321,14 @@ class _EvaluateVisitor
       NodeImporter? nodeImporter,
       Iterable<Callable>? functions,
       Logger? logger,
+      bool quietDeps = false,
       bool sourceMap = false})
       : _importCache = nodeImporter == null
             ? importCache ?? ImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
+        _quietDeps = quietDeps,
         _sourceMap = sourceMap,
         // The default environment is overridden in [_execute] for full
         // stylesheets, but for [AsyncEvaluator] this environment is used.
@@ -507,6 +526,7 @@ class _EvaluateVisitor
         }
       }
 
+      _originalImporter = importer;
       var module = _execute(importer, node);
 
       return EvaluateResult(_combineCss(module), _includedFiles);
@@ -1544,11 +1564,17 @@ class _EvaluateVisitor
 
       var importCache = _importCache;
       if (importCache != null) {
-        var tuple = importCache.import(Uri.parse(url),
+        var tuple = importCache.canonicalize(Uri.parse(url),
             baseImporter: _importer,
             baseUrl: baseUrl ?? _stylesheet.span.sourceUrl,
             forImport: forImport);
-        if (tuple != null) return tuple;
+
+        if (tuple != null) {
+          var stylesheet = importCache.importCanonical(tuple.item1, tuple.item2,
+              originalUrl: tuple.item3,
+              quiet: _quietDeps && tuple.item1 != _originalImporter);
+          if (stylesheet != null) return Tuple2(tuple.item1, stylesheet);
+        }
       } else {
         var stylesheet = _importLikeNode(url, forImport);
         if (stylesheet != null) return Tuple2(null, stylesheet);
@@ -3065,6 +3091,7 @@ class _EvaluateVisitor
 
   /// Emits a warning with the given [message] about the given [span].
   void _warn(String message, FileSpan span, {bool deprecation = false}) {
+    if (_quietDeps && _inDependency) return;
     if (!_warningsEmitted.add(Tuple2(message, span))) return;
     _logger.warn(message,
         span: span, trace: _stackTrace(span), deprecation: deprecation);

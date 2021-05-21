@@ -68,6 +68,7 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
               importCache: importCache,
               importer: FilesystemImporter('.'),
               style: options.style,
+              quietDeps: options.quietDeps,
               sourceMap: options.emitSourceMap,
               charset: options.charset)
           : await compileAsync(source,
@@ -75,6 +76,7 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
               logger: options.logger,
               importCache: importCache,
               style: options.style,
+              quietDeps: options.quietDeps,
               sourceMap: options.emitSourceMap,
               charset: options.charset);
     } else {
@@ -85,6 +87,7 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
               importCache: graph.importCache,
               importer: FilesystemImporter('.'),
               style: options.style,
+              quietDeps: options.quietDeps,
               sourceMap: options.emitSourceMap,
               charset: options.charset)
           : compile(source,
@@ -92,6 +95,7 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
               logger: options.logger,
               importCache: graph.importCache,
               style: options.style,
+              quietDeps: options.quietDeps,
               sourceMap: options.emitSourceMap,
               charset: options.charset);
     }

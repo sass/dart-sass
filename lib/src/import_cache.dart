@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 950db49eb9e3a85f35bc4a3d7cfe029fb60ae498
+// Checksum: 6821c9a63333c3c99b0c9515aa04e73a14e0f141
 //
 // ignore_for_file: unused_import
 
@@ -161,7 +161,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     var tuple = canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport);
     if (tuple == null) return null;
-    var stylesheet = importCanonical(tuple.item1, tuple.item2, tuple.item3);
+    var stylesheet =
+        importCanonical(tuple.item1, tuple.item2, originalUrl: tuple.item3);
     if (stylesheet == null) return null;
     return Tuple2(tuple.item1, stylesheet);
   }
@@ -175,9 +176,12 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// into [canonicalUrl]. It's used to resolve a relative canonical URL, which
   /// importers may return for legacy reasons.
   ///
+  /// If [quiet] is `true`, this will disable logging warnings when parsing the
+  /// newly imported stylesheet.
+  ///
   /// Caches the result of the import and uses cached results if possible.
   Stylesheet? importCanonical(Importer importer, Uri canonicalUrl,
-      [Uri? originalUrl]) {
+      {Uri? originalUrl, bool quiet = false}) {
     return _importCache.putIfAbsent(canonicalUrl, () {
       var result = importer.load(canonicalUrl);
       if (result == null) return null;
@@ -189,7 +193,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
           url: originalUrl == null
               ? canonicalUrl
               : originalUrl.resolveUri(canonicalUrl),
-          logger: _logger);
+          logger: quiet ? Logger.quiet : _logger);
     });
   }
 

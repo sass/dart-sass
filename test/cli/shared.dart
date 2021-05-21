@@ -405,6 +405,84 @@ void sharedTests(
     });
   });
 
+  group("with --quiet-deps", () {
+    group("in a relative load from the entrypoint", () {
+      test("emits @warn", () async {
+        await d.file("test.scss", "@use 'other'").create();
+        await d.file("_other.scss", "@warn heck").create();
+
+        var sass = await runSass(["--quiet-deps", "test.scss"]);
+        expect(sass.stderr, emitsThrough(contains("heck")));
+        await sass.shouldExit(0);
+      });
+
+      test("emits @debug", () async {
+        await d.file("test.scss", "@use 'other'").create();
+        await d.file("_other.scss", "@debug heck").create();
+
+        var sass = await runSass(["--quiet-deps", "test.scss"]);
+        expect(sass.stderr, emitsThrough(contains("heck")));
+        await sass.shouldExit(0);
+      });
+
+      test("emits parser warnings", () async {
+        await d.file("test.scss", "@use 'other'").create();
+        await d.file("_other.scss", "a {b: c && d}").create();
+
+        var sass = await runSass(["--quiet-deps", "test.scss"]);
+        expect(sass.stderr, emitsThrough(contains("&&")));
+        await sass.shouldExit(0);
+      });
+
+      test("emits runner warnings", () async {
+        await d.file("test.scss", "@use 'other'").create();
+        await d.file("_other.scss", "#{blue} {x: y}").create();
+
+        var sass = await runSass(["--quiet-deps", "test.scss"]);
+        expect(sass.stderr, emitsThrough(contains("blue")));
+        await sass.shouldExit(0);
+      });
+    });
+
+    group("in a load path load", () {
+      test("emits @warn", () async {
+        await d.file("test.scss", "@use 'other'").create();
+        await d.dir("dir", [d.file("_other.scss", "@warn heck")]).create();
+
+        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        expect(sass.stderr, emitsThrough(contains("heck")));
+        await sass.shouldExit(0);
+      });
+
+      test("emits @debug", () async {
+        await d.file("test.scss", "@use 'other'").create();
+        await d.dir("dir", [d.file("_other.scss", "@debug heck")]).create();
+
+        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        expect(sass.stderr, emitsThrough(contains("heck")));
+        await sass.shouldExit(0);
+      });
+
+      test("doesn't emit parser warnings", () async {
+        await d.file("test.scss", "@use 'other'").create();
+        await d.dir("dir", [d.file("_other.scss", "a {b: c && d}")]).create();
+
+        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        expect(sass.stderr, emitsDone);
+        await sass.shouldExit(0);
+      });
+
+      test("doesn't emit runner warnings", () async {
+        await d.file("test.scss", "@use 'other'").create();
+        await d.dir("dir", [d.file("_other.scss", "#{blue} {x: y}")]).create();
+
+        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        expect(sass.stderr, emitsDone);
+        await sass.shouldExit(0);
+      });
+    });
+  });
+
   group("with --charset", () {
     test("doesn't emit @charset for a pure-ASCII stylesheet", () async {
       await d.file("test.scss", "a {b: c}").create();
