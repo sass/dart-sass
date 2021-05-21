@@ -148,6 +148,13 @@ class _EvaluateVisitor
   /// The logger to use to print warnings.
   final Logger _logger;
 
+  /// A set of message/location pairs for warnings that have been emitted via
+  /// [_warn].
+  ///
+  /// We only want to emit one warning per location, to avoid blowing up users'
+  /// consoles with redundant warnings.
+  final _warningsEmitted = <Tuple2<String, SourceSpan>>{};
+
   /// Whether to track source map information.
   final bool _sourceMap;
 
@@ -1936,7 +1943,7 @@ class _EvaluateVisitor
     }
 
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
-      _logger.warn(
+      _warn(
           _environment.atRoot
               ? "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
                   "declare new variables. Since this assignment is at the root "
@@ -1946,8 +1953,7 @@ class _EvaluateVisitor
                   "declare new variables. Consider adding "
                   "`${node.originalName}: null` at the root of the\n"
                   "stylesheet.",
-          span: node.span,
-          trace: _stackTrace(node.span),
+          node.span,
           deprecation: true);
     }
 
@@ -1987,9 +1993,13 @@ class _EvaluateVisitor
   Future<Value?> visitWarnRule(WarnRule node) async {
     var value =
         await _addExceptionSpanAsync(node, () => node.expression.accept(this));
-    _logger.warn(
-        value is SassString ? value.text : _serialize(value, node.expression),
-        trace: _stackTrace(node.span));
+    var message =
+        value is SassString ? value.text : _serialize(value, node.expression);
+
+    // Don't use [_warn] because we don't want to pass the span to the logger.
+    if (_warningsEmitted.add(Tuple2(message, node.span))) {
+      _warn(message, node.span);
+    }
     return null;
   }
 
@@ -3087,9 +3097,11 @@ class _EvaluateVisitor
   }
 
   /// Emits a warning with the given [message] about the given [span].
-  void _warn(String message, FileSpan span, {bool deprecation = false}) =>
-      _logger.warn(message,
-          span: span, trace: _stackTrace(span), deprecation: deprecation);
+  void _warn(String message, FileSpan span, {bool deprecation = false}) {
+    if (!_warningsEmitted.add(Tuple2(message, span))) return;
+    _logger.warn(message,
+        span: span, trace: _stackTrace(span), deprecation: deprecation);
+  }
 
   /// Returns a [SassRuntimeException] with the given [message].
   ///
