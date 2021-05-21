@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1fc6b9e6018eba3ac520464abb56e686f4cb9886
+// Checksum: 7eb518e3fd9269a2117e8f4a4b4149ca05e3ec25
 //
 // ignore_for_file: unused_import
 
@@ -155,6 +155,13 @@ class _EvaluateVisitor
 
   /// The logger to use to print warnings.
   final Logger _logger;
+
+  /// A set of message/location pairs for warnings that have been emitted via
+  /// [_warn].
+  ///
+  /// We only want to emit one warning per location, to avoid blowing up users'
+  /// consoles with redundant warnings.
+  final _warningsEmitted = <Tuple2<String, SourceSpan>>{};
 
   /// Whether to track source map information.
   final bool _sourceMap;
@@ -1928,7 +1935,7 @@ class _EvaluateVisitor
     }
 
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
-      _logger.warn(
+      _warn(
           _environment.atRoot
               ? "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
                   "declare new variables. Since this assignment is at the root "
@@ -1938,8 +1945,7 @@ class _EvaluateVisitor
                   "declare new variables. Consider adding "
                   "`${node.originalName}: null` at the root of the\n"
                   "stylesheet.",
-          span: node.span,
-          trace: _stackTrace(node.span),
+          node.span,
           deprecation: true);
     }
 
@@ -3058,9 +3064,11 @@ class _EvaluateVisitor
   }
 
   /// Emits a warning with the given [message] about the given [span].
-  void _warn(String message, FileSpan span, {bool deprecation = false}) =>
-      _logger.warn(message,
-          span: span, trace: _stackTrace(span), deprecation: deprecation);
+  void _warn(String message, FileSpan span, {bool deprecation = false}) {
+    if (!_warningsEmitted.add(Tuple2(message, span))) return;
+    _logger.warn(message,
+        span: span, trace: _stackTrace(span), deprecation: deprecation);
+  }
 
   /// Returns a [SassRuntimeException] with the given [message].
   ///

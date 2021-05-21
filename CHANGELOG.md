@@ -1,3 +1,7 @@
+## 1.33.1
+
+* Don't emit the same warning in the same location multiple times.
+
 ## 1.33.0
 
 * Deprecate the use of `/` for division. The new `math.div()` function should be
