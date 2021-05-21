@@ -3,7 +3,8 @@ name: CI
 env:
   # Run on Node 14 because node-fibers doesn't support odd-numbered Node
   # versions. Note: when changing this, also change
-  # jobs.node_tests.strategy.matrix.node_version.
+  # jobs.node_tests.strategy.matrix.node_version and the Node version for Dart
+  # dev tests.
   DEFAULT_NODE_VERSION: 14
 
 on:
@@ -99,7 +100,7 @@ jobs:
             node_version: 10
           - os: ubuntu-latest
             dart_channel: dev
-            node_version: "${{ env.DEFAULT_NODE_VERSION }}"
+            node_version: 14
 
     steps:
       - uses: actions/checkout@v2
