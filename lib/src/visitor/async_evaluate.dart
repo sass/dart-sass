@@ -1993,13 +1993,9 @@ class _EvaluateVisitor
   Future<Value?> visitWarnRule(WarnRule node) async {
     var value =
         await _addExceptionSpanAsync(node, () => node.expression.accept(this));
-    var message =
-        value is SassString ? value.text : _serialize(value, node.expression);
-
-    // Don't use [_warn] because we don't want to pass the span to the logger.
-    if (_warningsEmitted.add(Tuple2(message, node.span))) {
-      _warn(message, node.span);
-    }
+    _logger.warn(
+        value is SassString ? value.text : _serialize(value, node.expression),
+        trace: _stackTrace(node.span));
     return null;
   }
 

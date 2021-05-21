@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 75235f66937f2acdfb9d433bd25f821c63d5ff53
+// Checksum: 7eb518e3fd9269a2117e8f4a4b4149ca05e3ec25
 //
 // ignore_for_file: unused_import
 
@@ -1983,13 +1983,9 @@ class _EvaluateVisitor
 
   Value? visitWarnRule(WarnRule node) {
     var value = _addExceptionSpan(node, () => node.expression.accept(this));
-    var message =
-        value is SassString ? value.text : _serialize(value, node.expression);
-
-    // Don't use [_warn] because we don't want to pass the span to the logger.
-    if (_warningsEmitted.add(Tuple2(message, node.span))) {
-      _warn(message, node.span);
-    }
+    _logger.warn(
+        value is SassString ? value.text : _serialize(value, node.expression),
+        trace: _stackTrace(node.span));
     return null;
   }
 

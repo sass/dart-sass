@@ -4,8 +4,6 @@
 
 @TestOn('vm')
 
-import 'dart:async';
-
 import 'package:test/test.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -29,32 +27,6 @@ void main() {
         expect(deprecation, isFalse);
         mustBeCalled();
       }));
-    });
-
-    test("passes multiple messages with different locations to the logger", () {
-      var controller = StreamController<String>();
-      compileString('''
-        @mixin foo {@warn heck}
-        @include foo;
-        @warn heck;
-      ''',
-          logger: _TestLogger.withWarn((message,
-                  {span, trace, deprecation = false}) =>
-              controller.add(message)));
-
-      expect(controller.stream, emitsInOrder(["heck", "heck"]));
-    });
-
-    test("only passes a message with a single location to the logger once", () {
-      var count = 0;
-      compileString(r'''
-        @for $i from 1 to 5 {
-          @warn heck;
-        }
-      ''',
-          logger: _TestLogger.withWarn(
-              (message, {span, trace, deprecation = false}) => count++));
-      expect(count, equals(1));
     });
 
     test("stringifies the argument", () {
