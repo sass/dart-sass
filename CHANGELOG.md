@@ -1,6 +1,17 @@
-## 1.33.1
+## 1.34.0
 
 * Don't emit the same warning in the same location multiple times.
+
+### Command Line Interface
+
+* Add a `--quiet-deps` flag which silences compiler warnings from stylesheets
+  loaded through `--load-path`s.
+
+### Dart API
+
+* Add a `quietDeps` argument to `compile()`, `compileString()`,
+  `compileAsync()`, and `compileStringAsync()` which silences compiler warnings
+  from stylesheets loaded through importers, load paths, and `package:` URLs.
 
 ## 1.33.0
 

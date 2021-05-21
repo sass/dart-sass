@@ -162,8 +162,8 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
     var tuple = await canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport);
     if (tuple == null) return null;
-    var stylesheet =
-        await importCanonical(tuple.item1, tuple.item2, tuple.item3);
+    var stylesheet = await importCanonical(tuple.item1, tuple.item2,
+        originalUrl: tuple.item3);
     if (stylesheet == null) return null;
     return Tuple2(tuple.item1, stylesheet);
   }
@@ -177,9 +177,12 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// into [canonicalUrl]. It's used to resolve a relative canonical URL, which
   /// importers may return for legacy reasons.
   ///
+  /// If [quiet] is `true`, this will disable logging warnings when parsing the
+  /// newly imported stylesheet.
+  ///
   /// Caches the result of the import and uses cached results if possible.
   Future<Stylesheet?> importCanonical(AsyncImporter importer, Uri canonicalUrl,
-      [Uri? originalUrl]) async {
+      {Uri? originalUrl, bool quiet = false}) async {
     return await putIfAbsentAsync(_importCache, canonicalUrl, () async {
       var result = await importer.load(canonicalUrl);
       if (result == null) return null;
@@ -191,7 +194,7 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
           url: originalUrl == null
               ? canonicalUrl
               : originalUrl.resolveUri(canonicalUrl),
-          logger: _logger);
+          logger: quiet ? Logger.quiet : _logger);
     });
   }
 

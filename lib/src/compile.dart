@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: dcb7cfbedf1e1189808c0056debf6a68bd387dab
+// Checksum: bdf01f7ff8eea0efafa6c7c93920caf26e324f4e
 //
 // ignore_for_file: unused_import
 
@@ -44,6 +44,7 @@ CompileResult compile(String path,
     bool useSpaces = true,
     int? indentWidth,
     LineFeed? lineFeed,
+    bool quietDeps = false,
     bool sourceMap = false,
     bool charset = true}) {
   // If the syntax is different than the importer would default to, we have to
@@ -53,7 +54,8 @@ CompileResult compile(String path,
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= ImportCache.none(logger: logger);
     stylesheet = importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path))!;
+        FilesystemImporter('.'), p.toUri(canonicalize(path)),
+        originalUrl: p.toUri(path))!;
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),
@@ -71,6 +73,7 @@ CompileResult compile(String path,
       useSpaces,
       indentWidth,
       lineFeed,
+      quietDeps,
       sourceMap,
       charset);
 }
@@ -93,6 +96,7 @@ CompileResult compileString(String source,
     int? indentWidth,
     LineFeed? lineFeed,
     Object? url,
+    bool quietDeps = false,
     bool sourceMap = false,
     bool charset = true}) {
   var stylesheet =
@@ -109,6 +113,7 @@ CompileResult compileString(String source,
       useSpaces,
       indentWidth,
       lineFeed,
+      quietDeps,
       sourceMap,
       charset);
 }
@@ -127,6 +132,7 @@ CompileResult _compileStylesheet(
     bool useSpaces,
     int? indentWidth,
     LineFeed? lineFeed,
+    bool quietDeps,
     bool sourceMap,
     bool charset) {
   var evaluateResult = evaluate(stylesheet,
@@ -135,6 +141,7 @@ CompileResult _compileStylesheet(
       importer: importer,
       functions: functions,
       logger: logger,
+      quietDeps: quietDeps,
       sourceMap: sourceMap);
 
   var serializeResult = serialize(evaluateResult.stylesheet,

@@ -34,6 +34,7 @@ Future<CompileResult> compileAsync(String path,
     bool useSpaces = true,
     int? indentWidth,
     LineFeed? lineFeed,
+    bool quietDeps = false,
     bool sourceMap = false,
     bool charset = true}) async {
   // If the syntax is different than the importer would default to, we have to
@@ -43,7 +44,8 @@ Future<CompileResult> compileAsync(String path,
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= AsyncImportCache.none(logger: logger);
     stylesheet = (await importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path)))!;
+        FilesystemImporter('.'), p.toUri(canonicalize(path)),
+        originalUrl: p.toUri(path)))!;
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),
@@ -61,6 +63,7 @@ Future<CompileResult> compileAsync(String path,
       useSpaces,
       indentWidth,
       lineFeed,
+      quietDeps,
       sourceMap,
       charset);
 }
@@ -83,6 +86,7 @@ Future<CompileResult> compileStringAsync(String source,
     int? indentWidth,
     LineFeed? lineFeed,
     Object? url,
+    bool quietDeps = false,
     bool sourceMap = false,
     bool charset = true}) async {
   var stylesheet =
@@ -99,6 +103,7 @@ Future<CompileResult> compileStringAsync(String source,
       useSpaces,
       indentWidth,
       lineFeed,
+      quietDeps,
       sourceMap,
       charset);
 }
@@ -117,6 +122,7 @@ Future<CompileResult> _compileStylesheet(
     bool useSpaces,
     int? indentWidth,
     LineFeed? lineFeed,
+    bool quietDeps,
     bool sourceMap,
     bool charset) async {
   var evaluateResult = await evaluateAsync(stylesheet,
@@ -125,6 +131,7 @@ Future<CompileResult> _compileStylesheet(
       importer: importer,
       functions: functions,
       logger: logger,
+      quietDeps: quietDeps,
       sourceMap: sourceMap);
 
   var serializeResult = serialize(evaluateResult.stylesheet,

@@ -76,12 +76,14 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
         AsyncImporter? importer,
         Iterable<AsyncCallable>? functions,
         Logger? logger,
+        bool quietDeps = false,
         bool sourceMap = false}) =>
     _EvaluateVisitor(
             importCache: importCache,
             nodeImporter: nodeImporter,
             functions: functions,
             logger: logger,
+            quietDeps: quietDeps,
             sourceMap: sourceMap)
         .run(importer, stylesheet);
 
@@ -154,6 +156,15 @@ class _EvaluateVisitor
   /// We only want to emit one warning per location, to avoid blowing up users'
   /// consoles with redundant warnings.
   final _warningsEmitted = <Tuple2<String, SourceSpan>>{};
+
+  // The importer from which the entrypoint stylesheet was loaded.
+  late final AsyncImporter? _originalImporter;
+
+  /// Whether to avoid emitting warnings for files loaded from dependencies.
+  ///
+  /// A "dependency" in this context is any stylesheet loaded through an
+  /// importer other than [_originalImporter].
+  final bool _quietDeps;
 
   /// Whether to track source map information.
   final bool _sourceMap;
@@ -232,7 +243,7 @@ class _EvaluateVisitor
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
   ///
-  /// Each member is a tuple of the span where the stack trace starts and the
+  /// Each member is a tuple ofi the span where the stack trace starts and the
   /// name of the member being invoked.
   ///
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
@@ -250,6 +261,12 @@ class _EvaluateVisitor
   /// If this is `null`, relative imports aren't supported in the current
   /// stylesheet.
   AsyncImporter? _importer;
+
+  /// Whether we're in a dependency.
+  ///
+  /// A dependency is defined as a stylesheet imported by an importer other than
+  /// the original. In Node importers, nothing is considered a dependency.
+  bool get _inDependency => !_asNodeSass && _importer != _originalImporter;
 
   /// The stylesheet that's currently being evaluated.
   Stylesheet get _stylesheet => _assertInModule(__stylesheet, "_stylesheet");
@@ -296,12 +313,14 @@ class _EvaluateVisitor
       NodeImporter? nodeImporter,
       Iterable<AsyncCallable>? functions,
       Logger? logger,
+      bool quietDeps = false,
       bool sourceMap = false})
       : _importCache = nodeImporter == null
             ? importCache ?? AsyncImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
+        _quietDeps = quietDeps,
         _sourceMap = sourceMap,
         // The default environment is overridden in [_execute] for full
         // stylesheets, but for [AsyncEvaluator] this environment is used.
@@ -502,6 +521,7 @@ class _EvaluateVisitor
         }
       }
 
+      _originalImporter = importer;
       var module = await _execute(importer, node);
 
       return EvaluateResult(_combineCss(module), _includedFiles);
@@ -1546,11 +1566,18 @@ class _EvaluateVisitor
 
       var importCache = _importCache;
       if (importCache != null) {
-        var tuple = await importCache.import(Uri.parse(url),
+        var tuple = await importCache.canonicalize(Uri.parse(url),
             baseImporter: _importer,
             baseUrl: baseUrl ?? _stylesheet.span.sourceUrl,
             forImport: forImport);
-        if (tuple != null) return tuple;
+
+        if (tuple != null) {
+          var stylesheet = await importCache.importCanonical(
+              tuple.item1, tuple.item2,
+              originalUrl: tuple.item3,
+              quiet: _quietDeps && tuple.item1 != _originalImporter);
+          if (stylesheet != null) return Tuple2(tuple.item1, stylesheet);
+        }
       } else {
         var stylesheet = await _importLikeNode(url, forImport);
         if (stylesheet != null) return Tuple2(null, stylesheet);
@@ -3094,6 +3121,7 @@ class _EvaluateVisitor
 
   /// Emits a warning with the given [message] about the given [span].
   void _warn(String message, FileSpan span, {bool deprecation = false}) {
+    if (_quietDeps && _inDependency) return;
     if (!_warningsEmitted.add(Tuple2(message, span))) return;
     _logger.warn(message,
         span: span, trace: _stackTrace(span), deprecation: deprecation);
