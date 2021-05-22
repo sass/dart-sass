@@ -102,6 +102,8 @@ class ExecutableOptions {
       ..addFlag('quiet-deps',
           help: "Don't print compiler warnings from dependencies.\n"
               "Stylesheets imported through load paths count as dependencies.")
+      ..addFlag('verbose',
+          help: "Print all deprecation warnings even when they're repetitive.")
       ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
       ..addFlag('help',
           abbr: 'h', help: 'Print this usage information.', negatable: false)
@@ -171,6 +173,9 @@ class ExecutableOptions {
 
   /// Whether to silence warnings in dependencies.
   bool get quietDeps => _options['quiet-deps'] as bool;
+
+  /// Whether to emit all repetitive deprecation warnings.
+  bool get verbose => _options['verbose'] as bool;
 
   /// The logger to use to emit messages from Sass.
   Logger get logger => quiet ? Logger.quiet : Logger.stderr(color: color);

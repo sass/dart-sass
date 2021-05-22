@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bdf01f7ff8eea0efafa6c7c93920caf26e324f4e
+// Checksum: 8e813f2ead6e78899ce820e279983278809a7ea5
 //
 // ignore_for_file: unused_import
 
@@ -25,6 +25,7 @@ import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
 import 'logger.dart';
+import 'logger/terse.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/evaluate.dart';
@@ -45,8 +46,12 @@ CompileResult compile(String path,
     int? indentWidth,
     LineFeed? lineFeed,
     bool quietDeps = false,
+    bool verbose = false,
     bool sourceMap = false,
     bool charset = true}) {
+  TerseLogger? terseLogger;
+  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
   Stylesheet? stylesheet;
@@ -62,7 +67,7 @@ CompileResult compile(String path,
         url: p.toUri(path), logger: logger);
   }
 
-  return _compileStylesheet(
+  var result = _compileStylesheet(
       stylesheet,
       logger,
       importCache,
@@ -76,6 +81,9 @@ CompileResult compile(String path,
       quietDeps,
       sourceMap,
       charset);
+
+  terseLogger?.summarize(node: nodeImporter != null);
+  return result;
 }
 
 /// Like [compileString] in `lib/sass.dart`, but provides more options to
@@ -97,12 +105,16 @@ CompileResult compileString(String source,
     LineFeed? lineFeed,
     Object? url,
     bool quietDeps = false,
+    bool verbose = false,
     bool sourceMap = false,
     bool charset = true}) {
+  TerseLogger? terseLogger;
+  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 
-  return _compileStylesheet(
+  var result = _compileStylesheet(
       stylesheet,
       logger,
       importCache,
@@ -116,6 +128,9 @@ CompileResult compileString(String source,
       quietDeps,
       sourceMap,
       charset);
+
+  terseLogger?.summarize(node: nodeImporter != null);
+  return result;
 }
 
 /// Compiles [stylesheet] and returns its result.

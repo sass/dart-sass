@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1d5f3cb78c4567e19f106241ee67c70f4ae01df1
+// Checksum: 24b9012f1cf8908b2cbde11cd10974113d4c8163
 //
 // ignore_for_file: unused_import
 
@@ -443,8 +443,10 @@ class _EvaluateVisitor
 
         if (function is SassString) {
           warn(
-              "Passing a string to call() is deprecated and will be illegal\n"
-              "in Dart Sass 2.0.0. Use call(get-function($function)) instead.",
+              "Passing a string to call() is deprecated and will be illegal in "
+              "Dart Sass 2.0.0.\n"
+              "\n"
+              "Recommendation: call(get-function($function))",
               deprecation: true);
 
           var callableNode = _callableNode!;
@@ -1963,14 +1965,17 @@ class _EvaluateVisitor
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
       _warn(
           _environment.atRoot
-              ? "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-                  "declare new variables. Since this assignment is at the root "
-                  "of the stylesheet,\n"
-                  "the !global flag is unnecessary and can safely be removed."
-              : "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-                  "declare new variables. Consider adding "
-                  "`${node.originalName}: null` at the root of the\n"
-                  "stylesheet.",
+              ? "As of Dart Sass 2.0.0, !global assignments won't be able to "
+                  "declare new variables.\n"
+                  "\n"
+                  "Since this assignment is at the root of the stylesheet, the "
+                  "!global flag is\n"
+                  "unnecessary and can safely be removed."
+              : "As of Dart Sass 2.0.0, !global assignments won't be able to "
+                  "declare new variables.\n"
+                  "\n"
+                  "Recommendation: add `${node.originalName}: null` at the "
+                  "stylesheet root.",
           node.span,
           deprecation: true);
     }

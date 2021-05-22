@@ -64,6 +64,10 @@ export 'src/warn.dart' show warn;
 /// If [quietDeps] is `true`, this will silence compiler warnings emitted for
 /// stylesheets loaded through [importers], [loadPaths], or [packageConfig].
 ///
+/// By default, once a deprecation warning for a given feature is printed five
+/// times, further warnings for that feature are silenced. If [verbose] is true,
+/// all deprecation warnings are printed instead.
+///
 /// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
 /// sections of the source file(s) correspond to which in the resulting CSS.
 /// It's called immediately before this method returns, and only if compilation
@@ -98,6 +102,7 @@ String compile(String path,
     Iterable<Callable>? functions,
     OutputStyle? style,
     bool quietDeps = false,
+    bool verbose = false,
     void sourceMap(SingleMapping map)?,
     bool charset = true}) {
   logger ??= Logger.stderr(color: color);
@@ -111,6 +116,7 @@ String compile(String path,
       functions: functions,
       style: style,
       quietDeps: quietDeps,
+      verbose: verbose,
       sourceMap: sourceMap != null,
       charset: charset);
   result.sourceMap.andThen(sourceMap);
@@ -158,6 +164,10 @@ String compile(String path,
 /// If [quietDeps] is `true`, this will silence compiler warnings emitted for
 /// stylesheets loaded through [importers], [loadPaths], or [packageConfig].
 ///
+/// By default, once a deprecation warning for a given feature is printed five
+/// times, further warnings for that feature are silenced. If [verbose] is true,
+/// all deprecation warnings are printed instead.
+///
 /// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
 /// sections of the source file(s) correspond to which in the resulting CSS.
 /// It's called immediately before this method returns, and only if compilation
@@ -195,6 +205,7 @@ String compileString(String source,
     Importer? importer,
     Object? url,
     bool quietDeps = false,
+    bool verbose = false,
     void sourceMap(SingleMapping map)?,
     bool charset = true,
     @Deprecated("Use syntax instead.") bool indented = false}) {
@@ -212,6 +223,7 @@ String compileString(String source,
       importer: importer,
       url: url,
       quietDeps: quietDeps,
+      verbose: verbose,
       sourceMap: sourceMap != null,
       charset: charset);
   result.sourceMap.andThen(sourceMap);
@@ -232,6 +244,7 @@ Future<String> compileAsync(String path,
     Iterable<AsyncCallable>? functions,
     OutputStyle? style,
     bool quietDeps = false,
+    bool verbose = false,
     void sourceMap(SingleMapping map)?}) async {
   logger ??= Logger.stderr(color: color);
   var result = await c.compileAsync(path,
@@ -244,6 +257,7 @@ Future<String> compileAsync(String path,
       functions: functions,
       style: style,
       quietDeps: quietDeps,
+      verbose: verbose,
       sourceMap: sourceMap != null);
   result.sourceMap.andThen(sourceMap);
   return result.css;
@@ -266,6 +280,7 @@ Future<String> compileStringAsync(String source,
     AsyncImporter? importer,
     Object? url,
     bool quietDeps = false,
+    bool verbose = false,
     void sourceMap(SingleMapping map)?,
     bool charset = true,
     @Deprecated("Use syntax instead.") bool indented = false}) async {
@@ -283,6 +298,7 @@ Future<String> compileStringAsync(String source,
       importer: importer,
       url: url,
       quietDeps: quietDeps,
+      verbose: verbose,
       sourceMap: sourceMap != null,
       charset: charset);
   result.sourceMap.andThen(sourceMap);
