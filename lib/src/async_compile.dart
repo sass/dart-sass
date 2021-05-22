@@ -15,6 +15,7 @@ import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
 import 'logger.dart';
+import 'logger/terse.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/async_evaluate.dart';
@@ -34,8 +35,13 @@ Future<CompileResult> compileAsync(String path,
     bool useSpaces = true,
     int? indentWidth,
     LineFeed? lineFeed,
+    bool quietDeps = false,
+    bool verbose = false,
     bool sourceMap = false,
     bool charset = true}) async {
+  TerseLogger? terseLogger;
+  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
   Stylesheet? stylesheet;
@@ -43,14 +49,15 @@ Future<CompileResult> compileAsync(String path,
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= AsyncImportCache.none(logger: logger);
     stylesheet = (await importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)), p.toUri(path)))!;
+        FilesystemImporter('.'), p.toUri(canonicalize(path)),
+        originalUrl: p.toUri(path)))!;
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),
         url: p.toUri(path), logger: logger);
   }
 
-  return await _compileStylesheet(
+  var result = await _compileStylesheet(
       stylesheet,
       logger,
       importCache,
@@ -61,8 +68,12 @@ Future<CompileResult> compileAsync(String path,
       useSpaces,
       indentWidth,
       lineFeed,
+      quietDeps,
       sourceMap,
       charset);
+
+  terseLogger?.summarize(node: nodeImporter != null);
+  return result;
 }
 
 /// Like [compileStringAsync] in `lib/sass.dart`, but provides more options to
@@ -83,12 +94,17 @@ Future<CompileResult> compileStringAsync(String source,
     int? indentWidth,
     LineFeed? lineFeed,
     Object? url,
+    bool quietDeps = false,
+    bool verbose = false,
     bool sourceMap = false,
     bool charset = true}) async {
+  TerseLogger? terseLogger;
+  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 
-  return _compileStylesheet(
+  var result = await _compileStylesheet(
       stylesheet,
       logger,
       importCache,
@@ -99,8 +115,12 @@ Future<CompileResult> compileStringAsync(String source,
       useSpaces,
       indentWidth,
       lineFeed,
+      quietDeps,
       sourceMap,
       charset);
+
+  terseLogger?.summarize(node: nodeImporter != null);
+  return result;
 }
 
 /// Compiles [stylesheet] and returns its result.
@@ -117,6 +137,7 @@ Future<CompileResult> _compileStylesheet(
     bool useSpaces,
     int? indentWidth,
     LineFeed? lineFeed,
+    bool quietDeps,
     bool sourceMap,
     bool charset) async {
   var evaluateResult = await evaluateAsync(stylesheet,
@@ -125,6 +146,7 @@ Future<CompileResult> _compileStylesheet(
       importer: importer,
       functions: functions,
       logger: logger,
+      quietDeps: quietDeps,
       sourceMap: sourceMap);
 
   var serializeResult = serialize(evaluateResult.stylesheet,

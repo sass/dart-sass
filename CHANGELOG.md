@@ -1,6 +1,26 @@
-## 1.33.1
+## 1.34.0
 
 * Don't emit the same warning in the same location multiple times.
+
+* Cap deprecation warnings at 5 per feature by default.
+
+### Command Line Interface
+
+* Add a `--quiet-deps` flag which silences compiler warnings from stylesheets
+  loaded through `--load-path`s.
+
+* Add a `--verbose` flag which causes the compiler to emit all deprecation
+  warnings, not just 5 per feature.
+
+### Dart API
+
+* Add a `quietDeps` argument to `compile()`, `compileString()`,
+  `compileAsync()`, and `compileStringAsync()` which silences compiler warnings
+  from stylesheets loaded through importers, load paths, and `package:` URLs.
+
+* Add a `verbose` argument to `compile()`, `compileString()`, `compileAsync()`,
+  and `compileStringAsync()` which causes the compiler to emit all deprecation
+  warnings, not just 5 per feature.
 
 ## 1.33.0
 

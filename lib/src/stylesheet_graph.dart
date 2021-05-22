@@ -95,8 +95,8 @@ class StylesheetGraph {
     var node = _nodes[canonicalUrl];
     if (node != null) return const {};
 
-    var stylesheet = _ignoreErrors(
-        () => importCache.importCanonical(importer, canonicalUrl, originalUrl));
+    var stylesheet = _ignoreErrors(() => importCache
+        .importCanonical(importer, canonicalUrl, originalUrl: originalUrl));
     if (stylesheet == null) return const {};
 
     node = StylesheetNode._(stylesheet, importer, canonicalUrl,
@@ -278,8 +278,8 @@ class StylesheetGraph {
     /// error will be produced during compilation.
     if (active.contains(canonicalUrl)) return null;
 
-    var stylesheet = _ignoreErrors(
-        () => importCache.importCanonical(importer, canonicalUrl, resolvedUrl));
+    var stylesheet = _ignoreErrors(() => importCache
+        .importCanonical(importer, canonicalUrl, originalUrl: resolvedUrl));
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);

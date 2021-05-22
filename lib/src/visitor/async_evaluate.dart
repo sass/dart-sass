@@ -76,12 +76,14 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
         AsyncImporter? importer,
         Iterable<AsyncCallable>? functions,
         Logger? logger,
+        bool quietDeps = false,
         bool sourceMap = false}) =>
     _EvaluateVisitor(
             importCache: importCache,
             nodeImporter: nodeImporter,
             functions: functions,
             logger: logger,
+            quietDeps: quietDeps,
             sourceMap: sourceMap)
         .run(importer, stylesheet);
 
@@ -154,6 +156,15 @@ class _EvaluateVisitor
   /// We only want to emit one warning per location, to avoid blowing up users'
   /// consoles with redundant warnings.
   final _warningsEmitted = <Tuple2<String, SourceSpan>>{};
+
+  // The importer from which the entrypoint stylesheet was loaded.
+  late final AsyncImporter? _originalImporter;
+
+  /// Whether to avoid emitting warnings for files loaded from dependencies.
+  ///
+  /// A "dependency" in this context is any stylesheet loaded through an
+  /// importer other than [_originalImporter].
+  final bool _quietDeps;
 
   /// Whether to track source map information.
   final bool _sourceMap;
@@ -251,6 +262,12 @@ class _EvaluateVisitor
   /// stylesheet.
   AsyncImporter? _importer;
 
+  /// Whether we're in a dependency.
+  ///
+  /// A dependency is defined as a stylesheet imported by an importer other than
+  /// the original. In Node importers, nothing is considered a dependency.
+  bool get _inDependency => !_asNodeSass && _importer != _originalImporter;
+
   /// The stylesheet that's currently being evaluated.
   Stylesheet get _stylesheet => _assertInModule(__stylesheet, "_stylesheet");
   set _stylesheet(Stylesheet value) => __stylesheet = value;
@@ -296,12 +313,14 @@ class _EvaluateVisitor
       NodeImporter? nodeImporter,
       Iterable<AsyncCallable>? functions,
       Logger? logger,
+      bool quietDeps = false,
       bool sourceMap = false})
       : _importCache = nodeImporter == null
             ? importCache ?? AsyncImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
+        _quietDeps = quietDeps,
         _sourceMap = sourceMap,
         // The default environment is overridden in [_execute] for full
         // stylesheets, but for [AsyncEvaluator] this environment is used.
@@ -417,8 +436,10 @@ class _EvaluateVisitor
 
         if (function is SassString) {
           warn(
-              "Passing a string to call() is deprecated and will be illegal\n"
-              "in Dart Sass 2.0.0. Use call(get-function($function)) instead.",
+              "Passing a string to call() is deprecated and will be illegal in "
+              "Dart Sass 2.0.0.\n"
+              "\n"
+              "Recommendation: call(get-function($function))",
               deprecation: true);
 
           var callableNode = _callableNode!;
@@ -502,6 +523,7 @@ class _EvaluateVisitor
         }
       }
 
+      _originalImporter = importer;
       var module = await _execute(importer, node);
 
       return EvaluateResult(_combineCss(module), _includedFiles);
@@ -1546,11 +1568,18 @@ class _EvaluateVisitor
 
       var importCache = _importCache;
       if (importCache != null) {
-        var tuple = await importCache.import(Uri.parse(url),
+        var tuple = await importCache.canonicalize(Uri.parse(url),
             baseImporter: _importer,
             baseUrl: baseUrl ?? _stylesheet.span.sourceUrl,
             forImport: forImport);
-        if (tuple != null) return tuple;
+
+        if (tuple != null) {
+          var stylesheet = await importCache.importCanonical(
+              tuple.item1, tuple.item2,
+              originalUrl: tuple.item3,
+              quiet: _quietDeps && tuple.item1 != _originalImporter);
+          if (stylesheet != null) return Tuple2(tuple.item1, stylesheet);
+        }
       } else {
         var stylesheet = await _importLikeNode(url, forImport);
         if (stylesheet != null) return Tuple2(null, stylesheet);
@@ -1945,14 +1974,17 @@ class _EvaluateVisitor
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
       _warn(
           _environment.atRoot
-              ? "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-                  "declare new variables. Since this assignment is at the root "
-                  "of the stylesheet,\n"
-                  "the !global flag is unnecessary and can safely be removed."
-              : "As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-                  "declare new variables. Consider adding "
-                  "`${node.originalName}: null` at the root of the\n"
-                  "stylesheet.",
+              ? "As of Dart Sass 2.0.0, !global assignments won't be able to "
+                  "declare new variables.\n"
+                  "\n"
+                  "Since this assignment is at the root of the stylesheet, the "
+                  "!global flag is\n"
+                  "unnecessary and can safely be removed."
+              : "As of Dart Sass 2.0.0, !global assignments won't be able to "
+                  "declare new variables.\n"
+                  "\n"
+                  "Recommendation: add `${node.originalName}: null` at the "
+                  "stylesheet root.",
           node.span,
           deprecation: true);
     }
@@ -3094,6 +3126,7 @@ class _EvaluateVisitor
 
   /// Emits a warning with the given [message] about the given [span].
   void _warn(String message, FileSpan span, {bool deprecation = false}) {
+    if (_quietDeps && _inDependency) return;
     if (!_warningsEmitted.add(Tuple2(message, span))) return;
     _logger.warn(message,
         span: span, trace: _stackTrace(span), deprecation: deprecation);

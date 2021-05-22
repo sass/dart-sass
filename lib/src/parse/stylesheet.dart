@@ -1334,10 +1334,13 @@ abstract class StylesheetParser extends Parser {
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
     return _withChildren(_statement, start, (children, span) {
       if (needsDeprecationWarning) {
-        logger.warn("""
-@-moz-document is deprecated and support will be removed from Sass in a future
-release. For details, see http://bit.ly/moz-document.
-""", span: span, deprecation: true);
+        logger.warn(
+            "@-moz-document is deprecated and support will be removed in Dart "
+            "Sass 2.0.0.\n"
+            "\n"
+            "For details, see http://bit.ly/moz-document.",
+            span: span,
+            deprecation: true);
       }
 
       return AtRule(name, span, value: value, children: children);
