@@ -243,7 +243,7 @@ class _EvaluateVisitor
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
   ///
-  /// Each member is a tuple ofi the span where the stack trace starts and the
+  /// Each member is a tuple of the span where the stack trace starts and the
   /// name of the member being invoked.
   ///
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
