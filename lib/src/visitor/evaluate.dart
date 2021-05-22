@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6ad135ab05a001e686b5a4087b3c4356c3ac95fc
+// Checksum: 1d5f3cb78c4567e19f106241ee67c70f4ae01df1
 //
 // ignore_for_file: unused_import
 
@@ -251,7 +251,7 @@ class _EvaluateVisitor
   /// The dynamic call stack representing function invocations, mixin
   /// invocations, and imports surrounding the current context.
   ///
-  /// Each member is a tuple ofi the span where the stack trace starts and the
+  /// Each member is a tuple of the span where the stack trace starts and the
   /// name of the member being invoked.
   ///
   /// This stores [AstNode]s rather than [FileSpan]s so it can avoid calling
