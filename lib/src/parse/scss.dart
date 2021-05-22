@@ -48,7 +48,8 @@ class ScssParser extends StylesheetParser {
         logger.warn(
             '@elseif is deprecated and will not be supported in future Sass '
             'versions.\n'
-            'Use "@else if" instead.',
+            '\n'
+            'Recommendation: @else if',
             span: scanner.spanFrom(beforeAt),
             deprecation: true);
         scanner.position -= 2;

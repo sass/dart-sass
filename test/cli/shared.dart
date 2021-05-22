@@ -483,6 +483,52 @@ void sharedTests(
     });
   });
 
+  group("with a bunch of deprecation warnings", () {
+    setUp(() async {
+      await d.file("test.scss", r"""
+      $_: call("inspect", null);
+      $_: call("rgb", 0, 0, 0);
+      $_: call("nth", null, 1);
+      $_: call("join", null, null);
+      $_: call("if", true, 1, 2);
+      $_: call("hsl", 0, 100%, 100%);
+
+      $_: 1/2;
+      $_: 1/3;
+      $_: 1/4;
+      $_: 1/5;
+      $_: 1/6;
+      $_: 1/7;
+    """).create();
+    });
+
+    test("without --verbose, only prints five", () async {
+      var sass = await runSass(["test.scss"]);
+      expect(sass.stderr,
+          emitsInOrder(List.filled(5, emitsThrough(contains("call()")))));
+      expect(sass.stderr, neverEmits(contains("call()")));
+
+      expect(sass.stderr,
+          emitsInOrder(List.filled(5, emitsThrough(contains("math.div")))));
+      expect(sass.stderr, neverEmits(contains("math.div()")));
+
+      expect(sass.stderr,
+          emitsThrough(contains("2 repetitive deprecation warnings omitted.")));
+    });
+
+    test("with --verbose, prints all", () async {
+      var sass = await runSass(["--verbose", "test.scss"]);
+      expect(sass.stderr,
+          neverEmits(contains("2 repetitive deprecation warnings omitted.")));
+
+      expect(sass.stderr,
+          emitsInOrder(List.filled(6, emitsThrough(contains("call()")))));
+
+      expect(sass.stderr,
+          emitsInOrder(List.filled(6, emitsThrough(contains("math.div")))));
+    });
+  });
+
   group("with --charset", () {
     test("doesn't emit @charset for a pure-ASCII stylesheet", () async {
       await d.file("test.scss", "a {b: c}").create();
