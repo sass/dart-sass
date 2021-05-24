@@ -42,21 +42,21 @@ void main() {
 
     test("an SCSS string explicitly", () async {
       process.inbound.add(compileString("a {b: 1px + 2px}",
-          syntax: InboundMessage_Syntax.SCSS));
+          syntax: Syntax.SCSS));
       await expectLater(process.outbound, emits(isSuccess("a { b: 3px; }")));
       await process.kill();
     });
 
     test("an indented syntax string", () async {
       process.inbound.add(compileString("a\n  b: 1px + 2px",
-          syntax: InboundMessage_Syntax.INDENTED));
+          syntax: Syntax.INDENTED));
       await expectLater(process.outbound, emits(isSuccess("a { b: 3px; }")));
       await process.kill();
     });
 
     test("a plain CSS string", () async {
       process.inbound
-          .add(compileString("a {b: c}", syntax: InboundMessage_Syntax.CSS));
+          .add(compileString("a {b: c}", syntax: Syntax.CSS));
       await expectLater(process.outbound, emits(isSuccess("a { b: c; }")));
       await process.kill();
     });
@@ -85,7 +85,7 @@ void main() {
   group("compiles CSS in", () {
     test("expanded mode", () async {
       process.inbound.add(compileString("a {b: 1px + 2px}",
-          style: InboundMessage_CompileRequest_OutputStyle.EXPANDED));
+          style: OutputStyle.EXPANDED));
       await expectLater(
           process.outbound, emits(isSuccess(equals("a {\n  b: 3px;\n}"))));
       await process.kill();
@@ -93,7 +93,7 @@ void main() {
 
     test("compressed mode", () async {
       process.inbound.add(compileString("a {b: 1px + 2px}",
-          style: InboundMessage_CompileRequest_OutputStyle.COMPRESSED));
+          style: OutputStyle.COMPRESSED));
       await expectLater(process.outbound, emits(isSuccess(equals("a{b:3px}"))));
       await process.kill();
     });
@@ -135,7 +135,7 @@ void main() {
 
         var logEvent = getLogEvent(await process.outbound.next);
         expect(logEvent.compilationId, equals(0));
-        expect(logEvent.type, equals(OutboundMessage_LogEvent_Type.DEBUG));
+        expect(logEvent.type, equals(LogEventType.DEBUG));
         expect(logEvent.message, equals("hello"));
         expect(logEvent.span.text, equals("@debug hello"));
         expect(logEvent.span.start, equals(location(3, 0, 3)));
@@ -162,7 +162,7 @@ void main() {
 
         var logEvent = getLogEvent(await process.outbound.next);
         expect(logEvent.compilationId, equals(0));
-        expect(logEvent.type, equals(OutboundMessage_LogEvent_Type.WARNING));
+        expect(logEvent.type, equals(LogEventType.WARNING));
         expect(logEvent.message, equals("hello"));
         expect(logEvent.span, equals(SourceSpan()));
         expect(logEvent.stackTrace, equals("- 1:4  root stylesheet\n"));
@@ -205,7 +205,7 @@ void main() {
       var logEvent = getLogEvent(await process.outbound.next);
       expect(logEvent.compilationId, equals(0));
       expect(logEvent.type,
-          equals(OutboundMessage_LogEvent_Type.DEPRECATION_WARNING));
+          equals(LogEventType.DEPRECATION_WARNING));
       expect(
           logEvent.message,
           equals(
@@ -226,7 +226,7 @@ void main() {
       var logEvent = getLogEvent(await process.outbound.next);
       expect(logEvent.compilationId, equals(0));
       expect(logEvent.type,
-          equals(OutboundMessage_LogEvent_Type.DEPRECATION_WARNING));
+          equals(LogEventType.DEPRECATION_WARNING));
       expect(
           logEvent.message,
           equals("As of Dart Sass 2.0.0, !global assignments won't be able to\n"
@@ -358,7 +358,7 @@ a {
 
     test("caused by using Sass features in CSS", () async {
       process.inbound.add(
-          compileString("a {b: 1px + 2px}", syntax: InboundMessage_Syntax.CSS));
+          compileString("a {b: 1px + 2px}", syntax: Syntax.CSS));
 
       var failure = getCompileFailure(await process.outbound.next);
       expect(failure.message, equals("Operators aren't allowed in plain CSS."));

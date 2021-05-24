@@ -337,7 +337,7 @@ void main() {
           ..id = request.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "a\n  b: 1px + 2px"
-            ..syntax = InboundMessage_Syntax.INDENTED)));
+            ..syntax = Syntax.INDENTED)));
 
       await expectLater(process.outbound, emits(isSuccess("a { b: 3px; }")));
       await process.kill();
@@ -355,7 +355,7 @@ void main() {
           ..id = request.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "a {b: c}"
-            ..syntax = InboundMessage_Syntax.CSS)));
+            ..syntax = Syntax.CSS)));
 
       await expectLater(process.outbound, emits(isSuccess("a { b: c; }")));
       await process.kill();
@@ -506,7 +506,7 @@ Future<void> _canonicalize(EmbeddedProcess process) async {
 /// [message] on its protobuf stream and causes the compilation to fail.
 Future<void> _expectImportParamsError(EmbeddedProcess process, message) async {
   await expectLater(process.outbound,
-      emits(isProtocolError(errorId, ProtocolError_ErrorType.PARAMS, message)));
+      emits(isProtocolError(errorId, ProtocolErrorType.PARAMS, message)));
 
   var failure = getCompileFailure(await process.outbound.next);
   expect(failure.message, equals('Protocol error: $message'));

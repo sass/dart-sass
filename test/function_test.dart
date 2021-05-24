@@ -10,9 +10,9 @@ import 'package:sass_embedded/src/utils.dart';
 import 'embedded_process.dart';
 import 'utils.dart';
 
-final _true = Value()..singleton = Value_Singleton.TRUE;
-final _false = Value()..singleton = Value_Singleton.FALSE;
-final _null = Value()..singleton = Value_Singleton.NULL;
+final _true = Value()..singleton = SingletonValue.TRUE;
+final _false = Value()..singleton = SingletonValue.FALSE;
+final _null = Value()..singleton = SingletonValue.NULL;
 
 late EmbeddedProcess _process;
 
@@ -144,7 +144,7 @@ void main() {
               _true,
               Value()
                 ..list = (Value_List()
-                  ..separator = Value_List_Separator.COMMA
+                  ..separator = ListSeparator.COMMA
                   ..hasBrackets = false
                   ..contents.addAll([_false, _null]))
             ]));
@@ -479,7 +479,7 @@ void main() {
             var list = (await _protofy("[]")).list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isTrue);
-            expect(list.separator, equals(Value_List_Separator.UNDECIDED));
+            expect(list.separator, equals(ListSeparator.UNDECIDED));
           });
 
           test("with a comma separator", () async {
@@ -487,7 +487,7 @@ void main() {
                 (await _protofy(r"list.join([], [], $separator: comma)")).list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isTrue);
-            expect(list.separator, equals(Value_List_Separator.COMMA));
+            expect(list.separator, equals(ListSeparator.COMMA));
           });
 
           test("with a space separator", () async {
@@ -495,7 +495,7 @@ void main() {
                 (await _protofy(r"list.join([], [], $separator: space)")).list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isTrue);
-            expect(list.separator, equals(Value_List_Separator.SPACE));
+            expect(list.separator, equals(ListSeparator.SPACE));
           });
         });
 
@@ -504,7 +504,7 @@ void main() {
             var list = (await _protofy("()")).list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isFalse);
-            expect(list.separator, equals(Value_List_Separator.UNDECIDED));
+            expect(list.separator, equals(ListSeparator.UNDECIDED));
           });
 
           test("with a comma separator", () async {
@@ -512,7 +512,7 @@ void main() {
                 (await _protofy(r"list.join((), (), $separator: comma)")).list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isFalse);
-            expect(list.separator, equals(Value_List_Separator.COMMA));
+            expect(list.separator, equals(ListSeparator.COMMA));
           });
 
           test("with a space separator", () async {
@@ -520,7 +520,7 @@ void main() {
                 (await _protofy(r"list.join((), (), $separator: space)")).list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isFalse);
-            expect(list.separator, equals(Value_List_Separator.SPACE));
+            expect(list.separator, equals(ListSeparator.SPACE));
           });
         });
       });
@@ -531,14 +531,14 @@ void main() {
             var list = (await _protofy("[true]")).list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isTrue);
-            expect(list.separator, equals(Value_List_Separator.UNDECIDED));
+            expect(list.separator, equals(ListSeparator.UNDECIDED));
           });
 
           test("with a comma separator", () async {
             var list = (await _protofy(r"[true,]")).list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isTrue);
-            expect(list.separator, equals(Value_List_Separator.COMMA));
+            expect(list.separator, equals(ListSeparator.COMMA));
           });
 
           test("with a space separator", () async {
@@ -547,7 +547,7 @@ void main() {
                     .list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isTrue);
-            expect(list.separator, equals(Value_List_Separator.SPACE));
+            expect(list.separator, equals(ListSeparator.SPACE));
           });
         });
 
@@ -556,7 +556,7 @@ void main() {
             var list = (await _protofy(r"(true,)")).list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isFalse);
-            expect(list.separator, equals(Value_List_Separator.COMMA));
+            expect(list.separator, equals(ListSeparator.COMMA));
           });
 
           test("with a space separator", () async {
@@ -565,7 +565,7 @@ void main() {
                     .list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isFalse);
-            expect(list.separator, equals(Value_List_Separator.SPACE));
+            expect(list.separator, equals(ListSeparator.SPACE));
           });
         });
       });
@@ -576,14 +576,14 @@ void main() {
             var list = (await _protofy(r"[true, null, false]")).list;
             expect(list.contents, equals([_true, _null, _false]));
             expect(list.hasBrackets, isTrue);
-            expect(list.separator, equals(Value_List_Separator.COMMA));
+            expect(list.separator, equals(ListSeparator.COMMA));
           });
 
           test("with a space separator", () async {
             var list = (await _protofy(r"[true null false]")).list;
             expect(list.contents, equals([_true, _null, _false]));
             expect(list.hasBrackets, isTrue);
-            expect(list.separator, equals(Value_List_Separator.SPACE));
+            expect(list.separator, equals(ListSeparator.SPACE));
           });
         });
 
@@ -592,14 +592,14 @@ void main() {
             var list = (await _protofy(r"true, null, false")).list;
             expect(list.contents, equals([_true, _null, _false]));
             expect(list.hasBrackets, isFalse);
-            expect(list.separator, equals(Value_List_Separator.COMMA));
+            expect(list.separator, equals(ListSeparator.COMMA));
           });
 
           test("with a space separator", () async {
             var list = (await _protofy(r"true null false")).list;
             expect(list.contents, equals([_true, _null, _false]));
             expect(list.hasBrackets, isFalse);
-            expect(list.separator, equals(Value_List_Separator.SPACE));
+            expect(list.separator, equals(ListSeparator.SPACE));
           });
         });
       });
@@ -874,7 +874,7 @@ void main() {
                 Value()
                   ..list = (Value_List()
                     ..hasBrackets = true
-                    ..separator = Value_List_Separator.UNDECIDED),
+                    ..separator = ListSeparator.UNDECIDED),
                 "[]");
           });
 
@@ -883,7 +883,7 @@ void main() {
                 Value()
                   ..list = (Value_List()
                     ..hasBrackets = true
-                    ..separator = Value_List_Separator.COMMA),
+                    ..separator = ListSeparator.COMMA),
                 "[]");
           });
 
@@ -892,7 +892,7 @@ void main() {
                 Value()
                   ..list = (Value_List()
                     ..hasBrackets = true
-                    ..separator = Value_List_Separator.SPACE),
+                    ..separator = ListSeparator.SPACE),
                 "[]");
           });
         });
@@ -903,7 +903,7 @@ void main() {
                 Value()
                   ..list = (Value_List()
                     ..hasBrackets = false
-                    ..separator = Value_List_Separator.UNDECIDED),
+                    ..separator = ListSeparator.UNDECIDED),
                 "()",
                 inspect: true);
           });
@@ -913,7 +913,7 @@ void main() {
                 Value()
                   ..list = (Value_List()
                     ..hasBrackets = false
-                    ..separator = Value_List_Separator.COMMA),
+                    ..separator = ListSeparator.COMMA),
                 "()",
                 inspect: true);
           });
@@ -923,7 +923,7 @@ void main() {
                 Value()
                   ..list = (Value_List()
                     ..hasBrackets = false
-                    ..separator = Value_List_Separator.SPACE),
+                    ..separator = ListSeparator.SPACE),
                 "()",
                 inspect: true);
           });
@@ -938,7 +938,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.add(_true)
                     ..hasBrackets = true
-                    ..separator = Value_List_Separator.UNDECIDED),
+                    ..separator = ListSeparator.UNDECIDED),
                 "[true]");
           });
 
@@ -949,7 +949,7 @@ void main() {
                       ..list = (Value_List()
                         ..contents.add(_true)
                         ..hasBrackets = true
-                        ..separator = Value_List_Separator.COMMA),
+                        ..separator = ListSeparator.COMMA),
                     inspect: true),
                 "[true,]");
           });
@@ -960,7 +960,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.add(_true)
                     ..hasBrackets = true
-                    ..separator = Value_List_Separator.SPACE),
+                    ..separator = ListSeparator.SPACE),
                 "[true]");
           });
         });
@@ -972,7 +972,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.add(_true)
                     ..hasBrackets = false
-                    ..separator = Value_List_Separator.UNDECIDED),
+                    ..separator = ListSeparator.UNDECIDED),
                 "true");
           });
 
@@ -983,7 +983,7 @@ void main() {
                       ..list = (Value_List()
                         ..contents.add(_true)
                         ..hasBrackets = false
-                        ..separator = Value_List_Separator.COMMA),
+                        ..separator = ListSeparator.COMMA),
                     inspect: true),
                 "(true,)");
           });
@@ -994,7 +994,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.add(_true)
                     ..hasBrackets = false
-                    ..separator = Value_List_Separator.SPACE),
+                    ..separator = ListSeparator.SPACE),
                 "true");
           });
         });
@@ -1009,7 +1009,7 @@ void main() {
                       ..list = (Value_List()
                         ..contents.addAll([_true, _null, _false])
                         ..hasBrackets = true
-                        ..separator = Value_List_Separator.COMMA),
+                        ..separator = ListSeparator.COMMA),
                     inspect: true),
                 "[true, null, false]");
           });
@@ -1021,7 +1021,7 @@ void main() {
                       ..list = (Value_List()
                         ..contents.addAll([_true, _null, _false])
                         ..hasBrackets = true
-                        ..separator = Value_List_Separator.SPACE),
+                        ..separator = ListSeparator.SPACE),
                     inspect: true),
                 "[true null false]");
           });
@@ -1035,7 +1035,7 @@ void main() {
                       ..list = (Value_List()
                         ..contents.addAll([_true, _null, _false])
                         ..hasBrackets = false
-                        ..separator = Value_List_Separator.COMMA),
+                        ..separator = ListSeparator.COMMA),
                     inspect: true),
                 "true, null, false");
           });
@@ -1047,7 +1047,7 @@ void main() {
                       ..list = (Value_List()
                         ..contents.addAll([_true, _null, _false])
                         ..hasBrackets = false
-                        ..separator = Value_List_Separator.SPACE),
+                        ..separator = ListSeparator.SPACE),
                     inspect: true),
                 "true null false");
           });
@@ -1181,7 +1181,7 @@ void main() {
             Value()
               ..list = (Value_List()
                 ..contents.addAll([_true, _false])
-                ..separator = Value_List_Separator.UNDECIDED),
+                ..separator = ListSeparator.UNDECIDED),
             endsWith("can't have an undecided separator because it has 2 "
                 "elements"));
       });
