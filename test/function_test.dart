@@ -333,21 +333,24 @@ void main() {
       });
 
       test("with one denominator", () async {
-        var value = (await _protofy('1/1em')).number;
+        var value = (await _protofy('math.div(1,1em)')).number;
         expect(value.value, equals(1.0));
         expect(value.numerators, isEmpty);
         expect(value.denominators, ["em"]);
       });
 
       test("with multiple denominators", () async {
-        var value = (await _protofy('1/1em/1px/1foo')).number;
+        var value =
+            (await _protofy('math.div(math.div(math.div(1, 1em), 1px), 1foo)'))
+                .number;
         expect(value.value, equals(1.0));
         expect(value.numerators, isEmpty);
         expect(value.denominators, unorderedEquals(["em", "px", "foo"]));
       });
 
       test("with numerators and denominators", () async {
-        var value = (await _protofy('1em * 1px/1s/1foo')).number;
+        var value =
+            (await _protofy('1em * math.div(math.div(1px, 1s), 1foo)')).number;
         expect(value.value, equals(1.0));
         expect(value.numerators, unorderedEquals(["em", "px"]));
         expect(value.denominators, unorderedEquals(["s", "foo"]));
@@ -1192,6 +1195,7 @@ Future<Value> _protofy(String sassScript) async {
   _process.inbound.add(compileString("""
 @use 'sass:list';
 @use 'sass:map';
+@use 'sass:math';
 
 \$_: foo(($sassScript));
 """, functions: [r"foo($arg)"]));
