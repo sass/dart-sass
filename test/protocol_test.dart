@@ -211,7 +211,8 @@ void main() {
           equals(
               '@elseif is deprecated and will not be supported in future Sass '
               'versions.\n'
-              'Use "@else if" instead.'));
+              '\n'
+              'Recommendation: @else if'));
       expect(logEvent.span.text, equals("@elseif"));
       expect(logEvent.span.start, equals(location(12, 0, 12)));
       expect(logEvent.span.end, equals(location(19, 0, 19)));
@@ -229,10 +230,10 @@ void main() {
           equals(LogEventType.DEPRECATION_WARNING));
       expect(
           logEvent.message,
-          equals("As of Dart Sass 2.0.0, !global assignments won't be able to\n"
-              "declare new variables. Consider adding `\$var: null` at the "
-              "root of the\n"
-              "stylesheet."));
+          equals("As of Dart Sass 2.0.0, !global assignments won't be able to "
+              "declare new variables.\n"
+              "\n"
+              "Recommendation: add `\$var: null` at the stylesheet root."));
       expect(logEvent.span.text, equals("\$var: value !global"));
       expect(logEvent.span.start, equals(location(3, 0, 3)));
       expect(logEvent.span.end, equals(location(22, 0, 22)));
