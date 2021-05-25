@@ -36,7 +36,7 @@ void main(List<String> args) {
     var functions = FunctionRegistry();
 
     var style =
-        request.style == InboundMessage_CompileRequest_OutputStyle.COMPRESSED
+        request.style == OutputStyle.COMPRESSED
             ? sass.OutputStyle.compressed
             : sass.OutputStyle.expanded;
     var logger = Logger(dispatcher, request.id,

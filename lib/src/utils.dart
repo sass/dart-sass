@@ -24,7 +24,7 @@ ProtocolError paramsError(String message) => ProtocolError()
   // Set the ID to [errorId] by default. This will be overwritten by the
   // dispatcher if a request ID is available.
   ..id = errorId
-  ..type = ProtocolError_ErrorType.PARAMS
+  ..type = ProtocolErrorType.PARAMS
   ..message = message;
 
 /// Converts a Dart source span to a protocol buffer source span.
@@ -46,13 +46,13 @@ SourceSpan_SourceLocation _protofyLocation(SourceLocation location) =>
       ..column = location.column;
 
 /// Converts a protocol buffer syntax enum into a Sass API syntax enum.
-sass.Syntax syntaxToSyntax(InboundMessage_Syntax syntax) {
+sass.Syntax syntaxToSyntax(Syntax syntax) {
   switch (syntax) {
-    case InboundMessage_Syntax.SCSS:
+    case Syntax.SCSS:
       return sass.Syntax.scss;
-    case InboundMessage_Syntax.INDENTED:
+    case Syntax.INDENTED:
       return sass.Syntax.sass;
-    case InboundMessage_Syntax.CSS:
+    case Syntax.CSS:
       return sass.Syntax.css;
     default:
       throw "Unknown syntax $syntax.";

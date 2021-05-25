@@ -40,7 +40,7 @@ class Logger implements sass.Logger {
 
     _dispatcher.sendLog(OutboundMessage_LogEvent()
       ..compilationId = _compilationId
-      ..type = OutboundMessage_LogEvent_Type.DEBUG
+      ..type = LogEventType.DEBUG
       ..message = message
       ..span = protofySpan(span)
       ..formatted = buffer.toString());
@@ -74,8 +74,8 @@ class Logger implements sass.Logger {
     var event = OutboundMessage_LogEvent()
       ..compilationId = _compilationId
       ..type = deprecation
-          ? OutboundMessage_LogEvent_Type.DEPRECATION_WARNING
-          : OutboundMessage_LogEvent_Type.WARNING
+          ? LogEventType.DEPRECATION_WARNING
+          : LogEventType.WARNING
       ..message = message
       ..formatted = formatted;
     if (span != null) event.span = protofySpan(span);

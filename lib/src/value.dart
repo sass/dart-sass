@@ -52,11 +52,11 @@ Value protofyValue(FunctionRegistry functions, sass.Value value) {
   } else if (value is sass.SassFunction) {
     result.compilerFunction = functions.protofy(value);
   } else if (value == sass.sassTrue) {
-    result.singleton = Value_Singleton.TRUE;
+    result.singleton = SingletonValue.TRUE;
   } else if (value == sass.sassFalse) {
-    result.singleton = Value_Singleton.FALSE;
+    result.singleton = SingletonValue.FALSE;
   } else if (value == sass.sassNull) {
-    result.singleton = Value_Singleton.NULL;
+    result.singleton = SingletonValue.NULL;
   } else {
     throw "Unknown Value $value";
   }
@@ -64,14 +64,14 @@ Value protofyValue(FunctionRegistry functions, sass.Value value) {
 }
 
 /// Converts [separator] to its protocol buffer representation.
-Value_List_Separator _protofySeparator(sass.ListSeparator separator) {
+ListSeparator _protofySeparator(sass.ListSeparator separator) {
   switch (separator) {
     case sass.ListSeparator.comma:
-      return Value_List_Separator.COMMA;
+      return ListSeparator.COMMA;
     case sass.ListSeparator.space:
-      return Value_List_Separator.SPACE;
+      return ListSeparator.SPACE;
     case sass.ListSeparator.undecided:
-      return Value_List_Separator.UNDECIDED;
+      return ListSeparator.UNDECIDED;
     default:
       throw "Unknown ListSeparator $separator";
   }
@@ -157,11 +157,11 @@ sass.Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
 
     case Value_Value.singleton:
       switch (value.singleton) {
-        case Value_Singleton.TRUE:
+        case SingletonValue.TRUE:
           return sass.sassTrue;
-        case Value_Singleton.FALSE:
+        case SingletonValue.FALSE:
           return sass.sassFalse;
-        case Value_Singleton.NULL:
+        case SingletonValue.NULL:
           return sass.sassNull;
         default:
           throw "Unknown Value.singleton ${value.singleton}";
@@ -173,13 +173,13 @@ sass.Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
 }
 
 /// Converts [separator] to its Sass representation.
-sass.ListSeparator _deprotofySeparator(Value_List_Separator separator) {
+sass.ListSeparator _deprotofySeparator(ListSeparator separator) {
   switch (separator) {
-    case Value_List_Separator.COMMA:
+    case ListSeparator.COMMA:
       return sass.ListSeparator.comma;
-    case Value_List_Separator.SPACE:
+    case ListSeparator.SPACE:
       return sass.ListSeparator.space;
-    case Value_List_Separator.UNDECIDED:
+    case ListSeparator.UNDECIDED:
       return sass.ListSeparator.undecided;
     default:
       throw "Unknown separator $separator";

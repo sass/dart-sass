@@ -98,7 +98,7 @@ class Dispatcher {
         var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
         stderr.write("Internal compiler error: $errorMessage");
         sendError(ProtocolError()
-          ..type = ProtocolError_ErrorType.INTERNAL
+          ..type = ProtocolErrorType.INTERNAL
           ..id = _inboundId(message) ?? errorId
           ..message = errorMessage);
         _channel.sink.close();
@@ -177,7 +177,7 @@ class Dispatcher {
 
   /// Returns a [ProtocolError] with type `PARSE` and the given [message].
   ProtocolError _parseError(String message) => ProtocolError()
-    ..type = ProtocolError_ErrorType.PARSE
+    ..type = ProtocolErrorType.PARSE
     ..message = message;
 
   /// Returns the id for [message] if it it's a request, or `null`

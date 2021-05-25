@@ -16,8 +16,8 @@ InboundMessage compileString(String css,
     {int? id,
     bool? alertColor,
     bool? alertAscii,
-    InboundMessage_Syntax? syntax,
-    InboundMessage_CompileRequest_OutputStyle? style,
+    Syntax? syntax,
+    OutputStyle? style,
     String? url,
     bool? sourceMap,
     Iterable<InboundMessage_CompileRequest_Importer>? importers,
@@ -44,7 +44,7 @@ InboundMessage compileString(String css,
 /// [message] on its protobuf stream and prints a notice on stderr.
 Future<void> expectParseError(EmbeddedProcess process, message) async {
   await expectLater(process.outbound,
-      emits(isProtocolError(errorId, ProtocolError_ErrorType.PARSE, message)));
+      emits(isProtocolError(errorId, ProtocolErrorType.PARSE, message)));
 
   var stderrPrefix = "Host caused parse error: ";
   await expectLater(
@@ -58,7 +58,7 @@ Future<void> expectParseError(EmbeddedProcess process, message) async {
 /// [message] on its protobuf stream and prints a notice on stderr.
 Future<void> expectParamsError(EmbeddedProcess process, int id, message) async {
   await expectLater(process.outbound,
-      emits(isProtocolError(id, ProtocolError_ErrorType.PARAMS, message)));
+      emits(isProtocolError(id, ProtocolErrorType.PARAMS, message)));
 
   var stderrPrefix = "Host caused params error"
       "${id == errorId ? '' : " with request $id"}: ";
@@ -71,7 +71,7 @@ Future<void> expectParamsError(EmbeddedProcess process, int id, message) async {
 
 /// Asserts that an [OutboundMessage] is a [ProtocolError] with the given [id],
 /// [type], and optionally [message].
-Matcher isProtocolError(int id, ProtocolError_ErrorType type, [message]) =>
+Matcher isProtocolError(int id, ProtocolErrorType type, [message]) =>
     predicate((value) {
       expect(value, isA<OutboundMessage>());
       var outboundMessage = value as OutboundMessage;
