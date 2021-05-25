@@ -21,6 +21,7 @@ class RenderOptions {
   external String? get indentType;
   external Object? get indentWidth;
   external String? get linefeed;
+  external bool? get verbose;
   external FiberClass? get fiber;
   external Object? get sourceMap;
   external bool? get sourceMapContents;
@@ -40,6 +41,7 @@ class RenderOptions {
       String? indentType,
       Object? indentWidth,
       String? linefeed,
+      bool? verbose,
       FiberClass? fiber,
       Object? sourceMap,
       bool? sourceMapContents,
