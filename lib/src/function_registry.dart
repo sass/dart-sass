@@ -3,7 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:sass/sass.dart' as sass;
-import 'package:sass_embedded/src/embedded_sass.pb.dart';
+
+import 'embedded_sass.pb.dart';
 
 /// A registry of [SassFunction]s indexed by ID so that the host can invoke
 /// them.

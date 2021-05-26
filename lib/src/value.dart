@@ -3,9 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:sass/sass.dart' as sass;
-import 'package:sass_embedded/src/embedded_sass.pb.dart';
 
 import 'dispatcher.dart';
+import 'embedded_sass.pb.dart';
 import 'function_registry.dart';
 import 'host_callable.dart';
 import 'utils.dart';
@@ -88,87 +88,97 @@ sass.Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
   var deprotofy = (Value value) =>
       deprotofyValue(dispatcher, functions, compilationId, value);
 
-  switch (value.whichValue()) {
-    case Value_Value.string:
-      return value.string.text.isEmpty
-          ? sass.SassString.empty(quotes: value.string.quoted)
-          : sass.SassString(value.string.text, quotes: value.string.quoted);
+  try {
+    switch (value.whichValue()) {
+      case Value_Value.string:
+        return value.string.text.isEmpty
+            ? sass.SassString.empty(quotes: value.string.quoted)
+            : sass.SassString(value.string.text, quotes: value.string.quoted);
 
-    case Value_Value.number:
-      return sass.SassNumber.withUnits(value.number.value,
-          numeratorUnits: value.number.numerators,
-          denominatorUnits: value.number.denominators);
+      case Value_Value.number:
+        return sass.SassNumber.withUnits(value.number.value,
+            numeratorUnits: value.number.numerators,
+            denominatorUnits: value.number.denominators);
 
-    case Value_Value.rgbColor:
-      return sass.SassColor.rgb(
-          _checkInRange('RgbColor.red', value.rgbColor.red, 0, 255),
-          _checkInRange('RgbColor.green', value.rgbColor.green, 0, 255),
-          _checkInRange('RgbColor.blue', value.rgbColor.blue, 0, 255),
-          _checkInRange('RgbColor.alpha', value.rgbColor.alpha, 0, 1));
+      case Value_Value.rgbColor:
+        return sass.SassColor.rgb(value.rgbColor.red, value.rgbColor.green,
+            value.rgbColor.blue, value.rgbColor.alpha);
 
-    case Value_Value.hslColor:
-      return sass.SassColor.hsl(
-          value.hslColor.hue,
-          _checkInRange(
-              'HslColor.saturation', value.hslColor.saturation, 0, 100),
-          _checkInRange('HslColor.lightness', value.hslColor.lightness, 0, 100),
-          _checkInRange('HslColor.alpha', value.hslColor.alpha, 0, 1));
+      case Value_Value.hslColor:
+        return sass.SassColor.hsl(value.hslColor.hue, value.hslColor.saturation,
+            value.hslColor.lightness, value.hslColor.alpha);
 
-    case Value_Value.list:
-      var separator = _deprotofySeparator(value.list.separator);
-      if (value.list.contents.isEmpty) {
-        return sass.SassList.empty(
-            separator: separator, brackets: value.list.hasBrackets);
-      }
+      case Value_Value.list:
+        var separator = _deprotofySeparator(value.list.separator);
+        if (value.list.contents.isEmpty) {
+          return sass.SassList.empty(
+              separator: separator, brackets: value.list.hasBrackets);
+        }
 
-      var length = value.list.contents.length;
-      if (separator == sass.ListSeparator.undecided && length > 1) {
-        throw paramsError(
-            "List $value can't have an undecided separator because it has "
-            "$length elements");
-      }
+        var length = value.list.contents.length;
+        if (separator == sass.ListSeparator.undecided && length > 1) {
+          throw paramsError(
+              "List $value can't have an undecided separator because it has "
+              "$length elements");
+        }
 
-      return sass.SassList([
-        for (var element in value.list.contents) deprotofy(element)
-      ], separator, brackets: value.list.hasBrackets);
+        return sass.SassList([
+          for (var element in value.list.contents) deprotofy(element)
+        ], separator, brackets: value.list.hasBrackets);
 
-    case Value_Value.map:
-      return value.map.entries.isEmpty
-          ? const sass.SassMap.empty()
-          : sass.SassMap({
-              for (var entry in value.map.entries)
-                deprotofy(entry.key): deprotofy(entry.value)
-            });
+      case Value_Value.map:
+        return value.map.entries.isEmpty
+            ? const sass.SassMap.empty()
+            : sass.SassMap({
+                for (var entry in value.map.entries)
+                  deprotofy(entry.key): deprotofy(entry.value)
+              });
 
-    case Value_Value.compilerFunction:
-      var id = value.compilerFunction.id;
-      var function = functions[id];
-      if (function == null) {
-        throw paramsError(
-            "CompilerFunction.id $id doesn't match any known functions");
-      }
+      case Value_Value.compilerFunction:
+        var id = value.compilerFunction.id;
+        var function = functions[id];
+        if (function == null) {
+          throw paramsError(
+              "CompilerFunction.id $id doesn't match any known functions");
+        }
 
-      return function;
+        return function;
 
-    case Value_Value.hostFunction:
-      return sass.SassFunction(hostCallable(
-          dispatcher, functions, compilationId, value.hostFunction.signature,
-          id: value.hostFunction.id));
+      case Value_Value.hostFunction:
+        return sass.SassFunction(hostCallable(
+            dispatcher, functions, compilationId, value.hostFunction.signature,
+            id: value.hostFunction.id));
 
-    case Value_Value.singleton:
-      switch (value.singleton) {
-        case SingletonValue.TRUE:
-          return sass.sassTrue;
-        case SingletonValue.FALSE:
-          return sass.sassFalse;
-        case SingletonValue.NULL:
-          return sass.sassNull;
-        default:
-          throw "Unknown Value.singleton ${value.singleton}";
-      }
+      case Value_Value.singleton:
+        switch (value.singleton) {
+          case SingletonValue.TRUE:
+            return sass.sassTrue;
+          case SingletonValue.FALSE:
+            return sass.sassFalse;
+          case SingletonValue.NULL:
+            return sass.sassNull;
+          default:
+            throw "Unknown Value.singleton ${value.singleton}";
+        }
 
-    case Value_Value.notSet:
-      throw mandatoryError("Value.value");
+      case Value_Value.notSet:
+        throw mandatoryError("Value.value");
+    }
+  } on RangeError catch (error) {
+    var name = error.name;
+    if (name == null || error.start == null || error.end == null) {
+      throw paramsError(error.toString());
+    }
+
+    if (value.whichValue() == Value_Value.rgbColor) {
+      name = 'RgbColor.$name';
+    } else if (value.whichValue() == Value_Value.hslColor) {
+      name = 'HslColor.$name';
+    }
+
+    throw paramsError(
+        '$name must be between ${error.start} and ${error.end}, was '
+        '${error.invalidValue}');
   }
 }
 
@@ -183,21 +193,5 @@ sass.ListSeparator _deprotofySeparator(ListSeparator separator) {
       return sass.ListSeparator.undecided;
     default:
       throw "Unknown separator $separator";
-  }
-}
-
-/// Throws a parameter error if [value] isn't between [lower] and [upper], both
-/// inclusive.
-///
-/// Returns [value] if it is within the range.
-T _checkInRange<T extends num>(String field, T value, num lower, num upper) {
-  if (value < lower) {
-    throw paramsError(
-        '$field must be greater than or equal to $lower, was $value');
-  } else if (value > upper) {
-    throw paramsError(
-        '$field must be less than or equal to $upper, was $value');
-  } else {
-    return value;
   }
 }

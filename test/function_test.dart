@@ -1118,61 +1118,61 @@ void main() {
       group("a color", () {
         test("with red above 255", () async {
           await _expectDeprotofyError(_rgb(256, 0, 0, 1.0),
-              "RgbColor.red must be less than or equal to 255, was 256");
+              "RgbColor.red must be between 0 and 255, was 256");
         });
 
         test("with green above 255", () async {
           await _expectDeprotofyError(_rgb(0, 256, 0, 1.0),
-              "RgbColor.green must be less than or equal to 255, was 256");
+              "RgbColor.green must be between 0 and 255, was 256");
         });
 
         test("with blue above 255", () async {
           await _expectDeprotofyError(_rgb(0, 0, 256, 1.0),
-              "RgbColor.blue must be less than or equal to 255, was 256");
+              "RgbColor.blue must be between 0 and 255, was 256");
         });
 
         test("with RGB alpha below 0", () async {
           await _expectDeprotofyError(_rgb(0, 0, 0, -0.1),
-              "RgbColor.alpha must be greater than or equal to 0, was -0.1");
+              "RgbColor.alpha must be between 0 and 1, was -0.1");
         });
 
         test("with RGB alpha above 1", () async {
           await _expectDeprotofyError(_rgb(0, 0, 0, 1.1),
-              "RgbColor.alpha must be less than or equal to 1, was 1.1");
+              "RgbColor.alpha must be between 0 and 1, was 1.1");
         });
 
         test("with saturation below 0", () async {
           await _expectDeprotofyError(_hsl(0, -0.1, 0, 1.0),
-              "HslColor.saturation must be greater than or equal to 0, was -0.1");
+              "HslColor.saturation must be between 0 and 100, was -0.1");
         });
 
         test("with saturation above 100", () async {
           await _expectDeprotofyError(
               _hsl(0, 100.1, 0, 1.0),
-              "HslColor.saturation must be less than or equal to 100, was "
+              "HslColor.saturation must be between 0 and 100, was "
               "100.1");
         });
 
         test("with lightness below 0", () async {
           await _expectDeprotofyError(_hsl(0, 0, -0.1, 1.0),
-              "HslColor.lightness must be greater than or equal to 0, was -0.1");
+              "HslColor.lightness must be between 0 and 100, was -0.1");
         });
 
         test("with lightness above 100", () async {
           await _expectDeprotofyError(
               _hsl(0, 0, 100.1, 1.0),
-              "HslColor.lightness must be less than or equal to 100, was "
+              "HslColor.lightness must be between 0 and 100, was "
               "100.1");
         });
 
         test("with HSL alpha below 0", () async {
           await _expectDeprotofyError(_hsl(0, 0, 0, -0.1),
-              "HslColor.alpha must be greater than or equal to 0, was -0.1");
+              "HslColor.alpha must be between 0 and 1, was -0.1");
         });
 
         test("with HSL alpha above 1", () async {
           await _expectDeprotofyError(_hsl(0, 0, 0, 1.1),
-              "HslColor.alpha must be less than or equal to 1, was 1.1");
+              "HslColor.alpha must be between 0 and 1, was 1.1");
         });
       });
 
