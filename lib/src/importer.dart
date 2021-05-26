@@ -29,7 +29,8 @@ class Importer extends sass.Importer {
           .sendCanonicalizeRequest(OutboundMessage_CanonicalizeRequest()
             ..compilationId = _compilationId
             ..importerId = _importerId
-            ..url = url.toString());
+            ..url = url.toString()
+            ..fromImport = fromImport);
 
       switch (response.whichResult()) {
         case InboundMessage_CanonicalizeResponse_Result.url:
