@@ -1,3 +1,8 @@
+## 1.34.1
+
+* Fix a bug where `--update` would always compile any file that depends on a
+  built-in module.
+
 ## 1.34.0
 
 * Don't emit the same warning in the same location multiple times.
@@ -42,7 +47,7 @@
 * [`:is()`][] now behaves identically to `:matches()`.
 
 [`:is()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:is
-  
+
 * Fix a bug where non-integer numbers that were very close to integer
   values would be incorrectly formatted in CSS.
 

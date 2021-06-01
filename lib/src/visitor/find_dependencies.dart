@@ -10,12 +10,13 @@ import 'recursive_statement.dart';
 /// Returns two lists of dependencies for [stylesheet].
 ///
 /// The first is a list of URLs from all `@use` and `@forward` rules in
-/// [stylesheet]. The second is a list of all imports in [stylesheet].
+/// [stylesheet] (excluding built-in modules). The second is a list of all
+/// imports in [stylesheet].
 Tuple2<List<Uri>, List<Uri>> findDependencies(Stylesheet stylesheet) =>
     _FindDependenciesVisitor().run(stylesheet);
 
 /// A visitor that traverses a stylesheet and records, all `@import`, `@use`,
-/// and `@forward` rules it contains.
+/// and `@forward` rules (excluding built-in modules) it contains.
 class _FindDependenciesVisitor extends RecursiveStatementVisitor {
   final _usesAndForwards = <Uri>[];
   final _imports = <Uri>[];
@@ -35,11 +36,11 @@ class _FindDependenciesVisitor extends RecursiveStatementVisitor {
   void visitSupportsCondition(SupportsCondition condition) {}
 
   void visitUseRule(UseRule node) {
-    _usesAndForwards.add(node.url);
+    if (node.url.scheme != 'sass') _usesAndForwards.add(node.url);
   }
 
   void visitForwardRule(ForwardRule node) {
-    _usesAndForwards.add(node.url);
+    if (node.url.scheme != 'sass') _usesAndForwards.add(node.url);
   }
 
   void visitImportRule(ImportRule node) {
