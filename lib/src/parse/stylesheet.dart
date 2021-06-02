@@ -681,7 +681,7 @@ abstract class StylesheetParser extends Parser {
       case "error":
         return _errorRule(start);
       case "for":
-        return _forRule(start, _declarationAtRule);
+        return _forRule(start, _declarationChild);
       case "if":
         return _ifRule(start, _declarationChild);
       case "include":
