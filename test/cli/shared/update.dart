@@ -183,6 +183,17 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       await d.file("dir/test.css", "a {b: c}").validate();
     });
+
+    test("that uses a built-in module", () async {
+      await d.file("test.scss", "@use 'sass:math'; a {b: c}").create();
+      await d.file("out.css", "x {y: z}").create();
+
+      var sass = await update(["test.scss:out.css"]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+
+      await d.file("out.css", "x {y: z}").validate();
+    });
   });
 
   group("updates a CSS file", () {
