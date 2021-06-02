@@ -2,6 +2,8 @@
 
 * Fix the URL for the `@-moz-document` deprecation message.
 
+* Fix a bug with `@for` loops nested inside property declarations.
+
 ## 1.34.0
 
 * Don't emit the same warning in the same location multiple times.
@@ -46,7 +48,7 @@
 * [`:is()`][] now behaves identically to `:matches()`.
 
 [`:is()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:is
-  
+
 * Fix a bug where non-integer numbers that were very close to integer
   values would be incorrectly formatted in CSS.
 
