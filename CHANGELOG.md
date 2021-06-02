@@ -1,3 +1,7 @@
+## 1.34.1
+
+* Fix the URL for the `@-moz-document` deprecation message.
+
 ## 1.34.0
 
 * Don't emit the same warning in the same location multiple times.
