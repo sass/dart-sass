@@ -3,6 +3,10 @@
 * Fix a bug where `--update` would always compile any file that depends on a
   built-in module.
 
+* Fix the URL for the `@-moz-document` deprecation message.
+
+* Fix a bug with `@for` loops nested inside property declarations.
+
 ## 1.34.0
 
 * Don't emit the same warning in the same location multiple times.

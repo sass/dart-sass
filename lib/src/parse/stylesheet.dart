@@ -681,7 +681,7 @@ abstract class StylesheetParser extends Parser {
       case "error":
         return _errorRule(start);
       case "for":
-        return _forRule(start, _declarationAtRule);
+        return _forRule(start, _declarationChild);
       case "if":
         return _ifRule(start, _declarationChild);
       case "include":
@@ -1338,7 +1338,7 @@ abstract class StylesheetParser extends Parser {
             "@-moz-document is deprecated and support will be removed in Dart "
             "Sass 2.0.0.\n"
             "\n"
-            "For details, see http://bit.ly/moz-document.",
+            "For details, see http://bit.ly/MozDocument.",
             span: span,
             deprecation: true);
       }
