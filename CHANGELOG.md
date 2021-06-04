@@ -1,3 +1,8 @@
+## 1.35.0
+
+* Add a `--fatal-deprecation` flag, which errors when the given deprecated
+  behavior is encountered.
+
 ## 1.34.1
 
 * Fix a bug where `--update` would always compile any file that depends on a

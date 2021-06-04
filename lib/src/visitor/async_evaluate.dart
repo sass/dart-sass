@@ -206,6 +206,9 @@ class _EvaluateVisitor
   /// This is used to produce warnings for importers.
   FileSpan? _importSpan;
 
+  /// The span for the current deprecation warning.
+  FileSpan? _deprecationSpan;
+
   /// Whether we're currently executing a function.
   var _inFunction = false;
 
@@ -435,12 +438,8 @@ class _EvaluateVisitor
                     callableNode.span));
 
         if (function is SassString) {
-          warn(
-              "Passing a string to call() is deprecated and will be illegal in "
-              "Dart Sass 2.0.0.\n"
-              "\n"
-              "Recommendation: call(get-function($function))",
-              deprecation: true);
+          Deprecation.callString
+              .warnOrError(recommendation: 'call(get-function($function))');
 
           var callableNode = _callableNode!;
           var expression = FunctionExpression(
@@ -547,10 +546,15 @@ class _EvaluateVisitor
   /// If no other span can be found to report a warning, falls back on
   /// [nodeWithSpan]'s.
   T _withWarnCallback<T>(AstNode nodeWithSpan, T callback()) {
+    FileSpan span() =>
+        _deprecationSpan ??
+        _importSpan ??
+        _callableNode?.span ??
+        nodeWithSpan.span;
     return withWarnCallback(
-        (message, deprecation) => _warn(
-            message, _importSpan ?? _callableNode?.span ?? nodeWithSpan.span,
-            deprecation: deprecation),
+        (message, deprecation) =>
+            _warn(message, span(), deprecation: deprecation),
+        (message) => throw _exception(message, span()),
         callback);
   }
 
@@ -1972,21 +1976,16 @@ class _EvaluateVisitor
     }
 
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
-      _warn(
-          _environment.atRoot
-              ? "As of Dart Sass 2.0.0, !global assignments won't be able to "
-                  "declare new variables.\n"
-                  "\n"
-                  "Since this assignment is at the root of the stylesheet, the "
-                  "!global flag is\n"
-                  "unnecessary and can safely be removed."
-              : "As of Dart Sass 2.0.0, !global assignments won't be able to "
-                  "declare new variables.\n"
-                  "\n"
-                  "Recommendation: add `${node.originalName}: null` at the "
-                  "stylesheet root.",
-          node.span,
-          deprecation: true);
+      _deprecationSpan = node.span;
+      Deprecation.globalDeclaration.warnOrError(
+          context: _environment.atRoot
+              ? 'Since this assignment is at the root of the stylesheet, '
+                  'the !global flag is\n'
+                  'unnecessary and can safely be removed.'
+              : null,
+          recommendation: _environment.atRoot
+              ? null
+              : 'add `${node.originalName}: null` at the stylesheet root.');
     }
 
     var value =
@@ -2111,16 +2110,9 @@ class _EvaluateVisitor
                 }
               }
 
-              _warn(
-                  "Using / for division is deprecated and will be removed in "
-                  "Dart Sass 2.0.0.\n"
-                  "\n"
-                  "Recommendation: ${recommendation(node)}\n"
-                  "\n"
-                  "More info and automated migrator: "
-                  "https://sass-lang.com/d/slash-div",
-                  node.span,
-                  deprecation: true);
+              _deprecationSpan = node.span;
+              Deprecation.slashAsDivision
+                  .warnOrError(recommendation: recommendation(node));
             }
 
             return result;
@@ -3093,16 +3085,9 @@ class _EvaluateVisitor
         }
       }
 
-      _warn(
-          "Using / for division is deprecated and will be removed in Dart Sass "
-          "2.0.0.\n"
-          "\n"
-          "Recommendation: ${recommendation(value)}\n"
-          "\n"
-          "More info and automated migrator: "
-          "https://sass-lang.com/d/slash-div",
-          nodeForSpan.span,
-          deprecation: true);
+      _deprecationSpan = nodeForSpan.span;
+      Deprecation.slashAsDivision
+          .warnOrError(recommendation: recommendation(value));
     }
 
     return value.withoutSlash();
