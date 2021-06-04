@@ -16,6 +16,7 @@ import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/io.dart';
 import 'package:sass/src/stylesheet_graph.dart';
+import 'package:sass/src/warn.dart';
 
 Future<void> main(List<String> args) async {
   var printedError = false;
@@ -39,67 +40,68 @@ Future<void> main(List<String> args) async {
   try {
     options = ExecutableOptions.parse(args);
     term_glyph.ascii = !options.unicode;
-
-    if (options.version) {
-      print(await _loadVersion());
-      exitCode = 0;
-      return;
-    }
-
-    if (options.interactive) {
-      await repl(options);
-      return;
-    }
-
-    var graph = StylesheetGraph(
-        ImportCache(loadPaths: options.loadPaths, logger: options.logger));
-    if (options.watch) {
-      await watch(options, graph);
-      return;
-    }
-
-    for (var source in options.sourcesToDestinations.keys) {
-      var destination = options.sourcesToDestinations[source];
-      try {
-        await compileStylesheet(options, graph, source, destination,
-            ifModified: options.update);
-      } on SassException catch (error, stackTrace) {
-        // This is an immediately-invoked function expression to work around
-        // dart-lang/sdk#33400.
-        () {
-          try {
-            if (destination != null &&
-                // dart-lang/sdk#45348
-                !options!.emitErrorCss) {
-              deleteFile(destination);
-            }
-          } on FileSystemException {
-            // If the file doesn't exist, that's fine.
-          }
-        }();
-
-        printError(error.toString(color: options.color),
-            options.trace ? stackTrace : null);
-
-        // Exit code 65 indicates invalid data per
-        // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
-        //
-        // We let exitCode 66 take precedence for deterministic behavior.
-        if (exitCode != 66) exitCode = 65;
-        if (options.stopOnError) return;
-      } on FileSystemException catch (error, stackTrace) {
-        var path = error.path;
-        printError(
-            path == null
-                ? error.message
-                : "Error reading ${p.relative(path)}: ${error.message}.",
-            options.trace ? stackTrace : null);
-
-        // Error 66 indicates no input.
-        exitCode = 66;
-        if (options.stopOnError) return;
+    withFatalDeprecations(options.fatalDeprecations, () async {
+      if (options!.version) {
+        print(await _loadVersion());
+        exitCode = 0;
+        return;
       }
-    }
+
+      if (options.interactive) {
+        await repl(options);
+        return;
+      }
+
+      var graph = StylesheetGraph(
+          ImportCache(loadPaths: options.loadPaths, logger: options.logger));
+      if (options.watch) {
+        await watch(options, graph);
+        return;
+      }
+
+      for (var source in options.sourcesToDestinations.keys) {
+        var destination = options.sourcesToDestinations[source];
+        try {
+          await compileStylesheet(options, graph, source, destination,
+              ifModified: options.update);
+        } on SassException catch (error, stackTrace) {
+          // This is an immediately-invoked function expression to work around
+          // dart-lang/sdk#33400.
+          () {
+            try {
+              if (destination != null &&
+                  // dart-lang/sdk#45348
+                  !options!.emitErrorCss) {
+                deleteFile(destination);
+              }
+            } on FileSystemException {
+              // If the file doesn't exist, that's fine.
+            }
+          }();
+
+          printError(error.toString(color: options.color),
+              options.trace ? stackTrace : null);
+
+          // Exit code 65 indicates invalid data per
+          // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+          //
+          // We let exitCode 66 take precedence for deterministic behavior.
+          if (exitCode != 66) exitCode = 65;
+          if (options.stopOnError) return;
+        } on FileSystemException catch (error, stackTrace) {
+          var path = error.path;
+          printError(
+              path == null
+                  ? error.message
+                  : "Error reading ${p.relative(path)}: ${error.message}.",
+              options.trace ? stackTrace : null);
+
+          // Error 66 indicates no input.
+          exitCode = 66;
+          if (options.stopOnError) return;
+        }
+      }
+    });
   } on UsageException catch (error) {
     print("${error.message}\n");
     print("Usage: sass <input.scss> [output.css]\n"

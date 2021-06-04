@@ -529,6 +529,24 @@ void sharedTests(
     });
   });
 
+  group('with --fatal-deprecation', () {
+    test('errors on the given deprecation', () async {
+      await d.file('test.scss', r'$_: 1/2').create();
+      var sass =
+          await runSass(['--fatal-deprecation=slash-as-division', 'test.scss']);
+      expect(sass.stderr, emitsThrough(contains('math.div')));
+      await sass.shouldExit(65);
+    });
+
+    test('warns for other deprecations', () async {
+      await d.file('test.scss', r'$_: call("inspect", null)').create();
+      var sass =
+          await runSass(['--fatal-deprecation=slash-as-division', 'test.scss']);
+      expect(sass.stderr, emitsThrough(contains('call()')));
+      await sass.shouldExit(0);
+    });
+  });
+
   group("with --charset", () {
     test("doesn't emit @charset for a pure-ASCII stylesheet", () async {
       await d.file("test.scss", "a {b: c}").create();

@@ -233,12 +233,10 @@ final module = BuiltInModule("color", functions: [
       }
 
       var result = _functionString("invert", arguments.take(1));
-      warn(
-          "Passing a number (${arguments[0]}) to color.invert() is "
-          "deprecated.\n"
-          "\n"
-          "Recommendation: $result",
-          deprecation: true);
+      Deprecation.colorNumber.warnOrError(
+          argument: arguments[0],
+          function: 'invert',
+          recommendation: '$result');
       return result;
     }
 
@@ -260,12 +258,10 @@ final module = BuiltInModule("color", functions: [
   _function("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("grayscale", arguments.take(1));
-      warn(
-          "Passing a number (${arguments[0]}) to color.grayscale() is "
-          "deprecated.\n"
-          "\n"
-          "Recommendation: $result",
-          deprecation: true);
+      Deprecation.colorNumber.warnOrError(
+          argument: arguments[0],
+          function: 'grayscale',
+          recommendation: '$result');
       return result;
     }
 
@@ -314,11 +310,7 @@ final module = BuiltInModule("color", functions: [
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart)) {
         var result = _functionString("alpha", arguments);
-        warn(
-            "Using color.alpha() for a Microsoft filter is deprecated.\n"
-            "\n"
-            "Recommendation: $result",
-            deprecation: true);
+        Deprecation.alphaFilter.warnOrError(recommendation: '$result');
         return result;
       }
 
@@ -332,11 +324,7 @@ final module = BuiltInModule("color", functions: [
           argument.text.contains(_microsoftFilterStart))) {
         // Support the proprietary Microsoft alpha() function.
         var result = _functionString("alpha", arguments);
-        warn(
-            "Using color.alpha() for a Microsoft filter is deprecated.\n"
-            "\n"
-            "Recommendation: $result",
-            deprecation: true);
+        Deprecation.alphaFilter.warnOrError(recommendation: '$result');
         return result;
       }
 
@@ -349,12 +337,10 @@ final module = BuiltInModule("color", functions: [
   _function("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("opacity", arguments);
-      warn(
-          "Passing a number (${arguments[0]} to color.opacity() is "
-          "deprecated.\n"
-          "\n"
-          "Recommendation: $result",
-          deprecation: true);
+      Deprecation.colorNumber.warnOrError(
+          argument: arguments[0],
+          function: 'opacity',
+          recommendation: '$result');
       return result;
     }
 
@@ -636,43 +622,33 @@ Value _hsl(String name, List<Value> arguments) {
 void _checkAngle(SassNumber angle, [String? name]) {
   if (!angle.hasUnits || angle.hasUnit('deg')) return;
 
-  var message = StringBuffer()
-    ..writeln("\$$name: Passing a unit other than deg ($angle) is deprecated.")
-    ..writeln();
+  String? context;
+  String? currentBehavior;
+  String? newBehavior;
 
   if (angle.compatibleWithUnit('deg')) {
-    message
-      ..writeln(
-          "You're passing $angle, which is currently (incorrectly) converted "
-          "to ${SassNumber(angle.value, 'deg')}.")
-      ..writeln("Soon, it will instead be correctly converted to "
-          "${angle.coerce(['deg'], [])}.")
-      ..writeln();
-
-    var actualUnit = angle.numeratorUnits.first;
-    message
-      ..writeln("To preserve current behavior: \$$name * 1deg/1$actualUnit")
-      ..writeln("To migrate to new behavior: 0deg + \$$name")
-      ..writeln();
+    context = "You're passing $angle, which is currently (incorrectly) "
+        'converted to ${SassNumber(angle.value, 'deg')}.\n'
+        'Soon, it will instead be correctly converted to '
+        '${angle.coerce(['deg'], [])}.';
+    currentBehavior = '\$$name * 1deg/1${angle.numeratorUnits.first}';
+    newBehavior = '0deg + \$$name';
   } else {
-    message
-      ..writeln("To preserve current behavior: \$$name${_removeUnits(angle)}")
-      ..writeln();
+    currentBehavior = '\$$name${_removeUnits(angle)}';
   }
-
-  message.write("See https://sass-lang.com/d/color-units");
-  warn(message.toString(), deprecation: true);
+  Deprecation.hueUnits.warnOrError(
+      argument: angle,
+      context: context,
+      currentBehavior: currentBehavior,
+      newBehavior: newBehavior);
 }
 
 /// Prints a deprecation warning if [number] doesn't have unit `%`.
 void _checkPercent(SassNumber number, String name) {
   if (number.hasUnit('%')) return;
 
-  warn(
-      "\$$name: Passing a number without unit % ($number) is deprecated.\n"
-      "\n"
-      "To preserve current behavior: \$$name${_removeUnits(number)} * 1%",
-      deprecation: true);
+  Deprecation.hslPercent.warnOrError(
+      argument: number, currentBehavior: '\$$name${_removeUnits(number)} * 1%');
 }
 
 /// Returns the right-hand side of an expression that would remove all units

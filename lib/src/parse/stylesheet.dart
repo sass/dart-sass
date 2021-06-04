@@ -20,6 +20,7 @@ import '../util/character.dart';
 import '../utils.dart';
 import '../util/nullable.dart';
 import '../value.dart';
+import '../warn.dart' show Deprecation;
 import 'parser.dart';
 
 /// The base class for both the SCSS and indented syntax parsers.
@@ -1334,17 +1335,20 @@ abstract class StylesheetParser extends Parser {
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
     return _withChildren(_statement, start, (children, span) {
       if (needsDeprecationWarning) {
-        logger.warn(
-            "@-moz-document is deprecated and support will be removed in Dart "
-            "Sass 2.0.0.\n"
-            "\n"
-            "For details, see http://bit.ly/MozDocument.",
-            span: span,
-            deprecation: true);
+        deprecationWarning(Deprecation.mozDocument, span);
       }
 
       return AtRule(name, span, value: value, children: children);
     });
+  }
+
+  /// Warns or errors about [deprecation], depending on whether it is fatal.
+  void deprecationWarning(Deprecation deprecation, FileSpan span) {
+    if (deprecation.isFatal) {
+      error(deprecation.message(), span);
+    } else {
+      logger.warn(deprecation.message(), span: span, deprecation: true);
+    }
   }
 
   /// Consumes a `@return` rule.

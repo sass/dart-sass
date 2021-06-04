@@ -14,6 +14,7 @@ import 'package:tuple/tuple.dart';
 import '../../sass.dart';
 import '../io.dart';
 import '../util/character.dart';
+import '../warn.dart';
 
 /// The parsed and processed command-line options for the Sass executable.
 ///
@@ -105,6 +106,9 @@ class ExecutableOptions {
       ..addFlag('verbose',
           help: "Print all deprecation warnings even when they're repetitive.")
       ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
+      ..addMultiOption('fatal-deprecation',
+          help: 'Error when the specified deprecated behavior is encountered.',
+          allowed: Deprecation.byId.keys)
       ..addFlag('help',
           abbr: 'h', help: 'Print this usage information.', negatable: false)
       ..addFlag('version',
@@ -211,10 +215,17 @@ class ExecutableOptions {
   /// error.
   bool get stopOnError => _options['stop-on-error'] as bool;
 
-  /// Whether to emit error messages as CSS stylesheets
+  /// Whether to emit error messages as CSS stylesheets.
   bool get emitErrorCss =>
       _options['error-css'] as bool? ??
       sourcesToDestinations.values.any((destination) => destination != null);
+
+  /// The deprecations that should be treated as fatal.
+  Set<Deprecation> get fatalDeprecations => _fatalDeprecations ??= {
+        for (var id in _options['fatal-deprecation'] as List<String>)
+          Deprecation.byId[id] ?? _fail('Invalid deprecation "$id"')
+      };
+  Set<Deprecation>? _fatalDeprecations;
 
   /// A map from source paths to the destination paths where the compiled CSS
   /// should be written.
