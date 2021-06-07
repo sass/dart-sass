@@ -210,12 +210,19 @@ class AsyncEnvironment {
   /// Returns a new environment to use for an imported file.
   ///
   /// The returned environment shares this environment's variables, functions,
-  /// and mixins, but not its modules.
+  /// and mixins, but excludes most modules (except for global modules that
+  /// result from importing a file with forwards).
   AsyncEnvironment forImport() => AsyncEnvironment._(
       {},
       {},
-      {},
-      {},
+      {
+        for (var module in _globalModules)
+          if (module is ForwardedModuleView) module
+      },
+      {
+        for (var entry in _globalModuleNodes.entries)
+          if (entry.key is ForwardedModuleView) entry.key: entry.value
+      },
       null,
       null,
       null,
