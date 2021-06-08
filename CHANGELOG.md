@@ -1,3 +1,8 @@
+## 1.34.2
+
+* Fix a bug that could prevent some members from being found in certain files
+  that use a mix of imports and the module system.
+
 ## 1.34.1
 
 * Fix a bug where `--update` would always compile any file that depends on a

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 588f0864bb1f889586178c799d91696341ecf218
+// Checksum: 0411d2d782920c2d8293eacf178941c192670e75
 //
 // ignore_for_file: unused_import
 
@@ -217,12 +217,19 @@ class Environment {
   /// Returns a new environment to use for an imported file.
   ///
   /// The returned environment shares this environment's variables, functions,
-  /// and mixins, but not its modules.
+  /// and mixins, but excludes most modules (except for global modules that
+  /// result from importing a file with forwards).
   Environment forImport() => Environment._(
       {},
       {},
-      {},
-      {},
+      {
+        for (var module in _globalModules)
+          if (module is ForwardedModuleView) module
+      },
+      {
+        for (var entry in _globalModuleNodes.entries)
+          if (entry.key is ForwardedModuleView) entry.key: entry.value
+      },
       null,
       null,
       null,
