@@ -178,11 +178,6 @@ void main() {
           equals("@media screen{a{b:c}}"));
     });
 
-    test("preserves whitespace before the query if necessary", () {
-      expect(_compile("@media screen {a {b: c}}"),
-          equals("@media screen{a{b:c}}"));
-    });
-
     // Removing whitespace after "and", "or", or "not" is forbidden because it
     // would cause it to parse as a function token.
     test('removes whitespace before "and" when possible', () {
