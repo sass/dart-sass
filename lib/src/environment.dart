@@ -5,12 +5,13 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c7e97403e3c0a31ea064572622b8305357d29dc3
+// Checksum: d5a12dbc383245a91d1e2fee0e2c4aa38939a3d8
 //
 // ignore_for_file: unused_import
 
 import 'dart:collection';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
@@ -815,7 +816,7 @@ class Environment {
   Module<Callable> toModule(CssStylesheet css, ExtensionStore extensionStore) {
     assert(atRoot);
     return _EnvironmentModule(this, css, extensionStore,
-        forwarded: _forwardedModules?.keys.toSet());
+        forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
   }
 
   /// Returns a module with the same members and upstream modules as [this], but
@@ -830,7 +831,7 @@ class Environment {
         CssStylesheet(const [],
             SourceFile.decoded(const [], url: "<dummy module>").span(0)),
         ExtensionStore.empty,
-        forwarded: _forwardedModules?.keys.toSet());
+        forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
   }
 
   /// Returns the module with the given [namespace], or throws a
