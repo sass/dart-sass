@@ -43,23 +43,21 @@ class AsyncEnvironment {
   /// modules were originally loaded.
   final Map<String, AstNode> _namespaceNodes;
 
-  /// The namespaceless modules used in the current scope.
-  final Set<Module> _globalModules;
-
-  /// A map from modules in [_globalModules] to the nodes whose spans
-  /// indicate where those modules were originally loaded.
-  final Map<Module, AstNode> _globalModuleNodes;
-
-  /// The modules forwarded by this module.
+  /// A map from namespaceless modules to the `@use` rules whose spans indicate
+  /// where those modules were originally loaded.
   ///
-  /// This is `null` if there are no forwarded modules.
-  Set<Module>? _forwardedModules;
+  /// This does not include modules that were imported into the current scope.
+  final Map<Module, AstNode> _globalModules;
 
-  /// A map from modules in [_forwardedModules] to the nodes whose spans
+  /// A map from modules that were imported into the current scope to the nodes
+  /// whose spans indicate where those modules were originally loaded.
+  final Map<Module, AstNode> _importedModules;
+
+  /// A map from modules forwarded by this module to the nodes whose spans
   /// indicate where those modules were originally forwarded.
   ///
   /// This is `null` if there are no forwarded modules.
-  Map<Module, AstNode>? _forwardedModuleNodes;
+  Map<Module, AstNode>? _forwardedModules;
 
   /// Modules forwarded by nested imports at each lexical scope level *beneath
   /// the global scope*.
@@ -152,9 +150,8 @@ class AsyncEnvironment {
       : _modules = {},
         _namespaceNodes = {},
         _globalModules = {},
-        _globalModuleNodes = {},
+        _importedModules = {},
         _forwardedModules = null,
-        _forwardedModuleNodes = null,
         _nestedForwardedModules = null,
         _allModules = [],
         _variables = [{}],
@@ -169,9 +166,8 @@ class AsyncEnvironment {
       this._modules,
       this._namespaceNodes,
       this._globalModules,
-      this._globalModuleNodes,
+      this._importedModules,
       this._forwardedModules,
-      this._forwardedModuleNodes,
       this._nestedForwardedModules,
       this._allModules,
       this._variables,
@@ -196,9 +192,8 @@ class AsyncEnvironment {
       _modules,
       _namespaceNodes,
       _globalModules,
-      _globalModuleNodes,
+      _importedModules,
       _forwardedModules,
-      _forwardedModuleNodes,
       _nestedForwardedModules,
       _allModules,
       _variables.toList(),
@@ -215,15 +210,8 @@ class AsyncEnvironment {
   AsyncEnvironment forImport() => AsyncEnvironment._(
       {},
       {},
-      {
-        for (var module in _globalModules)
-          if (module is ForwardedModuleView) module
-      },
-      {
-        for (var entry in _globalModuleNodes.entries)
-          if (entry.key is ForwardedModuleView) entry.key: entry.value
-      },
-      null,
+      {},
+      _importedModules,
       null,
       null,
       [],
@@ -245,8 +233,7 @@ class AsyncEnvironment {
   /// with the same name as a variable defined in this environment.
   void addModule(Module module, AstNode nodeWithSpan, {String? namespace}) {
     if (namespace == null) {
-      _globalModules.add(module);
-      _globalModuleNodes[module] = nodeWithSpan;
+      _globalModules[module] = nodeWithSpan;
       _allModules.add(module);
 
       for (var name in _variables.first.keys) {
@@ -275,10 +262,9 @@ class AsyncEnvironment {
   /// defined in this module, according to the modifications defined by [rule].
   void forwardModule(Module module, ForwardRule rule) {
     var forwardedModules = (_forwardedModules ??= {});
-    var forwardedModuleNodes = (_forwardedModuleNodes ??= {});
 
     var view = ForwardedModuleView.ifNecessary(module, rule);
-    for (var other in forwardedModules) {
+    for (var other in forwardedModules.keys) {
       _assertNoConflicts(
           view.variables, other.variables, view, other, "variable");
       _assertNoConflicts(
@@ -291,8 +277,7 @@ class AsyncEnvironment {
     // `==`. This is safe because upstream modules are only used for collating
     // CSS, not for the members they expose.
     _allModules.add(module);
-    forwardedModules.add(view);
-    forwardedModuleNodes[view] = rule;
+    forwardedModules[view] = rule;
   }
 
   /// Throws a [SassScriptException] if [newMembers] from [newModule] has any
@@ -324,7 +309,7 @@ class AsyncEnvironment {
       }
 
       if (type == "variable") name = "\$$name";
-      var span = _forwardedModuleNodes?[oldModule]?.span;
+      var span = _forwardedModules?[oldModule]?.span;
       throw MultiSpanSassScriptException(
           'Two forwarded modules both define a $type named $name.',
           "new @forward",
@@ -346,69 +331,56 @@ class AsyncEnvironment {
       var forwardedModules = _forwardedModules;
       if (forwardedModules != null) {
         forwarded = {
-          for (var module in forwarded)
-            if (!forwardedModules.contains(module) ||
-                !_globalModules.contains(module))
-              module
+          for (var entry in forwarded.entries)
+            if (!forwardedModules.containsKey(entry.key) ||
+                !_globalModules.containsKey(entry.key))
+              entry.key: entry.value,
         };
       } else {
         forwardedModules = _forwardedModules ??= {};
       }
 
-      var forwardedModuleNodes = _forwardedModuleNodes ??= {};
-
       var forwardedVariableNames =
-          forwarded.expand((module) => module.variables.keys).toSet();
+          forwarded.keys.expand((module) => module.variables.keys).toSet();
       var forwardedFunctionNames =
-          forwarded.expand((module) => module.functions.keys).toSet();
+          forwarded.keys.expand((module) => module.functions.keys).toSet();
       var forwardedMixinNames =
-          forwarded.expand((module) => module.mixins.keys).toSet();
+          forwarded.keys.expand((module) => module.mixins.keys).toSet();
 
       if (atRoot) {
         // Hide members from modules that have already been imported or
         // forwarded that would otherwise conflict with the @imported members.
-        for (var module in _globalModules.toList()) {
+        for (var entry in _importedModules.entries.toList()) {
+          var module = entry.key;
           var shadowed = ShadowedModuleView.ifNecessary(module,
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
               functions: forwardedFunctionNames);
           if (shadowed != null) {
-            _globalModules.remove(module);
-
-            if (!shadowed.isEmpty) {
-              _globalModules.add(shadowed);
-              _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module)!;
-            }
+            _importedModules.remove(module);
+            if (!shadowed.isEmpty) _importedModules[shadowed] = entry.value;
           }
         }
 
-        for (var module in forwardedModules.toList()) {
+        for (var entry in forwardedModules.entries.toList()) {
+          var module = entry.key;
           var shadowed = ShadowedModuleView.ifNecessary(module,
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
               functions: forwardedFunctionNames);
           if (shadowed != null) {
             forwardedModules.remove(module);
-
-            if (!shadowed.isEmpty) {
-              forwardedModules.add(shadowed);
-              forwardedModuleNodes[shadowed] =
-                  forwardedModuleNodes.remove(module)!;
-            }
+            if (!shadowed.isEmpty) forwardedModules[shadowed] = entry.value;
           }
         }
 
-        _globalModules.addAll(forwarded);
-        _globalModuleNodes
-            .addAll(module._environment._forwardedModuleNodes ?? const {});
+        _importedModules.addAll(forwarded);
         forwardedModules.addAll(forwarded);
-        forwardedModuleNodes
-            .addAll(module._environment._forwardedModuleNodes ?? const {});
       } else {
         (_nestedForwardedModules ??=
                 List.generate(_variables.length - 1, (_) => []))
             .last
-            .addAll(forwarded);
+            .addAll(forwarded.keys);
       }
 
       // Remove existing member definitions that are now shadowed by the
@@ -514,7 +486,7 @@ class AsyncEnvironment {
   AstNode? _getVariableNodeFromGlobalModule(String name) {
     // We don't need to worry about multiple modules defining the same variable,
     // because that's already been checked by [getVariable].
-    for (var module in _globalModules) {
+    for (var module in _importedModules.keys.followedBy(_globalModules.keys)) {
       var value = module.variableNodes[name];
       if (value != null) return value;
     }
@@ -837,7 +809,7 @@ class AsyncEnvironment {
   Module toModule(CssStylesheet css, ExtensionStore extensionStore) {
     assert(atRoot);
     return _EnvironmentModule(this, css, extensionStore,
-        forwarded: _forwardedModules);
+        forwarded: _forwardedModules?.keys.toSet());
   }
 
   /// Returns a module with the same members and upstream modules as [this], but
@@ -852,7 +824,7 @@ class AsyncEnvironment {
         CssStylesheet(const [],
             SourceFile.decoded(const [], url: "<dummy module>").span(0)),
         ExtensionStore.empty,
-        forwarded: _forwardedModules);
+        forwarded: _forwardedModules?.keys.toSet());
   }
 
   /// Returns the module with the given [namespace], or throws a
@@ -866,7 +838,7 @@ class AsyncEnvironment {
   }
 
   /// Returns the result of [callback] if it returns non-`null` for exactly one
-  /// module in [_globalModules] *or* for any module in
+  /// module in [_globalModules] *or* for any module in [_importedModules] or
   /// [_nestedForwardedModules].
   ///
   /// Returns `null` if [callback] returns `null` for all modules. Throws an
@@ -886,10 +858,14 @@ class AsyncEnvironment {
         }
       }
     }
+    for (var module in _importedModules.keys) {
+      var value = callback(module);
+      if (value != null) return value;
+    }
 
     T? value;
     Object? identity;
-    for (var module in _globalModules) {
+    for (var module in _globalModules.keys) {
       var valueInModule = callback(module);
       if (valueInModule == null) continue;
 
@@ -899,7 +875,7 @@ class AsyncEnvironment {
       if (identityFromModule == identity) continue;
 
       if (value != null) {
-        var spans = _globalModuleNodes.entries.map(
+        var spans = _globalModules.entries.map(
             (entry) => callback(entry.key).andThen((_) => entry.value.span));
 
         throw MultiSpanSassScriptException(

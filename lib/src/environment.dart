@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 0411d2d782920c2d8293eacf178941c192670e75
+// Checksum: c7e97403e3c0a31ea064572622b8305357d29dc3
 //
 // ignore_for_file: unused_import
 
@@ -50,23 +50,21 @@ class Environment {
   /// modules were originally loaded.
   final Map<String, AstNode> _namespaceNodes;
 
-  /// The namespaceless modules used in the current scope.
-  final Set<Module<Callable>> _globalModules;
-
-  /// A map from modules in [_globalModules] to the nodes whose spans
-  /// indicate where those modules were originally loaded.
-  final Map<Module<Callable>, AstNode> _globalModuleNodes;
-
-  /// The modules forwarded by this module.
+  /// A map from namespaceless modules to the `@use` rules whose spans indicate
+  /// where those modules were originally loaded.
   ///
-  /// This is `null` if there are no forwarded modules.
-  Set<Module<Callable>>? _forwardedModules;
+  /// This does not include modules that were imported into the current scope.
+  final Map<Module<Callable>, AstNode> _globalModules;
 
-  /// A map from modules in [_forwardedModules] to the nodes whose spans
+  /// A map from modules that were imported into the current scope to the nodes
+  /// whose spans indicate where those modules were originally loaded.
+  final Map<Module<Callable>, AstNode> _importedModules;
+
+  /// A map from modules forwarded by this module to the nodes whose spans
   /// indicate where those modules were originally forwarded.
   ///
   /// This is `null` if there are no forwarded modules.
-  Map<Module<Callable>, AstNode>? _forwardedModuleNodes;
+  Map<Module<Callable>, AstNode>? _forwardedModules;
 
   /// Modules forwarded by nested imports at each lexical scope level *beneath
   /// the global scope*.
@@ -159,9 +157,8 @@ class Environment {
       : _modules = {},
         _namespaceNodes = {},
         _globalModules = {},
-        _globalModuleNodes = {},
+        _importedModules = {},
         _forwardedModules = null,
-        _forwardedModuleNodes = null,
         _nestedForwardedModules = null,
         _allModules = [],
         _variables = [{}],
@@ -176,9 +173,8 @@ class Environment {
       this._modules,
       this._namespaceNodes,
       this._globalModules,
-      this._globalModuleNodes,
+      this._importedModules,
       this._forwardedModules,
-      this._forwardedModuleNodes,
       this._nestedForwardedModules,
       this._allModules,
       this._variables,
@@ -203,9 +199,8 @@ class Environment {
       _modules,
       _namespaceNodes,
       _globalModules,
-      _globalModuleNodes,
+      _importedModules,
       _forwardedModules,
-      _forwardedModuleNodes,
       _nestedForwardedModules,
       _allModules,
       _variables.toList(),
@@ -222,15 +217,8 @@ class Environment {
   Environment forImport() => Environment._(
       {},
       {},
-      {
-        for (var module in _globalModules)
-          if (module is ForwardedModuleView) module
-      },
-      {
-        for (var entry in _globalModuleNodes.entries)
-          if (entry.key is ForwardedModuleView) entry.key: entry.value
-      },
-      null,
+      {},
+      _importedModules,
       null,
       null,
       [],
@@ -253,8 +241,7 @@ class Environment {
   void addModule(Module<Callable> module, AstNode nodeWithSpan,
       {String? namespace}) {
     if (namespace == null) {
-      _globalModules.add(module);
-      _globalModuleNodes[module] = nodeWithSpan;
+      _globalModules[module] = nodeWithSpan;
       _allModules.add(module);
 
       for (var name in _variables.first.keys) {
@@ -283,10 +270,9 @@ class Environment {
   /// defined in this module, according to the modifications defined by [rule].
   void forwardModule(Module<Callable> module, ForwardRule rule) {
     var forwardedModules = (_forwardedModules ??= {});
-    var forwardedModuleNodes = (_forwardedModuleNodes ??= {});
 
     var view = ForwardedModuleView.ifNecessary(module, rule);
-    for (var other in forwardedModules) {
+    for (var other in forwardedModules.keys) {
       _assertNoConflicts(
           view.variables, other.variables, view, other, "variable");
       _assertNoConflicts(
@@ -299,8 +285,7 @@ class Environment {
     // `==`. This is safe because upstream modules are only used for collating
     // CSS, not for the members they expose.
     _allModules.add(module);
-    forwardedModules.add(view);
-    forwardedModuleNodes[view] = rule;
+    forwardedModules[view] = rule;
   }
 
   /// Throws a [SassScriptException] if [newMembers] from [newModule] has any
@@ -332,7 +317,7 @@ class Environment {
       }
 
       if (type == "variable") name = "\$$name";
-      var span = _forwardedModuleNodes?[oldModule]?.span;
+      var span = _forwardedModules?[oldModule]?.span;
       throw MultiSpanSassScriptException(
           'Two forwarded modules both define a $type named $name.',
           "new @forward",
@@ -354,69 +339,56 @@ class Environment {
       var forwardedModules = _forwardedModules;
       if (forwardedModules != null) {
         forwarded = {
-          for (var module in forwarded)
-            if (!forwardedModules.contains(module) ||
-                !_globalModules.contains(module))
-              module
+          for (var entry in forwarded.entries)
+            if (!forwardedModules.containsKey(entry.key) ||
+                !_globalModules.containsKey(entry.key))
+              entry.key: entry.value,
         };
       } else {
         forwardedModules = _forwardedModules ??= {};
       }
 
-      var forwardedModuleNodes = _forwardedModuleNodes ??= {};
-
       var forwardedVariableNames =
-          forwarded.expand((module) => module.variables.keys).toSet();
+          forwarded.keys.expand((module) => module.variables.keys).toSet();
       var forwardedFunctionNames =
-          forwarded.expand((module) => module.functions.keys).toSet();
+          forwarded.keys.expand((module) => module.functions.keys).toSet();
       var forwardedMixinNames =
-          forwarded.expand((module) => module.mixins.keys).toSet();
+          forwarded.keys.expand((module) => module.mixins.keys).toSet();
 
       if (atRoot) {
         // Hide members from modules that have already been imported or
         // forwarded that would otherwise conflict with the @imported members.
-        for (var module in _globalModules.toList()) {
+        for (var entry in _importedModules.entries.toList()) {
+          var module = entry.key;
           var shadowed = ShadowedModuleView.ifNecessary(module,
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
               functions: forwardedFunctionNames);
           if (shadowed != null) {
-            _globalModules.remove(module);
-
-            if (!shadowed.isEmpty) {
-              _globalModules.add(shadowed);
-              _globalModuleNodes[shadowed] = _globalModuleNodes.remove(module)!;
-            }
+            _importedModules.remove(module);
+            if (!shadowed.isEmpty) _importedModules[shadowed] = entry.value;
           }
         }
 
-        for (var module in forwardedModules.toList()) {
+        for (var entry in forwardedModules.entries.toList()) {
+          var module = entry.key;
           var shadowed = ShadowedModuleView.ifNecessary(module,
               variables: forwardedVariableNames,
               mixins: forwardedMixinNames,
               functions: forwardedFunctionNames);
           if (shadowed != null) {
             forwardedModules.remove(module);
-
-            if (!shadowed.isEmpty) {
-              forwardedModules.add(shadowed);
-              forwardedModuleNodes[shadowed] =
-                  forwardedModuleNodes.remove(module)!;
-            }
+            if (!shadowed.isEmpty) forwardedModules[shadowed] = entry.value;
           }
         }
 
-        _globalModules.addAll(forwarded);
-        _globalModuleNodes
-            .addAll(module._environment._forwardedModuleNodes ?? const {});
+        _importedModules.addAll(forwarded);
         forwardedModules.addAll(forwarded);
-        forwardedModuleNodes
-            .addAll(module._environment._forwardedModuleNodes ?? const {});
       } else {
         (_nestedForwardedModules ??=
                 List.generate(_variables.length - 1, (_) => []))
             .last
-            .addAll(forwarded);
+            .addAll(forwarded.keys);
       }
 
       // Remove existing member definitions that are now shadowed by the
@@ -522,7 +494,7 @@ class Environment {
   AstNode? _getVariableNodeFromGlobalModule(String name) {
     // We don't need to worry about multiple modules defining the same variable,
     // because that's already been checked by [getVariable].
-    for (var module in _globalModules) {
+    for (var module in _importedModules.keys.followedBy(_globalModules.keys)) {
       var value = module.variableNodes[name];
       if (value != null) return value;
     }
@@ -843,7 +815,7 @@ class Environment {
   Module<Callable> toModule(CssStylesheet css, ExtensionStore extensionStore) {
     assert(atRoot);
     return _EnvironmentModule(this, css, extensionStore,
-        forwarded: _forwardedModules);
+        forwarded: _forwardedModules?.keys.toSet());
   }
 
   /// Returns a module with the same members and upstream modules as [this], but
@@ -858,7 +830,7 @@ class Environment {
         CssStylesheet(const [],
             SourceFile.decoded(const [], url: "<dummy module>").span(0)),
         ExtensionStore.empty,
-        forwarded: _forwardedModules);
+        forwarded: _forwardedModules?.keys.toSet());
   }
 
   /// Returns the module with the given [namespace], or throws a
@@ -872,7 +844,7 @@ class Environment {
   }
 
   /// Returns the result of [callback] if it returns non-`null` for exactly one
-  /// module in [_globalModules] *or* for any module in
+  /// module in [_globalModules] *or* for any module in [_importedModules] or
   /// [_nestedForwardedModules].
   ///
   /// Returns `null` if [callback] returns `null` for all modules. Throws an
@@ -893,10 +865,14 @@ class Environment {
         }
       }
     }
+    for (var module in _importedModules.keys) {
+      var value = callback(module);
+      if (value != null) return value;
+    }
 
     T? value;
     Object? identity;
-    for (var module in _globalModules) {
+    for (var module in _globalModules.keys) {
       var valueInModule = callback(module);
       if (valueInModule == null) continue;
 
@@ -906,7 +882,7 @@ class Environment {
       if (identityFromModule == identity) continue;
 
       if (value != null) {
-        var spans = _globalModuleNodes.entries.map(
+        var spans = _globalModules.entries.map(
             (entry) => callback(entry.key).andThen((_) => entry.value.span));
 
         throw MultiSpanSassScriptException(
