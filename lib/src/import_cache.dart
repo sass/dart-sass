@@ -46,6 +46,9 @@ class ImportCache {
   /// The import results for each canonicalized import URL.
   final Map<Uri, ImporterResult> _resultsCache;
 
+  /// All imported canonical URIs.
+  Set<Uri> get cachedUris => _importCache.keys.toSet();
+
   /// Creates an import cache that resolves imports using [importers].
   ///
   /// Imports are resolved by trying, in order:
