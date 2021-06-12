@@ -1,7 +1,15 @@
-## 1.34.2
+## 1.35.0
 
 * Fix a bug that could prevent some members from being found in certain files
   that use a mix of imports and the module system.
+
+### JS API
+
+* Add a `quietDeps` option which silences compiler warnings from stylesheets
+  loaded through importers and load paths.
+
+* Add a `verbose` option which causes the compiler to emit all deprecation
+  warnings, not just 5 per feature.
 
 ## 1.34.1
 

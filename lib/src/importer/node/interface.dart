@@ -8,6 +8,10 @@ class NodeImporter {
   NodeImporter(Object options, Iterable<String> includePaths,
       Iterable<Object> importers);
 
+  Tuple2<String, String>? loadRelative(
+          String url, Uri? previous, bool forImport) =>
+      throw '';
+
   Tuple2<String, String>? load(String url, Uri? previous, bool forImport) =>
       throw '';
 
