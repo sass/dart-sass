@@ -56,6 +56,19 @@ class Dispatcher {
         }
 
         switch (message.whichMessage()) {
+          case InboundMessage_Message.versionRequest:
+            _send(OutboundMessage()
+              ..versionResponse = (OutboundMessage_VersionResponse()
+                ..protocolVersion =
+                    const String.fromEnvironment("protocol-version")
+                ..compilerVersion =
+                    const String.fromEnvironment("compiler-version")
+                ..implementationVersion =
+                    const String.fromEnvironment("implementation-version")
+                ..implementationName = "Dart Sass"
+                ..id = message.versionRequest.id));
+            break;
+
           case InboundMessage_Message.compileRequest:
             var request = message.compileRequest;
             var response = await callback(request);

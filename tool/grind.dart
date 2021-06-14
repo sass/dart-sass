@@ -6,14 +6,30 @@ import 'dart:io';
 
 import 'package:cli_pkg/cli_pkg.dart' as pkg;
 import 'package:grinder/grinder.dart';
+import 'package:yaml/yaml.dart';
 
 import 'utils.dart';
 
 main(List<String> args) {
   pkg.githubBearerToken.fn = () => Platform.environment["GH_BEARER_TOKEN"]!;
 
+  pkg.environmentConstants.fn = () => {
+        ...pkg.environmentConstants.defaultValue,
+        "protocol-version":
+            File('build/embedded-protocol/VERSION').readAsStringSync().trim(),
+        "compiler-version": pkg.pubspec.version!.toString(),
+        "implementation-version": _implementationVersion
+      };
+
   pkg.addGithubTasks();
   grind(args);
+}
+
+/// Returns the version of Dart Sass that this package uses.
+String get _implementationVersion {
+  var lockfile = loadYaml(File('pubspec.lock').readAsStringSync(),
+      sourceUrl: Uri(path: 'pubspec.lock'));
+  return lockfile['packages']['sass']['version'];
 }
 
 @Task('Compile the protocol buffer definition to a Dart library.')
