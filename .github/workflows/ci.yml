@@ -47,6 +47,16 @@ jobs:
       - name: Analyze dart
         run: dartanalyzer --fatal-warnings ./
 
+  format:
+    name: Code formatting
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: dart-lang/setup-dart@v1
+    - run: dart format --fix .
+    - run: git diff --exit-code
+
   deploy_github_linux:
     name: "Deploy Github: Linux"
     runs-on: ubuntu-latest
