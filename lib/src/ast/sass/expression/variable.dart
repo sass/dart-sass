@@ -23,10 +23,5 @@ class VariableExpression implements Expression {
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitVariableExpression(this);
 
-  String toString() {
-    var buffer = StringBuffer("\$");
-    if (namespace != null) buffer.write("$namespace.");
-    buffer.write(name);
-    return buffer.toString();
-  }
+  String toString() => namespace == null ? '\$$name' : '$namespace.\$$name';
 }

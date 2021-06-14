@@ -3,6 +3,9 @@
 * Fix a couple bugs that could prevent some members from being found in certain
   files that use a mix of imports and the module system.
 
+* Fix incorrect recommendation for migrating division expressions that reference
+  namespaced variables.
+
 ## 1.34.1
 
 * Fix a bug where `--update` would always compile any file that depends on a
