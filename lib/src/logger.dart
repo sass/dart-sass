@@ -73,9 +73,8 @@ class Logger implements sass.Logger {
 
     var event = OutboundMessage_LogEvent()
       ..compilationId = _compilationId
-      ..type = deprecation
-          ? LogEventType.DEPRECATION_WARNING
-          : LogEventType.WARNING
+      ..type =
+          deprecation ? LogEventType.DEPRECATION_WARNING : LogEventType.WARNING
       ..message = message
       ..formatted = formatted;
     if (span != null) event.span = protofySpan(span);

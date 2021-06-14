@@ -35,10 +35,9 @@ void main(List<String> args) {
   dispatcher.listen((request) async {
     var functions = FunctionRegistry();
 
-    var style =
-        request.style == OutputStyle.COMPRESSED
-            ? sass.OutputStyle.compressed
-            : sass.OutputStyle.expanded;
+    var style = request.style == OutputStyle.COMPRESSED
+        ? sass.OutputStyle.compressed
+        : sass.OutputStyle.expanded;
     var logger = Logger(dispatcher, request.id,
         color: request.alertColor, ascii: request.alertAscii);
 
