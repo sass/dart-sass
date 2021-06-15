@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 203ba98fd9ca92ccc0b6465fd0d617e88c8dd37e
+// Checksum: 1249b1184a46950409776772cb1c6003b80ebb31
 //
 // ignore_for_file: unused_import
 
@@ -1479,11 +1479,14 @@ class _EvaluateVisitor
       if (stylesheet.uses.isEmpty && stylesheet.forwards.isEmpty) {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
+        var oldInDependency = _inDependency;
         _importer = result.importer;
         _stylesheet = stylesheet;
+        _inDependency = result.isDependency;
         visitStylesheet(stylesheet);
         _importer = oldImporter;
         _stylesheet = oldStylesheet;
+        _inDependency = oldInDependency;
         _activeModules.remove(url);
         return;
       }

@@ -481,6 +481,31 @@ void sharedTests(
         await sass.shouldExit(0);
       });
     });
+
+    group("silences warnings through @import", () {
+      test("of a file without @use", () async {
+        await d.file("test.scss", "@import 'other'").create();
+        await d.dir("dir", [d.file("_other.scss", "#{blue} {x: y}")]).create();
+
+        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        expect(sass.stderr, emitsDone);
+        await sass.shouldExit(0);
+      });
+
+      test("of a file with @use", () async {
+        await d.file("test.scss", "@import 'other'").create();
+        await d.dir("dir", [
+          d.file("_other.scss", """
+            @use 'sass:color';
+            #{blue} {x: y}
+          """)
+        ]).create();
+
+        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        expect(sass.stderr, emitsDone);
+        await sass.shouldExit(0);
+      });
+    });
   });
 
   group("with a bunch of deprecation warnings", () {
