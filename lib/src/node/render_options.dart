@@ -26,6 +26,8 @@ class RenderOptions {
   external bool? get sourceMapContents;
   external bool? get sourceMapEmbed;
   external String? get sourceMapRoot;
+  external bool? get quietDeps;
+  external bool? get verbose;
 
   external factory RenderOptions(
       {String? file,
@@ -44,5 +46,7 @@ class RenderOptions {
       Object? sourceMap,
       bool? sourceMapContents,
       bool? sourceMapEmbed,
-      String? sourceMapRoot});
+      String? sourceMapRoot,
+      bool? quietDeps,
+      bool? verbose});
 }

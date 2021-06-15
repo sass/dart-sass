@@ -106,6 +106,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed),
         url: file == null ? 'stdin' : p.toUri(file).toString(),
+        quietDeps: options.quietDeps ?? false,
+        verbose: options.verbose ?? false,
         sourceMap: _enableSourceMaps(options));
   } else if (file != null) {
     result = await compileAsync(file,
@@ -116,6 +118,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed),
+        quietDeps: options.quietDeps ?? false,
+        verbose: options.verbose ?? false,
         sourceMap: _enableSourceMaps(options));
   } else {
     throw ArgumentError("Either options.data or options.file must be set.");
@@ -147,6 +151,8 @@ RenderResult _renderSync(RenderOptions options) {
           indentWidth: _parseIndentWidth(options.indentWidth),
           lineFeed: _parseLineFeed(options.linefeed),
           url: file == null ? 'stdin' : p.toUri(file).toString(),
+          quietDeps: options.quietDeps ?? false,
+          verbose: options.verbose ?? false,
           sourceMap: _enableSourceMaps(options));
     } else if (file != null) {
       result = compile(file,
@@ -157,6 +163,8 @@ RenderResult _renderSync(RenderOptions options) {
           useSpaces: options.indentType != 'tab',
           indentWidth: _parseIndentWidth(options.indentWidth),
           lineFeed: _parseLineFeed(options.linefeed),
+          quietDeps: options.quietDeps ?? false,
+          verbose: options.verbose ?? false,
           sourceMap: _enableSourceMaps(options));
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");

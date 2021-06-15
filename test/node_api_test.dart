@@ -264,6 +264,171 @@ a {
           renderSync(RenderOptions(data: "@debug 'what the heck'")), isEmpty);
     });
 
+    group("with quietDeps", () {
+      group("in a relative load from the entrypoint", () {
+        test("emits @warn", () async {
+          await writeTextFile(p.join(sandbox, "test.scss"), "@use 'other'");
+          await writeTextFile(p.join(sandbox, "_other.scss"), "@warn heck");
+
+          expect(const LineSplitter().bind(interceptStderr()),
+              emitsThrough(contains("heck")));
+
+          renderSync(RenderOptions(
+              file: p.join(sandbox, "test.scss"), quietDeps: true));
+        });
+
+        test("emits @debug", () async {
+          await writeTextFile(p.join(sandbox, "test.scss"), "@use 'other'");
+          await writeTextFile(p.join(sandbox, "_other.scss"), "@debug heck");
+
+          expect(const LineSplitter().bind(interceptStderr()),
+              emitsThrough(contains("heck")));
+
+          renderSync(RenderOptions(
+              file: p.join(sandbox, "test.scss"), quietDeps: true));
+        });
+
+        test("emits parser warnings", () async {
+          await writeTextFile(p.join(sandbox, "test.scss"), "@use 'other'");
+          await writeTextFile(p.join(sandbox, "_other.scss"), "a {b: c && d}");
+
+          expect(const LineSplitter().bind(interceptStderr()),
+              emitsThrough(contains("&&")));
+
+          renderSync(RenderOptions(
+              file: p.join(sandbox, "test.scss"), quietDeps: true));
+        });
+
+        test("emits runner warnings", () async {
+          await writeTextFile(p.join(sandbox, "test.scss"), "@use 'other'");
+          await writeTextFile(p.join(sandbox, "_other.scss"), "#{blue} {x: y}");
+
+          expect(const LineSplitter().bind(interceptStderr()),
+              emitsThrough(contains("blue")));
+
+          renderSync(RenderOptions(
+              file: p.join(sandbox, "test.scss"), quietDeps: true));
+        });
+      });
+
+      group("in a load path load", () {
+        test("emits @warn", () async {
+          await writeTextFile(p.join(sandbox, "test.scss"), "@use 'other'");
+          await createDirectory(p.join(sandbox, "dir"));
+          await writeTextFile(
+              p.join(sandbox, "dir", "_other.scss"), "@warn heck");
+
+          expect(const LineSplitter().bind(interceptStderr()),
+              emitsThrough(contains("heck")));
+
+          renderSync(RenderOptions(
+              file: p.join(sandbox, "test.scss"),
+              includePaths: [p.join(sandbox, "dir")],
+              quietDeps: true));
+        });
+
+        test("emits @debug", () async {
+          await writeTextFile(p.join(sandbox, "test.scss"), "@use 'other'");
+          await createDirectory(p.join(sandbox, "dir"));
+          await writeTextFile(
+              p.join(sandbox, "dir", "_other.scss"), "@debug heck");
+
+          expect(const LineSplitter().bind(interceptStderr()),
+              emitsThrough(contains("heck")));
+
+          renderSync(RenderOptions(
+              file: p.join(sandbox, "test.scss"),
+              includePaths: [p.join(sandbox, "dir")],
+              quietDeps: true));
+        });
+
+        test("doesn't emit parser warnings", () async {
+          await writeTextFile(p.join(sandbox, "test.scss"), "@use 'other'");
+          await createDirectory(p.join(sandbox, "dir"));
+          await writeTextFile(
+              p.join(sandbox, "dir", "_other.scss"), "a {b: c && d}");
+
+          // No stderr should be printed at all.
+          const LineSplitter()
+              .bind(interceptStderr())
+              .listen(expectAsync1((_) {}, count: 0));
+
+          renderSync(RenderOptions(
+              file: p.join(sandbox, "test.scss"),
+              includePaths: [p.join(sandbox, "dir")],
+              quietDeps: true));
+
+          // Give stderr a chance to be piped through if it's going to be.
+          await pumpEventQueue();
+        });
+
+        test("doesn't emit runner warnings", () async {
+          await writeTextFile(p.join(sandbox, "test.scss"), "@use 'other'");
+          await createDirectory(p.join(sandbox, "dir"));
+          await writeTextFile(
+              p.join(sandbox, "dir", "_other.scss"), "#{blue} {x: y}");
+
+          // No stderr should be printed at all.
+          const LineSplitter()
+              .bind(interceptStderr())
+              .listen(expectAsync1((_) {}, count: 0));
+
+          renderSync(RenderOptions(
+              file: p.join(sandbox, "test.scss"),
+              includePaths: [p.join(sandbox, "dir")],
+              quietDeps: true));
+
+          // Give stderr a chance to be piped through if it's going to be.
+          await pumpEventQueue();
+        });
+      });
+    });
+
+    group("with a bunch of deprecation warnings", () {
+      setUp(() async {
+        await writeTextFile(p.join(sandbox, "test.scss"), r"""
+          $_: call("inspect", null);
+          $_: call("rgb", 0, 0, 0);
+          $_: call("nth", null, 1);
+          $_: call("join", null, null);
+          $_: call("if", true, 1, 2);
+          $_: call("hsl", 0, 100%, 100%);
+
+          $_: 1/2;
+          $_: 1/3;
+          $_: 1/4;
+          $_: 1/5;
+          $_: 1/6;
+          $_: 1/7;
+        """);
+      });
+
+      test("without --verbose, only prints five", () async {
+        expect(
+            const LineSplitter().bind(interceptStderr()),
+            emitsInOrder([
+              ...List.filled(5, emitsThrough(contains("call()"))),
+              ...List.filled(5, emitsThrough(contains("math.div"))),
+              emitsThrough(
+                  contains("2 repetitive deprecation warnings omitted."))
+            ]));
+
+        renderSync(RenderOptions(file: p.join(sandbox, "test.scss")));
+      });
+
+      test("with --verbose, prints all", () async {
+        expect(
+            const LineSplitter().bind(interceptStderr()),
+            emitsInOrder([
+              ...List.filled(6, emitsThrough(contains("call()"))),
+              ...List.filled(6, emitsThrough(contains("math.div")))
+            ]));
+
+        renderSync(
+            RenderOptions(file: p.join(sandbox, "test.scss"), verbose: true));
+      });
+    });
+
     group("with both data and file", () {
       test("uses the data parameter as the source", () {
         expect(renderSync(RenderOptions(data: "x {y: z}", file: sassPath)),

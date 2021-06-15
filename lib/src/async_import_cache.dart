@@ -102,8 +102,8 @@ class AsyncImportCache {
   /// canonicalize [url] (resolved relative to [baseUrl] if it's passed).
   ///
   /// If any importers understand [url], returns that importer as well as the
-  /// canonicalized URL and the original URL resolved relative to [baseUrl] if
-  /// applicable. Otherwise, returns `null`.
+  /// canonicalized URL and the original URL (resolved relative to [baseUrl] if
+  /// applicable). Otherwise, returns `null`.
   Future<Tuple3<AsyncImporter, Uri, Uri>?> canonicalize(Uri url,
       {AsyncImporter? baseImporter,
       Uri? baseUrl,

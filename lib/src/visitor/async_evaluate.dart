@@ -157,13 +157,7 @@ class _EvaluateVisitor
   /// consoles with redundant warnings.
   final _warningsEmitted = <Tuple2<String, SourceSpan>>{};
 
-  // The importer from which the entrypoint stylesheet was loaded.
-  late final AsyncImporter? _originalImporter;
-
   /// Whether to avoid emitting warnings for files loaded from dependencies.
-  ///
-  /// A "dependency" in this context is any stylesheet loaded through an
-  /// importer other than [_originalImporter].
   final bool _quietDeps;
 
   /// Whether to track source map information.
@@ -266,7 +260,7 @@ class _EvaluateVisitor
   ///
   /// A dependency is defined as a stylesheet imported by an importer other than
   /// the original. In Node importers, nothing is considered a dependency.
-  bool get _inDependency => !_asNodeSass && _importer != _originalImporter;
+  var _inDependency = false;
 
   /// The stylesheet that's currently being evaluated.
   Stylesheet get _stylesheet => _assertInModule(__stylesheet, "_stylesheet");
@@ -523,7 +517,6 @@ class _EvaluateVisitor
         }
       }
 
-      _originalImporter = importer;
       var module = await _execute(importer, node);
 
       return EvaluateResult(_combineCss(module), _includedFiles);
@@ -620,8 +613,7 @@ class _EvaluateVisitor
     await _withStackFrame(stackFrame, nodeWithSpan, () async {
       var result = await _loadStylesheet(url.toString(), nodeWithSpan.span,
           baseUrl: baseUrl);
-      var importer = result.item1;
-      var stylesheet = result.item2;
+      var stylesheet = result.stylesheet;
 
       var canonicalUrl = stylesheet.span.sourceUrl;
       if (canonicalUrl != null && _activeModules.containsKey(canonicalUrl)) {
@@ -637,14 +629,17 @@ class _EvaluateVisitor
       }
       if (canonicalUrl != null) _activeModules[canonicalUrl] = nodeWithSpan;
 
+      var oldInDependency = _inDependency;
+      _inDependency = result.isDependency;
       Module module;
       try {
-        module = await _execute(importer, stylesheet,
+        module = await _execute(result.importer, stylesheet,
             configuration: configuration,
             nodeWithSpan: nodeWithSpan,
             namesInErrors: namesInErrors);
       } finally {
         _activeModules.remove(canonicalUrl);
+        _inDependency = oldInDependency;
       }
 
       try {
@@ -1465,8 +1460,7 @@ class _EvaluateVisitor
     return _withStackFrame("@import", import, () async {
       var result =
           await _loadStylesheet(import.url, import.span, forImport: true);
-      var importer = result.item1;
-      var stylesheet = result.item2;
+      var stylesheet = result.stylesheet;
 
       var url = stylesheet.span.sourceUrl;
       if (url != null) {
@@ -1486,7 +1480,7 @@ class _EvaluateVisitor
       if (stylesheet.uses.isEmpty && stylesheet.forwards.isEmpty) {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
-        _importer = importer;
+        _importer = result.importer;
         _stylesheet = stylesheet;
         await visitStylesheet(stylesheet);
         _importer = oldImporter;
@@ -1505,12 +1499,14 @@ class _EvaluateVisitor
         var oldEndOfImports = _endOfImports;
         var oldOutOfOrderImports = _outOfOrderImports;
         var oldConfiguration = _configuration;
-        _importer = importer;
+        var oldInDependency = _inDependency;
+        _importer = result.importer;
         _stylesheet = stylesheet;
         _root = ModifiableCssStylesheet(stylesheet.span);
         _parent = _root;
         _endOfImports = 0;
         _outOfOrderImports = null;
+        _inDependency = result.isDependency;
 
         // This configuration is only used if it passes through a `@forward`
         // rule, so we avoid creating unnecessary ones for performance reasons.
@@ -1528,6 +1524,7 @@ class _EvaluateVisitor
         _endOfImports = oldEndOfImports;
         _outOfOrderImports = oldOutOfOrderImports;
         _configuration = oldConfiguration;
+        _inDependency = oldInDependency;
       });
 
       // Create a dummy module with empty CSS and no extensions to make forwarded
@@ -1559,8 +1556,7 @@ class _EvaluateVisitor
   ///
   /// This first tries loading [url] relative to [baseUrl], which defaults to
   /// `_stylesheet.span.sourceUrl`.
-  Future<Tuple2<AsyncImporter?, Stylesheet>> _loadStylesheet(
-      String url, FileSpan span,
+  Future<_LoadedStylesheet> _loadStylesheet(String url, FileSpan span,
       {Uri? baseUrl, bool forImport = false}) async {
     try {
       assert(_importSpan == null);
@@ -1568,21 +1564,23 @@ class _EvaluateVisitor
 
       var importCache = _importCache;
       if (importCache != null) {
+        baseUrl ??= _stylesheet.span.sourceUrl;
         var tuple = await importCache.canonicalize(Uri.parse(url),
-            baseImporter: _importer,
-            baseUrl: baseUrl ?? _stylesheet.span.sourceUrl,
-            forImport: forImport);
+            baseImporter: _importer, baseUrl: baseUrl, forImport: forImport);
 
         if (tuple != null) {
+          var isDependency = _inDependency || tuple.item1 != _importer;
           var stylesheet = await importCache.importCanonical(
               tuple.item1, tuple.item2,
-              originalUrl: tuple.item3,
-              quiet: _quietDeps && tuple.item1 != _originalImporter);
-          if (stylesheet != null) return Tuple2(tuple.item1, stylesheet);
+              originalUrl: tuple.item3, quiet: _quietDeps && isDependency);
+          if (stylesheet != null) {
+            return _LoadedStylesheet(stylesheet,
+                importer: tuple.item1, isDependency: isDependency);
+          }
         }
       } else {
-        var stylesheet = await _importLikeNode(url, forImport);
-        if (stylesheet != null) return Tuple2(null, stylesheet);
+        var result = await _importLikeNode(url, forImport);
+        if (result != null) return result;
       }
 
       if (url.startsWith('package:') && isNode) {
@@ -1610,20 +1608,32 @@ class _EvaluateVisitor
   /// Imports a stylesheet using [_nodeImporter].
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
-  Future<Stylesheet?> _importLikeNode(
+  Future<_LoadedStylesheet?> _importLikeNode(
       String originalUrl, bool forImport) async {
-    var result = await _nodeImporter!
-        .loadAsync(originalUrl, _stylesheet.span.sourceUrl, forImport);
-    if (result == null) return null;
+    var result = _nodeImporter!
+        .loadRelative(originalUrl, _stylesheet.span.sourceUrl, forImport);
+
+    bool isDependency;
+    if (result != null) {
+      isDependency = _inDependency;
+    } else {
+      result = await _nodeImporter!
+          .loadAsync(originalUrl, _stylesheet.span.sourceUrl, forImport);
+      if (result == null) return null;
+      isDependency = true;
+    }
 
     var contents = result.item1;
     var url = result.item2;
 
     _includedFiles.add(url.startsWith('file:') ? p.fromUri(url) : url);
 
-    return Stylesheet.parse(
-        contents, url.startsWith('file') ? Syntax.forPath(url) : Syntax.scss,
-        url: url, logger: _logger);
+    return _LoadedStylesheet(
+        Stylesheet.parse(contents,
+            url.startsWith('file') ? Syntax.forPath(url) : Syntax.scss,
+            url: url,
+            logger: _quietDeps && isDependency ? Logger.quiet : _logger),
+        isDependency: isDependency);
   }
 
   /// Adds a CSS import for [import].
@@ -3340,4 +3350,24 @@ class _ArgumentResults {
 
   _ArgumentResults(this.positional, this.positionalNodes, this.named,
       this.namedNodes, this.separator);
+}
+
+/// The result of loading a stylesheet via [AsyncEvaluator._loadStylesheet].
+class _LoadedStylesheet {
+  /// The stylesheet itself.
+  final Stylesheet stylesheet;
+
+  /// The importer that was used to load the stylesheet.
+  ///
+  /// This is `null` when running in Node Sass compatibility mode.
+  final AsyncImporter? importer;
+
+  /// Whether this load counts as a dependency.
+  ///
+  /// That is, whether this was (transitively) loaded through a load path or
+  /// importer rather than relative to the entrypoint.
+  final bool isDependency;
+
+  _LoadedStylesheet(this.stylesheet,
+      {this.importer, required this.isDependency});
 }
