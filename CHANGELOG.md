@@ -1,3 +1,8 @@
+## 1.35.1
+
+* Fix a bug where the quiet dependency flag didn't silence warnings in some
+  stylesheets loaded using `@import`.
+
 ## 1.35.0
 
 * Fix a couple bugs that could prevent some members from being found in certain

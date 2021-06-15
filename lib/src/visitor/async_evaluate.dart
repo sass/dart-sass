@@ -1480,11 +1480,14 @@ class _EvaluateVisitor
       if (stylesheet.uses.isEmpty && stylesheet.forwards.isEmpty) {
         var oldImporter = _importer;
         var oldStylesheet = _stylesheet;
+        var oldInDependency = _inDependency;
         _importer = result.importer;
         _stylesheet = stylesheet;
+        _inDependency = result.isDependency;
         await visitStylesheet(stylesheet);
         _importer = oldImporter;
         _stylesheet = oldStylesheet;
+        _inDependency = oldInDependency;
         _activeModules.remove(url);
         return;
       }
