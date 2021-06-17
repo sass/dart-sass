@@ -89,7 +89,9 @@ class SassString extends Value implements ext.SassString {
           text, sassIndexToRuneIndex(sassIndex, name));
 
   int sassIndexToRuneIndex(ext.Value sassIndex, [String? name]) {
-    var index = sassIndex.assertNumber(name).assertInt(name);
+    var indexNumber = sassIndex.assertNumber(name);
+    indexNumber.assertNoUnits();
+    var index = indexNumber.assertInt(name);
     if (index == 0) throw _exception("String index may not be 0.", name);
     if (index.abs() > sassLength) {
       throw _exception(

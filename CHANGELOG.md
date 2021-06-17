@@ -1,3 +1,10 @@
+## 1.35.2
+
+### Dart API
+
+* Fix a bug that allowed `SassString.sassIndexToStringIndex()` to accept numbers
+  with units.
+
 ## 1.35.1
 
 * Fix a bug where the quiet dependency flag didn't silence warnings in some

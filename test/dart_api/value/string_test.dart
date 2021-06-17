@@ -69,6 +69,11 @@ void main() {
             throwsSassScriptException);
       });
 
+      test("rejects a number with units", () {
+        expect(() => value.sassIndexToStringIndex(SassNumber(1, "px")),
+            throwsSassScriptException);
+      });
+
       test("rejects a non-integer", () {
         expect(() => value.sassIndexToStringIndex(SassNumber(1.1)),
             throwsSassScriptException);
