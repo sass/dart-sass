@@ -93,6 +93,27 @@ void main() {
     '''));
   });
 
+  group("the imported URL", () {
+    // Regression test for #1137.
+    test("isn't changed if it's root-relative", () {
+      compileString('@import "/orange";', importers: [
+        TestImporter(expectAsync1((url) {
+          expect(url, equals(Uri.parse("/orange")));
+          return Uri.parse("u:$url");
+        }), (url) => ImporterResult('', syntax: Syntax.scss))
+      ]);
+    });
+
+    test("is converted to a file: URL if it's an absolute Windows path", () {
+      compileString('@import "C:/orange";', importers: [
+        TestImporter(expectAsync1((url) {
+          expect(url, equals(Uri.parse("file:///C:/orange")));
+          return Uri.parse("u:$url");
+        }), (url) => ImporterResult('', syntax: Syntax.scss))
+      ]);
+    });
+  });
+
   test("uses an importer's source map URL", () {
     late SingleMapping map;
     compileString('@import "orange";',

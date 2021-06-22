@@ -1120,7 +1120,9 @@ abstract class StylesheetParser extends Parser {
   String parseImportUrl(String url) {
     // Backwards-compatibility for implementations that allow absolute Windows
     // paths in imports.
-    if (p.windows.isAbsolute(url)) return p.windows.toUri(url).toString();
+    if (p.windows.isAbsolute(url) && !p.url.isRootRelative(url)) {
+      return p.windows.toUri(url).toString();
+    }
 
     // Throw a [FormatException] if [url] is invalid.
     Uri.parse(url);

@@ -6,6 +6,10 @@
   relying on this bug, but if so they can simply add `!global` to the variable
   declaration to preserve the old behavior.
 
+* **Potentially breaking bug fix:** Fix a bug where imports of root-relative
+  URLs (those that begin with `/`) in `@import` rules would be passed to
+  both Dart and JS importers as `file:` URLs.
+
 ## 1.35.1
 
 * Fix a bug where the quiet dependency flag didn't silence warnings in some
