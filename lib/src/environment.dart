@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d5a12dbc383245a91d1e2fee0e2c4aa38939a3d8
+// Checksum: 6e5ee671e0a6e5b1d6ac87beb6aeee1e4b155d74
 //
 // ignore_for_file: unused_import
 
@@ -746,28 +746,26 @@ class Environment {
   /// If [when] is false, this doesn't create a new scope and instead just
   /// executes [callback] and returns its result.
   T scope<T>(T callback(), {bool semiGlobal = false, bool when = true}) {
+    // We have to track semi-globalness even if `!when` so that
+    //
+    //     div {
+    //       @if ... {
+    //         $x: y;
+    //       }
+    //     }
+    //
+    // doesn't assign to the global scope.
+    semiGlobal = semiGlobal && _inSemiGlobalScope;
+    var wasInSemiGlobalScope = _inSemiGlobalScope;
+    _inSemiGlobalScope = semiGlobal;
+
     if (!when) {
-      // We still have to track semi-globalness so that
-      //
-      //     div {
-      //       @if ... {
-      //         $x: y;
-      //       }
-      //     }
-      //
-      // doesn't assign to the global scope.
-      var wasInSemiGlobalScope = _inSemiGlobalScope;
-      _inSemiGlobalScope = semiGlobal;
       try {
         return callback();
       } finally {
         _inSemiGlobalScope = wasInSemiGlobalScope;
       }
     }
-
-    semiGlobal = semiGlobal && _inSemiGlobalScope;
-    var wasInSemiGlobalScope = _inSemiGlobalScope;
-    _inSemiGlobalScope = semiGlobal;
 
     _variables.add({});
     _variableNodes.add({});

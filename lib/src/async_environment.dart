@@ -740,28 +740,26 @@ class AsyncEnvironment {
   /// executes [callback] and returns its result.
   Future<T> scope<T>(Future<T> callback(),
       {bool semiGlobal = false, bool when = true}) async {
+    // We have to track semi-globalness even if `!when` so that
+    //
+    //     div {
+    //       @if ... {
+    //         $x: y;
+    //       }
+    //     }
+    //
+    // doesn't assign to the global scope.
+    semiGlobal = semiGlobal && _inSemiGlobalScope;
+    var wasInSemiGlobalScope = _inSemiGlobalScope;
+    _inSemiGlobalScope = semiGlobal;
+
     if (!when) {
-      // We still have to track semi-globalness so that
-      //
-      //     div {
-      //       @if ... {
-      //         $x: y;
-      //       }
-      //     }
-      //
-      // doesn't assign to the global scope.
-      var wasInSemiGlobalScope = _inSemiGlobalScope;
-      _inSemiGlobalScope = semiGlobal;
       try {
         return await callback();
       } finally {
         _inSemiGlobalScope = wasInSemiGlobalScope;
       }
     }
-
-    semiGlobal = semiGlobal && _inSemiGlobalScope;
-    var wasInSemiGlobalScope = _inSemiGlobalScope;
-    _inSemiGlobalScope = semiGlobal;
 
     _variables.add({});
     _variableNodes.add({});
