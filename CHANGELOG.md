@@ -1,3 +1,11 @@
+## 1.35.2
+
+* **Potentially breaking bug fix:** Fixed a bug where certain local variable
+  declarations nested within multiple `@if` statements would incorrectly
+  override a global variable. It's unlikely that any real stylesheets were
+  relying on this bug, but if so they can simply add `!global` to the variable
+  declaration to preserve the old behavior.
+
 ## 1.35.1
 
 * Fix a bug where the quiet dependency flag didn't silence warnings in some
