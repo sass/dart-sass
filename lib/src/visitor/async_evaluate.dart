@@ -592,7 +592,7 @@ class _EvaluateVisitor
   /// The [stackFrame] and [nodeWithSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
   Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeWithSpan,
-      void callback(Module module),
+      FutureOr<void> callback(Module module),
       {Uri? baseUrl,
       Configuration? configuration,
       bool namesInErrors = false}) async {
@@ -606,7 +606,7 @@ class _EvaluateVisitor
             configuration.nodeWithSpan.span);
       }
 
-      _addExceptionSpan(nodeWithSpan, () => callback(builtInModule));
+      await _addExceptionSpanAsync(nodeWithSpan, () => callback(builtInModule));
       return;
     }
 
@@ -643,7 +643,7 @@ class _EvaluateVisitor
       }
 
       try {
-        callback(module);
+        await callback(module);
       } on SassRuntimeException {
         rethrow;
       } on MultiSpanSassException catch (error) {
@@ -3212,7 +3212,7 @@ class _EvaluateVisitor
 
   /// Like [_addExceptionSpan], but for an asynchronous [callback].
   Future<T> _addExceptionSpanAsync<T>(
-      AstNode nodeWithSpan, Future<T> callback()) async {
+      AstNode nodeWithSpan, FutureOr<T> callback()) async {
     try {
       return await callback();
     } on MultiSpanSassScriptException catch (error) {

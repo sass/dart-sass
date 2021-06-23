@@ -225,4 +225,16 @@ a {
       });
     });
   });
+
+  // Regression test for #1318
+  test("meta.load-module() doesn't have a race condition", () async {
+    await d.file("other.scss", '/**//**/').create();
+    expect(compileStringAsync("""
+      @use 'sass:meta';
+      @include meta.load-css("other.scss");
+    """, loadPaths: [d.sandbox]), completion(equals("/**/\n/**/")));
+
+    // Give the race condition time to appear.
+    await pumpEventQueue();
+  });
 }
