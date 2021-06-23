@@ -76,15 +76,14 @@ brew install sass/sass/sass
 ```
 
 That'll give you a `sass` executable on your command line that will run Dart
-Sass. See [the CLI docs][cli] for details.
+Sass.
 
 ### Standalone
 
 You can download the standalone Dart Sass archive for your operating
 system—containing the Dart VM and the snapshot of the executable—from [the
 GitHub release page][]. Extract it, [add the directory to your path][], restart
-your terminal, and the `sass` executable is ready to run! See [the CLI docs][cli]
-for details.
+your terminal, and the `sass` executable is ready to run!
 
 [the GitHub release page]: https://github.com/sass/dart-sass/releases/
 [add the directory to your path]: https://katiek2.github.io/path-doc/
@@ -143,7 +142,7 @@ Assuming you've already checked out this repository:
 
 3. Run `dart bin/sass.dart path/to/file.scss`.
 
-See [the CLI docs][cli] for details.
+That's it!
 
 ## JavaScript API
 
