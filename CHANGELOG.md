@@ -13,6 +13,9 @@
   URLs (those that begin with `/`) in `@import` rules would be passed to
   both Dart and JS importers as `file:` URLs.
 
+* Fix an edge case where `@extend` wouldn't affect a selector within a
+  pseudo-selector such as `:is()` that itself extended other selectors.
+
 ## 1.35.1
 
 * Fix a bug where the quiet dependency flag didn't silence warnings in some
