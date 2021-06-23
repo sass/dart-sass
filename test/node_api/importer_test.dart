@@ -364,6 +364,25 @@ void main() {
           }))));
       expect(result.stats.includedFiles, equals(['foo']));
     });
+
+    // Regression test for #1137.
+    test("isn't changed if it's root-relative", () {
+      renderSync(RenderOptions(
+          data: "@import '/foo'",
+          importer: allowInterop(expectAsync2((url, _) {
+            expect(url, equals('/foo'));
+            return NodeImporterResult(contents: '');
+          }))));
+    });
+
+    test("is converted to a file: URL if it's an absolute Windows path", () {
+      renderSync(RenderOptions(
+          data: "@import 'C:/foo'",
+          importer: allowInterop(expectAsync2((url, _) {
+            expect(url, equals('file:///C:/foo'));
+            return NodeImporterResult(contents: '');
+          }))));
+    });
   });
 
   group("the previous URL", () {

@@ -1120,7 +1120,9 @@ abstract class StylesheetParser extends Parser {
   String parseImportUrl(String url) {
     // Backwards-compatibility for implementations that allow absolute Windows
     // paths in imports.
-    if (p.windows.isAbsolute(url)) return p.windows.toUri(url).toString();
+    if (p.windows.isAbsolute(url) && !p.url.isRootRelative(url)) {
+      return p.windows.toUri(url).toString();
+    }
 
     // Throw a [FormatException] if [url] is invalid.
     Uri.parse(url);
@@ -2491,27 +2493,38 @@ abstract class StylesheetParser extends Parser {
     expectIdentChar($u);
     scanner.expectChar($plus);
 
-    var i = 0;
-    for (; i < 6; i++) {
-      if (!scanCharIf((char) => char != null && isHex(char))) break;
+    var firstRangeLength = 0;
+    while (scanCharIf((char) => char != null && isHex(char))) {
+      firstRangeLength++;
     }
 
-    if (scanner.scanChar($question)) {
-      i++;
-      for (; i < 6; i++) {
-        if (!scanner.scanChar($question)) break;
-      }
+    var hasQuestionMark = false;
+    while (scanner.scanChar($question)) {
+      hasQuestionMark = true;
+      firstRangeLength++;
+    }
+
+    if (firstRangeLength == 0) {
+      scanner.error('Expected hex digit or "?".');
+    } else if (firstRangeLength > 6) {
+      error("Expected at most 6 digits.", scanner.spanFrom(start));
+    } else if (hasQuestionMark) {
       return StringExpression.plain(
           scanner.substring(start.position), scanner.spanFrom(start));
     }
-    if (i == 0) scanner.error('Expected hex digit or "?".');
 
     if (scanner.scanChar($minus)) {
-      var j = 0;
-      for (; j < 6; j++) {
-        if (!scanCharIf((char) => char != null && isHex(char))) break;
+      var secondRangeStart = scanner.state;
+      var secondRangeLength = 0;
+      while (scanCharIf((char) => char != null && isHex(char))) {
+        secondRangeLength++;
       }
-      if (j == 0) scanner.error("Expected hex digit.");
+
+      if (secondRangeLength == 0) {
+        scanner.error("Expected hex digit.");
+      } else if (secondRangeLength > 6) {
+        error("Expected at most 6 digits.", scanner.spanFrom(secondRangeStart));
+      }
     }
 
     if (_lookingAtInterpolatedIdentifierBody()) {
