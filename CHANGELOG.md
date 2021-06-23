@@ -6,6 +6,9 @@
   relying on this bug, but if so they can simply add `!global` to the variable
   declaration to preserve the old behavior.
 
+* Fix an edge case where `@extend` wouldn't affect a selector within a
+  pseudo-selector such as `:is()` that itself extended other selectors.
+
 ## 1.35.1
 
 * Fix a bug where the quiet dependency flag didn't silence warnings in some
