@@ -62,7 +62,9 @@ scoop install sass
 ```
 
 That'll give you a `sass` executable on your command line that will run Dart
-Sass.
+Sass. See [the CLI docs][cli] for details.
+
+[cli]: https://sass-lang.com/documentation/cli/dart-sass
 
 ### From Homebrew (OS X)
 
