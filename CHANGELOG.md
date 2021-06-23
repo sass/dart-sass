@@ -1,5 +1,8 @@
 ## 1.35.2
 
+* **Potentially breaking bug fix**: Properly throw an error for Unicode ranges
+  that have too many `?`s after hexadecimal digits, such as `U+12345??`.
+
 * **Potentially breaking bug fix:** Fixed a bug where certain local variable
   declarations nested within multiple `@if` statements would incorrectly
   override a global variable. It's unlikely that any real stylesheets were
