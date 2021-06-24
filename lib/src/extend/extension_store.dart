@@ -95,28 +95,25 @@ class ExtensionStore {
       SelectorList targets,
       ExtendMode mode,
       FileSpan span) {
-    var compoundTargets = [
-      for (var complex in targets.components)
-        if (complex.components.length != 1)
-          throw SassScriptException("Can't extend complex selector $complex.")
-        else
-          complex.components.first as CompoundSelector
-    ];
+    var extender = ExtensionStore._mode(mode);
+    if (!selector.isInvisible) {
+      extender._originals.addAll(selector.components);
+    }
 
-    var extensions = {
-      for (var compound in compoundTargets)
+    for (var complex in targets.components) {
+      if (complex.components.length != 1) {
+        throw SassScriptException("Can't extend complex selector $complex.");
+      }
+      var compound = complex.components.first as CompoundSelector;
+
+      selector = extender._extendList(selector, span, {
         for (var simple in compound.components)
           simple: {
             for (var complex in source.components)
               complex: Extension(complex, span, simple, span, optional: true)
           }
-    };
-
-    var extender = ExtensionStore._mode(mode);
-    if (!selector.isInvisible) {
-      extender._originals.addAll(selector.components);
+      });
     }
-    selector = extender._extendList(selector, span, extensions);
 
     return selector;
   }
