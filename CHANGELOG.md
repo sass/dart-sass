@@ -16,6 +16,9 @@
 * Fix an edge case where `@extend` wouldn't affect a selector within a
   pseudo-selector such as `:is()` that itself extended other selectors.
 
+* Fix a race condition where `meta.load-css()` could trigger an internal error
+  when running in asynchronous mode.
+
 ## 1.35.1
 
 * Fix a bug where the quiet dependency flag didn't silence warnings in some
