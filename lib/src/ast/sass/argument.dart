@@ -26,7 +26,7 @@ class Argument implements SassNode {
   String get originalName =>
       defaultValue == null ? span.text : declarationName(span);
 
-  Argument(this.name, {this.defaultValue, required this.span});
+  Argument(this.name, this.span, {this.defaultValue});
 
   String toString() => defaultValue == null ? name : "$name: $defaultValue";
 }
