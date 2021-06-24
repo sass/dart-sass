@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b36c6c618b222a025ed67c1df8afb66e037a132b
+// Checksum: 55d410a86f32ae21840c27b14dc26eca7f3dcfcc
 //
 // ignore_for_file: unused_import
 
@@ -2183,7 +2183,7 @@ class _EvaluateVisitor
     return _withoutSlash(result.accept(this), _expressionNode(result));
   }
 
-  SassNull visitNullExpression(NullExpression node) => sassNull;
+  Value visitNullExpression(NullExpression node) => sassNull;
 
   SassNumber visitNumberExpression(NumberExpression node) =>
       SassNumber(node.value, node.unit);

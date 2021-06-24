@@ -12,7 +12,6 @@ import '../util/number.dart';
 import '../utils.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';
-import 'external/value.dart' as ext;
 import 'number/complex.dart';
 import 'number/single_unit.dart';
 import 'number/unitless.dart';
@@ -160,27 +159,69 @@ final _typesByUnit = {
     for (var unit in entry.value) unit: entry.key
 };
 
-abstract class SassNumber extends Value implements ext.SassNumber {
-  static const precision = ext.SassNumber.precision;
+/// A SassScript number.
+///
+/// Numbers can have units. Although there's no literal syntax for it, numbers
+/// support scientific-style numerator and denominator units (for example,
+/// `miles/hour`). These are expected to be resolved before being emitted to
+/// CSS.
+@sealed
+abstract class SassNumber extends Value {
+  /// The number of distinct digits that are emitted when converting a number to
+  /// CSS.
+  static const precision = 10;
 
+  /// The value of this number.
+  ///
+  /// Note that due to details of floating-point arithmetic, this may be a
+  /// [double] even if [this] represents an int from Sass's perspective. Use
+  /// [isInt] to determine whether this is an integer, [asInt] to get its
+  /// integer value, or [assertInt] to do both at once.
   final num value;
+
+  /// This number's numerator units.
+  List<String> get numeratorUnits;
+
+  /// This number's denominator units.
+  List<String> get denominatorUnits;
+
+  /// Whether [this] has any units.
+  ///
+  /// If a function expects a number to have no units, it should use
+  /// [assertNoUnits]. If it expects the number to have a particular unit, it
+  /// should use [assertUnit].
+  bool get hasUnits;
 
   /// The representation of this number as two slash-separated numbers, if it
   /// has one.
   final Tuple2<SassNumber, SassNumber>? asSlash;
 
+  /// Whether [this] is an integer, according to [fuzzyEquals].
+  ///
+  /// The [int] value can be accessed using [asInt] or [assertInt]. Note that
+  /// this may return `false` for very large doubles even though they may be
+  /// mathematically integers, because not all platforms have a valid
+  /// representation for integers that large.
   bool get isInt => fuzzyIsInt(value);
 
+  /// If [this] is an integer according to [isInt], returns [value] as an [int].
+  ///
+  /// Otherwise, returns `null`.
   int? get asInt => fuzzyAsInt(value);
 
   /// Returns a human readable string representation of this number's units.
   String get unitString =>
       hasUnits ? _unitString(numeratorUnits, denominatorUnits) : '';
 
+  /// Creates a number, optionally with a single numerator unit.
+  ///
+  /// This matches the numbers that can be written as literals.
+  /// [SassNumber.withUnits] can be used to construct more complex units.
   factory SassNumber(num value, [String? unit]) => unit == null
       ? UnitlessSassNumber(value)
       : SingleUnitSassNumber(value, unit);
 
+  /// Creates a number with full [numeratorUnits] and [denominatorUnits].
   factory SassNumber.withUnits(num value,
       {List<String>? numeratorUnits, List<String>? denominatorUnits}) {
     if (denominatorUnits == null || denominatorUnits.isEmpty) {
@@ -202,6 +243,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     }
   }
 
+  /// @nodoc
   @protected
   SassNumber.protected(this.value, this.asSlash);
 
@@ -209,6 +251,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
 
   /// Returns a number with the same units as [this] but with [value] as its
   /// value.
+  ///
+  /// @nodoc
   @protected
   SassNumber withValue(num value);
 
@@ -221,12 +265,24 @@ abstract class SassNumber extends Value implements ext.SassNumber {
 
   SassNumber assertNumber([String? name]) => this;
 
+  /// Returns [value] as an [int], if it's an integer value according to
+  /// [isInt].
+  ///
+  /// Throws a [SassScriptException] if [value] isn't an integer. If this came
+  /// from a function argument, [name] is the argument name (without the `$`).
+  /// It's used for error reporting.
   int assertInt([String? name]) {
     var integer = fuzzyAsInt(value);
     if (integer != null) return integer;
     throw _exception("$this is not an int.", name);
   }
 
+  /// If [value] is between [min] and [max], returns it.
+  ///
+  /// If [value] is [fuzzyEquals] to [min] or [max], it's clamped to the
+  /// appropriate value. Otherwise, this throws a [SassScriptException]. If this
+  /// came from a function argument, [name] is the argument name (without the
+  /// `$`). It's used for error reporting.
   num valueInRange(num min, num max, [String? name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
@@ -235,34 +291,100 @@ abstract class SassNumber extends Value implements ext.SassNumber {
         name);
   }
 
+  /// Returns whether [this] has [unit] as its only unit (and as a numerator).
+  bool hasUnit(String unit);
+
+  /// Returns whether [this] can be coerced to the given [unit].
+  ///
+  /// This always returns `true` for a unitless number.
+  bool compatibleWithUnit(String unit);
+
+  /// Throws a [SassScriptException] unless [this] has [unit] as its only unit
+  /// (and as a numerator).
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
   void assertUnit(String unit, [String? name]) {
     if (hasUnit(unit)) return;
     throw _exception('Expected $this to have unit "$unit".', name);
   }
 
+  /// Throws a [SassScriptException] unless [this] has no units.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
   void assertNoUnits([String? name]) {
     if (!hasUnits) return;
     throw _exception('Expected $this to have no units.', name);
   }
 
-  SassNumber coerceToMatch(ext.SassNumber other,
+  /// Returns a copy of this number, converted to the same units as [other].
+  ///
+  /// Unlike [convertToMatch], this does *not* throw an error if this number is
+  /// unitless and [other] is not, or vice versa. Instead, it treats all
+  /// unitless numbers as convertible to and from all units without changing the
+  /// value.
+  ///
+  /// Note that [coerceValueToMatch] is generally more efficient if the value is
+  /// going to be accessed directly.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  SassNumber coerceToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       SassNumber.withUnits(coerceValueToMatch(other, name, otherName),
           numeratorUnits: other.numeratorUnits,
           denominatorUnits: other.denominatorUnits);
 
-  num coerceValueToMatch(ext.SassNumber other,
-          [String? name, String? otherName]) =>
+  /// Returns [value], converted to the same units as [other].
+  ///
+  /// Unlike [convertValueToMatch], this does *not* throw an error if this
+  /// number is unitless and [other] is not, or vice versa. Instead, it treats
+  /// all unitless numbers as convertible to and from all units without changing
+  /// the value.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
       _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
           coerceUnitless: true, name: name, other: other, otherName: otherName);
 
-  SassNumber convertToMatch(ext.SassNumber other,
+  /// Returns a copy of this number, converted to the same units as [other].
+  ///
+  /// Note that [convertValueToMatch] is generally more efficient if the value
+  /// is going to be accessed directly.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units, or if either number is unitless but the other is
+  /// not.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  SassNumber convertToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       SassNumber.withUnits(convertValueToMatch(other, name, otherName),
           numeratorUnits: other.numeratorUnits,
           denominatorUnits: other.denominatorUnits);
 
-  num convertValueToMatch(ext.SassNumber other,
+  /// Returns [value], converted to the same units as [other].
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units, or if either number is unitless but the other is
+  /// not.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  num convertValueToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
           coerceUnitless: false,
@@ -270,19 +392,51 @@ abstract class SassNumber extends Value implements ext.SassNumber {
           other: other,
           otherName: otherName);
 
+  /// Returns a copy of this number, converted to the units represented by
+  /// [newNumerators] and [newDenominators].
+  ///
+  /// This does *not* throw an error if this number is unitless and
+  /// [newNumerators]/[newDenominators] are not empty, or vice versa. Instead,
+  /// it treats all unitless numbers as convertible to and from all units
+  /// without changing the value.
+  ///
+  /// Note that [coerceValue] is generally more efficient if the value is going
+  /// to be accessed directly.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [newNumerators] and [newDenominators].
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
   SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
       SassNumber.withUnits(coerceValue(newNumerators, newDenominators, name),
           numeratorUnits: newNumerators, denominatorUnits: newDenominators);
 
+  /// Returns [value], converted to the units represented by [newNumerators] and
+  /// [newDenominators].
+  ///
+  /// This does *not* throw an error if this number is unitless and
+  /// [newNumerators]/[newDenominators] are not empty, or vice versa. Instead,
+  /// it treats all unitless numbers as convertible to and from all units
+  /// without changing the value.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [newNumerators] and [newDenominators].
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
   num coerceValue(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
       _coerceOrConvertValue(newNumerators, newDenominators,
           coerceUnitless: true, name: name);
 
+  /// A shorthand for [coerceValue] with only one numerator unit.
   num coerceValueToUnit(String unit, [String? name]) =>
       coerceValue([unit], [], name);
 
+  /// This has been renamed [coerceValue] for consistency with [coerceToMatch],
+  /// [coerceValueToMatch], [convertToMatch], and [convertValueToMatch].
   @deprecated
   num valueInUnits(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
@@ -302,7 +456,7 @@ abstract class SassNumber extends Value implements ext.SassNumber {
       List<String> newNumerators, List<String> newDenominators,
       {required bool coerceUnitless,
       String? name,
-      ext.SassNumber? other,
+      SassNumber? other,
       String? otherName}) {
     assert(
         other == null ||
@@ -384,6 +538,9 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   ///
   /// Two numbers can be compared if they have compatible units, or if either
   /// number has no units.
+  ///
+  /// @nodoc
+  @internal
   bool isComparableTo(SassNumber other) {
     if (!hasUnits || !other.hasUnits) return true;
     try {
@@ -394,6 +551,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     }
   }
 
+  /// @nodoc
+  @internal
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
       return SassBoolean(_coerceUnits(other, fuzzyGreaterThan));
@@ -401,6 +560,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     throw SassScriptException('Undefined operation "$this > $other".');
   }
 
+  /// @nodoc
+  @internal
   SassBoolean greaterThanOrEquals(Value other) {
     if (other is SassNumber) {
       return SassBoolean(_coerceUnits(other, fuzzyGreaterThanOrEquals));
@@ -408,6 +569,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     throw SassScriptException('Undefined operation "$this >= $other".');
   }
 
+  /// @nodoc
+  @internal
   SassBoolean lessThan(Value other) {
     if (other is SassNumber) {
       return SassBoolean(_coerceUnits(other, fuzzyLessThan));
@@ -415,6 +578,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     throw SassScriptException('Undefined operation "$this < $other".');
   }
 
+  /// @nodoc
+  @internal
   SassBoolean lessThanOrEquals(Value other) {
     if (other is SassNumber) {
       return SassBoolean(_coerceUnits(other, fuzzyLessThanOrEquals));
@@ -422,6 +587,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     throw SassScriptException('Undefined operation "$this <= $other".');
   }
 
+  /// @nodoc
+  @internal
   Value modulo(Value other) {
     if (other is SassNumber) {
       return withValue(_coerceUnits(other, moduloLikeSass));
@@ -431,6 +598,9 @@ abstract class SassNumber extends Value implements ext.SassNumber {
 
   /// Return [num1] modulo [num2], using Sass's modulo semantics, which it
   /// inherited from Ruby and which differ from Dart's.
+  ///
+  /// @nodoc
+  @internal
   num moduloLikeSass(num num1, num num2) {
     if (num2 > 0) return num1 % num2;
     if (num2 == 0) return double.nan;
@@ -441,6 +611,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     return result == 0 ? 0 : result + num2;
   }
 
+  /// @nodoc
+  @internal
   Value plus(Value other) {
     if (other is SassNumber) {
       return withValue(_coerceUnits(other, (num1, num2) => num1 + num2));
@@ -449,6 +621,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     throw SassScriptException('Undefined operation "$this + $other".');
   }
 
+  /// @nodoc
+  @internal
   Value minus(Value other) {
     if (other is SassNumber) {
       return withValue(_coerceUnits(other, (num1, num2) => num1 - num2));
@@ -457,6 +631,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     throw SassScriptException('Undefined operation "$this - $other".');
   }
 
+  /// @nodoc
+  @internal
   Value times(Value other) {
     if (other is SassNumber) {
       if (!other.hasUnits) return withValue(value * other.value);
@@ -466,6 +642,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     throw SassScriptException('Undefined operation "$this * $other".');
   }
 
+  /// @nodoc
+  @internal
   Value dividedBy(Value other) {
     if (other is SassNumber) {
       if (!other.hasUnits) return withValue(value / other.value);
@@ -475,12 +653,16 @@ abstract class SassNumber extends Value implements ext.SassNumber {
     return super.dividedBy(other);
   }
 
+  /// @nodoc
+  @internal
   Value unaryPlus() => this;
 
   /// Converts [other]'s value to be compatible with this number's, and calls
   /// [operation] with the resulting numbers.
   ///
   /// Throws a [SassScriptException] if the two numbers' units are incompatible.
+  ///
+  /// @nodoc
   @protected
   T _coerceUnits<T>(SassNumber other, T operation(num num1, num num2)) {
     try {
@@ -497,6 +679,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   /// Returns a new number that's equivalent to `value
   /// this.numeratorUnits/this.denominatorUnits * 1
   /// otherNumerators/otherDenominators`.
+  ///
+  /// @nodoc
   @protected
   SassNumber multiplyUnits(
       num value, List<String> otherNumerators, List<String> otherDenominators) {
@@ -565,6 +749,8 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   /// Returns the number of [unit1]s per [unit2].
   ///
   /// Equivalently, `1unit2 * conversionFactor(unit1, unit2) = 1unit1`.
+  ///
+  /// @nodoc
   @protected
   num? conversionFactor(String unit1, String unit2) {
     if (unit1 == unit2) return 1;
@@ -646,6 +832,9 @@ abstract class SassNumber extends Value implements ext.SassNumber {
   ///
   /// That is, if `X unit1 == Y unit2`, `X * canonicalMultiplierForUnit(unit1)
   /// == Y * canonicalMultiplierForUnit(unit2)`.
+  ///
+  /// @nodoc
+  @protected
   num canonicalMultiplierForUnit(String unit) {
     var innerMap = _conversions[unit];
     return innerMap == null ? 1 : 1 / innerMap.values.first;

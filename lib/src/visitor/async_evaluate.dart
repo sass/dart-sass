@@ -2194,7 +2194,7 @@ class _EvaluateVisitor
     return _withoutSlash(await result.accept(this), _expressionNode(result));
   }
 
-  Future<SassNull> visitNullExpression(NullExpression node) async => sassNull;
+  Future<Value> visitNullExpression(NullExpression node) async => sassNull;
 
   Future<SassNumber> visitNumberExpression(NumberExpression node) async =>
       SassNumber(node.value, node.unit);

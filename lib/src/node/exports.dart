@@ -14,7 +14,7 @@ class Exports {
   external set renderSync(Function function);
   external set info(String info);
   external set types(Types types);
-  external set NULL(SassNull sassNull);
+  external set NULL(Value sassNull);
   external set TRUE(SassBoolean sassTrue);
   external set FALSE(SassBoolean sassFalse);
 }

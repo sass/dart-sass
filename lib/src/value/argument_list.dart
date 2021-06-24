@@ -2,10 +2,20 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../value.dart';
-import 'external/value.dart' as ext;
+import 'package:meta/meta.dart';
 
-class SassArgumentList extends SassList implements ext.SassArgumentList {
+import '../value.dart';
+
+/// A SassScript argument list.
+///
+/// An argument list comes from a rest argument. It's distinct from a normal
+/// [SassList] in that it may contain a keyword map as well as the positional
+/// arguments.
+@sealed
+class SassArgumentList extends SassList {
+  /// The keyword arguments attached to this argument list.
+  ///
+  /// The argument names don't include `$`.
   Map<String, Value> get keywords {
     _wereKeywordsAccessed = true;
     return _keywords;
@@ -18,8 +28,8 @@ class SassArgumentList extends SassList implements ext.SassArgumentList {
   /// This is used to determine whether to throw an exception about passing
   /// unexpected keywords.
   ///
-  /// **Note:** this function should not be called outside the `sass` package.
-  /// It's not guaranteed to be stable across versions.
+  /// @nodoc
+  @internal
   bool get wereKeywordsAccessed => _wereKeywordsAccessed;
   var _wereKeywordsAccessed = false;
 

@@ -24,8 +24,7 @@ export 'src/exception.dart' show SassException;
 export 'src/importer.dart';
 export 'src/logger.dart';
 export 'src/syntax.dart';
-export 'src/value.dart' show ListSeparator;
-export 'src/value/external/value.dart';
+export 'src/value.dart';
 export 'src/visitor/serialize.dart' show OutputStyle;
 export 'src/warn.dart' show warn;
 

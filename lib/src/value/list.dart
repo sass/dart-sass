@@ -7,9 +7,10 @@ import 'package:meta/meta.dart';
 import '../utils.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
-import 'external/value.dart' as ext;
 
-class SassList extends Value implements ext.SassList {
+/// A SassScript list.
+@sealed
+class SassList extends Value {
   // TODO(nweiz): Use persistent data structures rather than copying here. An
   // RRB vector should fit our use-cases well.
   //
@@ -21,17 +22,25 @@ class SassList extends Value implements ext.SassList {
 
   final bool hasBrackets;
 
+  /// @nodoc
+  @internal
   bool get isBlank => asList.every((element) => element.isBlank);
 
   List<Value> get asList => _contents;
 
+  /// @nodoc
+  @internal
   int get lengthAsList => asList.length;
 
+  /// Returns an empty list with the given [separator] and [brackets].
+  ///
+  /// The [separator] defaults to [ListSeparator.undecided], and [brackets] defaults to `false`.
   const SassList.empty({ListSeparator? separator, bool brackets = false})
       : _contents = const [],
         separator = separator ?? ListSeparator.undecided,
         hasBrackets = brackets;
 
+  /// Returns an empty list with the given [separator] and [brackets].
   SassList(Iterable<Value> contents, this.separator, {bool brackets = false})
       : _contents = List.unmodifiable(contents),
         hasBrackets = brackets {
@@ -41,6 +50,8 @@ class SassList extends Value implements ext.SassList {
     }
   }
 
+  /// @nodoc
+  @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitList(this);
 
   SassMap assertMap([String? name]) =>

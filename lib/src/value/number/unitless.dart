@@ -7,7 +7,6 @@ import 'package:tuple/tuple.dart';
 
 import '../../util/number.dart';
 import '../../value.dart';
-import '../external/value.dart' as ext;
 import '../number.dart';
 
 /// A specialized subclass of [SassNumber] for numbers that have no units.
@@ -31,22 +30,21 @@ class UnitlessSassNumber extends SassNumber {
 
   bool compatibleWithUnit(String unit) => true;
 
-  SassNumber coerceToMatch(ext.SassNumber other,
+  SassNumber coerceToMatch(SassNumber other,
           [String? name, String? otherName]) =>
-      (other as SassNumber).withValue(value);
+      other.withValue(value);
 
-  num coerceValueToMatch(ext.SassNumber other,
-          [String? name, String? otherName]) =>
+  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
       value;
 
-  SassNumber convertToMatch(ext.SassNumber other,
+  SassNumber convertToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       other.hasUnits
           // Call this to generate a consistent error message.
           ? super.convertToMatch(other, name, otherName)
           : this;
 
-  num convertValueToMatch(ext.SassNumber other,
+  num convertValueToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       other.hasUnits
           // Call this to generate a consistent error message.

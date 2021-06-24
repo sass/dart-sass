@@ -2,12 +2,22 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../visitor/interface/value.dart';
 import '../value.dart';
 import '../utils.dart';
-import 'external/value.dart' as ext;
 
-class SassMap extends Value implements ext.SassMap {
+/// A SassScript map.
+@sealed
+class SassMap extends Value {
+  // TODO(nweiz): Use persistent data structures rather than copying here. We
+  // need to preserve the order, which can be done by tracking an RRB vector of
+  // keys along with the hash-mapped array trie representing the map.
+  //
+  // We may also want to fall back to a plain unmodifiable Map for small maps
+  // (<32 items?).
+  /// The contents of the map.
   final Map<Value, Value> contents;
 
   ListSeparator get separator =>
@@ -21,6 +31,8 @@ class SassMap extends Value implements ext.SassMap {
     return result;
   }
 
+  /// @nodoc
+  @internal
   int get lengthAsList => contents.length;
 
   /// Returns an empty map.
@@ -28,6 +40,8 @@ class SassMap extends Value implements ext.SassMap {
 
   SassMap(Map<Value, Value> contents) : contents = Map.unmodifiable(contents);
 
+  /// @nodoc
+  @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitMap(this);
 
   SassMap assertMap([String? name]) => this;
