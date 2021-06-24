@@ -13,6 +13,9 @@
   URLs (those that begin with `/`) in `@import` rules would be passed to
   both Dart and JS importers as `file:` URLs.
 
+* Properly support selector lists for the `$extendee` argument to
+  `selector.extend()` and `selector.replace()`.
+
 * Fix an edge case where `@extend` wouldn't affect a selector within a
   pseudo-selector such as `:is()` that itself extended other selectors.
 
