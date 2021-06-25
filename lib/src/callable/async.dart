@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../value.dart';
-import '../value/external/value.dart' as ext;
 import 'async_built_in.dart';
 
 /// An interface for functions and mixins that can be invoked from Sass by
@@ -25,7 +24,7 @@ abstract class AsyncCallable {
 
   @Deprecated('Use `AsyncCallable.function` instead.')
   factory AsyncCallable(String name, String arguments,
-          FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
+          FutureOr<Value> callback(List<Value> arguments)) =>
       AsyncCallable.function(name, arguments, callback);
 
   /// Creates a callable with the given [name] and [arguments] that runs
@@ -36,10 +35,6 @@ abstract class AsyncCallable {
   ///
   /// See [new Callable] for more details.
   factory AsyncCallable.function(String name, String arguments,
-          FutureOr<ext.Value> callback(List<ext.Value> arguments)) =>
-      AsyncBuiltInCallable.function(name, arguments, (arguments) {
-        var result = callback(arguments);
-        if (result is ext.Value) return result as Value;
-        return result.then((value) => value as Value);
-      });
+          FutureOr<Value> callback(List<Value> arguments)) =>
+      AsyncBuiltInCallable.function(name, arguments, callback);
 }

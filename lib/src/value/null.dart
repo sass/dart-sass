@@ -6,21 +6,21 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 /// The SassScript `null` value.
-const sassNull = SassNull._();
+const Value sassNull = _SassNull();
 
 /// A SassScript null value.
 ///
 /// This can't be constructed directly; it can only be accessed via [sassNull].
-class SassNull extends Value {
+class _SassNull extends Value {
   bool get isTruthy => false;
 
   bool get isBlank => true;
 
   Value? get realNull => null;
 
-  const SassNull._();
+  const _SassNull();
 
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitNull(this);
+  T accept<T>(ValueVisitor<T> visitor) => visitor.visitNull();
 
   Value unaryNot() => sassTrue;
 }

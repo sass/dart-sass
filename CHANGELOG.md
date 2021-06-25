@@ -22,6 +22,11 @@
 * Fix a race condition where `meta.load-css()` could trigger an internal error
   when running in asynchronous mode.
 
+### Dart API
+
+* Use the `@internal` annotation to indicate which `Value` APIs are available
+  for public use.
+
 ## 1.35.1
 
 * Fix a bug where the quiet dependency flag didn't silence warnings in some

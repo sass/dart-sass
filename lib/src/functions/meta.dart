@@ -40,7 +40,7 @@ final global = UnmodifiableListView([
     if (value is SassColor) return SassString("color", quotes: false);
     if (value is SassList) return SassString("list", quotes: false);
     if (value is SassMap) return SassString("map", quotes: false);
-    if (value is SassNull) return SassString("null", quotes: false);
+    if (value == sassNull) return SassString("null", quotes: false);
     if (value is SassNumber) return SassString("number", quotes: false);
     if (value is SassFunction) return SassString("function", quotes: false);
     assert(value is SassString);

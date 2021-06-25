@@ -4,15 +4,18 @@
 
 import 'dart:math' as math;
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../exception.dart';
 import '../util/number.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';
-import 'external/value.dart' as ext;
 
-class SassColor extends Value implements ext.SassColor {
+/// A SassScript color.
+@sealed
+class SassColor extends Value {
+  /// This color's red channel, between `0` and `255`.
   int get red {
     if (_red == null) _hslToRgb();
     return _red!;
@@ -20,6 +23,7 @@ class SassColor extends Value implements ext.SassColor {
 
   int? _red;
 
+  /// This color's green channel, between `0` and `255`.
   int get green {
     if (_green == null) _hslToRgb();
     return _green!;
@@ -27,6 +31,7 @@ class SassColor extends Value implements ext.SassColor {
 
   int? _green;
 
+  /// This color's blue channel, between `0` and `255`.
   int get blue {
     if (_blue == null) _hslToRgb();
     return _blue!;
@@ -34,6 +39,7 @@ class SassColor extends Value implements ext.SassColor {
 
   int? _blue;
 
+  /// This color's hue, between `0` and `360`.
   num get hue {
     if (_hue == null) _rgbToHsl();
     return _hue!;
@@ -41,6 +47,7 @@ class SassColor extends Value implements ext.SassColor {
 
   num? _hue;
 
+  /// This color's saturation, a percentage between `0` and `100`.
   num get saturation {
     if (_saturation == null) _rgbToHsl();
     return _saturation!;
@@ -48,6 +55,7 @@ class SassColor extends Value implements ext.SassColor {
 
   num? _saturation;
 
+  /// This color's lightness, a percentage between `0` and `100`.
   num get lightness {
     if (_lightness == null) _rgbToHsl();
     return _lightness!;
@@ -55,6 +63,7 @@ class SassColor extends Value implements ext.SassColor {
 
   num? _lightness;
 
+  /// This color's whiteness, a percentage between `0` and `100`.
   num get whiteness {
     // Because HWB is (currently) used much less frequently than HSL or RGB, we
     // don't cache its values because we expect the memory overhead of doing so
@@ -62,6 +71,7 @@ class SassColor extends Value implements ext.SassColor {
     return math.min(math.min(red, green), blue) / 255 * 100;
   }
 
+  /// This color's blackness, a percentage between `0` and `100`.
   num get blackness {
     // Because HWB is (currently) used much less frequently than HSL or RGB, we
     // don't cache its values because we expect the memory overhead of doing so
@@ -69,17 +79,28 @@ class SassColor extends Value implements ext.SassColor {
     return 100 - math.max(math.max(red, green), blue) / 255 * 100;
   }
 
+  /// This color's alpha channel, between `0` and `1`.
   final num alpha;
 
   /// The original string representation of this color, or `null` if one is
   /// unavailable.
+  ///
+  /// @nodoc
+  @internal
   String? get original => originalSpan?.text;
 
   /// The span tracking the location in which this color was originally defined.
   ///
   /// This is tracked as a span to avoid extra substring allocations.
+  ///
+  /// @nodoc
+  @internal
   final FileSpan? originalSpan;
 
+  /// Creates an RGB color.
+  ///
+  /// Throws a [RangeError] if [red], [green], and [blue] aren't between `0` and
+  /// `255`, or if [alpha] isn't between `0` and `1`.
   SassColor.rgb(this._red, this._green, this._blue,
       [num? alpha, this.originalSpan])
       : alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
@@ -88,6 +109,10 @@ class SassColor extends Value implements ext.SassColor {
     RangeError.checkValueInInterval(blue, 0, 255, "blue");
   }
 
+  /// Creates an HSL color.
+  ///
+  /// Throws a [RangeError] if [saturation] or [lightness] aren't between `0`
+  /// and `100`, or if [alpha] isn't between `0` and `1`.
   SassColor.hsl(num hue, num saturation, num lightness, [num? alpha])
       : _hue = hue % 360,
         _saturation = fuzzyAssertRange(saturation, 0, 100, "saturation"),
@@ -95,6 +120,10 @@ class SassColor extends Value implements ext.SassColor {
         alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha"),
         originalSpan = null;
 
+  /// Creates an HWB color.
+  ///
+  /// Throws a [RangeError] if [whiteness] or [blackness] aren't between `0` and
+  /// `100`, or if [alpha] isn't between `0` and `1`.
   factory SassColor.hwb(num hue, num whiteness, num blackness, [num? alpha]) {
     // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
     var scaledHue = hue % 360 / 360;
@@ -127,45 +156,54 @@ class SassColor extends Value implements ext.SassColor {
       this._lightness, this.alpha)
       : originalSpan = null;
 
+  /// @nodoc
+  @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitColor(this);
 
   SassColor assertColor([String? name]) => this;
 
+  /// Changes one or more of this color's RGB channels and returns the result.
   SassColor changeRgb({int? red, int? green, int? blue, num? alpha}) =>
       SassColor.rgb(red ?? this.red, green ?? this.green, blue ?? this.blue,
           alpha ?? this.alpha);
 
+  /// Changes one or more of this color's HSL channels and returns the result.
   SassColor changeHsl(
           {num? hue, num? saturation, num? lightness, num? alpha}) =>
       SassColor.hsl(hue ?? this.hue, saturation ?? this.saturation,
           lightness ?? this.lightness, alpha ?? this.alpha);
 
+  /// Changes one or more of this color's HWB channels and returns the result.
   SassColor changeHwb({num? hue, num? whiteness, num? blackness, num? alpha}) =>
       SassColor.hwb(hue ?? this.hue, whiteness ?? this.whiteness,
           blackness ?? this.blackness, alpha ?? this.alpha);
 
+  /// Returns a new copy of this color with the alpha channel set to [alpha].
   SassColor changeAlpha(num alpha) => SassColor._(_red, _green, _blue, _hue,
       _saturation, _lightness, fuzzyAssertRange(alpha, 0, 1, "alpha"));
 
+  /// @nodoc
+  @internal
   Value plus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.plus(other);
     throw SassScriptException('Undefined operation "$this + $other".');
   }
 
+  /// @nodoc
+  @internal
   Value minus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.minus(other);
     throw SassScriptException('Undefined operation "$this - $other".');
   }
 
+  /// @nodoc
+  @internal
   Value dividedBy(Value other) {
     if (other is! SassNumber && other is! SassColor) {
       return super.dividedBy(other);
     }
     throw SassScriptException('Undefined operation "$this / $other".');
   }
-
-  Value modulo(Value other) =>
-      throw SassScriptException('Undefined operation "$this % $other".');
 
   bool operator ==(Object other) =>
       other is SassColor &&
@@ -248,6 +286,9 @@ class SassColor extends Value implements ext.SassColor {
 
   /// Returns an `rgb()` or `rgba()` function call that will evaluate to this
   /// color.
+  ///
+  /// @nodoc
+  @internal
   String toStringAsRgb() {
     var isOpaque = fuzzyEquals(alpha, 1);
     var buffer = StringBuffer(isOpaque ? "rgb" : "rgba")

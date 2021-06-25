@@ -13,7 +13,7 @@ abstract class ValueVisitor<T> {
   T visitFunction(SassFunction value);
   T visitList(SassList value);
   T visitMap(SassMap value);
-  T visitNull(SassNull value);
+  T visitNull();
   T visitNumber(SassNumber value);
   T visitString(SassString value);
 }

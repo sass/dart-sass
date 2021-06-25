@@ -11,7 +11,6 @@ import '../../util/number.dart';
 import '../../utils.dart';
 import '../../util/nullable.dart';
 import '../../value.dart';
-import '../external/value.dart' as ext;
 import '../number.dart';
 
 /// A specialized subclass of [SassNumber] for numbers that have exactly one
@@ -39,21 +38,20 @@ class SingleUnitSassNumber extends SassNumber {
 
   bool compatibleWithUnit(String unit) => conversionFactor(_unit, unit) != null;
 
-  SassNumber coerceToMatch(ext.SassNumber other,
+  SassNumber coerceToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       convertToMatch(other, name, otherName);
 
-  num coerceValueToMatch(ext.SassNumber other,
-          [String? name, String? otherName]) =>
+  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
       convertValueToMatch(other, name, otherName);
 
-  SassNumber convertToMatch(ext.SassNumber other,
+  SassNumber convertToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       (other is SingleUnitSassNumber ? _coerceToUnit(other._unit) : null) ??
       // Call this to generate a consistent error message.
       super.convertToMatch(other, name, otherName);
 
-  num convertValueToMatch(ext.SassNumber other,
+  num convertValueToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       (other is SingleUnitSassNumber
           ? _coerceValueToUnit(other._unit)

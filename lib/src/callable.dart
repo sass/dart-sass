@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 import 'callable/async.dart';
 import 'callable/built_in.dart';
 import 'value.dart';
-import 'value/external/value.dart' as ext;
 
 export 'callable/async.dart';
 export 'callable/async_built_in.dart';
@@ -67,7 +66,7 @@ export 'callable/user_defined.dart';
 abstract class Callable extends AsyncCallable {
   @Deprecated('Use `Callable.function` instead.')
   factory Callable(String name, String arguments,
-          ext.Value callback(List<ext.Value> arguments)) =>
+          Value callback(List<Value> arguments)) =>
       Callable.function(name, arguments, callback);
 
   /// Creates a function with the given [name] and [arguments] that runs
@@ -113,7 +112,6 @@ abstract class Callable extends AsyncCallable {
   /// which provides access to keyword arguments using
   /// [SassArgumentList.keywords].
   factory Callable.function(String name, String arguments,
-          ext.Value callback(List<ext.Value> arguments)) =>
-      BuiltInCallable.function(
-          name, arguments, (arguments) => callback(arguments) as Value);
+          Value callback(List<Value> arguments)) =>
+      BuiltInCallable.function(name, arguments, callback);
 }
