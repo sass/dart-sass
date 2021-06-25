@@ -156,7 +156,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       var arguments = scanner.peekChar() == $lparen
           ? _argumentDeclaration()
-          : ArgumentDeclaration.empty(span: scanner.emptySpan);
+          : ArgumentDeclaration.empty(scanner.emptySpan);
       scanner.expectDone();
       return Tuple2(name, arguments);
     });
@@ -1202,8 +1202,8 @@ abstract class StylesheetParser extends Parser {
 
     ContentBlock? content;
     if (contentArguments != null || lookingAtChildren()) {
-      var contentArguments_ = contentArguments ??
-          ArgumentDeclaration.empty(span: scanner.emptySpan);
+      var contentArguments_ =
+          contentArguments ?? ArgumentDeclaration.empty(scanner.emptySpan);
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
       content = _withChildren(_statement, start,
@@ -1239,7 +1239,7 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentDeclaration()
-        : ArgumentDeclaration.empty(span: scanner.emptySpan);
+        : ArgumentDeclaration.empty(scanner.emptySpan);
 
     if (_inMixin || _inContentBlock) {
       error("Mixins may not contain mixin declarations.",
@@ -1552,8 +1552,8 @@ abstract class StylesheetParser extends Parser {
         break;
       }
 
-      arguments.add(Argument(name,
-          span: scanner.spanFrom(variableStart), defaultValue: defaultValue));
+      arguments.add(Argument(name, scanner.spanFrom(variableStart),
+          defaultValue: defaultValue));
       if (!named.add(name)) {
         error("Duplicate argument.", arguments.last.span);
       }
@@ -1562,8 +1562,8 @@ abstract class StylesheetParser extends Parser {
       whitespace();
     }
     scanner.expectChar($rparen);
-    return ArgumentDeclaration(arguments,
-        restArgument: restArgument, span: scanner.spanFrom(start));
+    return ArgumentDeclaration(arguments, scanner.spanFrom(start),
+        restArgument: restArgument);
   }
 
   // ## Expressions
@@ -1642,8 +1642,9 @@ abstract class StylesheetParser extends Parser {
       whitespace();
 
       if (scanner.scanChar($rbracket)) {
-        return ListExpression([], ListSeparator.undecided,
-            brackets: true, span: scanner.spanFrom(beforeBracket));
+        return ListExpression(
+            [], ListSeparator.undecided, scanner.spanFrom(beforeBracket),
+            brackets: true);
       }
     }
 
@@ -1795,8 +1796,9 @@ abstract class StylesheetParser extends Parser {
 
         spaceExpressions.add(singleExpression);
         singleExpression_ = ListExpression(
-            spaceExpressions, ListSeparator.space,
-            span: spaceExpressions.first.span.expand(singleExpression.span));
+            spaceExpressions,
+            ListSeparator.space,
+            spaceExpressions.first.span.expand(singleExpression.span));
         spaceExpressions_ = null;
       }
     }
@@ -2061,19 +2063,19 @@ abstract class StylesheetParser extends Parser {
       var singleExpression = singleExpression_;
       if (singleExpression != null) commaExpressions.add(singleExpression);
       return ListExpression(commaExpressions, ListSeparator.comma,
-          brackets: bracketList,
-          span: scanner.spanFrom(beforeBracket ?? start));
+          scanner.spanFrom(beforeBracket ?? start),
+          brackets: bracketList);
     } else if (bracketList && spaceExpressions != null) {
       resolveOperations();
-      return ListExpression(
-          spaceExpressions..add(singleExpression_!), ListSeparator.space,
-          brackets: true, span: scanner.spanFrom(beforeBracket!));
+      return ListExpression(spaceExpressions..add(singleExpression_!),
+          ListSeparator.space, scanner.spanFrom(beforeBracket!),
+          brackets: true);
     } else {
       resolveSpaceExpressions();
       if (bracketList) {
-        singleExpression_ = ListExpression(
-            [singleExpression_!], ListSeparator.undecided,
-            brackets: true, span: scanner.spanFrom(beforeBracket!));
+        singleExpression_ = ListExpression([singleExpression_!],
+            ListSeparator.undecided, scanner.spanFrom(beforeBracket!),
+            brackets: true);
       }
       return singleExpression_!;
     }
@@ -2215,8 +2217,8 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       if (!_lookingAtExpression()) {
         scanner.expectChar($rparen);
-        return ListExpression([], ListSeparator.undecided,
-            span: scanner.spanFrom(start));
+        return ListExpression(
+            [], ListSeparator.undecided, scanner.spanFrom(start));
       }
 
       var first = _expressionUntilComma();
@@ -2240,8 +2242,8 @@ abstract class StylesheetParser extends Parser {
       }
 
       scanner.expectChar($rparen);
-      return ListExpression(expressions, ListSeparator.comma,
-          span: scanner.spanFrom(start));
+      return ListExpression(
+          expressions, ListSeparator.comma, scanner.spanFrom(start));
     } finally {
       _inParentheses = wasInParentheses;
     }

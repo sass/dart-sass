@@ -52,12 +52,12 @@ class ArgumentDeclaration implements SassNode {
   /// Returns whether this declaration takes no arguments.
   bool get isEmpty => arguments.isEmpty && restArgument == null;
 
-  ArgumentDeclaration(Iterable<Argument> arguments,
-      {this.restArgument, required this.span})
+  ArgumentDeclaration(Iterable<Argument> arguments, this.span,
+      {this.restArgument})
       : arguments = List.unmodifiable(arguments);
 
   /// Creates a declaration that declares no arguments.
-  ArgumentDeclaration.empty({required this.span})
+  ArgumentDeclaration.empty(this.span)
       : arguments = const [],
         restArgument = null;
 
