@@ -22,6 +22,8 @@
 * Fix a race condition where `meta.load-css()` could trigger an internal error
   when running in asynchronous mode.
 
+* Allow configuring a module that contains multiple configured `@forward`s.
+
 ### Dart API
 
 * Use the `@internal` annotation to indicate which `Value` APIs are available

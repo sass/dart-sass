@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b2321a00031707d2df699e6888a334deba39995d
+// Checksum: 5996d128b7335be89e76401299ddd9ecfc2217cf
 //
 // ignore_for_file: unused_import
 
@@ -1345,7 +1345,9 @@ class _EvaluateVisitor
                     if (!variable.isGuarded) variable.name
                 });
 
-      _assertConfigurationIsEmpty(newConfiguration);
+      if (node == _stylesheet.forwards.last) {
+        _assertConfigurationIsEmpty(newConfiguration);
+      }
     } else {
       _configuration = adjustedConfiguration;
       _loadModule(node.url, "@forward", node, (module) {
