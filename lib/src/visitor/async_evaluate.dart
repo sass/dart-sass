@@ -942,7 +942,9 @@ class _EvaluateVisitor
 
     var parent = _parent;
     var included = <ModifiableCssParentNode>[];
-    while (parent is! CssStylesheet) {
+    while (true) {
+      if (parent is ModifiableNestedCssStylesheet) parent = parent.outerParent;
+      if (parent is CssStylesheet) break;
       if (!query.excludes(parent)) included.add(parent);
 
       var grandparent = parent.parent;
@@ -950,10 +952,9 @@ class _EvaluateVisitor
         throw StateError(
             "CssNodes must have a CssStylesheet transitive parent node.");
       }
-
       parent = grandparent;
     }
-    var root = _trimIncluded(included);
+    var root = _trimIncluded(included, parent);
 
     // If we didn't exclude any rules, we don't need to use the copies we might
     // have created.
@@ -998,8 +999,9 @@ class _EvaluateVisitor
   /// sublist and returns the innermost removed parent.
   ///
   /// Otherwise, this leaves [nodes] as-is and returns [_root].
-  ModifiableCssParentNode _trimIncluded(List<ModifiableCssParentNode> nodes) {
-    if (nodes.isEmpty) return _root;
+  ModifiableCssParentNode _trimIncluded(
+      List<ModifiableCssParentNode> nodes, ModifiableCssParentNode trueRoot) {
+    if (nodes.isEmpty) return trueRoot;
 
     var parent = _parent;
     int? innermostContiguous;
@@ -1013,7 +1015,9 @@ class _EvaluateVisitor
               "Expected ${nodes[i]} to be an ancestor of $this.");
         }
 
-        parent = grandparent;
+        parent = grandparent is ModifiableNestedCssStylesheet
+            ? grandparent.outerParent
+            : grandparent;
       }
       innermostContiguous ??= i;
 
@@ -1021,10 +1025,12 @@ class _EvaluateVisitor
       if (grandparent == null) {
         throw ArgumentError("Expected ${nodes[i]} to be an ancestor of $this.");
       }
-      parent = grandparent;
+      parent = grandparent is ModifiableNestedCssStylesheet
+          ? grandparent.outerParent
+          : grandparent;
     }
 
-    if (parent != _root) return _root;
+    if (parent != trueRoot) return trueRoot;
     var root = nodes[innermostContiguous!];
     nodes.removeRange(innermostContiguous, nodes.length);
     return root;
@@ -1493,6 +1499,7 @@ class _EvaluateVisitor
       }
 
       late List<ModifiableCssNode> children;
+      ModifiableCssParentNode? outerRoot;
       var environment = _environment.forImport();
       await _withEnvironment(environment, () async {
         var oldImporter = _importer;
@@ -1505,7 +1512,21 @@ class _EvaluateVisitor
         var oldInDependency = _inDependency;
         _importer = result.importer;
         _stylesheet = stylesheet;
-        _root = ModifiableCssStylesheet(stylesheet.span);
+        if (_parent == _root) {
+          _root = ModifiableCssStylesheet(stylesheet.span);
+        } else {
+          var parentClone = _parent.copyWithoutChildren();
+          var current = _parent.parent;
+          var currentClone = parentClone;
+          while (current != null) {
+            var nextClone = current.copyWithoutChildren();
+            nextClone.addChild(currentClone);
+            currentClone = nextClone;
+            current = current.parent;
+          }
+          outerRoot = currentClone;
+          _root = ModifiableNestedCssStylesheet(parentClone, stylesheet.span);
+        }
         _parent = _root;
         _endOfImports = 0;
         _outOfOrderImports = null;

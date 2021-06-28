@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1249b1184a46950409776772cb1c6003b80ebb31
+// Checksum: 2ebd318f84eb8a228fdd6e8da2097fac576d8f7d
 //
 // ignore_for_file: unused_import
 
@@ -954,8 +954,9 @@ class _EvaluateVisitor
         throw StateError(
             "CssNodes must have a CssStylesheet transitive parent node.");
       }
-
-      parent = grandparent;
+      parent = grandparent is ModifiableNestedCssStylesheet
+          ? grandparent.outerParent
+          : grandparent;
     }
     var root = _trimIncluded(included);
 
@@ -1017,7 +1018,9 @@ class _EvaluateVisitor
               "Expected ${nodes[i]} to be an ancestor of $this.");
         }
 
-        parent = grandparent;
+        parent = grandparent is ModifiableNestedCssStylesheet
+            ? grandparent.outerParent
+            : grandparent;
       }
       innermostContiguous ??= i;
 
@@ -1025,7 +1028,9 @@ class _EvaluateVisitor
       if (grandparent == null) {
         throw ArgumentError("Expected ${nodes[i]} to be an ancestor of $this.");
       }
-      parent = grandparent;
+      parent = grandparent is ModifiableNestedCssStylesheet
+          ? grandparent.outerParent
+          : grandparent;
     }
 
     if (parent != _root) return _root;
@@ -1504,7 +1509,9 @@ class _EvaluateVisitor
         var oldInDependency = _inDependency;
         _importer = result.importer;
         _stylesheet = stylesheet;
-        _root = ModifiableCssStylesheet(stylesheet.span);
+        _root = _parent == _root
+            ? ModifiableCssStylesheet(stylesheet.span)
+            : ModifiableNestedCssStylesheet(_parent, stylesheet.span);
         _parent = _root;
         _endOfImports = 0;
         _outOfOrderImports = null;

@@ -8,6 +8,7 @@ export 'modifiable/declaration.dart';
 export 'modifiable/import.dart';
 export 'modifiable/keyframe_block.dart';
 export 'modifiable/media_rule.dart';
+export 'modifiable/nested_stylesheet.dart';
 export 'modifiable/node.dart';
 export 'modifiable/style_rule.dart';
 export 'modifiable/stylesheet.dart';
