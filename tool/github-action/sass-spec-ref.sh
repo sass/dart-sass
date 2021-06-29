@@ -6,7 +6,7 @@
 # Echoes the sass-spec Git ref that should be checked out for the current GitHub
 # Actions run. If we're running specs for a pull request which refers to a
 # sass-spec pull request, we'll run against the latter rather than sass-spec
-# master.
+# main.
 
 if [ -z "$PR_BRANCH" ]; then
   # Remove the "refs/heads/" prefix
@@ -18,7 +18,7 @@ fi
 if [[ "$current_branch" == feature.* ]]; then
   default="$current_branch"
 else
-  default=master
+  default=main
 fi
 
 # We don't have a PR_BRANCH so we are not in a pull request
