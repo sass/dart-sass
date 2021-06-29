@@ -12,7 +12,7 @@ import 'package:path/path.dart' as p;
 ///
 /// Returns the path to the repository.
 Future<String> cloneOrPull(String url) async =>
-    cloneOrCheckout(url, "origin/master");
+    cloneOrCheckout(url, "origin/main");
 
 /// Ensure that the repository at [url] is cloned into the build directory and
 /// pointing to [ref].
