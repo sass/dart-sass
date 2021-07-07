@@ -1344,7 +1344,9 @@ class _EvaluateVisitor
                     if (!variable.isGuarded) variable.name
                 });
 
-      _assertConfigurationIsEmpty(newConfiguration);
+      if (node == _stylesheet.forwards.last) {
+        _assertConfigurationIsEmpty(newConfiguration);
+      }
     } else {
       _configuration = adjustedConfiguration;
       await _loadModule(node.url, "@forward", node, (module) {
