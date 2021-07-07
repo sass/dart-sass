@@ -58,7 +58,9 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
 
   void visitNumberExpression(NumberExpression node) {}
 
-  void visitParenthesizedExpression(ParenthesizedExpression node) {}
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    node.expression.accept(this);
+  }
 
   void visitSelectorExpression(SelectorExpression node) {}
 
