@@ -1,3 +1,12 @@
+## 1.35.3
+
+### JavaScript API
+
+* Add a postinstall script that solicits feedback for upcoming language changes.
+  This can be disabled by setting the `ADBLOCK` environment variable to `true`
+  or by setting the `npm_config_loglevel` environment variable to `silent`,
+  `error`, or `warn`.
+
 ## 1.35.2
 
 * **Potentially breaking bug fix**: Properly throw an error for Unicode ranges
