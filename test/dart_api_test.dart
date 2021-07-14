@@ -226,6 +226,80 @@ a {
     });
   });
 
+  group("includedUrls", () {
+    group("contains the entrypoint's URL", () {
+      group("in compileStringToResult()", () {
+        test("if it's given", () {
+          var result = compileStringToResult("a {b: c}", url: "source.scss");
+          expect(result.includedUrls, equals([Uri.parse("source.scss")]));
+        });
+
+        test("unless it's not given", () {
+          var result = compileStringToResult("a {b: c}");
+          expect(result.includedUrls, isEmpty);
+        });
+      });
+
+      test("in compileToResult()", () async {
+        await d.file("input.scss", "a {b: c};").create();
+        var result = compileToResult(d.path('input.scss'));
+        expect(result.includedUrls, equals([p.toUri(d.path('input.scss'))]));
+      });
+    });
+
+    test("contains a URL loaded via @import", () async {
+      await d.file("_other.scss", "a {b: c}").create();
+      await d.file("input.scss", "@import 'other';").create();
+      var result = compileToResult(d.path('input.scss'));
+      expect(result.includedUrls, contains(p.toUri(d.path('_other.scss'))));
+    });
+
+    test("contains a URL loaded via @use", () async {
+      await d.file("_other.scss", "a {b: c}").create();
+      await d.file("input.scss", "@use 'other';").create();
+      var result = compileToResult(d.path('input.scss'));
+      expect(result.includedUrls, contains(p.toUri(d.path('_other.scss'))));
+    });
+
+    test("contains a URL loaded via @forward", () async {
+      await d.file("_other.scss", "a {b: c}").create();
+      await d.file("input.scss", "@forward 'other';").create();
+      var result = compileToResult(d.path('input.scss'));
+      expect(result.includedUrls, contains(p.toUri(d.path('_other.scss'))));
+    });
+
+    test("contains a URL loaded via @meta.load-css()", () async {
+      await d.file("_other.scss", "a {b: c}").create();
+      await d.file("input.scss", """
+        @use 'sass:meta';
+        @include meta.load-css('other');
+      """).create();
+      var result = compileToResult(d.path('input.scss'));
+      expect(result.includedUrls, contains(p.toUri(d.path('_other.scss'))));
+    });
+
+    test("contains a URL loaded via a chain of loads", () async {
+      await d.file("_jupiter.scss", "a {b: c}").create();
+      await d.file("_mars.scss", "@forward 'jupiter';").create();
+      await d.file("_earth.scss", "@import 'mars';").create();
+      await d.file("_venus.scss", "@use 'earth';").create();
+      await d.file("mercury.scss", """
+        @use 'sass:meta';
+        @include meta.load-css('venus');
+      """).create();
+      var result = compileToResult(d.path('mercury.scss'));
+      expect(
+          result.includedUrls,
+          unorderedEquals([
+            p.toUri(d.path('mercury.scss')),
+            p.toUri(d.path('_venus.scss')),
+            p.toUri(d.path('_earth.scss')),
+            p.toUri(d.path('_mars.scss')),
+            p.toUri(d.path('_jupiter.scss'))
+          ]));
+    });
+  });
+
   // Regression test for #1318
   test("meta.load-module() doesn't have a race condition", () async {
     await d.file("other.scss", '/**//**/').create();

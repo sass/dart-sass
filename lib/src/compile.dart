@@ -5,22 +5,20 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 8e813f2ead6e78899ce820e279983278809a7ea5
+// Checksum: 1a1251aa9f7312612a64760f59803568bd09a07c
 //
 // ignore_for_file: unused_import
 
-import 'async_compile.dart';
 export 'async_compile.dart';
 
 import 'dart:convert';
 
 import 'package:path/path.dart' as p;
-import 'package:source_maps/source_maps.dart';
-import 'package:source_span/source_span.dart';
 
 import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'callable.dart';
+import 'compile_result.dart';
 import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
