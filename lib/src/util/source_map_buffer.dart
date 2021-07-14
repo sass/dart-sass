@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
-import 'package:collection/collection.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 
@@ -16,15 +15,6 @@ class SourceMapBuffer implements StringBuffer {
 
   /// The source map entries that map the source files to [_buffer].
   final _entries = <Entry>[];
-
-  /// A map from source file URLs to the corresponding [SourceFile]s.
-  ///
-  /// This is of a form that can be passed to [Mapping.spanFor].
-  Map<String, SourceFile> get sourceFiles => UnmodifiableMapView({
-        for (var entry in _sourceFiles.entries)
-          entry.key.toString(): entry.value
-      });
-  final _sourceFiles = <Uri?, SourceFile>{};
 
   /// The index of the current line in [_buffer].
   var _line = 0;
@@ -84,7 +74,6 @@ class SourceMapBuffer implements StringBuffer {
       if (entry.target.offset == target.offset) return;
     }
 
-    _sourceFiles.putIfAbsent(source.sourceUrl, () => source.file);
     _entries.add(Entry(source, target, null));
   }
 

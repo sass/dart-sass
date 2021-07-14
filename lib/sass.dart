@@ -11,6 +11,7 @@ import 'package:source_maps/source_maps.dart';
 import 'src/async_import_cache.dart';
 import 'src/callable.dart';
 import 'src/compile.dart' as c;
+import 'src/compile_result.dart';
 import 'src/exception.dart';
 import 'src/import_cache.dart';
 import 'src/importer.dart';
@@ -20,6 +21,7 @@ import 'src/util/nullable.dart';
 import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
+export 'src/compile_result.dart';
 export 'src/exception.dart' show SassException;
 export 'src/importer.dart';
 export 'src/logger.dart';
@@ -28,7 +30,9 @@ export 'src/value.dart';
 export 'src/visitor/serialize.dart' show OutputStyle;
 export 'src/warn.dart' show warn;
 
-/// Loads the Sass file at [path], compiles it to CSS, and returns the result.
+/// Loads the Sass file at [path], compiles it to CSS, and returns a
+/// [CompileResult] containing the CSS and additional metadata about the
+/// compilation.
 ///
 /// If [color] is `true`, this will use terminal colors in warnings. It's
 /// ignored if [logger] is passed.
@@ -67,12 +71,13 @@ export 'src/warn.dart' show warn;
 /// times, further warnings for that feature are silenced. If [verbose] is true,
 /// all deprecation warnings are printed instead.
 ///
-/// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
-/// sections of the source file(s) correspond to which in the resulting CSS.
-/// It's called immediately before this method returns, and only if compilation
-/// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
-/// using the [SourceMap] API should be sure to add the [`source_maps`][]
-/// package to their pubspec.
+/// If [sourceMap] is `true`, [CompileResult.sourceMap] will be set to a
+/// [SingleMapping] that indicates which sections of the source file(s)
+/// correspond to which in the resulting CSS. [SingleMapping.targetUrl] will be
+/// `null`. It's up to the caller to save this mapping to disk and add a source
+/// map comment to [CompileResult.css] pointing to it. Users using the
+/// [SourceMap] API should be sure to add the [`source_maps`][] package to their
+/// pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
@@ -83,46 +88,35 @@ export 'src/warn.dart' show warn;
 ///
 /// [byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
 ///
-/// This parameter is meant to be used as an out parameter, so that users who
-/// want access to the source map can get it. For example:
-///
-/// ```dart
-/// SingleMapping sourceMap;
-/// var css = compile(sassPath, sourceMap: (map) => sourceMap = map);
-/// ```
-///
 /// Throws a [SassException] if conversion fails.
-String compile(String path,
-    {bool color = false,
-    Logger? logger,
-    Iterable<Importer>? importers,
-    Iterable<String>? loadPaths,
-    PackageConfig? packageConfig,
-    Iterable<Callable>? functions,
-    OutputStyle? style,
-    bool quietDeps = false,
-    bool verbose = false,
-    void sourceMap(SingleMapping map)?,
-    bool charset = true}) {
-  logger ??= Logger.stderr(color: color);
-  var result = c.compile(path,
-      logger: logger,
-      importCache: ImportCache(
-          importers: importers,
-          logger: logger,
-          loadPaths: loadPaths,
-          packageConfig: packageConfig),
-      functions: functions,
-      style: style,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap != null,
-      charset: charset);
-  result.sourceMap.andThen(sourceMap);
-  return result.css;
-}
+CompileResult compileToResult(String path,
+        {bool color = false,
+        Logger? logger,
+        Iterable<Importer>? importers,
+        Iterable<String>? loadPaths,
+        PackageConfig? packageConfig,
+        Iterable<Callable>? functions,
+        OutputStyle? style,
+        bool quietDeps = false,
+        bool verbose = false,
+        bool sourceMap = false,
+        bool charset = true}) =>
+    c.compile(path,
+        logger: logger,
+        importCache: ImportCache(
+            importers: importers,
+            logger: logger ?? Logger.stderr(color: color),
+            loadPaths: loadPaths,
+            packageConfig: packageConfig),
+        functions: functions,
+        style: style,
+        quietDeps: quietDeps,
+        verbose: verbose,
+        sourceMap: sourceMap,
+        charset: charset);
 
-/// Compiles [source] to CSS and returns the result.
+/// Compiles [source] to CSS and returns a [CompileResult] containing the CSS
+/// and additional metadata about the compilation..
 ///
 /// This parses the stylesheet as [syntax], which defaults to [Syntax.scss].
 ///
@@ -167,12 +161,13 @@ String compile(String path,
 /// times, further warnings for that feature are silenced. If [verbose] is true,
 /// all deprecation warnings are printed instead.
 ///
-/// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
-/// sections of the source file(s) correspond to which in the resulting CSS.
-/// It's called immediately before this method returns, and only if compilation
-/// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
-/// using the [SourceMap] API should be sure to add the [`source_maps`][]
-/// package to their pubspec.
+/// If [sourceMap] is `true`, [CompileResult.sourceMap] will be set to a
+/// [SingleMapping] that indicates which sections of the source file(s)
+/// correspond to which in the resulting CSS. [SingleMapping.targetUrl] will be
+/// `null`. It's up to the caller to save this mapping to disk and add a source
+/// map comment to [CompileResult.css] pointing to it. Users using the
+/// [SourceMap] API should be sure to add the [`source_maps`][] package to their
+/// pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
@@ -183,6 +178,117 @@ String compile(String path,
 ///
 /// [byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
 ///
+/// Throws a [SassException] if conversion fails.
+CompileResult compileStringToResult(String source,
+        {Syntax? syntax,
+        bool color = false,
+        Logger? logger,
+        Iterable<Importer>? importers,
+        PackageConfig? packageConfig,
+        Iterable<String>? loadPaths,
+        Iterable<Callable>? functions,
+        OutputStyle? style,
+        Importer? importer,
+        Object? url,
+        bool quietDeps = false,
+        bool verbose = false,
+        bool sourceMap = false,
+        bool charset = true}) =>
+    c.compileString(source,
+        syntax: syntax,
+        logger: logger,
+        importCache: ImportCache(
+            importers: importers,
+            logger: logger ?? Logger.stderr(color: color),
+            packageConfig: packageConfig,
+            loadPaths: loadPaths),
+        functions: functions,
+        style: style,
+        importer: importer,
+        url: url,
+        quietDeps: quietDeps,
+        verbose: verbose,
+        sourceMap: sourceMap,
+        charset: charset);
+
+/// Like [compileToResult], except it runs asynchronously.
+///
+/// Running asynchronously allows this to take [AsyncImporter]s rather than
+/// synchronous [Importer]s. However, running asynchronously is also somewhat
+/// slower, so [compileToResult] should be preferred if possible.
+Future<CompileResult> compileToResultAsync(String path,
+        {bool color = false,
+        Logger? logger,
+        Iterable<AsyncImporter>? importers,
+        PackageConfig? packageConfig,
+        Iterable<String>? loadPaths,
+        Iterable<AsyncCallable>? functions,
+        OutputStyle? style,
+        bool quietDeps = false,
+        bool verbose = false,
+        bool sourceMap = false}) =>
+    c.compileAsync(path,
+        logger: logger,
+        importCache: AsyncImportCache(
+            importers: importers,
+            logger: logger ?? Logger.stderr(color: color),
+            loadPaths: loadPaths,
+            packageConfig: packageConfig),
+        functions: functions,
+        style: style,
+        quietDeps: quietDeps,
+        verbose: verbose,
+        sourceMap: sourceMap);
+
+/// Like [compileStringToResult], except it runs asynchronously.
+///
+/// Running asynchronously allows this to take [AsyncImporter]s rather than
+/// synchronous [Importer]s. However, running asynchronously is also somewhat
+/// slower, so [compileStringToResult] should be preferred if possible.
+Future<CompileResult> compileStringToResultAsync(String source,
+        {Syntax? syntax,
+        bool color = false,
+        Logger? logger,
+        Iterable<AsyncImporter>? importers,
+        PackageConfig? packageConfig,
+        Iterable<String>? loadPaths,
+        Iterable<AsyncCallable>? functions,
+        OutputStyle? style,
+        AsyncImporter? importer,
+        Object? url,
+        bool quietDeps = false,
+        bool verbose = false,
+        bool sourceMap = false,
+        bool charset = true}) =>
+    c.compileStringAsync(source,
+        syntax: syntax,
+        logger: logger,
+        importCache: AsyncImportCache(
+            importers: importers,
+            logger: logger ?? Logger.stderr(color: color),
+            packageConfig: packageConfig,
+            loadPaths: loadPaths),
+        functions: functions,
+        style: style,
+        importer: importer,
+        url: url,
+        quietDeps: quietDeps,
+        verbose: verbose,
+        sourceMap: sourceMap,
+        charset: charset);
+
+/// Like [compileToResult], but returns [CompileResult.css] rather than
+/// returning [CompileResult] directly.
+///
+/// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
+/// sections of the source file(s) correspond to which in the resulting CSS.
+/// It's called immediately before this method returns, and only if compilation
+/// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
+/// using the [SourceMap] API should be sure to add the [`source_maps`][]
+/// package to their pubspec.
+///
+/// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
+///
 /// This parameter is meant to be used as an out parameter, so that users who
 /// want access to the source map can get it. For example:
 ///
@@ -190,9 +296,58 @@ String compile(String path,
 /// SingleMapping sourceMap;
 /// var css = compile(sassPath, sourceMap: (map) => sourceMap = map);
 /// ```
+@Deprecated("Use compileToResult() instead.")
+String compile(
+    String path,
+    {bool color = false,
+    Logger? logger,
+    Iterable<Importer>? importers,
+    Iterable<String>? loadPaths,
+    PackageConfig? packageConfig,
+    Iterable<Callable>? functions,
+    OutputStyle? style,
+    bool quietDeps = false,
+    bool verbose = false,
+    @Deprecated("Use CompileResult.sourceMap from compileToResult() instead.")
+        void sourceMap(SingleMapping map)?,
+    bool charset = true}) {
+  var result = compileToResult(path,
+      logger: logger,
+      importers: importers,
+      loadPaths: loadPaths,
+      packageConfig: packageConfig,
+      functions: functions,
+      style: style,
+      quietDeps: quietDeps,
+      verbose: verbose,
+      sourceMap: sourceMap != null,
+      charset: charset);
+  result.sourceMap.andThen(sourceMap);
+  return result.css;
+}
+
+/// Like [compileStringToResult], but returns [CompileResult.css] rather than
+/// returning [CompileResult] directly.
 ///
-/// Throws a [SassException] if conversion fails.
-String compileString(String source,
+/// If [sourceMap] is passed, it's passed a [SingleMapping] that indicates which
+/// sections of the source file(s) correspond to which in the resulting CSS.
+/// It's called immediately before this method returns, and only if compilation
+/// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
+/// using the [SourceMap] API should be sure to add the [`source_maps`][]
+/// package to their pubspec.
+///
+/// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
+///
+/// This parameter is meant to be used as an out parameter, so that users who
+/// want access to the source map can get it. For example:
+///
+/// ```dart
+/// SingleMapping sourceMap;
+/// var css = compileString(sass, sourceMap: (map) => sourceMap = map);
+/// ```
+@Deprecated("Use compileStringToResult() instead.")
+String compileString(
+    String source,
     {Syntax? syntax,
     bool color = false,
     Logger? logger,
@@ -205,18 +360,17 @@ String compileString(String source,
     Object? url,
     bool quietDeps = false,
     bool verbose = false,
-    void sourceMap(SingleMapping map)?,
+    @Deprecated("Use CompileResult.sourceMap from compileStringToResult() instead.")
+        void sourceMap(SingleMapping map)?,
     bool charset = true,
-    @Deprecated("Use syntax instead.") bool indented = false}) {
-  logger ??= Logger.stderr(color: color);
-  var result = c.compileString(source,
+    @Deprecated("Use syntax instead.")
+        bool indented = false}) {
+  var result = compileStringToResult(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
-      importCache: ImportCache(
-          importers: importers,
-          logger: logger,
-          packageConfig: packageConfig,
-          loadPaths: loadPaths),
+      importers: importers,
+      packageConfig: packageConfig,
+      loadPaths: loadPaths,
       functions: functions,
       style: style,
       importer: importer,
@@ -234,7 +388,9 @@ String compileString(String source,
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compile] should be preferred if possible.
-Future<String> compileAsync(String path,
+@Deprecated("Use compileToResultAsync() instead.")
+Future<String> compileAsync(
+    String path,
     {bool color = false,
     Logger? logger,
     Iterable<AsyncImporter>? importers,
@@ -244,15 +400,13 @@ Future<String> compileAsync(String path,
     OutputStyle? style,
     bool quietDeps = false,
     bool verbose = false,
-    void sourceMap(SingleMapping map)?}) async {
-  logger ??= Logger.stderr(color: color);
-  var result = await c.compileAsync(path,
+    @Deprecated("Use CompileResult.sourceMap from compileToResultAsync() instead.")
+        void sourceMap(SingleMapping map)?}) async {
+  var result = await compileToResultAsync(path,
       logger: logger,
-      importCache: AsyncImportCache(
-          importers: importers,
-          logger: logger,
-          loadPaths: loadPaths,
-          packageConfig: packageConfig),
+      importers: importers,
+      loadPaths: loadPaths,
+      packageConfig: packageConfig,
       functions: functions,
       style: style,
       quietDeps: quietDeps,
@@ -267,7 +421,9 @@ Future<String> compileAsync(String path,
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compileString] should be preferred if possible.
-Future<String> compileStringAsync(String source,
+@Deprecated("Use compileStringToResultAsync() instead.")
+Future<String> compileStringAsync(
+    String source,
     {Syntax? syntax,
     bool color = false,
     Logger? logger,
@@ -280,18 +436,17 @@ Future<String> compileStringAsync(String source,
     Object? url,
     bool quietDeps = false,
     bool verbose = false,
-    void sourceMap(SingleMapping map)?,
+    @Deprecated("Use CompileResult.sourceMap from compileStringToResultAsync() instead.")
+        void sourceMap(SingleMapping map)?,
     bool charset = true,
-    @Deprecated("Use syntax instead.") bool indented = false}) async {
-  logger ??= Logger.stderr(color: color);
-  var result = await c.compileStringAsync(source,
+    @Deprecated("Use syntax instead.")
+        bool indented = false}) async {
+  var result = await compileStringToResultAsync(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
-      importCache: AsyncImportCache(
-          importers: importers,
-          logger: logger,
-          packageConfig: packageConfig,
-          loadPaths: loadPaths),
+      importers: importers,
+      packageConfig: packageConfig,
+      loadPaths: loadPaths,
       functions: functions,
       style: style,
       importer: importer,

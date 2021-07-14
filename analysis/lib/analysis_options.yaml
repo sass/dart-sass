@@ -1,4 +1,5 @@
 analyzer:
+  exclude: [build/**]
   strong-mode:
     implicit-casts: false
   language:

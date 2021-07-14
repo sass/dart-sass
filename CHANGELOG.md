@@ -1,3 +1,22 @@
+## 1.36.0
+
+### Dart API
+
+* Added `compileToResult()`, `compileStringToResult()`,
+  `compileToResultAsync()`, and `compileStringToResultAsync()` methods. These
+  are intended to replace the existing `compile*()` methods, which are now
+  deprecated. Rather than returning a simple string, these return a
+  `CompileResult` object, which will allow us to add additional information
+  about the compilation without having to introduce further deprecations.
+
+  * Instead of passing a `sourceMaps` callback to `compile*()`, pass
+    `sourceMaps: true` to `compile*ToResult()` and access
+    `CompileResult.sourceMap`.
+
+  * The `CompileResult` object exposes a `includedUrls` object which lists the
+    canonical URLs accessed during a compilation. This information was
+    previously unavailable except through the JS API.
+
 ## 1.35.2
 
 * **Potentially breaking bug fix**: Properly throw an error for Unicode ranges

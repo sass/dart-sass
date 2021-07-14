@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:source_maps/source_maps.dart';
-import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/css.dart';
@@ -73,8 +72,7 @@ SerializeResult serialize(CssNode node,
 
   return SerializeResult(prefix + css,
       sourceMap:
-          sourceMap ? visitor._buffer.buildSourceMap(prefix: prefix) : null,
-      sourceFiles: sourceMap ? visitor._buffer.sourceFiles : null);
+          sourceMap ? visitor._buffer.buildSourceMap(prefix: prefix) : null);
 }
 
 /// Converts [value] to a CSS string.
@@ -1317,11 +1315,5 @@ class SerializeResult {
   /// This is `null` if source mapping was disabled for this compilation.
   final SingleMapping? sourceMap;
 
-  /// A map from source file URLs to the corresponding [SourceFile]s.
-  ///
-  /// This can be passed to [sourceMap]'s [Mapping.spanFor] method. It's `null`
-  /// if source mapping was disabled for this compilation.
-  final Map<String, SourceFile>? sourceFiles;
-
-  SerializeResult(this.css, {this.sourceMap, this.sourceFiles});
+  SerializeResult(this.css, {this.sourceMap});
 }
