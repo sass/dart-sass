@@ -114,24 +114,28 @@ void main() {
   });
 
   test("uses an importer's source map URL", () {
-    var result = compileStringToResult('@import "orange";', importers: [
-      TestImporter((url) => Uri.parse("u:$url"), (url) {
-        var color = url.path;
-        return ImporterResult('.$color {color: $color}',
-            sourceMapUrl: Uri.parse("u:blue"), indented: false);
-      })
-    ]);
+    var result = compileStringToResult('@import "orange";',
+        importers: [
+          TestImporter((url) => Uri.parse("u:$url"), (url) {
+            var color = url.path;
+            return ImporterResult('.$color {color: $color}',
+                sourceMapUrl: Uri.parse("u:blue"), indented: false);
+          })
+        ],
+        sourceMap: true);
 
     expect(result.sourceMap!.urls, contains("u:blue"));
   });
 
   test("uses a data: source map URL if the importer doesn't provide one", () {
-    var result = compileStringToResult('@import "orange";', importers: [
-      TestImporter((url) => Uri.parse("u:$url"), (url) {
-        var color = url.path;
-        return ImporterResult('.$color {color: $color}', indented: false);
-      })
-    ]);
+    var result = compileStringToResult('@import "orange";',
+        importers: [
+          TestImporter((url) => Uri.parse("u:$url"), (url) {
+            var color = url.path;
+            return ImporterResult('.$color {color: $color}', indented: false);
+          })
+        ],
+        sourceMap: true);
 
     expect(
         result.sourceMap!.urls,

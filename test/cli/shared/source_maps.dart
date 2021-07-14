@@ -34,7 +34,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("contains mappings", () {
-      var result = sass.compileStringToResult("a {b: 1 + 2}");
+      var result = sass.compileStringToResult("a {b: 1 + 2}", sourceMap: true);
       expect(map,
           containsPair("mappings", result.sourceMap!.toJson()["mappings"]));
     });
@@ -287,7 +287,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       test("contains mappings in the generated CSS", () {
-        var result = sass.compileStringToResult("a {b: 1 + 2}");
+        var result =
+            sass.compileStringToResult("a {b: 1 + 2}", sourceMap: true);
         expect(map,
             containsPair("mappings", result.sourceMap!.toJson()["mappings"]));
       });
