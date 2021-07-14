@@ -225,7 +225,7 @@ class _EvaluateVisitor
   var _inKeyframes = false;
 
   /// The canonical URLs of all stylesheets loaded during compilation.
-  final _includedUrls = <Uri>{};
+  final _loadedUrls = <Uri>{};
 
   /// A map from canonical URLs for modules (or imported files) that are
   /// currently being evaluated to AST nodes whose spans indicate the original
@@ -509,12 +509,12 @@ class _EvaluateVisitor
       var url = node.span.sourceUrl;
       if (url != null) {
         _activeModules[url] = null;
-        if (!(_asNodeSass && url.toString() == 'stdin')) _includedUrls.add(url);
+        if (!(_asNodeSass && url.toString() == 'stdin')) _loadedUrls.add(url);
       }
 
       var module = _execute(importer, node);
 
-      return EvaluateResult(_combineCss(module), _includedUrls);
+      return EvaluateResult(_combineCss(module), _loadedUrls);
     });
   }
 
@@ -1565,7 +1565,7 @@ class _EvaluateVisitor
           var stylesheet = importCache.importCanonical(tuple.item1, tuple.item2,
               originalUrl: tuple.item3, quiet: _quietDeps && isDependency);
           if (stylesheet != null) {
-            _includedUrls.add(tuple.item2);
+            _loadedUrls.add(tuple.item2);
             return _LoadedStylesheet(stylesheet,
                 importer: tuple.item1, isDependency: isDependency);
           }
@@ -1573,7 +1573,7 @@ class _EvaluateVisitor
       } else {
         var result = _importLikeNode(url, forImport);
         if (result != null) {
-          result.stylesheet.span.sourceUrl.andThen(_includedUrls.add);
+          result.stylesheet.span.sourceUrl.andThen(_loadedUrls.add);
           return result;
         }
       }

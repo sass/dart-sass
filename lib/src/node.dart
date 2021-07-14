@@ -410,7 +410,7 @@ RenderResult _newRenderResult(
           end: end.millisecondsSinceEpoch,
           duration: end.difference(start).inMilliseconds,
           includedFiles: [
-            for (var url in result.includedUrls)
+            for (var url in result.loadedUrls)
               if (url.scheme == 'file') p.fromUri(url) else url.toString()
           ]));
 }

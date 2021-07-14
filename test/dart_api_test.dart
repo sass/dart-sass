@@ -226,24 +226,24 @@ a {
     });
   });
 
-  group("includedUrls", () {
+  group("loadedUrls", () {
     group("contains the entrypoint's URL", () {
       group("in compileStringToResult()", () {
         test("if it's given", () {
           var result = compileStringToResult("a {b: c}", url: "source.scss");
-          expect(result.includedUrls, equals([Uri.parse("source.scss")]));
+          expect(result.loadedUrls, equals([Uri.parse("source.scss")]));
         });
 
         test("unless it's not given", () {
           var result = compileStringToResult("a {b: c}");
-          expect(result.includedUrls, isEmpty);
+          expect(result.loadedUrls, isEmpty);
         });
       });
 
       test("in compileToResult()", () async {
         await d.file("input.scss", "a {b: c};").create();
         var result = compileToResult(d.path('input.scss'));
-        expect(result.includedUrls, equals([p.toUri(d.path('input.scss'))]));
+        expect(result.loadedUrls, equals([p.toUri(d.path('input.scss'))]));
       });
     });
 
@@ -251,21 +251,21 @@ a {
       await d.file("_other.scss", "a {b: c}").create();
       await d.file("input.scss", "@import 'other';").create();
       var result = compileToResult(d.path('input.scss'));
-      expect(result.includedUrls, contains(p.toUri(d.path('_other.scss'))));
+      expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
 
     test("contains a URL loaded via @use", () async {
       await d.file("_other.scss", "a {b: c}").create();
       await d.file("input.scss", "@use 'other';").create();
       var result = compileToResult(d.path('input.scss'));
-      expect(result.includedUrls, contains(p.toUri(d.path('_other.scss'))));
+      expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
 
     test("contains a URL loaded via @forward", () async {
       await d.file("_other.scss", "a {b: c}").create();
       await d.file("input.scss", "@forward 'other';").create();
       var result = compileToResult(d.path('input.scss'));
-      expect(result.includedUrls, contains(p.toUri(d.path('_other.scss'))));
+      expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
 
     test("contains a URL loaded via @meta.load-css()", () async {
@@ -275,7 +275,7 @@ a {
         @include meta.load-css('other');
       """).create();
       var result = compileToResult(d.path('input.scss'));
-      expect(result.includedUrls, contains(p.toUri(d.path('_other.scss'))));
+      expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
 
     test("contains a URL loaded via a chain of loads", () async {
@@ -289,7 +289,7 @@ a {
       """).create();
       var result = compileToResult(d.path('mercury.scss'));
       expect(
-          result.includedUrls,
+          result.loadedUrls,
           unorderedEquals([
             p.toUri(d.path('mercury.scss')),
             p.toUri(d.path('_venus.scss')),

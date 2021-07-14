@@ -27,7 +27,7 @@ class CompileResult {
   SingleMapping? get sourceMap => _serialize.sourceMap;
 
   /// The canonical URLs of all stylesheets loaded during compilation.
-  Set<Uri> get includedUrls => _evaluate.includedUrls;
+  Set<Uri> get loadedUrls => _evaluate.loadedUrls;
 
   /// @nodoc
   @internal
