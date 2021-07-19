@@ -1,3 +1,7 @@
+## 1.35.3
+
+* No user-facing changes.
+
 ## 1.35.2
 
 * **Potentially breaking bug fix**: Properly throw an error for Unicode ranges
