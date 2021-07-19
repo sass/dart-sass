@@ -369,7 +369,7 @@ Future<Iterable<F>> mapAsync<E, F>(
 /// same key.
 Future<V> putIfAbsentAsync<K, V>(
     Map<K, V> map, K key, Future<V> ifAbsent()) async {
-  if (map.containsKey(key)) return map[key]!;
+  if (map.containsKey(key)) return map[key] as V;
   var value = await ifAbsent();
   map[key] = value;
   return value;
