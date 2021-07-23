@@ -6,7 +6,6 @@
 
 import 'dart:convert';
 
-import 'package:source_maps/source_maps.dart';
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
@@ -115,8 +114,7 @@ void main() {
   });
 
   test("uses an importer's source map URL", () {
-    late SingleMapping map;
-    compileString('@import "orange";',
+    var result = compileStringToResult('@import "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
             var color = url.path;
@@ -124,24 +122,23 @@ void main() {
                 sourceMapUrl: Uri.parse("u:blue"), indented: false);
           })
         ],
-        sourceMap: (map_) => map = map_);
+        sourceMap: true);
 
-    expect(map.urls, contains("u:blue"));
+    expect(result.sourceMap!.urls, contains("u:blue"));
   });
 
   test("uses a data: source map URL if the importer doesn't provide one", () {
-    late SingleMapping map;
-    compileString('@import "orange";',
+    var result = compileStringToResult('@import "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
             var color = url.path;
             return ImporterResult('.$color {color: $color}', indented: false);
           })
         ],
-        sourceMap: (map_) => map = map_);
+        sourceMap: true);
 
     expect(
-        map.urls,
+        result.sourceMap!.urls,
         contains(Uri.dataFromString(".orange {color: orange}", encoding: utf8)
             .toString()));
   });

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b2321a00031707d2df699e6888a334deba39995d
+// Checksum: c5ceb94186649cb4c32b68a03b3d66a122c4ff2d
 //
 // ignore_for_file: unused_import
 
@@ -224,12 +224,8 @@ class _EvaluateVisitor
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
 
-  /// The set that will eventually populate the JS API's
-  /// `result.stats.includedFiles` field.
-  ///
-  /// For filesystem imports, this contains the import path. For all other
-  /// imports, it contains the URL passed to the `@import`.
-  final _includedFiles = <String>{};
+  /// The canonical URLs of all stylesheets loaded during compilation.
+  final _loadedUrls = <Uri>{};
 
   /// A map from canonical URLs for modules (or imported files) that are
   /// currently being evaluated to AST nodes whose spans indicate the original
@@ -513,18 +509,12 @@ class _EvaluateVisitor
       var url = node.span.sourceUrl;
       if (url != null) {
         _activeModules[url] = null;
-        if (_asNodeSass) {
-          if (url.scheme == 'file') {
-            _includedFiles.add(p.fromUri(url));
-          } else if (url.toString() != 'stdin') {
-            _includedFiles.add(url.toString());
-          }
-        }
+        if (!(_asNodeSass && url.toString() == 'stdin')) _loadedUrls.add(url);
       }
 
       var module = _execute(importer, node);
 
-      return EvaluateResult(_combineCss(module), _includedFiles);
+      return EvaluateResult(_combineCss(module), _loadedUrls);
     });
   }
 
@@ -1575,13 +1565,17 @@ class _EvaluateVisitor
           var stylesheet = importCache.importCanonical(tuple.item1, tuple.item2,
               originalUrl: tuple.item3, quiet: _quietDeps && isDependency);
           if (stylesheet != null) {
+            _loadedUrls.add(tuple.item2);
             return _LoadedStylesheet(stylesheet,
                 importer: tuple.item1, isDependency: isDependency);
           }
         }
       } else {
         var result = _importLikeNode(url, forImport);
-        if (result != null) return result;
+        if (result != null) {
+          result.stylesheet.span.sourceUrl.andThen(_loadedUrls.add);
+          return result;
+        }
       }
 
       if (url.startsWith('package:') && isNode) {
@@ -1625,8 +1619,6 @@ class _EvaluateVisitor
 
     var contents = result.item1;
     var url = result.item2;
-
-    _includedFiles.add(url.startsWith('file:') ? p.fromUri(url) : url);
 
     return _LoadedStylesheet(
         Stylesheet.parse(contents,

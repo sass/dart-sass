@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:path/path.dart' as p;
-import 'package:source_maps/source_maps.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
@@ -35,9 +34,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("contains mappings", () {
-      late SingleMapping sourceMap;
-      sass.compileString("a {b: 1 + 2}", sourceMap: (map) => sourceMap = map);
-      expect(map, containsPair("mappings", sourceMap.toJson()["mappings"]));
+      var result = sass.compileStringToResult("a {b: 1 + 2}", sourceMap: true);
+      expect(map,
+          containsPair("mappings", result.sourceMap!.toJson()["mappings"]));
     });
   });
 
@@ -288,9 +287,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       test("contains mappings in the generated CSS", () {
-        late SingleMapping sourceMap;
-        sass.compileString("a {b: 1 + 2}", sourceMap: (map) => sourceMap = map);
-        expect(map, containsPair("mappings", sourceMap.toJson()["mappings"]));
+        var result =
+            sass.compileStringToResult("a {b: 1 + 2}", sourceMap: true);
+        expect(map,
+            containsPair("mappings", result.sourceMap!.toJson()["mappings"]));
       });
 
       test("refers to the source file", () {

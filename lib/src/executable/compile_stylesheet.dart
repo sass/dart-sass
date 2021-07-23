@@ -9,6 +9,7 @@ import 'package:source_maps/source_maps.dart';
 
 import '../async_import_cache.dart';
 import '../compile.dart';
+import '../compile_result.dart';
 import '../exception.dart';
 import '../importer/filesystem.dart';
 import '../io.dart';

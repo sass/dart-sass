@@ -216,12 +216,8 @@ class _EvaluateVisitor
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
 
-  /// The set that will eventually populate the JS API's
-  /// `result.stats.includedFiles` field.
-  ///
-  /// For filesystem imports, this contains the import path. For all other
-  /// imports, it contains the URL passed to the `@import`.
-  final _includedFiles = <String>{};
+  /// The canonical URLs of all stylesheets loaded during compilation.
+  final _loadedUrls = <Uri>{};
 
   /// A map from canonical URLs for modules (or imported files) that are
   /// currently being evaluated to AST nodes whose spans indicate the original
@@ -508,18 +504,12 @@ class _EvaluateVisitor
       var url = node.span.sourceUrl;
       if (url != null) {
         _activeModules[url] = null;
-        if (_asNodeSass) {
-          if (url.scheme == 'file') {
-            _includedFiles.add(p.fromUri(url));
-          } else if (url.toString() != 'stdin') {
-            _includedFiles.add(url.toString());
-          }
-        }
+        if (!(_asNodeSass && url.toString() == 'stdin')) _loadedUrls.add(url);
       }
 
       var module = await _execute(importer, node);
 
-      return EvaluateResult(_combineCss(module), _includedFiles);
+      return EvaluateResult(_combineCss(module), _loadedUrls);
     });
   }
 
@@ -1577,13 +1567,17 @@ class _EvaluateVisitor
               tuple.item1, tuple.item2,
               originalUrl: tuple.item3, quiet: _quietDeps && isDependency);
           if (stylesheet != null) {
+            _loadedUrls.add(tuple.item2);
             return _LoadedStylesheet(stylesheet,
                 importer: tuple.item1, isDependency: isDependency);
           }
         }
       } else {
         var result = await _importLikeNode(url, forImport);
-        if (result != null) return result;
+        if (result != null) {
+          result.stylesheet.span.sourceUrl.andThen(_loadedUrls.add);
+          return result;
+        }
       }
 
       if (url.startsWith('package:') && isNode) {
@@ -1628,8 +1622,6 @@ class _EvaluateVisitor
 
     var contents = result.item1;
     var url = result.item2;
-
-    _includedFiles.add(url.startsWith('file:') ? p.fromUri(url) : url);
 
     return _LoadedStylesheet(
         Stylesheet.parse(contents,
@@ -3316,14 +3308,10 @@ class EvaluateResult {
   /// The CSS syntax tree.
   final CssStylesheet stylesheet;
 
-  /// The set that will eventually populate the JS API's
-  /// `result.stats.includedFiles` field.
-  ///
-  /// For filesystem imports, this contains the import path. For all other
-  /// imports, it contains the URL passed to the `@import`.
-  final Set<String> includedFiles;
+  /// The canonical URLs of all stylesheets loaded during compilation.
+  final Set<Uri> loadedUrls;
 
-  EvaluateResult(this.stylesheet, this.includedFiles);
+  EvaluateResult(this.stylesheet, this.loadedUrls);
 }
 
 /// The result of evaluating arguments to a function or mixin.

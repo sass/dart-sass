@@ -5,12 +5,11 @@
 import 'dart:convert';
 
 import 'package:path/path.dart' as p;
-import 'package:source_maps/source_maps.dart';
-import 'package:source_span/source_span.dart';
 
 import 'ast/sass.dart';
 import 'async_import_cache.dart';
 import 'callable.dart';
+import 'compile_result.dart';
 import 'importer.dart';
 import 'importer/node.dart';
 import 'io.dart';
@@ -171,37 +170,4 @@ Future<CompileResult> _compileStylesheet(
   }
 
   return CompileResult(evaluateResult, serializeResult);
-}
-
-/// The result of compiling a Sass document to CSS, along with metadata about
-/// the compilation process.
-class CompileResult {
-  /// The result of evaluating the source file.
-  final EvaluateResult _evaluate;
-
-  /// The result of serializing the CSS AST to CSS text.
-  final SerializeResult _serialize;
-
-  /// The compiled CSS.
-  String get css => _serialize.css;
-
-  /// The source map indicating how the source files map to [css].
-  ///
-  /// This is `null` if source mapping was disabled for this compilation.
-  SingleMapping? get sourceMap => _serialize.sourceMap;
-
-  /// A map from source file URLs to the corresponding [SourceFile]s.
-  ///
-  /// This can be passed to [sourceMap]'s [Mapping.spanFor] method. It's `null`
-  /// if source mapping was disabled for this compilation.
-  Map<String, SourceFile>? get sourceFiles => _serialize.sourceFiles;
-
-  /// The set that will eventually populate the JS API's
-  /// `result.stats.includedFiles` field.
-  ///
-  /// For filesystem imports, this contains the import path. For all other
-  /// imports, it contains the URL passed to the `@import`.
-  Set<String> get includedFiles => _evaluate.includedFiles;
-
-  CompileResult(this._evaluate, this._serialize);
 }

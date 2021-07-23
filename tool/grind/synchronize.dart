@@ -27,7 +27,7 @@ final sources = const {
 
 /// Classes that are defined in the async version of a file and used as-is in
 /// the sync version, and thus should not be copied over.
-final _sharedClasses = const ['EvaluateResult', 'CompileResult'];
+final _sharedClasses = const ['EvaluateResult'];
 
 /// This is how we support both synchronous and asynchronous compilation modes.
 ///
@@ -97,7 +97,6 @@ class _Visitor extends RecursiveAstVisitor<void> {
       _buffer.writeln();
     } else if (p.basename(path) == 'async_compile.dart') {
       _buffer.writeln();
-      _buffer.writeln("import 'async_compile.dart';");
       _buffer.writeln("export 'async_compile.dart';");
       _buffer.writeln();
     }

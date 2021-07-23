@@ -15,6 +15,7 @@ import 'package:tuple/tuple.dart';
 import 'ast/sass.dart';
 import 'callable.dart';
 import 'compile.dart';
+import 'compile_result.dart';
 import 'exception.dart';
 import 'io.dart';
 import 'importer/node.dart';
@@ -408,7 +409,10 @@ RenderResult _newRenderResult(
           start: start.millisecondsSinceEpoch,
           end: end.millisecondsSinceEpoch,
           duration: end.difference(start).inMilliseconds,
-          includedFiles: result.includedFiles.toList()));
+          includedFiles: [
+            for (var url in result.loadedUrls)
+              if (url.scheme == 'file') p.fromUri(url) else url.toString()
+          ]));
 }
 
 /// Returns whether source maps are enabled by [options].
