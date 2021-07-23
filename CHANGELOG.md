@@ -13,7 +13,7 @@
     `sourceMaps: true` to `compile*ToResult()` and access
     `CompileResult.sourceMap`.
 
-  * The `CompileResult` object exposes a `includedUrls` object which lists the
+  * The `CompileResult` object exposes a `loadedUrls` object which lists the
     canonical URLs accessed during a compilation. This information was
     previously unavailable except through the JS API.
 

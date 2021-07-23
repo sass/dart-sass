@@ -27,7 +27,7 @@ import '../utils.dart';
 ///   imported by a different importer.
 ///
 /// * Importers can return file paths rather than the contents of the imported
-///   file. These paths are made absolute before they'repassed as the previous
+///   file. These paths are made absolute before they're passed as the previous
 ///   "URL" to other importers.
 ///
 /// * The working directory is always implicitly an include path.
