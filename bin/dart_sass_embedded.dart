@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:sass/sass.dart' as sass;
-import 'package:source_maps/source_maps.dart' as source_maps;
 import 'package:stream_channel/stream_channel.dart';
 
 import 'package:sass_embedded/src/dispatcher.dart';
@@ -42,12 +41,6 @@ void main(List<String> args) {
         color: request.alertColor, ascii: request.alertAscii);
 
     try {
-      String result;
-      source_maps.SingleMapping? sourceMap;
-      var sourceMapCallback = request.sourceMap
-          ? (source_maps.SingleMapping map) => sourceMap = map
-          : null;
-
       var importers = request.importers.map((importer) =>
           _decodeImporter(dispatcher, request, importer) ??
           (throw mandatoryError("Importer.importer")));
@@ -55,10 +48,11 @@ void main(List<String> args) {
       var globalFunctions = request.globalFunctions.map((signature) =>
           hostCallable(dispatcher, functions, request.id, signature));
 
+      late sass.CompileResult result;
       switch (request.whichInput()) {
         case InboundMessage_CompileRequest_Input.string:
           var input = request.string;
-          result = sass.compileString(input.source,
+          result = sass.compileStringToResult(input.source,
               color: request.alertColor,
               logger: logger,
               importers: importers,
@@ -69,12 +63,12 @@ void main(List<String> args) {
               url: input.url.isEmpty ? null : input.url,
               quietDeps: request.quietDeps,
               verbose: request.verbose,
-              sourceMap: sourceMapCallback);
+              sourceMap: request.sourceMap);
           break;
 
         case InboundMessage_CompileRequest_Input.path:
           try {
-            result = sass.compile(request.path,
+            result = sass.compileToResult(request.path,
                 color: request.alertColor,
                 logger: logger,
                 importers: importers,
@@ -82,7 +76,7 @@ void main(List<String> args) {
                 style: style,
                 quietDeps: request.quietDeps,
                 verbose: request.verbose,
-                sourceMap: sourceMapCallback);
+                sourceMap: request.sourceMap);
           } on FileSystemException catch (error) {
             return OutboundMessage_CompileResponse()
               ..failure = (OutboundMessage_CompileResponse_CompileFailure()
@@ -97,10 +91,12 @@ void main(List<String> args) {
       }
 
       var success = OutboundMessage_CompileResponse_CompileSuccess()
-        ..css = result;
+        ..css = result.css
+        ..loadedUrls.addAll(result.loadedUrls.map((url) => url.toString()));
+
+      var sourceMap = result.sourceMap;
       if (sourceMap != null) {
-        // dart-lang/language#1536
-        success.sourceMap = json.encode(sourceMap!.toJson());
+        success.sourceMap = json.encode(sourceMap.toJson());
       }
       return OutboundMessage_CompileResponse()..success = success;
     } on sass.SassException catch (error) {

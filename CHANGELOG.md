@@ -4,5 +4,6 @@
   * Support `VersionRequest` and `VersionResponse`.
   * Support `CompileRequest.quiet_deps` and `.verbose`.
   * Set `CanonicalizeRequest.from_import`.
+  * Set `CompileSuccess.loaded_urls`.
 
 * Properly throw errors for range checks for colors.
