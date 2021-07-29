@@ -1,0 +1,18 @@
+dartdoc:
+  categories:
+    AST:
+      markdown: doc/ast.md
+      name: Abstract Syntax Tree
+    Dependencies:
+      markdown: doc/dependencies.md
+    Importer:
+      markdown: doc/importer.md
+    Parsing:
+      markdown: doc/parsing.md
+    Compile:
+      markdown: doc/compile.md
+    Value:
+      markdown: doc/value.md
+    Visitor:
+      markdown: doc/visitor.md
+  ignore: [reexported-private-api-across-packages]

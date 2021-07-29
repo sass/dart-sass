@@ -32,6 +32,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
   * [Standalone](#standalone)
   * [From npm](#from-npm)
   * [From Pub](#from-pub)
+    * [`sass_api` Package](#sass_api-package)
   * [From Source](#from-source)
 * [JavaScript API](#javascript-api)
 * [Why Dart?](#why-dart)
@@ -128,6 +129,15 @@ void main(List<String> args) {
 See [the Dart API docs][api] for details.
 
 [api]: https://www.dartdocs.org/documentation/sass/latest/sass/sass-library.html
+
+#### `sass_api` Package
+
+Dart users also have access to more in-depth APIs via the [`sass_api` package].
+This provides access to the Sass AST and APIs for resolving Sass loads without
+running a full compilation. It's separated out into its own package so that it
+can increase its version number independently of the main `sass` package.
+
+[`sass_api` package]: https://pub.dev/package/sass_api
 
 ### From Source
 
