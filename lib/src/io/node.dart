@@ -196,6 +196,9 @@ final stderr = Stderr(process.stderr);
 @JS('process.stdout.isTTY')
 external bool? get isTTY;
 
+@JS('process.stdin.isTTY')
+external bool? get isStdinTTY;
+
 bool get hasTerminal => isTTY == true;
 
 bool get isWindows => process.platform == 'win32';
@@ -212,6 +215,12 @@ String get currentPath => process.cwd();
 int get exitCode => process.exitCode;
 
 set exitCode(int code) => process.exitCode = code;
+
+void ensureWatchWillExit() {
+  if (isStdinTTY == true) {
+    process.stdin.on('end', allowInterop(() => process.exit(0)));
+  }
+}
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
   var watcher = chokidar.watch(

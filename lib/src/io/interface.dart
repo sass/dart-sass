@@ -94,6 +94,14 @@ String? getEnvironmentVariable(String name) => throw '';
 int get exitCode => throw '';
 set exitCode(int value) => throw '';
 
+/// Attaches a listener to exit when stdin closes.
+///
+/// The listener is *not* attached when stdin is a TTY because it would
+/// interfere with the Unix background job system. If we read from stdin and
+/// then Ctrl+Z to move the process to the background, it will incorrectly
+/// cause the job to stop. See: https://github.com/brunch/brunch/issues/998.
+void ensureWatchWillExit() => throw '';
+
 /// Recursively watches the directory at [path] for modifications.
 ///
 /// Returns a future that completes with a single-subscription stream once the

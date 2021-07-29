@@ -54,6 +54,7 @@ Future<void> main(List<String> args) async {
     var graph = StylesheetGraph(
         ImportCache(loadPaths: options.loadPaths, logger: options.logger));
     if (options.watch) {
+      ensureWatchWillExit();
       await watch(options, graph);
       return;
     }
