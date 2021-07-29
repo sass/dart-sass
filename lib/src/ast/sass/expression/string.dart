@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../interpolation_buffer.dart';
@@ -12,6 +13,9 @@ import '../expression.dart';
 import '../interpolation.dart';
 
 /// A string literal.
+///
+/// {@category AST}
+@sealed
 class StringExpression implements Expression {
   /// Interpolation that, when evaluated, produces the contents of this string.
   ///
@@ -37,6 +41,7 @@ class StringExpression implements Expression {
 
   StringExpression(this.text, {bool quotes = false}) : hasQuotes = quotes;
 
+  /// Returns a string expression with no interpolation.
   StringExpression.plain(String text, FileSpan span, {bool quotes = false})
       : text = Interpolation([text], span),
         hasQuotes = quotes;

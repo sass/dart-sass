@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
@@ -13,6 +14,9 @@ import '../interpolation.dart';
 /// A function invocation.
 ///
 /// This may be a plain CSS function or a Sass function.
+///
+/// {@category AST}
+@sealed
 class FunctionExpression implements Expression, CallableInvocation {
   /// The namespace of the function being invoked, or `null` if it's invoked
   /// without a namespace.

@@ -2,12 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../supports_condition.dart';
 import 'negation.dart';
 
 /// An operation defining the relationship between two conditions.
+///
+/// {@category AST}
+@sealed
 class SupportsOperation implements SupportsCondition {
   /// The left-hand operand.
   final SupportsCondition left;

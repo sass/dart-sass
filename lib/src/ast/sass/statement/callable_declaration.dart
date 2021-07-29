@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../argument_declaration.dart';
@@ -11,6 +12,9 @@ import 'silent_comment.dart';
 
 /// An abstract class for callables (functions or mixins) that are declared in
 /// user code.
+///
+/// {@category AST}
+@sealed
 abstract class CallableDeclaration extends ParentStatement<List<Statement>> {
   /// The name of this callable, with underscores converted to hyphens.
   final String name;
@@ -25,7 +29,6 @@ abstract class CallableDeclaration extends ParentStatement<List<Statement>> {
 
   CallableDeclaration(
       this.name, this.arguments, Iterable<Statement> children, this.span,
-      {SilentComment? comment})
-      : comment = comment,
-        super(List.unmodifiable(children));
+      {this.comment})
+      : super(List.unmodifiable(children));
 }

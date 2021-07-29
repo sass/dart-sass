@@ -20,6 +20,8 @@ import 'interface/statement.dart';
 /// * [visitChildren]
 /// * [visitInterpolation]
 /// * [visitExpression]
+///
+/// {@category Visitor}
 abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
   const RecursiveStatementVisitor();
 

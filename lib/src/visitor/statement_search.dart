@@ -16,6 +16,8 @@ import 'recursive_statement.dart';
 /// AST.
 ///
 /// This supports the same additional methods as [RecursiveStatementVisitor].
+///
+/// {@category Visitor}
 abstract class StatementSearchVisitor<T> implements StatementVisitor<T?> {
   const StatementSearchVisitor();
 

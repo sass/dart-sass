@@ -2,7 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../node.dart';
 
 /// A node in the abstract syntax tree for an unevaluated Sass or SCSS file.
+///
+/// {@category AST}
+@sealed
 abstract class SassNode extends AstNode {}

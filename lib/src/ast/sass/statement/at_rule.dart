@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -10,6 +11,9 @@ import '../statement.dart';
 import 'parent.dart';
 
 /// An unknown at-rule.
+///
+/// {@category AST}
+@sealed
 class AtRule extends ParentStatement {
   /// The name of this rule.
   final Interpolation name;

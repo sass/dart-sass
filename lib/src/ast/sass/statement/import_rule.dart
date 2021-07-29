@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -9,9 +10,12 @@ import '../import.dart';
 import '../statement.dart';
 
 /// An `@import` rule.
+///
+/// {@category AST}
+@sealed
 class ImportRule implements Statement {
   /// The imports imported by this statement.
-  List<Import> imports;
+  final List<Import> imports;
 
   final FileSpan span;
 

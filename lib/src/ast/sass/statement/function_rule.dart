@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -13,6 +14,9 @@ import 'silent_comment.dart';
 /// A function declaration.
 ///
 /// This declares a function that's invoked using normal CSS function syntax.
+///
+/// {@category AST}
+@sealed
 class FunctionRule extends CallableDeclaration {
   FunctionRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,

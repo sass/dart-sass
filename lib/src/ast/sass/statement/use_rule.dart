@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../exception.dart';
@@ -13,6 +14,9 @@ import '../expression/string.dart';
 import '../statement.dart';
 
 /// A `@use` rule.
+///
+/// {@category AST}
+@sealed
 class UseRule implements Statement {
   /// The URI of the module to use.
   ///
@@ -46,6 +50,9 @@ class UseRule implements Statement {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
+  ///
+  /// @nodoc
+  @internal
   factory UseRule.parse(String contents, {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parseUseRule();
 

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -10,6 +11,9 @@ import '../statement.dart';
 import 'parent.dart';
 
 /// A `@media` rule.
+///
+/// {@category AST}
+@sealed
 class MediaRule extends ParentStatement<List<Statement>> {
   /// The query that determines on which platforms the styles will be in effect.
   ///

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -11,6 +12,9 @@ import '../statement.dart';
 /// An `@extend` rule.
 ///
 /// This gives one selector all the styling of another.
+///
+/// {@category AST}
+@sealed
 class ExtendRule implements Statement {
   /// The interpolation for the selector that will be extended.
   final Interpolation selector;

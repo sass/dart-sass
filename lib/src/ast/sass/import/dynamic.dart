@@ -2,23 +2,36 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../expression/string.dart';
 import '../import.dart';
 
 /// An import that will load a Sass file at runtime.
+///
+/// {@category AST}
+@sealed
 class DynamicImport implements Import {
-  // TODO(nweiz): Make this a [Url] when dart-lang/sdk#32490 is fixed, or when
-  // Node Sass imports no longer expose a leading `./`.
-  /// The URI of the file to import.
+  /// The URL of the file to import.
   ///
   /// If this is relative, it's relative to the containing file.
-  final String url;
+  Uri get url => Uri.parse(urlString);
+
+  // TODO(nweiz): Make this a [Url] when dart-lang/sdk#32490 is fixed, or when
+  // Node Sass imports no longer expose a leading `./`.
+  /// The URL of the file to import, as a string so that a leading `./` is
+  /// visible for Node Sass imports.
+  ///
+  /// If this is relative, it's relative to the containing file.
+  ///
+  /// @nodoc
+  @internal
+  final String urlString;
 
   final FileSpan span;
 
-  DynamicImport(this.url, this.span);
+  DynamicImport(this.urlString, this.span);
 
-  String toString() => StringExpression.quoteText(url);
+  String toString() => StringExpression.quoteText(urlString);
 }

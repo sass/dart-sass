@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -12,6 +13,9 @@ import 'parent.dart';
 /// A `@for` rule.
 ///
 /// This iterates a set number of times.
+///
+/// {@category AST}
+@sealed
 class ForRule extends ParentStatement<List<Statement>> {
   /// The name of the variable that will contain the index value.
   final String variable;

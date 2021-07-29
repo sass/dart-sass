@@ -2,9 +2,18 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 /// A node in an abstract syntax tree.
+///
+/// Note: although all nodes have `toString()` methods that generally reflect
+/// their source text, these methods should only be used for debugging and not
+/// for creating Sass source code. They aren't tested and are not guaranteed to
+/// remain stable over time.
+///
+/// {@category AST}
+@sealed
 abstract class AstNode {
   /// The source span associated with the node.
   ///
@@ -18,6 +27,9 @@ abstract class AstNode {
   /// A number of APIs take [AstNode]s instead of spans because computing spans
   /// eagerly can be expensive. This allows arbitrary spans to be passed to
   /// those callbacks while still being lazily computed.
+  ///
+  /// @nodoc
+  @internal
   factory AstNode.fake(FileSpan Function() callback) = _FakeAstNode;
 
   AstNode();

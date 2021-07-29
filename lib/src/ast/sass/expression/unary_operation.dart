@@ -2,13 +2,17 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
 /// A unary operator, as in `+$var` or `not fn()`.
+///
+/// {@category AST}
+@sealed
 class UnaryOperationExpression implements Expression {
   /// The operator being invoked.
   final UnaryOperator operator;
@@ -32,6 +36,9 @@ class UnaryOperationExpression implements Expression {
 }
 
 /// A unary operator constant.
+///
+/// {@category AST}
+@sealed
 class UnaryOperator {
   /// The numeric identity operator, `+`.
   static const plus = UnaryOperator._("plus", "+");

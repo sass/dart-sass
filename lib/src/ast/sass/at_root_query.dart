@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:collection/collection.dart';
 
 import '../../exception.dart';
@@ -10,6 +11,9 @@ import '../../parse/at_root_query.dart';
 import '../css.dart';
 
 /// A query for the `@at-root` rule.
+///
+/// @nodoc
+@internal
 class AtRootQuery {
   /// The default at-root query, which excludes only style rules.
   static const defaultQuery = AtRootQuery._default();
@@ -34,7 +38,7 @@ class AtRootQuery {
   /// Note that this takes [include] into account.
   bool get excludesStyleRules => (_all || _rule) != include;
 
-  AtRootQuery(this.include, Set<String> names)
+  AtRootQuery(Set<String> names, {required this.include})
       : names = names,
         _all = names.contains("all"),
         _rule = names.contains("rule");
@@ -55,6 +59,9 @@ class AtRootQuery {
       AtRootQueryParser(contents, url: url, logger: logger).parse();
 
   /// Returns whether [this] excludes [node].
+  ///
+  /// @nodoc
+  @internal
   bool excludes(CssParentNode node) {
     if (_all) return !include;
     if (node is CssStyleRule) return excludesStyleRules;

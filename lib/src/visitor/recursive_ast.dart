@@ -11,6 +11,8 @@ import 'recursive_statement.dart';
 ///
 /// This extends [RecursiveStatementVisitor] to traverse each expression in
 /// addition to each statement.
+///
+/// {@category Visitor}
 abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
     implements ExpressionVisitor<void> {
   const RecursiveAstVisitor();

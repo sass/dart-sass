@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -16,6 +17,9 @@ import 'variable_declaration.dart';
 /// An `@if` rule.
 ///
 /// This conditionally executes a block of code.
+///
+/// {@category AST}
+@sealed
 class IfRule implements Statement {
   /// The `@if` and `@else if` clauses.
   ///
@@ -50,11 +54,17 @@ class IfRule implements Statement {
 }
 
 /// The superclass of `@if` and `@else` clauses.
+///
+/// {@category AST}
+@sealed
 abstract class IfRuleClause {
   /// The statements to evaluate if this clause matches.
   final List<Statement> children;
 
   /// Whether any of [children] is a variable, function, or mixin declaration.
+  ///
+  /// @nodoc
+  @internal
   final bool hasDeclarations;
 
   IfRuleClause(Iterable<Statement> children)
@@ -70,6 +80,9 @@ abstract class IfRuleClause {
 }
 
 /// An `@if` or `@else if` clause in an `@if` rule.
+///
+/// {@category AST}
+@sealed
 class IfClause extends IfRuleClause {
   /// The expression to evaluate to determine whether to run this rule.
   final Expression expression;
@@ -80,6 +93,9 @@ class IfClause extends IfRuleClause {
 }
 
 /// An `@else` clause in an `@if` rule.
+///
+/// {@category AST}
+@sealed
 class ElseClause extends IfRuleClause {
   ElseClause(Iterable<Statement> children) : super(children);
 

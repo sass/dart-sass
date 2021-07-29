@@ -1449,7 +1449,7 @@ class _EvaluateVisitor
   Future<void> _visitDynamicImport(DynamicImport import) {
     return _withStackFrame("@import", import, () async {
       var result =
-          await _loadStylesheet(import.url, import.span, forImport: true);
+          await _loadStylesheet(import.urlString, import.span, forImport: true);
       var stylesheet = result.stylesheet;
 
       var url = stylesheet.span.sourceUrl;

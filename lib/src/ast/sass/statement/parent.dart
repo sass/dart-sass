@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../import/dynamic.dart';
 import '../statement.dart';
 import 'function_rule.dart';
@@ -13,6 +15,9 @@ import 'variable_declaration.dart';
 ///
 /// This has a generic parameter so that its subclasses can choose whether or
 /// not their children lists are nullable.
+///
+/// {@category AST}
+@sealed
 abstract class ParentStatement<T extends List<Statement>?>
     implements Statement {
   /// The child statements of this statement.
@@ -20,6 +25,9 @@ abstract class ParentStatement<T extends List<Statement>?>
 
   /// Whether any of [children] is a variable, function, or mixin declaration,
   /// or a dynamic import rule.
+  ///
+  /// @nodoc
+  @internal
   final bool hasDeclarations;
 
   ParentStatement(this.children)

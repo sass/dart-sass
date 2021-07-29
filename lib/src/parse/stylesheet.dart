@@ -101,7 +101,7 @@ abstract class StylesheetParser extends Parser {
               NullExpression(declaration.expression.span), declaration.span,
               guarded: true)));
 
-      return Stylesheet(statements, scanner.spanFrom(start),
+      return Stylesheet.internal(statements, scanner.spanFrom(start),
           plainCss: plainCss);
     });
   }

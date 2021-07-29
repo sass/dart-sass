@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../exception.dart';
@@ -16,6 +17,9 @@ import 'silent_comment.dart';
 /// A variable declaration.
 ///
 /// This defines or sets a variable.
+///
+/// {@category AST}
+@sealed
 class VariableDeclaration implements Statement {
   /// The namespace of the variable being set, or `null` if it's defined or set
   /// without a namespace.
@@ -68,6 +72,9 @@ class VariableDeclaration implements Statement {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
+  ///
+  /// @nodoc
+  @internal
   factory VariableDeclaration.parse(String contents,
           {Object? url, Logger? logger}) =>
       ScssParser(contents, url: url, logger: logger).parseVariableDeclaration();

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../value.dart';
@@ -11,6 +12,9 @@ import '../expression.dart';
 import 'unary_operation.dart';
 
 /// A list literal.
+///
+/// {@category AST}
+@sealed
 class ListExpression implements Expression {
   /// The elements of this list.
   final List<Expression> contents;
@@ -23,14 +27,10 @@ class ListExpression implements Expression {
 
   final FileSpan span;
 
-  ListExpression(
-      Iterable<Expression> contents, ListSeparator separator, FileSpan span,
+  ListExpression(Iterable<Expression> contents, this.separator, this.span,
       {bool brackets = false})
-      : this._(List.unmodifiable(contents), separator, brackets, span);
-
-  ListExpression._(
-      List<Expression> contents, this.separator, this.hasBrackets, this.span)
-      : contents = contents;
+      : contents = List.unmodifiable(contents),
+        hasBrackets = brackets;
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitListExpression(this);

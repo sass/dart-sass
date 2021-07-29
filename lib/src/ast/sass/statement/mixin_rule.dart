@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -9,11 +10,15 @@ import '../../../visitor/statement_search.dart';
 import '../argument_declaration.dart';
 import '../statement.dart';
 import 'callable_declaration.dart';
+import 'content_rule.dart';
 import 'silent_comment.dart';
 
 /// A mixin declaration.
 ///
 /// This declares a mixin that's invoked using `@include`.
+///
+/// {@category AST}
+@sealed
 class MixinRule extends CallableDeclaration {
   /// Whether the mixin contains a `@content` rule.
   late final bool hasContent =

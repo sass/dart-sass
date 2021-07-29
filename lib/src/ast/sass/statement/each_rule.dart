@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -12,6 +13,9 @@ import 'parent.dart';
 /// An `@each` rule.
 ///
 /// This iterates over values in a list or map.
+///
+/// {@category AST}
+@sealed
 class EachRule extends ParentStatement<List<Statement>> {
   /// The variables assigned for each iteration.
   final List<String> variables;
