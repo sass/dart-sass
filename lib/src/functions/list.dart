@@ -38,7 +38,7 @@ final _setNth = _function("set-nth", r"$list, $n, $value", (arguments) {
   var value = arguments[2];
   var newList = list.asList.toList();
   newList[list.sassIndexToListIndex(index, "n")] = value;
-  return arguments[0].changeListContents(newList);
+  return arguments[0].withListContents(newList);
 });
 
 final _join = _function(
@@ -99,7 +99,7 @@ final _append =
   }
 
   var newList = [...list.asList, value];
-  return list.changeListContents(newList, separator: separator);
+  return list.withListContents(newList, separator: separator);
 });
 
 final _zip = _function("zip", r"$lists...", (arguments) {

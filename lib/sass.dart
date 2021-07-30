@@ -76,8 +76,8 @@ export 'src/warn.dart' show warn;
 /// correspond to which in the resulting CSS. [SingleMapping.targetUrl] will be
 /// `null`. It's up to the caller to save this mapping to disk and add a source
 /// map comment to [CompileResult.css] pointing to it. Users using the
-/// [SourceMap] API should be sure to add the [`source_maps`][] package to their
-/// pubspec.
+/// [SingleMapping] API should be sure to add the [`source_maps`][] package to
+/// their pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
@@ -168,8 +168,8 @@ CompileResult compileToResult(String path,
 /// correspond to which in the resulting CSS. [SingleMapping.targetUrl] will be
 /// `null`. It's up to the caller to save this mapping to disk and add a source
 /// map comment to [CompileResult.css] pointing to it. Users using the
-/// [SourceMap] API should be sure to add the [`source_maps`][] package to their
-/// pubspec.
+/// [SingleMapping] API should be sure to add the [`source_maps`][] package to
+/// their pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
@@ -290,7 +290,7 @@ Future<CompileResult> compileStringToResultAsync(String source,
 /// sections of the source file(s) correspond to which in the resulting CSS.
 /// It's called immediately before this method returns, and only if compilation
 /// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
-/// using the [SourceMap] API should be sure to add the [`source_maps`][]
+/// using the [SingleMapping] API should be sure to add the [`source_maps`][]
 /// package to their pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
@@ -341,7 +341,7 @@ String compile(
 /// sections of the source file(s) correspond to which in the resulting CSS.
 /// It's called immediately before this method returns, and only if compilation
 /// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
-/// using the [SourceMap] API should be sure to add the [`source_maps`][]
+/// using the [SingleMapping] API should be sure to add the [`source_maps`][]
 /// package to their pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps

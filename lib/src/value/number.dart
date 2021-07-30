@@ -196,6 +196,9 @@ abstract class SassNumber extends Value {
 
   /// The representation of this number as two slash-separated numbers, if it
   /// has one.
+  ///
+  /// @nodoc
+  @internal
   final Tuple2<SassNumber, SassNumber>? asSlash;
 
   /// Whether [this] is an integer, according to [fuzzyEquals].
@@ -259,10 +262,16 @@ abstract class SassNumber extends Value {
   SassNumber withValue(num value);
 
   /// Returns a copy of [this] without [asSlash] set.
+  ///
+  /// @nodoc
+  @internal
   SassNumber withoutSlash() => asSlash == null ? this : withValue(value);
 
-  /// Returns a copy of [this] with [this.asSlash] set to a tuple containing
+  /// Returns a copy of [this] with [asSlash] set to a tuple containing
   /// [numerator] and [denominator].
+  ///
+  /// @nodoc
+  @internal
   SassNumber withSlash(SassNumber numerator, SassNumber denominator);
 
   SassNumber assertNumber([String? name]) => this;

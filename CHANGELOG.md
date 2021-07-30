@@ -1,10 +1,17 @@
-## 1.36.1
+## 1.37.0
 
 ### Dart API
+
+* **Potentially breaking bug fix:** `SassNumber.asSlash`,
+  `SassNumber.withSlash()`, and `SassNumber.withoutSlash()` have been marked as
+  `@internal`. They were never intended to be used outside the `sass` package.
 
 * **Potentially breaking bug fix:** `SassException` has been marked as `@sealed`
   to formally indicate that it's not intended to be extended outside of the
   `sass` package.
+
+* Add a `Value.withListContents()` method that returns a new Sass list with the
+  same list separator and brackets as the current value, interpreted as a list.
 
 ## 1.36.0
 

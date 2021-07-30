@@ -307,10 +307,7 @@ abstract class Value {
 
   /// Returns a new list containing [contents] that defaults to this value's
   /// separator and brackets.
-  ///
-  /// @nodoc
-  @internal
-  SassList changeListContents(Iterable<Value> contents,
+  SassList withListContents(Iterable<Value> contents,
       {ListSeparator? separator, bool? brackets}) {
     return SassList(contents, separator ?? this.separator,
         brackets: brackets ?? hasBrackets);
