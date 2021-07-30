@@ -76,8 +76,8 @@ export 'src/warn.dart' show warn;
 /// correspond to which in the resulting CSS. [SingleMapping.targetUrl] will be
 /// `null`. It's up to the caller to save this mapping to disk and add a source
 /// map comment to [CompileResult.css] pointing to it. Users using the
-/// [SourceMap] API should be sure to add the [`source_maps`][] package to their
-/// pubspec.
+/// [SingleMapping] API should be sure to add the [`source_maps`][] package to
+/// their pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
@@ -89,6 +89,8 @@ export 'src/warn.dart' show warn;
 /// [byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
 ///
 /// Throws a [SassException] if conversion fails.
+///
+/// {@category Compile}
 CompileResult compileToResult(String path,
         {bool color = false,
         Logger? logger,
@@ -166,8 +168,8 @@ CompileResult compileToResult(String path,
 /// correspond to which in the resulting CSS. [SingleMapping.targetUrl] will be
 /// `null`. It's up to the caller to save this mapping to disk and add a source
 /// map comment to [CompileResult.css] pointing to it. Users using the
-/// [SourceMap] API should be sure to add the [`source_maps`][] package to their
-/// pubspec.
+/// [SingleMapping] API should be sure to add the [`source_maps`][] package to
+/// their pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
@@ -179,6 +181,8 @@ CompileResult compileToResult(String path,
 /// [byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
 ///
 /// Throws a [SassException] if conversion fails.
+///
+/// {@category Compile}
 CompileResult compileStringToResult(String source,
         {Syntax? syntax,
         bool color = false,
@@ -245,6 +249,8 @@ Future<CompileResult> compileToResultAsync(String path,
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compileStringToResult] should be preferred if possible.
+///
+/// {@category Compile}
 Future<CompileResult> compileStringToResultAsync(String source,
         {Syntax? syntax,
         bool color = false,
@@ -284,7 +290,7 @@ Future<CompileResult> compileStringToResultAsync(String source,
 /// sections of the source file(s) correspond to which in the resulting CSS.
 /// It's called immediately before this method returns, and only if compilation
 /// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
-/// using the [SourceMap] API should be sure to add the [`source_maps`][]
+/// using the [SingleMapping] API should be sure to add the [`source_maps`][]
 /// package to their pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
@@ -296,6 +302,8 @@ Future<CompileResult> compileStringToResultAsync(String source,
 /// SingleMapping sourceMap;
 /// var css = compile(sassPath, sourceMap: (map) => sourceMap = map);
 /// ```
+///
+/// {@category Compile}
 @Deprecated("Use compileToResult() instead.")
 String compile(
     String path,
@@ -333,7 +341,7 @@ String compile(
 /// sections of the source file(s) correspond to which in the resulting CSS.
 /// It's called immediately before this method returns, and only if compilation
 /// succeeds. Note that [SingleMapping.targetUrl] will always be `null`. Users
-/// using the [SourceMap] API should be sure to add the [`source_maps`][]
+/// using the [SingleMapping] API should be sure to add the [`source_maps`][]
 /// package to their pubspec.
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
@@ -345,6 +353,8 @@ String compile(
 /// SingleMapping sourceMap;
 /// var css = compileString(sass, sourceMap: (map) => sourceMap = map);
 /// ```
+///
+/// {@category Compile}
 @Deprecated("Use compileStringToResult() instead.")
 String compileString(
     String source,
@@ -388,6 +398,8 @@ String compileString(
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compile] should be preferred if possible.
+///
+/// {@category Compile}
 @Deprecated("Use compileToResultAsync() instead.")
 Future<String> compileAsync(
     String path,
@@ -421,6 +433,8 @@ Future<String> compileAsync(
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compileString] should be preferred if possible.
+///
+/// {@category Compile}
 @Deprecated("Use compileStringToResultAsync() instead.")
 Future<String> compileStringAsync(
     String source,

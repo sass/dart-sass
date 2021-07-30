@@ -10,6 +10,8 @@ import '../importer.dart';
 import '../syntax.dart';
 
 /// The result of importing a Sass stylesheet, as returned by [Importer.load].
+///
+/// {@category Importer}
 @sealed
 class ImporterResult {
   /// The contents of the stylesheet.

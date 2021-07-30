@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
@@ -12,6 +13,9 @@ import 'utils.dart';
 import 'value.dart';
 
 /// An exception thrown by Sass.
+///
+/// {@category Compile}
+@sealed
 class SassException extends SourceSpanException {
   /// The Sass stack trace at the point this exception was thrown.
   ///

@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 
 import 'callable/async.dart';
 import 'callable/built_in.dart';
+import 'exception.dart';
 import 'value.dart';
 
 export 'callable/async.dart';
@@ -41,8 +42,8 @@ export 'callable/user_defined.dart';
 /// * When manipulating values like lists, strings, and numbers that have
 ///   metadata (comma versus space separated, bracketed versus unbracketed,
 ///   quoted versus unquoted, units), the output metadata should match the input
-///   metadata. For lists, the [Value.changeList] method can be used to do this
-///   automatically.
+///   metadata. For lists, the [Value.withListContents] method can be used to do
+///   this automatically.
 ///
 /// * When in doubt, lists should default to comma-separated, strings should
 ///   default to quoted, and number should default to unitless.
@@ -62,6 +63,8 @@ export 'callable/user_defined.dart';
 ///   [SassString.sassIndexToRuneIndex] methods can be used to do this
 ///   automatically, and the [SassString.sassLength] getter can be used to
 ///   access a string's length in code points.
+///
+/// {@category Compile}
 @sealed
 abstract class Callable extends AsyncCallable {
   @Deprecated('Use `Callable.function` instead.')

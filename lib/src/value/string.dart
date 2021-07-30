@@ -21,6 +21,8 @@ final _emptyUnquoted = SassString("", quotes: false);
 ///
 /// Strings can either be quoted or unquoted. Unquoted strings are usually CSS
 /// identifiers, but they may contain any text.
+///
+/// {@category Value}
 @sealed
 class SassString extends Value {
   /// The contents of the string.

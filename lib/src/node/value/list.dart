@@ -34,7 +34,7 @@ final Function listConstructor = createClass('SassList',
   'setValue': (_NodeSassList thisArg, int index, Object value) {
     var mutable = thisArg.dartValue.asList.toList();
     mutable[index] = unwrapValue(value);
-    thisArg.dartValue = thisArg.dartValue.changeListContents(mutable);
+    thisArg.dartValue = thisArg.dartValue.withListContents(mutable);
   },
   'getSeparator': (_NodeSassList thisArg) =>
       thisArg.dartValue.separator == ListSeparator.comma,

@@ -6,6 +6,8 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 /// The SassScript `null` value.
+///
+/// {@category Value}
 const Value sassNull = _SassNull();
 
 /// A SassScript null value.

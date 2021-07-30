@@ -4,6 +4,7 @@
 
 import 'package:collection/collection.dart';
 
+import '../../exception.dart';
 import '../../logger.dart';
 import '../../parse/at_root_query.dart';
 import '../css.dart';

@@ -12,6 +12,8 @@ import '../util/nullable.dart';
 import 'utils.dart';
 
 /// An importer that loads files from a load path on the filesystem.
+///
+/// {@category Importer}
 @sealed
 class FilesystemImporter extends Importer {
   /// The path relative to which this importer looks for files.

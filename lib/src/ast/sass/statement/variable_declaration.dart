@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../../exception.dart';
 import '../../../logger.dart';
 import '../../../parse/scss.dart';
 import '../../../utils.dart';

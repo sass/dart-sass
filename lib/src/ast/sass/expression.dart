@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../exception.dart';
 import '../../logger.dart';
 import '../../parse/scss.dart';
 import '../../visitor/interface/expression.dart';

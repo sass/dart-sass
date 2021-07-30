@@ -13,6 +13,8 @@ import '../value.dart';
 import '../visitor/interface/value.dart';
 
 /// A SassScript color.
+///
+/// {@category Value}
 @sealed
 class SassColor extends Value {
   /// This color's red channel, between `0` and `255`.

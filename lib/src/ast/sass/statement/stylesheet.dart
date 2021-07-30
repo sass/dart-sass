@@ -6,16 +6,17 @@ import 'dart:collection';
 
 import 'package:source_span/source_span.dart';
 
-import '../../../visitor/interface/statement.dart';
+import '../../../exception.dart';
 import '../../../logger.dart';
 import '../../../parse/css.dart';
 import '../../../parse/sass.dart';
 import '../../../parse/scss.dart';
 import '../../../syntax.dart';
+import '../../../visitor/interface/statement.dart';
 import '../statement.dart';
-import 'parent.dart';
 import 'forward_rule.dart';
 import 'loud_comment.dart';
+import 'parent.dart';
 import 'silent_comment.dart';
 import 'use_rule.dart';
 import 'variable_declaration.dart';

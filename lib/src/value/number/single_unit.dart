@@ -15,6 +15,8 @@ import '../number.dart';
 
 /// A specialized subclass of [SassNumber] for numbers that have exactly one
 /// numerator unit.
+///
+/// {@category Value}
 @sealed
 class SingleUnitSassNumber extends SassNumber {
   final String _unit;

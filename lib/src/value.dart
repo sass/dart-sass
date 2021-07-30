@@ -32,6 +32,8 @@ export 'value/string.dart';
 /// subclass constructors like [new SassString]. Untyped values can be cast to
 /// particular types using `assert*()` functions like [assertString], which
 /// throw user-friendly error messages if they fail.
+///
+/// {@category Value}
 @sealed
 abstract class Value {
   /// Whether the value counts as `true` in an `@if` statement and other
@@ -305,10 +307,7 @@ abstract class Value {
 
   /// Returns a new list containing [contents] that defaults to this value's
   /// separator and brackets.
-  ///
-  /// @nodoc
-  @internal
-  SassList changeListContents(Iterable<Value> contents,
+  SassList withListContents(Iterable<Value> contents,
       {ListSeparator? separator, bool? brackets}) {
     return SassList(contents, separator ?? this.separator,
         brackets: brackets ?? hasBrackets);

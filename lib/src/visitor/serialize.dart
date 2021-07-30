@@ -1254,6 +1254,8 @@ class _SerializeVisitor
 }
 
 /// An enum of generated CSS styles.
+///
+/// {@category Compile}
 @sealed
 class OutputStyle {
   /// The standard CSS style, with each declaration on its own line.
