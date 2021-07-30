@@ -165,6 +165,8 @@ final _typesByUnit = {
 /// support scientific-style numerator and denominator units (for example,
 /// `miles/hour`). These are expected to be resolved before being emitted to
 /// CSS.
+///
+/// {@category Value}
 @sealed
 abstract class SassNumber extends Value {
   /// The number of distinct digits that are emitted when converting a number to

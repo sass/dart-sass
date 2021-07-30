@@ -10,6 +10,8 @@ import 'visitor/serialize.dart';
 
 /// The result of compiling a Sass document to CSS, along with metadata about
 /// the compilation process.
+///
+/// {@category Compile}
 @sealed
 class CompileResult {
   /// The result of evaluating the source file.

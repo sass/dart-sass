@@ -1,3 +1,11 @@
+## 1.36.1
+
+### Dart API
+
+* **Potentially breaking bug fix:** `SassException` has been marked as `@sealed`
+  to formally indicate that it's not intended to be extended outside of the
+  `sass` package.
+
 ## 1.36.0
 
 ### Dart API

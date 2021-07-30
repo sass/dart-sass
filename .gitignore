@@ -12,3 +12,4 @@ pubspec.lock
 package-lock.json
 /benchmark/source
 node_modules/
+/doc/api

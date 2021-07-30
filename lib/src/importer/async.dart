@@ -22,6 +22,8 @@ import 'utils.dart' as utils;
 /// instead.
 ///
 /// Subclasses should extend [AsyncImporter], not implement it.
+///
+/// {@category Importer}
 abstract class AsyncImporter {
   /// Whether the current [canonicalize] invocation comes from an `@import`
   /// rule.

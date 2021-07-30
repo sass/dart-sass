@@ -10,6 +10,8 @@ import '../number.dart';
 
 /// A specialized subclass of [SassNumber] for numbers that are not
 /// [UnitlessSassNumber]s or [SingleUnitSassNumber]s.
+///
+/// {@category Value}
 @sealed
 class ComplexSassNumber extends SassNumber {
   final List<String> numeratorUnits;

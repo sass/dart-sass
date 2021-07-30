@@ -9,6 +9,8 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 /// A SassScript list.
+///
+/// {@category Value}
 @sealed
 class SassList extends Value {
   // TODO(nweiz): Use persistent data structures rather than copying here. An
@@ -70,6 +72,8 @@ class SassList extends Value {
 }
 
 /// An enum of list separator types.
+///
+/// {@category Value}
 @sealed
 class ListSeparator {
   /// A space-separated list.

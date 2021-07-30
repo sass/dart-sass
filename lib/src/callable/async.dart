@@ -17,6 +17,8 @@ import 'async_built_in.dart';
 /// work synchronously, it should be a [Callable] instead.
 ///
 /// See [Callable] for more details.
+///
+/// {@category Compile}
 @sealed
 abstract class AsyncCallable {
   /// The callable's name.

@@ -14,6 +14,8 @@ import '../importer.dart';
 final _filesystemImporter = FilesystemImporter('.');
 
 /// An importer that loads stylesheets from `package:` imports.
+///
+/// {@category Importer}
 @sealed
 class PackageImporter extends Importer {
   /// The resolver that converts `package:` imports to `file:`.

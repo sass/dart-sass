@@ -62,6 +62,8 @@ export 'callable/user_defined.dart';
 ///   [SassString.sassIndexToRuneIndex] methods can be used to do this
 ///   automatically, and the [SassString.sassLength] getter can be used to
 ///   access a string's length in code points.
+///
+/// {@category Compile}
 @sealed
 abstract class Callable extends AsyncCallable {
   @Deprecated('Use `Callable.function` instead.')

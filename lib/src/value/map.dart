@@ -9,6 +9,8 @@ import '../value.dart';
 import '../utils.dart';
 
 /// A SassScript map.
+///
+/// {@category Value}
 @sealed
 class SassMap extends Value {
   // TODO(nweiz): Use persistent data structures rather than copying here. We

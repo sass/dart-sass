@@ -10,6 +10,8 @@ import 'logger/stderr.dart';
 /// An interface for loggers that print messages produced by Sass stylesheets.
 ///
 /// This may be implemented by user code.
+///
+/// {@category Compile}
 abstract class Logger {
   /// A logger that silently ignores all messages.
   static final Logger quiet = _QuietLogger();

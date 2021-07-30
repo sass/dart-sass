@@ -10,6 +10,8 @@ import 'dart:async';
 /// If [deprecation] is `true`, the warning is emitted as a deprecation warning.
 ///
 /// This may only be called within a custom function or importer callback.
+///
+/// {@category Compile}
 void warn(String message, {bool deprecation = false}) {
   var warnDefinition = Zone.current[#_warn];
 

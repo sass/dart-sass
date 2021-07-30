@@ -89,6 +89,8 @@ export 'src/warn.dart' show warn;
 /// [byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
 ///
 /// Throws a [SassException] if conversion fails.
+///
+/// {@category Compile}
 CompileResult compileToResult(String path,
         {bool color = false,
         Logger? logger,
@@ -179,6 +181,8 @@ CompileResult compileToResult(String path,
 /// [byte-order mark]: https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
 ///
 /// Throws a [SassException] if conversion fails.
+///
+/// {@category Compile}
 CompileResult compileStringToResult(String source,
         {Syntax? syntax,
         bool color = false,
@@ -245,6 +249,8 @@ Future<CompileResult> compileToResultAsync(String path,
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compileStringToResult] should be preferred if possible.
+///
+/// {@category Compile}
 Future<CompileResult> compileStringToResultAsync(String source,
         {Syntax? syntax,
         bool color = false,
@@ -296,6 +302,8 @@ Future<CompileResult> compileStringToResultAsync(String source,
 /// SingleMapping sourceMap;
 /// var css = compile(sassPath, sourceMap: (map) => sourceMap = map);
 /// ```
+///
+/// {@category Compile}
 @Deprecated("Use compileToResult() instead.")
 String compile(
     String path,
@@ -345,6 +353,8 @@ String compile(
 /// SingleMapping sourceMap;
 /// var css = compileString(sass, sourceMap: (map) => sourceMap = map);
 /// ```
+///
+/// {@category Compile}
 @Deprecated("Use compileStringToResult() instead.")
 String compileString(
     String source,
@@ -388,6 +398,8 @@ String compileString(
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compile] should be preferred if possible.
+///
+/// {@category Compile}
 @Deprecated("Use compileToResultAsync() instead.")
 Future<String> compileAsync(
     String path,
@@ -421,6 +433,8 @@ Future<String> compileAsync(
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compileString] should be preferred if possible.
+///
+/// {@category Compile}
 @Deprecated("Use compileStringToResultAsync() instead.")
 Future<String> compileStringAsync(
     String source,

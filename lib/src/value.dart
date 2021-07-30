@@ -32,6 +32,8 @@ export 'value/string.dart';
 /// subclass constructors like [new SassString]. Untyped values can be cast to
 /// particular types using `assert*()` functions like [assertString], which
 /// throw user-friendly error messages if they fail.
+///
+/// {@category Value}
 @sealed
 abstract class Value {
   /// Whether the value counts as `true` in an `@if` statement and other

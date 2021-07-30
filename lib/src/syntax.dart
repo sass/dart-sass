@@ -6,6 +6,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 /// An enum of syntaxes that Sass can parse.
+///
+/// {@category Compile}
 @sealed
 class Syntax {
   /// The CSS-superset SCSS syntax.

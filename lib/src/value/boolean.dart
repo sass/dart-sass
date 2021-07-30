@@ -8,12 +8,18 @@ import '../visitor/interface/value.dart';
 import '../value.dart';
 
 /// The SassScript `true` value.
+///
+/// {@category Value}
 const sassTrue = SassBoolean._(true);
 
 /// The SassScript `false` value.
+///
+/// {@category Value}
 const sassFalse = SassBoolean._(false);
 
 /// A SassScript boolean value.
+///
+/// {@category Value}
 @sealed
 class SassBoolean extends Value {
   /// Whether this value is `true` or `false`.
