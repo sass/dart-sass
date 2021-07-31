@@ -21,89 +21,64 @@ import 'recursive_statement.dart';
 abstract class StatementSearchVisitor<T> implements StatementVisitor<T?> {
   const StatementSearchVisitor();
 
-  T? visitAtRootRule(AtRootRule node) =>
-      node.query.andThen(visitInterpolation) ?? visitChildren(node.children);
+  T? visitAtRootRule(AtRootRule node) => visitChildren(node.children);
 
-  T? visitAtRule(AtRule node) =>
-      visitInterpolation(node.name) ??
-      node.value.andThen(visitInterpolation) ??
-      node.children.andThen(visitChildren);
+  T? visitAtRule(AtRule node) => node.children.andThen(visitChildren);
 
   T? visitContentBlock(ContentBlock node) => visitCallableDeclaration(node);
 
-  T? visitContentRule(ContentRule node) =>
-      visitArgumentInvocation(node.arguments);
+  T? visitContentRule(ContentRule node) => null;
 
-  T? visitDebugRule(DebugRule node) => visitExpression(node.expression);
+  T? visitDebugRule(DebugRule node) => null;
 
-  T? visitDeclaration(Declaration node) =>
-      visitInterpolation(node.name) ??
-      node.value.andThen(visitExpression) ??
-      node.children.andThen(visitChildren);
+  T? visitDeclaration(Declaration node) => node.children.andThen(visitChildren);
 
-  T? visitEachRule(EachRule node) =>
-      visitExpression(node.list) ?? visitChildren(node.children);
+  T? visitEachRule(EachRule node) => visitChildren(node.children);
 
-  T? visitErrorRule(ErrorRule node) => visitExpression(node.expression);
+  T? visitErrorRule(ErrorRule node) => null;
 
-  T? visitExtendRule(ExtendRule node) => visitInterpolation(node.selector);
+  T? visitExtendRule(ExtendRule node) => null;
 
-  T? visitForRule(ForRule node) =>
-      visitExpression(node.from) ??
-      visitExpression(node.to) ??
-      visitChildren(node.children);
+  T? visitForRule(ForRule node) => visitChildren(node.children);
 
   T? visitForwardRule(ForwardRule node) => null;
 
   T? visitFunctionRule(FunctionRule node) => visitCallableDeclaration(node);
 
   T? visitIfRule(IfRule node) =>
-      node.clauses._search((clause) =>
-          visitExpression(clause.expression) ??
-          clause.children._search((child) => child.accept(this))) ??
+      node.clauses._search(
+          (clause) => clause.children._search((child) => child.accept(this))) ??
       node.lastClause.andThen((lastClause) =>
           lastClause.children._search((child) => child.accept(this)));
 
-  T? visitImportRule(ImportRule node) => node.imports._search((import) {
-        if (import is StaticImport) {
-          return visitInterpolation(import.url) ??
-              import.supports.andThen(visitSupportsCondition) ??
-              import.media.andThen(visitInterpolation);
-        }
-      });
+  T? visitImportRule(ImportRule node) => null;
 
   T? visitIncludeRule(IncludeRule node) =>
-      visitArgumentInvocation(node.arguments) ??
       node.content.andThen(visitContentBlock);
 
-  T? visitLoudComment(LoudComment node) => visitInterpolation(node.text);
+  T? visitLoudComment(LoudComment node) => null;
 
-  T? visitMediaRule(MediaRule node) =>
-      visitInterpolation(node.query) ?? visitChildren(node.children);
+  T? visitMediaRule(MediaRule node) => visitChildren(node.children);
 
   T? visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
 
-  T? visitReturnRule(ReturnRule node) => visitExpression(node.expression);
+  T? visitReturnRule(ReturnRule node) => null;
 
   T? visitSilentComment(SilentComment node) => null;
 
-  T? visitStyleRule(StyleRule node) =>
-      visitInterpolation(node.selector) ?? visitChildren(node.children);
+  T? visitStyleRule(StyleRule node) => visitChildren(node.children);
 
   T? visitStylesheet(Stylesheet node) => visitChildren(node.children);
 
-  T? visitSupportsRule(SupportsRule node) =>
-      visitSupportsCondition(node.condition) ?? visitChildren(node.children);
+  T? visitSupportsRule(SupportsRule node) => visitChildren(node.children);
 
   T? visitUseRule(UseRule node) => null;
 
-  T? visitVariableDeclaration(VariableDeclaration node) =>
-      visitExpression(node.expression);
+  T? visitVariableDeclaration(VariableDeclaration node) => null;
 
-  T? visitWarnRule(WarnRule node) => visitExpression(node.expression);
+  T? visitWarnRule(WarnRule node) => null;
 
-  T? visitWhileRule(WhileRule node) =>
-      visitExpression(node.condition) ?? visitChildren(node.children);
+  T? visitWhileRule(WhileRule node) => visitChildren(node.children);
 
   /// Visits each of [node]'s expressions and children.
   ///
@@ -111,43 +86,7 @@ abstract class StatementSearchVisitor<T> implements StatementVisitor<T?> {
   /// call this.
   @protected
   T? visitCallableDeclaration(CallableDeclaration node) =>
-      node.arguments.arguments._search(
-          (argument) => argument.defaultValue.andThen(visitExpression)) ??
       visitChildren(node.children);
-
-  /// Visits each expression in an [invocation].
-  ///
-  /// The default implementation of the visit methods calls this to visit any
-  /// argument invocation in a statement.
-  @protected
-  T? visitArgumentInvocation(ArgumentInvocation invocation) =>
-      invocation.positional
-          ._search((expression) => visitExpression(expression)) ??
-      invocation.named.values
-          ._search((expression) => visitExpression(expression)) ??
-      invocation.rest.andThen(visitExpression) ??
-      invocation.keywordRest.andThen(visitExpression);
-
-  /// Visits each expression in [condition].
-  ///
-  /// The default implementation of the visit methods call this to visit any
-  /// [SupportsCondition] they encounter.
-  @protected
-  T? visitSupportsCondition(SupportsCondition condition) {
-    if (condition is SupportsOperation) {
-      return visitSupportsCondition(condition.left) ??
-          visitSupportsCondition(condition.right);
-    } else if (condition is SupportsNegation) {
-      return visitSupportsCondition(condition.condition);
-    } else if (condition is SupportsInterpolation) {
-      return visitExpression(condition.expression);
-    } else if (condition is SupportsDeclaration) {
-      return visitExpression(condition.name) ??
-          visitExpression(condition.value);
-    } else {
-      return null;
-    }
-  }
 
   /// Visits each child in [children].
   ///
@@ -156,21 +95,6 @@ abstract class StatementSearchVisitor<T> implements StatementVisitor<T?> {
   @protected
   T? visitChildren(List<Statement> children) =>
       children._search((child) => child.accept(this));
-
-  /// Visits each expression in an [interpolation].
-  ///
-  /// The default implementation of the visit methods call this to visit any
-  /// interpolation in a statement.
-  @protected
-  T? visitInterpolation(Interpolation interpolation) => interpolation.contents
-      ._search((node) => node is Expression ? visitExpression(node) : null);
-
-  /// Visits [expression].
-  ///
-  /// The default implementation of the visit methods call this to visit any
-  /// expression in a statement.
-  @protected
-  T? visitExpression(Expression expression) => null;
 }
 
 extension _IterableExtension<E> on Iterable<E> {
