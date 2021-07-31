@@ -42,11 +42,6 @@ abstract class StylesheetParser extends Parser {
   /// declaration.
   var _inMixin = false;
 
-  /// Whether the current mixin contains at least one `@content` rule.
-  ///
-  /// This is `null` unless [_inMixin] is `true`.
-  bool? _mixinHasContent;
-
   /// Whether the parser is currently parsing a content block passed to a mixin.
   var _inContentBlock = false;
 
@@ -814,7 +809,6 @@ abstract class StylesheetParser extends Parser {
         ? _argumentInvocation(mixin: true)
         : ArgumentInvocation.empty(scanner.emptySpan);
 
-    _mixinHasContent = true;
     expectStatementSeparator("@content rule");
     return ContentRule(arguments, scanner.spanFrom(start));
   }
@@ -1251,15 +1245,11 @@ abstract class StylesheetParser extends Parser {
 
     whitespace();
     _inMixin = true;
-    _mixinHasContent = false;
 
     return _withChildren(_statement, start, (children, span) {
-      var hadContent = _mixinHasContent!;
       _inMixin = false;
-      _mixinHasContent = null;
-
       return MixinRule(name, arguments, children, span,
-          hasContent: hadContent, comment: precedingComment);
+          comment: precedingComment);
     });
   }
 

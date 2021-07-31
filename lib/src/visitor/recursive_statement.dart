@@ -21,6 +21,8 @@ import 'interface/statement.dart';
 /// * [visitInterpolation]
 /// * [visitExpression]
 abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
+  const RecursiveStatementVisitor();
+
   void visitAtRootRule(AtRootRule node) {
     node.query.andThen(visitInterpolation);
     visitChildren(node.children);

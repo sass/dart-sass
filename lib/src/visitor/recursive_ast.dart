@@ -13,6 +13,8 @@ import 'recursive_statement.dart';
 /// addition to each statement.
 abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
     implements ExpressionVisitor<void> {
+  const RecursiveAstVisitor();
+
   void visitExpression(Expression expression) {
     expression.accept(this);
   }

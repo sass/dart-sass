@@ -7,7 +7,7 @@ extension NullableExtension<T> on T? {
   /// result.
   ///
   /// Based on Rust's `Option.and_then`.
-  V? andThen<V>(V Function(T value)? fn) {
+  V? andThen<V>(V? Function(T value)? fn) {
     var self = this; // dart-lang/language#1520
     return self == null ? null : fn!(self);
   }

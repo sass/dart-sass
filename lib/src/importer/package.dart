@@ -26,8 +26,7 @@ class PackageImporter extends Importer {
   /// package.
   ///
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
-  PackageImporter(PackageConfig packageConfig)
-  : _packageConfig = packageConfig;
+  PackageImporter(PackageConfig packageConfig) : _packageConfig = packageConfig;
 
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
