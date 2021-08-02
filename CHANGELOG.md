@@ -1,3 +1,7 @@
+## 1.37.1
+
+* No user-visible changes.
+
 ## 1.37.0
 
 ### Dart API
