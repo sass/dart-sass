@@ -4,14 +4,13 @@ name: sass_api
 # visitor interface(s).
 version: 1.0.0-beta.1
 description: Additional APIs for Dart Sass.
-author: Sass Team
 homepage: https://github.com/sass/dart-sass
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  sass: 1.37.1
+  sass: 1.37.2
 
 dependency_overrides:
   sass: {path: ../..}

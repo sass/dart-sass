@@ -1,7 +1,6 @@
 name: sass
-version: 1.37.1
+version: 1.37.2
 description: A Sass implementation in Dart.
-author: Sass Team
 homepage: https://github.com/sass/dart-sass
 
 executables:

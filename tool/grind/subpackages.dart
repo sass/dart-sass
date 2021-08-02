@@ -10,6 +10,7 @@ import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:yaml/yaml.dart';
 
 /// The path in which pub expects to find its credentials file.
 final String _pubCredentialsPath = () {
@@ -49,9 +50,16 @@ Future<void> deploySubPackages() async {
 
   var client = http.Client();
   for (var package in Directory("pkg").listSync().map((dir) => dir.path)) {
+    var pubspecPath = "$package/pubspec.yaml";
     var pubspec = Pubspec.parse(
-        File("$package/pubspec.yaml").readAsStringSync(),
-        sourceUrl: p.toUri("$package/pubspec.yaml"));
+        File(pubspecPath).readAsStringSync(),
+        sourceUrl: p.toUri(pubspecPath));
+
+    // Remove the dependency override on `sass`, because otherwise it will block
+    // publishing.
+    var pubspecYaml = loadYaml(File(pubspecPath).readAsStringSync());
+    pubspecYaml.remove("dependency_overrides");
+    File(pubspecPath).writeAsStringSync(json.encode(pubspecYaml));
 
     log("pub publish ${pubspec.name}");
     var process = await Process.start(
