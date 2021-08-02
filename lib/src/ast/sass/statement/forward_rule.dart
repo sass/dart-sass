@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -11,6 +12,9 @@ import '../expression/string.dart';
 import '../statement.dart';
 
 /// A `@forward` rule.
+///
+/// {@category AST}
+@sealed
 class ForwardRule implements Statement {
   /// The URI of the module to forward.
   ///

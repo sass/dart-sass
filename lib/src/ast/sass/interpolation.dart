@@ -2,12 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import 'expression.dart';
 import 'node.dart';
 
 /// Plain text interpolated with Sass expressions.
+///
+/// {@category AST}
+@sealed
 class Interpolation implements SassNode {
   /// The contents of this interpolation.
   ///
@@ -28,6 +32,9 @@ class Interpolation implements SassNode {
   }
 
   /// Returns the plain text before the interpolation, or the empty string.
+  ///
+  /// @nodoc
+  @internal
   String get initialPlain {
     var first = contents.first;
     return first is String ? first : '';

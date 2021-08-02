@@ -8,6 +8,7 @@ Want to contribute? Great! First, read this page.
   * [Changing the Node API](#changing-the-node-api)
   * [Synchronizing](#synchronizing)
   * [File Headers](#file-headers)
+* [Release Process](#release-process)
 
 ## Before You Contribute
 
@@ -208,3 +209,27 @@ All files in the project must start with the following header.
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 ```
+
+## Release Process
+
+Most of the release process is fully automated on GitHub actions, triggered by
+pushing a tag matching the current `pubspec.yaml` version. However, there are a
+few things to do before pushing that tag:
+
+* Make sure the `pubspec.yaml` version doesn't end in `-dev`. (This is a Dart
+  convention to distinguish commits that aren't meant for release from commits
+  that are.)
+
+* Make sure that `CHANGELOG.md` has an entry for the current version.
+
+* Make sure that any packages in `pkg` depend on the current version of `sass`.
+
+* Increment the versions of all packages in `pkg`. These should be incremented
+  at least as much as the `sass` version, and more if you add a new API that's
+  exposed by one of those packages.
+
+* Make sure that every package in `pkg`'s `CHANGELOG.md` has an entry for its
+  current version.
+
+You *don't* need to create tags for packages in `pkg`; that will be handled
+automatically by GitHub actions.

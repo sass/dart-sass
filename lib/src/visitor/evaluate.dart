@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c5ceb94186649cb4c32b68a03b3d66a122c4ff2d
+// Checksum: ffd96390e470c2feb704a96bc4092c62a8209989
 //
 // ignore_for_file: unused_import
 
@@ -1448,7 +1448,8 @@ class _EvaluateVisitor
   /// Adds the stylesheet imported by [import] to the current document.
   void _visitDynamicImport(DynamicImport import) {
     return _withStackFrame("@import", import, () {
-      var result = _loadStylesheet(import.url, import.span, forImport: true);
+      var result =
+          _loadStylesheet(import.urlString, import.span, forImport: true);
       var stylesheet = result.stylesheet;
 
       var url = stylesheet.span.sourceUrl;

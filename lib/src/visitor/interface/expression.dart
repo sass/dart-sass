@@ -7,6 +7,8 @@ import '../../ast/sass.dart';
 /// An interface for [visitors][] that traverse SassScript expressions.
 ///
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
+///
+/// {@category Visitor}
 abstract class ExpressionVisitor<T> {
   T visitBinaryOperationExpression(BinaryOperationExpression node);
   T visitBooleanExpression(BooleanExpression node);

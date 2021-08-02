@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -11,6 +12,9 @@ import '../statement.dart';
 /// An `@error` rule.
 ///
 /// This emits an error and stops execution.
+///
+/// {@category AST}
+@sealed
 class ErrorRule implements Statement {
   /// The expression to evaluate for the error message.
   final Expression expression;

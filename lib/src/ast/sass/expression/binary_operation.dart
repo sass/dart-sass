@@ -2,13 +2,17 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:source_span/source_span.dart';
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 
 /// A binary operator, as in `1 + 2` or `$this and $other`.
+///
+/// {@category AST}
+@sealed
 class BinaryOperationExpression implements Expression {
   /// The operator being invoked.
   final BinaryOperator operator;
@@ -21,6 +25,9 @@ class BinaryOperationExpression implements Expression {
 
   /// Whether this is a [BinaryOperator.dividedBy] operation that may be
   /// interpreted as slash-separated numbers.
+  ///
+  /// @nodoc
+  @internal
   final bool allowsSlash;
 
   FileSpan get span {
@@ -43,6 +50,9 @@ class BinaryOperationExpression implements Expression {
 
   /// Creates a [BinaryOperator.dividedBy] operation that may be interpreted as
   /// slash-separated numbers.
+  ///
+  /// @nodoc
+  @internal
   BinaryOperationExpression.slash(this.left, this.right)
       : operator = BinaryOperator.dividedBy,
         allowsSlash = true;
@@ -76,6 +86,9 @@ class BinaryOperationExpression implements Expression {
 }
 
 /// A binary operator constant.
+///
+/// {@category AST}
+@sealed
 class BinaryOperator {
   /// The Microsoft equals operator, `=`.
   static const singleEquals = BinaryOperator._("single equals", "=", 0);

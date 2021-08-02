@@ -16,6 +16,7 @@ import 'grind/synchronize.dart';
 export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
 export 'grind/sanity_check.dart';
+export 'grind/subpackages.dart';
 export 'grind/synchronize.dart';
 
 void main(List<String> args) {
@@ -58,11 +59,8 @@ void all() {}
 
 @Task('Run the Dart formatter.')
 void format() {
-  Pub.run('dart_style', script: 'format', arguments: [
-    '--overwrite',
-    '--fix',
-    for (var dir in existingSourceDirs) dir.path
-  ]);
+  Pub.run('dart_style',
+      script: 'format', arguments: ['--overwrite', '--fix', '.']);
 }
 
 @Task('Installs dependencies from npm.')

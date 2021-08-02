@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -10,6 +11,9 @@ import '../supports_condition.dart';
 import 'parent.dart';
 
 /// A `@supports` rule.
+///
+/// {@category AST}
+@sealed
 class SupportsRule extends ParentStatement<List<Statement>> {
   /// The condition that selects what browsers this rule targets.
   final SupportsCondition condition;

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -12,6 +13,9 @@ import '../statement.dart';
 import 'parent.dart';
 
 /// A declaration (that is, a `name: value` pair).
+///
+/// {@category AST}
+@sealed
 class Declaration extends ParentStatement {
   /// The name of this declaration.
   final Interpolation name;
@@ -31,8 +35,12 @@ class Declaration extends ParentStatement {
   /// properties, such as `#{--foo}: ...`.
   ///
   /// If this is `true`, then `value` will be a [StringExpression].
+  ///
+  /// @nodoc
+  @internal
   bool get isCustomProperty => name.initialPlain.startsWith('--');
 
+  /// Creates a declaration with no children.
   Declaration(this.name, Expression value, this.span)
       : value = value,
         super(null) {

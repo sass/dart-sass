@@ -2,12 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import 'expression.dart';
 import 'node.dart';
 
 /// A set of arguments passed in to a function or mixin.
+///
+/// {@category AST}
+@sealed
 class ArgumentInvocation implements SassNode {
   /// The arguments passed by position.
   final List<Expression> positional;

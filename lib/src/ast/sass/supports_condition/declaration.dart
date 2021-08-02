@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../expression.dart';
@@ -9,6 +10,9 @@ import '../supports_condition.dart';
 
 /// A condition that selects for browsers where a given declaration is
 /// supported.
+///
+/// {@category AST}
+@sealed
 class SupportsDeclaration implements SupportsCondition {
   /// The name of the declaration being tested.
   final Expression name;

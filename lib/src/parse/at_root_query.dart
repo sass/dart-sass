@@ -31,7 +31,7 @@ class AtRootQueryParser extends Parser {
       scanner.expectChar($rparen);
       scanner.expectDone();
 
-      return AtRootQuery(include, atRules);
+      return AtRootQuery(atRules, include: include);
     });
   }
 }

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -11,6 +12,9 @@ import '../statement.dart';
 /// A `@debug` rule.
 ///
 /// This prints a Sass value for debugging purposes.
+///
+/// {@category AST}
+@sealed
 class DebugRule implements Statement {
   /// The expression to print.
   final Expression expression;

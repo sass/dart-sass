@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -9,6 +10,9 @@ import '../../../visitor/interface/statement.dart';
 import '../statement.dart';
 
 /// A silent Sass-style comment.
+///
+/// {@category AST}
+@sealed
 class SilentComment implements Statement {
   /// The text of this comment, including comment characters.
   final String text;

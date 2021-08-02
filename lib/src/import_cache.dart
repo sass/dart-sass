@@ -5,11 +5,12 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 27d8582c2ab318a52d433390ec256497b6af5dec
+// Checksum: b3b80fe96623c1579809528e46d9c75b87bf82ea
 //
 // ignore_for_file: unused_import
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
@@ -22,6 +23,9 @@ import 'logger.dart';
 import 'utils.dart';
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
+///
+/// {@category Dependencies}
+@sealed
 class ImportCache {
   /// The importers to use when loading new Sass files.
   final List<Importer> _importers;
@@ -225,6 +229,9 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Clears the cached canonical version of the given [url].
   ///
   /// Has no effect if the canonical version of [url] has not been cached.
+  ///
+  /// @nodoc
+  @internal
   void clearCanonicalize(Uri url) {
     _canonicalizeCache.remove(Tuple2(url, false));
     _canonicalizeCache.remove(Tuple2(url, true));
@@ -234,6 +241,9 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// [canonicalUrl].
   ///
   /// Has no effect if the imported file at [canonicalUrl] has not been cached.
+  ///
+  /// @nodoc
+  @internal
   void clearImport(Uri canonicalUrl) {
     _resultsCache.remove(canonicalUrl);
     _importCache.remove(canonicalUrl);

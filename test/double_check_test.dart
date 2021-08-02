@@ -8,8 +8,10 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 import '../tool/grind/synchronize.dart' as synchronize;
 
@@ -38,19 +40,88 @@ void main() {
       // newline normalization issues.
       testOn: "!windows");
 
-  test("pubspec version matches CHANGELOG version", () {
-    var firstLine = const LineSplitter()
-        .convert(File("CHANGELOG.md").readAsStringSync())
-        .first;
-    expect(firstLine, startsWith("## "));
-    var changelogVersion = firstLine.substring(3);
+  for (var package in [
+    ".",
+    ...Directory("pkg").listSync().map((entry) => entry.path)
+  ]) {
+    group("in ${p.relative(package)}", () {
+      test("pubspec version matches CHANGELOG version", () {
+        var firstLine = const LineSplitter()
+            .convert(File("$package/CHANGELOG.md").readAsStringSync())
+            .first;
+        expect(firstLine, startsWith("## "));
+        var changelogVersion = firstLine.substring(3);
 
-    var pubspec = loadYaml(File("pubspec.yaml").readAsStringSync(),
-        sourceUrl: Uri(path: "pubspec.yaml")) as Map<dynamic, dynamic>;
-    expect(pubspec, containsPair("version", isA<String>()));
-    var pubspecVersion = pubspec["version"] as String;
+        var pubspec = Pubspec.parse(
+            File("$package/pubspec.yaml").readAsStringSync(),
+            sourceUrl: p.toUri("$package/pubspec.yaml"));
+        expect(pubspec.version!.toString(),
+            anyOf(equals(changelogVersion), equals("$changelogVersion-dev")));
+      });
+    });
+  }
 
-    expect(pubspecVersion,
-        anyOf(equals(changelogVersion), equals("$changelogVersion-dev")));
-  });
+  for (var package in Directory("pkg").listSync().map((entry) => entry.path)) {
+    group("in pkg/${p.basename(package)}", () {
+      late Pubspec sassPubspec;
+      late Pubspec pkgPubspec;
+      setUpAll(() {
+        sassPubspec = Pubspec.parse(File("pubspec.yaml").readAsStringSync(),
+            sourceUrl: Uri.parse("pubspec.yaml"));
+        pkgPubspec = Pubspec.parse(
+            File("$package/pubspec.yaml").readAsStringSync(),
+            sourceUrl: p.toUri("$package/pubspec.yaml"));
+      });
+
+      test("depends on the current sass version", () {
+        if (_isDevVersion(sassPubspec.version!)) return;
+
+        expect(pkgPubspec.dependencies, contains("sass"));
+        var dependency = pkgPubspec.dependencies["sass"]!;
+        expect(dependency, isA<HostedDependency>());
+        expect((dependency as HostedDependency).version,
+            equals(sassPubspec.version));
+      });
+
+      test("increments along with the sass version", () {
+        var sassVersion = sassPubspec.version!;
+        if (_isDevVersion(sassVersion)) return;
+
+        var pkgVersion = pkgPubspec.version!;
+        expect(_isDevVersion(pkgVersion), isFalse,
+            reason: "sass $sassVersion isn't a dev version but "
+                "${pkgPubspec.name} $pkgVersion is");
+
+        if (sassVersion.isPreRelease) {
+          expect(pkgVersion.isPreRelease, isTrue,
+              reason: "sass $sassVersion is a pre-release version but "
+                  "${pkgPubspec.name} $pkgVersion isn't");
+        }
+
+        // If only sass's patch version was incremented, there's not a good way
+        // to tell whether the sub-package's version was incremented as well
+        // because we don't have access to the prior version.
+        if (sassVersion.patch != 0) return;
+
+        if (sassVersion.minor != 0) {
+          expect(pkgVersion.patch, equals(0),
+              reason: "sass minor version was incremented, ${pkgPubspec.name} "
+                  "must increment at least its minor version");
+        } else {
+          expect(pkgVersion.minor, equals(0),
+              reason: "sass major version was incremented, ${pkgPubspec.name} "
+                  "must increment at its major version as well");
+        }
+      });
+
+      test("matches SDK version", () {
+        expect(pkgPubspec.environment!["sdk"],
+            equals(sassPubspec.environment!["sdk"]));
+      });
+    });
+  }
 }
+
+/// Returns whether [version] is a `-dev` version.
+bool _isDevVersion(Version version) =>
+    version.preRelease.length == 1 && version.preRelease.first == 'dev';

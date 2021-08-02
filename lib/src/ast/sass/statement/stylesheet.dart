@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../exception.dart';
@@ -24,10 +25,17 @@ import 'variable_declaration.dart';
 /// A Sass stylesheet.
 ///
 /// This is the root Sass node. It contains top-level statements.
+///
+/// {@category AST}
+/// {@category Parsing}
+@sealed
 class Stylesheet extends ParentStatement<List<Statement>> {
   final FileSpan span;
 
   /// Whether this was parsed from a plain CSS stylesheet.
+  ///
+  /// @nodoc
+  @internal
   final bool plainCss;
 
   /// All the `@use` rules that appear in this stylesheet.
@@ -38,7 +46,15 @@ class Stylesheet extends ParentStatement<List<Statement>> {
   List<ForwardRule> get forwards => UnmodifiableListView(_forwards);
   final _forwards = <ForwardRule>[];
 
-  Stylesheet(Iterable<Statement> children, this.span, {this.plainCss = false})
+  Stylesheet(Iterable<Statement> children, FileSpan span)
+      : this.internal(children, span);
+
+  /// A separate internal constructor that allows [plainCss] to be set.
+  ///
+  /// @nodoc
+  @internal
+  Stylesheet.internal(Iterable<Statement> children, this.span,
+      {this.plainCss = false})
       : super(List.unmodifiable(children)) {
     for (var child in this.children) {
       if (child is UseRule) {

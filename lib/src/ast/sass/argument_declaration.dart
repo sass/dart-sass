@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../exception.dart';
@@ -13,6 +14,10 @@ import 'argument.dart';
 import 'node.dart';
 
 /// An argument declaration, as for a function or mixin definition.
+///
+/// {@category AST}
+/// {@category Parsing}
+@sealed
 class ArgumentDeclaration implements SassNode {
   /// The arguments that are taken.
   final List<Argument> arguments;

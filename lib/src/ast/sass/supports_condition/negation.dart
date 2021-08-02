@@ -2,12 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../supports_condition.dart';
 import 'operation.dart';
 
 /// A negated condition.
+///
+/// {@category AST}
+@sealed
 class SupportsNegation implements SupportsCondition {
   /// The condition that's been negated.
   final SupportsCondition condition;

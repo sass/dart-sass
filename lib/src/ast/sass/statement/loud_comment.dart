@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -9,6 +10,9 @@ import '../interpolation.dart';
 import '../statement.dart';
 
 /// A loud CSS-style comment.
+///
+/// {@category AST}
+@sealed
 class LoudComment implements Statement {
   /// The interpolated text of this comment, including comment characters.
   final Interpolation text;

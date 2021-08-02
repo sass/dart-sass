@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../ast/sass.dart';
@@ -12,6 +13,9 @@ import '../../../visitor/interface/expression.dart';
 /// This is defined as a separate syntactic construct rather than a normal
 /// function because only one of the `$if-true` and `$if-false` arguments are
 /// evaluated.
+///
+/// {@category AST}
+@sealed
 class IfExpression implements Expression, CallableInvocation {
   /// The declaration of `if()`, as though it were a normal function.
   static final declaration = ArgumentDeclaration.parse(
