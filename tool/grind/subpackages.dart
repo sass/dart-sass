@@ -61,6 +61,17 @@ Future<void> deploySubPackages() async {
     pubspecYaml.remove("dependency_overrides");
     File(pubspecPath).writeAsStringSync(json.encode(pubspecYaml));
 
+    // We use symlinks to avoid duplicating files between the main repo and
+    // child repos, but `pub lish` doesn't resolve these before publishing so we
+    // have to do so manually.
+    for (var entry
+        in Directory(package).listSync(recursive: true, followLinks: false)) {
+      if (entry is! Link) continue;
+      var target = p.join(p.dirname(entry.path), entry.targetSync());
+      entry.deleteSync();
+      File(entry.path).writeAsStringSync(File(target).readAsStringSync());
+    }
+
     log("pub publish ${pubspec.name}");
     var process = await Process.start(
         p.join(sdkDir.path, "bin/pub"), ["publish", "--force"],
