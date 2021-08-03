@@ -51,13 +51,13 @@ Future<void> deploySubPackages() async {
   var client = http.Client();
   for (var package in Directory("pkg").listSync().map((dir) => dir.path)) {
     var pubspecPath = "$package/pubspec.yaml";
-    var pubspec = Pubspec.parse(
-        File(pubspecPath).readAsStringSync(),
+    var pubspec = Pubspec.parse(File(pubspecPath).readAsStringSync(),
         sourceUrl: p.toUri(pubspecPath));
 
     // Remove the dependency override on `sass`, because otherwise it will block
     // publishing.
-    var pubspecYaml = loadYaml(File(pubspecPath).readAsStringSync());
+    var pubspecYaml = Map<dynamic, dynamic>.of(
+        loadYaml(File(pubspecPath).readAsStringSync()) as YamlMap);
     pubspecYaml.remove("dependency_overrides");
     File(pubspecPath).writeAsStringSync(json.encode(pubspecYaml));
 
