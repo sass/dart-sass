@@ -37,7 +37,8 @@ String get _githubAuthorization {
   return bearerToken != null
       ? "Bearer $bearerToken"
       : "Basic " +
-          base64.encode(utf8.encode("${pkg.githubUser}:${pkg.githubPassword}"));
+          base64.encode(utf8
+              .encode(pkg.githubUser.value + ':' + pkg.githubPassword.value));
 }
 
 @Task('Deploy sub-packages to pub.')
@@ -81,7 +82,7 @@ Future<void> deploySubPackages() async {
     if (await process.exitCode != 0) fail("pub publish ${pubspec.name} failed");
 
     var response = await client.post(
-        Uri.parse("https://api.github.com/repos/sass/sass/git/refs"),
+        Uri.parse("https://api.github.com/repos/sass/dart-sass/git/refs"),
         headers: {
           "accept": "application/vnd.github.v3+json",
           "content-type": "application/json",
