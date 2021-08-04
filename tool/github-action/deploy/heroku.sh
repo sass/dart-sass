@@ -11,5 +11,5 @@ curl https://kolkrabbi.heroku.com/apps/98fc74a8-ff56-4a21-85f6-7a1fc8ba95c9/gith
   -H "accept-language: en-US,en;q=0.9" \
   -H "origin: https://dashboard.heroku.com" \
   -H "referer: https://dashboard.heroku.com/" \
-  -d '{"branch":"master"}' \
+  -d '{"branch":"main"}' \
   --fail --output -
