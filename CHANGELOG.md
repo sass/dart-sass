@@ -1,9 +1,14 @@
-## 1.37.6
+## 1.38.0
 
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the
   same time as file contents.
+
+### Dart API
+
+* Add a `SassArgumentList.keywordsWithoutMarking` getter to access the keyword
+  arguments of an argument list without marking them accessed.
 
 ## 1.37.5
 
