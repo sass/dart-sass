@@ -141,6 +141,16 @@ void main() {
           }))));
       expect(result.stats.includedFiles, equals(['bar']));
     });
+
+    // Regression test for sass/dart-sass#1410.
+    test("passes through an absolute file path", () {
+      var result = sass.renderSync(RenderOptions(
+          data: "@import 'foo'",
+          importer: allowInterop(expectAsync2((void _, void __) {
+            return NodeImporterResult(contents: '', file: p.absolute('bar'));
+          }))));
+      expect(result.stats.includedFiles, equals([p.absolute('bar')]));
+    });
   });
 
   group("with a file redirect", () {

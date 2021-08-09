@@ -186,7 +186,7 @@ class NodeImporter {
     if (file == null) {
       return Tuple2(contents ?? '', url);
     } else if (contents != null) {
-      return Tuple2(contents, file);
+      return Tuple2(contents, p.toUri(file).toString());
     } else {
       var resolved =
           loadRelative(p.toUri(file).toString(), previous, forImport) ??
