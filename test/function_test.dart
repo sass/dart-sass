@@ -133,22 +133,74 @@ void main() {
         await _process.kill();
       });
 
-      test("from argument lists", () async {
-        _process.inbound.add(compileString("a {b: foo(true, false, null)}",
-            functions: [r"foo($arg, $args...)"]));
-        var request = getFunctionCallRequest(await _process.outbound.next);
+      group("from argument lists", () {
+        test("with no named arguments", () async {
+          _process.inbound.add(compileString("a {b: foo(true, false, null)}",
+              functions: [r"foo($arg, $args...)"]));
+          var request = getFunctionCallRequest(await _process.outbound.next);
 
-        expect(
-            request.arguments,
-            equals([
-              _true,
-              Value()
-                ..list = (Value_List()
-                  ..separator = ListSeparator.COMMA
-                  ..hasBrackets = false
-                  ..contents.addAll([_false, _null]))
-            ]));
-        await _process.kill();
+          expect(
+              request.arguments,
+              equals([
+                _true,
+                Value()
+                  ..argumentList = (Value_ArgumentList()
+                    ..id = 1
+                    ..separator = ListSeparator.COMMA
+                    ..contents.addAll([_false, _null]))
+              ]));
+          await _process.kill();
+        });
+
+        test("with named arguments", () async {
+          _process.inbound.add(compileString(r"a {b: foo(true, $arg: false)}",
+              functions: [r"foo($args...)"]));
+          var request = getFunctionCallRequest(await _process.outbound.next);
+
+          expect(
+              request.arguments,
+              equals([
+                Value()
+                  ..argumentList = (Value_ArgumentList()
+                    ..id = 1
+                    ..separator = ListSeparator.COMMA
+                    ..contents.addAll([_true])
+                    ..keywords.addAll({"arg": _false}))
+              ]));
+          await _process.kill();
+        });
+
+        test("throws if named arguments are unused", () async {
+          _process.inbound.add(compileString(r"a {b: foo($arg: false)}",
+              functions: [r"foo($args...)"]));
+          var request = getFunctionCallRequest(await _process.outbound.next);
+
+          _process.inbound.add(InboundMessage()
+            ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+              ..id = request.id
+              ..success = _true));
+
+          var failure = getCompileFailure(await _process.outbound.next);
+          expect(failure.message, equals(r"No argument named $arg."));
+          await _process.kill();
+        });
+
+        test("doesn't throw if named arguments are used", () async {
+          _process.inbound.add(compileString(r"a {b: foo($arg: false)}",
+              functions: [r"foo($args...)"]));
+          var request = getFunctionCallRequest(await _process.outbound.next);
+
+          _process.inbound.add(InboundMessage()
+            ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+              ..id = request.id
+              ..accessedArgumentLists
+                  .add(request.arguments.first.argumentList.id)
+              ..success = _true));
+
+          await expectLater(_process.outbound,
+              emits(isSuccess(equals("a {\n  b: true;\n}"))));
+          await _process.kill();
+        });
       });
     });
   });
@@ -643,6 +695,48 @@ void main() {
             expect(list.separator, equals(ListSeparator.SLASH));
           });
         });
+      });
+    });
+
+    group("an argument list", () {
+      test("that's empty", () async {
+        var list = (await _protofy(r"capture-args()")).argumentList;
+        expect(list.contents, isEmpty);
+        expect(list.keywords, isEmpty);
+        expect(list.separator, equals(ListSeparator.COMMA));
+      });
+
+      test("with arguments", () async {
+        var list =
+            (await _protofy(r"capture-args(true, null, false)")).argumentList;
+        expect(list.contents, [_true, _null, _false]);
+        expect(list.keywords, isEmpty);
+        expect(list.separator, equals(ListSeparator.COMMA));
+      });
+
+      test("with a space separator", () async {
+        var list =
+            (await _protofy(r"capture-args(true null false...)")).argumentList;
+        expect(list.contents, [_true, _null, _false]);
+        expect(list.keywords, isEmpty);
+        expect(list.separator, equals(ListSeparator.SPACE));
+      });
+
+      test("with a slash separator", () async {
+        var list =
+            (await _protofy(r"capture-args(list.slash(true, null, false)...)"))
+                .argumentList;
+        expect(list.contents, [_true, _null, _false]);
+        expect(list.keywords, isEmpty);
+        expect(list.separator, equals(ListSeparator.SLASH));
+      });
+
+      test("with keywords", () async {
+        var list = (await _protofy(r"capture-args($arg1: true, $arg2: false)"))
+            .argumentList;
+        expect(list.contents, isEmpty);
+        expect(list.keywords, equals({"arg1": _true, "arg2": _false}));
+        expect(list.separator, equals(ListSeparator.COMMA));
       });
     });
 
@@ -1159,6 +1253,71 @@ void main() {
       });
     });
 
+    group("an argument list", () {
+      test("with no elements", () async {
+        expect(
+            await _roundTrip(Value()
+              ..argumentList =
+                  (Value_ArgumentList()..separator = ListSeparator.UNDECIDED)),
+            equals(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..id = 1
+                ..separator = ListSeparator.UNDECIDED)));
+      });
+
+      test("with comma separator", () async {
+        expect(
+            await _roundTrip(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..contents.addAll([_true, _false, _null])
+                ..separator = ListSeparator.COMMA)),
+            equals(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..id = 1
+                ..contents.addAll([_true, _false, _null])
+                ..separator = ListSeparator.COMMA)));
+      });
+
+      test("with space separator", () async {
+        expect(
+            await _roundTrip(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..contents.addAll([_true, _false, _null])
+                ..separator = ListSeparator.SPACE)),
+            equals(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..id = 1
+                ..contents.addAll([_true, _false, _null])
+                ..separator = ListSeparator.SPACE)));
+      });
+
+      test("with slash separator", () async {
+        expect(
+            await _roundTrip(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..contents.addAll([_true, _false, _null])
+                ..separator = ListSeparator.SLASH)),
+            equals(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..id = 1
+                ..contents.addAll([_true, _false, _null])
+                ..separator = ListSeparator.SLASH)));
+      });
+
+      test("with keywords", () async {
+        expect(
+            await _roundTrip(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..keywords.addAll({"arg1": _true, "arg2": _false})
+                ..separator = ListSeparator.COMMA)),
+            equals(Value()
+              ..argumentList = (Value_ArgumentList()
+                ..id = 1
+                ..keywords.addAll({"arg1": _true, "arg2": _false})
+                ..separator = ListSeparator.COMMA)));
+      });
+    });
+
     group("a map", () {
       group("with no elements", () {
         _testSerializationAndRoundTrip(Value()..map = Value_Map(), "()",
@@ -1289,6 +1448,13 @@ void main() {
             endsWith("can't have an undecided separator because it has 2 "
                 "elements"));
       });
+
+      test("an arglist with an unknown id", () async {
+        await _expectDeprotofyError(
+            Value()..argumentList = (Value_ArgumentList()..id = 1),
+            equals(
+                "Value.ArgumentList.id 1 doesn't match any known argument lists"));
+      });
     });
   });
 }
@@ -1300,6 +1466,12 @@ Future<Value> _protofy(String sassScript) async {
 @use 'sass:list';
 @use 'sass:map';
 @use 'sass:math';
+@use 'sass:meta';
+
+@function capture-args(\$args...) {
+  \$_: meta.keywords(\$args);
+  @return \$args;
+}
 
 \$_: foo(($sassScript));
 """, functions: [r"foo($arg)"]));
