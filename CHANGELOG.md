@@ -1,5 +1,8 @@
 ## 1.37.6
 
+* Fix a bug where quotes would be omitted for an attribute selector whose value
+  was a single backslash.
+
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the

@@ -441,7 +441,7 @@ class Parser {
     var value = 0;
     var first = scanner.peekChar();
     if (first == null) {
-      return "";
+      scanner.error("Expected escape sequence.");
     } else if (isNewline(first)) {
       scanner.error("Expected escape sequence.");
     } else if (isHex(first)) {
