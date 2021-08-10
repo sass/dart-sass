@@ -2780,6 +2780,7 @@ abstract class StylesheetParser extends Parser {
         case $7:
         case $8:
         case $9:
+        case $dot:
           try {
             buffer.write(rawText(_number));
           } on FormatException catch (_) {

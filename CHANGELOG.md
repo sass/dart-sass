@@ -1,5 +1,8 @@
 ## 1.37.6
 
+* Properly consider numbers that begin with `.` as "plain CSS" for the purposes
+  of parsing plain-CSS `min()` and `max()` functions.
+
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the
