@@ -1,5 +1,10 @@
 ## 1.37.6
 
+### Command Line Interface
+
+* Strip CRLF newlines from snippets of the original stylesheet that are included
+  in the output when an error occurs.
+
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the

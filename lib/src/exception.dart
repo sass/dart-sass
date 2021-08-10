@@ -46,9 +46,13 @@ class SassException extends SourceSpanException {
     // we can't be sure the user's default encoding is UTF-8.
     var wasAscii = term_glyph.ascii;
     term_glyph.ascii = true;
-    // Replace comment-closing sequences in the error message with
-    // visually-similar sequences that won't actually close the comment.
-    var commentMessage = toString(color: false).replaceAll("*/", "*∕");
+    var commentMessage = toString(color: false)
+        // Replace comment-closing sequences in the error message with
+        // visually-similar sequences that won't actually close the comment.
+        .replaceAll("*/", "*∕")
+        // If the original text contains CRLF newlines, replace them with LF
+        // newlines to match the rest of the document.
+        .replaceAll("\r\n", "\n");
     term_glyph.ascii = wasAscii;
 
     // For the string comment, render all non-ASCII characters as escape
