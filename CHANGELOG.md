@@ -1,11 +1,19 @@
 ## 1.37.6
 
+* Allow `if` to be used as an unquoted string.
+
 * Properly parse backslash escapes within `url()` expressions.
+
+### Command Line Interface
+
+* Strip CRLF newlines from snippets of the original stylesheet that are included
+  in the output when an error occurs.
 
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the
   same time as file contents.
+
 
 ## 1.37.5
 

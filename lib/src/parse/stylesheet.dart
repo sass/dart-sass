@@ -2612,7 +2612,7 @@ abstract class StylesheetParser extends Parser {
     var identifier = interpolatedIdentifier();
     var plain = identifier.asPlain;
     if (plain != null) {
-      if (plain == "if") {
+      if (plain == "if" && scanner.peekChar() == $lparen) {
         var invocation = _argumentInvocation();
         return IfExpression(
             invocation, identifier.span.expand(invocation.span));
