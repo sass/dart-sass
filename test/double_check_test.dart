@@ -50,13 +50,18 @@ void main() {
             .convert(File("$package/CHANGELOG.md").readAsStringSync())
             .first;
         expect(firstLine, startsWith("## "));
-        var changelogVersion = firstLine.substring(3);
+        var changelogVersion = Version.parse(firstLine.substring(3));
 
         var pubspec = Pubspec.parse(
             File("$package/pubspec.yaml").readAsStringSync(),
             sourceUrl: p.toUri("$package/pubspec.yaml"));
-        expect(pubspec.version!.toString(),
-            anyOf(equals(changelogVersion), equals("$changelogVersion-dev")));
+        expect(
+            pubspec.version!.toString(),
+            anyOf(
+                equals(changelogVersion.toString()),
+                changelogVersion.isPreRelease
+                    ? equals("${changelogVersion.nextPatch}-dev")
+                    : equals("$changelogVersion-dev")));
       });
     });
   }
