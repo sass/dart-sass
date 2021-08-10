@@ -1,5 +1,7 @@
 ## 1.37.6
 
+* Properly parse backslash escapes within `url()` expressions.
+
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the

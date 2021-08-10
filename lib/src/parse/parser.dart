@@ -395,14 +395,14 @@ class Parser {
       var next = scanner.peekChar();
       if (next == null) {
         break;
+      } else if (next == $backslash) {
+        buffer.write(escape());
       } else if (next == $percent ||
           next == $ampersand ||
           next == $hash ||
           (next >= $asterisk && next <= $tilde) ||
           next >= 0x0080) {
         buffer.writeCharCode(scanner.readChar());
-      } else if (next == $backslash) {
-        buffer.write(escape());
       } else if (isWhitespace(next)) {
         whitespace();
         if (scanner.peekChar() != $rparen) break;
