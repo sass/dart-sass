@@ -1,5 +1,7 @@
 ## 1.37.6
 
+* Allow `if` to be used as an unquoted string.
+
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the
