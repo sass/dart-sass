@@ -1,5 +1,7 @@
 ## 1.37.6
 
+### JS API
+
 * Don't crash when a Windows path is returned by a custom Node importer at the
   same time as file contents.
 
