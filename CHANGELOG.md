@@ -1,5 +1,8 @@
 ## 1.37.6
 
+* In expanded mode, emit characters in Unicode private-use areas as escape
+  sequences rather than literal characters.
+
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the
