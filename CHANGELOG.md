@@ -5,6 +5,9 @@
 * Don't crash when a Windows path is returned by a custom Node importer at the
   same time as file contents.
 
+* Don't crash when an error occurs in a stylesheet loaded via a custom importer
+  with a custom URL scheme.
+
 ## 1.37.5
 
 * No user-visible changes.

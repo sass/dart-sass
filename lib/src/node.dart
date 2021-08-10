@@ -183,10 +183,20 @@ RenderResult _renderSync(RenderOptions options) {
 /// Converts an exception to a [JsError].
 JsError _wrapException(Object exception) {
   if (exception is SassException) {
+    String file;
+    var url = exception.span.sourceUrl;
+    if (url == null) {
+      file = 'stdin';
+  } else if (url.scheme == 'file') {
+    file = p.fromUri(url);
+  } else {
+    file = url.toString();
+  }
+
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
         line: exception.span.start.line + 1,
         column: exception.span.start.column + 1,
-        file: exception.span.sourceUrl.andThen(p.fromUri) ?? 'stdin',
+        file: file,
         status: 1);
   } else {
     return JsError(exception.toString());
