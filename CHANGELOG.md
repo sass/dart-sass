@@ -3,6 +3,9 @@
 * Fix a bug where quotes would be omitted for an attribute selector whose value
   was a single backslash.
 
+* Properly consider numbers that begin with `.` as "plain CSS" for the purposes
+  of parsing plain-CSS `min()` and `max()` functions.
+
 * Allow `if` to be used as an unquoted string.
 
 * Properly parse backslash escapes within `url()` expressions.
