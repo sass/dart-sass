@@ -2,6 +2,8 @@
 
 * Allow `if` to be used as an unquoted string.
 
+* Properly parse backslash escapes within `url()` expressions.
+
 ### Command Line Interface
 
 * Strip CRLF newlines from snippets of the original stylesheet that are included
