@@ -704,6 +704,24 @@ void main() {
               "  ╵\n"
               "  stdin 1:9  root stylesheet"));
     });
+
+    test("it occurs in a file with a custom URL scheme", () {
+      var error =
+          renderSyncError(RenderOptions(
+              data: "@import 'foo:bar'",
+              importer: allowInterop(expectAsync2((String _, void __) {
+                  return NodeImporterResult(contents: '@error "oh no";');
+          }))));
+
+          expect(error,
+          toStringAndMessageEqual("\"oh no\"\n"
+              "  ╷\n"
+              "1 │ @error \"oh no\";\n"
+              "  │ ^^^^^^^^^^^^^^\n"
+              "  ╵\n"
+              "  foo:bar 1:1  @import\n"
+              "  stdin 1:9    root stylesheet"));
+    });
   });
 
   group("render()", () {
