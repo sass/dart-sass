@@ -409,7 +409,7 @@ class ExtensionStore {
   /// Extends [this] with all the extensions in [extensions].
   ///
   /// These extensions will extend all selectors already in [this], but they
-  /// will *not* extend other extensions from [extenders].
+  /// will *not* extend other extensions from [extensionStores].
   void addExtensions(Iterable<ExtensionStore> extensionStores) {
     // Extensions already in [this] whose extenders are extended by
     // [extensions], and thus which need to be updated.
@@ -445,21 +445,18 @@ class ExtensionStore {
         // Add [newSources] to [_extensions].
         var existingSources = _extensions[target];
         if (existingSources == null) {
-          _extensions[target] = newSources;
+          _extensions[target] = Map.of(newSources);
           if (extensionsForTarget != null || selectorsForTarget != null) {
-            (newExtensions ??= {})[target] = newSources;
+            (newExtensions ??= {})[target] = Map.of(newSources);
           }
         } else {
           newSources.forEach((extender, extension) {
-            // If [extender] already extends [target] in [_extensions], we don't
-            // need to re-run the extension.
-            if (existingSources.containsKey(extender)) return;
-            existingSources[extender] = extension;
+            extension = existingSources.putOrMerge(
+                extender, extension, MergedExtension.merge);
 
             if (extensionsForTarget != null || selectorsForTarget != null) {
-              (newExtensions ??= {})
-                  .putIfAbsent(target, () => {})
-                  .putIfAbsent(extender, () => extension);
+              (newExtensions ??= {}).putIfAbsent(target, () => {})[extender] =
+                  extension;
             }
           });
         }

@@ -403,3 +403,15 @@ extension SpanExtensions on FileSpan {
         : file.span(this.start.offset + start, this.start.offset + end + 1);
   }
 }
+
+extension MapExtension<K, V> on Map<K, V> {
+  /// If [this] doesn't contain the given [key], sets that key to [value] and
+  /// returns it.
+  ///
+  /// Otherwise, calls [merge] with the existing value and [value] and sets
+  /// [key] to the result.
+  V putOrMerge(K key, V value, V Function(V oldValue, V newValue) merge) =>
+      containsKey(key)
+          ? this[key] = merge(this[key]!, value)
+          : this[key] = value;
+}
