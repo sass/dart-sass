@@ -2612,7 +2612,7 @@ abstract class StylesheetParser extends Parser {
     var identifier = interpolatedIdentifier();
     var plain = identifier.asPlain;
     if (plain != null) {
-      if (plain == "if") {
+      if (plain == "if" && scanner.peekChar() == $lparen) {
         var invocation = _argumentInvocation();
         return IfExpression(
             invocation, identifier.span.expand(invocation.span));
@@ -2911,14 +2911,14 @@ abstract class StylesheetParser extends Parser {
       var next = scanner.peekChar();
       if (next == null) {
         break;
+      } else if (next == $backslash) {
+        buffer.write(escape());
       } else if (next == $exclamation ||
           next == $percent ||
           next == $ampersand ||
           (next >= $asterisk && next <= $tilde) ||
           next >= 0x0080) {
         buffer.writeCharCode(scanner.readChar());
-      } else if (next == $backslash) {
-        buffer.write(escape());
       } else if (next == $hash) {
         if (scanner.peekChar(1) == $lbrace) {
           buffer.add(singleInterpolation());
