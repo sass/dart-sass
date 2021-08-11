@@ -1,5 +1,8 @@
 ## 1.37.6
 
+* Fix a bug where quotes would be omitted for an attribute selector whose value
+  was a single backslash.
+
 * Allow `if` to be used as an unquoted string.
 
 * Properly parse backslash escapes within `url()` expressions.
