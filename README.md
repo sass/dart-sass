@@ -137,7 +137,7 @@ This provides access to the Sass AST and APIs for resolving Sass loads without
 running a full compilation. It's separated out into its own package so that it
 can increase its version number independently of the main `sass` package.
 
-[`sass_api` package]: https://pub.dev/package/sass_api
+[`sass_api` package]: https://pub.dev/packages/sass_api
 
 ### From Source
 
