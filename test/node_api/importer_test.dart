@@ -706,14 +706,14 @@ void main() {
     });
 
     test("it occurs in a file with a custom URL scheme", () {
-      var error =
-          renderSyncError(RenderOptions(
-              data: "@import 'foo:bar'",
-              importer: allowInterop(expectAsync2((String _, void __) {
-                  return NodeImporterResult(contents: '@error "oh no";');
+      var error = renderSyncError(RenderOptions(
+          data: "@import 'foo:bar'",
+          importer: allowInterop(expectAsync2((String _, void __) {
+            return NodeImporterResult(contents: '@error "oh no";');
           }))));
 
-          expect(error,
+      expect(
+          error,
           toStringAndMessageEqual("\"oh no\"\n"
               "  ╷\n"
               "1 │ @error \"oh no\";\n"

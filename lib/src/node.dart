@@ -187,11 +187,11 @@ JsError _wrapException(Object exception) {
     var url = exception.span.sourceUrl;
     if (url == null) {
       file = 'stdin';
-  } else if (url.scheme == 'file') {
-    file = p.fromUri(url);
-  } else {
-    file = url.toString();
-  }
+    } else if (url.scheme == 'file') {
+      file = p.fromUri(url);
+    } else {
+      file = url.toString();
+    }
 
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
         line: exception.span.start.line + 1,
