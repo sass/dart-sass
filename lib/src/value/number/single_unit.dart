@@ -13,6 +13,28 @@ import '../../util/nullable.dart';
 import '../../value.dart';
 import '../number.dart';
 
+/// Sets of units that are known to be compatible with one another in the
+/// browser.
+///
+/// These units are likewise known to be *incompatible* with units in other
+/// sets in this list.
+const _knownCompatibilities = [
+  {
+    "em", "ex", "ch", "rem", "vw", "vh", "vmin", "vmax", "cm", "mm", "q", //
+    "in", "pt", "pc", "px"
+  },
+  {"deg", "grad", "rad", "turn"},
+  {"s", "ms"},
+  {"hz", "khz"},
+  {"dpi", "dpcm", "dppx"}
+];
+
+/// A map from units to the other units they're known to be compatible with.
+final _knownCompatibilitiesByUnit = {
+  for (var set in _knownCompatibilities)
+    for (var unit in set) unit: set
+};
+
 /// A specialized subclass of [SassNumber] for numbers that have exactly one
 /// numerator unit.
 ///
@@ -37,6 +59,21 @@ class SingleUnitSassNumber extends SassNumber {
       SingleUnitSassNumber(value, _unit, Tuple2(numerator, denominator));
 
   bool hasUnit(String unit) => unit == _unit;
+
+  bool hasCompatibleUnits(SassNumber other) =>
+      other is SingleUnitSassNumber && compatibleWithUnit(other._unit);
+
+  @internal
+  bool hasPossiblyCompatibleUnits(SassNumber other) {
+    if (other is! SingleUnitSassNumber) return false;
+
+    var knownCompatibilities = _knownCompatibilitiesByUnit[_unit.toLowerCase()];
+    if (knownCompatibilities == null) return true;
+
+    var otherUnit = other._unit.toLowerCase();
+    return knownCompatibilities.contains(otherUnit) ||
+        !_knownCompatibilitiesByUnit.containsKey(otherUnit);
+  }
 
   bool compatibleWithUnit(String unit) => conversionFactor(_unit, unit) != null;
 

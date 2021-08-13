@@ -469,6 +469,43 @@ class _SerializeVisitor
 
   void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 
+  void visitCalculation(SassCalculation value) {
+    _buffer.write(value.name);
+    _buffer.writeCharCode($lparen);
+    _writeBetween(value.arguments, _commaSeparator, _writeCalculationValue);
+    _buffer.writeCharCode($rparen);
+  }
+
+  void _writeCalculationValue(Object value) {
+    if (value is Value) {
+      value.accept(this);
+    } else if (value is CalculationInterpolation) {
+      _buffer.write(value.value);
+    } else if (value is CalculationOperation) {
+      var left = value.left;
+      var parenthesizeLeft = left is CalculationInterpolation ||
+          (left is CalculationOperation &&
+              left.operator.precedence < value.operator.precedence);
+      if (parenthesizeLeft) _buffer.writeCharCode($lparen);
+      _writeCalculationValue(left);
+      if (parenthesizeLeft) _buffer.writeCharCode($rparen);
+
+      var operatorWhitespace = !_isCompressed || value.operator.precedence == 1;
+      if (operatorWhitespace) _buffer.writeCharCode($space);
+      _buffer.write(value.operator.operator);
+      if (operatorWhitespace) _buffer.writeCharCode($space);
+
+      var right = value.right;
+      var parenthesizeRight = right is CalculationInterpolation ||
+          (right is CalculationOperation &&
+              (right.operator.precedence < value.operator.precedence ||
+                  value.operator == CalculationOperator.dividedBy));
+      if (parenthesizeRight) _buffer.writeCharCode($lparen);
+      _writeCalculationValue(right);
+      if (parenthesizeRight) _buffer.writeCharCode($rparen);
+    }
+  }
+
   void visitColor(SassColor value) {
     // In compressed mode, emit colors in the shortest representation possible.
     if (_isCompressed && fuzzyEquals(value.alpha, 1)) {

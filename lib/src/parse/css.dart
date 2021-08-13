@@ -136,4 +136,9 @@ class CssParser extends ScssParser {
             arguments, const {}, scanner.spanFrom(beforeArguments)),
         scanner.spanFrom(start));
   }
+
+  Expression namespacedExpression(String namespace, LineScannerState start) {
+    var expression = super.namespacedExpression(namespace, start);
+    error("Module namespaces aren't allowed in plain CSS.", expression.span);
+  }
 }

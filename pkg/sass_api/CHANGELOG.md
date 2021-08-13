@@ -1,3 +1,10 @@
+## 1.0.0-beta.5
+
+* Add the `CalculationExpression` type to represent calculations in the Sass
+  AST.
+
+* Add the `ExpressionVisitor.visitCalculationExpression` method.
+
 ## 1.0.0-beta.4
 
 * `UseRule`, `ForwardRule`, and `DynamicImport` now share a common `Dependency`

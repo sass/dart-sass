@@ -122,7 +122,7 @@ class BinaryOperator {
   /// The addition operator, `+`.
   static const plus = BinaryOperator._("plus", "+", 5);
 
-  /// The subtraction operator, `+`.
+  /// The subtraction operator, `-`.
   static const minus = BinaryOperator._("minus", "-", 5);
 
   /// The multiplication operator, `*`.
