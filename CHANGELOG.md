@@ -1,5 +1,8 @@
 ## 1.37.6
 
+* In expanded mode, emit characters in Unicode private-use areas as escape
+  sequences rather than literal characters.
+
 * Fix a bug where quotes would be omitted for an attribute selector whose value
   was a single backslash.
 
