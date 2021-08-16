@@ -948,15 +948,7 @@ class _SerializeVisitor
         case $gs:
         case $rs:
         case $us:
-          buffer.writeCharCode($backslash);
-          if (char > 0xF) buffer.writeCharCode(hexCharFor(char >> 4));
-          buffer.writeCharCode(hexCharFor(char & 0xF));
-          if (string.length == i + 1) break;
-
-          var next = string.codeUnitAt(i + 1);
-          if (isHex(next) || next == $space || next == $tab) {
-            buffer.writeCharCode($space);
-          }
+          _writeEscape(buffer, char, string, i);
           break;
 
         case $backslash:
@@ -965,6 +957,12 @@ class _SerializeVisitor
           break;
 
         default:
+          var newIndex = _tryPrivateUseCharacter(buffer, char, string, i);
+          if (newIndex != null) {
+            i = newIndex;
+            break;
+          }
+
           buffer.writeCharCode(char);
           break;
       }
@@ -996,10 +994,63 @@ class _SerializeVisitor
           break;
 
         default:
-          _buffer.writeCharCode(char);
           afterNewline = false;
+          var newIndex = _tryPrivateUseCharacter(_buffer, char, string, i);
+          if (newIndex != null) {
+            i = newIndex;
+            break;
+          }
+
+          _buffer.writeCharCode(char);
           break;
       }
+    }
+  }
+
+  /// If [codeUnit] is (the beginning of) a private-use character and Sass isn't
+  /// emitting compressed CSS, writes that character as an escape to [buffer].
+  ///
+  /// The [string] is the string from which [codeUnit] was read, and [i] is the
+  /// index it was read from. If this successfully writes the character, returns
+  /// the index of the *last* code unit that was consumed for it. Otherwise,
+  /// returns `null`.
+  ///
+  /// In expanded mode, we print all characters in Private Use Areas as escape
+  /// codes since there's no useful way to render them directly. These
+  /// characters are often used for glyph fonts, where it's useful for readers
+  /// to be able to distinguish between them in the rendered stylesheet.
+  int? _tryPrivateUseCharacter(
+      StringBuffer buffer, int codeUnit, String string, int i) {
+    if (_isCompressed) return null;
+
+    if (isPrivateUseBMP(codeUnit)) {
+      _writeEscape(buffer, codeUnit, string, i);
+      return i;
+    }
+
+    if (isPrivateUseHighSurrogate(codeUnit) && string.length > i + 1) {
+      _writeEscape(buffer,
+          combineSurrogates(codeUnit, string.codeUnitAt(i + 1)), string, i + 1);
+      return i + 1;
+    }
+
+    return null;
+  }
+
+  /// Writes [character] as a hexadecimal escape sequence to [buffer].
+  ///
+  /// The [string] is the string from which the escape is being written, and [i]
+  /// is the index of the last code unit of [character] in that string. These
+  /// are used to write a trailing space after the escape if necessary to
+  /// disambiguate it from the next character.
+  void _writeEscape(StringBuffer buffer, int character, String string, int i) {
+    buffer.writeCharCode($backslash);
+    buffer.write(character.toRadixString(16));
+
+    if (string.length == i + 1) return;
+    var next = string.codeUnitAt(i + 1);
+    if (isHex(next) || next == $space || next == $tab) {
+      buffer.writeCharCode($space);
     }
   }
 

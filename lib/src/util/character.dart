@@ -53,7 +53,34 @@ bool isHex(int? character) {
 
 /// Returns whether [character] is the beginning of a UTF-16 surrogate pair.
 bool isHighSurrogate(int character) =>
-    character >= 0xD800 && character <= 0xDBFF;
+    // A character is a high surrogate exactly if it matches 0b110110XXXXXXXXXX.
+    // 0x36 == 0b110110.
+    character >> 10 == 0x36;
+
+/// Returns whether [character] is a Unicode private-use code point in the Basic
+/// Multilingual Plane.
+///
+/// See https://en.wikipedia.org/wiki/Private_Use_Areas for details.
+bool isPrivateUseBMP(int character) =>
+    character >= 0xE000 && character <= 0xF8FF;
+
+/// Returns whether [character] is the high surrogate for a code point in a
+/// Unicode private-use supplementary plane.
+///
+/// See https://en.wikipedia.org/wiki/Private_Use_Areas for details.
+bool isPrivateUseHighSurrogate(int character) =>
+    // Supplementary Private Use Area-A's and B's high surrogates range from
+    // 0xDB80 to 0xDBFF, which covers exactly the range 0b110110111XXXXXXX.
+    // 0b110110111 == 0x1B7.
+    character >> 7 == 0x1B7;
+
+/// Combines a UTF-16 high and low surrogate pair into a single code unit.
+///
+/// See https://en.wikipedia.org/wiki/UTF-16 for details.
+int combineSurrogates(int highSurrogate, int lowSurrogate) =>
+    // 0x3FF == 0b0000001111111111, which masks out the six bits that indicate
+    // high/low surrogates.
+    0x10000 + ((highSurrogate & 0x3FF) << 10) + (lowSurrogate & 0x3FF);
 
 // Returns whether [character] can start a simple selector other than a type
 // selector.

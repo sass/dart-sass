@@ -11,6 +11,52 @@ import 'package:test/test.dart';
 import 'package:sass/sass.dart';
 
 void main() {
+  group("emits private-use area characters as escapes in expanded mode", () {
+    var testCharacter = (String escape) {
+      test("$escape", () {
+        expect(compileString("a {b: $escape}"),
+            equalsIgnoringWhitespace("a { b: $escape; }"));
+      });
+    };
+
+    group("in the basic multilingual plane", () {
+      testCharacter(r"\e000");
+      testCharacter(r"\f000");
+      testCharacter(r"\f8ff");
+    });
+
+    group("in the supplementary planes", () {
+      testCharacter(r"\f0000");
+      testCharacter(r"\fabcd");
+      testCharacter(r"\ffffd");
+      testCharacter(r"\100000");
+      testCharacter(r"\10abcd");
+      testCharacter(r"\10fffd");
+
+      // Although these aren't technically in private-use areaa, they're in
+      // private-use planes and they have no visual representation to we
+      // escape them as well.
+      group("that aren't technically in PUAs", () {
+        testCharacter(r"\ffffe");
+        testCharacter(r"\fffff");
+        testCharacter(r"\10fffe");
+        testCharacter(r"\10ffff");
+      });
+    });
+
+    group("adds a space", () {
+      test("if followed by a hex character", () {
+        expect(compileString(r"a {b: '\e000 a'}"),
+            equalsIgnoringWhitespace(r'a { b: "\e000 a"; }'));
+      });
+
+      test("if followed by a space", () {
+        expect(compileString(r"a {b: '\e000  '}"),
+            equalsIgnoringWhitespace(r'a { b: "\e000  "; }'));
+      });
+    });
+  });
+
   // Regression test for sass/dart-sass#623. This needs to be tested here
   // because sass-spec normalizes CR LF newlines.
   group("normalizes newlines in a loud comment", () {

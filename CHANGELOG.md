@@ -1,9 +1,30 @@
 ## 1.38.0
 
+* In expanded mode, emit characters in Unicode private-use areas as escape
+  sequences rather than literal characters.
+
+* Fix a bug where quotes would be omitted for an attribute selector whose value
+  was a single backslash.
+
+* Properly consider numbers that begin with `.` as "plain CSS" for the purposes
+  of parsing plain-CSS `min()` and `max()` functions.
+
+* Allow `if` to be used as an unquoted string.
+
+* Properly parse backslash escapes within `url()` expressions.
+
+### Command Line Interface
+
+* Strip CRLF newlines from snippets of the original stylesheet that are included
+  in the output when an error occurs.
+
 ### JS API
 
 * Don't crash when a Windows path is returned by a custom Node importer at the
   same time as file contents.
+
+* Don't crash when an error occurs in a stylesheet loaded via a custom importer
+  with a custom URL scheme.
 
 ### Dart API
 

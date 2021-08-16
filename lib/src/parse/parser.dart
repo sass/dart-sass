@@ -395,14 +395,14 @@ class Parser {
       var next = scanner.peekChar();
       if (next == null) {
         break;
+      } else if (next == $backslash) {
+        buffer.write(escape());
       } else if (next == $percent ||
           next == $ampersand ||
           next == $hash ||
           (next >= $asterisk && next <= $tilde) ||
           next >= 0x0080) {
         buffer.writeCharCode(scanner.readChar());
-      } else if (next == $backslash) {
-        buffer.write(escape());
       } else if (isWhitespace(next)) {
         whitespace();
         if (scanner.peekChar() != $rparen) break;
@@ -441,7 +441,7 @@ class Parser {
     var value = 0;
     var first = scanner.peekChar();
     if (first == null) {
-      return "";
+      scanner.error("Expected escape sequence.");
     } else if (isNewline(first)) {
       scanner.error("Expected escape sequence.");
     } else if (isHex(first)) {
