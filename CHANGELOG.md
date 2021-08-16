@@ -13,6 +13,9 @@
 
 * Properly parse backslash escapes within `url()` expressions.
 
+* Fix a couple bugs where `@extend`s could be marked as unsatisfied when
+  multiple identical `@extend`s extended selectors across `@use` rules.
+
 ### Command Line Interface
 
 * Strip CRLF newlines from snippets of the original stylesheet that are included
