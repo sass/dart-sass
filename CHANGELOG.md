@@ -1,4 +1,4 @@
-## 1.37.6
+## 1.38.0
 
 * In expanded mode, emit characters in Unicode private-use areas as escape
   sequences rather than literal characters.
@@ -28,6 +28,11 @@
 
 * Don't crash when an error occurs in a stylesheet loaded via a custom importer
   with a custom URL scheme.
+
+### Dart API
+
+* Add a `SassArgumentList.keywordsWithoutMarking` getter to access the keyword
+  arguments of an argument list without marking them accessed.
 
 ## 1.37.5
 
