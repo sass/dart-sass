@@ -1,3 +1,7 @@
+## 1.0.0-beta.10
+
+* Support slash-separated lists.
+
 ## 1.0.0-beta.9
 
 * No user-visible changes.

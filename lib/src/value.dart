@@ -70,6 +70,8 @@ ListSeparator _protofySeparator(sass.ListSeparator separator) {
       return ListSeparator.COMMA;
     case sass.ListSeparator.space:
       return ListSeparator.SPACE;
+    case sass.ListSeparator.slash:
+      return ListSeparator.SLASH;
     case sass.ListSeparator.undecided:
       return ListSeparator.UNDECIDED;
     default:
@@ -190,6 +192,8 @@ sass.ListSeparator _deprotofySeparator(ListSeparator separator) {
       return sass.ListSeparator.comma;
     case ListSeparator.SPACE:
       return sass.ListSeparator.space;
+    case ListSeparator.SLASH:
+      return sass.ListSeparator.slash;
     case ListSeparator.UNDECIDED:
       return sass.ListSeparator.undecided;
     default:

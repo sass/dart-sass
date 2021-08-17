@@ -497,6 +497,14 @@ void main() {
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.SPACE));
           });
+
+          test("with a slash separator", () async {
+            var list =
+                (await _protofy(r"list.join([], [], $separator: slash)")).list;
+            expect(list.contents, isEmpty);
+            expect(list.hasBrackets, isTrue);
+            expect(list.separator, equals(ListSeparator.SLASH));
+          });
         });
 
         group("without brackets", () {
@@ -521,6 +529,14 @@ void main() {
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SPACE));
+          });
+
+          test("with a slash separator", () async {
+            var list =
+                (await _protofy(r"list.join((), (), $separator: slash)")).list;
+            expect(list.contents, isEmpty);
+            expect(list.hasBrackets, isFalse);
+            expect(list.separator, equals(ListSeparator.SLASH));
           });
         });
       });
@@ -549,6 +565,15 @@ void main() {
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.SPACE));
           });
+
+          test("with a slash separator", () async {
+            var list =
+                (await _protofy(r"list.join([true], [], $separator: slash)"))
+                    .list;
+            expect(list.contents, equals([_true]));
+            expect(list.hasBrackets, isTrue);
+            expect(list.separator, equals(ListSeparator.SLASH));
+          });
         });
 
         group("without brackets", () {
@@ -566,6 +591,15 @@ void main() {
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SPACE));
+          });
+
+          test("with a slash separator", () async {
+            var list =
+                (await _protofy(r"list.join(true, (), $separator: slash)"))
+                    .list;
+            expect(list.contents, equals([_true]));
+            expect(list.hasBrackets, isFalse);
+            expect(list.separator, equals(ListSeparator.SLASH));
           });
         });
       });
@@ -600,6 +634,13 @@ void main() {
             expect(list.contents, equals([_true, _null, _false]));
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SPACE));
+          });
+
+          test("with a slash separator", () async {
+            var list = (await _protofy(r"list.slash(true, null, false)")).list;
+            expect(list.contents, equals([_true, _null, _false]));
+            expect(list.hasBrackets, isFalse);
+            expect(list.separator, equals(ListSeparator.SLASH));
           });
         });
       });
@@ -895,6 +936,15 @@ void main() {
                     ..separator = ListSeparator.SPACE),
                 "[]");
           });
+
+          group("with a slash separator", () {
+            _testSerializationAndRoundTrip(
+                Value()
+                  ..list = (Value_List()
+                    ..hasBrackets = true
+                    ..separator = ListSeparator.SLASH),
+                "[]");
+          });
         });
 
         group("without brackets", () {
@@ -924,6 +974,16 @@ void main() {
                   ..list = (Value_List()
                     ..hasBrackets = false
                     ..separator = ListSeparator.SPACE),
+                "()",
+                inspect: true);
+          });
+
+          group("with a slash separator", () {
+            _testSerializationAndRoundTrip(
+                Value()
+                  ..list = (Value_List()
+                    ..hasBrackets = false
+                    ..separator = ListSeparator.SLASH),
                 "()",
                 inspect: true);
           });
@@ -963,6 +1023,16 @@ void main() {
                     ..separator = ListSeparator.SPACE),
                 "[true]");
           });
+
+          group("with a slash separator", () {
+            _testSerializationAndRoundTrip(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.add(_true)
+                    ..hasBrackets = true
+                    ..separator = ListSeparator.SLASH),
+                "[true]");
+          });
         });
 
         group("without brackets", () {
@@ -997,6 +1067,16 @@ void main() {
                     ..separator = ListSeparator.SPACE),
                 "true");
           });
+
+          group("with a slash separator", () {
+            _testSerializationAndRoundTrip(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.add(_true)
+                    ..hasBrackets = false
+                    ..separator = ListSeparator.SLASH),
+                "true");
+          });
         });
       });
 
@@ -1025,6 +1105,18 @@ void main() {
                     inspect: true),
                 "[true null false]");
           });
+
+          test("with a slash separator", () async {
+            expect(
+                await _deprotofy(
+                    Value()
+                      ..list = (Value_List()
+                        ..contents.addAll([_true, _null, _false])
+                        ..hasBrackets = true
+                        ..separator = ListSeparator.SLASH),
+                    inspect: true),
+                "[true / null / false]");
+          });
         });
 
         group("without brackets", () {
@@ -1050,6 +1142,18 @@ void main() {
                         ..separator = ListSeparator.SPACE),
                     inspect: true),
                 "true null false");
+          });
+
+          test("with a slash separator", () async {
+            expect(
+                await _deprotofy(
+                    Value()
+                      ..list = (Value_List()
+                        ..contents.addAll([_true, _null, _false])
+                        ..hasBrackets = false
+                        ..separator = ListSeparator.SLASH),
+                    inspect: true),
+                "true / null / false");
           });
         });
       });
