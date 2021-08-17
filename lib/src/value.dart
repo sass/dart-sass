@@ -162,6 +162,7 @@ sass.Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
         }
 
       case Value_Value.notSet:
+      default:
         throw mandatoryError("Value.value");
     }
   } on RangeError catch (error) {
