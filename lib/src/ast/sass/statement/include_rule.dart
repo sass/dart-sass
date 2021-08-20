@@ -9,6 +9,7 @@ import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
+import '../interface/reference.dart';
 import '../statement.dart';
 import 'content_block.dart';
 
@@ -16,7 +17,7 @@ import 'content_block.dart';
 ///
 /// {@category AST}
 @sealed
-class IncludeRule implements Statement, CallableInvocation {
+class IncludeRule implements Statement, CallableInvocation, SassReference {
   /// The namespace of the mixin being invoked, or `null` if it's invoked
   /// without a namespace.
   final String? namespace;
@@ -38,6 +39,19 @@ class IncludeRule implements Statement, CallableInvocation {
   FileSpan get spanWithoutContent => content == null
       ? span
       : span.file.span(span.start.offset, arguments.span.end.offset).trim();
+
+  FileSpan get nameSpan {
+    var match = RegExp(r'(\+|@include)\s*').matchAsPrefix(span.text);
+    var start = match!.end;
+    if (namespace != null) start += namespace!.length + 1;
+    return span.subspan(start, start + name.length);
+  }
+
+  FileSpan get namespaceSpan {
+    var match = RegExp(r'(\+|@include)\s*').matchAsPrefix(span.text);
+    var start = match!.end;
+    return span.subspan(start, start + (namespace?.length ?? 0));
+  }
 
   IncludeRule(this.name, this.arguments, this.span,
       {this.namespace, this.content});

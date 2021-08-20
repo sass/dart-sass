@@ -9,6 +9,7 @@ import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
+import '../interface/reference.dart';
 import '../interpolation.dart';
 
 /// A function invocation.
@@ -17,7 +18,8 @@ import '../interpolation.dart';
 ///
 /// {@category AST}
 @sealed
-class FunctionExpression implements Expression, CallableInvocation {
+class FunctionExpression
+    implements Expression, CallableInvocation, SassReference {
   /// The namespace of the function being invoked, or `null` if it's invoked
   /// without a namespace.
   final String? namespace;
@@ -29,14 +31,24 @@ class FunctionExpression implements Expression, CallableInvocation {
   ///
   /// If this is interpolated, the function will be interpreted as plain CSS,
   /// even if it has the same name as a Sass function.
-  final Interpolation name;
+  final Interpolation interpolatedName;
+  String? get name => namespace == null
+      ? interpolatedName.asPlain?.replaceAll('_', '-')
+      : interpolatedName.asPlain;
 
   /// The arguments to pass to the function.
   final ArgumentInvocation arguments;
 
   final FileSpan span;
 
-  FunctionExpression(this.name, this.arguments, this.span, {this.namespace});
+  FileSpan get nameSpan => interpolatedName.span;
+
+  FileSpan get namespaceSpan => namespace == null
+      ? span.start.pointSpan()
+      : span.subspan(0, namespace!.length);
+
+  FunctionExpression(this.interpolatedName, this.arguments, this.span,
+      {this.namespace});
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitFunctionExpression(this);
@@ -44,7 +56,7 @@ class FunctionExpression implements Expression, CallableInvocation {
   String toString() {
     var buffer = StringBuffer();
     if (namespace != null) buffer.write("$namespace.");
-    buffer.write("$name$arguments");
+    buffer.write("$interpolatedName$arguments");
     return buffer.toString();
   }
 }

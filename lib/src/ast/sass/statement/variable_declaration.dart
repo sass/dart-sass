@@ -11,6 +11,7 @@ import '../../../parse/scss.dart';
 import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
+import '../interface/declaration.dart';
 import '../statement.dart';
 import 'silent_comment.dart';
 
@@ -20,12 +21,12 @@ import 'silent_comment.dart';
 ///
 /// {@category AST}
 @sealed
-class VariableDeclaration implements Statement {
+class VariableDeclaration implements Statement, SassDeclaration {
   /// The namespace of the variable being set, or `null` if it's defined or set
   /// without a namespace.
   final String? namespace;
 
-  /// The name of the variable.
+  /// The name of the variable, with underscores converted to hyphens.
   final String name;
 
   /// The comment immediately preceding this declaration.
@@ -52,6 +53,15 @@ class VariableDeclaration implements Statement {
   /// This isn't particularly efficient, and should only be used for error
   /// messages.
   String get originalName => declarationName(span);
+
+  FileSpan get nameSpan {
+    var start = namespace == null ? 0 : namespace!.length + 1;
+    return span.subspan(start, start + name.length);
+  }
+
+  FileSpan get namespaceSpan => namespace == null
+      ? span.start.pointSpan()
+      : span.subspan(0, namespace!.length);
 
   VariableDeclaration(this.name, this.expression, this.span,
       {this.namespace,

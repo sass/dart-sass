@@ -161,7 +161,7 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
   }
 
   void visitFunctionExpression(FunctionExpression node) {
-    visitInterpolation(node.name);
+    visitInterpolation(node.interpolatedName);
     visitArgumentInvocation(node.arguments);
   }
 

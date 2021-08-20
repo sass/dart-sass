@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ffd96390e470c2feb704a96bc4092c62a8209989
+// Checksum: 49a2bc1557adf807f2838de1264ba206c3073676
 //
 // ignore_for_file: unused_import
 
@@ -2215,18 +2215,11 @@ class _EvaluateVisitor
   }
 
   Value visitFunctionExpression(FunctionExpression node) {
-    var plainName = node.name.asPlain;
+    var plainName = node.name;
     Callable? function;
     if (plainName != null) {
       function = _addExceptionSpan(
-          node,
-          () => _getFunction(
-              // If the node has a namespace, the plain name was already
-              // normalized at parse-time so we don't need to renormalize here.
-              node.namespace == null
-                  ? plainName.replaceAll("_", "-")
-                  : plainName,
-              namespace: node.namespace));
+          node, () => _getFunction(plainName, namespace: node.namespace));
     }
 
     if (function == null) {
@@ -2234,7 +2227,7 @@ class _EvaluateVisitor
         throw _exception("Undefined function.", node.span);
       }
 
-      function = PlainCssCallable(_performInterpolation(node.name));
+      function = PlainCssCallable(_performInterpolation(node.interpolatedName));
     }
 
     var oldInFunction = _inFunction;

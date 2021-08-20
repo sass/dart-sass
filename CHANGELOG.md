@@ -1,3 +1,7 @@
+## 1.38.1
+
+* No user-visible changes
+
 ## 1.38.0
 
 * In expanded mode, emit characters in Unicode private-use areas as escape

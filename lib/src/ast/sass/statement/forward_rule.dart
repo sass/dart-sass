@@ -9,13 +9,14 @@ import 'package:source_span/source_span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
 import '../expression/string.dart';
+import '../interface/dependency.dart';
 import '../statement.dart';
 
 /// A `@forward` rule.
 ///
 /// {@category AST}
 @sealed
-class ForwardRule implements Statement {
+class ForwardRule implements Statement, Dependency {
   /// The URI of the module to forward.
   ///
   /// If this is relative, it's relative to the containing file.
@@ -73,6 +74,9 @@ class ForwardRule implements Statement {
   final List<ConfiguredVariable> configuration;
 
   final FileSpan span;
+
+  FileSpan get urlSpan =>
+      span.subspan(RegExp(r'@forward\s+').matchAsPrefix(span.text)!.end);
 
   /// Creates a `@forward` rule that allows all members to be accessed.
   ForwardRule(this.url, this.span,

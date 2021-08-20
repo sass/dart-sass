@@ -2227,18 +2227,11 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitFunctionExpression(FunctionExpression node) async {
-    var plainName = node.name.asPlain;
+    var plainName = node.name;
     AsyncCallable? function;
     if (plainName != null) {
       function = _addExceptionSpan(
-          node,
-          () => _getFunction(
-              // If the node has a namespace, the plain name was already
-              // normalized at parse-time so we don't need to renormalize here.
-              node.namespace == null
-                  ? plainName.replaceAll("_", "-")
-                  : plainName,
-              namespace: node.namespace));
+          node, () => _getFunction(plainName, namespace: node.namespace));
     }
 
     if (function == null) {
@@ -2246,7 +2239,8 @@ class _EvaluateVisitor
         throw _exception("Undefined function.", node.span);
       }
 
-      function = PlainCssCallable(await _performInterpolation(node.name));
+      function =
+          PlainCssCallable(await _performInterpolation(node.interpolatedName));
     }
 
     var oldInFunction = _inFunction;

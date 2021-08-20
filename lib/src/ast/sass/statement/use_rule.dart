@@ -11,13 +11,14 @@ import '../../../parse/scss.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
 import '../expression/string.dart';
+import '../interface/dependency.dart';
 import '../statement.dart';
 
 /// A `@use` rule.
 ///
 /// {@category AST}
 @sealed
-class UseRule implements Statement {
+class UseRule implements Statement, Dependency {
   /// The URI of the module to use.
   ///
   /// If this is relative, it's relative to the containing file.
@@ -31,6 +32,9 @@ class UseRule implements Statement {
   final List<ConfiguredVariable> configuration;
 
   final FileSpan span;
+
+  FileSpan get urlSpan =>
+      span.subspan(RegExp(r'@use\s+').matchAsPrefix(span.text)!.end);
 
   UseRule(this.url, this.namespace, this.span,
       {Iterable<ConfiguredVariable>? configuration})

@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
 import '../argument_declaration.dart';
+import '../interface/declaration.dart';
 import '../statement.dart';
 import 'callable_declaration.dart';
 import 'silent_comment.dart';
@@ -17,7 +18,13 @@ import 'silent_comment.dart';
 ///
 /// {@category AST}
 @sealed
-class FunctionRule extends CallableDeclaration {
+class FunctionRule extends CallableDeclaration implements SassDeclaration {
+  FileSpan get nameSpan {
+    var match = RegExp(r'@function\s*').matchAsPrefix(span.text);
+    var start = match!.end;
+    return span.subspan(start, start + name.length);
+  }
+
   FunctionRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,
       {SilentComment? comment})
