@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
 import 'expression.dart';
-import 'interface/declaration.dart';
+import 'declaration.dart';
 import 'node.dart';
 
 /// An argument declared as part of an [ArgumentDeclaration].
@@ -32,7 +32,7 @@ class Argument implements SassNode, SassDeclaration {
       defaultValue == null ? span.text : declarationName(span);
 
   FileSpan get nameSpan =>
-      defaultValue == null ? span : span.subspan(0, name.length + 1);
+      defaultValue == null ? span : span.initialIdentifier(includeLeading: 1);
 
   Argument(this.name, this.span, {this.defaultValue});
 

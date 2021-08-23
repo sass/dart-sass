@@ -6,17 +6,18 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
+import '../dependency.dart';
 import '../expression/string.dart';
-import '../interface/dependency.dart';
 import '../statement.dart';
 
 /// A `@forward` rule.
 ///
 /// {@category AST}
 @sealed
-class ForwardRule implements Statement, Dependency {
+class ForwardRule implements Statement, SassDependency {
   /// The URI of the module to forward.
   ///
   /// If this is relative, it's relative to the containing file.
@@ -75,8 +76,12 @@ class ForwardRule implements Statement, Dependency {
 
   final FileSpan span;
 
-  FileSpan get urlSpan =>
-      span.subspan(RegExp(r'@forward\s+').matchAsPrefix(span.text)!.end);
+  FileSpan get urlSpan {
+    var skipRule = span.withoutInitialAtRule();
+    var quote = skipRule.text[0];
+    var end = skipRule.text.indexOf(quote, 1);
+    return skipRule.subspan(0, end + 1);
+  }
 
   /// Creates a `@forward` rule that allows all members to be accessed.
   ForwardRule(this.url, this.span,

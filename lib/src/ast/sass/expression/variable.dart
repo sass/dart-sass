@@ -7,7 +7,8 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
-import '../interface/reference.dart';
+import '../reference.dart';
+import '../../../utils.dart';
 
 /// A Sass variable.
 ///
@@ -23,12 +24,13 @@ class VariableExpression implements Expression, SassReference {
 
   final FileSpan span;
 
-  FileSpan get nameSpan =>
-      namespace == null ? span : span.subspan(namespace!.length + 1);
+  FileSpan get nameSpan {
+    if (namespace == null) return span;
+    return span.withoutInitialIdentifier().subspan(1);
+  }
 
-  FileSpan get namespaceSpan => namespace == null
-      ? span.start.pointSpan()
-      : span.subspan(0, namespace!.length);
+  FileSpan? get namespaceSpan =>
+      namespace == null ? null : span.initialIdentifier();
 
   VariableExpression(this.name, this.span, {this.namespace});
 

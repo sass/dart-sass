@@ -5,10 +5,11 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../../../visitor/statement_search.dart';
 import '../argument_declaration.dart';
-import '../interface/declaration.dart';
+import '../declaration.dart';
 import '../statement.dart';
 import 'callable_declaration.dart';
 import 'content_rule.dart';
@@ -26,9 +27,10 @@ class MixinRule extends CallableDeclaration implements SassDeclaration {
       const _HasContentVisitor().visitMixinRule(this) == true;
 
   FileSpan get nameSpan {
-    var match = RegExp(r'(=|@mixin)\s*').matchAsPrefix(span.text);
-    var start = match!.end;
-    return span.subspan(start, start + name.length);
+    var startSpan = span.text.startsWith('=')
+        ? span.subspan(1).trimLeft()
+        : span.withoutInitialAtRule();
+    return startSpan.initialIdentifier();
   }
 
   MixinRule(String name, ArgumentDeclaration arguments,

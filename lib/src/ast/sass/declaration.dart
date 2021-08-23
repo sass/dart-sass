@@ -5,9 +5,9 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../node.dart';
+import 'node.dart';
 
-/// A common interface any node that declares a Sass member.
+/// A common interface for any node that declares a Sass member.
 ///
 /// {@category AST}
 @sealed

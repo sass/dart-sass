@@ -2661,17 +2661,18 @@ abstract class StylesheetParser extends Parser {
               namespace: plain);
         }
 
-        var beforeName = scanner.state;
-        var name =
-            Interpolation([_publicIdentifier()], scanner.spanFrom(beforeName));
-
         return FunctionExpression(
-            name, _argumentInvocation(), scanner.spanFrom(start),
+            _publicIdentifier(), _argumentInvocation(), scanner.spanFrom(start),
             namespace: plain);
 
       case $lparen:
-        return FunctionExpression(
-            identifier, _argumentInvocation(), scanner.spanFrom(start));
+        if (plain == null) {
+          return InterpolatedFunctionExpression(
+              identifier, _argumentInvocation(), scanner.spanFrom(start));
+        } else {
+          return FunctionExpression(
+              plain, _argumentInvocation(), scanner.spanFrom(start));
+        }
 
       default:
         return StringExpression(identifier);
@@ -2949,8 +2950,10 @@ abstract class StylesheetParser extends Parser {
     var contents = _tryUrlContents(start);
     if (contents != null) return StringExpression(contents);
 
-    return FunctionExpression(Interpolation(["url"], scanner.spanFrom(start)),
-        _argumentInvocation(), scanner.spanFrom(start));
+    return InterpolatedFunctionExpression(
+        Interpolation(["url"], scanner.spanFrom(start)),
+        _argumentInvocation(),
+        scanner.spanFrom(start));
   }
 
   /// Consumes tokens up to "{", "}", ";", or "!".

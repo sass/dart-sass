@@ -9,7 +9,7 @@ import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
-import '../interface/reference.dart';
+import '../reference.dart';
 import '../statement.dart';
 import 'content_block.dart';
 
@@ -41,16 +41,21 @@ class IncludeRule implements Statement, CallableInvocation, SassReference {
       : span.file.span(span.start.offset, arguments.span.end.offset).trim();
 
   FileSpan get nameSpan {
-    var match = RegExp(r'(\+|@include)\s*').matchAsPrefix(span.text);
-    var start = match!.end;
-    if (namespace != null) start += namespace!.length + 1;
-    return span.subspan(start, start + name.length);
+    var startSpan = span.text.startsWith('+')
+        ? span.subspan(1).trimLeft()
+        : span.withoutInitialAtRule();
+    if (namespace != null) {
+      startSpan = startSpan.withoutInitialIdentifier().subspan(1);
+    }
+    return startSpan.initialIdentifier();
   }
 
-  FileSpan get namespaceSpan {
-    var match = RegExp(r'(\+|@include)\s*').matchAsPrefix(span.text);
-    var start = match!.end;
-    return span.subspan(start, start + (namespace?.length ?? 0));
+  FileSpan? get namespaceSpan {
+    if (namespace == null) return null;
+    var startSpan = span.text.startsWith('+')
+        ? span.subspan(1).trimLeft()
+        : span.withoutInitialAtRule();
+    return startSpan.initialIdentifier();
   }
 
   IncludeRule(this.name, this.arguments, this.span,

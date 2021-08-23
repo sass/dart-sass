@@ -433,10 +433,8 @@ class _EvaluateVisitor
               deprecation: true);
 
           var callableNode = _callableNode!;
-          var expression = FunctionExpression(
-              Interpolation([function.text], callableNode.span),
-              invocation,
-              callableNode.span);
+          var expression =
+              FunctionExpression(function.text, invocation, callableNode.span);
           return await expression.accept(this);
         }
 
@@ -2227,22 +2225,28 @@ class _EvaluateVisitor
   }
 
   Future<Value> visitFunctionExpression(FunctionExpression node) async {
-    var plainName = node.name;
-    AsyncCallable? function;
-    if (plainName != null) {
-      function = _addExceptionSpan(
-          node, () => _getFunction(plainName, namespace: node.namespace));
-    }
+    var function = _addExceptionSpan(
+        node, () => _getFunction(node.name, namespace: node.namespace));
 
     if (function == null) {
       if (node.namespace != null) {
         throw _exception("Undefined function.", node.span);
       }
 
-      function =
-          PlainCssCallable(await _performInterpolation(node.interpolatedName));
+      function = PlainCssCallable(node.originalName);
     }
 
+    var oldInFunction = _inFunction;
+    _inFunction = true;
+    var result = await _addErrorSpan(
+        node, () => _runFunctionCallable(node.arguments, function, node));
+    _inFunction = oldInFunction;
+    return result;
+  }
+
+  Future<Value> visitInterpolatedFunctionExpression(
+      InterpolatedFunctionExpression node) async {
+    var function = PlainCssCallable(await _performInterpolation(node.name));
     var oldInFunction = _inFunction;
     _inFunction = true;
     var result = await _addErrorSpan(

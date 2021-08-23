@@ -13,6 +13,7 @@ abstract class ExpressionVisitor<T> {
   T visitBinaryOperationExpression(BinaryOperationExpression node);
   T visitBooleanExpression(BooleanExpression node);
   T visitColorExpression(ColorExpression node);
+  T visitInterpolatedFunctionExpression(InterpolatedFunctionExpression node);
   T visitFunctionExpression(FunctionExpression node);
   T visitIfExpression(IfExpression node);
   T visitListExpression(ListExpression node);

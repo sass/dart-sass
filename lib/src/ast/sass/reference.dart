@@ -5,9 +5,9 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../node.dart';
+import 'node.dart';
 
-/// A common interface any node that references a Sass member.
+/// A common interface for any node that references a Sass member.
 ///
 /// {@category AST}
 @sealed
@@ -19,20 +19,15 @@ abstract class SassReference extends SassNode {
   /// The name of the member being referenced, with underscores converted to
   /// hyphens.
   ///
-  /// For [VariableExpression]s and [IncludeRule]s, this will never be null.
-  /// For [FunctionExpression]s, this will be null if the actual name is an
-  /// interpolation (in which case this is a plain CSS function, not a reference
-  /// to a Sass function).
-  ///
   /// This does not include the `$` for variables.
-  String? get name;
+  String get name;
 
   /// The span containing this reference's name.
   ///
   /// For variables, this should include the `$`.
   FileSpan get nameSpan;
 
-  /// The span containing this reference's namespace, or an empty span
-  /// immediately before the name if the namespace is null.
-  FileSpan get namespaceSpan;
+  /// The span containing this reference's namespace, null if [namespace] is
+  /// null.
+  FileSpan? get namespaceSpan;
 }

@@ -11,7 +11,7 @@ import '../../../parse/scss.dart';
 import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
-import '../interface/declaration.dart';
+import '../declaration.dart';
 import '../statement.dart';
 import 'silent_comment.dart';
 
@@ -55,13 +55,15 @@ class VariableDeclaration implements Statement, SassDeclaration {
   String get originalName => declarationName(span);
 
   FileSpan get nameSpan {
-    var start = namespace == null ? 0 : namespace!.length + 1;
-    return span.subspan(start, start + name.length);
+    var span = this.span;
+    if (namespace != null) {
+      span = span.withoutInitialIdentifier().subspan(1);
+    }
+    return span.initialIdentifier(includeLeading: 1);
   }
 
-  FileSpan get namespaceSpan => namespace == null
-      ? span.start.pointSpan()
-      : span.subspan(0, namespace!.length);
+  FileSpan? get namespaceSpan =>
+      namespace == null ? null : span.initialIdentifier();
 
   VariableDeclaration(this.name, this.expression, this.span,
       {this.namespace,

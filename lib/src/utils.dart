@@ -8,6 +8,7 @@ import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:string_scanner/string_scanner.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import 'util/character.dart';
@@ -383,24 +384,102 @@ Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
 Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
     {for (var entry in map.entries) entry.key: entry.value.toList()};
 
+/// Consumes an escape sequence from [scanner] and returns the character it
+/// represents.
+int consumeEscapedCharacter(StringScanner scanner) {
+  // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
+
+  scanner.expectChar($backslash);
+  var first = scanner.peekChar();
+  if (first == null) {
+    return 0xFFFD;
+  } else if (isNewline(first)) {
+    scanner.error("Expected escape sequence.");
+  } else if (isHex(first)) {
+    var value = 0;
+    for (var i = 0; i < 6; i++) {
+      var next = scanner.peekChar();
+      if (next == null || !isHex(next)) break;
+      value = (value << 4) + asHex(scanner.readChar());
+    }
+    if (isWhitespace(scanner.peekChar())) scanner.readChar();
+
+    if (value == 0 ||
+        (value >= 0xD800 && value <= 0xDFFF) ||
+        value >= 0x10FFFF) {
+      return 0xFFFD;
+    } else {
+      return value;
+    }
+  } else {
+    return scanner.readChar();
+  }
+}
+
 extension SpanExtensions on FileSpan {
   /// Returns this span with all whitespace trimmed from both sides.
-  FileSpan trim() {
-    var text = this.text;
+  FileSpan trim() => trimLeft().trimRight();
 
+  /// Returns this span with all leading whitespace trimmed.
+  FileSpan trimLeft() {
     var start = 0;
     while (isWhitespace(text.codeUnitAt(start))) {
       start++;
     }
+    return subspan(start);
+  }
 
+  /// Returns this span with all trailing whitespace trimmed.
+  FileSpan trimRight() {
     var end = text.length - 1;
     while (isWhitespace(text.codeUnitAt(end))) {
       end--;
     }
+    return subspan(0, end + 1);
+  }
 
-    return start == 0 && end == text.length - 1
-        ? this
-        : file.span(this.start.offset + start, this.start.offset + end + 1);
+  /// Returns the span of the identifier at the start of this span.
+  ///
+  /// If [includeLeading] is greater than 0, that many additional characters
+  /// will be included from the start of this span before looking for an
+  /// identifier.
+  FileSpan initialIdentifier({int includeLeading = 0}) {
+    var scanner = StringScanner(text);
+    for (var i = 0; i < includeLeading; i++) {
+      scanner.readChar();
+    }
+    _scanIdentifier(scanner);
+    return subspan(0, scanner.position);
+  }
+
+  /// Returns a subspan excluding the identifier at the start of this span.
+  FileSpan withoutInitialIdentifier() {
+    var scanner = StringScanner(text);
+    _scanIdentifier(scanner);
+    return subspan(scanner.position);
+  }
+
+  /// Returns a subspan excluding an initial at-rule and any whitespace after
+  /// it.
+  FileSpan withoutInitialAtRule() {
+    var scanner = StringScanner(text);
+    scanner.expectChar($at);
+    _scanIdentifier(scanner);
+    return subspan(scanner.position).trimLeft();
+  }
+}
+
+/// Consumes an identifier from [scanner].
+void _scanIdentifier(StringScanner scanner) {
+  while (!scanner.isDone) {
+    var char = scanner.peekChar()!;
+    if (char == $backslash) {
+      consumeEscapedCharacter(scanner);
+    } else if (isName(char)) {
+      scanner.readChar();
+    } else {
+      break;
+    }
   }
 }
 

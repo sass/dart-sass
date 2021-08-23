@@ -5,8 +5,9 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../utils.dart';
 import 'expression.dart';
-import 'interface/declaration.dart';
+import 'declaration.dart';
 import 'node.dart';
 
 /// A variable configured by a `with` clause in a `@use` or `@forward` rule.
@@ -27,7 +28,7 @@ class ConfiguredVariable implements SassNode, SassDeclaration {
 
   final FileSpan span;
 
-  FileSpan get nameSpan => span.subspan(0, name.length + 1);
+  FileSpan get nameSpan => span.initialIdentifier(includeLeading: 1);
 
   ConfiguredVariable(this.name, this.expression, this.span,
       {bool guarded = false})

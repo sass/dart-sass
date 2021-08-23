@@ -5,13 +5,13 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../node.dart';
+import 'node.dart';
 
 /// A common interface for [UseRule]s, [ForwardRule]s, and [DynamicImport]s.
 ///
 /// {@category AST}
 @sealed
-abstract class Dependency extends SassNode {
+abstract class SassDependency extends SassNode {
   /// The URL of the dependency this rule loads.
   Uri get url;
 

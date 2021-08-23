@@ -6,14 +6,14 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../expression/string.dart';
+import '../dependency.dart';
 import '../import.dart';
-import '../interface/dependency.dart';
 
 /// An import that will load a Sass file at runtime.
 ///
 /// {@category AST}
 @sealed
-class DynamicImport implements Import, Dependency {
+class DynamicImport implements Import, SassDependency {
   /// The URL of the file to import.
   ///
   /// If this is relative, it's relative to the containing file.
