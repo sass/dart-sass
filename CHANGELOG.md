@@ -1,3 +1,10 @@
+## 1.0.0-beta.10
+
+* Support version 1.0.0-beta.12 of the Sass embedded protocol:
+  * Support `Value.ArgumentList`.
+
+* Support slash-separated lists.
+
 ## 1.0.0-beta.9
 
 * No user-visible changes.

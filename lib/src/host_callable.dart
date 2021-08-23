@@ -10,8 +10,8 @@ import 'package:sass/sass.dart' as sass;
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart';
 import 'function_registry.dart';
+import 'protofier.dart';
 import 'utils.dart';
-import 'value.dart';
 
 /// Returns a Sass callable that invokes a function defined on the host with the
 /// given [signature].
@@ -41,11 +41,11 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
     return sass.Callable.function(
         name, signature.substring(openParen + 1, signature.length - 1),
         (arguments) {
+      var protofier = Protofier(dispatcher, functions, compilationId);
       var request = OutboundMessage_FunctionCallRequest()
         ..compilationId = compilationId
-        ..arguments.addAll([
-          for (var argument in arguments) protofyValue(functions, argument)
-        ]);
+        ..arguments.addAll(
+            [for (var argument in arguments) protofier.protofy(argument)]);
 
       if (id != null) {
         request.functionId = id;
@@ -57,8 +57,7 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
       try {
         switch (response.whichResult()) {
           case InboundMessage_FunctionCallResponse_Result.success:
-            return deprotofyValue(
-                dispatcher, functions, compilationId, response.success);
+            return protofier.deprotofyResponse(response);
 
           case InboundMessage_FunctionCallResponse_Result.error:
             throw response.error;
