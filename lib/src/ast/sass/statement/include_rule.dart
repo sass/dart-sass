@@ -5,7 +5,7 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../utils.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
@@ -44,9 +44,7 @@ class IncludeRule implements Statement, CallableInvocation, SassReference {
     var startSpan = span.text.startsWith('+')
         ? span.subspan(1).trimLeft()
         : span.withoutInitialAtRule();
-    if (namespace != null) {
-      startSpan = startSpan.withoutInitialIdentifier().subspan(1);
-    }
+    if (namespace != null) startSpan = startSpan.withoutNamespace();
     return startSpan.initialIdentifier();
   }
 

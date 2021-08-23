@@ -6,7 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../utils.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
 import '../dependency.dart';
@@ -76,12 +76,7 @@ class ForwardRule implements Statement, SassDependency {
 
   final FileSpan span;
 
-  FileSpan get urlSpan {
-    var skipRule = span.withoutInitialAtRule();
-    var quote = skipRule.text[0];
-    var end = skipRule.text.indexOf(quote, 1);
-    return skipRule.subspan(0, end + 1);
-  }
+  FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   /// Creates a `@forward` rule that allows all members to be accessed.
   ForwardRule(this.url, this.span,

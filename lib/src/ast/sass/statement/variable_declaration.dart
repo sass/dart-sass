@@ -9,6 +9,7 @@ import '../../../exception.dart';
 import '../../../logger.dart';
 import '../../../parse/scss.dart';
 import '../../../utils.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../declaration.dart';
@@ -56,9 +57,7 @@ class VariableDeclaration implements Statement, SassDeclaration {
 
   FileSpan get nameSpan {
     var span = this.span;
-    if (namespace != null) {
-      span = span.withoutInitialIdentifier().subspan(1);
-    }
+    if (namespace != null) span = span.withoutNamespace();
     return span.initialIdentifier(includeLeading: 1);
   }
 

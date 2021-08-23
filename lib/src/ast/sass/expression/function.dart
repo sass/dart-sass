@@ -5,7 +5,7 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../utils.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import '../argument_invocation.dart';
@@ -28,28 +28,27 @@ class FunctionExpression
   /// The name of the function being invoked, with underscores left as-is.
   final String originalName;
 
-  /// The name of the function being invoked, with underscores converted to
-  /// hyphens.
-  ///
-  /// If this function is a plain CSS function, use [originalName] instead.
-  final String name;
-
   /// The arguments to pass to the function.
   final ArgumentInvocation arguments;
 
   final FileSpan span;
 
+  /// The name of the function being invoked, with underscores converted to
+  /// hyphens.
+  ///
+  /// If this function is a plain CSS function, use [originalName] instead.
+  String get name => originalName.replaceAll('_', '-');
+
   FileSpan get nameSpan {
     if (namespace == null) return span.initialIdentifier();
-    return span.withoutInitialIdentifier().subspan(1).initialIdentifier();
+    return span.withoutNamespace().initialIdentifier();
   }
 
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
 
   FunctionExpression(this.originalName, this.arguments, this.span,
-      {this.namespace})
-      : name = originalName.replaceAll('_', '-');
+      {this.namespace});
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitFunctionExpression(this);

@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
+import '../../util/span.dart';
 import 'expression.dart';
 import 'declaration.dart';
 import 'node.dart';

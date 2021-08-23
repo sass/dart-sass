@@ -8,7 +8,7 @@ import 'package:source_span/source_span.dart';
 import '../../../exception.dart';
 import '../../../logger.dart';
 import '../../../parse/scss.dart';
-import '../../../utils.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
 import '../dependency.dart';
@@ -34,12 +34,7 @@ class UseRule implements Statement, SassDependency {
 
   final FileSpan span;
 
-  FileSpan get urlSpan {
-    var skipRule = span.withoutInitialAtRule();
-    var quote = skipRule.text[0];
-    var end = skipRule.text.indexOf(quote, 1);
-    return skipRule.subspan(0, end + 1);
-  }
+  FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   UseRule(this.url, this.namespace, this.span,
       {Iterable<ConfiguredVariable>? configuration})

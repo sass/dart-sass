@@ -5,10 +5,10 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../util/span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import '../reference.dart';
-import '../../../utils.dart';
 
 /// A Sass variable.
 ///
@@ -26,7 +26,7 @@ class VariableExpression implements Expression, SassReference {
 
   FileSpan get nameSpan {
     if (namespace == null) return span;
-    return span.withoutInitialIdentifier().subspan(1);
+    return span.withoutNamespace();
   }
 
   FileSpan? get namespaceSpan =>

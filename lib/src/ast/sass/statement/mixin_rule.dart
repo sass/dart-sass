@@ -5,7 +5,7 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../utils.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../../../visitor/statement_search.dart';
 import '../argument_declaration.dart';

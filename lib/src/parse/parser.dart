@@ -479,8 +479,7 @@ class Parser {
 
   /// Consumes an escape sequence and returns the character it represents.
   @protected
-  int escapeCharacter() =>
-    consumeEscapedCharacter(scanner);
+  int escapeCharacter() => consumeEscapedCharacter(scanner);
 
   // Consumes the next character if it matches [condition].
   //
