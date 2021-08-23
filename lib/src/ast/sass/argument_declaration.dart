@@ -10,6 +10,7 @@ import '../../logger.dart';
 import '../../parse/scss.dart';
 import '../../utils.dart';
 import '../../util/character.dart';
+import '../../util/span.dart';
 import 'argument.dart';
 import 'node.dart';
 

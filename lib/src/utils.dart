@@ -8,6 +8,7 @@ import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:string_scanner/string_scanner.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import 'util/character.dart';
@@ -383,24 +384,35 @@ Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
 Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
     {for (var entry in map.entries) entry.key: entry.value.toList()};
 
-extension SpanExtensions on FileSpan {
-  /// Returns this span with all whitespace trimmed from both sides.
-  FileSpan trim() {
-    var text = this.text;
+/// Consumes an escape sequence from [scanner] and returns the character it
+/// represents.
+int consumeEscapedCharacter(StringScanner scanner) {
+  // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
-    var start = 0;
-    while (isWhitespace(text.codeUnitAt(start))) {
-      start++;
+  scanner.expectChar($backslash);
+  var first = scanner.peekChar();
+  if (first == null) {
+    return 0xFFFD;
+  } else if (isNewline(first)) {
+    scanner.error("Expected escape sequence.");
+  } else if (isHex(first)) {
+    var value = 0;
+    for (var i = 0; i < 6; i++) {
+      var next = scanner.peekChar();
+      if (next == null || !isHex(next)) break;
+      value = (value << 4) + asHex(scanner.readChar());
     }
+    if (isWhitespace(scanner.peekChar())) scanner.readChar();
 
-    var end = text.length - 1;
-    while (isWhitespace(text.codeUnitAt(end))) {
-      end--;
+    if (value == 0 ||
+        (value >= 0xD800 && value <= 0xDFFF) ||
+        value >= 0x10FFFF) {
+      return 0xFFFD;
+    } else {
+      return value;
     }
-
-    return start == 0 && end == text.length - 1
-        ? this
-        : file.span(this.start.offset + start, this.start.offset + end + 1);
+  } else {
+    return scanner.readChar();
   }
 }
 

@@ -6,8 +6,10 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
+import '../dependency.dart';
 import '../expression/string.dart';
 import '../statement.dart';
 
@@ -15,7 +17,7 @@ import '../statement.dart';
 ///
 /// {@category AST}
 @sealed
-class ForwardRule implements Statement {
+class ForwardRule implements Statement, SassDependency {
   /// The URI of the module to forward.
   ///
   /// If this is relative, it's relative to the containing file.
@@ -73,6 +75,8 @@ class ForwardRule implements Statement {
   final List<ConfiguredVariable> configuration;
 
   final FileSpan span;
+
+  FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   /// Creates a `@forward` rule that allows all members to be accessed.
   ForwardRule(this.url, this.span,

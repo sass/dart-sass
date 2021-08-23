@@ -479,35 +479,7 @@ class Parser {
 
   /// Consumes an escape sequence and returns the character it represents.
   @protected
-  int escapeCharacter() {
-    // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
-
-    scanner.expectChar($backslash);
-    var first = scanner.peekChar();
-    if (first == null) {
-      return 0xFFFD;
-    } else if (isNewline(first)) {
-      scanner.error("Expected escape sequence.");
-    } else if (isHex(first)) {
-      var value = 0;
-      for (var i = 0; i < 6; i++) {
-        var next = scanner.peekChar();
-        if (next == null || !isHex(next)) break;
-        value = (value << 4) + asHex(scanner.readChar());
-      }
-      if (isWhitespace(scanner.peekChar())) scanner.readChar();
-
-      if (value == 0 ||
-          (value >= 0xD800 && value <= 0xDFFF) ||
-          value >= 0x10FFFF) {
-        return 0xFFFD;
-      } else {
-        return value;
-      }
-    } else {
-      return scanner.readChar();
-    }
-  }
+  int escapeCharacter() => consumeEscapedCharacter(scanner);
 
   // Consumes the next character if it matches [condition].
   //
