@@ -1,3 +1,7 @@
+## 1.0.0-beta.5
+
+* Add `SassColor.hasCalculatedRgb` and `.hasCalculatedHsl` extension getters.
+
 ## 1.0.0-beta.4
 
 * `UseRule`, `ForwardRule`, and `DynamicImport` now share a common `Dependency`
