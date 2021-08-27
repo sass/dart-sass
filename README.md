@@ -28,7 +28,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 
 * [Using Dart Sass](#using-dart-sass)
   * [From Chocolatey or Scoop (Windows)](#from-chocolatey-or-scoop-windows)
-  * [From Homebrew (OS X)](#from-homebrew-os-x)
+  * [From Homebrew (macOS)](#from-homebrew-macos)
   * [Standalone](#standalone)
   * [From npm](#from-npm)
   * [From Pub](#from-pub)
@@ -67,9 +67,9 @@ Sass. See [the CLI docs][cli] for details.
 
 [cli]: https://sass-lang.com/documentation/cli/dart-sass
 
-### From Homebrew (OS X)
+### From Homebrew (macOS)
 
-If you use [the Homebrew package manager](https://brew.sh/) for Mac OS X, you
+If you use [the Homebrew package manager](https://brew.sh/) for macOS, you
 can install Dart Sass by running
 
 ```sh
