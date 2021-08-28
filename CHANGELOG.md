@@ -1,3 +1,10 @@
+## 1.39.0
+
+### JS API
+
+* Add a `charset` option that controls whether or not Sass emits a
+  `@charset`/BOM for non-ASCII stylesheets.
+
 ## 1.38.2
 
 * No user-visible changes
