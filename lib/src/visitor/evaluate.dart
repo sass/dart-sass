@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ffd96390e470c2feb704a96bc4092c62a8209989
+// Checksum: 37fd148527c89ecfa79b51500b589b27a83f542e
 //
 // ignore_for_file: unused_import
 
@@ -440,10 +440,8 @@ class _EvaluateVisitor
               deprecation: true);
 
           var callableNode = _callableNode!;
-          var expression = FunctionExpression(
-              Interpolation([function.text], callableNode.span),
-              invocation,
-              callableNode.span);
+          var expression =
+              FunctionExpression(function.text, invocation, callableNode.span);
           return expression.accept(this);
         }
 
@@ -2215,28 +2213,28 @@ class _EvaluateVisitor
   }
 
   Value visitFunctionExpression(FunctionExpression node) {
-    var plainName = node.name.asPlain;
-    Callable? function;
-    if (plainName != null) {
-      function = _addExceptionSpan(
-          node,
-          () => _getFunction(
-              // If the node has a namespace, the plain name was already
-              // normalized at parse-time so we don't need to renormalize here.
-              node.namespace == null
-                  ? plainName.replaceAll("_", "-")
-                  : plainName,
-              namespace: node.namespace));
-    }
+    var function = _addExceptionSpan(
+        node, () => _getFunction(node.name, namespace: node.namespace));
 
     if (function == null) {
       if (node.namespace != null) {
         throw _exception("Undefined function.", node.span);
       }
 
-      function = PlainCssCallable(_performInterpolation(node.name));
+      function = PlainCssCallable(node.originalName);
     }
 
+    var oldInFunction = _inFunction;
+    _inFunction = true;
+    var result = _addErrorSpan(
+        node, () => _runFunctionCallable(node.arguments, function, node));
+    _inFunction = oldInFunction;
+    return result;
+  }
+
+  Value visitInterpolatedFunctionExpression(
+      InterpolatedFunctionExpression node) {
+    var function = PlainCssCallable(_performInterpolation(node.name));
     var oldInFunction = _inFunction;
     _inFunction = true;
     var result = _addErrorSpan(

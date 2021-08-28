@@ -5,10 +5,11 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../../utils.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
+import '../reference.dart';
 import '../statement.dart';
 import 'content_block.dart';
 
@@ -16,7 +17,7 @@ import 'content_block.dart';
 ///
 /// {@category AST}
 @sealed
-class IncludeRule implements Statement, CallableInvocation {
+class IncludeRule implements Statement, CallableInvocation, SassReference {
   /// The namespace of the mixin being invoked, or `null` if it's invoked
   /// without a namespace.
   final String? namespace;
@@ -38,6 +39,22 @@ class IncludeRule implements Statement, CallableInvocation {
   FileSpan get spanWithoutContent => content == null
       ? span
       : span.file.span(span.start.offset, arguments.span.end.offset).trim();
+
+  FileSpan get nameSpan {
+    var startSpan = span.text.startsWith('+')
+        ? span.subspan(1).trimLeft()
+        : span.withoutInitialAtRule();
+    if (namespace != null) startSpan = startSpan.withoutNamespace();
+    return startSpan.initialIdentifier();
+  }
+
+  FileSpan? get namespaceSpan {
+    if (namespace == null) return null;
+    var startSpan = span.text.startsWith('+')
+        ? span.subspan(1).trimLeft()
+        : span.withoutInitialAtRule();
+    return startSpan.initialIdentifier();
+  }
 
   IncludeRule(this.name, this.arguments, this.span,
       {this.namespace, this.content});
