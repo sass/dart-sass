@@ -310,6 +310,8 @@ class SassColor extends Value {
 ///
 /// These methods are considered less general-purpose and more liable to change
 /// than the main [SassColor] interface.
+///
+/// {@category Value}
 extension SassApiColor on SassColor {
   /// Whether the `red`, `green`, and `blue` fields have already been computed
   /// for this value.

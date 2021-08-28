@@ -1,3 +1,7 @@
+## 1.0.0-beta.6
+
+* Add the `SassApiColor` extension to the "Value" DartDoc category.
+
 ## 1.0.0-beta.5
 
 * Add `SassColor.hasCalculatedRgb` and `.hasCalculatedHsl` extension getters.
