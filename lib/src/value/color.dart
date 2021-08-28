@@ -311,16 +311,16 @@ class SassColor extends Value {
 /// These methods are considered less general-purpose and more liable to change
 /// than the main [SassColor] interface.
 extension SassApiColor on SassColor {
-  /// Whether the [SassColor.red], [SassColor.green], and [SassColor.blue]
-  /// fields have already been computed for this value.
+  /// Whether the `red`, `green`, and `blue` fields have already been computed
+  /// for this value.
   ///
   /// Note that these fields can always be safely computed after the fact; this
   /// just allows users such as the Sass embedded compiler to access whichever
   /// representation is readily available.
   bool get hasCalculatedRgb => _red != null;
 
-  /// Whether the [SassColor.hue], [SassColor.saturation], and
-  /// [SassColor.lightness] fields have already been computed for this value.
+  /// Whether the `hue`, `saturation`, and `lightness` fields have already been
+  /// computed for this value.
   ///
   /// Note that these fields can always be safely computed after the fact; this
   /// just allows users such as the Sass embedded compiler to access whichever
