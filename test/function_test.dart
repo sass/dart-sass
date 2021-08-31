@@ -447,60 +447,57 @@ void main() {
         group("without alpha:", () {
           group("hue", () {
             test("0", () async {
-              expect(
-                  await _protofy('hsl(0, 50%, 50%)'), _rgb(191, 64, 64, 1.0));
+              expect(await _protofy('hsl(0, 50%, 50%)'), _hsl(0, 50, 50, 1.0));
             });
 
             test("360", () async {
               expect(
-                  await _protofy('hsl(360, 50%, 50%)'), _rgb(191, 64, 64, 1.0));
+                  await _protofy('hsl(360, 50%, 50%)'), _hsl(0, 50, 50, 1.0));
             });
 
             test("below 0", () async {
               expect(await _protofy('hsl(-100, 50%, 50%)'),
-                  _rgb(106, 64, 191, 1.0));
+                  _hsl(260, 50, 50, 1.0));
             });
 
             test("between 0 and 360", () async {
-              expect(await _protofy('hsl(100, 50%, 50%)'),
-                  _rgb(106, 191, 64, 1.0));
+              expect(
+                  await _protofy('hsl(100, 50%, 50%)'), _hsl(100, 50, 50, 1.0));
             });
 
             test("above 360", () async {
-              expect(await _protofy('hsl(560, 50%, 50%)'),
-                  _rgb(64, 149, 191, 1.0));
+              expect(
+                  await _protofy('hsl(560, 50%, 50%)'), _hsl(200, 50, 50, 1.0));
             });
           });
 
           group("saturation", () {
             test("0", () async {
-              expect(
-                  await _protofy('hsl(0, 0%, 50%)'), _rgb(128, 128, 128, 1.0));
+              expect(await _protofy('hsl(0, 0%, 50%)'), _hsl(0, 0, 50, 1.0));
             });
 
             test("100", () async {
-              expect(await _protofy('hsl(0, 100%, 50%)'), _rgb(255, 0, 0, 1.0));
+              expect(
+                  await _protofy('hsl(0, 100%, 50%)'), _hsl(0, 100, 50, 1.0));
             });
 
             test("in the middle", () async {
-              expect(
-                  await _protofy('hsl(0, 42%, 50%)'), _rgb(181, 74, 74, 1.0));
+              expect(await _protofy('hsl(0, 42%, 50%)'), _hsl(0, 42, 50, 1.0));
             });
           });
 
           group("lightness", () {
             test("0", () async {
-              expect(await _protofy('hsl(0, 50%, 0%)'), _rgb(0, 0, 0, 1.0));
+              expect(await _protofy('hsl(0, 50%, 0%)'), _hsl(0, 50, 0, 1.0));
             });
 
             test("100", () async {
-              expect(await _protofy('hsl(0, 50%, 100%)'),
-                  _rgb(255, 255, 255, 1.0));
+              expect(
+                  await _protofy('hsl(0, 50%, 100%)'), _hsl(0, 50, 100, 1.0));
             });
 
             test("in the middle", () async {
-              expect(
-                  await _protofy('hsl(0, 50%, 42%)'), _rgb(161, 54, 54, 1.0));
+              expect(await _protofy('hsl(0, 50%, 42%)'), _hsl(0, 50, 42, 1.0));
             });
           });
         });
@@ -508,17 +505,17 @@ void main() {
         group("with alpha", () {
           test("0", () async {
             expect(await _protofy('hsl(10, 20%, 30%, 0)'),
-                equals(_rgb(92, 66, 61, 0.0)));
+                equals(_hsl(10, 20, 30, 0.0)));
           });
 
           test("1", () async {
             expect(await _protofy('hsl(10, 20%, 30%, 1)'),
-                equals(_rgb(92, 66, 61, 1.0)));
+                equals(_hsl(10, 20, 30, 1.0)));
           });
 
           test("between 0 and 1", () async {
             expect(await _protofy('hsl(10, 20%, 30%, 0.123)'),
-                equals(_rgb(92, 66, 61, 0.123)));
+                equals(_hsl(10, 20, 30, 0.123)));
           });
         });
       });

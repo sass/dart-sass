@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:sass/sass.dart' as sass;
+import 'package:sass_api/sass_api.dart' as sass;
 import 'package:source_span/source_span.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 

@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:sass/sass.dart' as sass;
+import 'package:sass_api/sass_api.dart' as sass;
 
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart';
@@ -51,14 +51,19 @@ class Protofier {
       number.denominators.addAll(value.denominatorUnits);
       result.number = number;
     } else if (value is sass.SassColor) {
-      // TODO(nweiz): If the color is represented as HSL internally, this coerces
-      // it to RGB. Is it worth providing some visibility into its internal
-      // representation so we can serialize without converting?
-      result.rgbColor = Value_RgbColor()
-        ..red = value.red
-        ..green = value.green
-        ..blue = value.blue
-        ..alpha = value.alpha * 1.0;
+      if (value.hasCalculatedHsl) {
+        result.hslColor = Value_HslColor()
+          ..hue = value.hue * 1.0
+          ..saturation = value.saturation * 1.0
+          ..lightness = value.lightness * 1.0
+          ..alpha = value.alpha * 1.0;
+      } else {
+        result.rgbColor = Value_RgbColor()
+          ..red = value.red
+          ..green = value.green
+          ..blue = value.blue
+          ..alpha = value.alpha * 1.0;
+      }
     } else if (value is sass.SassArgumentList) {
       _argumentLists.add(value);
       var argList = Value_ArgumentList()
@@ -147,6 +152,13 @@ class Protofier {
               value.hslColor.saturation,
               value.hslColor.lightness,
               value.hslColor.alpha);
+
+        case Value_Value.hwbColor:
+          return sass.SassColor.hwb(
+              value.hwbColor.hue,
+              value.hwbColor.whiteness,
+              value.hwbColor.blackness,
+              value.hwbColor.alpha);
 
         case Value_Value.argumentList:
           if (value.argumentList.id != 0) {
