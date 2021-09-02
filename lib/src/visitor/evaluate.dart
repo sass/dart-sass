@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 37fd148527c89ecfa79b51500b589b27a83f542e
+// Checksum: 2d9c3bb53fc29472f7fbc68d9a3f5b8464f95bc5
 //
 // ignore_for_file: unused_import
 
@@ -446,6 +446,7 @@ class _EvaluateVisitor
         }
 
         var callable = function.assertFunction("function").callable;
+        // ignore: unnecessary_type_check
         if (callable is Callable) {
           return _runFunctionCallable(invocation, callable, _callableNode!);
         } else {
