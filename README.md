@@ -8,6 +8,11 @@ and importers.
 [Dart Sass]: https://sass-lang.com/dart-sass
 [Embedded Sass protocol]: https://github.com/sass/sass-embedded-protocol/blob/master/README.md#readme
 
+### Usage
+
+- `dart_sass_embedded` starts the compiler and listens on stdin.
+- `dart_sass_embedded --version` prints `versionResponse` with `id = 0` in JSON and exits.
+
 ### Releases
 
 Binary releases are available from the [GitHub release page]. We recommend that

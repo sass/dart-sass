@@ -57,16 +57,10 @@ class Dispatcher {
 
         switch (message.whichMessage()) {
           case InboundMessage_Message.versionRequest:
-            _send(OutboundMessage()
-              ..versionResponse = (OutboundMessage_VersionResponse()
-                ..protocolVersion =
-                    const String.fromEnvironment("protocol-version")
-                ..compilerVersion =
-                    const String.fromEnvironment("compiler-version")
-                ..implementationVersion =
-                    const String.fromEnvironment("implementation-version")
-                ..implementationName = "Dart Sass"
-                ..id = message.versionRequest.id));
+            var request = message.versionRequest;
+            var response = versionResponse();
+            response.id = request.id;
+            _send(OutboundMessage()..versionResponse = response);
             break;
 
           case InboundMessage_Message.compileRequest:
@@ -225,5 +219,15 @@ class Dispatcher {
       default:
         break;
     }
+  }
+
+  /// Creates a [OutboundMessage_VersionResponse]
+  static OutboundMessage_VersionResponse versionResponse() {
+    return OutboundMessage_VersionResponse()
+      ..protocolVersion = const String.fromEnvironment("protocol-version")
+      ..compilerVersion = const String.fromEnvironment("compiler-version")
+      ..implementationVersion =
+          const String.fromEnvironment("implementation-version")
+      ..implementationName = "Dart Sass";
   }
 }

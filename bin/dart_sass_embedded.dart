@@ -19,6 +19,14 @@ import 'package:sass_embedded/src/utils.dart';
 
 void main(List<String> args) {
   if (args.isNotEmpty) {
+    if (args.first == "--version") {
+      var response = Dispatcher.versionResponse();
+      response.id = 0;
+      stdout.writeln(
+          JsonEncoder.withIndent("  ").convert(response.toProto3Json()));
+      return;
+    }
+
     stderr.writeln(
         "This executable is not intended to be executed with arguments.\n"
         "See https://github.com/sass/embedded-protocol#readme for details.");

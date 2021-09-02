@@ -5,6 +5,9 @@
   * Emit colors as `Value.HslColor` if that internal representation is
     available.
 
+* Add a `--version` flag that will print a `VersionResponse` as JSON, for ease
+  of human identification.
+
 ## 1.0.0-beta.10
 
 * Support version 1.0.0-beta.12 of the Sass embedded protocol:
