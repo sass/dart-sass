@@ -205,6 +205,22 @@ a {
 }'''));
     });
 
+    group("unicode", () {
+      test("adds @charset by default", () async {
+        var unicodePath = p.join(sandbox, 'test.scss');
+        await writeTextFile(unicodePath, 'p { content: "é"; } ');
+        expect(renderSync(RenderOptions(file: unicodePath)),
+            equalsIgnoringWhitespace('@charset "UTF-8"; p { content: "é"; } '));
+      });
+
+      test("allows charset=false to hide @charset", () async {
+        var unicodePath = p.join(sandbox, 'test.scss');
+        await writeTextFile(unicodePath, 'p { content: "é"; } ');
+        expect(renderSync(RenderOptions(file: unicodePath, charset: false)),
+            equalsIgnoringWhitespace('p { content: "é"; } '));
+      });
+    });
+
     group("linefeed allows", () {
       test("cr", () {
         expect(renderSync(RenderOptions(file: sassPath, linefeed: 'cr')),

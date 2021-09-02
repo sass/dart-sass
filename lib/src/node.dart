@@ -109,6 +109,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         url: file == null ? 'stdin' : p.toUri(file).toString(),
         quietDeps: options.quietDeps ?? false,
         verbose: options.verbose ?? false,
+        charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options));
   } else if (file != null) {
     result = await compileAsync(file,
@@ -121,6 +122,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         lineFeed: _parseLineFeed(options.linefeed),
         quietDeps: options.quietDeps ?? false,
         verbose: options.verbose ?? false,
+        charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options));
   } else {
     throw ArgumentError("Either options.data or options.file must be set.");
@@ -154,6 +156,7 @@ RenderResult _renderSync(RenderOptions options) {
           url: file == null ? 'stdin' : p.toUri(file).toString(),
           quietDeps: options.quietDeps ?? false,
           verbose: options.verbose ?? false,
+          charset: options.charset ?? true,
           sourceMap: _enableSourceMaps(options));
     } else if (file != null) {
       result = compile(file,
@@ -166,6 +169,7 @@ RenderResult _renderSync(RenderOptions options) {
           lineFeed: _parseLineFeed(options.linefeed),
           quietDeps: options.quietDeps ?? false,
           verbose: options.verbose ?? false,
+          charset: options.charset ?? true,
           sourceMap: _enableSourceMaps(options));
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");

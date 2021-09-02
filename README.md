@@ -206,6 +206,8 @@ Both `render()` and `renderSync()` support the following options:
 * [`sourceMap`](https://github.com/sass/node-sass#sourcemap)
 * Only the `"expanded"` and `"compressed"` values of
   [`outputStyle`](https://github.com/sass/node-sass#outputstyle) are supported.
+* `charset` (`true`, the default, will prefix non-ASCII CSS with `U+FEFF` or
+  [`@charset "UTF-8";`](https://developer.mozilla.org/en-US/docs/Web/CSS/@charset))
 
 No support is intended for the following options:
 
