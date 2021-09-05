@@ -313,7 +313,7 @@ void main() {
 
   group("an integer with numerator and denominator units", () {
     late SassNumber value;
-    setUp(() => value = parseValue("123px / 5ms") as SassNumber);
+    setUp(() => value = parseValue("math.div(123px, 5ms)") as SassNumber);
 
     test("has those units", () {
       expect(value.numeratorUnits, equals(["px"]));
