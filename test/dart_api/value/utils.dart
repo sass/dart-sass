@@ -12,6 +12,7 @@ Value parseValue(String source) {
   late Value value;
   compileString("""
     @use "sass:list";
+    @use "sass:math";
 
     a {b: foo(($source))}
   """, functions: [
