@@ -439,6 +439,7 @@ class _EvaluateVisitor
         }
 
         var callable = function.assertFunction("function").callable;
+        // ignore: unnecessary_type_check
         if (callable is AsyncCallable) {
           return await _runFunctionCallable(
               invocation, callable, _callableNode!);
