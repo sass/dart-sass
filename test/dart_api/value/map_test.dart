@@ -15,7 +15,7 @@ void main() {
     late SassMap value;
     setUp(() => value = parseValue("(a: b, c: d)") as SassMap);
 
-    test("has an undecided separator", () {
+    test("has a comma separator", () {
       expect(value.separator, equals(ListSeparator.comma));
     });
 
