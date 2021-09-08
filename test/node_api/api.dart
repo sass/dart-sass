@@ -73,7 +73,7 @@ class SassTypes {
 }
 
 @JS()
-class NodeSassBooleanClass implements Function {
+class NodeSassBooleanClass {
   external NodeSassBoolean call();
   external NodeSassBoolean get TRUE;
   external NodeSassBoolean get FALSE;
@@ -124,13 +124,13 @@ class NodeSassMap {
 }
 
 @JS()
-class NodeSassNullClass implements Function {
+class NodeSassNullClass {
   external Object call();
   external NodeSassNull get NULL;
 }
 
 @JS()
-class NodeSassNull implements Function {
+class NodeSassNull {
   external Constructor get constructor;
 }
 
