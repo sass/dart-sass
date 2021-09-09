@@ -1,3 +1,8 @@
+## 1.39.2
+
+* Fix a bug where configuring with `@use ... with` would throw an error when
+  that variable was defined in a module that also contained `@forward ... with`.
+
 ## 1.39.1
 
 * Partial fix for a bug where `@at-root` does not work properly in nested
