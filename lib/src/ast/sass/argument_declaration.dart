@@ -149,7 +149,9 @@ class ArgumentDeclaration implements SassNode {
         if (names.contains(argument.name)) return false;
       } else if (names.contains(argument.name)) {
         namedUsed++;
-      } else if (argument.defaultValue == null) return false;
+      } else if (argument.defaultValue == null) {
+        return false;
+      }
     }
 
     if (restArgument != null) return true;

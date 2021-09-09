@@ -108,8 +108,9 @@ void main() {
       test(
           "lists with undefined separators are reported as having space "
           "separators", () {
-        expect(parseValue("()").getSeparator(), isFalse);
-        expect(parseValue("join((), 1px)").getSeparator(), isFalse);
+        expect(parseValue<NodeSassList>("()").getSeparator(), isFalse);
+        expect(
+            parseValue<NodeSassList>("join((), 1px)").getSeparator(), isFalse);
       });
 
       test("has a useful .constructor.name", () {
