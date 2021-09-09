@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 99e7cdfc43a20e2c0827753081db6dcbd914ec75
+// Checksum: b73635829d711b9344e10836e865afe70ca55e77
 //
 // ignore_for_file: unused_import
 
@@ -1327,12 +1327,21 @@ class _EvaluateVisitor
       }, configuration: newConfiguration);
 
       _removeUsedConfiguration(adjustedConfiguration, newConfiguration,
-          except: node.configuration.isEmpty
-              ? const {}
-              : {
-                  for (var variable in node.configuration)
-                    if (!variable.isGuarded) variable.name
-                });
+          except: {
+            for (var variable in node.configuration)
+              if (!variable.isGuarded) variable.name
+          });
+
+      // Remove all the variables that weren't configured by this particular
+      // `@forward` before checking that the configuration is empty. Errors for
+      // outer `with` clauses will be thrown once those clauses finish
+      // executing.
+      var configuredVariables = {
+        for (var variable in node.configuration) variable.name
+      };
+      for (var name in newConfiguration.values.keys.toList()) {
+        if (!configuredVariables.contains(name)) newConfiguration.remove(name);
+      }
 
       _assertConfigurationIsEmpty(newConfiguration);
     } else {
