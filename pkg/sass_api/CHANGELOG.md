@@ -1,3 +1,11 @@
+## 1.0.0-beta.8
+
+* No user-visible changes.
+
+## 1.0.0-beta.7
+
+* No user-visible changes.
+
 ## 1.0.0-beta.6
 
 * Add the `SassApiColor` extension to the "Value" DartDoc category.
