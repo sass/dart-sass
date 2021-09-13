@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'ast/selector.dart';
 import 'exception.dart';
 import 'value/boolean.dart';
+import 'value/calculation.dart';
 import 'value/color.dart';
 import 'value/function.dart';
 import 'value/list.dart';
@@ -18,6 +19,7 @@ import 'visitor/serialize.dart';
 
 export 'value/argument_list.dart';
 export 'value/boolean.dart';
+export 'value/calculation.dart';
 export 'value/color.dart';
 export 'value/function.dart';
 export 'value/list.dart';
@@ -137,6 +139,13 @@ abstract class Value {
   /// (without the `$`). It's used for error reporting.
   SassBoolean assertBoolean([String? name]) =>
       throw _exception("$this is not a boolean.", name);
+
+  /// Throws a [SassScriptException] if [this] isn't a calculation.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  SassCalculation assertCalculation([String? name]) =>
+      throw _exception("$this is not a calculation.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a color.
   ///
@@ -369,6 +378,8 @@ abstract class Value {
   Value plus(Value other) {
     if (other is SassString) {
       return SassString(toCssString() + other.text, quotes: other.hasQuotes);
+    } else if (other is SassCalculation) {
+      throw SassScriptException('Undefined operation "$this + $other".');
     } else {
       return SassString(toCssString() + other.toCssString(), quotes: false);
     }
@@ -378,8 +389,14 @@ abstract class Value {
   ///
   /// @nodoc
   @internal
-  Value minus(Value other) =>
-      SassString("${toCssString()}-${other.toCssString()}", quotes: false);
+  Value minus(Value other) {
+    if (other is SassCalculation) {
+      throw SassScriptException('Undefined operation "$this - $other".');
+    } else {
+      return SassString("${toCssString()}-${other.toCssString()}",
+          quotes: false);
+    }
+  }
 
   /// The SassScript `/` operation.
   ///

@@ -35,6 +35,14 @@ class ComplexSassNumber extends SassNumber {
 
   bool compatibleWithUnit(String unit) => false;
 
+  @internal
+  bool hasPossiblyCompatibleUnits(SassNumber other) {
+    // This logic is well-defined, and we could implement it in principle.
+    // However, it would be fairly complex and there's no clear need for it yet.
+    throw UnimplementedError(
+        "ComplexSassNumber.hasPossiblyCompatibleUnits is not implemented.");
+  }
+
   SassNumber withValue(num value) =>
       ComplexSassNumber._(value, numeratorUnits, denominatorUnits);
 
