@@ -42,7 +42,8 @@ class SassCalculation extends Value {
   /// [CalculationInterpolation].
   ///
   /// This automatically simplifies the calculation, so it may return a
-  /// [SassNumber] rather than a [SassCalculation].
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
   static Value calc(Object argument) {
     argument = _simplify(argument);
     if (argument is SassNumber) return argument;
@@ -57,7 +58,8 @@ class SassCalculation extends Value {
   /// [CalculationInterpolation]. It must be passed at least one argument.
   ///
   /// This automatically simplifies the calculation, so it may return a
-  /// [SassNumber] rather than a [SassCalculation].
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
   static Value min(Iterable<Object> arguments) {
     var args = _simplifyArguments(arguments);
     if (args.isEmpty) {
@@ -87,7 +89,8 @@ class SassCalculation extends Value {
   /// [CalculationInterpolation]. It must be passed at least one argument.
   ///
   /// This automatically simplifies the calculation, so it may return a
-  /// [SassNumber] rather than a [SassCalculation].
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
   static Value max(Iterable<Object> arguments) {
     var args = _simplifyArguments(arguments);
     if (args.isEmpty) {
@@ -117,7 +120,8 @@ class SassCalculation extends Value {
   /// [CalculationInterpolation].
   ///
   /// This automatically simplifies the calculation, so it may return a
-  /// [SassNumber] rather than a [SassCalculation].
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
   ///
   /// This may be passed fewer than three arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
