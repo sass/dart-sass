@@ -122,7 +122,7 @@ void main() {
   });
 
   test("a space-separated list is space-separated", () {
-    expect(parseValue("a, b, c").separator, equals(ListSeparator.comma));
+    expect(parseValue("a b c").separator, equals(ListSeparator.space));
   });
 
   test("a bracketed list has brackets", () {

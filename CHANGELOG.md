@@ -1,4 +1,4 @@
-## 1.39.0
+## 1.40.0
 
 * Add support for first-class `calc()` expressions (as well as `clamp()` and
   plain-CSS `min()` and `max()`). This means:
@@ -29,6 +29,28 @@
 * Add a new `Value.assertCalculation()` method.
 
 * Add a new `Number.hasCompatibleUnits()` method.
+
+## 1.39.2
+
+* Fix a bug where configuring with `@use ... with` would throw an error when
+  that variable was defined in a module that also contained `@forward ... with`.
+
+## 1.39.1
+
+* Partial fix for a bug where `@at-root` does not work properly in nested
+  imports that contain `@use` rules. If the only `@use` rules in the nested
+  import are for built-in modules, `@at-root` should now work properly. 
+
+## 1.39.0
+
+### JS API
+
+* Add a `charset` option that controls whether or not Sass emits a
+  `@charset`/BOM for non-ASCII stylesheets.
+
+## 1.38.2
+
+* No user-visible changes
 
 ## 1.38.1
 

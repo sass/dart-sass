@@ -1,9 +1,25 @@
-## 1.0.0-beta.5
+## 1.0.0-beta.9
 
 * Add the `CalculationExpression` type to represent calculations in the Sass
   AST.
 
 * Add the `ExpressionVisitor.visitCalculationExpression` method.
+
+## 1.0.0-beta.8
+
+* No user-visible changes.
+
+## 1.0.0-beta.7
+
+* No user-visible changes.
+
+## 1.0.0-beta.6
+
+* Add the `SassApiColor` extension to the "Value" DartDoc category.
+
+## 1.0.0-beta.5
+
+* Add `SassColor.hasCalculatedRgb` and `.hasCalculatedHsl` extension getters.
 
 ## 1.0.0-beta.4
 

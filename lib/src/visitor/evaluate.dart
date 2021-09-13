@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d2b5b06700e8c6747562088f63678ef40b444db2
+// Checksum: 3bcae71014e2ef5626aae9e5e0a5b49c499a226f
 //
 // ignore_for_file: unused_import
 
@@ -446,6 +446,7 @@ class _EvaluateVisitor
         }
 
         var callable = function.assertFunction("function").callable;
+        // ignore: unnecessary_type_check
         if (callable is Callable) {
           return _runFunctionCallable(invocation, callable, _callableNode!);
         } else {
@@ -1327,12 +1328,21 @@ class _EvaluateVisitor
       }, configuration: newConfiguration);
 
       _removeUsedConfiguration(adjustedConfiguration, newConfiguration,
-          except: node.configuration.isEmpty
-              ? const {}
-              : {
-                  for (var variable in node.configuration)
-                    if (!variable.isGuarded) variable.name
-                });
+          except: {
+            for (var variable in node.configuration)
+              if (!variable.isGuarded) variable.name
+          });
+
+      // Remove all the variables that weren't configured by this particular
+      // `@forward` before checking that the configuration is empty. Errors for
+      // outer `with` clauses will be thrown once those clauses finish
+      // executing.
+      var configuredVariables = {
+        for (var variable in node.configuration) variable.name
+      };
+      for (var name in newConfiguration.values.keys.toList()) {
+        if (!configuredVariables.contains(name)) newConfiguration.remove(name);
+      }
 
       _assertConfigurationIsEmpty(newConfiguration);
     } else {
@@ -1481,6 +1491,15 @@ class _EvaluateVisitor
         return;
       }
 
+      // If only built-in modules are loaded, we still need a separate
+      // environment to ensure their namespaces aren't exposed in the outer
+      // environment, but we don't need to worry about `@extend`s, so we can
+      // add styles directly to the existing stylesheet instead of creating a
+      // new one.
+      var loadsUserDefinedModules =
+          stylesheet.uses.any((rule) => rule.url.scheme != 'sass') ||
+              stylesheet.forwards.any((rule) => rule.url.scheme != 'sass');
+
       late List<ModifiableCssNode> children;
       var environment = _environment.forImport();
       _withEnvironment(environment, () {
@@ -1494,10 +1513,12 @@ class _EvaluateVisitor
         var oldInDependency = _inDependency;
         _importer = result.importer;
         _stylesheet = stylesheet;
-        _root = ModifiableCssStylesheet(stylesheet.span);
-        _parent = _root;
-        _endOfImports = 0;
-        _outOfOrderImports = null;
+        if (loadsUserDefinedModules) {
+          _root = ModifiableCssStylesheet(stylesheet.span);
+          _parent = _root;
+          _endOfImports = 0;
+          _outOfOrderImports = null;
+        }
         _inDependency = result.isDependency;
 
         // This configuration is only used if it passes through a `@forward`
@@ -1507,7 +1528,7 @@ class _EvaluateVisitor
         }
 
         visitStylesheet(stylesheet);
-        children = _addOutOfOrderImports();
+        children = loadsUserDefinedModules ? _addOutOfOrderImports() : [];
 
         _importer = oldImporter;
         _stylesheet = oldStylesheet;
@@ -1525,18 +1546,20 @@ class _EvaluateVisitor
       var module = environment.toDummyModule();
       _environment.importForwards(module);
 
-      if (module.transitivelyContainsCss) {
-        // If any transitively used module contains extensions, we need to clone
-        // all modules' CSS. Otherwise, it's possible that they'll be used or
-        // imported from another location that shouldn't have the same extensions
-        // applied.
-        _combineCss(module, clone: module.transitivelyContainsExtensions)
-            .accept(this);
-      }
+      if (loadsUserDefinedModules) {
+        if (module.transitivelyContainsCss) {
+          // If any transitively used module contains extensions, we need to
+          // clone all modules' CSS. Otherwise, it's possible that they'll be
+          // used or imported from another location that shouldn't have the same
+          // extensions applied.
+          _combineCss(module, clone: module.transitivelyContainsExtensions)
+              .accept(this);
+        }
 
-      var visitor = _ImportedCssVisitor(this);
-      for (var child in children) {
-        child.accept(visitor);
+        var visitor = _ImportedCssVisitor(this);
+        for (var child in children) {
+          child.accept(visitor);
+        }
       }
 
       _activeModules.remove(url);
