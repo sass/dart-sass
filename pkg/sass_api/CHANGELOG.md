@@ -1,3 +1,7 @@
+## 1.0.0-beta.10
+
+* No user-visible changes.
+
 ## 1.0.0-beta.9
 
 * Add the `CalculationExpression` type to represent calculations in the Sass

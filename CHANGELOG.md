@@ -1,3 +1,17 @@
+## 1.40.1
+
+* **Potentially breaking bug fix:** `min()` and `max()` expressions outside of
+  calculations now behave the same way they did in 1.39.2, returning unquoted
+  strings if they contain no Sass-specific features and calling the global
+  `min()` and `max()` functions otherwise. Within calculations, they continue to
+  behave how they did in 1.40.0.
+
+  This fixes an unintended breaking change added in 1.40.0, wherein passing a
+  unitless number and a number without units to `min()` or `max()` now produces
+  an error. Since this breakage affects a major Sass library, we're temporarily
+  reverting support for `min()` and `max()` calculations while we work on
+  designing a longer-term fix.
+
 ## 1.40.0
 
 * Add support for first-class `calc()` expressions (as well as `clamp()` and
