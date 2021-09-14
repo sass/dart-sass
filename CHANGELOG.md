@@ -10,6 +10,10 @@
   is a `:host` or `:host-context` and the other is a selector that's guaranteed
   to be within the current shadow DOM. The `@extend` logic has been updated
   accordingly as well.
+  
+### Dart API
+
+* `SassCalculation.plus()` now allows `SassString` arguments.
 
 ## 1.40.1
 
