@@ -2802,6 +2802,8 @@ abstract class StylesheetParser extends Parser {
   /// productions separated by commas.
   bool _tryMinMaxContents(InterpolationBuffer buffer,
       {bool allowComma = true}) {
+    whitespace();
+
     // The number of open parentheses that need to be closed.
     while (true) {
       var next = scanner.peekChar();
@@ -3013,7 +3015,13 @@ abstract class StylesheetParser extends Parser {
     } else if (next == $lparen) {
       var start = scanner.state;
       scanner.readChar();
-      var value = _tryCalculationInterpolation() ?? _calculationSum();
+
+      Expression? value = _tryCalculationInterpolation();
+      if (value == null) {
+        whitespace();
+        value = _calculationSum();
+      }
+
       whitespace();
       scanner.expectChar($rparen);
       return ParenthesizedExpression(value, scanner.spanFrom(start));

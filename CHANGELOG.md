@@ -11,6 +11,9 @@
   to be within the current shadow DOM. The `@extend` logic has been updated
   accordingly as well.
 
+* Fix a bug where extra whitespace in `min()`, `max()`, `clamp()`, and `calc()`
+  expressions could cause bogus parse errors.
+
 * Fix a bug where the right-hand operand of a `-` in a calculation could
   incorrectly be stripped of parentheses.
 
