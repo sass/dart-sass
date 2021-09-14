@@ -498,12 +498,23 @@ class _SerializeVisitor
       var right = value.right;
       var parenthesizeRight = right is CalculationInterpolation ||
           (right is CalculationOperation &&
-              (right.operator.precedence < value.operator.precedence ||
-                  value.operator == CalculationOperator.dividedBy));
+              _parenthesizeCalculationRhs(value.operator, right.operator));
       if (parenthesizeRight) _buffer.writeCharCode($lparen);
       _writeCalculationValue(right);
       if (parenthesizeRight) _buffer.writeCharCode($rparen);
     }
+  }
+
+  /// Returns whether the right-hand operation of a calculation should be
+  /// parenthesized.
+  ///
+  /// In `a ? (b # c)`, `outer` is `?` and `right` is `#`.
+  bool _parenthesizeCalculationRhs(
+      CalculationOperator outer, CalculationOperator right) {
+    if (outer == CalculationOperator.dividedBy) return true;
+    if (outer == CalculationOperator.plus) return false;
+    return right == CalculationOperator.plus ||
+        right == CalculationOperator.minus;
   }
 
   void visitColor(SassColor value) {
