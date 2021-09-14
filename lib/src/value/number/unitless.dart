@@ -30,6 +30,12 @@ class UnitlessSassNumber extends SassNumber {
 
   bool hasUnit(String unit) => false;
 
+  bool hasCompatibleUnits(SassNumber other) => other is UnitlessSassNumber;
+
+  @internal
+  bool hasPossiblyCompatibleUnits(SassNumber other) =>
+      other is UnitlessSassNumber;
+
   bool compatibleWithUnit(String unit) => true;
 
   SassNumber coerceToMatch(SassNumber other,

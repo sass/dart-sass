@@ -1,3 +1,49 @@
+## 1.40.1
+
+* **Potentially breaking bug fix:** `min()` and `max()` expressions outside of
+  calculations now behave the same way they did in 1.39.2, returning unquoted
+  strings if they contain no Sass-specific features and calling the global
+  `min()` and `max()` functions otherwise. Within calculations, they continue to
+  behave how they did in 1.40.0.
+
+  This fixes an unintended breaking change added in 1.40.0, wherein passing a
+  unitless number and a number without units to `min()` or `max()` now produces
+  an error. Since this breakage affects a major Sass library, we're temporarily
+  reverting support for `min()` and `max()` calculations while we work on
+  designing a longer-term fix.
+
+## 1.40.0
+
+* Add support for first-class `calc()` expressions (as well as `clamp()` and
+  plain-CSS `min()` and `max()`). This means:
+
+  * `calc()` expressions will be parsed more thoroughly, and errors will be
+    highlighted where they weren't before. **This may break your stylesheets,**
+    but only if they were already producing broken CSS.
+
+  * `calc()` expressions will be simplified where possible, and may even return
+    numbers if they can be simplified away entirely.
+
+  * `calc()` expressions that can't be simplified to numbers return a new data
+    type known as "calculations".
+
+  * Sass variables and functions can now be used in `calc()` expressions.
+
+  * New functions `meta.calc-name()` and `meta.calc-args()` can now inspect
+    calculations.
+
+### Dart API
+
+* Add a new value type, `SassCalculation`, that represents calculations.
+
+* Add new `CalculationOperation`, `CalculationOperator`, and
+  `CalculationInterpolation` types to represent types of arguments that may
+  exist as part of a calculation.
+
+* Add a new `Value.assertCalculation()` method.
+
+* Add a new `Number.hasCompatibleUnits()` method.
+
 ## 1.39.2
 
 * Fix a bug where configuring with `@use ... with` would throw an error when

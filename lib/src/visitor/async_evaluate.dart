@@ -486,7 +486,8 @@ class _EvaluateVisitor
     ];
 
     var metaModule = BuiltInModule("meta",
-        functions: [...meta.global, ...metaFunctions], mixins: metaMixins);
+        functions: [...meta.global, ...meta.local, ...metaFunctions],
+        mixins: metaMixins);
 
     for (var module in [...coreModules, metaModule]) {
       _builtInModules[module.url] = module;
@@ -2175,18 +2176,20 @@ class _EvaluateVisitor
   Future<Value> visitUnaryOperationExpression(
       UnaryOperationExpression node) async {
     var operand = await node.operand.accept(this);
-    switch (node.operator) {
-      case UnaryOperator.plus:
-        return operand.unaryPlus();
-      case UnaryOperator.minus:
-        return operand.unaryMinus();
-      case UnaryOperator.divide:
-        return operand.unaryDivide();
-      case UnaryOperator.not:
-        return operand.unaryNot();
-      default:
-        throw StateError("Unknown unary operator ${node.operator}.");
-    }
+    return _addExceptionSpan(node, () {
+      switch (node.operator) {
+        case UnaryOperator.plus:
+          return operand.unaryPlus();
+        case UnaryOperator.minus:
+          return operand.unaryMinus();
+        case UnaryOperator.divide:
+          return operand.unaryDivide();
+        case UnaryOperator.not:
+          return operand.unaryNot();
+        default:
+          throw StateError("Unknown unary operator ${node.operator}.");
+      }
+    });
   }
 
   Future<SassBoolean> visitBooleanExpression(BooleanExpression node) async =>
@@ -2215,6 +2218,120 @@ class _EvaluateVisitor
 
   Future<Value> visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this);
+
+  Future<Value> visitCalculationExpression(CalculationExpression node) async {
+    var arguments = [
+      for (var argument in node.arguments)
+        await _visitCalculationValue(argument)
+    ];
+
+    try {
+      switch (node.name) {
+        case "calc":
+          assert(arguments.length == 1);
+          return SassCalculation.calc(arguments[0]);
+        case "min":
+          return SassCalculation.min(arguments);
+        case "max":
+          return SassCalculation.max(arguments);
+        case "clamp":
+          return SassCalculation.clamp(
+              arguments[0],
+              arguments.length > 1 ? arguments[1] : null,
+              arguments.length > 2 ? arguments[2] : null);
+        default:
+          throw UnsupportedError('Unknown calculation name "${node.name}".');
+      }
+    } on SassScriptException catch (error) {
+      // The simplification logic in the [SassCalculation] static methods will
+      // throw an error if the arguments aren't compatible, but we have access
+      // to the original spans so we can throw a more informative error.
+      _verifyCompatibleNumbers(arguments, node.arguments);
+      throw _exception(error.message, node.span);
+    }
+  }
+
+  /// Verifies that [args] all have compatible units that can be used for CSS
+  /// calculations, and throws a [SassException] if not.
+  ///
+  /// The [nodesWithSpans] should correspond to the spans for [args].
+  void _verifyCompatibleNumbers(
+      List<Object> args, List<AstNode> nodesWithSpans) {
+    // Note: this logic is largely duplicated in
+    // SassCalculation._verifyCompatibleNumbers and most changes here should
+    // also be reflected there.
+    for (var i = 0; i < args.length; i++) {
+      var arg = args[i];
+      if (arg is! SassNumber) continue;
+      if (arg.numeratorUnits.length > 1 || arg.denominatorUnits.isNotEmpty) {
+        throw _exception("Number $arg isn't compatible with CSS calculations.",
+            nodesWithSpans[i].span);
+      }
+    }
+
+    for (var i = 0; i < args.length - 1; i++) {
+      var number1 = args[i];
+      if (number1 is! SassNumber) continue;
+
+      for (var j = i + 1; j < args.length; j++) {
+        var number2 = args[j];
+        if (number2 is! SassNumber) continue;
+        if (number1.hasPossiblyCompatibleUnits(number2)) continue;
+
+        throw MultiSpanSassRuntimeException(
+            "$number1 and $number2 are incompatible.",
+            nodesWithSpans[i].span,
+            number1.toString(),
+            {nodesWithSpans[j].span: number2.toString()},
+            _stackTrace(nodesWithSpans[i].span));
+      }
+    }
+  }
+
+  /// Evaluates [node] as a component of a calculation.
+  Future<Object> _visitCalculationValue(Expression node) async {
+    if (node is ParenthesizedExpression) {
+      return await _visitCalculationValue(node.expression);
+    } else if (node is StringExpression) {
+      assert(!node.hasQuotes);
+      return CalculationInterpolation(await _performInterpolation(node.text));
+    } else if (node is BinaryOperationExpression) {
+      return await _addExceptionSpanAsync(
+          node,
+          () async => SassCalculation.operate(
+              _binaryOperatorToCalculationOperator(node.operator),
+              await _visitCalculationValue(node.left),
+              await _visitCalculationValue(node.right)));
+    } else {
+      assert(node is NumberExpression ||
+          node is CalculationExpression ||
+          node is VariableExpression ||
+          node is FunctionExpression ||
+          node is IfExpression);
+      var result = await node.accept(this);
+      if (result is SassNumber || result is SassCalculation) return result;
+      if (result is SassString && !result.hasQuotes) return result;
+      throw _exception(
+          "Value $result can't be used in a calculation.", node.span);
+    }
+  }
+
+  /// Returns the [CalculationOperator] that corresponds to [operator].
+  CalculationOperator _binaryOperatorToCalculationOperator(
+      BinaryOperator operator) {
+    switch (operator) {
+      case BinaryOperator.plus:
+        return CalculationOperator.plus;
+      case BinaryOperator.minus:
+        return CalculationOperator.minus;
+      case BinaryOperator.times:
+        return CalculationOperator.times;
+      case BinaryOperator.dividedBy:
+        return CalculationOperator.dividedBy;
+      default:
+        throw UnsupportedError("Invalid calculation operator $operator.");
+    }
+  }
 
   Future<SassColor> visitColorExpression(ColorExpression node) async =>
       node.value;

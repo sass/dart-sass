@@ -143,8 +143,8 @@ const _conversions = {
   },
 };
 
-/// A map from human-readable names of unit types to the units that fall into
-/// those types.
+/// A map from human-readable names of unit types to the convertable units that
+/// fall into those types.
 const _unitsByType = {
   "length": ["in", "cm", "pc", "mm", "q", "pt", "px"],
   "angle": ["deg", "grad", "rad", "turn"],
@@ -304,6 +304,21 @@ abstract class SassNumber extends Value {
 
   /// Returns whether [this] has [unit] as its only unit (and as a numerator).
   bool hasUnit(String unit);
+
+  /// Returns whether [this] has units that are compatible with [other].
+  ///
+  /// Unlike [isComparableTo], unitless numbers are only considered compatible
+  /// with other unitless numbers.
+  bool hasCompatibleUnits(SassNumber other) {
+    if (numeratorUnits.length != other.numeratorUnits.length) return false;
+    if (denominatorUnits.length != other.denominatorUnits.length) return false;
+    return isComparableTo(other);
+  }
+
+  /// Returns whether [this] has units that are possibly-compatible with
+  /// [other], as defined by the Sass spec.
+  @internal
+  bool hasPossiblyCompatibleUnits(SassNumber other);
 
   /// Returns whether [this] can be coerced to the given [unit].
   ///
