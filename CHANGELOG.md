@@ -1,3 +1,10 @@
+## 1.40.2
+
+* The `selector.unify()` function now correctly returns `null` when one selector
+  is a `:host` or `:host-context` and the other is a selector that's guaranteed
+  to be within the current shadow DOM. The `@extend` logic has been updated
+  accordingly as well.
+
 ## 1.40.1
 
 * **Potentially breaking bug fix:** `min()` and `max()` expressions outside of
