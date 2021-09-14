@@ -268,8 +268,10 @@ class SassCalculation extends Value {
 
   /// @nodoc
   @internal
-  Value plus(Value other) =>
-      throw SassScriptException('Undefined operation "$this + $other".');
+  Value plus(Value other) {
+    if (other is SassString) return super.plus(other);
+    throw SassScriptException('Undefined operation "$this + $other".');
+  }
 
   /// @nodoc
   @internal

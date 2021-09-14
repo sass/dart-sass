@@ -1,7 +1,22 @@
-## 1.40.2
+## 1.41.0
+
+* Calculation values can now be combined with strings using the `+` operator.
+  This was an error in 1.40.0, but this broke stylesheets that were relying on
+  `$value + ""` expressions to generically convert values to strings. (Note that
+  the Sass team recommends the use of `"#{$value}"` or `inspect($value)` for
+  that use-case.)
+
+* The `selector.unify()` function now correctly returns `null` when one selector
+  is a `:host` or `:host-context` and the other is a selector that's guaranteed
+  to be within the current shadow DOM. The `@extend` logic has been updated
+  accordingly as well.
 
 * Fix a bug where the right-hand operand of a `-` in a calculation could
   incorrectly be stripped of parentheses.
+
+### Dart API
+
+* `SassCalculation.plus()` now allows `SassString` arguments.
 
 ## 1.40.1
 
