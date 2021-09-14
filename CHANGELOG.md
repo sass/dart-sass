@@ -1,3 +1,11 @@
+## 1.41.0
+
+* Calculation values can now be combined with strings using the `+` operator.
+  This was an error in 1.40.0, but this broke stylesheets that were relying on
+  `$value + ""` expressions to generically convert values to strings. (Note that
+  the Sass team recommends the use of `"#{$value}"` or `inspect($value)` for
+  that use-case.)
+
 ## 1.40.1
 
 * **Potentially breaking bug fix:** `min()` and `max()` expressions outside of

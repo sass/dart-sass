@@ -1,3 +1,7 @@
+## 1.0.0-beta.11
+
+* `CalculationExpression.plus()` now allows `SassString` arguments.
+
 ## 1.0.0-beta.10
 
 * No user-visible changes.
