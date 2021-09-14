@@ -1,3 +1,8 @@
+## 1.40.2
+
+* Fix a bug where the right-hand operand of a `-` in a calculation could
+  incorrectly be stripped of parentheses.
+
 ## 1.40.1
 
 * **Potentially breaking bug fix:** `min()` and `max()` expressions outside of
