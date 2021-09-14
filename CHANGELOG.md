@@ -5,6 +5,9 @@
   to be within the current shadow DOM. The `@extend` logic has been updated
   accordingly as well.
 
+* Fix a bug where extra whitespace in `min()`, `max()`, `clamp()`, and `calc()`
+  expressions could cause bogus parse errors.
+
 ## 1.40.1
 
 * **Potentially breaking bug fix:** `min()` and `max()` expressions outside of
