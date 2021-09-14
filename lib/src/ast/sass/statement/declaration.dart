@@ -53,7 +53,7 @@ class Declaration extends ParentStatement {
 
   /// Creates a declaration with children.
   ///
-  /// For these declaraions, a value is optional.
+  /// For these declarations, a value is optional.
   Declaration.nested(this.name, Iterable<Statement> children, this.span,
       {this.value})
       : super(List.unmodifiable(children)) {

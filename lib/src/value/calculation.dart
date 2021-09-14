@@ -220,7 +220,7 @@ class SassCalculation extends Value {
     }
   }
 
-  /// Verifies that all the numbers in [args] aren't known to be incomaptible
+  /// Verifies that all the numbers in [args] aren't known to be incompatible
   /// with one another, and that they don't have units that are too complex for
   /// calculations.
   static void _verifyCompatibleNumbers(List<Object> args) {
