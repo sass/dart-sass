@@ -10,7 +10,7 @@ env:
 on:
   push:
     branches: [main, feature.*]
-    tags: ['**']
+    tags: ['[0-9]+.[0-9]+.*']
   pull_request:
 
 jobs:
