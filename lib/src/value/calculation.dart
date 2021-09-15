@@ -164,7 +164,7 @@ class SassCalculation extends Value {
           CalculationOperator operator, Object left, Object right) =>
       operateInternal(operator, left, right, inMinMax: false);
 
-  /// Like operator, but with the internal-only [inMinMax] parameter.
+  /// Like [operate], but with the internal-only [inMinMax] parameter.
   ///
   /// If [inMinMax] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
