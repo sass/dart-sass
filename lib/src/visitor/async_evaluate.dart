@@ -2222,7 +2222,8 @@ class _EvaluateVisitor
   Future<Value> visitCalculationExpression(CalculationExpression node) async {
     var arguments = [
       for (var argument in node.arguments)
-        await _visitCalculationValue(argument)
+        await _visitCalculationValue(argument,
+            inMinMax: node.name == 'min' || node.name == 'max')
     ];
 
     try {
@@ -2289,19 +2290,25 @@ class _EvaluateVisitor
   }
 
   /// Evaluates [node] as a component of a calculation.
-  Future<Object> _visitCalculationValue(Expression node) async {
+  ///
+  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
+  /// subtracted with numbers with units, for backwards-compatibility with the
+  /// old global `min()` and `max()` functions.
+  Future<Object> _visitCalculationValue(Expression node,
+      {required bool inMinMax}) async {
     if (node is ParenthesizedExpression) {
-      return await _visitCalculationValue(node.expression);
+      return await _visitCalculationValue(node.expression, inMinMax: inMinMax);
     } else if (node is StringExpression) {
       assert(!node.hasQuotes);
       return CalculationInterpolation(await _performInterpolation(node.text));
     } else if (node is BinaryOperationExpression) {
       return await _addExceptionSpanAsync(
           node,
-          () async => SassCalculation.operate(
+          () async => SassCalculation.operateInternal(
               _binaryOperatorToCalculationOperator(node.operator),
-              await _visitCalculationValue(node.left),
-              await _visitCalculationValue(node.right)));
+              await _visitCalculationValue(node.left, inMinMax: inMinMax),
+              await _visitCalculationValue(node.right, inMinMax: inMinMax),
+              inMinMax: inMinMax));
     } else {
       assert(node is NumberExpression ||
           node is CalculationExpression ||

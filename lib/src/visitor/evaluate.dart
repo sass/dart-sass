@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3bcae71014e2ef5626aae9e5e0a5b49c499a226f
+// Checksum: f1dd8f0cf56216c204a866a63e22bec1092c2093
 //
 // ignore_for_file: unused_import
 
@@ -2210,7 +2210,9 @@ class _EvaluateVisitor
 
   Value visitCalculationExpression(CalculationExpression node) {
     var arguments = [
-      for (var argument in node.arguments) _visitCalculationValue(argument)
+      for (var argument in node.arguments)
+        _visitCalculationValue(argument,
+            inMinMax: node.name == 'min' || node.name == 'max')
     ];
 
     try {
@@ -2277,19 +2279,24 @@ class _EvaluateVisitor
   }
 
   /// Evaluates [node] as a component of a calculation.
-  Object _visitCalculationValue(Expression node) {
+  ///
+  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
+  /// subtracted with numbers with units, for backwards-compatibility with the
+  /// old global `min()` and `max()` functions.
+  Object _visitCalculationValue(Expression node, {required bool inMinMax}) {
     if (node is ParenthesizedExpression) {
-      return _visitCalculationValue(node.expression);
+      return _visitCalculationValue(node.expression, inMinMax: inMinMax);
     } else if (node is StringExpression) {
       assert(!node.hasQuotes);
       return CalculationInterpolation(_performInterpolation(node.text));
     } else if (node is BinaryOperationExpression) {
       return _addExceptionSpan(
           node,
-          () => SassCalculation.operate(
+          () => SassCalculation.operateInternal(
               _binaryOperatorToCalculationOperator(node.operator),
-              _visitCalculationValue(node.left),
-              _visitCalculationValue(node.right)));
+              _visitCalculationValue(node.left, inMinMax: inMinMax),
+              _visitCalculationValue(node.right, inMinMax: inMinMax),
+              inMinMax: inMinMax));
     } else {
       assert(node is NumberExpression ||
           node is CalculationExpression ||
