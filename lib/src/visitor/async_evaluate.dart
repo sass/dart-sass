@@ -2291,7 +2291,14 @@ class _EvaluateVisitor
   /// Evaluates [node] as a component of a calculation.
   Future<Object> _visitCalculationValue(Expression node) async {
     if (node is ParenthesizedExpression) {
-      return await _visitCalculationValue(node.expression);
+      var inner = node.expression;
+      var result = await _visitCalculationValue(inner);
+      return inner is FunctionExpression &&
+              inner.name.toLowerCase() == 'var' &&
+              result is SassString &&
+              !result.hasQuotes
+          ? SassString('(${result.text})', quotes: false)
+          : result;
     } else if (node is StringExpression) {
       assert(!node.hasQuotes);
       return CalculationInterpolation(await _performInterpolation(node.text));

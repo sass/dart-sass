@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3bcae71014e2ef5626aae9e5e0a5b49c499a226f
+// Checksum: 58efc9d3f1a86c811ca30cfd7dcbeb01a6945d89
 //
 // ignore_for_file: unused_import
 
@@ -2279,7 +2279,14 @@ class _EvaluateVisitor
   /// Evaluates [node] as a component of a calculation.
   Object _visitCalculationValue(Expression node) {
     if (node is ParenthesizedExpression) {
-      return _visitCalculationValue(node.expression);
+      var inner = node.expression;
+      var result = _visitCalculationValue(inner);
+      return inner is FunctionExpression &&
+              inner.name.toLowerCase() == 'var' &&
+              result is SassString &&
+              !result.hasQuotes
+          ? SassString('(${result.text})', quotes: false)
+          : result;
     } else if (node is StringExpression) {
       assert(!node.hasQuotes);
       return CalculationInterpolation(_performInterpolation(node.text));
