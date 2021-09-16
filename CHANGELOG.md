@@ -1,3 +1,9 @@
+## 1.41.1
+
+* Preserve parentheses around `var()` functions in calculations, because they
+  could potentially be replaced with sub-expressions that might need to be
+  parenthesized.
+
 ## 1.41.0
 
 * Calculation values can now be combined with strings using the `+` operator.
