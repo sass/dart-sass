@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_pkg/cli_pkg.dart' as pkg;
@@ -16,6 +17,17 @@ final sassBotEnvironment = RunOptions(environment: {
   "GIT_COMMITTER_NAME": pkg.botName.value,
   "GIT_COMMITTER_EMAIL": pkg.botEmail.value
 });
+
+/// Returns the HTTP basic authentication Authorization header from the
+/// environment.
+String get githubAuthorization {
+  var bearerToken = pkg.githubBearerToken.value;
+  return bearerToken != null
+      ? "Bearer $bearerToken"
+      : "Basic " +
+          base64.encode(utf8
+              .encode(pkg.githubUser.value + ':' + pkg.githubPassword.value));
+}
 
 /// Ensure that the `build/` directory exists.
 void ensureBuild() {
@@ -47,18 +59,22 @@ Future<String> cloneOrCheckout(String url, String ref) async {
 
   var path = p.join("build", name);
 
-  if (Directory(p.join(path, '.git')).existsSync()) {
-    log("Updating $url");
-    await runAsync("git",
-        arguments: ["fetch", "origin"], workingDirectory: path);
-  } else {
+  if (!Directory(p.join(path, '.git')).existsSync()) {
     delete(Directory(path));
-    await runAsync("git", arguments: ["clone", url, path]);
+    await runAsync("git", arguments: ["init", path]);
     await runAsync("git",
         arguments: ["config", "advice.detachedHead", "false"],
         workingDirectory: path);
+    await runAsync("git",
+        arguments: ["remote", "add", "origin", url], workingDirectory: path);
+  } else {
+    log("Updating $url");
   }
-  await runAsync("git", arguments: ["checkout", ref], workingDirectory: path);
+
+  await runAsync("git",
+      arguments: ["fetch", "origin", "--depth=1", ref], workingDirectory: path);
+  await runAsync("git",
+      arguments: ["checkout", "FETCH_HEAD"], workingDirectory: path);
   log("");
 
   return path;

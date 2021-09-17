@@ -15,6 +15,7 @@ import 'grind/synchronize.dart';
 
 export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
+export 'grind/frameworks.dart';
 export 'grind/sanity_check.dart';
 export 'grind/subpackages.dart';
 export 'grind/synchronize.dart';
@@ -34,8 +35,8 @@ void main(List<String> args) {
           as Map<String, dynamic>;
   pkg.npmReadme.fn = () => _readAndResolveMarkdown("package/README.npm.md");
   pkg.standaloneName.value = "dart-sass";
-  pkg.githubUser.fn = () => Platform.environment["GH_USER"]!;
-  pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"]!;
+  pkg.githubUser.fn = () => Platform.environment["GH_USER"];
+  pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"];
 
   pkg.githubReleaseNotes.fn = () =>
       "To install Sass ${pkg.version}, download one of the packages below "
