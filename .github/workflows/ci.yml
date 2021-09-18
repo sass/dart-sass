@@ -4,11 +4,11 @@ defaults:
   run: {shell: bash}
 
 env:
-  # Run on Node 14 because node-fibers doesn't support odd-numbered Node
+  # Run on Node 16 because node-fibers doesn't support odd-numbered Node
   # versions. Note: when changing this, also change
   # jobs.node_tests.strategy.matrix.node_version and the Node version for Dart
   # dev tests.
-  DEFAULT_NODE_VERSION: 14
+  DEFAULT_NODE_VERSION: 16
 
 on:
   push:
@@ -53,7 +53,7 @@ jobs:
         env: {extra_args: "${{ matrix.async_args }}"}
 
   # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated April 2021. See
+  # They next need to be rotated April 2022. See
   # https://github.com/nodejs/Release.
   sass_spec_js:
     name: "JS API Tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node_version }} | ${{ matrix.os }}"
@@ -64,18 +64,18 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node_version: [14]
+        node_version: [16]
         include:
           # Include LTS versions on Ubuntu
           - os: ubuntu-latest
             dart_channel: stable
             node_version: 12
           - os: ubuntu-latest
-            dart_channel: stable
-            node_version: 10
-          - os: ubuntu-latest
             dart_channel: dev
             node_version: 14
+          - os: ubuntu-latest
+            dart_channel: dev
+            node_version: 16
 
     steps:
       - uses: actions/checkout@v2
@@ -129,7 +129,7 @@ jobs:
   # Unit tests that use Node.js, defined in test/.
   #
   # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated April 2021. See
+  # They next need to be rotated April 2022. See
   # https://github.com/nodejs/Release.
   node_tests:
     name: "Node tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node_version }} | ${{ matrix.os }}"
@@ -141,18 +141,18 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node_version: [14]
+        node_version: [16]
         include:
           # Include LTS versions on Ubuntu
           - os: ubuntu-latest
             dart_channel: stable
             node_version: 12
           - os: ubuntu-latest
-            dart_channel: stable
-            node_version: 10
-          - os: ubuntu-latest
             dart_channel: dev
             node_version: 14
+          - os: ubuntu-latest
+            dart_channel: dev
+            node_version: 16
 
     steps:
       - uses: actions/checkout@v2
