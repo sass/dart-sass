@@ -2297,7 +2297,14 @@ class _EvaluateVisitor
   Future<Object> _visitCalculationValue(Expression node,
       {required bool inMinMax}) async {
     if (node is ParenthesizedExpression) {
-      return await _visitCalculationValue(node.expression, inMinMax: inMinMax);
+      var inner = node.expression;
+      var result = await _visitCalculationValue(inner, inMinMax: inMinMax);
+      return inner is FunctionExpression &&
+              inner.name.toLowerCase() == 'var' &&
+              result is SassString &&
+              !result.hasQuotes
+          ? SassString('(${result.text})', quotes: false)
+          : result;
     } else if (node is StringExpression) {
       assert(!node.hasQuotes);
       return CalculationInterpolation(await _performInterpolation(node.text));

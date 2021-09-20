@@ -12,6 +12,8 @@ import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart';
 
+import 'utils.dart';
+
 /// The path in which pub expects to find its credentials file.
 final String _pubCredentialsPath = () {
   // This follows the same logic as pub:
@@ -29,17 +31,6 @@ final String _pubCredentialsPath = () {
 
   return p.join(cacheDir, 'credentials.json');
 }();
-
-/// Returns the HTTP basic authentication Authorization header from the
-/// environment.
-String get _githubAuthorization {
-  var bearerToken = pkg.githubBearerToken.value;
-  return bearerToken != null
-      ? "Bearer $bearerToken"
-      : "Basic " +
-          base64.encode(utf8
-              .encode(pkg.githubUser.value + ':' + pkg.githubPassword.value));
-}
 
 @Task('Deploy sub-packages to pub.')
 Future<void> deploySubPackages() async {
@@ -86,7 +77,7 @@ Future<void> deploySubPackages() async {
         headers: {
           "accept": "application/vnd.github.v3+json",
           "content-type": "application/json",
-          "authorization": _githubAuthorization
+          "authorization": githubAuthorization
         },
         body: jsonEncode({
           "ref": "refs/tags/${pubspec.name}/${pubspec.version}",

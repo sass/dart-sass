@@ -1,5 +1,8 @@
 name: CI
 
+defaults:
+  run: {shell: bash}
+
 env:
   # Run on Node 14 because node-fibers doesn't support odd-numbered Node
   # versions. Note: when changing this, also change
@@ -10,12 +13,12 @@ env:
 on:
   push:
     branches: [main, feature.*]
-    tags: ['**']
+    tags: ['[0-9]+.[0-9]+.*']
   pull_request:
 
 jobs:
-  sass_spec:
-    name: "sass-spec | Dart ${{ matrix.dart_channel }} | ${{ matrix.async_label }}"
+  sass_spec_language:
+    name: "Language Tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.async_label }}"
     runs-on: ubuntu-latest
 
     strategy:
@@ -34,13 +37,8 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
-      # Set up the environment to run the sass-spec runner which is written in Ruby
       - name: Set up sass-spec
-        run: |
-          export sass_spec_ref=`tool/github-action/sass-spec-ref.sh`
-          git init sass-spec
-          git -C sass-spec fetch git://github.com/sass/sass-spec "$sass_spec_ref" --depth 1
-          git -C sass-spec checkout FETCH_HEAD
+        run: tool/github-action/check-out-sass-spec.sh
         env:
           PR_BRANCH: "${{ github.base_ref }}"
           CURRENT_REF: "${{ github.ref }}"
@@ -53,6 +51,60 @@ jobs:
         run: npm run sass-spec -- --dart .. $extra_args
         working-directory: sass-spec
         env: {extra_args: "${{ matrix.async_args }}"}
+
+  # The versions should be kept up-to-date with the latest LTS Node releases.
+  # They next need to be rotated April 2021. See
+  # https://github.com/nodejs/Release.
+  sass_spec_js:
+    name: "JS API Tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node_version }} | ${{ matrix.os }}"
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dart_channel: [stable]
+        node_version: [14]
+        include:
+          # Include LTS versions on Ubuntu
+          - os: ubuntu-latest
+            dart_channel: stable
+            node_version: 12
+          - os: ubuntu-latest
+            dart_channel: stable
+            node_version: 10
+          - os: ubuntu-latest
+            dart_channel: dev
+            node_version: 14
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
+      - run: dart pub get
+      - uses: actions/setup-node@v2
+        with: {node-version: "${{ matrix.node_version }}"}
+
+      - name: Check out sass-spec
+        run: tool/github-action/check-out-sass-spec.sh
+        env:
+          PR_BRANCH: "${{ github.base_ref }}"
+          CURRENT_REF: "${{ github.ref }}"
+          PR_BODY: "${{ github.event.pull_request.body }}"
+
+      - name: Build JS
+        run: dart pub run grinder pkg-npm-dev
+
+      - name: Link Dart Sass into sass-spec
+        run: npm install ../build/npm
+        working-directory: sass-spec
+
+      - name: Check out Sass specification
+        run: git clone https://github.com/sass/sass.git language --depth 1
+
+      - name: Run tests
+        run: npm run js-api-spec -- --sassSassRepo ../language
+        working-directory: sass-spec
 
   dart_tests:
     name: "Dart tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.os }}"
@@ -142,10 +194,16 @@ jobs:
           --errors ambiguous-doc-reference,broken-link,deprecated
           --errors unknown-directive,unknown-macro,unresolved-doc-reference
 
-  sanity_checks:
-    name: Sanity checks
+  double_check:
+    name: Double-check
     runs-on: ubuntu-latest
-    needs: [sass_spec, dart_tests, node_tests, static_analysis, dartdoc]
+    needs:
+    - sass_spec_language
+    - sass_spec_js
+    - dart_tests
+    - node_tests
+    - static_analysis
+    - dartdoc
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
@@ -155,10 +213,76 @@ jobs:
       - name: Run checks
         run: dart pub run grinder sanity-check-before-release
 
+  bootstrap:
+    name: "Bootstrap ${{ matrix.bootstrap_version }}"
+    runs-on: ubuntu-latest
+    needs: [double_check]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        bootstrap_version: [4, 5]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart pub run grinder fetch-bootstrap${{matrix.bootstrap_version}}
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      - name: Build
+        run: dart bin/sass.dart --quiet build/bootstrap/scss:build/bootstrap-output
+
+  bourbon:
+    name: Bourbon
+    runs-on: ubuntu-latest
+    needs: [double_check]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart pub run grinder fetch-bourbon
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      - name: Test
+        run: |
+          dart bin/sass.dart --quiet -I build/bourbon -I build/bourbon/spec/fixtures \
+              build/bourbon/spec/fixtures:build/bourbon-output
+
+  foundation:
+    name: Foundation
+    runs-on: ubuntu-latest
+    needs: [double_check]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart pub run grinder fetch-foundation
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      # TODO(nweiz): Foundation has proper Sass tests, but they're currently not
+      # compatible with Dart Sass. Once they are, we should run those rather
+      # than just building the CSS output.
+      - name: Build
+        run: dart bin/sass.dart --quiet build/foundation-sites/assets:build/foundation-output
+
+  bulma:
+    name: Bulma
+    runs-on: ubuntu-latest
+    needs: [double_check]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart pub run grinder fetch-bulma
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      - name: Build
+        run: dart bin/sass.dart --quiet build/bulma/bulma.sass build/bulma-output.css
+
   deploy_github_linux:
     name: "Deploy Github: Linux"
     runs-on: ubuntu-latest
-    needs: [sanity_checks]
+    needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
@@ -206,7 +330,7 @@ jobs:
   deploy_npm:
     name: Deploy npm
     runs-on: ubuntu-latest
-    needs: [sanity_checks]
+    needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
@@ -241,7 +365,7 @@ jobs:
   deploy_pub:
     name: "Deploy Pub"
     runs-on: ubuntu-latest
-    needs: [sanity_checks]
+    needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
@@ -274,7 +398,7 @@ jobs:
   deploy_homebrew:
     name: "Deploy Homebrew"
     runs-on: ubuntu-latest
-    needs: [sanity_checks]
+    needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
@@ -290,7 +414,7 @@ jobs:
   deploy_chocolatey:
     name: "Deploy Chocolatey"
     runs-on: windows-latest
-    needs: [sanity_checks]
+    needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
@@ -304,7 +428,7 @@ jobs:
   deploy_website:
     name: "Deploy sass-lang.com"
     runs-on: ubuntu-latest
-    needs: [sanity_checks]
+    needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:

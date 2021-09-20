@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f1dd8f0cf56216c204a866a63e22bec1092c2093
+// Checksum: 72516268980b2e5ece8c1eb38f024f22e96d5f15
 //
 // ignore_for_file: unused_import
 
@@ -2285,7 +2285,14 @@ class _EvaluateVisitor
   /// old global `min()` and `max()` functions.
   Object _visitCalculationValue(Expression node, {required bool inMinMax}) {
     if (node is ParenthesizedExpression) {
-      return _visitCalculationValue(node.expression, inMinMax: inMinMax);
+      var inner = node.expression;
+      var result = _visitCalculationValue(inner, inMinMax: inMinMax);
+      return inner is FunctionExpression &&
+              inner.name.toLowerCase() == 'var' &&
+              result is SassString &&
+              !result.hasQuotes
+          ? SassString('(${result.text})', quotes: false)
+          : result;
     } else if (node is StringExpression) {
       assert(!node.hasQuotes);
       return CalculationInterpolation(_performInterpolation(node.text));
