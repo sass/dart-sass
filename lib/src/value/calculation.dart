@@ -69,7 +69,7 @@ class SassCalculation extends Value {
     SassNumber? minimum;
     for (var arg in args) {
       if (arg is! SassNumber ||
-          (minimum != null && !minimum.hasCompatibleUnits(arg))) {
+          (minimum != null && !minimum.isComparableTo(arg))) {
         minimum = null;
         break;
       } else if (minimum == null || minimum.greaterThan(arg).isTruthy) {
@@ -100,7 +100,7 @@ class SassCalculation extends Value {
     SassNumber? maximum;
     for (var arg in args) {
       if (arg is! SassNumber ||
-          (maximum != null && !maximum.hasCompatibleUnits(arg))) {
+          (maximum != null && !maximum.isComparableTo(arg))) {
         maximum = null;
         break;
       } else if (maximum == null || maximum.lessThan(arg).isTruthy) {
@@ -161,7 +161,18 @@ class SassCalculation extends Value {
   /// [SassCalculation], an unquoted [SassString], a [CalculationOperation], or
   /// a [CalculationInterpolation].
   static Object operate(
-      CalculationOperator operator, Object left, Object right) {
+          CalculationOperator operator, Object left, Object right) =>
+      operateInternal(operator, left, right, inMinMax: false);
+
+  /// Like [operate], but with the internal-only [inMinMax] parameter.
+  ///
+  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
+  /// subtracted with numbers with units, for backwards-compatibility with the
+  /// old global `min()` and `max()` functions.
+  @internal
+  static Object operateInternal(
+      CalculationOperator operator, Object left, Object right,
+      {required bool inMinMax}) {
     left = _simplify(left);
     right = _simplify(right);
 
@@ -169,7 +180,9 @@ class SassCalculation extends Value {
         operator == CalculationOperator.minus) {
       if (left is SassNumber &&
           right is SassNumber &&
-          left.hasCompatibleUnits(right)) {
+          (inMinMax
+              ? left.isComparableTo(right)
+              : left.hasCompatibleUnits(right))) {
         return operator == CalculationOperator.plus
             ? left.plus(right)
             : left.minus(right);

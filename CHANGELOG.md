@@ -1,3 +1,13 @@
+## 1.42.0
+
+* `min()` and `max()` expressions are once again parsed as calculations as long
+  as they contain only syntax that's allowed in calculation expressions. To
+  avoid the backwards-compatibility issues that were present in 1.40.0, they now
+  allow unitless numbers to be mixed with numbers with units just like the
+  global `min()` and `max()` functions. Similarly, `+` and `-` operations within
+  `min()` and `max()` functions allow unitless numbers to be mixed with numbers
+  with units.
+
 ## 1.41.1
 
 * Preserve parentheses around `var()` functions in calculations, because they

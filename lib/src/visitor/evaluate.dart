@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 58efc9d3f1a86c811ca30cfd7dcbeb01a6945d89
+// Checksum: 72516268980b2e5ece8c1eb38f024f22e96d5f15
 //
 // ignore_for_file: unused_import
 
@@ -2210,7 +2210,9 @@ class _EvaluateVisitor
 
   Value visitCalculationExpression(CalculationExpression node) {
     var arguments = [
-      for (var argument in node.arguments) _visitCalculationValue(argument)
+      for (var argument in node.arguments)
+        _visitCalculationValue(argument,
+            inMinMax: node.name == 'min' || node.name == 'max')
     ];
 
     try {
@@ -2277,10 +2279,14 @@ class _EvaluateVisitor
   }
 
   /// Evaluates [node] as a component of a calculation.
-  Object _visitCalculationValue(Expression node) {
+  ///
+  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
+  /// subtracted with numbers with units, for backwards-compatibility with the
+  /// old global `min()` and `max()` functions.
+  Object _visitCalculationValue(Expression node, {required bool inMinMax}) {
     if (node is ParenthesizedExpression) {
       var inner = node.expression;
-      var result = _visitCalculationValue(inner);
+      var result = _visitCalculationValue(inner, inMinMax: inMinMax);
       return inner is FunctionExpression &&
               inner.name.toLowerCase() == 'var' &&
               result is SassString &&
@@ -2293,10 +2299,11 @@ class _EvaluateVisitor
     } else if (node is BinaryOperationExpression) {
       return _addExceptionSpan(
           node,
-          () => SassCalculation.operate(
+          () => SassCalculation.operateInternal(
               _binaryOperatorToCalculationOperator(node.operator),
-              _visitCalculationValue(node.left),
-              _visitCalculationValue(node.right)));
+              _visitCalculationValue(node.left, inMinMax: inMinMax),
+              _visitCalculationValue(node.right, inMinMax: inMinMax),
+              inMinMax: inMinMax));
     } else {
       assert(node is NumberExpression ||
           node is CalculationExpression ||

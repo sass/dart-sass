@@ -2714,25 +2714,6 @@ abstract class StylesheetParser extends Parser {
           ..writeCharCode($lparen);
         break;
 
-      case "min":
-      case "max":
-        // min() and max() are parsed as the plain CSS mathematical functions if
-        // possible, and otherwise are parsed as normal Sass functions.
-        var beginningOfContents = scanner.state;
-        if (!scanner.scanChar($lparen)) return null;
-        whitespace();
-
-        var buffer = InterpolationBuffer()
-          ..write(name)
-          ..writeCharCode($lparen);
-
-        if (!_tryMinMaxContents(buffer)) {
-          scanner.state = beginningOfContents;
-          return null;
-        }
-
-        return StringExpression(buffer.interpolation(scanner.spanFrom(start)));
-
       case "progid":
         if (!scanner.scanChar($colon)) return null;
         buffer = InterpolationBuffer()
@@ -2767,11 +2748,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// Assumes the scanner is positioned immediately before the opening
   /// parenthesis of the argument list.
-  ///
-  /// If [allowMinMax] is `true`, this parses `min()` and `max()` functions as
-  /// calculations.
-  CalculationExpression? _tryCalculation(String name, LineScannerState start,
-      {bool allowMinMax = false}) {
+  CalculationExpression? _tryCalculation(String name, LineScannerState start) {
     assert(scanner.peekChar() == $lparen);
     switch (name) {
       case "calc":
@@ -2780,9 +2757,18 @@ abstract class StylesheetParser extends Parser {
 
       case "min":
       case "max":
-        if (!allowMinMax) return null;
-        return CalculationExpression(
-            name, _calculationArguments(), scanner.spanFrom(start));
+        // min() and max() are parsed as calculations if possible, and otherwise
+        // are parsed as normal Sass functions.
+        var beforeArguments = scanner.state;
+        List<Expression> arguments;
+        try {
+          arguments = _calculationArguments();
+        } on FormatException catch (_) {
+          scanner.state = beforeArguments;
+          return null;
+        }
+
+        return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "clamp":
         var arguments = _calculationArguments(3);
@@ -2791,144 +2777,6 @@ abstract class StylesheetParser extends Parser {
       default:
         return null;
     }
-  }
-
-  /// Consumes the contents of a plain-CSS `min()` or `max()` function into
-  /// [buffer] if one is available.
-  ///
-  /// Returns whether this succeeded.
-  ///
-  /// If [allowComma] is `true` (the default), this allows `CalcValue`
-  /// productions separated by commas.
-  bool _tryMinMaxContents(InterpolationBuffer buffer,
-      {bool allowComma = true}) {
-    whitespace();
-
-    // The number of open parentheses that need to be closed.
-    while (true) {
-      var next = scanner.peekChar();
-      switch (next) {
-        case $minus:
-        case $plus:
-        case $0:
-        case $1:
-        case $2:
-        case $3:
-        case $4:
-        case $5:
-        case $6:
-        case $7:
-        case $8:
-        case $9:
-        case $dot:
-          try {
-            buffer.write(rawText(_number));
-          } on FormatException catch (_) {
-            return false;
-          }
-          break;
-
-        case $hash:
-          if (scanner.peekChar(1) != $lbrace) return false;
-          buffer.add(singleInterpolation());
-          break;
-
-        case $c:
-        case $C:
-          switch (scanner.peekChar(1)) {
-            case $a:
-            case $A:
-              if (!_tryMinMaxFunction(buffer, "calc")) return false;
-              break;
-
-            case $l:
-            case $L:
-              if (!_tryMinMaxFunction(buffer, "clamp")) return false;
-              break;
-          }
-          break;
-
-        case $e:
-        case $E:
-          if (!_tryMinMaxFunction(buffer, "env")) return false;
-          break;
-
-        case $v:
-        case $V:
-          if (!_tryMinMaxFunction(buffer, "var")) return false;
-          break;
-
-        case $lparen:
-          buffer.writeCharCode(scanner.readChar());
-          if (!_tryMinMaxContents(buffer, allowComma: false)) return false;
-          break;
-
-        case $m:
-        case $M:
-          scanner.readChar();
-          if (scanIdentChar($i)) {
-            if (!scanIdentChar($n)) return false;
-            buffer.write("min(");
-          } else if (scanIdentChar($a)) {
-            if (!scanIdentChar($x)) return false;
-            buffer.write("max(");
-          } else {
-            return false;
-          }
-          if (!scanner.scanChar($lparen)) return false;
-
-          if (!_tryMinMaxContents(buffer)) return false;
-          break;
-
-        default:
-          return false;
-      }
-
-      whitespace();
-
-      next = scanner.peekChar();
-      switch (next) {
-        case $rparen:
-          buffer.writeCharCode(scanner.readChar());
-          return true;
-
-        case $plus:
-        case $minus:
-        case $asterisk:
-        case $slash:
-          buffer.writeCharCode($space);
-          buffer.writeCharCode(scanner.readChar());
-          buffer.writeCharCode($space);
-          break;
-
-        case $comma:
-          if (!allowComma) return false;
-          buffer.writeCharCode(scanner.readChar());
-          buffer.writeCharCode($space);
-          break;
-
-        default:
-          return false;
-      }
-
-      whitespace();
-    }
-  }
-
-  /// Consumes a function named [name] containing an
-  /// `InterpolatedDeclarationValue` if possible, and adds its text to [buffer].
-  ///
-  /// Returns whether such a function could be consumed.
-  bool _tryMinMaxFunction(InterpolationBuffer buffer, String name) {
-    if (!scanIdentifier(name)) return false;
-    if (!scanner.scanChar($lparen)) return false;
-    buffer
-      ..write(name)
-      ..writeCharCode($lparen)
-      ..addInterpolation(_interpolatedDeclarationValue(allowEmpty: true))
-      ..writeCharCode($rparen);
-    if (!scanner.scanChar($rparen)) return false;
-    return true;
   }
 
   /// Consumes and returns arguments for a calculation expression, including the
@@ -3034,7 +2882,7 @@ abstract class StylesheetParser extends Parser {
       if (scanner.peekChar() != $lparen) scanner.error('Expected "(" or ".".');
 
       var lowerCase = ident.toLowerCase();
-      var calculation = _tryCalculation(lowerCase, start, allowMinMax: true);
+      var calculation = _tryCalculation(lowerCase, start);
       if (calculation != null) {
         return calculation;
       } else if (lowerCase == "if") {
