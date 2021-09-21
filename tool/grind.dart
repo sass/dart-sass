@@ -15,8 +15,8 @@ import 'grind/synchronize.dart';
 
 export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
+export 'grind/double_check.dart';
 export 'grind/frameworks.dart';
-export 'grind/sanity_check.dart';
 export 'grind/subpackages.dart';
 export 'grind/synchronize.dart';
 
