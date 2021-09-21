@@ -16,7 +16,8 @@ Future<void> updateBazel() async {
 
   run("npm", arguments: ["install", "-g", "yarn"]);
 
-  var repo = await cloneOrPull("https://github.com/bazelbuild/rules_sass.git");
+  var repo = await cloneOrCheckout(
+      "https://github.com/bazelbuild/rules_sass.git", "origin/main");
 
   var packageFile = File(p.join(repo, "sass", "package.json"));
   log("updating ${packageFile.path}");
@@ -62,7 +63,7 @@ Future<void> updateBazel() async {
       arguments: [
         "push",
         "https://$username:$password@github.com/bazelbuild/rules_sass.git",
-        "HEAD:master"
+        "HEAD:main"
       ],
       workingDirectory: repo);
 }

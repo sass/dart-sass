@@ -95,8 +95,10 @@ Future<void> _writeNTimes(String path, String text, num times,
 @Depends(benchmarkGenerate, "pkg-compile-snapshot", "pkg-compile-native",
     "pkg-npm-release")
 Future<void> benchmark() async {
-  var libsass = await cloneOrPull('https://github.com/sass/libsass');
-  var sassc = await cloneOrPull('https://github.com/sass/sassc');
+  var libsass =
+      await cloneOrCheckout('https://github.com/sass/libsass', 'origin/master');
+  var sassc =
+      await cloneOrCheckout('https://github.com/sass/sassc', 'origin/master');
 
   await runAsync("make",
       runOptions: RunOptions(

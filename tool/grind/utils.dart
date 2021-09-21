@@ -43,13 +43,6 @@ String environment(String name) {
 }
 
 /// Ensure that the repository at [url] is cloned into the build directory and
-/// pointing to the latest master revision.
-///
-/// Returns the path to the repository.
-Future<String> cloneOrPull(String url) async =>
-    cloneOrCheckout(url, "origin/master");
-
-/// Ensure that the repository at [url] is cloned into the build directory and
 /// pointing to [ref].
 ///
 /// Returns the path to the repository.
