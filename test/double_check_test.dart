@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_api_client/pub_api_client.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
@@ -62,6 +63,20 @@ void main() {
                 changelogVersion.isPreRelease
                     ? equals("${changelogVersion.nextPatch}-dev")
                     : equals("$changelogVersion-dev")));
+      });
+
+      test("version is not yet released", () async {
+        var pubspec = Pubspec.parse(
+            File("$package/pubspec.yaml").readAsStringSync(),
+            sourceUrl: p.toUri("$package/pubspec.yaml"));
+
+        var client = PubClient();
+        try {
+          var package = await client.packageInfo(pubspec.name);
+          expect(pubspec.version, isNot(equals(package.latestPubspec.version)));
+        } finally {
+          client.close();
+        }
       });
     });
   }
