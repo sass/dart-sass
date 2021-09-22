@@ -30,6 +30,7 @@ void main(List<String> args) {
   pkg.homebrewFormula.value = "sass.rb";
   pkg.jsRequires.value = {"chokidar": "chokidar", "readline": "readline"};
   pkg.jsModuleMainLibrary.value = "lib/src/node.dart";
+  pkg.jsDevFlags.value.add("-Dnew-js-api=true");
   pkg.npmPackageJson.fn = () =>
       json.decode(File("package/package.json").readAsStringSync())
           as Map<String, dynamic>;

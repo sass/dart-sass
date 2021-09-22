@@ -4,8 +4,9 @@
 
 import 'dart:js_util';
 
+import 'package:sass/src/node/utils.dart';
+
 import '../../value.dart';
-import '../utils.dart';
 import 'value/color.dart';
 import 'value/list.dart';
 import 'value/map.dart';

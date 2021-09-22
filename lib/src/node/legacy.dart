@@ -153,7 +153,6 @@ RenderResult renderSync(RenderOptions options) {
   } catch (error) {
     jsThrow(_newRenderError(error.toString(), status: 3));
   }
-  throw "unreachable";
 }
 
 /// Converts an exception to a [JsError].
