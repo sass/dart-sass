@@ -5,7 +5,7 @@
 import 'package:js/js.dart';
 
 import '../value.dart';
-import 'types.dart';
+import 'legacy/types.dart';
 
 @JS()
 class Exports {

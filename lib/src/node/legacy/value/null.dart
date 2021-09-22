@@ -6,8 +6,8 @@ import 'package:js/js.dart';
 
 import 'dart:js_util';
 
-import '../../value.dart';
-import '../utils.dart';
+import '../../../value.dart';
+import '../../utils.dart';
 
 /// The JS constructor for the `sass.types.Null` class.
 ///

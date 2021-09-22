@@ -6,8 +6,8 @@ import 'dart:js_util';
 
 import 'package:js/js.dart';
 
-import '../../value.dart';
-import '../utils.dart';
+import '../../../value.dart';
+import '../../utils.dart';
 
 @JS()
 class _NodeSassColor {

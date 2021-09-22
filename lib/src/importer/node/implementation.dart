@@ -10,10 +10,10 @@ import 'package:tuple/tuple.dart';
 
 import '../../io.dart';
 import '../../node/function.dart';
-import '../../node/importer_result.dart';
+import '../../node/legacy/importer_result.dart';
+import '../../node/legacy/render_context.dart';
 import '../../node/utils.dart';
 import '../../util/nullable.dart';
-import '../../node/render_context.dart';
 import '../utils.dart';
 
 /// An importer that encapsulates Node Sass's import logic.
