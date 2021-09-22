@@ -2908,40 +2908,64 @@ abstract class StylesheetParser extends Parser {
     var parens = 0;
     var brackets = <int>[];
 
-    // Scan manually rather than using [scanner] and saving and restoring its
-    // state to avoid the overhead of updating line and column information.
-    var string = scanner.string;
-    for (var i = scanner.position; i < string.length - 1; i++) {
-      var next = string.codeUnitAt(i);
+    var start = scanner.state;
+    while (!scanner.isDone) {
+      var next = scanner.peekChar();
       switch (next) {
         case $backslash:
-          i++;
+          scanner.readChar();
+          scanner.readChar();
+          break;
+
+        case $slash:
+          if (!scanComment()) scanner.readChar();
+          break;
+
+        case $single_quote:
+        case $double_quote:
+          interpolatedString();
           break;
 
         case $hash:
-          if (parens == 0 && string.codeUnitAt(i + 1) == $lbrace) return true;
+          if (parens == 0 && scanner.peekChar(1) == $lbrace) {
+            scanner.state = start;
+            return true;
+          }
+          scanner.readChar();
           break;
 
         case $lparen:
           parens++;
-          continue;
+          continue left;
 
+        left:
         case $lbrace:
         case $lbracket:
-          brackets.add(opposite(next));
+          // dart-lang/sdk#45357
+          brackets.add(opposite(next!));
+          scanner.readChar();
           break;
 
         case $rparen:
           parens--;
-          continue;
+          continue right;
 
+        right:
         case $rbrace:
         case $rbracket:
-          if (brackets.isEmpty || brackets.removeLast() != next) return false;
+          if (brackets.isEmpty || brackets.removeLast() != next) {
+            scanner.state = start;
+            return false;
+          }
+          scanner.readChar();
           break;
+
+        default:
+          scanner.readChar();
       }
     }
 
+    scanner.state = start;
     return false;
   }
 

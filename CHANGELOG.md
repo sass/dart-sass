@@ -1,3 +1,9 @@
+## 1.42.1
+
+* Fix a bug where Sass variables and function calls in calculations weren't
+  being resolved correctly if there was a parenthesized interpolation elsewhere
+  in the file.
+
 ## 1.42.0
 
 * `min()` and `max()` expressions are once again parsed as calculations as long
