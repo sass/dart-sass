@@ -11,7 +11,7 @@ import 'async_import_cache.dart';
 import 'callable.dart';
 import 'compile_result.dart';
 import 'importer.dart';
-import 'importer/node.dart';
+import 'importer/legacy_node.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'logger/terse.dart';

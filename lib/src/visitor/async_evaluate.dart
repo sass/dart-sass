@@ -29,7 +29,7 @@ import '../extend/extension.dart';
 import '../functions.dart';
 import '../functions/meta.dart' as meta;
 import '../importer.dart';
-import '../importer/node.dart';
+import '../importer/legacy_node.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../module.dart';

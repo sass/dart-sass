@@ -17,7 +17,7 @@ import '../callable.dart';
 import '../compile.dart';
 import '../compile_result.dart';
 import '../exception.dart';
-import '../importer/node.dart';
+import '../importer/legacy_node.dart';
 import '../io.dart';
 import '../parse/scss.dart';
 import '../syntax.dart';

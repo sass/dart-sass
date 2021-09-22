@@ -15,9 +15,9 @@ import 'package:sass/src/node/utils.dart';
 
 import 'ensure_npm_package.dart';
 import 'hybrid.dart';
-import 'node_api/api.dart';
-import 'node_api/intercept_stdout.dart';
-import 'node_api/utils.dart';
+import 'legacy_node_api/api.dart';
+import 'legacy_node_api/intercept_stdout.dart';
+import 'legacy_node_api/utils.dart';
 import 'utils.dart';
 
 void main() {

@@ -2,4 +2,4 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-export 'node/interface.dart' if (dart.library.js) 'node/implementation.dart';
+export 'legacy_node/interface.dart' if (dart.library.js) 'legacy_node/implementation.dart';

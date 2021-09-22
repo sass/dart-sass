@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 72516268980b2e5ece8c1eb38f024f22e96d5f15
+// Checksum: 8cfca5657b5368e3c6399a2753ddda351c51a4bd
 //
 // ignore_for_file: unused_import
 
@@ -38,7 +38,7 @@ import '../extend/extension.dart';
 import '../functions.dart';
 import '../functions/meta.dart' as meta;
 import '../importer.dart';
-import '../importer/node.dart';
+import '../importer/legacy_node.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../module.dart';
