@@ -4,8 +4,8 @@
 
 import 'dart:js_util';
 
-import '../value.dart';
-import 'utils.dart';
+import '../../value.dart';
+import '../utils.dart';
 import 'value/color.dart';
 import 'value/list.dart';
 import 'value/map.dart';

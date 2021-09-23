@@ -9,13 +9,13 @@
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
 
-export 'package:sass/src/node/importer_result.dart';
-export 'package:sass/src/node/render_context.dart';
-export 'package:sass/src/node/render_options.dart';
-export 'package:sass/src/node/render_result.dart';
-import 'package:sass/src/node/fiber.dart';
-import 'package:sass/src/node/render_options.dart';
-import 'package:sass/src/node/render_result.dart';
+export 'package:sass/src/node/legacy/importer_result.dart';
+export 'package:sass/src/node/legacy/render_context.dart';
+export 'package:sass/src/node/legacy/render_options.dart';
+export 'package:sass/src/node/legacy/render_result.dart';
+import 'package:sass/src/node/legacy/fiber.dart';
+import 'package:sass/src/node/legacy/render_options.dart';
+import 'package:sass/src/node/legacy/render_result.dart';
 
 /// The Sass module.
 final sass = _requireSass(p.absolute("build/npm/sass.dart"));
