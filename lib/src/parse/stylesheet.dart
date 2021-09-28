@@ -1150,11 +1150,30 @@ abstract class StylesheetParser extends Parser {
       } else if (scanner.peekChar() == $lparen) {
         supports = _supportsCondition();
       } else {
-        var name = expression();
-        scanner.expectChar($colon);
-        whitespace();
-        var value = expression();
-        supports = SupportsDeclaration(name, value, scanner.spanFrom(start));
+        if (_lookingAtInterpolatedIdentifier()) {
+          var identifier = interpolatedIdentifier();
+          if (identifier.asPlain?.toLowerCase() == "not") {
+            error('"not" is not a valid identifier here.', identifier.span);
+          }
+
+          if (scanner.scanChar($lparen)) {
+            var arguments = _interpolatedDeclarationValue(
+                allowEmpty: true, allowSemicolon: true);
+            scanner.expectChar($rparen);
+            supports = SupportsFunction(
+                identifier, arguments, scanner.spanFrom(start));
+          } else {
+            // Backtrack to parse a variable declaration
+            scanner.state = start;
+          }
+        }
+        if (supports == null) {
+          var name = expression();
+          scanner.expectChar($colon);
+          whitespace();
+          var value = expression();
+          supports = SupportsDeclaration(name, value, scanner.spanFrom(start));
+        }
       }
       scanner.expectChar($rparen);
       whitespace();
