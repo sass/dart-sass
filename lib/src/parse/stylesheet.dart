@@ -1398,7 +1398,11 @@ abstract class StylesheetParser extends Parser {
     try {
       return Parser.parseIdentifier(namespace, logger: logger);
     } on SassFormatException {
-      error('Invalid Sass identifier "$namespace"', scanner.spanFrom(start));
+      error(
+          'The default namespace "$namespace" is not a valid Sass identifier.\n'
+          "\n"
+          'Recommendation: add an "as" clause to define an explicit namespace.',
+          scanner.spanFrom(start));
     }
   }
 
