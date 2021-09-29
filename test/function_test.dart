@@ -775,6 +775,85 @@ void main() {
       });
     });
 
+    group("a calculation", () {
+      test("with a string argument", () async {
+        expect(
+            (await _protofy("calc(var(--foo))")).calculation,
+            equals(Value_Calculation()
+              ..name = "calc"
+              ..arguments.add(Value_Calculation_CalculationValue()
+                ..string = "var(--foo)")));
+      });
+
+      test("with an interpolation argument", () async {
+        expect(
+            (await _protofy("calc(#{var(--foo)})")).calculation,
+            equals(Value_Calculation()
+              ..name = "calc"
+              ..arguments.add(Value_Calculation_CalculationValue()
+                ..interpolation = "var(--foo)")));
+      });
+
+      test("with number arguments", () async {
+        expect(
+            (await _protofy("clamp(1%, 2px, 3em)")).calculation,
+            equals(Value_Calculation()
+              ..name = "clamp"
+              ..arguments.add(Value_Calculation_CalculationValue()
+                ..number = (Value_Number()
+                  ..value = 1.0
+                  ..numerators.add("%")))
+              ..arguments.add(Value_Calculation_CalculationValue()
+                ..number = (Value_Number()
+                  ..value = 2.0
+                  ..numerators.add("px")))
+              ..arguments.add(Value_Calculation_CalculationValue()
+                ..number = (Value_Number()
+                  ..value = 3.0
+                  ..numerators.add("em")))));
+      });
+
+      test("with a calculation argument", () async {
+        expect(
+            (await _protofy("min(max(1%, 2px), 3em)")).calculation,
+            equals(Value_Calculation()
+              ..name = "min"
+              ..arguments.add(Value_Calculation_CalculationValue()
+                ..calculation = (Value_Calculation()
+                  ..name = "max"
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 1.0
+                      ..numerators.add("%")))
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 2.0
+                      ..numerators.add("px")))))
+              ..arguments.add(Value_Calculation_CalculationValue()
+                ..number = (Value_Number()
+                  ..value = 3.0
+                  ..numerators.add("em")))));
+      });
+
+      test("with an operation", () async {
+        expect(
+            (await _protofy("calc(1% + 2px)")).calculation,
+            equals(Value_Calculation()
+              ..name = "calc"
+              ..arguments.add(Value_Calculation_CalculationValue()
+                ..operation = (Value_Calculation_CalculationOperation()
+                  ..operator = CalculationOperator.PLUS
+                  ..left = (Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 1.0
+                      ..numerators.add("%")))
+                  ..right = (Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 2.0
+                      ..numerators.add("px")))))));
+      });
+    });
+
     test("true", () async {
       expect((await _protofy("true")), equals(_true));
     });
@@ -1362,6 +1441,175 @@ void main() {
       });
     });
 
+    group("a calculation", () {
+      test("with a string argument", () async {
+        expect(
+            await _deprotofy(Value()
+              ..calculation = (Value_Calculation()
+                ..name = "calc"
+                ..arguments.add(Value_Calculation_CalculationValue()
+                  ..string = "var(--foo)"))),
+            "calc(var(--foo))");
+      });
+
+      test("with an interpolation argument", () async {
+        expect(
+            await _deprotofy(Value()
+              ..calculation = (Value_Calculation()
+                ..name = "calc"
+                ..arguments.add(Value_Calculation_CalculationValue()
+                  ..interpolation = "var(--foo)"))),
+            "calc(var(--foo))");
+      });
+
+      test("with number arguments", () async {
+        expect(
+            await _deprotofy(Value()
+              ..calculation = (Value_Calculation()
+                ..name = "clamp"
+                ..arguments.add(Value_Calculation_CalculationValue()
+                  ..number = (Value_Number()
+                    ..value = 1.0
+                    ..numerators.add("%")))
+                ..arguments.add(Value_Calculation_CalculationValue()
+                  ..number = (Value_Number()
+                    ..value = 2.0
+                    ..numerators.add("px")))
+                ..arguments.add(Value_Calculation_CalculationValue()
+                  ..number = (Value_Number()
+                    ..value = 3.0
+                    ..numerators.add("em"))))),
+            "clamp(1%, 2px, 3em)");
+      });
+
+      test("with a calculation argument", () async {
+        expect(
+            await _deprotofy(Value()
+              ..calculation = (Value_Calculation()
+                ..name = "min"
+                ..arguments.add(Value_Calculation_CalculationValue()
+                  ..calculation = (Value_Calculation()
+                    ..name = "max"
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()
+                        ..value = 1.0
+                        ..numerators.add("%")))
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()
+                        ..value = 2.0
+                        ..numerators.add("px")))))
+                ..arguments.add(Value_Calculation_CalculationValue()
+                  ..number = (Value_Number()
+                    ..value = 3.0
+                    ..numerators.add("em"))))),
+            "min(max(1%, 2px), 3em)");
+      });
+
+      test("with an operation", () async {
+        expect(
+            await _deprotofy(Value()
+              ..calculation = (Value_Calculation()
+                ..name = "calc"
+                ..arguments.add(Value_Calculation_CalculationValue()
+                  ..operation = (Value_Calculation_CalculationOperation()
+                    ..operator = CalculationOperator.PLUS
+                    ..left = (Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()
+                        ..value = 1.0
+                        ..numerators.add("%")))
+                    ..right = (Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()
+                        ..value = 2.0
+                        ..numerators.add("px"))))))),
+            "calc(1% + 2px)");
+      });
+
+      group("simplifies", () {
+        test("an operation", () async {
+          expect(
+              await _deprotofy(Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "calc"
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..operation = (Value_Calculation_CalculationOperation()
+                      ..operator = CalculationOperator.PLUS
+                      ..left = (Value_Calculation_CalculationValue()
+                        ..number = (Value_Number()..value = 1.0))
+                      ..right = (Value_Calculation_CalculationValue()
+                        ..number = (Value_Number()..value = 2.0)))))),
+              "3");
+        });
+
+        test("a nested operation", () async {
+          expect(
+              await _deprotofy(Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "calc"
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..operation = (Value_Calculation_CalculationOperation()
+                      ..operator = CalculationOperator.PLUS
+                      ..left = (Value_Calculation_CalculationValue()
+                        ..number = (Value_Number()
+                          ..value = 1.0
+                          ..numerators.add("%")))
+                      ..right = (Value_Calculation_CalculationValue()
+                        ..operation = (Value_Calculation_CalculationOperation()
+                          ..operator = CalculationOperator.PLUS
+                          ..left = (Value_Calculation_CalculationValue()
+                            ..number = (Value_Number()
+                              ..value = 2.0
+                              ..numerators.add("px")))
+                          ..right = (Value_Calculation_CalculationValue()
+                            ..number = (Value_Number()
+                              ..value = 3.0
+                              ..numerators.add("px"))))))))),
+              "calc(1% + 5px)");
+        });
+
+        test("min", () async {
+          expect(
+              await _deprotofy(Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "min"
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 1.0))
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 2.0))
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 3.0)))),
+              "1");
+        });
+
+        test("max", () async {
+          expect(
+              await _deprotofy(Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "max"
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 1.0))
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 2.0))
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 3.0)))),
+              "3");
+        });
+
+        test("clamp", () async {
+          expect(
+              await _deprotofy(Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "clamp"
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 1.0))
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 2.0))
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()..value = 3.0)))),
+              "2");
+        });
+      });
+    });
+
     test("true", () async {
       expect(await _deprotofy(_true), equals("true"));
     });
@@ -1451,6 +1699,103 @@ void main() {
             Value()..argumentList = (Value_ArgumentList()..id = 1),
             equals(
                 "Value.ArgumentList.id 1 doesn't match any known argument lists"));
+      });
+
+      group("a calculation", () {
+        group("with too many arguments", () {
+          test("for calc", () async {
+            await _expectDeprotofyError(
+                Value()
+                  ..calculation = (Value_Calculation()
+                    ..name = "calc"
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 1.0))
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 2.0))),
+                equals("Value.Calculation.arguments must have exactly one "
+                    "argument for calc()."));
+          });
+
+          test("for clamp", () async {
+            await _expectDeprotofyError(
+                Value()
+                  ..calculation = (Value_Calculation()
+                    ..name = "clamp"
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 1.0))
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 2.0))
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 3.0))
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 4.0))),
+                equals("Value.Calculation.arguments must have exactly 3 "
+                    "arguments for clamp()."));
+          });
+        });
+
+        group("with too few arguments", () {
+          test("for calc", () async {
+            await _expectDeprotofyError(
+                Value()..calculation = (Value_Calculation()..name = "calc"),
+                equals("Value.Calculation.arguments must have exactly one "
+                    "argument for calc()."));
+          });
+
+          test("for clamp", () async {
+            await _expectDeprotofyError(
+                Value()
+                  ..calculation = (Value_Calculation()
+                    ..name = "clamp"
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 1.0))
+                    ..arguments.add(Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 2.0))),
+                equals("Value.Calculation.arguments must have exactly 3 "
+                    "arguments for clamp()."));
+          });
+
+          test("for min", () async {
+            await _expectDeprotofyError(
+                Value()..calculation = (Value_Calculation()..name = "min"),
+                equals("Value.Calculation.arguments must have at least 1 "
+                    "argument for min()."));
+          });
+
+          test("for max", () async {
+            await _expectDeprotofyError(
+                Value()..calculation = (Value_Calculation()..name = "max"),
+                equals("Value.Calculation.arguments must have at least 1 "
+                    "argument for max()."));
+          });
+        });
+
+        test("reports a compilation failure when simplification fails",
+            () async {
+          _process.inbound
+              .add(compileString("a {b: foo()}", functions: [r"foo()"]));
+
+          var request = getFunctionCallRequest(await _process.outbound.next);
+          expect(request.arguments, isEmpty);
+          _process.inbound.add(InboundMessage()
+            ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+              ..id = request.id
+              ..success = (Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "min"
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 1.0
+                      ..numerators.add("px")))
+                  ..arguments.add(Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 2.0
+                      ..numerators.add("s")))))));
+
+          var failure = await getCompileFailure(await _process.outbound.next);
+          expect(failure.message, equals("1px and 2s are incompatible."));
+          expect(_process.kill(), completes);
+        });
       });
     });
   });

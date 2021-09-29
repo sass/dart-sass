@@ -46,10 +46,7 @@ class Protofier {
         ..text = value.text
         ..quoted = value.hasQuotes;
     } else if (value is sass.SassNumber) {
-      var number = Value_Number()..value = value.value * 1.0;
-      number.numerators.addAll(value.numeratorUnits);
-      number.denominators.addAll(value.denominatorUnits);
-      result.number = number;
+      result.number = _protofyNumber(value);
     } else if (value is sass.SassColor) {
       if (value.hasCalculatedHsl) {
         result.hslColor = Value_HslColor()
@@ -88,6 +85,8 @@ class Protofier {
           ..value = protofy(value));
       });
       result.map = map;
+    } else if (value is sass.SassCalculation) {
+      result.calculation = _protofyCalculation(value);
     } else if (value is sass.SassFunction) {
       result.compilerFunction = _functions.protofy(value);
     } else if (value == sass.sassTrue) {
@@ -100,6 +99,14 @@ class Protofier {
       throw "Unknown Value $value";
     }
     return result;
+  }
+
+  /// Converts [number] to its protocol buffer representation.
+  Value_Number _protofyNumber(sass.SassNumber number) {
+    var value = Value_Number()..value = number.value * 1.0;
+    value.numerators.addAll(number.numeratorUnits);
+    value.denominators.addAll(number.denominatorUnits);
+    return value;
   }
 
   /// Converts [separator] to its protocol buffer representation.
@@ -115,6 +122,55 @@ class Protofier {
         return ListSeparator.UNDECIDED;
       default:
         throw "Unknown ListSeparator $separator";
+    }
+  }
+
+  /// Converts [calculation] to its protocol buffer representation.
+  Value_Calculation _protofyCalculation(sass.SassCalculation calculation) =>
+      Value_Calculation()
+        ..name = calculation.name
+        ..arguments.addAll([
+          for (var argument in calculation.arguments)
+            _protofyCalculationValue(argument)
+        ]);
+
+  /// Converts a calculation value that appears within a `SassCalculation` to
+  /// its protocol buffer representation.
+  Value_Calculation_CalculationValue _protofyCalculationValue(Object value) {
+    var result = Value_Calculation_CalculationValue();
+    if (value is sass.SassNumber) {
+      result.number = _protofyNumber(value);
+    } else if (value is sass.SassCalculation) {
+      result.calculation = _protofyCalculation(value);
+    } else if (value is sass.SassString) {
+      result.string = value.text;
+    } else if (value is sass.CalculationOperation) {
+      result.operation = Value_Calculation_CalculationOperation()
+        ..operator = _protofyCalculationOperator(value.operator)
+        ..left = _protofyCalculationValue(value.left)
+        ..right = _protofyCalculationValue(value.right);
+    } else if (value is sass.CalculationInterpolation) {
+      result.interpolation = value.value;
+    } else {
+      throw "Unknown calculation value $value";
+    }
+    return result;
+  }
+
+  /// Converts [operator] to its protocol buffer representation.
+  CalculationOperator _protofyCalculationOperator(
+      sass.CalculationOperator operator) {
+    switch (operator) {
+      case sass.CalculationOperator.plus:
+        return CalculationOperator.PLUS;
+      case sass.CalculationOperator.minus:
+        return CalculationOperator.MINUS;
+      case sass.CalculationOperator.times:
+        return CalculationOperator.TIMES;
+      case sass.CalculationOperator.dividedBy:
+        return CalculationOperator.DIVIDE;
+      default:
+        throw "Unknown CalculationOperator $operator";
     }
   }
 
@@ -138,9 +194,7 @@ class Protofier {
               : sass.SassString(value.string.text, quotes: value.string.quoted);
 
         case Value_Value.number:
-          return sass.SassNumber.withUnits(value.number.value,
-              numeratorUnits: value.number.numerators,
-              denominatorUnits: value.number.denominators);
+          return _deprotofyNumber(value.number);
 
         case Value_Value.rgbColor:
           return sass.SassColor.rgb(value.rgbColor.red, value.rgbColor.green,
@@ -221,6 +275,9 @@ class Protofier {
               _compilationId, value.hostFunction.signature,
               id: value.hostFunction.id));
 
+        case Value_Value.calculation:
+          return _deprotofyCalculation(value.calculation);
+
         case Value_Value.singleton:
           switch (value.singleton) {
             case SingletonValue.TRUE:
@@ -254,6 +311,12 @@ class Protofier {
     }
   }
 
+  /// Converts [number] to its Sass representation.
+  sass.SassNumber _deprotofyNumber(Value_Number number) =>
+      sass.SassNumber.withUnits(number.value,
+          numeratorUnits: number.numerators,
+          denominatorUnits: number.denominators);
+
   /// Returns the argument list in [_argumentLists] that corresponds to [id].
   sass.SassArgumentList _argumentListForId(int id) {
     if (id < 1) {
@@ -281,6 +344,96 @@ class Protofier {
         return sass.ListSeparator.undecided;
       default:
         throw "Unknown separator $separator";
+    }
+  }
+
+  /// Converts [calculation] to its Sass representation.
+  sass.Value _deprotofyCalculation(Value_Calculation calculation) {
+    if (calculation.name == "calc") {
+      if (calculation.arguments.length != 1) {
+        throw paramsError(
+            "Value.Calculation.arguments must have exactly one argument for "
+            "calc().");
+      }
+
+      return sass.SassCalculation.calc(
+          _deprotofyCalculationValue(calculation.arguments[0]));
+    } else if (calculation.name == "clamp") {
+      if (calculation.arguments.length != 3) {
+        throw paramsError(
+            "Value.Calculation.arguments must have exactly 3 arguments for "
+            "clamp().");
+      }
+
+      return sass.SassCalculation.clamp(
+          _deprotofyCalculationValue(calculation.arguments[0]),
+          _deprotofyCalculationValue(calculation.arguments[1]),
+          _deprotofyCalculationValue(calculation.arguments[2]));
+    } else if (calculation.name == "min") {
+      if (calculation.arguments.isEmpty) {
+        throw paramsError(
+            "Value.Calculation.arguments must have at least 1 argument for "
+            "min().");
+      }
+
+      return sass.SassCalculation.min(
+          calculation.arguments.map(_deprotofyCalculationValue));
+    } else if (calculation.name == "max") {
+      if (calculation.arguments.isEmpty) {
+        throw paramsError(
+            "Value.Calculation.arguments must have at least 1 argument for "
+            "max().");
+      }
+
+      return sass.SassCalculation.max(
+          calculation.arguments.map(_deprotofyCalculationValue));
+    } else {
+      throw paramsError(
+          'Value.Calculation.name "${calculation.name}" is not a recognized '
+          'calculation type.');
+    }
+  }
+
+  /// Converts [value] to its Sass representation.
+  Object _deprotofyCalculationValue(Value_Calculation_CalculationValue value) {
+    switch (value.whichValue()) {
+      case Value_Calculation_CalculationValue_Value.number:
+        return _deprotofyNumber(value.number);
+
+      case Value_Calculation_CalculationValue_Value.calculation:
+        return _deprotofyCalculation(value.calculation);
+
+      case Value_Calculation_CalculationValue_Value.string:
+        return sass.SassString(value.string, quotes: false);
+
+      case Value_Calculation_CalculationValue_Value.operation:
+        return sass.SassCalculation.operate(
+            _deprotofyCalculationOperator(value.operation.operator),
+            _deprotofyCalculationValue(value.operation.left),
+            _deprotofyCalculationValue(value.operation.right));
+
+      case Value_Calculation_CalculationValue_Value.interpolation:
+        return sass.CalculationInterpolation(value.interpolation);
+
+      case Value_Calculation_CalculationValue_Value.notSet:
+        throw mandatoryError("Value.Calculation.value");
+    }
+  }
+
+  /// Converts [operator] to its Sass representation.
+  sass.CalculationOperator _deprotofyCalculationOperator(
+      CalculationOperator operator) {
+    switch (operator) {
+      case CalculationOperator.PLUS:
+        return sass.CalculationOperator.plus;
+      case CalculationOperator.MINUS:
+        return sass.CalculationOperator.minus;
+      case CalculationOperator.TIMES:
+        return sass.CalculationOperator.times;
+      case CalculationOperator.DIVIDE:
+        return sass.CalculationOperator.dividedBy;
+      default:
+        throw "Unknown CalculationOperator $operator";
     }
   }
 }

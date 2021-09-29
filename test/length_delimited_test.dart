@@ -79,7 +79,10 @@ void main() {
       });
 
       test("from multiple chunks", () {
-        sink..add([172])..add([2, 1])..add(List.filled(299, 1));
+        sink
+          ..add([172])
+          ..add([2, 1])
+          ..add(List.filled(299, 1));
         expect(queue, emits(List.filled(300, 1)));
       });
 

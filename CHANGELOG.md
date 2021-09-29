@@ -1,3 +1,8 @@
+## 1.0.0-beta.12
+
+* Support version 1.0.0-beta.14 of the Sass embedded protocol:
+  * Support `Value.Calculation`.
+
 ## 1.0.0-beta.11
 
 * Support version 1.0.0-beta.13 of the Sass embedded protocol:
