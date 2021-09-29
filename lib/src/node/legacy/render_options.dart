@@ -4,12 +4,13 @@
 
 import 'package:js/js.dart';
 
+import '../logger.dart';
 import 'fiber.dart';
 
 @JS()
 @anonymous
 class RenderOptions {
-  external String? /*?*/ get file;
+  external String? get file;
   external String? get data;
   external Object? get importer;
   external Object? get functions;
@@ -29,6 +30,7 @@ class RenderOptions {
   external bool? get quietDeps;
   external bool? get verbose;
   external bool? get charset;
+  external NodeLogger? get logger;
 
   external factory RenderOptions(
       {String? file,
@@ -50,5 +52,6 @@ class RenderOptions {
       String? sourceMapRoot,
       bool? quietDeps,
       bool? verbose,
-      bool? charset});
+      bool? charset,
+      NodeLogger? logger});
 }

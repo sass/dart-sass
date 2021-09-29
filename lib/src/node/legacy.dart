@@ -19,6 +19,8 @@ import '../compile_result.dart';
 import '../exception.dart';
 import '../importer/legacy_node.dart';
 import '../io.dart';
+import '../logger.dart';
+import '../logger/node_to_dart.dart';
 import '../parse/scss.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
@@ -95,7 +97,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         quietDeps: options.quietDeps ?? false,
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
-        sourceMap: _enableSourceMaps(options));
+        sourceMap: _enableSourceMaps(options),
+        logger: NodeToDartLogger(
+            options.logger, Logger.stderr(color: hasTerminal)));
   } else {
     throw ArgumentError("Either options.data or options.file must be set.");
   }
@@ -129,7 +133,9 @@ RenderResult renderSync(RenderOptions options) {
           quietDeps: options.quietDeps ?? false,
           verbose: options.verbose ?? false,
           charset: options.charset ?? true,
-          sourceMap: _enableSourceMaps(options));
+          sourceMap: _enableSourceMaps(options),
+          logger: NodeToDartLogger(
+              options.logger, Logger.stderr(color: hasTerminal)));
     } else if (file != null) {
       result = compile(file,
           nodeImporter: _parseImporter(options, start),
@@ -142,7 +148,9 @@ RenderResult renderSync(RenderOptions options) {
           quietDeps: options.quietDeps ?? false,
           verbose: options.verbose ?? false,
           charset: options.charset ?? true,
-          sourceMap: _enableSourceMaps(options));
+          sourceMap: _enableSourceMaps(options),
+          logger: NodeToDartLogger(
+              options.logger, Logger.stderr(color: hasTerminal)));
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");
     }
