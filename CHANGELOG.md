@@ -1,3 +1,16 @@
+## 1.43.0
+
+### JS API
+
+* Add support for the `logger` option. This takes an object that can define
+  `warn` or `debug` methods to add custom handling for messages emitted by the
+  Sass compiler. See [the JS API docs] for details.
+
+  [the JS API docs]: https://sass-lang.com/documentation/js-api/interfaces/Logger
+
+* Add a `Logger.silent` object that can be passed to the `logger` option to
+  silence all messages from the Sass compiler.
+
 ## 1.42.1
 
 * Fix a bug where Sass variables and function calls in calculations weren't
