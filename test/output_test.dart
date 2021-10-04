@@ -33,7 +33,7 @@ void main() {
       testCharacter(r"\10abcd");
       testCharacter(r"\10fffd");
 
-      // Although these aren't technically in private-use areaa, they're in
+      // Although these aren't technically in private-use area, they're in
       // private-use planes and they have no visual representation to we
       // escape them as well.
       group("that aren't technically in PUAs", () {
