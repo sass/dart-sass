@@ -146,15 +146,15 @@ void main() {
 
     group("strings", () {
       group("emits private-use area characters as literal characters", () {
-        var testCharacter = (int character) {
+        testCharacter(int character) {
           var escape = "\\${character.toRadixString(16)}";
-          test("$escape", () {
+          test(escape, () {
             expect(
                 _compile("a {b: $escape}"),
                 equalsIgnoringWhitespace(
                     "a{b:${String.fromCharCode(character)}}"));
           });
-        };
+        }
 
         group("in the basic multilingual plane", () {
           testCharacter(0xe000);

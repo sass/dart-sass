@@ -24,4 +24,4 @@ analyzer:
     prefer_single_quotes: ignore
     use_function_type_syntax_for_parameters: ignore
 
-include: package:pedantic/analysis_options.yaml
+include: package:lints/recommended.yaml

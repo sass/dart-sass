@@ -94,11 +94,10 @@ class PseudoSelector extends SimpleSelector {
     return name != 'not' && selector.isInvisible;
   }
 
-  PseudoSelector(String name,
+  PseudoSelector(this.name,
       {bool element = false, this.argument, this.selector})
       : isClass = !element && !_isFakePseudoElement(name),
         isSyntacticClass = !element,
-        name = name,
         normalizedName = unvendor(name);
 
   /// Returns whether [name] is the name of a pseudo-element that can be written

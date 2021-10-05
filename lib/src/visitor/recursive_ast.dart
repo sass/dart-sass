@@ -25,6 +25,7 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
   const RecursiveAstVisitor();
 
   void visitAtRootRule(AtRootRule node) {
+    node.query.andThen(visitInterpolation);
     super.visitAtRootRule(node);
   }
 

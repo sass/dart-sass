@@ -4,11 +4,10 @@ defaults:
   run: {shell: bash}
 
 env:
-  # Run on Node 14 because node-fibers doesn't support odd-numbered Node
-  # versions. Note: when changing this, also change
+  # Note: when changing this, also change
   # jobs.node_tests.strategy.matrix.node_version and the Node version for Dart
   # dev tests.
-  DEFAULT_NODE_VERSION: 14
+  DEFAULT_NODE_VERSION: 16
 
 on:
   push:
@@ -64,18 +63,18 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node_version: [14]
+        node_version: [16]
         include:
           # Include LTS versions on Ubuntu
           - os: ubuntu-latest
             dart_channel: stable
-            node_version: 12
+            node_version: 14
           - os: ubuntu-latest
             dart_channel: stable
-            node_version: 10
+            node_version: 12
           - os: ubuntu-latest
             dart_channel: dev
-            node_version: 14
+            node_version: 16
 
     steps:
       - uses: actions/checkout@v2
@@ -84,6 +83,7 @@ jobs:
       - run: dart pub get
       - uses: actions/setup-node@v2
         with: {node-version: "${{ matrix.node_version }}"}
+      - run: npm install
 
       - name: Check out sass-spec
         run: tool/github-action/check-out-sass-spec.sh
@@ -141,18 +141,18 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node_version: [14]
+        node_version: [16]
         include:
           # Include LTS versions on Ubuntu
           - os: ubuntu-latest
             dart_channel: stable
-            node_version: 12
+            node_version: 14
           - os: ubuntu-latest
             dart_channel: stable
-            node_version: 10
+            node_version: 12
           - os: ubuntu-latest
             dart_channel: dev
-            node_version: 14
+            node_version: 16
 
     steps:
       - uses: actions/checkout@v2
