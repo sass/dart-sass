@@ -1,3 +1,7 @@
+## 1.43.1
+
+* No user-visible changes.
+
 ## 1.43.0
 
 ### JS API
