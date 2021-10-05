@@ -4,6 +4,7 @@
 
 import 'package:js/js.dart';
 
+import 'importer.dart';
 import 'logger.dart';
 import 'url.dart';
 
@@ -18,6 +19,7 @@ class CompileOptions {
   external bool? get verbose;
   external bool? get sourceMap;
   external NodeLogger? get logger;
+  external List<Object?>? get importers;
 }
 
 @JS()
@@ -25,4 +27,5 @@ class CompileOptions {
 class CompileStringOptions extends CompileOptions {
   external String? get syntax;
   external JSUrl? get url;
+  external NodeImporter? get importer;
 }
