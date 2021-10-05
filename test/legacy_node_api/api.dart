@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// ignore_for_file: non_constant_identifier_names
+// See dart-lang/sdk#47374
+
 /// This library exposes Dart Sass's Node.js API, imported as JavaScript, back
 /// to Dart. This is kind of convoluted, but it allows us to test the API as it
 /// will be used in the real world without having to manually write any JS.
@@ -13,15 +16,11 @@ export 'package:sass/src/node/legacy/importer_result.dart';
 export 'package:sass/src/node/legacy/render_context.dart';
 export 'package:sass/src/node/legacy/render_options.dart';
 export 'package:sass/src/node/legacy/render_result.dart';
-import 'package:sass/src/node/legacy/fiber.dart';
 import 'package:sass/src/node/legacy/render_options.dart';
 import 'package:sass/src/node/legacy/render_result.dart';
 
 /// The Sass module.
 final sass = _requireSass(p.absolute("build/npm/sass.dart"));
-
-/// The Fiber class.
-final fiber = _requireFiber("fibers");
 
 /// A `null` that's guaranteed to be represented by JavaScript's `null` value,
 /// not by `undefined`.
@@ -35,9 +34,6 @@ external Object _eval(String js);
 
 @JS("require")
 external Sass _requireSass(String path);
-
-@JS("require")
-external FiberClass _requireFiber(String path);
 
 @JS()
 class Sass {

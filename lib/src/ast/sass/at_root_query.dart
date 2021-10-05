@@ -38,9 +38,8 @@ class AtRootQuery {
   /// Note that this takes [include] into account.
   bool get excludesStyleRules => (_all || _rule) != include;
 
-  AtRootQuery(Set<String> names, {required this.include})
-      : names = names,
-        _all = names.contains("all"),
+  AtRootQuery(this.names, {required this.include})
+      : _all = names.contains("all"),
         _rule = names.contains("rule");
 
   /// The default at-root query, used in [default].

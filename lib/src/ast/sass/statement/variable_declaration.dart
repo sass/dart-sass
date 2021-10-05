@@ -65,13 +65,9 @@ class VariableDeclaration implements Statement, SassDeclaration {
       namespace == null ? null : span.initialIdentifier();
 
   VariableDeclaration(this.name, this.expression, this.span,
-      {this.namespace,
-      bool guarded = false,
-      bool global = false,
-      SilentComment? comment})
+      {this.namespace, bool guarded = false, bool global = false, this.comment})
       : isGuarded = guarded,
-        isGlobal = global,
-        comment = comment {
+        isGlobal = global {
     if (namespace != null && global) {
       throw ArgumentError(
           "Other modules' members can't be defined with !global.");

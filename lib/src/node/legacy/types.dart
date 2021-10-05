@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// ignore_for_file: non_constant_identifier_names
+// See dart-lang/sdk#47374
+
 import 'package:js/js.dart';
 
 @JS()

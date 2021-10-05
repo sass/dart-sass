@@ -480,8 +480,6 @@ class _EvaluateVisitor
             configuration: configuration,
             namesInErrors: true);
         _assertConfigurationIsEmpty(configuration, nameInError: true);
-
-        return null;
       }, url: "sass:meta")
     ];
 
@@ -1681,7 +1679,6 @@ class _EvaluateVisitor
     } else {
       (_outOfOrderImports ??= []).add(node);
     }
-    return null;
   }
 
   Future<Value?> visitIncludeRule(IncludeRule node) async {
@@ -1719,9 +1716,7 @@ class _EvaluateVisitor
               await _addErrorSpan(nodeWithSpan, () => statement.accept(this));
             }
           });
-          return null;
         });
-        return null;
       });
     } else {
       throw UnsupportedError("Unknown callable type $mixin.");
@@ -2846,7 +2841,7 @@ class _EvaluateVisitor
     if (node.isChildless) {
       _parent.addChild(ModifiableCssAtRule(node.name, node.span,
           childless: true, value: node.value));
-      return null;
+      return;
     }
 
     var wasInKeyframes = _inKeyframes;
@@ -2928,7 +2923,7 @@ class _EvaluateVisitor
 
     var mergedQueries = _mediaQueries.andThen(
         (mediaQueries) => _mergeMediaQueries(mediaQueries, node.queries));
-    if (mergedQueries != null && mergedQueries.isEmpty) return null;
+    if (mergedQueries != null && mergedQueries.isEmpty) return;
 
     await _withParent(
         ModifiableCssMediaRule(mergedQueries ?? node.queries, node.span),

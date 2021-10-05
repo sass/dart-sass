@@ -1,3 +1,8 @@
+## 1.0.0-beta.14
+
+* Fix a bug where `RecursiveAstVisitor.visitAtRootRule` wouldn't visit any nodes
+  interpolated into the `@at-root`'s query.
+
 ## 1.0.0-beta.13
 
 * No user-visible changes.
