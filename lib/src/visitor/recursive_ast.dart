@@ -35,6 +35,12 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
     super.visitAtRule(node);
   }
 
+  void visitCalculationExpression(CalculationExpression node) {
+    for (var argument in node.arguments) {
+      argument.accept(this);
+    }
+  }
+
   void visitContentRule(ContentRule node) {
     visitArgumentInvocation(node.arguments);
   }

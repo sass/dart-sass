@@ -1,3 +1,7 @@
+## 1.43.1
+
+* No user-visible changes.
+
 ## 1.43.0
 
 ### JS API
@@ -111,7 +115,7 @@
 
 * Partial fix for a bug where `@at-root` does not work properly in nested
   imports that contain `@use` rules. If the only `@use` rules in the nested
-  import are for built-in modules, `@at-root` should now work properly. 
+  import are for built-in modules, `@at-root` should now work properly.
 
 ## 1.39.0
 

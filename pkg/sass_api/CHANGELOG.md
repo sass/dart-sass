@@ -1,3 +1,8 @@
+## 1.0.0-beta.15
+
+* Fix an issue where `RecursiveAstVisitor` was not implementing
+  `visitCalculationExpression`.
+
 ## 1.0.0-beta.14
 
 * Fix a bug where `RecursiveAstVisitor.visitAtRootRule` wouldn't visit any nodes
