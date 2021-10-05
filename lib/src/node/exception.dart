@@ -5,6 +5,7 @@
 import 'dart:js_util';
 
 import 'package:js/js.dart';
+import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../exception.dart';
 import 'utils.dart';
@@ -54,9 +55,19 @@ var exceptionConstructor = () {
 ///
 /// If [color] is `true`, the thrown exception uses colors in its
 /// stringification.
-Never throwNodeException(SassException exception, {required bool color}) {
-  jsThrow(callConstructor(exceptionConstructor, [
-    exception,
-    exception.toString(color: color).replaceFirst('Error: ', '')
-  ]) as _NodeException);
+///
+/// If [ascii] is `false`, the thrown exception uses non-ASCII characters in its
+/// stringification.
+Never throwNodeException(SassException exception,
+    {required bool color, required bool ascii}) {
+  var wasAscii = glyph.ascii;
+  glyph.ascii = ascii;
+  try {
+    jsThrow(callConstructor(exceptionConstructor, [
+      exception,
+      exception.toString(color: color).replaceFirst('Error: ', '')
+    ]) as _NodeException);
+  } finally {
+    glyph.ascii = wasAscii;
+  }
 }
