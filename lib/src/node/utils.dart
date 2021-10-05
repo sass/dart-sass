@@ -6,9 +6,11 @@ import 'dart:js';
 import 'dart:js_util';
 import 'dart:typed_data';
 
+import 'package:node_interop/js.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
+import '../syntax.dart';
 import 'array.dart';
 import 'function.dart';
 import 'url.dart';
@@ -160,6 +162,19 @@ void _addGettersToPrototype(Object prototype, Map<String, Function> getters) {
 /// Returns whether [value] is truthy according to JavaScript.
 bool isTruthy(Object? value) => value != false && value != null;
 
+@JS('Promise')
+external Function get _promiseClass;
+
+/// Returns whether [object] is a `Promise`.
+bool isPromise(Object? object) =>
+    object != null && instanceof(object, _promiseClass);
+
+@JS('URL')
+external Function get _urlClass;
+
+/// Returns whether [object] is a JavaScript `URL`.
+bool isJSUrl(Object? object) => object != null && instanceof(object, _urlClass);
+
 @JS('Buffer.from')
 external Uint8List _buffer(String text, String encoding);
 
@@ -187,4 +202,12 @@ JSArray toJSArray(Iterable<Object?> iterable) {
     array.push(element);
   }
   return array;
+}
+
+/// Converts a syntax string to an instance of [Syntax].
+Syntax parseSyntax(String? syntax) {
+  if (syntax == null || syntax == 'scss') return Syntax.scss;
+  if (syntax == 'indented') return Syntax.sass;
+  if (syntax == 'css') return Syntax.css;
+  jsThrow(JsError('Unknown syntax "$syntax".'));
 }
