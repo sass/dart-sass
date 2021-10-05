@@ -4,6 +4,7 @@
 
 import 'package:js/js.dart';
 
+import 'logger.dart';
 import 'url.dart';
 
 @JS()
@@ -16,6 +17,7 @@ class CompileOptions {
   external String? get style;
   external bool? get verbose;
   external bool? get sourceMap;
+  external NodeLogger? get logger;
 }
 
 @JS()

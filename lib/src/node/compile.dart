@@ -9,6 +9,8 @@ import 'package:node_interop/util.dart';
 import '../../sass.dart';
 import '../importer/no_op.dart';
 import '../io.dart';
+import '../logger.dart';
+import '../logger/node_to_dart.dart';
 import '../util/nullable.dart';
 import 'compile_options.dart';
 import 'compile_result.dart';
@@ -28,7 +30,8 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
         quietDeps: options?.quietDeps ?? false,
         style: _parseOutputStyle(options?.style),
         verbose: options?.verbose ?? false,
-        sourceMap: options?.sourceMap ?? false);
+        sourceMap: options?.sourceMap ?? false,
+        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color)));
     return _convertResult(result);
   } on SassException catch (error) {
     throwNodeException(error, color: color);
@@ -51,7 +54,8 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
         quietDeps: options?.quietDeps ?? false,
         style: _parseOutputStyle(options?.style),
         verbose: options?.verbose ?? false,
-        sourceMap: options?.sourceMap ?? false);
+        sourceMap: options?.sourceMap ?? false,
+        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color)));
     return _convertResult(result);
   } on SassException catch (error) {
     throwNodeException(error, color: color);
@@ -71,7 +75,8 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         quietDeps: options?.quietDeps ?? false,
         style: _parseOutputStyle(options?.style),
         verbose: options?.verbose ?? false,
-        sourceMap: options?.sourceMap ?? false);
+        sourceMap: options?.sourceMap ?? false,
+        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color)));
     return _convertResult(result);
   }()), color: color);
 }
@@ -92,7 +97,8 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
         quietDeps: options?.quietDeps ?? false,
         style: _parseOutputStyle(options?.style),
         verbose: options?.verbose ?? false,
-        sourceMap: options?.sourceMap ?? false);
+        sourceMap: options?.sourceMap ?? false,
+        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color)));
     return _convertResult(result);
   }()), color: color);
 }

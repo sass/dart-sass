@@ -9,6 +9,7 @@ import 'package:js/js.dart';
 
 import '../value.dart';
 import 'legacy/types.dart';
+import 'logger.dart';
 
 @JS()
 class Exports {
@@ -19,6 +20,7 @@ class Exports {
   external set compileAsync(Function function);
   external set info(String info);
   external set Exception(Function function);
+  external set Logger(LoggerNamespace namespace);
 
   // Legacy APIs
   external set run_(Function function);
@@ -27,6 +29,14 @@ class Exports {
   external set NULL(Value sassNull);
   external set TRUE(SassBoolean sassTrue);
   external set FALSE(SassBoolean sassFalse);
+}
+
+@JS()
+@anonymous
+class LoggerNamespace {
+  external NodeLogger get silent;
+
+  external factory LoggerNamespace({required NodeLogger silent});
 }
 
 @JS()

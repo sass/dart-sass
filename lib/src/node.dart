@@ -10,6 +10,7 @@ import 'node/compile.dart';
 import 'node/legacy.dart';
 import 'node/legacy/types.dart';
 import 'node/legacy/value.dart';
+import 'node/logger.dart';
 import 'node/source_span.dart';
 import 'node/utils.dart';
 import 'value.dart';
@@ -24,6 +25,9 @@ void main() {
     exports.compileAsync = allowInterop(compileAsync);
     exports.compileStringAsync = allowInterop(compileStringAsync);
     exports.Exception = exceptionConstructor;
+    exports.Logger = LoggerNamespace(
+        silent: NodeLogger(
+            warn: allowInterop((_, __) {}), debug: allowInterop((_, __) {})));
   }
 
   exports.info =
