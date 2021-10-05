@@ -5,6 +5,8 @@
 /// We strongly recommend importing this library with the prefix `sass`.
 library sass;
 
+// ignore_for_file: implementation_imports
+
 import 'package:sass/sass.dart';
 import 'package:sass/src/parse/parser.dart';
 

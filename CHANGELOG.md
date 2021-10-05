@@ -1,3 +1,7 @@
+## 1.42.2
+
+* No user-visible changes.
+
 ## 1.42.1
 
 * Fix a bug where Sass variables and function calls in calculations weren't

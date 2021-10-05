@@ -158,7 +158,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await d.file("test.scss", "a {b: }").create();
 
     var sass = await runSass(["--trace", "test.scss"]);
-    expect(sass.stderr, emitsThrough(contains("\.dart")));
+    expect(sass.stderr, emitsThrough(contains(".dart")));
     await sass.shouldExit(65);
   });
 }

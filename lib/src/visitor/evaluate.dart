@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 8cfca5657b5368e3c6399a2753ddda351c51a4bd
+// Checksum: 7a3ae06379ca09dbf3e92d01c1fd974c5b3b9154
 //
 // ignore_for_file: unused_import
 
@@ -485,8 +485,6 @@ class _EvaluateVisitor
             configuration: configuration,
             namesInErrors: true);
         _assertConfigurationIsEmpty(configuration, nameInError: true);
-
-        return null;
       }, url: "sass:meta")
     ];
 
@@ -1678,7 +1676,6 @@ class _EvaluateVisitor
     } else {
       (_outOfOrderImports ??= []).add(node);
     }
-    return null;
   }
 
   Value? visitIncludeRule(IncludeRule node) {
@@ -1715,9 +1712,7 @@ class _EvaluateVisitor
               _addErrorSpan(nodeWithSpan, () => statement.accept(this));
             }
           });
-          return null;
         });
-        return null;
       });
     } else {
       throw UnsupportedError("Unknown callable type $mixin.");
@@ -2826,7 +2821,7 @@ class _EvaluateVisitor
     if (node.isChildless) {
       _parent.addChild(ModifiableCssAtRule(node.name, node.span,
           childless: true, value: node.value));
-      return null;
+      return;
     }
 
     var wasInKeyframes = _inKeyframes;
@@ -2908,7 +2903,7 @@ class _EvaluateVisitor
 
     var mergedQueries = _mediaQueries.andThen(
         (mediaQueries) => _mergeMediaQueries(mediaQueries, node.queries));
-    if (mergedQueries != null && mergedQueries.isEmpty) return null;
+    if (mergedQueries != null && mergedQueries.isEmpty) return;
 
     _withParent(
         ModifiableCssMediaRule(mergedQueries ?? node.queries, node.span), () {

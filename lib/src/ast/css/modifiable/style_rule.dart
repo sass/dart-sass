@@ -20,10 +20,9 @@ class ModifiableCssStyleRule extends ModifiableCssParentNode
   /// Creates a new [ModifiableCssStyleRule].
   ///
   /// If [originalSelector] isn't passed, it defaults to [selector.value].
-  ModifiableCssStyleRule(ModifiableCssValue<SelectorList> selector, this.span,
+  ModifiableCssStyleRule(this.selector, this.span,
       {SelectorList? originalSelector})
-      : selector = selector,
-        originalSelector = originalSelector ?? selector.value;
+      : originalSelector = originalSelector ?? selector.value;
 
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssStyleRule(this);

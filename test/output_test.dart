@@ -12,12 +12,12 @@ import 'package:sass/sass.dart';
 
 void main() {
   group("emits private-use area characters as escapes in expanded mode", () {
-    var testCharacter = (String escape) {
-      test("$escape", () {
+    testCharacter(String escape) {
+      test(escape, () {
         expect(compileString("a {b: $escape}"),
             equalsIgnoringWhitespace("a { b: $escape; }"));
       });
-    };
+    }
 
     group("in the basic multilingual plane", () {
       testCharacter(r"\e000");

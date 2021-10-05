@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// ignore_for_file: non_constant_identifier_names
+// See dart-lang/sdk#47374
+
 /// This library exposes Dart Sass's Node.js API, imported as JavaScript, back
 /// to Dart. This is kind of convoluted, but it allows us to test the API as it
 /// will be used in the real world without having to manually write any JS.

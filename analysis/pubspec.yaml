@@ -9,4 +9,4 @@ environment:
   sdk: ">=2.0.0 <3.0.0"
 
 dependencies:
-  pedantic: ^1.0.0
+  lints: ^1.0.0
