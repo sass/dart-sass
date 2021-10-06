@@ -12,12 +12,12 @@ import 'package:sass/sass.dart';
 
 void main() {
   group("emits private-use area characters as escapes in expanded mode", () {
-    var testCharacter = (String escape) {
-      test("$escape", () {
+    testCharacter(String escape) {
+      test(escape, () {
         expect(compileString("a {b: $escape}"),
             equalsIgnoringWhitespace("a { b: $escape; }"));
       });
-    };
+    }
 
     group("in the basic multilingual plane", () {
       testCharacter(r"\e000");
@@ -33,7 +33,7 @@ void main() {
       testCharacter(r"\10abcd");
       testCharacter(r"\10fffd");
 
-      // Although these aren't technically in private-use areaa, they're in
+      // Although these aren't technically in private-use area, they're in
       // private-use planes and they have no visual representation to we
       // escape them as well.
       group("that aren't technically in PUAs", () {

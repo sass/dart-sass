@@ -463,7 +463,7 @@ abstract class SassNumber extends Value {
 
   /// This has been renamed [coerceValue] for consistency with [coerceToMatch],
   /// [coerceValueToMatch], [convertToMatch], and [convertValueToMatch].
-  @deprecated
+  @Deprecated("Use coerceValue instead.")
   num valueInUnits(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
       coerceValue(newNumerators, newDenominators, name);

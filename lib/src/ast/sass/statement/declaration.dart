@@ -41,9 +41,7 @@ class Declaration extends ParentStatement {
   bool get isCustomProperty => name.initialPlain.startsWith('--');
 
   /// Creates a declaration with no children.
-  Declaration(this.name, Expression value, this.span)
-      : value = value,
-        super(null) {
+  Declaration(this.name, this.value, this.span) : super(null) {
     if (isCustomProperty && value is! StringExpression) {
       throw ArgumentError(
           'Declarations whose names begin with "--" must have StringExpression '
@@ -53,7 +51,7 @@ class Declaration extends ParentStatement {
 
   /// Creates a declaration with children.
   ///
-  /// For these declaraions, a value is optional.
+  /// For these declarations, a value is optional.
   Declaration.nested(this.name, Iterable<Statement> children, this.span,
       {this.value})
       : super(List.unmodifiable(children)) {

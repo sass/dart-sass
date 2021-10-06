@@ -23,9 +23,8 @@ class ModifiableCssDeclaration extends ModifiableCssNode
 
   /// Returns a new CSS declaration with the given properties.
   ModifiableCssDeclaration(this.name, this.value, this.span,
-      {required bool parsedAsCustomProperty, FileSpan? valueSpanForMap})
-      : parsedAsCustomProperty = parsedAsCustomProperty,
-        valueSpanForMap = valueSpanForMap ?? value.span {
+      {required this.parsedAsCustomProperty, FileSpan? valueSpanForMap})
+      : valueSpanForMap = valueSpanForMap ?? value.span {
     if (parsedAsCustomProperty) {
       if (!isCustomProperty) {
         throw ArgumentError(

@@ -6,9 +6,14 @@ import 'dart:js';
 import 'dart:js_util';
 import 'dart:typed_data';
 
+import 'package:node_interop/js.dart';
 import 'package:js/js.dart';
+import 'package:js/js_util.dart';
 
+import '../syntax.dart';
+import 'array.dart';
 import 'function.dart';
+import 'url.dart';
 
 /// Sets the `toString()` function for [object] to [body].
 ///
@@ -24,7 +29,7 @@ void forwardToString(Function klass) {
 }
 
 /// Throws [error] like JS would, without any Dart wrappers.
-void jsThrow(Object error) => _jsThrow.call(error);
+Never jsThrow(Object error) => _jsThrow.call(error) as Never;
 
 final _jsThrow = JSFunction("error", "throw error;");
 
@@ -33,21 +38,11 @@ bool isUndefined(Object? value) => _isUndefined.call(value) as bool;
 
 final _isUndefined = JSFunction("value", "return value === undefined;");
 
-/// Returns whether or not [value] is an instance of [type] according to JS.
-///
-/// TODO(nweiz): Remove this when dart-lang/sdk#41259 is fixed in all supported
-/// SDKs.
-bool jsInstanceOf(Object value, Object type) =>
-    _jsInstanceOf.call(value, type) as bool;
-
-final _jsInstanceOf =
-    JSFunction("value", "type", "return value instanceof type;");
-
 @JS("Error")
 external Function get jsErrorConstructor;
 
 /// Returns whether [value] is a JS Error object.
-bool isJSError(Object value) => jsInstanceOf(value, jsErrorConstructor);
+bool isJSError(Object value) => instanceof(value, jsErrorConstructor);
 
 /// Invokes [function] with [thisArg] as `this`.
 Object? call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
@@ -68,6 +63,12 @@ void jsForEach(Object object, void callback(Object key, Object? value)) {
   }
 }
 
+/// Evaluates [js] in a function context.
+///
+/// If [js] includes a `return` statement, returns that result. Otherwise
+/// returns `null`.
+Object? jsEval(String js) => JSFunction('', js).call();
+
 /// Creates a JS class with the given [name], [constructor] and [methods].
 ///
 /// Both [constructor] and [methods] should take an initial `thisArg` parameter,
@@ -76,15 +77,12 @@ Function createClass(
     String name, Function constructor, Map<String, Function> methods) {
   var klass = allowInteropCaptureThis(constructor);
   _defineProperty(klass, 'name', _PropertyDescriptor(value: name));
-  var prototype = getProperty(klass, 'prototype') as Object;
-  methods.forEach((name, body) {
-    setProperty(prototype, name, allowInteropCaptureThis(body));
-  });
+  addMethods(klass, methods);
   return klass;
 }
 
 @JS("Object.getPrototypeOf")
-external Object? _getPrototypeOf(Object object);
+external Function? _getPrototypeOf(Object object);
 
 @JS("Object.setPrototypeOf")
 external void _setPrototypeOf(Object object, Object prototype);
@@ -97,8 +95,9 @@ external void _defineProperty(
 @anonymous
 class _PropertyDescriptor {
   external Object get value;
+  external Function get get;
 
-  external factory _PropertyDescriptor({Object? value});
+  external factory _PropertyDescriptor({Object? value, Function? get});
 }
 
 @JS("Object.create")
@@ -121,8 +120,60 @@ void injectSuperclass(Object object, Function constructor) {
       prototype, _create(getProperty(constructor, 'prototype') as Object));
 }
 
+/// Adds [methods] to [constructor]'s prototype.
+void addMethods(Function constructor, Map<String, Function> methods) {
+  _addMethodsToPrototype(
+      getProperty(constructor, 'prototype') as Object, methods);
+}
+
+/// Adds [getters] to [constructor]'s prototype.
+void addGetters(Function constructor, Map<String, Function> getters) {
+  _addGettersToPrototype(
+      getProperty(constructor, 'prototype') as Object, getters);
+}
+
+/// Adds the JS [methods] to [object]'s prototype, so they're available in JS
+/// for any instance of [dartObject]'s class.
+void addMethodsToDartClass(Object dartObject, Map<String, Function> methods) {
+  _addMethodsToPrototype(_getPrototypeOf(dartObject)!, methods);
+}
+
+/// Adds the JS [getters] to [object]'s prototype, so they're available in JS
+/// for any instance of [dartObject]'s class.
+void addGettersToDartClass(Object dartObject, Map<String, Function> getters) {
+  _addGettersToPrototype(_getPrototypeOf(dartObject)!, getters);
+}
+
+/// Adds [methods] to [prototype].
+void _addMethodsToPrototype(Object prototype, Map<String, Function> methods) {
+  methods.forEach((name, body) {
+    setProperty(prototype, name, allowInteropCaptureThis(body));
+  });
+}
+
+/// Adds [getters] to [prototype].
+void _addGettersToPrototype(Object prototype, Map<String, Function> getters) {
+  getters.forEach((name, body) {
+    _defineProperty(prototype, name,
+        _PropertyDescriptor(get: allowInteropCaptureThis(body)));
+  });
+}
+
 /// Returns whether [value] is truthy according to JavaScript.
 bool isTruthy(Object? value) => value != false && value != null;
+
+@JS('Promise')
+external Function get _promiseClass;
+
+/// Returns whether [object] is a `Promise`.
+bool isPromise(Object? object) =>
+    object != null && instanceof(object, _promiseClass);
+
+@JS('URL')
+external Function get _urlClass;
+
+/// Returns whether [object] is a JavaScript `URL`.
+bool isJSUrl(Object? object) => object != null && instanceof(object, _urlClass);
 
 @JS('Buffer.from')
 external Uint8List _buffer(String text, String encoding);
@@ -132,3 +183,31 @@ external Uint8List _buffer(String text, String encoding);
 /// We could do this using Dart's native UTF-8 support, but it's much less
 /// efficient in Node.
 Uint8List utf8Encode(String text) => _buffer(text, 'utf8');
+
+/// Converts a standard JS `URL` object to a Dart [Uri] object.
+Uri jsToDartUrl(JSUrl url) => Uri.parse(url.toString());
+
+/// Converts a Dart [Uri] object to a standard JS `URL` object.
+JSUrl dartToJSUrl(Uri url) => JSUrl(url.toString());
+
+/// Creates a JavaScript array containing [iterable].
+///
+/// While Dart arrays are notionally compatible with JS arrays, they still have
+/// some non-enumerable properties that can cause problems (for example, they
+/// don't compare as "equal" for Jest's matchers) so it's preferable to use this
+/// when exposing them.
+JSArray toJSArray(Iterable<Object?> iterable) {
+  var array = JSArray();
+  for (var element in iterable) {
+    array.push(element);
+  }
+  return array;
+}
+
+/// Converts a syntax string to an instance of [Syntax].
+Syntax parseSyntax(String? syntax) {
+  if (syntax == null || syntax == 'scss') return Syntax.scss;
+  if (syntax == 'indented') return Syntax.sass;
+  if (syntax == 'css') return Syntax.css;
+  jsThrow(JsError('Unknown syntax "$syntax".'));
+}

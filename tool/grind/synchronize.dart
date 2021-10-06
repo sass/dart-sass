@@ -184,7 +184,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     _buffer.write(_synchronizeName(node.name));
   }
 
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     if (["Future", "FutureOr"].contains(node.name.name)) {
       _skip(node.name.beginToken);
       var typeArguments = node.typeArguments;
@@ -199,7 +199,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
       _skipNode(node);
       _buffer.write("Module<Callable>");
     } else {
-      super.visitTypeName(node);
+      super.visitNamedType(node);
     }
   }
 
