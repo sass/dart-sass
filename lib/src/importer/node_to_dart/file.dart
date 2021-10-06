@@ -35,7 +35,7 @@ class NodeToDartFileImporter extends Importer {
 
     if (isPromise(result)) {
       jsThrow(JsError(
-          "The canonicalize() function can't return a Promise for synchronous "
+          "The findFileUrl() function can't return a Promise for synchron "
           "compile functions."));
     } else if (!isJSUrl(result)) {
       jsThrow(JsError("The findFileUrl() method must return a URL."));
@@ -48,9 +48,7 @@ class NodeToDartFileImporter extends Importer {
           '"$url".'));
     }
 
-    var canonical = _filesystemImporter.canonicalize(resultUrl);
-    if (canonical == null) return null;
-    return canonical;
+    return _filesystemImporter.canonicalize(resultUrl);
   }
 
   ImporterResult? load(Uri url) => _filesystemImporter.load(url);

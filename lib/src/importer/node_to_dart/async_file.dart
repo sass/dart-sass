@@ -47,9 +47,7 @@ class NodeToDartAsyncFileImporter extends AsyncImporter {
           '"$url".'));
     }
 
-    var canonical = _filesystemImporter.canonicalize(resultUrl);
-    if (canonical == null) return null;
-    return canonical;
+    return _filesystemImporter.canonicalize(resultUrl);
   }
 
   ImporterResult? load(Uri url) => _filesystemImporter.load(url);
