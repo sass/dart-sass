@@ -6,12 +6,10 @@ import 'dart:async';
 
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
-import 'package:path/path.dart' as p;
 
-import '../../io.dart' as io;
 import '../../node/importer.dart';
+import '../../node/url.dart';
 import '../../node/utils.dart';
-import '../../syntax.dart';
 import '../async.dart';
 import '../filesystem.dart';
 import '../result.dart';
@@ -29,9 +27,6 @@ class NodeToDartAsyncFileImporter extends AsyncImporter {
   /// The wrapped `findFileUrl` function.
   final Object? Function(String, CanonicalizeOptions) _findFileUrl;
 
-  /// A map from canonical URLs to the `sourceMapUrl`s associated with them.
-  final _sourceMapUrls = <Uri, Uri>{};
-
   NodeToDartAsyncFileImporter(this._findFileUrl);
 
   FutureOr<Uri?> canonicalize(Uri url) async {
@@ -41,16 +36,11 @@ class NodeToDartAsyncFileImporter extends AsyncImporter {
         url.toString(), CanonicalizeOptions(fromImport: fromImport));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
-
-    result as NodeFileImporterResult;
-    var dartUrl = result.url;
-    var sourceMapUrl = result.sourceMapUrl;
-    if (dartUrl == null) {
-      jsThrow(JsError(
-          "The findFileUrl() method must return an object a url field."));
+    if (!isJSUrl(result)) {
+      jsThrow(JsError("The findFileUrl() method must return a URL."));
     }
 
-    var resultUrl = jsToDartUrl(dartUrl);
+    var resultUrl = jsToDartUrl(result as JSUrl);
     if (resultUrl.scheme != 'file') {
       jsThrow(JsError(
           'The findFileUrl() must return a URL with scheme file://, was '
@@ -59,18 +49,10 @@ class NodeToDartAsyncFileImporter extends AsyncImporter {
 
     var canonical = _filesystemImporter.canonicalize(resultUrl);
     if (canonical == null) return null;
-    if (sourceMapUrl != null) {
-      _sourceMapUrls[canonical] = jsToDartUrl(sourceMapUrl);
-    }
-
     return canonical;
   }
 
-  ImporterResult? load(Uri url) {
-    var path = p.fromUri(url);
-    return ImporterResult(io.readFile(path),
-        sourceMapUrl: _sourceMapUrls[url] ?? url, syntax: Syntax.forPath(path));
-  }
+  ImporterResult? load(Uri url) => _filesystemImporter.load(url);
 
   DateTime modificationTime(Uri url) =>
       _filesystemImporter.modificationTime(url);
