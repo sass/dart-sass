@@ -1,3 +1,8 @@
+## 1.43.2
+
+* Improve the error message when the default namespace of a `@use` rule is not
+  a valid identifier.
+
 ## 1.43.1
 
 * No user-visible changes.
