@@ -11,8 +11,7 @@ import 'url.dart';
 class NodeImporter {
   external Object? Function(String, CanonicalizeOptions)? get canonicalize;
   external Object? Function(JSUrl)? get load;
-  external NodeFileImporterResult? Function(String, CanonicalizeOptions)?
-      get findFileUrl;
+  external Object? Function(String, CanonicalizeOptions)? get findFileUrl;
 }
 
 @JS()
@@ -28,12 +27,5 @@ class CanonicalizeOptions {
 class NodeImporterResult {
   external String? get contents;
   external String? get syntax;
-  external JSUrl? get sourceMapUrl;
-}
-
-@JS()
-@anonymous
-class NodeFileImporterResult {
-  external JSUrl? get url;
   external JSUrl? get sourceMapUrl;
 }

@@ -36,12 +36,9 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
-      - name: Set up sass-spec
-        run: tool/github-action/check-out-sass-spec.sh
-        env:
-          PR_BRANCH: "${{ github.base_ref }}"
-          CURRENT_REF: "${{ github.ref }}"
-          PR_BODY: "${{ github.event.pull_request.body }}"
+      - name: Check out sass-spec
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/sass-spec}
       - uses: actions/setup-node@v2
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - run: npm install
@@ -86,11 +83,8 @@ jobs:
       - run: npm install
 
       - name: Check out sass-spec
-        run: tool/github-action/check-out-sass-spec.sh
-        env:
-          PR_BRANCH: "${{ github.base_ref }}"
-          CURRENT_REF: "${{ github.ref }}"
-          PR_BODY: "${{ github.event.pull_request.body }}"
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/sass-spec}
 
       - name: Build JS
         run: dart pub run grinder pkg-npm-dev
@@ -100,7 +94,10 @@ jobs:
         working-directory: sass-spec
 
       - name: Check out Sass specification
-        run: git clone https://github.com/sass/sass.git language --depth 1
+        uses: sass/clone-linked-repo@v1
+        with:
+          repo: sass/sass
+          path: language
 
       - name: Run tests
         run: npm run js-api-spec -- --sassSassRepo ../language
