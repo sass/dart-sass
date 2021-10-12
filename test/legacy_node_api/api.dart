@@ -20,7 +20,7 @@ import 'package:sass/src/node/legacy/render_options.dart';
 import 'package:sass/src/node/legacy/render_result.dart';
 
 /// The Sass module.
-final sass = _requireSass(p.absolute("build/npm/sass.dart"));
+final sass = _requireSass(p.absolute("build/npm/sass.default.dart"));
 
 /// A `null` that's guaranteed to be represented by JavaScript's `null` value,
 /// not by `undefined`.

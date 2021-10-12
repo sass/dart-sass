@@ -28,7 +28,10 @@ void main(List<String> args) {
   pkg.chocolateyNuspec.value = _nuspec;
   pkg.homebrewRepo.value = "sass/homebrew-sass";
   pkg.homebrewFormula.value = "sass.rb";
-  pkg.jsRequires.value = {"chokidar": "chokidar", "readline": "readline"};
+  pkg.jsRequires.value = [
+    pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
+    pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli)
+  ];
   pkg.jsModuleMainLibrary.value = "lib/src/node.dart";
   pkg.jsDevFlags.value.add("-Dnew-js-api=true");
   pkg.npmPackageJson.fn = () =>
