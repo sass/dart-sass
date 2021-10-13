@@ -182,9 +182,9 @@ T _systemErrorToFileSystemException<T>(T callback()) {
   try {
     return callback();
   } catch (error) {
-    var systemError = error as JsSystemError;
+    if (error is! JsSystemError) rethrow;
     throw FileSystemException._(
-        _cleanErrorMessage(systemError), systemError.path);
+        _cleanErrorMessage(error), error.path);
   }
 }
 
