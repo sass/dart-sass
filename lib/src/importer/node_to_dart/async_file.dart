@@ -30,7 +30,7 @@ class NodeToDartAsyncFileImporter extends AsyncImporter {
   NodeToDartAsyncFileImporter(this._findFileUrl);
 
   FutureOr<Uri?> canonicalize(Uri url) async {
-    if (url.scheme != 'file' && url.scheme != '') return null;
+    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
 
     var result = _findFileUrl(
         url.toString(), CanonicalizeOptions(fromImport: fromImport));

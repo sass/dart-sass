@@ -27,7 +27,7 @@ class NodeToDartFileImporter extends Importer {
   NodeToDartFileImporter(this._findFileUrl);
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme != 'file' && url.scheme != '') return null;
+    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
 
     var result = _findFileUrl(
         url.toString(), CanonicalizeOptions(fromImport: fromImport));
