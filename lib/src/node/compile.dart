@@ -5,6 +5,7 @@
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
+import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../../sass.dart';
 import '../importer/no_op.dart';
@@ -28,6 +29,7 @@ import 'utils.dart';
 /// details.
 NodeCompileResult compile(String path, [CompileOptions? options]) {
   var color = options?.alertColor ?? hasTerminal;
+  var ascii = options?.alertAscii ?? glyph.ascii;
   try {
     var result = compileToResult(path,
         color: color,
@@ -36,11 +38,12 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
         style: _parseOutputStyle(options?.style),
         verbose: options?.verbose ?? false,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color)),
+        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+            ascii: ascii),
         importers: options?.importers?.map(_parseImporter));
     return _convertResult(result);
   } on SassException catch (error) {
-    throwNodeException(error, color: color);
+    throwNodeException(error, color: color, ascii: ascii);
   }
 }
 
@@ -50,6 +53,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
 /// details.
 NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
   var color = options?.alertColor ?? hasTerminal;
+  var ascii = options?.alertAscii ?? glyph.ascii;
   try {
     var result = compileStringToResult(text,
         syntax: parseSyntax(options?.syntax),
@@ -60,13 +64,14 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
         style: _parseOutputStyle(options?.style),
         verbose: options?.verbose ?? false,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color)),
+        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+            ascii: ascii),
         importers: options?.importers?.map(_parseImporter),
         importer: options?.importer.andThen(_parseImporter) ??
             (options?.url == null ? NoOpImporter() : null));
     return _convertResult(result);
   } on SassException catch (error) {
-    throwNodeException(error, color: color);
+    throwNodeException(error, color: color, ascii: ascii);
   }
 }
 
@@ -76,6 +81,7 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
 /// details.
 Promise compileAsync(String path, [CompileOptions? options]) {
   var color = options?.alertColor ?? hasTerminal;
+  var ascii = options?.alertAscii ?? glyph.ascii;
   return _wrapAsyncSassExceptions(futureToPromise(() async {
     var result = await compileToResultAsync(path,
         color: color,
@@ -84,11 +90,12 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         style: _parseOutputStyle(options?.style),
         verbose: options?.verbose ?? false,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color)),
+        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+            ascii: ascii),
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)));
     return _convertResult(result);
-  }()), color: color);
+  }()), color: color, ascii: ascii);
 }
 
 /// The JS API `compileString` function.
@@ -97,6 +104,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
 /// details.
 Promise compileStringAsync(String text, [CompileStringOptions? options]) {
   var color = options?.alertColor ?? hasTerminal;
+  var ascii = options?.alertAscii ?? glyph.ascii;
   return _wrapAsyncSassExceptions(futureToPromise(() async {
     var result = await compileStringToResultAsync(text,
         syntax: parseSyntax(options?.syntax),
@@ -107,14 +115,15 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
         style: _parseOutputStyle(options?.style),
         verbose: options?.verbose ?? false,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color)),
+        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+            ascii: ascii),
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
         importer: options?.importer
                 .andThen((importer) => _parseAsyncImporter(importer)) ??
             (options?.url == null ? NoOpImporter() : null));
     return _convertResult(result);
-  }()), color: color);
+  }()), color: color, ascii: ascii);
 }
 
 /// Converts a Dart [CompileResult] into a JS API [NodeCompileResult].
@@ -136,11 +145,12 @@ NodeCompileResult _convertResult(CompileResult result) {
 
 /// Catches `SassException`s thrown by [promise] and rethrows them as JS API
 /// exceptions.
-Promise _wrapAsyncSassExceptions(Promise promise, {required bool color}) =>
+Promise _wrapAsyncSassExceptions(Promise promise,
+        {required bool color, required bool ascii}) =>
     promise.then(
         null,
         allowInterop((error) => error is SassException
-            ? throwNodeException(error, color: color)
+            ? throwNodeException(error, color: color, ascii: ascii)
             : jsThrow(error as Object)));
 
 /// Converts an output style string to an instance of [OutputStyle].

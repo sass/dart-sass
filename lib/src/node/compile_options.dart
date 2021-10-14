@@ -11,7 +11,7 @@ import 'url.dart';
 @JS()
 @anonymous
 class CompileOptions {
-  // TODO(nweiz): support alertAscii
+  external bool? get alertAscii;
   external bool? get alertColor;
   external List<String>? get loadPaths;
   external bool? get quietDeps;
