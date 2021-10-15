@@ -1,3 +1,7 @@
+## 1.43.3
+
+* Improve performance.
+
 ## 1.43.2
 
 * Improve the error message when the default namespace of a `@use` rule is not
