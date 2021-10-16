@@ -55,14 +55,20 @@ Future<void> benchmarkGenerate() async {
     }
   """);
 
-  var susy = await cloneOrCheckout("https://github.com/oddbird/susy", "v3.0.5");
-  await runAsync("npm", arguments: ["install"], workingDirectory: susy);
-  File("${sources.path}/susy.scss")
-      .writeAsStringSync("@import '../susy/test/scss/test.scss'");
-
   await cloneOrCheckout("https://github.com/zaydek/duomo", "v0.7.12");
   File("${sources.path}/duomo.scss")
       .writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
+
+  // Note: This version only supports Node Sass 5.x, which only supports up to
+  // Node 14.x. Once there's a version that support Node Sass 6.x, we should use
+  // that instead.
+  var carbon = await cloneOrCheckout(
+      "https://github.com/carbon-design-system/ibm-cloud-cognitive",
+      "@carbon/ibm-cloud-cognitive@0.93.2");
+  await runAsync("npm", arguments: ["install"], workingDirectory: carbon);
+  File("${sources.path}/carbon.scss")
+      .writeAsStringSync("@import '../ibm-cloud-cognitive/packages/"
+          "cloud-cognitive/src/index-without-carbon-released-only'");
 }
 
 /// Writes [times] instances of [text] to [path].
@@ -96,9 +102,8 @@ Future<void> _writeNTimes(String path, String text, num times,
     "pkg-npm-release")
 Future<void> benchmark() async {
   var libsass =
-      await cloneOrCheckout('https://github.com/sass/libsass', 'origin/master');
-  var sassc =
-      await cloneOrCheckout('https://github.com/sass/sassc', 'origin/master');
+      await cloneOrCheckout('https://github.com/sass/libsass', 'master');
+  var sassc = await cloneOrCheckout('https://github.com/sass/sassc', 'master');
 
   await runAsync("make",
       runOptions: RunOptions(
@@ -162,14 +167,17 @@ I ran five instances of each configuration and recorded the fastest time.
       "test cases for a computation-intensive color-processing library"
     ],
     [
-      "susy.scss",
-      "Susy",
-      "test cases for the computation-intensive Susy grid framework"
-    ],
-    [
       "duomo.scss",
       "Duomo",
-      "the output of the numerically-intensive Duomo framework"
+      "the output of the numerically-intensive Duomo framework "
+          "(skipping LibSass due to module system use)"
+    ],
+    [
+      "carbon.scss",
+      "Carbon",
+      "the output of the import-intensive Carbon framework",
+      "-I",
+      "build/ibm-cloud-cognitive/node_modules"
     ],
   ];
 
@@ -179,6 +187,7 @@ I ran five instances of each configuration and recorded the fastest time.
     var path = p.join('build/benchmark', info[0]);
     var title = info[1];
     var description = info[2];
+    var extraArgs = info.sublist(3);
 
     buffer.writeln("## $title");
     buffer.writeln();
@@ -187,23 +196,27 @@ I ran five instances of each configuration and recorded the fastest time.
 
     Duration? sasscTime;
     if (!libsassIncompatible.contains(info[1])) {
-      sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [path]);
+      sasscTime =
+          await _benchmark(p.join(sassc, 'bin', 'sassc'), [path, ...extraArgs]);
       buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
     }
 
-    var scriptSnapshotTime = await _benchmark(Platform.executable,
-        ['--no-enable-asserts', p.join('build', 'sass.snapshot'), path]);
+    var scriptSnapshotTime = await _benchmark(Platform.executable, [
+      '--no-enable-asserts',
+      p.join('build', 'sass.snapshot'),
+      path,
+      ...extraArgs
+    ]);
     buffer.writeln("* Dart Sass from a script snapshot: "
         "${_formatTime(scriptSnapshotTime)}");
 
-    var nativeExecutableTime = await _benchmark(
-        p.join(sdkDir.path, 'bin/dartaotruntime'),
-        [p.join('build', 'sass.native'), path]);
+    var nativeExecutableTime =
+        await _benchmark(p.join('build', 'sass.native'), [path, ...extraArgs]);
     buffer.writeln("* Dart Sass native executable: "
         "${_formatTime(nativeExecutableTime)}");
 
-    var nodeTime =
-        await _benchmark("node", [p.join('build', 'npm', 'sass.js'), path]);
+    var nodeTime = await _benchmark(
+        "node", [p.join('build', 'npm', 'sass.js'), path, ...extraArgs]);
     buffer.writeln("* Dart Sass on Node.js: ${_formatTime(nodeTime)}");
 
     buffer.writeln();
