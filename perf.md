@@ -4,7 +4,7 @@ the benefit Dart Sass could provide relative to other implementations.
 This was tested against:
 
 * libsass da91d985 and sassc 66f0ef3 compiled with g++ (Debian 10.3.0-11) 10.3.0.
-* Dart Sass 7934ad9 on Dart 2.14.1 (stable) (Wed Sep 8 13:33:08 2021 +0200) on "linux_x64" and Node v16.10.0.
+* Dart Sass bf318a8 on Dart 2.14.1 (stable) (Wed Sep 8 13:33:08 2021 +0200) on "linux_x64" and Node v16.10.0.
 
 on Debian x64 with Intel Core i7-8650U CPU @ 1.90GHz.
 
@@ -16,24 +16,24 @@ I ran five instances of each configuration and recorded the fastest time.
 
 Running on a file containing 4 instances of `.foo {a: b}`:
 
-* sassc: 0.003s
-* Dart Sass from a script snapshot: 0.191s
+* sassc: 0.002s
+* Dart Sass from a script snapshot: 0.177s
 * Dart Sass native executable: 0.009s
-* Dart Sass on Node.js: 0.224s
+* Dart Sass on Node.js: 0.219s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 3.0x slower than libsass
-* 24.9x faster than Dart Sass on Node
+* 4.5x slower than libsass
+* 24.3x faster than Dart Sass on Node
 
 ## Large Plain CSS
 
 Running on a file containing 2^17 instances of `.foo {a: b}`:
 
-* sassc: 1.612s
-* Dart Sass from a script snapshot: 1.663s
-* Dart Sass native executable: 1.485s
-* Dart Sass on Node.js: 2.583s
+* sassc: 1.607s
+* Dart Sass from a script snapshot: 1.643s
+* Dart Sass native executable: 1.473s
+* Dart Sass on Node.js: 2.529s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
@@ -44,10 +44,10 @@ Based on these numbers, Dart Sass from a native executable is approximately:
 
 Running on a file containing `.x {@extend .y}`, 2^17 instances of `.foo {a: b}`, and then `.y {a: b}`:
 
-* sassc: 1.644s
-* Dart Sass from a script snapshot: 1.721s
-* Dart Sass native executable: 1.506s
-* Dart Sass on Node.js: 2.613s
+* sassc: 1.643s
+* Dart Sass from a script snapshot: 1.723s
+* Dart Sass native executable: 1.535s
+* Dart Sass on Node.js: 2.574s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
@@ -58,10 +58,10 @@ Based on these numbers, Dart Sass from a native executable is approximately:
 
 Running on a file containing `.y {a: b}`, 2^17 instances of `.foo {a: b}`, and then `.x {@extend .y}`:
 
-* sassc: 1.643s
-* Dart Sass from a script snapshot: 1.655s
-* Dart Sass native executable: 1.504s
-* Dart Sass on Node.js: 2.625s
+* sassc: 1.642s
+* Dart Sass from a script snapshot: 1.676s
+* Dart Sass native executable: 1.517s
+* Dart Sass on Node.js: 2.547s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
@@ -72,83 +72,83 @@ Based on these numbers, Dart Sass from a native executable is approximately:
 
 Running on a file containing `.bar {@extend .foo}` followed by 2^17 instances of `.foo {a: b}`:
 
-* sassc: 2.331s
-* Dart Sass from a script snapshot: 2.433s
-* Dart Sass native executable: 2.264s
-* Dart Sass on Node.js: 5.822s
+* sassc: 2.336s
+* Dart Sass from a script snapshot: 2.453s
+* Dart Sass native executable: 2.312s
+* Dart Sass on Node.js: 5.874s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
 * identical to libsass
-* 2.6x faster than Dart Sass on Node
+* 2.5x faster than Dart Sass on Node
 
 ## Following Dense `@extend`
 
 Running on a file containing 2^17 instances of `.foo {a: b}` followed by `.bar {@extend .foo}`:
 
-* sassc: 2.367s
-* Dart Sass from a script snapshot: 2.367s
-* Dart Sass native executable: 2.189s
-* Dart Sass on Node.js: 5.612s
+* sassc: 2.353s
+* Dart Sass from a script snapshot: 2.357s
+* Dart Sass native executable: 2.220s
+* Dart Sass on Node.js: 5.587s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
 * 1.1x faster than libsass
-* 2.6x faster than Dart Sass on Node
+* 2.5x faster than Dart Sass on Node
 
 ## Bootstrap
 
 Running on a file containing 16 instances of importing the Bootstrap framework:
 
-* sassc: 0.791s
-* Dart Sass from a script snapshot: 1.707s
-* Dart Sass native executable: 0.778s
-* Dart Sass on Node.js: 3.101s
+* sassc: 0.789s
+* Dart Sass from a script snapshot: 1.517s
+* Dart Sass native executable: 0.691s
+* Dart Sass on Node.js: 2.799s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* identical to libsass
-* 4.0x faster than Dart Sass on Node
+* 1.1x faster than libsass
+* 4.1x faster than Dart Sass on Node
 
 ## a11ycolor
 
 Running on a file containing test cases for a computation-intensive color-processing library:
 
-* sassc: 0.207s
-* Dart Sass from a script snapshot: 0.700s
-* Dart Sass native executable: 0.267s
-* Dart Sass on Node.js: 0.953s
+* sassc: 0.205s
+* Dart Sass from a script snapshot: 0.649s
+* Dart Sass native executable: 0.245s
+* Dart Sass on Node.js: 0.827s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 1.3x slower than libsass
-* 3.6x faster than Dart Sass on Node
+* 1.2x slower than libsass
+* 3.4x faster than Dart Sass on Node
 
 ## Duomo
 
 Running on a file containing the output of the numerically-intensive Duomo framework (skipping LibSass due to module system use):
 
-* Dart Sass from a script snapshot: 2.298s
-* Dart Sass native executable: 1.361s
-* Dart Sass on Node.js: 4.659s
+* Dart Sass from a script snapshot: 2.150s
+* Dart Sass native executable: 1.406s
+* Dart Sass on Node.js: 4.449s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 3.4x faster than Dart Sass on Node
+* 3.2x faster than Dart Sass on Node
 
 ## Carbon
 
 Running on a file containing the output of the import-intensive Carbon framework:
 
-* sassc: 6.576s
-* Dart Sass from a script snapshot: 9.662s
-* Dart Sass native executable: 9.874s
-* Dart Sass on Node.js: 25.425s
+* sassc: 7.481s
+* Dart Sass from a script snapshot: 5.891s
+* Dart Sass native executable: 5.734s
+* Dart Sass on Node.js: 15.725s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 1.5x slower than libsass
-* 2.6x faster than Dart Sass on Node
+* 1.3x faster than libsass
+* 2.7x faster than Dart Sass on Node
 
 # Prior Measurements
 
