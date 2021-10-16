@@ -3,8 +3,8 @@ the benefit Dart Sass could provide relative to other implementations.
 
 This was tested against:
 
-* libsass d4d74ef5 and sassc 66f0ef3 compiled with g++ (Debian 10.2.0-16) 10.2.0.
-* Dart Sass ae967c7 on Dart 2.10.4 (stable) (Wed Nov 11 13:35:58 2020 +0100) on "linux_x64" and Node v14.7.0.
+* libsass da91d985 and sassc 66f0ef3 compiled with g++ (Debian 10.3.0-11) 10.3.0.
+* Dart Sass 7934ad9 on Dart 2.14.1 (stable) (Wed Sep 8 13:33:08 2021 +0200) on "linux_x64" and Node v16.10.0.
 
 on Debian x64 with Intel Core i7-8650U CPU @ 1.90GHz.
 
@@ -16,139 +16,139 @@ I ran five instances of each configuration and recorded the fastest time.
 
 Running on a file containing 4 instances of `.foo {a: b}`:
 
-* sassc: 0.002s
-* Dart Sass from a script snapshot: 0.179s
+* sassc: 0.003s
+* Dart Sass from a script snapshot: 0.191s
 * Dart Sass native executable: 0.009s
-* Dart Sass on Node.js: 0.248s
+* Dart Sass on Node.js: 0.224s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 4.5x slower than libsass
-* 27.6x faster than Dart Sass on Node
+* 3.0x slower than libsass
+* 24.9x faster than Dart Sass on Node
 
 ## Large Plain CSS
 
 Running on a file containing 2^17 instances of `.foo {a: b}`:
 
-* sassc: 1.770s
-* Dart Sass from a script snapshot: 1.548s
-* Dart Sass native executable: 1.379s
-* Dart Sass on Node.js: 2.587s
+* sassc: 1.612s
+* Dart Sass from a script snapshot: 1.663s
+* Dart Sass native executable: 1.485s
+* Dart Sass on Node.js: 2.583s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 1.3x faster than libsass
-* 1.9x faster than Dart Sass on Node
+* 1.1x faster than libsass
+* 1.7x faster than Dart Sass on Node
 
 ## Preceding Sparse `@extend`
 
 Running on a file containing `.x {@extend .y}`, 2^17 instances of `.foo {a: b}`, and then `.y {a: b}`:
 
-* sassc: 1.797s
-* Dart Sass from a script snapshot: 1.594s
-* Dart Sass native executable: 1.490s
-* Dart Sass on Node.js: 2.783s
+* sassc: 1.644s
+* Dart Sass from a script snapshot: 1.721s
+* Dart Sass native executable: 1.506s
+* Dart Sass on Node.js: 2.613s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 1.2x faster than libsass
-* 1.9x faster than Dart Sass on Node
+* 1.1x faster than libsass
+* 1.7x faster than Dart Sass on Node
 
 ## Following Sparse `@extend`
 
 Running on a file containing `.y {a: b}`, 2^17 instances of `.foo {a: b}`, and then `.x {@extend .y}`:
 
-* sassc: 1.902s
-* Dart Sass from a script snapshot: 1.587s
-* Dart Sass native executable: 1.425s
-* Dart Sass on Node.js: 2.550s
+* sassc: 1.643s
+* Dart Sass from a script snapshot: 1.655s
+* Dart Sass native executable: 1.504s
+* Dart Sass on Node.js: 2.625s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 1.3x faster than libsass
-* 1.8x faster than Dart Sass on Node
+* 1.1x faster than libsass
+* 1.7x faster than Dart Sass on Node
 
 ## Preceding Dense `@extend`
 
 Running on a file containing `.bar {@extend .foo}` followed by 2^17 instances of `.foo {a: b}`:
 
-* sassc: 2.556s
-* Dart Sass from a script snapshot: 2.426s
-* Dart Sass native executable: 2.293s
-* Dart Sass on Node.js: 4.843s
+* sassc: 2.331s
+* Dart Sass from a script snapshot: 2.433s
+* Dart Sass native executable: 2.264s
+* Dart Sass on Node.js: 5.822s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 1.1x faster than libsass
-* 2.1x faster than Dart Sass on Node
+* identical to libsass
+* 2.6x faster than Dart Sass on Node
 
 ## Following Dense `@extend`
 
 Running on a file containing 2^17 instances of `.foo {a: b}` followed by `.bar {@extend .foo}`:
 
-* sassc: 2.567s
-* Dart Sass from a script snapshot: 2.270s
-* Dart Sass native executable: 2.174s
-* Dart Sass on Node.js: 4.285s
+* sassc: 2.367s
+* Dart Sass from a script snapshot: 2.367s
+* Dart Sass native executable: 2.189s
+* Dart Sass on Node.js: 5.612s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 1.2x faster than libsass
-* 2.0x faster than Dart Sass on Node
+* 1.1x faster than libsass
+* 2.6x faster than Dart Sass on Node
 
 ## Bootstrap
 
 Running on a file containing 16 instances of importing the Bootstrap framework:
 
-* sassc: 0.798s
-* Dart Sass from a script snapshot: 1.417s
-* Dart Sass native executable: 0.708s
-* Dart Sass on Node.js: 2.832s
+* sassc: 0.791s
+* Dart Sass from a script snapshot: 1.707s
+* Dart Sass native executable: 0.778s
+* Dart Sass on Node.js: 3.101s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 1.1x faster than libsass
+* identical to libsass
 * 4.0x faster than Dart Sass on Node
 
 ## a11ycolor
 
 Running on a file containing test cases for a computation-intensive color-processing library:
 
-* sassc: 0.239s
-* Dart Sass from a script snapshot: 0.661s
-* Dart Sass native executable: 0.319s
-* Dart Sass on Node.js: 0.882s
+* sassc: 0.207s
+* Dart Sass from a script snapshot: 0.700s
+* Dart Sass native executable: 0.267s
+* Dart Sass on Node.js: 0.953s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
 * 1.3x slower than libsass
-* 2.8x faster than Dart Sass on Node
-
-## Susy
-
-Running on a file containing test cases for the computation-intensive Susy grid framework:
-
-* sassc: 0.201s
-* Dart Sass from a script snapshot: 0.706s
-* Dart Sass native executable: 0.141s
-* Dart Sass on Node.js: 1.187s
-
-Based on these numbers, Dart Sass from a native executable is approximately:
-
-* 1.4x faster than libsass
-* 8.4x faster than Dart Sass on Node
+* 3.6x faster than Dart Sass on Node
 
 ## Duomo
 
-Running on a file containing the output of the numerically-intensive Duomo framework:
+Running on a file containing the output of the numerically-intensive Duomo framework (skipping LibSass due to module system use):
 
-* Dart Sass from a script snapshot: 2.017s
-* Dart Sass native executable: 1.213s
-* Dart Sass on Node.js: 3.632s
+* Dart Sass from a script snapshot: 2.298s
+* Dart Sass native executable: 1.361s
+* Dart Sass on Node.js: 4.659s
 
 Based on these numbers, Dart Sass from a native executable is approximately:
 
-* 3.0x faster than Dart Sass on Node
+* 3.4x faster than Dart Sass on Node
+
+## Carbon
+
+Running on a file containing the output of the import-intensive Carbon framework:
+
+* sassc: 6.576s
+* Dart Sass from a script snapshot: 9.662s
+* Dart Sass native executable: 9.874s
+* Dart Sass on Node.js: 25.425s
+
+Based on these numbers, Dart Sass from a native executable is approximately:
+
+* 1.5x slower than libsass
+* 2.6x faster than Dart Sass on Node
 
 # Prior Measurements
 
