@@ -7,13 +7,13 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
 import '../util/nullable.dart';
 import '../utils.dart';
 import '../value.dart';
-import '../warn.dart';
 
 /// A regular expression matching the beginning of a proprietary Microsoft
 /// filter declaration.

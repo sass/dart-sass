@@ -23,6 +23,7 @@ import '../callable.dart';
 import '../color_names.dart';
 import '../configuration.dart';
 import '../configured_value.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
 import '../extend/extension_store.dart';
 import '../extend/extension.dart';
@@ -39,7 +40,6 @@ import '../syntax.dart';
 import '../utils.dart';
 import '../util/nullable.dart';
 import '../value.dart';
-import '../warn.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
@@ -498,7 +498,7 @@ class _EvaluateVisitor
   }
 
   Future<EvaluateResult> run(AsyncImporter? importer, Stylesheet node) async {
-    return _withWarnCallback(node, () async {
+    return withEvaluationContext(_EvaluationContext(this, node), () async {
       var url = node.span.sourceUrl;
       if (url != null) {
         _activeModules[url] = null;
@@ -512,28 +512,16 @@ class _EvaluateVisitor
   }
 
   Future<Value> runExpression(AsyncImporter? importer, Expression expression) =>
-      _withWarnCallback(
-          expression,
+      withEvaluationContext(
+          _EvaluationContext(this, expression),
           () => _withFakeStylesheet(
               importer, expression, () => expression.accept(this)));
 
   Future<void> runStatement(AsyncImporter? importer, Statement statement) =>
-      _withWarnCallback(
-          statement,
+      withEvaluationContext(
+          _EvaluationContext(this, statement),
           () => _withFakeStylesheet(
               importer, statement, () => statement.accept(this)));
-
-  /// Runs [callback] with a definition for the top-level `warn` function.
-  ///
-  /// If no other span can be found to report a warning, falls back on
-  /// [nodeWithSpan]'s.
-  T _withWarnCallback<T>(AstNode nodeWithSpan, T callback()) {
-    return withWarnCallback(
-        (message, deprecation) => _warn(
-            message, _importSpan ?? _callableNode?.span ?? nodeWithSpan.span,
-            deprecation: deprecation),
-        callback);
-  }
 
   /// Asserts that [value] is not `null` and returns it.
   ///
@@ -2590,8 +2578,7 @@ class _EvaluateVisitor
 
     Value result;
     try {
-      result = await withCurrentCallableNode(
-          nodeWithSpan, () => callback(evaluated.positional));
+      result = await callback(evaluated.positional);
     } on SassRuntimeException {
       rethrow;
     } on MultiSpanSassScriptException catch (error) {
@@ -3460,6 +3447,34 @@ class EvaluateResult {
   final Set<Uri> loadedUrls;
 
   EvaluateResult(this.stylesheet, this.loadedUrls);
+}
+
+/// An implementation of [EvaluationContext] using the information available in
+/// [_EvaluateVisitor].
+class _EvaluationContext implements EvaluationContext {
+  /// The visitor backing this context.
+  final _EvaluateVisitor _visitor;
+
+  /// The AST node whose span should be used for [warn] if no other span is
+  /// avaiable.
+  final AstNode _defaultWarnNodeWithSpan;
+
+  _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);
+
+  FileSpan get currentCallableSpan {
+    var callableNode = _visitor._callableNode;
+    if (callableNode != null) return callableNode.span;
+    throw StateError("No Sass callable is currently being evaluated.");
+  }
+
+  void warn(String message, {bool deprecation = false}) {
+    _visitor._warn(
+        message,
+        _visitor._importSpan ??
+            _visitor._callableNode?.span ??
+            _defaultWarnNodeWithSpan.span,
+        deprecation: deprecation);
+  }
 }
 
 /// The result of evaluating arguments to a function or mixin.

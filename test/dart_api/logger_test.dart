@@ -229,7 +229,7 @@ void main() {
     });
 
     test("throws an error outside a callback", () {
-      expect(() => warn("heck"), throwsArgumentError);
+      expect(() => warn("heck"), throwsStateError);
     });
   });
 }

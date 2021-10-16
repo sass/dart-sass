@@ -8,9 +8,9 @@ import 'package:collection/collection.dart';
 
 import '../ast/selector.dart';
 import '../callable.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
 import '../extend/extension_store.dart';
-import '../functions.dart';
 import '../module/built_in.dart';
 import '../value.dart';
 
@@ -88,7 +88,8 @@ final _extend =
   var target = arguments[1].assertSelector(name: "extendee");
   var source = arguments[2].assertSelector(name: "extender");
 
-  return ExtensionStore.extend(selector, source, target, currentCallableSpan)
+  return ExtensionStore.extend(selector, source, target,
+          EvaluationContext.current.currentCallableSpan)
       .asSassList;
 });
 
@@ -98,7 +99,8 @@ final _replace =
   var target = arguments[1].assertSelector(name: "original");
   var source = arguments[2].assertSelector(name: "replacement");
 
-  return ExtensionStore.replace(selector, source, target, currentCallableSpan)
+  return ExtensionStore.replace(selector, source, target,
+          EvaluationContext.current.currentCallableSpan)
       .asSassList;
 });
 
