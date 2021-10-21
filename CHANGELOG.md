@@ -1,3 +1,9 @@
+## 1.43.4
+
+### JS API
+
+* Fix a bug where the `logger` option was ignored for the `render()` function.
+
 ## 1.43.3
 
 * Improve performance.

@@ -84,7 +84,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         quietDeps: options.quietDeps ?? false,
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
-        sourceMap: _enableSourceMaps(options));
+        sourceMap: _enableSourceMaps(options),
+        logger: NodeToDartLogger(
+            options.logger, Logger.stderr(color: hasTerminal)));
   } else if (file != null) {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
