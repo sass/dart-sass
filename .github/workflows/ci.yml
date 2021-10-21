@@ -86,12 +86,12 @@ jobs:
         uses: sass/clone-linked-repo@v1
         with: {repo: sass/sass-spec}
 
+      - name: Install sass-spec dependencies
+        run: npm install
+        working-directory: sass-spec
+
       - name: Build JS
         run: dart pub run grinder pkg-npm-dev
-
-      - name: Link Dart Sass into sass-spec
-        run: npm install ../build/npm
-        working-directory: sass-spec
 
       - name: Check out Sass specification
         uses: sass/clone-linked-repo@v1
@@ -100,7 +100,7 @@ jobs:
           path: language
 
       - name: Run tests
-        run: npm run js-api-spec -- --sassSassRepo ../language
+        run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm
         working-directory: sass-spec
 
   dart_tests:
