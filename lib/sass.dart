@@ -28,7 +28,7 @@ export 'src/logger.dart';
 export 'src/syntax.dart';
 export 'src/value.dart' hide SassApiColor;
 export 'src/visitor/serialize.dart' show OutputStyle;
-export 'src/warn.dart' show warn;
+export 'src/evaluation_context.dart' show warn;
 
 /// Loads the Sass file at [path], compiles it to CSS, and returns a
 /// [CompileResult] containing the CSS and additional metadata about the

@@ -183,8 +183,7 @@ T _systemErrorToFileSystemException<T>(T callback()) {
     return callback();
   } catch (error) {
     if (error is! JsSystemError) rethrow;
-    throw FileSystemException._(
-        _cleanErrorMessage(error), error.path);
+    throw FileSystemException._(_cleanErrorMessage(error), error.path);
   }
 }
 

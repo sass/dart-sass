@@ -142,5 +142,5 @@ class UnitlessSassNumber extends SassNumber {
   bool operator ==(Object other) =>
       other is UnitlessSassNumber && fuzzyEquals(value, other.value);
 
-  int get hashCode => fuzzyHashCode(value);
+  int get hashCode => hashCache ??= fuzzyHashCode(value);
 }

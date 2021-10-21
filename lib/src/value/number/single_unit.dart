@@ -160,5 +160,6 @@ class SingleUnitSassNumber extends SassNumber {
     }
   }
 
-  int get hashCode => fuzzyHashCode(value * canonicalMultiplierForUnit(_unit));
+  int get hashCode =>
+      hashCache ??= fuzzyHashCode(value * canonicalMultiplierForUnit(_unit));
 }

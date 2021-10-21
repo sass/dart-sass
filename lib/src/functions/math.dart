@@ -8,11 +8,11 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
 import '../value.dart';
-import '../warn.dart';
 
 /// The global definitions of Sass math functions.
 final global = UnmodifiableListView([

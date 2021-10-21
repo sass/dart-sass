@@ -181,6 +181,12 @@ abstract class SassNumber extends Value {
   /// integer value, or [assertInt] to do both at once.
   final num value;
 
+  /// The cached hash code for this number, if it's been computed.
+  ///
+  /// @nodoc
+  @protected
+  int? hashCache;
+
   /// This number's numerator units.
   List<String> get numeratorUnits;
 
@@ -826,7 +832,7 @@ abstract class SassNumber extends Value {
     }
   }
 
-  int get hashCode => fuzzyHashCode(value *
+  int get hashCode => hashCache ??= fuzzyHashCode(value *
       _canonicalMultiplier(numeratorUnits) /
       _canonicalMultiplier(denominatorUnits));
 

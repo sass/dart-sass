@@ -55,6 +55,9 @@ class SassString extends Value {
   /// efficient.
   late final int sassLength = text.runes.length;
 
+  /// The cached hash code for this number, if it's been computed.
+  int? _hashCache;
+
   /// @nodoc
   @internal
   bool get isSpecialNumber {
@@ -189,7 +192,7 @@ class SassString extends Value {
 
   bool operator ==(Object other) => other is SassString && text == other.text;
 
-  int get hashCode => text.hashCode;
+  int get hashCode => _hashCache ??= text.hashCode;
 
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String? name]) =>

@@ -3,12 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
-import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:source_span/source_span.dart';
 
-import 'ast/node.dart';
 import 'callable.dart';
 import 'functions/color.dart' as color;
 import 'functions/list.dart' as list;
@@ -49,21 +46,3 @@ final coreModules = UnmodifiableListView([
   selector.module,
   string.module
 ]);
-
-/// Returns the span for the currently executing callable.
-///
-/// For normal exception reporting, this should be avoided in favor of throwing
-/// [SassScriptException]s. It should only be used when calling APIs that
-/// require spans.
-FileSpan get currentCallableSpan {
-  var node = Zone.current[#_currentCallableNode];
-  if (node is AstNode) return node.span;
-
-  throw StateError("currentCallableSpan may only be called within an "
-      "active Sass callable.");
-}
-
-/// Runs [callback] in a zone with [callableNode]'s span available from
-/// [currentCallableSpan].
-T withCurrentCallableNode<T>(AstNode callableNode, T callback()) =>
-    runZoned(callback, zoneValues: {#_currentCallableNode: callableNode});
