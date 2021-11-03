@@ -24,6 +24,7 @@ import '../logger/node_to_dart.dart';
 import '../parse/scss.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
+import '../utils.dart';
 import '../value.dart';
 import '../visitor/serialize.dart';
 import 'function.dart';
@@ -56,9 +57,12 @@ void render(
       callback(null, result);
     }, onError: (Object error, StackTrace stackTrace) {
       if (error is SassException) {
-        callback(_wrapException(error), null);
+        callback(_wrapException(error, stackTrace), null);
       } else {
-        callback(_newRenderError(error.toString(), status: 3), null);
+        callback(
+            _newRenderError(error.toString(), getTrace(error) ?? stackTrace,
+                status: 3),
+            null);
       }
     });
   }
@@ -158,15 +162,16 @@ RenderResult renderSync(RenderOptions options) {
     }
 
     return _newRenderResult(options, result, start);
-  } on SassException catch (error) {
-    jsThrow(_wrapException(error));
-  } catch (error) {
-    jsThrow(_newRenderError(error.toString(), status: 3));
+  } on SassException catch (error, stackTrace) {
+    jsThrow(_wrapException(error, stackTrace));
+  } catch (error, stackTrace) {
+    jsThrow(_newRenderError(error.toString(), getTrace(error) ?? stackTrace,
+        status: 3));
   }
 }
 
 /// Converts an exception to a [JsError].
-JsError _wrapException(Object exception) {
+JsError _wrapException(Object exception, StackTrace stackTrace) {
   if (exception is SassException) {
     String file;
     var url = exception.span.sourceUrl;
@@ -179,12 +184,15 @@ JsError _wrapException(Object exception) {
     }
 
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
+        getTrace(exception) ?? stackTrace,
         line: exception.span.start.line + 1,
         column: exception.span.start.column + 1,
         file: file,
         status: 1);
   } else {
-    return JsError(exception.toString());
+    var error = JsError(exception.toString());
+    attachJsStack(error, getTrace(exception) ?? stackTrace);
+    return error;
   }
 }
 
@@ -203,9 +211,11 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     Tuple2<String, ArgumentDeclaration> tuple;
     try {
       tuple = ScssParser(signature as String).parseSignature();
-    } on SassFormatException catch (error) {
-      throw SassFormatException(
-          'Invalid signature "$signature": ${error.message}', error.span);
+    } on SassFormatException catch (error, stackTrace) {
+      throwWithTrace(
+          SassFormatException(
+              'Invalid signature "$signature": ${error.message}', error.span),
+          stackTrace);
     }
 
     var context = RenderContext(options: _contextOptions(options, start));
@@ -417,7 +427,7 @@ bool _enableSourceMaps(RenderOptions options) =>
 
 /// Creates a [JsError] with the given fields added to it so it acts like a Node
 /// Sass error.
-JsError _newRenderError(String message,
+JsError _newRenderError(String message, StackTrace stackTrace,
     {int? line, int? column, String? file, int? status}) {
   var error = JsError(message);
   setProperty(error, 'formatted', 'Error: $message');
@@ -425,5 +435,6 @@ JsError _newRenderError(String message,
   if (column != null) setProperty(error, 'column', column);
   if (file != null) setProperty(error, 'file', file);
   if (status != null) setProperty(error, 'status', status);
+  attachJsStack(error, stackTrace);
   return error;
 }

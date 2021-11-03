@@ -5,14 +5,20 @@
 import 'dart:js_util';
 
 import 'package:js/js.dart';
+import 'package:node_interop/node_interop.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../exception.dart';
+import '../utils.dart';
 import 'utils.dart';
 
 @JS()
 @anonymous
-class _NodeException {
+class _NodeException extends JsError {
+  // Fake constructor to silence the no_generative_constructor_in_superclass
+  // error.
+  external factory _NodeException();
+
   external SassException get _dartException;
 }
 
@@ -58,15 +64,20 @@ var exceptionConstructor = () {
 ///
 /// If [ascii] is `false`, the thrown exception uses non-ASCII characters in its
 /// stringification.
+///
+/// If [trace] is passed, it's used as the stack trace for the JS exception.
 Never throwNodeException(SassException exception,
-    {required bool color, required bool ascii}) {
+    {required bool color, required bool ascii, StackTrace? trace}) {
   var wasAscii = glyph.ascii;
   glyph.ascii = ascii;
   try {
-    jsThrow(callConstructor(exceptionConstructor, [
+    var jsException = callConstructor(exceptionConstructor, [
       exception,
       exception.toString(color: color).replaceFirst('Error: ', '')
-    ]) as _NodeException);
+    ]) as _NodeException;
+    trace = getTrace(exception) ?? trace;
+    if (trace != null) attachJsStack(jsException, trace);
+    jsThrow(jsException);
   } finally {
     glyph.ascii = wasAscii;
   }

@@ -187,11 +187,13 @@ class ExtensionStore {
       try {
         selector = _extendList(
             originalSelector, selectorSpan, _extensions, mediaContext);
-      } on SassException catch (error) {
-        throw SassException(
-            "From ${error.span.message('')}\n"
-            "${error.message}",
-            error.span);
+      } on SassException catch (error, stackTrace) {
+        throwWithTrace(
+            SassException(
+                "From ${error.span.message('')}\n"
+                "${error.message}",
+                error.span),
+            stackTrace);
       }
     }
 
@@ -330,11 +332,13 @@ class ExtensionStore {
         selectors = _extendComplex(extension.extender.selector,
             extension.extender.span, newExtensions, extension.mediaContext);
         if (selectors == null) continue;
-      } on SassException catch (error) {
-        throw SassException(
-            "From ${extension.extender.span.message('')}\n"
-            "${error.message}",
-            error.span);
+      } on SassException catch (error, stackTrace) {
+        throwWithTrace(
+            SassException(
+                "From ${extension.extender.span.message('')}\n"
+                "${error.message}",
+                error.span),
+            stackTrace);
       }
 
       var containsExtension = selectors.first == extension.extender.selector;
@@ -391,12 +395,14 @@ class ExtensionStore {
       try {
         selector.value = _extendList(selector.value, selector.span,
             newExtensions, _mediaContexts[selector]);
-      } on SassException catch (error) {
+      } on SassException catch (error, stackTrace) {
         // TODO(nweiz): Make this a MultiSpanSassException.
-        throw SassException(
-            "From ${selector.span.message('')}\n"
-            "${error.message}",
-            error.span);
+        throwWithTrace(
+            SassException(
+                "From ${selector.span.message('')}\n"
+                "${error.message}",
+                error.span),
+            stackTrace);
       }
 
       // If no extends actually happened (for example because unification

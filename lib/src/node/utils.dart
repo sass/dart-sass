@@ -11,6 +11,7 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
 import '../syntax.dart';
+import '../utils.dart';
 import 'array.dart';
 import 'function.dart';
 import 'url.dart';
@@ -43,6 +44,20 @@ external Function get jsErrorConstructor;
 
 /// Returns whether [value] is a JS Error object.
 bool isJSError(Object value) => instanceof(value, jsErrorConstructor);
+
+/// Attaches [trace] to [error] as its stack trace.
+void attachJsStack(JsError error, StackTrace trace) {
+  // Stack traces in v8 contain the error message itself as well as the stack
+  // information, so we trim that out if it exists so we don't double-print it.
+  var traceString = trace.toString();
+  var firstRealLine = traceString.indexOf('\n    at');
+  if (firstRealLine != -1) {
+    // +1 to account for the newline before the first line.
+    traceString = traceString.substring(firstRealLine + 1);
+  }
+
+  setProperty(error, 'stack', "Error: ${error.message}\n$traceString");
+}
 
 /// Invokes [function] with [thisArg] as `this`.
 Object? call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
@@ -168,6 +183,17 @@ external Function get _promiseClass;
 /// Returns whether [object] is a `Promise`.
 bool isPromise(Object? object) =>
     object != null && instanceof(object, _promiseClass);
+
+/// Like [futureToPromise] from `node_interop`, but stores the stack trace for
+/// errors using [throwWithTrace].
+Promise futureToPromise(Future<Object?> future) => Promise(allowInterop(
+        (void Function(Object?) resolve, void Function(Object?) reject) {
+      future.then((result) => resolve(result),
+          onError: (Object error, StackTrace stackTrace) {
+        attachTrace(error, stackTrace);
+        reject(error);
+      });
+    }));
 
 @JS('URL')
 external Function get _urlClass;

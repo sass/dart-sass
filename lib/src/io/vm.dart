@@ -12,6 +12,7 @@ import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
+import '../utils.dart';
 
 export 'dart:io' show exitCode, FileSystemException;
 
@@ -41,7 +42,7 @@ String readFile(String path) {
 
   try {
     return utf8.decode(bytes);
-  } on FormatException catch (error) {
+  } on FormatException catch (error, stackTrace) {
     var decodedUntilError =
         utf8.decode(bytes.sublist(0, error.offset), allowMalformed: true);
     var stringOffset = decodedUntilError.length;
@@ -49,8 +50,10 @@ String readFile(String path) {
 
     var decoded = utf8.decode(bytes, allowMalformed: true);
     var sourceFile = SourceFile.fromString(decoded, url: p.toUri(path));
-    throw SassException(
-        "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan());
+    throwWithTrace(
+        SassException(
+            "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan()),
+        stackTrace);
   }
 }
 
