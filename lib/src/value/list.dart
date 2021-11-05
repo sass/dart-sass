@@ -31,7 +31,8 @@ class SassList extends Value {
 
   /// @nodoc
   @internal
-  bool get isBlank => asList.every((element) => element.isBlank);
+  bool get isBlank =>
+      !hasBrackets && asList.every((element) => element.isBlank);
 
   List<Value> get asList => _contents;
 
