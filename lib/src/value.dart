@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 
 import 'ast/selector.dart';
 import 'exception.dart';
+import 'utils.dart';
 import 'value/boolean.dart';
 import 'value/calculation.dart';
 import 'value/color.dart';
@@ -202,10 +203,12 @@ abstract class Value {
     var string = _selectorString(name);
     try {
       return SelectorList.parse(string, allowParent: allowParent);
-    } on SassFormatException catch (error) {
+    } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
-      throw _exception(error.toString().replaceFirst("Error: ", ""), name);
+      throwWithTrace(
+          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          stackTrace);
     }
   }
 
@@ -226,10 +229,12 @@ abstract class Value {
     var string = _selectorString(name);
     try {
       return SimpleSelector.parse(string, allowParent: allowParent);
-    } on SassFormatException catch (error) {
+    } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
-      throw _exception(error.toString().replaceFirst("Error: ", ""), name);
+      throwWithTrace(
+          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          stackTrace);
     }
   }
 
@@ -250,10 +255,12 @@ abstract class Value {
     var string = _selectorString(name);
     try {
       return CompoundSelector.parse(string, allowParent: allowParent);
-    } on SassFormatException catch (error) {
+    } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
-      throw _exception(error.toString().replaceFirst("Error: ", ""), name);
+      throwWithTrace(
+          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          stackTrace);
     }
   }
 

@@ -696,7 +696,7 @@ abstract class StylesheetParser extends Parser {
       var state = scanner.state;
       try {
         return _variableDeclarationWithNamespace();
-      } on SourceSpanFormatException catch (variableDeclarationError) {
+      } on SourceSpanFormatException catch (variableDeclarationError, stackTrace) {
         scanner.state = state;
 
         // If a variable declaration failed to parse, it's possible the user
@@ -712,7 +712,8 @@ abstract class StylesheetParser extends Parser {
         error(
             "@function rules may not contain "
             "${statement is StyleRule ? "style rules" : "declarations"}.",
-            statement.span);
+            statement.span,
+            stackTrace);
       }
     }
 
@@ -1103,8 +1104,8 @@ abstract class StylesheetParser extends Parser {
     } else {
       try {
         return DynamicImport(parseImportUrl(url), urlSpan);
-      } on FormatException catch (innerError) {
-        error("Invalid URL: ${innerError.message}", urlSpan);
+      } on FormatException catch (innerError, stackTrace) {
+        error("Invalid URL: ${innerError.message}", urlSpan, stackTrace);
       }
     }
   }
@@ -3733,8 +3734,9 @@ abstract class StylesheetParser extends Parser {
     var url = string();
     try {
       return Uri.parse(url);
-    } on FormatException catch (innerError) {
-      error("Invalid URL: ${innerError.message}", scanner.spanFrom(start));
+    } on FormatException catch (innerError, stackTrace) {
+      error("Invalid URL: ${innerError.message}", scanner.spanFrom(start),
+          stackTrace);
     }
   }
 

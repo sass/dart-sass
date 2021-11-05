@@ -631,9 +631,17 @@ class Parser {
   void warn(String message, FileSpan span) => logger.warn(message, span: span);
 
   /// Throws an error associated with [span].
+  ///
+  /// If [trace] is passed, attaches it as the error's stack trace.
   @protected
-  Never error(String message, FileSpan span) =>
-      throw StringScannerException(message, span, scanner.string);
+  Never error(String message, FileSpan span, [StackTrace? trace]) {
+    var exception = StringScannerException(message, span, scanner.string);
+    if (trace == null) {
+      throw exception;
+    } else {
+      throwWithTrace(exception, trace);
+    }
+  }
 
   /// Runs callback and, if it throws a [SourceSpanFormatException], rethrows it
   /// with [message] as its message.
@@ -641,8 +649,10 @@ class Parser {
   T withErrorMessage<T>(String message, T callback()) {
     try {
       return callback();
-    } on SourceSpanFormatException catch (error) {
-      throw SourceSpanFormatException(message, error.span, error.source);
+    } on SourceSpanFormatException catch (error, stackTrace) {
+      throwWithTrace(
+          SourceSpanFormatException(message, error.span, error.source),
+          stackTrace);
     }
   }
 
@@ -665,7 +675,7 @@ class Parser {
   T wrapSpanFormatException<T>(T callback()) {
     try {
       return callback();
-    } on SourceSpanFormatException catch (error) {
+    } on SourceSpanFormatException catch (error, stackTrace) {
       var span = error.span as FileSpan;
       if (startsWithIgnoreCase(error.message, "expected") && span.length == 0) {
         var startPosition = _firstNewlineBefore(span.start.offset);
@@ -674,7 +684,7 @@ class Parser {
         }
       }
 
-      throw SassFormatException(error.message, span);
+      throwWithTrace(SassFormatException(error.message, span), stackTrace);
     }
   }
 

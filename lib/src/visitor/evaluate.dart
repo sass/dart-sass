@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 5cdb3467b517bf381d525a1a4bc4f9b6a0eeefad
+// Checksum: 75f2c75c86bcf5397b054a6e88d94e44e59512cf
 //
 // ignore_for_file: unused_import
 
@@ -627,16 +627,24 @@ class _EvaluateVisitor
         callback(module);
       } on SassRuntimeException {
         rethrow;
-      } on MultiSpanSassException catch (error) {
-        throw MultiSpanSassRuntimeException(error.message, error.span,
-            error.primaryLabel, error.secondarySpans, _stackTrace(error.span));
-      } on SassException catch (error) {
-        throw _exception(error.message, error.span);
-      } on MultiSpanSassScriptException catch (error) {
-        throw _multiSpanException(
-            error.message, error.primaryLabel, error.secondarySpans);
-      } on SassScriptException catch (error) {
-        throw _exception(error.message);
+      } on MultiSpanSassException catch (error, stackTrace) {
+        throwWithTrace(
+            MultiSpanSassRuntimeException(
+                error.message,
+                error.span,
+                error.primaryLabel,
+                error.secondarySpans,
+                _stackTrace(error.span)),
+            stackTrace);
+      } on SassException catch (error, stackTrace) {
+        throwWithTrace(_exception(error.message, error.span), stackTrace);
+      } on MultiSpanSassScriptException catch (error, stackTrace) {
+        throwWithTrace(
+            _multiSpanException(
+                error.message, error.primaryLabel, error.secondarySpans),
+            stackTrace);
+      } on SassScriptException catch (error, stackTrace) {
+        throwWithTrace(_exception(error.message), stackTrace);
       }
     });
   }
@@ -1594,16 +1602,16 @@ class _EvaluateVisitor
       } else {
         throw "Can't find stylesheet to import.";
       }
-    } on SassException catch (error) {
-      throw _exception(error.message, error.span);
-    } catch (error) {
+    } on SassException catch (error, stackTrace) {
+      throwWithTrace(_exception(error.message, error.span), stackTrace);
+    } catch (error, stackTrace) {
       String? message;
       try {
         message = (error as dynamic).message as String;
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message);
+      throwWithTrace(_exception(message), stackTrace);
     } finally {
       _importSpan = null;
     }
@@ -2215,12 +2223,12 @@ class _EvaluateVisitor
         default:
           throw UnsupportedError('Unknown calculation name "${node.name}".');
       }
-    } on SassScriptException catch (error) {
+    } on SassScriptException catch (error, stackTrace) {
       // The simplification logic in the [SassCalculation] static methods will
       // throw an error if the arguments aren't compatible, but we have access
       // to the original spans so we can throw a more informative error.
       _verifyCompatibleNumbers(arguments, node.arguments);
-      throw _exception(error.message, node.span);
+      throwWithTrace(_exception(error.message, node.span), stackTrace);
     }
   }
 
@@ -2564,24 +2572,32 @@ class _EvaluateVisitor
       result = callback(evaluated.positional);
     } on SassRuntimeException {
       rethrow;
-    } on MultiSpanSassScriptException catch (error) {
-      throw MultiSpanSassRuntimeException(
-          error.message,
-          nodeWithSpan.span,
-          error.primaryLabel,
-          error.secondarySpans,
-          _stackTrace(nodeWithSpan.span));
-    } on MultiSpanSassException catch (error) {
-      throw MultiSpanSassRuntimeException(error.message, error.span,
-          error.primaryLabel, error.secondarySpans, _stackTrace(error.span));
-    } catch (error) {
+    } on MultiSpanSassScriptException catch (error, stackTrace) {
+      throwWithTrace(
+          MultiSpanSassRuntimeException(
+              error.message,
+              nodeWithSpan.span,
+              error.primaryLabel,
+              error.secondarySpans,
+              _stackTrace(nodeWithSpan.span)),
+          stackTrace);
+    } on MultiSpanSassException catch (error, stackTrace) {
+      throwWithTrace(
+          MultiSpanSassRuntimeException(
+              error.message,
+              error.span,
+              error.primaryLabel,
+              error.secondarySpans,
+              _stackTrace(error.span)),
+          stackTrace);
+    } catch (error, stackTrace) {
       String? message;
       try {
         message = (error as dynamic).message as String;
       } catch (_) {
         message = error.toString();
       }
-      throw _exception(message, nodeWithSpan.span);
+      throwWithTrace(_exception(message, nodeWithSpan.span), stackTrace);
     }
     _callableNode = oldCallableNode;
 
@@ -3272,7 +3288,7 @@ class _EvaluateVisitor
   T _adjustParseError<T>(AstNode nodeWithSpan, T callback()) {
     try {
       return callback();
-    } on SassFormatException catch (error) {
+    } on SassFormatException catch (error, stackTrace) {
       var errorText = error.span.file.getText(0);
       var span = nodeWithSpan.span;
       var syntheticFile = span.file
@@ -3282,7 +3298,7 @@ class _EvaluateVisitor
           SourceFile.fromString(syntheticFile, url: span.file.url).span(
               span.start.offset + error.span.start.offset,
               span.start.offset + error.span.end.offset);
-      throw _exception(error.message, syntheticSpan);
+      throwWithTrace(_exception(error.message, syntheticSpan), stackTrace);
     }
   }
 
@@ -3295,15 +3311,17 @@ class _EvaluateVisitor
   T _addExceptionSpan<T>(AstNode nodeWithSpan, T callback()) {
     try {
       return callback();
-    } on MultiSpanSassScriptException catch (error) {
-      throw MultiSpanSassRuntimeException(
-          error.message,
-          nodeWithSpan.span,
-          error.primaryLabel,
-          error.secondarySpans,
-          _stackTrace(nodeWithSpan.span));
-    } on SassScriptException catch (error) {
-      throw _exception(error.message, nodeWithSpan.span);
+    } on MultiSpanSassScriptException catch (error, stackTrace) {
+      throwWithTrace(
+          MultiSpanSassRuntimeException(
+              error.message,
+              nodeWithSpan.span,
+              error.primaryLabel,
+              error.secondarySpans,
+              _stackTrace(nodeWithSpan.span)),
+          stackTrace);
+    } on SassScriptException catch (error, stackTrace) {
+      throwWithTrace(_exception(error.message, nodeWithSpan.span), stackTrace);
     }
   }
 
@@ -3313,10 +3331,11 @@ class _EvaluateVisitor
   T _addErrorSpan<T>(AstNode nodeWithSpan, T callback()) {
     try {
       return callback();
-    } on SassRuntimeException catch (error) {
+    } on SassRuntimeException catch (error, stackTrace) {
       if (!error.span.text.startsWith("@error")) rethrow;
-      throw SassRuntimeException(
-          error.message, nodeWithSpan.span, _stackTrace());
+      throwWithTrace(
+          SassRuntimeException(error.message, nodeWithSpan.span, _stackTrace()),
+          stackTrace);
     }
   }
 }

@@ -1,3 +1,10 @@
+## 1.43.5
+
+### JS API
+
+* Print more detailed JS stack traces. This is mostly useful for the Sass team's
+  own debugging purposes.
+
 ## 1.43.4
 
 ### JS API

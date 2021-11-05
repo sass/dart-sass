@@ -60,7 +60,9 @@ class KeyframeSelectorParser extends Parser {
     if (scanIdentChar($e)) {
       buffer.writeCharCode($e);
       var next = scanner.peekChar();
-      if (next == $plus || next == $minus) buffer.writeCharCode(scanner.readChar());
+      if (next == $plus || next == $minus) {
+        buffer.writeCharCode(scanner.readChar());
+      }
       if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
 
       while (isDigit(scanner.peekChar())) {

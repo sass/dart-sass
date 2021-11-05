@@ -4,7 +4,7 @@
 
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
-import 'package:node_interop/util.dart';
+import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../../sass.dart';
@@ -42,8 +42,8 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
             ascii: ascii),
         importers: options?.importers?.map(_parseImporter));
     return _convertResult(result);
-  } on SassException catch (error) {
-    throwNodeException(error, color: color, ascii: ascii);
+  } on SassException catch (error, stackTrace) {
+    throwNodeException(error, color: color, ascii: ascii, trace: stackTrace);
   }
 }
 
@@ -70,8 +70,8 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
         importer: options?.importer.andThen(_parseImporter) ??
             (options?.url == null ? NoOpImporter() : null));
     return _convertResult(result);
-  } on SassException catch (error) {
-    throwNodeException(error, color: color, ascii: ascii);
+  } on SassException catch (error, stackTrace) {
+    throwNodeException(error, color: color, ascii: ascii, trace: stackTrace);
   }
 }
 
