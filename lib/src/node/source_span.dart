@@ -5,13 +5,15 @@
 import 'package:source_span/source_span.dart';
 
 import '../util/nullable.dart';
+import 'reflection.dart';
 import 'utils.dart';
 
 /// Modifies the prototype of the `SourceFile` and `SourceLocation` classes so
 /// that they match the JS API.
 void updateSourceSpanPrototype() {
   var span = SourceFile.fromString('').span(0);
-  addGettersToDartClass(span, {
+
+  getJSClass(span).defineGetters({
     'start': (FileSpan span) => span.start,
     'end': (FileSpan span) => span.end,
     'url': (FileSpan span) => span.sourceUrl.andThen(dartToJSUrl),
@@ -21,7 +23,7 @@ void updateSourceSpanPrototype() {
 
   // Offset is already accessible from JS because it's defined as a field rather
   // than a getter.
-  addGettersToDartClass(span.start, {
+  getJSClass(span.start).defineGetters({
     'line': (SourceLocation location) => location.line,
     'column': (SourceLocation location) => location.column,
   });

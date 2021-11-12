@@ -25,6 +25,9 @@ final _emptyUnquoted = SassString("", quotes: false);
 /// {@category Value}
 @sealed
 class SassString extends Value {
+  // We don't use public fields because they'd be overridden by the getters of
+  // the same name in the JS API.
+
   /// The contents of the string.
   ///
   /// For quoted strings, this is the semantic content—any escape sequences that
@@ -37,10 +40,12 @@ class SassString extends Value {
   /// contain characters that aren't valid in identifiers, such as
   /// `url(http://example.com)`. Unfortunately, it also means that we don't
   /// consider `foo` and `f\6F\6F` the same string.
-  final String text;
+  String get text => _text;
+  final String _text;
 
   /// Whether this string has quotes.
-  final bool hasQuotes;
+  bool get hasQuotes => _hasQuotes;
+  final bool _hasQuotes;
 
   /// Sass's notion of the length of this string.
   ///
@@ -53,7 +58,8 @@ class SassString extends Value {
   ///
   /// This returns the same value as `text.runes.length`, but it's more
   /// efficient.
-  late final int sassLength = text.runes.length;
+  int get sassLength => _sassLength;
+  late final int _sassLength = text.runes.length;
 
   /// The cached hash code for this number, if it's been computed.
   int? _hashCache;
@@ -124,7 +130,7 @@ class SassString extends Value {
       quotes ? _emptyQuoted : _emptyUnquoted;
 
   /// Creates a string with the given [text].
-  SassString(this.text, {bool quotes = true}) : hasQuotes = quotes;
+  SassString(this._text, {bool quotes = true}) : _hasQuotes = quotes;
 
   /// Converts [sassIndex] into a Dart-style index into [text].
   ///

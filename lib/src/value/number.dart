@@ -159,6 +159,19 @@ final _typesByUnit = {
     for (var unit in entry.value) unit: entry.key
 };
 
+/// Returns the number of [unit1]s per [unit2].
+///
+/// Equivalently, `1unit2 * conversionFactor(unit1, unit2) = 1unit1`.
+///
+/// @nodoc
+@internal
+num? conversionFactor(String unit1, String unit2) {
+  if (unit1 == unit2) return 1;
+  var innerMap = _conversions[unit1];
+  if (innerMap == null) return null;
+  return innerMap[unit2];
+}
+
 /// A SassScript number.
 ///
 /// Numbers can have units. Although there's no literal syntax for it, numbers
@@ -173,13 +186,17 @@ abstract class SassNumber extends Value {
   /// CSS.
   static const precision = 10;
 
+  // We don't use public fields because they'd be overridden by the getters of
+  // the same name in the JS API.
+
   /// The value of this number.
   ///
   /// Note that due to details of floating-point arithmetic, this may be a
   /// [double] even if [this] represents an int from Sass's perspective. Use
   /// [isInt] to determine whether this is an integer, [asInt] to get its
   /// integer value, or [assertInt] to do both at once.
-  final num value;
+  num get value => _value;
+  final num _value;
 
   /// The cached hash code for this number, if it's been computed.
   ///
@@ -244,19 +261,43 @@ abstract class SassNumber extends Value {
         return ComplexSassNumber(
             value, List.unmodifiable(numeratorUnits), const []);
       }
-    } else {
+    } else if (numeratorUnits == null || numeratorUnits.isEmpty) {
       return ComplexSassNumber(
-          value,
-          numeratorUnits == null || numeratorUnits.isEmpty
-              ? const []
-              : List.unmodifiable(numeratorUnits),
-          List.unmodifiable(denominatorUnits));
+          value, const [], List.unmodifiable(denominatorUnits));
+    } else {
+      var numerators = numeratorUnits.toList();
+      var unsimplifiedDenominators = denominatorUnits.toList();
+
+      var denominators = <String>[];
+      for (var denominator in unsimplifiedDenominators) {
+        var simplifiedAway = false;
+        for (var i = 0; i < numerators.length; i++) {
+          var factor = conversionFactor(denominator, numerators[i]);
+          if (factor == null) continue;
+          value *= factor;
+          numerators.removeAt(i);
+          simplifiedAway = true;
+          break;
+        }
+        if (!simplifiedAway) denominators.add(denominator);
+      }
+
+      if (denominatorUnits.isEmpty) {
+        if (numeratorUnits.isEmpty) {
+          return UnitlessSassNumber(value);
+        } else if (numeratorUnits.length == 1) {
+          return SingleUnitSassNumber(value, numeratorUnits.single);
+        }
+      }
+
+      return ComplexSassNumber(value, List.unmodifiable(numerators),
+          List.unmodifiable(denominators));
     }
   }
 
   /// @nodoc
   @protected
-  SassNumber.protected(this.value, this.asSlash);
+  SassNumber.protected(this._value, this.asSlash);
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);
 
@@ -350,44 +391,36 @@ abstract class SassNumber extends Value {
     throw _exception('Expected $this to have no units.', name);
   }
 
-  /// Returns a copy of this number, converted to the same units as [other].
+  /// Returns a copy of this number, converted to the units represented by
+  /// [newNumerators] and [newDenominators].
   ///
-  /// Unlike [convertToMatch], this does *not* throw an error if this number is
-  /// unitless and [other] is not, or vice versa. Instead, it treats all
-  /// unitless numbers as convertible to and from all units without changing the
-  /// value.
-  ///
-  /// Note that [coerceValueToMatch] is generally more efficient if the value is
-  /// going to be accessed directly.
+  /// Note that [convertValue] is generally more efficient if the value is going
+  /// to be accessed directly.
   ///
   /// Throws a [SassScriptException] if this number's units aren't compatible
-  /// with [other]'s units.
+  /// with [other]'s units, or if either number is unitless but the other is
+  /// not.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`) and [otherName] is the argument name for [other]. These
-  /// are used for error reporting.
-  SassNumber coerceToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
-      SassNumber.withUnits(coerceValueToMatch(other, name, otherName),
-          numeratorUnits: other.numeratorUnits,
-          denominatorUnits: other.denominatorUnits);
+  /// (without the `$`). It's used for error reporting.
+  SassNumber convert(List<String> newNumerators, List<String> newDenominators,
+          [String? name]) =>
+      SassNumber.withUnits(convertValue(newNumerators, newDenominators, name),
+          numeratorUnits: newNumerators, denominatorUnits: newDenominators);
 
-  /// Returns [value], converted to the same units as [other].
-  ///
-  /// Unlike [convertValueToMatch], this does *not* throw an error if this
-  /// number is unitless and [other] is not, or vice versa. Instead, it treats
-  /// all unitless numbers as convertible to and from all units without changing
-  /// the value.
+  /// Returns [value], converted to the units represented by [newNumerators] and
+  /// [newDenominators].
   ///
   /// Throws a [SassScriptException] if this number's units aren't compatible
-  /// with [other]'s units.
+  /// with [other]'s units, or if either number is unitless but the other is
+  /// not.
   ///
   /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`) and [otherName] is the argument name for [other]. These
-  /// are used for error reporting.
-  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
-      _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
-          coerceUnitless: true, name: name, other: other, otherName: otherName);
+  /// (without the `$`). It's used for error reporting.
+  num convertValue(List<String> newNumerators, List<String> newDenominators,
+          [String? name]) =>
+      _coerceOrConvertValue(newNumerators, newDenominators,
+          coerceUnitless: false, name: name);
 
   /// Returns a copy of this number, converted to the same units as [other].
   ///
@@ -466,6 +499,45 @@ abstract class SassNumber extends Value {
   /// A shorthand for [coerceValue] with only one numerator unit.
   num coerceValueToUnit(String unit, [String? name]) =>
       coerceValue([unit], [], name);
+
+  /// Returns a copy of this number, converted to the same units as [other].
+  ///
+  /// Unlike [convertToMatch], this does *not* throw an error if this number is
+  /// unitless and [other] is not, or vice versa. Instead, it treats all
+  /// unitless numbers as convertible to and from all units without changing the
+  /// value.
+  ///
+  /// Note that [coerceValueToMatch] is generally more efficient if the value is
+  /// going to be accessed directly.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  SassNumber coerceToMatch(SassNumber other,
+          [String? name, String? otherName]) =>
+      SassNumber.withUnits(coerceValueToMatch(other, name, otherName),
+          numeratorUnits: other.numeratorUnits,
+          denominatorUnits: other.denominatorUnits);
+
+  /// Returns [value], converted to the same units as [other].
+  ///
+  /// Unlike [convertValueToMatch], this does *not* throw an error if this
+  /// number is unitless and [other] is not, or vice versa. Instead, it treats
+  /// all unitless numbers as convertible to and from all units without changing
+  /// the value.
+  ///
+  /// Throws a [SassScriptException] if this number's units aren't compatible
+  /// with [other]'s units.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`) and [otherName] is the argument name for [other]. These
+  /// are used for error reporting.
+  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
+      _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
+          coerceUnitless: true, name: name, other: other, otherName: otherName);
 
   /// This has been renamed [coerceValue] for consistency with [coerceToMatch],
   /// [coerceValueToMatch], [convertToMatch], and [convertValueToMatch].
@@ -776,19 +848,6 @@ abstract class SassNumber extends Value {
       if (innerMap == null) return units2.contains(unit1);
       return units2.any(innerMap.containsKey);
     });
-  }
-
-  /// Returns the number of [unit1]s per [unit2].
-  ///
-  /// Equivalently, `1unit2 * conversionFactor(unit1, unit2) = 1unit1`.
-  ///
-  /// @nodoc
-  @protected
-  num? conversionFactor(String unit1, String unit2) {
-    if (unit1 == unit2) return 1;
-    var innerMap = _conversions[unit1];
-    if (innerMap == null) return null;
-    return innerMap[unit2];
   }
 
   /// Returns a human-readable string representation of [numerators] and

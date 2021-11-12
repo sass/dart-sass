@@ -104,7 +104,7 @@ void main() {
     });
 
     test("has a useful .constructor.name", () {
-      expect(map.constructor.name, equals("SassMap"));
+      expect(map.constructor.name, equals("sass.types.Map"));
     });
   });
 
@@ -139,7 +139,7 @@ void main() {
 
     test("has a useful .constructor.name", () {
       expect(callConstructor(sass.types.Map, [3]).constructor.name,
-          equals("SassMap"));
+          equals("sass.types.Map"));
     });
   });
 }
