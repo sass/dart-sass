@@ -1,5 +1,8 @@
 ## 1.43.5
 
+* Fix a bug where calculations with different operators were incorrectly
+  considered equal.
+
 ### JS API
 
 * Print more detailed JS stack traces. This is mostly useful for the Sass team's
