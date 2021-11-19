@@ -20,6 +20,7 @@ class CompileOptions {
   external bool? get sourceMap;
   external NodeLogger? get logger;
   external List<Object?>? get importers;
+  external Object? get functions;
 }
 
 @JS()

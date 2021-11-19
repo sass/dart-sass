@@ -6,8 +6,12 @@ import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:term_glyph/term_glyph.dart' as glyph;
+import 'package:tuple/tuple.dart';
 
 import '../../sass.dart';
+import '../ast/sass.dart';
+import '../callable.dart';
+import '../exception.dart';
 import '../importer/no_op.dart';
 import '../importer/node_to_dart/async.dart';
 import '../importer/node_to_dart/async_file.dart';
@@ -16,7 +20,9 @@ import '../importer/node_to_dart/sync.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../logger/node_to_dart.dart';
+import '../parse/scss.dart';
 import '../util/nullable.dart';
+import '../utils.dart';
 import 'compile_options.dart';
 import 'compile_result.dart';
 import 'exception.dart';
@@ -40,7 +46,8 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
         sourceMap: options?.sourceMap ?? false,
         logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
-        importers: options?.importers?.map(_parseImporter));
+        importers: options?.importers?.map(_parseImporter),
+        functions: _parseFunctions(options?.functions).cast());
     return _convertResult(result);
   } on SassException catch (error, stackTrace) {
     throwNodeException(error, color: color, ascii: ascii, trace: stackTrace);
@@ -68,7 +75,8 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
             ascii: ascii),
         importers: options?.importers?.map(_parseImporter),
         importer: options?.importer.andThen(_parseImporter) ??
-            (options?.url == null ? NoOpImporter() : null));
+            (options?.url == null ? NoOpImporter() : null),
+        functions: _parseFunctions(options?.functions).cast());
     return _convertResult(result);
   } on SassException catch (error, stackTrace) {
     throwNodeException(error, color: color, ascii: ascii, trace: stackTrace);
@@ -93,7 +101,8 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers
-            ?.map((importer) => _parseAsyncImporter(importer)));
+            ?.map((importer) => _parseAsyncImporter(importer)),
+        functions: _parseFunctions(options?.functions, asynch: true));
     return _convertResult(result);
   }()), color: color, ascii: ascii);
 }
@@ -121,7 +130,8 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
             ?.map((importer) => _parseAsyncImporter(importer)),
         importer: options?.importer
                 .andThen((importer) => _parseAsyncImporter(importer)) ??
-            (options?.url == null ? NoOpImporter() : null));
+            (options?.url == null ? NoOpImporter() : null),
+        functions: _parseFunctions(options?.functions, asynch: true));
     return _convertResult(result);
   }()), color: color, ascii: ascii);
 }
@@ -205,4 +215,55 @@ Importer _parseImporter(Object? importer) {
   } else {
     return NodeToDartFileImporter(findFileUrl);
   }
+}
+
+/// Parses `functions` from [record] into a list of [Callable]s or
+/// [AsyncCallable]s.
+///
+/// This is typed to always return [AsyncCallable], but in practice it will
+/// return a `List<Callable>` if [asynch] is `false`.
+List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
+  if (functions == null) return const [];
+
+  var result = <AsyncCallable>[];
+  jsForEach(functions, (signature, callback) {
+    Tuple2<String, ArgumentDeclaration> tuple;
+    try {
+      tuple = ScssParser(signature).parseSignature();
+    } on SassFormatException catch (error, stackTrace) {
+      throwWithTrace(
+          SassFormatException(
+              'Invalid signature "$signature": ${error.message}', error.span),
+          stackTrace);
+    }
+
+    if (!asynch) {
+      result.add(BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
+        var result = (callback as Function)(toJSArray(arguments));
+        if (result is Value) return result;
+        if (isPromise(result)) {
+          throw 'Invalid return value for custom function '
+              '"${tuple.item1}":\n'
+              'Promises may only be returned for sass.compileAsync() and '
+              'sass.compileStringAsync().';
+        } else {
+          throw 'Invalid return value for custom function '
+              '"${tuple.item1}": $result is not a sass.Value.';
+        }
+      }));
+    } else {
+      result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
+          (arguments) async {
+        var result = (callback as Function)(toJSArray(arguments));
+        if (isPromise(result)) {
+          result = await promiseToFuture<Object>(result as Promise);
+        }
+
+        if (result is Value) return result;
+        throw 'Invalid return value for custom function '
+            '"${tuple.item1}": $result is not a sass.Value.';
+      }));
+    }
+  });
+  return result;
 }
