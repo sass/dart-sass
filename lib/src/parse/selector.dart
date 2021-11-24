@@ -226,6 +226,10 @@ class SelectorParser extends Parser {
       return QualifiedName(identifier(), namespace: "*");
     }
 
+    if (scanner.scanChar($pipe)) {
+      return QualifiedName(identifier(), namespace: "");
+    }
+
     var nameOrNamespace = identifier();
     if (scanner.peekChar() != $pipe || scanner.peekChar(1) == $equal) {
       return QualifiedName(nameOrNamespace);
