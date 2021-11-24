@@ -337,6 +337,7 @@ class CalculationOperation {
 
   bool operator ==(Object other) =>
       other is CalculationOperation &&
+      operator == other.operator &&
       left == other.left &&
       right == other.right;
 
