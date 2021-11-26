@@ -23,5 +23,5 @@ class ParenthesizedExpression implements Expression {
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitParenthesizedExpression(this);
 
-  String toString() => expression.toString();
+  String toString() => "($expression)";
 }
