@@ -118,7 +118,7 @@ To create a new spec:
 
   ```yaml
   ---
-  :todo:
+  :ignore_for:
   - libsass
   ```
 
