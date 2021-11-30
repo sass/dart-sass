@@ -18,31 +18,29 @@ import 'value.dart';
 ///
 /// This sets up exports that can be called from JS.
 void main() {
-  if (const bool.fromEnvironment("new-js-api")) {
-    exports.compile = allowInteropNamed('sass.compile', compile);
-    exports.compileString =
-        allowInteropNamed('sass.compileString', compileString);
-    exports.compileAsync = allowInteropNamed('sass.compileAsync', compileAsync);
-    exports.compileStringAsync =
-        allowInteropNamed('sass.compileStringAsync', compileStringAsync);
-    exports.Value = valueClass;
-    exports.SassBoolean = booleanClass;
-    exports.SassArgumentList = argumentListClass;
-    exports.SassColor = colorClass;
-    exports.SassFunction = functionClass;
-    exports.SassList = listClass;
-    exports.SassMap = mapClass;
-    exports.SassNumber = numberClass;
-    exports.SassString = stringClass;
-    exports.sassNull = sassNull;
-    exports.sassTrue = sassTrue;
-    exports.sassFalse = sassFalse;
-    exports.Exception = exceptionClass;
-    exports.Logger = LoggerNamespace(
-        silent: NodeLogger(
-            warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
-            debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {})));
-  }
+  exports.compile = allowInteropNamed('sass.compile', compile);
+  exports.compileString =
+      allowInteropNamed('sass.compileString', compileString);
+  exports.compileAsync = allowInteropNamed('sass.compileAsync', compileAsync);
+  exports.compileStringAsync =
+      allowInteropNamed('sass.compileStringAsync', compileStringAsync);
+  exports.Value = valueClass;
+  exports.SassBoolean = booleanClass;
+  exports.SassArgumentList = argumentListClass;
+  exports.SassColor = colorClass;
+  exports.SassFunction = functionClass;
+  exports.SassList = listClass;
+  exports.SassMap = mapClass;
+  exports.SassNumber = numberClass;
+  exports.SassString = stringClass;
+  exports.sassNull = sassNull;
+  exports.sassTrue = sassTrue;
+  exports.sassFalse = sassFalse;
+  exports.Exception = exceptionClass;
+  exports.Logger = LoggerNamespace(
+      silent: NodeLogger(
+          warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
+          debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {})));
 
   exports.info =
       "dart-sass\t${const String.fromEnvironment('version')}\t(Sass Compiler)\t"

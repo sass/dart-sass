@@ -35,7 +35,6 @@ void main(List<String> args) {
     pkg.JSRequire("util", target: pkg.JSRequireTarget.all),
   ];
   pkg.jsModuleMainLibrary.value = "lib/src/node.dart";
-  pkg.jsDevFlags.value.add("-Dnew-js-api=true");
   pkg.npmPackageJson.fn = () =>
       json.decode(File("package/package.json").readAsStringSync())
           as Map<String, dynamic>;
