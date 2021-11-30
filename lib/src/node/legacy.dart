@@ -210,7 +210,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
   jsForEach(functions, (signature, callback) {
     Tuple2<String, ArgumentDeclaration> tuple;
     try {
-      tuple = ScssParser(signature).parseSignature();
+      tuple = ScssParser(signature).parseSignature(requireParens: false);
     } on SassFormatException catch (error, stackTrace) {
       throwWithTrace(
           SassFormatException(

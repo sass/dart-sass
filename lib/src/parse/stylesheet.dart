@@ -144,12 +144,13 @@ abstract class StylesheetParser extends Parser {
   /// Parses a function signature of the format allowed by Node Sass's functions
   /// option and returns its name and declaration.
   ///
-  /// Unlike normal function signatures, this allows parentheses to be omitted.
-  Tuple2<String, ArgumentDeclaration> parseSignature() {
+  /// If [requireParens] is `false`, this allows parentheses to be omitted.
+  Tuple2<String, ArgumentDeclaration> parseSignature(
+      {bool requireParens = true}) {
     return wrapSpanFormatException(() {
       var name = identifier();
       whitespace();
-      var arguments = scanner.peekChar() == $lparen
+      var arguments = requireParens || scanner.peekChar() == $lparen
           ? _argumentDeclaration()
           : ArgumentDeclaration.empty(scanner.emptySpan);
       scanner.expectDone();
