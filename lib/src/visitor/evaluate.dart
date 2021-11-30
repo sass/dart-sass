@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 75f2c75c86bcf5397b054a6e88d94e44e59512cf
+// Checksum: 96397ede2c79b09005bbac9a013d4a6b42faf736
 //
 // ignore_for_file: unused_import
 
@@ -2115,16 +2115,18 @@ class _EvaluateVisitor
                     expression.operator == BinaryOperator.dividedBy) {
                   return "math.div(${recommendation(expression.left)}, "
                       "${recommendation(expression.right)})";
+                } else if (expression is ParenthesizedExpression) {
+                  return expression.expression.toString();
                 } else {
                   return expression.toString();
                 }
               }
 
               _warn(
-                  "Using / for division is deprecated and will be removed in "
-                  "Dart Sass 2.0.0.\n"
+                  "Using / for division outside of calc() is deprecated "
+                  "and will be removed in Dart Sass 2.0.0.\n"
                   "\n"
-                  "Recommendation: ${recommendation(node)}\n"
+                  "Recommendation: ${recommendation(node)} or calc($node)\n"
                   "\n"
                   "More info and automated migrator: "
                   "https://sass-lang.com/d/slash-div",

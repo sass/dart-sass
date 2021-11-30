@@ -1,5 +1,7 @@
 ## 1.44.0
 
+* Suggest `calc()` as an alternative in `/`-as-division deprecation messages.
+
 ### Dart API
 
 * Add `SassNumber.convert()` and `SassNumber.convertValue()`. These work like

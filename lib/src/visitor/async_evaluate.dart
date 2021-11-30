@@ -2125,16 +2125,18 @@ class _EvaluateVisitor
                     expression.operator == BinaryOperator.dividedBy) {
                   return "math.div(${recommendation(expression.left)}, "
                       "${recommendation(expression.right)})";
+                } else if (expression is ParenthesizedExpression) {
+                  return expression.expression.toString();
                 } else {
                   return expression.toString();
                 }
               }
 
               _warn(
-                  "Using / for division is deprecated and will be removed in "
-                  "Dart Sass 2.0.0.\n"
+                  "Using / for division outside of calc() is deprecated "
+                  "and will be removed in Dart Sass 2.0.0.\n"
                   "\n"
-                  "Recommendation: ${recommendation(node)}\n"
+                  "Recommendation: ${recommendation(node)} or calc($node)\n"
                   "\n"
                   "More info and automated migrator: "
                   "https://sass-lang.com/d/slash-div",
