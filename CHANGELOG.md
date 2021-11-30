@@ -1,3 +1,7 @@
+## 1.43.6
+
+* Suggest `calc()` as an alternative in `/`-as-division deprecation messages.
+
 ## 1.43.5
 
 * Fix a bug where calculations with different operators were incorrectly
