@@ -12,22 +12,11 @@ import 'package:js/js_util.dart';
 
 import '../syntax.dart';
 import '../utils.dart';
+import '../value.dart';
 import 'array.dart';
 import 'function.dart';
+import 'reflection.dart';
 import 'url.dart';
-
-/// Sets the `toString()` function for [object] to [body].
-///
-/// Dart's JS interop doesn't currently let us set toString() for custom
-/// classes, so we use this as a workaround.
-void setToString(Object object, String body()) =>
-    setProperty(object, 'toString', allowInterop(body));
-
-/// Adds a `toString()` method to [klass] that forwards to Dart's `toString()`.
-void forwardToString(Function klass) {
-  setProperty(getProperty(klass, 'prototype') as Object, 'toString',
-      allowInteropCaptureThis((Object thisArg) => thisArg.toString()));
-}
 
 /// Throws [error] like JS would, without any Dart wrappers.
 Never jsThrow(Object error) => _jsThrow.call(error) as Never;
@@ -40,10 +29,10 @@ bool isUndefined(Object? value) => _isUndefined.call(value) as bool;
 final _isUndefined = JSFunction("value", "return value === undefined;");
 
 @JS("Error")
-external Function get jsErrorConstructor;
+external JSClass get jsErrorClass;
 
 /// Returns whether [value] is a JS Error object.
-bool isJSError(Object value) => instanceof(value, jsErrorConstructor);
+bool isJSError(Object value) => instanceof(value, jsErrorClass);
 
 /// Attaches [trace] to [error] as its stack trace.
 void attachJsStack(JsError error, StackTrace trace) {
@@ -72,7 +61,7 @@ Object? call3(JSFunction function, Object thisArg, Object arg1, Object arg2,
 external List<String> _keys(Object? object);
 
 /// Invokes [callback] for each key/value pair in [object].
-void jsForEach(Object object, void callback(Object key, Object? value)) {
+void jsForEach(Object object, void callback(String key, Object? value)) {
   for (var key in _keys(object)) {
     callback(key, getProperty(object, key));
   }
@@ -84,24 +73,6 @@ void jsForEach(Object object, void callback(Object key, Object? value)) {
 /// returns `null`.
 Object? jsEval(String js) => JSFunction('', js).call();
 
-/// Creates a JS class with the given [name], [constructor] and [methods].
-///
-/// Both [constructor] and [methods] should take an initial `thisArg` parameter,
-/// representing the object being constructed.
-Function createClass(
-    String name, Function constructor, Map<String, Function> methods) {
-  var klass = allowInteropCaptureThis(constructor);
-  _defineProperty(klass, 'name', _PropertyDescriptor(value: name));
-  addMethods(klass, methods);
-  return klass;
-}
-
-@JS("Object.getPrototypeOf")
-external Function? _getPrototypeOf(Object object);
-
-@JS("Object.setPrototypeOf")
-external void _setPrototypeOf(Object object, Object prototype);
-
 @JS("Object.defineProperty")
 external void _defineProperty(
     Object object, String name, _PropertyDescriptor prototype);
@@ -111,74 +82,65 @@ external void _defineProperty(
 class _PropertyDescriptor {
   external Object get value;
   external Function get get;
+  external bool get enumerable;
 
-  external factory _PropertyDescriptor({Object? value, Function? get});
+  external factory _PropertyDescriptor(
+      {Object? value, Function? get, bool? enumerable});
 }
 
-@JS("Object.create")
-external Object _create(Object prototype);
-
-/// Sets the name of `object`'s class to `name`.
-void setClassName(Object object, String name) {
-  _defineProperty(getProperty(object, "constructor") as Object, "name",
-      _PropertyDescriptor(value: name));
+/// Defines a JS getter on [object] named [name].
+///
+/// If [get] is passed, the getter invokes it with a `self` argument. Otherwise,
+/// the getter just returns [value].
+void defineGetter(Object object, String name, {Object? value, Function? get}) {
+  _defineProperty(
+      object,
+      name,
+      get == null
+          ? _PropertyDescriptor(value: value, enumerable: false)
+          : _PropertyDescriptor(
+              get: allowInteropCaptureThis(get), enumerable: false));
 }
 
-/// Injects [constructor] into the inheritance chain for [object]'s class.
-void injectSuperclass(Object object, Function constructor) {
-  var prototype = _getPrototypeOf(object)!;
-  var parent = _getPrototypeOf(prototype);
-  if (parent != null) {
-    _setPrototypeOf(getProperty(constructor, 'prototype') as Object, parent);
+/// Like [allowInterop], but gives the function a [name] so it's more ergonomic
+/// when debugging.
+T allowInteropNamed<T extends Function>(String name, T function) {
+  function = allowInterop(function);
+  defineGetter(function, 'name', value: name);
+  _hideDartProperties(function);
+  return function;
+}
+
+/// Like [allowInteropCaptureThis], but gives the function a [name] so it's more
+/// ergonomic when debugging.
+Function allowInteropCaptureThisNamed(String name, Function function) {
+  function = allowInteropCaptureThis(function);
+  defineGetter(function, 'name', value: name);
+  _hideDartProperties(function);
+  return function;
+}
+
+@JS("Object.getOwnPropertyNames")
+external List<Object?> _getOwnPropertyNames(Object object);
+
+/// Hide Dart-internal properties on [object].
+///
+/// Dart sometimes adds weird properties to objects that show up in
+/// `utils.inspect()` or `console.log()`. This hides them by marking them as
+/// non-enumerable.
+void _hideDartProperties(Object object) {
+  for (var name in _getOwnPropertyNames(object).cast<String>()) {
+    if (name.startsWith('_')) {
+      defineGetter(object, name, value: getProperty(object, name));
+    }
   }
-  _setPrototypeOf(
-      prototype, _create(getProperty(constructor, 'prototype') as Object));
-}
-
-/// Adds [methods] to [constructor]'s prototype.
-void addMethods(Function constructor, Map<String, Function> methods) {
-  _addMethodsToPrototype(
-      getProperty(constructor, 'prototype') as Object, methods);
-}
-
-/// Adds [getters] to [constructor]'s prototype.
-void addGetters(Function constructor, Map<String, Function> getters) {
-  _addGettersToPrototype(
-      getProperty(constructor, 'prototype') as Object, getters);
-}
-
-/// Adds the JS [methods] to [object]'s prototype, so they're available in JS
-/// for any instance of [dartObject]'s class.
-void addMethodsToDartClass(Object dartObject, Map<String, Function> methods) {
-  _addMethodsToPrototype(_getPrototypeOf(dartObject)!, methods);
-}
-
-/// Adds the JS [getters] to [object]'s prototype, so they're available in JS
-/// for any instance of [dartObject]'s class.
-void addGettersToDartClass(Object dartObject, Map<String, Function> getters) {
-  _addGettersToPrototype(_getPrototypeOf(dartObject)!, getters);
-}
-
-/// Adds [methods] to [prototype].
-void _addMethodsToPrototype(Object prototype, Map<String, Function> methods) {
-  methods.forEach((name, body) {
-    setProperty(prototype, name, allowInteropCaptureThis(body));
-  });
-}
-
-/// Adds [getters] to [prototype].
-void _addGettersToPrototype(Object prototype, Map<String, Function> getters) {
-  getters.forEach((name, body) {
-    _defineProperty(prototype, name,
-        _PropertyDescriptor(get: allowInteropCaptureThis(body)));
-  });
 }
 
 /// Returns whether [value] is truthy according to JavaScript.
 bool isTruthy(Object? value) => value != false && value != null;
 
 @JS('Promise')
-external Function get _promiseClass;
+external JSClass get _promiseClass;
 
 /// Returns whether [object] is a `Promise`.
 bool isPromise(Object? object) =>
@@ -196,7 +158,7 @@ Promise futureToPromise(Future<Object?> future) => Promise(allowInterop(
     }));
 
 @JS('URL')
-external Function get _urlClass;
+external JSClass get _urlClass;
 
 /// Returns whether [object] is a JavaScript `URL`.
 bool isJSUrl(Object? object) => object != null && instanceof(object, _urlClass);
@@ -228,6 +190,29 @@ JSArray toJSArray(Iterable<Object?> iterable) {
     array.push(element);
   }
   return array;
+}
+
+/// Converts a JavaScript record into a map from property names to their values.
+Map<String, Object?> objectToMap(Object object) {
+  var map = <String, Object?>{};
+  jsForEach(object, (key, value) => map[key] = value);
+  return map;
+}
+
+/// Converts a JavaScript separator string into a [ListSeparator].
+ListSeparator jsToDartSeparator(String? separator) {
+  switch (separator) {
+    case ' ':
+      return ListSeparator.space;
+    case ',':
+      return ListSeparator.comma;
+    case '/':
+      return ListSeparator.slash;
+    case null:
+      return ListSeparator.undecided;
+    default:
+      jsThrow(JsError('Unknown separator "$separator".'));
+  }
 }
 
 /// Converts a syntax string to an instance of [Syntax].

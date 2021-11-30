@@ -2,28 +2,24 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
-
 import 'dart:js_util';
 
 import '../../../value.dart';
-import '../../utils.dart';
+import '../../reflection.dart';
 
-/// The JS constructor for the `sass.types.Null` class.
+/// The JS `sass.types.Null` class.
 ///
 /// Unlike most other values, Node Sass nulls use the same representation as
 /// Dart Sass booleans without an additional wrapper. However, they still have
 /// to have a constructor injected into their inheritance chain so that
 /// `instanceof` works properly.
-final Function nullConstructor = () {
-  var constructor = allowInterop(([dynamic _]) {
+final JSClass legacyNullClass = () {
+  var jsClass = createJSClass('sass.types.Null', (dynamic _, [dynamic __]) {
     throw "new sass.types.Null() isn't allowed. Use sass.types.Null.NULL "
         "instead.";
   });
-  injectSuperclass(sassNull, constructor);
-  setClassName(sassNull, "SassNull");
-  forwardToString(constructor);
-  setProperty(constructor, "NULL", sassNull);
-  setToString(sassNull, () => "null");
-  return constructor;
+  setProperty(jsClass, "NULL", sassNull);
+
+  getJSClass(sassNull).injectSuperclass(jsClass);
+  return jsClass;
 }();

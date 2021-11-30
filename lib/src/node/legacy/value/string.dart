@@ -4,10 +4,8 @@
 
 import 'package:js/js.dart';
 
-import 'dart:js_util';
-
 import '../../../value.dart';
-import '../../utils.dart';
+import '../../reflection.dart';
 
 @JS()
 class _NodeSassString {
@@ -17,17 +15,17 @@ class _NodeSassString {
 
 /// Creates a new `sass.types.String` object wrapping [value].
 Object newNodeSassString(SassString value) =>
-    callConstructor(stringConstructor, [null, value]) as Object;
+    legacyStringClass.construct([null, value]);
 
 /// The JS constructor for the `sass.types.String` class.
-final Function stringConstructor = createClass('SassString',
+final JSClass legacyStringClass = createJSClass('sass.types.String',
     (_NodeSassString thisArg, String? value, [SassString? dartValue]) {
   // Either [dartValue] or [value] must be passed.
   thisArg.dartValue = dartValue ?? SassString(value!, quotes: false);
-}, {
-  'getValue': (_NodeSassString thisArg) => thisArg.dartValue.text,
-  'setValue': (_NodeSassString thisArg, String value) {
-    thisArg.dartValue = SassString(value, quotes: false);
-  },
-  'toString': (_NodeSassString thisArg) => thisArg.dartValue.toString()
-});
+})
+  ..defineMethods({
+    'getValue': (_NodeSassString thisArg) => thisArg.dartValue.text,
+    'setValue': (_NodeSassString thisArg, String value) {
+      thisArg.dartValue = SassString(value, quotes: false);
+    }
+  });

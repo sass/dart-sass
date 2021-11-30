@@ -95,7 +95,7 @@ void main() {
     });
 
     test("has a useful .constructor.name", () {
-      expect(color.constructor.name, equals("SassColor"));
+      expect(color.constructor.name, equals("sass.types.Color"));
     });
   });
 
@@ -127,7 +127,7 @@ void main() {
 
     test("has a useful .constructor.name", () {
       expect(callConstructor(sass.types.Color, [11, 12, 13]).constructor.name,
-          equals("SassColor"));
+          equals("sass.types.Color"));
     });
   });
 }

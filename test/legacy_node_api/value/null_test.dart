@@ -26,16 +26,6 @@ void main() {
     test("equals NULL", () {
       expect(value, equals(sass.types.Null.NULL));
     });
-
-    test("has a useful .constructor.name", () {
-      expect(value.constructor.name, equals("SassNull"));
-    });
-  });
-
-  group("from a constant", () {
-    test("has a useful .constructor.name", () {
-      expect(sass.types.Null.NULL.constructor.name, equals("SassNull"));
-    });
   });
 
   test("the constructor throws", () {

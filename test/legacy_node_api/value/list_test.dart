@@ -41,7 +41,7 @@ void main() {
     });
 
     test("has a useful .constructor.name", () {
-      expect(args.constructor.name, equals("SassList"));
+      expect(args.constructor.name, equals("sass.types.List"));
     });
   });
 
@@ -114,7 +114,7 @@ void main() {
       });
 
       test("has a useful .constructor.name", () {
-        expect(list.constructor.name, equals("SassList"));
+        expect(list.constructor.name, equals("sass.types.List"));
       });
     });
 
@@ -150,7 +150,7 @@ void main() {
 
       test("has a useful .constructor.name", () {
         expect(callConstructor(sass.types.List, [3]).constructor.name,
-            equals("SassList"));
+            equals("sass.types.List"));
       });
     });
   });
