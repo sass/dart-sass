@@ -81,8 +81,12 @@ class SassColor extends Value {
     return 100 - math.max(math.max(red, green), blue) / 255 * 100;
   }
 
+  // We don't use public fields because they'd be overridden by the getters of
+  // the same name in the JS API.
+
   /// This color's alpha channel, between `0` and `1`.
-  final num alpha;
+  num get alpha => _alpha;
+  final num _alpha;
 
   /// The original string representation of this color, or `null` if one is
   /// unavailable.
@@ -105,7 +109,7 @@ class SassColor extends Value {
   /// `255`, or if [alpha] isn't between `0` and `1`.
   SassColor.rgb(this._red, this._green, this._blue,
       [num? alpha, this.originalSpan])
-      : alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
+      : _alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
     RangeError.checkValueInInterval(red, 0, 255, "red");
     RangeError.checkValueInInterval(green, 0, 255, "green");
     RangeError.checkValueInInterval(blue, 0, 255, "blue");
@@ -119,7 +123,7 @@ class SassColor extends Value {
       : _hue = hue % 360,
         _saturation = fuzzyAssertRange(saturation, 0, 100, "saturation"),
         _lightness = fuzzyAssertRange(lightness, 0, 100, "lightness"),
-        alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha"),
+        _alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha"),
         originalSpan = null;
 
   /// Creates an HWB color.
@@ -155,7 +159,7 @@ class SassColor extends Value {
   }
 
   SassColor._(this._red, this._green, this._blue, this._hue, this._saturation,
-      this._lightness, this.alpha)
+      this._lightness, this._alpha)
       : originalSpan = null;
 
   /// @nodoc

@@ -1,6 +1,16 @@
-## 1.43.6
+## 1.44.0
 
 * Suggest `calc()` as an alternative in `/`-as-division deprecation messages.
+
+### Dart API
+
+* Add `SassNumber.convert()` and `SassNumber.convertValue()`. These work like
+  `SassNumber.coerce()` and `SassNumber.coerceValue()`, except they don't treat
+  unitless numbers as universally compatible.
+
+* Fix a bug where `SassNumber.coerceToMatch()` and
+  `SassNumber.coerceValueToMatch()` wouldn't coerce single-unit numbers to
+  match unitless numbers.
 
 ## 1.43.5
 

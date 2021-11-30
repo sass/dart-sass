@@ -143,7 +143,7 @@ void main() {
     });
 
     test("has a useful .constructor.name", () {
-      expect(number.constructor.name, equals("SassNumber"));
+      expect(number.constructor.name, equals("sass.types.Number"));
     });
   });
 
@@ -177,7 +177,7 @@ void main() {
 
     test("has a useful .constructor.name", () {
       expect(callConstructor(sass.types.Number, [123]).constructor.name,
-          equals("SassNumber"));
+          equals("sass.types.Number"));
     });
   });
 }

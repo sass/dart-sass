@@ -2,14 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:js_util';
-
 import 'package:js/js.dart';
 import 'package:node_interop/node_interop.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../exception.dart';
 import '../utils.dart';
+import 'reflection.dart';
 import 'utils.dart';
 
 @JS()
@@ -22,12 +21,12 @@ class _NodeException extends JsError {
   external SassException get _dartException;
 }
 
-/// The constructor for Sass's JS API exception class.
-var exceptionConstructor = () {
+/// Sass's JS API exception class.
+final JSClass exceptionClass = () {
   // There's no way to define this in pure Dart, because the only way to create
   // a subclass of the JS `Error` type that sets its internal `[[ErrorData]]`
   // field is to call `super()` with the ES6 class syntax.
-  var klass = jsEval(r'''
+  var jsClass = jsEval(r'''
     return class Exception extends Error {
       constructor(dartException, message) {
         super(message);
@@ -44,9 +43,10 @@ var exceptionConstructor = () {
         return this.message;
       }
     }
-  ''') as Function;
+  ''') as JSClass;
+  jsClass.setName('sass.Exception');
 
-  addGetters(klass, {
+  jsClass.defineGetters({
     'sassMessage': (_NodeException exception) =>
         exception._dartException.message,
     'sassStack': (_NodeException exception) =>
@@ -54,7 +54,7 @@ var exceptionConstructor = () {
     'span': (_NodeException exception) => exception._dartException.span
   });
 
-  return klass;
+  return jsClass;
 }();
 
 /// Wraps [exception] with a Node API exception and throws it.
@@ -71,7 +71,7 @@ Never throwNodeException(SassException exception,
   var wasAscii = glyph.ascii;
   glyph.ascii = ascii;
   try {
-    var jsException = callConstructor(exceptionConstructor, [
+    var jsException = exceptionClass.construct([
       exception,
       exception.toString(color: color).replaceFirst('Error: ', '')
     ]) as _NodeException;

@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:collection';
-
 import 'package:meta/meta.dart';
 import 'package:tuple/tuple.dart';
 
@@ -43,7 +41,7 @@ final _knownCompatibilitiesByUnit = {
 class SingleUnitSassNumber extends SassNumber {
   final String _unit;
 
-  List<String> get numeratorUnits => UnmodifiableListView([_unit]);
+  List<String> get numeratorUnits => List.unmodifiable([_unit]);
 
   List<String> get denominatorUnits => const [];
 
@@ -79,10 +77,16 @@ class SingleUnitSassNumber extends SassNumber {
 
   SassNumber coerceToMatch(SassNumber other,
           [String? name, String? otherName]) =>
-      convertToMatch(other, name, otherName);
+      (other is SingleUnitSassNumber ? _coerceToUnit(other._unit) : null) ??
+      // Call this to generate a consistent error message.
+      super.coerceToMatch(other, name, otherName);
 
   num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
-      convertValueToMatch(other, name, otherName);
+      (other is SingleUnitSassNumber
+          ? _coerceValueToUnit(other._unit)
+          : null) ??
+      // Call this to generate a consistent error message.
+      super.coerceValueToMatch(other, name, otherName);
 
   SassNumber convertToMatch(SassNumber other,
           [String? name, String? otherName]) =>

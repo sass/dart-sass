@@ -61,7 +61,7 @@ void main() {
     });
 
     test("has a useful .constructor.name", () {
-      expect(string.constructor.name, equals("SassString"));
+      expect(string.constructor.name, equals("sass.types.String"));
     });
   });
 
@@ -87,7 +87,7 @@ void main() {
 
     test("has a useful .constructor.name", () {
       expect(callConstructor(sass.types.String, ["foo"]).constructor.name,
-          equals("SassString"));
+          equals("sass.types.String"));
     });
   });
 }

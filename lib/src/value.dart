@@ -26,7 +26,7 @@ export 'value/function.dart';
 export 'value/list.dart';
 export 'value/map.dart';
 export 'value/null.dart';
-export 'value/number.dart';
+export 'value/number.dart' hide conversionFactor;
 export 'value/string.dart';
 
 /// A SassScript value.

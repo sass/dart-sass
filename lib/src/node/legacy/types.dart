@@ -7,25 +7,27 @@
 
 import 'package:js/js.dart';
 
+import '../reflection.dart';
+
 @JS()
 @anonymous
 class Types {
-  external set Boolean(Function function);
-  external set Color(Function function);
-  external set List(Function function);
-  external set Map(Function function);
-  external set Null(Function function);
-  external set Number(Function function);
-  external set String(Function function);
-  external set Error(Function function);
+  external set Boolean(JSClass function);
+  external set Color(JSClass function);
+  external set List(JSClass function);
+  external set Map(JSClass function);
+  external set Null(JSClass function);
+  external set Number(JSClass function);
+  external set String(JSClass function);
+  external set Error(JSClass function);
 
   external factory Types(
-      {Function? Boolean,
-      Function? Color,
-      Function? List,
-      Function? Map,
-      Function? Null,
-      Function? Number,
-      Function? String,
-      Function? Error});
+      {JSClass? Boolean,
+      JSClass? Color,
+      JSClass? List,
+      JSClass? Map,
+      JSClass? Null,
+      JSClass? Number,
+      JSClass? String,
+      JSClass? Error});
 }
