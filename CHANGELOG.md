@@ -1,3 +1,40 @@
+## 1.45.0-rc.1
+
+### JS API
+
+This release includes an entirely new JavaScript API, designed to be more
+idiomatic, performant, and usable. The old API will continue to be supported
+until Dart Sass 2.0.0, but it is now considered deprecated and should be avoided
+for new code.
+
+The new API includes:
+
+* `compile()` and `compileAsync()` functions that take Sass file paths and
+  return the result of compiling them to CSS. The async function returns a
+  `Promise` rather than using a callback-based API.
+
+* `compileString()` and `compileStringAsync()` functions that take a string of
+  Sass source and compiles it to CSS. As above, the async function returns a
+  `Promise`.
+
+* A new importer API that more closely matches the Sass specification's logic
+  for resolving loads. This makes it much easier for Sass to cache information
+  across `@import` and `@use` rules, which substantially improves performance
+  for applications that rely heavily on repeated `@import`s.
+
+* A new custom function API, including much more usable JS representations of
+  Sass value types complete with type-assertion functions, easy map and list
+  lookups, and compatibility with the [`immutable`] package. **Unlike in the
+  legacy API,** function callbacks now take one argument which contains an array
+  of Sass values (rather than taking a separate JS argument for each Sass
+  argument).
+
+[`immutable`]: https://immutable-js.com/
+
+For full documentation of this API, please see [the Sass website][js-api].
+
+[js-api]: https://sass-lang.com/documentation/js-api
+
 ## 1.44.0
 
 * Suggest `calc()` as an alternative in `/`-as-division deprecation messages.
