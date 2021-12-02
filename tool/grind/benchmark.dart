@@ -32,11 +32,11 @@ Future<void> benchmarkGenerate() async {
       ".foo {a: b}", math.pow(2, 17),
       footer: '.bar {@extend .foo}');
 
-  await cloneOrCheckout("https://github.com/twbs/bootstrap", "v4.1.3");
+  cloneOrCheckout("https://github.com/twbs/bootstrap", "v4.1.3");
   await _writeNTimes("${sources.path}/bootstrap.scss",
       "@import '../bootstrap/scss/bootstrap';", 16);
 
-  await cloneOrCheckout("https://github.com/alex-page/sass-a11ycolor",
+  cloneOrCheckout("https://github.com/alex-page/sass-a11ycolor",
       "2e7ef93ec06f8bbec80b632863e4b2811618af89");
   File("${sources.path}/a11ycolor.scss").writeAsStringSync("""
     @import '../sass-a11ycolor/dist';
@@ -55,14 +55,14 @@ Future<void> benchmarkGenerate() async {
     }
   """);
 
-  await cloneOrCheckout("https://github.com/zaydek/duomo", "v0.7.12");
+  cloneOrCheckout("https://github.com/zaydek/duomo", "v0.7.12");
   File("${sources.path}/duomo.scss")
       .writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
 
   // Note: This version only supports Node Sass 5.x, which only supports up to
   // Node 14.x. Once there's a version that support Node Sass 6.x, we should use
   // that instead.
-  var carbon = await cloneOrCheckout(
+  var carbon = cloneOrCheckout(
       "https://github.com/carbon-design-system/ibm-cloud-cognitive",
       "@carbon/ibm-cloud-cognitive@0.93.2");
   await runAsync("npm", arguments: ["install"], workingDirectory: carbon);
@@ -101,9 +101,8 @@ Future<void> _writeNTimes(String path, String text, num times,
 @Depends(benchmarkGenerate, "pkg-compile-snapshot", "pkg-compile-native",
     "pkg-npm-release")
 Future<void> benchmark() async {
-  var libsass =
-      await cloneOrCheckout('https://github.com/sass/libsass', 'master');
-  var sassc = await cloneOrCheckout('https://github.com/sass/sassc', 'master');
+  var libsass = cloneOrCheckout('https://github.com/sass/libsass', 'master');
+  var sassc = cloneOrCheckout('https://github.com/sass/sassc', 'master');
 
   await runAsync("make",
       runOptions: RunOptions(

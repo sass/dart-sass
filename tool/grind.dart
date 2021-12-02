@@ -12,6 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import 'grind/synchronize.dart';
+import 'grind/utils.dart';
 
 export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
@@ -39,6 +40,7 @@ void main(List<String> args) {
       json.decode(File("package/package.json").readAsStringSync())
           as Map<String, dynamic>;
   pkg.npmReadme.fn = () => _readAndResolveMarkdown("package/README.npm.md");
+  pkg.npmAdditionalFiles.fn = _fetchJSTypes;
   pkg.standaloneName.value = "dart-sass";
   pkg.githubUser.fn = () => Platform.environment["GH_USER"];
   pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"];
@@ -143,6 +145,20 @@ String _readAndResolveMarkdown(String path) => File(path)
 
       return included.substring(headerMatch.end, sectionEnd).trim();
     });
+
+/// Returns a map from JS type declaration file names to their contnets.
+Map<String, String> _fetchJSTypes() {
+  var languageRepo =
+      cloneOrCheckout("https://github.com/sass/sass", "main", name: 'language');
+
+  var typeRoot = p.join(languageRepo, 'js-api-doc');
+  return {
+    for (var entry in Directory(typeRoot).listSync(recursive: true))
+      if (entry is File && entry.path.endsWith('.d.ts'))
+        p.join('types', p.relative(entry.path, from: typeRoot)):
+            entry.readAsStringSync()
+  };
+}
 
 /// Throws a nice [SourceSpanException] associated with [match].
 void _matchError(Match match, String message, {Object? url}) {

@@ -16,8 +16,8 @@ Future<void> updateBazel() async {
 
   run("npm", arguments: ["install", "-g", "yarn"]);
 
-  var repo = await cloneOrCheckout(
-      "https://github.com/bazelbuild/rules_sass.git", "main");
+  var repo =
+      cloneOrCheckout("https://github.com/bazelbuild/rules_sass.git", "main");
 
   var packageFile = File(p.join(repo, "sass", "package.json"));
   log("updating ${packageFile.path}");
