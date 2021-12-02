@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -45,29 +44,33 @@ String environment(String name) {
 /// Ensure that the repository at [url] is cloned into the build directory and
 /// pointing to [ref].
 ///
+/// If [name] is passed, it's used as the basename of the directory for the
+/// repo. Otherwise, [url]'s basename is used.
+///
 /// Returns the path to the repository.
-Future<String> cloneOrCheckout(String url, String ref) async {
-  var name = p.url.basename(url);
-  if (p.url.extension(name) == ".git") name = p.url.withoutExtension(name);
+String cloneOrCheckout(String url, String ref, {String? name}) {
+  if (name == null) {
+    name = p.url.basename(url);
+    if (p.url.extension(name) == ".git") name = p.url.withoutExtension(name);
+  }
 
   var path = p.join("build", name);
 
   if (!Directory(p.join(path, '.git')).existsSync()) {
     delete(Directory(path));
-    await runAsync("git", arguments: ["init", path]);
-    await runAsync("git",
+    run("git", arguments: ["init", path]);
+    run("git",
         arguments: ["config", "advice.detachedHead", "false"],
         workingDirectory: path);
-    await runAsync("git",
+    run("git",
         arguments: ["remote", "add", "origin", url], workingDirectory: path);
   } else {
     log("Updating $url");
   }
 
-  await runAsync("git",
+  run("git",
       arguments: ["fetch", "origin", "--depth=1", ref], workingDirectory: path);
-  await runAsync("git",
-      arguments: ["checkout", "FETCH_HEAD"], workingDirectory: path);
+  run("git", arguments: ["checkout", "FETCH_HEAD"], workingDirectory: path);
   log("");
 
   return path;
