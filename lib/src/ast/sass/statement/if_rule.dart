@@ -41,10 +41,9 @@ class IfRule implements Statement {
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
 
   String toString() {
-    var first = true;
     var result = clauses
         .map((clause) =>
-            "@${first ? 'if' : 'else if'} {${clause.children.join(' ')}}")
+            "@if {${clause.children.join(' ')}}")
         .join(' ');
 
     var lastClause = this.lastClause;
