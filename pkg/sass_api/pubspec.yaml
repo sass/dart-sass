@@ -10,7 +10,7 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  sass: 1.45.0-rc.2
+  sass: 1.45.1
 
 dependency_overrides:
   sass: {path: ../..}
