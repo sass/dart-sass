@@ -7,7 +7,6 @@ import 'package:tuple/tuple.dart';
 
 import '../../util/number.dart';
 import '../../value.dart';
-import '../number.dart';
 
 /// A specialized subclass of [SassNumber] for numbers that have no units.
 ///
