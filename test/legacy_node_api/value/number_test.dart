@@ -2,6 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// TODO(nweiz): Remove this ignore and add explicit type arguments once we
+// support only Dart SDKs >= 2.15.
+// ignore_for_file: inference_failure_on_function_invocation
+
 @TestOn('node')
 @Tags(['node'])
 

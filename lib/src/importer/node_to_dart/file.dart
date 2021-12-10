@@ -8,8 +8,6 @@ import '../../importer.dart';
 import '../../node/importer.dart';
 import '../../node/url.dart';
 import '../../node/utils.dart';
-import '../filesystem.dart';
-import '../result.dart';
 import '../utils.dart';
 
 /// A filesystem importer to use for most implementation details of

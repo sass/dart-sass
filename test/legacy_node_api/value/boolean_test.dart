@@ -43,7 +43,11 @@ void main() {
 
   test("the constructor throws", () {
     expect(
-        () => callConstructor(sass.types.Boolean, [true]), throwsA(anything));
+        // TODO(nweiz): Remove this ignore and add an explicit type argument
+        // once we support only Dart SDKs >= 2.15.
+        // ignore: inference_failure_on_function_invocation
+        () => callConstructor(sass.types.Boolean, [true]),
+        throwsA(anything));
   });
 
   group("the convenience accessor", () {

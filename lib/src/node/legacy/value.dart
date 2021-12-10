@@ -27,6 +27,10 @@ export 'value/string.dart';
 Value unwrapValue(Object? object) {
   if (object != null) {
     if (object is Value) return object;
+
+    // TODO(nweiz): Remove this ignore and add an explicit type argument once we
+    // support only Dart SDKs >= 2.15.
+    // ignore: inference_failure_on_function_invocation
     var value = getProperty(object, 'dartValue');
     if (value != null && value is Value) return value;
     if (isJSError(object)) throw object;

@@ -3,13 +3,7 @@
 * **Potentially breaking bug fix:** Fix a bug where `inspect()` was not
   properly printing nested, empty, bracketed lists.
 
-## 1.45.0-rc.2
-
-### JS API
-
-* Ship TypeScript type declarations with the package.
-
-## 1.45.0-rc.1
+## 1.45.0
 
 ### JS API
 
@@ -45,6 +39,8 @@ The new API includes:
 For full documentation of this API, please see [the Sass website][js-api].
 
 [js-api]: https://sass-lang.com/documentation/js-api
+
+This release also adds TypeScript type definitions.
 
 ## 1.44.0
 

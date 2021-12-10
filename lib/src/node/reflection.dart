@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:js';
 import 'dart:js_util';
 
 import 'package:js/js.dart';
