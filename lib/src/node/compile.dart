@@ -18,7 +18,6 @@ import '../importer/node_to_dart/async_file.dart';
 import '../importer/node_to_dart/file.dart';
 import '../importer/node_to_dart/sync.dart';
 import '../io.dart';
-import '../logger.dart';
 import '../logger/node_to_dart.dart';
 import '../parse/scss.dart';
 import '../util/nullable.dart';

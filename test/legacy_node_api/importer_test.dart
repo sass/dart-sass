@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:js/js.dart';
-import 'package:node_interop/js.dart';
 import 'package:node_interop/node.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';

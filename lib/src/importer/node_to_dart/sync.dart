@@ -9,7 +9,6 @@ import '../../node/importer.dart';
 import '../../node/url.dart';
 import '../../node/utils.dart';
 import '../../util/nullable.dart';
-import '../result.dart';
 
 /// A wrapper for a synchronous JS API importer that exposes it as a Dart
 /// [Importer].
