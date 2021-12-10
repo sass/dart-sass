@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 96397ede2c79b09005bbac9a013d4a6b42faf736
+// Checksum: c1d303225e5cac5e32dd32a4eed30a71a35b390c
 //
 // ignore_for_file: unused_import
 
@@ -1653,7 +1653,8 @@ class _EvaluateVisitor
     var url = _interpolationToValue(import.url);
     var supports = import.supports.andThen((supports) {
       var arg = supports is SupportsDeclaration
-          ? "${_evaluateToCss(supports.name)}: "
+          ? "${_evaluateToCss(supports.name)}:"
+              "${supports.isCustomProperty ? '' : ' '}"
               "${_evaluateToCss(supports.value)}"
           : supports.andThen(_visitSupportsCondition);
       return CssValue("supports($arg)", supports.span);
@@ -1934,7 +1935,8 @@ class _EvaluateVisitor
     } else if (condition is SupportsInterpolation) {
       return _evaluateToCss(condition.expression, quote: false);
     } else if (condition is SupportsDeclaration) {
-      return "(${_evaluateToCss(condition.name)}: "
+      return "(${_evaluateToCss(condition.name)}:"
+          "${condition.isCustomProperty ? '' : ' '}"
           "${_evaluateToCss(condition.value)})";
     } else if (condition is SupportsFunction) {
       return "${_performInterpolation(condition.name)}("

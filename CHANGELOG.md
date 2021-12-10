@@ -1,3 +1,7 @@
+## 1.45.1
+
+* Properly parse custom properties in `@supports` conditions.
+
 ## 1.45.0-rc.2
 
 ### JS API
