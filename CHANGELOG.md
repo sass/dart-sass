@@ -1,14 +1,14 @@
 ## 1.45.1
 
-* Properly parse custom properties in `@supports` conditions.
+* **Potentially breaking bug fix:** Properly parse custom properties in
+  `@supports` conditions. Note that this means that SassScript expressions on
+  the right-hand side of custom property `@supports` queries now need to be
+  interpolated, as per https://sass-lang.com/d/css-vars.
 
-## 1.45.0-rc.2
+* **Potentially breaking bug fix:** Fix a bug where `inspect()` was not
+  properly printing nested, empty, bracketed lists.
 
-### JS API
-
-* Ship TypeScript type declarations with the package.
-
-## 1.45.0-rc.1
+## 1.45.0
 
 ### JS API
 
@@ -44,6 +44,8 @@ The new API includes:
 For full documentation of this API, please see [the Sass website][js-api].
 
 [js-api]: https://sass-lang.com/documentation/js-api
+
+This release also adds TypeScript type definitions.
 
 ## 1.44.0
 

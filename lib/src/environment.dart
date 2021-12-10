@@ -5,11 +5,9 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6e5ee671e0a6e5b1d6ac87beb6aeee1e4b155d74
+// Checksum: 6b97030ff074d0b39e027ea97ba5893d242b9d3d
 //
 // ignore_for_file: unused_import
-
-import 'dart:collection';
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;

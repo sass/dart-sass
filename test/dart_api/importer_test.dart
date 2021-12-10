@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
-import 'package:sass/src/exception.dart';
 
 import 'from_import_importer.dart';
 import 'test_importer.dart';
