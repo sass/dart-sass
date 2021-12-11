@@ -1656,7 +1656,8 @@ class _EvaluateVisitor
     var url = await _interpolationToValue(import.url);
     var supports = await import.supports.andThen((supports) async {
       var arg = supports is SupportsDeclaration
-          ? "${await _evaluateToCss(supports.name)}: "
+          ? "${await _evaluateToCss(supports.name)}:"
+              "${supports.isCustomProperty ? '' : ' '}"
               "${await _evaluateToCss(supports.value)}"
           : await supports.andThen(_visitSupportsCondition);
       return CssValue("supports($arg)", supports.span);
@@ -1941,7 +1942,8 @@ class _EvaluateVisitor
     } else if (condition is SupportsInterpolation) {
       return await _evaluateToCss(condition.expression, quote: false);
     } else if (condition is SupportsDeclaration) {
-      return "(${await _evaluateToCss(condition.name)}: "
+      return "(${await _evaluateToCss(condition.name)}:"
+          "${condition.isCustomProperty ? '' : ' '}"
           "${await _evaluateToCss(condition.value)})";
     } else if (condition is SupportsFunction) {
       return "${await _performInterpolation(condition.name)}("

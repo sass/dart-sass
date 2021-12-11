@@ -1172,9 +1172,7 @@ abstract class StylesheetParser extends Parser {
         if (supports == null) {
           var name = expression();
           scanner.expectChar($colon);
-          whitespace();
-          var value = expression();
-          supports = SupportsDeclaration(name, value, scanner.spanFrom(start));
+          supports = _supportsDeclarationValue(name, start);
         }
       }
       scanner.expectChar($rparen);
@@ -3611,9 +3609,24 @@ abstract class StylesheetParser extends Parser {
       return SupportsAnything(contents, scanner.spanFrom(start));
     }
 
-    whitespace();
-    var value = expression();
+    var declaration = _supportsDeclarationValue(name, start);
     scanner.expectChar($rparen);
+    return declaration;
+  }
+
+  /// Parses and returns the right-hand side of a declaration in a supports
+  /// query.
+  SupportsDeclaration _supportsDeclarationValue(
+      Expression name, LineScannerState start) {
+    Expression value;
+    if (name is StringExpression &&
+        !name.hasQuotes &&
+        name.text.initialPlain.startsWith("--")) {
+      value = StringExpression(_interpolatedDeclarationValue());
+    } else {
+      whitespace();
+      value = expression();
+    }
     return SupportsDeclaration(name, value, scanner.spanFrom(start));
   }
 

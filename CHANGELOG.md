@@ -1,5 +1,10 @@
 ## 1.45.1
 
+* **Potentially breaking bug fix:** Properly parse custom properties in
+  `@supports` conditions. Note that this means that SassScript expressions on
+  the right-hand side of custom property `@supports` queries now need to be
+  interpolated, as per https://sass-lang.com/d/css-vars.
+
 * **Potentially breaking bug fix:** Fix a bug where `inspect()` was not
   properly printing nested, empty, bracketed lists.
 
