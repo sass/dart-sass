@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -41,10 +42,9 @@ class IfRule implements Statement {
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
 
   String toString() {
-    var first = true;
     var result = clauses
-        .map((clause) =>
-            "@${first ? 'if' : 'else if'} {${clause.children.join(' ')}}")
+        .mapIndexed((index, clause) =>
+            "@${index == 0 ? 'if' : 'else if'} {${clause.children.join(' ')}}")
         .join(' ');
 
     var lastClause = this.lastClause;
