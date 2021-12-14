@@ -75,6 +75,10 @@ void main(List<String> args) {
           break;
 
         case InboundMessage_CompileRequest_Input.path:
+          if (request.path.isEmpty) {
+            throw mandatoryError("CompileRequest.Input.path");
+          }
+
           try {
             result = sass.compileToResult(request.path,
                 color: request.alertColor,

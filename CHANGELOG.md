@@ -1,3 +1,7 @@
+## 1.0.0-beta.13
+
+* Report a better error message for an empty `CompileRequest.Input.path`.
+
 ## 1.0.0-beta.12
 
 * Support version 1.0.0-beta.14 of the Sass embedded protocol:
