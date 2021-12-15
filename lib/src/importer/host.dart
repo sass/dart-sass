@@ -6,26 +6,25 @@ import 'dart:cli';
 
 import 'package:sass_api/sass_api.dart' as sass;
 
-import 'dispatcher.dart';
-import 'embedded_sass.pb.dart' hide SourceSpan;
-import 'utils.dart';
+import '../dispatcher.dart';
+import '../embedded_sass.pb.dart' hide SourceSpan;
+import '../utils.dart';
+import 'base.dart';
 
 /// An importer that asks the host to resolve imports.
-class Importer extends sass.Importer {
-  /// The [Dispatcher] to which to send requests.
-  final Dispatcher _dispatcher;
-
+class HostImporter extends ImporterBase {
   /// The ID of the compilation in which this importer is used.
   final int _compilationId;
 
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  Importer(this._dispatcher, this._compilationId, this._importerId);
+  HostImporter(Dispatcher dispatcher, this._compilationId, this._importerId)
+      : super(dispatcher);
 
   Uri? canonicalize(Uri url) {
     return waitFor(() async {
-      var response = await _dispatcher
+      var response = await dispatcher
           .sendCanonicalizeRequest(OutboundMessage_CanonicalizeRequest()
             ..compilationId = _compilationId
             ..importerId = _importerId
@@ -34,7 +33,7 @@ class Importer extends sass.Importer {
 
       switch (response.whichResult()) {
         case InboundMessage_CanonicalizeResponse_Result.url:
-          return _parseAbsoluteUrl("CanonicalizeResponse.url", response.url);
+          return parseAbsoluteUrl("CanonicalizeResponse.url", response.url);
 
         case InboundMessage_CanonicalizeResponse_Result.error:
           throw response.error;
@@ -48,7 +47,7 @@ class Importer extends sass.Importer {
   sass.ImporterResult load(Uri url) {
     return waitFor(() async {
       var response =
-          await _dispatcher.sendImportRequest(OutboundMessage_ImportRequest()
+          await dispatcher.sendImportRequest(OutboundMessage_ImportRequest()
             ..compilationId = _compilationId
             ..importerId = _importerId
             ..url = url.toString());
@@ -58,7 +57,7 @@ class Importer extends sass.Importer {
           return sass.ImporterResult(response.success.contents,
               sourceMapUrl: response.success.sourceMapUrl.isEmpty
                   ? null
-                  : _parseAbsoluteUrl("ImportResponse.success.source_map_url",
+                  : parseAbsoluteUrl("ImportResponse.success.source_map_url",
                       response.success.sourceMapUrl),
               syntax: syntaxToSyntax(response.success.syntax));
 
@@ -66,32 +65,9 @@ class Importer extends sass.Importer {
           throw response.error;
 
         case InboundMessage_ImportResponse_Result.notSet:
-          _sendAndThrow(mandatoryError("ImportResponse.result"));
+          sendAndThrow(mandatoryError("ImportResponse.result"));
       }
     }());
-  }
-
-  /// Parses [url] as a [Uri] and throws an error if it's invalid or relative
-  /// (including root-relative).
-  ///
-  /// The [field] name is used in the error message if one is thrown.
-  Uri _parseAbsoluteUrl(String field, String url) {
-    Uri parsedUrl;
-    try {
-      parsedUrl = Uri.parse(url);
-    } on FormatException catch (error) {
-      _sendAndThrow(paramsError("$field is invalid: $error"));
-    }
-
-    if (parsedUrl.scheme.isNotEmpty) return parsedUrl;
-    _sendAndThrow(paramsError('$field must be absolute, was "$parsedUrl"'));
-  }
-
-  /// Sends [error] to the remote endpoint, and also throws it so that the Sass
-  /// compilation fails.
-  Never _sendAndThrow(ProtocolError error) {
-    _dispatcher.sendError(error);
-    throw "Protocol error: ${error.message}";
   }
 
   String toString() => "HostImporter";

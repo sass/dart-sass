@@ -1,0 +1,66 @@
+// Copyright 2021 Google Inc. Use of this source code is governed by an
+// MIT-style license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
+
+import 'dart:cli';
+
+import 'package:sass_api/sass_api.dart' as sass;
+
+import '../dispatcher.dart';
+import '../embedded_sass.pb.dart' hide SourceSpan;
+import '../utils.dart';
+import 'base.dart';
+
+/// A filesystem importer to use for most implementation details of
+/// [FileImporter].
+///
+/// This allows us to avoid duplicating logic between the two importers.
+final _filesystemImporter = sass.FilesystemImporter('.');
+
+/// An importer that asks the host to resolve imports in a simplified,
+/// file-system-centric way.
+class FileImporter extends ImporterBase {
+  /// The ID of the compilation in which this importer is used.
+  final int _compilationId;
+
+  /// The host-provided ID of the importer to invoke.
+  final int _importerId;
+
+  FileImporter(Dispatcher dispatcher, this._compilationId, this._importerId)
+      : super(dispatcher);
+
+  Uri? canonicalize(Uri url) {
+    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
+
+    return waitFor(() async {
+      var response = await dispatcher
+          .sendFileImportRequest(OutboundMessage_FileImportRequest()
+            ..compilationId = _compilationId
+            ..importerId = _importerId
+            ..url = url.toString()
+            ..fromImport = fromImport);
+
+      switch (response.whichResult()) {
+        case InboundMessage_FileImportResponse_Result.fileUrl:
+          var url =
+              parseAbsoluteUrl("FileImportResponse.file_url", response.fileUrl);
+          if (url.scheme != 'file') {
+            sendAndThrow(paramsError(
+                'FileImportResponse.file_url must be a file: URL, was "$url"'));
+          }
+
+          return _filesystemImporter.canonicalize(url);
+
+        case InboundMessage_FileImportResponse_Result.error:
+          throw response.error;
+
+        case InboundMessage_FileImportResponse_Result.notSet:
+          return null;
+      }
+    }());
+  }
+
+  sass.ImporterResult? load(Uri url) => _filesystemImporter.load(url);
+
+  String toString() => "FileImporter";
+}

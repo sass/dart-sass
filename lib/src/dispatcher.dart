@@ -80,6 +80,11 @@ class Dispatcher {
             _dispatchResponse(response.id, response);
             break;
 
+          case InboundMessage_Message.fileImportResponse:
+            var response = message.fileImportResponse;
+            _dispatchResponse(response.id, response);
+            break;
+
           case InboundMessage_Message.functionCallResponse:
             var response = message.functionCallResponse;
             _dispatchResponse(response.id, response);
@@ -131,6 +136,11 @@ class Dispatcher {
       _sendRequest<InboundMessage_ImportResponse>(
           OutboundMessage()..importRequest = request);
 
+  Future<InboundMessage_FileImportResponse> sendFileImportRequest(
+          OutboundMessage_FileImportRequest request) =>
+      _sendRequest<InboundMessage_FileImportResponse>(
+          OutboundMessage()..fileImportRequest = request);
+
   Future<InboundMessage_FunctionCallResponse> sendFunctionCallRequest(
           OutboundMessage_FunctionCallRequest request) =>
       _sendRequest<InboundMessage_FunctionCallResponse>(
@@ -165,8 +175,12 @@ class Dispatcher {
   /// Throws an error if there's no outstanding request with the given [id] or
   /// if that request is expecting a different type of response.
   void _dispatchResponse<T extends GeneratedMessage>(int id, T response) {
-    var completer =
-        id < _outstandingRequests.length ? _outstandingRequests[id] : null;
+    Completer<GeneratedMessage>? completer;
+    if (id < _outstandingRequests.length) {
+      completer = _outstandingRequests[id];
+      _outstandingRequests[id] = null;
+    }
+
     if (completer == null) {
       throw paramsError(
           "Response ID $id doesn't match any outstanding requests.");

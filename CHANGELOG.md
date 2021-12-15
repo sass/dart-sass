@@ -1,3 +1,7 @@
+## 1.0.0-beta.14
+
+* Support `FileImporter`s.
+
 ## 1.0.0-beta.13
 
 * Report a better error message for an empty `CompileRequest.Input.path`.

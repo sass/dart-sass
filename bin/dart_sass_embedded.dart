@@ -12,7 +12,8 @@ import 'package:sass_embedded/src/dispatcher.dart';
 import 'package:sass_embedded/src/embedded_sass.pb.dart';
 import 'package:sass_embedded/src/function_registry.dart';
 import 'package:sass_embedded/src/host_callable.dart';
-import 'package:sass_embedded/src/importer.dart';
+import 'package:sass_embedded/src/importer/file.dart';
+import 'package:sass_embedded/src/importer/host.dart';
 import 'package:sass_embedded/src/logger.dart';
 import 'package:sass_embedded/src/util/length_delimited_transformer.dart';
 import 'package:sass_embedded/src/utils.dart';
@@ -125,7 +126,7 @@ void main(List<String> args) {
   });
 }
 
-/// Converts [importer] into an [Importer].
+/// Converts [importer] into a [sass.Importer].
 sass.Importer? _decodeImporter(
     Dispatcher dispatcher,
     InboundMessage_CompileRequest request,
@@ -135,10 +136,10 @@ sass.Importer? _decodeImporter(
       return sass.FilesystemImporter(importer.path);
 
     case InboundMessage_CompileRequest_Importer_Importer.importerId:
-      return Importer(dispatcher, request.id, importer.importerId);
+      return HostImporter(dispatcher, request.id, importer.importerId);
 
     case InboundMessage_CompileRequest_Importer_Importer.fileImporterId:
-      throw "CompileRequest.Importer.fileImporterId is not yet supported";
+      return FileImporter(dispatcher, request.id, importer.fileImporterId);
 
     case InboundMessage_CompileRequest_Importer_Importer.notSet:
       return null;

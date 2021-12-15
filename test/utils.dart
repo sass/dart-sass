@@ -103,6 +103,16 @@ OutboundMessage_ImportRequest getImportRequest(value) {
   return message.importRequest;
 }
 
+/// Asserts that [message] is an [OutboundMessage] with a `FileImportRequest`
+/// and returns it.
+OutboundMessage_FileImportRequest getFileImportRequest(value) {
+  expect(value, isA<OutboundMessage>());
+  var message = value as OutboundMessage;
+  expect(message.hasFileImportRequest(), isTrue,
+      reason: "Expected $message to have a FileImportRequest");
+  return message.fileImportRequest;
+}
+
 /// Asserts that [message] is an [OutboundMessage] with a
 /// `FunctionCallRequest` and returns it.
 OutboundMessage_FunctionCallRequest getFunctionCallRequest(value) {
