@@ -25,7 +25,6 @@ executable and a Node.js API.
 [Dart Sass]: https://github.com/sass/dart-sass
 
 * [Usage](#usage)
-* [API](#api)
 * [See Also](#see-also)
 * [Behavioral Differences from Ruby Sass](#behavioral-differences-from-ruby-sass)
 
@@ -39,20 +38,23 @@ library:
 [npm]: https://www.npmjs.com/package/sass
 
 ```js
-var sass = require('sass');
+const sass = require('sass');
 
-sass.render({file: scss_filename}, function(err, result) { /* ... */ });
+const result = sass.compile(scssFilename);
 
 // OR
 
-var result = sass.renderSync({file: scss_filename});
+// Note that `compileAsync()` is substantially slower than `compile()`.
+const result = await sass.compileAsync(scssFilename);
 ```
 
-[See below](#api) for details on Dart Sass's JavaScript API.
+See [the Sass website][js api] for full API documentation.
 
-## API
+[js api]: https://sass-lang.com/documentation/js-api
 
-<!-- #include ../README.md "JavaScript API" -->
+### Legacy API
+
+<!-- #include ../README.md "Legacy JavaScript API" -->
 
 ## See Also
 
