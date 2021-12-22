@@ -10,7 +10,8 @@ import '../utils.dart';
 /// The JavaScript `SassArgumentList` class.
 final JSClass argumentListClass = () {
   var jsClass = createJSClass('sass.SassArgumentList',
-      (Object self, Object contents, Object keywords, [String? separator]) {
+      (Object self, Object contents, Object keywords,
+          [String? separator = ',']) {
     return SassArgumentList(
         jsToDartList(contents).cast<Value>(),
         (isImmutableMap(keywords)
