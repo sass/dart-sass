@@ -2,6 +2,10 @@
 
 * Fix a bug in `string.insert` with certain negative indices.
 
+### JS API
+
+* Add support for the `sourceMapIncludeSources` option in the new JS API.
+
 ## 1.48.0
 
 ### JS API

@@ -18,6 +18,7 @@ class CompileOptions {
   external String? get style;
   external bool? get verbose;
   external bool? get sourceMap;
+  external bool? get sourceMapIncludeSources;
   external NodeLogger? get logger;
   external List<Object?>? get importers;
   external Object? get functions;
