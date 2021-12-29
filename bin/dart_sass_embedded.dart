@@ -54,8 +54,13 @@ void main(List<String> args) {
           _decodeImporter(dispatcher, request, importer) ??
           (throw mandatoryError("Importer.importer")));
 
-      var globalFunctions = request.globalFunctions.map((signature) =>
-          hostCallable(dispatcher, functions, request.id, signature));
+      var globalFunctions = request.globalFunctions.map((signature) {
+        try {
+          return hostCallable(dispatcher, functions, request.id, signature);
+        } on sass.SassException catch (error) {
+          throw paramsError('CompileRequest.global_functions: $error');
+        }
+      });
 
       late sass.CompileResult result;
       switch (request.whichInput()) {

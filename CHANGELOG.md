@@ -1,3 +1,9 @@
+## 1.0.0-beta.15
+
+* Support version 1.0.0-beta.16 of the Sass embedded protocol:
+  * Treat invalid host function signatures as function errors rather than
+    protocol errors.
+
 ## 1.0.0-beta.14
 
 * Support `FileImporter`s.

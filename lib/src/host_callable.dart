@@ -6,6 +6,7 @@ import 'dart:cli';
 import 'dart:io';
 
 import 'package:sass_api/sass_api.dart' as sass;
+import 'package:source_span/source_span.dart';
 
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart';
@@ -20,60 +21,54 @@ import 'utils.dart';
 /// anonymous functions defined on the host). Otherwise, it will be called using
 /// the name defined in the [signature].
 ///
-/// Throws a [ProtocolError] if [signature] is invalid.
+/// Throws a [sass.SassException] if [signature] is invalid.
 sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
     int compilationId, String signature,
     {int? id}) {
   var openParen = signature.indexOf('(');
-  if (openParen == -1) {
-    throw paramsError(
-        'CompileRequest.global_functions: "$signature" is missing "("');
-  }
+  if (openParen == -1)
+    throw sass.SassException('"$signature" is missing "("',
+        SourceFile.fromString(signature).span(0));
 
   if (!signature.endsWith(")")) {
-    throw paramsError(
-        'CompileRequest.global_functions: "$signature" doesn\'t end with '
-        '")"');
+    throw sass.SassException('"$signature" doesn\'t end with ")"',
+        SourceFile.fromString(signature).span(signature.length));
   }
 
   var name = signature.substring(0, openParen);
-  try {
-    return sass.Callable.function(
-        name, signature.substring(openParen + 1, signature.length - 1),
-        (arguments) {
-      var protofier = Protofier(dispatcher, functions, compilationId);
-      var request = OutboundMessage_FunctionCallRequest()
-        ..compilationId = compilationId
-        ..arguments.addAll(
-            [for (var argument in arguments) protofier.protofy(argument)]);
+  return sass.Callable.function(
+      name, signature.substring(openParen + 1, signature.length - 1),
+      (arguments) {
+    var protofier = Protofier(dispatcher, functions, compilationId);
+    var request = OutboundMessage_FunctionCallRequest()
+      ..compilationId = compilationId
+      ..arguments.addAll(
+          [for (var argument in arguments) protofier.protofy(argument)]);
 
-      if (id != null) {
-        request.functionId = id;
-      } else {
-        request.name = name;
+    if (id != null) {
+      request.functionId = id;
+    } else {
+      request.name = name;
+    }
+
+    var response = waitFor(dispatcher.sendFunctionCallRequest(request));
+    try {
+      switch (response.whichResult()) {
+        case InboundMessage_FunctionCallResponse_Result.success:
+          return protofier.deprotofyResponse(response);
+
+        case InboundMessage_FunctionCallResponse_Result.error:
+          throw response.error;
+
+        case InboundMessage_FunctionCallResponse_Result.notSet:
+          throw mandatoryError('FunctionCallResponse.result');
       }
-
-      var response = waitFor(dispatcher.sendFunctionCallRequest(request));
-      try {
-        switch (response.whichResult()) {
-          case InboundMessage_FunctionCallResponse_Result.success:
-            return protofier.deprotofyResponse(response);
-
-          case InboundMessage_FunctionCallResponse_Result.error:
-            throw response.error;
-
-          case InboundMessage_FunctionCallResponse_Result.notSet:
-            throw mandatoryError('FunctionCallResponse.result');
-        }
-      } on ProtocolError catch (error) {
-        error.id = errorId;
-        stderr.writeln("Host caused ${error.type.name.toLowerCase()} error: "
-            "${error.message}");
-        dispatcher.sendError(error);
-        throw error.message;
-      }
-    });
-  } on sass.SassException catch (error) {
-    throw paramsError('CompileRequest.global_functions: $error');
-  }
+    } on ProtocolError catch (error) {
+      error.id = errorId;
+      stderr.writeln("Host caused ${error.type.name.toLowerCase()} error: "
+          "${error.message}");
+      dispatcher.sendError(error);
+      throw error.message;
+    }
+  });
 }

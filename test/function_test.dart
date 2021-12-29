@@ -21,36 +21,64 @@ void main() {
     _process = await EmbeddedProcess.start();
   });
 
-  group("emits a protocol error", () {
-    test("for an empty signature", () async {
+  group("emits a protocol error for a custom function with a signature", () {
+    test("that's empty", () async {
       _process.inbound.add(compileString("a {b: c}", functions: [r""]));
       await expectParamsError(
-          _process, 0, 'CompileRequest.global_functions: "" is missing "("');
+          _process,
+          0,
+          'CompileRequest.global_functions: Error: "" is missing "("\n'
+          '  ╷\n'
+          '1 │ \n'
+          '  │ ^\n'
+          '  ╵\n'
+          '  - 1:1  root stylesheet');
       await _process.kill();
     });
 
-    test("for a signature with just a name", () async {
+    test("that's just a name", () async {
       _process.inbound.add(compileString("a {b: c}", functions: [r"foo"]));
       await expectParamsError(
-          _process, 0, 'CompileRequest.global_functions: "foo" is missing "("');
+          _process,
+          0,
+          'CompileRequest.global_functions: Error: "foo" is missing "("\n'
+          '  ╷\n'
+          '1 │ foo\n'
+          '  │ ^^^\n'
+          '  ╵\n'
+          '  - 1:1  root stylesheet');
       await _process.kill();
     });
 
-    test("for a signature without a closing paren", () async {
+    test("without a closing paren", () async {
       _process.inbound.add(compileString("a {b: c}", functions: [r"foo($bar"]));
-      await expectParamsError(_process, 0,
-          'CompileRequest.global_functions: "foo(\$bar" doesn\'t end with ")"');
+      await expectParamsError(
+          _process,
+          0,
+          'CompileRequest.global_functions: Error: "foo(\$bar" doesn\'t end with ")"\n'
+          '  ╷\n'
+          '1 │ foo(\$bar\n'
+          '  │         ^\n'
+          '  ╵\n'
+          '  - 1:9  root stylesheet');
       await _process.kill();
     });
 
-    test("for a signature with text after the closing paren", () async {
+    test("with text after the closing paren", () async {
       _process.inbound.add(compileString("a {b: c}", functions: [r"foo() "]));
-      await expectParamsError(_process, 0,
-          'CompileRequest.global_functions: "foo() " doesn\'t end with ")"');
+      await expectParamsError(
+          _process,
+          0,
+          'CompileRequest.global_functions: Error: "foo() " doesn\'t end with ")"\n'
+          '  ╷\n'
+          '1 │ foo() \n'
+          '  │       ^\n'
+          '  ╵\n'
+          '  - 1:7  root stylesheet');
       await _process.kill();
     });
 
-    test("for a signature with invalid arguments", () async {
+    test("with invalid arguments", () async {
       _process.inbound.add(compileString("a {b: c}", functions: [r"foo($)"]));
       await expectParamsError(
           _process,
@@ -1795,6 +1823,50 @@ void main() {
           var failure = await getCompileFailure(await _process.outbound.next);
           expect(failure.message, equals("1px and 2s are incompatible."));
           expect(_process.kill(), completes);
+        });
+      });
+
+      group("reports a compilation error for a function with a signature", () {
+        Future<void> expectSignatureError(
+            String signature, Object message) async {
+          _process.inbound.add(
+              compileString("a {b: inspect(foo())}", functions: [r"foo()"]));
+
+          var request = getFunctionCallRequest(await _process.outbound.next);
+          expect(request.arguments, isEmpty);
+          _process.inbound.add(InboundMessage()
+            ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+              ..id = request.id
+              ..success = (Value()
+                ..hostFunction = (Value_HostFunction()
+                  ..id = 1234
+                  ..signature = signature))));
+
+          var failure = await getCompileFailure(await _process.outbound.next);
+          expect(failure.message, message);
+          expect(_process.kill(), completes);
+        }
+
+        test("that's empty", () async {
+          await expectSignatureError("", '"" is missing "("');
+        });
+
+        test("that's just a name", () async {
+          await expectSignatureError("foo", '"foo" is missing "("');
+        });
+
+        test("without a closing paren", () async {
+          await expectSignatureError(
+              r"foo($bar", '"foo(\$bar" doesn\'t end with ")"');
+        });
+
+        test("with text after the closing paren", () async {
+          await expectSignatureError(
+              r"foo() ", '"foo() " doesn\'t end with ")"');
+        });
+
+        test("with invalid arguments", () async {
+          await expectSignatureError(r"foo($)", 'Expected identifier.');
         });
       });
     });
