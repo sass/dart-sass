@@ -7,6 +7,8 @@
 
   * Allow `ImportResponse.result` to be null.
 
+* Fix a bug where the compiler could return a `CompileFailure` without a span.
+
 ## 1.0.0-beta.14
 
 * Support `FileImporter`s.

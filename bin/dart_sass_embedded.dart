@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
 import 'package:stream_channel/stream_channel.dart';
 
@@ -100,7 +101,11 @@ void main(List<String> args) {
               ..failure = (OutboundMessage_CompileResponse_CompileFailure()
                 ..message = error.path == null
                     ? error.message
-                    : "${error.message}: ${error.path}");
+                    : "${error.message}: ${error.path}"
+                ..span = (SourceSpan()
+                  ..start = SourceSpan_SourceLocation()
+                  ..end = SourceSpan_SourceLocation()
+                  ..url = p.toUri(request.path).toString()));
           }
           break;
 

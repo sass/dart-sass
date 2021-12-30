@@ -300,7 +300,11 @@ void main() {
       expect(failure.message, startsWith("Cannot open file: "));
       expect(failure.message.replaceFirst("Cannot open file: ", "").trim(),
           equalsPath(d.path('test.scss')));
-      expect(failure.span, equals(SourceSpan()));
+      expect(failure.span.text, equals(''));
+      expect(failure.span.context, equals(''));
+      expect(failure.span.start, equals(SourceSpan_SourceLocation()));
+      expect(failure.span.end, equals(SourceSpan_SourceLocation()));
+      expect(failure.span.url, equals(p.toUri(d.path('test.scss')).toString()));
       expect(failure.stackTrace, isEmpty);
       await process.kill();
     });
