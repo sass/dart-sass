@@ -217,21 +217,6 @@ void main() {
 
   group("importing", () {
     group("emits a protocol error", () {
-      test("for an unset import result", () async {
-        process.inbound.add(compileString("@import 'other'", importers: [
-          InboundMessage_CompileRequest_Importer()..importerId = 1
-        ]));
-        await _canonicalize(process);
-
-        var import = getImportRequest(await process.outbound.next);
-        process.inbound.add(InboundMessage()
-          ..importResponse = (InboundMessage_ImportResponse()..id = import.id));
-
-        await _expectImportParamsError(
-            process, "Missing mandatory field ImportResponse.result");
-        await process.kill();
-      });
-
       test("for an import result with a relative sourceMapUrl", () async {
         process.inbound.add(compileString("@import 'other'", importers: [
           InboundMessage_CompileRequest_Importer()..importerId = 1
@@ -287,6 +272,29 @@ void main() {
         expect(request.url, equals("custom:foo"));
         await process.kill();
       });
+    });
+
+    test("null results count as not found", () async {
+      process.inbound.add(compileString("@import 'other'", importers: [
+        InboundMessage_CompileRequest_Importer()..importerId = 1
+      ]));
+
+      var canonicalizeRequest =
+          getCanonicalizeRequest(await process.outbound.next);
+      process.inbound.add(InboundMessage()
+        ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
+          ..id = canonicalizeRequest.id
+          ..url = "o:other"));
+
+      var importRequest = getImportRequest(await process.outbound.next);
+      process.inbound.add(InboundMessage()
+        ..importResponse =
+            (InboundMessage_ImportResponse()..id = importRequest.id));
+
+      var failure = getCompileFailure(await process.outbound.next);
+      expect(failure.message, equals("Can't find stylesheet to import."));
+      expect(failure.span.text, equals("'other'"));
+      await process.kill();
     });
 
     test("errors cause compilation to fail", () async {

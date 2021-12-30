@@ -44,7 +44,7 @@ class HostImporter extends ImporterBase {
     }());
   }
 
-  sass.ImporterResult load(Uri url) {
+  sass.ImporterResult? load(Uri url) {
     return waitFor(() async {
       var response =
           await dispatcher.sendImportRequest(OutboundMessage_ImportRequest()
@@ -65,7 +65,7 @@ class HostImporter extends ImporterBase {
           throw response.error;
 
         case InboundMessage_ImportResponse_Result.notSet:
-          sendAndThrow(mandatoryError("ImportResponse.result"));
+          return null;
       }
     }());
   }

@@ -1,8 +1,11 @@
 ## 1.0.0-beta.15
 
-* Support version 1.0.0-beta.16 of the Sass embedded protocol:
+* Support version 1.0.0-beta.17 of the Sass embedded protocol:
+
   * Treat invalid host function signatures as function errors rather than
     protocol errors.
+
+  * Allow `ImportResponse.result` to be null.
 
 ## 1.0.0-beta.14
 
