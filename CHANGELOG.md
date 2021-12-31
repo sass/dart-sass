@@ -1,3 +1,11 @@
+## 1.45.2
+
+### JS API
+
+* **Potentially breaking bug fix:** Change the default value of the `separator`
+  parameter for `new SassArgumentList()` to `','` rather than `null`. This
+  matches the API specification.
+
 ## 1.45.1
 
 * **Potentially breaking bug fix:** Properly parse custom properties in
