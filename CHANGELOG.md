@@ -1,3 +1,10 @@
+## 1.45.3
+
+### JS API
+
+* **Potentially breaking bug fix:** Match the specification of the new JS API by
+  passing `undefined` rather than `null` to `Logger.warn()` for an unset `span`.
+
 ## 1.45.2
 
 ### JS API
