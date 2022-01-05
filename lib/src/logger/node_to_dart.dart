@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:node_interop/js.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
@@ -38,7 +39,9 @@ class NodeToDartLogger implements Logger {
       warn(
           message,
           WarnOptions(
-              span: span, stack: trace.toString(), deprecation: deprecation));
+              span: span ?? (undefined as SourceSpan?),
+              stack: trace.toString(),
+              deprecation: deprecation));
     }
   }
 
