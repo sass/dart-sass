@@ -1,9 +1,25 @@
-## 1.45.3
+## 1.46.0
 
 ### JS API
 
 * **Potentially breaking bug fix:** Match the specification of the new JS API by
   passing `undefined` rather than `null` to `Logger.warn()` for an unset `span`.
+  
+#### TypeScript Declarations
+
+* Add a declaration for the `LegacyPluginThis.options.context` field.
+
+* Update the definition of `LegacyAsyncFunction` to include explicit definitions
+  with zero through six arguments before the `done` parameter. This makes it
+  possible for TypeScript users to pass in callbacks that take a specific number
+  of arguments, rather than having to declare a callback that takes an arbitrary
+  number.
+
+* Add a declaration for `types.Error`, a legacy API class that can be returned
+  by asynchronous functions to signal asynchronous errors.
+
+* Add a `LegacyAsyncFunctionDone` type for the `done` callback that's passed to
+  `LegacyAsyncFunction`.
 
 ## 1.45.2
 
