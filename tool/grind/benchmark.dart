@@ -59,13 +59,10 @@ Future<void> benchmarkGenerate() async {
   File("${sources.path}/duomo.scss")
       .writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
 
-  // Note: This version only supports Node Sass 5.x, which only supports up to
-  // Node 14.x. Once there's a version that support Node Sass 6.x, we should use
-  // that instead.
   var carbon = cloneOrCheckout(
       "https://github.com/carbon-design-system/ibm-cloud-cognitive",
-      "@carbon/ibm-cloud-cognitive@0.93.2");
-  await runAsync("npm", arguments: ["install"], workingDirectory: carbon);
+      "@carbon/ibm-cloud-cognitive@1.0.0-rc.0");
+  await runAsync("yarn", arguments: ["install"], workingDirectory: carbon);
   File("${sources.path}/carbon.scss")
       .writeAsStringSync("@import '../ibm-cloud-cognitive/packages/"
           "cloud-cognitive/src/index-without-carbon-released-only'");
