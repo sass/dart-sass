@@ -43,6 +43,7 @@ void main() {
           sourceMap: (map) => expectedMap = map);
       expectedMap.targetUrl = "out.css";
 
+      print(map["mappings"]);
       expect(map, containsPair("mappings", expectedMap.toJson()["mappings"]));
     });
 
