@@ -1,3 +1,11 @@
+## 1.47.0
+
+### JS API
+
+#### TypeScript Declarations
+
+* Add declarations for the `TRUE` and `FALSE` constants.
+
 ## 1.46.0
 
 ### JS API
