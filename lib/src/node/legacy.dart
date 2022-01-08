@@ -357,7 +357,7 @@ RenderResult _newRenderResult(
   var end = DateTime.now();
 
   var css = result.css;
-  Uint8List? sourceMapBytes;
+  Uint8List? sourceMapBytes = undefined;
   if (_enableSourceMaps(options)) {
     var sourceMapOption = options.sourceMap;
     var sourceMapPath =
