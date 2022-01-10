@@ -1,3 +1,10 @@
+## 1.47.1
+
+### JS API
+
+* **Potentially breaking bug fix:** Match the specification of the new JS API by
+  setting `LegacyResult.map` to `undefined` rather than `null`.
+
 ## 1.47.0
 
 ### JS API
