@@ -31,7 +31,7 @@ Future<void> fetchBulma() => _getLatestRelease('jgthms/bulma');
 /// If [pattern] is passed, this will clone the latest release that matches that
 /// pattern.
 Future<void> _getLatestRelease(String slug, {Pattern? pattern}) async {
-  cloneOrCheckout('git://github.com/$slug',
+  cloneOrCheckout('https://github.com/$slug',
       await _findLatestRelease(slug, pattern: pattern));
 }
 
