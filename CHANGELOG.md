@@ -2,6 +2,11 @@
 
 * Fix a bug in `string.insert` with certain negative indices.
 
+#### TypeScript Declarations
+
+* Fix a bug where `LegacyPluginThis.options.linefeed` was typed to return
+  abbreviations when it actually returned literal linefeed characters.
+
 ## 1.48.0
 
 ### JS API
