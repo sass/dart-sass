@@ -66,7 +66,7 @@ final _insert = _function("insert", r"$string, $insert, $index", (arguments) {
   if (indexInt < 0) {
     // +1 because negative indexes start counting from -1 rather than 0, and
     // another +1 because we want to insert *after* that index.
-    indexInt = string.sassLength + indexInt + 2;
+    indexInt = math.max(string.sassLength + indexInt + 2, 0);
   }
 
   var codepointIndex = _codepointForIndex(indexInt, string.sassLength);

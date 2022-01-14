@@ -1,3 +1,7 @@
+## 1.48.1
+
+* Fix a bug in `string.insert` with certain negative indices.
+
 ## 1.48.0
 
 ### JS API
@@ -23,7 +27,7 @@
 
 * **Potentially breaking bug fix:** Match the specification of the new JS API by
   passing `undefined` rather than `null` to `Logger.warn()` for an unset `span`.
-  
+
 #### TypeScript Declarations
 
 * Add a declaration for the `LegacyPluginThis.options.context` field.
