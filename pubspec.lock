@@ -21,7 +21,7 @@ packages:
       name: archive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.6"
+    version: "3.1.8"
   args:
     dependency: transitive
     description:
@@ -308,14 +308,14 @@ packages:
       name: sass
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.45.1"
+    version: "1.48.0"
   sass_api:
     dependency: "direct main"
     description:
       name: sass_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0-beta.24"
+    version: "1.0.0-beta.28"
   shelf:
     dependency: transitive
     description:
@@ -364,7 +364,7 @@ packages:
       name: source_span
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.1"
+    version: "1.8.2"
   stack_trace:
     dependency: "direct main"
     description:

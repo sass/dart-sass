@@ -1,3 +1,10 @@
+## 1.0.0-beta.16
+
+* Upgrade to Sass 1.48.0.
+
+* Fix a bug where the compiler could crash when an error was detected in a
+  stylesheet provided by string.
+
 ## 1.0.0-beta.15
 
 * Support version 1.0.0-beta.17 of the Sass embedded protocol:
