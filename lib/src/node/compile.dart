@@ -47,7 +47,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
             ascii: ascii),
         importers: options?.importers?.map(_parseImporter),
         functions: _parseFunctions(options?.functions).cast());
-    return _convertResult(result);
+    return _convertResult(result, includeSourceContents: options?.sourceMapIncludeSources ?? false);
   } on SassException catch (error, stackTrace) {
     throwNodeException(error, color: color, ascii: ascii, trace: stackTrace);
   }
@@ -76,7 +76,7 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
         importer: options?.importer.andThen(_parseImporter) ??
             (options?.url == null ? NoOpImporter() : null),
         functions: _parseFunctions(options?.functions).cast());
-    return _convertResult(result);
+    return _convertResult(result, includeSourceContents: options?.sourceMapIncludeSources ?? false);
   } on SassException catch (error, stackTrace) {
     throwNodeException(error, color: color, ascii: ascii, trace: stackTrace);
   }
@@ -102,7 +102,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
         functions: _parseFunctions(options?.functions, asynch: true));
-    return _convertResult(result);
+    return _convertResult(result, includeSourceContents: options?.sourceMapIncludeSources ?? false);
   }()), color: color, ascii: ascii);
 }
 
@@ -131,13 +131,13 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
                 .andThen((importer) => _parseAsyncImporter(importer)) ??
             (options?.url == null ? NoOpImporter() : null),
         functions: _parseFunctions(options?.functions, asynch: true));
-    return _convertResult(result);
+    return _convertResult(result, includeSourceContents: options?.sourceMapIncludeSources ?? false);
   }()), color: color, ascii: ascii);
 }
 
 /// Converts a Dart [CompileResult] into a JS API [NodeCompileResult].
-NodeCompileResult _convertResult(CompileResult result) {
-  var sourceMap = result.sourceMap?.toJson();
+NodeCompileResult _convertResult(CompileResult result, {required bool includeSourceContents}) {
+  var sourceMap = result.sourceMap?.toJson(includeSourceContents: includeSourceContents);
   if (sourceMap is Map<String, dynamic> && !sourceMap.containsKey('sources')) {
     // Dart's source map library can omit the sources key, but JS's type
     // declaration doesn't allow that.
