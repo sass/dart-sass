@@ -1,10 +1,15 @@
-## 1.48.1
+## 1.49.0
 
 * Fix a bug in `string.insert` with certain negative indices.
 
 ### JS API
 
 * Add support for the `sourceMapIncludeSources` option in the new JS API.
+
+#### TypeScript Declarations
+
+* Fix a bug where `LegacyPluginThis.options.linefeed` was typed to return
+  abbreviations when it actually returned literal linefeed characters.
 
 ## 1.48.0
 
