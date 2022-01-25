@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 // OS X's modification time reporting is flaky, so we skip these tests on it.
-@TestOn('vm && !mac-os')
+@TestOn('!mac-os')
 
 import 'package:test/test.dart';
 
