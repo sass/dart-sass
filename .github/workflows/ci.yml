@@ -27,8 +27,28 @@ jobs:
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
+
+      - name: Check out Dart Sass
+        uses: sass/clone-linked-repo@v1
+        with:
+          repo: sass/dart-sass
+          path: build/dart-sass
+          default-ref: null
+
+      - name: Add Dart Sass to pubspec
+        run: >
+          if [[ -d build/dart-sass ]]; then
+            echo "dependency_overrides: {sass: {path: build/dart-sass}}" >> pubspec.yaml
+          fi
+        shell: bash
+
+      - name: Check out embedded Sass protocol
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/embedded-protocol, path: build/embedded-protocol}
+
       - run: dart pub get
       - run: dart pub run grinder protobuf
+        env: {UPDATE_SASS_PROTOCOL: false}
       - run: dart pub run grinder pkg-standalone-dev
       - name: Run tests
         run: dart pub run test -r expanded
@@ -42,8 +62,28 @@ jobs:
       - uses: arduino/setup-protoc@v1
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
       - uses: dart-lang/setup-dart@v1
+
+      - name: Check out Dart Sass
+        uses: sass/clone-linked-repo@v1
+        with:
+          repo: sass/dart-sass
+          path: build/dart-sass
+          default-ref: null
+
+      - name: Add Dart Sass to pubspec
+        run: >
+          if [[ -d build/dart-sass ]]; then
+            echo "dependency_overrides: {sass: {path: build/dart-sass}}" >> pubspec.yaml
+          fi
+        shell: bash
+
+      - name: Check out embedded Sass protocol
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/embedded-protocol, path: build/embedded-protocol}
+
       - run: dart pub get
       - run: dart pub run grinder protobuf
+        env: {UPDATE_SASS_PROTOCOL: false}
       - name: Analyze dart
         run: dartanalyzer --fatal-warnings ./
 

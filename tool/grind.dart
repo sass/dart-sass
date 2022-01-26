@@ -50,7 +50,10 @@ dart pub run protoc_plugin %*
     run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
   }
 
-  await cloneOrPull("git://github.com/sass/embedded-protocol");
+  if (Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
+    await cloneOrPull("git://github.com/sass/embedded-protocol");
+  }
+
   await runAsync("protoc",
       arguments: [
         "-Ibuild/embedded-protocol",
