@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// ignore: deprecated_member_use
 import 'dart:cli';
 
 import 'package:sass_api/sass_api.dart' as sass;
@@ -23,6 +24,7 @@ class HostImporter extends ImporterBase {
       : super(dispatcher);
 
   Uri? canonicalize(Uri url) {
+    // ignore: deprecated_member_use
     return waitFor(() async {
       var response = await dispatcher
           .sendCanonicalizeRequest(OutboundMessage_CanonicalizeRequest()
@@ -45,6 +47,7 @@ class HostImporter extends ImporterBase {
   }
 
   sass.ImporterResult? load(Uri url) {
+    // ignore: deprecated_member_use
     return waitFor(() async {
       var response =
           await dispatcher.sendImportRequest(OutboundMessage_ImportRequest()

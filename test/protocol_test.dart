@@ -130,7 +130,7 @@ void main() {
     process.inbound.add(compileString("a {b: 1px + 2px}", sourceMap: true));
     await expectLater(
         process.outbound,
-        emits(isSuccess("a { b: 3px; }", sourceMap: (map) {
+        emits(isSuccess("a { b: 3px; }", sourceMap: (String map) {
           var mapping = source_maps.parse(map);
           var span = mapping.spanFor(2, 5)!;
           expect(span.start.line, equals(0));

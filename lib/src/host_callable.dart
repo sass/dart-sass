@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// ignore: deprecated_member_use
 import 'dart:cli';
 import 'dart:io';
 
@@ -26,9 +27,10 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
     int compilationId, String signature,
     {int? id}) {
   var openParen = signature.indexOf('(');
-  if (openParen == -1)
+  if (openParen == -1) {
     throw sass.SassException('"$signature" is missing "("',
         SourceFile.fromString(signature).span(0));
+  }
 
   if (!signature.endsWith(")")) {
     throw sass.SassException('"$signature" doesn\'t end with ")"',
@@ -51,6 +53,7 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
       request.name = name;
     }
 
+    // ignore: deprecated_member_use
     var response = waitFor(dispatcher.sendFunctionCallRequest(request));
     try {
       switch (response.whichResult()) {

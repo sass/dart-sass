@@ -129,7 +129,7 @@ class EmbeddedProcess {
   }
 
   /// A callback that's run when the test completes.
-  Future _tearDown() async {
+  Future<void> _tearDown() async {
     // If the process is already dead, do nothing.
     if (await _exitCodeOrNull != null) return;
 
@@ -141,7 +141,7 @@ class EmbeddedProcess {
   }
 
   /// Formats the contents of [_log] and passes them to [printOnFailure].
-  Future _logOutput() async {
+  Future<void> _logOutput() async {
     if (_loggedOutput) return;
     _loggedOutput = true;
 
@@ -149,7 +149,7 @@ class EmbeddedProcess {
 
     // Wait a timer tick to ensure that all available lines have been flushed to
     // [_log].
-    await Future.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
 
     var buffer = StringBuffer();
     buffer.write("Process `dart_sass_embedded` ");
@@ -168,7 +168,7 @@ class EmbeddedProcess {
   /// future that completes once it's dead.
   ///
   /// If this is called after the process is already dead, it does nothing.
-  Future kill() async {
+  Future<void> kill() async {
     _process.kill(ProcessSignal.sigkill);
     await exitCode;
   }
@@ -178,7 +178,7 @@ class EmbeddedProcess {
   ///
   /// If this is called after the process is already dead, it verifies its
   /// existing exit code.
-  Future shouldExit([expectedExitCode]) async {
+  Future<void> shouldExit([int? expectedExitCode]) async {
     var exitCode = await this.exitCode;
     if (expectedExitCode == null) return;
     expect(exitCode, expectedExitCode,

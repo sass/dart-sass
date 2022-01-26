@@ -1820,7 +1820,7 @@ void main() {
                       ..value = 2.0
                       ..numerators.add("s")))))));
 
-          var failure = await getCompileFailure(await _process.outbound.next);
+          var failure = getCompileFailure(await _process.outbound.next);
           expect(failure.message, equals("1px and 2s are incompatible."));
           expect(_process.kill(), completes);
         });
@@ -1842,7 +1842,7 @@ void main() {
                   ..id = 1234
                   ..signature = signature))));
 
-          var failure = await getCompileFailure(await _process.outbound.next);
+          var failure = getCompileFailure(await _process.outbound.next);
           expect(failure.message, message);
           expect(_process.kill(), completes);
         }
@@ -1924,14 +1924,14 @@ Future<String> _deprotofy(Value value, {bool inspect = false}) async {
       ..id = request.id
       ..success = value));
 
-  var success = await getCompileSuccess(await _process.outbound.next);
+  var success = getCompileSuccess(await _process.outbound.next);
   expect(_process.kill(), completes);
   return RegExp(r"  b: (.*);").firstMatch(success.css)![1]!;
 }
 
 /// Asserts that [value] causes a parameter error with a message matching
 /// [message] when deserializing it from a protocol buffer.
-Future<void> _expectDeprotofyError(Value value, message) async {
+Future<void> _expectDeprotofyError(Value value, Object message) async {
   _process.inbound.add(compileString("a {b: foo()}", functions: [r"foo()"]));
 
   var request = getFunctionCallRequest(await _process.outbound.next);

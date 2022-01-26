@@ -87,7 +87,7 @@ sass.Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
     int compilationId, Value value) {
   // Curry recursive calls to this function so we don't have to keep repeating
   // ourselves.
-  var deprotofy = (Value value) =>
+  deprotofy(Value value) =>
       deprotofyValue(dispatcher, functions, compilationId, value);
 
   try {

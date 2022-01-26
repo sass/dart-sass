@@ -10,7 +10,7 @@ import 'package:yaml/yaml.dart';
 
 import 'utils.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   pkg.githubBearerToken.fn = () => Platform.environment["GH_BEARER_TOKEN"]!;
 
   pkg.environmentConstants.fn = () => {
@@ -29,11 +29,11 @@ main(List<String> args) {
 String get _implementationVersion {
   var lockfile = loadYaml(File('pubspec.lock').readAsStringSync(),
       sourceUrl: Uri(path: 'pubspec.lock'));
-  return lockfile['packages']['sass']['version'];
+  return lockfile['packages']['sass']['version'] as String;
 }
 
 @Task('Compile the protocol buffer definition to a Dart library.')
-protobuf() async {
+Future<void> protobuf() async {
   Directory('build').createSync(recursive: true);
 
   // Make sure we use the version of protoc_plugin defined by our pubspec,

@@ -42,7 +42,7 @@ InboundMessage compileString(String css,
 
 /// Asserts that [process] emits a [ProtocolError] parse error with the given
 /// [message] on its protobuf stream and prints a notice on stderr.
-Future<void> expectParseError(EmbeddedProcess process, message) async {
+Future<void> expectParseError(EmbeddedProcess process, Object message) async {
   await expectLater(process.outbound,
       emits(isProtocolError(errorId, ProtocolErrorType.PARSE, message)));
 
@@ -56,7 +56,8 @@ Future<void> expectParseError(EmbeddedProcess process, message) async {
 
 /// Asserts that [process] emits a [ProtocolError] params error with the given
 /// [message] on its protobuf stream and prints a notice on stderr.
-Future<void> expectParamsError(EmbeddedProcess process, int id, message) async {
+Future<void> expectParamsError(
+    EmbeddedProcess process, int id, Object message) async {
   await expectLater(process.outbound,
       emits(isProtocolError(id, ProtocolErrorType.PARAMS, message)));
 
@@ -71,7 +72,7 @@ Future<void> expectParamsError(EmbeddedProcess process, int id, message) async {
 
 /// Asserts that an [OutboundMessage] is a [ProtocolError] with the given [id],
 /// [type], and optionally [message].
-Matcher isProtocolError(int id, ProtocolErrorType type, [message]) =>
+Matcher isProtocolError(int id, ProtocolErrorType type, [Object? message]) =>
     predicate((value) {
       expect(value, isA<OutboundMessage>());
       var outboundMessage = value as OutboundMessage;
@@ -85,7 +86,7 @@ Matcher isProtocolError(int id, ProtocolErrorType type, [message]) =>
 
 /// Asserts that [message] is an [OutboundMessage] with a
 /// `CanonicalizeRequest` and returns it.
-OutboundMessage_CanonicalizeRequest getCanonicalizeRequest(value) {
+OutboundMessage_CanonicalizeRequest getCanonicalizeRequest(Object? value) {
   expect(value, isA<OutboundMessage>());
   var message = value as OutboundMessage;
   expect(message.hasCanonicalizeRequest(), isTrue,
@@ -95,7 +96,7 @@ OutboundMessage_CanonicalizeRequest getCanonicalizeRequest(value) {
 
 /// Asserts that [message] is an [OutboundMessage] with a `ImportRequest` and
 /// returns it.
-OutboundMessage_ImportRequest getImportRequest(value) {
+OutboundMessage_ImportRequest getImportRequest(Object? value) {
   expect(value, isA<OutboundMessage>());
   var message = value as OutboundMessage;
   expect(message.hasImportRequest(), isTrue,
@@ -105,7 +106,7 @@ OutboundMessage_ImportRequest getImportRequest(value) {
 
 /// Asserts that [message] is an [OutboundMessage] with a `FileImportRequest`
 /// and returns it.
-OutboundMessage_FileImportRequest getFileImportRequest(value) {
+OutboundMessage_FileImportRequest getFileImportRequest(Object? value) {
   expect(value, isA<OutboundMessage>());
   var message = value as OutboundMessage;
   expect(message.hasFileImportRequest(), isTrue,
@@ -115,7 +116,7 @@ OutboundMessage_FileImportRequest getFileImportRequest(value) {
 
 /// Asserts that [message] is an [OutboundMessage] with a
 /// `FunctionCallRequest` and returns it.
-OutboundMessage_FunctionCallRequest getFunctionCallRequest(value) {
+OutboundMessage_FunctionCallRequest getFunctionCallRequest(Object? value) {
   expect(value, isA<OutboundMessage>());
   var message = value as OutboundMessage;
   expect(message.hasFunctionCallRequest(), isTrue,
@@ -125,7 +126,8 @@ OutboundMessage_FunctionCallRequest getFunctionCallRequest(value) {
 
 /// Asserts that [message] is an [OutboundMessage] with a
 /// `CompileResponse.Failure` and returns it.
-OutboundMessage_CompileResponse_CompileFailure getCompileFailure(value) {
+OutboundMessage_CompileResponse_CompileFailure getCompileFailure(
+    Object? value) {
   var response = getCompileResponse(value);
   expect(response.hasFailure(), isTrue,
       reason: "Expected $response to be a failure");
@@ -134,7 +136,8 @@ OutboundMessage_CompileResponse_CompileFailure getCompileFailure(value) {
 
 /// Asserts that [message] is an [OutboundMessage] with a
 /// `CompileResponse.Success` and returns it.
-OutboundMessage_CompileResponse_CompileSuccess getCompileSuccess(value) {
+OutboundMessage_CompileResponse_CompileSuccess getCompileSuccess(
+    Object? value) {
   var response = getCompileResponse(value);
   expect(response.hasSuccess(), isTrue,
       reason: "Expected $response to be a success");
@@ -143,7 +146,7 @@ OutboundMessage_CompileResponse_CompileSuccess getCompileSuccess(value) {
 
 /// Asserts that [message] is an [OutboundMessage] with a `CompileResponse` and
 /// returns it.
-OutboundMessage_CompileResponse getCompileResponse(value) {
+OutboundMessage_CompileResponse getCompileResponse(Object? value) {
   expect(value, isA<OutboundMessage>());
   var message = value as OutboundMessage;
   expect(message.hasCompileResponse(), isTrue,
@@ -153,7 +156,7 @@ OutboundMessage_CompileResponse getCompileResponse(value) {
 
 /// Asserts that [message] is an [OutboundMessage] with a `LogEvent` and
 /// returns it.
-OutboundMessage_LogEvent getLogEvent(value) {
+OutboundMessage_LogEvent getLogEvent(Object? value) {
   expect(value, isA<OutboundMessage>());
   var message = value as OutboundMessage;
   expect(message.hasLogEvent(), isTrue,
@@ -169,7 +172,7 @@ OutboundMessage_LogEvent getLogEvent(value) {
 ///
 /// If [sourceMap] is a function, `response.success.sourceMap` is passed to it.
 /// Otherwise, it's treated as a matcher for `response.success.sourceMap`.
-Matcher isSuccess(css, {sourceMap}) => predicate((value) {
+Matcher isSuccess(Object css, {Object? sourceMap}) => predicate((value) {
       var success = getCompileSuccess(value);
       expect(success.css, css is String ? equalsIgnoringWhitespace(css) : css);
       if (sourceMap is void Function(String)) {

@@ -45,7 +45,7 @@ class Dispatcher {
       // microtask from the initial request dispatch. Otherwise, [waitFor] will
       // deadlock the event loop fiber that would otherwise be checking stdin
       // for new input.
-      await Future.value();
+      await Future<void>.value();
 
       InboundMessage? message;
       try {

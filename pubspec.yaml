@@ -30,3 +30,5 @@ dev_dependencies:
   yaml: ^3.1.0
   pubspec_parse: ^1.0.0
   pub_semver: ^2.0.0
+  sass_analysis:
+    git: {url: git://github.com/sass/dart-sass, path: analysis}

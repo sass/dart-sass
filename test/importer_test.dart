@@ -512,7 +512,8 @@ Future<void> _canonicalize(EmbeddedProcess process) async {
 
 /// Asserts that [process] emits a [ProtocolError] params error with the given
 /// [message] on its protobuf stream and causes the compilation to fail.
-Future<void> _expectImportParamsError(EmbeddedProcess process, message) async {
+Future<void> _expectImportParamsError(
+    EmbeddedProcess process, Object message) async {
   await expectLater(process.outbound,
       emits(isProtocolError(errorId, ProtocolErrorType.PARAMS, message)));
 
