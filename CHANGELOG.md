@@ -1,3 +1,7 @@
+## 1.49.1
+
+* Stop supporting non-LTS Node.js versions.
+
 ## 1.49.0
 
 * Fix a bug in `string.insert` with certain negative indices.
