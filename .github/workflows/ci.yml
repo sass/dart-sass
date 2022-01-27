@@ -38,7 +38,11 @@ jobs:
       - name: Add Dart Sass to pubspec
         run: >
           if [[ -d build/dart-sass ]]; then
-            echo "dependency_overrides: {sass: {path: build/dart-sass}}" >> pubspec.yaml
+            (
+              echo "dependency_overrides:"
+              echo "  sass: {path: build/dart-sass}"
+              echo "  sass_api: {path: build/dart-sass/pkg/sass_api}"
+            ) >> pubspec.yaml
           fi
         shell: bash
 
@@ -73,7 +77,11 @@ jobs:
       - name: Add Dart Sass to pubspec
         run: >
           if [[ -d build/dart-sass ]]; then
-            echo "dependency_overrides: {sass: {path: build/dart-sass}}" >> pubspec.yaml
+            (
+              echo "dependency_overrides:"
+              echo "  sass: {path: build/dart-sass}"
+              echo "  sass_api: {path: build/dart-sass/pkg/sass_api}"
+            ) >> pubspec.yaml
           fi
         shell: bash
 
