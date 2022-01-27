@@ -147,3 +147,36 @@ jobs:
       - name: Deploy
         run: dart pub run grinder pkg-github-windows
         env: {GH_BEARER_TOKEN: "${{ github.token }}"}
+
+  release_embedded_host:
+    name: "Release Embedded Host"
+    runs-on: ubuntu-latest
+    needs: [deploy_github_linux, deploy_github_macos, deploy_github_windows]
+    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass-embedded'"
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: sass/embedded-host-node
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::${GITHUB_REF##*/}"
+
+      - name: Update version
+        run: >
+          cat package.json |
+              jq --arg version ${{ steps.version.outputs.version }} '
+                .version |= $version |
+                ."compiler-version" |= $version
+              ' > package.json.tmp &&
+            mv package.json.tmp package.json
+        shell: bash
+
+      - uses: EndBug/add-and-commit@v8
+        with:
+          author_name: Sass Bot
+          author_email: sass.bot.beep.boop@gmail.com
+          message: Update compiler version and release
+          tag: ${{ steps.version.outputs.version }}

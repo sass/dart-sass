@@ -21,3 +21,16 @@ All submissions, including submissions by project members, require review. We
 use GitHub pull requests for this purpose. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
 information on using pull requests.
+
+## Release process
+
+Because this package's version remains in lockstep with the current version of
+Dart Sass, it's not released manually from this repository. Instead, a release
+commit is automatically generated once a new Dart Sass version has been
+released. As such, manual commits should never:
+
+* Update the `pubspec.yaml`'s version to a non-`-dev` number. Changing it from
+  non-`-dev` to dev when adding a new feature is fine.
+
+* Update the `pubspec.yaml`'s dependency on `sass` to a non-Git dependency.
+  Changing it from non-Git to Git when using a new feature is fine.
