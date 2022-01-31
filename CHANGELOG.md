@@ -2,6 +2,14 @@
 
 * Stop supporting non-LTS Node.js versions.
 
+### Embedded Sass
+
+* First stable release the `sass-embedded` npm package that contains the Node.js
+  Embedded Host.
+
+* First stable release of the `sass_embedded` pub package that contains the
+  Embedded Dart Sass compiler.
+
 ## 1.49.0
 
 * Fix a bug in `string.insert` with certain negative indices.
