@@ -20,6 +20,7 @@ InboundMessage compileString(String css,
     OutputStyle? style,
     String? url,
     bool? sourceMap,
+    bool? sourceMapIncludeSources,
     Iterable<InboundMessage_CompileRequest_Importer>? importers,
     InboundMessage_CompileRequest_Importer? importer,
     Iterable<String>? functions}) {
@@ -33,6 +34,9 @@ InboundMessage compileString(String css,
   if (importers != null) request.importers.addAll(importers);
   if (style != null) request.style = style;
   if (sourceMap != null) request.sourceMap = sourceMap;
+  if (sourceMapIncludeSources != null) {
+    request.sourceMapIncludeSources = sourceMapIncludeSources;
+  }
   if (functions != null) request.globalFunctions.addAll(functions);
   if (alertColor != null) request.alertColor = alertColor;
   if (alertAscii != null) request.alertAscii = alertAscii;

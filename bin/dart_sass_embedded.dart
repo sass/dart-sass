@@ -119,7 +119,8 @@ void main(List<String> args) {
 
       var sourceMap = result.sourceMap;
       if (sourceMap != null) {
-        success.sourceMap = json.encode(sourceMap.toJson());
+        success.sourceMap = json.encode(sourceMap.toJson(
+            includeSourceContents: request.sourceMapIncludeSources));
       }
       return OutboundMessage_CompileResponse()..success = success;
     } on sass.SassException catch (error) {
