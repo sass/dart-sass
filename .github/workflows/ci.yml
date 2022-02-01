@@ -445,6 +445,7 @@ jobs:
         with:
           repository: sass/dart-sass-embedded
           token: ${{ secrets.GH_TOKEN }}
+      - uses: dart-lang/setup-dart@v1
 
       - name: Get version
         id: version
