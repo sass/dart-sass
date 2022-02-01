@@ -36,7 +36,7 @@ jobs:
           default-ref: null
 
       - name: Add Dart Sass to pubspec
-        run: >
+        run: |
           if [[ -d build/dart-sass ]]; then
             (
               echo "dependency_overrides:"
@@ -75,7 +75,7 @@ jobs:
           default-ref: null
 
       - name: Add Dart Sass to pubspec
-        run: >
+        run: |
           if [[ -d build/dart-sass ]]; then
             (
               echo "dependency_overrides:"
@@ -173,7 +173,7 @@ jobs:
         run: echo "::set-output name=version::${GITHUB_REF##*/}"
 
       - name: Update version
-        run: >
+        run: |
           cat package.json |
               jq --arg version ${{ steps.version.outputs.version }} '
                 .version |= $version |
