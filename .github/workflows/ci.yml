@@ -451,7 +451,7 @@ jobs:
         run: echo "::set-output name=version::${GITHUB_REF##*/}"
 
       - name: Update version
-        run: >
+        run: |
           sed -i 's/version: .*/version: ${{ steps.version.outputs.version }}/' pubspec.yaml
           dart pub remove sass
           dart pub add sass:${{ steps.version.outputs.version }}

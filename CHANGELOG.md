@@ -1,6 +1,4 @@
-## 1.49.1
-
-* Stop supporting non-LTS Node.js versions.
+## 1.49.2
 
 ### Embedded Sass
 
@@ -9,6 +7,10 @@
 
 * First stable release of the `sass_embedded` pub package that contains the
   Embedded Dart Sass compiler.
+
+## 1.49.1
+
+* Stop supporting non-LTS Node.js versions.
 
 ## 1.49.0
 
