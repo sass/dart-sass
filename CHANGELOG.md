@@ -1,4 +1,4 @@
-## 1.49.3
+## 1.49.4
 
 ### Embedded Sass
 
@@ -7,6 +7,10 @@
 
 * First stable release of the `sass_embedded` pub package that contains the
   Embedded Dart Sass compiler.
+
+## 1.49.3
+
+* No user-visible changes.
 
 ## 1.49.2
 
