@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:pubspec_parse/pubspec_parse.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 /// This package's pubspec.
