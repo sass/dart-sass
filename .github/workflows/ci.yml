@@ -93,7 +93,7 @@ jobs:
       - run: dart pub run grinder protobuf
         env: {UPDATE_SASS_PROTOCOL: false}
       - name: Analyze dart
-        run: dartanalyzer --fatal-warnings ./
+        run: dart analyze --fatal-warnings ./
 
   format:
     name: Code formatting
