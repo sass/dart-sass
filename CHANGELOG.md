@@ -1,3 +1,10 @@
+## 1.49.8
+
+### Embedded Sass
+
+* Fix a bug where source map URLs were incorrectly generated when passing
+  importers to the legacy API.
+
 ## 1.49.7
 
 ### Embedded Sass
