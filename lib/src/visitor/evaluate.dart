@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c1d303225e5cac5e32dd32a4eed30a71a35b390c
+// Checksum: d0af88db460da6528bdfeef34eb85baac00f9435
 //
 // ignore_for_file: unused_import
 
@@ -1526,10 +1526,12 @@ class _EvaluateVisitor
 
         _importer = oldImporter;
         _stylesheet = oldStylesheet;
-        _root = oldRoot;
-        _parent = oldParent;
-        _endOfImports = oldEndOfImports;
-        _outOfOrderImports = oldOutOfOrderImports;
+        if (loadsUserDefinedModules) {
+          _root = oldRoot;
+          _parent = oldParent;
+          _endOfImports = oldEndOfImports;
+          _outOfOrderImports = oldOutOfOrderImports;
+        }
         _configuration = oldConfiguration;
         _inDependency = oldInDependency;
       });
@@ -1539,7 +1541,6 @@ class _EvaluateVisitor
       // CSS from modules used by [stylesheet].
       var module = environment.toDummyModule();
       _environment.importForwards(module);
-
       if (loadsUserDefinedModules) {
         if (module.transitivelyContainsCss) {
           // If any transitively used module contains extensions, we need to
