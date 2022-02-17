@@ -1,3 +1,10 @@
+## 1.49.8
+
+### JS API
+
+* Fix a bug where inspecting the Sass module in the Node.js console crashed on
+  Node 17.
+
 ## 1.49.7
 
 ### Embedded Sass
