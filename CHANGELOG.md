@@ -1,5 +1,10 @@
 ## 1.49.8
 
+### JS API
+
+* Fix a bug where inspecting the Sass module in the Node.js console crashed on
+  Node 17.
+
 ### Embedded Sass
 
 * Fix a bug where source map URLs were incorrectly generated when passing
