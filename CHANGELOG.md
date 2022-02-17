@@ -1,7 +1,9 @@
 ## 1.49.8
 
-* Fix a bug where `require('sass')` was broken on Node 17 due to Dart's JS
-  interop.
+### JS API
+
+* Fix a bug where inspecting the Sass module in the Node.js console crashed on
+  Node 17.
 
 ## 1.49.7
 
