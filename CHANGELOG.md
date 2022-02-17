@@ -1,3 +1,17 @@
+## 1.49.8
+
+* Fixed a bug where some plain CSS imports would not be emitted.
+
+### JS API
+
+* Fix a bug where inspecting the Sass module in the Node.js console crashed on
+  Node 17.
+
+### Embedded Sass
+
+* Fix a bug where source map URLs were incorrectly generated when passing
+  importers to the legacy API.
+
 ## 1.49.7
 
 ### Embedded Sass
