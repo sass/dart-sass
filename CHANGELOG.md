@@ -1,5 +1,7 @@
 ## 1.49.8
 
+* Fixed a bug where some plain CSS imports would not be emitted.
+
 ### JS API
 
 * Fix a bug where inspecting the Sass module in the Node.js console crashed on
