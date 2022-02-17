@@ -42,7 +42,7 @@ one above, the
 1. [Install the Dart SDK][]. If you download an archive manually rather than
    using an installer, make sure the SDK's `bin` directory is on your `PATH`.
 
-2. In this repository, run `pub get`. This will install all of the Dart
+2. In this repository, run `dart pub get`. This will install all of the Dart
    dependencies.
 
 3. [Install Node.js][]. This is only necessary if you're making changes to the
@@ -64,15 +64,15 @@ revisions that's not a big deal.
 
 Before you send a pull request, we recommend you run the following steps:
 
-* `pub run grinder` will reformat your code using the Dart formatter to make
+* `dart run grinder` will reformat your code using the Dart formatter to make
   sure it's nice and neat, and [run the synchronizer](#synchronizing) on
   asynchronous files.
 
-* `dartanalyzer lib test` will run Dart's static analyzer to ensure that there
+* `dart analyze lib test` will run Dart's static analyzer to ensure that there
   aren't any obvious bugs in your code. If you're using a Dart-enabled IDE, you
   can also just check that there aren't any warnings in there.
 
-* `pub run test -x node` will run the tests for the Dart VM API. These are a
+* `dart run test -x node` will run the tests for the Dart VM API. These are a
   good sanity check, but they aren't comprehensive; GitHub Actions will also run
   Node.js API tests and Sass language tests, all of which must pass before your
   pull request is merged. See [Changing the Language](#changing-the-language)
@@ -163,10 +163,10 @@ which it will be used in the real world.
 [JS interop package]: https://pub.dartlang.org/packages/js
 
 The tests for the Node API live in `test/node_api`. Before running them, and any
-time you make a change to Dart Sass, run `pub run grinder before-test` to
+time you make a change to Dart Sass, run `dart run grinder before-test` to
 compile the Dart code to JavaScript (note that you don't need to recompile if
 you've only changed the test code). To run Node tests, just run
-`pub run test -t node`.
+`dart run test -t node`.
 
 ### Synchronizing
 
@@ -185,14 +185,14 @@ ways they can't share code.
 
 To avoid colossal amounts of duplicated code, we have a few files that are
 written in an asynchronous style originally and then compiled to their
-synchronous equivalents using `pub run grinder synchronize`. In particular:
+synchronous equivalents using `dart run grinder synchronize`. In particular:
 
 * `lib/src/visitor/async_evaluate.dart` is compiled to
   `lib/src/visitor/evaluate.dart`.
 * `lib/src/async_environment.dart` is compiled to `lib/src/environment.dart`.
 
 When contributing code to these files, you should make manual changes only to
-the asynchronous versions and run `pub run grinder` to compile them to their
+the asynchronous versions and run `dart run grinder` to compile them to their
 synchronous equivalents.
 
 Note that the `lib/src/callable/async_built_in.dart` and
