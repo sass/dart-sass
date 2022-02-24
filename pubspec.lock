@@ -315,7 +315,7 @@ packages:
       name: sass
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.49.8"
+    version: "1.49.9"
   sass_analysis:
     dependency: "direct dev"
     description:
@@ -331,7 +331,7 @@ packages:
       name: sass_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0-beta.37"
+    version: "1.0.0-beta.38"
   shelf:
     dependency: transitive
     description:
