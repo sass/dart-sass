@@ -1,3 +1,10 @@
+## 1.49.9
+
+### Embedded Sass
+
+* Fixed a bug where the legacy API could crash when passed an empty importer
+  list.
+
 ## 1.49.8
 
 * Fixed a bug where some plain CSS imports would not be emitted.
