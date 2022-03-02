@@ -287,10 +287,38 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
-        run: dart run grinder pkg-github-release pkg-github-linux
+        run: dart run grinder pkg-github-release pkg-github-linux-ia32 pkg-github-linux-x64
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
+
+  deploy_github_linux_qemu:
+    name: "Deploy Github: Linux"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # https://github.com/dart-lang/sdk/pull/48665
+          # - arch: arm
+          #   platform: linux/arm/v7
+          - arch: arm64
+            platform: linux/arm64
+    needs: [deploy_github_linux]
+    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/setup-qemu-action@v1
+      - name: Deploy
+        run: |
+          docker run --rm \
+            --env "GH_USER=sassbot" \
+            --env "GH_TOKEN=${{ secrets.GH_TOKEN }}" \
+            --platform ${{ matrix.platform }} \
+            --volume "$PWD:$PWD" \
+            --workdir "$PWD" \
+            docker.io/library/dart:latest \
+            /bin/sh -c "dart pub get && dart run grinder pkg-github-linux-${{ matrix.arch }}"
 
   deploy_github_macos:
     name: "Deploy Github: Mac OS"
