@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d0af88db460da6528bdfeef34eb85baac00f9435
+// Checksum: f11bdd289c888e0e0737bc96e63283bc8a332d9a
 //
 // ignore_for_file: unused_import
 
@@ -194,6 +194,9 @@ class _EvaluateVisitor
 
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
+
+  /// The innermost user-defined callable that's being invoked.
+  UserDefinedCallable<Environment>? _currentCallable;
 
   /// The node for the innermost callable that's being invoked.
   ///
@@ -1415,7 +1418,8 @@ class _EvaluateVisitor
   }
 
   Value? visitFunctionRule(FunctionRule node) {
-    _environment.setFunction(UserDefinedCallable(node, _environment.closure()));
+    _environment.setFunction(UserDefinedCallable(node, _environment.closure(),
+        inDependency: _inDependency));
     return null;
   }
 
@@ -1701,8 +1705,9 @@ class _EvaluateVisitor
             _stackTrace(node.spanWithoutContent));
       }
 
-      var contentCallable = node.content.andThen(
-          (content) => UserDefinedCallable(content, _environment.closure()));
+      var contentCallable = node.content.andThen((content) =>
+          UserDefinedCallable(content, _environment.closure(),
+              inDependency: _inDependency));
       _runUserDefinedCallable(node.arguments, mixin, nodeWithSpan, () {
         _environment.withContent(contentCallable, () {
           _environment.asMixin(() {
@@ -1720,7 +1725,8 @@ class _EvaluateVisitor
   }
 
   Value? visitMixinRule(MixinRule node) {
-    _environment.setMixin(UserDefinedCallable(node, _environment.closure()));
+    _environment.setMixin(UserDefinedCallable(node, _environment.closure(),
+        inDependency: _inDependency));
     return null;
   }
 
@@ -2414,7 +2420,9 @@ class _EvaluateVisitor
     var name = callable.name;
     if (name != "@content") name += "()";
 
-    return _withStackFrame(name, nodeWithSpan, () {
+    var oldCallable = _currentCallable;
+    _currentCallable = callable;
+    var result = _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {
@@ -2478,6 +2486,8 @@ class _EvaluateVisitor
         });
       });
     });
+    _currentCallable = oldCallable;
+    return result;
   }
 
   /// Evaluates [arguments] as applied to [callable].
@@ -3257,7 +3267,11 @@ class _EvaluateVisitor
 
   /// Emits a warning with the given [message] about the given [span].
   void _warn(String message, FileSpan span, {bool deprecation = false}) {
-    if (_quietDeps && _inDependency) return;
+    if (_quietDeps &&
+        (_inDependency || (_currentCallable?.inDependency ?? false))) {
+      return;
+    }
+
     if (!_warningsEmitted.add(Tuple2(message, span))) return;
     _logger.warn(message,
         span: span, trace: _stackTrace(span), deprecation: deprecation);

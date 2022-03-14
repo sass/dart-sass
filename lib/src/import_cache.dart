@@ -130,8 +130,9 @@ class ImportCache {
           .putIfAbsent(Tuple4(url, forImport, baseImporter, baseUrl), () {
         var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
         var canonicalUrl = _canonicalize(baseImporter, resolvedUrl, forImport);
-        if (canonicalUrl == null) return null;
-        return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
+        if (canonicalUrl != null) {
+          return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
+        }
       });
       if (relativeResult != null) return relativeResult;
     }

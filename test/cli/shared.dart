@@ -506,6 +506,132 @@ void sharedTests(
         await sass.shouldExit(0);
       });
     });
+
+    group("in dependency callables", () {
+      group("(mixin)", () {
+        test("emits @warn", () async {
+          await d.file("test.scss", """
+            @use 'other';
+            @include other.foo;
+          """).create();
+
+          await d.dir("dir", [
+            d.file("_other.scss", """
+            @mixin foo {
+              @warn heck;
+            }
+          """)
+          ]).create();
+
+          var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+          expect(sass.stderr, emitsThrough(contains("heck")));
+          await sass.shouldExit(0);
+        });
+
+        test("emits @debug", () async {
+          await d.file("test.scss", """
+            @use 'other';
+            @include other.foo;
+          """).create();
+
+          await d.dir("dir", [
+            d.file("_other.scss", """
+            @mixin foo {
+              @debug heck;
+            }
+          """)
+          ]).create();
+
+          var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+          expect(sass.stderr, emitsThrough(contains("heck")));
+          await sass.shouldExit(0);
+        });
+
+        test("doesn't emit runner warnings", () async {
+          await d.file("test.scss", """
+            @use 'other';
+            @include other.foo;
+          """).create();
+
+          await d.dir("dir", [
+            d.file("_other.scss", """
+            @mixin foo {
+              #{blue} {x: y}
+            }
+          """)
+          ]).create();
+          await d.file("test.scss", "@use 'other'").create();
+          await d.dir("dir", [d.file("_other.scss", "")]).create();
+
+          var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+          expect(sass.stderr, emitsDone);
+          await sass.shouldExit(0);
+        });
+      });
+
+      group("(function)", () {
+        test("emits @warn", () async {
+          await d.file("test.scss", r"""
+            @use 'other';
+            $_: other.foo();
+          """).create();
+
+          await d.dir("dir", [
+            d.file("_other.scss", """
+            @function foo() {
+              @warn heck;
+              @return null;
+            }
+          """)
+          ]).create();
+
+          var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+          expect(sass.stderr, emitsThrough(contains("heck")));
+          await sass.shouldExit(0);
+        });
+
+        test("emits @debug", () async {
+          await d.file("test.scss", r"""
+            @use 'other';
+            $_: other.foo();
+          """).create();
+
+          await d.dir("dir", [
+            d.file("_other.scss", """
+            @function foo() {
+              @debug heck;
+              @return null;
+            }
+          """)
+          ]).create();
+
+          var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+          expect(sass.stderr, emitsThrough(contains("heck")));
+          await sass.shouldExit(0);
+        });
+
+        test("doesn't emit runner warnings", () async {
+          await d.file("test.scss", r"""
+            @use 'other';
+            $_: other.foo();
+          """).create();
+
+          await d.dir("dir", [
+            d.file("_other.scss", """
+            @function foo() {
+              @return #{blue};
+            }
+          """)
+          ]).create();
+          await d.file("test.scss", "@use 'other'").create();
+          await d.dir("dir", [d.file("_other.scss", "")]).create();
+
+          var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+          expect(sass.stderr, emitsDone);
+          await sass.shouldExit(0);
+        });
+      });
+    });
   });
 
   group("with a bunch of deprecation warnings", () {
