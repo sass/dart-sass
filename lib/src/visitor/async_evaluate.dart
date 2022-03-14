@@ -187,6 +187,9 @@ class _EvaluateVisitor
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
 
+  /// The innermost user-defined callable that's being invoked.
+  UserDefinedCallable<AsyncEnvironment>? _currentCallable;
+
   /// The node for the innermost callable that's being invoked.
   ///
   /// This is used to produce warnings for function calls. It's stored as an
@@ -1415,7 +1418,8 @@ class _EvaluateVisitor
   }
 
   Future<Value?> visitFunctionRule(FunctionRule node) async {
-    _environment.setFunction(UserDefinedCallable(node, _environment.closure()));
+    _environment.setFunction(UserDefinedCallable(node, _environment.closure(),
+        inDependency: _inDependency));
     return null;
   }
 
@@ -1704,8 +1708,9 @@ class _EvaluateVisitor
             _stackTrace(node.spanWithoutContent));
       }
 
-      var contentCallable = node.content.andThen(
-          (content) => UserDefinedCallable(content, _environment.closure()));
+      var contentCallable = node.content.andThen((content) =>
+          UserDefinedCallable(content, _environment.closure(),
+              inDependency: _inDependency));
       await _runUserDefinedCallable(node.arguments, mixin, nodeWithSpan,
           () async {
         await _environment.withContent(contentCallable, () async {
@@ -1724,7 +1729,8 @@ class _EvaluateVisitor
   }
 
   Future<Value?> visitMixinRule(MixinRule node) async {
-    _environment.setMixin(UserDefinedCallable(node, _environment.closure()));
+    _environment.setMixin(UserDefinedCallable(node, _environment.closure(),
+        inDependency: _inDependency));
     return null;
   }
 
@@ -2428,7 +2434,9 @@ class _EvaluateVisitor
     var name = callable.name;
     if (name != "@content") name += "()";
 
-    return await _withStackFrame(name, nodeWithSpan, () {
+    var oldCallable = _currentCallable;
+    _currentCallable = callable;
+    var result = await _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {
@@ -2493,6 +2501,8 @@ class _EvaluateVisitor
         });
       });
     });
+    _currentCallable = oldCallable;
+    return result;
   }
 
   /// Evaluates [arguments] as applied to [callable].
@@ -3287,7 +3297,11 @@ class _EvaluateVisitor
 
   /// Emits a warning with the given [message] about the given [span].
   void _warn(String message, FileSpan span, {bool deprecation = false}) {
-    if (_quietDeps && _inDependency) return;
+    if (_quietDeps &&
+        (_inDependency || (_currentCallable?.inDependency ?? false))) {
+      return;
+    }
+
     if (!_warningsEmitted.add(Tuple2(message, span))) return;
     _logger.warn(message,
         span: span, trace: _stackTrace(span), deprecation: deprecation);

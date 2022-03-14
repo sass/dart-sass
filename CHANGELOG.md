@@ -1,3 +1,9 @@
+## 1.49.10
+
+* Quiet deps mode now silences compiler warnings in mixins and functions that
+  are defined in dependencies even if they're invoked from application
+  stylesheets.
+
 ## 1.49.9
 
 ### Embedded Sass
