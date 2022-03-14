@@ -127,9 +127,8 @@ class AsyncImportCache {
         var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
         var canonicalUrl =
             await _canonicalize(baseImporter, resolvedUrl, forImport);
-        if (canonicalUrl != null) {
-          return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
-        }
+        if (canonicalUrl == null) return null;
+        return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
       });
       if (relativeResult != null) return relativeResult;
     }

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3e290e40f4576be99217ddfbd7a76c4d38721af1
+// Checksum: cd71f3debc089cd05cd86e2eee32c2f10a05f489
 //
 // ignore_for_file: unused_import
 
@@ -130,9 +130,8 @@ class ImportCache {
           .putIfAbsent(Tuple4(url, forImport, baseImporter, baseUrl), () {
         var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
         var canonicalUrl = _canonicalize(baseImporter, resolvedUrl, forImport);
-        if (canonicalUrl != null) {
-          return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
-        }
+        if (canonicalUrl == null) return null;
+        return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
       });
       if (relativeResult != null) return relativeResult;
     }
