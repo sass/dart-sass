@@ -35,6 +35,13 @@ class SassCalculation extends Value {
   @internal
   bool get isSpecialNumber => true;
 
+  /// Creates a new calculation with the given [name] and [arguments]
+  /// that will not be simplified.
+  @internal
+  static Value unsimplified(String name, Iterable<Object> arguments) {
+    return SassCalculation._(name, List.unmodifiable(arguments));
+  }
+
   /// Creates a `calc()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
@@ -162,17 +169,23 @@ class SassCalculation extends Value {
   /// a [CalculationInterpolation].
   static Object operate(
           CalculationOperator operator, Object left, Object right) =>
-      operateInternal(operator, left, right, inMinMax: false);
+      operateInternal(operator, left, right,
+          inMinMax: false, inSupportsDeclaration: false);
 
   /// Like [operate], but with the internal-only [inMinMax] parameter.
   ///
   /// If [inMinMax] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
   /// old global `min()` and `max()` functions.
+  ///
+  /// If [inSupportsDeclaration] is `true`, no simplification will be done.
   @internal
   static Object operateInternal(
       CalculationOperator operator, Object left, Object right,
-      {required bool inMinMax}) {
+      {required bool inMinMax, required bool inSupportsDeclaration}) {
+    if (inSupportsDeclaration) {
+      return CalculationOperation._(operator, left, right);
+    }
     left = _simplify(left);
     right = _simplify(right);
 

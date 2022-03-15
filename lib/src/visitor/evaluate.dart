@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f11bdd289c888e0e0737bc96e63283bc8a332d9a
+// Checksum: c6c435be12690976b8bf84499ca5cf338441713b
 //
 // ignore_for_file: unused_import
 
@@ -226,6 +226,11 @@ class _EvaluateVisitor
 
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
+
+  /// Whether we're currently evaluating a [SupportsDeclaration].
+  ///
+  /// When this is true, calculations will not be simplified.
+  var _inSupportsDeclaration = false;
 
   /// The canonical URLs of all stylesheets loaded during compilation.
   final _loadedUrls = <Uri>{};
@@ -1942,9 +1947,12 @@ class _EvaluateVisitor
     } else if (condition is SupportsInterpolation) {
       return _evaluateToCss(condition.expression, quote: false);
     } else if (condition is SupportsDeclaration) {
-      return "(${_evaluateToCss(condition.name)}:"
+      _inSupportsDeclaration = true;
+      var result = "(${_evaluateToCss(condition.name)}:"
           "${condition.isCustomProperty ? '' : ' '}"
           "${_evaluateToCss(condition.value)})";
+      _inSupportsDeclaration = false;
+      return result;
     } else if (condition is SupportsFunction) {
       return "${_performInterpolation(condition.name)}("
           "${_performInterpolation(condition.arguments)})";
@@ -2216,6 +2224,9 @@ class _EvaluateVisitor
         _visitCalculationValue(argument,
             inMinMax: node.name == 'min' || node.name == 'max')
     ];
+    if (_inSupportsDeclaration) {
+      return SassCalculation.unsimplified(node.name, arguments);
+    }
 
     try {
       switch (node.name) {
@@ -2305,7 +2316,8 @@ class _EvaluateVisitor
               _binaryOperatorToCalculationOperator(node.operator),
               _visitCalculationValue(node.left, inMinMax: inMinMax),
               _visitCalculationValue(node.right, inMinMax: inMinMax),
-              inMinMax: inMinMax));
+              inMinMax: inMinMax,
+              inSupportsDeclaration: _inSupportsDeclaration));
     } else {
       assert(node is NumberExpression ||
           node is CalculationExpression ||
