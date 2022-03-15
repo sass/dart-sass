@@ -2356,8 +2356,8 @@ abstract class StylesheetParser extends Parser {
         green,
         blue,
         alpha,
-        // Don't four- or eight-digit hex colors as hex, since that's not yet
-        // well-supported in browsers.
+        // Don't emit four- or eight-digit hex colors as hex, since that's not
+        // yet well-supported in browsers.
         alpha == null ? SpanColorFormat(scanner.spanFrom(start)) : null);
   }
 
