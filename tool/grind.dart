@@ -67,8 +67,8 @@ void all() {}
 
 @Task('Run the Dart formatter.')
 void format() {
-  Pub.run('dart_style',
-      script: 'format', arguments: ['--overwrite', '--fix', '.']);
+  run('dart',
+      arguments: ['run', 'dart_style:format', '--overwrite', '--fix', '.']);
 }
 
 @Task('Installs dependencies from npm.')
