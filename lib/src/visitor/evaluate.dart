@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c6c435be12690976b8bf84499ca5cf338441713b
+// Checksum: 23fd5fd9f72db86861329c0ca2e0f78229153c14
 //
 // ignore_for_file: unused_import
 
@@ -1947,11 +1947,12 @@ class _EvaluateVisitor
     } else if (condition is SupportsInterpolation) {
       return _evaluateToCss(condition.expression, quote: false);
     } else if (condition is SupportsDeclaration) {
+      var oldInSupportsDeclaration = _inSupportsDeclaration;
       _inSupportsDeclaration = true;
       var result = "(${_evaluateToCss(condition.name)}:"
           "${condition.isCustomProperty ? '' : ' '}"
           "${_evaluateToCss(condition.value)})";
-      _inSupportsDeclaration = false;
+      _inSupportsDeclaration = oldInSupportsDeclaration;
       return result;
     } else if (condition is SupportsFunction) {
       return "${_performInterpolation(condition.name)}("
@@ -2816,7 +2817,9 @@ class _EvaluateVisitor
   SassString visitStringExpression(StringExpression node) {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
-    return SassString(
+    var oldInSupportsDeclaration = _inSupportsDeclaration;
+    _inSupportsDeclaration = false;
+    var result = SassString(
         node.text.contents.map((value) {
           if (value is String) return value;
           var expression = value as Expression;
@@ -2826,6 +2829,8 @@ class _EvaluateVisitor
               : _serialize(result, expression, quote: false);
         }).join(),
         quotes: node.hasQuotes);
+    _inSupportsDeclaration = oldInSupportsDeclaration;
+    return result;
   }
 
   // ## Plain CSS
@@ -3076,7 +3081,9 @@ class _EvaluateVisitor
   /// values passed into the interpolation.
   String _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) {
-    return interpolation.contents.map((value) {
+    var oldInSupportsDeclaration = _inSupportsDeclaration;
+    _inSupportsDeclaration = false;
+    var result = interpolation.contents.map((value) {
       if (value is String) return value;
       var expression = value as Expression;
       var result = expression.accept(this);
@@ -3102,6 +3109,8 @@ class _EvaluateVisitor
 
       return _serialize(result, expression, quote: false);
     }).join();
+    _inSupportsDeclaration = oldInSupportsDeclaration;
+    return result;
   }
 
   /// Evaluates [expression] and calls `toCssString()` and wraps a

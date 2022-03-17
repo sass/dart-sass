@@ -1954,11 +1954,12 @@ class _EvaluateVisitor
     } else if (condition is SupportsInterpolation) {
       return await _evaluateToCss(condition.expression, quote: false);
     } else if (condition is SupportsDeclaration) {
+      var oldInSupportsDeclaration = _inSupportsDeclaration;
       _inSupportsDeclaration = true;
       var result = "(${await _evaluateToCss(condition.name)}:"
           "${condition.isCustomProperty ? '' : ' '}"
           "${await _evaluateToCss(condition.value)})";
-      _inSupportsDeclaration = false;
+      _inSupportsDeclaration = oldInSupportsDeclaration;
       return result;
     } else if (condition is SupportsFunction) {
       return "${await _performInterpolation(condition.name)}("
@@ -2835,7 +2836,9 @@ class _EvaluateVisitor
   Future<SassString> visitStringExpression(StringExpression node) async {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
-    return SassString(
+    var oldInSupportsDeclaration = _inSupportsDeclaration;
+    _inSupportsDeclaration = false;
+    var result = SassString(
         (await mapAsync(node.text.contents, (value) async {
           if (value is String) return value;
           var expression = value as Expression;
@@ -2846,6 +2849,8 @@ class _EvaluateVisitor
         }))
             .join(),
         quotes: node.hasQuotes);
+    _inSupportsDeclaration = oldInSupportsDeclaration;
+    return result;
   }
 
   // ## Plain CSS
@@ -3100,7 +3105,9 @@ class _EvaluateVisitor
   /// values passed into the interpolation.
   Future<String> _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) async {
-    return (await mapAsync(interpolation.contents, (value) async {
+    var oldInSupportsDeclaration = _inSupportsDeclaration;
+    _inSupportsDeclaration = false;
+    var result = (await mapAsync(interpolation.contents, (value) async {
       if (value is String) return value;
       var expression = value as Expression;
       var result = await expression.accept(this);
@@ -3127,6 +3134,8 @@ class _EvaluateVisitor
       return _serialize(result, expression, quote: false);
     }))
         .join();
+    _inSupportsDeclaration = oldInSupportsDeclaration;
+    return result;
   }
 
   /// Evaluates [expression] and calls `toCssString()` and wraps a
