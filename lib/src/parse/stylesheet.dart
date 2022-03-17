@@ -2301,14 +2301,14 @@ abstract class StylesheetParser extends Parser {
 
     var first = scanner.peekChar();
     if (first != null && isDigit(first)) {
-      return ColorExpression(_hexColorContents(start));
+      return ColorExpression(_hexColorContents(start), scanner.spanFrom(start));
     }
 
     var afterHash = scanner.state;
     var identifier = interpolatedIdentifier();
     if (_isHexColor(identifier)) {
       scanner.state = afterHash;
-      return ColorExpression(_hexColorContents(start));
+      return ColorExpression(_hexColorContents(start), scanner.spanFrom(start));
     }
 
     var buffer = InterpolationBuffer();
@@ -2326,7 +2326,7 @@ abstract class StylesheetParser extends Parser {
     int red;
     int green;
     int blue;
-    num alpha = 1;
+    num? alpha;
     if (!isHex(scanner.peekChar())) {
       // #abc
       red = (digit1 << 4) + digit1;
@@ -2351,7 +2351,14 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    return SassColor.rgb(red, green, blue, alpha, scanner.spanFrom(start));
+    return SassColor.rgbInternal(
+        red,
+        green,
+        blue,
+        alpha,
+        // Don't emit four- or eight-digit hex colors as hex, since that's not
+        // yet well-supported in browsers.
+        alpha == null ? SpanColorFormat(scanner.spanFrom(start)) : null);
   }
 
   /// Returns whether [interpolation] is a plain string that can be parsed as a
@@ -2664,9 +2671,9 @@ abstract class StylesheetParser extends Parser {
 
         var color = colorsByName[lower];
         if (color != null) {
-          color = SassColor.rgb(
-              color.red, color.green, color.blue, color.alpha, identifier.span);
-          return ColorExpression(color);
+          color = SassColor.rgbInternal(color.red, color.green, color.blue,
+              color.alpha, SpanColorFormat(identifier.span));
+          return ColorExpression(color, identifier.span);
         }
       }
 

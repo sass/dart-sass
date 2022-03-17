@@ -19,7 +19,7 @@ class ColorExpression implements Expression {
 
   final FileSpan span;
 
-  ColorExpression(this.value) : span = value.originalSpan!;
+  ColorExpression(this.value, this.span);
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitColorExpression(this);

@@ -522,48 +522,90 @@ class _SerializeVisitor
 
   void visitColor(SassColor value) {
     // In compressed mode, emit colors in the shortest representation possible.
-    if (_isCompressed && fuzzyEquals(value.alpha, 1)) {
-      var name = namesByColor[value];
-      var hexLength = _canUseShortHex(value) ? 4 : 7;
-      if (name != null && name.length <= hexLength) {
-        _buffer.write(name);
-      } else if (_canUseShortHex(value)) {
-        _buffer.writeCharCode($hash);
-        _buffer.writeCharCode(hexCharFor(value.red & 0xF));
-        _buffer.writeCharCode(hexCharFor(value.green & 0xF));
-        _buffer.writeCharCode(hexCharFor(value.blue & 0xF));
+    if (_isCompressed) {
+      if (!fuzzyEquals(value.alpha, 1)) {
+        _writeRgb(value);
       } else {
+        var name = namesByColor[value];
+        var hexLength = _canUseShortHex(value) ? 4 : 7;
+        if (name != null && name.length <= hexLength) {
+          _buffer.write(name);
+        } else if (_canUseShortHex(value)) {
+          _buffer.writeCharCode($hash);
+          _buffer.writeCharCode(hexCharFor(value.red & 0xF));
+          _buffer.writeCharCode(hexCharFor(value.green & 0xF));
+          _buffer.writeCharCode(hexCharFor(value.blue & 0xF));
+        } else {
+          _buffer.writeCharCode($hash);
+          _writeHexComponent(value.red);
+          _writeHexComponent(value.green);
+          _writeHexComponent(value.blue);
+        }
+      }
+    } else {
+      var format = value.format;
+      if (format != null) {
+        if (format == ColorFormat.rgbFunction) {
+          _writeRgb(value);
+        } else if (format == ColorFormat.hslFunction) {
+          _writeHsl(value);
+        } else {
+          _buffer.write((format as SpanColorFormat).original);
+        }
+      } else if (namesByColor.containsKey(value) &&
+          // Always emit generated transparent colors in rgba format. This works
+          // around an IE bug. See sass/sass#1782.
+          !fuzzyEquals(value.alpha, 0)) {
+        _buffer.write(namesByColor[value]);
+      } else if (fuzzyEquals(value.alpha, 1)) {
         _buffer.writeCharCode($hash);
         _writeHexComponent(value.red);
         _writeHexComponent(value.green);
         _writeHexComponent(value.blue);
+      } else {
+        _writeRgb(value);
       }
-      return;
+    }
+  }
+
+  /// Writes [value] as an `rgb()` or `rgba()` function.
+  void _writeRgb(SassColor value) {
+    var opaque = fuzzyEquals(value.alpha, 1);
+    _buffer
+      ..write(opaque ? "rgb(" : "rgba(")
+      ..write(value.red)
+      ..write(_commaSeparator)
+      ..write(value.green)
+      ..write(_commaSeparator)
+      ..write(value.blue);
+
+    if (!opaque) {
+      _buffer.write(_commaSeparator);
+      _writeNumber(value.alpha);
     }
 
-    if (value.original != null) {
-      _buffer.write(value.original);
-    } else if (namesByColor.containsKey(value) &&
-        // Always emit generated transparent colors in rgba format. This works
-        // around an IE bug. See sass/sass#1782.
-        !fuzzyEquals(value.alpha, 0)) {
-      _buffer.write(namesByColor[value]);
-    } else if (fuzzyEquals(value.alpha, 1)) {
-      _buffer.writeCharCode($hash);
-      _writeHexComponent(value.red);
-      _writeHexComponent(value.green);
-      _writeHexComponent(value.blue);
-    } else {
-      _buffer
-        ..write("rgba(${value.red}")
-        ..write(_commaSeparator)
-        ..write(value.green)
-        ..write(_commaSeparator)
-        ..write(value.blue)
-        ..write(_commaSeparator);
+    _buffer.writeCharCode($rparen);
+  }
+
+  /// Writes [value] as an `hsl()` or `hsla()` function.
+  void _writeHsl(SassColor value) {
+    var opaque = fuzzyEquals(value.alpha, 1);
+    _buffer.write(opaque ? "hsl(" : "hsla(");
+    _writeNumber(value.hue);
+    _buffer.write("deg");
+    _buffer.write(_commaSeparator);
+    _writeNumber(value.saturation);
+    _buffer.writeCharCode($percent);
+    _buffer.write(_commaSeparator);
+    _writeNumber(value.lightness);
+    _buffer.writeCharCode($percent);
+
+    if (!opaque) {
+      _buffer.write(_commaSeparator);
       _writeNumber(value.alpha);
-      _buffer.writeCharCode($rparen);
     }
+
+    _buffer.writeCharCode($rparen);
   }
 
   /// Returns whether [color]'s hex pair representation is symmetrical (e.g.

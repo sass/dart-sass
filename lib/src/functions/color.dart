@@ -571,12 +571,13 @@ Value _rgb(String name, List<Value> arguments) {
   var green = arguments[1].assertNumber("green");
   var blue = arguments[2].assertNumber("blue");
 
-  return SassColor.rgb(
+  return SassColor.rgbInternal(
       fuzzyRound(_percentageOrUnitless(red, 255, "red")),
       fuzzyRound(_percentageOrUnitless(green, 255, "green")),
       fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
+      ColorFormat.rgbFunction);
 }
 
 Value _rgbTwoArg(String name, List<Value> arguments) {
@@ -624,12 +625,13 @@ Value _hsl(String name, List<Value> arguments) {
   _checkPercent(saturation, "saturation");
   _checkPercent(lightness, "lightness");
 
-  return SassColor.hsl(
+  return SassColor.hslInternal(
       hue.value,
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
+      ColorFormat.hslFunction);
 }
 
 /// Prints a deprecation warning if [hue] has a unit other than `deg`.
