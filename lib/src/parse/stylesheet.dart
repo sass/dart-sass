@@ -405,9 +405,7 @@ abstract class StylesheetParser extends Parser {
     var beforeDeclaration = scanner.state;
     Expression value;
     try {
-      value = lookingAtChildren()
-          ? StringExpression(Interpolation([], scanner.emptySpan), quotes: true)
-          : expression();
+      value = expression();
 
       if (lookingAtChildren()) {
         // Properties that are ambiguous with selectors can't have additional
