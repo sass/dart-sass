@@ -91,7 +91,7 @@ jobs:
         working-directory: sass-spec
 
       - name: Build JS
-        run: dart pub run grinder pkg-npm-dev
+        run: dart run grinder pkg-npm-dev
 
       - name: Check out Sass specification
         uses: sass/clone-linked-repo@v1
@@ -119,9 +119,9 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
-      - run: dart pub run grinder pkg-standalone-dev
+      - run: dart run grinder pkg-standalone-dev
       - name: Run tests
-        run: dart pub run test -p vm -x node -r expanded
+        run: dart run test -p vm -x node -r expanded
 
   # Unit tests that use Node.js, defined in test/.
   #
@@ -159,9 +159,9 @@ jobs:
       - uses: actions/setup-node@v2
         with: {node-version: "${{ matrix.node_version }}"}
       - run: npm install
-      - run: dart pub run grinder before-test
+      - run: dart run grinder before-test
       - name: Run tests
-        run: dart pub run test -j 2 -t node -r expanded
+        run: dart run test -j 2 -t node -r expanded
 
   static_analysis:
     name: Static analysis
@@ -208,7 +208,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Run checks
-        run: dart pub run grinder double-check-before-release
+        run: dart run grinder double-check-before-release
 
   bootstrap:
     name: "Bootstrap ${{ matrix.bootstrap_version }}"
@@ -224,7 +224,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - run: dart pub run grinder fetch-bootstrap${{matrix.bootstrap_version}}
+      - run: dart run grinder fetch-bootstrap${{matrix.bootstrap_version}}
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       - name: Build
         run: dart bin/sass.dart --quiet build/bootstrap/scss:build/bootstrap-output
@@ -238,7 +238,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - run: dart pub run grinder fetch-bourbon
+      - run: dart run grinder fetch-bourbon
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       - name: Test
         run: |
@@ -254,7 +254,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - run: dart pub run grinder fetch-foundation
+      - run: dart run grinder fetch-foundation
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       # TODO(nweiz): Foundation has proper Sass tests, but they're currently not
       # compatible with Dart Sass. Once they are, we should run those rather
@@ -271,7 +271,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - run: dart pub run grinder fetch-bulma
+      - run: dart run grinder fetch-bulma
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       - name: Build
         run: dart bin/sass.dart --quiet build/bulma/bulma.sass build/bulma-output.css
@@ -287,7 +287,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
-        run: dart pub run grinder pkg-github-release pkg-github-linux
+        run: dart run grinder pkg-github-release pkg-github-linux
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
@@ -303,7 +303,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
-        run: dart pub run grinder pkg-github-macos
+        run: dart run grinder pkg-github-macos
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
@@ -319,7 +319,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
-        run: dart pub run grinder pkg-github-windows
+        run: dart run grinder pkg-github-windows
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
@@ -337,7 +337,7 @@ jobs:
       - uses: actions/setup-node@v2
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
-        run: dart pub run grinder pkg-npm-deploy
+        run: dart run grinder pkg-npm-deploy
         env:
           NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
@@ -354,7 +354,7 @@ jobs:
       - uses: actions/setup-node@v2
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
-        run: dart pub run grinder update-bazel
+        run: dart run grinder update-bazel
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
@@ -372,7 +372,7 @@ jobs:
       - uses: actions/setup-node@v2
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
-        run: dart pub run grinder pkg-pub-deploy
+        run: dart run grinder pkg-pub-deploy
         env: {PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"}
 
   deploy_sub_packages:
@@ -386,7 +386,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
-        run: dart pub run grinder deploy-sub-packages
+        run: dart run grinder deploy-sub-packages
         env:
           PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
@@ -403,7 +403,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
-        run: dart pub run grinder pkg-homebrew-update
+        run: dart run grinder pkg-homebrew-update
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
@@ -419,7 +419,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
-        run: dart pub run grinder pkg-chocolatey-deploy
+        run: dart run grinder pkg-chocolatey-deploy
         env: {CHOCOLATEY_TOKEN: "${{ secrets.CHOCOLATEY_TOKEN }}"}
 
   deploy_website:
