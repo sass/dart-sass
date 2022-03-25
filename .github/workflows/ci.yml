@@ -312,13 +312,16 @@ jobs:
       - name: Deploy
         run: |
           docker run --rm \
-            --env "GH_USER=sassbot" \
-            --env "GH_TOKEN=${{ secrets.GH_TOKEN }}" \
+            --env "GH_TOKEN=$GH_TOKEN" \
+            --env "GH_USER=$GH_USER" \
             --platform ${{ matrix.platform }} \
             --volume "$PWD:$PWD" \
             --workdir "$PWD" \
             docker.io/library/dart:latest \
             /bin/sh -c "dart pub get && dart run grinder pkg-github-linux-${{ matrix.arch }}"
+        env:
+          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+          GH_USER: sassbot
 
   deploy_github_macos:
     name: "Deploy Github: Mac OS"
