@@ -1,3 +1,402 @@
+## 1.49.10
+
+* Quiet deps mode now silences compiler warnings in mixins and functions that
+  are defined in dependencies even if they're invoked from application
+  stylesheets.
+
+* In expanded mode, Sass will now emit colors using `rgb()`, `rbga()`, `hsl()`,
+  and `hsla()` function notation if they were defined using the corresponding
+  notation. As per our browser support policy, this change was only done once
+  95% of browsers were confirmed to support this output format, and so is not
+  considered a breaking change.
+
+  Note that this output format is intended for human readability and not for
+  interoperability with other tools. As always, Sass targets the CSS
+  specification, and any tool that consumes Sass's output should parse all
+  colors that are supported by the CSS spec.
+
+* Fix a bug in which a color written using the four- or eight-digit hex format
+  could be emitted as a hex color rather than a format with higher browser
+  compatibility.
+
+## 1.49.9
+
+### Embedded Sass
+
+* Fixed a bug where the legacy API could crash when passed an empty importer
+  list.
+
+## 1.49.8
+
+* Fixed a bug where some plain CSS imports would not be emitted.
+
+### JS API
+
+* Fix a bug where inspecting the Sass module in the Node.js console crashed on
+  Node 17.
+
+### Embedded Sass
+
+* Fix a bug where source map URLs were incorrectly generated when passing
+  importers to the legacy API.
+
+## 1.49.7
+
+### Embedded Sass
+
+* First stable release the `sass-embedded` npm package that contains the Node.js
+  Embedded Host.
+
+* First stable release of the `sass_embedded` pub package that contains the
+  Embedded Dart Sass compiler.
+
+## 1.49.6
+
+* No user-visible changes.
+
+## 1.49.5
+
+* No user-visible changes.
+
+## 1.49.4
+
+* No user-visible changes.
+
+## 1.49.3
+
+* No user-visible changes.
+
+## 1.49.2
+
+* No user-visible changes.
+
+## 1.49.1
+
+* Stop supporting non-LTS Node.js versions.
+
+## 1.49.0
+
+* Fix a bug in `string.insert` with certain negative indices.
+
+### JS API
+
+* Add support for the `sourceMapIncludeSources` option in the new JS API.
+
+#### TypeScript Declarations
+
+* Fix a bug where `LegacyPluginThis.options.linefeed` was typed to return
+  abbreviations when it actually returned literal linefeed characters.
+
+## 1.48.0
+
+### JS API
+
+* **Potentially breaking bug fix:** Match the specification of the new JS API by
+  setting `LegacyResult.map` to `undefined` rather than `null`.
+
+#### TypeScript Declarations
+
+* Add a declaration for the `NULL` constant.
+
+## 1.47.0
+
+### JS API
+
+#### TypeScript Declarations
+
+* Add declarations for the `TRUE` and `FALSE` constants.
+
+## 1.46.0
+
+### JS API
+
+* **Potentially breaking bug fix:** Match the specification of the new JS API by
+  passing `undefined` rather than `null` to `Logger.warn()` for an unset `span`.
+
+#### TypeScript Declarations
+
+* Add a declaration for the `LegacyPluginThis.options.context` field.
+
+* Update the definition of `LegacyAsyncFunction` to include explicit definitions
+  with zero through six arguments before the `done` parameter. This makes it
+  possible for TypeScript users to pass in callbacks that take a specific number
+  of arguments, rather than having to declare a callback that takes an arbitrary
+  number.
+
+* Add a declaration for `types.Error`, a legacy API class that can be returned
+  by asynchronous functions to signal asynchronous errors.
+
+* Add a `LegacyAsyncFunctionDone` type for the `done` callback that's passed to
+  `LegacyAsyncFunction`.
+
+## 1.45.2
+
+### JS API
+
+* **Potentially breaking bug fix:** Change the default value of the `separator`
+  parameter for `new SassArgumentList()` to `','` rather than `null`. This
+  matches the API specification.
+
+## 1.45.1
+
+* **Potentially breaking bug fix:** Properly parse custom properties in
+  `@supports` conditions. Note that this means that SassScript expressions on
+  the right-hand side of custom property `@supports` queries now need to be
+  interpolated, as per https://sass-lang.com/d/css-vars.
+
+* **Potentially breaking bug fix:** Fix a bug where `inspect()` was not
+  properly printing nested, empty, bracketed lists.
+
+## 1.45.0
+
+### JS API
+
+This release includes an entirely new JavaScript API, designed to be more
+idiomatic, performant, and usable. The old API will continue to be supported
+until Dart Sass 2.0.0, but it is now considered deprecated and should be avoided
+for new code.
+
+The new API includes:
+
+* `compile()` and `compileAsync()` functions that take Sass file paths and
+  return the result of compiling them to CSS. The async function returns a
+  `Promise` rather than using a callback-based API.
+
+* `compileString()` and `compileStringAsync()` functions that take a string of
+  Sass source and compiles it to CSS. As above, the async function returns a
+  `Promise`.
+
+* A new importer API that more closely matches the Sass specification's logic
+  for resolving loads. This makes it much easier for Sass to cache information
+  across `@import` and `@use` rules, which substantially improves performance
+  for applications that rely heavily on repeated `@import`s.
+
+* A new custom function API, including much more usable JS representations of
+  Sass value types complete with type-assertion functions, easy map and list
+  lookups, and compatibility with the [`immutable`] package. **Unlike in the
+  legacy API,** function callbacks now take one argument which contains an array
+  of Sass values (rather than taking a separate JS argument for each Sass
+  argument).
+
+[`immutable`]: https://immutable-js.com/
+
+For full documentation of this API, please see [the Sass website][js-api].
+
+[js-api]: https://sass-lang.com/documentation/js-api
+
+This release also adds TypeScript type definitions.
+
+## 1.44.0
+
+* Suggest `calc()` as an alternative in `/`-as-division deprecation messages.
+
+### Dart API
+
+* Add `SassNumber.convert()` and `SassNumber.convertValue()`. These work like
+  `SassNumber.coerce()` and `SassNumber.coerceValue()`, except they don't treat
+  unitless numbers as universally compatible.
+
+* Fix a bug where `SassNumber.coerceToMatch()` and
+  `SassNumber.coerceValueToMatch()` wouldn't coerce single-unit numbers to
+  match unitless numbers.
+
+## 1.43.5
+
+* Fix a bug where calculations with different operators were incorrectly
+  considered equal.
+
+* Properly parse attribute selectors with empty namespaces.
+
+### JS API
+
+* Print more detailed JS stack traces. This is mostly useful for the Sass team's
+  own debugging purposes.
+
+## 1.43.4
+
+### JS API
+
+* Fix a bug where the `logger` option was ignored for the `render()` function.
+
+## 1.43.3
+
+* Improve performance.
+
+## 1.43.2
+
+* Improve the error message when the default namespace of a `@use` rule is not
+  a valid identifier.
+
+## 1.43.1
+
+* No user-visible changes.
+
+## 1.43.0
+
+### JS API
+
+* Add support for the `logger` option. This takes an object that can define
+  `warn` or `debug` methods to add custom handling for messages emitted by the
+  Sass compiler. See [the JS API docs] for details.
+
+  [the JS API docs]: https://sass-lang.com/documentation/js-api/interfaces/Logger
+
+* Add a `Logger.silent` object that can be passed to the `logger` option to
+  silence all messages from the Sass compiler.
+
+## 1.42.1
+
+* Fix a bug where Sass variables and function calls in calculations weren't
+  being resolved correctly if there was a parenthesized interpolation elsewhere
+  in the file.
+
+## 1.42.0
+
+* `min()` and `max()` expressions are once again parsed as calculations as long
+  as they contain only syntax that's allowed in calculation expressions. To
+  avoid the backwards-compatibility issues that were present in 1.40.0, they now
+  allow unitless numbers to be mixed with numbers with units just like the
+  global `min()` and `max()` functions. Similarly, `+` and `-` operations within
+  `min()` and `max()` functions allow unitless numbers to be mixed with numbers
+  with units.
+
+## 1.41.1
+
+* Preserve parentheses around `var()` functions in calculations, because they
+  could potentially be replaced with sub-expressions that might need to be
+  parenthesized.
+
+## 1.41.0
+
+* Calculation values can now be combined with strings using the `+` operator.
+  This was an error in 1.40.0, but this broke stylesheets that were relying on
+  `$value + ""` expressions to generically convert values to strings. (Note that
+  the Sass team recommends the use of `"#{$value}"` or `inspect($value)` for
+  that use-case.)
+
+* The `selector.unify()` function now correctly returns `null` when one selector
+  is a `:host` or `:host-context` and the other is a selector that's guaranteed
+  to be within the current shadow DOM. The `@extend` logic has been updated
+  accordingly as well.
+
+* Fix a bug where extra whitespace in `min()`, `max()`, `clamp()`, and `calc()`
+  expressions could cause bogus parse errors.
+
+* Fix a bug where the right-hand operand of a `-` in a calculation could
+  incorrectly be stripped of parentheses.
+
+### Dart API
+
+* `SassCalculation.plus()` now allows `SassString` arguments.
+
+## 1.40.1
+
+* **Potentially breaking bug fix:** `min()` and `max()` expressions outside of
+  calculations now behave the same way they did in 1.39.2, returning unquoted
+  strings if they contain no Sass-specific features and calling the global
+  `min()` and `max()` functions otherwise. Within calculations, they continue to
+  behave how they did in 1.40.0.
+
+  This fixes an unintended breaking change added in 1.40.0, wherein passing a
+  unitless number and a number without units to `min()` or `max()` now produces
+  an error. Since this breakage affects a major Sass library, we're temporarily
+  reverting support for `min()` and `max()` calculations while we work on
+  designing a longer-term fix.
+
+## 1.40.0
+
+* Add support for first-class `calc()` expressions (as well as `clamp()` and
+  plain-CSS `min()` and `max()`). This means:
+
+  * `calc()` expressions will be parsed more thoroughly, and errors will be
+    highlighted where they weren't before. **This may break your stylesheets,**
+    but only if they were already producing broken CSS.
+
+  * `calc()` expressions will be simplified where possible, and may even return
+    numbers if they can be simplified away entirely.
+
+  * `calc()` expressions that can't be simplified to numbers return a new data
+    type known as "calculations".
+
+  * Sass variables and functions can now be used in `calc()` expressions.
+
+  * New functions `meta.calc-name()` and `meta.calc-args()` can now inspect
+    calculations.
+
+### Dart API
+
+* Add a new value type, `SassCalculation`, that represents calculations.
+
+* Add new `CalculationOperation`, `CalculationOperator`, and
+  `CalculationInterpolation` types to represent types of arguments that may
+  exist as part of a calculation.
+
+* Add a new `Value.assertCalculation()` method.
+
+* Add a new `Number.hasCompatibleUnits()` method.
+
+## 1.39.2
+
+* Fix a bug where configuring with `@use ... with` would throw an error when
+  that variable was defined in a module that also contained `@forward ... with`.
+
+## 1.39.1
+
+* Partial fix for a bug where `@at-root` does not work properly in nested
+  imports that contain `@use` rules. If the only `@use` rules in the nested
+  import are for built-in modules, `@at-root` should now work properly.
+
+## 1.39.0
+
+### JS API
+
+* Add a `charset` option that controls whether or not Sass emits a
+  `@charset`/BOM for non-ASCII stylesheets.
+
+## 1.38.2
+
+* No user-visible changes
+
+## 1.38.1
+
+* No user-visible changes
+
+## 1.38.0
+
+* In expanded mode, emit characters in Unicode private-use areas as escape
+  sequences rather than literal characters.
+
+* Fix a bug where quotes would be omitted for an attribute selector whose value
+  was a single backslash.
+
+* Properly consider numbers that begin with `.` as "plain CSS" for the purposes
+  of parsing plain-CSS `min()` and `max()` functions.
+
+* Allow `if` to be used as an unquoted string.
+
+* Properly parse backslash escapes within `url()` expressions.
+
+* Fix a couple bugs where `@extend`s could be marked as unsatisfied when
+  multiple identical `@extend`s extended selectors across `@use` rules.
+
+### Command Line Interface
+
+* Strip CRLF newlines from snippets of the original stylesheet that are included
+  in the output when an error occurs.
+
+### JS API
+
+* Don't crash when a Windows path is returned by a custom Node importer at the
+  same time as file contents.
+
+* Don't crash when an error occurs in a stylesheet loaded via a custom importer
+  with a custom URL scheme.
+
+### Dart API
+
+* Add a `SassArgumentList.keywordsWithoutMarking` getter to access the keyword
+  arguments of an argument list without marking them accessed.
+
 ## 1.37.5
 
 * No user-visible changes.

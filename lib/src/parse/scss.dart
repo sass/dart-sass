@@ -38,7 +38,7 @@ class ScssParser extends StylesheetParser {
 
   bool lookingAtChildren() => scanner.peekChar() == $lbrace;
 
-  bool scanElse(int _) {
+  bool scanElse(int ifIndentation) {
     var start = scanner.state;
     whitespace();
     var beforeAt = scanner.state;

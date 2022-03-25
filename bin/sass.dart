@@ -16,6 +16,7 @@ import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/io.dart';
 import 'package:sass/src/stylesheet_graph.dart';
+import 'package:sass/src/utils.dart';
 
 Future<void> main(List<String> args) async {
   var printedError = false;
@@ -80,7 +81,7 @@ Future<void> main(List<String> args) async {
         }();
 
         printError(error.toString(color: options.color),
-            options.trace ? stackTrace : null);
+            options.trace ? getTrace(error) ?? stackTrace : null);
 
         // Exit code 65 indicates invalid data per
         // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
@@ -94,7 +95,7 @@ Future<void> main(List<String> args) async {
             path == null
                 ? error.message
                 : "Error reading ${p.relative(path)}: ${error.message}.",
-            options.trace ? stackTrace : null);
+            options.trace ? getTrace(error) ?? stackTrace : null);
 
         // Error 66 indicates no input.
         exitCode = 66;
@@ -115,7 +116,7 @@ Future<void> main(List<String> args) async {
     buffer.writeln();
     buffer.writeln(error);
 
-    printError(buffer.toString(), stackTrace);
+    printError(buffer.toString(), getTrace(error) ?? stackTrace);
     exitCode = 255;
   }
 }

@@ -7,13 +7,13 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
 import '../util/nullable.dart';
 import '../utils.dart';
 import '../value.dart';
-import '../warn.dart';
 
 /// A regular expression matching the beginning of a proprietary Microsoft
 /// filter declaration.
@@ -571,12 +571,13 @@ Value _rgb(String name, List<Value> arguments) {
   var green = arguments[1].assertNumber("green");
   var blue = arguments[2].assertNumber("blue");
 
-  return SassColor.rgb(
+  return SassColor.rgbInternal(
       fuzzyRound(_percentageOrUnitless(red, 255, "red")),
       fuzzyRound(_percentageOrUnitless(green, 255, "green")),
       fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
+      ColorFormat.rgbFunction);
 }
 
 Value _rgbTwoArg(String name, List<Value> arguments) {
@@ -624,12 +625,13 @@ Value _hsl(String name, List<Value> arguments) {
   _checkPercent(saturation, "saturation");
   _checkPercent(lightness, "lightness");
 
-  return SassColor.hsl(
+  return SassColor.hslInternal(
       hue.value,
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
+          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
+      ColorFormat.hslFunction);
 }
 
 /// Prints a deprecation warning if [hue] has a unit other than `deg`.

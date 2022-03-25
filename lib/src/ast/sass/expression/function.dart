@@ -5,38 +5,50 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../util/span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import '../argument_invocation.dart';
 import '../callable_invocation.dart';
-import '../interpolation.dart';
+import '../reference.dart';
 
 /// A function invocation.
 ///
-/// This may be a plain CSS function or a Sass function.
+/// This may be a plain CSS function or a Sass function, but may not include
+/// interpolation.
 ///
 /// {@category AST}
 @sealed
-class FunctionExpression implements Expression, CallableInvocation {
+class FunctionExpression
+    implements Expression, CallableInvocation, SassReference {
   /// The namespace of the function being invoked, or `null` if it's invoked
   /// without a namespace.
   final String? namespace;
 
-  /// The name of the function being invoked.
-  ///
-  /// If [namespace] is non-`null`, underscores are converted to hyphens in this name.
-  /// If [namespace] is `null`, this could be a plain CSS function call, so underscores are kept unchanged.
-  ///
-  /// If this is interpolated, the function will be interpreted as plain CSS,
-  /// even if it has the same name as a Sass function.
-  final Interpolation name;
+  /// The name of the function being invoked, with underscores left as-is.
+  final String originalName;
 
   /// The arguments to pass to the function.
   final ArgumentInvocation arguments;
 
   final FileSpan span;
 
-  FunctionExpression(this.name, this.arguments, this.span, {this.namespace});
+  /// The name of the function being invoked, with underscores converted to
+  /// hyphens.
+  ///
+  /// If this function is a plain CSS function, use [originalName] instead.
+  String get name => originalName.replaceAll('_', '-');
+
+  FileSpan get nameSpan {
+    if (namespace == null) return span.initialIdentifier();
+    return span.withoutNamespace().initialIdentifier();
+  }
+
+  FileSpan? get namespaceSpan =>
+      namespace == null ? null : span.initialIdentifier();
+
+  FunctionExpression(this.originalName, this.arguments, this.span,
+      {this.namespace});
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitFunctionExpression(this);
@@ -44,7 +56,7 @@ class FunctionExpression implements Expression, CallableInvocation {
   String toString() {
     var buffer = StringBuffer();
     if (namespace != null) buffer.write("$namespace.");
-    buffer.write("$name$arguments");
+    buffer.write("$originalName$arguments");
     return buffer.toString();
   }
 }

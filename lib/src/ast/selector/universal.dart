@@ -24,10 +24,15 @@ class UniversalSelector extends SimpleSelector {
       visitor.visitUniversalSelector(this);
 
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
-    if (compound.first is UniversalSelector || compound.first is TypeSelector) {
-      var unified = unifyUniversalAndElement(this, compound.first);
+    var first = compound.first;
+    if (first is UniversalSelector || first is TypeSelector) {
+      var unified = unifyUniversalAndElement(this, first);
       if (unified == null) return null;
       return [unified, ...compound.skip(1)];
+    } else if (compound.length == 1 &&
+        first is PseudoSelector &&
+        (first.isHost || first.isHostContext)) {
+      return null;
     }
 
     if (namespace != null && namespace != "*") return [this, ...compound];

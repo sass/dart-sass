@@ -9,8 +9,10 @@ import '../../../exception.dart';
 import '../../../logger.dart';
 import '../../../parse/scss.dart';
 import '../../../utils.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
+import '../declaration.dart';
 import '../statement.dart';
 import 'silent_comment.dart';
 
@@ -20,12 +22,12 @@ import 'silent_comment.dart';
 ///
 /// {@category AST}
 @sealed
-class VariableDeclaration implements Statement {
+class VariableDeclaration implements Statement, SassDeclaration {
   /// The namespace of the variable being set, or `null` if it's defined or set
   /// without a namespace.
   final String? namespace;
 
-  /// The name of the variable.
+  /// The name of the variable, with underscores converted to hyphens.
   final String name;
 
   /// The comment immediately preceding this declaration.
@@ -53,14 +55,19 @@ class VariableDeclaration implements Statement {
   /// messages.
   String get originalName => declarationName(span);
 
+  FileSpan get nameSpan {
+    var span = this.span;
+    if (namespace != null) span = span.withoutNamespace();
+    return span.initialIdentifier(includeLeading: 1);
+  }
+
+  FileSpan? get namespaceSpan =>
+      namespace == null ? null : span.initialIdentifier();
+
   VariableDeclaration(this.name, this.expression, this.span,
-      {this.namespace,
-      bool guarded = false,
-      bool global = false,
-      SilentComment? comment})
+      {this.namespace, bool guarded = false, bool global = false, this.comment})
       : isGuarded = guarded,
-        isGlobal = global,
-        comment = comment {
+        isGlobal = global {
     if (namespace != null && global) {
       throw ArgumentError(
           "Other modules' members can't be defined with !global.");

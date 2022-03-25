@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn("vm")
-
 import 'dart:math' as math;
 
 import 'package:test/test.dart';
@@ -311,9 +309,9 @@ void main() {
     });
   });
 
-  group("an integer with numerator and denominator units", () {
+  group("a number with numerator and denominator units", () {
     late SassNumber value;
-    setUp(() => value = parseValue("123px / 5ms") as SassNumber);
+    setUp(() => value = parseValue("math.div(123px, 5ms)") as SassNumber);
 
     test("has those units", () {
       expect(value.numeratorUnits, equals(["px"]));

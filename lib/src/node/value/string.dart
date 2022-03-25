@@ -1,33 +1,40 @@
-// Copyright 2018 Google Inc. Use of this source code is governed by an
+// Copyright 2021 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
 import 'package:js/js.dart';
 
-import 'dart:js_util';
-
 import '../../value.dart';
-import '../utils.dart';
+import '../reflection.dart';
+
+/// The JavaScript `SassString` class.
+final JSClass stringClass = () {
+  var jsClass = createJSClass(
+      'sass.SassString',
+      (Object self, [Object? textOrOptions, _ConstructorOptions? options]) =>
+          textOrOptions is String
+              ? SassString(textOrOptions, quotes: options?.quotes ?? true)
+              : SassString.empty(
+                  quotes:
+                      (textOrOptions as _ConstructorOptions?)?.quotes ?? true));
+
+  jsClass.defineGetters({
+    'text': (SassString self) => self.text,
+    'hasQuotes': (SassString self) => self.hasQuotes,
+    'sassLength': (SassString self) => self.sassLength,
+  });
+
+  jsClass.defineMethod(
+      'sassIndexToStringIndex',
+      (SassString self, Value sassIndex, [String? name]) =>
+          self.sassIndexToStringIndex(sassIndex, name));
+
+  getJSClass(SassString.empty()).injectSuperclass(jsClass);
+  return jsClass;
+}();
 
 @JS()
-class _NodeSassString {
-  external SassString get dartValue;
-  external set dartValue(SassString dartValue);
+@anonymous
+class _ConstructorOptions {
+  external bool? get quotes;
 }
-
-/// Creates a new `sass.types.String` object wrapping [value].
-Object newNodeSassString(SassString value) =>
-    callConstructor(stringConstructor, [null, value]) as Object;
-
-/// The JS constructor for the `sass.types.String` class.
-final Function stringConstructor = createClass('SassString',
-    (_NodeSassString thisArg, String? value, [SassString? dartValue]) {
-  // Either [dartValue] or [value] must be passed.
-  thisArg.dartValue = dartValue ?? SassString(value!, quotes: false);
-}, {
-  'getValue': (_NodeSassString thisArg) => thisArg.dartValue.text,
-  'setValue': (_NodeSassString thisArg, String value) {
-    thisArg.dartValue = SassString(value, quotes: false);
-  },
-  'toString': (_NodeSassString thisArg) => thisArg.dartValue.toString()
-});

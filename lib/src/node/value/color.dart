@@ -1,74 +1,83 @@
-// Copyright 2018 Google Inc. Use of this source code is governed by an
+// Copyright 2021 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:js_util';
-
 import 'package:js/js.dart';
 
+import '../../util/nullable.dart';
+import '../../util/number.dart';
 import '../../value.dart';
-import '../utils.dart';
+import '../reflection.dart';
+
+/// The JavaScript `SassColor` class.
+final JSClass colorClass = () {
+  var jsClass = createJSClass('sass.SassColor', (Object self, _Channels color) {
+    if (color.red != null) {
+      return SassColor.rgb(fuzzyRound(color.red!), fuzzyRound(color.green!),
+          fuzzyRound(color.blue!), color.alpha);
+    } else if (color.saturation != null) {
+      return SassColor.hsl(
+          color.hue!, color.saturation!, color.lightness!, color.alpha);
+    } else {
+      return SassColor.hwb(
+          color.hue!, color.whiteness!, color.blackness!, color.alpha);
+    }
+  });
+
+  jsClass.defineMethod('change', (SassColor self, _Channels options) {
+    if (options.whiteness != null || options.blackness != null) {
+      return self.changeHwb(
+          hue: options.hue ?? self.hue,
+          whiteness: options.whiteness ?? self.whiteness,
+          blackness: options.blackness ?? self.blackness,
+          alpha: options.alpha ?? self.alpha);
+    } else if (options.hue != null ||
+        options.saturation != null ||
+        options.lightness != null) {
+      return self.changeHsl(
+          hue: options.hue ?? self.hue,
+          saturation: options.saturation ?? self.saturation,
+          lightness: options.lightness ?? self.lightness,
+          alpha: options.alpha ?? self.alpha);
+    } else if (options.red != null ||
+        options.green != null ||
+        options.blue != null) {
+      return self.changeRgb(
+          red: options.red.andThen(fuzzyRound) ?? self.red,
+          green: options.green.andThen(fuzzyRound) ?? self.green,
+          blue: options.blue.andThen(fuzzyRound) ?? self.blue,
+          alpha: options.alpha ?? self.alpha);
+    } else {
+      return self.changeAlpha(options.alpha ?? self.alpha);
+    }
+  });
+
+  jsClass.defineGetters({
+    'red': (SassColor self) => self.red,
+    'green': (SassColor self) => self.green,
+    'blue': (SassColor self) => self.blue,
+    'hue': (SassColor self) => self.hue,
+    'saturation': (SassColor self) => self.saturation,
+    'lightness': (SassColor self) => self.lightness,
+    'whiteness': (SassColor self) => self.whiteness,
+    'blackness': (SassColor self) => self.blackness,
+    'alpha': (SassColor self) => self.alpha,
+  });
+
+  getJSClass(SassColor.rgb(0, 0, 0)).injectSuperclass(jsClass);
+  return jsClass;
+}();
 
 @JS()
-class _NodeSassColor {
-  external SassColor get dartValue;
-  external set dartValue(SassColor dartValue);
+@anonymous
+class _Channels {
+  external num? get red;
+  external num? get green;
+  external num? get blue;
+  external num? get hue;
+  external num? get saturation;
+  external num? get lightness;
+  external num? get whiteness;
+  external num? get blackness;
+  external num? get alpha;
 }
-
-/// Creates a new `sass.types.Color` object wrapping [value].
-Object newNodeSassColor(SassColor value) =>
-    callConstructor(colorConstructor, [null, null, null, null, value])
-        as Object;
-
-/// The JS constructor for the `sass.types.Color` class.
-final Function colorConstructor = createClass('SassColor',
-    (_NodeSassColor thisArg, num? redOrArgb,
-        [num? green, num? blue, num? alpha, SassColor? dartValue]) {
-  if (dartValue != null) {
-    thisArg.dartValue = dartValue;
-    return;
-  }
-
-  // This has two signatures:
-  //
-  // * `new sass.types.Color(red, green, blue, [alpha])`
-  // * `new sass.types.Color(argb)`
-  //
-  // The latter takes an integer that's interpreted as the hex value 0xAARRGGBB.
-  num red;
-  if (green == null || blue == null) {
-    var argb = redOrArgb as int;
-    alpha = (argb >> 24) / 0xff;
-    red = (argb >> 16) % 0x100;
-    green = (argb >> 8) % 0x100;
-    blue = argb % 0x100;
-  } else {
-    // Either [dartValue] or [redOrArgb] must be passed.
-    red = redOrArgb!;
-  }
-
-  thisArg.dartValue = SassColor.rgb(
-      _clamp(red), _clamp(green), _clamp(blue), alpha?.clamp(0, 1) ?? 1);
-}, {
-  'getR': (_NodeSassColor thisArg) => thisArg.dartValue.red,
-  'getG': (_NodeSassColor thisArg) => thisArg.dartValue.green,
-  'getB': (_NodeSassColor thisArg) => thisArg.dartValue.blue,
-  'getA': (_NodeSassColor thisArg) => thisArg.dartValue.alpha,
-  'setR': (_NodeSassColor thisArg, num value) {
-    thisArg.dartValue = thisArg.dartValue.changeRgb(red: _clamp(value));
-  },
-  'setG': (_NodeSassColor thisArg, num value) {
-    thisArg.dartValue = thisArg.dartValue.changeRgb(green: _clamp(value));
-  },
-  'setB': (_NodeSassColor thisArg, num value) {
-    thisArg.dartValue = thisArg.dartValue.changeRgb(blue: _clamp(value));
-  },
-  'setA': (_NodeSassColor thisArg, num value) {
-    thisArg.dartValue = thisArg.dartValue.changeRgb(alpha: value.clamp(0, 1));
-  },
-  'toString': (_NodeSassColor thisArg) => thisArg.dartValue.toString()
-});
-
-/// Clamps [channel] within the range 0, 255 and rounds it to the nearest
-/// integer.
-int _clamp(num channel) => channel.clamp(0, 255).round();

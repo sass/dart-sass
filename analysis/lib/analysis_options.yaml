@@ -6,7 +6,6 @@ analyzer:
     strict-inference: true
     strict-raw-types: true
   errors:
-    missing_js_lib_annotation: ignore
     deprecated_member_use_from_same_package: ignore
 
     # These are necessary for matching the JS API.
@@ -24,4 +23,4 @@ analyzer:
     prefer_single_quotes: ignore
     use_function_type_syntax_for_parameters: ignore
 
-include: package:pedantic/analysis_options.yaml
+include: package:lints/recommended.yaml

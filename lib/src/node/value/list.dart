@@ -1,48 +1,51 @@
-// Copyright 2018 Google Inc. Use of this source code is governed by an
+// Copyright 2021 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
 import 'package:js/js.dart';
-
-import 'dart:js_util';
+import 'package:node_interop/js.dart';
 
 import '../../value.dart';
+import '../immutable.dart';
+import '../reflection.dart';
 import '../utils.dart';
-import '../value.dart';
+
+/// The JavaScript `SassList` class.
+final JSClass listClass = () {
+  var jsClass = createJSClass('sass.SassList', (Object self,
+      [Object? contentsOrOptions, _ConstructorOptions? options]) {
+    List<Value> contents;
+    if (isImmutableList(contentsOrOptions)) {
+      contents = (contentsOrOptions as ImmutableList).toArray().cast<Value>();
+    } else if (contentsOrOptions is List) {
+      contents = contentsOrOptions.cast<Value>();
+    } else {
+      contents = [];
+      options = contentsOrOptions as _ConstructorOptions?;
+    }
+
+    return SassList(
+        contents,
+        options == null || isUndefined(options.separator)
+            ? ListSeparator.comma
+            : jsToDartSeparator(options.separator),
+        brackets: options?.brackets ?? false);
+  });
+
+  jsClass.defineMethod('get', (Value self, num indexFloat) {
+    var index = indexFloat.floor();
+    if (index < 0) index = self.asList.length + index;
+    if (index < 0 || index >= self.asList.length) return undefined;
+    return self.asList[index];
+  });
+
+  getJSClass(const SassList.empty()).injectSuperclass(jsClass);
+  return jsClass;
+}();
 
 @JS()
-class _NodeSassList {
-  external SassList get dartValue;
-  external set dartValue(SassList dartValue);
+@anonymous
+class _ConstructorOptions {
+  external String? get separator;
+  external bool? get brackets;
 }
-
-/// Creates a new `sass.types.List` object wrapping [value].
-Object newNodeSassList(SassList value) =>
-    callConstructor(listConstructor, [null, null, value]) as Object;
-
-/// The JS constructor for the `sass.types.List` class.
-final Function listConstructor = createClass('SassList',
-    (_NodeSassList thisArg, int? length,
-        [bool? commaSeparator, SassList? dartValue]) {
-  thisArg.dartValue = dartValue ??
-      // Either [dartValue] or [length] must be passed.
-      SassList(Iterable.generate(length!, (_) => sassNull),
-          (commaSeparator ?? true) ? ListSeparator.comma : ListSeparator.space);
-}, {
-  'getValue': (_NodeSassList thisArg, int index) =>
-      wrapValue(thisArg.dartValue.asList[index]),
-  'setValue': (_NodeSassList thisArg, int index, Object value) {
-    var mutable = thisArg.dartValue.asList.toList();
-    mutable[index] = unwrapValue(value);
-    thisArg.dartValue = thisArg.dartValue.withListContents(mutable);
-  },
-  'getSeparator': (_NodeSassList thisArg) =>
-      thisArg.dartValue.separator == ListSeparator.comma,
-  'setSeparator': (_NodeSassList thisArg, bool isComma) {
-    thisArg.dartValue = SassList(thisArg.dartValue.asList,
-        isComma ? ListSeparator.comma : ListSeparator.space,
-        brackets: thisArg.dartValue.hasBrackets);
-  },
-  'getLength': (_NodeSassList thisArg) => thisArg.dartValue.asList.length,
-  'toString': (_NodeSassList thisArg) => thisArg.dartValue.toString()
-});

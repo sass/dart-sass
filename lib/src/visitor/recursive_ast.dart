@@ -25,6 +25,7 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
   const RecursiveAstVisitor();
 
   void visitAtRootRule(AtRootRule node) {
+    node.query.andThen(visitInterpolation);
     super.visitAtRootRule(node);
   }
 
@@ -32,6 +33,12 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
     visitInterpolation(node.name);
     node.value.andThen(visitInterpolation);
     super.visitAtRule(node);
+  }
+
+  void visitCalculationExpression(CalculationExpression node) {
+    for (var argument in node.arguments) {
+      argument.accept(this);
+    }
   }
 
   void visitContentRule(ContentRule node) {
@@ -161,6 +168,11 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
   }
 
   void visitFunctionExpression(FunctionExpression node) {
+    visitArgumentInvocation(node.arguments);
+  }
+
+  void visitInterpolatedFunctionExpression(
+      InterpolatedFunctionExpression node) {
     visitInterpolation(node.name);
     visitArgumentInvocation(node.arguments);
   }

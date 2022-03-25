@@ -395,14 +395,14 @@ class Parser {
       var next = scanner.peekChar();
       if (next == null) {
         break;
+      } else if (next == $backslash) {
+        buffer.write(escape());
       } else if (next == $percent ||
           next == $ampersand ||
           next == $hash ||
           (next >= $asterisk && next <= $tilde) ||
           next >= 0x0080) {
         buffer.writeCharCode(scanner.readChar());
-      } else if (next == $backslash) {
-        buffer.write(escape());
       } else if (isWhitespace(next)) {
         whitespace();
         if (scanner.peekChar() != $rparen) break;
@@ -441,7 +441,7 @@ class Parser {
     var value = 0;
     var first = scanner.peekChar();
     if (first == null) {
-      return "";
+      scanner.error("Expected escape sequence.");
     } else if (isNewline(first)) {
       scanner.error("Expected escape sequence.");
     } else if (isHex(first)) {
@@ -479,35 +479,7 @@ class Parser {
 
   /// Consumes an escape sequence and returns the character it represents.
   @protected
-  int escapeCharacter() {
-    // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
-
-    scanner.expectChar($backslash);
-    var first = scanner.peekChar();
-    if (first == null) {
-      return 0xFFFD;
-    } else if (isNewline(first)) {
-      scanner.error("Expected escape sequence.");
-    } else if (isHex(first)) {
-      var value = 0;
-      for (var i = 0; i < 6; i++) {
-        var next = scanner.peekChar();
-        if (next == null || !isHex(next)) break;
-        value = (value << 4) + asHex(scanner.readChar());
-      }
-      if (isWhitespace(scanner.peekChar())) scanner.readChar();
-
-      if (value == 0 ||
-          (value >= 0xD800 && value <= 0xDFFF) ||
-          value >= 0x10FFFF) {
-        return 0xFFFD;
-      } else {
-        return value;
-      }
-    } else {
-      return scanner.readChar();
-    }
-  }
+  int escapeCharacter() => consumeEscapedCharacter(scanner);
 
   // Consumes the next character if it matches [condition].
   //
@@ -659,9 +631,17 @@ class Parser {
   void warn(String message, FileSpan span) => logger.warn(message, span: span);
 
   /// Throws an error associated with [span].
+  ///
+  /// If [trace] is passed, attaches it as the error's stack trace.
   @protected
-  Never error(String message, FileSpan span) =>
-      throw StringScannerException(message, span, scanner.string);
+  Never error(String message, FileSpan span, [StackTrace? trace]) {
+    var exception = StringScannerException(message, span, scanner.string);
+    if (trace == null) {
+      throw exception;
+    } else {
+      throwWithTrace(exception, trace);
+    }
+  }
 
   /// Runs callback and, if it throws a [SourceSpanFormatException], rethrows it
   /// with [message] as its message.
@@ -669,8 +649,10 @@ class Parser {
   T withErrorMessage<T>(String message, T callback()) {
     try {
       return callback();
-    } on SourceSpanFormatException catch (error) {
-      throw SourceSpanFormatException(message, error.span, error.source);
+    } on SourceSpanFormatException catch (error, stackTrace) {
+      throwWithTrace(
+          SourceSpanFormatException(message, error.span, error.source),
+          stackTrace);
     }
   }
 
@@ -693,7 +675,7 @@ class Parser {
   T wrapSpanFormatException<T>(T callback()) {
     try {
       return callback();
-    } on SourceSpanFormatException catch (error) {
+    } on SourceSpanFormatException catch (error, stackTrace) {
       var span = error.span as FileSpan;
       if (startsWithIgnoreCase(error.message, "expected") && span.length == 0) {
         var startPosition = _firstNewlineBefore(span.start.offset);
@@ -702,7 +684,7 @@ class Parser {
         }
       }
 
-      throw SassFormatException(error.message, span);
+      throwWithTrace(SassFormatException(error.message, span), stackTrace);
     }
   }
 

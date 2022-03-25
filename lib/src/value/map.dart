@@ -13,6 +13,9 @@ import '../utils.dart';
 /// {@category Value}
 @sealed
 class SassMap extends Value {
+  // We don't use public fields because they'd be overridden by the getters of
+  // the same name in the JS API.
+
   // TODO(nweiz): Use persistent data structures rather than copying here. We
   // need to preserve the order, which can be done by tracking an RRB vector of
   // keys along with the hash-mapped array trie representing the map.
@@ -20,7 +23,8 @@ class SassMap extends Value {
   // We may also want to fall back to a plain unmodifiable Map for small maps
   // (<32 items?).
   /// The contents of the map.
-  final Map<Value, Value> contents;
+  Map<Value, Value> get contents => _contents;
+  final Map<Value, Value> _contents;
 
   ListSeparator get separator =>
       contents.isEmpty ? ListSeparator.undecided : ListSeparator.comma;
@@ -38,9 +42,9 @@ class SassMap extends Value {
   int get lengthAsList => contents.length;
 
   /// Returns an empty map.
-  const SassMap.empty() : contents = const {};
+  const SassMap.empty() : _contents = const {};
 
-  SassMap(Map<Value, Value> contents) : contents = Map.unmodifiable(contents);
+  SassMap(Map<Value, Value> contents) : _contents = Map.unmodifiable(contents);
 
   /// @nodoc
   @internal

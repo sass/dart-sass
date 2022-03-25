@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn('vm')
-
 import 'package:test/test.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -229,7 +227,7 @@ void main() {
     });
 
     test("throws an error outside a callback", () {
-      expect(() => warn("heck"), throwsArgumentError);
+      expect(() => warn("heck"), throwsStateError);
     });
   });
 }

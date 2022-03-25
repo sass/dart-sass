@@ -9,6 +9,7 @@ import '../../value.dart';
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
 abstract class ValueVisitor<T> {
   T visitBoolean(SassBoolean value);
+  T visitCalculation(SassCalculation value);
   T visitColor(SassColor value);
   T visitFunction(SassFunction value);
   T visitList(SassList value);

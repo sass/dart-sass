@@ -14,6 +14,7 @@ import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../util/multi_dir_watcher.dart';
+import '../utils.dart';
 import 'compile_stylesheet.dart';
 import 'options.dart';
 
@@ -78,7 +79,8 @@ class _Watcher {
       return true;
     } on SassException catch (error, stackTrace) {
       if (!_options.emitErrorCss) _delete(destination);
-      _printError(error.toString(color: _options.color), stackTrace);
+      _printError(
+          error.toString(color: _options.color), getTrace(error) ?? stackTrace);
       exitCode = 65;
       return false;
     } on FileSystemException catch (error, stackTrace) {
@@ -87,7 +89,7 @@ class _Watcher {
           path == null
               ? error.message
               : "Error reading ${p.relative(path)}: ${error.message}.",
-          stackTrace);
+          getTrace(error) ?? stackTrace);
       exitCode = 66;
       return false;
     }

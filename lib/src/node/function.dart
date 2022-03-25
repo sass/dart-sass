@@ -5,7 +5,7 @@
 import 'package:js/js.dart';
 
 @JS("Function")
-class JSFunction implements Function {
+class JSFunction {
   external JSFunction(String arg1, [String? arg2, String? arg3]);
 
   // Note that this just invokes the function with the given arguments, rather

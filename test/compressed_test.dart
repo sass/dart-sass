@@ -143,6 +143,35 @@ void main() {
         expect(_compile("a {b: #cc3232}"), equals("a{b:#cc3232}"));
       });
     });
+
+    group("strings", () {
+      group("emits private-use area characters as literal characters", () {
+        testCharacter(int character) {
+          var escape = "\\${character.toRadixString(16)}";
+          test(escape, () {
+            expect(
+                _compile("a {b: $escape}"),
+                equalsIgnoringWhitespace(
+                    "a{b:${String.fromCharCode(character)}}"));
+          });
+        }
+
+        group("in the basic multilingual plane", () {
+          testCharacter(0xe000);
+          testCharacter(0xf000);
+          testCharacter(0xf8ff);
+        });
+
+        group("in the supplementary planes", () {
+          testCharacter(0xf0000);
+          testCharacter(0xfabcd);
+          testCharacter(0xffffd);
+          testCharacter(0x100000);
+          testCharacter(0x10abcd);
+          testCharacter(0x10fffd);
+        });
+      });
+    });
   });
 
   group("the top level", () {

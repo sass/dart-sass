@@ -7,7 +7,6 @@ import 'package:tuple/tuple.dart';
 
 import '../../util/number.dart';
 import '../../value.dart';
-import '../number.dart';
 
 /// A specialized subclass of [SassNumber] for numbers that have no units.
 ///
@@ -29,6 +28,12 @@ class UnitlessSassNumber extends SassNumber {
       UnitlessSassNumber(value, Tuple2(numerator, denominator));
 
   bool hasUnit(String unit) => false;
+
+  bool hasCompatibleUnits(SassNumber other) => other is UnitlessSassNumber;
+
+  @internal
+  bool hasPossiblyCompatibleUnits(SassNumber other) =>
+      other is UnitlessSassNumber;
 
   bool compatibleWithUnit(String unit) => true;
 
@@ -136,5 +141,5 @@ class UnitlessSassNumber extends SassNumber {
   bool operator ==(Object other) =>
       other is UnitlessSassNumber && fuzzyEquals(value, other.value);
 
-  int get hashCode => fuzzyHashCode(value);
+  int get hashCode => hashCache ??= fuzzyHashCode(value);
 }

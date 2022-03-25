@@ -128,12 +128,17 @@ class CssParser extends ScssParser {
           "This function isn't allowed in plain CSS.", scanner.spanFrom(start));
     }
 
-    return FunctionExpression(
+    return InterpolatedFunctionExpression(
         // Create a fake interpolation to force the function to be interpreted
         // as plain CSS, rather than calling a user-defined function.
         Interpolation([StringExpression(identifier)], identifier.span),
         ArgumentInvocation(
             arguments, const {}, scanner.spanFrom(beforeArguments)),
         scanner.spanFrom(start));
+  }
+
+  Expression namespacedExpression(String namespace, LineScannerState start) {
+    var expression = super.namespacedExpression(namespace, start);
+    error("Module namespaces aren't allowed in plain CSS.", expression.span);
   }
 }

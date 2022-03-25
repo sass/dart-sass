@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1a1251aa9f7312612a64760f59803568bd09a07c
+// Checksum: f8b5bf7eafbe3523ca4df1a6832e131c5c03986b
 //
 // ignore_for_file: unused_import
 
@@ -20,7 +20,7 @@ import 'import_cache.dart';
 import 'callable.dart';
 import 'compile_result.dart';
 import 'importer.dart';
-import 'importer/node.dart';
+import 'importer/legacy_node.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'logger/terse.dart';

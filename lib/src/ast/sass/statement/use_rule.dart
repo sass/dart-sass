@@ -8,8 +8,10 @@ import 'package:source_span/source_span.dart';
 import '../../../exception.dart';
 import '../../../logger.dart';
 import '../../../parse/scss.dart';
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
+import '../dependency.dart';
 import '../expression/string.dart';
 import '../statement.dart';
 
@@ -17,7 +19,7 @@ import '../statement.dart';
 ///
 /// {@category AST}
 @sealed
-class UseRule implements Statement {
+class UseRule implements Statement, SassDependency {
   /// The URI of the module to use.
   ///
   /// If this is relative, it's relative to the containing file.
@@ -31,6 +33,8 @@ class UseRule implements Statement {
   final List<ConfiguredVariable> configuration;
 
   final FileSpan span;
+
+  FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   UseRule(this.url, this.namespace, this.span,
       {Iterable<ConfiguredVariable>? configuration})

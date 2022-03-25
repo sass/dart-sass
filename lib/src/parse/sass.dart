@@ -110,8 +110,8 @@ class SassParser extends StylesheetParser {
     } else {
       try {
         return DynamicImport(parseImportUrl(url), span);
-      } on FormatException catch (innerError) {
-        error("Invalid URL: ${innerError.message}", span);
+      } on FormatException catch (innerError, stackTrace) {
+        error("Invalid URL: ${innerError.message}", span, stackTrace);
       }
     }
   }

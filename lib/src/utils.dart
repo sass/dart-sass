@@ -8,12 +8,16 @@ import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:string_scanner/string_scanner.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import 'util/character.dart';
 
 /// The URL used in stack traces when no source URL is available.
 final _noSourceUrl = Uri.parse("-");
+
+/// Stack traces associated with exceptions thrown with [throwWithTrace].
+final _traces = Expando<StackTrace>();
 
 /// Converts [iter] into a sentence, separating each word with [conjunction].
 String toSentence(Iterable<Object> iter, [String? conjunction]) {
@@ -383,23 +387,74 @@ Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
 Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
     {for (var entry in map.entries) entry.key: entry.value.toList()};
 
-extension SpanExtensions on FileSpan {
-  /// Returns this span with all whitespace trimmed from both sides.
-  FileSpan trim() {
-    var text = this.text;
+/// Consumes an escape sequence from [scanner] and returns the character it
+/// represents.
+int consumeEscapedCharacter(StringScanner scanner) {
+  // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
-    var start = 0;
-    while (isWhitespace(text.codeUnitAt(start))) {
-      start++;
+  scanner.expectChar($backslash);
+  var first = scanner.peekChar();
+  if (first == null) {
+    return 0xFFFD;
+  } else if (isNewline(first)) {
+    scanner.error("Expected escape sequence.");
+  } else if (isHex(first)) {
+    var value = 0;
+    for (var i = 0; i < 6; i++) {
+      var next = scanner.peekChar();
+      if (next == null || !isHex(next)) break;
+      value = (value << 4) + asHex(scanner.readChar());
     }
+    if (isWhitespace(scanner.peekChar())) scanner.readChar();
 
-    var end = text.length - 1;
-    while (isWhitespace(text.codeUnitAt(end))) {
-      end--;
+    if (value == 0 ||
+        (value >= 0xD800 && value <= 0xDFFF) ||
+        value >= 0x10FFFF) {
+      return 0xFFFD;
+    } else {
+      return value;
     }
-
-    return start == 0 && end == text.length - 1
-        ? this
-        : file.span(this.start.offset + start, this.start.offset + end + 1);
+  } else {
+    return scanner.readChar();
   }
+}
+
+// TODO(nweiz): Use a built-in solution for this when dart-lang/sdk#10297 is
+// fixed.
+/// Throws [error] with [trace] stored as its stack trace.
+///
+/// Note that [trace] is only accessible via [getTrace].
+Never throwWithTrace(Object error, StackTrace trace) {
+  attachTrace(error, trace);
+  throw error;
+}
+
+/// Attaches [trace] to [error] so that it may be retrieved using [getTrace].
+///
+/// In most cases, [throwWithTrace] should be used instead of this.
+void attachTrace(Object error, StackTrace trace) {
+  if (error is String || error is num || error is bool) return;
+
+  // Non-`Error` objects thrown in Node will have empty stack traces. We don't
+  // want to store these because they don't have any useful information.
+  if (trace.toString().isEmpty) return;
+
+  _traces[error] ??= trace;
+}
+
+/// Returns the stack trace associated with error using [throwWithTrace], or
+/// [defaultTrace] if it was thrown normally.
+StackTrace? getTrace(Object error) =>
+    error is String || error is num || error is bool ? null : _traces[error];
+
+extension MapExtension<K, V> on Map<K, V> {
+  /// If [this] doesn't contain the given [key], sets that key to [value] and
+  /// returns it.
+  ///
+  /// Otherwise, calls [merge] with the existing value and [value] and sets
+  /// [key] to the result.
+  V putOrMerge(K key, V value, V Function(V oldValue, V newValue) merge) =>
+      containsKey(key)
+          ? this[key] = merge(this[key]!, value)
+          : this[key] = value;
 }

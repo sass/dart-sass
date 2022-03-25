@@ -25,6 +25,13 @@ class SassArgumentList extends SassList {
 
   final Map<String, Value> _keywords;
 
+  /// Returns the same value as [keywords], but doesn't mark them accessed.
+  ///
+  /// Normally, any time [keywords] is accessed it's marked as such, which
+  /// indicates that the caller was allowed to pass keywords to a rest argument.
+  /// This avoids this marking.
+  Map<String, Value> get keywordsWithoutMarking => _keywords;
+
   /// Whether [keywords] has been accessed.
   ///
   /// This is used to determine whether to throw an exception about passing

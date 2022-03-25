@@ -346,11 +346,14 @@ class _SerializeVisitor
       try {
         _buffer.forSpan(
             node.valueSpanForMap, () => node.value.value.accept(this));
-      } on MultiSpanSassScriptException catch (error) {
-        throw MultiSpanSassException(error.message, node.value.span,
-            error.primaryLabel, error.secondarySpans);
-      } on SassScriptException catch (error) {
-        throw SassException(error.message, node.value.span);
+      } on MultiSpanSassScriptException catch (error, stackTrace) {
+        throwWithTrace(
+            MultiSpanSassException(error.message, node.value.span,
+                error.primaryLabel, error.secondarySpans),
+            stackTrace);
+      } on SassScriptException catch (error, stackTrace) {
+        throwWithTrace(
+            SassException(error.message, node.value.span), stackTrace);
       }
     }
   }
@@ -469,50 +472,140 @@ class _SerializeVisitor
 
   void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 
+  void visitCalculation(SassCalculation value) {
+    _buffer.write(value.name);
+    _buffer.writeCharCode($lparen);
+    _writeBetween(value.arguments, _commaSeparator, _writeCalculationValue);
+    _buffer.writeCharCode($rparen);
+  }
+
+  void _writeCalculationValue(Object value) {
+    if (value is Value) {
+      value.accept(this);
+    } else if (value is CalculationInterpolation) {
+      _buffer.write(value.value);
+    } else if (value is CalculationOperation) {
+      var left = value.left;
+      var parenthesizeLeft = left is CalculationInterpolation ||
+          (left is CalculationOperation &&
+              left.operator.precedence < value.operator.precedence);
+      if (parenthesizeLeft) _buffer.writeCharCode($lparen);
+      _writeCalculationValue(left);
+      if (parenthesizeLeft) _buffer.writeCharCode($rparen);
+
+      var operatorWhitespace = !_isCompressed || value.operator.precedence == 1;
+      if (operatorWhitespace) _buffer.writeCharCode($space);
+      _buffer.write(value.operator.operator);
+      if (operatorWhitespace) _buffer.writeCharCode($space);
+
+      var right = value.right;
+      var parenthesizeRight = right is CalculationInterpolation ||
+          (right is CalculationOperation &&
+              _parenthesizeCalculationRhs(value.operator, right.operator));
+      if (parenthesizeRight) _buffer.writeCharCode($lparen);
+      _writeCalculationValue(right);
+      if (parenthesizeRight) _buffer.writeCharCode($rparen);
+    }
+  }
+
+  /// Returns whether the right-hand operation of a calculation should be
+  /// parenthesized.
+  ///
+  /// In `a ? (b # c)`, `outer` is `?` and `right` is `#`.
+  bool _parenthesizeCalculationRhs(
+      CalculationOperator outer, CalculationOperator right) {
+    if (outer == CalculationOperator.dividedBy) return true;
+    if (outer == CalculationOperator.plus) return false;
+    return right == CalculationOperator.plus ||
+        right == CalculationOperator.minus;
+  }
+
   void visitColor(SassColor value) {
     // In compressed mode, emit colors in the shortest representation possible.
-    if (_isCompressed && fuzzyEquals(value.alpha, 1)) {
-      var name = namesByColor[value];
-      var hexLength = _canUseShortHex(value) ? 4 : 7;
-      if (name != null && name.length <= hexLength) {
-        _buffer.write(name);
-      } else if (_canUseShortHex(value)) {
-        _buffer.writeCharCode($hash);
-        _buffer.writeCharCode(hexCharFor(value.red & 0xF));
-        _buffer.writeCharCode(hexCharFor(value.green & 0xF));
-        _buffer.writeCharCode(hexCharFor(value.blue & 0xF));
+    if (_isCompressed) {
+      if (!fuzzyEquals(value.alpha, 1)) {
+        _writeRgb(value);
       } else {
+        var name = namesByColor[value];
+        var hexLength = _canUseShortHex(value) ? 4 : 7;
+        if (name != null && name.length <= hexLength) {
+          _buffer.write(name);
+        } else if (_canUseShortHex(value)) {
+          _buffer.writeCharCode($hash);
+          _buffer.writeCharCode(hexCharFor(value.red & 0xF));
+          _buffer.writeCharCode(hexCharFor(value.green & 0xF));
+          _buffer.writeCharCode(hexCharFor(value.blue & 0xF));
+        } else {
+          _buffer.writeCharCode($hash);
+          _writeHexComponent(value.red);
+          _writeHexComponent(value.green);
+          _writeHexComponent(value.blue);
+        }
+      }
+    } else {
+      var format = value.format;
+      if (format != null) {
+        if (format == ColorFormat.rgbFunction) {
+          _writeRgb(value);
+        } else if (format == ColorFormat.hslFunction) {
+          _writeHsl(value);
+        } else {
+          _buffer.write((format as SpanColorFormat).original);
+        }
+      } else if (namesByColor.containsKey(value) &&
+          // Always emit generated transparent colors in rgba format. This works
+          // around an IE bug. See sass/sass#1782.
+          !fuzzyEquals(value.alpha, 0)) {
+        _buffer.write(namesByColor[value]);
+      } else if (fuzzyEquals(value.alpha, 1)) {
         _buffer.writeCharCode($hash);
         _writeHexComponent(value.red);
         _writeHexComponent(value.green);
         _writeHexComponent(value.blue);
+      } else {
+        _writeRgb(value);
       }
-      return;
+    }
+  }
+
+  /// Writes [value] as an `rgb()` or `rgba()` function.
+  void _writeRgb(SassColor value) {
+    var opaque = fuzzyEquals(value.alpha, 1);
+    _buffer
+      ..write(opaque ? "rgb(" : "rgba(")
+      ..write(value.red)
+      ..write(_commaSeparator)
+      ..write(value.green)
+      ..write(_commaSeparator)
+      ..write(value.blue);
+
+    if (!opaque) {
+      _buffer.write(_commaSeparator);
+      _writeNumber(value.alpha);
     }
 
-    if (value.original != null) {
-      _buffer.write(value.original);
-    } else if (namesByColor.containsKey(value) &&
-        // Always emit generated transparent colors in rgba format. This works
-        // around an IE bug. See sass/sass#1782.
-        !fuzzyEquals(value.alpha, 0)) {
-      _buffer.write(namesByColor[value]);
-    } else if (fuzzyEquals(value.alpha, 1)) {
-      _buffer.writeCharCode($hash);
-      _writeHexComponent(value.red);
-      _writeHexComponent(value.green);
-      _writeHexComponent(value.blue);
-    } else {
-      _buffer
-        ..write("rgba(${value.red}")
-        ..write(_commaSeparator)
-        ..write(value.green)
-        ..write(_commaSeparator)
-        ..write(value.blue)
-        ..write(_commaSeparator);
+    _buffer.writeCharCode($rparen);
+  }
+
+  /// Writes [value] as an `hsl()` or `hsla()` function.
+  void _writeHsl(SassColor value) {
+    var opaque = fuzzyEquals(value.alpha, 1);
+    _buffer.write(opaque ? "hsl(" : "hsla(");
+    _writeNumber(value.hue);
+    _buffer.write("deg");
+    _buffer.write(_commaSeparator);
+    _writeNumber(value.saturation);
+    _buffer.writeCharCode($percent);
+    _buffer.write(_commaSeparator);
+    _writeNumber(value.lightness);
+    _buffer.writeCharCode($percent);
+
+    if (!opaque) {
+      _buffer.write(_commaSeparator);
       _writeNumber(value.alpha);
-      _buffer.writeCharCode($rparen);
     }
+
+    _buffer.writeCharCode($rparen);
   }
 
   /// Returns whether [color]'s hex pair representation is symmetrical (e.g.
@@ -948,15 +1041,7 @@ class _SerializeVisitor
         case $gs:
         case $rs:
         case $us:
-          buffer.writeCharCode($backslash);
-          if (char > 0xF) buffer.writeCharCode(hexCharFor(char >> 4));
-          buffer.writeCharCode(hexCharFor(char & 0xF));
-          if (string.length == i + 1) break;
-
-          var next = string.codeUnitAt(i + 1);
-          if (isHex(next) || next == $space || next == $tab) {
-            buffer.writeCharCode($space);
-          }
+          _writeEscape(buffer, char, string, i);
           break;
 
         case $backslash:
@@ -965,6 +1050,12 @@ class _SerializeVisitor
           break;
 
         default:
+          var newIndex = _tryPrivateUseCharacter(buffer, char, string, i);
+          if (newIndex != null) {
+            i = newIndex;
+            break;
+          }
+
           buffer.writeCharCode(char);
           break;
       }
@@ -996,10 +1087,63 @@ class _SerializeVisitor
           break;
 
         default:
-          _buffer.writeCharCode(char);
           afterNewline = false;
+          var newIndex = _tryPrivateUseCharacter(_buffer, char, string, i);
+          if (newIndex != null) {
+            i = newIndex;
+            break;
+          }
+
+          _buffer.writeCharCode(char);
           break;
       }
+    }
+  }
+
+  /// If [codeUnit] is (the beginning of) a private-use character and Sass isn't
+  /// emitting compressed CSS, writes that character as an escape to [buffer].
+  ///
+  /// The [string] is the string from which [codeUnit] was read, and [i] is the
+  /// index it was read from. If this successfully writes the character, returns
+  /// the index of the *last* code unit that was consumed for it. Otherwise,
+  /// returns `null`.
+  ///
+  /// In expanded mode, we print all characters in Private Use Areas as escape
+  /// codes since there's no useful way to render them directly. These
+  /// characters are often used for glyph fonts, where it's useful for readers
+  /// to be able to distinguish between them in the rendered stylesheet.
+  int? _tryPrivateUseCharacter(
+      StringBuffer buffer, int codeUnit, String string, int i) {
+    if (_isCompressed) return null;
+
+    if (isPrivateUseBMP(codeUnit)) {
+      _writeEscape(buffer, codeUnit, string, i);
+      return i;
+    }
+
+    if (isPrivateUseHighSurrogate(codeUnit) && string.length > i + 1) {
+      _writeEscape(buffer,
+          combineSurrogates(codeUnit, string.codeUnitAt(i + 1)), string, i + 1);
+      return i + 1;
+    }
+
+    return null;
+  }
+
+  /// Writes [character] as a hexadecimal escape sequence to [buffer].
+  ///
+  /// The [string] is the string from which the escape is being written, and [i]
+  /// is the index of the last code unit of [character] in that string. These
+  /// are used to write a trailing space after the escape if necessary to
+  /// disambiguate it from the next character.
+  void _writeEscape(StringBuffer buffer, int character, String string, int i) {
+    buffer.writeCharCode($backslash);
+    buffer.write(character.toRadixString(16));
+
+    if (string.length == i + 1) return;
+    var next = string.codeUnitAt(i + 1);
+    if (isHex(next) || next == $space || next == $tab) {
+      buffer.writeCharCode($space);
     }
   }
 

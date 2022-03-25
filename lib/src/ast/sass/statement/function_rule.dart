@@ -5,8 +5,10 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../argument_declaration.dart';
+import '../declaration.dart';
 import '../statement.dart';
 import 'callable_declaration.dart';
 import 'silent_comment.dart';
@@ -17,7 +19,9 @@ import 'silent_comment.dart';
 ///
 /// {@category AST}
 @sealed
-class FunctionRule extends CallableDeclaration {
+class FunctionRule extends CallableDeclaration implements SassDeclaration {
+  FileSpan get nameSpan => span.withoutInitialAtRule().initialIdentifier();
+
   FunctionRule(String name, ArgumentDeclaration arguments,
       Iterable<Statement> children, FileSpan span,
       {SilentComment? comment})

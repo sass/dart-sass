@@ -28,4 +28,6 @@ class ConfiguredValue {
   /// variable prior to an `@import` of a file that contains a `@forward`.
   ConfiguredValue.implicit(this.value, this.assignmentNode)
       : configurationSpan = null;
+
+  String toString() => value.toString();
 }

@@ -6,14 +6,16 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
+import '../../util/span.dart';
 import 'expression.dart';
+import 'declaration.dart';
 import 'node.dart';
 
 /// An argument declared as part of an [ArgumentDeclaration].
 ///
 /// {@category AST}
 @sealed
-class Argument implements SassNode {
+class Argument implements SassNode, SassDeclaration {
   /// The argument name.
   final String name;
 
@@ -29,6 +31,9 @@ class Argument implements SassNode {
   /// messages.
   String get originalName =>
       defaultValue == null ? span.text : declarationName(span);
+
+  FileSpan get nameSpan =>
+      defaultValue == null ? span : span.initialIdentifier(includeLeading: 1);
 
   Argument(this.name, this.span, {this.defaultValue});
 

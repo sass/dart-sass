@@ -5,6 +5,8 @@
 /// We strongly recommend importing this library with the prefix `sass`.
 library sass;
 
+// ignore_for_file: implementation_imports
+
 import 'package:sass/sass.dart';
 import 'package:sass/src/parse/parser.dart';
 
@@ -14,6 +16,7 @@ export 'package:sass/src/ast/sass.dart' hide AtRootQuery;
 export 'package:sass/src/async_import_cache.dart';
 export 'package:sass/src/exception.dart' show SassFormatException;
 export 'package:sass/src/import_cache.dart';
+export 'package:sass/src/value/color.dart' hide ColorFormat, SpanColorFormat;
 export 'package:sass/src/visitor/find_dependencies.dart';
 export 'package:sass/src/visitor/interface/expression.dart';
 export 'package:sass/src/visitor/interface/statement.dart';

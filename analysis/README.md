@@ -4,7 +4,8 @@ packages. To use it, add it as a Git dependency to your `pubspec.yaml`:
 ```yaml
 dev_dependencies:
   sass_analysis:
-    git: {url: git://github.com/sass/dart-sass.git, path: analysis}
+    git: {url: 
+    https://github.com/sass/dart-sass.git, path: analysis}
 ```
 
 and include it in your `analysis_options.yaml`:

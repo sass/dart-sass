@@ -1,7 +1,6 @@
 name: sass_analysis
 version: 0.0.0
 description: Shared analysis options for Sass team packages.
-author: Sass Team
 homepage: https://github.com/sass/dart-sass/tree/master/analysis
 
 publish_to: none
@@ -10,4 +9,4 @@ environment:
   sdk: ">=2.0.0 <3.0.0"
 
 dependencies:
-  pedantic: ^1.0.0
+  lints: ^1.0.0

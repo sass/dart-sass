@@ -14,10 +14,13 @@
     "url": "https://github.com/nex3"
   },
   "engines": {
-    "node": ">=8.9.0"
+    "node": ">=12.0.0"
   },
   "dependencies": {
-    "chokidar": ">=3.0.0 <4.0.0"
+    "chokidar": ">=3.0.0 <4.0.0",
+    "immutable": "^4.0.0",
+    "source-map-js": ">=0.6.2 <2.0.0"
   },
-  "keywords": ["style", "scss", "sass", "preprocessor", "css"]
+  "keywords": ["style", "scss", "sass", "preprocessor", "css"],
+  "types": "types/index.d.ts"
 }

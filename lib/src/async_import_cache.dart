@@ -33,16 +33,31 @@ class AsyncImportCache {
   ///
   /// This map's values are the same as the return value of [canonicalize].
   ///
-  /// This cache isn't used for relative imports, because they're
-  /// context-dependent.
-  final Map<Tuple2<Uri, bool>, Tuple3<AsyncImporter, Uri, Uri>?>
-      _canonicalizeCache;
+  /// This cache isn't used for relative imports, because they depend on the
+  /// specific base importer. That's stored separately in
+  /// [_relativeCanonicalizeCache].
+  final _canonicalizeCache =
+      <Tuple2<Uri, bool>, Tuple3<AsyncImporter, Uri, Uri>?>{};
+
+  /// The canonicalized URLs for each non-canonical URL that's resolved using a
+  /// relative importer.
+  ///
+  /// The map's keys have four parts:
+  ///
+  /// 1. The URL passed to [canonicalize] (the same as in [_canonicalizeCache]).
+  /// 2. Whether the canonicalization is for an `@import` rule.
+  /// 3. The `baseImporter` passed to [canonicalize].
+  /// 4. The `baseUrl` passed to [canonicalize].
+  ///
+  /// The map's values are the same as the return value of [canonicalize].
+  final _relativeCanonicalizeCache = <Tuple4<Uri, bool, AsyncImporter, Uri?>,
+      Tuple3<AsyncImporter, Uri, Uri>?>{};
 
   /// The parsed stylesheets for each canonicalized import URL.
-  final Map<Uri, Stylesheet?> _importCache;
+  final _importCache = <Uri, Stylesheet?>{};
 
   /// The import results for each canonicalized import URL.
-  final Map<Uri, ImporterResult> _resultsCache;
+  final _resultsCache = <Uri, ImporterResult>{};
 
   /// Creates an import cache that resolves imports using [importers].
   ///
@@ -67,18 +82,12 @@ class AsyncImportCache {
       PackageConfig? packageConfig,
       Logger? logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _logger = logger ?? const Logger.stderr(),
-        _canonicalizeCache = {},
-        _importCache = {},
-        _resultsCache = {};
+        _logger = logger ?? const Logger.stderr();
 
   /// Creates an import cache without any globally-available importers.
   AsyncImportCache.none({Logger? logger})
       : _importers = const [],
-        _logger = logger ?? const Logger.stderr(),
-        _canonicalizeCache = {},
-        _importCache = {},
-        _resultsCache = {};
+        _logger = logger ?? const Logger.stderr();
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -113,12 +122,15 @@ class AsyncImportCache {
       Uri? baseUrl,
       bool forImport = false}) async {
     if (baseImporter != null) {
-      var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
-      var canonicalUrl =
-          await _canonicalize(baseImporter, resolvedUrl, forImport);
-      if (canonicalUrl != null) {
+      var relativeResult = await putIfAbsentAsync(_relativeCanonicalizeCache,
+          Tuple4(url, forImport, baseImporter, baseUrl), () async {
+        var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
+        var canonicalUrl =
+            await _canonicalize(baseImporter, resolvedUrl, forImport);
+        if (canonicalUrl == null) return null;
         return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
-      }
+      });
+      if (relativeResult != null) return relativeResult;
     }
 
     return await putIfAbsentAsync(_canonicalizeCache, Tuple2(url, forImport),
@@ -236,6 +248,14 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   void clearCanonicalize(Uri url) {
     _canonicalizeCache.remove(Tuple2(url, false));
     _canonicalizeCache.remove(Tuple2(url, true));
+
+    var relativeKeysToClear = [
+      for (var key in _relativeCanonicalizeCache.keys)
+        if (key.item1 == url) key
+    ];
+    for (var key in relativeKeysToClear) {
+      _relativeCanonicalizeCache.remove(key);
+    }
   }
 
   /// Clears the cached parse tree for the stylesheet with the given

@@ -81,31 +81,35 @@ class SassColor extends Value {
     return 100 - math.max(math.max(red, green), blue) / 255 * 100;
   }
 
+  // We don't use public fields because they'd be overridden by the getters of
+  // the same name in the JS API.
+
   /// This color's alpha channel, between `0` and `1`.
-  final num alpha;
+  num get alpha => _alpha;
+  final num _alpha;
 
-  /// The original string representation of this color, or `null` if one is
-  /// unavailable.
+  /// The format in which this color was originally written and should be
+  /// serialized in expanded mode, or `null` if the color wasn't written in a
+  /// supported format.
   ///
   /// @nodoc
   @internal
-  String? get original => originalSpan?.text;
-
-  /// The span tracking the location in which this color was originally defined.
-  ///
-  /// This is tracked as a span to avoid extra substring allocations.
-  ///
-  /// @nodoc
-  @internal
-  final FileSpan? originalSpan;
+  final ColorFormat? format;
 
   /// Creates an RGB color.
   ///
   /// Throws a [RangeError] if [red], [green], and [blue] aren't between `0` and
   /// `255`, or if [alpha] isn't between `0` and `1`.
-  SassColor.rgb(this._red, this._green, this._blue,
-      [num? alpha, this.originalSpan])
-      : alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
+  SassColor.rgb(int red, int green, int blue, [num? alpha])
+      : this.rgbInternal(red, green, blue, alpha);
+
+  /// Like [SassColor.rgb], but also takes a [format] parameter.
+  ///
+  /// @nodoc
+  @internal
+  SassColor.rgbInternal(this._red, this._green, this._blue,
+      [num? alpha, this.format])
+      : _alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
     RangeError.checkValueInInterval(red, 0, 255, "red");
     RangeError.checkValueInInterval(green, 0, 255, "green");
     RangeError.checkValueInInterval(blue, 0, 255, "blue");
@@ -116,11 +120,18 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [saturation] or [lightness] aren't between `0`
   /// and `100`, or if [alpha] isn't between `0` and `1`.
   SassColor.hsl(num hue, num saturation, num lightness, [num? alpha])
+      : this.hslInternal(hue, saturation, lightness, alpha);
+
+  /// Like [SassColor.hsl], but also takes a [format] parameter.
+  ///
+  /// @nodoc
+  @internal
+  SassColor.hslInternal(num hue, num saturation, num lightness,
+      [num? alpha, this.format])
       : _hue = hue % 360,
         _saturation = fuzzyAssertRange(saturation, 0, 100, "saturation"),
         _lightness = fuzzyAssertRange(lightness, 0, 100, "lightness"),
-        alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha"),
-        originalSpan = null;
+        _alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha");
 
   /// Creates an HWB color.
   ///
@@ -155,8 +166,8 @@ class SassColor extends Value {
   }
 
   SassColor._(this._red, this._green, this._blue, this._hue, this._saturation,
-      this._lightness, this.alpha)
-      : originalSpan = null;
+      this._lightness, this._alpha)
+      : format = null;
 
   /// @nodoc
   @internal
@@ -304,4 +315,69 @@ class SassColor extends Value {
     buffer.write(")");
     return buffer.toString();
   }
+}
+
+/// Extension methods that are only visible through the `sass_api` package.
+///
+/// These methods are considered less general-purpose and more liable to change
+/// than the main [SassColor] interface.
+///
+/// {@category Value}
+extension SassApiColor on SassColor {
+  /// Whether the `red`, `green`, and `blue` fields have already been computed
+  /// for this value.
+  ///
+  /// Note that these fields can always be safely computed after the fact; this
+  /// just allows users such as the Sass embedded compiler to access whichever
+  /// representation is readily available.
+  bool get hasCalculatedRgb => _red != null;
+
+  /// Whether the `hue`, `saturation`, and `lightness` fields have already been
+  /// computed for this value.
+  ///
+  /// Note that these fields can always be safely computed after the fact; this
+  /// just allows users such as the Sass embedded compiler to access whichever
+  /// representation is readily available.
+  bool get hasCalculatedHsl => _saturation != null;
+}
+
+/// A union interface of possible formats in which a Sass color could be
+/// defined.
+///
+/// When a color is serialized in expanded mode, it should preserve its original
+/// format.
+@internal
+abstract class ColorFormat {
+  /// A color defined using the `rgb()` or `rgba()` functions.
+  static const rgbFunction = _ColorFormatEnum("rgbFunction");
+
+  /// A color defined using the `hsl()` or `hsla()` functions.
+  static const hslFunction = _ColorFormatEnum("hslFunction");
+}
+
+/// The class for enum values of the [ColorFormat] type.
+@sealed
+class _ColorFormatEnum implements ColorFormat {
+  final String _name;
+
+  const _ColorFormatEnum(this._name);
+
+  String toString() => _name;
+}
+
+/// A [ColorFormat] where the color is serialized as the exact same text that
+/// was used to specify it originally.
+///
+/// This is tracked as a span rather than a string to avoid extra substring
+/// allocations.
+@internal
+@sealed
+class SpanColorFormat implements ColorFormat {
+  /// The span tracking the location in which this color was originally defined.
+  final FileSpan _span;
+
+  /// The original string that was used to define this color in the Sass source.
+  String get original => _span.text;
+
+  SpanColorFormat(this._span);
 }

@@ -12,10 +12,12 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import 'grind/synchronize.dart';
+import 'grind/utils.dart';
 
 export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
-export 'grind/sanity_check.dart';
+export 'grind/double_check.dart';
+export 'grind/frameworks.dart';
 export 'grind/subpackages.dart';
 export 'grind/synchronize.dart';
 
@@ -27,15 +29,21 @@ void main(List<String> args) {
   pkg.chocolateyNuspec.value = _nuspec;
   pkg.homebrewRepo.value = "sass/homebrew-sass";
   pkg.homebrewFormula.value = "sass.rb";
-  pkg.jsRequires.value = {"chokidar": "chokidar", "readline": "readline"};
+  pkg.jsRequires.value = [
+    pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
+    pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli),
+    pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
+    pkg.JSRequire("util", target: pkg.JSRequireTarget.all),
+  ];
   pkg.jsModuleMainLibrary.value = "lib/src/node.dart";
   pkg.npmPackageJson.fn = () =>
       json.decode(File("package/package.json").readAsStringSync())
           as Map<String, dynamic>;
   pkg.npmReadme.fn = () => _readAndResolveMarkdown("package/README.npm.md");
+  pkg.npmAdditionalFiles.fn = _fetchJSTypes;
   pkg.standaloneName.value = "dart-sass";
-  pkg.githubUser.fn = () => Platform.environment["GH_USER"]!;
-  pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"]!;
+  pkg.githubUser.fn = () => Platform.environment["GH_USER"];
+  pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"];
 
   pkg.githubReleaseNotes.fn = () =>
       "To install Sass ${pkg.version}, download one of the packages below "
@@ -59,8 +67,8 @@ void all() {}
 
 @Task('Run the Dart formatter.')
 void format() {
-  Pub.run('dart_style',
-      script: 'format', arguments: ['--overwrite', '--fix', '.']);
+  run('dart',
+      arguments: ['run', 'dart_style:format', '--overwrite', '--fix', '.']);
 }
 
 @Task('Installs dependencies from npm.')
@@ -137,6 +145,20 @@ String _readAndResolveMarkdown(String path) => File(path)
 
       return included.substring(headerMatch.end, sectionEnd).trim();
     });
+
+/// Returns a map from JS type declaration file names to their contnets.
+Map<String, String> _fetchJSTypes() {
+  var languageRepo =
+      cloneOrCheckout("https://github.com/sass/sass", "main", name: 'language');
+
+  var typeRoot = p.join(languageRepo, 'js-api-doc');
+  return {
+    for (var entry in Directory(typeRoot).listSync(recursive: true))
+      if (entry is File && entry.path.endsWith('.d.ts'))
+        p.join('types', p.relative(entry.path, from: typeRoot)):
+            entry.readAsStringSync()
+  };
+}
 
 /// Throws a nice [SourceSpanException] associated with [match].
 void _matchError(Match match, String message, {Object? url}) {

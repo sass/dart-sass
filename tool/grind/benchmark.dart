@@ -32,11 +32,11 @@ Future<void> benchmarkGenerate() async {
       ".foo {a: b}", math.pow(2, 17),
       footer: '.bar {@extend .foo}');
 
-  await cloneOrCheckout("https://github.com/twbs/bootstrap", "v4.1.3");
+  cloneOrCheckout("https://github.com/twbs/bootstrap", "v4.1.3");
   await _writeNTimes("${sources.path}/bootstrap.scss",
       "@import '../bootstrap/scss/bootstrap';", 16);
 
-  await cloneOrCheckout("https://github.com/alex-page/sass-a11ycolor",
+  cloneOrCheckout("https://github.com/alex-page/sass-a11ycolor",
       "2e7ef93ec06f8bbec80b632863e4b2811618af89");
   File("${sources.path}/a11ycolor.scss").writeAsStringSync("""
     @import '../sass-a11ycolor/dist';
@@ -55,14 +55,17 @@ Future<void> benchmarkGenerate() async {
     }
   """);
 
-  var susy = await cloneOrCheckout("https://github.com/oddbird/susy", "v3.0.5");
-  await runAsync("npm", arguments: ["install"], workingDirectory: susy);
-  File("${sources.path}/susy.scss")
-      .writeAsStringSync("@import '../susy/test/scss/test.scss'");
-
-  await cloneOrCheckout("https://github.com/zaydek/duomo", "v0.7.12");
+  cloneOrCheckout("https://github.com/zaydek/duomo", "v0.7.12");
   File("${sources.path}/duomo.scss")
       .writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
+
+  var carbon = cloneOrCheckout(
+      "https://github.com/carbon-design-system/ibm-cloud-cognitive",
+      "@carbon/ibm-cloud-cognitive@1.0.0-rc.0");
+  await runAsync("yarn", arguments: ["install"], workingDirectory: carbon);
+  File("${sources.path}/carbon.scss")
+      .writeAsStringSync("@import '../ibm-cloud-cognitive/packages/"
+          "cloud-cognitive/src/index-without-carbon-released-only'");
 }
 
 /// Writes [times] instances of [text] to [path].
@@ -95,8 +98,8 @@ Future<void> _writeNTimes(String path, String text, num times,
 @Depends(benchmarkGenerate, "pkg-compile-snapshot", "pkg-compile-native",
     "pkg-npm-release")
 Future<void> benchmark() async {
-  var libsass = await cloneOrPull('https://github.com/sass/libsass');
-  var sassc = await cloneOrPull('https://github.com/sass/sassc');
+  var libsass = cloneOrCheckout('https://github.com/sass/libsass', 'master');
+  var sassc = cloneOrCheckout('https://github.com/sass/sassc', 'master');
 
   await runAsync("make",
       runOptions: RunOptions(
@@ -160,14 +163,17 @@ I ran five instances of each configuration and recorded the fastest time.
       "test cases for a computation-intensive color-processing library"
     ],
     [
-      "susy.scss",
-      "Susy",
-      "test cases for the computation-intensive Susy grid framework"
-    ],
-    [
       "duomo.scss",
       "Duomo",
-      "the output of the numerically-intensive Duomo framework"
+      "the output of the numerically-intensive Duomo framework "
+          "(skipping LibSass due to module system use)"
+    ],
+    [
+      "carbon.scss",
+      "Carbon",
+      "the output of the import-intensive Carbon framework",
+      "-I",
+      "build/ibm-cloud-cognitive/node_modules"
     ],
   ];
 
@@ -177,6 +183,7 @@ I ran five instances of each configuration and recorded the fastest time.
     var path = p.join('build/benchmark', info[0]);
     var title = info[1];
     var description = info[2];
+    var extraArgs = info.sublist(3);
 
     buffer.writeln("## $title");
     buffer.writeln();
@@ -185,23 +192,27 @@ I ran five instances of each configuration and recorded the fastest time.
 
     Duration? sasscTime;
     if (!libsassIncompatible.contains(info[1])) {
-      sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [path]);
+      sasscTime =
+          await _benchmark(p.join(sassc, 'bin', 'sassc'), [path, ...extraArgs]);
       buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
     }
 
-    var scriptSnapshotTime = await _benchmark(Platform.executable,
-        ['--no-enable-asserts', p.join('build', 'sass.snapshot'), path]);
+    var scriptSnapshotTime = await _benchmark(Platform.executable, [
+      '--no-enable-asserts',
+      p.join('build', 'sass.snapshot'),
+      path,
+      ...extraArgs
+    ]);
     buffer.writeln("* Dart Sass from a script snapshot: "
         "${_formatTime(scriptSnapshotTime)}");
 
-    var nativeExecutableTime = await _benchmark(
-        p.join(sdkDir.path, 'bin/dartaotruntime'),
-        [p.join('build', 'sass.native'), path]);
+    var nativeExecutableTime =
+        await _benchmark(p.join('build', 'sass.native'), [path, ...extraArgs]);
     buffer.writeln("* Dart Sass native executable: "
         "${_formatTime(nativeExecutableTime)}");
 
-    var nodeTime =
-        await _benchmark("node", [p.join('build', 'npm', 'sass.js'), path]);
+    var nodeTime = await _benchmark(
+        "node", [p.join('build', 'npm', 'sass.js'), path, ...extraArgs]);
     buffer.writeln("* Dart Sass on Node.js: ${_formatTime(nodeTime)}");
 
     buffer.writeln();

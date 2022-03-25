@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
@@ -47,6 +48,15 @@ class PseudoSelector extends SimpleSelector {
   /// This is `true` if and only if [isSyntacticClass] is `false`.
   bool get isSyntacticElement => !isSyntacticClass;
 
+  /// Whether this is a valid `:host` selector.
+  @internal
+  bool get isHost => isClass && name == 'host';
+
+  /// Whether this is a valid `:host-context` selector.
+  @internal
+  bool get isHostContext =>
+      isClass && name == 'host-context' && selector != null;
+
   /// The non-selector argument passed to this selector.
   ///
   /// This is `null` if there's no argument. If [argument] and [selector] are
@@ -84,11 +94,10 @@ class PseudoSelector extends SimpleSelector {
     return name != 'not' && selector.isInvisible;
   }
 
-  PseudoSelector(String name,
+  PseudoSelector(this.name,
       {bool element = false, this.argument, this.selector})
       : isClass = !element && !_isFakePseudoElement(name),
         isSyntacticClass = !element,
-        name = name,
         normalizedName = unvendor(name);
 
   /// Returns whether [name] is the name of a pseudo-element that can be written
@@ -125,9 +134,20 @@ class PseudoSelector extends SimpleSelector {
   }
 
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
-    if (compound.length == 1 && compound.first is UniversalSelector) {
-      return compound.first.unify([this]);
+    if (name == 'host' || name == 'host-context') {
+      if (!compound.every((simple) =>
+          simple is PseudoSelector &&
+          (simple.isHost || simple.selector != null))) {
+        return null;
+      }
+    } else if (compound.length == 1) {
+      var other = compound.first;
+      if (other is UniversalSelector ||
+          (other is PseudoSelector && (other.isHost || other.isHostContext))) {
+        return other.unify([this]);
+      }
     }
+
     if (compound.contains(this)) return compound;
 
     var result = <SimpleSelector>[];

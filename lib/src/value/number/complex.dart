@@ -14,18 +14,22 @@ import '../number.dart';
 /// {@category Value}
 @sealed
 class ComplexSassNumber extends SassNumber {
-  final List<String> numeratorUnits;
+  // We don't use public fields because they'd be overridden by the getters of
+  // the same name in the JS API.
 
-  final List<String> denominatorUnits;
+  List<String> get numeratorUnits => _numeratorUnits;
+  final List<String> _numeratorUnits;
+
+  List<String> get denominatorUnits => _denominatorUnits;
+  final List<String> _denominatorUnits;
 
   bool get hasUnits => true;
 
-  ComplexSassNumber(num value, Iterable<String> numeratorUnits,
-      Iterable<String> denominatorUnits)
-      : this._(value, List.unmodifiable(numeratorUnits),
-            List.unmodifiable(denominatorUnits));
+  ComplexSassNumber(
+      num value, List<String> numeratorUnits, List<String> denominatorUnits)
+      : this._(value, numeratorUnits, denominatorUnits);
 
-  ComplexSassNumber._(num value, this.numeratorUnits, this.denominatorUnits,
+  ComplexSassNumber._(num value, this._numeratorUnits, this._denominatorUnits,
       [Tuple2<SassNumber, SassNumber>? asSlash])
       : super.protected(value, asSlash) {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
@@ -34,6 +38,14 @@ class ComplexSassNumber extends SassNumber {
   bool hasUnit(String unit) => false;
 
   bool compatibleWithUnit(String unit) => false;
+
+  @internal
+  bool hasPossiblyCompatibleUnits(SassNumber other) {
+    // This logic is well-defined, and we could implement it in principle.
+    // However, it would be fairly complex and there's no clear need for it yet.
+    throw UnimplementedError(
+        "ComplexSassNumber.hasPossiblyCompatibleUnits is not implemented.");
+  }
 
   SassNumber withValue(num value) =>
       ComplexSassNumber._(value, numeratorUnits, denominatorUnits);

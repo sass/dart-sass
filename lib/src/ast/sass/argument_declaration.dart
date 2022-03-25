@@ -10,6 +10,7 @@ import '../../logger.dart';
 import '../../parse/scss.dart';
 import '../../utils.dart';
 import '../../util/character.dart';
+import '../../util/span.dart';
 import 'argument.dart';
 import 'node.dart';
 
@@ -148,7 +149,9 @@ class ArgumentDeclaration implements SassNode {
         if (names.contains(argument.name)) return false;
       } else if (names.contains(argument.name)) {
         namedUsed++;
-      } else if (argument.defaultValue == null) return false;
+      } else if (argument.defaultValue == null) {
+        return false;
+      }
     }
 
     if (restArgument != null) return true;

@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn('vm')
-
 import 'dart:convert';
 
 import 'package:cli_pkg/testing.dart' as pkg;

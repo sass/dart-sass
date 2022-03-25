@@ -14,6 +14,7 @@ import '../import_cache.dart';
 import '../importer/filesystem.dart';
 import '../logger/tracking.dart';
 import '../parse/parser.dart';
+import '../utils.dart';
 import '../visitor/evaluate.dart';
 
 /// Runs an interactive SassScript shell according to [options].
@@ -42,7 +43,8 @@ Future<void> repl(ExecutableOptions options) async {
         print(evaluator.evaluate(Expression.parse(line, logger: logger)));
       }
     } on SassException catch (error, stackTrace) {
-      _logError(error, stackTrace, line, repl, options, logger);
+      _logError(
+          error, getTrace(error) ?? stackTrace, line, repl, options, logger);
     }
   }
 }

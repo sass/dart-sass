@@ -15,7 +15,14 @@ class UserDefinedCallable<E> implements Callable {
   /// The environment in which this callable was declared.
   final E environment;
 
+  /// Whether this callable was defined in a dependency.
+  ///
+  /// That is, whether this was (transitively) loaded through a load path or
+  /// importer rather than relative to the entrypoint.
+  final bool inDependency;
+
   String get name => declaration.name;
 
-  UserDefinedCallable(this.declaration, this.environment);
+  UserDefinedCallable(this.declaration, this.environment,
+      {required this.inDependency});
 }

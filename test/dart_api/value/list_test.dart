@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn("vm")
-
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
@@ -122,7 +120,7 @@ void main() {
   });
 
   test("a space-separated list is space-separated", () {
-    expect(parseValue("a, b, c").separator, equals(ListSeparator.comma));
+    expect(parseValue("a b c").separator, equals(ListSeparator.space));
   });
 
   test("a bracketed list has brackets", () {

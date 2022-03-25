@@ -43,6 +43,9 @@ final global = UnmodifiableListView([
     if (value == sassNull) return SassString("null", quotes: false);
     if (value is SassNumber) return SassString("number", quotes: false);
     if (value is SassFunction) return SassString("function", quotes: false);
+    if (value is SassCalculation) {
+      return SassString("calculation", quotes: false);
+    }
     assert(value is SassString);
     return SassString("string", quotes: false);
   }),
@@ -57,6 +60,22 @@ final global = UnmodifiableListView([
     } else {
       throw "\$args: $argumentList is not an argument list.";
     }
+  })
+]);
+
+/// The definitions of Sass introspection functions that are only available from
+/// the `sass:meta` module, not as global functions.
+final local = UnmodifiableListView([
+  _function("calc-name", r"$calc", (arguments) {
+    var calculation = arguments[0].assertCalculation("calc");
+    return SassString(calculation.name);
+  }),
+  _function("calc-args", r"$calc", (arguments) {
+    var calculation = arguments[0].assertCalculation("calc");
+    return SassList(calculation.arguments.map((argument) {
+      if (argument is Value) return argument;
+      return SassString(argument.toString(), quotes: false);
+    }), ListSeparator.comma);
   })
 ]);
 

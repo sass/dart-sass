@@ -187,11 +187,13 @@ class ExtensionStore {
       try {
         selector = _extendList(
             originalSelector, selectorSpan, _extensions, mediaContext);
-      } on SassException catch (error) {
-        throw SassException(
-            "From ${error.span.message('')}\n"
-            "${error.message}",
-            error.span);
+      } on SassException catch (error, stackTrace) {
+        throwWithTrace(
+            SassException(
+                "From ${error.span.message('')}\n"
+                "${error.message}",
+                error.span),
+            stackTrace);
       }
     }
 
@@ -330,11 +332,13 @@ class ExtensionStore {
         selectors = _extendComplex(extension.extender.selector,
             extension.extender.span, newExtensions, extension.mediaContext);
         if (selectors == null) continue;
-      } on SassException catch (error) {
-        throw SassException(
-            "From ${extension.extender.span.message('')}\n"
-            "${error.message}",
-            error.span);
+      } on SassException catch (error, stackTrace) {
+        throwWithTrace(
+            SassException(
+                "From ${extension.extender.span.message('')}\n"
+                "${error.message}",
+                error.span),
+            stackTrace);
       }
 
       var containsExtension = selectors.first == extension.extender.selector;
@@ -391,12 +395,14 @@ class ExtensionStore {
       try {
         selector.value = _extendList(selector.value, selector.span,
             newExtensions, _mediaContexts[selector]);
-      } on SassException catch (error) {
+      } on SassException catch (error, stackTrace) {
         // TODO(nweiz): Make this a MultiSpanSassException.
-        throw SassException(
-            "From ${selector.span.message('')}\n"
-            "${error.message}",
-            error.span);
+        throwWithTrace(
+            SassException(
+                "From ${selector.span.message('')}\n"
+                "${error.message}",
+                error.span),
+            stackTrace);
       }
 
       // If no extends actually happened (for example because unification
@@ -409,7 +415,7 @@ class ExtensionStore {
   /// Extends [this] with all the extensions in [extensions].
   ///
   /// These extensions will extend all selectors already in [this], but they
-  /// will *not* extend other extensions from [extenders].
+  /// will *not* extend other extensions from [extensionStores].
   void addExtensions(Iterable<ExtensionStore> extensionStores) {
     // Extensions already in [this] whose extenders are extended by
     // [extensions], and thus which need to be updated.
@@ -445,21 +451,18 @@ class ExtensionStore {
         // Add [newSources] to [_extensions].
         var existingSources = _extensions[target];
         if (existingSources == null) {
-          _extensions[target] = newSources;
+          _extensions[target] = Map.of(newSources);
           if (extensionsForTarget != null || selectorsForTarget != null) {
-            (newExtensions ??= {})[target] = newSources;
+            (newExtensions ??= {})[target] = Map.of(newSources);
           }
         } else {
           newSources.forEach((extender, extension) {
-            // If [extender] already extends [target] in [_extensions], we don't
-            // need to re-run the extension.
-            if (existingSources.containsKey(extender)) return;
-            existingSources[extender] = extension;
+            extension = existingSources.putOrMerge(
+                extender, extension, MergedExtension.merge);
 
             if (extensionsForTarget != null || selectorsForTarget != null) {
-              (newExtensions ??= {})
-                  .putIfAbsent(target, () => {})
-                  .putIfAbsent(extender, () => extension);
+              (newExtensions ??= {}).putIfAbsent(target, () => {})[extender] =
+                  extension;
             }
           });
         }

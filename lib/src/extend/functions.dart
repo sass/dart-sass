@@ -404,14 +404,18 @@ List<List<List<ComplexSelectorComponent>>>? _mergeFinalCombinators(
       result.addFirst([
         [compound2, combinator2]
       ]);
-      components1..add(compound1)..add(Combinator.child);
+      components1
+        ..add(compound1)
+        ..add(Combinator.child);
     } else if (combinator2 == Combinator.child &&
         (combinator1 == Combinator.nextSibling ||
             combinator1 == Combinator.followingSibling)) {
       result.addFirst([
         [compound1, combinator1]
       ]);
-      components2..add(compound2)..add(Combinator.child);
+      components2
+        ..add(compound2)
+        ..add(Combinator.child);
     } else if (combinator1 == combinator2) {
       var unified = unifyCompound(compound1.components, compound2.components);
       if (unified == null) return null;

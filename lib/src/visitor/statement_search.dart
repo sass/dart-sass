@@ -105,5 +105,6 @@ extension _IterableExtension<E> on Iterable<E> {
       var value = callback(element);
       if (value != null) return value;
     }
+    return null;
   }
 }

@@ -19,11 +19,11 @@ released yet. Because this package directly re-exports names from the main
 dependency_overrides:
   sass:
     git:
-      url: git://github.com/sass/sass
+      url: https://github.com/sass/sass
       ref: main # Replace this with a feature branch if necessary
   sass_api:
     git:
-      url: git://github.com/sass/sass
+      url: https://github.com/sass/sass
       ref: main # Make sure this is the same as above!
       path: pkg/sass_api
 ```

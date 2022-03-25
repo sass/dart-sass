@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:collection';
-
 import 'package:meta/meta.dart';
 import 'package:tuple/tuple.dart';
 
@@ -13,6 +11,28 @@ import '../../util/nullable.dart';
 import '../../value.dart';
 import '../number.dart';
 
+/// Sets of units that are known to be compatible with one another in the
+/// browser.
+///
+/// These units are likewise known to be *incompatible* with units in other
+/// sets in this list.
+const _knownCompatibilities = [
+  {
+    "em", "ex", "ch", "rem", "vw", "vh", "vmin", "vmax", "cm", "mm", "q", //
+    "in", "pt", "pc", "px"
+  },
+  {"deg", "grad", "rad", "turn"},
+  {"s", "ms"},
+  {"hz", "khz"},
+  {"dpi", "dpcm", "dppx"}
+];
+
+/// A map from units to the other units they're known to be compatible with.
+final _knownCompatibilitiesByUnit = {
+  for (var set in _knownCompatibilities)
+    for (var unit in set) unit: set
+};
+
 /// A specialized subclass of [SassNumber] for numbers that have exactly one
 /// numerator unit.
 ///
@@ -21,7 +41,7 @@ import '../number.dart';
 class SingleUnitSassNumber extends SassNumber {
   final String _unit;
 
-  List<String> get numeratorUnits => UnmodifiableListView([_unit]);
+  List<String> get numeratorUnits => List.unmodifiable([_unit]);
 
   List<String> get denominatorUnits => const [];
 
@@ -38,14 +58,35 @@ class SingleUnitSassNumber extends SassNumber {
 
   bool hasUnit(String unit) => unit == _unit;
 
+  bool hasCompatibleUnits(SassNumber other) =>
+      other is SingleUnitSassNumber && compatibleWithUnit(other._unit);
+
+  @internal
+  bool hasPossiblyCompatibleUnits(SassNumber other) {
+    if (other is! SingleUnitSassNumber) return false;
+
+    var knownCompatibilities = _knownCompatibilitiesByUnit[_unit.toLowerCase()];
+    if (knownCompatibilities == null) return true;
+
+    var otherUnit = other._unit.toLowerCase();
+    return knownCompatibilities.contains(otherUnit) ||
+        !_knownCompatibilitiesByUnit.containsKey(otherUnit);
+  }
+
   bool compatibleWithUnit(String unit) => conversionFactor(_unit, unit) != null;
 
   SassNumber coerceToMatch(SassNumber other,
           [String? name, String? otherName]) =>
-      convertToMatch(other, name, otherName);
+      (other is SingleUnitSassNumber ? _coerceToUnit(other._unit) : null) ??
+      // Call this to generate a consistent error message.
+      super.coerceToMatch(other, name, otherName);
 
   num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
-      convertValueToMatch(other, name, otherName);
+      (other is SingleUnitSassNumber
+          ? _coerceValueToUnit(other._unit)
+          : null) ??
+      // Call this to generate a consistent error message.
+      super.coerceValueToMatch(other, name, otherName);
 
   SassNumber convertToMatch(SassNumber other,
           [String? name, String? otherName]) =>
@@ -123,5 +164,6 @@ class SingleUnitSassNumber extends SassNumber {
     }
   }
 
-  int get hashCode => fuzzyHashCode(value * canonicalMultiplierForUnit(_unit));
+  int get hashCode =>
+      hashCache ??= fuzzyHashCode(value * canonicalMultiplierForUnit(_unit));
 }
