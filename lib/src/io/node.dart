@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_util';
 
+import 'package:async/async.dart';
 import 'package:js/js.dart';
 import 'package:node_interop/fs.dart';
 import 'package:node_interop/node_interop.dart';
@@ -215,10 +216,12 @@ int get exitCode => process.exitCode;
 
 set exitCode(int code) => process.exitCode = code;
 
-void ensureWatchWillExit() {
+CancelableOperation<void> onStdinClose() {
+  var completer = CancelableCompleter<void>();
   if (isStdinTTY == true) {
-    process.stdin.on('end', allowInterop(() => process.exit(0)));
+    process.stdin.on('end', allowInterop(() => completer.complete()));
   }
+  return completer.operation;
 }
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {

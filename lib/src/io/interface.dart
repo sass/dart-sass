@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:async/async.dart';
 import 'package:watcher/watcher.dart';
 
 /// An output sink that writes to this process's standard error.
@@ -94,13 +95,14 @@ String? getEnvironmentVariable(String name) => throw '';
 int get exitCode => throw '';
 set exitCode(int value) => throw '';
 
-/// Attaches a listener to exit when stdin closes.
+/// If stdin is a TTY, returns a [CancelableOperation] that completes once it
+/// closes.
 ///
-/// The listener is *not* attached when stdin is a TTY because it would
-/// interfere with the Unix background job system. If we read from stdin and
-/// then Ctrl+Z to move the process to the background, it will incorrectly
-/// cause the job to stop. See: https://github.com/brunch/brunch/issues/998.
-void ensureWatchWillExit() => throw '';
+/// Otherwise, returns a [CancelableOperation] that never completes.
+///
+/// As long as this is uncanceled, it will monopolize stdin so that nothing else
+/// can read from it.
+CancelableOperation<void> onStdinClose() => throw '';
 
 /// Recursively watches the directory at [path] for modifications.
 ///

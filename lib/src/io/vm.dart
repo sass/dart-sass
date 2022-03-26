@@ -90,9 +90,9 @@ DateTime modificationTime(String path) {
 
 String? getEnvironmentVariable(String name) => io.Platform.environment[name];
 
-void ensureWatchWillExit() {
-  if (!io.stdin.hasTerminal) io.stdin.listen(null, onDone: () => io.exit(0));
-}
+CancelableOperation<void> onStdinClose() => io.stdin.hasTerminal
+    ? CancelableOperation.fromSubscription(io.stdin.listen(null))
+    : CancelableCompleter<void>().operation;
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   var watcher = poll ? PollingDirectoryWatcher(path) : DirectoryWatcher(path);
