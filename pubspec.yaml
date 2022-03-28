@@ -22,7 +22,7 @@ dependencies:
   typed_data: ^1.1.0
 
 dev_dependencies:
-  cli_pkg: ^1.4.0
+  cli_pkg: ^2.1.0
   grinder: ^0.9.0
   protoc_plugin: ^20.0.0
   test: ^1.0.0
@@ -31,4 +31,4 @@ dev_dependencies:
   pubspec_parse: ^1.0.0
   pub_semver: ^2.0.0
   sass_analysis:
-    git: {url: git://github.com/sass/dart-sass, path: analysis}
+    git: {url: https://github.com/sass/dart-sass.git, path: analysis}

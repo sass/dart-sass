@@ -51,7 +51,7 @@ dart pub run protoc_plugin %*
   }
 
   if (Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
-    await cloneOrPull("git://github.com/sass/embedded-protocol");
+    await cloneOrPull("https://github.com/sass/embedded-protocol.git");
   }
 
   await runAsync("protoc",
