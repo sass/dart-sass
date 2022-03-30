@@ -2330,7 +2330,7 @@ class _EvaluateVisitor
               await _visitCalculationValue(node.left, inMinMax: inMinMax),
               await _visitCalculationValue(node.right, inMinMax: inMinMax),
               inMinMax: inMinMax,
-              inSupportsDeclaration: _inSupportsDeclaration));
+              simplify: !_inSupportsDeclaration));
     } else {
       assert(node is NumberExpression ||
           node is CalculationExpression ||

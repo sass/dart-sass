@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 23fd5fd9f72db86861329c0ca2e0f78229153c14
+// Checksum: 45277707f5ab21408f3abb8f249ed7115e0a3c0f
 //
 // ignore_for_file: unused_import
 
@@ -2318,7 +2318,7 @@ class _EvaluateVisitor
               _visitCalculationValue(node.left, inMinMax: inMinMax),
               _visitCalculationValue(node.right, inMinMax: inMinMax),
               inMinMax: inMinMax,
-              inSupportsDeclaration: _inSupportsDeclaration));
+              simplify: !_inSupportsDeclaration));
     } else {
       assert(node is NumberExpression ||
           node is CalculationExpression ||

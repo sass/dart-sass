@@ -169,8 +169,7 @@ class SassCalculation extends Value {
   /// a [CalculationInterpolation].
   static Object operate(
           CalculationOperator operator, Object left, Object right) =>
-      operateInternal(operator, left, right,
-          inMinMax: false, inSupportsDeclaration: false);
+      operateInternal(operator, left, right, inMinMax: false, simplify: true);
 
   /// Like [operate], but with the internal-only [inMinMax] parameter.
   ///
@@ -178,12 +177,12 @@ class SassCalculation extends Value {
   /// subtracted with numbers with units, for backwards-compatibility with the
   /// old global `min()` and `max()` functions.
   ///
-  /// If [inSupportsDeclaration] is `true`, no simplification will be done.
+  /// If [simplify] is `false`, no simplification will be done.
   @internal
   static Object operateInternal(
       CalculationOperator operator, Object left, Object right,
-      {required bool inMinMax, required bool inSupportsDeclaration}) {
-    if (inSupportsDeclaration) {
+      {required bool inMinMax, required bool simplify}) {
+    if (!simplify) {
       return CalculationOperation._(operator, left, right);
     }
     left = _simplify(left);
