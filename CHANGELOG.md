@@ -19,6 +19,8 @@
   could be emitted as a hex color rather than a format with higher browser
   compatibility.
 
+* Calculations are no longer simplified within supports declarations
+
 ## 1.49.9
 
 ### Embedded Sass
