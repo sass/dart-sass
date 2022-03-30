@@ -63,7 +63,7 @@ packages:
       name: cli_pkg
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.7.0"
+    version: "2.1.0"
   cli_repl:
     dependency: transitive
     description:
@@ -315,14 +315,14 @@ packages:
       name: sass
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.49.9"
+    version: "1.49.10"
   sass_analysis:
     dependency: "direct dev"
     description:
       path: analysis
       ref: HEAD
-      resolved-ref: "13099d497a6b6b6afd0b458e751eeab1661633ca"
-      url: "git://github.com/sass/dart-sass"
+      resolved-ref: "6652001f19710f96947ad02341d67e522a1739ac"
+      url: "https://github.com/sass/dart-sass.git"
     source: git
     version: "0.0.0"
   sass_api:
@@ -331,7 +331,7 @@ packages:
       name: sass_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0-beta.38"
+    version: "1.0.0-beta.39"
   shelf:
     dependency: transitive
     description:

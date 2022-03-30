@@ -1,3 +1,26 @@
+## 1.49.10
+
+* Quiet deps mode now silences compiler warnings in mixins and functions that
+  are defined in dependencies even if they're invoked from application
+  stylesheets.
+
+* In expanded mode, Sass will now emit colors using `rgb()`, `rbga()`, `hsl()`,
+  and `hsla()` function notation if they were defined using the corresponding
+  notation. As per our browser support policy, this change was only done once
+  95% of browsers were confirmed to support this output format, and so is not
+  considered a breaking change.
+
+  Note that this output format is intended for human readability and not for
+  interoperability with other tools. As always, Sass targets the CSS
+  specification, and any tool that consumes Sass's output should parse all
+  colors that are supported by the CSS spec.
+
+* Fix a bug in which a color written using the four- or eight-digit hex format
+  could be emitted as a hex color rather than a format with higher browser
+  compatibility.
+
+* Calculations are no longer simplified within supports declarations
+
 ## 1.49.9
 
 ### Embedded Sass
