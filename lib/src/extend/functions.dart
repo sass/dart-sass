@@ -24,6 +24,7 @@ import '../utils.dart';
 final _subselectorPseudos = {
   'is',
   'matches',
+  'where',
   'any',
   'nth-child',
   'nth-last-child'
@@ -747,6 +748,7 @@ bool _selectorPseudoIsSuperselector(
     case 'is':
     case 'matches':
     case 'any':
+    case 'where':
       var selectors = _selectorPseudoArgs(compound2, pseudo1.name);
       return selectors
               .any((selector2) => selector1.isSuperselector(selector2)) ||

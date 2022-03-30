@@ -1,3 +1,9 @@
+## 1.49.12
+
+* [`:where()`] now behaves similarly to `:is()`, except for |something complex about extend?...]
+
+[`:where()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:where
+
 ## 1.49.11
 
 * Add support for 64-bit ARM releases on Linux.
