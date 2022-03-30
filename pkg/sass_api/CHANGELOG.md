@@ -1,3 +1,7 @@
+## 1.0.0-beta.39
+
+* No user-visible changes.
+
 ## 1.0.0-beta.38
 
 * No user-visible changes.
