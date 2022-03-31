@@ -1,5 +1,5 @@
 name: sass_embedded
-version: 1.49.10
+version: 1.49.11-dev
 description: An implementation of the Sass embedded protocol using Dart Sass.
 homepage: https://github.com/sass/dart-sass-embedded
 

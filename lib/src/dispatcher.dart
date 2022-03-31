@@ -227,11 +227,17 @@ class Dispatcher {
       case OutboundMessage_Message.importRequest:
         message.importRequest.id = id;
         break;
+      case OutboundMessage_Message.fileImportRequest:
+        message.fileImportRequest.id = id;
+        break;
       case OutboundMessage_Message.functionCallRequest:
         message.functionCallRequest.id = id;
         break;
-      default:
+      case OutboundMessage_Message.versionResponse:
+        message.versionResponse.id = id;
         break;
+      default:
+        throw ArgumentError("Unknown message type: ${message.toDebugString()}");
     }
   }
 
