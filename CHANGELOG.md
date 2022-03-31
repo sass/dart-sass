@@ -1,3 +1,12 @@
+## 1.49.11
+
+* Add support for 64-bit ARM releases on Linux.
+
+### Embedded Sass
+
+* The embedded compiler now correctly sets the `id` field for all
+  `OutboundMessage`s.
+
 ## 1.49.10
 
 * Quiet deps mode now silences compiler warnings in mixins and functions that
