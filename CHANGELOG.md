@@ -1,6 +1,6 @@
 ## 1.49.12
 
-* [`:where()`] now behaves similarly to `:is()`, except for |something complex about extend?...]
+* `@extend` now treats [`:where()`] the same as `:is()`.
 
 [`:where()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:where
 
