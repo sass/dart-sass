@@ -1,3 +1,22 @@
+## 1.49.12
+
+### Embedded Sass
+
+* Fix a bug where the JS embedded host crashed when invoking a legacy importer
+  after resolving a relative filesystem import.
+
+* Improve error messages when returning non-`Object` values from legacy
+  importers.
+
+## 1.49.11
+
+* Add support for 64-bit ARM releases on Linux.
+
+### Embedded Sass
+
+* The embedded compiler now correctly sets the `id` field for all
+  `OutboundMessage`s.
+
 ## 1.49.10
 
 * Quiet deps mode now silences compiler warnings in mixins and functions that
@@ -18,6 +37,8 @@
 * Fix a bug in which a color written using the four- or eight-digit hex format
   could be emitted as a hex color rather than a format with higher browser
   compatibility.
+
+* Calculations are no longer simplified within supports declarations
 
 ## 1.49.9
 

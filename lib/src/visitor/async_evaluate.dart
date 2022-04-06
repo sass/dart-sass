@@ -219,6 +219,11 @@ class _EvaluateVisitor
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
 
+  /// Whether we're currently evaluating a [SupportsDeclaration].
+  ///
+  /// When this is true, calculations will not be simplified.
+  var _inSupportsDeclaration = false;
+
   /// The canonical URLs of all stylesheets loaded during compilation.
   final _loadedUrls = <Uri>{};
 
@@ -1949,9 +1954,13 @@ class _EvaluateVisitor
     } else if (condition is SupportsInterpolation) {
       return await _evaluateToCss(condition.expression, quote: false);
     } else if (condition is SupportsDeclaration) {
-      return "(${await _evaluateToCss(condition.name)}:"
+      var oldInSupportsDeclaration = _inSupportsDeclaration;
+      _inSupportsDeclaration = true;
+      var result = "(${await _evaluateToCss(condition.name)}:"
           "${condition.isCustomProperty ? '' : ' '}"
           "${await _evaluateToCss(condition.value)})";
+      _inSupportsDeclaration = oldInSupportsDeclaration;
+      return result;
     } else if (condition is SupportsFunction) {
       return "${await _performInterpolation(condition.name)}("
           "${await _performInterpolation(condition.arguments)})";
@@ -2227,6 +2236,9 @@ class _EvaluateVisitor
         await _visitCalculationValue(argument,
             inMinMax: node.name == 'min' || node.name == 'max')
     ];
+    if (_inSupportsDeclaration) {
+      return SassCalculation.unsimplified(node.name, arguments);
+    }
 
     try {
       switch (node.name) {
@@ -2317,7 +2329,8 @@ class _EvaluateVisitor
               _binaryOperatorToCalculationOperator(node.operator),
               await _visitCalculationValue(node.left, inMinMax: inMinMax),
               await _visitCalculationValue(node.right, inMinMax: inMinMax),
-              inMinMax: inMinMax));
+              inMinMax: inMinMax,
+              simplify: !_inSupportsDeclaration));
     } else {
       assert(node is NumberExpression ||
           node is CalculationExpression ||
@@ -2823,7 +2836,9 @@ class _EvaluateVisitor
   Future<SassString> visitStringExpression(StringExpression node) async {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
-    return SassString(
+    var oldInSupportsDeclaration = _inSupportsDeclaration;
+    _inSupportsDeclaration = false;
+    var result = SassString(
         (await mapAsync(node.text.contents, (value) async {
           if (value is String) return value;
           var expression = value as Expression;
@@ -2834,6 +2849,8 @@ class _EvaluateVisitor
         }))
             .join(),
         quotes: node.hasQuotes);
+    _inSupportsDeclaration = oldInSupportsDeclaration;
+    return result;
   }
 
   // ## Plain CSS
@@ -3088,7 +3105,9 @@ class _EvaluateVisitor
   /// values passed into the interpolation.
   Future<String> _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) async {
-    return (await mapAsync(interpolation.contents, (value) async {
+    var oldInSupportsDeclaration = _inSupportsDeclaration;
+    _inSupportsDeclaration = false;
+    var result = (await mapAsync(interpolation.contents, (value) async {
       if (value is String) return value;
       var expression = value as Expression;
       var result = await expression.accept(this);
@@ -3115,6 +3134,8 @@ class _EvaluateVisitor
       return _serialize(result, expression, quote: false);
     }))
         .join();
+    _inSupportsDeclaration = oldInSupportsDeclaration;
+    return result;
   }
 
   /// Evaluates [expression] and calls `toCssString()` and wraps a

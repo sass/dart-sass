@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f11bdd289c888e0e0737bc96e63283bc8a332d9a
+// Checksum: 45277707f5ab21408f3abb8f249ed7115e0a3c0f
 //
 // ignore_for_file: unused_import
 
@@ -226,6 +226,11 @@ class _EvaluateVisitor
 
   /// Whether we're currently building the output of a `@keyframes` rule.
   var _inKeyframes = false;
+
+  /// Whether we're currently evaluating a [SupportsDeclaration].
+  ///
+  /// When this is true, calculations will not be simplified.
+  var _inSupportsDeclaration = false;
 
   /// The canonical URLs of all stylesheets loaded during compilation.
   final _loadedUrls = <Uri>{};
@@ -1942,9 +1947,13 @@ class _EvaluateVisitor
     } else if (condition is SupportsInterpolation) {
       return _evaluateToCss(condition.expression, quote: false);
     } else if (condition is SupportsDeclaration) {
-      return "(${_evaluateToCss(condition.name)}:"
+      var oldInSupportsDeclaration = _inSupportsDeclaration;
+      _inSupportsDeclaration = true;
+      var result = "(${_evaluateToCss(condition.name)}:"
           "${condition.isCustomProperty ? '' : ' '}"
           "${_evaluateToCss(condition.value)})";
+      _inSupportsDeclaration = oldInSupportsDeclaration;
+      return result;
     } else if (condition is SupportsFunction) {
       return "${_performInterpolation(condition.name)}("
           "${_performInterpolation(condition.arguments)})";
@@ -2216,6 +2225,9 @@ class _EvaluateVisitor
         _visitCalculationValue(argument,
             inMinMax: node.name == 'min' || node.name == 'max')
     ];
+    if (_inSupportsDeclaration) {
+      return SassCalculation.unsimplified(node.name, arguments);
+    }
 
     try {
       switch (node.name) {
@@ -2305,7 +2317,8 @@ class _EvaluateVisitor
               _binaryOperatorToCalculationOperator(node.operator),
               _visitCalculationValue(node.left, inMinMax: inMinMax),
               _visitCalculationValue(node.right, inMinMax: inMinMax),
-              inMinMax: inMinMax));
+              inMinMax: inMinMax,
+              simplify: !_inSupportsDeclaration));
     } else {
       assert(node is NumberExpression ||
           node is CalculationExpression ||
@@ -2804,7 +2817,9 @@ class _EvaluateVisitor
   SassString visitStringExpression(StringExpression node) {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
-    return SassString(
+    var oldInSupportsDeclaration = _inSupportsDeclaration;
+    _inSupportsDeclaration = false;
+    var result = SassString(
         node.text.contents.map((value) {
           if (value is String) return value;
           var expression = value as Expression;
@@ -2814,6 +2829,8 @@ class _EvaluateVisitor
               : _serialize(result, expression, quote: false);
         }).join(),
         quotes: node.hasQuotes);
+    _inSupportsDeclaration = oldInSupportsDeclaration;
+    return result;
   }
 
   // ## Plain CSS
@@ -3064,7 +3081,9 @@ class _EvaluateVisitor
   /// values passed into the interpolation.
   String _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) {
-    return interpolation.contents.map((value) {
+    var oldInSupportsDeclaration = _inSupportsDeclaration;
+    _inSupportsDeclaration = false;
+    var result = interpolation.contents.map((value) {
       if (value is String) return value;
       var expression = value as Expression;
       var result = expression.accept(this);
@@ -3090,6 +3109,8 @@ class _EvaluateVisitor
 
       return _serialize(result, expression, quote: false);
     }).join();
+    _inSupportsDeclaration = oldInSupportsDeclaration;
+    return result;
   }
 
   /// Evaluates [expression] and calls `toCssString()` and wraps a
