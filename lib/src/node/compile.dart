@@ -75,7 +75,10 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
             ascii: ascii),
         importers: options?.importers?.map(_parseImporter),
         importer: options?.importer.andThen(_parseImporter) ??
-            (options?.url == null ? NoOpImporter() : null),
+            (options?.url != null &&
+                    options!.url!.toString().startsWith('file:')
+                ? null
+                : NoOpImporter()),
         functions: _parseFunctions(options?.functions).cast());
     return _convertResult(result,
         includeSourceContents: options?.sourceMapIncludeSources ?? false);
@@ -132,7 +135,10 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
             ?.map((importer) => _parseAsyncImporter(importer)),
         importer: options?.importer
                 .andThen((importer) => _parseAsyncImporter(importer)) ??
-            (options?.url == null ? NoOpImporter() : null),
+            (options?.url != null &&
+                    options!.url!.toString().startsWith('file:')
+                ? null
+                : NoOpImporter()),
         functions: _parseFunctions(options?.functions, asynch: true));
     return _convertResult(result,
         includeSourceContents: options?.sourceMapIncludeSources ?? false);
