@@ -1,3 +1,13 @@
+## 1.49.12
+
+### Embedded Sass
+
+* Fix a bug where the JS embedded host crashed when invoking a legacy importer
+  after resolving a relative filesystem import.
+
+* Improve error messages when returning non-`Object` values from legacy
+  importers.
+
 ## 1.49.11
 
 * Add support for 64-bit ARM releases on Linux.
