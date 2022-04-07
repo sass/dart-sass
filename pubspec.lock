@@ -35,7 +35,7 @@ packages:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.8.2"
+    version: "2.9.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -315,7 +315,7 @@ packages:
       name: sass
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.49.11"
+    version: "1.50.0"
   sass_analysis:
     dependency: "direct dev"
     description:
@@ -331,7 +331,7 @@ packages:
       name: sass_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0-beta.40"
+    version: "1.0.0-beta.41"
   shelf:
     dependency: transitive
     description:
