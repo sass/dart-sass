@@ -1,4 +1,9 @@
-## 1.49.12
+## 1.50.0
+
+### Command Line Interface
+
+* Closing the standard input stream will now cause the `--watch` command to stop
+  running.
 
 ### Embedded Sass
 

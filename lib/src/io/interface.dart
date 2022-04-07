@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:async/async.dart';
 import 'package:watcher/watcher.dart';
 
 /// An output sink that writes to this process's standard error.
@@ -93,6 +94,15 @@ String? getEnvironmentVariable(String name) => throw '';
 /// Gets and sets the exit code that the process will use when it exits.
 int get exitCode => throw '';
 set exitCode(int value) => throw '';
+
+/// If stdin is a TTY, returns a [CancelableOperation] that completes once it
+/// closes.
+///
+/// Otherwise, returns a [CancelableOperation] that never completes.
+///
+/// As long as this is uncanceled, it will monopolize stdin so that nothing else
+/// can read from it.
+CancelableOperation<void> onStdinClose() => throw '';
 
 /// Recursively watches the directory at [path] for modifications.
 ///
