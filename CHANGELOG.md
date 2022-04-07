@@ -1,8 +1,21 @@
-## 1.49.12
+## 1.50.0
 
 * `@extend` now treats [`:where()`] the same as `:is()`.
 
 [`:where()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:where
+
+### Command Line Interface
+
+* Closing the standard input stream will now cause the `--watch` command to stop
+  running.
+
+### Embedded Sass
+
+* Fix a bug where the JS embedded host crashed when invoking a legacy importer
+  after resolving a relative filesystem import.
+
+* Improve error messages when returning non-`Object` values from legacy
+  importers.
 
 ## 1.49.11
 

@@ -4,6 +4,7 @@
 
 import 'dart:isolate';
 
+import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
@@ -55,7 +56,8 @@ Future<void> main(List<String> args) async {
     var graph = StylesheetGraph(
         ImportCache(loadPaths: options.loadPaths, logger: options.logger));
     if (options.watch) {
-      await watch(options, graph);
+      await CancelableOperation.race([onStdinClose(), watch(options, graph)])
+          .valueOrCancellation();
       return;
     }
 
