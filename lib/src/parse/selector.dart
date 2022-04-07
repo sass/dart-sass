@@ -15,6 +15,7 @@ final _selectorPseudoClasses = {
   "not",
   "is",
   "matches",
+  "where",
   "current",
   "any",
   "has",

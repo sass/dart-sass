@@ -1,5 +1,9 @@
 ## 1.50.0
 
+* `@extend` now treats [`:where()`] the same as `:is()`.
+
+[`:where()`]: https://developer.mozilla.org/en-US/docs/Web/CSS/:where
+
 ### Command Line Interface
 
 * Closing the standard input stream will now cause the `--watch` command to stop
