@@ -218,7 +218,7 @@ set exitCode(int code) => process.exitCode = code;
 
 CancelableOperation<void> onStdinClose() {
   var completer = CancelableCompleter<void>();
-  if (isStdinTTY == true) {
+  if (isStdinTTY != true) {
     process.stdin.on('end', allowInterop(() => completer.complete()));
   }
   return completer.operation;
