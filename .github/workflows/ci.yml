@@ -57,6 +57,90 @@ jobs:
       - name: Run tests
         run: dart run test -r expanded
 
+  # The versions should be kept up-to-date with the latest LTS Node releases.
+  # They next need to be rotated October 2021. See
+  # https://github.com/nodejs/Release.
+  sass_spec:
+    name: 'JS API Tests | Node ${{ matrix.node_version }} | ${{ matrix.os }}'
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows, macos]
+        node_version: [16]
+        include:
+          # Include LTS versions on Ubuntu
+          - os: ubuntu
+            node_version: 14
+          - os: ubuntu
+            node_version: 12
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: stable}
+      - uses: actions/setup-node@v2
+        with: {node-version: "${{ matrix.node_version }}"}
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: '${{ github.token }}'
+
+      - name: Check out Dart Sass
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/dart-sass, default-ref: null}
+
+      - name: Add Dart Sass to pubspec
+        run: |
+          if [[ -d build/dart-sass ]]; then
+            (
+              echo "dependency_overrides:"
+              echo "  sass: {path: build/dart-sass}"
+              echo "  sass_api: {path: build/dart-sass/pkg/sass_api}"
+            ) >> pubspec.yaml
+          fi
+        shell: bash
+
+      - name: Check out embedded Sass protocol
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/embedded-protocol, path: build/embedded-protocol}
+
+      - name: Check out the embedded host
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/embedded-host-node}
+
+      - name: Check out the JS API definition
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/sass, path: language}
+
+      - name: "Embedded host: npm install"
+        run: npm install
+        working-directory: embedded-host-node
+      - name: "Embedded host: npm run init"
+        run: |
+          npm run init -- --protocol-path=../build/embedded-protocol --compiler-path=.. --api-path=../language
+        working-directory: embedded-host-node
+
+      - name: Check out sass-spec
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/sass-spec}
+
+      - name: Install sass-spec dependencies
+        run: npm install
+        working-directory: sass-spec
+
+      - name: Compile embedded host
+        run: |
+          npm run compile
+          ln -s {`pwd`/,dist/}lib/src/vendor/dart-sass-embedded
+        shell: bash
+        working-directory: embedded-host-node
+
+      - name: Run tests
+        run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../language
+        working-directory: sass-spec
+
   static_analysis:
     name: Static analysis
     runs-on: ubuntu-latest
