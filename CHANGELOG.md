@@ -1,3 +1,11 @@
+## 1.50.1
+
+### Embedded Sass
+
+* The JS embedded host and the embedded compiler will now properly avoid
+  resolving imports relative to the current working directory unless `'.'` is
+  passed as a load path.
+
 ## 1.50.0
 
 * `@extend` now treats [`:where()`] the same as `:is()`.
