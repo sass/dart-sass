@@ -71,7 +71,8 @@ void main(List<String> args) {
               color: request.alertColor,
               logger: logger,
               importers: importers,
-              importer: _decodeImporter(dispatcher, request, input.importer),
+              importer: _decodeImporter(dispatcher, request, input.importer) ??
+                  (input.url.startsWith("file:") ? null : sass.Importer.noOp),
               functions: globalFunctions,
               syntax: syntaxToSyntax(input.syntax),
               style: style,
