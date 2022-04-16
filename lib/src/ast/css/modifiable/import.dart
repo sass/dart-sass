@@ -17,6 +17,9 @@ class ModifiableCssImport extends ModifiableCssNode implements CssImport {
   /// This includes quotes.
   final CssValue<String> url;
 
+  /// The layer attached to this import.
+  final CssValue<String>? layer;
+
   /// The supports condition attached to this import.
   final CssValue<String>? supports;
 
@@ -26,7 +29,7 @@ class ModifiableCssImport extends ModifiableCssNode implements CssImport {
   final FileSpan span;
 
   ModifiableCssImport(this.url, this.span,
-      {this.supports, Iterable<CssMediaQuery>? media})
+      {this.layer, this.supports, Iterable<CssMediaQuery>? media})
       : media = media == null ? null : List.unmodifiable(media);
 
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssImport(this);

@@ -49,7 +49,7 @@ class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
 
   ModifiableCssImport visitCssImport(CssImport node) =>
       ModifiableCssImport(node.url, node.span,
-          supports: node.supports, media: node.media);
+          layer: node.layer, supports: node.supports, media: node.media);
 
   ModifiableCssKeyframeBlock visitCssKeyframeBlock(CssKeyframeBlock node) =>
       _visitChildren(

@@ -20,6 +20,10 @@ class StaticImport implements Import {
   /// This already contains quotes.
   final Interpolation url;
 
+  /// The layer attached to this import, or `null` if no condition
+  /// is attached.
+  final Interpolation? layer;
+
   /// The supports condition attached to this import, or `null` if no condition
   /// is attached.
   final SupportsCondition? supports;
@@ -30,10 +34,11 @@ class StaticImport implements Import {
 
   final FileSpan span;
 
-  StaticImport(this.url, this.span, {this.supports, this.media});
+  StaticImport(this.url, this.span, {this.layer, this.supports, this.media});
 
   String toString() {
     var buffer = StringBuffer(url);
+    if (layer != null) buffer.write(" $layer");
     if (supports != null) buffer.write(" supports($supports)");
     if (media != null) buffer.write(" $media");
     buffer.writeCharCode($semicolon);

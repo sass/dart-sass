@@ -1089,7 +1089,9 @@ abstract class StylesheetParser extends Parser {
       var queries = tryImportQueries();
       return StaticImport(Interpolation([url], scanner.spanFrom(start)),
           scanner.spanFrom(start),
-          supports: queries?.item1, media: queries?.item2);
+          layer: queries?.item3,
+          supports: queries?.item1,
+          media: queries?.item2);
     }
 
     var url = string();
@@ -1099,7 +1101,9 @@ abstract class StylesheetParser extends Parser {
     if (isPlainImportUrl(url) || queries != null) {
       return StaticImport(
           Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
-          supports: queries?.item1, media: queries?.item2);
+          layer: queries?.item3,
+          supports: queries?.item1,
+          media: queries?.item2);
     } else {
       try {
         return DynamicImport(parseImportUrl(url), urlSpan);
@@ -1135,10 +1139,33 @@ abstract class StylesheetParser extends Parser {
     return url.startsWith("http://") || url.startsWith("https://");
   }
 
-  /// Consumes a supports condition and/or a media query after an `@import`.
+  /// Consumes a supports condition and/or a media query and/or a layer after an `@import`.
   ///
   /// Returns `null` if neither type of query can be found.
-  Tuple2<SupportsCondition?, Interpolation?>? tryImportQueries() {
+  Tuple3<SupportsCondition?, Interpolation?, Interpolation?>?
+      tryImportQueries() {
+    Interpolation? layer;
+    var start = scanner.state;
+    if (scanIdentifier("layer")) {
+      var buffer = InterpolationBuffer()..write("layer");
+      if (scanner.scanChar($lparen)) {
+        buffer.writeCharCode($lparen);
+        whitespace();
+
+        buffer.addInterpolation(interpolatedIdentifier());
+        while (scanner.scanChar($dot)) {
+          buffer.writeCharCode($dot);
+          buffer.addInterpolation(interpolatedIdentifier());
+        }
+
+        whitespace();
+        scanner.expectChar($rparen);
+        buffer.writeCharCode($rparen);
+      }
+      layer = buffer.interpolation(scanner.spanFrom(start));
+      whitespace();
+    }
+
     SupportsCondition? supports;
     if (scanIdentifier("supports")) {
       scanner.expectChar($lparen);
@@ -1181,8 +1208,8 @@ abstract class StylesheetParser extends Parser {
         _lookingAtInterpolatedIdentifier() || scanner.peekChar() == $lparen
             ? _mediaQueryList()
             : null;
-    if (supports == null && media == null) return null;
-    return Tuple2(supports, media);
+    if (supports == null && media == null && layer == null) return null;
+    return Tuple3(supports, media, layer);
   }
 
   /// Consumes an `@include` rule.

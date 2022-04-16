@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 45277707f5ab21408f3abb8f249ed7115e0a3c0f
+// Checksum: c2eb29d6bf68dac231d9d67f17dc320534279fbc
 //
 // ignore_for_file: unused_import
 
@@ -1661,6 +1661,7 @@ class _EvaluateVisitor
     // here should be mirrored there.
 
     var url = _interpolationToValue(import.url);
+    var layer = import.layer.andThen(_interpolationToValue);
     var supports = import.supports.andThen((supports) {
       var arg = supports is SupportsDeclaration
           ? "${_evaluateToCss(supports.name)}:"
@@ -1673,7 +1674,7 @@ class _EvaluateVisitor
     var mediaQuery = rawMedia.andThen(_visitMediaQueries);
 
     var node = ModifiableCssImport(url, import.span,
-        supports: supports, media: mediaQuery);
+        layer: layer, supports: supports, media: mediaQuery);
 
     if (_parent != _root) {
       _parent.addChild(node);
@@ -2904,7 +2905,7 @@ class _EvaluateVisitor
     // changes here should be mirrored there.
 
     var modifiableNode = ModifiableCssImport(node.url, node.span,
-        supports: node.supports, media: node.media);
+        layer: node.layer, supports: node.supports, media: node.media);
     if (_parent != _root) {
       _parent.addChild(modifiableNode);
     } else if (_endOfImports == _root.children.length) {

@@ -14,6 +14,9 @@ abstract class CssImport extends CssNode {
   /// This includes quotes.
   CssValue<String> get url;
 
+  /// The layer attached to this import.
+  CssValue<String>? get layer;
+
   /// The supports condition attached to this import.
   CssValue<String>? get supports;
 

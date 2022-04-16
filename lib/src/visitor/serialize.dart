@@ -237,15 +237,33 @@ class _SerializeVisitor
       _writeOptionalSpace();
       _for(node.url, () => _writeImportUrl(node.url.value));
 
+      var needsSpace = false;
+      var layer = node.layer;
+      if (layer != null) {
+        _writeOptionalSpace();
+        _write(layer);
+        needsSpace = layer.value.codeUnits.last != $rparen;
+      }
+
       var supports = node.supports;
       if (supports != null) {
-        _writeOptionalSpace();
+        if (needsSpace) {
+          needsSpace = false;
+          _buffer.writeCharCode($space);
+        } else {
+          _writeOptionalSpace();
+        }
         _write(supports);
       }
 
       var media = node.media;
       if (media != null) {
-        _writeOptionalSpace();
+        if (needsSpace) {
+          needsSpace = false;
+          _buffer.writeCharCode($space);
+        } else {
+          _writeOptionalSpace();
+        }
         _writeBetween(media, _commaSeparator, _visitMediaQuery);
       }
     });

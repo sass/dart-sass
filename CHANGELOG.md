@@ -1,4 +1,7 @@
-## 1.50.1
+## 1.51.0
+
+* Add support for `layer` conditions on CSS imports. Interpolation is supported 
+  in the layer name.
 
 ### Embedded Sass
 

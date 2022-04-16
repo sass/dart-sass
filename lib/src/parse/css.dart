@@ -98,7 +98,9 @@ class CssParser extends ScssParser {
     expectStatementSeparator("@import rule");
     return ImportRule([
       StaticImport(Interpolation([url], urlSpan), scanner.spanFrom(urlStart),
-          supports: queries?.item1, media: queries?.item2)
+          layer: queries?.item3,
+          supports: queries?.item1,
+          media: queries?.item2)
     ], scanner.spanFrom(start));
   }
 

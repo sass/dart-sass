@@ -1,3 +1,7 @@
+## 1.0.0-beta.42
+
+* Add the `CssImport.layer` getter.
+
 ## 1.0.0-beta.41
 
 * No user-visible changes.

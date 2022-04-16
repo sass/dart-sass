@@ -257,6 +257,33 @@ void main() {
       expect(_compile('@import "foo.css" supports(display: flex);'),
           equals('@import"foo.css"supports(display: flex)'));
     });
+
+    test("removes whitespace before a layer", () {
+      expect(_compile('@import "foo.css" layer;'),
+          equals('@import"foo.css"layer'));
+    });
+
+    test("removes whitespace between a named layer and a supports condition",
+        () {
+      expect(_compile('@import "foo.css" layer(a) supports(display: flex);'),
+          equals('@import"foo.css"layer(a)supports(display: flex)'));
+    });
+
+    test("keeps whitespace between a default layer and a supports condition",
+        () {
+      expect(_compile('@import "foo.css" layer supports(display: flex);'),
+          equals('@import"foo.css"layer supports(display: flex)'));
+    });
+
+    test("removes whitespace between a named layer and a media query", () {
+      expect(_compile('@import "foo.css" layer(a) screen;'),
+          equals('@import"foo.css"layer(a)screen'));
+    });
+
+    test("keeps whitespace between a default layer and a media query", () {
+      expect(_compile('@import "foo.css" layer screen;'),
+          equals('@import"foo.css"layer screen'));
+    });
   });
 
   group("comments", () {

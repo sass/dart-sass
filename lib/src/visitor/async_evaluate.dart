@@ -1664,6 +1664,7 @@ class _EvaluateVisitor
     // here should be mirrored there.
 
     var url = await _interpolationToValue(import.url);
+    var layer = await import.layer.andThen(_interpolationToValue);
     var supports = await import.supports.andThen((supports) async {
       var arg = supports is SupportsDeclaration
           ? "${await _evaluateToCss(supports.name)}:"
@@ -1676,7 +1677,7 @@ class _EvaluateVisitor
     var mediaQuery = await rawMedia.andThen(_visitMediaQueries);
 
     var node = ModifiableCssImport(url, import.span,
-        supports: supports, media: mediaQuery);
+        layer: layer, supports: supports, media: mediaQuery);
 
     if (_parent != _root) {
       _parent.addChild(node);
@@ -2924,7 +2925,7 @@ class _EvaluateVisitor
     // changes here should be mirrored there.
 
     var modifiableNode = ModifiableCssImport(node.url, node.span,
-        supports: node.supports, media: node.media);
+        layer: node.layer, supports: node.supports, media: node.media);
     if (_parent != _root) {
       _parent.addChild(modifiableNode);
     } else if (_endOfImports == _root.children.length) {
