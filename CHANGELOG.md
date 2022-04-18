@@ -1,3 +1,11 @@
+## 1.50.1
+
+### Command Line Interface
+
+* Fix a bug where moving the `--watch` command to the background would
+  unexpectedly cause the command to stop running unless the standard input
+  stream was a TTY.
+
 ## 1.50.0
 
 * `@extend` now treats [`:where()`] the same as `:is()`.
