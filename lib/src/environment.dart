@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6b97030ff074d0b39e027ea97ba5893d242b9d3d
+// Checksum: 88f81b417129a74e4eb776d518c8e019dbf2ec36
 //
 // ignore_for_file: unused_import
 
@@ -779,6 +779,7 @@ class Environment {
       for (var name in _variables.removeLast().keys) {
         _variableIndices.remove(name);
       }
+      _variableNodes.removeLast();
       for (var name in _functions.removeLast().keys) {
         _functionIndices.remove(name);
       }
