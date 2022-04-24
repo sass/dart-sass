@@ -53,8 +53,8 @@ class ListExpression implements Expression {
       if (expression.contents.length < 2) return false;
       if (expression.hasBrackets) return false;
       return separator == ListSeparator.comma
-          ? separator == ListSeparator.comma
-          : separator != ListSeparator.undecided;
+          ? expression.separator == ListSeparator.comma
+          : expression.separator != ListSeparator.undecided;
     }
 
     if (separator != ListSeparator.space) return false;

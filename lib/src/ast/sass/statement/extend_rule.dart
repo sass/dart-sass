@@ -32,5 +32,5 @@ class ExtendRule implements Statement {
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitExtendRule(this);
 
-  String toString() => "@extend $selector";
+  String toString() => "@extend $selector${isOptional ? ' !optional' : ''};";
 }

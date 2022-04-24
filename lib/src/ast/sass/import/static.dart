@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
 import '../import.dart';
@@ -36,7 +35,6 @@ class StaticImport implements Import {
     var buffer = StringBuffer(url);
     if (supports != null) buffer.write(" supports($supports)");
     if (media != null) buffer.write(" $media");
-    buffer.writeCharCode($semicolon);
     return buffer.toString();
   }
 }
