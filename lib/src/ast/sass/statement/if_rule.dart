@@ -44,7 +44,7 @@ class IfRule implements Statement {
   String toString() {
     var result = clauses
         .mapIndexed((index, clause) =>
-            "@${index == 0 ? 'if' : 'else if'} {${clause.children.join(' ')}}")
+            "@${index == 0 ? 'if' : 'else if'} ${clause.expression} {${clause.children.join(' ')}}")
         .join(' ');
 
     var lastClause = this.lastClause;

@@ -48,7 +48,7 @@ class ArgumentInvocation implements SassNode {
   String toString() {
     var components = [
       ...positional,
-      for (var name in named.keys) "$name: ${named[name]}",
+      for (var name in named.keys) "\$$name: ${named[name]}",
       if (rest != null) "$rest...",
       if (keywordRest != null) "$keywordRest..."
     ];

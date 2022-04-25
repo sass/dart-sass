@@ -1,3 +1,7 @@
+## 1.50.2
+
+* Improve the string output of some AST nodes in error messages.
+
 ## 1.50.1
 
 ### Embedded Sass
