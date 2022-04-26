@@ -773,6 +773,7 @@ class AsyncEnvironment {
       for (var name in _variables.removeLast().keys) {
         _variableIndices.remove(name);
       }
+      _variableNodes.removeLast();
       for (var name in _functions.removeLast().keys) {
         _functionIndices.remove(name);
       }
