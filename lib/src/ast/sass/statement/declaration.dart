@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -62,4 +63,20 @@ class Declaration extends ParentStatement {
   }
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
+
+  String toString() {
+    var buffer = StringBuffer();
+    buffer.write(name);
+    buffer.writeCharCode($colon);
+
+    if (value != null) {
+      if (!isCustomProperty) {
+        buffer.writeCharCode($space);
+      }
+      buffer.write("$value");
+    }
+
+    var children = this.children;
+    return children == null ? "$buffer;" : "$buffer {${children.join(" ")}}";
+  }
 }

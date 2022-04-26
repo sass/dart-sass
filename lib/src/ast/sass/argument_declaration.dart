@@ -161,7 +161,7 @@ class ArgumentDeclaration implements SassNode {
   }
 
   String toString() => [
-        for (var arg in arguments) arg.toString(),
-        if (restArgument != null) '$restArgument...'
+        for (var arg in arguments) '\$$arg',
+        if (restArgument != null) '\$$restArgument...'
       ].join(', ');
 }

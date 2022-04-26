@@ -5,6 +5,8 @@
   appeared in the first map will now be listed first in the same order they
   appeared in that map, followed by any new keys added from the second map.
 
+* Improve the string output of some AST nodes in error messages.
+
 ## 1.50.1
 
 ### Embedded Sass
