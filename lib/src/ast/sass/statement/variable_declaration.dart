@@ -90,9 +90,9 @@ class VariableDeclaration implements Statement, SassDeclaration {
       visitor.visitVariableDeclaration(this);
 
   String toString() {
-    var buffer = StringBuffer("\$");
+    var buffer = StringBuffer();
     if (namespace != null) buffer.write("$namespace.");
-    buffer.write("$name: $expression;");
+    buffer.write("\$$name: $expression;");
     return buffer.toString();
   }
 }
