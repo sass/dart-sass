@@ -193,41 +193,28 @@ Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old),
 /// If both [map1] and [map2] have a map value associated with the same key,
 /// this recursively merges those maps as well.
 SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
+  if (map1.contents.isEmpty) return map2;
   if (map2.contents.isEmpty) return map1;
 
-  // Avoid making a mutable copy of `map2` if it would totally overwrite `map1`
-  // anyway.
-  var mutable = false;
-  var result = map2.contents;
-  void _ensureMutable() {
-    if (mutable) return;
-    mutable = true;
-    result = Map.of(result);
-  }
+  var result = Map.of(map1.contents);
 
-  // Because values in `map2` take precedence over `map1`, we just check if any
-  // entries in `map1` don't have corresponding keys in `map2`, or if they're
-  // maps that need to be merged in their own right.
-  map1.contents.forEach((key, value) {
-    var resultValue = result[key];
-    if (resultValue == null) {
-      _ensureMutable();
+  map2.contents.forEach((key, value) {
+    var resultMap = result[key]?.tryMap();
+    if (resultMap == null) {
       result[key] = value;
     } else {
-      var resultMap = resultValue.tryMap();
       var valueMap = value.tryMap();
-
-      if (resultMap != null && valueMap != null) {
-        var merged = _deepMergeImpl(valueMap, resultMap);
+      if (valueMap != null) {
+        var merged = _deepMergeImpl(resultMap, valueMap);
         if (identical(merged, resultMap)) return;
-
-        _ensureMutable();
         result[key] = merged;
+      } else {
+        result[key] = value;
       }
     }
   });
 
-  return mutable ? SassMap(result) : map2;
+  return SassMap(result);
 }
 
 /// Like [new BuiltInCallable.function], but always sets the URL to `sass:map`.

@@ -1,4 +1,9 @@
-## 1.50.2
+## 1.51.0
+
+* **Potentially breaking change**: Change the order of maps returned by
+  `map.deep-merge()` to match those returned by `map.merge()`. All keys that
+  appeared in the first map will now be listed first in the same order they
+  appeared in that map, followed by any new keys added from the second map.
 
 * Improve the string output of some AST nodes in error messages.
 
