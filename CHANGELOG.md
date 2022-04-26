@@ -1,3 +1,8 @@
+## 1.51.1
+
+* Fix an issue where source locations tracked through variable references could
+  potentially become incorrect.
+
 ## 1.51.0
 
 * **Potentially breaking change**: Change the order of maps returned by
