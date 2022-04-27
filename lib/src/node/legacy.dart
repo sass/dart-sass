@@ -405,7 +405,8 @@ RenderResult _newRenderResult(
           : p.toUri(outFile == null
               ? sourceMapPath
               : p.relative(sourceMapPath, from: p.dirname(outFile)));
-      css += "\n\n/*# sourceMappingURL=$url */";
+      var escapedUrl = url.toString().replaceAll("*/", '%2A/');
+      css += "\n\n/*# sourceMappingURL=$escapedUrl */";
     }
   }
 

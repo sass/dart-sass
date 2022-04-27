@@ -2,6 +2,9 @@
 
 * Fix an issue where source locations tracked through variable references could
   potentially become incorrect.
+* Fix a bug where a loud comment in the source can break the source map when
+  embedding the sources, when using the command-line interface or the legacy JS
+  API.
 
 ## 1.51.0
 

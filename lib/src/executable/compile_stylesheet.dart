@@ -174,6 +174,8 @@ String _writeSourceMap(
     url = p.toUri(p.relative(sourceMapPath, from: p.dirname(destination)));
   }
 
+  var escapedUrl = url.toString().replaceAll("*/", '%2A/');
+
   return (options.style == OutputStyle.compressed ? '' : '\n\n') +
-      '/*# sourceMappingURL=$url */';
+      '/*# sourceMappingURL=$escapedUrl */';
 }
