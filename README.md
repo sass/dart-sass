@@ -35,6 +35,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
   * [From Pub](#from-pub)
     * [`sass_api` Package](#sass_api-package)
   * [From Source](#from-source)
+  * [Docker](#docker)
 * [Why Dart?](#why-dart)
 * [Compatibility Policy](#compatibility-policy)
   * [Browser Compatibility](#browser-compatibility)
@@ -183,6 +184,20 @@ Assuming you've already checked out this repository:
 3. Run `dart bin/sass.dart path/to/file.scss`.
 
 That's it!
+
+### Docker
+
+```Dockerfile
+# Dart stage
+FROM dart:stable AS dart
+
+COPY --from=another_stage /app /app
+
+WORKDIR /dart-sass
+RUN git clone https://github.com/sass/dart-sass.git . && \
+  dart pub get && \
+  dart ./bin/sass.dart /app/sass/example.scss /app/public/css/example.css
+```
 
 ## Why Dart?
 
