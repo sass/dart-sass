@@ -35,7 +35,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
   * [From Pub](#from-pub)
     * [`sass_api` Package](#sass_api-package)
   * [From Source](#from-source)
-  * [Docker](#docker)
+  * [In Docker](#in-docker)
 * [Why Dart?](#why-dart)
 * [Compatibility Policy](#compatibility-policy)
   * [Browser Compatibility](#browser-compatibility)
@@ -185,7 +185,10 @@ Assuming you've already checked out this repository:
 
 That's it!
 
-### Docker
+### In Docker
+
+You can install and run Dart Sass within Docker using the following Dockerfile
+commands:
 
 ```Dockerfile
 # Dart stage
