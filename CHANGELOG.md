@@ -6,6 +6,11 @@
   embedding the sources, when using the command-line interface or the legacy JS
   API.
 
+### JS API
+
+* `SassNumber.assertUnit()` and `SassNumber.assertNoUnits()` now correctly
+  return the number called on when it passes the assertion.
+
 ## 1.51.0
 
 * **Potentially breaking change**: Change the order of maps returned by

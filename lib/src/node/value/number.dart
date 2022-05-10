@@ -38,9 +38,9 @@ final JSClass numberClass = () {
     'assertInRange': (SassNumber self, num min, num max, [String? name]) =>
         self.valueInRange(min, max, name),
     'assertNoUnits': (SassNumber self, [String? name]) =>
-        self.assertNoUnits(name),
+        self..assertNoUnits(name),
     'assertUnit': (SassNumber self, String unit, [String? name]) =>
-        self.assertUnit(unit, name),
+        self..assertUnit(unit, name),
     'hasUnit': (SassNumber self, String unit) => self.hasUnit(unit),
     'compatibleWithUnit': (SassNumber self, String unit) =>
         self.hasUnits && self.compatibleWithUnit(unit),
