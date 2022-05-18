@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 
 import '../expression.dart';
 import '../expression/string.dart';
+import '../interpolation.dart';
 import '../supports_condition.dart';
 
 /// A condition that selects for browsers where a given declaration is
@@ -41,6 +42,9 @@ class SupportsDeclaration implements SupportsCondition {
   }
 
   SupportsDeclaration(this.name, this.value, this.span);
+
+  Interpolation toInterpolation() => Interpolation.concat(
+      ['(', name, isCustomProperty ? ':' : ': ', value, ')'], span);
 
   String toString() => "($name: $value)";
 }

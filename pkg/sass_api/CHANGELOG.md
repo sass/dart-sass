@@ -1,3 +1,10 @@
+## 1.0.0-beta.45
+
+* **Breaking change:** Replace `StaticImport.supports` and `StaticImport.media`
+  with a unified `StaticImport.modifiers` field. Same for `CssImport`.
+
+* Add `SupportsCondition.toInterpolation()`.
+
 ## 1.0.0-beta.44
 
 * No user-visible changes.

@@ -1663,20 +1663,10 @@ class _EvaluateVisitor
     // NOTE: this logic is largely duplicated in [visitCssImport]. Most changes
     // here should be mirrored there.
 
-    var url = await _interpolationToValue(import.url);
-    var supports = await import.supports.andThen((supports) async {
-      var arg = supports is SupportsDeclaration
-          ? "${await _evaluateToCss(supports.name)}:"
-              "${supports.isCustomProperty ? '' : ' '}"
-              "${await _evaluateToCss(supports.value)}"
-          : await supports.andThen(_visitSupportsCondition);
-      return CssValue("supports($arg)", supports.span);
-    });
-    var rawMedia = import.media;
-    var mediaQuery = await rawMedia.andThen(_visitMediaQueries);
-
-    var node = ModifiableCssImport(url, import.span,
-        supports: supports, media: mediaQuery);
+    var node = ModifiableCssImport(
+        await _interpolationToValue(import.url), import.span,
+        modifiers: await import.modifiers
+            .andThen<Future<CssValue<String>>?>(_interpolationToValue));
 
     if (_parent != _root) {
       _parent.addChild(node);
@@ -2923,8 +2913,8 @@ class _EvaluateVisitor
     // NOTE: this logic is largely duplicated in [_visitStaticImport]. Most
     // changes here should be mirrored there.
 
-    var modifiableNode = ModifiableCssImport(node.url, node.span,
-        supports: node.supports, media: node.media);
+    var modifiableNode =
+        ModifiableCssImport(node.url, node.span, modifiers: node.modifiers);
     if (_parent != _root) {
       _parent.addChild(modifiableNode);
     } else if (_endOfImports == _root.children.length) {

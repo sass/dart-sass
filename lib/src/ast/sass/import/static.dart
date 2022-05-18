@@ -7,7 +7,6 @@ import 'package:source_span/source_span.dart';
 
 import '../import.dart';
 import '../interpolation.dart';
-import '../supports_condition.dart';
 
 /// An import that produces a plain CSS `@import` rule.
 ///
@@ -19,22 +18,13 @@ class StaticImport implements Import {
   /// This already contains quotes.
   final Interpolation url;
 
-  /// The supports condition attached to this import, or `null` if no condition
-  /// is attached.
-  final SupportsCondition? supports;
-
-  /// The media query attached to this import, or `null` if no condition is
-  /// attached.
-  final Interpolation? media;
+  /// The modifiers (such as media or supports queries) attached to this import,
+  /// or `null` if none are attached.
+  final Interpolation? modifiers;
 
   final FileSpan span;
 
-  StaticImport(this.url, this.span, {this.supports, this.media});
+  StaticImport(this.url, this.span, {this.modifiers});
 
-  String toString() {
-    var buffer = StringBuffer(url);
-    if (supports != null) buffer.write(" supports($supports)");
-    if (media != null) buffer.write(" $media");
-    return buffer.toString();
-  }
+  String toString() => "$url${modifiers == null ? '' : ' $modifiers'}";
 }

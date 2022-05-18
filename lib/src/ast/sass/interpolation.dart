@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../interpolation_buffer.dart';
 import 'expression.dart';
 import 'node.dart';
 
@@ -38,6 +39,28 @@ class Interpolation implements SassNode {
   String get initialPlain {
     var first = contents.first;
     return first is String ? first : '';
+  }
+
+  /// Creates a new [Interpolation] by concatenating a sequence of [String]s,
+  /// [Expression]s, or nested [Interpolation]s.
+  static Interpolation concat(
+      Iterable<Object /* String | Expression | Interpolation */ > contents,
+      FileSpan span) {
+    var buffer = InterpolationBuffer();
+    for (var element in contents) {
+      if (element is String) {
+        buffer.write(element);
+      } else if (element is Expression) {
+        buffer.add(element);
+      } else if (element is Interpolation) {
+        buffer.addInterpolation(element);
+      } else {
+        throw ArgumentError.value(contents, "contents",
+            "May only contains Strings, Expressions, or Interpolations.");
+        }
+    }
+
+    return buffer.interpolation(span);
   }
 
   Interpolation(Iterable<Object /* String | Expression */ > contents, this.span)

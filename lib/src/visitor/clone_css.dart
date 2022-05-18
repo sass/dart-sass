@@ -48,8 +48,7 @@ class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
           valueSpanForMap: node.valueSpanForMap);
 
   ModifiableCssImport visitCssImport(CssImport node) =>
-      ModifiableCssImport(node.url, node.span,
-          supports: node.supports, media: node.media);
+      ModifiableCssImport(node.url, node.span, modifiers: node.modifiers);
 
   ModifiableCssKeyframeBlock visitCssKeyframeBlock(CssKeyframeBlock node) =>
       _visitChildren(

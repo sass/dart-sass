@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../expression.dart';
+import '../interpolation.dart';
 import '../supports_condition.dart';
 
 /// An interpolated condition.
@@ -19,6 +20,8 @@ class SupportsInterpolation implements SupportsCondition {
   final FileSpan span;
 
   SupportsInterpolation(this.expression, this.span);
+
+  Interpolation toInterpolation() => Interpolation([expression], span);
 
   String toString() => "#{$expression}";
 }

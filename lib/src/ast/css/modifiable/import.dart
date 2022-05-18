@@ -6,7 +6,6 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/modifiable_css.dart';
 import '../import.dart';
-import '../media_query.dart';
 import '../value.dart';
 import 'node.dart';
 
@@ -17,17 +16,11 @@ class ModifiableCssImport extends ModifiableCssNode implements CssImport {
   /// This includes quotes.
   final CssValue<String> url;
 
-  /// The supports condition attached to this import.
-  final CssValue<String>? supports;
-
-  /// The media query attached to this import.
-  final List<CssMediaQuery>? media;
+  final CssValue<String>? modifiers;
 
   final FileSpan span;
 
-  ModifiableCssImport(this.url, this.span,
-      {this.supports, Iterable<CssMediaQuery>? media})
-      : media = media == null ? null : List.unmodifiable(media);
+  ModifiableCssImport(this.url, this.span, {this.modifiers});
 
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssImport(this);
 }
