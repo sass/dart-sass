@@ -12,5 +12,8 @@ environment:
 dependencies:
   sass: 1.52.0
 
+dev_dependencies:
+  dartdoc: ^5.0.0
+
 dependency_overrides:
   sass: {path: ../..}

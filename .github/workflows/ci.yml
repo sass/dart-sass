@@ -183,11 +183,11 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: dartdoc sass
-        run: dartdoc --quiet --no-generate-docs
+        run: dart run dartdoc --quiet --no-generate-docs
           --errors ambiguous-doc-reference,broken-link,deprecated
           --errors unknown-directive,unknown-macro,unresolved-doc-reference
       - name: dartdoc sass_api
-        run: cd pkg/sass_api && dartdoc --quiet --no-generate-docs
+        run: cd pkg/sass_api && dart run dartdoc --quiet --no-generate-docs
           --errors ambiguous-doc-reference,broken-link,deprecated
           --errors unknown-directive,unknown-macro,unresolved-doc-reference
 
