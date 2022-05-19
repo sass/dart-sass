@@ -57,7 +57,7 @@ class Interpolation implements SassNode {
       } else {
         throw ArgumentError.value(contents, "contents",
             "May only contains Strings, Expressions, or Interpolations.");
-        }
+      }
     }
 
     return buffer.interpolation(span);

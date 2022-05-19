@@ -25,6 +25,7 @@ export 'sass/expression/number.dart';
 export 'sass/expression/parenthesized.dart';
 export 'sass/expression/selector.dart';
 export 'sass/expression/string.dart';
+export 'sass/expression/supports.dart';
 export 'sass/expression/unary_operation.dart';
 export 'sass/expression/value.dart';
 export 'sass/expression/variable.dart';

@@ -2843,6 +2843,11 @@ class _EvaluateVisitor
     return result;
   }
 
+  Future<SassString> visitSupportsExpression(
+          SupportsExpression expression) async =>
+      SassString(await _visitSupportsCondition(expression.condition),
+          quotes: false);
+
   // ## Plain CSS
 
   // These methods are used when evaluating CSS syntax trees from `@import`ed

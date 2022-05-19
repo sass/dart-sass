@@ -21,8 +21,5 @@ class SupportsAnything implements SupportsCondition {
 
   SupportsAnything(this.contents, this.span);
 
-  Interpolation toInterpolation() =>
-      Interpolation.concat(['(', contents, ')'], span);
-
   String toString() => "($contents)";
 }

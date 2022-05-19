@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../interpolation.dart';
 import '../supports_condition.dart';
 import 'operation.dart';
 
@@ -20,17 +19,6 @@ class SupportsNegation implements SupportsCondition {
   final FileSpan span;
 
   SupportsNegation(this.condition, this.span);
-
-  Interpolation toInterpolation() {
-    var needsParens =
-        condition is SupportsNegation || condition is SupportsOperation;
-    return Interpolation.concat([
-      "not ",
-      if (needsParens) "(",
-      condition.toInterpolation(),
-      if (needsParens) ")"
-    ], span);
-  }
 
   String toString() {
     if (condition is SupportsNegation || condition is SupportsOperation) {

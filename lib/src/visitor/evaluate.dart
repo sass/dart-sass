@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 68136a98fc33b94bd58d0658e325cf90bdfba006
+// Checksum: fdd5d16c0ec34a4e0e4e2d5bdbe3d764e788a43f
 //
 // ignore_for_file: unused_import
 
@@ -2822,6 +2822,9 @@ class _EvaluateVisitor
     _inSupportsDeclaration = oldInSupportsDeclaration;
     return result;
   }
+
+  SassString visitSupportsExpression(SupportsExpression expression) =>
+      SassString(_visitSupportsCondition(expression.condition), quotes: false);
 
   // ## Plain CSS
 

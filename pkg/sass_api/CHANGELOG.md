@@ -3,7 +3,7 @@
 * **Breaking change:** Replace `StaticImport.supports` and `StaticImport.media`
   with a unified `StaticImport.modifiers` field. Same for `CssImport`.
 
-* Add `SupportsCondition.toInterpolation()`.
+* Add `SupportsExpression`.
 
 ## 1.0.0-beta.44
 

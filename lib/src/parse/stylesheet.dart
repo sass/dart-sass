@@ -1160,7 +1160,7 @@ abstract class StylesheetParser extends Parser {
           if (name == "supports") {
             var query = _importSupportsQuery();
             if (query is! SupportsDeclaration) buffer.writeCharCode($lparen);
-            buffer.addInterpolation(query.toInterpolation());
+            buffer.add(SupportsExpression(query));
             if (query is! SupportsDeclaration) buffer.writeCharCode($rparen);
           } else {
             buffer.writeCharCode($lparen);

@@ -24,6 +24,7 @@ abstract class ExpressionVisitor<T> {
   T visitParenthesizedExpression(ParenthesizedExpression node);
   T visitSelectorExpression(SelectorExpression node);
   T visitStringExpression(StringExpression node);
+  T visitSupportsExpression(SupportsExpression node);
   T visitUnaryOperationExpression(UnaryOperationExpression node);
   T visitValueExpression(ValueExpression node);
   T visitVariableExpression(VariableExpression node);

@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../interpolation.dart';
 import '../supports_condition.dart';
 import 'negation.dart';
 
@@ -35,25 +34,10 @@ class SupportsOperation implements SupportsCondition {
     }
   }
 
-  Interpolation toInterpolation() => Interpolation.concat([
-        ..._parenthesizeInterpolation(left),
-        " $operator ",
-        ..._parenthesizeInterpolation(right)
-      ], span);
-
-  /// Returns a list that can be passed to [Interpolation.concat], with
-  /// parentheses around [condition] if necessary.
-  List<Object /* String | Expression | Interpolation */ >
-      _parenthesizeInterpolation(SupportsCondition condition) => condition
-                  is SupportsNegation ||
-              (condition is SupportsOperation && condition.operator == operator)
-          ? ["(", condition.toInterpolation(), ")"]
-          : [condition.toInterpolation()];
-
   String toString() =>
-      "${_parenthesizeString(left)} $operator ${_parenthesizeString(right)}";
+      "${_parenthesize(left)} $operator ${_parenthesize(right)}";
 
-  String _parenthesizeString(SupportsCondition condition) =>
+  String _parenthesize(SupportsCondition condition) =>
       condition is SupportsNegation ||
               (condition is SupportsOperation && condition.operator == operator)
           ? "($condition)"

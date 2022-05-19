@@ -4,15 +4,10 @@
 
 import 'package:meta/meta.dart';
 
-import 'interpolation.dart';
 import 'node.dart';
 
 /// An abstract class for defining the condition a `@supports` rule selects.
 ///
 /// {@category AST}
 @sealed
-abstract class SupportsCondition extends SassNode {
-  /// Returns an [Interpolation] that evaluates to the same value as this
-  /// [SupportsCondition].
-  Interpolation toInterpolation();
-}
+abstract class SupportsCondition extends SassNode {}

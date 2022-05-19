@@ -207,6 +207,10 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
     visitInterpolation(node.text);
   }
 
+  void visitSupportsExpression(SupportsExpression node) {
+    visitSupportsCondition(node.condition);
+  }
+
   void visitUnaryOperationExpression(UnaryOperationExpression node) {
     node.operand.accept(this);
   }

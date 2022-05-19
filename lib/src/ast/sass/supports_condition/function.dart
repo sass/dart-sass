@@ -23,8 +23,5 @@ class SupportsFunction implements SupportsCondition {
 
   SupportsFunction(this.name, this.arguments, this.span);
 
-  Interpolation toInterpolation() =>
-      Interpolation.concat([name, '(', arguments, ')'], span);
-
   String toString() => "$name($arguments)";
 }
