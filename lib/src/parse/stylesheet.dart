@@ -1086,20 +1086,20 @@ abstract class StylesheetParser extends Parser {
     if (next == $u || next == $U) {
       var url = dynamicUrl();
       whitespace();
-      var queries = tryImportQueries();
+      var modifiers = tryImportModifiers();
       return StaticImport(Interpolation([url], scanner.spanFrom(start)),
           scanner.spanFrom(start),
-          supports: queries?.item1, media: queries?.item2);
+          modifiers: modifiers);
     }
 
     var url = string();
     var urlSpan = scanner.spanFrom(start);
     whitespace();
-    var queries = tryImportQueries();
-    if (isPlainImportUrl(url) || queries != null) {
+    var modifiers = tryImportModifiers();
+    if (isPlainImportUrl(url) || modifiers != null) {
       return StaticImport(
           Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
-          supports: queries?.item1, media: queries?.item2);
+          modifiers: modifiers);
     } else {
       try {
         return DynamicImport(parseImportUrl(url), urlSpan);
@@ -1135,54 +1135,100 @@ abstract class StylesheetParser extends Parser {
     return url.startsWith("http://") || url.startsWith("https://");
   }
 
-  /// Consumes a supports condition and/or a media query after an `@import`.
+  /// Consumes a sequence of modifiers (such as media or supports queries)
+  /// after an import argument.
   ///
-  /// Returns `null` if neither type of query can be found.
-  Tuple2<SupportsCondition?, Interpolation?>? tryImportQueries() {
-    SupportsCondition? supports;
-    if (scanIdentifier("supports")) {
-      scanner.expectChar($lparen);
-      var start = scanner.state;
-      if (scanIdentifier("not")) {
-        whitespace();
-        supports = SupportsNegation(
-            _supportsConditionInParens(), scanner.spanFrom(start));
-      } else if (scanner.peekChar() == $lparen) {
-        supports = _supportsCondition();
-      } else {
-        if (_lookingAtInterpolatedIdentifier()) {
-          var identifier = interpolatedIdentifier();
-          if (identifier.asPlain?.toLowerCase() == "not") {
-            error('"not" is not a valid identifier here.', identifier.span);
-          }
-
-          if (scanner.scanChar($lparen)) {
-            var arguments = _interpolatedDeclarationValue(
-                allowEmpty: true, allowSemicolon: true);
-            scanner.expectChar($rparen);
-            supports = SupportsFunction(
-                identifier, arguments, scanner.spanFrom(start));
-          } else {
-            // Backtrack to parse a variable declaration
-            scanner.state = start;
-          }
-        }
-        if (supports == null) {
-          var name = expression();
-          scanner.expectChar($colon);
-          supports = _supportsDeclarationValue(name, start);
-        }
-      }
-      scanner.expectChar($rparen);
-      whitespace();
+  /// Returns `null` if there are no modifiers.
+  Interpolation? tryImportModifiers() {
+    // Exit before allocating anything if we're not looking at any modifiers, as
+    // is the most common case.
+    if (!_lookingAtInterpolatedIdentifier() && scanner.peekChar() != $lparen) {
+      return null;
     }
 
-    var media =
-        _lookingAtInterpolatedIdentifier() || scanner.peekChar() == $lparen
-            ? _mediaQueryList()
-            : null;
-    if (supports == null && media == null) return null;
-    return Tuple2(supports, media);
+    var start = scanner.state;
+    var buffer = InterpolationBuffer();
+    while (true) {
+      if (_lookingAtInterpolatedIdentifier()) {
+        if (!buffer.isEmpty) buffer.writeCharCode($space);
+
+        var identifier = interpolatedIdentifier();
+        buffer.addInterpolation(identifier);
+
+        var name = identifier.asPlain?.toLowerCase();
+        if (name != "and" && scanner.scanChar($lparen)) {
+          if (name == "supports") {
+            var query = _importSupportsQuery();
+            if (query is! SupportsDeclaration) buffer.writeCharCode($lparen);
+            buffer.add(SupportsExpression(query));
+            if (query is! SupportsDeclaration) buffer.writeCharCode($rparen);
+          } else {
+            buffer.writeCharCode($lparen);
+            buffer.addInterpolation(_interpolatedDeclarationValue(
+                allowEmpty: true, allowSemicolon: true));
+            buffer.writeCharCode($rparen);
+          }
+
+          scanner.expectChar($rparen);
+          whitespace();
+        } else {
+          whitespace();
+          if (scanner.scanChar($comma)) {
+            buffer.write(", ");
+            buffer.addInterpolation(_mediaQueryList());
+            return buffer.interpolation(scanner.spanFrom(start));
+          }
+        }
+      } else if (scanner.peekChar() == $lparen) {
+        if (!buffer.isEmpty) buffer.writeCharCode($space);
+        buffer.addInterpolation(_mediaQueryList());
+        return buffer.interpolation(scanner.spanFrom(start));
+      } else {
+        return buffer.interpolation(scanner.spanFrom(start));
+      }
+    }
+  }
+
+  /// Consumes the contents of a `supports()` function after an `@import` rule
+  /// (but not the function name or parentheses).
+  SupportsCondition _importSupportsQuery() {
+    if (scanIdentifier("not")) {
+      whitespace();
+      var start = scanner.state;
+      return SupportsNegation(
+          _supportsConditionInParens(), scanner.spanFrom(start));
+    } else if (scanner.peekChar() == $lparen) {
+      return _supportsCondition();
+    } else {
+      var function = _tryImportSupportsFunction();
+      if (function != null) return function;
+
+      var start = scanner.state;
+      var name = expression();
+      scanner.expectChar($colon);
+      return _supportsDeclarationValue(name, start);
+    }
+  }
+
+  /// Consumes a function call within a `supports()` function after an
+  /// `@import` if available.
+  SupportsFunction? _tryImportSupportsFunction() {
+    if (!_lookingAtInterpolatedIdentifier()) return null;
+
+    var start = scanner.state;
+    var name = interpolatedIdentifier();
+    assert(name.asPlain != "not");
+
+    if (!scanner.scanChar($lparen)) {
+      scanner.state = start;
+      return null;
+    }
+
+    var value =
+        _interpolatedDeclarationValue(allowEmpty: true, allowSemicolon: true);
+    scanner.expectChar($rparen);
+
+    return SupportsFunction(name, value, scanner.spanFrom(start));
   }
 
   /// Consumes an `@include` rule.

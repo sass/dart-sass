@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../visitor/interface/css.dart';
-import 'media_query.dart';
 import 'node.dart';
 import 'value.dart';
 
@@ -14,11 +13,8 @@ abstract class CssImport extends CssNode {
   /// This includes quotes.
   CssValue<String> get url;
 
-  /// The supports condition attached to this import.
-  CssValue<String>? get supports;
-
-  /// The media query attached to this import.
-  List<CssMediaQuery>? get media;
+  /// The modifiers (such as media or supports queries) attached to this import.
+  CssValue<String>? get modifiers;
 
   T accept<T>(CssVisitor<T> visitor) => visitor.visitCssImport(this);
 }

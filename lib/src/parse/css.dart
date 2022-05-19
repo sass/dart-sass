@@ -94,11 +94,11 @@ class CssParser extends ScssParser {
     var urlSpan = scanner.spanFrom(urlStart);
 
     whitespace();
-    var queries = tryImportQueries();
+    var modifiers = tryImportModifiers();
     expectStatementSeparator("@import rule");
     return ImportRule([
       StaticImport(Interpolation([url], urlSpan), scanner.spanFrom(urlStart),
-          supports: queries?.item1, media: queries?.item2)
+          modifiers: modifiers)
     ], scanner.spanFrom(start));
   }
 

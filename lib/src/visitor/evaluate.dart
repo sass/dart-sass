@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 45277707f5ab21408f3abb8f249ed7115e0a3c0f
+// Checksum: fdd5d16c0ec34a4e0e4e2d5bdbe3d764e788a43f
 //
 // ignore_for_file: unused_import
 
@@ -1660,20 +1660,10 @@ class _EvaluateVisitor
     // NOTE: this logic is largely duplicated in [visitCssImport]. Most changes
     // here should be mirrored there.
 
-    var url = _interpolationToValue(import.url);
-    var supports = import.supports.andThen((supports) {
-      var arg = supports is SupportsDeclaration
-          ? "${_evaluateToCss(supports.name)}:"
-              "${supports.isCustomProperty ? '' : ' '}"
-              "${_evaluateToCss(supports.value)}"
-          : supports.andThen(_visitSupportsCondition);
-      return CssValue("supports($arg)", supports.span);
-    });
-    var rawMedia = import.media;
-    var mediaQuery = rawMedia.andThen(_visitMediaQueries);
-
-    var node = ModifiableCssImport(url, import.span,
-        supports: supports, media: mediaQuery);
+    var node = ModifiableCssImport(
+        _interpolationToValue(import.url), import.span,
+        modifiers:
+            import.modifiers.andThen<CssValue<String>?>(_interpolationToValue));
 
     if (_parent != _root) {
       _parent.addChild(node);
@@ -2833,6 +2823,9 @@ class _EvaluateVisitor
     return result;
   }
 
+  SassString visitSupportsExpression(SupportsExpression expression) =>
+      SassString(_visitSupportsCondition(expression.condition), quotes: false);
+
   // ## Plain CSS
 
   // These methods are used when evaluating CSS syntax trees from `@import`ed
@@ -2903,8 +2896,8 @@ class _EvaluateVisitor
     // NOTE: this logic is largely duplicated in [_visitStaticImport]. Most
     // changes here should be mirrored there.
 
-    var modifiableNode = ModifiableCssImport(node.url, node.span,
-        supports: node.supports, media: node.media);
+    var modifiableNode =
+        ModifiableCssImport(node.url, node.span, modifiers: node.modifiers);
     if (_parent != _root) {
       _parent.addChild(modifiableNode);
     } else if (_endOfImports == _root.children.length) {

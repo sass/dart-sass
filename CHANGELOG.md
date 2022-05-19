@@ -1,7 +1,13 @@
-## 1.51.1
+## 1.52.0
+
+* Add support for arbitrary modifiers at the end of plain CSS imports, in
+  addition to the existing `supports()` and media queries. Sass now allows any
+  sequence of identifiers of functions after the URL of an import for forwards
+  compatibility with future additions to the CSS spec.
 
 * Fix an issue where source locations tracked through variable references could
   potentially become incorrect.
+
 * Fix a bug where a loud comment in the source can break the source map when
   embedding the sources, when using the command-line interface or the legacy JS
   API.

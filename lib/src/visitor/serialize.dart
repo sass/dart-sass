@@ -237,16 +237,10 @@ class _SerializeVisitor
       _writeOptionalSpace();
       _for(node.url, () => _writeImportUrl(node.url.value));
 
-      var supports = node.supports;
-      if (supports != null) {
+      var modifiers = node.modifiers;
+      if (modifiers != null) {
         _writeOptionalSpace();
-        _write(supports);
-      }
-
-      var media = node.media;
-      if (media != null) {
-        _writeOptionalSpace();
-        _writeBetween(media, _commaSeparator, _visitMediaQuery);
+        _buffer.write(modifiers);
       }
     });
   }

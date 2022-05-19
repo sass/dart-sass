@@ -93,8 +93,7 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
     for (var import in node.imports) {
       if (import is StaticImport) {
         visitInterpolation(import.url);
-        import.supports.andThen(visitSupportsCondition);
-        import.media.andThen(visitInterpolation);
+        import.modifiers.andThen(visitInterpolation);
       }
     }
   }
@@ -206,6 +205,10 @@ abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
 
   void visitStringExpression(StringExpression node) {
     visitInterpolation(node.text);
+  }
+
+  void visitSupportsExpression(SupportsExpression node) {
+    visitSupportsCondition(node.condition);
   }
 
   void visitUnaryOperationExpression(UnaryOperationExpression node) {
