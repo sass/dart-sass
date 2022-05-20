@@ -28,6 +28,12 @@
 
 ## 1.50.1
 
+### Command Line Interface
+
+* Fix a bug where moving the `--watch` command to the background would
+  unexpectedly cause the command to stop running unless the standard input
+  stream was a TTY.
+
 ### Embedded Sass
 
 * The JS embedded host and the embedded compiler will now properly avoid

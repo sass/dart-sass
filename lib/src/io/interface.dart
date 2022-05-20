@@ -95,10 +95,12 @@ String? getEnvironmentVariable(String name) => throw '';
 int get exitCode => throw '';
 set exitCode(int value) => throw '';
 
-/// If stdin is a TTY, returns a [CancelableOperation] that completes once it
-/// closes.
+/// Returns a [CancelableOperation] that completes when stdin closes.
 ///
-/// Otherwise, returns a [CancelableOperation] that never completes.
+/// Note that if stdin is a TTY, the operation never completes. This is to
+/// avoid interfering with background job systems where reading from stdin
+/// and then moving the process to the background would incorrectly cause
+/// the job to stop.
 ///
 /// As long as this is uncanceled, it will monopolize stdin so that nothing else
 /// can read from it.
