@@ -1,3 +1,30 @@
+## 1.52.1
+
+### Command Line Interface
+
+* Fix a bug where `--watch` mode would close immediately in TTY mode. This was
+  caused by our change to close `--watch` when stdin was closed *outside of* TTY
+  mode, which has been reverted for now while we work on a fix.
+
+## 1.52.0
+
+* Add support for arbitrary modifiers at the end of plain CSS imports, in
+  addition to the existing `supports()` and media queries. Sass now allows any
+  sequence of identifiers of functions after the URL of an import for forwards
+  compatibility with future additions to the CSS spec.
+
+* Fix an issue where source locations tracked through variable references could
+  potentially become incorrect.
+
+* Fix a bug where a loud comment in the source can break the source map when
+  embedding the sources, when using the command-line interface or the legacy JS
+  API.
+
+### JS API
+
+* `SassNumber.assertUnit()` and `SassNumber.assertNoUnits()` now correctly
+  return the number called on when it passes the assertion.
+
 ## 1.51.0
 
 * **Potentially breaking change**: Change the order of maps returned by
