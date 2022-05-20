@@ -4,7 +4,6 @@
 
 import 'dart:math' as math;
 
-import 'package:async/async.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
@@ -378,22 +377,6 @@ Future<V> putIfAbsentAsync<K, V>(
   var value = await ifAbsent();
   map[key] = value;
   return value;
-}
-
-/// Unwraps a [Future] that wraps a [CancelableOperation].
-///
-/// If the returned operation is cancelled, it will cancel the inner operation
-/// as soon as the future completes.
-CancelableOperation<T> unwrapCancelableOperation<T>(
-    Future<CancelableOperation<T>> future) {
-  var completer = CancelableCompleter<T>(
-      onCancel: () => future.then((operation) => operation.cancel()));
-
-  future.then((operation) {
-    operation.then(completer.complete, onError: completer.completeError);
-  }, onError: completer.completeError);
-
-  return completer.operation;
 }
 
 /// Returns a deep copy of a map that contains maps.

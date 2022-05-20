@@ -1,3 +1,11 @@
+## 1.52.1
+
+### Command Line Interface
+
+* Fix a bug where `--watch` mode would close immediately in TTY mode. This was
+  caused by our change to close `--watch` when stdin was closed *outside of* TTY
+  mode, which has been reverted for now while we work on a fix.
+
 ## 1.52.0
 
 * Add support for arbitrary modifiers at the end of plain CSS imports, in
