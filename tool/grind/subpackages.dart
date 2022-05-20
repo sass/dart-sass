@@ -64,13 +64,15 @@ Future<void> deploySubPackages() async {
       File(entry.path).writeAsStringSync(File(target).readAsStringSync());
     }
 
-    log("pub publish ${pubspec.name}");
+    log("dart pub publish ${pubspec.name}");
     var process = await Process.start(
-        p.join(sdkDir.path, "bin/pub"), ["publish", "--force"],
+        p.join(sdkDir.path, "bin/dart"), ["pub", "publish", "--force"],
         workingDirectory: package);
     LineSplitter().bind(utf8.decoder.bind(process.stdout)).listen(log);
     LineSplitter().bind(utf8.decoder.bind(process.stderr)).listen(log);
-    if (await process.exitCode != 0) fail("pub publish ${pubspec.name} failed");
+    if (await process.exitCode != 0) {
+      fail("dart pub publish ${pubspec.name} failed");
+    }
 
     var response = await client.post(
         Uri.parse("https://api.github.com/repos/sass/dart-sass/git/refs"),
