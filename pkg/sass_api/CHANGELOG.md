@@ -1,3 +1,7 @@
+## 1.0.0-beta.46
+
+* No user-visible changes.
+
 ## 1.0.0-beta.45
 
 * **Breaking change:** Replace `StaticImport.supports` and `StaticImport.media`

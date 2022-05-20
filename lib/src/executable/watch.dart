@@ -2,10 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:async';
 import 'dart:collection';
 
-import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -21,46 +19,41 @@ import 'compile_stylesheet.dart';
 import 'options.dart';
 
 /// Watches all the files in [graph] for changes and updates them as necessary.
-///z
-/// Canceling the operation closes the watcher.
-CancelableOperation<void> watch(
-    ExecutableOptions options, StylesheetGraph graph) {
-  return unwrapCancelableOperation(() async {
-    var directoriesToWatch = [
-      ..._sourceDirectoriesToDestinations(options).keys,
-      for (var dir in _sourcesToDestinations(options).keys) p.dirname(dir),
-      ...options.loadPaths
-    ];
+Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
+  var directoriesToWatch = [
+    ..._sourceDirectoriesToDestinations(options).keys,
+    for (var dir in _sourcesToDestinations(options).keys) p.dirname(dir),
+    ...options.loadPaths
+  ];
 
-    var dirWatcher = MultiDirWatcher(poll: options.poll);
-    await Future.wait(directoriesToWatch.map((dir) {
-      // If a directory doesn't exist, watch its parent directory so that we're
-      // notified once it starts existing.
-      while (!dirExists(dir)) {
-        dir = p.dirname(dir);
-      }
-      return dirWatcher.watch(dir);
-    }));
-
-    // Before we start paying attention to changes, compile all the stylesheets as
-    // they currently exist. This ensures that changes that come in update a
-    // known-good state.
-    var watcher = _Watcher(options, graph);
-    for (var entry in _sourcesToDestinations(options).entries) {
-      graph.addCanonical(FilesystemImporter('.'),
-          p.toUri(canonicalize(entry.key)), p.toUri(entry.key),
-          recanonicalize: false);
-      var success =
-          await watcher.compile(entry.key, entry.value, ifModified: true);
-      if (!success && options.stopOnError) {
-        dirWatcher.events.listen(null).cancel();
-        return CancelableOperation.fromFuture(Future<void>.value());
-      }
+  var dirWatcher = MultiDirWatcher(poll: options.poll);
+  await Future.wait(directoriesToWatch.map((dir) {
+    // If a directory doesn't exist, watch its parent directory so that we're
+    // notified once it starts existing.
+    while (!dirExists(dir)) {
+      dir = p.dirname(dir);
     }
+    return dirWatcher.watch(dir);
+  }));
 
-    print("Sass is watching for changes. Press Ctrl-C to stop.\n");
-    return watcher.watch(dirWatcher);
-  }());
+  // Before we start paying attention to changes, compile all the stylesheets as
+  // they currently exist. This ensures that changes that come in update a
+  // known-good state.
+  var watcher = _Watcher(options, graph);
+  for (var entry in _sourcesToDestinations(options).entries) {
+    graph.addCanonical(FilesystemImporter('.'),
+        p.toUri(canonicalize(entry.key)), p.toUri(entry.key),
+        recanonicalize: false);
+    var success =
+        await watcher.compile(entry.key, entry.value, ifModified: true);
+    if (!success && options.stopOnError) {
+      dirWatcher.events.listen(null).cancel();
+      return;
+    }
+  }
+
+  print("Sass is watching for changes. Press Ctrl-C to stop.\n");
+  await watcher.watch(dirWatcher);
 }
 
 /// Holds state that's shared across functions that react to changes on the
@@ -131,39 +124,31 @@ class _Watcher {
 
   /// Listens to `watcher.events` and updates the filesystem accordingly.
   ///
-  /// Returns an operation that will only complete if an unexpected error occurs
-  /// (or if a complation error occurs and `--stop-on-error` is passed). This
-  /// operation can be cancelled to close the watcher.
-  CancelableOperation<void> watch(MultiDirWatcher watcher) {
-    StreamSubscription<WatchEvent>? subscription;
-    return CancelableOperation<void>.fromFuture(() async {
-      subscription = _debounceEvents(watcher.events).listen(null);
-      await for (var event in SubscriptionStream(subscription!)) {
-        var extension = p.extension(event.path);
-        if (extension != '.sass' &&
-            extension != '.scss' &&
-            extension != '.css') {
-          continue;
-        }
-
-        switch (event.type) {
-          case ChangeType.MODIFY:
-            var success = await _handleModify(event.path);
-            if (!success && _options.stopOnError) return;
-            break;
-
-          case ChangeType.ADD:
-            var success = await _handleAdd(event.path);
-            if (!success && _options.stopOnError) return;
-            break;
-
-          case ChangeType.REMOVE:
-            var success = await _handleRemove(event.path);
-            if (!success && _options.stopOnError) return;
-            break;
-        }
+  /// Returns a future that will only complete if an unexpected error occurs.
+  Future<void> watch(MultiDirWatcher watcher) async {
+    await for (var event in _debounceEvents(watcher.events)) {
+      var extension = p.extension(event.path);
+      if (extension != '.sass' && extension != '.scss' && extension != '.css') {
+        continue;
       }
-    }(), onCancel: () => subscription?.cancel());
+
+      switch (event.type) {
+        case ChangeType.MODIFY:
+          var success = await _handleModify(event.path);
+          if (!success && _options.stopOnError) return;
+          break;
+
+        case ChangeType.ADD:
+          var success = await _handleAdd(event.path);
+          if (!success && _options.stopOnError) return;
+          break;
+
+        case ChangeType.REMOVE:
+          var success = await _handleRemove(event.path);
+          if (!success && _options.stopOnError) return;
+          break;
+      }
+    }
   }
 
   /// Handles a modify event for the stylesheet at [path].
