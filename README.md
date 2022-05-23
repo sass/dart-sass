@@ -142,6 +142,20 @@ Sass's support for the legacy JavaScript API has the following limitations:
 [`precision`]: https://github.com/sass/node-sass#precision
 [`sourceComments`]: https://github.com/sass/node-sass#sourcecomments
 
+#### Using Sass with Jest
+
+If you're using [Jest] to run your tests, be aware that it has a [longstanding
+bug] where its default test environment breaks JavaScript's built-in
+[`instanceof` operator]. Dart Sass's JS package uses `instanceof` fairly
+heavily, so in order to avoid breaking Sass you'll need to install
+[`jest-environment-node-single-context`] and add `testEnvironment:
+'jest-environment-node-single-context'` to your Jest config.
+
+[Jest]: https://jestjs.io/
+[longstanding bug]: https://github.com/facebook/jest/issues/2549
+[`instanceof` operator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+[`jest-environment-node-single-context`]: https://www.npmjs.com/package/jest-environment-node-single-context
+
 ### From Pub
 
 If you're a Dart user, you can install Dart Sass globally using `pub global
