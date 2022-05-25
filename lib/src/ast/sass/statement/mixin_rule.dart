@@ -54,7 +54,4 @@ class _HasContentVisitor extends StatementSearchVisitor<bool> {
   const _HasContentVisitor();
 
   bool visitContentRule(_) => true;
-  bool? visitArgumentInvocation(_) => null;
-  bool? visitSupportsCondition(_) => null;
-  bool? visitInterpolation(_) => null;
 }
