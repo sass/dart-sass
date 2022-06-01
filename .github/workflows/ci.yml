@@ -233,10 +233,12 @@ jobs:
           docker run --rm \
             --env "GH_BEARER_TOKEN=$GH_BEARER_TOKEN" \
             --platform ${{ matrix.platform }} \
-            --volume "$PWD:$PWD" \
+            --mount type=bind,source="$PWD",target="$PWD" \
+            --mount type=tmpfs,destination=/root/.pub-cache \
+            --mount type=tmpfs,destination=/tmp \
             --workdir "$PWD" \
             docker.io/library/dart:latest \
-            /bin/sh -c "dart pub get && dart run grinder pkg-github-linux-${{ matrix.arch }}"
+            /bin/sh -c "cp -R . /tmp/workspace && cd /tmp/workspace && dart pub get && dart run grinder pkg-github-linux-${{ matrix.arch }}"
         env: {GH_BEARER_TOKEN: "${{ github.token }}"}
 
   deploy_github_macos:
