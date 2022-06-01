@@ -213,9 +213,9 @@ selector[href*="{"] { /* please don't move me */ }
 
 @rule3;"""));
     });
-
-    test("loud comments in mixin", () {
-      expect(compileString("""
+    group("loud comments in mixin", () {
+      test("empty", () {
+        expect(compileString("""
 @mixin loudComment {
   /* ... */
 }
@@ -223,6 +223,97 @@ selector[href*="{"] { /* please don't move me */ }
 selector {
   @include loudComment;
 }"""), "selector {\n  /* ... */\n}");
+      });
+
+      test("with stylerule", () {
+        expect(compileString("""
+@mixin loudComment {
+  margin: 1px; /* mixin */
+} /* mixin-out */
+
+selector {
+  @include loudComment; /* selector */
+}"""), """
+/* mixin-out */
+selector {
+  margin: 1px; /* mixin */
+  /* selector */
+}""");
+      });
+    });
+
+    group("loud comments in nested blocks", () {
+      test("with styles", () {
+        expect(
+          compileString("""
+foo { /* foo */
+  padding: 1px; /* foo padding */
+  bar { /* bar */
+    padding: 2px; /* bar padding */
+    baz { /* baz */
+      padding: 3px; /* baz padding */
+      margin: 3px; /* baz margin */
+    } /* baz end */
+    biz { /* biz */
+      padding: 3px; /* biz padding */
+      margin: 3px; /* biz margin */
+    } /* biz end */
+    margin: 2px; /* bar margin */
+  } /* bar end */
+  margin: 1px; /* foo margin */
+} /* foo end */
+"""),
+          """
+foo { /* foo */
+  padding: 1px; /* foo padding */
+  /* bar end */
+  margin: 1px; /* foo margin */
+}
+foo bar { /* bar */
+  padding: 2px; /* bar padding */
+  /* baz end */
+  /* biz end */
+  margin: 2px; /* bar margin */
+}
+foo bar baz { /* baz */
+  padding: 3px; /* baz padding */
+  margin: 3px; /* baz margin */
+}
+foo bar biz { /* biz */
+  padding: 3px; /* biz padding */
+  margin: 3px; /* biz margin */
+}
+
+/* foo end */""",
+        );
+      });
+
+      test("empty", () {
+        expect(
+          compileString("""
+foo { /* foo */
+  bar { /* bar */
+    baz { /* baz */
+    } /* baz end */
+    biz { /* biz */
+    } /* biz end */
+  } /* bar end */
+} /* foo end */
+"""),
+          """
+foo { /* foo */
+  /* bar end */
+}
+foo bar { /* bar */
+  /* baz end */
+  /* biz end */
+}
+foo bar baz { /* baz */ }
+foo bar biz { /* biz */ }
+
+/* foo end */""",
+        );
+      });
     });
   });
 }
