@@ -304,7 +304,7 @@ a {
     expect(compileStringAsync("""
       @use 'sass:meta';
       @include meta.load-css("other.scss");
-    """, loadPaths: [d.sandbox]), completion(equals("/**/\n/**/")));
+    """, loadPaths: [d.sandbox]), completion(equals("/**/ /**/")));
 
     // Give the race condition time to appear.
     await pumpEventQueue();

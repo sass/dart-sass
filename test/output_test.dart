@@ -204,12 +204,12 @@ selector {
     test("selector contains left brace", () {
       expect(compileString("""@rule1;
 @rule2;
-selector[href*=\"{\"]
+selector[href*="{"]
 { /* please don't move me */ }
 
 @rule3;"""), equals("""@rule1;
 @rule2;
-selector[href*=\"{\"] { /* please don't move me */ }
+selector[href*="{"] { /* please don't move me */ }
 
 @rule3;"""));
     });

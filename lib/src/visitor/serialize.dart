@@ -1319,7 +1319,8 @@ class _SerializeVisitor
         _buffer.writeCharCode($semicolon);
       }
 
-      if (prePrevious_ == parent && _isTrailingComment(previous, prePrevious_)) {
+      if (prePrevious_ == parent &&
+          _isTrailingComment(previous, prePrevious_!)) {
         _writeOptionalSpace();
       } else {
         _writeLineFeed();
