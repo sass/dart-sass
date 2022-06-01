@@ -213,6 +213,7 @@ selector[href*="{"] { /* please don't move me */ }
 
 @rule3;"""));
     });
+
     group("loud comments in mixin", () {
       test("empty", () {
         expect(compileString("""
@@ -225,7 +226,7 @@ selector {
 }"""), "selector {\n  /* ... */\n}");
       });
 
-      test("with stylerule", () {
+      test("with style rule", () {
         expect(compileString("""
 @mixin loudComment {
   margin: 1px; /* mixin */

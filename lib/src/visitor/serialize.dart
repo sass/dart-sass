@@ -210,7 +210,7 @@ class _SerializeVisitor
 
     if (!node.isChildless) {
       _writeOptionalSpace();
-      _visitChildren(node.children, node);
+      _visitChildren(node);
     }
   }
 
@@ -228,7 +228,7 @@ class _SerializeVisitor
     });
 
     _writeOptionalSpace();
-    _visitChildren(node.children, node);
+    _visitChildren(node);
   }
 
   void visitCssImport(CssImport node) {
@@ -275,7 +275,7 @@ class _SerializeVisitor
         () =>
             _writeBetween(node.selector.value, _commaSeparator, _buffer.write));
     _writeOptionalSpace();
-    _visitChildren(node.children, node);
+    _visitChildren(node);
   }
 
   void _visitMediaQuery(CssMediaQuery query) {
@@ -300,7 +300,7 @@ class _SerializeVisitor
 
     _for(node.selector, () => node.selector.value.accept(this));
     _writeOptionalSpace();
-    _visitChildren(node.children, node);
+    _visitChildren(node);
   }
 
   void visitCssSupportsRule(CssSupportsRule node) {
@@ -317,7 +317,7 @@ class _SerializeVisitor
     });
 
     _writeOptionalSpace();
-    _visitChildren(node.children, node);
+    _visitChildren(node);
   }
 
   void visitCssDeclaration(CssDeclaration node) {
@@ -1288,19 +1288,20 @@ class _SerializeVisitor
   void _write(CssValue<String> value) =>
       _for(value, () => _buffer.write(value.value));
 
-  /// Emits [children] in a block.
-  void _visitChildren(List<CssNode> children, CssParentNode parent) {
+  /// Emits [parent.children] in a block.
+  void _visitChildren(CssParentNode parent) {
     _buffer.writeCharCode($lbrace);
 
-    CssNode? prePrevious_;
-    CssNode previous = parent;
-    for (var child in children) {
+    CssNode? prePrevious;
+    CssNode? previous;
+    for (var child in parent.children) {
       if (_isInvisible(child)) continue;
-      if (previous != parent && _requiresSemicolon(previous)) {
+
+      if (previous != null && _requiresSemicolon(previous)) {
         _buffer.writeCharCode($semicolon);
       }
 
-      if (_isTrailingComment(child, previous)) {
+      if (_isTrailingComment(child, previous ?? parent)) {
         _writeOptionalSpace();
         _withoutIndendation(() => child.accept(this));
       } else {
@@ -1310,17 +1311,16 @@ class _SerializeVisitor
         });
       }
 
-      prePrevious_ = previous;
+      prePrevious = previous;
       previous = child;
     }
 
-    if (previous != parent) {
+    if (previous != null) {
       if (_requiresSemicolon(previous) && !_isCompressed) {
         _buffer.writeCharCode($semicolon);
       }
 
-      if (prePrevious_ == parent &&
-          _isTrailingComment(previous, prePrevious_!)) {
+      if (prePrevious == null && _isTrailingComment(previous, parent)) {
         _writeOptionalSpace();
       } else {
         _writeLineFeed();
@@ -1332,7 +1332,7 @@ class _SerializeVisitor
   }
 
   /// Whether [node] requires a semicolon to be written after it.
-  bool _requiresSemicolon(CssNode? node) =>
+  bool _requiresSemicolon(CssNode node) =>
       node is CssParentNode ? node.isChildless : node is! CssComment;
 
   /// Whether [node] represents a trailing comment when it appears after
@@ -1349,8 +1349,8 @@ class _SerializeVisitor
     var previousSpan = previous.span;
     if (previous is CssParentNode && previous.children.contains(node)) {
       // Walk back from just before the current node starts looking for the
-      // parent's left brace (to open the child block).  This is safer than
-      // a simple forward search of the previousSpan.text as that might contain
+      // parent's left brace (to open the child block). This is safer than a
+      // simple forward search of the previousSpan.text as that might contain
       // other left braces.
       var searchFrom = node.span.start.offset - previousSpan.start.offset - 1;
       if (searchFrom < 0) {
