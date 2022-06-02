@@ -164,6 +164,24 @@ selector { /* please don't move me */ }"""), equals("""
 selector { /* please don't move me */ }"""));
     });
 
+    test("double trailing empty block", () {
+      expect(compileString("""
+selector { /* please don't move me */ /* please don't move me */ }"""),
+          equals("""
+selector { /* please don't move me */ /* please don't move me */
+}"""));
+    });
+
+    test("double trailing style rule", () {
+      expect(compileString("""
+selector {
+  margin: 1px; /* please don't move me */ /* please don't move me */
+}"""), equals("""
+selector {
+  margin: 1px; /* please don't move me */ /* please don't move me */
+}"""));
+    });
+
     test("after property in block", () {
       expect(compileString("""
 selector {
@@ -215,7 +233,7 @@ selector[href*="{"] { /* please don't move me */ }
     });
 
     group("loud comments in mixin", () {
-      test("empty", () {
+      test("empty with spacing", () {
         expect(compileString("""
 @mixin loudComment {
   /* ... */
@@ -223,7 +241,19 @@ selector[href*="{"] { /* please don't move me */ }
 
 selector {
   @include loudComment;
-}"""), "selector {\n  /* ... */\n}");
+}"""), """
+selector {
+  /* ... */
+}""");
+      });
+
+      test("empty no spacing", () {
+        expect(compileString("""
+@mixin loudComment{/* ... */}
+selector {@include loudComment;}"""), """
+selector {
+  /* ... */
+}""");
       });
 
       test("with style rule", () {

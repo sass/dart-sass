@@ -21,6 +21,7 @@ import '../util/character.dart';
 import '../util/no_source_map_buffer.dart';
 import '../util/number.dart';
 import '../util/source_map_buffer.dart';
+import '../util/span.dart';
 import '../value.dart';
 import 'interface/css.dart';
 import 'interface/selector.dart';
@@ -1346,29 +1347,20 @@ class _SerializeVisitor
     if (_isCompressed) return false;
     if (node is! CssComment) return false;
 
-    var previousSpan = previous.span;
-    if (previous is CssParentNode && previous.children.contains(node)) {
-      // Walk back from just before the current node starts looking for the
-      // parent's left brace (to open the child block). This is safer than a
-      // simple forward search of the previousSpan.text as that might contain
-      // other left braces.
-      var searchFrom = node.span.start.offset - previousSpan.start.offset - 1;
-      if (searchFrom < 0) {
-        // This can happen when the loud comment is the first statement in a
-        // mixin that's later included. In that case, node.span.start.offset
-        // (representing the loud comment in the mixin) will be less than
-        // previousSpan.start.offset (representing the statement where the
-        // mixin is later included) ==> the loud comment cannot possibly be
-        // trailing.
-        return false;
-      }
-
-      var endOffset = previousSpan.text.lastIndexOf("{", searchFrom);
-      endOffset = math.max(0, endOffset);
-      previousSpan = previousSpan.file.span(
-          previousSpan.start.offset, previousSpan.start.offset + endOffset);
+    if (!previous.span.contains(node.span)) {
+      return node.span.start.line == previous.span.end.line;
     }
-    return node.span.start.line == previousSpan.end.line;
+
+    // Walk back from just before the current node starts looking for the
+    // parent's left brace (to open the child block). This is safer than a
+    // simple forward search of the previous.span.text as that might contain
+    // other left braces.
+    var searchFrom = node.span.start.offset - previous.span.start.offset - 1;
+    var endOffset = previous.span.text.lastIndexOf("{", searchFrom);
+    endOffset = math.max(0, endOffset);
+    var span = previous.span.file.span(
+        previous.span.start.offset, previous.span.start.offset + endOffset);
+    return node.span.start.line == span.end.line;
   }
 
   /// Writes a line feed, unless this emitting compressed CSS.
