@@ -1,3 +1,8 @@
+## 1.52.2
+
+* Preserve location of trailing loud comments (`/* ... */`) instead of pushing
+  the comment to the next line.
+
 ## 1.52.1
 
 ### Command Line Interface
