@@ -21,6 +21,7 @@ import '../util/character.dart';
 import '../util/no_source_map_buffer.dart';
 import '../util/number.dart';
 import '../util/source_map_buffer.dart';
+import '../util/span.dart';
 import '../value.dart';
 import 'interface/css.dart';
 import 'interface/selector.dart';
@@ -153,14 +154,16 @@ class _SerializeVisitor
 
   void visitCssStylesheet(CssStylesheet node) {
     CssNode? previous;
-    for (var i = 0; i < node.children.length; i++) {
-      var child = node.children[i];
+    for (var child in node.children) {
       if (_isInvisible(child)) continue;
-
       if (previous != null) {
         if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-        _writeLineFeed();
-        if (previous.isGroupEnd) _writeLineFeed();
+        if (_isTrailingComment(child, previous)) {
+          _writeOptionalSpace();
+        } else {
+          _writeLineFeed();
+          if (previous.isGroupEnd) _writeLineFeed();
+        }
       }
       previous = child;
 
@@ -208,7 +211,7 @@ class _SerializeVisitor
 
     if (!node.isChildless) {
       _writeOptionalSpace();
-      _visitChildren(node.children);
+      _visitChildren(node);
     }
   }
 
@@ -226,7 +229,7 @@ class _SerializeVisitor
     });
 
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node);
   }
 
   void visitCssImport(CssImport node) {
@@ -273,7 +276,7 @@ class _SerializeVisitor
         () =>
             _writeBetween(node.selector.value, _commaSeparator, _buffer.write));
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node);
   }
 
   void _visitMediaQuery(CssMediaQuery query) {
@@ -298,7 +301,7 @@ class _SerializeVisitor
 
     _for(node.selector, () => node.selector.value.accept(this));
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node);
   }
 
   void visitCssSupportsRule(CssSupportsRule node) {
@@ -315,7 +318,7 @@ class _SerializeVisitor
     });
 
     _writeOptionalSpace();
-    _visitChildren(node.children);
+    _visitChildren(node);
   }
 
   void visitCssDeclaration(CssDeclaration node) {
@@ -1286,44 +1289,79 @@ class _SerializeVisitor
   void _write(CssValue<String> value) =>
       _for(value, () => _buffer.write(value.value));
 
-  /// Emits [children] in a block.
-  void _visitChildren(List<CssNode> children) {
+  /// Emits [parent.children] in a block.
+  void _visitChildren(CssParentNode parent) {
     _buffer.writeCharCode($lbrace);
-    if (children.every(_isInvisible)) {
-      _buffer.writeCharCode($rbrace);
-      return;
-    }
 
-    _writeLineFeed();
-    CssNode? previous_;
-    _indent(() {
-      for (var i = 0; i < children.length; i++) {
-        var child = children[i];
-        if (_isInvisible(child)) continue;
+    CssNode? prePrevious;
+    CssNode? previous;
+    for (var child in parent.children) {
+      if (_isInvisible(child)) continue;
 
-        var previous = previous_; // dart-lang/sdk#45348
-        if (previous != null) {
-          if (_requiresSemicolon(previous)) _buffer.writeCharCode($semicolon);
-          _writeLineFeed();
-          if (previous.isGroupEnd) _writeLineFeed();
-        }
-        previous_ = child;
-
-        child.accept(this);
+      if (previous != null && _requiresSemicolon(previous)) {
+        _buffer.writeCharCode($semicolon);
       }
-    });
 
-    if (_requiresSemicolon(previous_!) && !_isCompressed) {
-      _buffer.writeCharCode($semicolon);
+      if (_isTrailingComment(child, previous ?? parent)) {
+        _writeOptionalSpace();
+        _withoutIndendation(() => child.accept(this));
+      } else {
+        _writeLineFeed();
+        _indent(() {
+          child.accept(this);
+        });
+      }
+
+      prePrevious = previous;
+      previous = child;
     }
-    _writeLineFeed();
-    _writeIndentation();
+
+    if (previous != null) {
+      if (_requiresSemicolon(previous) && !_isCompressed) {
+        _buffer.writeCharCode($semicolon);
+      }
+
+      if (prePrevious == null && _isTrailingComment(previous, parent)) {
+        _writeOptionalSpace();
+      } else {
+        _writeLineFeed();
+        _writeIndentation();
+      }
+    }
+
     _buffer.writeCharCode($rbrace);
   }
 
   /// Whether [node] requires a semicolon to be written after it.
-  bool _requiresSemicolon(CssNode? node) =>
+  bool _requiresSemicolon(CssNode node) =>
       node is CssParentNode ? node.isChildless : node is! CssComment;
+
+  /// Whether [node] represents a trailing comment when it appears after
+  /// [previous] in a sequence of nodes being serialized.
+  ///
+  /// Note [previous] could be either a sibling of [node] or the parent of
+  /// [node], with [node] being the first visible child.
+  bool _isTrailingComment(CssNode node, CssNode previous) {
+    // Short-circuit in compressed mode to avoid expensive span shenanigans
+    // (shespanigans?), since we're compressing all whitespace anyway.
+    if (_isCompressed) return false;
+    if (node is! CssComment) return false;
+
+    if (!previous.span.contains(node.span)) {
+      return node.span.start.line == previous.span.end.line;
+    }
+
+    // Walk back from just before the current node starts looking for the
+    // parent's left brace (to open the child block). This is safer than a
+    // simple forward search of the previous.span.text as that might contain
+    // other left braces.
+    var searchFrom = node.span.start.offset - previous.span.start.offset - 1;
+    var endOffset = previous.span.text.lastIndexOf("{", searchFrom);
+    endOffset = math.max(0, endOffset);
+    var span = previous.span.file.span(
+        previous.span.start.offset, previous.span.start.offset + endOffset);
+    return node.span.start.line == span.end.line;
+  }
 
   /// Writes a line feed, unless this emitting compressed CSS.
   void _writeLineFeed() {
@@ -1371,6 +1409,14 @@ class _SerializeVisitor
     _indentation++;
     callback();
     _indentation--;
+  }
+
+  /// Runs [callback] without any indentation.
+  void _withoutIndendation(void callback()) {
+    var savedIndentation = _indentation;
+    _indentation = 0;
+    callback();
+    _indentation = savedIndentation;
   }
 
   /// Returns whether [node] is considered invisible.

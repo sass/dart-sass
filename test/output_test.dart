@@ -110,4 +110,241 @@ void main() {
       });
     });
   });
+
+  // Tests for sass/dart-sass#417.
+  //
+  // Note there's no need for "in Sass" cases as it's not possible to have
+  // trailing loud comments in the Sass syntax.
+  group("preserve trailing loud comments in SCSS", () {
+    test("after open block", () {
+      expect(compileString("""
+selector { /* please don't move me */
+  name: value;
+}"""), equals("""
+selector { /* please don't move me */
+  name: value;
+}"""));
+    });
+
+    test("after open block (multi-line selector)", () {
+      expect(compileString("""
+selector1,
+selector2 { /* please don't move me */
+  name: value;
+}"""), equals("""
+selector1,
+selector2 { /* please don't move me */
+  name: value;
+}"""));
+    });
+
+    test("after close block", () {
+      expect(compileString("""
+selector {
+  name: value;
+} /* please don't move me */"""), equals("""
+selector {
+  name: value;
+} /* please don't move me */"""));
+    });
+
+    test("only content in block", () {
+      expect(compileString("""
+selector {
+  /* please don't move me */
+}"""), equals("""
+selector {
+  /* please don't move me */
+}"""));
+    });
+
+    test("only content in block (no newlines)", () {
+      expect(compileString("""
+selector { /* please don't move me */ }"""), equals("""
+selector { /* please don't move me */ }"""));
+    });
+
+    test("double trailing empty block", () {
+      expect(compileString("""
+selector { /* please don't move me */ /* please don't move me */ }"""),
+          equals("""
+selector { /* please don't move me */ /* please don't move me */
+}"""));
+    });
+
+    test("double trailing style rule", () {
+      expect(compileString("""
+selector {
+  margin: 1px; /* please don't move me */ /* please don't move me */
+}"""), equals("""
+selector {
+  margin: 1px; /* please don't move me */ /* please don't move me */
+}"""));
+    });
+
+    test("after property in block", () {
+      expect(compileString("""
+selector {
+  name1: value1; /* please don't move me 1 */
+  name2: value2; /* please don't move me 2 */
+  name3: value3; /* please don't move me 3 */
+}"""), equals("""
+selector {
+  name1: value1; /* please don't move me 1 */
+  name2: value2; /* please don't move me 2 */
+  name3: value3; /* please don't move me 3 */
+}"""));
+    });
+
+    test("after rule in block", () {
+      expect(compileString("""
+selector {
+  @rule1; /* please don't move me 1 */
+  @rule2; /* please don't move me 2 */
+  @rule3; /* please don't move me 3 */
+}"""), equals("""
+selector {
+  @rule1; /* please don't move me 1 */
+  @rule2; /* please don't move me 2 */
+  @rule3; /* please don't move me 3 */
+}"""));
+    });
+
+    test("after top-level statement", () {
+      expect(compileString("@rule; /* please don't move me */"),
+          equals("@rule; /* please don't move me */"));
+    });
+
+    // The trailing comment detection logic looks for left braces to detect
+    // whether a comment is on the same line as its parent node.  This test
+    // checks to make sure it isn't confused by syntax that uses braces for
+    // things other than starting child blocks.
+    test("selector contains left brace", () {
+      expect(compileString("""@rule1;
+@rule2;
+selector[href*="{"]
+{ /* please don't move me */ }
+
+@rule3;"""), equals("""@rule1;
+@rule2;
+selector[href*="{"] { /* please don't move me */ }
+
+@rule3;"""));
+    });
+
+    group("loud comments in mixin", () {
+      test("empty with spacing", () {
+        expect(compileString("""
+@mixin loudComment {
+  /* ... */
+}
+
+selector {
+  @include loudComment;
+}"""), """
+selector {
+  /* ... */
+}""");
+      });
+
+      test("empty no spacing", () {
+        expect(compileString("""
+@mixin loudComment{/* ... */}
+selector {@include loudComment;}"""), """
+selector {
+  /* ... */
+}""");
+      });
+
+      test("with style rule", () {
+        expect(compileString("""
+@mixin loudComment {
+  margin: 1px; /* mixin */
+} /* mixin-out */
+
+selector {
+  @include loudComment; /* selector */
+}"""), """
+/* mixin-out */
+selector {
+  margin: 1px; /* mixin */
+  /* selector */
+}""");
+      });
+    });
+
+    group("loud comments in nested blocks", () {
+      test("with styles", () {
+        expect(
+          compileString("""
+foo { /* foo */
+  padding: 1px; /* foo padding */
+  bar { /* bar */
+    padding: 2px; /* bar padding */
+    baz { /* baz */
+      padding: 3px; /* baz padding */
+      margin: 3px; /* baz margin */
+    } /* baz end */
+    biz { /* biz */
+      padding: 3px; /* biz padding */
+      margin: 3px; /* biz margin */
+    } /* biz end */
+    margin: 2px; /* bar margin */
+  } /* bar end */
+  margin: 1px; /* foo margin */
+} /* foo end */
+"""),
+          """
+foo { /* foo */
+  padding: 1px; /* foo padding */
+  /* bar end */
+  margin: 1px; /* foo margin */
+}
+foo bar { /* bar */
+  padding: 2px; /* bar padding */
+  /* baz end */
+  /* biz end */
+  margin: 2px; /* bar margin */
+}
+foo bar baz { /* baz */
+  padding: 3px; /* baz padding */
+  margin: 3px; /* baz margin */
+}
+foo bar biz { /* biz */
+  padding: 3px; /* biz padding */
+  margin: 3px; /* biz margin */
+}
+
+/* foo end */""",
+        );
+      });
+
+      test("empty", () {
+        expect(
+          compileString("""
+foo { /* foo */
+  bar { /* bar */
+    baz { /* baz */
+    } /* baz end */
+    biz { /* biz */
+    } /* biz end */
+  } /* bar end */
+} /* foo end */
+"""),
+          """
+foo { /* foo */
+  /* bar end */
+}
+foo bar { /* bar */
+  /* baz end */
+  /* biz end */
+}
+foo bar baz { /* baz */ }
+foo bar biz { /* biz */ }
+
+/* foo end */""",
+        );
+      });
+    });
+  });
 }

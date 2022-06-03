@@ -77,6 +77,15 @@ extension SpanExtensions on FileSpan {
     _scanIdentifier(scanner);
     return subspan(scanner.position).trimLeft();
   }
+
+  /// Whether [this] FileSpan contains the [target] FileSpan.
+  ///
+  /// Validates the FileSpans to be in the same file and for the [target] to be
+  /// within [this] FileSpan inclusive range [start,end].
+  bool contains(FileSpan target) =>
+      file.url == target.file.url &&
+      start.offset <= target.start.offset &&
+      end.offset >= target.end.offset;
 }
 
 /// Consumes an identifier from [scanner].
