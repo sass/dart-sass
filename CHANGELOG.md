@@ -1,3 +1,8 @@
+## 1.52.3
+
+* Fix crash when trailing loud comments (`/* ... */`) appear twice in a row
+  across two different imports which themselves imported the same file each.
+
 ## 1.52.2
 
 * Preserve location of trailing loud comments (`/* ... */`) instead of pushing

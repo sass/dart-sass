@@ -1356,6 +1356,11 @@ class _SerializeVisitor
     // simple forward search of the previous.span.text as that might contain
     // other left braces.
     var searchFrom = node.span.start.offset - previous.span.start.offset - 1;
+
+    // Imports can cause a node to be "contained" by another node when they are
+    // actually the same node twice in a row.
+    if (searchFrom < 0) return false;
+
     var endOffset = previous.span.text.lastIndexOf("{", searchFrom);
     endOffset = math.max(0, endOffset);
     var span = previous.span.file.span(
