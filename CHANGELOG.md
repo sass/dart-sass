@@ -1,3 +1,9 @@
+## 1.52.4
+
+### Embedded Sass
+
+* Respect npm's proxy settings when downloading the embedded Sass compiler.
+
 ## 1.52.3
 
 * Fix crash when trailing loud comments (`/* ... */`) appear twice in a row
