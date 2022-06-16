@@ -1,3 +1,10 @@
+## 1.52.4
+
+### JS API
+
+* Fix a bug where `meta.load-css()` would sometimes resolve relative URLs
+  incorrectly when called from a mixin using the legacy JS API.
+
 ## 1.52.3
 
 * Fix crash when trailing loud comments (`/* ... */`) appear twice in a row

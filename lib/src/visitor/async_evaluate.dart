@@ -1600,7 +1600,8 @@ class _EvaluateVisitor
           }
         }
       } else {
-        var result = await _importLikeNode(url, forImport);
+        var result = await _importLikeNode(
+            url, baseUrl ?? _stylesheet.span.sourceUrl, forImport);
         if (result != null) {
           result.stylesheet.span.sourceUrl.andThen(_loadedUrls.add);
           return result;
@@ -1633,16 +1634,14 @@ class _EvaluateVisitor
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
   Future<_LoadedStylesheet?> _importLikeNode(
-      String originalUrl, bool forImport) async {
-    var result = _nodeImporter!
-        .loadRelative(originalUrl, _stylesheet.span.sourceUrl, forImport);
+      String originalUrl, Uri? previous, bool forImport) async {
+    var result = _nodeImporter!.loadRelative(originalUrl, previous, forImport);
 
     bool isDependency;
     if (result != null) {
       isDependency = _inDependency;
     } else {
-      result = await _nodeImporter!
-          .loadAsync(originalUrl, _stylesheet.span.sourceUrl, forImport);
+      result = await _nodeImporter!.loadAsync(originalUrl, previous, forImport);
       if (result == null) return null;
       isDependency = true;
     }
