@@ -107,17 +107,26 @@ class CssParser extends ScssParser {
     var identifier = interpolatedIdentifier();
     var plain = identifier.asPlain!; // CSS doesn't allow non-plain identifiers
 
-    var specialFunction = trySpecialFunction(plain.toLowerCase(), start);
+    var lower = plain.toLowerCase();
+    var specialFunction = trySpecialFunction(lower, start);
     if (specialFunction != null) return specialFunction;
 
     var beforeArguments = scanner.state;
     if (!scanner.scanChar($lparen)) return StringExpression(identifier);
 
+    var allowEmptySecondArg = lower == 'var';
     var arguments = <Expression>[];
     if (!scanner.scanChar($rparen)) {
       do {
         whitespace();
-        arguments.add(expression(singleEquals: true));
+        if (allowEmptySecondArg &&
+            arguments.length == 1 &&
+            scanner.peekChar() == $rparen) {
+          arguments.add(StringExpression.plain('', scanner.emptySpan));
+          break;
+        }
+
+        arguments.add(expressionUntilComma(singleEquals: true));
         whitespace();
       } while (scanner.scanChar($comma));
       scanner.expectChar($rparen);
