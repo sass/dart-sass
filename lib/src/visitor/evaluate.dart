@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: fdd5d16c0ec34a4e0e4e2d5bdbe3d764e788a43f
+// Checksum: 62020db52400fe22132154e72fbb728f6282bf6d
 //
 // ignore_for_file: unused_import
 
@@ -1598,7 +1598,8 @@ class _EvaluateVisitor
           }
         }
       } else {
-        var result = _importLikeNode(url, forImport);
+        var result = _importLikeNode(
+            url, baseUrl ?? _stylesheet.span.sourceUrl, forImport);
         if (result != null) {
           result.stylesheet.span.sourceUrl.andThen(_loadedUrls.add);
           return result;
@@ -1630,16 +1631,15 @@ class _EvaluateVisitor
   /// Imports a stylesheet using [_nodeImporter].
   ///
   /// Returns the [Stylesheet], or `null` if the import failed.
-  _LoadedStylesheet? _importLikeNode(String originalUrl, bool forImport) {
-    var result = _nodeImporter!
-        .loadRelative(originalUrl, _stylesheet.span.sourceUrl, forImport);
+  _LoadedStylesheet? _importLikeNode(
+      String originalUrl, Uri? previous, bool forImport) {
+    var result = _nodeImporter!.loadRelative(originalUrl, previous, forImport);
 
     bool isDependency;
     if (result != null) {
       isDependency = _inDependency;
     } else {
-      result = _nodeImporter!
-          .load(originalUrl, _stylesheet.span.sourceUrl, forImport);
+      result = _nodeImporter!.load(originalUrl, previous, forImport);
       if (result == null) return null;
       isDependency = true;
     }

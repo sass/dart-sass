@@ -1,5 +1,10 @@
 ## 1.52.4
 
+### JS API
+
+* Fix a bug where `meta.load-css()` would sometimes resolve relative URLs
+  incorrectly when called from a mixin using the legacy JS API.
+
 ### Embedded Sass
 
 * Respect npm's proxy settings when downloading the embedded Sass compiler.
