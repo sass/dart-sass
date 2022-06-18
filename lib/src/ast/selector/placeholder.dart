@@ -20,10 +20,6 @@ class PlaceholderSelector extends SimpleSelector {
   /// The name of the placeholder.
   final String name;
 
-  /// @nodoc
-  @internal
-  bool get isInvisible => true;
-
   /// Returns whether this is a private selector (that is, whether it begins
   /// with `-` or `_`).
   bool get isPrivate => character.isPrivate(name);

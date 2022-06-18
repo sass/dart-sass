@@ -5,9 +5,7 @@
 import 'dart:collection';
 
 import '../../../visitor/interface/modifiable_css.dart';
-import '../at_rule.dart';
 import '../node.dart';
-import '../style_rule.dart';
 
 /// A modifiable version of [CssNode].
 ///
@@ -27,36 +25,11 @@ abstract class ModifiableCssNode extends CssNode {
   var isGroupEnd = false;
 
   /// Whether this node has a visible sibling after it.
-  bool get hasFollowingSibling {
-    var parent = _parent;
-    if (parent == null) return false;
-    var siblings = parent.children;
-    for (var i = _indexInParent! + 1; i < siblings.length; i++) {
-      var sibling = siblings[i];
-      if (!_isInvisible(sibling)) return true;
-    }
-    return false;
-  }
-
-  /// Returns whether [node] is invisible for the purposes of
-  /// [hasFollowingSibling].
-  ///
-  /// This can return a false negative for a comment node in compressed mode,
-  /// since the AST doesn't know the output style, but that's an extremely
-  /// narrow edge case so we don't worry about it.
-  bool _isInvisible(CssNode node) {
-    if (node is CssParentNode) {
-      // An unknown at-rule is never invisible. Because we don't know the
-      // semantics of unknown rules, we can't guarantee that (for example)
-      // `@foo {}` isn't meaningful.
-      if (node is CssAtRule) return false;
-
-      if (node is CssStyleRule && node.selector.value.isInvisible) return true;
-      return node.children.every(_isInvisible);
-    } else {
-      return false;
-    }
-  }
+  bool get hasFollowingSibling =>
+      _parent?.children
+          .skip(_indexInParent! + 1)
+          .any((sibling) => !sibling.isInvisible) ??
+      false;
 
   T accept<T>(ModifiableCssVisitor<T> visitor);
 

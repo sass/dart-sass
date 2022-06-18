@@ -100,6 +100,10 @@ class SelectorParser extends Parser {
   /// If [lineBreak] is `true`, that indicates that there was a line break
   /// before this selector.
   ComplexSelector _complexSelector({bool lineBreak = false}) {
+    CompoundSelector? lastCompound;
+    var combinators = <Combinator>[];
+
+    List<Combinator>? initialCombinators;
     var components = <ComplexSelectorComponent>[];
 
     loop:
@@ -110,37 +114,44 @@ class SelectorParser extends Parser {
       switch (next) {
         case $plus:
           scanner.readChar();
-          components.add(Combinator.nextSibling);
+          combinators.add(Combinator.nextSibling);
           break;
 
         case $gt:
           scanner.readChar();
-          components.add(Combinator.child);
+          combinators.add(Combinator.child);
           break;
 
         case $tilde:
           scanner.readChar();
-          components.add(Combinator.followingSibling);
-          break;
-
-        case $lbracket:
-        case $dot:
-        case $hash:
-        case $percent:
-        case $colon:
-        case $ampersand:
-        case $asterisk:
-        case $pipe:
-          components.add(_compoundSelector());
-          if (scanner.peekChar() == $ampersand) {
-            scanner.error(
-                '"&" may only used at the beginning of a compound selector.');
-          }
+          combinators.add(Combinator.followingSibling);
           break;
 
         default:
-          if (next == null || !lookingAtIdentifier()) break loop;
-          components.add(_compoundSelector());
+          if (next == null ||
+              (!const {
+                    $lbracket,
+                    $dot,
+                    $hash,
+                    $percent,
+                    $colon,
+                    $ampersand,
+                    $asterisk,
+                    $pipe
+                  }.contains(next) &&
+                  !lookingAtIdentifier())) {
+            break loop;
+          }
+
+          if (lastCompound != null) {
+            components.add(ComplexSelectorComponent(lastCompound, combinators));
+          } else if (combinators.isNotEmpty) {
+            assert(initialCombinators == null);
+            initialCombinators = combinators;
+          }
+
+          lastCompound = _compoundSelector();
+          combinators = [];
           if (scanner.peekChar() == $ampersand) {
             scanner.error(
                 '"&" may only used at the beginning of a compound selector.');
@@ -149,8 +160,16 @@ class SelectorParser extends Parser {
       }
     }
 
-    if (components.isEmpty) scanner.error("expected selector.");
-    return ComplexSelector(components, lineBreak: lineBreak);
+    if (lastCompound != null) {
+      components.add(ComplexSelectorComponent(lastCompound, combinators));
+    } else if (combinators.isNotEmpty) {
+      initialCombinators = combinators;
+    } else {
+      scanner.error("expected selector.");
+    }
+
+    return ComplexSelector(initialCombinators ?? const [], components,
+        lineBreak: lineBreak);
   }
 
   /// Consumes a compound selector.

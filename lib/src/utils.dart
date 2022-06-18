@@ -23,7 +23,7 @@ final _traces = Expando<StackTrace>();
 String toSentence(Iterable<Object> iter, [String? conjunction]) {
   conjunction ??= "and";
   if (iter.length == 1) return iter.first.toString();
-  return iter.take(iter.length - 1).join(", ") + " $conjunction ${iter.last}";
+  return iter.exceptLast.join(", ") + " $conjunction ${iter.last}";
 }
 
 /// Returns [string] with every line indented [indentation] spaces.
@@ -457,4 +457,15 @@ extension MapExtension<K, V> on Map<K, V> {
       containsKey(key)
           ? this[key] = merge(this[key]!, value)
           : this[key] = value;
+}
+
+extension IterableExtension<E> on Iterable<E> {
+  /// Returns a view of this list that covers all elements except the last.
+  ///
+  /// Note this is only efficient for an iterable with a known length.
+  Iterable<E> get exceptLast {
+    var size = length - 1;
+    if (size < 0) throw StateError('Iterable may not be empty');
+    return take(size);
+  }
 }

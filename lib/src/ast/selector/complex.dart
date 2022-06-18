@@ -19,9 +19,16 @@ import '../selector.dart';
 /// {@category Selector}
 @sealed
 class ComplexSelector extends Selector {
+  /// This selector's leading combinators.
+  ///
+  /// If this is empty, that indicates that it has no leading combinator. If
+  /// it's more than one element, that means it's invalid CSS; however, we still
+  /// support this for backwards-compatibility purposes.
+  final List<Combinator> leadingCombinators;
+
   /// The components of this selector.
   ///
-  /// This is never empty.
+  /// This is only empty if [leadingCombinators] is not empty.
   ///
   /// Descendant combinators aren't explicitly represented here. If two
   /// [CompoundSelector]s are adjacent to one another, there's an implicit
@@ -59,16 +66,27 @@ class ComplexSelector extends Selector {
 
   int? _maxSpecificity;
 
+  /// If this compound selector is composed of a single compound selector with
+  /// no combinators, returns it.
+  ///
+  /// Otherwise, returns null.
+  ///
   /// @nodoc
   @internal
-  late final bool isInvisible = components.any(
-      (component) => component is CompoundSelector && component.isInvisible);
+  CompoundSelector? get singleCompound => leadingCombinators.isEmpty &&
+          components.length == 1 &&
+          components.first.combinators.isEmpty
+      ? components.first.selector
+      : null;
 
-  ComplexSelector(Iterable<ComplexSelectorComponent> components,
+  ComplexSelector(Iterable<Combinator> leadingCombinators,
+      Iterable<ComplexSelectorComponent> components,
       {this.lineBreak = false})
-      : components = List.unmodifiable(components) {
-    if (this.components.isEmpty) {
-      throw ArgumentError("components may not be empty.");
+      : leadingCombinators = List.unmodifiable(leadingCombinators),
+        components = List.unmodifiable(components) {
+    if (this.leadingCombinators.isEmpty && this.components.isEmpty) {
+      throw ArgumentError(
+          "leadingCombinators and components may not both be empty.");
     }
   }
 
@@ -92,6 +110,8 @@ class ComplexSelector extends Selector {
   /// That is, whether this matches every element that [other] matches, as well
   /// as possibly matching more.
   bool isSuperselector(ComplexSelector other) =>
+      leadingCombinators.isEmpty &&
+      other.leadingCombinators.isEmpty &&
       complexIsSuperselector(components, other.components);
 
   /// Computes [_minSpecificity] and [_maxSpecificity].
@@ -99,50 +119,88 @@ class ComplexSelector extends Selector {
     var minSpecificity = 0;
     var maxSpecificity = 0;
     for (var component in components) {
-      if (component is CompoundSelector) {
-        minSpecificity += component.minSpecificity;
-        maxSpecificity += component.maxSpecificity;
-      }
+      minSpecificity += component.selector.minSpecificity;
+      maxSpecificity += component.selector.maxSpecificity;
     }
     _minSpecificity = minSpecificity;
     _maxSpecificity = maxSpecificity;
   }
 
-  int get hashCode => listHash(components);
+  /// Returns a copy of `this` with [combinators] added to the end of the final
+  /// component in [components].
+  ///
+  /// If [forceLineBreak] is `true`, this will mark the new complex selector as
+  /// having a line break.
+  ///
+  /// @nodoc
+  @internal
+  ComplexSelector withAdditionalCombinators(List<Combinator> combinators,
+      {bool forceLineBreak = false}) {
+    if (combinators.isEmpty) {
+      return this;
+    } else if (components.isEmpty) {
+      return ComplexSelector([...leadingCombinators, ...combinators], const [],
+          lineBreak: lineBreak || forceLineBreak);
+    } else {
+      return ComplexSelector(
+          leadingCombinators,
+          [
+            ...components.exceptLast,
+            components.last.withAdditionalCombinators(combinators)
+          ],
+          lineBreak: lineBreak || forceLineBreak);
+    }
+  }
+
+  /// Returns a copy of `this` with an additional [component] added to the end.
+  ///
+  /// If [forceLineBreak] is `true`, this will mark the new complex selector as
+  /// having a line break.
+  ///
+  /// @nodoc
+  @internal
+  ComplexSelector withAdditionalComponent(ComplexSelectorComponent component,
+          {bool forceLineBreak = false}) =>
+      ComplexSelector(leadingCombinators, [...components, component],
+          lineBreak: lineBreak || forceLineBreak);
+
+  /// Returns a copy of `this` with [child]'s combinators added to the end.
+  ///
+  /// If [child] has [leadingCombinators], they're appended to `this`'s last
+  /// combinator. This does _not_ resolve parent selectors.
+  ///
+  /// If [forceLineBreak] is `true`, this will mark the new complex selector as
+  /// having a line break.
+  ///
+  /// @nodoc
+  @internal
+  ComplexSelector concatenate(ComplexSelector child,
+      {bool forceLineBreak = false}) {
+    if (child.leadingCombinators.isEmpty) {
+      return ComplexSelector(
+          leadingCombinators, [...components, ...child.components],
+          lineBreak: lineBreak || child.lineBreak || forceLineBreak);
+    } else if (components.isEmpty) {
+      return ComplexSelector(
+          [...leadingCombinators, ...child.leadingCombinators],
+          child.components,
+          lineBreak: lineBreak || child.lineBreak || forceLineBreak);
+    } else {
+      return ComplexSelector(
+          leadingCombinators,
+          [
+            ...components.exceptLast,
+            components.last.withAdditionalCombinators(child.leadingCombinators),
+            ...child.components
+          ],
+          lineBreak: lineBreak || child.lineBreak || forceLineBreak);
+    }
+  }
+
+  int get hashCode => listHash(leadingCombinators) ^ listHash(components);
 
   bool operator ==(Object other) =>
-      other is ComplexSelector && listEquals(components, other.components);
-}
-
-/// A component of a [ComplexSelector].
-///
-/// This is either a [CompoundSelector] or a [Combinator].
-///
-/// {@category Selector}
-abstract class ComplexSelectorComponent {}
-
-/// A combinator that defines the relationship between selectors in a
-/// [ComplexSelector].
-///
-/// {@category Selector}
-@sealed
-class Combinator implements ComplexSelectorComponent {
-  /// Matches the right-hand selector if it's immediately adjacent to the
-  /// left-hand selector in the DOM tree.
-  static const nextSibling = Combinator._("+");
-
-  /// Matches the right-hand selector if it's a direct child of the left-hand
-  /// selector in the DOM tree.
-  static const child = Combinator._(">");
-
-  /// Matches the right-hand selector if it comes after the left-hand selector
-  /// in the DOM tree.
-  static const followingSibling = Combinator._("~");
-
-  /// The combinator's token text.
-  final String _text;
-
-  const Combinator._(this._text);
-
-  String toString() => _text;
+      other is ComplexSelector &&
+      listEquals(leadingCombinators, other.leadingCombinators) &&
+      listEquals(components, other.components);
 }

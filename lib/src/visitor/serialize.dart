@@ -1175,26 +1175,28 @@ class _SerializeVisitor
   }
 
   void visitComplexSelector(ComplexSelector complex) {
-    ComplexSelectorComponent? lastComponent;
-    for (var component in complex.components) {
-      if (lastComponent != null &&
-          !_omitSpacesAround(lastComponent) &&
-          !_omitSpacesAround(component)) {
-        _buffer.write(" ");
+    _writeCombinators(complex.leadingCombinators);
+    if (complex.leadingCombinators.isNotEmpty &&
+        complex.components.isNotEmpty) {
+      _writeOptionalSpace();
+    }
+
+    for (var i = 0; i < complex.components.length; i++) {
+      var component = complex.components[i];
+      visitCompoundSelector(component.selector);
+      if (component.combinators.isNotEmpty) _writeOptionalSpace();
+      _writeCombinators(component.combinators);
+      if (i != complex.components.length - 1 &&
+          (!_isCompressed || component.combinators.isEmpty)) {
+        _buffer.writeCharCode($space);
       }
-      if (component is CompoundSelector) {
-        visitCompoundSelector(component);
-      } else {
-        _buffer.write(component);
-      }
-      lastComponent = component;
     }
   }
 
-  /// When [_style] is [OutputStyle.compressed], omit spaces around combinators.
-  bool _omitSpacesAround(ComplexSelectorComponent component) {
-    return _isCompressed && component is Combinator;
-  }
+  /// Writes [combinators] to [_buffer], with spaces in between in expanded
+  /// mode.
+  void _writeCombinators(List<Combinator> combinators) =>
+      _writeBetween(combinators, _isCompressed ? '' : ' ', _buffer.write);
 
   void visitCompoundSelector(CompoundSelector compound) {
     var start = _buffer.length;
@@ -1425,21 +1427,9 @@ class _SerializeVisitor
   }
 
   /// Returns whether [node] is considered invisible.
-  bool _isInvisible(CssNode node) {
-    if (_inspect) return false;
-    if (_isCompressed && node is CssComment && !node.isPreserved) return true;
-    if (node is CssParentNode) {
-      // An unknown at-rule is never invisible. Because we don't know the
-      // semantics of unknown rules, we can't guarantee that (for example)
-      // `@foo {}` isn't meaningful.
-      if (node is CssAtRule) return false;
-
-      if (node is CssStyleRule && node.selector.value.isInvisible) return true;
-      return node.children.every(_isInvisible);
-    } else {
-      return false;
-    }
-  }
+  bool _isInvisible(CssNode node) =>
+      !_inspect &&
+      (_isCompressed ? node.isInvisibleHidingComments : node.isInvisible);
 }
 
 /// An enum of generated CSS styles.
