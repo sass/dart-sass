@@ -117,7 +117,7 @@ abstract class StylesheetParser extends Parser {
         return arguments;
       });
 
-  Expression parseExpression() => _parseSingleProduction(expression);
+  Expression parseExpression() => _parseSingleProduction(_expression);
 
   VariableDeclaration parseVariableDeclaration() =>
       _parseSingleProduction(() => lookingAtIdentifier()
@@ -224,7 +224,7 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($colon);
     whitespace();
 
-    var value = expression();
+    var value = _expression();
 
     var guarded = false;
     var global = false;
@@ -405,7 +405,7 @@ abstract class StylesheetParser extends Parser {
     var beforeDeclaration = scanner.state;
     Expression value;
     try {
-      value = expression();
+      value = _expression();
 
       if (lookingAtChildren()) {
         // Properties that are ambiguous with selectors can't have additional
@@ -557,7 +557,7 @@ abstract class StylesheetParser extends Parser {
           (children, span) => Declaration.nested(name, children, span));
     }
 
-    var value = expression();
+    var value = _expression();
     if (lookingAtChildren()) {
       if (plainCss) {
         scanner.error("Nested declarations aren't allowed in plain CSS.");
@@ -780,12 +780,12 @@ abstract class StylesheetParser extends Parser {
     buffer.writeCharCode($lparen);
     whitespace();
 
-    buffer.add(expression());
+    buffer.add(_expression());
     if (scanner.scanChar($colon)) {
       whitespace();
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
-      buffer.add(expression());
+      buffer.add(_expression());
     }
 
     scanner.expectChar($rparen);
@@ -817,7 +817,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   DebugRule _debugRule(LineScannerState start) {
-    var value = expression();
+    var value = _expression();
     expectStatementSeparator("@debug rule");
     return DebugRule(value, scanner.spanFrom(start));
   }
@@ -841,7 +841,7 @@ abstract class StylesheetParser extends Parser {
     expectIdentifier("in");
     whitespace();
 
-    var list = expression();
+    var list = _expression();
 
     return _withChildren(child, start, (children, span) {
       _inControlDirective = wasInControlDirective;
@@ -853,7 +853,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) {
-    var value = expression();
+    var value = _expression();
     expectStatementSeparator("@error rule");
     return ErrorRule(value, scanner.spanFrom(start));
   }
@@ -926,7 +926,7 @@ abstract class StylesheetParser extends Parser {
     whitespace();
 
     bool? exclusive;
-    var from = expression(until: () {
+    var from = _expression(until: () {
       if (!lookingAtIdentifier()) return false;
       if (scanIdentifier("to")) {
         exclusive = true;
@@ -941,7 +941,7 @@ abstract class StylesheetParser extends Parser {
     if (exclusive == null) scanner.error('Expected "to" or "through".');
 
     whitespace();
-    var to = expression();
+    var to = _expression();
 
     return _withChildren(child, start, (children, span) {
       _inControlDirective = wasInControlDirective;
@@ -1032,7 +1032,7 @@ abstract class StylesheetParser extends Parser {
     var ifIndentation = currentIndentation;
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
-    var condition = expression();
+    var condition = _expression();
     var children = this.children(child);
     whitespaceWithoutComments();
 
@@ -1043,7 +1043,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       if (scanIdentifier("if")) {
         whitespace();
-        clauses.add(IfClause(expression(), this.children(child)));
+        clauses.add(IfClause(_expression(), this.children(child)));
       } else {
         lastClause = ElseClause(this.children(child));
         break;
@@ -1204,7 +1204,7 @@ abstract class StylesheetParser extends Parser {
       if (function != null) return function;
 
       var start = scanner.state;
-      var name = expression();
+      var name = _expression();
       scanner.expectChar($colon);
       return _supportsDeclarationValue(name, start);
     }
@@ -1406,7 +1406,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ReturnRule _returnRule(LineScannerState start) {
-    var value = expression();
+    var value = _expression();
     expectStatementSeparator("@return rule");
     return ReturnRule(value, scanner.spanFrom(start));
   }
@@ -1492,7 +1492,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       scanner.expectChar($colon);
       whitespace();
-      var expression = _expressionUntilComma();
+      var expression = expressionUntilComma();
 
       var guarded = false;
       var flagStart = scanner.state;
@@ -1527,7 +1527,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   WarnRule _warnRule(LineScannerState start) {
-    var value = expression();
+    var value = _expression();
     expectStatementSeparator("@warn rule");
     return WarnRule(value, scanner.spanFrom(start));
   }
@@ -1539,7 +1539,7 @@ abstract class StylesheetParser extends Parser {
   WhileRule _whileRule(LineScannerState start, Statement child()) {
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
-    var condition = expression();
+    var condition = _expression();
     return _withChildren(child, start, (children, span) {
       _inControlDirective = wasInControlDirective;
       return WhileRule(condition, children, span);
@@ -1600,7 +1600,7 @@ abstract class StylesheetParser extends Parser {
       Expression? defaultValue;
       if (scanner.scanChar($colon)) {
         whitespace();
-        defaultValue = _expressionUntilComma();
+        defaultValue = expressionUntilComma();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -1630,7 +1630,12 @@ abstract class StylesheetParser extends Parser {
   /// If [mixin] is `true`, this is parsed as a mixin invocation. Mixin
   /// invocations don't allow the Microsoft-style `=` operator at the top level,
   /// but function invocations do.
-  ArgumentInvocation _argumentInvocation({bool mixin = false}) {
+  ///
+  /// If [allowEmptySecondArg] is `true`, this allows the second argument to be
+  /// omitted, in which case an unquoted empty string will be passed in its
+  /// place.
+  ArgumentInvocation _argumentInvocation(
+      {bool mixin = false, bool allowEmptySecondArg = false}) {
     var start = scanner.state;
     scanner.expectChar($lparen);
     whitespace();
@@ -1640,7 +1645,7 @@ abstract class StylesheetParser extends Parser {
     Expression? rest;
     Expression? keywordRest;
     while (_lookingAtExpression()) {
-      var expression = _expressionUntilComma(singleEquals: !mixin);
+      var expression = expressionUntilComma(singleEquals: !mixin);
       whitespace();
 
       if (expression is VariableExpression && scanner.scanChar($colon)) {
@@ -1648,7 +1653,7 @@ abstract class StylesheetParser extends Parser {
         if (named.containsKey(expression.name)) {
           error("Duplicate argument.", expression.span);
         }
-        named[expression.name] = _expressionUntilComma(singleEquals: !mixin);
+        named[expression.name] = expressionUntilComma(singleEquals: !mixin);
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -1669,6 +1674,15 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       if (!scanner.scanChar($comma)) break;
       whitespace();
+
+      if (allowEmptySecondArg &&
+          positional.length == 1 &&
+          named.isEmpty &&
+          rest == null &&
+          scanner.peekChar() == $rparen) {
+        positional.add(StringExpression.plain('', scanner.emptySpan));
+        break;
+      }
     }
     scanner.expectChar($rparen);
 
@@ -1688,7 +1702,7 @@ abstract class StylesheetParser extends Parser {
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
   @protected
-  Expression expression(
+  Expression _expression(
       {bool bracketList = false, bool singleEquals = false, bool until()?}) {
     if (until != null && until()) scanner.error("Expected expression.");
 
@@ -1872,7 +1886,7 @@ abstract class StylesheetParser extends Parser {
           break;
 
         case $lbracket:
-          addSingleExpression(expression(bracketList: true));
+          addSingleExpression(_expression(bracketList: true));
           break;
 
         case $dollar:
@@ -2141,7 +2155,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [singleEquals] is true, this will allow the Microsoft-style `=`
   /// operator at the top level.
-  Expression _expressionUntilComma({bool singleEquals = false}) => expression(
+  Expression expressionUntilComma({bool singleEquals = false}) => _expression(
       singleEquals: singleEquals, until: () => scanner.peekChar() == $comma);
 
   /// Whether [expression] is allowed as an operand of a `/` expression that
@@ -2164,7 +2178,7 @@ abstract class StylesheetParser extends Parser {
       case $dot:
         return _number();
       case $lbracket:
-        return expression(bracketList: true);
+        return _expression(bracketList: true);
       case $dollar:
         return _variable();
       case $ampersand:
@@ -2284,7 +2298,7 @@ abstract class StylesheetParser extends Parser {
             [], ListSeparator.undecided, scanner.spanFrom(start));
       }
 
-      var first = _expressionUntilComma();
+      var first = expressionUntilComma();
       if (scanner.scanChar($colon)) {
         whitespace();
         return _map(first, start);
@@ -2299,7 +2313,7 @@ abstract class StylesheetParser extends Parser {
       var expressions = [first];
       while (true) {
         if (!_lookingAtExpression()) break;
-        expressions.add(_expressionUntilComma());
+        expressions.add(expressionUntilComma());
         if (!scanner.scanChar($comma)) break;
         whitespace();
       }
@@ -2318,16 +2332,16 @@ abstract class StylesheetParser extends Parser {
   /// as the expression before the colon and [start] the point before the
   /// opening parenthesis.
   MapExpression _map(Expression first, LineScannerState start) {
-    var pairs = [Tuple2(first, _expressionUntilComma())];
+    var pairs = [Tuple2(first, expressionUntilComma())];
 
     while (scanner.scanChar($comma)) {
       whitespace();
       if (!_lookingAtExpression()) break;
 
-      var key = _expressionUntilComma();
+      var key = expressionUntilComma();
       scanner.expectChar($colon);
       whitespace();
-      var value = _expressionUntilComma();
+      var value = expressionUntilComma();
       pairs.add(Tuple2(key, value));
     }
 
@@ -2691,6 +2705,7 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
     var plain = identifier.asPlain;
+    late String? lower;
     if (plain != null) {
       if (plain == "if" && scanner.peekChar() == $lparen) {
         var invocation = _argumentInvocation();
@@ -2702,7 +2717,7 @@ abstract class StylesheetParser extends Parser {
             UnaryOperator.not, _singleExpression(), identifier.span);
       }
 
-      var lower = plain.toLowerCase();
+      lower = plain.toLowerCase();
       if (scanner.peekChar() != $lparen) {
         switch (plain) {
           case "false":
@@ -2739,7 +2754,9 @@ abstract class StylesheetParser extends Parser {
               identifier, _argumentInvocation(), scanner.spanFrom(start));
         } else {
           return FunctionExpression(
-              plain, _argumentInvocation(), scanner.spanFrom(start));
+              plain,
+              _argumentInvocation(allowEmptySecondArg: lower == 'var'),
+              scanner.spanFrom(start));
         }
 
       default:
@@ -3412,7 +3429,7 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     scanner.expect('#{');
     whitespace();
-    var contents = expression();
+    var contents = _expression();
     scanner.expectChar($rbrace);
 
     if (plainCss) {
@@ -3501,7 +3518,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
-      buffer.add(expression());
+      buffer.add(_expression());
     } else {
       var next = scanner.peekChar();
       if (next == $langle || next == $rangle || next == $equal) {
@@ -3538,7 +3555,7 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes an expression until it reaches a top-level `<`, `>`, or a `=`
   /// that's not `==`.
-  Expression _expressionUntilComparison() => expression(until: () {
+  Expression _expressionUntilComparison() => _expression(until: () {
         var next = scanner.peekChar();
         if (next == $equal) return scanner.peekChar(1) != $equal;
         return next == $langle || next == $rangle;
@@ -3632,7 +3649,7 @@ abstract class StylesheetParser extends Parser {
     var nameStart = scanner.state;
     var wasInParentheses = _inParentheses;
     try {
-      name = expression();
+      name = _expression();
       scanner.expectChar($colon);
     } on FormatException catch (_) {
       scanner.state = nameStart;
@@ -3676,7 +3693,7 @@ abstract class StylesheetParser extends Parser {
       value = StringExpression(_interpolatedDeclarationValue());
     } else {
       whitespace();
-      value = expression();
+      value = _expression();
     }
     return SupportsDeclaration(name, value, scanner.spanFrom(start));
   }
