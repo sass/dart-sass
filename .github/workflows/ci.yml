@@ -466,9 +466,6 @@ jobs:
         with:
           repository: sass/sass-site
           token: ${{ secrets.GH_TOKEN }}
-      - name: Deploy
-        run: tool/github-action/deploy/heroku.sh
-        env: {HEROKU_TOKEN: "${{ secrets.HEROKU_TOKEN }}"}
 
       - uses: EndBug/add-and-commit@v8
         with:
