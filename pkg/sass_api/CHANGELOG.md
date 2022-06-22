@@ -1,3 +1,9 @@
+## 1.0.0
+
+* First stable release.
+
+* No user-visible changes since 1.0.0-beta.48.
+
 ## 1.0.0-beta.48
 
 * No user-visible changes.
