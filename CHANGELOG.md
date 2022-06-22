@@ -1,3 +1,17 @@
+## 1.53.0
+
+* Add support for calling `var()` with an empty second argument, such as
+  `var(--side, )`.
+
+### JS API
+
+* Fix a bug where `meta.load-css()` would sometimes resolve relative URLs
+  incorrectly when called from a mixin using the legacy JS API.
+
+### Embedded Sass
+
+* Respect npm's proxy settings when downloading the embedded Sass compiler.
+
 ## 1.52.3
 
 * Fix crash when trailing loud comments (`/* ... */`) appear twice in a row
