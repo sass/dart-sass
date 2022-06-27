@@ -1,3 +1,9 @@
+## 1.54.0
+
+### JS API
+
+* Fix Sass npm package types for TS 4.7+ Node16 and NodeNext module resolution.
+
 ## 1.53.0
 
 * Add support for calling `var()` with an empty second argument, such as
