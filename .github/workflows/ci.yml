@@ -89,7 +89,10 @@ jobs:
 
       - name: Check out Dart Sass
         uses: sass/clone-linked-repo@v1
-        with: {repo: sass/dart-sass, default-ref: null}
+        with:
+          repo: sass/dart-sass
+          path: build/dart-sass
+          default-ref: null
 
       - name: Add Dart Sass to pubspec
         run: |
