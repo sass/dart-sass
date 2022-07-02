@@ -136,7 +136,7 @@ jobs:
       - name: Compile embedded host
         run: |
           npm run compile
-          ln -s {`pwd`/,dist/}lib/src/vendor/dart-sass-embedded
+          mv {`pwd`/,dist/}lib/src/vendor/dart-sass-embedded
         shell: bash
         working-directory: embedded-host-node
 
