@@ -79,7 +79,8 @@ void main(List<String> args) {
               url: input.url.isEmpty ? null : input.url,
               quietDeps: request.quietDeps,
               verbose: request.verbose,
-              sourceMap: request.sourceMap);
+              sourceMap: request.sourceMap,
+              charset: request.charset);
           break;
 
         case InboundMessage_CompileRequest_Input.path:
@@ -96,7 +97,8 @@ void main(List<String> args) {
                 style: style,
                 quietDeps: request.quietDeps,
                 verbose: request.verbose,
-                sourceMap: request.sourceMap);
+                sourceMap: request.sourceMap,
+                charset: request.charset);
           } on FileSystemException catch (error) {
             return OutboundMessage_CompileResponse()
               ..failure = (OutboundMessage_CompileResponse_CompileFailure()
