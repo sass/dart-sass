@@ -230,7 +230,8 @@ Future<CompileResult> compileToResultAsync(String path,
         OutputStyle? style,
         bool quietDeps = false,
         bool verbose = false,
-        bool sourceMap = false}) =>
+        bool sourceMap = false,
+        bool charset = true}) =>
     c.compileAsync(path,
         logger: logger,
         importCache: AsyncImportCache(
@@ -242,7 +243,8 @@ Future<CompileResult> compileToResultAsync(String path,
         style: style,
         quietDeps: quietDeps,
         verbose: verbose,
-        sourceMap: sourceMap);
+        sourceMap: sourceMap,
+        charset: charset);
 
 /// Like [compileStringToResult], except it runs asynchronously.
 ///
