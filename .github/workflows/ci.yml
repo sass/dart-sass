@@ -28,14 +28,22 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
 
-      - name: Check out Dart Sass
+      - name: Check out Dart Sass only if linked in the PR description
         uses: sass/clone-linked-repo@v1
         with:
           repo: sass/dart-sass
           path: build/dart-sass
           default-ref: null
 
-      - name: Add Dart Sass to pubspec
+      - name: Check out Dart Sass from main HEAD when using -dev dependency
+        run: |
+          if [[ ! -d build/dart-sass ]] && grep --quiet -E '\bsass:\s*.*-dev["'"'"']?$' pubspec.yaml; then
+            git clone https://github.com/sass/dart-sass.git \
+              --depth 1 build/dart-sass
+          fi
+        shell: bash
+
+      - name: Override dart-sass dependency only if repo was cloned a priori
         run: |
           if [[ -d build/dart-sass ]]; then
             (
@@ -87,14 +95,22 @@ jobs:
           version: ${{ env.PROTOC_VERSION }}
           repo-token: '${{ github.token }}'
 
-      - name: Check out Dart Sass
+      - name: Check out Dart Sass only if linked in the PR description
         uses: sass/clone-linked-repo@v1
         with:
           repo: sass/dart-sass
           path: build/dart-sass
           default-ref: null
 
-      - name: Add Dart Sass to pubspec
+      - name: Check out Dart Sass from main HEAD when using -dev dependency
+        run: |
+          if [[ ! -d build/dart-sass ]] && grep --quiet -E '\bsass:\s*.*-dev["'"'"']?$' pubspec.yaml; then
+            git clone https://github.com/sass/dart-sass.git \
+              --depth 1 build/dart-sass
+          fi
+        shell: bash
+
+      - name: Override dart-sass dependency only if repo was cloned a priori
         run: |
           if [[ -d build/dart-sass ]]; then
             (
@@ -154,14 +170,22 @@ jobs:
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
       - uses: dart-lang/setup-dart@v1
 
-      - name: Check out Dart Sass
+      - name: Check out Dart Sass only if linked in the PR description
         uses: sass/clone-linked-repo@v1
         with:
           repo: sass/dart-sass
           path: build/dart-sass
           default-ref: null
 
-      - name: Add Dart Sass to pubspec
+      - name: Check out Dart Sass from main HEAD when using -dev dependency
+        run: |
+          if [[ ! -d build/dart-sass ]] && grep --quiet -E '\bsass:\s*.*-dev["'"'"']?$' pubspec.yaml; then
+            git clone https://github.com/sass/dart-sass.git \
+              --depth 1 build/dart-sass
+          fi
+        shell: bash
+
+      - name: Override dart-sass dependency only if repo was cloned a priori
         run: |
           if [[ -d build/dart-sass ]]; then
             (
