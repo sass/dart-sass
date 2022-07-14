@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c3bc020b07dc2376f57ef8e9990ff6b97cde3417
+// Checksum: 6e3090c0d46489113c7a3751a37bfbf202285bc2
 //
 // ignore_for_file: unused_import
 
@@ -148,6 +148,9 @@ class _EvaluateVisitor
 
   /// All modules that have been loaded and evaluated so far.
   final _modules = <Uri, Module<Callable>>{};
+
+  /// Configuration ids seen by a module by URI.
+  final _moduleConfigurationIds = <Uri, int>{};
 
   /// A map from canonical module URLs to the nodes whose spans indicate where
   /// those modules were originally loaded.
@@ -675,7 +678,8 @@ class _EvaluateVisitor
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       var currentConfiguration = configuration ?? _configuration;
-      if (currentConfiguration is ExplicitConfiguration) {
+      if (_moduleConfigurationIds[url] != currentConfiguration.opaqueId &&
+          currentConfiguration is ExplicitConfiguration) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
@@ -756,6 +760,7 @@ class _EvaluateVisitor
     var module = environment.toModule(css, extensionStore);
     if (url != null) {
       _modules[url] = module;
+      _moduleConfigurationIds[url] = _configuration.opaqueId;
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
     }
 

@@ -29,6 +29,12 @@ class Configuration {
   /// Creates an implicit configuration with the given [values].
   Configuration.implicit(this._values);
 
+  /// Uniquely identifying ID for a configuration lasting across the execution
+  /// context.
+  ///
+  /// Implicit configurations will always have different IDs.
+  int get opaqueId => identityHashCode(this);
+
   /// The empty configuration, which indicates that the module has not been
   /// configured.
   ///
@@ -90,6 +96,11 @@ class ExplicitConfiguration extends Configuration {
 
   ExplicitConfiguration(Map<String, ConfiguredValue> values, this.nodeWithSpan)
       : super.implicit(values);
+
+  /// ID for a [configuration] created with an explicit `@use ... with` uniquely
+  /// identified by its [nodeWithSpan] properties.
+  @override
+  int get opaqueId => nodeWithSpan.span.toString().hashCode;
 
   /// Returns a copy of [this] with the given [values] map.
   Configuration _withValues(Map<String, ConfiguredValue> values) =>
