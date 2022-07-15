@@ -51,6 +51,14 @@ class SelectorParser extends Parser {
     });
   }
 
+  ComplexSelector parseComplexSelector() {
+    return wrapSpanFormatException(() {
+      var complex = _complexSelector();
+      if (!scanner.isDone) scanner.error("expected selector.");
+      return complex;
+    });
+  }
+
   CompoundSelector parseCompoundSelector() {
     return wrapSpanFormatException(() {
       var compound = _compoundSelector();

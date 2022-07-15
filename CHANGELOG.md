@@ -1,3 +1,7 @@
+## 1.53.1
+
+* No user-visible changes.
+
 ## 1.53.0
 
 * Add support for calling `var()` with an empty second argument, such as

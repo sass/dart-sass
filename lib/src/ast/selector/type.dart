@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../extend/functions.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -9,7 +11,11 @@ import '../selector.dart';
 /// A type selector.
 ///
 /// This selects elements whose name equals the given name.
+///
+/// {@category Selector}
+@sealed
 class TypeSelector extends SimpleSelector {
+  /// The element name being selected.
   final QualifiedName name;
 
   int get minSpecificity => 1;
@@ -18,9 +24,13 @@ class TypeSelector extends SimpleSelector {
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitTypeSelector(this);
 
+  /// @nodoc
+  @internal
   TypeSelector addSuffix(String suffix) => TypeSelector(
       QualifiedName(name.name + suffix, namespace: name.namespace));
 
+  /// @nodoc
+  @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (compound.first is UniversalSelector || compound.first is TypeSelector) {
       var unified = unifyUniversalAndElement(this, compound.first);

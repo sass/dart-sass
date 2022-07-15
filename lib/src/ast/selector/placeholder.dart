@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../util/character.dart' as character;
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -11,10 +13,15 @@ import '../selector.dart';
 /// This doesn't match any elements. It's intended to be extended using
 /// `@extend`. It's not a plain CSS selector—it should be removed before
 /// emitting a CSS document.
+///
+/// {@category Selector}
+@sealed
 class PlaceholderSelector extends SimpleSelector {
   /// The name of the placeholder.
   final String name;
 
+  /// @nodoc
+  @internal
   bool get isInvisible => true;
 
   /// Returns whether this is a private selector (that is, whether it begins
@@ -26,6 +33,8 @@ class PlaceholderSelector extends SimpleSelector {
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitPlaceholderSelector(this);
 
+  /// @nodoc
+  @internal
   PlaceholderSelector addSuffix(String suffix) =>
       PlaceholderSelector(name + suffix);
 

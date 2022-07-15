@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -9,6 +11,9 @@ import '../selector.dart';
 ///
 /// This selects elements whose `class` attribute contains an identifier with
 /// the given name.
+///
+/// {@category Selector}
+@sealed
 class ClassSelector extends SimpleSelector {
   /// The class name this selects for.
   final String name;
@@ -20,6 +25,8 @@ class ClassSelector extends SimpleSelector {
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitClassSelector(this);
 
+  /// @nodoc
+  @internal
   ClassSelector addSuffix(String suffix) => ClassSelector(name + suffix);
 
   int get hashCode => name.hashCode;

@@ -2,11 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../extend/functions.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
 /// Matches any element in the given namespace.
+///
+/// {@category Selector}
+@sealed
 class UniversalSelector extends SimpleSelector {
   /// The selector namespace.
   ///
@@ -23,6 +28,8 @@ class UniversalSelector extends SimpleSelector {
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitUniversalSelector(this);
 
+  /// @nodoc
+  @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     var first = compound.first;
     if (first is UniversalSelector || first is TypeSelector) {

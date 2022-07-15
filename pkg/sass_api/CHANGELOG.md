@@ -1,3 +1,19 @@
+## 1.1.0
+
+* Provide access to Sass's selector AST, including the following classes:
+  `Selector`, `ListSelector`, `ComplexSelector`, `ComplexSelectorComponent`,
+  `Combinator`, `CompoundSelector`, `SimpleSelector`, `AttributeSelector`,
+  `AttributeOperator`, `ClassSelector`, `IdSelector`, `ParentSelector`,
+  `PlaceholderSelector`, `PseudoSelector`, `TypeSelector`, `UniversalSelector`,
+  and `QualifiedName`.
+
+* Provide access to the `SelectorVisitor` and `RecursiveSelectorVisitor`
+  classes.
+
+* Provide access to the `Value.assertSelector()`,
+  `Value.assertComplexSelector()`, `Value.assertCompoundSelector()`, and
+  `Value.assertSimpleSelector()` methods.
+
 ## 1.0.0
 
 * First stable release.

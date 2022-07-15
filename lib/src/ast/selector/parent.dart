@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -9,6 +11,9 @@ import '../selector.dart';
 ///
 /// This is not a plain CSS selector—it should be removed before emitting a CSS
 /// document.
+///
+/// {@category Selector}
+@sealed
 class ParentSelector extends SimpleSelector {
   /// The suffix that will be added to the parent selector after it's been
   /// resolved.
@@ -21,6 +26,8 @@ class ParentSelector extends SimpleSelector {
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitParentSelector(this);
 
+  /// @nodoc
+  @internal
   List<SimpleSelector> unify(List<SimpleSelector> compound) =>
       throw UnsupportedError("& doesn't support unification.");
 }

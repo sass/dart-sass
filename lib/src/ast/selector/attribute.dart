@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -9,6 +11,9 @@ import '../selector.dart';
 ///
 /// This selects for elements with the given attribute, and optionally with a
 /// value matching certain conditions as well.
+///
+/// {@category Selector}
+@sealed
 class AttributeSelector extends SimpleSelector {
   /// The name of the attribute being selected for.
   final QualifiedName name;

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../extend/functions.dart';
 import '../../logger.dart';
 import '../../parse/selector.dart';
@@ -13,8 +15,11 @@ import '../selector.dart';
 
 /// A selector list.
 ///
-/// A selector list is composed of [ComplexSelector]s. It matches an element
+/// A selector list is composed of [ComplexSelector]s. It matches any element
 /// that matches any of the component selectors.
+///
+/// {@category Selector}
+@sealed
 class SelectorList extends Selector {
   /// The components of this selector.
   ///
@@ -25,6 +30,8 @@ class SelectorList extends Selector {
   bool get _containsParentSelector =>
       components.any(_complexContainsParentSelector);
 
+  /// @nodoc
+  @internal
   bool get isInvisible => components.every((complex) => complex.isInvisible);
 
   /// Returns a SassScript list that represents this selector.
