@@ -17,6 +17,7 @@ class CompileOptions {
   external bool? get quietDeps;
   external String? get style;
   external bool? get verbose;
+  external bool? get charset;
   external bool? get sourceMap;
   external bool? get sourceMapIncludeSources;
   external NodeLogger? get logger;

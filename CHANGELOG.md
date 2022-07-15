@@ -1,6 +1,10 @@
-## 1.53.1
+## 1.54.0
 
-* No user-visible changes.
+### JS API
+
+* Add a `charset` option that controls whether or not Sass emits a
+  `@charset`/BOM for non-ASCII stylesheets.
+* Fix Sass npm package types for TS 4.7+ Node16 and NodeNext module resolution.
 
 ## 1.53.0
 
