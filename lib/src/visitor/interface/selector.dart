@@ -7,6 +7,8 @@ import '../../ast/selector.dart';
 /// An interface for [visitors][] that traverse selectors.
 ///
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
+///
+/// {@category Visitor}
 abstract class SelectorVisitor<T> {
   T visitAttributeSelector(AttributeSelector attribute);
   T visitClassSelector(ClassSelector klass);

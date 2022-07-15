@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../visitor/interface/selector.dart';
 import '../visitor/serialize.dart';
 
@@ -25,9 +27,12 @@ export 'selector/universal.dart';
 /// [ParentSelector] or a [PlaceholderSelector].
 ///
 /// Selectors have structural equality semantics.
+///
+/// {@category Selector}
 abstract class Selector {
   /// Whether this selector, and complex selectors containing it, should not be
   /// emitted.
+  @internal
   bool get isInvisible => false;
 
   /// Calls the appropriate visit method on [visitor].

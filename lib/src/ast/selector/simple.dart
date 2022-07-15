@@ -2,12 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../exception.dart';
 import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../selector.dart';
 
 /// An abstract superclass for simple selectors.
+///
+/// {@category Selector}
 abstract class SimpleSelector extends Selector {
   /// The minimum possible specificity that this selector can have.
   ///
@@ -45,6 +49,9 @@ abstract class SimpleSelector extends Selector {
   ///
   /// Assumes [suffix] is a valid identifier suffix. If this wouldn't produce a
   /// valid [SimpleSelector], throws a [SassScriptException].
+  ///
+  /// @nodoc
+  @internal
   SimpleSelector addSuffix(String suffix) =>
       throw SassScriptException('Invalid parent selector "$this"');
 
@@ -57,6 +64,9 @@ abstract class SimpleSelector extends Selector {
   ///
   /// Returns `null` if unification is impossible—for example, if there are
   /// multiple ID selectors.
+  ///
+  /// @nodoc
+  @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (compound.length == 1) {
       var other = compound.first;

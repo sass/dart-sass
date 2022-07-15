@@ -187,83 +187,6 @@ abstract class Value {
   SassString assertString([String? name]) =>
       throw _exception("$this is not a string.", name);
 
-  /// Parses [this] as a selector list, in the same manner as the
-  /// `selector-parse()` function.
-  ///
-  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
-  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
-  /// [ParentSelector]s. Otherwise, they're considered parse errors.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
-  ///
-  /// @nodoc
-  @internal
-  SelectorList assertSelector({String? name, bool allowParent = false}) {
-    var string = _selectorString(name);
-    try {
-      return SelectorList.parse(string, allowParent: allowParent);
-    } on SassFormatException catch (error, stackTrace) {
-      // TODO(nweiz): colorize this if we're running in an environment where
-      // that works.
-      throwWithTrace(
-          _exception(error.toString().replaceFirst("Error: ", ""), name),
-          stackTrace);
-    }
-  }
-
-  /// Parses [this] as a simple selector, in the same manner as the
-  /// `selector-parse()` function.
-  ///
-  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
-  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
-  /// [ParentSelector]s. Otherwise, they're considered parse errors.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
-  ///
-  /// @nodoc
-  @internal
-  SimpleSelector assertSimpleSelector(
-      {String? name, bool allowParent = false}) {
-    var string = _selectorString(name);
-    try {
-      return SimpleSelector.parse(string, allowParent: allowParent);
-    } on SassFormatException catch (error, stackTrace) {
-      // TODO(nweiz): colorize this if we're running in an environment where
-      // that works.
-      throwWithTrace(
-          _exception(error.toString().replaceFirst("Error: ", ""), name),
-          stackTrace);
-    }
-  }
-
-  /// Parses [this] as a compound selector, in the same manner as the
-  /// `selector-parse()` function.
-  ///
-  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
-  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
-  /// [ParentSelector]s. Otherwise, they're considered parse errors.
-  ///
-  /// If this came from a function argument, [name] is the argument name
-  /// (without the `$`). It's used for error reporting.
-  ///
-  /// @nodoc
-  @internal
-  CompoundSelector assertCompoundSelector(
-      {String? name, bool allowParent = false}) {
-    var string = _selectorString(name);
-    try {
-      return CompoundSelector.parse(string, allowParent: allowParent);
-    } on SassFormatException catch (error, stackTrace) {
-      // TODO(nweiz): colorize this if we're running in an environment where
-      // that works.
-      throwWithTrace(
-          _exception(error.toString().replaceFirst("Error: ", ""), name),
-          stackTrace);
-    }
-  }
-
   /// Converts a `selector-parse()`-style input into a string that can be
   /// parsed.
   ///
@@ -465,4 +388,103 @@ abstract class Value {
   /// Throws a [SassScriptException] with the given [message].
   SassScriptException _exception(String message, [String? name]) =>
       SassScriptException(name == null ? message : "\$$name: $message");
+}
+
+/// Extension methods that are only visible through the `sass_api` package.
+///
+/// These methods are considered less general-purpose and more liable to change
+/// than the main [Value] interface.
+///
+/// {@category Value}
+extension SassApiValue on Value {
+  /// Parses [this] as a selector list, in the same manner as the
+  /// `selector-parse()` function.
+  ///
+  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
+  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
+  /// [ParentSelector]s. Otherwise, they're considered parse errors.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  SelectorList assertSelector({String? name, bool allowParent = false}) {
+    var string = _selectorString(name);
+    try {
+      return SelectorList.parse(string, allowParent: allowParent);
+    } on SassFormatException catch (error, stackTrace) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throwWithTrace(
+          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          stackTrace);
+    }
+  }
+
+  /// Parses [this] as a simple selector, in the same manner as the
+  /// `selector-parse()` function.
+  ///
+  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
+  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
+  /// [ParentSelector]s. Otherwise, they're considered parse errors.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  SimpleSelector assertSimpleSelector(
+      {String? name, bool allowParent = false}) {
+    var string = _selectorString(name);
+    try {
+      return SimpleSelector.parse(string, allowParent: allowParent);
+    } on SassFormatException catch (error, stackTrace) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throwWithTrace(
+          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          stackTrace);
+    }
+  }
+
+  /// Parses [this] as a compound selector, in the same manner as the
+  /// `selector-parse()` function.
+  ///
+  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
+  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
+  /// [ParentSelector]s. Otherwise, they're considered parse errors.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  CompoundSelector assertCompoundSelector(
+      {String? name, bool allowParent = false}) {
+    var string = _selectorString(name);
+    try {
+      return CompoundSelector.parse(string, allowParent: allowParent);
+    } on SassFormatException catch (error, stackTrace) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throwWithTrace(
+          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          stackTrace);
+    }
+  }
+
+  /// Parses [this] as a complex selector, in the same manner as the
+  /// `selector-parse()` function.
+  ///
+  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
+  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
+  /// [ParentSelector]s. Otherwise, they're considered parse errors.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  ComplexSelector assertComplexSelector(
+      {String? name, bool allowParent = false}) {
+    var string = _selectorString(name);
+    try {
+      return ComplexSelector.parse(string, allowParent: allowParent);
+    } on SassFormatException catch (error, stackTrace) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throwWithTrace(
+          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          stackTrace);
+    }
+  }
 }

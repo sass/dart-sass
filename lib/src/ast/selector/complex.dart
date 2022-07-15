@@ -2,7 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../extend/functions.dart';
+import '../../logger.dart';
+import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -11,6 +15,9 @@ import '../selector.dart';
 ///
 /// A complex selector is composed of [CompoundSelector]s separated by
 /// [Combinator]s. It selects elements based on their parent selectors.
+///
+/// {@category Selector}
+@sealed
 class ComplexSelector extends Selector {
   /// The components of this selector.
   ///
@@ -25,6 +32,9 @@ class ComplexSelector extends Selector {
   final List<ComplexSelectorComponent> components;
 
   /// Whether a line break should be emitted *before* this selector.
+  ///
+  /// @nodoc
+  @internal
   final bool lineBreak;
 
   /// The minimum possible specificity that this selector can have.
@@ -49,6 +59,8 @@ class ComplexSelector extends Selector {
 
   int? _maxSpecificity;
 
+  /// @nodoc
+  @internal
   late final bool isInvisible = components.any(
       (component) => component is CompoundSelector && component.isInvisible);
 
@@ -59,6 +71,19 @@ class ComplexSelector extends Selector {
       throw ArgumentError("components may not be empty.");
     }
   }
+
+  /// Parses a complex selector from [contents].
+  ///
+  /// If passed, [url] is the name of the file from which [contents] comes.
+  /// [allowParent] controls whether a [ParentSelector] is allowed in this
+  /// selector.
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  factory ComplexSelector.parse(String contents,
+          {Object? url, Logger? logger, bool allowParent = true}) =>
+      SelectorParser(contents,
+              url: url, logger: logger, allowParent: allowParent)
+          .parseComplexSelector();
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitComplexSelector(this);
 
@@ -92,10 +117,15 @@ class ComplexSelector extends Selector {
 /// A component of a [ComplexSelector].
 ///
 /// This is either a [CompoundSelector] or a [Combinator].
+///
+/// {@category Selector}
 abstract class ComplexSelectorComponent {}
 
 /// A combinator that defines the relationship between selectors in a
 /// [ComplexSelector].
+///
+/// {@category Selector}
+@sealed
 class Combinator implements ComplexSelectorComponent {
   /// Matches the right-hand selector if it's immediately adjacent to the
   /// left-hand selector in the DOM tree.

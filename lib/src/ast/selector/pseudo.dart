@@ -17,11 +17,17 @@ import '../selector.dart';
 /// selectors take arguments, including other selectors. Sass manually encodes
 /// logic for each pseudo selector that takes a selector as an argument, to
 /// ensure that extension and other selector operations work properly.
+///
+/// {@category Selector}
+@sealed
 class PseudoSelector extends SimpleSelector {
   /// The name of this selector.
   final String name;
 
   /// Like [name], but without any vendor prefixes.
+  ///
+  /// @nodoc
+  @internal
   final String normalizedName;
 
   /// Whether this is a pseudo-class selector.
@@ -49,10 +55,14 @@ class PseudoSelector extends SimpleSelector {
   bool get isSyntacticElement => !isSyntacticClass;
 
   /// Whether this is a valid `:host` selector.
+  ///
+  /// @nodoc
   @internal
   bool get isHost => isClass && name == 'host';
 
   /// Whether this is a valid `:host-context` selector.
+  ///
+  /// @nodoc
   @internal
   bool get isHostContext =>
       isClass && name == 'host-context' && selector != null;
@@ -83,6 +93,8 @@ class PseudoSelector extends SimpleSelector {
 
   int? _maxSpecificity;
 
+  /// @nodoc
+  @internal
   bool get isInvisible {
     var selector = this.selector;
     if (selector == null) return false;
@@ -128,11 +140,15 @@ class PseudoSelector extends SimpleSelector {
   PseudoSelector withSelector(SelectorList selector) => PseudoSelector(name,
       element: isElement, argument: argument, selector: selector);
 
+  /// @nodoc
+  @internal
   PseudoSelector addSuffix(String suffix) {
     if (argument != null || selector != null) super.addSuffix(suffix);
     return PseudoSelector(name + suffix, element: isElement);
   }
 
+  /// @nodoc
+  @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (name == 'host' || name == 'host-context') {
       if (!compound.every((simple) =>
