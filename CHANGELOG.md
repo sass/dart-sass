@@ -2,7 +2,7 @@
 
 * Deprecate selectors with leading or trailing combinators, or with multiple
   combinators in a row. If they're included in style rules after nesting is
-  resolved Sass will now produce a deprecation warning and, in most cases, omit
+  resolved, Sass will now produce a deprecation warning and, in most cases, omit
   the selector. Leading and trailing combinators can still be freely used for
   nesting purposes.
 

@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../evaluation_context.dart';
+import '../exception.dart';
 import '../visitor/any_selector.dart';
 import '../visitor/interface/selector.dart';
 import '../visitor/serialize.dart';
