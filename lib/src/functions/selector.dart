@@ -67,26 +67,32 @@ final _append = _function("append", r"$selectors...", (arguments) {
       .map((selector) => selector.assertSelector())
       .reduce((parent, child) {
     return SelectorList(child.components.map((complex) {
-      var compound = complex.components.first;
-      if (compound is CompoundSelector) {
-        var newCompound = _prependParent(compound);
-        if (newCompound == null) {
-          throw SassScriptException("Can't append $complex to $parent.");
-        }
-
-        return ComplexSelector([newCompound, ...complex.components.skip(1)]);
-      } else {
+      if (complex.leadingCombinators.isNotEmpty) {
         throw SassScriptException("Can't append $complex to $parent.");
       }
+
+      var component = complex.components.first;
+      var newCompound = _prependParent(component.selector);
+      if (newCompound == null) {
+        throw SassScriptException("Can't append $complex to $parent.");
+      }
+
+      return ComplexSelector(const [], [
+        ComplexSelectorComponent(newCompound, component.combinators),
+        ...complex.components.skip(1)
+      ]);
     })).resolveParentSelectors(parent);
   }).asSassList;
 });
 
 final _extend =
     _function("extend", r"$selector, $extendee, $extender", (arguments) {
-  var selector = arguments[0].assertSelector(name: "selector");
-  var target = arguments[1].assertSelector(name: "extendee");
-  var source = arguments[2].assertSelector(name: "extender");
+  var selector = arguments[0].assertSelector(name: "selector")
+    ..assertNotBogus(name: "selector");
+  var target = arguments[1].assertSelector(name: "extendee")
+    ..assertNotBogus(name: "extendee");
+  var source = arguments[2].assertSelector(name: "extender")
+    ..assertNotBogus(name: "extender");
 
   return ExtensionStore.extend(selector, source, target,
           EvaluationContext.current.currentCallableSpan)
@@ -95,9 +101,12 @@ final _extend =
 
 final _replace =
     _function("replace", r"$selector, $original, $replacement", (arguments) {
-  var selector = arguments[0].assertSelector(name: "selector");
-  var target = arguments[1].assertSelector(name: "original");
-  var source = arguments[2].assertSelector(name: "replacement");
+  var selector = arguments[0].assertSelector(name: "selector")
+    ..assertNotBogus(name: "selector");
+  var target = arguments[1].assertSelector(name: "original")
+    ..assertNotBogus(name: "original");
+  var source = arguments[2].assertSelector(name: "replacement")
+    ..assertNotBogus(name: "replacement");
 
   return ExtensionStore.replace(selector, source, target,
           EvaluationContext.current.currentCallableSpan)
@@ -105,8 +114,10 @@ final _replace =
 });
 
 final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
-  var selector1 = arguments[0].assertSelector(name: "selector1");
-  var selector2 = arguments[1].assertSelector(name: "selector2");
+  var selector1 = arguments[0].assertSelector(name: "selector1")
+    ..assertNotBogus(name: "selector1");
+  var selector2 = arguments[1].assertSelector(name: "selector2")
+    ..assertNotBogus(name: "selector2");
 
   var result = selector1.unify(selector2);
   return result == null ? sassNull : result.asSassList;
@@ -114,8 +125,10 @@ final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
 
 final _isSuperselector =
     _function("is-superselector", r"$super, $sub", (arguments) {
-  var selector1 = arguments[0].assertSelector(name: "super");
-  var selector2 = arguments[1].assertSelector(name: "sub");
+  var selector1 = arguments[0].assertSelector(name: "super")
+    ..assertNotBogus(name: "super");
+  var selector2 = arguments[1].assertSelector(name: "sub")
+    ..assertNotBogus(name: "sub");
 
   return SassBoolean(selector1.isSuperselector(selector2));
 });

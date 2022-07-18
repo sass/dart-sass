@@ -22,7 +22,7 @@ abstract class RecursiveSelectorVisitor implements SelectorVisitor<void> {
 
   void visitComplexSelector(ComplexSelector complex) {
     for (var component in complex.components) {
-      if (component is CompoundSelector) visitCompoundSelector(component);
+      visitCompoundSelector(component.selector);
     }
   }
 

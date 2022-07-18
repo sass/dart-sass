@@ -49,3 +49,9 @@ dev_dependencies:
   test_descriptor: ^2.0.0
   test_process: ^2.0.0
   yaml: ^3.1.0
+
+dependency_overrides:
+  source_span:
+    git:
+      url: https://github.com/dart-lang/source_span
+      ref: multi-line-label

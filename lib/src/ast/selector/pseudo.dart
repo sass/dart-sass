@@ -93,19 +93,6 @@ class PseudoSelector extends SimpleSelector {
 
   int? _maxSpecificity;
 
-  /// @nodoc
-  @internal
-  bool get isInvisible {
-    var selector = this.selector;
-    if (selector == null) return false;
-
-    // We don't consider `:not(%foo)` to be invisible because, semantically, it
-    // means "doesn't match this selector that matches nothing", so it's
-    // equivalent to *. If the entire compound selector is composed of `:not`s
-    // with invisible lists, the serializer emits it as `*`.
-    return name != 'not' && selector.isInvisible;
-  }
-
   PseudoSelector(this.name,
       {bool element = false, this.argument, this.selector})
       : isClass = !element && !_isFakePseudoElement(name),

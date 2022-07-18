@@ -18,7 +18,7 @@ import '../selector.dart';
 ///
 /// {@category Selector}
 @sealed
-class CompoundSelector extends Selector implements ComplexSelectorComponent {
+class CompoundSelector extends Selector {
   /// The components of this selector.
   ///
   /// This is never empty.
@@ -46,9 +46,15 @@ class CompoundSelector extends Selector implements ComplexSelectorComponent {
 
   int? _maxSpecificity;
 
+  /// If this compound selector is composed of a single simple selector, returns
+  /// it.
+  ///
+  /// Otherwise, returns null.
+  ///
   /// @nodoc
   @internal
-  bool get isInvisible => components.any((component) => component.isInvisible);
+  SimpleSelector? get singleSimple =>
+      components.length == 1 ? components.first : null;
 
   CompoundSelector(Iterable<SimpleSelector> components)
       : components = List.unmodifiable(components) {

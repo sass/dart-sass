@@ -9,6 +9,7 @@ import 'package:collection/collection.dart';
 import '../callable.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
+import '../utils.dart';
 import '../value.dart';
 
 /// The global definitions of Sass map functions.
@@ -37,7 +38,7 @@ final module = BuiltInModule("map", functions: [
 final _get = _function("get", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
-  for (var key in keys.take(keys.length - 1)) {
+  for (var key in keys.exceptLast) {
     var value = map.contents[key];
     if (value is SassMap) {
       map = value;
@@ -80,7 +81,7 @@ final _merge = BuiltInCallable.overloadedFunction("merge", {
       throw SassScriptException("Expected \$args to contain a map.");
     }
     var map2 = args.last.assertMap("map2");
-    return _modify(map1, args.take(args.length - 1), (oldValue) {
+    return _modify(map1, args.exceptLast, (oldValue) {
       var nestedMap = oldValue.tryMap();
       if (nestedMap == null) return map2;
       return SassMap({...nestedMap.contents, ...map2.contents});
@@ -98,7 +99,7 @@ final _deepRemove =
     _function("deep-remove", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
-  return _modify(map, keys.take(keys.length - 1), (value) {
+  return _modify(map, keys.exceptLast, (value) {
     var nestedMap = value.tryMap();
     if (nestedMap != null && nestedMap.contents.containsKey(keys.last)) {
       return SassMap(Map.of(nestedMap.contents)..remove(keys.last));
@@ -141,7 +142,7 @@ final _values = _function(
 final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
-  for (var key in keys.take(keys.length - 1)) {
+  for (var key in keys.exceptLast) {
     var value = map.contents[key];
     if (value is SassMap) {
       map = value;

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 62020db52400fe22132154e72fbb728f6282bf6d
+// Checksum: c3bc020b07dc2376f57ef8e9990ff6b97cde3417
 //
 // ignore_for_file: unused_import
 
@@ -47,6 +47,7 @@ import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../utils.dart';
+import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
 import 'interface/css.dart';
@@ -1194,6 +1195,20 @@ class _EvaluateVisitor
           "@extend may only be used within style rules.", node.span);
     }
 
+    for (var complex in styleRule.originalSelector.components) {
+      if (!complex.isBogus) continue;
+      _warn(
+          'The selector "${complex.toString().trim()}" is invalid CSS and ' +
+              (complex.isUseless ? "can't" : "shouldn't") +
+              ' be an extender.\n'
+                  'This will be an error in Dart Sass 2.0.0.\n'
+                  '\n'
+                  'More info: https://sass-lang.com/d/bogus-combinators',
+          MultiSpan(styleRule.selector.span, 'invalid selector',
+              {node.span: '@extend rule'}),
+          deprecation: true);
+    }
+
     var targetText = _interpolationToValue(node.selector, warnForColor: true);
 
     var list = _adjustParseError(
@@ -1204,16 +1219,16 @@ class _EvaluateVisitor
             allowParent: false));
 
     for (var complex in list.components) {
-      if (complex.components.length != 1 ||
-          complex.components.first is! CompoundSelector) {
+      var compound = complex.singleCompound;
+      if (compound == null) {
         // If the selector was a compound selector but not a simple
         // selector, emit a more explicit error.
         throw SassFormatException(
             "complex selectors may not be extended.", targetText.span);
       }
 
-      var compound = complex.components.first as CompoundSelector;
-      if (compound.components.length != 1) {
+      var simple = compound.singleSimple;
+      if (simple == null) {
         throw SassFormatException(
             "compound selectors may no longer be extended.\n"
             "Consider `@extend ${compound.components.join(', ')}` instead.\n"
@@ -1222,7 +1237,7 @@ class _EvaluateVisitor
       }
 
       _extensionStore.addExtension(
-          styleRule.selector, compound.components.first, node, _mediaQueries);
+          styleRule.selector, simple, node, _mediaQueries);
     }
 
     return null;
@@ -1880,6 +1895,50 @@ class _EvaluateVisitor
         through: (node) => node is CssStyleRule,
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
+
+    if (!rule.isInvisibleOtherThanBogusCombinators) {
+      for (var complex in parsedSelector.components) {
+        if (!complex.isBogus) continue;
+
+        if (complex.isUseless) {
+          _warn(
+              'The selector "${complex.toString().trim()}" is invalid CSS. It '
+              'will be omitted from the generated CSS.\n'
+              'This will be an error in Dart Sass 2.0.0.\n'
+              '\n'
+              'More info: https://sass-lang.com/d/bogus-combinators',
+              node.selector.span,
+              deprecation: true);
+        } else if (complex.leadingCombinators.isNotEmpty) {
+          _warn(
+              'The selector "${complex.toString().trim()}" is invalid CSS.\n'
+              'This will be an error in Dart Sass 2.0.0.\n'
+              '\n'
+              'More info: https://sass-lang.com/d/bogus-combinators',
+              node.selector.span,
+              deprecation: true);
+        } else {
+          _warn(
+              'The selector "${complex.toString().trim()}" is only valid for '
+                      "nesting and shouldn't\n"
+                      'have children other than style rules.' +
+                  (complex.isBogusOtherThanLeadingCombinator
+                      ? ' It will be omitted from the generated CSS.'
+                      : '') +
+                  '\n'
+                      'This will be an error in Dart Sass 2.0.0.\n'
+                      '\n'
+                      'More info: https://sass-lang.com/d/bogus-combinators',
+              MultiSpan(node.selector.span, 'invalid selector', {
+                rule.children.first.span: "this is not a style rule" +
+                    (rule.children.every((child) => child is CssComment)
+                        ? '\n(try converting to a //-style comment)'
+                        : '')
+              }),
+              deprecation: true);
+        }
+      }
+    }
 
     if (_styleRule == null && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
