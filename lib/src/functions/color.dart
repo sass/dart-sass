@@ -121,7 +121,7 @@ final global = UnmodifiableListView([
   _function("adjust-hue", r"$color, $degrees", (arguments) {
     var color = arguments[0].assertColor("color");
     var degrees = arguments[1].assertNumber("degrees");
-    _checkAngle(degrees);
+    _checkAngle(degrees, "degrees");
     return color.changeHsl(hue: color.hue + degrees.value);
   }),
 
@@ -635,7 +635,7 @@ Value _hsl(String name, List<Value> arguments) {
 }
 
 /// Prints a deprecation warning if [hue] has a unit other than `deg`.
-void _checkAngle(SassNumber angle, [String? name]) {
+void _checkAngle(SassNumber angle, String name) {
   if (!angle.hasUnits || angle.hasUnit('deg')) return;
 
   var message = StringBuffer()
@@ -692,6 +692,7 @@ Value _hwb(List<Value> arguments) {
   var whiteness = arguments[1].assertNumber("whiteness");
   var blackness = arguments[2].assertNumber("blackness");
 
+  _checkAngle(hue, "hue");
   whiteness.assertUnit("%", "whiteness");
   blackness.assertUnit("%", "blackness");
 
