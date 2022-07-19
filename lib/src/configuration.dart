@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
+import 'package:xid/xid.dart';
 
 import 'ast/node.dart';
 import 'ast/sass.dart';
@@ -33,7 +34,7 @@ class Configuration {
   /// context.
   ///
   /// Implicit configurations will always have different IDs.
-  int get opaqueId => identityHashCode(this);
+  int get opaqueId => Xid.string().hashCode;
 
   /// The empty configuration, which indicates that the module has not been
   /// configured.
@@ -98,7 +99,7 @@ class ExplicitConfiguration extends Configuration {
       : super.implicit(values);
 
   /// ID for a [configuration] created with an explicit `@use ... with` uniquely
-  /// identified by its [nodeWithSpan] properties.
+  /// identified by its [nodeWithSpan] property.
   @override
   int get opaqueId => nodeWithSpan.span.toString().hashCode;
 
