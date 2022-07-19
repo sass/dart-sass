@@ -8,6 +8,8 @@
 
   See https://sass-lang.com/d/bogus-combinators for more details.
 
+* Deprecate passing non-`deg` units to `color.hwb()`'s `$hue` argument.
+
 ### JS API
 
 * Add a `charset` option that controls whether or not Sass emits a
