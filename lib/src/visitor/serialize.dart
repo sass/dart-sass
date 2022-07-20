@@ -221,7 +221,10 @@ class _SerializeVisitor
     _for(node, () {
       _buffer.write("@media");
 
-      if (!_isCompressed || !node.queries.first.isCondition) {
+      var firstQuery = node.queries.first;
+      if (!_isCompressed ||
+          firstQuery.modifier != null ||
+          firstQuery.type != null) {
         _buffer.writeCharCode($space);
       }
 
@@ -287,13 +290,21 @@ class _SerializeVisitor
 
     if (query.type != null) {
       _buffer.write(query.type);
-      if (query.features.isNotEmpty) {
+      if (query.conditions.isNotEmpty) {
         _buffer.write(" and ");
       }
     }
 
-    _writeBetween(
-        query.features, _isCompressed ? "and " : " and ", _buffer.write);
+    if (query.conditions.length == 1 &&
+        query.conditions.first.startsWith("(not ")) {
+      _buffer.write("not ");
+      var condition = query.conditions.first;
+      _buffer.write(condition.substring("(not ".length, condition.length - 1));
+    } else {
+      var operator = query.conjunction ? "and" : "or";
+      _writeBetween(query.conditions,
+          _isCompressed ? "$operator " : " $operator ", _buffer.write);
+    }
   }
 
   void visitCssStyleRule(CssStyleRule node) {

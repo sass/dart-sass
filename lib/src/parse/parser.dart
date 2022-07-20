@@ -113,6 +113,16 @@ class Parser {
     }
   }
 
+  /// Like [whitespace], but throws an error if no whitespace is consumed.
+  @protected
+  void expectWhitespace() {
+    if (scanner.isDone || !(isWhitespace(scanner.peekChar()) || scanComment())) {
+      scanner.error("Expected whitespace.");
+    }
+
+    whitespace();
+  }
+
   /// Consumes and ignores a silent (Sass-style) comment.
   @protected
   void silentComment() {
@@ -591,15 +601,39 @@ class Parser {
     if (!lookingAtIdentifier()) return false;
 
     var start = scanner.state;
-    for (var letter in text.codeUnits) {
-      if (scanIdentChar(letter, caseSensitive: caseSensitive)) continue;
+    if (_consumeIdentifier(text, caseSensitive) && !lookingAtIdentifierBody()) {
+      return true;
+    } else {
       scanner.state = start;
       return false;
     }
+  }
 
-    if (!lookingAtIdentifierBody()) return true;
+  /// Returns whether an identifier whose name exactly matches [text] is at the
+  /// current scanner position.
+  ///
+  /// This doesn't move the scan pointer forward
+  @protected
+  bool matchesIdentifier(String text, {bool caseSensitive = false}) {
+    if (!lookingAtIdentifier()) return false;
+
+    var start = scanner.state;
+    var result =
+        _consumeIdentifier(text, caseSensitive) && !lookingAtIdentifierBody();
     scanner.state = start;
-    return false;
+    return result;
+  }
+
+  /// Consumes [text] as an identifer, but doesn't verify whether there's
+  /// additional identifier text afterwards.
+  ///
+  /// Returns `true` if the full [text] is consumed and `false` otherwise, but
+  /// doesn't reset the scan pointer.
+  bool _consumeIdentifier(String text, bool caseSensitive) {
+    for (var letter in text.codeUnits) {
+      if (!scanIdentChar(letter, caseSensitive: caseSensitive)) return false;
+    }
+    return true;
   }
 
   /// Consumes an identifier and asserts that its name exactly matches [text].

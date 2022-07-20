@@ -1,3 +1,20 @@
+## 2.0.0
+
+* Refactor the `CssMediaQuery` API to support new logical operators:
+
+  * Rename the `features` field to `conditions`, to reflect the fact that it can
+    contain more than just the `<media-feature>` production.
+
+  * Add a `conjunction` field to track whether `conditions` are matched
+    conjunctively or disjunctively.
+
+  * Rename the default constructor to `CssMediaQuery.type()` to reflect the fact
+    that it's no longer by far the most commonly used form of media query.
+
+  * Add a required `conjunction` argument to `CssMediaQuery.condition()`.
+
+  * Delete the `isCondition` getter.
+
 ## 1.1.0
 
 * Provide access to Sass's selector AST, including the following classes:

@@ -3449,6 +3449,7 @@ abstract class StylesheetParser extends Parser {
     while (true) {
       whitespace();
       _mediaQuery(buffer);
+      whitespace();
       if (!scanner.scanChar($comma)) break;
       buffer.writeCharCode($comma);
       buffer.writeCharCode($space);
@@ -3459,61 +3460,127 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a single media query.
   void _mediaQuery(InterpolationBuffer buffer) {
     // This is somewhat duplicated in MediaQueryParser._mediaQuery.
-    if (scanner.peekChar() != $lparen) {
-      buffer.addInterpolation(interpolatedIdentifier());
+    if (scanner.peekChar() == $lparen) {
+      _mediaInParens(buffer);
       whitespace();
-
-      if (!_lookingAtInterpolatedIdentifier()) {
-        // For example, "@media screen {".
-        return;
+      if (scanIdentifier("and")) {
+        buffer.write(" and ");
+        expectWhitespace();
+        _mediaLogicSequence(buffer, "and");
+      } else if (scanIdentifier("or")) {
+        buffer.write(" or ");
+        expectWhitespace();
+        _mediaLogicSequence(buffer, "or");
       }
 
-      buffer.writeCharCode($space);
-      var identifier = interpolatedIdentifier();
-      whitespace();
+      return;
+    }
 
-      if (equalsIgnoreCase(identifier.asPlain, "and")) {
-        // For example, "@media screen and ..."
+    var identifier1 = interpolatedIdentifier();
+    if (equalsIgnoreCase(identifier1.asPlain, "not")) {
+      // For example, "@media not (...) {"
+      expectWhitespace();
+
+      if (!_lookingAtInterpolatedIdentifier()) {
+        buffer.write("not ");
+        _mediaOrInterp(buffer);
+        return;
+      }
+    }
+
+    whitespace();
+    buffer.addInterpolation(identifier1);
+    if (!_lookingAtInterpolatedIdentifier()) {
+      // For example, "@media screen {".
+      return;
+    }
+
+    buffer.writeCharCode($space);
+    var identifier2 = interpolatedIdentifier();
+
+    if (equalsIgnoreCase(identifier2.asPlain, "and")) {
+      expectWhitespace();
+      // For example, "@media screen and ..."
+      buffer.write(" and ");
+    } else {
+      whitespace();
+      buffer.addInterpolation(identifier2);
+      if (scanIdentifier("and")) {
+        // For example, "@media only screen and ..."
+        expectWhitespace();
         buffer.write(" and ");
       } else {
-        buffer.addInterpolation(identifier);
-        if (scanIdentifier("and")) {
-          // For example, "@media only screen and ..."
-          whitespace();
-          buffer.write(" and ");
-        } else {
-          // For example, "@media only screen {"
-          return;
-        }
+        // For example, "@media only screen {"
+        return;
       }
     }
 
     // We've consumed either `IDENTIFIER "and"` or
     // `IDENTIFIER IDENTIFIER "and"`.
 
+    if (scanIdentifier("not")) {
+      // For example, "@media screen and not (...) {"
+      expectWhitespace();
+      buffer.write("not ");
+      _mediaOrInterp(buffer);
+      return;
+    }
+
+    _mediaLogicSequence(buffer, "and");
+    return;
+  }
+
+  /// Consumes one or more `MediaOrInterp` expressions separated by [operator]
+  /// and writes them to [buffer].
+  void _mediaLogicSequence(InterpolationBuffer buffer, String operator) {
     while (true) {
+      _mediaOrInterp(buffer);
       whitespace();
-      buffer.addInterpolation(_mediaFeature());
-      whitespace();
-      if (!scanIdentifier("and")) break;
-      buffer.write(" and ");
+
+      if (!scanIdentifier(operator)) return;
+      expectWhitespace();
+
+      buffer.writeCharCode($space);
+      buffer.write(operator);
+      buffer.writeCharCode($space);
     }
   }
 
-  /// Consumes a media query feature.
-  Interpolation _mediaFeature() {
+  /// Consumes a `MediaOrInterp` expression and writes it to [buffer].
+  void _mediaOrInterp(InterpolationBuffer buffer) {
     if (scanner.peekChar() == $hash) {
       var interpolation = singleInterpolation();
-      return Interpolation([interpolation], interpolation.span);
+      buffer
+          .addInterpolation(Interpolation([interpolation], interpolation.span));
+    } else {
+      _mediaInParens(buffer);
     }
+  }
 
-    var start = scanner.state;
-    var buffer = InterpolationBuffer();
-    scanner.expectChar($lparen);
+  /// Consumes a `MediaInParens` expression and writes it to [buffer].
+  void _mediaInParens(InterpolationBuffer buffer) {
+    scanner.expectChar($lparen, name: "media condition in parentheses");
     buffer.writeCharCode($lparen);
     whitespace();
 
-    buffer.add(_expressionUntilComparison());
+    var needsParenDeprecation = scanner.peekChar() == $lparen;
+    var needsNotDeprecation = matchesIdentifier("not");
+
+    var expression = _expressionUntilComparison();
+    if (needsParenDeprecation || needsNotDeprecation) {
+      logger.warn(
+          'Starting a @media query with "${needsParenDeprecation ? '(' : 'not'}" '
+          "is deprecated because it conflicts with official CSS syntax.\n"
+          "\n"
+          "To preserve existing behavior: #{$expression}\n"
+          'To migrate to new behavior: #{"$expression"}\n'
+          "\n"
+          "For details, see https://sass-lang.com/d/media-logic",
+          span: expression.span,
+          deprecation: true);
+    }
+
+    buffer.add(expression);
     if (scanner.scanChar($colon)) {
       whitespace();
       buffer.writeCharCode($colon);
@@ -3549,8 +3616,6 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($rparen);
     whitespace();
     buffer.writeCharCode($rparen);
-
-    return buffer.interpolation(scanner.spanFrom(start));
   }
 
   /// Consumes an expression until it reaches a top-level `<`, `>`, or a `=`

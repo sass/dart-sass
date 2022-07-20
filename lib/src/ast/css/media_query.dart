@@ -15,14 +15,24 @@ class CssMediaQuery {
 
   /// The media type, for example "screen" or "print".
   ///
-  /// This may be `null`. If so, [features] will not be empty.
+  /// This may be `null`. If so, [conditions] will not be empty.
   final String? type;
 
-  /// Feature queries, including parentheses.
-  final List<String> features;
+  /// Whether [conditions] is a conjunction or a disjunction.
+  ///
+  /// In other words, if this is `true this query matches when _all_
+  /// [conditions] are met, and if it's `false` this query matches when _any_
+  /// condition in [conditions] is met.
+  ///
+  /// If this is [false], [modifier] and [type] will both be `null`.
+  final bool conjunction;
 
-  /// Whether this media query only specifies features.
-  bool get isCondition => modifier == null && type == null;
+  /// Media conditions, including parentheses.
+  ///
+  /// This is anything that can appear in the [`<media-in-parens>`] production.
+  ///
+  /// [`<media-in-parens>`]: https://drafts.csswg.org/mediaqueries-4/#typedef-media-in-parens
+  final List<String> conditions;
 
   /// Whether this media query matches all media types.
   bool get matchesAllTypes => type == null || equalsIgnoreCase(type, 'all');
@@ -36,19 +46,38 @@ class CssMediaQuery {
           {Object? url, Logger? logger}) =>
       MediaQueryParser(contents, url: url, logger: logger).parse();
 
-  /// Creates a media query specifies a type and, optionally, features.
-  CssMediaQuery(this.type, {this.modifier, Iterable<String>? features})
-      : features = features == null ? const [] : List.unmodifiable(features);
+  /// Creates a media query specifies a type and, optionally, conditions.
+  ///
+  /// This always sets [conjunction] to `true`.
+  CssMediaQuery.type(this.type, {this.modifier, Iterable<String>? conditions})
+      : conjunction = true,
+        conditions =
+            conditions == null ? const [] : List.unmodifiable(conditions);
 
-  /// Creates a media query that only specifies features.
-  CssMediaQuery.condition(Iterable<String> features)
+  /// Creates a media query that matches [conditions] according to
+  /// [conjunction].
+  ///
+  /// The [conjunction] argument may not be null if [conditions] is longer than
+  /// a single element.
+  CssMediaQuery.condition(Iterable<String> conditions, {bool? conjunction})
       : modifier = null,
         type = null,
-        features = List.unmodifiable(features);
+        conjunction = conjunction ?? true,
+        conditions = List.unmodifiable(conditions) {
+    if (this.conditions.length > 1 && conjunction == null) {
+      throw ArgumentError(
+          "If conditions is longer than one element, conjunction may not be "
+          "null.");
+    }
+  }
 
   /// Merges this with [other] to return a query that matches the intersection
   /// of both inputs.
   MediaQueryMergeResult merge(CssMediaQuery other) {
+    if (!conjunction || !other.conjunction) {
+      return MediaQueryMergeResult.unrepresentable;
+    }
+
     var ourModifier = this.modifier?.toLowerCase();
     var ourType = this.type?.toLowerCase();
     var theirModifier = other.modifier?.toLowerCase();
@@ -56,27 +85,27 @@ class CssMediaQuery {
 
     if (ourType == null && theirType == null) {
       return MediaQuerySuccessfulMergeResult._(
-          CssMediaQuery.condition([...this.features, ...other.features]));
+          CssMediaQuery.condition([...this.conditions, ...other.conditions], conjunction: true));
     }
 
     String? modifier;
     String? type;
-    List<String> features;
+    List<String> conditions;
     if ((ourModifier == 'not') != (theirModifier == 'not')) {
       if (ourType == theirType) {
-        var negativeFeatures =
-            ourModifier == 'not' ? this.features : other.features;
-        var positiveFeatures =
-            ourModifier == 'not' ? other.features : this.features;
+        var negativeConditions =
+            ourModifier == 'not' ? this.conditions : other.conditions;
+        var positiveConditions =
+            ourModifier == 'not' ? other.conditions : this.conditions;
 
-        // If the negative features are a subset of the positive features, the
+        // If the negative conditions are a subset of the positive conditions, the
         // query is empty. For example, `not screen and (color)` has no
         // intersection with `screen and (color) and (grid)`.
         //
         // However, `not screen and (color)` *does* intersect with `screen and
         // (grid)`, because it means `not (screen and (color))` and so it allows
         // a screen with no color but with a grid.
-        if (negativeFeatures.every(positiveFeatures.contains)) {
+        if (negativeConditions.every(positiveConditions.contains)) {
           return MediaQueryMergeResult.empty;
         } else {
           return MediaQueryMergeResult.unrepresentable;
@@ -88,30 +117,30 @@ class CssMediaQuery {
       if (ourModifier == 'not') {
         modifier = theirModifier;
         type = theirType;
-        features = other.features;
+        conditions = other.conditions;
       } else {
         modifier = ourModifier;
         type = ourType;
-        features = this.features;
+        conditions = this.conditions;
       }
     } else if (ourModifier == 'not') {
       assert(theirModifier == 'not');
       // CSS has no way of representing "neither screen nor print".
       if (ourType != theirType) return MediaQueryMergeResult.unrepresentable;
 
-      var moreFeatures = this.features.length > other.features.length
-          ? this.features
-          : other.features;
-      var fewerFeatures = this.features.length > other.features.length
-          ? other.features
-          : this.features;
+      var moreConditions = this.conditions.length > other.conditions.length
+          ? this.conditions
+          : other.conditions;
+      var fewerConditions = this.conditions.length > other.conditions.length
+          ? other.conditions
+          : this.conditions;
 
-      // If one set of features is a superset of the other, use those features
+      // If one set of conditions is a superset of the other, use those conditions
       // because they're strictly narrower.
-      if (fewerFeatures.every(moreFeatures.contains)) {
+      if (fewerConditions.every(moreConditions.contains)) {
         modifier = ourModifier; // "not"
         type = ourType;
-        features = moreFeatures;
+        conditions = moreConditions;
       } else {
         // Otherwise, there's no way to represent the intersection.
         return MediaQueryMergeResult.unrepresentable;
@@ -121,41 +150,41 @@ class CssMediaQuery {
       // Omit the type if either input query did, since that indicates that they
       // aren't targeting a browser that requires "all and".
       type = (other.matchesAllTypes && ourType == null) ? null : theirType;
-      features = [...this.features, ...other.features];
+      conditions = [...this.conditions, ...other.conditions];
     } else if (other.matchesAllTypes) {
       modifier = ourModifier;
       type = ourType;
-      features = [...this.features, ...other.features];
+      conditions = [...this.conditions, ...other.conditions];
     } else if (ourType != theirType) {
       return MediaQueryMergeResult.empty;
     } else {
       modifier = ourModifier ?? theirModifier;
       type = ourType;
-      features = [...this.features, ...other.features];
+      conditions = [...this.conditions, ...other.conditions];
     }
 
-    return MediaQuerySuccessfulMergeResult._(CssMediaQuery(
+    return MediaQuerySuccessfulMergeResult._(CssMediaQuery.type(
         type == ourType ? this.type : other.type,
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
-        features: features));
+        conditions: conditions));
   }
 
   bool operator ==(Object other) =>
       other is CssMediaQuery &&
       other.modifier == modifier &&
       other.type == type &&
-      listEquals(other.features, features);
+      listEquals(other.conditions, conditions);
 
-  int get hashCode => modifier.hashCode ^ type.hashCode ^ listHash(features);
+  int get hashCode => modifier.hashCode ^ type.hashCode ^ listHash(conditions);
 
   String toString() {
     var buffer = StringBuffer();
     if (modifier != null) buffer.write("$modifier ");
     if (type != null) {
       buffer.write(type);
-      if (features.isNotEmpty) buffer.write(" and ");
+      if (conditions.isNotEmpty) buffer.write(" and ");
     }
-    buffer.write(features.join(" and "));
+    buffer.write(conditions.join(conjunction ? " and " : " or "));
     return buffer.toString();
   }
 }
