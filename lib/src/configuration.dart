@@ -28,20 +28,21 @@ class Configuration {
   final Map<String, ConfiguredValue> _values;
 
   /// Creates an implicit configuration with the given [values].
-  Configuration.implicit(this._values);
+  Configuration.implicit(this._values, {String? opaqueId})
+      : this.opaqueId = opaqueId ?? Xid.string();
 
   /// Uniquely identifying ID for a configuration lasting across the execution
   /// context.
   ///
   /// Implicit configurations will always have different IDs.
-  int get opaqueId => Xid.string().hashCode;
+  final String opaqueId;
 
   /// The empty configuration, which indicates that the module has not been
   /// configured.
   ///
   /// Empty configurations are always considered implicit, since they are
   /// ignored if the module has already been loaded.
-  const Configuration.empty() : _values = const {};
+  factory Configuration.empty() => Configuration.implicit({});
 
   bool get isEmpty => values.isEmpty;
 
@@ -52,7 +53,7 @@ class Configuration {
 
   /// Creates a new configuration from this one based on a `@forward` rule.
   Configuration throughForward(ForwardRule forward) {
-    if (isEmpty) return const Configuration.empty();
+    if (isEmpty) return Configuration.empty();
     var newValues = _values;
 
     // Only allow variables that are visible through the `@forward` to be
@@ -69,12 +70,13 @@ class Configuration {
     } else if (hiddenVariables != null && hiddenVariables.isNotEmpty) {
       newValues = LimitedMapView.blocklist(newValues, hiddenVariables);
     }
-    return _withValues(newValues);
+    return _withValues(newValues, opaqueId: opaqueId);
   }
 
   /// Returns a copy of [this] with the given [values] map.
-  Configuration _withValues(Map<String, ConfiguredValue> values) =>
-      Configuration.implicit(values);
+  Configuration _withValues(Map<String, ConfiguredValue> values,
+          {String? opaqueId}) =>
+      Configuration.implicit(values, opaqueId: opaqueId);
 
   String toString() =>
       "(" +
@@ -95,15 +97,13 @@ class ExplicitConfiguration extends Configuration {
   /// The node whose span indicates where the configuration was declared.
   final AstNode nodeWithSpan;
 
-  ExplicitConfiguration(Map<String, ConfiguredValue> values, this.nodeWithSpan)
-      : super.implicit(values);
-
-  /// ID for a [configuration] created with an explicit `@use ... with` uniquely
-  /// identified by its [nodeWithSpan] property.
-  @override
-  int get opaqueId => nodeWithSpan.span.toString().hashCode;
+  ExplicitConfiguration(Map<String, ConfiguredValue> values, this.nodeWithSpan,
+      {String? opaqueId})
+      : super.implicit(values, opaqueId: opaqueId);
 
   /// Returns a copy of [this] with the given [values] map.
-  Configuration _withValues(Map<String, ConfiguredValue> values) =>
-      ExplicitConfiguration(values, nodeWithSpan);
+  @override
+  Configuration _withValues(Map<String, ConfiguredValue> values,
+          {String? opaqueId}) =>
+      ExplicitConfiguration(values, nodeWithSpan, opaqueId: opaqueId);
 }

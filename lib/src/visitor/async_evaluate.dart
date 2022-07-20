@@ -141,8 +141,8 @@ class _EvaluateVisitor
   /// All modules that have been loaded and evaluated so far.
   final _modules = <Uri, Module>{};
 
-  /// Configuration ids seen by a module by URI.
-  final _moduleConfigurationIds = <Uri, int>{};
+  /// Configuration seen by a module URI.
+  final _moduleConfigurations = <Uri, Configuration>{};
 
   /// A map from canonical module URLs to the nodes whose spans indicate where
   /// those modules were originally loaded.
@@ -305,7 +305,7 @@ class _EvaluateVisitor
   /// The configuration for the current module.
   ///
   /// If this is empty, that indicates that the current module is not configured.
-  var _configuration = const Configuration.empty();
+  var _configuration = Configuration.empty();
 
   /// Creates a new visitor.
   ///
@@ -470,7 +470,7 @@ class _EvaluateVisitor
         var withMap = arguments[1].realNull?.assertMap("with").contents;
 
         var callableNode = _callableNode!;
-        var configuration = const Configuration.empty();
+        var configuration = Configuration.empty();
         if (withMap != null) {
           var values = <String, ConfiguredValue>{};
           var span = callableNode.span;
@@ -673,7 +673,8 @@ class _EvaluateVisitor
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       var currentConfiguration = configuration ?? _configuration;
-      if (_moduleConfigurationIds[url] != currentConfiguration.opaqueId &&
+      if (_moduleConfigurations[url]!.opaqueId !=
+              currentConfiguration.opaqueId &&
           currentConfiguration is ExplicitConfiguration) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
@@ -755,7 +756,7 @@ class _EvaluateVisitor
     var module = environment.toModule(css, extensionStore);
     if (url != null) {
       _modules[url] = module;
-      _moduleConfigurationIds[url] = _configuration.opaqueId;
+      _moduleConfigurations[url] = _configuration;
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
     }
 
@@ -2090,7 +2091,7 @@ class _EvaluateVisitor
   }
 
   Future<Value?> visitUseRule(UseRule node) async {
-    var configuration = const Configuration.empty();
+    var configuration = Configuration.empty();
     if (node.configuration.isNotEmpty) {
       var values = <String, ConfiguredValue>{};
       for (var variable in node.configuration) {
