@@ -15,8 +15,6 @@
 
   * Delete the `isCondition` getter.
 
-## 1.1.0
-
 * Provide access to Sass's selector AST, including the following classes:
   `Selector`, `ListSelector`, `ComplexSelector`, `ComplexSelectorComponent`,
   `Combinator`, `CompoundSelector`, `SimpleSelector`, `AttributeSelector`,
