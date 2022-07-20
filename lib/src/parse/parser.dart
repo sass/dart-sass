@@ -116,7 +116,8 @@ class Parser {
   /// Like [whitespace], but throws an error if no whitespace is consumed.
   @protected
   void expectWhitespace() {
-    if (scanner.isDone || !(isWhitespace(scanner.peekChar()) || scanComment())) {
+    if (scanner.isDone ||
+        !(isWhitespace(scanner.peekChar()) || scanComment())) {
       scanner.error("Expected whitespace.");
     }
 

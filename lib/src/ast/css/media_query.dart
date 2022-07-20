@@ -84,8 +84,9 @@ class CssMediaQuery {
     var theirType = other.type?.toLowerCase();
 
     if (ourType == null && theirType == null) {
-      return MediaQuerySuccessfulMergeResult._(
-          CssMediaQuery.condition([...this.conditions, ...other.conditions], conjunction: true));
+      return MediaQuerySuccessfulMergeResult._(CssMediaQuery.condition(
+          [...this.conditions, ...other.conditions],
+          conjunction: true));
     }
 
     String? modifier;

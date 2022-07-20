@@ -224,7 +224,9 @@ class _SerializeVisitor
       var firstQuery = node.queries.first;
       if (!_isCompressed ||
           firstQuery.modifier != null ||
-          firstQuery.type != null) {
+          firstQuery.type != null ||
+          (firstQuery.conditions.length == 1 &&
+              firstQuery.conditions.first.startsWith("(not "))) {
         _buffer.writeCharCode($space);
       }
 
