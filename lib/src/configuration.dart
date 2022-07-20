@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
-import 'package:xid/xid.dart';
+import 'package:uuid/uuid.dart';
 
 import 'ast/node.dart';
 import 'ast/sass.dart';
@@ -29,7 +29,7 @@ class Configuration {
 
   /// Creates an implicit configuration with the given [values].
   Configuration.implicit(this._values, {String? opaqueId})
-      : this.opaqueId = opaqueId ?? Xid.string();
+      : opaqueId = opaqueId ?? Uuid().v1();
 
   /// Uniquely identifying ID for a configuration lasting across the execution
   /// context.
