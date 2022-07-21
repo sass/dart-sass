@@ -47,6 +47,13 @@ class UniversalSelector extends SimpleSelector {
     return [this];
   }
 
+  bool isSuperselector(SimpleSelector other) {
+    if (namespace == '*') return true;
+    if (other is TypeSelector) return namespace == other.name.namespace;
+    if (other is UniversalSelector) return namespace == other.namespace;
+    return namespace == null || super.isSuperselector(other);
+  }
+
   bool operator ==(Object other) =>
       other is UniversalSelector && other.namespace == namespace;
 

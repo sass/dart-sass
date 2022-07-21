@@ -10,6 +10,11 @@
 
 * Deprecate passing non-`deg` units to `color.hwb()`'s `$hue` argument.
 
+* Fix a number of bugs when determining whether selectors with pseudo-elements
+  are superselectors.
+
+* Treat `*` as a superselector of all selectors.
+
 ### JS API
 
 * Add a `charset` option that controls whether or not Sass emits a
