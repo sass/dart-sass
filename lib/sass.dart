@@ -5,6 +5,7 @@
 /// We strongly recommend importing this library with the prefix `sass`.
 library sass;
 
+import 'package:meta/meta.dart';
 import 'package:package_config/package_config_types.dart';
 import 'package:source_maps/source_maps.dart';
 
@@ -15,6 +16,7 @@ import 'src/compile_result.dart';
 import 'src/exception.dart';
 import 'src/import_cache.dart';
 import 'src/importer.dart';
+import 'src/importer/utils.dart';
 import 'src/logger.dart';
 import 'src/syntax.dart';
 import 'src/util/nullable.dart';
@@ -474,3 +476,10 @@ Future<String> compileStringAsync(
   result.sourceMap.andThen(sourceMap);
   return result.css;
 }
+
+/// Runs [callback] in a context where [AsyncImporter.fromImport] returns
+/// `true`.
+///
+/// This is only intended for use when testing custom importers.
+@visibleForTesting
+T fakeFromImport<T>(T callback()) => inImportRule(callback);
