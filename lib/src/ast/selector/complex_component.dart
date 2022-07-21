@@ -11,7 +11,7 @@ import '../selector.dart';
 ///
 /// This a [CompoundSelector] with one or more trailing [Combinator]s.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class ComplexSelectorComponent {
   /// This component's compound selector.

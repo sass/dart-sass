@@ -12,7 +12,7 @@ import '../selector.dart';
 /// This selects for elements with the given attribute, and optionally with a
 /// value matching certain conditions as well.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class AttributeSelector extends SimpleSelector {
   /// The name of the attribute being selected for.

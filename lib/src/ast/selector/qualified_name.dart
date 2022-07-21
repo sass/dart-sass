@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 ///
 /// [qualified name]: https://www.w3.org/TR/css3-namespace/#css-qnames
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class QualifiedName {
   /// The identifier name.

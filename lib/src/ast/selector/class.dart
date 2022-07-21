@@ -12,7 +12,7 @@ import '../selector.dart';
 /// This selects elements whose `class` attribute contains an identifier with
 /// the given name.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class ClassSelector extends SimpleSelector {
   /// The class name this selects for.

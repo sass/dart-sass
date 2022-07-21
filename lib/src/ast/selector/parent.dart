@@ -12,7 +12,7 @@ import '../selector.dart';
 /// This is not a plain CSS selector—it should be removed before emitting a CSS
 /// document.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class ParentSelector extends SimpleSelector {
   /// The suffix that will be added to the parent selector after it's been

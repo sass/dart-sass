@@ -16,7 +16,8 @@ import '../selector.dart';
 /// A compound selector is composed of [SimpleSelector]s. It matches an element
 /// that matches all of the component simple selectors.
 ///
-/// {@category Selector}
+/// {@category AST}
+/// {@category Parsing}
 @sealed
 class CompoundSelector extends Selector {
   /// The components of this selector.
