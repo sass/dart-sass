@@ -1,3 +1,40 @@
+## 1.54.0
+
+* Deprecate selectors with leading or trailing combinators, or with multiple
+  combinators in a row. If they're included in style rules after nesting is
+  resolved, Sass will now produce a deprecation warning and, in most cases, omit
+  the selector. Leading and trailing combinators can still be freely used for
+  nesting purposes.
+
+  See https://sass-lang.com/d/bogus-combinators for more details.
+
+* Add partial support for new media query syntax from Media Queries Level 4. The
+  only exception are logical operations nested within parentheses, as these were
+  previously interpreted differently as SassScript expressions.
+  
+  A parenthesized media condition that begins with `not` or an opening
+  parenthesis now produces a deprecation warning. In a future release, these
+  will be interpreted as plain CSS instead.
+
+* Deprecate passing non-`deg` units to `color.hwb()`'s `$hue` argument.
+
+* Fix a number of bugs when determining whether selectors with pseudo-elements
+  are superselectors.
+
+* Treat `*` as a superselector of all selectors.
+
+### Dart API
+
+* Add a top-level `fakeFromImport()` function for testing custom importers
+  that use `AsyncImporter.fromImport`.
+
+### JS API
+
+* Add a `charset` option that controls whether or not Sass emits a
+  `@charset`/BOM for non-ASCII stylesheets.
+
+* Fix Sass npm package types for TS 4.7+ Node16 and NodeNext module resolution.
+
 ## 1.53.0
 
 * Add support for calling `var()` with an empty second argument, such as
