@@ -277,7 +277,7 @@ jobs:
         run: dart bin/sass.dart --quiet build/bulma/bulma.sass build/bulma-output.css
 
   deploy_github_linux:
-    name: "Deploy Github: Linux"
+    name: "Deploy Github: linux-ia32, linux-x64"
     runs-on: ubuntu-latest
     needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
@@ -293,7 +293,7 @@ jobs:
           GH_USER: sassbot
 
   deploy_github_linux_qemu:
-    name: "Deploy Github: Linux"
+    name: "Deploy Github: linux-${{ matrix.arch }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -325,34 +325,33 @@ jobs:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
 
-  deploy_github_macos:
-    name: "Deploy Github: Mac OS"
-    runs-on: macos-latest
+  deploy_github:
+    name: "Deploy Github: ${{ matrix.platform }}"
+    runs-on: ${{ matrix.runner }}
     needs: [deploy_github_linux]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
+    strategy:
+      matrix:
+        include:
+          - runner: macos-latest
+            platform: macos-x64
+            architecture: x64
+          - runner: self-hosted
+            platform: macos-arm64
+            architecture: arm64
+          - runner: windows-latest
+            platform: windows
+            architecture: x64
 
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
+        # Workaround for dart-lang/setup-dart#59
+        with:
+          architecture: ${{ matrix.architecture }}
       - run: dart pub get
       - name: Deploy
-        run: dart run grinder pkg-github-macos
-        env:
-          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-          GH_USER: sassbot
-
-  deploy_github_windows:
-    name: "Deploy Github: Windows"
-    runs-on: windows-latest
-    needs: [deploy_github_linux]
-    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - name: Deploy
-        run: dart run grinder pkg-github-windows
+        run: dart run grinder pkg-github-${{ matrix.platform }}
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
