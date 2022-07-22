@@ -14,7 +14,7 @@ import '../selector.dart';
 /// `@extend`. It's not a plain CSS selector—it should be removed before
 /// emitting a CSS document.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class PlaceholderSelector extends SimpleSelector {
   /// The name of the placeholder.

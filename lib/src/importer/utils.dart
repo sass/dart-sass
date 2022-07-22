@@ -17,7 +17,7 @@ import '../io.dart';
 /// removed, at which point we can delete this and have one consistent behavior.
 bool get fromImport => Zone.current[#_inImportRule] as bool? ?? false;
 
-/// Runs [callback] in a context where [inImportRule] returns `true` and
+/// Runs [callback] in a context where [fromImport] returns `true` and
 /// [resolveImportPath] uses `@import` semantics rather than `@use` semantics.
 T inImportRule<T>(T callback()) =>
     runZoned(callback, zoneValues: {#_inImportRule: true});

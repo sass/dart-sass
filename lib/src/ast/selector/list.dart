@@ -18,7 +18,8 @@ import '../selector.dart';
 /// A selector list is composed of [ComplexSelector]s. It matches any element
 /// that matches any of the component selectors.
 ///
-/// {@category Selector}
+/// {@category AST}
+/// {@category Parsing}
 @sealed
 class SelectorList extends Selector {
   /// The components of this selector.

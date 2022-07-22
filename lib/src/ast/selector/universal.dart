@@ -10,7 +10,7 @@ import '../selector.dart';
 
 /// Matches any element in the given namespace.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class UniversalSelector extends SimpleSelector {
   /// The selector namespace.
