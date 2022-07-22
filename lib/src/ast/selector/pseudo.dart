@@ -8,6 +8,7 @@ import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 
 import '../../utils.dart';
+import '../../util/nullable.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -172,6 +173,24 @@ class PseudoSelector extends SimpleSelector {
     if (!addedThis) result.add(this);
 
     return result;
+  }
+
+  bool isSuperselector(SimpleSelector other) {
+    if (super.isSuperselector(other)) return true;
+
+    var selector = this.selector;
+    if (selector == null) return this == other;
+    if (other is PseudoSelector &&
+        isElement &&
+        other.isElement &&
+        normalizedName == 'slotted' &&
+        other.name == name) {
+      return other.selector.andThen(selector.isSuperselector) ?? false;
+    }
+
+    // Fall back to the logic defined in functions.dart, which knows how to
+    // compare selector pseudoclasses against raw selectors.
+    return CompoundSelector([this]).isSuperselector(CompoundSelector([other]));
   }
 
   /// Computes [_minSpecificity] and [_maxSpecificity].

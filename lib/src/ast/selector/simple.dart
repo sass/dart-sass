@@ -9,6 +9,19 @@ import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../selector.dart';
 
+/// Names of pseudo-classes that take selectors as arguments, and that are
+/// subselectors of the union of their arguments.
+///
+/// For example, `.foo` is a superselector of `:matches(.foo)`.
+final _subselectorPseudos = {
+  'is',
+  'matches',
+  'where',
+  'any',
+  'nth-child',
+  'nth-last-child'
+};
+
 /// An abstract superclass for simple selectors.
 ///
 /// {@category AST}
@@ -91,5 +104,23 @@ abstract class SimpleSelector extends Selector {
     if (!addedThis) result.add(this);
 
     return result;
+  }
+
+  /// Whether this is a superselector of [other].
+  ///
+  /// That is, whether this matches every element that [other] matches, as well
+  /// as possibly additional elements.
+  bool isSuperselector(SimpleSelector other) {
+    if (this == other) return true;
+    if (other is PseudoSelector && other.isClass) {
+      var list = other.selector;
+      if (list != null && _subselectorPseudos.contains(other.normalizedName)) {
+        return list.components.every((complex) =>
+            complex.components.isNotEmpty &&
+            complex.components.last.selector.components
+                .any((simple) => isSuperselector(simple)));
+      }
+    }
+    return false;
   }
 }

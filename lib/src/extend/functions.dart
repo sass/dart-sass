@@ -13,22 +13,10 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:tuple/tuple.dart';
 
 import '../ast/selector.dart';
 import '../utils.dart';
-
-/// Names of pseudo selectors that take selectors as arguments, and that are
-/// subselectors of their arguments.
-///
-/// For example, `.foo` is a superselector of `:matches(.foo)`.
-final _subselectorPseudos = {
-  'is',
-  'matches',
-  'where',
-  'any',
-  'nth-child',
-  'nth-last-child'
-};
 
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by every complex selector in [complexes].
@@ -689,6 +677,29 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
 bool compoundIsSuperselector(
     CompoundSelector compound1, CompoundSelector compound2,
     {Iterable<ComplexSelectorComponent>? parents}) {
+  // Pseudo elements effectively change the target of a compound selector rather
+  // than narrowing the set of elements to which it applies like other
+  // selectors. As such, if either selector has a pseudo element, they both must
+  // have the _same_ pseudo element.
+  //
+  // In addition, order matters when pseudo-elements are involved. The selectors
+  // before them must
+  var tuple1 = _findPseudoElementIndexed(compound1);
+  var tuple2 = _findPseudoElementIndexed(compound2);
+  if (tuple1 != null && tuple2 != null) {
+    return tuple1.item1.isSuperselector(tuple2.item1) &&
+        _compoundComponentsIsSuperselector(
+            compound1.components.take(tuple1.item2),
+            compound2.components.take(tuple2.item2),
+            parents: parents) &&
+        _compoundComponentsIsSuperselector(
+            compound1.components.skip(tuple1.item2 + 1),
+            compound2.components.skip(tuple2.item2 + 1),
+            parents: parents);
+  } else if (tuple1 != null || tuple2 != null) {
+    return false;
+  }
+
   // Every selector in [compound1.components] must have a matching selector in
   // [compound2.components].
   for (var simple1 in compound1.components) {
@@ -697,18 +708,7 @@ bool compoundIsSuperselector(
           parents: parents)) {
         return false;
       }
-    } else if (!_simpleIsSuperselectorOfCompound(simple1, compound2)) {
-      return false;
-    }
-  }
-
-  // [compound1] can't be a superselector of a selector with non-selector
-  // pseudo-elements that [compound2] doesn't share.
-  for (var simple2 in compound2.components) {
-    if (simple2 is PseudoSelector &&
-        simple2.isElement &&
-        simple2.selector == null &&
-        !_simpleIsSuperselectorOfCompound(simple2, compound1)) {
+    } else if (!compound2.components.any(simple1.isSuperselector)) {
       return false;
     }
   }
@@ -716,30 +716,36 @@ bool compoundIsSuperselector(
   return true;
 }
 
-/// Returns whether [simple] is a superselector of [compound].
+/// If [compound] contains a pseudo-element, returns it and its index in
+/// [compound.components].
+Tuple2<PseudoSelector, int>? _findPseudoElementIndexed(
+    CompoundSelector compound) {
+  for (var i = 0; i < compound.components.length; i++) {
+    var simple = compound.components[i];
+    if (simple is PseudoSelector && simple.isElement) return Tuple2(simple, i);
+  }
+  return null;
+}
+
+/// Like [compoundIsSuperselector] but operates on the underlying lists of
+/// simple selectors.
 ///
-/// That is, whether [simple] matches every element that [compound] matches, as
-/// well as possibly additional elements.
-bool _simpleIsSuperselectorOfCompound(
-    SimpleSelector simple, CompoundSelector compound) {
-  return compound.components.any((theirSimple) {
-    if (simple == theirSimple) return true;
-
-    // Some selector pseudoclasses can match normal selectors.
-    if (theirSimple is! PseudoSelector) return false;
-    var selector = theirSimple.selector;
-    if (selector == null) return false;
-    if (!_subselectorPseudos.contains(theirSimple.normalizedName)) return false;
-
-    return selector.components.every((complex) =>
-        complex.singleCompound?.components.contains(simple) ?? false);
-  });
+/// The [compound1] and [compound2] are expected to have efficient
+/// [Iterable.length] fields.
+bool _compoundComponentsIsSuperselector(
+    Iterable<SimpleSelector> compound1, Iterable<SimpleSelector> compound2,
+    {Iterable<ComplexSelectorComponent>? parents}) {
+  if (compound1.isEmpty) return true;
+  if (compound2.isEmpty) compound2 = [UniversalSelector(namespace: '*')];
+  return compoundIsSuperselector(
+      CompoundSelector(compound1), CompoundSelector(compound2),
+      parents: parents);
 }
 
 /// Returns whether [pseudo1] is a superselector of [compound2].
 ///
-/// That is, whether [pseudo1] matches every element that [compound2] matches, as well
-/// as possibly additional elements.
+/// That is, whether [pseudo1] matches every element that [compound2] matches,
+/// as well as possibly additional elements.
 ///
 /// This assumes that [pseudo1]'s `selector` argument is not `null`.
 ///

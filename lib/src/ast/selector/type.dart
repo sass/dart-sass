@@ -41,6 +41,12 @@ class TypeSelector extends SimpleSelector {
     }
   }
 
+  bool isSuperselector(SimpleSelector other) =>
+      super.isSuperselector(other) ||
+      (other is TypeSelector &&
+          name.name == other.name.name &&
+          (name.namespace == '*' || name.namespace == other.name.namespace));
+
   bool operator ==(Object other) => other is TypeSelector && other.name == name;
 
   int get hashCode => name.hashCode;
