@@ -10,10 +10,16 @@
 
 * Deprecate passing non-`deg` units to `color.hwb()`'s `$hue` argument.
 
+### Dart API
+
+* Add a top-level `fakeFromImport()` function for testing custom importers
+  that use `AsyncImporter.fromImport`.
+
 ### JS API
 
 * Add a `charset` option that controls whether or not Sass emits a
   `@charset`/BOM for non-ASCII stylesheets.
+
 * Fix Sass npm package types for TS 4.7+ Node16 and NodeNext module resolution.
 
 ## 1.53.0
