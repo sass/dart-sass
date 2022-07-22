@@ -20,11 +20,11 @@ class CssMediaQuery {
 
   /// Whether [conditions] is a conjunction or a disjunction.
   ///
-  /// In other words, if this is `true this query matches when _all_
+  /// In other words, if this is `true` this query matches when _all_
   /// [conditions] are met, and if it's `false` this query matches when _any_
   /// condition in [conditions] is met.
   ///
-  /// If this is [false], [modifier] and [type] will both be `null`.
+  /// If this is `false`, [modifier] and [type] will both be `null`.
   final bool conjunction;
 
   /// Media conditions, including parentheses.
