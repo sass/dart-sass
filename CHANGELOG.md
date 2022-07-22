@@ -8,6 +8,14 @@
 
   See https://sass-lang.com/d/bogus-combinators for more details.
 
+* Add partial support for new media query syntax from Media Queries Level 4. The
+  only exception are logical operations nested within parentheses, as these were
+  previously interpreted differently as SassScript expressions.
+  
+  A parenthesized media condition that begins with `not` or an opening
+  parenthesis now produces a deprecation warning. In a future release, these
+  will be interpreted as plain CSS instead.
+
 * Deprecate passing non-`deg` units to `color.hwb()`'s `$hue` argument.
 
 ### Dart API

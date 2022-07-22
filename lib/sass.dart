@@ -28,7 +28,8 @@ export 'src/exception.dart' show SassException;
 export 'src/importer.dart';
 export 'src/logger.dart';
 export 'src/syntax.dart';
-export 'src/value.dart' hide ColorFormat, SassApiColor, SassApiValue, SpanColorFormat;
+export 'src/value.dart'
+    hide ColorFormat, SassApiColor, SassApiValue, SpanColorFormat;
 export 'src/visitor/serialize.dart' show OutputStyle;
 export 'src/evaluation_context.dart' show warn;
 

@@ -209,15 +209,36 @@ void main() {
 
     // Removing whitespace after "and", "or", or "not" is forbidden because it
     // would cause it to parse as a function token.
-    test('removes whitespace before "and" when possible', () {
-      expect(
-          _compile("""
-        @media screen and (min-width: 900px) and (max-width: 100px) {
-          a {b: c}
-        }
-      """),
-          equals("@media screen and (min-width: 900px)and (max-width: 100px)"
-              "{a{b:c}}"));
+    group('preserves whitespace when necessary', () {
+      test('around "and"', () {
+        expect(
+            _compile("""
+              @media screen and (min-width: 900px) and (max-width: 100px) {
+                a {b: c}
+              }
+            """),
+            equals("@media screen and (min-width: 900px)and (max-width: 100px)"
+                "{a{b:c}}"));
+      });
+
+      test('around "or"', () {
+        expect(
+            _compile("""
+              @media (min-width: 900px) or (max-width: 100px) or (print) {
+                a {b: c}
+              }
+            """),
+            equals("@media(min-width: 900px)or (max-width: 100px)or (print)"
+                "{a{b:c}}"));
+      });
+
+      test('after "not"', () {
+        expect(_compile("""
+              @media not (min-width: 900px) {
+                a {b: c}
+              }
+            """), equals("@media not (min-width: 900px){a{b:c}}"));
+      });
     });
 
     test("preserves whitespace around the modifier", () {
