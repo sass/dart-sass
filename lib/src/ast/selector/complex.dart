@@ -16,7 +16,8 @@ import '../selector.dart';
 /// A complex selector is composed of [CompoundSelector]s separated by
 /// [Combinator]s. It selects elements based on their parent selectors.
 ///
-/// {@category Selector}
+/// {@category AST}
+/// {@category Parsing}
 @sealed
 class ComplexSelector extends Selector {
   /// This selector's leading combinators.

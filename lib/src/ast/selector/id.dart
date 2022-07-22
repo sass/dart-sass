@@ -13,7 +13,7 @@ import '../selector.dart';
 ///
 /// This selects elements whose `id` attribute exactly matches the given name.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class IDSelector extends SimpleSelector {
   /// The ID name this selects for.

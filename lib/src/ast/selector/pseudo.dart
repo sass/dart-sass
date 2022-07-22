@@ -18,7 +18,7 @@ import '../selector.dart';
 /// logic for each pseudo selector that takes a selector as an argument, to
 /// ensure that extension and other selector operations work properly.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class PseudoSelector extends SimpleSelector {
   /// The name of this selector.

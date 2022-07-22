@@ -11,7 +11,8 @@ import '../selector.dart';
 
 /// An abstract superclass for simple selectors.
 ///
-/// {@category Selector}
+/// {@category AST}
+/// {@category Parsing}
 abstract class SimpleSelector extends Selector {
   /// The minimum possible specificity that this selector can have.
   ///

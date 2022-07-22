@@ -12,7 +12,7 @@ import '../selector.dart';
 ///
 /// This selects elements whose name equals the given name.
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class TypeSelector extends SimpleSelector {
   /// The element name being selected.

@@ -37,7 +37,7 @@ export 'selector/universal.dart';
 ///
 /// Selectors have structural equality semantics.
 ///
-/// {@category Selector}
+/// {@category AST}
 abstract class Selector {
   /// Whether this selector, and complex selectors containing it, should not be
   /// emitted.

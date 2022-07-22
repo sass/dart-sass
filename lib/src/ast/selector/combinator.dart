@@ -7,7 +7,7 @@ import 'package:meta/meta.dart';
 /// A combinator that defines the relationship between selectors in a
 /// [ComplexSelector].
 ///
-/// {@category Selector}
+/// {@category AST}
 @sealed
 class Combinator {
   /// Matches the right-hand selector if it's immediately adjacent to the
