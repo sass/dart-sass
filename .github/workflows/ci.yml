@@ -217,7 +217,7 @@ jobs:
     - run: git diff --exit-code
 
   deploy_github_linux:
-    name: "Deploy Github: Linux"
+    name: "Deploy Github: linux-ia32, linux-x64"
     runs-on: ubuntu-latest
     needs: [dart_tests, static_analysis]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass-embedded'"
@@ -234,7 +234,7 @@ jobs:
         env: {GH_BEARER_TOKEN: "${{ github.token }}"}
 
   deploy_github_linux_qemu:
-    name: "Deploy Github: Linux"
+    name: "Deploy Github: linux-${{ matrix.arch }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -268,11 +268,20 @@ jobs:
             /bin/sh -c "cp -R . /tmp/workspace && cd /tmp/workspace && dart pub get && dart run grinder pkg-github-linux-${{ matrix.arch }}"
         env: {GH_BEARER_TOKEN: "${{ github.token }}"}
 
-  deploy_github_macos_x64:
-    name: "Deploy Github: Mac OS (x64)"
-    runs-on: macos-latest
+  deploy_github:
+    name: "Deploy Github: ${{ matrix.platform }})"
+    runs-on: ${{ matrix.runner }}
     needs: [deploy_github_linux]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass-embedded'"
+    strategy:
+      matrix:
+        include:
+          - runner: macos-latest
+            platform: macos-x64
+          - runner: self-hosted
+            platform: macos-arm64
+          - runner: windows-latest
+            platform: windows
 
     steps:
       - uses: actions/checkout@v2
@@ -282,47 +291,13 @@ jobs:
       - run: dart pub get
       - run: dart run grinder protobuf
       - name: Deploy
-        run: dart run grinder pkg-github-macos-x64
-        env: {GH_BEARER_TOKEN: "${{ github.token }}"}
-
-  deploy_github_macos_arm64:
-    name: "Deploy Github: Mac OS (arm64)"
-    runs-on: self-hosted
-    needs: [deploy_github_linux]
-    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass-embedded'"
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: arduino/setup-protoc@v1
-        with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - run: dart run grinder protobuf
-      - name: Deploy
-        run: dart run grinder pkg-github-macos-arm64
-        env: {GH_BEARER_TOKEN: "${{ github.token }}"}
-
-  deploy_github_windows:
-    name: "Deploy Github: Windows"
-    runs-on: windows-latest
-    needs: [deploy_github_linux]
-    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass-embedded'"
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: arduino/setup-protoc@v1
-        with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - run: dart run grinder protobuf
-      - name: Deploy
-        run: dart run grinder pkg-github-windows
+        run: dart run grinder pkg-github-${{ matrix.platform }}
         env: {GH_BEARER_TOKEN: "${{ github.token }}"}
 
   release_embedded_host:
     name: "Release Embedded Host"
     runs-on: ubuntu-latest
-    needs: [deploy_github_linux, deploy_github_linux_qemu, deploy_github_macos, deploy_github_windows]
+    needs: [deploy_github_linux, deploy_github_linux_qemu, deploy_github]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass-embedded'"
 
     steps:
