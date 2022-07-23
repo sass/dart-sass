@@ -32,14 +32,14 @@ jobs:
             async_args: '--cmd-args --async'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
         with: {repo: sass/sass-spec}
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - run: npm install
         working-directory: sass-spec
@@ -74,11 +74,11 @@ jobs:
             node_version: 16
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with: {node-version: "${{ matrix.node_version }}"}
       - run: npm install
 
@@ -115,7 +115,7 @@ jobs:
         include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
@@ -152,11 +152,11 @@ jobs:
             node_version: 16
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with: {node-version: "${{ matrix.node_version }}"}
       - run: npm install
       - run: dart run grinder before-test
@@ -168,7 +168,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Analyze Dart
@@ -179,7 +179,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: dartdoc sass
@@ -204,7 +204,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Run checks
@@ -221,7 +221,7 @@ jobs:
         bootstrap_version: [4, 5]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder fetch-bootstrap${{matrix.bootstrap_version}}
@@ -235,7 +235,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder fetch-bourbon
@@ -251,7 +251,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder fetch-foundation
@@ -268,7 +268,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder fetch-bulma
@@ -283,7 +283,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
@@ -307,8 +307,8 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: docker/setup-qemu-action@v1
+      - uses: actions/checkout@v3
+      - uses: docker/setup-qemu-action@v2
       - name: Deploy
         run: |
           docker run --rm \
@@ -344,7 +344,7 @@ jobs:
             architecture: x64
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
         # Workaround for dart-lang/setup-dart#59
         with:
@@ -363,10 +363,10 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
         run: dart run grinder pkg-npm-deploy
@@ -380,10 +380,10 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
         run: dart run grinder update-bazel
@@ -398,10 +398,10 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
         run: dart run grinder pkg-pub-deploy
@@ -414,7 +414,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
@@ -431,7 +431,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
@@ -447,7 +447,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
@@ -461,7 +461,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: sass/sass-site
           token: ${{ secrets.GH_TOKEN }}
@@ -480,7 +480,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: sass/dart-sass-embedded
           token: ${{ secrets.GH_TOKEN }}
