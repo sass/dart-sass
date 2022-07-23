@@ -1,3 +1,7 @@
+## 2.0.1
+
+* No user-visible changes.
+
 ## 2.0.0
 
 * Refactor the `CssMediaQuery` API to support new logical operators:
