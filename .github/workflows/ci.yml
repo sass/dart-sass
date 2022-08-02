@@ -229,6 +229,15 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder protobuf
+      # We need to upload the compiled protobuf rather than recompiling it on
+      # other platforms because arduino/setup-protoc currently) requires Node 12
+      # which doesn't support ARM.
+      - uses: actions/upload-artifact@v3
+        with:
+          name: embedded-protocol
+          path: |
+            build/embedded-protocol
+            lib/src/embedded_sass.*.dart
       - name: Deploy
         run: dart run grinder pkg-github-release pkg-github-linux-ia32 pkg-github-linux-x64
         env: {GH_BEARER_TOKEN: "${{ github.token }}"}
@@ -249,11 +258,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: arduino/setup-protoc@v1
-        with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - run: dart run grinder protobuf
+      - uses: actions/download-artifact@v3
+        with:
+          name: embedded-protocol
       - uses: docker/setup-qemu-action@v1
       - name: Deploy
         run: |
@@ -283,11 +290,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: arduino/setup-protoc@v1
-        with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
+      - uses: actions/download-artifact@v3
+        with:
+          name: embedded-protocol
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - run: dart run grinder protobuf
       - name: Deploy
         run: dart run grinder pkg-github-${{ matrix.platform }}
         env: {GH_BEARER_TOKEN: "${{ github.token }}"}
