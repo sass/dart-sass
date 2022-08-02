@@ -1,3 +1,9 @@
+## 1.54.1
+
+* When unifying selectors for `@extend` and `selector.unify()`, ensure that
+  `:root`, `:scope`, `:host`, and `:host-context` only appear at the beginning
+  of complex selectors.
+
 ## 1.54.0
 
 * Deprecate selectors with leading or trailing combinators, or with multiple
