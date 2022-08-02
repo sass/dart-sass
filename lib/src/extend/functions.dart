@@ -18,6 +18,10 @@ import 'package:tuple/tuple.dart';
 import '../ast/selector.dart';
 import '../utils.dart';
 
+/// Pseudo-selectors that can only meaningfully appear in the first component of
+/// a complex selector.
+final _rootishPseudoClasses = {'root', 'scope', 'host', 'host-context'};
+
 /// Returns the contents of a [SelectorList] that matches only elements that are
 /// matched by every complex selector in [complexes].
 ///
@@ -231,19 +235,22 @@ Iterable<ComplexSelector>? _weaveParents(
   var trailingCombinators = _mergeTrailingCombinators(queue1, queue2);
   if (trailingCombinators == null) return null;
 
-  // Make sure there's at most one `:root` in the output.
-  var root1 = _firstIfRoot(queue1);
-  var root2 = _firstIfRoot(queue2);
-  if (root1 != null && root2 != null) {
-    var root =
-        unifyCompound(root1.selector.components, root2.selector.components);
-    if (root == null) return null;
-    queue1.addFirst(ComplexSelectorComponent(root, root1.combinators));
-    queue2.addFirst(ComplexSelectorComponent(root, root2.combinators));
-  } else if (root1 != null) {
-    queue2.addFirst(root1);
-  } else if (root2 != null) {
-    queue1.addFirst(root2);
+  // Make sure all selectors that are required to be at the root 
+  var rootish1 = _firstIfRootish(queue1);
+  var rootish2 = _firstIfRootish(queue2);
+  if (rootish1 != null && rootish2 != null) {
+    var rootish =
+        unifyCompound(rootish1.selector.components, rootish2.selector.components);
+    if (rootish == null) return null;
+    queue1.addFirst(ComplexSelectorComponent(rootish, rootish1.combinators));
+    queue2.addFirst(ComplexSelectorComponent(rootish, rootish2.combinators));
+  } else if (rootish1 != null || rootish2 != null) {
+    // If there's only one rootish selector, it should only appear in the first
+    // position of the resulting selector. We can ensure that happens by adding
+    // it to the beginning of _both_ queues.
+    var rootish = (rootish1 ?? rootish2)!;
+    queue1.addFirst(rootish);
+    queue2.addFirst(rootish);
   }
 
   var groups1 = _groupSelectors(queue1);
@@ -289,14 +296,19 @@ Iterable<ComplexSelector>? _weaveParents(
   ];
 }
 
-/// If the first element of [queue] has a `:root` selector, removes and returns
-/// that element.
-ComplexSelectorComponent? _firstIfRoot(Queue<ComplexSelectorComponent> queue) {
+/// If the first element of [queue] has a selector like `:root` that can only
+/// appear in a complex selector's first component, removes and returns that
+/// element.
+ComplexSelectorComponent? _firstIfRootish(Queue<ComplexSelectorComponent> queue) {
   if (queue.isEmpty) return null;
   var first = queue.first;
-  if (!_hasRoot(first.selector)) return null;
-  queue.removeFirst();
-  return first;
+  for (var simple in first.selector.components) {
+    if (simple is PseudoSelector && simple.isClass && _rootishPseudoClasses.contains(simple.normalizedName)) {
+      queue.removeFirst();
+      return first;
+    }
+  }
+  return null;
 }
 
 /// Returns a leading combinator list that's compatible with both [combinators1]
@@ -542,12 +554,6 @@ QueueList<List<ComplexSelectorComponent>> _groupSelectors(
   if (group.isNotEmpty) groups.add(group);
   return groups;
 }
-
-/// Returns whether or not [compound] contains a `::root` selector.
-bool _hasRoot(CompoundSelector compound) => compound.components.any((simple) =>
-    simple is PseudoSelector &&
-    simple.isClass &&
-    simple.normalizedName == 'root');
 
 /// Returns whether [list1] is a superselector of [list2].
 ///
