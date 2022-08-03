@@ -1,3 +1,7 @@
+## 1.54.2
+
+* No user-visible changes.
+
 ## 1.54.1
 
 * When unifying selectors for `@extend` and `selector.unify()`, ensure that
