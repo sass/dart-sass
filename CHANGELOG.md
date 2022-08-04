@@ -1,3 +1,7 @@
+## 1.54.3
+
+* Release a native ARM64 executable for Mac OS.
+
 ## 1.54.2
 
 * No user-visible changes.
