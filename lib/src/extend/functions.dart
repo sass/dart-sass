@@ -235,12 +235,13 @@ Iterable<ComplexSelector>? _weaveParents(
   var trailingCombinators = _mergeTrailingCombinators(queue1, queue2);
   if (trailingCombinators == null) return null;
 
-  // Make sure all selectors that are required to be at the root 
+  // Make sure all selectors that are required to be at the root are unified
+  // with one another.
   var rootish1 = _firstIfRootish(queue1);
   var rootish2 = _firstIfRootish(queue2);
   if (rootish1 != null && rootish2 != null) {
-    var rootish =
-        unifyCompound(rootish1.selector.components, rootish2.selector.components);
+    var rootish = unifyCompound(
+        rootish1.selector.components, rootish2.selector.components);
     if (rootish == null) return null;
     queue1.addFirst(ComplexSelectorComponent(rootish, rootish1.combinators));
     queue2.addFirst(ComplexSelectorComponent(rootish, rootish2.combinators));
@@ -299,11 +300,14 @@ Iterable<ComplexSelector>? _weaveParents(
 /// If the first element of [queue] has a selector like `:root` that can only
 /// appear in a complex selector's first component, removes and returns that
 /// element.
-ComplexSelectorComponent? _firstIfRootish(Queue<ComplexSelectorComponent> queue) {
+ComplexSelectorComponent? _firstIfRootish(
+    Queue<ComplexSelectorComponent> queue) {
   if (queue.isEmpty) return null;
   var first = queue.first;
   for (var simple in first.selector.components) {
-    if (simple is PseudoSelector && simple.isClass && _rootishPseudoClasses.contains(simple.normalizedName)) {
+    if (simple is PseudoSelector &&
+        simple.isClass &&
+        _rootishPseudoClasses.contains(simple.normalizedName)) {
       queue.removeFirst();
       return first;
     }
