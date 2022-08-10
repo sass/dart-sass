@@ -1,3 +1,8 @@
+## 1.54.4
+
+* Improve error messages when passing incorrect units that are also
+  out-of-bounds to various color functions.
+
 ## 1.54.3
 
 * Release a native ARM64 executable for Mac OS.

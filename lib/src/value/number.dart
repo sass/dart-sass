@@ -349,6 +349,22 @@ abstract class SassNumber extends Value {
         name);
   }
 
+  /// Like [valueInRange], but with an explicit unit for the expected upper and
+  /// lower bounds.
+  ///
+  /// This exists to solve the confusing error message in sass/dart-sass#1745,
+  /// and should be removed once sass/sass#3374 fully lands and unitless values
+  /// are required in these positions.
+  ///
+  /// @nodoc
+  @internal
+  num valueInRangeWithUnit(num min, num max, String name, String unit) {
+    var result = fuzzyCheckRange(value, min, max);
+    if (result != null) return result;
+    throw _exception(
+        "Expected $this to be within $min$unit and $max$unit.", name);
+  }
+
   /// Returns whether [this] has [unit] as its only unit (and as a numerator).
   bool hasUnit(String unit);
 

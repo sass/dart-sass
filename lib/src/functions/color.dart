@@ -459,7 +459,10 @@ SassColor _updateComponents(List<Value> arguments,
     if (!scale && checkPercent) _checkPercent(number, name);
     if (scale || assertPercent) number.assertUnit("%", name);
     if (scale) max = 100;
-    return number.valueInRange(change ? 0 : -max, max, name);
+    return scale || assertPercent
+        ? number.valueInRange(change ? 0 : -max, max, name)
+        : number.valueInRangeWithUnit(
+            change ? 0 : -max, max, name, checkPercent ? '%' : '');
   }
 
   var alpha = getParam("alpha", 1);
@@ -846,7 +849,8 @@ SassColor _opacify(List<Value> arguments) {
   var amount = arguments[1].assertNumber("amount");
 
   return color.changeAlpha(
-      (color.alpha + amount.valueInRange(0, 1, "amount")).clamp(0, 1));
+      (color.alpha + amount.valueInRangeWithUnit(0, 1, "amount", ""))
+          .clamp(0, 1));
 }
 
 /// The definition of the `transparentize()` and `fade-out()` functions.
@@ -855,7 +859,8 @@ SassColor _transparentize(List<Value> arguments) {
   var amount = arguments[1].assertNumber("amount");
 
   return color.changeAlpha(
-      (color.alpha - amount.valueInRange(0, 1, "amount")).clamp(0, 1));
+      (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", ""))
+          .clamp(0, 1));
 }
 
 /// Like [new BuiltInCallable.function], but always sets the URL to
