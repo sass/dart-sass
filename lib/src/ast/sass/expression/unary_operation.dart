@@ -38,21 +38,20 @@ class UnaryOperationExpression implements Expression {
 /// A unary operator constant.
 ///
 /// {@category AST}
-@sealed
-class UnaryOperator {
+enum UnaryOperator {
   /// The numeric identity operator, `+`.
-  static const plus = UnaryOperator._("plus", "+");
+  plus('plus', '+'),
 
   /// The numeric negation operator, `-`.
-  static const minus = UnaryOperator._("minus", "-");
+  minus('minus', '-'),
 
   /// The leading slash operator, `/`.
   ///
   /// This is a historical artifact.
-  static const divide = UnaryOperator._("divide", "/");
+  divide('divide', '/'),
 
   /// The boolean negation operator, `not`.
-  static const not = UnaryOperator._("not", "not");
+  not('not', 'not');
 
   /// The English name of [this].
   final String name;
@@ -60,7 +59,7 @@ class UnaryOperator {
   /// The Sass syntax for [this].
   final String operator;
 
-  const UnaryOperator._(this.name, this.operator);
+  const UnaryOperator(this.name, this.operator);
 
   String toString() => name;
 }

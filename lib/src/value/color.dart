@@ -347,22 +347,29 @@ extension SassApiColor on SassColor {
 /// When a color is serialized in expanded mode, it should preserve its original
 /// format.
 @internal
-abstract class ColorFormat {
-  /// A color defined using the `rgb()` or `rgba()` functions.
-  static const rgbFunction = _ColorFormatEnum("rgbFunction");
+class ColorFormat {
+  final ColorFormatType? type;
 
-  /// A color defined using the `hsl()` or `hsla()` functions.
-  static const hslFunction = _ColorFormatEnum("hslFunction");
+  /// Creates a [ColorFormat] with a non-null [ColorFormatType].
+  const ColorFormat(ColorFormatType this.type);
+
+  /// Allows creating a [ColorFormat] without [ColorFormatType] to signal this
+  /// object is meant to be a [SpanColorFormat].
+  const ColorFormat._(this.type);
 }
 
-/// The class for enum values of the [ColorFormat] type.
-@sealed
-class _ColorFormatEnum implements ColorFormat {
-  final String _name;
+/// A union interface of possible formats in which a Sass color could be
+/// defined.
+///
+/// When a color is serialized in expanded mode, it should preserve its original
+/// format.
+@internal
+enum ColorFormatType {
+  /// A color defined using the `rgb()` or `rgba()` functions.
+  rgbFunction,
 
-  const _ColorFormatEnum(this._name);
-
-  String toString() => _name;
+  /// A color defined using the `hsl()` or `hsla()` functions.
+  hslFunction;
 }
 
 /// A [ColorFormat] where the color is serialized as the exact same text that
@@ -372,12 +379,12 @@ class _ColorFormatEnum implements ColorFormat {
 /// allocations.
 @internal
 @sealed
-class SpanColorFormat implements ColorFormat {
+class SpanColorFormat extends ColorFormat {
   /// The span tracking the location in which this color was originally defined.
   final FileSpan _span;
 
   /// The original string that was used to define this color in the Sass source.
   String get original => _span.text;
 
-  SpanColorFormat(this._span);
+  SpanColorFormat(this._span) : super._(null);
 }

@@ -75,7 +75,8 @@ class CssMediaQuery {
   /// of both inputs.
   MediaQueryMergeResult merge(CssMediaQuery other) {
     if (!conjunction || !other.conjunction) {
-      return MediaQueryMergeResult.unrepresentable;
+      return MediaQueryMergeResult.unsuccessful(
+          MediaQueryUnsuccessfulMergeResult.unrepresentable);
     }
 
     var ourModifier = this.modifier?.toLowerCase();
@@ -107,12 +108,15 @@ class CssMediaQuery {
         // (grid)`, because it means `not (screen and (color))` and so it allows
         // a screen with no color but with a grid.
         if (negativeConditions.every(positiveConditions.contains)) {
-          return MediaQueryMergeResult.empty;
+          return MediaQueryMergeResult.unsuccessful(
+              MediaQueryUnsuccessfulMergeResult.empty);
         } else {
-          return MediaQueryMergeResult.unrepresentable;
+          return MediaQueryMergeResult.unsuccessful(
+              MediaQueryUnsuccessfulMergeResult.unrepresentable);
         }
       } else if (matchesAllTypes || other.matchesAllTypes) {
-        return MediaQueryMergeResult.unrepresentable;
+        return MediaQueryMergeResult.unsuccessful(
+            MediaQueryUnsuccessfulMergeResult.unrepresentable);
       }
 
       if (ourModifier == 'not') {
@@ -127,7 +131,11 @@ class CssMediaQuery {
     } else if (ourModifier == 'not') {
       assert(theirModifier == 'not');
       // CSS has no way of representing "neither screen nor print".
-      if (ourType != theirType) return MediaQueryMergeResult.unrepresentable;
+      if (ourType != theirType) {
+        MediaQueryMergeResult.unsuccessful(
+            MediaQueryUnsuccessfulMergeResult.unrepresentable);
+      }
+      ;
 
       var moreConditions = this.conditions.length > other.conditions.length
           ? this.conditions
@@ -144,7 +152,8 @@ class CssMediaQuery {
         conditions = moreConditions;
       } else {
         // Otherwise, there's no way to represent the intersection.
-        return MediaQueryMergeResult.unrepresentable;
+        return MediaQueryMergeResult.unsuccessful(
+            MediaQueryUnsuccessfulMergeResult.unrepresentable);
       }
     } else if (matchesAllTypes) {
       modifier = theirModifier;
@@ -157,7 +166,8 @@ class CssMediaQuery {
       type = ourType;
       conditions = [...this.conditions, ...other.conditions];
     } else if (ourType != theirType) {
-      return MediaQueryMergeResult.empty;
+      return MediaQueryMergeResult.unsuccessful(
+          MediaQueryUnsuccessfulMergeResult.empty);
     } else {
       modifier = ourModifier ?? theirModifier;
       type = ourType;
@@ -194,31 +204,27 @@ class CssMediaQuery {
 ///
 /// This is either the singleton values [empty] or [unrepresentable], or an
 /// instance of [MediaQuerySuccessfulMergeResult].
-abstract class MediaQueryMergeResult {
+class MediaQueryMergeResult {
+  MediaQueryUnsuccessfulMergeResult? unsuccessful;
+
+  MediaQueryMergeResult.unsuccessful(this.unsuccessful);
+}
+
+/// Non-successful merge results.
+enum MediaQueryUnsuccessfulMergeResult {
   /// A singleton value indicating that there are no contexts that match both
   /// input queries.
-  static const empty = _SingletonCssMediaQueryMergeResult("empty");
+  empty,
 
   /// A singleton value indicating that the contexts that match both input
   /// queries can't be represented by a Level 3 media query.
-  static const unrepresentable =
-      _SingletonCssMediaQueryMergeResult("unrepresentable");
-}
-
-/// The subclass [MediaQueryMergeResult] that represents singleton enum values.
-class _SingletonCssMediaQueryMergeResult implements MediaQueryMergeResult {
-  /// The name of the result type.
-  final String _name;
-
-  const _SingletonCssMediaQueryMergeResult(this._name);
-
-  String toString() => _name;
+  unrepresentable;
 }
 
 /// A successful result of [CssMediaQuery.merge].
-class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
+class MediaQuerySuccessfulMergeResult extends MediaQueryMergeResult {
   /// The merged media query.
   final CssMediaQuery query;
 
-  MediaQuerySuccessfulMergeResult._(this.query);
+  MediaQuerySuccessfulMergeResult._(this.query) : super.unsuccessful(null);
 }

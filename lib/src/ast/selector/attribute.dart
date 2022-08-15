@@ -69,31 +69,31 @@ class AttributeSelector extends SimpleSelector {
 }
 
 /// An operator that defines the semantics of an [AttributeSelector].
-class AttributeOperator {
+enum AttributeOperator {
   /// The attribute value exactly equals the given value.
-  static const equal = AttributeOperator._("=");
+  equal('='),
 
   /// The attribute value is a whitespace-separated list of words, one of which
   /// is the given value.
-  static const include = AttributeOperator._("~=");
+  include('~='),
 
   /// The attribute value is either exactly the given value, or starts with the
   /// given value followed by a dash.
-  static const dash = AttributeOperator._("|=");
+  dash('|='),
 
   /// The attribute value begins with the given value.
-  static const prefix = AttributeOperator._("^=");
+  prefix('^='),
 
   /// The attribute value ends with the given value.
-  static const suffix = AttributeOperator._("\$=");
+  suffix('\$='),
 
   /// The attribute value contains the given value.
-  static const substring = AttributeOperator._("*=");
+  substring('*=');
 
   /// The operator's token text.
   final String _text;
 
-  const AttributeOperator._(this._text);
+  const AttributeOperator(this._text);
 
   String toString() => _text;
 }

@@ -88,51 +88,48 @@ class BinaryOperationExpression implements Expression {
 /// A binary operator constant.
 ///
 /// {@category AST}
-@sealed
-class BinaryOperator {
+enum BinaryOperator {
   /// The Microsoft equals operator, `=`.
-  static const singleEquals = BinaryOperator._("single equals", "=", 0);
+  singleEquals('single equals', '=', 0),
 
   /// The disjunction operator, `or`.
-  static const or = BinaryOperator._("or", "or", 1);
+  or('or', 'or', 1),
 
   /// The conjunction operator, `and`.
-  static const and = BinaryOperator._("and", "and", 2);
+  and('and', 'and', 2),
 
   /// The equality operator, `==`.
-  static const equals = BinaryOperator._("equals", "==", 3);
+  equals('equals', '==', 3),
 
   /// The inequality operator, `!=`.
-  static const notEquals = BinaryOperator._("not equals", "!=", 3);
+  notEquals('not equals', '!=', 3),
 
   /// The greater-than operator, `>`.
-  static const greaterThan = BinaryOperator._("greater than", ">", 4);
+  greaterThan('greater than', '>', 4),
 
   /// The greater-than-or-equal-to operator, `>=`.
-  static const greaterThanOrEquals =
-      BinaryOperator._("greater than or equals", ">=", 4);
+  greaterThanOrEquals('greater than or equals', '>=', 4),
 
   /// The less-than operator, `<`.
-  static const lessThan = BinaryOperator._("less than", "<", 4);
+  lessThan('less than', '<', 4),
 
   /// The less-than-or-equal-to operator, `<=`.
-  static const lessThanOrEquals =
-      BinaryOperator._("less than or equals", "<=", 4);
+  lessThanOrEquals('less than or equals', '<=', 4),
 
   /// The addition operator, `+`.
-  static const plus = BinaryOperator._("plus", "+", 5);
+  plus('plus', '+', 5),
 
   /// The subtraction operator, `-`.
-  static const minus = BinaryOperator._("minus", "-", 5);
+  minus('minus', '-', 5),
 
   /// The multiplication operator, `*`.
-  static const times = BinaryOperator._("times", "*", 6);
+  times('times', '*', 6),
 
   /// The division operator, `/`.
-  static const dividedBy = BinaryOperator._("divided by", "/", 6);
+  dividedBy('divided by', '/', 6),
 
   /// The modulo operator, `%`.
-  static const modulo = BinaryOperator._("modulo", "%", 6);
+  modulo('modulo', '%', 6);
 
   /// The English name of [this].
   final String name;
@@ -145,7 +142,7 @@ class BinaryOperator {
   /// An operator with higher precedence binds tighter.
   final int precedence;
 
-  const BinaryOperator._(this.name, this.operator, this.precedence);
+  const BinaryOperator(this.name, this.operator, this.precedence);
 
   String toString() => name;
 }

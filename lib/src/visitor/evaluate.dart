@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c3bc020b07dc2376f57ef8e9990ff6b97cde3417
+// Checksum: ffb74ce0c19de19a65ca0428b5458d00c6e891f5
 //
 // ignore_for_file: unused_import
 
@@ -1822,9 +1822,15 @@ class _EvaluateVisitor
     for (var query1 in queries1) {
       for (var query2 in queries2) {
         var result = query1.merge(query2);
-        if (result == MediaQueryMergeResult.empty) continue;
-        if (result == MediaQueryMergeResult.unrepresentable) return null;
-        queries.add((result as MediaQuerySuccessfulMergeResult).query);
+        switch (result.unsuccessful) {
+          case MediaQueryUnsuccessfulMergeResult.empty:
+            break; // do nothing.
+          case MediaQueryUnsuccessfulMergeResult.unrepresentable:
+            return null;
+          case null:
+            queries.add((result as MediaQuerySuccessfulMergeResult).query);
+            break;
+        }
       }
     }
     return queries;

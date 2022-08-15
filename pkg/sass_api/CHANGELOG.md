@@ -1,3 +1,7 @@
+## 2.0.6
+
+* No user-visible changes.
+
 ## 2.0.5
 
 * No user-visible changes.

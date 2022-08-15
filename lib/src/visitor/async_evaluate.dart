@@ -1827,9 +1827,15 @@ class _EvaluateVisitor
     for (var query1 in queries1) {
       for (var query2 in queries2) {
         var result = query1.merge(query2);
-        if (result == MediaQueryMergeResult.empty) continue;
-        if (result == MediaQueryMergeResult.unrepresentable) return null;
-        queries.add((result as MediaQuerySuccessfulMergeResult).query);
+        switch (result.unsuccessful) {
+          case MediaQueryUnsuccessfulMergeResult.empty:
+            break; // do nothing.
+          case MediaQueryUnsuccessfulMergeResult.unrepresentable:
+            return null;
+          case null:
+            queries.add((result as MediaQuerySuccessfulMergeResult).query);
+            break;
+        }
       }
     }
     return queries;

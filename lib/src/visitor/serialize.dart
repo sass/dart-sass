@@ -555,12 +555,15 @@ class _SerializeVisitor
     } else {
       var format = value.format;
       if (format != null) {
-        if (format == ColorFormat.rgbFunction) {
-          _writeRgb(value);
-        } else if (format == ColorFormat.hslFunction) {
-          _writeHsl(value);
-        } else {
-          _buffer.write((format as SpanColorFormat).original);
+        switch (format.type) {
+          case ColorFormatType.rgbFunction:
+            _writeRgb(value);
+            break;
+          case ColorFormatType.hslFunction:
+            _writeHsl(value);
+            break;
+          case null:
+            _buffer.write((format as SpanColorFormat).original);
         }
       } else if (namesByColor.containsKey(value) &&
           // Always emit generated transparent colors in rgba format. This works
@@ -1448,8 +1451,7 @@ class _SerializeVisitor
 /// An enum of generated CSS styles.
 ///
 /// {@category Compile}
-@sealed
-class OutputStyle {
+enum OutputStyle {
   /// The standard CSS style, with each declaration on its own line.
   ///
   /// ```css
@@ -1457,36 +1459,29 @@ class OutputStyle {
   ///   width: 100px;
   /// }
   /// ```
-  static const expanded = OutputStyle._("expanded");
+  expanded,
 
   /// A CSS style that produces as few bytes of output as possible.
   ///
   /// ```css
   /// .sidebar{width:100px}
   /// ```
-  static const compressed = OutputStyle._("compressed");
-
-  /// The name of the style.
-  final String _name;
-
-  const OutputStyle._(this._name);
-
-  String toString() => _name;
+  compressed;
 }
 
 /// An enum of line feed sequences.
-class LineFeed {
+enum LineFeed {
   /// A single carriage return.
-  static const cr = LineFeed._('cr', '\r');
+  cr('cr', '\r'),
 
   /// A carriage return followed by a line feed.
-  static const crlf = LineFeed._('crlf', '\r\n');
+  crlf('crlf', '\r\n'),
 
   /// A single line feed.
-  static const lf = LineFeed._('lf', '\n');
+  lf('lf', '\n'),
 
   /// A line feed followed by a carriage return.
-  static const lfcr = LineFeed._('lfcr', '\n\r');
+  lfcr('lfcr', '\n\r');
 
   /// The name of this sequence..
   final String name;
@@ -1494,7 +1489,7 @@ class LineFeed {
   /// The text to emit for this line feed.
   final String text;
 
-  const LineFeed._(this.name, this.text);
+  const LineFeed(this.name, this.text);
 
   String toString() => name;
 }

@@ -8,16 +8,15 @@ import 'package:path/path.dart' as p;
 /// An enum of syntaxes that Sass can parse.
 ///
 /// {@category Compile}
-@sealed
-class Syntax {
+enum Syntax {
   /// The CSS-superset SCSS syntax.
-  static const scss = Syntax._("SCSS");
+  scss('SCSS'),
 
   /// The whitespace-sensitive indented syntax.
-  static const sass = Syntax._("Sass");
+  sass('Sass'),
 
   /// The plain CSS syntax, which disallows special Sass features.
-  static const css = Syntax._("CSS");
+  css('CSS');
 
   /// Returns the default syntax to use for a file loaded from [path].
   static Syntax forPath(String path) {
@@ -34,7 +33,7 @@ class Syntax {
   /// The name of the syntax.
   final String _name;
 
-  const Syntax._(this._name);
+  const Syntax(this._name);
 
   String toString() => _name;
 }
