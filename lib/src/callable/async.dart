@@ -36,7 +36,7 @@ abstract class AsyncCallable {
   /// The argument declaration is parsed from [arguments], which should not
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   ///
-  /// See [new Callable] for more details.
+  /// See [Callable] for more details.
   factory AsyncCallable.function(String name, String arguments,
           FutureOr<Value> callback(List<Value> arguments)) =>
       AsyncBuiltInCallable.function(name, arguments, callback);

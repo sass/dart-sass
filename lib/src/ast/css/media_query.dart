@@ -135,7 +135,6 @@ class CssMediaQuery {
         MediaQueryMergeResult.unsuccessful(
             MediaQueryUnsuccessfulMergeResult.unrepresentable);
       }
-      ;
 
       var moreConditions = this.conditions.length > other.conditions.length
           ? this.conditions

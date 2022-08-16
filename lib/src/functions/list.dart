@@ -148,7 +148,7 @@ final _slash = _function("slash", r"$elements...", (arguments) {
   return SassList(list, ListSeparator.slash);
 });
 
-/// Like [new BuiltInCallable.function], but always sets the URL to `sass:list`.
+/// Like [BuiltInCallable.function], but always sets the URL to `sass:list`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:list");
