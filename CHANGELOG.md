@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ## 1.54.6
+=======
+## 1.54.5
+>>>>>>> 7ba37557 (fix changelog version)
 
 * No user-visible changes.
 
