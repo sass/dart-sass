@@ -1,7 +1,3 @@
-## 1.54.6
-
-* No user-visible changes.
-
 ## 1.54.5
 
 * Properly consider `a ~ c` to be a superselector of `a ~ b ~ c` and `a + b +
