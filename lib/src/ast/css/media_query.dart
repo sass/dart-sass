@@ -132,7 +132,7 @@ class CssMediaQuery {
       assert(theirModifier == 'not');
       // CSS has no way of representing "neither screen nor print".
       if (ourType != theirType) {
-        MediaQueryMergeResult.unsuccessful(
+        return MediaQueryMergeResult.unsuccessful(
             MediaQueryUnsuccessfulMergeResult.unrepresentable);
       }
 
@@ -215,7 +215,7 @@ class MediaQueryMergeResult {
   const MediaQueryMergeResult._() : unsuccessful = null;
 }
 
-/// Non-successful merge results.
+/// The subclass [MediaQueryMergeResult] that represents singleton enum values.
 enum MediaQueryUnsuccessfulMergeResult {
   /// A singleton value indicating that there are no contexts that match both
   /// input queries.
