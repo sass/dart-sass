@@ -646,35 +646,41 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     var component2 = complex2[endOfSubselector];
     var combinator1 = component1.combinators.firstOrNull;
     var combinator2 = component2.combinators.firstOrNull;
+    if (!_isSupercombinator(combinator1, combinator2)) {
+      return false;
+    }
 
-    if (combinator1 != null) {
-      if (combinator2 == null) return false;
+    i1++;
+    i2 = endOfSubselector + 1;
 
-      // `.foo ~ .bar` is a superselector of `.foo + .bar`, but otherwise the
-      // combinators must match.
+    if (complex1.length - i1 == 1) {
       if (combinator1 == Combinator.followingSibling) {
-        if (combinator2 == Combinator.child) return false;
-      } else if (combinator2 != combinator1) {
-        return false;
+        // The selector `.foo ~ .bar` is only a superselector of selectors that
+        // *exclusively* contain subcombinators of `~`.
+        if (!complex2
+            .take(complex2.length - 1)
+            .skip(i2)
+            .every((component) => _isSupercombinator(
+                combinator1, component.combinators.firstOrNull))) {
+          return false;
+        }
+      } else if (combinator1 != null) {
+        // `.foo > .bar` and `.foo + bar` aren't superselectors of any selectors
+        // with more than one combinator.
+        if (complex2.length - i2 > 1) return false;
       }
-
-      // `.foo > .baz` is not a superselector of `.foo > .bar > .baz` or
-      // `.foo > .bar .baz`, despite the fact that `.baz` is a superselector of
-      // `.bar > .baz` and `.bar .baz`. Same goes for `+` and `~`.
-      if (remaining1 == 2 && remaining2 > 2) return false;
-
-      i1++;
-      i2 = endOfSubselector + 1;
-    } else if (combinator2 != null) {
-      if (combinator2 != Combinator.child) return false;
-      i1++;
-      i2 = endOfSubselector + 1;
-    } else {
-      i1++;
-      i2 = endOfSubselector + 1;
     }
   }
 }
+
+/// Returns whether [combinator1] is a supercombinator of [combinator2].
+///
+/// That is, whether `X combinator1 Y` is a superselector of `X combinator2 Y`.
+bool _isSupercombinator(Combinator? combinator1, Combinator? combinator2) =>
+    combinator1 == combinator2 ||
+    (combinator1 == null && combinator2 == Combinator.child) ||
+    (combinator1 == Combinator.followingSibling &&
+        combinator2 == Combinator.nextSibling);
 
 /// Returns whether [compound1] is a superselector of [compound2].
 ///

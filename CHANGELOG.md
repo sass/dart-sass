@@ -1,3 +1,11 @@
+## 1.54.5
+
+* Properly consider `a ~ c` to be a superselector of `a ~ b ~ c` and `a + b +
+  c`.
+
+* Properly consider `b > c` to be a superselector of `a > b > c`, and similarly
+  for other combinators.
+
 ## 1.54.4
 
 * Improve error messages when passing incorrect units that are also
