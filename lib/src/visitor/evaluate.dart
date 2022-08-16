@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ffb74ce0c19de19a65ca0428b5458d00c6e891f5
+// Checksum: 40a1de5d40ebac978eebb0ab9c50b1a683b605ce
 //
 // ignore_for_file: unused_import
 
@@ -1829,7 +1829,6 @@ class _EvaluateVisitor
             return null;
           case null:
             queries.add((result as MediaQuerySuccessfulMergeResult).query);
-            break;
         }
       }
     }

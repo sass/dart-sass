@@ -1834,7 +1834,6 @@ class _EvaluateVisitor
             return null;
           case null:
             queries.add((result as MediaQuerySuccessfulMergeResult).query);
-            break;
         }
       }
     }

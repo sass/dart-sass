@@ -353,9 +353,9 @@ class ColorFormat {
   /// Creates a [ColorFormat] with a non-null [ColorFormatType].
   const ColorFormat(ColorFormatType this.type);
 
-  /// Allows creating a [ColorFormat] without [ColorFormatType] to signal this
+  /// Creates a [ColorFormat] without [ColorFormatType] to signal this
   /// object is meant to be a [SpanColorFormat].
-  const ColorFormat._(this.type);
+  const ColorFormat._() : type = null;
 }
 
 /// A union interface of possible formats in which a Sass color could be
@@ -386,5 +386,5 @@ class SpanColorFormat extends ColorFormat {
   /// The original string that was used to define this color in the Sass source.
   String get original => _span.text;
 
-  SpanColorFormat(this._span) : super._(null);
+  SpanColorFormat(this._span) : super._();
 }

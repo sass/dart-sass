@@ -204,9 +204,15 @@ class CssMediaQuery {
 /// This is either the singleton values [empty] or [unrepresentable], or an
 /// instance of [MediaQuerySuccessfulMergeResult].
 class MediaQueryMergeResult {
-  MediaQueryUnsuccessfulMergeResult? unsuccessful;
+  final MediaQueryUnsuccessfulMergeResult? unsuccessful;
 
-  MediaQueryMergeResult.unsuccessful(this.unsuccessful);
+  /// Creates a [MediaQueryMergeResult] with an unsuccessful result type.
+  const MediaQueryMergeResult.unsuccessful(
+      MediaQueryUnsuccessfulMergeResult this.unsuccessful);
+
+  /// Creates a successful [MediaQueryMergeResult] meant to be casted as
+  /// a [MediaQuerySuccessfulMergeResult].
+  const MediaQueryMergeResult._() : unsuccessful = null;
 }
 
 /// Non-successful merge results.
@@ -225,5 +231,5 @@ class MediaQuerySuccessfulMergeResult extends MediaQueryMergeResult {
   /// The merged media query.
   final CssMediaQuery query;
 
-  MediaQuerySuccessfulMergeResult._(this.query) : super.unsuccessful(null);
+  MediaQuerySuccessfulMergeResult._(this.query) : super._();
 }
