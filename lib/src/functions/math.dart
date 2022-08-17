@@ -296,8 +296,11 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
       "math.random() will no longer ignore \$limit units ($limit) in a "
       "future release.\n"
       "\n"
-      "If you meant to preserve units: "
-      "math.random($limit) * 1${limit.unitString}",
+      "Recommendation: "
+      "math.random(\$limit / 1${limit.unitString}) * 1${limit.unitString}\n"
+      "\n"
+      "To preserve current behavior: "
+      "math.random(\$limit / 1${limit.unitString})",
     );
   }
 
