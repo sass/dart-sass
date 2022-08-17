@@ -10,7 +10,7 @@ environment:
   sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
-  sass: 1.54.5-dev
+  sass: 1.54.5
 
 dev_dependencies:
   dartdoc: ^5.0.0
