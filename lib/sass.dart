@@ -29,12 +29,7 @@ export 'src/importer.dart';
 export 'src/logger.dart';
 export 'src/syntax.dart';
 export 'src/value.dart'
-    hide
-        ColorFormat,
-        ColorFormatType,
-        SassApiColor,
-        SassApiValue,
-        SpanColorFormat;
+    hide ColorFormat, SassApiColor, SassApiValue, SpanColorFormat;
 export 'src/visitor/serialize.dart' show OutputStyle;
 export 'src/evaluation_context.dart' show warn;
 

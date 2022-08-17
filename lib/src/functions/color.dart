@@ -580,7 +580,7 @@ Value _rgb(String name, List<Value> arguments) {
       fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
       alpha.andThen((alpha) =>
           _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
-      ColorFormat(ColorFormatType.rgbFunction));
+      ColorFormat.rgbFunction);
 }
 
 Value _rgbTwoArg(String name, List<Value> arguments) {
@@ -634,7 +634,7 @@ Value _hsl(String name, List<Value> arguments) {
       lightness.value.clamp(0, 100),
       alpha.andThen((alpha) =>
           _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
-      ColorFormat(ColorFormatType.hslFunction));
+      ColorFormat.hslFunction);
 }
 
 /// Prints a deprecation warning if [hue] has a unit other than `deg`.

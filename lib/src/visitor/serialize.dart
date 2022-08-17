@@ -554,15 +554,12 @@ class _SerializeVisitor
     } else {
       var format = value.format;
       if (format != null) {
-        switch (format.type) {
-          case ColorFormatType.rgbFunction:
-            _writeRgb(value);
-            break;
-          case ColorFormatType.hslFunction:
-            _writeHsl(value);
-            break;
-          case null:
-            _buffer.write((format as SpanColorFormat).original);
+        if (format == ColorFormat.rgbFunction) {
+          _writeRgb(value);
+        } else if (format == ColorFormat.hslFunction) {
+          _writeHsl(value);
+        } else {
+          _buffer.write((format as SpanColorFormat).original);
         }
       } else if (namesByColor.containsKey(value) &&
           // Always emit generated transparent colors in rgba format. This works
