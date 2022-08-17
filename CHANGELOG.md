@@ -10,6 +10,9 @@
    `random()` currently ignores units. A future version will no longer ignore
   units.
 
+* Don't throw an error when the same module is `@forward`ed multiple times
+  through a configured module.
+
 ## 1.54.4
 
 * Improve error messages when passing incorrect units that are also
