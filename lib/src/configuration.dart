@@ -3,8 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
-import 'package:uuid/uuid.dart';
-
 import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'configured_value.dart';
@@ -28,21 +26,32 @@ class Configuration {
   final Map<String, ConfiguredValue> _values;
 
   /// Creates an implicit configuration with the given [values].
-  Configuration.implicit(this._values, {String? opaqueId})
-      : opaqueId = opaqueId ?? Uuid().v1();
+  Configuration.implicit(this._values) : _originalConfiguration = null;
 
-  /// Uniquely identifying ID for a configuration lasting across the execution
-  /// context.
+  /// Reference to the original configuration serving as an opaque ID.
+  final Configuration? _originalConfiguration;
+
+  /// Returns whether [this] and [that] [Configuration]s have the same
+  /// [_originalConfiguration].
   ///
-  /// Implicit configurations will always have different IDs.
-  final String opaqueId;
+  /// An implicit configuration will always return `false` because it was not
+  /// created through another configuration.
+  ///
+  /// [ExplicitConfiguration]s will and configurations created [throughForward]
+  /// will be considered to have the same original config if they were created
+  /// as a copy from the same base configuration.
+  bool sameOriginal(Configuration that) =>
+      _originalConfiguration != null &&
+      _originalConfiguration == that._originalConfiguration;
 
   /// The empty configuration, which indicates that the module has not been
   /// configured.
   ///
   /// Empty configurations are always considered implicit, since they are
   /// ignored if the module has already been loaded.
-  factory Configuration.empty() => Configuration.implicit({});
+  const Configuration.empty()
+      : _values = const {},
+        _originalConfiguration = null;
 
   bool get isEmpty => values.isEmpty;
 
@@ -53,7 +62,7 @@ class Configuration {
 
   /// Creates a new configuration from this one based on a `@forward` rule.
   Configuration throughForward(ForwardRule forward) {
-    if (isEmpty) return Configuration.empty();
+    if (isEmpty) return const Configuration.empty();
     var newValues = _values;
 
     // Only allow variables that are visible through the `@forward` to be
@@ -70,14 +79,21 @@ class Configuration {
     } else if (hiddenVariables != null && hiddenVariables.isNotEmpty) {
       newValues = LimitedMapView.blocklist(newValues, hiddenVariables);
     }
-    return _withValues(newValues, opaqueId: opaqueId);
+    return _copy(newValues);
   }
 
   /// Returns a copy of [this] with the given [values] map.
-  Configuration _withValues(Map<String, ConfiguredValue> values,
-          {String? opaqueId}) =>
-      Configuration.implicit(values, opaqueId: opaqueId);
+  ///
+  /// The copy will have the same [_originalConfiguration] as [this] config.
+  /// If the original config was `null` [this] will become the original config.
+  Configuration _copy(Map<String, ConfiguredValue> values) =>
+      Configuration._(values, _originalConfiguration);
 
+  /// Creates a [Configuration] with the given [_values] map and an
+  /// [_originalConfiguration] reference.
+  Configuration._(this._values, this._originalConfiguration);
+
+  @override
   String toString() =>
       "(" +
       values.entries
@@ -97,13 +113,23 @@ class ExplicitConfiguration extends Configuration {
   /// The node whose span indicates where the configuration was declared.
   final AstNode nodeWithSpan;
 
-  ExplicitConfiguration(Map<String, ConfiguredValue> values, this.nodeWithSpan,
-      {String? opaqueId})
-      : super.implicit(values, opaqueId: opaqueId);
+  /// Creates a base [ExplicitConfiguration] with a [values] map and a
+  /// [nodeWithSpan].
+  ExplicitConfiguration(Map<String, ConfiguredValue> values, this.nodeWithSpan)
+      : super.implicit(values);
+
+  /// Creates an [ExplicitConfiguration] with a [values] map, a [nodeWithSpan]
+  /// and if this is a copy a reference to the [_originalConfiguration].
+  ExplicitConfiguration._(Map<String, ConfiguredValue> values,
+      this.nodeWithSpan, Configuration? originalConfiguration)
+      : super._(values, originalConfiguration);
 
   /// Returns a copy of [this] with the given [values] map.
+  ///
+  /// The copy will have the same [_originalConfiguration] as [this] config.
+  /// If the original config was `null` [this] will become the original config.
   @override
-  Configuration _withValues(Map<String, ConfiguredValue> values,
-          {String? opaqueId}) =>
-      ExplicitConfiguration(values, nodeWithSpan, opaqueId: opaqueId);
+  Configuration _copy(Map<String, ConfiguredValue> values) =>
+      ExplicitConfiguration._(
+          values, nodeWithSpan, _originalConfiguration ?? this);
 }

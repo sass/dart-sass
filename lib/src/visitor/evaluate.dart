@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 9064ba88b38e5cfcc31fd345b185d2c334b490a6
+// Checksum: ad5691d0c80b924308f6ee03863fa8c7f5e25ca0
 //
 // ignore_for_file: unused_import
 
@@ -149,7 +149,7 @@ class _EvaluateVisitor
   /// All modules that have been loaded and evaluated so far.
   final _modules = <Uri, Module<Callable>>{};
 
-  /// Configuration seen by a module URI.
+  /// The first [Configuration] used to load a module [Uri].
   final _moduleConfigurations = <Uri, Configuration>{};
 
   /// A map from canonical module URLs to the nodes whose spans indicate where
@@ -313,7 +313,7 @@ class _EvaluateVisitor
   /// The configuration for the current module.
   ///
   /// If this is empty, that indicates that the current module is not configured.
-  var _configuration = Configuration.empty();
+  var _configuration = const Configuration.empty();
 
   /// Creates a new visitor.
   ///
@@ -475,7 +475,7 @@ class _EvaluateVisitor
         var withMap = arguments[1].realNull?.assertMap("with").contents;
 
         var callableNode = _callableNode!;
-        var configuration = Configuration.empty();
+        var configuration = const Configuration.empty();
         if (withMap != null) {
           var values = <String, ConfiguredValue>{};
           var span = callableNode.span;
@@ -678,8 +678,7 @@ class _EvaluateVisitor
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       var currentConfiguration = configuration ?? _configuration;
-      if (_moduleConfigurations[url]!.opaqueId !=
-              currentConfiguration.opaqueId &&
+      if (!_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
           currentConfiguration is ExplicitConfiguration) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
@@ -2083,7 +2082,7 @@ class _EvaluateVisitor
   }
 
   Value? visitUseRule(UseRule node) {
-    var configuration = Configuration.empty();
+    var configuration = const Configuration.empty();
     if (node.configuration.isNotEmpty) {
       var values = <String, ConfiguredValue>{};
       for (var variable in node.configuration) {

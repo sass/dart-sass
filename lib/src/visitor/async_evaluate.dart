@@ -141,7 +141,7 @@ class _EvaluateVisitor
   /// All modules that have been loaded and evaluated so far.
   final _modules = <Uri, Module>{};
 
-  /// Configuration seen by a module URI.
+  /// The first [Configuration] used to load a module [Uri].
   final _moduleConfigurations = <Uri, Configuration>{};
 
   /// A map from canonical module URLs to the nodes whose spans indicate where
@@ -305,7 +305,7 @@ class _EvaluateVisitor
   /// The configuration for the current module.
   ///
   /// If this is empty, that indicates that the current module is not configured.
-  var _configuration = Configuration.empty();
+  var _configuration = const Configuration.empty();
 
   /// Creates a new visitor.
   ///
@@ -470,7 +470,7 @@ class _EvaluateVisitor
         var withMap = arguments[1].realNull?.assertMap("with").contents;
 
         var callableNode = _callableNode!;
-        var configuration = Configuration.empty();
+        var configuration = const Configuration.empty();
         if (withMap != null) {
           var values = <String, ConfiguredValue>{};
           var span = callableNode.span;
@@ -673,8 +673,7 @@ class _EvaluateVisitor
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       var currentConfiguration = configuration ?? _configuration;
-      if (_moduleConfigurations[url]!.opaqueId !=
-              currentConfiguration.opaqueId &&
+      if (!_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
           currentConfiguration is ExplicitConfiguration) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
@@ -2091,7 +2090,7 @@ class _EvaluateVisitor
   }
 
   Future<Value?> visitUseRule(UseRule node) async {
-    var configuration = Configuration.empty();
+    var configuration = const Configuration.empty();
     if (node.configuration.isNotEmpty) {
       var values = <String, ConfiguredValue>{};
       for (var variable in node.configuration) {
