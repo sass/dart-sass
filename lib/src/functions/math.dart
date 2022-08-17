@@ -317,7 +317,7 @@ num _fuzzyRoundIfZero(num number) {
   return number.isNegative ? -0.0 : 0;
 }
 
-/// Returns a [Callable.new] named [name] that transforms a number's value
+/// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
 BuiltInCallable _numberFunction(String name, num transform(num value)) {
   return _function(name, r"$number", (arguments) {
