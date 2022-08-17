@@ -297,10 +297,10 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
       "future release.\n"
       "\n"
       "Recommendation: "
-      "math.random(\$limit / 1${limit.unitString}) * 1${limit.unitString}\n"
+      "math.random(math.div(\$limit, 1${limit.unitString})) * 1${limit.unitString}\n"
       "\n"
       "To preserve current behavior: "
-      "math.random(\$limit / 1${limit.unitString})",
+      "math.random(math.div(\$limit, 1${limit.unitString}))",
     );
   }
 
