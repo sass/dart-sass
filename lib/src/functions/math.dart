@@ -328,7 +328,7 @@ BuiltInCallable _numberFunction(String name, num transform(num value)) {
   });
 }
 
-/// Like [new _function.function], but always sets the URL to `sass:math`.
+/// Like [_function.function], but always sets the URL to `sass:math`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:math");

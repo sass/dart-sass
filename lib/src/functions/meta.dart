@@ -79,7 +79,7 @@ final local = UnmodifiableListView([
   })
 ]);
 
-/// Like [new BuiltInCallable.function], but always sets the URL to `sass:meta`.
+/// Like [BuiltInCallable.function], but always sets the URL to `sass:meta`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:meta");

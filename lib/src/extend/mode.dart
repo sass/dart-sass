@@ -3,28 +3,28 @@
 // https://opensource.org/licenses/MIT.
 
 /// Different modes in which extension can run.
-class ExtendMode {
+enum ExtendMode {
   /// Normal mode, used with the `@extend` rule.
   ///
   /// This preserves existing selectors and extends each target individually.
-  static const normal = ExtendMode._("normal");
+  normal('normal'),
 
   /// Replace mode, used by the `selector-replace()` function.
   ///
   /// This replaces existing selectors and requires every target to match to
   /// extend a given compound selector.
-  static const replace = ExtendMode._("replace");
+  replace('replace'),
 
   /// All-targets mode, used by the `selector-extend()` function.
   ///
   /// This preserves existing selectors but requires every target to match to
   /// extend a given compound selector.
-  static const allTargets = ExtendMode._("allTargets");
+  allTargets('allTargets');
 
   /// The name of the mode.
   final String name;
 
-  const ExtendMode._(this.name);
+  const ExtendMode(this.name);
 
   String toString() => name;
 }

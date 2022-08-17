@@ -2,30 +2,27 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
-
 /// A combinator that defines the relationship between selectors in a
 /// [ComplexSelector].
 ///
 /// {@category AST}
-@sealed
-class Combinator {
+enum Combinator {
   /// Matches the right-hand selector if it's immediately adjacent to the
   /// left-hand selector in the DOM tree.
-  static const nextSibling = Combinator._("+");
+  nextSibling('+'),
 
   /// Matches the right-hand selector if it's a direct child of the left-hand
   /// selector in the DOM tree.
-  static const child = Combinator._(">");
+  child('>'),
 
   /// Matches the right-hand selector if it comes after the left-hand selector
   /// in the DOM tree.
-  static const followingSibling = Combinator._("~");
+  followingSibling('~');
 
   /// The combinator's token text.
   final String _text;
 
-  const Combinator._(this._text);
+  const Combinator(this._text);
 
   String toString() => _text;
 }

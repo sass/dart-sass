@@ -863,7 +863,7 @@ SassColor _transparentize(List<Value> arguments) {
           .clamp(0, 1));
 }
 
-/// Like [new BuiltInCallable.function], but always sets the URL to
+/// Like [BuiltInCallable.function], but always sets the URL to
 /// `sass:color`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>

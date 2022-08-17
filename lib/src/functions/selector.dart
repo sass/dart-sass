@@ -162,7 +162,7 @@ CompoundSelector? _prependParent(CompoundSelector compound) {
   }
 }
 
-/// Like [new BuiltInCallable.function], but always sets the URL to
+/// Like [BuiltInCallable.function], but always sets the URL to
 /// `sass:selector`.
 BuiltInCallable _function(
         String name, String arguments, Value callback(List<Value> arguments)) =>

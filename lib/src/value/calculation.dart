@@ -365,19 +365,18 @@ class CalculationOperation {
 /// An enumeration of possible operators for [CalculationOperation].
 ///
 /// {@category Value}
-@sealed
-class CalculationOperator {
+enum CalculationOperator {
   /// The addition operator.
-  static const plus = CalculationOperator._("plus", "+", 1);
+  plus('plus', '+', 1),
 
   /// The subtraction operator.
-  static const minus = CalculationOperator._("minus", "-", 1);
+  minus('minus', '-', 1),
 
   /// The multiplication operator.
-  static const times = CalculationOperator._("times", "*", 2);
+  times('times', '*', 2),
 
   /// The division operator.
-  static const dividedBy = CalculationOperator._("divided by", "/", 2);
+  dividedBy('divided by', '/', 2);
 
   /// The English name of [this].
   final String name;
@@ -393,7 +392,7 @@ class CalculationOperator {
   @internal
   final int precedence;
 
-  const CalculationOperator._(this.name, this.operator, this.precedence);
+  const CalculationOperator(this.name, this.operator, this.precedence);
 
   String toString() => name;
 }
