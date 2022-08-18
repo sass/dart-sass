@@ -21,7 +21,7 @@ class UniversalSelector extends SimpleSelector {
   /// Otherwise, it matches all elements in the given namespace.
   final String? namespace;
 
-  int get minSpecificity => 0;
+  int get specificity => 0;
 
   UniversalSelector({this.namespace});
 

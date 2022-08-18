@@ -657,10 +657,8 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
       if (combinator1 == Combinator.followingSibling) {
         // The selector `.foo ~ .bar` is only a superselector of selectors that
         // *exclusively* contain subcombinators of `~`.
-        if (!complex2
-            .take(complex2.length - 1)
-            .skip(i2)
-            .every((component) => _isSupercombinator(
+        if (!complex2.take(complex2.length - 1).skip(i2).every((component) =>
+            _isSupercombinator(
                 combinator1, component.combinators.firstOrNull))) {
           return false;
         }

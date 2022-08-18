@@ -1,3 +1,8 @@
+## 3.0.0
+
+* Replace the `minSpecificity` and `maxSpecificity` fields on `ComplexSelector`,
+  `CompoundSelector`, and `SimpleSelector` with a single `specificity` field.
+
 ## 2.0.5
 
 * No user-visible changes.

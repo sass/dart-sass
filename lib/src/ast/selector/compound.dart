@@ -25,27 +25,13 @@ class CompoundSelector extends Selector {
   /// This is never empty.
   final List<SimpleSelector> components;
 
-  /// The minimum possible specificity that this selector can have.
+  /// This selector's specificity.
   ///
-  /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
-  /// can have a range of possible specificities.
-  int get minSpecificity {
-    if (_minSpecificity == null) _computeSpecificity();
-    return _minSpecificity!;
-  }
-
-  int? _minSpecificity;
-
-  /// The maximum possible specificity that this selector can have.
-  ///
-  /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
-  /// can have a range of possible specificities.
-  int get maxSpecificity {
-    if (_maxSpecificity == null) _computeSpecificity();
-    return _maxSpecificity!;
-  }
-
-  int? _maxSpecificity;
+  /// Specificity is represented in base 1000. The spec says this should be
+  /// "sufficiently high"; it's extremely unlikely that any single selector
+  /// sequence will contain 1000 simple selectors.
+  late final int specificity =
+      components.fold(0, (sum, component) => sum + component.specificity);
 
   /// If this compound selector is composed of a single simple selector, returns
   /// it.
@@ -86,18 +72,6 @@ class CompoundSelector extends Selector {
   /// as possibly additional elements.
   bool isSuperselector(CompoundSelector other) =>
       compoundIsSuperselector(this, other);
-
-  /// Computes [_minSpecificity] and [_maxSpecificity].
-  void _computeSpecificity() {
-    var minSpecificity = 0;
-    var maxSpecificity = 0;
-    for (var simple in components) {
-      minSpecificity += simple.minSpecificity;
-      maxSpecificity += simple.maxSpecificity;
-    }
-    _minSpecificity = minSpecificity;
-    _maxSpecificity = maxSpecificity;
-  }
 
   int get hashCode => listHash(components);
 

@@ -2,9 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:math' as math;
-
 import 'package:charcode/charcode.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../../utils.dart';
@@ -80,19 +79,30 @@ class PseudoSelector extends SimpleSelector {
   /// both non-`null`, the selector follows the argument.
   final SelectorList? selector;
 
-  int get minSpecificity {
-    if (_minSpecificity == null) _computeSpecificity();
-    return _minSpecificity!;
-  }
+  late final int specificity = () {
+    if (isElement) return 1;
+    var selector = this.selector;
+    if (selector == null) return super.specificity;
 
-  int? _minSpecificity;
-
-  int get maxSpecificity {
-    if (_maxSpecificity == null) _computeSpecificity();
-    return _maxSpecificity!;
-  }
-
-  int? _maxSpecificity;
+    // https://drafts.csswg.org/selectors/#specificity-rules
+    switch (normalizedName) {
+      case 'where':
+        return 0;
+      case 'is':
+      case 'not':
+      case 'has':
+      case 'matches':
+        return selector.components
+            .map((component) => component.specificity)
+            .max;
+      case 'nth-child':
+      case 'nth-last-child':
+        return super.specificity +
+            selector.components.map((component) => component.specificity).max;
+      default:
+        return super.specificity;
+    }
+  }();
 
   PseudoSelector(this.name,
       {bool element = false, this.argument, this.selector})
@@ -191,43 +201,6 @@ class PseudoSelector extends SimpleSelector {
     // Fall back to the logic defined in functions.dart, which knows how to
     // compare selector pseudoclasses against raw selectors.
     return CompoundSelector([this]).isSuperselector(CompoundSelector([other]));
-  }
-
-  /// Computes [_minSpecificity] and [_maxSpecificity].
-  void _computeSpecificity() {
-    if (isElement) {
-      _minSpecificity = 1;
-      _maxSpecificity = 1;
-      return;
-    }
-
-    var selector = this.selector;
-    if (selector == null) {
-      _minSpecificity = super.minSpecificity;
-      _maxSpecificity = super.maxSpecificity;
-      return;
-    }
-
-    if (name == 'not') {
-      var minSpecificity = 0;
-      var maxSpecificity = 0;
-      for (var complex in selector.components) {
-        minSpecificity = math.max(minSpecificity, complex.minSpecificity);
-        maxSpecificity = math.max(maxSpecificity, complex.maxSpecificity);
-      }
-      _minSpecificity = minSpecificity;
-      _maxSpecificity = maxSpecificity;
-    } else {
-      // This is higher than any selector's specificity can actually be.
-      var minSpecificity = math.pow(super.minSpecificity, 3) as int;
-      var maxSpecificity = 0;
-      for (var complex in selector.components) {
-        minSpecificity = math.min(minSpecificity, complex.minSpecificity);
-        maxSpecificity = math.max(maxSpecificity, complex.maxSpecificity);
-      }
-      _minSpecificity = minSpecificity;
-      _maxSpecificity = maxSpecificity;
-    }
   }
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitPseudoSelector(this);

@@ -32,10 +32,10 @@ class Extender {
 
   /// Creates a new extender.
   ///
-  /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
+  /// If [specificity] isn't passed, it defaults to `extender.specificity`.
   Extender(this.selector, this.span,
       {this.mediaContext, int? specificity, bool original = false})
-      : specificity = specificity ?? selector.maxSpecificity,
+      : specificity = specificity ?? selector.specificity,
         isOriginal = original;
 
   /// Asserts that the [mediaContext] for a selector is compatible with the

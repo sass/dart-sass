@@ -45,27 +45,13 @@ class ComplexSelector extends Selector {
   @internal
   final bool lineBreak;
 
-  /// The minimum possible specificity that this selector can have.
+  /// This selector's specificity.
   ///
-  /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
-  /// can have a range of possible specificities.
-  int get minSpecificity {
-    if (_minSpecificity == null) _computeSpecificity();
-    return _minSpecificity!;
-  }
-
-  int? _minSpecificity;
-
-  /// The maximum possible specificity that this selector can have.
-  ///
-  /// Pseudo selectors that contain selectors, like `:not()` and `:matches()`,
-  /// can have a range of possible specificities.
-  int get maxSpecificity {
-    if (_maxSpecificity == null) _computeSpecificity();
-    return _maxSpecificity!;
-  }
-
-  int? _maxSpecificity;
+  /// Specificity is represented in base 1000. The spec says this should be
+  /// "sufficiently high"; it's extremely unlikely that any single selector
+  /// sequence will contain 1000 simple selectors.
+  late final int specificity = components.fold(
+      0, (sum, component) => sum + component.selector.specificity);
 
   /// If this compound selector is composed of a single compound selector with
   /// no combinators, returns it.
@@ -114,18 +100,6 @@ class ComplexSelector extends Selector {
       leadingCombinators.isEmpty &&
       other.leadingCombinators.isEmpty &&
       complexIsSuperselector(components, other.components);
-
-  /// Computes [_minSpecificity] and [_maxSpecificity].
-  void _computeSpecificity() {
-    var minSpecificity = 0;
-    var maxSpecificity = 0;
-    for (var component in components) {
-      minSpecificity += component.selector.minSpecificity;
-      maxSpecificity += component.selector.maxSpecificity;
-    }
-    _minSpecificity = minSpecificity;
-    _maxSpecificity = maxSpecificity;
-  }
 
   /// Returns a copy of `this` with [combinators] added to the end of the final
   /// component in [components].

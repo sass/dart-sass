@@ -18,7 +18,7 @@ class TypeSelector extends SimpleSelector {
   /// The element name being selected.
   final QualifiedName name;
 
-  int get minSpecificity => 1;
+  int get specificity => 1;
 
   TypeSelector(this.name);
 

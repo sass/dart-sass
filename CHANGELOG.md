@@ -6,6 +6,8 @@
 * Properly consider `b > c` to be a superselector of `a > b > c`, and similarly
   for other combinators.
 
+* Properly calculate specificity for selector pseudoclasses.
+
 ## 1.54.4
 
 * Improve error messages when passing incorrect units that are also
