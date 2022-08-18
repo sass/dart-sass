@@ -141,6 +141,9 @@ class _EvaluateVisitor
   /// All modules that have been loaded and evaluated so far.
   final _modules = <Uri, Module>{};
 
+  /// The first [Configuration] used to load a module [Uri].
+  final _moduleConfigurations = <Uri, Configuration>{};
+
   /// A map from canonical module URLs to the nodes whose spans indicate where
   /// those modules were originally loaded.
   ///
@@ -670,7 +673,8 @@ class _EvaluateVisitor
     var alreadyLoaded = _modules[url];
     if (alreadyLoaded != null) {
       var currentConfiguration = configuration ?? _configuration;
-      if (currentConfiguration is ExplicitConfiguration) {
+      if (!_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
+          currentConfiguration is ExplicitConfiguration) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
@@ -751,6 +755,7 @@ class _EvaluateVisitor
     var module = environment.toModule(css, extensionStore);
     if (url != null) {
       _modules[url] = module;
+      _moduleConfigurations[url] = _configuration;
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
     }
 

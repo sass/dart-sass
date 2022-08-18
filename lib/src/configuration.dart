@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
-
 import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'configured_value.dart';
@@ -27,14 +26,39 @@ class Configuration {
   final Map<String, ConfiguredValue> _values;
 
   /// Creates an implicit configuration with the given [values].
-  Configuration.implicit(this._values);
+  Configuration.implicit(this._values) : __originalConfiguration = null;
+
+  /// The backing value for [_originalConfiguration].
+  ///
+  /// This is null if [_originalConfiguration] refers to itself since `this`
+  /// can't be assigned to a final field.
+  final Configuration? __originalConfiguration;
+
+  /// The configuration from which this was modified with `@forward ... with`.
+  ///
+  /// This reference serves as an opaque ID.
+  Configuration get _originalConfiguration => __originalConfiguration ?? this;
+
+  /// Returns whether `this` and [that] [Configuration]s have the same
+  /// [_originalConfiguration].
+  ///
+  /// An implicit configuration will always return `false` because it was not
+  /// created through another configuration.
+  ///
+  /// [ExplicitConfiguration]s will and configurations created [throughForward]
+  /// will be considered to have the same original config if they were created
+  /// as a copy from the same base configuration.
+  bool sameOriginal(Configuration that) =>
+      _originalConfiguration == that._originalConfiguration;
 
   /// The empty configuration, which indicates that the module has not been
   /// configured.
   ///
   /// Empty configurations are always considered implicit, since they are
   /// ignored if the module has already been loaded.
-  const Configuration.empty() : _values = const {};
+  const Configuration.empty()
+      : _values = const {},
+        __originalConfiguration = null;
 
   bool get isEmpty => values.isEmpty;
 
@@ -65,9 +89,15 @@ class Configuration {
     return _withValues(newValues);
   }
 
-  /// Returns a copy of [this] with the given [values] map.
+  /// Returns a copy of `this` [Configuration] with the given [values] map.
+  ///
+  /// The copy will have the same [_originalConfiguration] as `this` config.
   Configuration _withValues(Map<String, ConfiguredValue> values) =>
-      Configuration.implicit(values);
+      Configuration._(values, _originalConfiguration);
+
+  /// Creates a [Configuration] with the given [_values] map and an
+  /// [_originalConfiguration] reference.
+  Configuration._(this._values, this.__originalConfiguration);
 
   String toString() =>
       "(" +
@@ -88,10 +118,20 @@ class ExplicitConfiguration extends Configuration {
   /// The node whose span indicates where the configuration was declared.
   final AstNode nodeWithSpan;
 
+  /// Creates a base [ExplicitConfiguration] with a [values] map and a
+  /// [nodeWithSpan].
   ExplicitConfiguration(Map<String, ConfiguredValue> values, this.nodeWithSpan)
       : super.implicit(values);
 
-  /// Returns a copy of [this] with the given [values] map.
+  /// Creates an [ExplicitConfiguration] with a [values] map, a [nodeWithSpan]
+  /// and if this is a copy a reference to the [_originalConfiguration].
+  ExplicitConfiguration._(Map<String, ConfiguredValue> values,
+      this.nodeWithSpan, Configuration? originalConfiguration)
+      : super._(values, originalConfiguration);
+
+  /// Returns a copy of `this` with the given [values] map.
+  ///
+  /// The copy will have the same [_originalConfiguration] as `this` config.
   Configuration _withValues(Map<String, ConfiguredValue> values) =>
-      ExplicitConfiguration(values, nodeWithSpan);
+      ExplicitConfiguration._(values, nodeWithSpan, _originalConfiguration);
 }
