@@ -6,6 +6,10 @@
 * Properly consider `b > c` to be a superselector of `a > b > c`, and similarly
   for other combinators.
 
+* Deprecate use of `random()` when `$limit` has units to make it explicit that
+   `random()` currently ignores units. A future version will no longer ignore
+  units.
+
 ## 1.54.4
 
 * Improve error messages when passing incorrect units that are also
@@ -38,7 +42,7 @@
 * Add partial support for new media query syntax from Media Queries Level 4. The
   only exception are logical operations nested within parentheses, as these were
   previously interpreted differently as SassScript expressions.
-  
+
   A parenthesized media condition that begins with `not` or an opening
   parenthesis now produces a deprecation warning. In a future release, these
   will be interpreted as plain CSS instead.
