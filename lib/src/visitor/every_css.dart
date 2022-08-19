@@ -12,9 +12,7 @@ import 'interface/css.dart';
 ///
 /// Each method returns `false` by default.
 @internal
-abstract class EveryCssVisitor implements CssVisitor<bool> {
-  const EveryCssVisitor();
-
+mixin EveryCssVisitor implements CssVisitor<bool> {
   bool visitCssAtRule(CssAtRule node) =>
       node.children.every((child) => child.accept(this));
   bool visitCssComment(CssComment node) => false;

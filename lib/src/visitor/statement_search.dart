@@ -18,9 +18,7 @@ import 'recursive_statement.dart';
 /// This supports the same additional methods as [RecursiveStatementVisitor].
 ///
 /// {@category Visitor}
-abstract class StatementSearchVisitor<T> implements StatementVisitor<T?> {
-  const StatementSearchVisitor();
-
+mixin StatementSearchVisitor<T> implements StatementVisitor<T?> {
   T? visitAtRootRule(AtRootRule node) => visitChildren(node.children);
 
   T? visitAtRule(AtRule node) => node.children.andThen(visitChildren);
