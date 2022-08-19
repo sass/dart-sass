@@ -62,7 +62,7 @@ abstract class CssParentNode extends CssNode {
 }
 
 /// The visitor used to implement [CssNode.isInvisible]
-class _IsInvisibleVisitor extends EveryCssVisitor {
+class _IsInvisibleVisitor with EveryCssVisitor {
   /// Whether to consider selectors with bogus combinators invisible.
   final bool includeBogus;
 

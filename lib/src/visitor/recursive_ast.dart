@@ -20,10 +20,8 @@ import 'recursive_statement.dart';
 /// * [visitInterpolation]
 ///
 /// {@category Visitor}
-abstract class RecursiveAstVisitor extends RecursiveStatementVisitor
+mixin RecursiveAstVisitor on RecursiveStatementVisitor
     implements ExpressionVisitor<void> {
-  const RecursiveAstVisitor();
-
   void visitAtRootRule(AtRootRule node) {
     node.query.andThen(visitInterpolation);
     super.visitAtRootRule(node);

@@ -1,7 +1,23 @@
 ## 3.0.0
 
-* Replace the `minSpecificity` and `maxSpecificity` fields on `ComplexSelector`,
-  `CompoundSelector`, and `SimpleSelector` with a single `specificity` field.
+* **Breaking change:** Convert all visitor superclasses into mixins. This
+  includes `RecursiveAstVisitor`, `RecursiveSelectorVisitor`,
+  `RecursiveStatementVisitor`, and `StatementSearchVisitor`. This has several
+  effects;
+
+  * You must use `on` to mix in visitors rather than `extends`.
+
+  * It's now possible to mix multiple visitors into the same class, which wasn't
+    possible with `extends`.
+
+  * Because [mixins can't be composed], when mixing in `RecursiveAstVisitor` you
+    must explicitly mix in `RecursiveStatementVisitor` as well.
+
+    [mixins can't be composed]: https://github.com/dart-lang/language/issues/540
+
+* **Breaking change:** Replace the `minSpecificity` and `maxSpecificity` fields
+  on `ComplexSelector`, `CompoundSelector`, and `SimpleSelector` with a single
+  `specificity` field.
 
 ## 2.0.4
 

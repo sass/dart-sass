@@ -18,9 +18,7 @@ import 'interface/statement.dart';
 /// * [visitChildren]
 ///
 /// {@category Visitor}
-abstract class RecursiveStatementVisitor implements StatementVisitor<void> {
-  const RecursiveStatementVisitor();
-
+mixin RecursiveStatementVisitor implements StatementVisitor<void> {
   void visitAtRootRule(AtRootRule node) {
     visitChildren(node.children);
   }

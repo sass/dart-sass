@@ -98,7 +98,7 @@ abstract class Selector {
 }
 
 /// The visitor used to implement [Selector.isInvisible].
-class _IsInvisibleVisitor extends AnySelectorVisitor {
+class _IsInvisibleVisitor with AnySelectorVisitor {
   /// Whether to consider selectors with bogus combinators invisible.
   final bool includeBogus;
 
@@ -128,7 +128,7 @@ class _IsInvisibleVisitor extends AnySelectorVisitor {
 }
 
 /// The visitor used to implement [Selector.isBogus].
-class _IsBogusVisitor extends AnySelectorVisitor {
+class _IsBogusVisitor with AnySelectorVisitor {
   /// Whether to consider selectors with leading combinators as bogus.
   final bool includeLeadingCombinator;
 
@@ -159,7 +159,7 @@ class _IsBogusVisitor extends AnySelectorVisitor {
 }
 
 /// The visitor used to implement [Selector.isUseless]
-class _IsUselessVisitor extends AnySelectorVisitor {
+class _IsUselessVisitor with AnySelectorVisitor {
   const _IsUselessVisitor();
 
   bool visitComplexSelector(ComplexSelector complex) =>

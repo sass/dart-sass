@@ -19,7 +19,7 @@ Tuple2<List<Uri>, List<Uri>> findDependencies(Stylesheet stylesheet) =>
 
 /// A visitor that traverses a stylesheet and records, all `@import`, `@use`,
 /// and `@forward` rules (excluding built-in modules) it contains.
-class _FindDependenciesVisitor extends RecursiveStatementVisitor {
+class _FindDependenciesVisitor with RecursiveStatementVisitor {
   final _usesAndForwards = <Uri>[];
   final _imports = <Uri>[];
 

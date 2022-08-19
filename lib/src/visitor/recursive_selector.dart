@@ -9,9 +9,7 @@ import 'interface/selector.dart';
 /// A visitor that recursively traverses each component of a Selector AST.
 ///
 /// {@category Visitor}
-abstract class RecursiveSelectorVisitor implements SelectorVisitor<void> {
-  const RecursiveSelectorVisitor();
-
+mixin RecursiveSelectorVisitor implements SelectorVisitor<void> {
   void visitAttributeSelector(AttributeSelector attribute) {}
   void visitClassSelector(ClassSelector klass) {}
   void visitIDSelector(IDSelector id) {}
