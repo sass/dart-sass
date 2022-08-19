@@ -5,7 +5,7 @@
   `RecursiveStatementVisitor`, and `StatementSearchVisitor`. This has several
   effects;
 
-  * You must use `on` to mix in visitors rather than `extends`.
+  * You must use `with` to mix in visitors rather than `extends`.
 
   * It's now possible to mix multiple visitors into the same class, which wasn't
     possible with `extends`.
