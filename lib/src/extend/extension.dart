@@ -34,8 +34,6 @@ class Extension {
   final FileSpan span;
 
   /// Creates a new extension.
-  ///
-  /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
   Extension(
       ComplexSelector extender, FileSpan extenderSpan, this.target, this.span,
       {this.mediaContext, bool optional = false})
@@ -77,9 +75,9 @@ class Extender {
 
   /// Creates a new extender.
   ///
-  /// If [specificity] isn't passed, it defaults to `extender.maxSpecificity`.
+  /// If [specificity] isn't passed, it defaults to `extender.specificity`.
   Extender(this.selector, this.span, {int? specificity, bool original = false})
-      : specificity = specificity ?? selector.maxSpecificity,
+      : specificity = specificity ?? selector.specificity,
         isOriginal = original;
 
   /// Asserts that the [mediaContext] for a selector is compatible with the

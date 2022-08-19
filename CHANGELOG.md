@@ -6,6 +6,8 @@
 * Properly consider `b > c` to be a superselector of `a > b > c`, and similarly
   for other combinators.
 
+* Properly calculate specificity for selector pseudoclasses.
+
 * Deprecate use of `random()` when `$limit` has units to make it explicit that
    `random()` currently ignores units. A future version will no longer ignore
   units.
