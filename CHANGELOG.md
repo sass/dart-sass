@@ -1,3 +1,26 @@
+## 1.54.5
+
+* Properly consider `a ~ c` to be a superselector of `a ~ b ~ c` and `a + b +
+  c`.
+
+* Properly consider `b > c` to be a superselector of `a > b > c`, and similarly
+  for other combinators.
+
+* Properly calculate specificity for selector pseudoclasses.
+
+* Deprecate use of `random()` when `$limit` has units to make it explicit that
+   `random()` currently ignores units. A future version will no longer ignore
+  units.
+
+* Don't throw an error when the same module is `@forward`ed multiple times
+  through a configured module.
+
+### Embedded Sass
+
+* Rather than downloading the embedded compiler for the local platform on
+  install, the `sass-embedded` npm package now declares optional dependencies on
+  platform-specific embedded compiler packages.
+
 ## 1.54.4
 
 * Improve error messages when passing incorrect units that are also
@@ -30,7 +53,7 @@
 * Add partial support for new media query syntax from Media Queries Level 4. The
   only exception are logical operations nested within parentheses, as these were
   previously interpreted differently as SassScript expressions.
-  
+
   A parenthesized media condition that begins with `not` or an opening
   parenthesis now produces a deprecation warning. In a future release, these
   will be interpreted as plain CSS instead.
