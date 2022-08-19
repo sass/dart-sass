@@ -15,6 +15,12 @@
 * Don't throw an error when the same module is `@forward`ed multiple times
   through a configured module.
 
+### Embedded Sass
+
+* Rather than downloading the embedded compiler for the local platform on
+  install, the `sass-embedded` npm package now declares optional dependencies on
+  platform-specific embedded compiler packages.
+
 ## 1.54.4
 
 * Improve error messages when passing incorrect units that are also
