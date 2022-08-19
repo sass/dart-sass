@@ -324,7 +324,8 @@ jobs:
           cat package.json |
               jq --arg version ${{ steps.version.outputs.version }} '
                 .version |= $version |
-                ."compiler-version" |= $version
+                ."compiler-version" |= $version |
+                .optionalDependencies = (.optionalDependencies | .[] |= $version)
               ' > package.json.tmp &&
             mv package.json.tmp package.json
           curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
