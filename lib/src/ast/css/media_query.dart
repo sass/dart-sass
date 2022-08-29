@@ -221,4 +221,6 @@ class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
   final CssMediaQuery query;
 
   MediaQuerySuccessfulMergeResult._(this.query);
+
+  String toString() => query.toString();
 }

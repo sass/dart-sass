@@ -1,3 +1,7 @@
+## 3.0.1
+
+* No user-visible chances.
+
 ## 3.0.0
 
 * **Breaking change:** Convert all visitor superclasses into mixins. This
