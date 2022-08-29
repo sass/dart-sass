@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 839ff689ee547ac6da772a97c5d70845a358f756
+// Checksum: 1481489206d9df595860ec2e1c44729bd8928b90
 //
 // ignore_for_file: unused_import
 
@@ -3037,7 +3037,11 @@ class _EvaluateVisitor
         }
       });
     },
-        through: (node) => node is CssStyleRule || mergedSources.contains(node),
+        through: (node) =>
+            node is CssStyleRule ||
+            (mergedSources.isNotEmpty &&
+                node is CssMediaRule &&
+                node.queries.every(mergedSources.contains)),
         scopeWhen: false);
   }
 

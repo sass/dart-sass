@@ -3061,7 +3061,11 @@ class _EvaluateVisitor
         }
       });
     },
-        through: (node) => node is CssStyleRule || mergedSources.contains(node),
+        through: (node) =>
+            node is CssStyleRule ||
+            (mergedSources.isNotEmpty &&
+                node is CssMediaRule &&
+                node.queries.every(mergedSources.contains)),
         scopeWhen: false);
   }
 
