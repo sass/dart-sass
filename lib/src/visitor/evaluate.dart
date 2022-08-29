@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ad5691d0c80b924308f6ee03863fa8c7f5e25ca0
+// Checksum: 1481489206d9df595860ec2e1c44729bd8928b90
 //
 // ignore_for_file: unused_import
 
@@ -186,6 +186,13 @@ class _EvaluateVisitor
 
   /// The current media queries, if any.
   List<CssMediaQuery>? _mediaQueries;
+
+  /// The set of media queries that were merged together to create
+  /// [_mediaQueries].
+  ///
+  /// This will be non-null if and only if [_mediaQueries] is non-null, but it
+  /// will be empty if [_mediaQueries] isn't the result of a merge.
+  Set<CssMediaQuery>? _mediaQuerySources;
 
   /// The current parent node in the output CSS tree.
   ModifiableCssParentNode get _parent => _assertInModule(__parent, "__parent");
@@ -1063,7 +1070,8 @@ class _EvaluateVisitor
 
     if (_mediaQueries != null && query.excludesName('media')) {
       var innerScope = scope;
-      scope = (callback) => _withMediaQueries(null, () => innerScope(callback));
+      scope = (callback) =>
+          _withMediaQueries(null, null, () => innerScope(callback));
     }
 
     if (_inKeyframes && query.excludesName('keyframes')) {
@@ -1775,9 +1783,13 @@ class _EvaluateVisitor
         .andThen((mediaQueries) => _mergeMediaQueries(mediaQueries, queries));
     if (mergedQueries != null && mergedQueries.isEmpty) return null;
 
+    var mergedSources = mergedQueries == null
+        ? const <CssMediaQuery>{}
+        : {..._mediaQuerySources!, ..._mediaQueries!, ...queries};
+
     _withParent(ModifiableCssMediaRule(mergedQueries ?? queries, node.span),
         () {
-      _withMediaQueries(mergedQueries ?? queries, () {
+      _withMediaQueries(mergedQueries ?? queries, mergedSources, () {
         var styleRule = _styleRule;
         if (styleRule == null) {
           for (var child in node.children) {
@@ -1799,7 +1811,9 @@ class _EvaluateVisitor
     },
         through: (node) =>
             node is CssStyleRule ||
-            (mergedQueries != null && node is CssMediaRule),
+            (mergedSources.isNotEmpty &&
+                node is CssMediaRule &&
+                node.queries.every(mergedSources.contains)),
         scopeWhen: node.hasDeclarations);
 
     return null;
@@ -2997,9 +3011,13 @@ class _EvaluateVisitor
         (mediaQueries) => _mergeMediaQueries(mediaQueries, node.queries));
     if (mergedQueries != null && mergedQueries.isEmpty) return;
 
+    var mergedSources = mergedQueries == null
+        ? const <CssMediaQuery>{}
+        : {..._mediaQuerySources!, ..._mediaQueries!, ...node.queries};
+
     _withParent(
         ModifiableCssMediaRule(mergedQueries ?? node.queries, node.span), () {
-      _withMediaQueries(mergedQueries ?? node.queries, () {
+      _withMediaQueries(mergedQueries ?? node.queries, mergedSources, () {
         var styleRule = _styleRule;
         if (styleRule == null) {
           for (var child in node.children) {
@@ -3021,7 +3039,9 @@ class _EvaluateVisitor
     },
         through: (node) =>
             node is CssStyleRule ||
-            (mergedQueries != null && node is CssMediaRule),
+            (mergedSources.isNotEmpty &&
+                node is CssMediaRule &&
+                node.queries.every(mergedSources.contains)),
         scopeWhen: false);
   }
 
@@ -3272,11 +3292,19 @@ class _EvaluateVisitor
   }
 
   /// Runs [callback] with [queries] as the current media queries.
-  T _withMediaQueries<T>(List<CssMediaQuery>? queries, T callback()) {
+  ///
+  /// This also sets [sources] as the current set of media queries that were
+  /// merged together to create [queries]. This is used to determine when it's
+  /// safe to bubble one query through another.
+  T _withMediaQueries<T>(
+      List<CssMediaQuery>? queries, Set<CssMediaQuery>? sources, T callback()) {
     var oldMediaQueries = _mediaQueries;
+    var oldSources = _mediaQuerySources;
     _mediaQueries = queries;
+    _mediaQuerySources = sources;
     var result = callback();
     _mediaQueries = oldMediaQueries;
+    _mediaQuerySources = oldSources;
     return result;
   }
 
