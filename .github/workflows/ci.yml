@@ -321,6 +321,16 @@ jobs:
 
       - name: Update version
         run: |
+          # Update binary package versions
+          for dir in $(ls npm); do
+            cat "npm/$dir/package.json" |
+                jq --arg version ${{ steps.version.outputs.version }} '
+                  .version |= $version
+                ' > package.json.tmp &&
+              mv package.json.tmp ""npm/$dir/package.json"
+          done
+
+          # Update main package version and dependencies on binary packages
           cat package.json |
               jq --arg version ${{ steps.version.outputs.version }} '
                 .version |= $version |
