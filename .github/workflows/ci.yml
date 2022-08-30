@@ -327,7 +327,7 @@ jobs:
                 jq --arg version ${{ steps.version.outputs.version }} '
                   .version |= $version
                 ' > package.json.tmp &&
-              mv package.json.tmp ""npm/$dir/package.json"
+              mv package.json.tmp "npm/$dir/package.json"
           done
 
           # Update main package version and dependencies on binary packages
