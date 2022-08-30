@@ -246,9 +246,8 @@ jobs:
     strategy:
       matrix:
         include:
-          # https://github.com/dart-lang/sdk/pull/48665
-          # - arch: arm
-          #   platform: linux/arm/v7
+          - arch: arm
+            platform: linux/arm/v7
           - arch: arm64
             platform: linux/arm64
     needs: [deploy_github_linux]
