@@ -1,3 +1,7 @@
+## 1.54.8
+
+* No user-visible changes.
+
 ## 1.54.7
 
 * Add support for 32-bit ARM releases on Linux.
