@@ -1,3 +1,7 @@
+## 1.54.7
+
+* Add support for 32-bit ARM releases on Linux.
+
 ## 1.54.6
 
 * Fix a bug where a `@media` query could be incorrectly omitted from a
