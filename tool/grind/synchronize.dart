@@ -128,7 +128,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   void visitClassDeclaration(ClassDeclaration node) {
-    if (_sharedClasses.contains(node.name.name)) {
+    if (_sharedClasses.contains(node.name2.lexeme)) {
       _skipNode(node);
     } else {
       super.visitClassDeclaration(node);
@@ -141,7 +141,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (_synchronizeName(node.name.name) != node.name.name) {
+    if (_synchronizeName(node.name2.lexeme) != node.name2.lexeme) {
       // If the file defines any asynchronous versions of synchronous functions,
       // remove them.
       _skipNode(node);
