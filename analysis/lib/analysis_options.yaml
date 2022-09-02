@@ -18,5 +18,6 @@ analyzer:
     # consistency isn't worth the engineering time we'd spend getting there.
     annotate_overrides: ignore
     use_function_type_syntax_for_parameters: ignore
+    prefer_interpolation_to_compose_strings: ignore
 
 include: package:lints/recommended.yaml
