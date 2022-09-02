@@ -10,8 +10,8 @@ import 'exception.dart';
 import 'value.dart';
 
 export 'callable/async.dart';
-export 'callable/async_built_in.dart';
-export 'callable/built_in.dart';
+export 'callable/async_built_in.dart' show AsyncBuiltInCallable;
+export 'callable/built_in.dart' show BuiltInCallable;
 export 'callable/plain_css.dart';
 export 'callable/user_defined.dart';
 
