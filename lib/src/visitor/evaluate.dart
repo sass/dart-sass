@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1481489206d9df595860ec2e1c44729bd8928b90
+// Checksum: c70a4193cc291f298f601a5cc371be9eac71fb74
 //
 // ignore_for_file: unused_import
 
@@ -1245,7 +1245,7 @@ class _EvaluateVisitor
         throw SassFormatException(
             "compound selectors may no longer be extended.\n"
             "Consider `@extend ${compound.components.join(', ')}` instead.\n"
-            "See http://bit.ly/ExtendCompound for details.\n",
+            "See https://sass-lang.com/d/extend-compound for details.\n",
             targetText.span);
       }
 

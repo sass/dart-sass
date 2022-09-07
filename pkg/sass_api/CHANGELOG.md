@@ -1,3 +1,15 @@
+## 3.1.0
+
+### Dart API
+
+* Add an optional `argumentName` parameter to `SassScriptException()` to make it
+  easier to throw exceptions associated with particular argument names.
+
+## 3.0.4
+
+* `UnaryOperationExpression`s with operator `not` now include a correct span,
+  covering the expression itself instead of just the operator.
+
 ## 3.0.3
 
 * No user-visible changes.

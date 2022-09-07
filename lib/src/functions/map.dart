@@ -170,7 +170,7 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
 Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old),
     {bool addNesting = true}) {
   var keyIterator = keys.iterator;
-  SassMap _modifyNestedMap(SassMap map) {
+  SassMap modifyNestedMap(SassMap map) {
     var mutableMap = Map.of(map.contents);
     var key = keyIterator.current;
 
@@ -182,11 +182,11 @@ Value _modify(SassMap map, Iterable<Value> keys, Value modify(Value old),
     var nestedMap = mutableMap[key]?.tryMap();
     if (nestedMap == null && !addNesting) return SassMap(mutableMap);
 
-    mutableMap[key] = _modifyNestedMap(nestedMap ?? const SassMap.empty());
+    mutableMap[key] = modifyNestedMap(nestedMap ?? const SassMap.empty());
     return SassMap(mutableMap);
   }
 
-  return keyIterator.moveNext() ? _modifyNestedMap(map) : modify(map);
+  return keyIterator.moveNext() ? modifyNestedMap(map) : modify(map);
 }
 
 /// Merges [map1] and [map2], with values in [map2] taking precedence.

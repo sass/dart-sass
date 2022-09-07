@@ -455,7 +455,7 @@ extension MapExtension<K, V> on Map<K, V> {
   /// [key] to the result.
   V putOrMerge(K key, V value, V Function(V oldValue, V newValue) merge) =>
       containsKey(key)
-          ? this[key] = merge(this[key]!, value)
+          ? this[key] = merge(this[key] as V, value)
           : this[key] = value;
 }
 

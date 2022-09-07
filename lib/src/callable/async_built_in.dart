@@ -11,7 +11,7 @@ import '../value.dart';
 import 'async.dart';
 
 /// An [AsyncBuiltInCallable]'s callback.
-typedef _Callback = FutureOr<Value> Function(List<Value> arguments);
+typedef Callback = FutureOr<Value> Function(List<Value> arguments);
 
 /// A callable defined in Dart code.
 ///
@@ -26,7 +26,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   final ArgumentDeclaration _arguments;
 
   /// The callback to run when executing this callable.
-  final _Callback _callback;
+  final Callback _callback;
 
   /// Creates a function with a single [arguments] declaration and a single
   /// [callback].
@@ -76,7 +76,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ArgumentDeclaration].
-  Tuple2<ArgumentDeclaration, _Callback> callbackFor(
+  Tuple2<ArgumentDeclaration, Callback> callbackFor(
           int positional, Set<String> names) =>
       Tuple2(_arguments, _callback);
 }

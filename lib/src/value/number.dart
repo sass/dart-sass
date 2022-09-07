@@ -593,7 +593,7 @@ abstract class SassNumber extends Value {
     var otherHasUnits = newNumerators.isNotEmpty || newDenominators.isNotEmpty;
     if (coerceUnitless && (!hasUnits || !otherHasUnits)) return this.value;
 
-    SassScriptException _compatibilityException() {
+    SassScriptException compatibilityException() {
       if (other != null) {
         var message = StringBuffer("$this and");
         if (otherName != null) message.write(" \$$otherName:");
@@ -634,7 +634,7 @@ abstract class SassNumber extends Value {
         if (factor == null) return false;
         value *= factor;
         return true;
-      }, orElse: () => throw _compatibilityException());
+      }, orElse: () => throw compatibilityException());
     }
 
     var oldDenominators = denominatorUnits.toList();
@@ -644,11 +644,11 @@ abstract class SassNumber extends Value {
         if (factor == null) return false;
         value /= factor;
         return true;
-      }, orElse: () => throw _compatibilityException());
+      }, orElse: () => throw compatibilityException());
     }
 
     if (oldNumerators.isNotEmpty || oldDenominators.isNotEmpty) {
-      throw _compatibilityException();
+      throw compatibilityException();
     }
 
     return value;

@@ -1,3 +1,14 @@
+## 1.55.0
+
+### Dart API
+
+* Add an optional `argumentName` parameter to `SassScriptException()` to make it
+  easier to throw exceptions associated with particular argument names.
+
+## 1.54.9
+
+* Fix an incorrect span in certain `@media` query deprecation warnings.
+
 ## 1.54.8
 
 * No user-visible changes.

@@ -1243,7 +1243,7 @@ class _EvaluateVisitor
         throw SassFormatException(
             "compound selectors may no longer be extended.\n"
             "Consider `@extend ${compound.components.join(', ')}` instead.\n"
-            "See http://bit.ly/ExtendCompound for details.\n",
+            "See https://sass-lang.com/d/extend-compound for details.\n",
             targetText.span);
       }
 
