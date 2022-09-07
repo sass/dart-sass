@@ -8,7 +8,7 @@ import '../ast/sass.dart';
 import '../callable.dart';
 import '../value.dart';
 
-typedef _Callback = Value Function(List<Value> arguments);
+typedef Callback = Value Function(List<Value> arguments);
 
 /// A callable defined in Dart code.
 ///
@@ -20,7 +20,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   final String name;
 
   /// The overloads declared for this callable.
-  final List<Tuple2<ArgumentDeclaration, _Callback>> _overloads;
+  final List<Tuple2<ArgumentDeclaration, Callback>> _overloads;
 
   /// Creates a function with a single [arguments] declaration and a single
   /// [callback].
@@ -73,7 +73,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
   BuiltInCallable.overloadedFunction(
-      this.name, Map<String, _Callback> overloads,
+      this.name, Map<String, Callback> overloads,
       {Object? url})
       : _overloads = [
           for (var entry in overloads.entries)
@@ -91,9 +91,9 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ArgumentDeclaration].
-  Tuple2<ArgumentDeclaration, _Callback> callbackFor(
+  Tuple2<ArgumentDeclaration, Callback> callbackFor(
       int positional, Set<String> names) {
-    Tuple2<ArgumentDeclaration, _Callback>? fuzzyMatch;
+    Tuple2<ArgumentDeclaration, Callback>? fuzzyMatch;
     int? minMismatchDistance;
 
     for (var overload in _overloads) {
