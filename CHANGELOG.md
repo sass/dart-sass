@@ -1,3 +1,7 @@
+## 1.54.9
+
+* Fix an incorrect span in certain `@media` query deprecation warnings.
+
 ## 1.54.8
 
 * No user-visible changes.
