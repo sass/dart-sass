@@ -2713,8 +2713,9 @@ abstract class StylesheetParser extends Parser {
             invocation, identifier.span.expand(invocation.span));
       } else if (plain == "not") {
         whitespace();
-        return UnaryOperationExpression(
-            UnaryOperator.not, _singleExpression(), identifier.span);
+        var expression = _singleExpression();
+        return UnaryOperationExpression(UnaryOperator.not, expression,
+            identifier.span.expand(expression.span));
       }
 
       lower = plain.toLowerCase();

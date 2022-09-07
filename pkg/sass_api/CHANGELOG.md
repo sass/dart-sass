@@ -1,3 +1,8 @@
+## 3.0.4
+
+* `UnaryOperationExpression`s with operator `not` now include a correct span,
+  covering the expression itself instead of just the operator.
+
 ## 3.0.3
 
 * No user-visible changes.
