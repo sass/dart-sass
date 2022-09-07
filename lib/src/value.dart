@@ -121,9 +121,9 @@ abstract class Value {
   /// argument name (without the `$`). It's used for error reporting.
   int sassIndexToListIndex(Value sassIndex, [String? name]) {
     var index = sassIndex.assertNumber(name).assertInt(name);
-    if (index == 0) throw _exception("List index may not be 0.", name);
+    if (index == 0) throw SassScriptException("List index may not be 0.", name);
     if (index.abs() > lengthAsList) {
-      throw _exception(
+      throw SassScriptException(
           "Invalid index $sassIndex for a list with $lengthAsList elements.",
           name);
     }
@@ -139,35 +139,35 @@ abstract class Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassBoolean assertBoolean([String? name]) =>
-      throw _exception("$this is not a boolean.", name);
+      throw SassScriptException("$this is not a boolean.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a calculation.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassCalculation assertCalculation([String? name]) =>
-      throw _exception("$this is not a calculation.", name);
+      throw SassScriptException("$this is not a calculation.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a color.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassColor assertColor([String? name]) =>
-      throw _exception("$this is not a color.", name);
+      throw SassScriptException("$this is not a color.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a function reference.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassFunction assertFunction([String? name]) =>
-      throw _exception("$this is not a function reference.", name);
+      throw SassScriptException("$this is not a function reference.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a map.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassMap assertMap([String? name]) =>
-      throw _exception("$this is not a map.", name);
+      throw SassScriptException("$this is not a map.", name);
 
   /// Returns [this] as a [SassMap] if it is one (including empty lists, which
   /// count as empty maps) or returns `null` if it's not.
@@ -178,14 +178,14 @@ abstract class Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassNumber assertNumber([String? name]) =>
-      throw _exception("$this is not a number.", name);
+      throw SassScriptException("$this is not a number.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a string.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassString assertString([String? name]) =>
-      throw _exception("$this is not a string.", name);
+      throw SassScriptException("$this is not a string.", name);
 
   /// Converts a `selector-parse()`-style input into a string that can be
   /// parsed.
@@ -196,7 +196,7 @@ abstract class Value {
     var string = _selectorStringOrNull();
     if (string != null) return string;
 
-    throw _exception(
+    throw SassScriptException(
         "$this is not a valid selector: it must be a string,\n"
         "a list of strings, or a list of lists of strings.",
         name);
@@ -384,10 +384,6 @@ abstract class Value {
   /// won't reflect the user's output settings. [toCssString] should be used
   /// instead to convert [this] to CSS.
   String toString() => serializeValue(this, inspect: true);
-
-  /// Throws a [SassScriptException] with the given [message].
-  SassScriptException _exception(String message, [String? name]) =>
-      SassScriptException(name == null ? message : "\$$name: $message");
 }
 
 /// Extension methods that are only visible through the `sass_api` package.
@@ -414,7 +410,7 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
           stackTrace);
     }
   }
@@ -437,7 +433,7 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
           stackTrace);
     }
   }
@@ -460,7 +456,7 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
           stackTrace);
     }
   }
@@ -483,7 +479,7 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          _exception(error.toString().replaceFirst("Error: ", ""), name),
+          SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
           stackTrace);
     }
   }

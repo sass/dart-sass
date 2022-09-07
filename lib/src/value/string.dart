@@ -170,9 +170,10 @@ class SassString extends Value {
   /// argument name (without the `$`). It's used for error reporting.
   int sassIndexToRuneIndex(Value sassIndex, [String? name]) {
     var index = sassIndex.assertNumber(name).assertInt(name);
-    if (index == 0) throw _exception("String index may not be 0.", name);
-    if (index.abs() > sassLength) {
-      throw _exception(
+    if (index == 0) {
+      throw SassScriptException("String index may not be 0.", name);
+    } else if (index.abs() > sassLength) {
+      throw SassScriptException(
           "Invalid index $sassIndex for a string with $sassLength characters.",
           name);
     }
@@ -199,8 +200,4 @@ class SassString extends Value {
   bool operator ==(Object other) => other is SassString && text == other.text;
 
   int get hashCode => _hashCache ??= text.hashCode;
-
-  /// Throws a [SassScriptException] with the given [message].
-  SassScriptException _exception(String message, [String? name]) =>
-      SassScriptException(name == null ? message : "\$$name: $message");
 }

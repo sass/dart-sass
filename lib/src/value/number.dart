@@ -332,7 +332,7 @@ abstract class SassNumber extends Value {
   int assertInt([String? name]) {
     var integer = fuzzyAsInt(value);
     if (integer != null) return integer;
-    throw _exception("$this is not an int.", name);
+    throw SassScriptException("$this is not an int.", name);
   }
 
   /// If [value] is between [min] and [max], returns it.
@@ -344,7 +344,7 @@ abstract class SassNumber extends Value {
   num valueInRange(num min, num max, [String? name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
-    throw _exception(
+    throw SassScriptException(
         "Expected $this to be within $min$unitString and $max$unitString.",
         name);
   }
@@ -361,7 +361,7 @@ abstract class SassNumber extends Value {
   num valueInRangeWithUnit(num min, num max, String name, String unit) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
-    throw _exception(
+    throw SassScriptException(
         "Expected $this to be within $min$unit and $max$unit.", name);
   }
 
@@ -395,7 +395,7 @@ abstract class SassNumber extends Value {
   /// (without the `$`). It's used for error reporting.
   void assertUnit(String unit, [String? name]) {
     if (hasUnit(unit)) return;
-    throw _exception('Expected $this to have unit "$unit".', name);
+    throw SassScriptException('Expected $this to have unit "$unit".', name);
   }
 
   /// Throws a [SassScriptException] unless [this] has no units.
@@ -404,7 +404,7 @@ abstract class SassNumber extends Value {
   /// (without the `$`). It's used for error reporting.
   void assertNoUnits([String? name]) {
     if (!hasUnits) return;
-    throw _exception('Expected $this to have no units.', name);
+    throw SassScriptException('Expected $this to have no units.', name);
   }
 
   /// Returns a copy of this number, converted to the units represented by
@@ -601,16 +601,16 @@ abstract class SassNumber extends Value {
         if (!hasUnits || !otherHasUnits) {
           message.write(" (one has units and the other doesn't)");
         }
-        return _exception("$message.", name);
+        return SassScriptException("$message.", name);
       } else if (!otherHasUnits) {
-        return _exception("Expected $this to have no units.", name);
+        return SassScriptException("Expected $this to have no units.", name);
       } else {
         if (newNumerators.length == 1 && newDenominators.isEmpty) {
           var type = _typesByUnit[newNumerators.first];
           if (type != null) {
             // If we're converting to a unit of a named type, use that type name
             // and make it clear exactly which units are convertible.
-            return _exception(
+            return SassScriptException(
                 "Expected $this to have ${a(type)} unit "
                 "(${_unitsByType[type]!.join(', ')}).",
                 name);
@@ -619,7 +619,7 @@ abstract class SassNumber extends Value {
 
         var unit =
             pluralize('unit', newNumerators.length + newDenominators.length);
-        return _exception(
+        return SassScriptException(
             "Expected $this to have $unit "
             "${_unitString(newNumerators, newDenominators)}.",
             name);
@@ -946,8 +946,4 @@ abstract class SassNumber extends Value {
     var innerMap = _conversions[unit];
     return innerMap == null ? 1 : 1 / innerMap.values.first;
   }
-
-  /// Throws a [SassScriptException] with the given [message].
-  SassScriptException _exception(String message, [String? name]) =>
-      SassScriptException(name == null ? message : "\$$name: $message");
 }
