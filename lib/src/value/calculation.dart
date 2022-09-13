@@ -235,11 +235,11 @@ class SassCalculation extends Value {
       return arg;
     } else if (arg is SassString) {
       if (!arg.hasQuotes) return arg;
-      throw _exception("Quoted string $arg can't be used in a calculation.");
+      throw SassScriptException("Quoted string $arg can't be used in a calculation.");
     } else if (arg is SassCalculation) {
       return arg.name == 'calc' ? arg.arguments[0] : arg;
     } else if (arg is Value) {
-      throw _exception("Value $arg can't be used in a calculation.");
+      throw SassScriptException("Value $arg can't be used in a calculation.");
     } else {
       throw ArgumentError("Unexpected calculation argument $arg.");
     }
@@ -255,7 +255,7 @@ class SassCalculation extends Value {
     for (var arg in args) {
       if (arg is! SassNumber) continue;
       if (arg.numeratorUnits.length > 1 || arg.denominatorUnits.isNotEmpty) {
-        throw _exception("Number $arg isn't compatible with CSS calculations.");
+        throw SassScriptException("Number $arg isn't compatible with CSS calculations.");
       }
     }
 
@@ -267,7 +267,7 @@ class SassCalculation extends Value {
         var number2 = args[j];
         if (number2 is! SassNumber) continue;
         if (number1.hasPossiblyCompatibleUnits(number2)) continue;
-        throw _exception("$number1 and $number2 are incompatible.");
+        throw SassScriptException("$number1 and $number2 are incompatible.");
       }
     }
   }
@@ -280,7 +280,7 @@ class SassCalculation extends Value {
         .any((arg) => arg is SassString || arg is CalculationInterpolation)) {
       return;
     }
-    throw _exception(
+    throw SassScriptException(
         "$expectedLength arguments required, but only ${args.length} "
         "${pluralize('was', args.length, plural: 'were')} passed.");
   }
@@ -319,10 +319,6 @@ class SassCalculation extends Value {
       listEquals(arguments, other.arguments);
 
   int get hashCode => name.hashCode ^ listHash(arguments);
-
-  /// Throws a [SassScriptException] with the given [message].
-  static SassScriptException _exception(String message, [String? name]) =>
-      SassScriptException(name == null ? message : "\$$name: $message");
 }
 
 /// A binary operation that can appear in a [SassCalculation].

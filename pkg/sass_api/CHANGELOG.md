@@ -1,6 +1,9 @@
-## 3.0.5
+## 3.1.0
 
-* No user-visible changes.
+### Dart API
+
+* Add an optional `argumentName` parameter to `SassScriptException()` to make it
+  easier to throw exceptions associated with particular argument names.
 
 ## 3.0.4
 

@@ -165,7 +165,13 @@ class SassScriptException {
   /// The error message.
   final String message;
 
-  SassScriptException(this.message);
+  /// Creates a [SassScriptException] with the given [message].
+  ///
+  /// The [argumentName] is the name of the Sass function argument that
+  /// triggered this exception. If it's not null, it's automatically included in
+  /// [message].
+  SassScriptException(String message, [String? argumentName])
+    : message = argumentName == null ? message : "\$$argumentName: $message";
 
   String toString() => "$message\n\nBUG: This should include a source span!";
 }
