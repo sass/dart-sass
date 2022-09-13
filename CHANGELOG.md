@@ -1,3 +1,10 @@
+## 1.54.10
+
+* Emit a deprecation warning for `$a -$b` and `$a +$b`, since these look like
+  they could be unary operations but they're actually parsed as binary
+  operations. Either explicitly write `$a - $b` or `$a (-$b)`. See
+  https://sass-lang.com/d/strict-unary for more details.
+
 ## 1.54.9
 
 * Fix an incorrect span in certain `@media` query deprecation warnings.
