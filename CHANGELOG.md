@@ -1,3 +1,10 @@
+## 1.55.1
+
+### JS API
+
+* Fix a bug in which certain warning spans would not have their properties
+  accessible by the JS API.
+
 ## 1.55.0
 
 ### Dart API

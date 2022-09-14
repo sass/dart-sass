@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import 'reflection.dart';
 import 'utils.dart';
@@ -12,14 +13,17 @@ import 'utils.dart';
 /// that they match the JS API.
 void updateSourceSpanPrototype() {
   var span = SourceFile.fromString('').span(0);
+  var multiSpan = MultiSpan(span, '', {});
 
-  getJSClass(span).defineGetters({
-    'start': (FileSpan span) => span.start,
-    'end': (FileSpan span) => span.end,
-    'url': (FileSpan span) => span.sourceUrl.andThen(dartToJSUrl),
-    'text': (FileSpan span) => span.text,
-    'context': (FileSpan span) => span.context,
-  });
+  for (var item in [span, multiSpan]) {
+    getJSClass(item).defineGetters({
+      'start': (FileSpan span) => span.start,
+      'end': (FileSpan span) => span.end,
+      'url': (FileSpan span) => span.sourceUrl.andThen(dartToJSUrl),
+      'text': (FileSpan span) => span.text,
+      'context': (FileSpan span) => span.context,
+    });
+  }
 
   // Offset is already accessible from JS because it's defined as a field rather
   // than a getter.
