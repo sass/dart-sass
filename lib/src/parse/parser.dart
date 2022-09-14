@@ -261,17 +261,18 @@ class Parser {
     return buffer.toString();
   }
 
-  /// Consumes and returns a natural number (that is, a non-negative integer).
+  /// Consumes and returns a natural number (that is, a non-negative integer) as
+  /// a double.
   ///
   /// Doesn't support scientific notation.
   @protected
-  int naturalNumber() {
+  double naturalNumber() {
     var first = scanner.readChar();
     if (!isDigit(first)) {
       scanner.error("Expected digit.", position: scanner.position - 1);
     }
 
-    var number = asDecimal(first);
+    var number = asDecimal(first).toDouble();
     while (isDigit(scanner.peekChar())) {
       number *= 10;
       number += asDecimal(scanner.readChar());

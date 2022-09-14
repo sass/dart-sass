@@ -171,7 +171,7 @@ class SassScriptException {
   /// triggered this exception. If it's not null, it's automatically included in
   /// [message].
   SassScriptException(String message, [String? argumentName])
-    : message = argumentName == null ? message : "\$$argumentName: $message";
+      : message = argumentName == null ? message : "\$$argumentName: $message";
 
   String toString() => "$message\n\nBUG: This should include a source span!";
 }

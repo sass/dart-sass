@@ -10,8 +10,8 @@ import '../callable.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
-import '../util/number.dart';
 import '../util/nullable.dart';
+import '../util/number.dart';
 import '../utils.dart';
 import '../value.dart';
 
@@ -452,7 +452,7 @@ SassColor _updateComponents(List<Value> arguments,
   ///
   /// [max] should be 255 for RGB channels, 1 for the alpha channel, and 100
   /// for saturation, lightness, whiteness, and blackness.
-  num? getParam(String name, num max,
+  double? getParam(String name, num max,
       {bool checkPercent = false, bool assertPercent = false}) {
     var number = keywords.remove(name)?.assertNumber(name);
     if (number == null) return null;
@@ -500,15 +500,15 @@ SassColor _updateComponents(List<Value> arguments,
   }
 
   /// Updates [current] based on [param], clamped within [max].
-  num updateValue(num current, num? param, num max) {
+  double updateValue(double current, double? param, num max) {
     if (param == null) return current;
     if (change) return param;
-    if (adjust) return (current + param).clamp(0, max);
+    if (adjust) return (current + param).clamp(0, max).toDouble();
     return current + (param > 0 ? max - current : current) * (param / 100);
   }
 
-  int updateRgb(int current, num? param) =>
-      fuzzyRound(updateValue(current, param, 255));
+  int updateRgb(int current, double? param) =>
+      fuzzyRound(updateValue(current.toDouble(), param, 255));
 
   if (hasRgb) {
     return color.changeRgb(
@@ -789,8 +789,8 @@ bool _isVarSlash(Value value) =>
 /// within `0` and [max]. Otherwise, this throws a [SassScriptException].
 ///
 /// [name] is used to identify the argument in the error message.
-num _percentageOrUnitless(SassNumber number, num max, String name) {
-  num value;
+double _percentageOrUnitless(SassNumber number, num max, String name) {
+  double value;
   if (!number.hasUnits) {
     value = number.value;
   } else if (number.hasUnit("%")) {
@@ -800,7 +800,7 @@ num _percentageOrUnitless(SassNumber number, num max, String name) {
         '\$$name: Expected $number to have no units or "%".');
   }
 
-  return value.clamp(0, max);
+  return value.clamp(0, max).toDouble();
 }
 
 /// Returns [color1] and [color2], mixed together and weighted by [weight].

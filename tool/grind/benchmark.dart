@@ -73,7 +73,7 @@ Future<void> benchmarkGenerate() async {
 /// If [header] is passed, it's written before [text]. If [footer] is passed,
 /// it's written after [text]. If the file already exists and is the expected
 /// length, it's not written.
-Future<void> _writeNTimes(String path, String text, num times,
+Future<void> _writeNTimes(String path, String text, int times,
     {String? header, String? footer}) async {
   var file = File(path);
   var expectedLength = (header == null ? 0 : header.length + 1) +

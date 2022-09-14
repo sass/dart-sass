@@ -22,7 +22,7 @@ import 'number/unitless.dart';
 const _conversions = {
   // Length
   "in": {
-    "in": 1,
+    "in": 1.0,
     "cm": 1 / 2.54,
     "pc": 1 / 6,
     "mm": 1 / 25.4,
@@ -32,7 +32,7 @@ const _conversions = {
   },
   "cm": {
     "in": 2.54,
-    "cm": 1,
+    "cm": 1.0,
     "pc": 2.54 / 6,
     "mm": 1 / 10,
     "q": 1 / 40,
@@ -40,9 +40,9 @@ const _conversions = {
     "px": 2.54 / 96,
   },
   "pc": {
-    "in": 6,
+    "in": 6.0,
     "cm": 6 / 2.54,
-    "pc": 1,
+    "pc": 1.0,
     "mm": 6 / 25.4,
     "q": 6 / 101.6,
     "pt": 1 / 12,
@@ -50,96 +50,96 @@ const _conversions = {
   },
   "mm": {
     "in": 25.4,
-    "cm": 10,
+    "cm": 10.0,
     "pc": 25.4 / 6,
-    "mm": 1,
+    "mm": 1.0,
     "q": 1 / 4,
     "pt": 25.4 / 72,
     "px": 25.4 / 96,
   },
   "q": {
     "in": 101.6,
-    "cm": 40,
+    "cm": 40.0,
     "pc": 101.6 / 6,
-    "mm": 4,
-    "q": 1,
+    "mm": 4.0,
+    "q": 1.0,
     "pt": 101.6 / 72,
     "px": 101.6 / 96,
   },
   "pt": {
-    "in": 72,
+    "in": 72.0,
     "cm": 72 / 2.54,
-    "pc": 12,
+    "pc": 12.0,
     "mm": 72 / 25.4,
     "q": 72 / 101.6,
-    "pt": 1,
+    "pt": 1.0,
     "px": 3 / 4,
   },
   "px": {
-    "in": 96,
+    "in": 96.0,
     "cm": 96 / 2.54,
-    "pc": 16,
+    "pc": 16.0,
     "mm": 96 / 25.4,
     "q": 96 / 101.6,
     "pt": 4 / 3,
-    "px": 1,
+    "px": 1.0,
   },
 
   // Rotation
   "deg": {
-    "deg": 1,
+    "deg": 1.0,
     "grad": 9 / 10,
     "rad": 180 / pi,
-    "turn": 360,
+    "turn": 360.0,
   },
   "grad": {
     "deg": 10 / 9,
-    "grad": 1,
+    "grad": 1.0,
     "rad": 200 / pi,
-    "turn": 400,
+    "turn": 400.0,
   },
   "rad": {
     "deg": pi / 180,
     "grad": pi / 200,
-    "rad": 1,
+    "rad": 1.0,
     "turn": 2 * pi,
   },
   "turn": {
     "deg": 1 / 360,
     "grad": 1 / 400,
     "rad": 1 / (2 * pi),
-    "turn": 1,
+    "turn": 1.0,
   },
 
   // Time
   "s": {
-    "s": 1,
+    "s": 1.0,
     "ms": 1 / 1000,
   },
   "ms": {
-    "s": 1000,
-    "ms": 1,
+    "s": 1000.0,
+    "ms": 1.0,
   },
 
   // Frequency
-  "Hz": {"Hz": 1, "kHz": 1000},
-  "kHz": {"Hz": 1 / 1000, "kHz": 1},
+  "Hz": {"Hz": 1.0, "kHz": 1000.0},
+  "kHz": {"Hz": 1 / 1000, "kHz": 1.0},
 
   // Pixel density
   "dpi": {
-    "dpi": 1,
+    "dpi": 1.0,
     "dpcm": 2.54,
-    "dppx": 96,
+    "dppx": 96.0,
   },
   "dpcm": {
     "dpi": 1 / 2.54,
-    "dpcm": 1,
+    "dpcm": 1.0,
     "dppx": 96 / 2.54,
   },
   "dppx": {
     "dpi": 1 / 96,
     "dpcm": 2.54 / 96,
-    "dppx": 1,
+    "dppx": 1.0,
   },
 };
 
@@ -165,7 +165,7 @@ final _typesByUnit = {
 ///
 /// @nodoc
 @internal
-num? conversionFactor(String unit1, String unit2) {
+double? conversionFactor(String unit1, String unit2) {
   if (unit1 == unit2) return 1;
   var innerMap = _conversions[unit1];
   if (innerMap == null) return null;
@@ -195,8 +195,8 @@ abstract class SassNumber extends Value {
   /// [double] even if [this] represents an int from Sass's perspective. Use
   /// [isInt] to determine whether this is an integer, [asInt] to get its
   /// integer value, or [assertInt] to do both at once.
-  num get value => _value;
-  final num _value;
+  double get value => _value;
+  final double _value;
 
   /// The cached hash code for this number, if it's been computed.
   ///
@@ -246,24 +246,25 @@ abstract class SassNumber extends Value {
   /// This matches the numbers that can be written as literals.
   /// [SassNumber.withUnits] can be used to construct more complex units.
   factory SassNumber(num value, [String? unit]) => unit == null
-      ? UnitlessSassNumber(value)
-      : SingleUnitSassNumber(value, unit);
+      ? UnitlessSassNumber(value.toDouble())
+      : SingleUnitSassNumber(value.toDouble(), unit);
 
   /// Creates a number with full [numeratorUnits] and [denominatorUnits].
   factory SassNumber.withUnits(num value,
       {List<String>? numeratorUnits, List<String>? denominatorUnits}) {
+    var valueDouble = value.toDouble();
     if (denominatorUnits == null || denominatorUnits.isEmpty) {
       if (numeratorUnits == null || numeratorUnits.isEmpty) {
-        return UnitlessSassNumber(value);
+        return UnitlessSassNumber(valueDouble);
       } else if (numeratorUnits.length == 1) {
-        return SingleUnitSassNumber(value, numeratorUnits[0]);
+        return SingleUnitSassNumber(valueDouble, numeratorUnits[0]);
       } else {
         return ComplexSassNumber(
-            value, List.unmodifiable(numeratorUnits), const []);
+            valueDouble, List.unmodifiable(numeratorUnits), const []);
       }
     } else if (numeratorUnits == null || numeratorUnits.isEmpty) {
       return ComplexSassNumber(
-          value, const [], List.unmodifiable(denominatorUnits));
+          valueDouble, const [], List.unmodifiable(denominatorUnits));
     } else {
       var numerators = numeratorUnits.toList();
       var unsimplifiedDenominators = denominatorUnits.toList();
@@ -274,7 +275,7 @@ abstract class SassNumber extends Value {
         for (var i = 0; i < numerators.length; i++) {
           var factor = conversionFactor(denominator, numerators[i]);
           if (factor == null) continue;
-          value *= factor;
+          valueDouble *= factor;
           numerators.removeAt(i);
           simplifiedAway = true;
           break;
@@ -284,13 +285,13 @@ abstract class SassNumber extends Value {
 
       if (denominatorUnits.isEmpty) {
         if (numeratorUnits.isEmpty) {
-          return UnitlessSassNumber(value);
+          return UnitlessSassNumber(valueDouble);
         } else if (numeratorUnits.length == 1) {
-          return SingleUnitSassNumber(value, numeratorUnits.single);
+          return SingleUnitSassNumber(valueDouble, numeratorUnits.single);
         }
       }
 
-      return ComplexSassNumber(value, List.unmodifiable(numerators),
+      return ComplexSassNumber(valueDouble, List.unmodifiable(numerators),
           List.unmodifiable(denominators));
     }
   }
@@ -341,7 +342,7 @@ abstract class SassNumber extends Value {
   /// appropriate value. Otherwise, this throws a [SassScriptException]. If this
   /// came from a function argument, [name] is the argument name (without the
   /// `$`). It's used for error reporting.
-  num valueInRange(num min, num max, [String? name]) {
+  double valueInRange(num min, num max, [String? name]) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
     throw SassScriptException(
@@ -358,7 +359,7 @@ abstract class SassNumber extends Value {
   ///
   /// @nodoc
   @internal
-  num valueInRangeWithUnit(num min, num max, String name, String unit) {
+  double valueInRangeWithUnit(num min, num max, String name, String unit) {
     var result = fuzzyCheckRange(value, min, max);
     if (result != null) return result;
     throw SassScriptException(
@@ -433,7 +434,7 @@ abstract class SassNumber extends Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  num convertValue(List<String> newNumerators, List<String> newDenominators,
+  double convertValue(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
       _coerceOrConvertValue(newNumerators, newDenominators,
           coerceUnitless: false, name: name);
@@ -465,7 +466,7 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  num convertValueToMatch(SassNumber other,
+  double convertValueToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
           coerceUnitless: false,
@@ -507,13 +508,13 @@ abstract class SassNumber extends Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  num coerceValue(List<String> newNumerators, List<String> newDenominators,
+  double coerceValue(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
       _coerceOrConvertValue(newNumerators, newDenominators,
           coerceUnitless: true, name: name);
 
   /// A shorthand for [coerceValue] with only one numerator unit.
-  num coerceValueToUnit(String unit, [String? name]) =>
+  double coerceValueToUnit(String unit, [String? name]) =>
       coerceValue([unit], [], name);
 
   /// Returns a copy of this number, converted to the same units as [other].
@@ -551,14 +552,15 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
+  double coerceValueToMatch(SassNumber other,
+          [String? name, String? otherName]) =>
       _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
           coerceUnitless: true, name: name, other: other, otherName: otherName);
 
   /// This has been renamed [coerceValue] for consistency with [coerceToMatch],
   /// [coerceValueToMatch], [convertToMatch], and [convertValueToMatch].
   @Deprecated("Use coerceValue instead.")
-  num valueInUnits(List<String> newNumerators, List<String> newDenominators,
+  double valueInUnits(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
       coerceValue(newNumerators, newDenominators, name);
 
@@ -572,7 +574,7 @@ abstract class SassNumber extends Value {
   /// and [newDenominators] are derived. The [name] and [otherName] are the Sass
   /// function parameter names of [this] and [other], respectively, used for
   /// error reporting.
-  num _coerceOrConvertValue(
+  double _coerceOrConvertValue(
       List<String> newNumerators, List<String> newDenominators,
       {required bool coerceUnitless,
       String? name,
@@ -716,21 +718,6 @@ abstract class SassNumber extends Value {
     throw SassScriptException('Undefined operation "$this % $other".');
   }
 
-  /// Return [num1] modulo [num2], using Sass's modulo semantics, which it
-  /// inherited from Ruby and which differ from Dart's.
-  ///
-  /// @nodoc
-  @internal
-  num moduloLikeSass(num num1, num num2) {
-    if (num2 > 0) return num1 % num2;
-    if (num2 == 0) return double.nan;
-
-    // Dart has different mod-negative semantics than Ruby, and thus than
-    // Sass.
-    var result = num1 % num2;
-    return result == 0 ? 0 : result + num2;
-  }
-
   /// @nodoc
   @internal
   Value plus(Value other) {
@@ -784,7 +771,7 @@ abstract class SassNumber extends Value {
   ///
   /// @nodoc
   @protected
-  T _coerceUnits<T>(SassNumber other, T operation(num num1, num num2)) {
+  T _coerceUnits<T>(SassNumber other, T operation(double num1, double num2)) {
     try {
       return operation(value, other.coerceValueToMatch(this));
     } on SassScriptException {
@@ -802,8 +789,8 @@ abstract class SassNumber extends Value {
   ///
   /// @nodoc
   @protected
-  SassNumber multiplyUnits(
-      num value, List<String> otherNumerators, List<String> otherDenominators) {
+  SassNumber multiplyUnits(double value, List<String> otherNumerators,
+      List<String> otherDenominators) {
     // Short-circuit without allocating any new unit lists if possible.
     if (numeratorUnits.isEmpty) {
       if (otherDenominators.isEmpty &&
@@ -932,7 +919,7 @@ abstract class SassNumber extends Value {
   ///
   /// That is, if `X units1 == Y units2`, `X * _canonicalMultiplier(units1) == Y
   /// * _canonicalMultiplier(units2)`.
-  num _canonicalMultiplier(List<String> units) => units.fold(
+  double _canonicalMultiplier(List<String> units) => units.fold(
       1, (multiplier, unit) => multiplier * canonicalMultiplierForUnit(unit));
 
   /// Returns a multiplier that encapsulates unit equivalence with [unit].
@@ -942,7 +929,7 @@ abstract class SassNumber extends Value {
   ///
   /// @nodoc
   @protected
-  num canonicalMultiplierForUnit(String unit) {
+  double canonicalMultiplierForUnit(String unit) {
     var innerMap = _conversions[unit];
     return innerMap == null ? 1 : 1 / innerMap.values.first;
   }

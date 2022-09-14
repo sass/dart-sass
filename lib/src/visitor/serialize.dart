@@ -776,7 +776,7 @@ class _SerializeVisitor
 
   /// Writes [number] without exponent notation and with at most
   /// [SassNumber.precision] digits after the decimal point.
-  void _writeNumber(num number) {
+  void _writeNumber(double number) {
     // Dart always converts integers to strings in the obvious way, so all we
     // have to do is clamp doubles that are close to being integers.
     var integer = fuzzyAsInt(number);
