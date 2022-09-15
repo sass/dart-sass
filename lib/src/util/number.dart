@@ -106,8 +106,10 @@ double fuzzyAssertRange(double number, int min, int max, [String? name]) {
       number, min, max, name, "must be between $min and $max");
 }
 
-/// Return [num1] modulo [num2], using Sass's modulo semantics, which it
-/// inherited from Ruby and which differ from Dart's.
+/// Return [num1] modulo [num2], using Sass's [floored division] modulo
+/// semantics, which it inherited from Ruby and which differ from Dart's.
+///
+/// [floored division]: https://en.wikipedia.org/wiki/Modulo_operation#Variants_of_the_definition
 double moduloLikeSass(double num1, double num2) {
   if (num2 > 0) return num1 % num2;
   if (num2 == 0) return double.nan;
