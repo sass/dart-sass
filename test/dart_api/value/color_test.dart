@@ -5,7 +5,6 @@
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
-import 'package:sass/src/util/number.dart';
 
 import 'utils.dart';
 
