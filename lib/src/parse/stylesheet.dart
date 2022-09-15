@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:math' as math;
-
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -2572,7 +2570,6 @@ abstract class StylesheetParser extends Parser {
     if (next == $plus || next == $minus) scanner.readChar();
     if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
 
-    var exponent = 0.0;
     while (isDigit(scanner.peekChar())) {
       scanner.readChar();
     }

@@ -11,7 +11,6 @@ import '../callable.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
-import '../util/number.dart';
 import '../value.dart';
 
 /// The global definitions of Sass math functions.
@@ -287,16 +286,6 @@ final _div = _function("div", r"$number1, $number2", (arguments) {
 ///
 /// Helpers
 ///
-
-/// Rounds [number] to 0 if it's fuzzy-equal to 0, and otherwise returns it
-/// as-is.
-///
-/// This is important for certain mathematical functions that have specific
-/// behavior at precisely zero.
-double _roundIfZero(double number) {
-  if (!fuzzyEquals(number, 0)) return number;
-  return number.isNegative ? -0.0 : 0.0;
-}
 
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
