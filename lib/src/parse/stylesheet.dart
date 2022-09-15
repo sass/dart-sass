@@ -1788,6 +1788,34 @@ abstract class StylesheetParser extends Parser {
       } else {
         singleExpression_ = BinaryOperationExpression(operator, left, right);
         allowSlash = false;
+
+        if (operator == BinaryOperator.plus ||
+            operator == BinaryOperator.minus) {
+          if (scanner.string.substring(
+                      right.span.start.offset - 1, right.span.start.offset) ==
+                  operator.operator &&
+              isWhitespace(scanner.string.codeUnitAt(left.span.end.offset))) {
+            logger.warn(
+                "This operation is parsed as:\n"
+                "\n"
+                "    $left ${operator.operator} $right\n"
+                "\n"
+                "but you may have intended it to mean:\n"
+                "\n"
+                "    $left (${operator.operator}$right)\n"
+                "\n"
+                "Add a space after ${operator.operator} to clarify that it's "
+                "meant to be a binary operation, or wrap\n"
+                "it in parentheses to make it a unary operation. This will be "
+                "an error in future\n"
+                "versions of Sass.\n"
+                "\n"
+                "More info and automated migrator: "
+                "https://sass-lang.com/d/strict-unary",
+                span: singleExpression_!.span,
+                deprecation: true);
+          }
+        }
       }
     }
 

@@ -72,8 +72,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  BuiltInCallable.overloadedFunction(
-      this.name, Map<String, Callback> overloads,
+  BuiltInCallable.overloadedFunction(this.name, Map<String, Callback> overloads,
       {Object? url})
       : _overloads = [
           for (var entry in overloads.entries)
