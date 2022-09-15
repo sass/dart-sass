@@ -5,6 +5,11 @@
 * Add an optional `argumentName` parameter to `SassScriptException()` to make it
   easier to throw exceptions associated with particular argument names.
 
+### JS API
+
+* Fix a bug in which certain warning spans would not have their properties
+  accessible by the JS API.
+
 ## 1.54.9
 
 * Fix an incorrect span in certain `@media` query deprecation warnings.
