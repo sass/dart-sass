@@ -1,16 +1,14 @@
-## 1.55.1
-
-### JS API
-
-* Fix a bug in which certain warning spans would not have their properties
-  accessible by the JS API.
-
 ## 1.55.0
 
 ### Dart API
 
 * Add an optional `argumentName` parameter to `SassScriptException()` to make it
   easier to throw exceptions associated with particular argument names.
+
+### JS API
+
+* Fix a bug in which certain warning spans would not have their properties
+  accessible by the JS API.
 
 ## 1.54.9
 
