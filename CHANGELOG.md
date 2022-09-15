@@ -21,6 +21,11 @@
   specification exactly. For example, `math.pow(0.000000000001, -1)` now returns
   `1000000000000` instead of `Infinity`.
 
+* Emit a deprecation warning for `$a -$b` and `$a +$b`, since these look like
+  they could be unary operations but they're actually parsed as binary
+  operations. Either explicitly write `$a - $b` or `$a (-$b)`. See
+  https://sass-lang.com/d/strict-unary for more details.
+
 ### Dart API
 
 * Add an optional `argumentName` parameter to `SassScriptException()` to make it
