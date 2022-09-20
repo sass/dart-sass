@@ -25,8 +25,7 @@ final _inverseEpsilon = math.pow(10, SassNumber.precision + 1);
 /// digit.
 bool fuzzyEquals(num number1, num number2) {
   if (number1 == number2) return true;
-  // Using `!<=` here rather than `>` means we filter out `Infinity
-  return ((number1 - number2).abs() <= _epsilon) &&
+  return (number1 - number2).abs() <= _epsilon &&
       (number1 * _inverseEpsilon).round() ==
           (number2 * _inverseEpsilon).round();
 }

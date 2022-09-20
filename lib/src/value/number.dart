@@ -191,10 +191,10 @@ abstract class SassNumber extends Value {
 
   /// The value of this number.
   ///
-  /// Note that due to details of floating-point arithmetic, this may be a
-  /// [double] even if [this] represents an int from Sass's perspective. Use
-  /// [isInt] to determine whether this is an integer, [asInt] to get its
-  /// integer value, or [assertInt] to do both at once.
+  /// Note that Sass stores all numbers as [double]s even if if [this]
+  /// represents an integer from Sass's perspective. Use [isInt] to determine
+  /// whether this is an integer, [asInt] to get its integer value, or
+  /// [assertInt] to do both at once.
   double get value => _value;
   final double _value;
 

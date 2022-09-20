@@ -22,8 +22,7 @@ class NumberExpression implements Expression {
 
   final FileSpan span;
 
-  NumberExpression(num value, this.span, {this.unit})
-      : value = value.toDouble();
+  NumberExpression(this.value, this.span, {this.unit});
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitNumberExpression(this);
