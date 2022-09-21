@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:math' as math;
-
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -2412,7 +2410,7 @@ abstract class StylesheetParser extends Parser {
     int red;
     int green;
     int blue;
-    num? alpha;
+    double? alpha;
     if (!isHex(scanner.peekChar())) {
       // #abc
       red = (digit1 << 4) + digit1;
@@ -2530,16 +2528,19 @@ abstract class StylesheetParser extends Parser {
   NumberExpression _number() {
     var start = scanner.state;
     var first = scanner.peekChar();
-    var sign = first == $minus ? -1 : 1;
     if (first == $plus || first == $minus) scanner.readChar();
 
-    num number = scanner.peekChar() == $dot ? 0 : naturalNumber();
+    if (scanner.peekChar() != $dot) _consumeNaturalNumber();
 
     // Don't complain about a dot after a number unless the number starts with a
     // dot. We don't allow a plain ".", but we need to allow "1." so that
     // "1..." will work as a rest argument.
-    number += _tryDecimal(allowTrailingDot: scanner.position != start.position);
-    number *= _tryExponent();
+    _tryDecimal(allowTrailingDot: scanner.position != start.position);
+    _tryExponent();
+
+    // Use Dart's built-in double parsing so that we don't accumulate
+    // floating-point errors for numbers with lots of digits.
+    var number = double.parse(scanner.substring(start.position));
 
     String? unit;
     if (scanner.scanChar($percent)) {
@@ -2550,21 +2551,32 @@ abstract class StylesheetParser extends Parser {
       unit = identifier(unit: true);
     }
 
-    return NumberExpression(sign * number, scanner.spanFrom(start), unit: unit);
+    return NumberExpression(number, scanner.spanFrom(start), unit: unit);
   }
 
-  /// Consumes the decimal component of a number and returns its value, or 0 if
-  /// there is no decimal component.
+  /// Consumes a natural number (that is, a non-negative integer).
+  ///
+  /// Doesn't support scientific notation.
+  void _consumeNaturalNumber() {
+    if (!isDigit(scanner.readChar())) {
+      scanner.error("Expected digit.", position: scanner.position - 1);
+    }
+
+    while (isDigit(scanner.peekChar())) {
+      scanner.readChar();
+    }
+  }
+
+  /// Consumes the decimal component of a number if it exists.
   ///
   /// If [allowTrailingDot] is `false`, this will throw an error if there's a
   /// dot without any numbers following it. Otherwise, it will ignore the dot
   /// without consuming it.
-  num _tryDecimal({bool allowTrailingDot = false}) {
-    var start = scanner.position;
-    if (scanner.peekChar() != $dot) return 0;
+  void _tryDecimal({bool allowTrailingDot = false}) {
+    if (scanner.peekChar() != $dot) return;
 
     if (!isDigit(scanner.peekChar(1))) {
-      if (allowTrailingDot) return 0;
+      if (allowTrailingDot) return;
       scanner.error("Expected digit.", position: scanner.position + 1);
     }
 
@@ -2572,33 +2584,23 @@ abstract class StylesheetParser extends Parser {
     while (isDigit(scanner.peekChar())) {
       scanner.readChar();
     }
-
-    // Use Dart's built-in double parsing so that we don't accumulate
-    // floating-point errors for numbers with lots of digits.
-    return double.parse(scanner.substring(start));
   }
 
-  /// Consumes the exponent component of a number and returns its value, or 1 if
-  /// there is no exponent component.
-  num _tryExponent() {
+  /// Consumes the exponent component of a number if it exists.
+  void _tryExponent() {
     var first = scanner.peekChar();
-    if (first != $e && first != $E) return 1;
+    if (first != $e && first != $E) return;
 
     var next = scanner.peekChar(1);
-    if (!isDigit(next) && next != $minus && next != $plus) return 1;
+    if (!isDigit(next) && next != $minus && next != $plus) return;
 
     scanner.readChar();
-    var exponentSign = next == $minus ? -1 : 1;
     if (next == $plus || next == $minus) scanner.readChar();
     if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
 
-    var exponent = 0.0;
     while (isDigit(scanner.peekChar())) {
-      exponent *= 10;
-      exponent += scanner.readChar() - $0;
+      scanner.readChar();
     }
-
-    return math.pow(10, exponentSign * exponent);
   }
 
   /// Consumes a unicode range expression.

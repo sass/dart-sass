@@ -11,7 +11,6 @@ import '../callable.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
-import '../util/number.dart';
 import '../value.dart';
 
 /// The global definitions of Sass math functions.
@@ -30,13 +29,18 @@ final module = BuiltInModule("math", functions: [
 ], variables: {
   "e": SassNumber(math.e),
   "pi": SassNumber(math.pi),
+  "epsilon": SassNumber(2.220446049250313e-16),
+  "max-safe-integer": SassNumber(9007199254740991),
+  "min-safe-integer": SassNumber(-9007199254740991),
+  "max-number": SassNumber(double.maxFinite),
+  "min-number": SassNumber(double.minPositive),
 });
 
 ///
 /// Bounding functions
 ///
 
-final _ceil = _numberFunction("ceil", (value) => value.ceil());
+final _ceil = _numberFunction("ceil", (value) => value.ceil().toDouble());
 
 final _clamp = _function("clamp", r"$min, $number, $max", (arguments) {
   var min = arguments[0].assertNumber("min");
@@ -55,7 +59,7 @@ final _clamp = _function("clamp", r"$min, $number, $max", (arguments) {
   return number;
 });
 
-final _floor = _numberFunction("floor", (value) => value.floor());
+final _floor = _numberFunction("floor", (value) => value.floor().toDouble());
 
 final _max = _function("max", r"$numbers...", (arguments) {
   SassNumber? max;
@@ -77,7 +81,7 @@ final _min = _function("min", r"$numbers...", (arguments) {
   throw SassScriptException("At least one argument must be passed.");
 });
 
-final _round = _numberFunction("round", fuzzyRound);
+final _round = _numberFunction("round", (number) => number.round().toDouble());
 
 ///
 /// Distance functions
@@ -112,20 +116,16 @@ final _log = _function("log", r"$number, $base: null", (arguments) {
   var number = arguments[0].assertNumber("number");
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
+  } else if (arguments[1] == sassNull) {
+    return SassNumber(math.log(number.value));
   }
-
-  var numberValue = _fuzzyRoundIfZero(number.value);
-  if (arguments[1] == sassNull) return SassNumber(math.log(numberValue));
 
   var base = arguments[1].assertNumber("base");
   if (base.hasUnits) {
     throw SassScriptException("\$base: Expected $base to have no units.");
+  } else {
+    return SassNumber(math.log(number.value) / math.log(base.value));
   }
-
-  var baseValue = fuzzyEquals(base.value, 1)
-      ? fuzzyRound(base.value)
-      : _fuzzyRoundIfZero(base.value);
-  return SassNumber(math.log(numberValue) / math.log(baseValue));
 });
 
 final _pow = _function("pow", r"$base, $exponent", (arguments) {
@@ -136,45 +136,18 @@ final _pow = _function("pow", r"$base, $exponent", (arguments) {
   } else if (exponent.hasUnits) {
     throw SassScriptException(
         "\$exponent: Expected $exponent to have no units.");
+  } else {
+    return SassNumber(math.pow(base.value, exponent.value));
   }
-
-  // Exponentiating certain real numbers leads to special behaviors. Ensure that
-  // these behaviors are consistent for numbers within the precision limit.
-  var baseValue = _fuzzyRoundIfZero(base.value);
-  var exponentValue = _fuzzyRoundIfZero(exponent.value);
-  if (fuzzyEquals(baseValue.abs(), 1) && exponentValue.isInfinite) {
-    return SassNumber(double.nan);
-  } else if (fuzzyEquals(baseValue, 0)) {
-    if (exponentValue.isFinite) {
-      var intExponent = fuzzyAsInt(exponentValue);
-      if (intExponent != null && intExponent % 2 == 1) {
-        exponentValue = fuzzyRound(exponentValue);
-      }
-    }
-  } else if (baseValue.isFinite &&
-      fuzzyLessThan(baseValue, 0) &&
-      exponentValue.isFinite &&
-      fuzzyIsInt(exponentValue)) {
-    exponentValue = fuzzyRound(exponentValue);
-  } else if (baseValue.isInfinite &&
-      fuzzyLessThan(baseValue, 0) &&
-      exponentValue.isFinite) {
-    var intExponent = fuzzyAsInt(exponentValue);
-    if (intExponent != null && intExponent % 2 == 1) {
-      exponentValue = fuzzyRound(exponentValue);
-    }
-  }
-  return SassNumber(math.pow(baseValue, exponentValue));
 });
 
 final _sqrt = _function("sqrt", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
+  } else {
+    return SassNumber(math.sqrt(number.value));
   }
-
-  var numberValue = _fuzzyRoundIfZero(number.value);
-  return SassNumber(math.sqrt(numberValue));
 });
 
 ///
@@ -185,75 +158,60 @@ final _acos = _function("acos", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
+  } else {
+    return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi,
+        numeratorUnits: ['deg']);
   }
-
-  var numberValue = fuzzyEquals(number.value.abs(), 1)
-      ? fuzzyRound(number.value)
-      : number.value;
-  var acos = math.acos(numberValue) * 180 / math.pi;
-  return SassNumber.withUnits(acos, numeratorUnits: ['deg']);
 });
 
 final _asin = _function("asin", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
+  } else {
+    return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi,
+        numeratorUnits: ['deg']);
   }
-
-  var numberValue = fuzzyEquals(number.value.abs(), 1)
-      ? fuzzyRound(number.value)
-      : _fuzzyRoundIfZero(number.value);
-  var asin = math.asin(numberValue) * 180 / math.pi;
-  return SassNumber.withUnits(asin, numeratorUnits: ['deg']);
 });
 
 final _atan = _function("atan", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
+  } else {
+    return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi,
+        numeratorUnits: ['deg']);
   }
-
-  var numberValue = _fuzzyRoundIfZero(number.value);
-  var atan = math.atan(numberValue) * 180 / math.pi;
-  return SassNumber.withUnits(atan, numeratorUnits: ['deg']);
 });
 
 final _atan2 = _function("atan2", r"$y, $x", (arguments) {
   var y = arguments[0].assertNumber("y");
   var x = arguments[1].assertNumber("x");
-
-  var xValue = _fuzzyRoundIfZero(x.convertValueToMatch(y, 'x', 'y'));
-  var yValue = _fuzzyRoundIfZero(y.value);
-  var atan2 = math.atan2(yValue, xValue) * 180 / math.pi;
-  return SassNumber.withUnits(atan2, numeratorUnits: ['deg']);
+  return SassNumber.withUnits(
+      math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')) * 180 / math.pi,
+      numeratorUnits: ['deg']);
 });
 
-final _cos = _function("cos", r"$number", (arguments) {
-  var value =
-      arguments[0].assertNumber("number").coerceValueToUnit("rad", "number");
-  return SassNumber(math.cos(value));
-});
+final _cos = _function(
+    "cos",
+    r"$number",
+    (arguments) => SassNumber(math.cos(arguments[0]
+        .assertNumber("number")
+        .coerceValueToUnit("rad", "number"))));
 
-final _sin = _function("sin", r"$number", (arguments) {
-  var value = _fuzzyRoundIfZero(
-      arguments[0].assertNumber("number").coerceValueToUnit("rad", "number"));
-  return SassNumber(math.sin(value));
-});
+final _sin = _function(
+    "sin",
+    r"$number",
+    (arguments) => SassNumber(math.sin(arguments[0]
+        .assertNumber("number")
+        .coerceValueToUnit("rad", "number"))));
 
-final _tan = _function("tan", r"$number", (arguments) {
-  var value =
-      arguments[0].assertNumber("number").coerceValueToUnit("rad", "number");
-  var asymptoteInterval = 0.5 * math.pi;
-  var tanPeriod = 2 * math.pi;
-  if (fuzzyEquals((value - asymptoteInterval) % tanPeriod, 0)) {
-    return SassNumber(double.infinity);
-  } else if (fuzzyEquals((value + asymptoteInterval) % tanPeriod, 0)) {
-    return SassNumber(double.negativeInfinity);
-  } else {
-    var numberValue = _fuzzyRoundIfZero(value);
-    return SassNumber(math.tan(numberValue));
-  }
-});
+final _tan = _function(
+    "tan",
+    r"$number",
+    (arguments) => SassNumber(math.tan(arguments[0]
+        .assertNumber("number")
+        .coerceValueToUnit("rad", "number"))));
 
 ///
 /// Unit functions
@@ -329,14 +287,9 @@ final _div = _function("div", r"$number1, $number2", (arguments) {
 /// Helpers
 ///
 
-num _fuzzyRoundIfZero(num number) {
-  if (!fuzzyEquals(number, 0)) return number;
-  return number.isNegative ? -0.0 : 0;
-}
-
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
-BuiltInCallable _numberFunction(String name, num transform(num value)) {
+BuiltInCallable _numberFunction(String name, double transform(double value)) {
   return _function(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return SassNumber.withUnits(transform(number.value),

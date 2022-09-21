@@ -47,11 +47,12 @@ class SingleUnitSassNumber extends SassNumber {
 
   bool get hasUnits => true;
 
-  SingleUnitSassNumber(num value, this._unit,
+  SingleUnitSassNumber(double value, this._unit,
       [Tuple2<SassNumber, SassNumber>? asSlash])
       : super.protected(value, asSlash);
 
-  SassNumber withValue(num value) => SingleUnitSassNumber(value, _unit);
+  SassNumber withValue(num value) =>
+      SingleUnitSassNumber(value.toDouble(), _unit);
 
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
       SingleUnitSassNumber(value, _unit, Tuple2(numerator, denominator));
@@ -81,7 +82,8 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.coerceToMatch(other, name, otherName);
 
-  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
+  double coerceValueToMatch(SassNumber other,
+          [String? name, String? otherName]) =>
       (other is SingleUnitSassNumber
           ? _coerceValueToUnit(other._unit)
           : null) ??
@@ -94,7 +96,7 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.convertToMatch(other, name, otherName);
 
-  num convertValueToMatch(SassNumber other,
+  double convertValueToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       (other is SingleUnitSassNumber
           ? _coerceValueToUnit(other._unit)
@@ -110,7 +112,7 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.coerce(newNumerators, newDenominators, name);
 
-  num coerceValue(List<String> newNumerators, List<String> newDenominators,
+  double coerceValue(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
       (newNumerators.length == 1 && newDenominators.isEmpty
           ? _coerceValueToUnit(newNumerators[0])
@@ -118,7 +120,7 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.coerceValue(newNumerators, newDenominators, name);
 
-  num coerceValueToUnit(String unit, [String? name]) =>
+  double coerceValueToUnit(String unit, [String? name]) =>
       _coerceValueToUnit(unit) ??
       // Call this to generate a consistent error message.
       super.coerceValueToUnit(unit, name);
@@ -132,7 +134,7 @@ class SingleUnitSassNumber extends SassNumber {
   }
 
   /// Like [coerceValueToUnit], except that it returns `null` if coercion fails.
-  num? _coerceValueToUnit(String unit) =>
+  double? _coerceValueToUnit(String unit) =>
       conversionFactor(unit, _unit).andThen((factor) => value * factor);
 
   SassNumber multiplyUnits(

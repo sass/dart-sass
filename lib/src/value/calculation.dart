@@ -235,7 +235,8 @@ class SassCalculation extends Value {
       return arg;
     } else if (arg is SassString) {
       if (!arg.hasQuotes) return arg;
-      throw SassScriptException("Quoted string $arg can't be used in a calculation.");
+      throw SassScriptException(
+          "Quoted string $arg can't be used in a calculation.");
     } else if (arg is SassCalculation) {
       return arg.name == 'calc' ? arg.arguments[0] : arg;
     } else if (arg is Value) {
@@ -255,7 +256,8 @@ class SassCalculation extends Value {
     for (var arg in args) {
       if (arg is! SassNumber) continue;
       if (arg.numeratorUnits.length > 1 || arg.denominatorUnits.isNotEmpty) {
-        throw SassScriptException("Number $arg isn't compatible with CSS calculations.");
+        throw SassScriptException(
+            "Number $arg isn't compatible with CSS calculations.");
       }
     }
 

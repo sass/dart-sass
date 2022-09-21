@@ -17,7 +17,7 @@ void main() {
 
     test("has the correct value", () {
       expect(value.value, equals(123));
-      expect(value.value, const TypeMatcher<int>());
+      expect(value.value, const TypeMatcher<double>());
     });
 
     test("has no units", () {

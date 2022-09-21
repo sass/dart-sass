@@ -5,7 +5,6 @@
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
-import 'package:sass/src/util/number.dart';
 
 import 'utils.dart';
 
@@ -225,7 +224,7 @@ void main() {
 
   test("an RGBA color has an alpha channel", () {
     var color = parseValue("rgba(10, 20, 30, 0.7)") as SassColor;
-    expect(color.alpha, closeTo(0.7, epsilon));
+    expect(color.alpha, closeTo(0.7, 1e-11));
   });
 
   group("new SassColor.rgb()", () {

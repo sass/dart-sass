@@ -1,9 +1,16 @@
-## 3.1.0
+## 4.0.0
 
 ### Dart API
 
+* **Breaking change:** The first argument to `NumberExpression()` is now a
+  `double` rather than a `num`.
+
 * Add an optional `argumentName` parameter to `SassScriptException()` to make it
   easier to throw exceptions associated with particular argument names.
+
+* Most APIs that previously returned `num` now return `double`. All APIs
+  continue to _accept_ `num`, although in Dart 2.0.0 most of these APIs will be
+  changed to accept only `double`.
 
 ## 3.0.4
 

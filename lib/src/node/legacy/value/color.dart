@@ -4,6 +4,7 @@
 
 import 'package:js/js.dart';
 
+import '../../../util/number.dart';
 import '../../../value.dart';
 import '../../reflection.dart';
 
@@ -68,4 +69,4 @@ final JSClass legacyColorClass = createJSClass('sass.types.Color',
 
 /// Clamps [channel] within the range 0, 255 and rounds it to the nearest
 /// integer.
-int _clamp(num channel) => channel.clamp(0, 255).round();
+int _clamp(num channel) => fuzzyRound(channel.clamp(0, 255));

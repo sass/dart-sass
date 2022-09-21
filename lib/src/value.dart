@@ -410,7 +410,8 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+          SassScriptException(
+              error.toString().replaceFirst("Error: ", ""), name),
           stackTrace);
     }
   }
@@ -433,7 +434,8 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+          SassScriptException(
+              error.toString().replaceFirst("Error: ", ""), name),
           stackTrace);
     }
   }
@@ -456,7 +458,8 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+          SassScriptException(
+              error.toString().replaceFirst("Error: ", ""), name),
           stackTrace);
     }
   }
@@ -479,7 +482,8 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+          SassScriptException(
+              error.toString().replaceFirst("Error: ", ""), name),
           stackTrace);
     }
   }

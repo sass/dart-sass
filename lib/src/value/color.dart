@@ -42,31 +42,31 @@ class SassColor extends Value {
   int? _blue;
 
   /// This color's hue, between `0` and `360`.
-  num get hue {
+  double get hue {
     if (_hue == null) _rgbToHsl();
     return _hue!;
   }
 
-  num? _hue;
+  double? _hue;
 
   /// This color's saturation, a percentage between `0` and `100`.
-  num get saturation {
+  double get saturation {
     if (_saturation == null) _rgbToHsl();
     return _saturation!;
   }
 
-  num? _saturation;
+  double? _saturation;
 
   /// This color's lightness, a percentage between `0` and `100`.
-  num get lightness {
+  double get lightness {
     if (_lightness == null) _rgbToHsl();
     return _lightness!;
   }
 
-  num? _lightness;
+  double? _lightness;
 
   /// This color's whiteness, a percentage between `0` and `100`.
-  num get whiteness {
+  double get whiteness {
     // Because HWB is (currently) used much less frequently than HSL or RGB, we
     // don't cache its values because we expect the memory overhead of doing so
     // to outweigh the cost of recalculating it on access.
@@ -74,7 +74,7 @@ class SassColor extends Value {
   }
 
   /// This color's blackness, a percentage between `0` and `100`.
-  num get blackness {
+  double get blackness {
     // Because HWB is (currently) used much less frequently than HSL or RGB, we
     // don't cache its values because we expect the memory overhead of doing so
     // to outweigh the cost of recalculating it on access.
@@ -85,8 +85,8 @@ class SassColor extends Value {
   // the same name in the JS API.
 
   /// This color's alpha channel, between `0` and `1`.
-  num get alpha => _alpha;
-  final num _alpha;
+  double get alpha => _alpha;
+  final double _alpha;
 
   /// The format in which this color was originally written and should be
   /// serialized in expanded mode, or `null` if the color wasn't written in a
@@ -109,7 +109,9 @@ class SassColor extends Value {
   @internal
   SassColor.rgbInternal(this._red, this._green, this._blue,
       [num? alpha, this.format])
-      : _alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
+      : _alpha = alpha == null
+            ? 1
+            : fuzzyAssertRange(alpha.toDouble(), 0, 1, "alpha") {
     RangeError.checkValueInInterval(red, 0, 255, "red");
     RangeError.checkValueInInterval(green, 0, 255, "green");
     RangeError.checkValueInInterval(blue, 0, 255, "blue");
@@ -129,9 +131,13 @@ class SassColor extends Value {
   SassColor.hslInternal(num hue, num saturation, num lightness,
       [num? alpha, this.format])
       : _hue = hue % 360,
-        _saturation = fuzzyAssertRange(saturation, 0, 100, "saturation"),
-        _lightness = fuzzyAssertRange(lightness, 0, 100, "lightness"),
-        _alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha");
+        _saturation =
+            fuzzyAssertRange(saturation.toDouble(), 0, 100, "saturation"),
+        _lightness =
+            fuzzyAssertRange(lightness.toDouble(), 0, 100, "lightness"),
+        _alpha = alpha == null
+            ? 1
+            : fuzzyAssertRange(alpha.toDouble(), 0, 1, "alpha");
 
   /// Creates an HWB color.
   ///
@@ -141,9 +147,9 @@ class SassColor extends Value {
     // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
     var scaledHue = hue % 360 / 360;
     var scaledWhiteness =
-        fuzzyAssertRange(whiteness, 0, 100, "whiteness") / 100;
+        fuzzyAssertRange(whiteness.toDouble(), 0, 100, "whiteness") / 100;
     var scaledBlackness =
-        fuzzyAssertRange(blackness, 0, 100, "blackness") / 100;
+        fuzzyAssertRange(blackness.toDouble(), 0, 100, "blackness") / 100;
 
     var sum = scaledWhiteness + scaledBlackness;
     if (sum > 1) {
@@ -152,7 +158,7 @@ class SassColor extends Value {
     }
 
     var factor = 1 - scaledWhiteness - scaledBlackness;
-    int toRgb(num hue) {
+    int toRgb(double hue) {
       var channel = _hueToRgb(0, 1, hue) * factor + scaledWhiteness;
       return fuzzyRound(channel * 255);
     }
@@ -192,8 +198,14 @@ class SassColor extends Value {
           blackness ?? this.blackness, alpha ?? this.alpha);
 
   /// Returns a new copy of this color with the alpha channel set to [alpha].
-  SassColor changeAlpha(num alpha) => SassColor._(_red, _green, _blue, _hue,
-      _saturation, _lightness, fuzzyAssertRange(alpha, 0, 1, "alpha"));
+  SassColor changeAlpha(num alpha) => SassColor._(
+      _red,
+      _green,
+      _blue,
+      _hue,
+      _saturation,
+      _lightness,
+      fuzzyAssertRange(alpha.toDouble(), 0, 1, "alpha"));
 
   /// @nodoc
   @internal
@@ -282,7 +294,7 @@ class SassColor extends Value {
 
   /// An algorithm from the CSS3 spec:
   /// http://www.w3.org/TR/css3-color/#hsl-color.
-  static num _hueToRgb(num m1, num m2, num hue) {
+  static double _hueToRgb(double m1, double m2, double hue) {
     if (hue < 0) hue += 1;
     if (hue > 1) hue -= 1;
 

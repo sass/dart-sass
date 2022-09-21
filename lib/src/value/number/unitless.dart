@@ -19,10 +19,10 @@ class UnitlessSassNumber extends SassNumber {
 
   bool get hasUnits => false;
 
-  UnitlessSassNumber(num value, [Tuple2<SassNumber, SassNumber>? asSlash])
+  UnitlessSassNumber(double value, [Tuple2<SassNumber, SassNumber>? asSlash])
       : super.protected(value, asSlash);
 
-  SassNumber withValue(num value) => UnitlessSassNumber(value);
+  SassNumber withValue(num value) => UnitlessSassNumber(value.toDouble());
 
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
       UnitlessSassNumber(value, Tuple2(numerator, denominator));
@@ -41,7 +41,8 @@ class UnitlessSassNumber extends SassNumber {
           [String? name, String? otherName]) =>
       other.withValue(value);
 
-  num coerceValueToMatch(SassNumber other, [String? name, String? otherName]) =>
+  double coerceValueToMatch(SassNumber other,
+          [String? name, String? otherName]) =>
       value;
 
   SassNumber convertToMatch(SassNumber other,
@@ -51,7 +52,7 @@ class UnitlessSassNumber extends SassNumber {
           ? super.convertToMatch(other, name, otherName)
           : this;
 
-  num convertValueToMatch(SassNumber other,
+  double convertValueToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       other.hasUnits
           // Call this to generate a consistent error message.
@@ -63,11 +64,11 @@ class UnitlessSassNumber extends SassNumber {
       SassNumber.withUnits(value,
           numeratorUnits: newNumerators, denominatorUnits: newDenominators);
 
-  num coerceValue(List<String> newNumerators, List<String> newDenominators,
+  double coerceValue(List<String> newNumerators, List<String> newDenominators,
           [String? name]) =>
       value;
 
-  num coerceValueToUnit(String unit, [String? name]) => value;
+  double coerceValueToUnit(String unit, [String? name]) => value;
 
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
