@@ -1,3 +1,45 @@
+## 1.55.0
+
+* **Potentially breaking bug fix:** Sass numbers are now universally stored as
+  64-bit floating-point numbers, rather than sometimes being stored as integers.
+  This will generally make arithmetic with very large numbers more reliable and
+  more consistent across platforms, but it does mean that numbers between nine
+  quadrillion and nine quintillion will no longer be represented with full
+  accuracy when compiling Sass on the Dart VM.
+
+* **Potentially breaking bug fix:** Sass equality is now properly [transitive].
+  Two numbers are now considered equal (after doing unit conversions) if they
+  round to the same `1e-11`th. Previously, numbers were considered equal if they
+  were within `1e-11` of one another, which led to some circumstances where `$a
+  == $b` and `$b == $c` but `$a != $b`.
+
+[transitive]: https://en.wikipedia.org/wiki/Transitive_property
+
+* **Potentially breaking bug fix:** Various functions in `sass:math` no longer
+  treat floating-point numbers that are very close (but not identical) to
+  integers as integers. Instead, these functions now follow the floating-point
+  specification exactly. For example, `math.pow(0.000000000001, -1)` now returns
+  `1000000000000` instead of `Infinity`.
+
+* Emit a deprecation warning for `$a -$b` and `$a +$b`, since these look like
+  they could be unary operations but they're actually parsed as binary
+  operations. Either explicitly write `$a - $b` or `$a (-$b)`. See
+  https://sass-lang.com/d/strict-unary for more details.
+
+### Dart API
+
+* Add an optional `argumentName` parameter to `SassScriptException()` to make it
+  easier to throw exceptions associated with particular argument names.
+
+* Most APIs that previously returned `num` now return `double`. All APIs
+  continue to _accept_ `num`, although in Dart 2.0.0 these APIs will be changed
+  to accept only `double`.
+
+### JS API
+
+* Fix a bug in which certain warning spans would not have their properties
+  accessible by the JS API.
+
 ## 1.54.9
 
 * Fix an incorrect span in certain `@media` query deprecation warnings.
