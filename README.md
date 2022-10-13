@@ -10,8 +10,8 @@ and importers.
 
 ### Usage
 
-- `dart_sass_embedded` starts the compiler and listens on stdin.
-- `dart_sass_embedded --version` prints `versionResponse` with `id = 0` in JSON and exits.
+- `dart-sass-embedded` starts the compiler and listens on stdin.
+- `dart-sass-embedded --version` prints `versionResponse` with `id = 0` in JSON and exits.
 
 ### Releases
 
