@@ -23,7 +23,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass map module.
-final module = BuiltInModule("map", functions: [
+final module = BuiltInModule("map", functions: <Callable>[
   _get,
   _set,
   _merge,

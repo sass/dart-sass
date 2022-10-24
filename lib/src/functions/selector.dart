@@ -27,7 +27,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass selector module.
-final module = BuiltInModule("selector", functions: [
+final module = BuiltInModule("selector", functions: <Callable>[
   _isSuperselector,
   _simpleSelectors,
   _parse,
