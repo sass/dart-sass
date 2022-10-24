@@ -29,7 +29,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass string module.
-final module = BuiltInModule("string", functions: [
+final module = BuiltInModule("string", functions: <Callable>[
   _unquote, _quote, _toUpperCase, _toLowerCase, _length, _insert, _index, //
   _slice, _uniqueId,
 ]);
