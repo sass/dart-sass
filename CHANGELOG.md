@@ -1,3 +1,7 @@
+## 1.55.1
+
+* Fix indentation for selectors that span multiple lines in a `@media` query.
+
 ## 1.55.0
 
 * **Potentially breaking bug fix:** Sass numbers are now universally stored as
