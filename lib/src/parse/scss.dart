@@ -5,6 +5,7 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
+import '../deprecation.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
 import '../util/character.dart';
@@ -45,13 +46,13 @@ class ScssParser extends StylesheetParser {
     if (scanner.scanChar($at)) {
       if (scanIdentifier('else', caseSensitive: true)) return true;
       if (scanIdentifier('elseif', caseSensitive: true)) {
-        logger.warn(
+        logger.warnForDeprecation(
+            Deprecation.elseIf,
             '@elseif is deprecated and will not be supported in future Sass '
             'versions.\n'
             '\n'
             'Recommendation: @else if',
-            span: scanner.spanFrom(beforeAt),
-            deprecation: true);
+            span: scanner.spanFrom(beforeAt));
         scanner.position -= 2;
         return true;
       }

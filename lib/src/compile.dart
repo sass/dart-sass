@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f8b5bf7eafbe3523ca4df1a6832e131c5c03986b
+// Checksum: 75dc8b82947cdddaa2284a3e29cfc616c40b1a78
 //
 // ignore_for_file: unused_import
 
@@ -19,11 +19,12 @@ import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'callable.dart';
 import 'compile_result.dart';
+import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/legacy_node.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'logger/terse.dart';
+import 'logger/deprecation_handling.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/evaluate.dart';
@@ -46,9 +47,16 @@ CompileResult compile(String path,
     bool quietDeps = false,
     bool verbose = false,
     bool sourceMap = false,
-    bool charset = true}) {
-  TerseLogger? terseLogger;
-  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+    bool charset = true,
+    Set<Deprecation> fatalDeprecations = const {},
+    Set<Deprecation> futureDeprecations = const {}}) {
+  DeprecationHandlingLogger? deprecationLogger;
+  if (!verbose) {
+    logger = deprecationLogger = DeprecationHandlingLogger(
+        logger ?? Logger.stderr(),
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
+  }
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -80,7 +88,7 @@ CompileResult compile(String path,
       sourceMap,
       charset);
 
-  terseLogger?.summarize(node: nodeImporter != null);
+  deprecationLogger?.summarize(node: nodeImporter != null);
   return result;
 }
 
@@ -105,9 +113,16 @@ CompileResult compileString(String source,
     bool quietDeps = false,
     bool verbose = false,
     bool sourceMap = false,
-    bool charset = true}) {
-  TerseLogger? terseLogger;
-  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+    bool charset = true,
+    Set<Deprecation> fatalDeprecations = const {},
+    Set<Deprecation> futureDeprecations = const {}}) {
+  DeprecationHandlingLogger? deprecationLogger;
+  if (!verbose) {
+    logger = deprecationLogger = DeprecationHandlingLogger(
+        logger ?? Logger.stderr(),
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
+  }
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
@@ -127,7 +142,7 @@ CompileResult compileString(String source,
       sourceMap,
       charset);
 
-  terseLogger?.summarize(node: nodeImporter != null);
+  deprecationLogger?.summarize(node: nodeImporter != null);
   return result;
 }
 

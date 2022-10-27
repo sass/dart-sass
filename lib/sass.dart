@@ -13,6 +13,7 @@ import 'src/async_import_cache.dart';
 import 'src/callable.dart';
 import 'src/compile.dart' as c;
 import 'src/compile_result.dart';
+import 'src/deprecation.dart';
 import 'src/exception.dart';
 import 'src/import_cache.dart';
 import 'src/importer.dart';
@@ -24,6 +25,7 @@ import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
 export 'src/compile_result.dart';
+export 'src/deprecation.dart';
 export 'src/exception.dart' show SassException;
 export 'src/importer.dart';
 export 'src/logger.dart';
@@ -105,7 +107,9 @@ CompileResult compileToResult(String path,
         bool quietDeps = false,
         bool verbose = false,
         bool sourceMap = false,
-        bool charset = true}) =>
+        bool charset = true,
+        Set<Deprecation> fatalDeprecations = const {},
+        Set<Deprecation> futureDeprecations = const {}}) =>
     c.compile(path,
         logger: logger,
         importCache: ImportCache(
@@ -118,7 +122,9 @@ CompileResult compileToResult(String path,
         quietDeps: quietDeps,
         verbose: verbose,
         sourceMap: sourceMap,
-        charset: charset);
+        charset: charset,
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
 
 /// Compiles [source] to CSS and returns a [CompileResult] containing the CSS
 /// and additional metadata about the compilation..
@@ -200,7 +206,9 @@ CompileResult compileStringToResult(String source,
         bool quietDeps = false,
         bool verbose = false,
         bool sourceMap = false,
-        bool charset = true}) =>
+        bool charset = true,
+        Set<Deprecation> fatalDeprecations = const {},
+        Set<Deprecation> futureDeprecations = const {}}) =>
     c.compileString(source,
         syntax: syntax,
         logger: logger,
@@ -216,7 +224,9 @@ CompileResult compileStringToResult(String source,
         quietDeps: quietDeps,
         verbose: verbose,
         sourceMap: sourceMap,
-        charset: charset);
+        charset: charset,
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
 
 /// Like [compileToResult], except it runs asynchronously.
 ///
@@ -234,7 +244,9 @@ Future<CompileResult> compileToResultAsync(String path,
         bool quietDeps = false,
         bool verbose = false,
         bool sourceMap = false,
-        bool charset = true}) =>
+        bool charset = true,
+        Set<Deprecation> fatalDeprecations = const {},
+        Set<Deprecation> futureDeprecations = const {}}) =>
     c.compileAsync(path,
         logger: logger,
         importCache: AsyncImportCache(
@@ -247,7 +259,9 @@ Future<CompileResult> compileToResultAsync(String path,
         quietDeps: quietDeps,
         verbose: verbose,
         sourceMap: sourceMap,
-        charset: charset);
+        charset: charset,
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
 
 /// Like [compileStringToResult], except it runs asynchronously.
 ///
@@ -270,7 +284,9 @@ Future<CompileResult> compileStringToResultAsync(String source,
         bool quietDeps = false,
         bool verbose = false,
         bool sourceMap = false,
-        bool charset = true}) =>
+        bool charset = true,
+        Set<Deprecation> fatalDeprecations = const {},
+        Set<Deprecation> futureDeprecations = const {}}) =>
     c.compileStringAsync(source,
         syntax: syntax,
         logger: logger,

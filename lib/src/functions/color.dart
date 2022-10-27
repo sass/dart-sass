@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
@@ -238,7 +239,7 @@ final module = BuiltInModule("color", functions: <Callable>[
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecation: true);
+          deprecationType: Deprecation.colorNumber);
       return result;
     }
 
@@ -265,7 +266,7 @@ final module = BuiltInModule("color", functions: <Callable>[
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecation: true);
+          deprecationType: Deprecation.colorNumber);
       return result;
     }
 
@@ -318,7 +319,7 @@ final module = BuiltInModule("color", functions: <Callable>[
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            deprecation: true);
+            deprecationType: Deprecation.microsoftAlpha);
         return result;
       }
 
@@ -336,7 +337,7 @@ final module = BuiltInModule("color", functions: <Callable>[
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            deprecation: true);
+            deprecationType: Deprecation.microsoftAlpha);
         return result;
       }
 
@@ -354,7 +355,7 @@ final module = BuiltInModule("color", functions: <Callable>[
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecation: true);
+          deprecationType: Deprecation.colorNumber);
       return result;
     }
 
@@ -681,7 +682,7 @@ void _checkAngle(SassNumber angle, String name) {
   }
 
   message.write("See https://sass-lang.com/d/color-units");
-  warn(message.toString(), deprecation: true);
+  warn(message.toString(), deprecationType: Deprecation.colorUnits);
 }
 
 /// Prints a deprecation warning if [number] doesn't have unit `%`.

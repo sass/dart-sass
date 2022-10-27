@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:source_span/source_span.dart';
 
+import 'deprecation.dart';
+
 /// An interface that exposes information about the current Sass evaluation.
 ///
 /// This allows us to expose zone-scoped information without having to create a
@@ -33,21 +35,26 @@ abstract class EvaluationContext {
   /// Prints a warning message associated with the current `@import` or function
   /// call.
   ///
-  /// If [deprecation] is `true`, the warning is emitted as a deprecation
-  /// warning.
-  void warn(String message, {bool deprecation = false});
+  /// If [deprecation] is non-null, the warning is emitted as a deprecation
+  /// warning of that type.
+  void warn(String message, [Deprecation? deprecation]);
 }
 
 /// Prints a warning message associated with the current `@import` or function
 /// call.
 ///
-/// If [deprecation] is `true`, the warning is emitted as a deprecation warning.
+/// If [deprecationType] is non-null, the warning is emitted as a deprecation
+/// warning of that type.
 ///
 /// This may only be called within a custom function or importer callback.
 ///
 /// {@category Compile}
-void warn(String message, {bool deprecation = false}) =>
-    EvaluationContext.current.warn(message, deprecation: deprecation);
+void warn(String message,
+        {Deprecation? deprecationType,
+        @Deprecated('Use `deprecationType` instead.') bool deprecation =
+            false}) =>
+    EvaluationContext.current.warn(
+        message, deprecationType ?? (deprecation ? Deprecation.unknown : null));
 
 /// Runs [callback] with [context] as [EvaluationContext.current].
 ///
