@@ -1063,6 +1063,13 @@ abstract class StylesheetParser extends Parser {
     do {
       whitespace();
       var argument = importArgument();
+      if (argument is DynamicImport) {
+        logger.warnForDeprecation(
+            Deprecation.import,
+            'Sass @import rules will be deprecated in the future. Remove the '
+            '--future-deprecation=import flag to silence this warning for now.',
+            span: argument.span);
+      }
       if ((_inControlDirective || _inMixin) && argument is DynamicImport) {
         _disallowedAtRule(start);
       }
