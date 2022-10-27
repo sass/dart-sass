@@ -1240,6 +1240,7 @@ class _SerializeVisitor
         _buffer.writeCharCode($comma);
         if (complex.lineBreak) {
           _writeLineFeed();
+          _writeIndentation();
         } else {
           _writeOptionalSpace();
         }
@@ -1318,7 +1319,7 @@ class _SerializeVisitor
 
       if (_isTrailingComment(child, previous ?? parent)) {
         _writeOptionalSpace();
-        _withoutIndendation(() => child.accept(this));
+        _withoutIndentation(() => child.accept(this));
       } else {
         _writeLineFeed();
         _indent(() {
@@ -1431,7 +1432,7 @@ class _SerializeVisitor
   }
 
   /// Runs [callback] without any indentation.
-  void _withoutIndendation(void callback()) {
+  void _withoutIndentation(void callback()) {
     var savedIndentation = _indentation;
     _indentation = 0;
     callback();
