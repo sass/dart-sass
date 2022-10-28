@@ -460,10 +460,14 @@ SassColor _updateComponents(List<Value> arguments,
     if (number == null) return null;
     if (!scale && checkUnitless) {
       if (number.hasUnits) {
-        warn("\$$name: Passing a number with unit ${number.unitString} is "
+        warn(
+            "\$$name: Passing a number with unit ${number.unitString} is "
             "deprecated.\n"
             "\n"
-            "To preserve current behavior: ${number.unitSuggestion(name)}");
+            "To preserve current behavior: ${number.unitSuggestion(name)}\n"
+            "\n"
+            "More info: https://sass-lang.com/d/function-units",
+            deprecation: true);
       }
     }
     if (!scale && checkPercent) _checkPercent(number, name);
@@ -687,7 +691,9 @@ void _checkPercent(SassNumber number, String name) {
   warn(
       "\$$name: Passing a number without unit % ($number) is deprecated.\n"
       "\n"
-      "To preserve current behavior: ${number.unitSuggestion(name, '%')}",
+      "To preserve current behavior: ${number.unitSuggestion(name, '%')}\n"
+      "\n"
+      "More info: https://sass-lang.com/d/function-units",
       deprecation: true);
 }
 

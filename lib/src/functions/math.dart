@@ -251,17 +251,17 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
 
   if (limit.hasUnits) {
     warn(
-      "math.random() will no longer ignore \$limit units ($limit) in a "
-      "future release.\n"
-      "\n"
-      "Recommendation: "
-      "math.random(math.div(\$limit, 1${limit.unitString})) * 1${limit.unitString}\n"
-      "\n"
-      "To preserve current behavior: "
-      "math.random(math.div(\$limit, 1${limit.unitString}))\n"
-      "\n"
-      "More info: https://sass-lang.com/d/random-with-units",
-    );
+        "math.random() will no longer ignore \$limit units ($limit) in a "
+        "future release.\n"
+        "\n"
+        "Recommendation: "
+        "math.random(math.div(\$limit, 1${limit.unitString})) * 1${limit.unitString}\n"
+        "\n"
+        "To preserve current behavior: "
+        "math.random(math.div(\$limit, 1${limit.unitString}))\n"
+        "\n"
+        "More info: https://sass-lang.com/d/function-units",
+        deprecation: true);
   }
 
   var limitScalar = limit.assertInt("limit");

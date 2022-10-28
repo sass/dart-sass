@@ -16,6 +16,9 @@
 * Improve existing deprecation warnings to wrap `/`-as-division suggestions in
   `calc()` expressions.
 
+* Properly mark the warning for passing numbers with units to `random()` as a
+  deprecation warning.
+
 ### Dart API
 
 * Emit a deprecation warning when passing a `sassIndex` with units to

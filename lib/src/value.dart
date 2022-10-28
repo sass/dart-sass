@@ -123,11 +123,15 @@ abstract class Value {
   int sassIndexToListIndex(Value sassIndex, [String? name]) {
     var indexValue = sassIndex.assertNumber(name);
     if (indexValue.hasUnits) {
-      warn("\$$name: Passing a number with unit ${indexValue.unitString} is "
-              "deprecated.\n"
-              "\n"
-              "To preserve current behavior: " +
-          indexValue.unitSuggestion(name ?? 'index'));
+      warn(
+          "\$$name: Passing a number with unit ${indexValue.unitString} is "
+          "deprecated.\n"
+          "\n"
+          "To preserve current behavior: "
+          "${indexValue.unitSuggestion(name ?? 'index')}\n"
+          "\n"
+          "More info: https://sass-lang.com/d/function-units",
+          deprecation: true);
     }
 
     var index = indexValue.assertInt(name);
