@@ -468,7 +468,7 @@ SassColor _updateComponents(List<Value> arguments,
             "To preserve current behavior: ${number.unitSuggestion(name)}\n"
             "\n"
             "More info: https://sass-lang.com/d/function-units",
-            deprecation: true);
+            deprecationType: Deprecation.functionUnits);
       }
     }
     if (!scale && checkPercent) _checkPercent(number, name);
@@ -681,8 +681,8 @@ void _checkAngle(SassNumber angle, String name) {
       ..writeln();
   }
 
-  message.write("See https://sass-lang.com/d/color-units");
-  warn(message.toString(), deprecationType: Deprecation.colorUnits);
+  message.write("See https://sass-lang.com/d/function-units");
+  warn(message.toString(), deprecationType: Deprecation.functionUnits);
 }
 
 /// Prints a deprecation warning if [number] doesn't have unit `%`.
@@ -695,7 +695,7 @@ void _checkPercent(SassNumber number, String name) {
       "To preserve current behavior: ${number.unitSuggestion(name, '%')}\n"
       "\n"
       "More info: https://sass-lang.com/d/function-units",
-      deprecation: true);
+      deprecationType: Deprecation.functionUnits);
 }
 
 /// Create an HWB color from the given [arguments].

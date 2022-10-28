@@ -36,12 +36,6 @@ enum Deprecation {
       deprecatedIn: '1.23.0',
       description: 'Using color.alpha() in a Microsoft filter.'),
 
-  /// Deprecation for passing invalid units to certain color functions.
-  colorUnits('color-units',
-      deprecatedIn: '1.32.0',
-      description:
-          'Hue, saturation, and lightness arguments with invalid units.'),
-
   /// Deprecation for treating `/` as division.
   slashDiv('slash-div',
       deprecatedIn: '1.33.0', description: '/ operator for division.'),
@@ -54,17 +48,17 @@ enum Deprecation {
   /// Deprecation for SassScript boolean operators in `@media` queries.
   mediaLogic('media-logic', deprecatedIn: '1.54.0'),
 
-  /// Deprecation for passing numbers with units to `math.random()`.
-  randomWithUnits('random-with-units',
-      deprecatedIn: '1.54.5',
-      description: 'Passing numbers with units to math.random().'),
-
   /// Deprecation for ambiguous `+` and `-` operators.
   strictUnary('strict-unary',
       deprecatedIn: '1.55.0', description: 'Ambiguous + and - operators.'),
 
   /// Deprecation for `@import` rules.
   import('import', deprecatedIn: null, description: '@import rules.'),
+
+  /// Deprecation for passing invalid units to certain built-in functions.
+  functionUnits('function-units',
+      deprecatedIn: '1.55.1',
+      description: 'Passing invalid units to built-in functions.'),
 
   /// Used for deprecations of an unknown type.
   ///
