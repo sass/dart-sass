@@ -453,9 +453,19 @@ SassColor _updateComponents(List<Value> arguments,
   /// [max] should be 255 for RGB channels, 1 for the alpha channel, and 100
   /// for saturation, lightness, whiteness, and blackness.
   double? getParam(String name, num max,
-      {bool checkPercent = false, bool assertPercent = false}) {
+      {bool checkPercent = false,
+      bool assertPercent = false,
+      bool checkUnitless = false}) {
     var number = keywords.remove(name)?.assertNumber(name);
     if (number == null) return null;
+    if (!scale && checkUnitless) {
+      if (number.hasUnits) {
+        warn("\$$name: Passing a number with unit ${number.unitString} is "
+            "deprecated.\n"
+            "\n"
+            "To preserve current behavior: ${number.unitSuggestion(name)}");
+      }
+    }
     if (!scale && checkPercent) _checkPercent(number, name);
     if (scale || assertPercent) number.assertUnit("%", name);
     if (scale) max = 100;
@@ -465,7 +475,7 @@ SassColor _updateComponents(List<Value> arguments,
             change ? 0 : -max, max, name, checkPercent ? '%' : '');
   }
 
-  var alpha = getParam("alpha", 1);
+  var alpha = getParam("alpha", 1, checkUnitless: true);
   var red = getParam("red", 255);
   var green = getParam("green", 255);
   var blue = getParam("blue", 255);
@@ -656,12 +666,13 @@ void _checkAngle(SassNumber angle, String name) {
 
     var actualUnit = angle.numeratorUnits.first;
     message
-      ..writeln("To preserve current behavior: \$$name * 1deg/1$actualUnit")
+      ..writeln(
+          "To preserve current behavior: calc(\$$name * " "1deg/1$actualUnit)")
       ..writeln("To migrate to new behavior: 0deg + \$$name")
       ..writeln();
   } else {
     message
-      ..writeln("To preserve current behavior: \$$name${_removeUnits(angle)}")
+      ..writeln("To preserve current behavior: ${angle.unitSuggestion(name)}")
       ..writeln();
   }
 
@@ -676,17 +687,9 @@ void _checkPercent(SassNumber number, String name) {
   warn(
       "\$$name: Passing a number without unit % ($number) is deprecated.\n"
       "\n"
-      "To preserve current behavior: \$$name${_removeUnits(number)} * 1%",
+      "To preserve current behavior: ${number.unitSuggestion(name, '%')}",
       deprecation: true);
 }
-
-/// Returns the right-hand side of an expression that would remove all units
-/// from `$number` but leaves the value the same.
-///
-/// Used for constructing deprecation messages.
-String _removeUnits(SassNumber number) =>
-    number.denominatorUnits.map((unit) => " * 1$unit").join() +
-    number.numeratorUnits.map((unit) => " / 1$unit").join();
 
 /// Create an HWB color from the given [arguments].
 Value _hwb(List<Value> arguments) {
@@ -805,6 +808,8 @@ double _percentageOrUnitless(SassNumber number, num max, String name) {
 
 /// Returns [color1] and [color2], mixed together and weighted by [weight].
 SassColor _mixColors(SassColor color1, SassColor color2, SassNumber weight) {
+  _checkPercent(weight, 'weight');
+
   // This algorithm factors in both the user-provided weight (w) and the
   // difference between the alpha values of the two colors (a) to decide how
   // to perform the weighted average of the two RGB values.

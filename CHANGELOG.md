@@ -2,6 +2,25 @@
 
 * Fix indentation for selectors that span multiple lines in a `@media` query.
 
+* Emit a deprecation warning when passing `$alpha` values with units to
+  `color.adjust()` or `color.change()`. This will be an error in Dart Sass
+  2.0.0.
+
+* Emit a deprecation warning when passing a `$weight` value with no units or
+  with units other than `%` to `color.mix()`. This will be an error in Dart Sass
+  2.0.0.
+
+* Emit a deprecation warning when passing `$n` values with units to `list.nth()`
+  or `list.set-nth()`. This will be an error in Dart Sass 2.0.0.
+
+* Improve existing deprecation warnings to wrap `/`-as-division suggestions in
+  `calc()` expressions.
+
+### Dart API
+
+* Emit a deprecation warning when passing a `sassIndex` with units to
+  `Value.sassIndexToListIndex()`. This will be an error in Dart Sass 2.0.0.
+
 ## 1.55.0
 
 * **Potentially breaking bug fix:** Sass numbers are now universally stored as

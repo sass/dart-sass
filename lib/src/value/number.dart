@@ -933,4 +933,21 @@ abstract class SassNumber extends Value {
     var innerMap = _conversions[unit];
     return innerMap == null ? 1 : 1 / innerMap.values.first;
   }
+
+  /// Returns a suggested Sass snippet for converting a variable named [name]
+  /// (without `%`) containing this number into a number with the same value and
+  /// the given [unit].
+  ///
+  /// If [unit] is null, this forces the number to be unitless.
+  ///
+  /// This is used for deprecation warnings when restricting which units are
+  /// allowed for a given function.
+  @internal
+  String unitSuggestion(String name, [String? unit]) {
+    var result = "\$$name" +
+        denominatorUnits.map((unit) => " * 1$unit").join() +
+        numeratorUnits.map((unit) => " / 1$unit").join() +
+        (unit == null ? "" : " * 1$unit");
+    return numeratorUnits.isEmpty ? result : "calc($result)";
+  }
 }
