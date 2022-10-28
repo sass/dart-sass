@@ -120,9 +120,8 @@ final global = UnmodifiableListView([
 
   _function("adjust-hue", r"$color, $degrees", (arguments) {
     var color = arguments[0].assertColor("color");
-    var degrees = arguments[1].assertNumber("degrees");
-    _checkAngle(degrees, "degrees");
-    return color.changeHsl(hue: color.hue + degrees.value);
+    var degrees = _angleValue(arguments[1], "degrees");
+    return color.changeHsl(hue: color.hue + degrees);
   }),
 
   _function("lighten", r"$color, $amount", (arguments) {
@@ -484,9 +483,9 @@ SassColor _updateComponents(List<Value> arguments,
   var green = getParam("green", 255);
   var blue = getParam("blue", 255);
 
-  var hueNumber = scale ? null : keywords.remove("hue")?.assertNumber("hue");
-  if (hueNumber != null) _checkAngle(hueNumber, "hue");
-  var hue = hueNumber?.value;
+  var hue = scale
+      ? null
+      : keywords.remove("hue").andThen((hue) => _angleValue(hue, "hue"));
 
   var saturation = getParam("saturation", 100, checkPercent: true);
   var lightness = getParam("lightness", 100, checkPercent: true);
@@ -634,16 +633,15 @@ Value _hsl(String name, List<Value> arguments) {
     return _functionString(name, arguments);
   }
 
-  var hue = arguments[0].assertNumber("hue");
+  var hue = _angleValue(arguments[0], "hue");
   var saturation = arguments[1].assertNumber("saturation");
   var lightness = arguments[2].assertNumber("lightness");
 
-  _checkAngle(hue, "hue");
   _checkPercent(saturation, "saturation");
   _checkPercent(lightness, "lightness");
 
   return SassColor.hslInternal(
-      hue.value,
+      hue,
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
       alpha.andThen((alpha) =>
@@ -651,37 +649,21 @@ Value _hsl(String name, List<Value> arguments) {
       ColorFormat.hslFunction);
 }
 
-/// Prints a deprecation warning if [hue] has a unit other than `deg`.
-void _checkAngle(SassNumber angle, String name) {
-  if (!angle.hasUnits || angle.hasUnit('deg')) return;
+/// Asserts that [angle] is a number and returns its value in degrees.
+///
+/// Prints a deprecation warning if [angle] has a non-angle unit.
+double _angleValue(Value angleValue, String name) {
+  var angle = angleValue.assertNumber(name);
+  if (angle.compatibleWithUnit('deg')) return angle.coerceValueToUnit('deg');
 
-  var message = StringBuffer()
-    ..writeln("\$$name: Passing a unit other than deg ($angle) is deprecated.")
-    ..writeln();
-
-  if (angle.compatibleWithUnit('deg')) {
-    message
-      ..writeln(
-          "You're passing $angle, which is currently (incorrectly) converted "
-          "to ${SassNumber(angle.value, 'deg')}.")
-      ..writeln("Soon, it will instead be correctly converted to "
-          "${angle.coerce(['deg'], [])}.")
-      ..writeln();
-
-    var actualUnit = angle.numeratorUnits.first;
-    message
-      ..writeln(
-          "To preserve current behavior: calc(\$$name * 1deg/1$actualUnit)")
-      ..writeln("To migrate to new behavior: 0deg + \$$name")
-      ..writeln();
-  } else {
-    message
-      ..writeln("To preserve current behavior: ${angle.unitSuggestion(name)}")
-      ..writeln();
-  }
-
-  message.write("See https://sass-lang.com/d/color-units");
-  warn(message.toString(), deprecation: true);
+  warn(
+      "\$$name: Passing a unit other than deg ($angle) is deprecated.\n"
+      "\n"
+      "To preserve current behavior: ${angle.unitSuggestion(name)}\n"
+      "\n"
+      "See https://sass-lang.com/d/function-units",
+      deprecation: true);
+  return angle.value;
 }
 
 /// Prints a deprecation warning if [number] doesn't have unit `%`.
@@ -700,16 +682,15 @@ void _checkPercent(SassNumber number, String name) {
 /// Create an HWB color from the given [arguments].
 Value _hwb(List<Value> arguments) {
   var alpha = arguments.length > 3 ? arguments[3] : null;
-  var hue = arguments[0].assertNumber("hue");
+  var hue = _angleValue(arguments[0], "hue");
   var whiteness = arguments[1].assertNumber("whiteness");
   var blackness = arguments[2].assertNumber("blackness");
 
-  _checkAngle(hue, "hue");
   whiteness.assertUnit("%", "whiteness");
   blackness.assertUnit("%", "blackness");
 
   return SassColor.hwb(
-      hue.value,
+      hue,
       whiteness.valueInRange(0, 100, "whiteness"),
       blackness.valueInRange(0, 100, "blackness"),
       alpha.andThen((alpha) =>
