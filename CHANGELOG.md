@@ -59,6 +59,7 @@
 ### JS API
 
 * Importer results now validate whether `contents` is actually a string type.
+
 * Importer result argument errors are now rendered correctly.
 
 ## 1.55.0

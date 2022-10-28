@@ -48,6 +48,11 @@ class NodeToDartImporter extends Importer {
 
     result as NodeImporterResult;
     var contents = result.contents;
+    if (!isJsString(contents)) {
+      jsThrow(ArgumentError.value(contents, 'contents',
+          'must be a string but was: ${jsType(contents)}'));
+    }
+
     var syntax = result.syntax;
     if (contents == null || syntax == null) {
       jsThrow(JsError("The load() function must return an object with contents "
