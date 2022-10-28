@@ -1066,8 +1066,9 @@ abstract class StylesheetParser extends Parser {
       if (argument is DynamicImport) {
         logger.warnForDeprecation(
             Deprecation.import,
-            'Sass @import rules will be deprecated in the future. Remove the '
-            '--future-deprecation=import flag to silence this warning for now.',
+            'Sass @import rules will be deprecated in the future.\n'
+            'Remove the --future-deprecation=import flag to silence this '
+            'warning for now.',
             span: argument.span);
       }
       if ((_inControlDirective || _inMixin) && argument is DynamicImport) {

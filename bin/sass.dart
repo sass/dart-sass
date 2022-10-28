@@ -15,6 +15,7 @@ import 'package:sass/src/executable/repl.dart';
 import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/io.dart';
+import 'package:sass/src/logger/deprecation_handling.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/utils.dart';
 
@@ -52,8 +53,15 @@ Future<void> main(List<String> args) async {
       return;
     }
 
-    var graph = StylesheetGraph(
-        ImportCache(loadPaths: options.loadPaths, logger: options.logger));
+    var graph = StylesheetGraph(ImportCache(
+        loadPaths: options.loadPaths,
+        logger: DeprecationHandlingLogger(options.logger,
+            fatalDeprecations: options.fatalDeprecations,
+            futureDeprecations: options.futureDeprecations,
+            // This logger may be reused by multiple parses, so we don't want
+            // warnings from a previous parse to cause subsequent warnings to
+            // be skipped.
+            limitRepetition: false)));
     if (options.watch) {
       await watch(options, graph);
       return;

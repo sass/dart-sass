@@ -1,18 +1,24 @@
+// Copyright 2022 Google LLC. Use of this source code is governed by an
+// MIT-style license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
+
+import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Represents a deprecated feature in the language.
 enum Deprecation {
   /// Deprecation for passing a string to `call` instead of `get-function`.
-  callString('call-string', deprecatedIn: '0.0.0'),
+  callString('call-string',
+      deprecatedIn: '0.0.0',
+      description: 'Passing a string directly to meta.call().'),
 
   /// Deprecation for passing a number to a color function.
-  colorNumber('color-number', deprecatedIn: '0.0.0'),
-
-  /// Deprecation for using `color.alpha()` in a Microsoft filter.
-  microsoftAlpha('microsoft-alpha', deprecatedIn: '0.0.0'),
+  colorNumber('color-number',
+      deprecatedIn: '0.0.0',
+      description: 'Passing a number to a color function.'),
 
   /// Deprecation for `@elseif`.
-  elseIf('else-if', deprecatedIn: '1.3.2'),
+  elseIf('elseif', deprecatedIn: '1.3.2', description: '@elseif.'),
 
   /// Deprecation for parsing `@-moz-document`.
   mozDocument('moz-document', deprecatedIn: '1.7.2'),
@@ -21,31 +27,50 @@ enum Deprecation {
   relativeCanonical('relative-canonical', deprecatedIn: '1.14.2'),
 
   /// Deprecation for declaring new variables with `!global`.
-  newGlobal('new-global', deprecatedIn: '1.17.2'),
+  newGlobal('new-global',
+      deprecatedIn: '1.17.2',
+      description: 'Declaring new variables with !global.'),
+
+  /// Deprecation for using `color.alpha()` in a Microsoft filter.
+  microsoftAlpha('microsoft-alpha',
+      deprecatedIn: '1.23.0',
+      description: 'Using color.alpha() in a Microsoft filter.'),
 
   /// Deprecation for passing invalid units to certain color functions.
-  colorUnits('color-units', deprecatedIn: '1.32.0'),
+  colorUnits('color-units',
+      deprecatedIn: '1.32.0',
+      description:
+          'Hue, saturation, and lightness arguments with invalid units.'),
 
   /// Deprecation for treating `/` as division.
-  slashDiv('slash-div', deprecatedIn: '1.33.0'),
+  slashDiv('slash-div',
+      deprecatedIn: '1.33.0', description: '/ operator for division.'),
 
   /// Deprecation for leading, trailing, and repeated combinators.
-  bogusCombinators('bogus-combinators', deprecatedIn: '1.54.0'),
+  bogusCombinators('bogus-combinators',
+      deprecatedIn: '1.54.0',
+      description: 'Leading, trailing, and repeated combinators.'),
 
   /// Deprecation for SassScript boolean operators in `@media` queries.
   mediaLogic('media-logic', deprecatedIn: '1.54.0'),
 
   /// Deprecation for passing numbers with units to `math.random()`.
-  randomWithUnits('random-with-units', deprecatedIn: '1.54.5'),
+  randomWithUnits('random-with-units',
+      deprecatedIn: '1.54.5',
+      description: 'Passing numbers with units to math.random().'),
 
   /// Deprecation for ambiguous `+` and `-` operators.
-  strictUnary('strict-unary', deprecatedIn: '1.55.0'),
+  strictUnary('strict-unary',
+      deprecatedIn: '1.55.0', description: 'Ambiguous + and - operators.'),
 
   /// Deprecation for `@import` rules.
-  import('import', deprecatedIn: null),
+  import('import', deprecatedIn: null, description: '@import rules.'),
 
   /// Used for deprecations of an unknown type.
-  unknown('unknown', deprecatedIn: null);
+  ///
+  /// We set its deprecated-in version to 1000.0.0 so that it won't be made
+  /// fatal by passing a Sass version to --fatal-deprecation.
+  unknown('unknown', deprecatedIn: '1000.0.0');
 
   /// A unique ID for this deprecation in kebab case.
   ///
@@ -58,18 +83,27 @@ enum Deprecation {
   /// should be 0.0.0. For deprecations that are not yet active, this should be
   /// null.
   final String? deprecatedIn;
-  const Deprecation(this.id, {required this.deprecatedIn});
+
+  /// A description of this deprecation that will be displayed in the CLI usage.
+  ///
+  /// If this is null, the given deprecation will not be listed.
+  final String? description;
+
+  const Deprecation(this.id, {required this.deprecatedIn, this.description});
 
   @override
   String toString() => id;
 
+  /// Returns the deprecation with a given ID, or null if none exists.
+  static Deprecation? fromId(String id) => Deprecation.values
+      .firstWhereOrNull((deprecation) => deprecation.id == id);
+
   /// Returns the set of all deprecations done in or before [version].
-  static Set<Deprecation> forVersion(String version) {
-    var maxVersion = Version.parse(version);
+  static Set<Deprecation> forVersion(Version version) {
     return {
       for (var deprecation in Deprecation.values)
         if (deprecation.deprecatedIn != null &&
-            Version.parse(deprecation.deprecatedIn!) <= maxVersion)
+            Version.parse(deprecation.deprecatedIn!) <= version)
           deprecation
     };
   }

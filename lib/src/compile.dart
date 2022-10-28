@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 75dc8b82947cdddaa2284a3e29cfc616c40b1a78
+// Checksum: 6841a94168f5bcda5e026da4b1a8dbb5c0e1ff18
 //
 // ignore_for_file: unused_import
 
@@ -50,13 +50,11 @@ CompileResult compile(String path,
     bool charset = true,
     Set<Deprecation> fatalDeprecations = const {},
     Set<Deprecation> futureDeprecations = const {}}) {
-  DeprecationHandlingLogger? deprecationLogger;
-  if (!verbose) {
-    logger = deprecationLogger = DeprecationHandlingLogger(
-        logger ?? Logger.stderr(),
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
-  }
+  DeprecationHandlingLogger deprecationLogger = logger =
+      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+          fatalDeprecations: fatalDeprecations,
+          futureDeprecations: futureDeprecations,
+          limitRepetition: !verbose);
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -88,7 +86,7 @@ CompileResult compile(String path,
       sourceMap,
       charset);
 
-  deprecationLogger?.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(node: nodeImporter != null);
   return result;
 }
 
@@ -116,13 +114,11 @@ CompileResult compileString(String source,
     bool charset = true,
     Set<Deprecation> fatalDeprecations = const {},
     Set<Deprecation> futureDeprecations = const {}}) {
-  DeprecationHandlingLogger? deprecationLogger;
-  if (!verbose) {
-    logger = deprecationLogger = DeprecationHandlingLogger(
-        logger ?? Logger.stderr(),
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
-  }
+  DeprecationHandlingLogger deprecationLogger = logger =
+      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+          fatalDeprecations: fatalDeprecations,
+          futureDeprecations: futureDeprecations,
+          limitRepetition: !verbose);
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
@@ -142,7 +138,7 @@ CompileResult compileString(String source,
       sourceMap,
       charset);
 
-  deprecationLogger?.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(node: nodeImporter != null);
   return result;
 }
 

@@ -4,6 +4,7 @@
 
 import 'package:meta/meta.dart';
 
+import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../visitor/any_selector.dart';
@@ -88,7 +89,7 @@ abstract class Selector {
                 'This will be an error in Dart Sass 2.0.0.\n'
                 '\n'
                 'More info: https://sass-lang.com/d/bogus-combinators',
-        deprecation: true);
+        deprecationType: Deprecation.unknown);
   }
 
   /// Calls the appropriate visit method on [visitor].

@@ -32,19 +32,33 @@ class DeprecationHandlingLogger implements Logger {
   /// Future deprecations that the user has explicitly opted into.
   final Set<Deprecation> futureDeprecations;
 
+  /// Whether repetitions of the same warning should be limited to no more than
+  /// [_maxRepetitions].
+  final bool limitRepetition;
+
   DeprecationHandlingLogger(this._inner,
-      {required this.fatalDeprecations, required this.futureDeprecations});
+      {required this.fatalDeprecations,
+      required this.futureDeprecations,
+      this.limitRepetition = true});
 
   void warn(String message,
       {FileSpan? span, Trace? trace, bool deprecation = false}) {
     _inner.warn(message, span: span, trace: trace, deprecation: deprecation);
   }
 
+  /// Processes a deprecation warning.
+  ///
+  /// If [deprecation] is in [fatalDeprecations], this shows an error.
+  ///
+  /// If it's a future deprecation that hasn't been opted into or its a
+  /// deprecation that's already been warned for [_maxReptitions] times and
+  /// [limitRepetitions] is true, the warning is dropped.
+  ///
+  /// Otherwise, this is passed on to [warn].
   void handleDeprecationWarning(
       Deprecation deprecation, String message, FileSpan? span, Trace? trace) {
-    // Throw an exception if a deprecation is fatal.
     if (fatalDeprecations.contains(deprecation)) {
-      message += '\nThis is only an error because of '
+      message += '\n\nThis is only an error because of '
           '--fatal-deprecation=$deprecation.\n'
           'Remove this flag if you still need to use this feature.';
       if (span != null && trace != null) {
@@ -54,15 +68,16 @@ class DeprecationHandlingLogger implements Logger {
       throw SassException(message, span);
     }
 
-    // Only emit a future deprecation warning if the user has opted-in.
     if (deprecation.deprecatedIn == null &&
         !futureDeprecations.contains(deprecation)) {
       return;
     }
 
-    var count =
-        _warningCounts[deprecation] = (_warningCounts[deprecation] ?? 0) + 1;
-    if (count > _maxRepetitions) return;
+    if (limitRepetition) {
+      var count =
+          _warningCounts[deprecation] = (_warningCounts[deprecation] ?? 0) + 1;
+      if (count > _maxRepetitions) return;
+    }
 
     warn(message, span: span, trace: trace, deprecation: true);
   }
@@ -70,7 +85,7 @@ class DeprecationHandlingLogger implements Logger {
   void debug(String message, SourceSpan span) => _inner.debug(message, span);
 
   /// Prints a warning indicating the number of deprecation warnings that were
-  /// omitted.
+  /// omitted due to repetition.
   ///
   /// The [node] flag indicates whether this is running in Node.js mode, in
   /// which case it doesn't mention "verbose mode" because the Node API doesn't
