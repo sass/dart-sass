@@ -671,7 +671,7 @@ void _checkAngle(SassNumber angle, String name) {
     var actualUnit = angle.numeratorUnits.first;
     message
       ..writeln(
-          "To preserve current behavior: calc(\$$name * " "1deg/1$actualUnit)")
+          "To preserve current behavior: calc(\$$name * 1deg/1$actualUnit)")
       ..writeln("To migrate to new behavior: 0deg + \$$name")
       ..writeln();
   } else {
