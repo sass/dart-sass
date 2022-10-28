@@ -1,5 +1,9 @@
 ## 1.55.1
 
+* **Potentially breaking bug fix:** Angle units like `rad` or `turn` are now
+  properly converted to equivalent `deg` values for `hsl()`, `hsla()`,
+  `adjust-hue()`, `color.adjust()`, and `color.change()`.
+
 * Fix indentation for selectors that span multiple lines in a `@media` query.
 
 * Emit a deprecation warning when passing `$alpha` values with units to
