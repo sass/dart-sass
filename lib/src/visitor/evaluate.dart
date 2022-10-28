@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c70a4193cc291f298f601a5cc371be9eac71fb74
+// Checksum: a14e075a5435c7457d1d1371d8b97dd327a66ec4
 //
 // ignore_for_file: unused_import
 
@@ -1643,6 +1643,8 @@ class _EvaluateVisitor
       }
     } on SassException catch (error, stackTrace) {
       throwWithTrace(_exception(error.message, error.span), stackTrace);
+    } on ArgumentError catch (error, stackTrace) {
+      throwWithTrace(_exception(error.toString()), stackTrace);
     } catch (error, stackTrace) {
       String? message;
       try {

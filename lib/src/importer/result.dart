@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:sass/src/node/utils.dart';
 
 import '../importer.dart';
 import '../syntax.dart';
@@ -44,7 +45,10 @@ class ImporterResult {
       @Deprecated("Use the syntax parameter instead.") bool? indented})
       : _sourceMapUrl = sourceMapUrl,
         syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
-    if (sourceMapUrl?.scheme == '') {
+    if (!isJsString(contents)) {
+      throw ArgumentError.value(contents, 'contents',
+          'must be a string but was: ${jsType(contents)}');
+    } else if (sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(
           sourceMapUrl, 'sourceMapUrl', 'must be absolute');
     } else if (syntax == null && indented == null) {
