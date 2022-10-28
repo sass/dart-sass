@@ -1,3 +1,8 @@
+## 4.0.1
+
+* No user-visible changes, other than the API changes in version 1.56.0 of the
+  main Sass package that this package exports.
+
 ## 4.0.0
 
 ### Dart API

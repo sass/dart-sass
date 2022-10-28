@@ -1,3 +1,35 @@
+## 1.56.0
+
+### Command Line Interface
+
+* New `--fatal-deprecation` flag that lets you treat a deprecation warning as
+  an error. You can pass an individual deprecation ID (e.g. `slash-div`) or you
+  can pass a Dart Sass version to treat all deprecations initially emitted in
+  that version or earlier as errors.
+
+* New `--future-deprecation` flag that lets you opt into warning for use of
+  certain features that will be deprecated in the future. At the moment, the
+  only option is `--future-deprecation=import`, which will emit warnings for
+  Sass `@import` rules, which are not yet deprecated, but will be in the future.
+
+### Dart API
+
+* New `Deprecation` enum, which contains the different current and future
+  deprecations used by the new CLI flags.
+
+* The optional `deprecation` boolean parameter of the `warn` function is now
+  deprecated. Use `deprecationType` to pass the specific `Deprecation` being
+  warned for instead.
+
+* Calling `Logger.warn` with the `deprecation` parameter is similarly
+  deprecated. To ensure that a deprecation warning can be properly handled by
+  the new flags, deprecation warnings should use the new `warnForDeprecation`
+  extension method on `Logger` instead.
+
+* The `compile` methods now take in `fatalDeprecations` and `futureDeprecations`
+  parameters, which work similarly to the CLI flags.
+
+
 ## 1.55.1
 
 * Fix indentation for selectors that span multiple lines in a `@media` query.
