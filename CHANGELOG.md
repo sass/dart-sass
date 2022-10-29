@@ -14,9 +14,14 @@
   @media (width >= 500px) and (false)
   ```
 
+  See [the Sass website](https://sass-lang.com/d/media-logic) for details.
+
 * **Potentially breaking bug fix:** Angle units like `rad` or `turn` are now
   properly converted to equivalent `deg` values for `hsl()`, `hsla()`,
   `adjust-hue()`, `color.adjust()`, and `color.change()`.
+
+  See [the Sass website](https://sass-lang.com/d/function-units#hue) for
+  details.
 
 * Fix indentation for selectors that span multiple lines in a `@media` query.
 
@@ -24,12 +29,21 @@
   `color.adjust()` or `color.change()`. This will be an error in Dart Sass
   2.0.0.
 
+  See [the Sass website](https://sass-lang.com/d/function-units#alpha) for
+  details.
+
 * Emit a deprecation warning when passing a `$weight` value with no units or
   with units other than `%` to `color.mix()`. This will be an error in Dart Sass
   2.0.0.
 
+  See [the Sass website](https://sass-lang.com/d/function-units#weight) for
+  details.
+
 * Emit a deprecation warning when passing `$n` values with units to `list.nth()`
   or `list.set-nth()`. This will be an error in Dart Sass 2.0.0.
+
+  See [the Sass website](https://sass-lang.com/d/function-units#index) for
+  details.
 
 * Improve existing deprecation warnings to wrap `/`-as-division suggestions in
   `calc()` expressions.
