@@ -1,4 +1,18 @@
-## 1.55.1
+## 1.56.0
+
+* **Potentially breaking change:** To match the CSS spec, SassScript expressions
+  beginning with `not` or `(` are no longer supported at the beginning of
+  parenthesized sections of media queries. For example,
+
+  ```scss
+  @media (width >= 500px) and (not (grid))
+  ```
+
+  will now be emitted unchanged, instead of producing
+
+  ```scss
+  @media (width >= 500px) and (false)
+  ```
 
 * **Potentially breaking bug fix:** Angle units like `rad` or `turn` are now
   properly converted to equivalent `deg` values for `hsl()`, `hsla()`,
