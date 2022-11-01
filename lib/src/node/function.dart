@@ -14,6 +14,9 @@ class JSFunction {
   /// The function body must declare a `return` statement in order to return a
   /// value, otherwise it returns [JSNull].
   ///
+  /// Note: The function body must be compatible with Node 12. Null coalescing
+  /// and optional chaining features are not supported.
+  ///
   /// Examples:
   /// ```dart
   /// var sum = JSFunction('a', 'b', 'return a + b');

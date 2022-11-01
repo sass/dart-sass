@@ -83,10 +83,12 @@ String _jsTypeOf(Object? object) =>
 /// [value]'s JS class name.
 String jsType(Object? value) {
   var typeOf = _jsTypeOf(value);
-  return typeOf != 'object'
-      ? typeOf
-      : JSFunction('value', 'return value?.constructor?.name || "object"')
-          .call(value) as String;
+  return typeOf != 'object' ? typeOf : JSFunction('value', '''
+    if (value && value.constructor && value.constructor.name) {
+      return value.constructor.name;
+    }
+    return "object";
+  ''').call(value) as String;
 }
 
 @JS("Object.defineProperty")
