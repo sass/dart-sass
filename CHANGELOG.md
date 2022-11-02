@@ -51,6 +51,10 @@
 * Properly mark the warning for passing numbers with units to `random()` as a
   deprecation warning.
 
+* Fix a bug where `@extend` could behave unpredicatably when used along with
+  `meta.load-css()` and shared modules that contained no CSS themselves but
+  loaded CSS from other modules.
+
 ### Dart API
 
 * Emit a deprecation warning when passing a `sassIndex` with units to

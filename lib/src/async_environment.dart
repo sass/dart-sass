@@ -1014,7 +1014,7 @@ class _EnvironmentModule implements Module {
   }
 
   Module cloneCss() {
-    if (css.children.isEmpty) return this;
+    if (!transitivelyContainsCss) return this;
 
     var newCssAndExtensionStore = cloneCssStylesheet(css, extensionStore);
     return _EnvironmentModule._(
