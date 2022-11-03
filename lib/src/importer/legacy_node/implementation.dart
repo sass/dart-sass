@@ -183,6 +183,11 @@ class NodeImporter {
 
     var file = value.file;
     var contents = value.contents;
+    if (contents != null && !isJsString(contents)) {
+      jsThrow(ArgumentError.value(contents, 'contents',
+          'must be a string but was: ${jsType(contents)}'));
+    }
+
     if (file == null) {
       return Tuple2(contents ?? '', url);
     } else if (contents != null) {

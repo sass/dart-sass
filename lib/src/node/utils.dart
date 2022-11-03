@@ -72,6 +72,25 @@ void jsForEach(Object object, void callback(String key, Object? value)) {
 /// returns `null`.
 Object? jsEval(String js) => JSFunction('', js).call();
 
+/// Returns whether the [object] is a JS `string`.
+bool isJsString(Object? object) => _jsTypeOf(object) == 'string';
+
+/// Returns the [object]'s `typeof` according to the JS engine.
+String _jsTypeOf(Object? object) =>
+    JSFunction("value", "return typeof value").call(object) as String;
+
+/// Returns `typeof value` if [value] is a native type, otherwise returns the
+/// [value]'s JS class name.
+String jsType(Object? value) {
+  var typeOf = _jsTypeOf(value);
+  return typeOf != 'object' ? typeOf : JSFunction('value', '''
+    if (value && value.constructor && value.constructor.name) {
+      return value.constructor.name;
+    }
+    return "object";
+  ''').call(value) as String;
+}
+
 @JS("Object.defineProperty")
 external void _defineProperty(
     Object object, String name, _PropertyDescriptor prototype);

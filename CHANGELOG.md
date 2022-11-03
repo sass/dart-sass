@@ -60,6 +60,12 @@
 * Emit a deprecation warning when passing a `sassIndex` with units to
   `Value.sassIndexToListIndex()`. This will be an error in Dart Sass 2.0.0.
 
+### JS API
+
+* Importer results now validate whether `contents` is actually a string type.
+
+* Importer result argument errors are now rendered correctly.
+
 ## 1.55.0
 
 * **Potentially breaking bug fix:** Sass numbers are now universally stored as
