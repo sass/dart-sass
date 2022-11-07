@@ -1,3 +1,7 @@
+## 1.56.1
+
+* No user-visible changes.
+
 ## 1.56.0
 
 * **Potentially breaking change:** To match the CSS spec, SassScript expressions
