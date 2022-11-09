@@ -1,3 +1,10 @@
+## 1.56.1
+
+### Embedded Sass
+
+* Importer results now validate that `contents` is actually a string and whether
+  `sourceMapUrl` is an absolute URL.
+
 ## 1.56.0
 
 * **Potentially breaking change:** To match the CSS spec, SassScript expressions
