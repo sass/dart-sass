@@ -10,9 +10,7 @@ import 'dart:typed_data';
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:path/path.dart' as p;
-import 'package:tuple/tuple.dart';
 
-import '../ast/sass.dart';
 import '../callable.dart';
 import '../compile.dart';
 import '../compile_result.dart';
@@ -21,7 +19,6 @@ import '../importer/legacy_node.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../logger/node_to_dart.dart';
-import '../parse/scss.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
 import '../utils.dart';
@@ -208,22 +205,12 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
 
   var result = <AsyncCallable>[];
   jsForEach(functions, (signature, callback) {
-    Tuple2<String, ArgumentDeclaration> tuple;
-    try {
-      tuple = ScssParser(signature).parseSignature(requireParens: false);
-    } on SassFormatException catch (error, stackTrace) {
-      throwWithTrace(
-          SassFormatException(
-              'Invalid signature "$signature": ${error.message}', error.span),
-          stackTrace);
-    }
-
     var context = RenderContext(options: _contextOptions(options, start));
     context.options.context = context;
 
     var fiber = options.fiber;
     if (fiber != null) {
-      result.add(BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
+      result.add(Callable.host(signature, (arguments) {
         var currentFiber = fiber.current;
         var jsArguments = [
           ...arguments.map(wrapValue),
@@ -240,16 +227,15 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
             // `Zone.current` in an inconsistent state.
             ? runZoned(() => fiber.yield())
             : result);
-      }));
+      }, requireParens: false));
     } else if (!asynch) {
-      result.add(BuiltInCallable.parsed(
-          tuple.item1,
-          tuple.item2,
+      result.add(Callable.host(
+          signature,
           (arguments) => unwrapValue((callback as JSFunction)
-              .apply(context, arguments.map(wrapValue).toList()))));
+              .apply(context, arguments.map(wrapValue).toList())),
+          requireParens: false));
     } else {
-      result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
-          (arguments) async {
+      result.add(AsyncCallable.host(signature, (arguments) async {
         var completer = Completer<Object?>();
         var jsArguments = [
           ...arguments.map(wrapValue),
@@ -258,7 +244,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
         var result = (callback as JSFunction).apply(context, jsArguments);
         return unwrapValue(
             isUndefined(result) ? await completer.future : result);
-      }));
+      }, requireParens: false));
     }
   });
   return result;

@@ -5,8 +5,11 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
+import 'package:tuple/tuple.dart';
 
+import '../ast/sass.dart';
 import '../exception.dart';
+import '../util/function_signature.dart';
 import '../value.dart';
 import 'async_built_in.dart';
 
@@ -40,4 +43,15 @@ abstract class AsyncCallable {
   factory AsyncCallable.function(String name, String arguments,
           FutureOr<Value> callback(List<Value> arguments)) =>
       AsyncBuiltInCallable.function(name, arguments, callback);
+
+  /// Creates a host callable with a single [signature] and a single [callback].
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  factory AsyncCallable.host(
+      String signature, FutureOr<Value> callback(List<Value> arguments),
+      {bool requireParens = true}) {
+    Tuple2<String, ArgumentDeclaration> tuple =
+        parseSignature(signature, requireParens: requireParens);
+    return AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2, callback);
+  }
 }
