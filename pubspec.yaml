@@ -32,4 +32,6 @@ dev_dependencies:
   pubspec_parse: ^1.0.0
   pub_semver: ^2.0.0
   sass_analysis:
-    git: {url: https://github.com/sass/dart-sass.git, path: analysis}
+    git:
+      url: https://github.com/sass/dart-sass.git
+      path: analysis
