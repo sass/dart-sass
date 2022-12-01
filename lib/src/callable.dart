@@ -121,10 +121,11 @@ abstract class Callable extends AsyncCallable {
           Value callback(List<Value> arguments)) =>
       BuiltInCallable.function(name, arguments, callback);
 
-  /// Creates a host callable with a single [signature] and a single [callback].
+  /// Creates a callable with a single [signature] and a single [callback].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Callable.host(String signature, Value callback(List<Value> arguments),
+  factory Callable.fromSignature(
+      String signature, Value callback(List<Value> arguments),
       {bool requireParens = true}) {
     Tuple2<String, ArgumentDeclaration> tuple =
         parseSignature(signature, requireParens: requireParens);

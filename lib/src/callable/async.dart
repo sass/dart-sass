@@ -44,10 +44,10 @@ abstract class AsyncCallable {
           FutureOr<Value> callback(List<Value> arguments)) =>
       AsyncBuiltInCallable.function(name, arguments, callback);
 
-  /// Creates a host callable with a single [signature] and a single [callback].
+  /// Creates a callable with a single [signature] and a single [callback].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory AsyncCallable.host(
+  factory AsyncCallable.fromSignature(
       String signature, FutureOr<Value> callback(List<Value> arguments),
       {bool requireParens = true}) {
     Tuple2<String, ArgumentDeclaration> tuple =

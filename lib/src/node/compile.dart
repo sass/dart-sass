@@ -231,24 +231,24 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
   var result = <AsyncCallable>[];
   jsForEach(functions, (signature, callback) {
     if (!asynch) {
-      Callable? callable;
-      callable = Callable.host(signature, (arguments) {
+      late Callable callable;
+      callable = Callable.fromSignature(signature, (arguments) {
         var result = (callback as Function)(toJSArray(arguments));
         if (result is Value) return result;
         if (isPromise(result)) {
           throw 'Invalid return value for custom function '
-              '"${callable!.name}":\n'
+              '"${callable.name}":\n'
               'Promises may only be returned for sass.compileAsync() and '
               'sass.compileStringAsync().';
         } else {
           throw 'Invalid return value for custom function '
-              '"${callable!.name}": $result is not a sass.Value.';
+              '"${callable.name}": $result is not a sass.Value.';
         }
       });
       result.add(callable);
     } else {
-      AsyncCallable? callable;
-      callable = AsyncCallable.host(signature, (arguments) async {
+      late AsyncCallable callable;
+      callable = AsyncCallable.fromSignature(signature, (arguments) async {
         var result = (callback as Function)(toJSArray(arguments));
         if (isPromise(result)) {
           result = await promiseToFuture<Object>(result as Promise);
@@ -256,7 +256,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
 
         if (result is Value) return result;
         throw 'Invalid return value for custom function '
-            '"${callable!.name}": $result is not a sass.Value.';
+            '"${callable.name}": $result is not a sass.Value.';
       });
       result.add(callable);
     }
