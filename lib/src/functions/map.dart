@@ -15,6 +15,7 @@ import '../value.dart';
 /// The global definitions of Sass map functions.
 final global = UnmodifiableListView([
   _get.withName("map-get"),
+  _fetch.withName("map-fetch"),
   _merge.withName("map-merge"),
   _remove.withName("map-remove"),
   _keys.withName("map-keys"),
@@ -25,6 +26,7 @@ final global = UnmodifiableListView([
 /// The Sass map module.
 final module = BuiltInModule("map", functions: <Callable>[
   _get,
+  _fetch,
   _set,
   _merge,
   _remove,
@@ -47,6 +49,26 @@ final _get = _function("get", r"$map, $key, $keys...", (arguments) {
     }
   }
   return map.contents[keys.last] ?? sassNull;
+});
+
+final _fetch = _function("fetch", r"$map, $key, $keys...", (arguments) {
+  var map = arguments[0].assertMap("map");
+  var keys = [arguments[1], ...arguments[2].asList];
+  for (var key in keys.exceptLast) {
+    if (!map.contents.containsKey(key)) {
+      throw SassScriptException("Key not found: $key.");
+    }
+    var value = map.contents[key];
+    if (value is SassMap) {
+      map = value;
+    } else {
+      throw SassScriptException("Map not found at $key.");
+    }
+  }
+  if (!map.contents.containsKey(keys.last)) {
+    throw SassScriptException("Key not found: ${keys.last}.");
+  }
+  return map.contents[keys.last]!;
 });
 
 final _set = BuiltInCallable.overloadedFunction("set", {
