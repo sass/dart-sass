@@ -8,6 +8,7 @@ import 'package:collection/collection.dart';
 
 import '../callable.dart';
 import '../value.dart';
+import '../visitor/serialize.dart';
 
 /// Feature names supported by Dart sass.
 final _features = {
@@ -28,8 +29,11 @@ final global = UnmodifiableListView([
     return SassBoolean(_features.contains(feature.text));
   }),
 
-  _function("inspect", r"$value",
-      (arguments) => SassString(arguments.first.toString(), quotes: false)),
+  _function(
+      "inspect",
+      r"$value",
+      (arguments) => SassString(serializeValue(arguments.first, inspect: true),
+          quotes: false)),
 
   _function("type-of", r"$value", (arguments) {
     var value = arguments[0];

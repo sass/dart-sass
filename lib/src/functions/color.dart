@@ -19,6 +19,11 @@ import '../value.dart';
 /// filter declaration.
 final _microsoftFilterStart = RegExp(r'^[a-zA-Z]+\s*=');
 
+/// If a special number string is detected in these color spaces, even if they
+/// were using the one-argument function syntax, we convert it to the three- or
+/// four- argument comma-separated syntax for broader browser compatibility.
+const _specialCommaSpaces = {ColorSpace.rgb, ColorSpace.hsl};
+
 /// The global definitions of Sass color functions.
 final global = UnmodifiableListView([
   // ### RGB
@@ -28,46 +33,22 @@ final global = UnmodifiableListView([
     r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgb", arguments),
     r"$red, $green, $blue": (arguments) => _rgb("rgb", arguments),
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgb", arguments),
-    r"$channels": (arguments) {
-      var parsed = _parseChannels(
-          "rgb", [r"$red", r"$green", r"$blue"], arguments.first);
-      return parsed is SassString ? parsed : _rgb("rgb", parsed as List<Value>);
-    }
+    r"$channels": (arguments) => _parseChannels("rgb", arguments[0],
+        space: ColorSpace.rgb, name: 'channels')
   }),
 
   BuiltInCallable.overloadedFunction("rgba", {
     r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgba", arguments),
     r"$red, $green, $blue": (arguments) => _rgb("rgba", arguments),
     r"$color, $alpha": (arguments) => _rgbTwoArg("rgba", arguments),
-    r"$channels": (arguments) {
-      var parsed = _parseChannels(
-          "rgba", [r"$red", r"$green", r"$blue"], arguments.first);
-      return parsed is SassString
-          ? parsed
-          : _rgb("rgba", parsed as List<Value>);
-    }
+    r"$channels": (arguments) => _parseChannels('rgba', arguments[0],
+        space: ColorSpace.rgb, name: 'channels')
   }),
 
-  _function("invert", r"$color, $weight: 100%", (arguments) {
-    var weight = arguments[1].assertNumber("weight");
-    if (arguments[0] is SassNumber) {
-      if (weight.value != 100 || !weight.hasUnit("%")) {
-        throw "Only one argument may be passed to the plain-CSS invert() "
-            "function.";
-      }
-
-      return _functionString("invert", arguments.take(1));
-    }
-
-    var color = arguments[0].assertColor("color");
-    var inverse = color.changeRgb(
-        red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
-
-    return _mixColors(inverse, color, weight);
-  }),
+  _function("invert", r"$color, $weight: 100%, $space: null", _invert),
 
   // ### HSL
-  _hue, _saturation, _lightness, _complement,
+  _hue, _saturation, _lightness,
 
   BuiltInCallable.overloadedFunction("hsl", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
@@ -82,11 +63,8 @@ final global = UnmodifiableListView([
         throw SassScriptException(r"Missing argument $lightness.");
       }
     },
-    r"$channels": (arguments) {
-      var parsed = _parseChannels(
-          "hsl", [r"$hue", r"$saturation", r"$lightness"], arguments.first);
-      return parsed is SassString ? parsed : _hsl("hsl", parsed as List<Value>);
-    }
+    r"$channels": (arguments) => _parseChannels('hsl', arguments[0],
+        space: ColorSpace.hsl, name: 'channels')
   }),
 
   BuiltInCallable.overloadedFunction("hsla", {
@@ -100,23 +78,16 @@ final global = UnmodifiableListView([
         throw SassScriptException(r"Missing argument $lightness.");
       }
     },
-    r"$channels": (arguments) {
-      var parsed = _parseChannels(
-          "hsla", [r"$hue", r"$saturation", r"$lightness"], arguments.first);
-      return parsed is SassString
-          ? parsed
-          : _hsl("hsla", parsed as List<Value>);
-    }
+    r"$channels": (arguments) => _parseChannels('hsla', arguments[0],
+        space: ColorSpace.hsl, name: 'channels')
   }),
 
-  _function("grayscale", r"$color", (arguments) {
-    if (arguments[0] is SassNumber) {
-      return _functionString('grayscale', arguments);
-    }
-
-    var color = arguments[0].assertColor("color");
-    return color.changeHsl(saturation: 0);
-  }),
+  _function(
+      "grayscale",
+      r"$color",
+      (arguments) => arguments[0] is SassNumber
+          ? _functionString('grayscale', arguments)
+          : _grayscale(arguments[0])),
 
   _function("adjust-hue", r"$color, $degrees", (arguments) {
     var color = arguments[0].assertColor("color");
@@ -211,6 +182,46 @@ final global = UnmodifiableListView([
     return SassNumber(color.alpha);
   }),
 
+  // ### Color Spaces
+
+  _function(
+      "color",
+      r"$description",
+      (arguments) =>
+          _parseChannels("color", arguments[0], name: 'description')),
+
+  _function(
+      "hwb",
+      r"$channels",
+      (arguments) => _parseChannels("hwb", arguments[0],
+          space: ColorSpace.hwb, name: 'channels')),
+
+  _function(
+      "lab",
+      r"$channels",
+      (arguments) => _parseChannels("lab", arguments[0],
+          space: ColorSpace.lab, name: 'channels')),
+
+  _function(
+      "lch",
+      r"$channels",
+      (arguments) => _parseChannels("lch", arguments[0],
+          space: ColorSpace.lch, name: 'channels')),
+
+  _function(
+      "oklab",
+      r"$channels",
+      (arguments) => _parseChannels("oklab", arguments[0],
+          space: ColorSpace.oklab, name: 'channels')),
+
+  _function(
+      "oklch",
+      r"$channels",
+      (arguments) => _parseChannels("oklch", arguments[0],
+          space: ColorSpace.oklch, name: 'channels')),
+
+  _complement,
+
   // ### Miscellaneous
   _ieHexStr,
   _adjust.withName("adjust-color"),
@@ -223,33 +234,21 @@ final module = BuiltInModule("color", functions: <Callable>[
   // ### RGB
   _red, _green, _blue, _mix,
 
-  _function("invert", r"$color, $weight: 100%", (arguments) {
-    var weight = arguments[1].assertNumber("weight");
-    if (arguments[0] is SassNumber) {
-      if (weight.value != 100 || !weight.hasUnit("%")) {
-        throw "Only one argument may be passed to the plain-CSS invert() "
-            "function.";
-      }
-
-      var result = _functionString("invert", arguments.take(1));
+  _function("invert", r"$color, $weight: 100%, $space: null", (arguments) {
+    var result = _invert(arguments);
+    if (result is SassString) {
       warn(
           "Passing a number (${arguments[0]}) to color.invert() is "
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
           deprecation: true);
-      return result;
     }
-
-    var color = arguments[0].assertColor("color");
-    var inverse = color.changeRgb(
-        red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
-
-    return _mixColors(inverse, color, weight);
+    return result;
   }),
 
   // ### HSL
-  _hue, _saturation, _lightness, _complement,
+  _hue, _saturation, _lightness,
   _removedColorFunction("adjust-hue", "hue"),
   _removedColorFunction("lighten", "lightness"),
   _removedColorFunction("darken", "lightness", negative: true),
@@ -268,24 +267,21 @@ final module = BuiltInModule("color", functions: <Callable>[
       return result;
     }
 
-    var color = arguments[0].assertColor("color");
-    return color.changeHsl(saturation: 0);
+    return _grayscale(arguments[0]);
   }),
 
   // ### HWB
   BuiltInCallable.overloadedFunction("hwb", {
-    r"$hue, $whiteness, $blackness, $alpha: 1": (arguments) => _hwb(arguments),
-    r"$channels": (arguments) {
-      var parsed = _parseChannels(
-          "hwb", [r"$hue", r"$whiteness", r"$blackness"], arguments.first);
-
-      // `hwb()` doesn't (currently) support special number or variable strings.
-      if (parsed is SassString) {
-        throw SassScriptException('Expected numeric channels, got "$parsed".');
-      } else {
-        return _hwb(parsed as List<Value>);
-      }
-    }
+    r"$hue, $whiteness, $blackness, $alpha: 1": (arguments) => _parseChannels(
+        'hwb',
+        SassList([
+          SassList(
+              [arguments[0], arguments[1], arguments[2]], ListSeparator.space),
+          arguments[3]
+        ], ListSeparator.slash),
+        space: ColorSpace.hwb),
+    r"$channels": (arguments) => _parseChannels('hwb', arguments[0],
+        space: ColorSpace.hwb, name: 'channels')
   }),
 
   _function(
@@ -361,6 +357,87 @@ final module = BuiltInModule("color", functions: <Callable>[
     return SassNumber(color.alpha);
   }),
 
+  // ### Color Spaces
+  _function(
+      "space",
+      r"$color",
+      (arguments) => SassString(arguments.first.assertColor("color").space.name,
+          quotes: false)),
+
+  _function(
+      "to-space",
+      r"$color, $space",
+      (arguments) =>
+          _colorInSpace(arguments[0], arguments[1].assertString("space"))),
+
+  _function("is-legacy", r"$color",
+      (arguments) => SassBoolean(arguments[0].assertColor("color").isLegacy)),
+
+  _function(
+      "is-in-gamut",
+      r"$color, $space: null",
+      (arguments) =>
+          SassBoolean(_colorInSpace(arguments[0], arguments[1]).isInGamut)),
+
+  _function("to-gamut", r"$color, $space: null", (arguments) {
+    var color = arguments[0].assertColor("color");
+    var space = _spaceOrDefault(color, arguments[1], "space");
+    if (!space.isBounded) return color;
+
+    return color
+        .toSpace(
+            space == ColorSpace.hsl || space == ColorSpace.hwb
+                ? ColorSpace.srgb
+                : space,
+            "color")
+        .toGamut()
+        .toSpace(space);
+  }),
+
+  _function("channel", r"$color, $channel, $space: null", (arguments) {
+    var color = _colorInSpace(arguments[0], arguments[2]);
+    var channelName = arguments[1].assertString("channel").text.toLowerCase();
+    if (channelName == "alpha") return SassNumber(color.alpha);
+
+    var channelIndex = color.space.channels
+        .indexWhere((channel) => channel.name == channelName);
+    if (channelIndex == -1) {
+      throw SassScriptException(
+          "Color $color has no channel named $channelName.", "channel");
+    }
+
+    var channelInfo = color.space.channels[channelIndex];
+    var channelValue = color.channels[channelIndex];
+
+    return channelInfo is LinearChannel
+        ? SassNumber(channelValue,
+            channelInfo.min == 0 && channelInfo.max == 100 ? '%' : null)
+        : SassNumber(channelValue, 'deg');
+  }),
+
+  _function("same", r"$color1, $color2", (arguments) {
+    var color1 = arguments[0].assertColor('color1');
+    var color2 = arguments[1].assertColor('color2');
+
+    // Convert both colors into the same space to compare them. Usually we
+    // just use color1's space, but since HSL and HWB can't represent
+    // out-of-gamut colors we use RGB for all legacy color spaces.
+    var targetSpace = color1.isLegacy ? ColorSpace.rgb : color1.space;
+    return SassBoolean(
+        color1.toSpace(targetSpace) == color2.toSpace(targetSpace));
+  }),
+
+  _function(
+      "is-powerless",
+      r"$color, $channel, $space: null",
+      (arguments) => SassBoolean(_colorInSpace(arguments[0], arguments[2])
+          .isChannelPowerless(
+              arguments[1].assertString("channel").text.toLowerCase(),
+              colorName: "color",
+              channelName: "channel"))),
+
+  _complement,
+
   // Miscellaneous
   _adjust, _scale, _change, _ieHexStr
 ]);
@@ -379,11 +456,34 @@ final _blue = _function("blue", r"$color", (arguments) {
   return SassNumber(arguments.first.assertColor("color").blue);
 });
 
-final _mix = _function("mix", r"$color1, $color2, $weight: 50%", (arguments) {
+final _mix = _function("mix", r"$color1, $color2, $weight: 50%, $method: null",
+    (arguments) {
   var color1 = arguments[0].assertColor("color1");
   var color2 = arguments[1].assertColor("color2");
   var weight = arguments[2].assertNumber("weight");
-  return _mixColors(color1, color2, weight);
+
+  if (arguments[3] != sassNull) {
+    return color1.interpolate(
+        color2, InterpolationMethod.fromValue(arguments[3], "method"),
+        weight: weight.valueInRangeWithUnit(0, 100, "weight", "%") / 100,
+        thisName: "color1",
+        otherName: "color2");
+  }
+
+  _checkPercent(weight, "weight");
+  if (!color1.isLegacy) {
+    throw SassScriptException(
+        "To use color.mix() with non-legacy color $color1, you must provide a "
+            "\$method.",
+        "color1");
+  } else if (!color2.isLegacy) {
+    throw SassScriptException(
+        "To use color.mix() with non-legacy color $color1, you must provide a "
+            "\$method.",
+        "color1");
+  }
+
+  return _mixLegacy(color1, color2, weight);
 });
 
 // ### HSL
@@ -403,10 +503,124 @@ final _lightness = _function(
     (arguments) =>
         SassNumber(arguments.first.assertColor("color").lightness, "%"));
 
-final _complement = _function("complement", r"$color", (arguments) {
+// ### Color Spaces
+
+final _complement =
+    _function("complement", r"$color, $space: null", (arguments) {
   var color = arguments[0].assertColor("color");
-  return color.changeHsl(hue: color.hue + 180);
+  var space = arguments[1] == sassNull
+      ? ColorSpace.hsl
+      : ColorSpace.fromName(
+          (arguments[1].assertString("space")..assertUnquoted("space")).text,
+          "space");
+
+  var inSpace = color.toSpace(space);
+  return inSpace.changeChannels({'hue': inSpace.channel('hue') + 180}).toSpace(
+      color.space);
 });
+
+/// The implementation of the `invert()` function.
+Value _invert(List<Value> arguments) {
+  var weightNumber = arguments[1].assertNumber("weight");
+  if (arguments[0] is SassNumber) {
+    if (weightNumber.value != 100 || !weightNumber.hasUnit("%")) {
+      throw "Only one argument may be passed to the plain-CSS invert() "
+          "function.";
+    }
+
+    var result = _functionString("invert", arguments.take(1));
+    return result;
+  }
+
+  var color = arguments[0].assertColor("color");
+  if (arguments[2] == sassNull) {
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "To use color.invert() with non-legacy color $color, you must provide "
+              "a \$space.",
+          "color");
+    }
+
+    _checkPercent(weightNumber, "weight");
+    var rgb = color.toSpace(ColorSpace.rgb);
+    return _mixLegacy(
+        SassColor.rgb(255.0 - rgb.channel0, 255.0 - rgb.channel1,
+            255.0 - rgb.channel2, color.alpha),
+        color,
+        weightNumber);
+  }
+
+  var space = ColorSpace.fromName(
+      (arguments[2].assertString('space')..assertUnquoted('space')).text,
+      'space');
+  var weight = weightNumber.valueInRangeWithUnit(0, 100, 'weight', '%') / 100;
+  if (fuzzyEquals(weight, 0)) return color;
+
+  var inSpace = color.toSpace(space, "color");
+  SassColor inverted;
+  switch (space) {
+    case ColorSpace.hwb:
+      inverted = SassColor.hwb((inSpace.channel0 + 180) % 360, inSpace.channel2,
+          inSpace.channel1, inSpace.alpha);
+      break;
+
+    case ColorSpace.hsl:
+      inverted = SassColor.hsl((inSpace.channel0 + 180) % 360, inSpace.channel1,
+          100 - inSpace.channel2, inSpace.alpha);
+      break;
+
+    case ColorSpace.lch:
+      inverted = SassColor.lch(100 - inSpace.channel0, inSpace.channel1,
+          (inSpace.channel2 + 180) % 360, inSpace.alpha);
+      break;
+
+    case ColorSpace.oklch:
+      inverted = SassColor.oklch(1 - inSpace.channel0, inSpace.channel1,
+          (inSpace.channel2 + 180) % 360, inSpace.alpha);
+      break;
+
+    default:
+      var channel0 = space.channels[0] as LinearChannel;
+      var channel1 = space.channels[1] as LinearChannel;
+      var channel2 = space.channels[2] as LinearChannel;
+      inverted = SassColor.forSpaceInternal(
+          space,
+          _invertChannel(channel0, inSpace.channel0),
+          _invertChannel(channel1, inSpace.channel1),
+          _invertChannel(channel2, inSpace.channel2),
+          inSpace.alpha);
+      break;
+  }
+
+  if (fuzzyEquals(weight, 1)) return inverted;
+  if (!InterpolationMethod.supportedSpaces.contains(space)) {
+    throw SassScriptException(
+        "Color space $space can't be used for interpolation.", "space");
+  }
+
+  return color.interpolate(inverted, InterpolationMethod(space),
+      weight: 1 - weight, thisName: "color");
+}
+
+/// Returns the inverse of the given [value] in a linear color channel.
+double _invertChannel(LinearChannel channel, double value) =>
+    channel.min < 0 ? -value : channel.max - value;
+
+/// The implementation of the `grayscale()` function, without any logic for the
+/// plain-CSS `grayscale()` syntax.
+Value _grayscale(Value colorArg) {
+  var color = colorArg.assertColor("color");
+
+  if (color.isLegacy) {
+    var hsl = color.toSpace(ColorSpace.hsl);
+    return SassColor.hsl(hsl.channel0, 0, hsl.channel2, hsl.alpha)
+        .toSpace(color.space);
+  } else {
+    var oklch = color.toSpace(ColorSpace.oklch);
+    return SassColor.oklch(oklch.channel0, 0, oklch.channel2, oklch.alpha)
+        .toSpace(color.space);
+  }
+}
 
 // Miscellaneous
 
@@ -420,12 +634,13 @@ final _change = _function("change", r"$color, $kwargs...",
     (arguments) => _updateComponents(arguments, change: true));
 
 final _ieHexStr = _function("ie-hex-str", r"$color", (arguments) {
-  var color = arguments[0].assertColor("color");
-  String hexString(int component) =>
-      component.toRadixString(16).padLeft(2, '0').toUpperCase();
+  var color =
+      arguments[0].assertColor("color").toSpace(ColorSpace.rgb).toGamut();
+  String hexString(double component) =>
+      fuzzyRound(component).toRadixString(16).padLeft(2, '0').toUpperCase();
   return SassString(
-      "#${hexString(fuzzyRound(color.alpha * 255))}${hexString(color.red)}"
-      "${hexString(color.green)}${hexString(color.blue)}",
+      "#${hexString(color.alpha * 255)}${hexString(color.channel0)}"
+      "${hexString(color.channel1)}${hexString(color.channel2)}",
       quotes: false);
 });
 
@@ -437,7 +652,6 @@ SassColor _updateComponents(List<Value> arguments,
     {bool change = false, bool adjust = false, bool scale = false}) {
   assert([change, adjust, scale].where((x) => x).length == 1);
 
-  var color = arguments[0].assertColor("color");
   var argumentList = arguments[1] as SassArgumentList;
   if (argumentList.asList.isNotEmpty) {
     throw SassScriptException(
@@ -446,106 +660,181 @@ SassColor _updateComponents(List<Value> arguments,
   }
 
   var keywords = Map.of(argumentList.keywords);
+  var originalColor = arguments[0].assertColor("color");
+  var spaceKeyword = keywords.remove("space")?.assertString("space")
+    ?..assertUnquoted("space");
 
-  /// Gets and validates the parameter with [name] from keywords.
-  ///
-  /// [max] should be 255 for RGB channels, 1 for the alpha channel, and 100
-  /// for saturation, lightness, whiteness, and blackness.
-  double? getParam(String name, num max,
-      {bool checkPercent = false,
-      bool assertPercent = false,
-      bool checkUnitless = false}) {
-    var number = keywords.remove(name)?.assertNumber(name);
-    if (number == null) return null;
-    if (!scale && checkUnitless) {
-      if (number.hasUnits) {
-        warn(
-            "\$$name: Passing a number with unit ${number.unitString} is "
-            "deprecated.\n"
-            "\n"
-            "To preserve current behavior: ${number.unitSuggestion(name)}\n"
-            "\n"
-            "More info: https://sass-lang.com/d/function-units",
-            deprecation: true);
-      }
+  var alphaArg = keywords.remove('alpha')?.assertNumber('alpha');
+
+  // For backwards-compatibility, we allow legacy colors to modify channels in
+  // any legacy color space.
+  var color =
+      spaceKeyword == null && originalColor.isLegacy && keywords.isNotEmpty
+          ? _sniffLegacyColorSpace(keywords).andThen(originalColor.toSpace) ??
+              originalColor
+          : _colorInSpace(originalColor, spaceKeyword ?? sassNull);
+
+  var oldChannels = color.channels;
+  var channelArgs = List<SassNumber?>.filled(oldChannels.length, null);
+  var channelInfo = color.space.channels;
+  for (var entry in keywords.entries) {
+    var channelIndex = channelInfo.indexWhere((info) => entry.key == info.name);
+    if (channelIndex == -1) {
+      throw SassScriptException(
+          "Color space ${color.space} doesn't have a channel with this name.",
+          entry.key);
     }
-    if (!scale && checkPercent) _checkPercent(number, name);
-    if (scale || assertPercent) number.assertUnit("%", name);
-    if (scale) max = 100;
-    return scale || assertPercent
-        ? number.valueInRange(change ? 0 : -max, max, name)
-        : number.valueInRangeWithUnit(
-            change ? 0 : -max, max, name, checkPercent ? '%' : '');
+
+    channelArgs[channelIndex] = entry.value.assertNumber(entry.key);
   }
 
-  var alpha = getParam("alpha", 1, checkUnitless: true);
-  var red = getParam("red", 255);
-  var green = getParam("green", 255);
-  var blue = getParam("blue", 255);
+  var result = change
+      ? _changeColor(color, channelArgs, alphaArg)
+      : scale
+          ? _scaleColor(color, channelArgs, alphaArg)
+          : _adjustColor(color, channelArgs, alphaArg);
 
-  var hue = scale
-      ? null
-      : keywords.remove("hue").andThen((hue) => _angleValue(hue, "hue"));
+  return result.toSpace(originalColor.space);
+}
 
-  var saturation = getParam("saturation", 100, checkPercent: true);
-  var lightness = getParam("lightness", 100, checkPercent: true);
-  var whiteness = getParam("whiteness", 100, assertPercent: true);
-  var blackness = getParam("blackness", 100, assertPercent: true);
+/// Returns a copy of [color] with its channel values replaced by those in
+/// [channelArgs] and [alphaArg], if specified.
+SassColor _changeColor(
+    SassColor color, List<SassNumber?> channelArgs, SassNumber? alphaArg) {
+  var latterUnits =
+      color.space == ColorSpace.hsl || color.space == ColorSpace.hwb
+          ? '%'
+          : null;
+  return _colorFromChannels(
+      color.space,
+      channelArgs[0] ?? SassNumber(color.channel0),
+      channelArgs[1] ?? SassNumber(color.channel1, latterUnits),
+      channelArgs[2] ?? SassNumber(color.channel2, latterUnits),
+      alphaArg.andThen(
+              (alphaArg) => _percentageOrUnitless(alphaArg, 1, 'alpha')) ??
+          color.alpha);
+}
 
-  if (keywords.isNotEmpty) {
-    throw SassScriptException(
-        "No ${pluralize('argument', keywords.length)} named "
-        "${toSentence(keywords.keys.map((name) => '\$$name'), 'or')}.");
+/// Returns a copy of [color] with its channel values scaled by the values in
+/// [channelArgs] and [alphaArg], if specified.
+SassColor _scaleColor(
+        SassColor color, List<SassNumber?> channelArgs, SassNumber? alphaArg) =>
+    SassColor.forSpaceInternal(
+        color.space,
+        _scaleChannel(color.space.channels[0], color.channel0, channelArgs[0]),
+        _scaleChannel(color.space.channels[1], color.channel1, channelArgs[1]),
+        _scaleChannel(color.space.channels[2], color.channel2, channelArgs[2]),
+        _scaleChannel(ColorChannel.alpha, color.alpha, alphaArg));
+
+/// Returns [oldValue] scaled by [factorArg] according to the definition in
+/// [channel].
+double _scaleChannel(
+    ColorChannel channel, double oldValue, SassNumber? factorArg) {
+  if (factorArg == null) return oldValue;
+  if (channel is! LinearChannel) {
+    throw SassScriptException("Channel isn't scalable.", channel.name);
   }
 
-  var hasRgb = red != null || green != null || blue != null;
-  var hasSL = saturation != null || lightness != null;
-  var hasWB = whiteness != null || blackness != null;
-
-  if (hasRgb && (hasSL || hasWB || hue != null)) {
-    throw SassScriptException("RGB parameters may not be passed along with "
-        "${hasWB ? 'HWB' : 'HSL'} parameters.");
-  }
-
-  if (hasSL && hasWB) {
-    throw SassScriptException(
-        "HSL parameters may not be passed along with HWB parameters.");
-  }
-
-  /// Updates [current] based on [param], clamped within [max].
-  double updateValue(double current, double? param, num max) {
-    if (param == null) return current;
-    if (change) return param;
-    if (adjust) return (current + param).clamp(0, max).toDouble();
-    return current + (param > 0 ? max - current : current) * (param / 100);
-  }
-
-  int updateRgb(int current, double? param) =>
-      fuzzyRound(updateValue(current.toDouble(), param, 255));
-
-  if (hasRgb) {
-    return color.changeRgb(
-        red: updateRgb(color.red, red),
-        green: updateRgb(color.green, green),
-        blue: updateRgb(color.blue, blue),
-        alpha: updateValue(color.alpha, alpha, 1));
-  } else if (hasWB) {
-    return color.changeHwb(
-        hue: change ? hue : color.hue + (hue ?? 0),
-        whiteness: updateValue(color.whiteness, whiteness, 100),
-        blackness: updateValue(color.blackness, blackness, 100),
-        alpha: updateValue(color.alpha, alpha, 1));
-  } else if (hue != null || hasSL) {
-    return color.changeHsl(
-        hue: change ? hue : color.hue + (hue ?? 0),
-        saturation: updateValue(color.saturation, saturation, 100),
-        lightness: updateValue(color.lightness, lightness, 100),
-        alpha: updateValue(color.alpha, alpha, 1));
-  } else if (alpha != null) {
-    return color.changeAlpha(updateValue(color.alpha, alpha, 1));
+  var factor = (factorArg..assertUnit('%', channel.name))
+          .valueInRangeWithUnit(-100, 100, channel.name, '%') /
+      100;
+  if (factor == 0) {
+    return oldValue;
+  } else if (factor > 0) {
+    return oldValue >= channel.max
+        ? oldValue
+        : oldValue + (channel.max - oldValue) * factor;
   } else {
-    return color;
+    return oldValue <= channel.min
+        ? oldValue
+        : oldValue + (oldValue - channel.min) * factor;
   }
+}
+
+/// Returns a copy of [color] with its channel values adjusted by the values in
+/// [channelArgs] and [alphaArg], if specified.
+SassColor _adjustColor(
+        SassColor color, List<SassNumber?> channelArgs, SassNumber? alphaArg) =>
+    SassColor.forSpaceInternal(
+        color.space,
+        _adjustChannel(color.space, color.space.channels[0], color.channel0,
+            channelArgs[0]),
+        _adjustChannel(color.space, color.space.channels[1], color.channel1,
+            channelArgs[1]),
+        _adjustChannel(color.space, color.space.channels[2], color.channel2,
+            channelArgs[2]),
+        // The color space doesn't matter for alpha, as long as it's not
+        // strictly bounded.
+        fuzzyClamp(
+            _adjustChannel(
+                ColorSpace.lab, ColorChannel.alpha, color.alpha, alphaArg),
+            0,
+            1));
+
+/// Returns [oldValue] adjusted by [adjustmentArg] according to the definition
+/// in [space]'s [channel].
+double _adjustChannel(ColorSpace space, ColorChannel channel, double oldValue,
+    SassNumber? adjustmentArg) {
+  if (adjustmentArg == null) return oldValue;
+
+  if ((space == ColorSpace.hsl || space == ColorSpace.hwb) &&
+      channel is! LinearChannel) {
+    // `_channelFromValue` expects all hue values to be compatible with `deg`,
+    // but we're still in the deprecation period where we allow non-`deg` values
+    // for HSL and HWB so we have to handle that ahead-of-time.
+    adjustmentArg = SassNumber(_angleValue(adjustmentArg, 'hue'));
+  } else if (space == ColorSpace.hsl && channel is LinearChannel) {
+    // `_channelFromValue` expects lightness/saturation to be `%`, but we're
+    // still in the deprecation period where we allow non-`%` values so we have
+    // to handle that ahead-of-time.
+    _checkPercent(adjustmentArg, channel.name);
+    adjustmentArg = SassNumber(adjustmentArg.value, '%');
+  } else if (channel == ColorChannel.alpha && adjustmentArg.hasUnits) {
+    // `_channelFromValue` expects alpha to be unitless or `%`, but we're still
+    // in the deprecation period where we allow other values (and interpret `%`
+    // as unitless) so we have to handle that ahead-of-time.
+    warn(
+        "\$alpha: Passing a number with unit ${adjustmentArg.unitString} is "
+        "deprecated.\n"
+        "\n"
+        "To preserve current behavior: "
+        "${adjustmentArg.unitSuggestion('alpha')}\n"
+        "\n"
+        "More info: https://sass-lang.com/d/function-units",
+        deprecation: true);
+    adjustmentArg = SassNumber(adjustmentArg.value);
+  }
+
+  var result = oldValue + _channelFromValue(channel, adjustmentArg)!;
+  return space.isStrictlyBounded && channel is LinearChannel
+      ? fuzzyClamp(result, channel.min, channel.max)
+      : result;
+}
+
+/// Given a map of arguments passed to [_updateComponents] for a legacy color,
+/// determines whether it's updating the color as RGB, HSL, or HWB.
+///
+/// Returns `null` if [keywords] contains no keywords for any of the legacy
+/// color spaces.
+ColorSpace? _sniffLegacyColorSpace(Map<String, Value> keywords) {
+  for (var key in keywords.keys) {
+    switch (key) {
+      case "red":
+      case "green":
+      case "blue":
+        return ColorSpace.rgb;
+
+      case "saturation":
+      case "lightness":
+        return ColorSpace.hsl;
+
+      case "whiteness":
+      case "blackness":
+        return ColorSpace.hwb;
+    }
+  }
+
+  return keywords.containsKey("hue") ? ColorSpace.hsl : null;
 }
 
 /// Returns a string representation of [name] called with [arguments], as though
@@ -574,6 +863,8 @@ BuiltInCallable _removedColorFunction(String name, String argument,
           "More info: https://sass-lang.com/documentation/functions/color#$name");
     });
 
+/// The implementation of the three- and four-argument `rgb()` and `rgba()`
+/// functions.
 Value _rgb(String name, List<Value> arguments) {
   var alpha = arguments.length > 3 ? arguments[3] : null;
   if (arguments[0].isSpecialNumber ||
@@ -583,47 +874,47 @@ Value _rgb(String name, List<Value> arguments) {
     return _functionString(name, arguments);
   }
 
-  var red = arguments[0].assertNumber("red");
-  var green = arguments[1].assertNumber("green");
-  var blue = arguments[2].assertNumber("blue");
-
-  return SassColor.rgbInternal(
-      fuzzyRound(_percentageOrUnitless(red, 255, "red")),
-      fuzzyRound(_percentageOrUnitless(green, 255, "green")),
-      fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
-      alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
-      ColorFormat.rgbFunction);
+  return _colorFromChannels(
+      ColorSpace.rgb,
+      arguments[0].assertNumber("red"),
+      arguments[1].assertNumber("green"),
+      arguments[2].assertNumber("blue"),
+      alpha == null
+          ? 1.0
+          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
+              .clamp(0, 1),
+      fromRgbFunction: true);
 }
 
+/// The implementation of the two-argument `rgb()` and `rgba()` functions.
 Value _rgbTwoArg(String name, List<Value> arguments) {
   // rgba(var(--foo), 0.5) is valid CSS because --foo might be `123, 456, 789`
   // and functions are parsed after variable substitution.
-  if (arguments[0].isVar) {
+  var first = arguments[0];
+  var second = arguments[1];
+  if (first.isVar || (first is! SassColor && second.isVar)) {
     return _functionString(name, arguments);
-  } else if (arguments[1].isVar) {
-    var first = arguments[0];
-    if (first is SassColor) {
-      return SassString(
-          "$name(${first.red}, ${first.green}, ${first.blue}, "
-          "${arguments[1].toCssString()})",
-          quotes: false);
-    } else {
-      return _functionString(name, arguments);
-    }
-  } else if (arguments[1].isSpecialNumber) {
-    var color = arguments[0].assertColor("color");
-    return SassString(
-        "$name(${color.red}, ${color.green}, ${color.blue}, "
-        "${arguments[1].toCssString()})",
-        quotes: false);
   }
 
-  var color = arguments[0].assertColor("color");
+  var color = first.assertColor("color");
+  color.assertLegacy("color");
+  color = color.toSpace(ColorSpace.rgb);
+  if (second.isSpecialNumber) {
+    return _functionString(name, [
+      SassNumber(color.channel('red')),
+      SassNumber(color.channel('green')),
+      SassNumber(color.channel('blue')),
+      arguments[1]
+    ]);
+  }
+
   var alpha = arguments[1].assertNumber("alpha");
-  return color.changeAlpha(_percentageOrUnitless(alpha, 1, "alpha"));
+  return color
+      .changeAlpha(_percentageOrUnitless(alpha, 1, "alpha").clamp(0, 1));
 }
 
+/// The implementation of the three- and four-argument `hsl()` and `hsla()`
+/// functions.
 Value _hsl(String name, List<Value> arguments) {
   var alpha = arguments.length > 3 ? arguments[3] : null;
   if (arguments[0].isSpecialNumber ||
@@ -633,20 +924,15 @@ Value _hsl(String name, List<Value> arguments) {
     return _functionString(name, arguments);
   }
 
-  var hue = _angleValue(arguments[0], "hue");
-  var saturation = arguments[1].assertNumber("saturation");
-  var lightness = arguments[2].assertNumber("lightness");
-
-  _checkPercent(saturation, "saturation");
-  _checkPercent(lightness, "lightness");
-
-  return SassColor.hslInternal(
-      hue,
-      saturation.value.clamp(0, 100),
-      lightness.value.clamp(0, 100),
-      alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
-      ColorFormat.hslFunction);
+  return _colorFromChannels(
+      ColorSpace.hsl,
+      arguments[0].assertNumber("hue"),
+      arguments[1].assertNumber("saturation"),
+      arguments[2].assertNumber("lightness"),
+      alpha == null
+          ? 1.0
+          : _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
+              .clamp(0, 1));
 }
 
 /// Asserts that [angle] is a number and returns its value in degrees.
@@ -679,107 +965,15 @@ void _checkPercent(SassNumber number, String name) {
       deprecation: true);
 }
 
-/// Create an HWB color from the given [arguments].
-Value _hwb(List<Value> arguments) {
-  var alpha = arguments.length > 3 ? arguments[3] : null;
-  var hue = _angleValue(arguments[0], "hue");
-  var whiteness = arguments[1].assertNumber("whiteness");
-  var blackness = arguments[2].assertNumber("blackness");
-
-  whiteness.assertUnit("%", "whiteness");
-  blackness.assertUnit("%", "blackness");
-
-  return SassColor.hwb(
-      hue,
-      whiteness.valueInRange(0, 100, "whiteness"),
-      blackness.valueInRange(0, 100, "blackness"),
-      alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
-}
-
-Object /* SassString | List<Value> */ _parseChannels(
-    String name, List<String> argumentNames, Value channels) {
-  if (channels.isVar) return _functionString(name, [channels]);
-
-  var originalChannels = channels;
-  Value? alphaFromSlashList;
-  if (channels.separator == ListSeparator.slash) {
-    var list = channels.asList;
-    if (list.length != 2) {
-      throw SassScriptException(
-          "Only 2 slash-separated elements allowed, but ${list.length} "
-          "${pluralize('was', list.length, plural: 'were')} passed.");
-    }
-
-    channels = list[0];
-
-    alphaFromSlashList = list[1];
-    if (!alphaFromSlashList.isSpecialNumber) {
-      alphaFromSlashList.assertNumber("alpha");
-    }
-    if (list[0].isVar) return _functionString(name, [originalChannels]);
-  }
-
-  var isCommaSeparated = channels.separator == ListSeparator.comma;
-  var isBracketed = channels.hasBrackets;
-  if (isCommaSeparated || isBracketed) {
-    var buffer = StringBuffer(r"$channels must be");
-    if (isBracketed) buffer.write(" an unbracketed");
-    if (isCommaSeparated) {
-      buffer.write(isBracketed ? "," : " a");
-      buffer.write(" space-separated");
-    }
-    buffer.write(" list.");
-    throw SassScriptException(buffer.toString());
-  }
-
-  var list = channels.asList;
-  if (list.length > 3) {
-    throw SassScriptException("Only 3 elements allowed, but ${list.length} "
-        "were passed.");
-  } else if (list.length < 3) {
-    if (list.any((value) => value.isVar) ||
-        (list.isNotEmpty && _isVarSlash(list.last))) {
-      return _functionString(name, [originalChannels]);
-    } else {
-      var argument = argumentNames[list.length];
-      throw SassScriptException("Missing element $argument.");
-    }
-  }
-
-  if (alphaFromSlashList != null) return [...list, alphaFromSlashList];
-
-  var maybeSlashSeparated = list[2];
-  if (maybeSlashSeparated is SassNumber) {
-    var slash = maybeSlashSeparated.asSlash;
-    if (slash == null) return list;
-    return [list[0], list[1], slash.item1, slash.item2];
-  } else if (maybeSlashSeparated is SassString &&
-      !maybeSlashSeparated.hasQuotes &&
-      maybeSlashSeparated.text.contains("/")) {
-    return _functionString(name, [channels]);
-  } else {
-    return list;
-  }
-}
-
-/// Returns whether [value] is an unquoted string that start with `var(` and
-/// contains `/`.
-bool _isVarSlash(Value value) =>
-    value is SassString &&
-    value.hasQuotes &&
-    startsWithIgnoreCase(value.text, "var(") &&
-    value.text.contains("/");
-
 /// Asserts that [number] is a percentage or has no units, and normalizes the
 /// value.
 ///
-/// If [number] has no units, its value is clamped to be greater than `0` or
-/// less than [max] and returned. If [number] is a percentage, it's scaled to be
-/// within `0` and [max]. Otherwise, this throws a [SassScriptException].
+/// If [number] has no units, it's returned as-id. If it's a percentage, it's
+/// scaled so that `0%` is `0` and `100%` is [max]. Otherwise, this throws a
+/// [SassScriptException].
 ///
 /// [name] is used to identify the argument in the error message.
-double _percentageOrUnitless(SassNumber number, num max, String name) {
+double _percentageOrUnitless(SassNumber number, double max, [String? name]) {
   double value;
   if (!number.hasUnits) {
     value = number.value;
@@ -787,15 +981,20 @@ double _percentageOrUnitless(SassNumber number, num max, String name) {
     value = max * number.value / 100;
   } else {
     throw SassScriptException(
-        '\$$name: Expected $number to have no units or "%".');
+        'Expected $number to have no units or "%".', name);
   }
 
-  return value.clamp(0, max).toDouble();
+  return value;
 }
 
-/// Returns [color1] and [color2], mixed together and weighted by [weight].
-SassColor _mixColors(SassColor color1, SassColor color2, SassNumber weight) {
-  _checkPercent(weight, 'weight');
+/// Returns [color1] and [color2], mixed together and weighted by [weight] using
+/// Sass's legacy color-mixing algorithm.
+SassColor _mixLegacy(SassColor color1, SassColor color2, SassNumber weight) {
+  assert(color1.isLegacy, "[BUG] $color1 should be a legacy color.");
+  assert(color2.isLegacy, "[BUG] $color2 should be a legacy color.");
+
+  var rgb1 = color1.toSpace(ColorSpace.rgb);
+  var rgb2 = color2.toSpace(ColorSpace.rgb);
 
   // This algorithm factors in both the user-provided weight (w) and the
   // difference between the alpha values of the two colors (a) to decide how
@@ -829,7 +1028,7 @@ SassColor _mixColors(SassColor color1, SassColor color2, SassNumber weight) {
   var weight2 = 1 - weight1;
 
   return SassColor.rgb(
-      fuzzyRound(color1.red * weight1 + color2.red * weight2),
+      fuzzyRound(rgb1.channel0 * weight1 + rgb2.channel0 * weight2),
       fuzzyRound(color1.green * weight1 + color2.green * weight2),
       fuzzyRound(color1.blue * weight1 + color2.blue * weight2),
       color1.alpha * weightScale + color2.alpha * (1 - weightScale));
@@ -854,6 +1053,238 @@ SassColor _transparentize(List<Value> arguments) {
       (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", ""))
           .clamp(0, 1));
 }
+
+/// Returns the [colorUntyped] as a [SassColor] in the color space specified by
+/// [spaceUntyped].
+///
+/// Throws a [SassScriptException] if either argument isn't the expected type or
+/// if [spaceUntyped] isn't the name of a color space. If [spaceUntyped] is
+/// `sassNull`, it defaults to the color's existing space.
+SassColor _colorInSpace(Value colorUntyped, Value spaceUntyped) {
+  var color = colorUntyped.assertColor("color");
+  if (spaceUntyped == sassNull) return color;
+
+  var space = ColorSpace.fromName(
+      (spaceUntyped.assertString("space")..assertUnquoted("space")).text,
+      "space");
+  return color.space == space ? color : color.toSpace(space, "color");
+}
+
+/// Returns the color space named by [space], or throws a [SassScriptException]
+/// if [space] isn't the name of a color space.
+///
+/// If [space] is `sassNull`, this returns [color]'s space instead.
+///
+/// If [space] came from a function argument, [name] is the argument name
+/// (without the `$`). It's used for error reporting.
+ColorSpace _spaceOrDefault(SassColor color, Value space, [String? name]) =>
+    space == sassNull
+        ? color.space
+        : ColorSpace.fromName(
+            (space.assertString(name)..assertUnquoted(name)).text, name);
+
+/// Parses the color components specified by [input] into a [SassColor], or
+/// returns an unquoted [SassString] representing the plain CSS function call if
+/// they contain a construct that can only be resolved at browse time.
+///
+/// If [space] is passed, it's used as the color space to parse. Otherwise, this
+/// expects the color space to be specified in [input] as for the `color()`
+/// function.
+///
+/// Throws a [SassScriptException] if [input] is invalid. If [input] came from a
+/// function argument, [name] is the argument name (without the `$`). It's used
+/// for error reporting.
+Value _parseChannels(String functionName, Value input,
+    {ColorSpace? space, String? name}) {
+  if (input.isVar) return _functionString(functionName, [input]);
+  var inputList = input.assertCommonListStyle(name, allowSlash: true);
+
+  Value components;
+  Value? alphaValue;
+  if (input.separator == ListSeparator.slash) {
+    if (inputList.length != 2) {
+      throw SassScriptException(
+          "Only 2 slash-separated elements allowed, but ${inputList.length} "
+          "${pluralize('was', inputList.length, plural: 'were')} passed.");
+    } else {
+      components = inputList[0];
+      alphaValue = inputList[1];
+    }
+  } else if (inputList.isEmpty) {
+    components = input;
+  } else {
+    components = input;
+    var last = inputList.last;
+    if (last is SassString && !last.hasQuotes && last.text.contains('/')) {
+      return _functionString(functionName, [input]);
+    } else if (last is SassNumber) {
+      var slash = last.asSlash;
+      if (slash != null) {
+        components = SassList(
+            [...inputList.take(inputList.length - 1), slash.item1],
+            ListSeparator.space);
+        alphaValue = slash.item2;
+      }
+    }
+  }
+
+  List<Value> channels;
+  SassString? spaceName;
+  var componentList = components.assertCommonListStyle(name, allowSlash: false);
+  if (componentList.isEmpty) {
+    throw SassScriptException('Color component list may not be empty.', name);
+  } else if (components.isVar) {
+    channels = [components];
+  } else {
+    if (space == null) {
+      spaceName = componentList.first.assertString(name)..assertUnquoted(name);
+      space =
+          spaceName.isVar ? null : ColorSpace.fromName(spaceName.text, name);
+      channels = [...componentList.skip(1)];
+
+      if (const {
+        ColorSpace.rgb,
+        ColorSpace.hsl,
+        ColorSpace.hwb,
+        ColorSpace.lab,
+        ColorSpace.lch,
+        ColorSpace.oklab,
+        ColorSpace.oklch
+      }.contains(space)) {
+        throw SassScriptException(
+            "The color() function doesn't support the color space $space. Use "
+            "the $space() function instead.",
+            name);
+      }
+    } else {
+      channels = componentList;
+    }
+
+    for (var channel in channels) {
+      if (!channel.isSpecialNumber &&
+          channel is! SassNumber &&
+          !_isNone(channel)) {
+        var channelName =
+            space?.channels[channels.indexOf(channel)].name ?? 'channel';
+        throw SassScriptException(
+            'Expected $channelName $channel to be a number.', name);
+      }
+    }
+  }
+
+  if (alphaValue?.isSpecialNumber ?? false) {
+    return channels.length == 3 && _specialCommaSpaces.contains(space)
+        ? _functionString(functionName, [...channels, alphaValue!])
+        : _functionString(functionName, [input]);
+  }
+
+  var alpha = alphaValue == null
+      ? 1.0
+      : _percentageOrUnitless(alphaValue.assertNumber(name), 1, 'alpha')
+          .clamp(0, 1)
+          .toDouble();
+
+  // `space` will be null if either `components` or `spaceName` is a `var()`.
+  // Again, we check this here rather than returning early in those cases so
+  // that we can verify `alphaValue` even for colors we can't fully parse.
+  if (space == null) return _functionString(functionName, [input]);
+  if (channels.any((channel) => channel.isSpecialNumber)) {
+    return channels.length == 3 && _specialCommaSpaces.contains(space)
+        ? _functionString(
+            functionName, [...channels, if (alphaValue != null) alphaValue])
+        : _functionString(functionName, [input]);
+  }
+
+  if (channels.length != 3) {
+    throw SassScriptException(
+        'The $space color space has 3 channels but $input has '
+        '${channels.length}.',
+        name);
+  }
+
+  return _colorFromChannels(
+      space,
+      // If a channel isn't a number, it must be `none`.
+      castOrNull<SassNumber>(channels[0]),
+      castOrNull<SassNumber>(channels[1]),
+      castOrNull<SassNumber>(channels[2]),
+      alpha,
+      fromRgbFunction: space == ColorSpace.rgb);
+}
+
+/// Creates a [SassColor] for the given [space] from the given channel values,
+/// or throws a [SassScriptException] if the channel values are invalid.
+SassColor _colorFromChannels(ColorSpace space, SassNumber? channel0,
+    SassNumber? channel1, SassNumber? channel2, double alpha,
+    {bool fromRgbFunction = false}) {
+  switch (space) {
+    case ColorSpace.hsl:
+      if (channel1 != null) _checkPercent(channel1, 'saturation');
+      if (channel2 != null) _checkPercent(channel2, 'lightness');
+      return SassColor.hsl(
+          channel0.andThen((channel0) => _angleValue(channel0, 'hue')),
+          channel1?.value.clamp(0, 100).toDouble(),
+          channel2?.value.clamp(0, 100).toDouble(),
+          alpha);
+
+    case ColorSpace.hwb:
+      channel1?.assertUnit('%', 'whiteness');
+      channel2?.assertUnit('%', 'blackness');
+      var whiteness = channel1?.value.clamp(0, 100).toDouble();
+      var blackness = channel2?.value.clamp(0, 100).toDouble();
+
+      if (whiteness != null &&
+          blackness != null &&
+          whiteness + blackness > 100) {
+        var oldWhiteness = whiteness;
+        whiteness = whiteness / (whiteness + blackness) * 100;
+        blackness = blackness / (oldWhiteness + blackness) * 100;
+      }
+
+      return SassColor.hwb(
+          channel0.andThen((channel0) => _angleValue(channel0, 'hue')),
+          whiteness,
+          blackness,
+          alpha);
+
+    case ColorSpace.rgb:
+      return SassColor.rgbInternal(
+          _channelFromValue(space.channels[0], channel0),
+          _channelFromValue(space.channels[1], channel1),
+          _channelFromValue(space.channels[2], channel2),
+          alpha,
+          fromRgbFunction ? ColorFormat.rgbFunction : null);
+
+    default:
+      return SassColor.forSpaceInternal(
+          space,
+          _channelFromValue(space.channels[0], channel0),
+          _channelFromValue(space.channels[1], channel1),
+          _channelFromValue(space.channels[2], channel2),
+          alpha);
+  }
+}
+
+/// Converts a channel value from a [SassNumber] into a [double] according to
+/// [channel].
+double? _channelFromValue(ColorChannel channel, SassNumber? value) =>
+    value.andThen((value) {
+      if (channel is! LinearChannel) {
+        return value.coerceValueToUnit('deg', channel.name);
+      } else if (channel.requiresPercent && !value.hasUnit('%')) {
+        throw SassScriptException(
+            'Expected $value to have unit "%".', channel.name);
+      } else {
+        return _percentageOrUnitless(value, channel.max, channel.name);
+      }
+    });
+
+/// Returns whether [value] is an unquoted string case-insensitively equal to
+/// "none".
+bool _isNone(Value value) =>
+    value is SassString &&
+    !value.hasQuotes &&
+    value.text.toLowerCase() == 'none';
 
 /// Like [BuiltInCallable.function], but always sets the URL to
 /// `sass:color`.

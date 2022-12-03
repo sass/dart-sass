@@ -1645,7 +1645,7 @@ class _EvaluateVisitor
       }
     } on SassException catch (error, stackTrace) {
       throwWithTrace(_exception(error.message, error.span), stackTrace);
-    } on ArgumentError catch (error, stackTrace) {
+    } on Error catch (error, stackTrace) {
       throwWithTrace(_exception(error.toString()), stackTrace);
     } catch (error, stackTrace) {
       String? message;

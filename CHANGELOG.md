@@ -1,3 +1,140 @@
+## 1.57.0
+
+* Add support for CSS Color Level 4 [color spaces]. Each color value now tracks
+  its color space along with the values of each channel in that color space.
+  There are two general principles to keep in mind when dealing with new color
+  spaces:
+  
+  1. With the exception of legacy color spaces (`rgb`, `hsl`, and `hwb`), colors
+     will always be emitted in the color space they were defined in unless
+     they're explicitly converted.
+
+  2. The `color.to-space()` function is the only way to convert a color to
+     another color space. Some built-in functions may do operations in a
+     different color space, but they'll always convert back to the original space
+     afterwards.
+
+* `rgb` colors can now have non-integer channels and channels outside the normal
+  gamut of 0-255. These colors are always emitted using the `rgb()` syntax so
+  that modern browsers that are being displayed on wide-gamut devices can
+  display the most accurate color possible.
+
+* Add support for all the new color syntax defined in Color Level 4, including:
+
+  * `oklab()`, `oklch()`, `lab()`, and `lch()` functions;
+  * a top-level `hwb()` function that matches the space-separated CSS syntax;
+  * and a `color()` function that supports the `srgb`, `srgb-linear`,
+    `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz`, `xyz-d50`, and
+    `xyz-d65` color spaces.
+
+* Add new functions for working with color spaces:
+
+  * `color.to-space($color, $space)` converts `$color` to the given `$space`. In
+    most cases this conversion is lossless—the color may end up out-of-gamut for
+    the destination color space, but browsers will generally display it as best
+    they can regardless. However, the `hsl` and `hwb` spaces can't represent
+    out-of-gamut colors and so will be clamped.
+
+  * `color.channel($color, $channel, $space: null)` returns the value of the
+    given `$channel` in `$color`, after converting it to `$space` if necessary.
+    It should be used instead of the old channel-specific functions such as
+    `color.red()` and `color.hue()`.
+
+  * `color.same($color1, $color2)` returns whether two colors represent the same
+    color even across color spaces. It differs from `$color1 == $color2` because
+    `==` never consider colors in different (non-legacy) spaces as equal.
+
+  * `color.is-in-gamut($color, $space: null)` returns whether `$color` is
+    in-gamut for its color space (or `$space` if it's passed).
+
+  * `color.to-gamut($color, $space: null)` returns `$color` constrained to its
+    space's gamut (or to `$space`'s gamut, if passed). This is generally not
+    recommended since even older browsers will display out-of-gamut colors as
+    best they can, but it may be necessary in some cases.
+
+  * `color.space($color)`: Returns the name of `$color`'s color space.
+
+  * `color.is-legacy($color)`: Returns whether `$color` is in a legacy color
+    space (`rgb`, `hsl`, or `hwb`).
+
+  * `color.is-powerless($color, $channel, $space: null)`: Returns whether the
+    given `$channel` of `$color` is powerless in `$space` (or its own color
+    space). A channel is "powerless" if its value doesn't affect the way the
+    color is displayed, such as hue for a color with 0 chroma.
+
+  * `color.is-missing($color, $channel)`: Returns whether `$channel`'s value is
+    missing in `$color`. Missing channels can be explicitly specified using the
+    special value `none` and can appear automatically when `color.to-space()`
+    returns a color with a powerless channel. Missing channels are usually
+    treated as 0, except when interpolating between two colors and in
+    `color.mix()` where they're treated as the same value as the other color.
+
+* Update existing functions to support color spaces:
+
+  * `hsl()` and `color.hwb()` no longer forbid out-of-bounds values. Instead,
+    they follow the CSS spec by clamping them to within the allowed range.
+
+  * `color.change()`, `color.adjust()`, and `color.scale()` now support all
+    channels of all color spaces. However, if you want to modify a channel
+    that's not in `$color`'s own color space, you have to explicitly specify the
+    space with the `$space` parameter. (For backwards-compatibility, this
+    doesn't apply to legacy channels of legacy colors—for example, you can still
+    adjust an `rgb` color's saturation without passing `$space: hsl`).
+
+  * `color.mix()` and `color.invert()` now support the standard CSS algorithm
+    for interpolating between two colors (the same one that's used for gradients
+    and animations). To use this, pass the color space to use for interpolation
+    to the `$method` parameter. For polar color spaces like `hsl` and `oklch`,
+    this parameter also allows you to specify how hue interpolation is handled.
+
+  * `color.complement()` now supports a `$space` parameter that indicates which
+    color space should be used to take the complement.
+
+  * `color.grayscale()` now operates in the `oklch` space for non-legacy colors.
+
+  * `color.ie-hex-str()` now automatically converts its color to the `rgb` space
+    and gamut-maps it so that it can continue to take colors from any color
+    space.
+
+[color spaces]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+
+### Dart API
+
+* Added a `ColorSpace` class which represents the various color spaces defined
+  in the CSS spec.
+
+* Added `SassColor.space` which returns a color's color space.
+
+* Added `SassColor.channels` and `.channelsOrNull` which returns a list
+  of channel values, with missing channels converted to 0 or exposed as null,
+  respectively.
+
+* Added `SassColor.isLegacy`, `.isInGamut`, `.channel()`, `.isChannelMissing()`,
+  `.isChannelPowerless()`, `.toSpace()`, `.toGamut()`, `.changeChannels()`, and
+  `.interpolate()` which do the same thing as the Sass functions of the
+  corresponding names.
+
+* `SassColor.rgb()` now allows out-of-bounds and non-integer arguments.
+
+* `SassColor.hsl()` and `.hwb()` now allow out-of-bounds arguments.
+
+* Added `SassColor.hwb()`, `.srgb()`, `.srgbLinear()`, `.displayP3()`,
+  `.a98Rgb()`, `.prophotoRgb()`, `.rec2020()`, `.xyzD50()`, `.xyzD65()`,
+  `.lab()`, `.lch()`, `.oklab()`, `.oklch()`, and `.forSpace()` constructors.
+
+* Deprecated `SassColor.red`, `.green`, `.blue`, `.hue`, `.saturation`,
+  `.lightness`, `.whiteness`, and `.blackness` in favor of
+  `SassColor.channel()`.
+
+* Deprecated `SassColor.changeRgb()`, `.changeHsl()`, and `.changeHwb()` in
+  favor of `SassColor.changeChannels()`.
+
+* Added `SassNumber.convertValueToUnit()` as a shorthand for
+  `SassNumber.convertValue()` with a single numerator.
+
+* Added `InterpolationMethod` and `HueInterpolationMethod` which collectively
+  represent the method to use to interpolate two colors.
+
 ## 1.56.1
 
 ### Embedded Sass
