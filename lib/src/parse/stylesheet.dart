@@ -3603,52 +3603,54 @@ abstract class StylesheetParser extends Parser {
     buffer.writeCharCode($lparen);
     whitespace();
 
-    var needsParenDeprecation = scanner.peekChar() == $lparen;
-    var needsNotDeprecation = matchesIdentifier("not");
-
-    var expression = _expressionUntilComparison();
-    if (needsParenDeprecation || needsNotDeprecation) {
-      logger.warnForDeprecation(
-          Deprecation.mediaLogic,
-          'Starting a @media query with "${needsParenDeprecation ? '(' : 'not'}" '
-          "is deprecated because it conflicts with official CSS syntax.\n"
-          "\n"
-          "To preserve existing behavior: #{$expression}\n"
-          'To migrate to new behavior: #{"$expression"}\n'
-          "\n"
-          "For details, see https://sass-lang.com/d/media-logic",
-          span: expression.span);
-    }
-
-    buffer.add(expression);
-    if (scanner.scanChar($colon)) {
+    if (scanner.peekChar() == $lparen) {
+      _mediaInParens(buffer);
       whitespace();
-      buffer.writeCharCode($colon);
-      buffer.writeCharCode($space);
-      buffer.add(_expression());
+      if (scanIdentifier("and")) {
+        buffer.write(" and ");
+        expectWhitespace();
+        _mediaLogicSequence(buffer, "and");
+      } else if (scanIdentifier("or")) {
+        buffer.write(" or ");
+        expectWhitespace();
+        _mediaLogicSequence(buffer, "or");
+      }
+    } else if (scanIdentifier("not")) {
+      buffer.write("not ");
+      expectWhitespace();
+      _mediaOrInterp(buffer);
     } else {
-      var next = scanner.peekChar();
-      if (next == $langle || next == $rangle || next == $equal) {
-        buffer.writeCharCode($space);
-        buffer.writeCharCode(scanner.readChar());
-        if ((next == $langle || next == $rangle) && scanner.scanChar($equal)) {
-          buffer.writeCharCode($equal);
-        }
-        buffer.writeCharCode($space);
-
+      buffer.add(_expressionUntilComparison());
+      if (scanner.scanChar($colon)) {
         whitespace();
-        buffer.add(_expressionUntilComparison());
-
-        if ((next == $langle || next == $rangle) &&
-            // dart-lang/sdk#45356
-            scanner.scanChar(next!)) {
+        buffer.writeCharCode($colon);
+        buffer.writeCharCode($space);
+        buffer.add(_expression());
+      } else {
+        var next = scanner.peekChar();
+        if (next == $langle || next == $rangle || next == $equal) {
           buffer.writeCharCode($space);
-          buffer.writeCharCode(next);
-          if (scanner.scanChar($equal)) buffer.writeCharCode($equal);
+          buffer.writeCharCode(scanner.readChar());
+          if ((next == $langle || next == $rangle) &&
+              scanner.scanChar($equal)) {
+            buffer.writeCharCode($equal);
+          }
           buffer.writeCharCode($space);
 
           whitespace();
           buffer.add(_expressionUntilComparison());
+
+          if ((next == $langle || next == $rangle) &&
+              // dart-lang/sdk#45356
+              scanner.scanChar(next!)) {
+            buffer.writeCharCode($space);
+            buffer.writeCharCode(next);
+            if (scanner.scanChar($equal)) buffer.writeCharCode($equal);
+            buffer.writeCharCode($space);
+
+            whitespace();
+            buffer.add(_expressionUntilComparison());
+          }
         }
       }
     }

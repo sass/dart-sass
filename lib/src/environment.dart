@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 88f81b417129a74e4eb776d518c8e019dbf2ec36
+// Checksum: 38c688423116df1e489aa6eafc16de1bf9bc2bf5
 //
 // ignore_for_file: unused_import
 
@@ -1022,7 +1022,7 @@ class _EnvironmentModule implements Module<Callable> {
   }
 
   Module<Callable> cloneCss() {
-    if (css.children.isEmpty) return this;
+    if (!transitivelyContainsCss) return this;
 
     var newCssAndExtensionStore = cloneCssStylesheet(css, extensionStore);
     return _EnvironmentModule._(

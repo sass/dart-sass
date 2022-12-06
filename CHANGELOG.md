@@ -1,4 +1,4 @@
-## 1.56.0
+## 1.57.0
 
 ### Command Line Interface
 
@@ -29,8 +29,37 @@
 * The `compile` methods now take in `fatalDeprecations` and `futureDeprecations`
   parameters, which work similarly to the CLI flags.
 
+## 1.56.1
 
-## 1.55.1
+### Embedded Sass
+
+* Importer results now validate that `contents` is actually a string and whether
+  `sourceMapUrl` is an absolute URL.
+
+## 1.56.0
+
+* **Potentially breaking change:** To match the CSS spec, SassScript expressions
+  beginning with `not` or `(` are no longer supported at the beginning of
+  parenthesized sections of media queries. For example,
+
+  ```scss
+  @media (width >= 500px) and (not (grid))
+  ```
+
+  will now be emitted unchanged, instead of producing
+
+  ```scss
+  @media (width >= 500px) and (false)
+  ```
+
+  See [the Sass website](https://sass-lang.com/d/media-logic) for details.
+
+* **Potentially breaking bug fix:** Angle units like `rad` or `turn` are now
+  properly converted to equivalent `deg` values for `hsl()`, `hsla()`,
+  `adjust-hue()`, `color.adjust()`, and `color.change()`.
+
+  See [the Sass website](https://sass-lang.com/d/function-units#hue) for
+  details.
 
 * Fix indentation for selectors that span multiple lines in a `@media` query.
 
@@ -38,12 +67,21 @@
   `color.adjust()` or `color.change()`. This will be an error in Dart Sass
   2.0.0.
 
+  See [the Sass website](https://sass-lang.com/d/function-units#alpha) for
+  details.
+
 * Emit a deprecation warning when passing a `$weight` value with no units or
   with units other than `%` to `color.mix()`. This will be an error in Dart Sass
   2.0.0.
 
+  See [the Sass website](https://sass-lang.com/d/function-units#weight) for
+  details.
+
 * Emit a deprecation warning when passing `$n` values with units to `list.nth()`
   or `list.set-nth()`. This will be an error in Dart Sass 2.0.0.
+
+  See [the Sass website](https://sass-lang.com/d/function-units#index) for
+  details.
 
 * Improve existing deprecation warnings to wrap `/`-as-division suggestions in
   `calc()` expressions.
@@ -51,10 +89,20 @@
 * Properly mark the warning for passing numbers with units to `random()` as a
   deprecation warning.
 
+* Fix a bug where `@extend` could behave unpredicatably when used along with
+  `meta.load-css()` and shared modules that contained no CSS themselves but
+  loaded CSS from other modules.
+
 ### Dart API
 
 * Emit a deprecation warning when passing a `sassIndex` with units to
   `Value.sassIndexToListIndex()`. This will be an error in Dart Sass 2.0.0.
+
+### JS API
+
+* Importer results now validate whether `contents` is actually a string type.
+
+* Importer result argument errors are now rendered correctly.
 
 ## 1.55.0
 

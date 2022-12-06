@@ -1,7 +1,15 @@
-## 4.0.1
+## 4.1.2
 
 * No user-visible changes, other than the API changes in version 1.56.0 of the
   main Sass package that this package exports.
+
+## 4.1.1
+
+* No user-visible changes.
+
+## 4.1.0
+
+* No user-visible changes.
 
 ## 4.0.0
 
