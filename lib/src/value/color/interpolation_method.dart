@@ -10,7 +10,7 @@ import '../../value.dart';
 /// The method by which two colors are interpolated to find a color in the
 /// middle.
 ///
-/// Used by [SassColor.mix].
+/// Used by [SassColor.interpolate].
 ///
 /// {@category Value}
 class InterpolationMethod {
