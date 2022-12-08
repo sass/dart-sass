@@ -7,7 +7,6 @@ import 'dart:cli';
 import 'dart:io';
 
 import 'package:sass_api/sass_api.dart' as sass;
-import 'package:source_span/source_span.dart';
 
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart';
@@ -26,21 +25,8 @@ import 'utils.dart';
 sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
     int compilationId, String signature,
     {int? id}) {
-  var openParen = signature.indexOf('(');
-  if (openParen == -1) {
-    throw sass.SassException('"$signature" is missing "("',
-        SourceFile.fromString(signature).span(0));
-  }
-
-  if (!signature.endsWith(")")) {
-    throw sass.SassException('"$signature" doesn\'t end with ")"',
-        SourceFile.fromString(signature).span(signature.length));
-  }
-
-  var name = signature.substring(0, openParen);
-  return sass.Callable.function(
-      name, signature.substring(openParen + 1, signature.length - 1),
-      (arguments) {
+  late sass.Callable callable;
+  callable = sass.Callable.fromSignature(signature, (arguments) {
     var protofier = Protofier(dispatcher, functions, compilationId);
     var request = OutboundMessage_FunctionCallRequest()
       ..compilationId = compilationId
@@ -50,7 +36,7 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
     if (id != null) {
       request.functionId = id;
     } else {
-      request.name = name;
+      request.name = callable.name;
     }
 
     // ignore: deprecated_member_use
@@ -74,4 +60,5 @@ sass.Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
       throw error.message;
     }
   });
+  return callable;
 }

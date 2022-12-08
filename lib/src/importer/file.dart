@@ -9,7 +9,6 @@ import 'package:sass_api/sass_api.dart' as sass;
 
 import '../dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
-import '../utils.dart';
 import 'base.dart';
 
 /// A filesystem importer to use for most implementation details of
@@ -44,11 +43,9 @@ class FileImporter extends ImporterBase {
 
       switch (response.whichResult()) {
         case InboundMessage_FileImportResponse_Result.fileUrl:
-          var url =
-              parseAbsoluteUrl("FileImportResponse.file_url", response.fileUrl);
+          var url = parseAbsoluteUrl("The file importer", response.fileUrl);
           if (url.scheme != 'file') {
-            sendAndThrow(paramsError(
-                'FileImportResponse.file_url must be a file: URL, was "$url"'));
+            throw 'The file importer must return a file: URL, was "$url"';
           }
 
           return _filesystemImporter.canonicalize(url);

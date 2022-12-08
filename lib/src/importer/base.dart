@@ -6,8 +6,6 @@ import 'package:meta/meta.dart';
 import 'package:sass_api/sass_api.dart' as sass;
 
 import '../dispatcher.dart';
-import '../embedded_sass.pb.dart' hide SourceSpan;
-import '../utils.dart';
 
 /// An abstract base class for importers that communicate with the host in some
 /// way.
@@ -21,25 +19,17 @@ abstract class ImporterBase extends sass.Importer {
   /// Parses [url] as a [Uri] and throws an error if it's invalid or relative
   /// (including root-relative).
   ///
-  /// The [field] name is used in the error message if one is thrown.
+  /// The [source] name is used in the error message if one is thrown.
   @protected
-  Uri parseAbsoluteUrl(String field, String url) {
+  Uri parseAbsoluteUrl(String source, String url) {
     Uri parsedUrl;
     try {
       parsedUrl = Uri.parse(url);
     } on FormatException catch (error) {
-      sendAndThrow(paramsError("$field is invalid: $error"));
+      throw '$source must return a URL, was "$url"';
     }
 
     if (parsedUrl.scheme.isNotEmpty) return parsedUrl;
-    sendAndThrow(paramsError('$field must be absolute, was "$parsedUrl"'));
-  }
-
-  /// Sends [error] to the remote endpoint, and also throws it so that the Sass
-  /// compilation fails.
-  @protected
-  Never sendAndThrow(ProtocolError error) {
-    dispatcher.sendError(error);
-    throw "Protocol error: ${error.message}";
+    throw '$source must return an absolute URL, was "$parsedUrl"';
   }
 }

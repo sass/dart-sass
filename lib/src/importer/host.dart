@@ -35,7 +35,7 @@ class HostImporter extends ImporterBase {
 
       switch (response.whichResult()) {
         case InboundMessage_CanonicalizeResponse_Result.url:
-          return parseAbsoluteUrl("CanonicalizeResponse.url", response.url);
+          return parseAbsoluteUrl("The importer", response.url);
 
         case InboundMessage_CanonicalizeResponse_Result.error:
           throw response.error;
@@ -60,8 +60,8 @@ class HostImporter extends ImporterBase {
           return sass.ImporterResult(response.success.contents,
               sourceMapUrl: response.success.sourceMapUrl.isEmpty
                   ? null
-                  : parseAbsoluteUrl("ImportResponse.success.source_map_url",
-                      response.success.sourceMapUrl),
+                  : parseAbsoluteUrl(
+                      "The importer", response.success.sourceMapUrl),
               syntax: syntaxToSyntax(response.success.syntax));
 
         case InboundMessage_ImportResponse_Result.error:
