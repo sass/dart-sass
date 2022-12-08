@@ -6,12 +6,8 @@ import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:term_glyph/term_glyph.dart' as glyph;
-import 'package:tuple/tuple.dart';
 
 import '../../sass.dart';
-import '../ast/sass.dart';
-import '../callable.dart';
-import '../exception.dart';
 import '../importer/no_op.dart';
 import '../importer/node_to_dart/async.dart';
 import '../importer/node_to_dart/async_file.dart';
@@ -19,9 +15,7 @@ import '../importer/node_to_dart/file.dart';
 import '../importer/node_to_dart/sync.dart';
 import '../io.dart';
 import '../logger/node_to_dart.dart';
-import '../parse/scss.dart';
 import '../util/nullable.dart';
-import '../utils.dart';
 import 'compile_options.dart';
 import 'compile_result.dart';
 import 'exception.dart';
@@ -236,33 +230,25 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
 
   var result = <AsyncCallable>[];
   jsForEach(functions, (signature, callback) {
-    Tuple2<String, ArgumentDeclaration> tuple;
-    try {
-      tuple = ScssParser(signature).parseSignature();
-    } on SassFormatException catch (error, stackTrace) {
-      throwWithTrace(
-          SassFormatException(
-              'Invalid signature "$signature": ${error.message}', error.span),
-          stackTrace);
-    }
-
     if (!asynch) {
-      result.add(BuiltInCallable.parsed(tuple.item1, tuple.item2, (arguments) {
+      late Callable callable;
+      callable = Callable.fromSignature(signature, (arguments) {
         var result = (callback as Function)(toJSArray(arguments));
         if (result is Value) return result;
         if (isPromise(result)) {
           throw 'Invalid return value for custom function '
-              '"${tuple.item1}":\n'
+              '"${callable.name}":\n'
               'Promises may only be returned for sass.compileAsync() and '
               'sass.compileStringAsync().';
         } else {
           throw 'Invalid return value for custom function '
-              '"${tuple.item1}": $result is not a sass.Value.';
+              '"${callable.name}": $result is not a sass.Value.';
         }
-      }));
+      });
+      result.add(callable);
     } else {
-      result.add(AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2,
-          (arguments) async {
+      late AsyncCallable callable;
+      callable = AsyncCallable.fromSignature(signature, (arguments) async {
         var result = (callback as Function)(toJSArray(arguments));
         if (isPromise(result)) {
           result = await promiseToFuture<Object>(result as Promise);
@@ -270,8 +256,9 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
 
         if (result is Value) return result;
         throw 'Invalid return value for custom function '
-            '"${tuple.item1}": $result is not a sass.Value.';
-      }));
+            '"${callable.name}": $result is not a sass.Value.';
+      });
+      result.add(callable);
     }
   });
   return result;
