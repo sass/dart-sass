@@ -11,7 +11,15 @@ import 'package:yaml/yaml.dart';
 import 'utils.dart';
 
 void main(List<String> args) {
+  pkg.humanName.value = "Dart Sass Embedded";
+  pkg.botName.value = "Sass Bot";
+  pkg.botEmail.value = "sass.bot.beep.boop@gmail.com";
+  pkg.homebrewRepo.value = "sass/homebrew-sass";
+  pkg.homebrewFormula.value = "dart-sass-embedded.rb";
+
   pkg.githubBearerToken.fn = () => Platform.environment["GH_BEARER_TOKEN"]!;
+  pkg.githubUser.fn = () => Platform.environment["GH_USER"];
+  pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"];
 
   pkg.environmentConstants.fn = () => {
         ...pkg.environmentConstants.defaultValue,
@@ -22,6 +30,7 @@ void main(List<String> args) {
       };
 
   pkg.addGithubTasks();
+  pkg.addHomebrewTasks();
   grind(args);
 }
 
