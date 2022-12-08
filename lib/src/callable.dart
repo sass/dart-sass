@@ -9,7 +9,7 @@ import 'ast/sass.dart';
 import 'callable/async.dart';
 import 'callable/built_in.dart';
 import 'exception.dart';
-import 'util/function_signature.dart';
+import 'utils.dart';
 import 'value.dart';
 
 export 'callable/async.dart';

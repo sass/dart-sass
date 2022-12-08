@@ -9,7 +9,7 @@ import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
 import '../exception.dart';
-import '../util/function_signature.dart';
+import '../utils.dart';
 import '../value.dart';
 import 'async_built_in.dart';
 
