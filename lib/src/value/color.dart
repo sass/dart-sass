@@ -546,7 +546,7 @@ class SassColor extends Value {
   /// This currently can't produce an error, but it will likely do so in the
   /// future when Sass adds support for color spaces that don't support
   /// automatic conversions.
-  SassColor toSpace(ColorSpace space, [String? name]) => this.space == space
+  SassColor toSpace(ColorSpace space) => this.space == space
       ? this
       : this.space.convert(space, channel0, channel1, channel2, alpha);
 
@@ -691,14 +691,14 @@ class SassColor extends Value {
     if (newValues.isEmpty) {
       // If space conversion produces an error, we still want to expose that
       // error even if there's nothing to change.
-      if (space != null && space != this.space) toSpace(space, colorName);
+      if (space != null && space != this.space) toSpace(space);
       return this;
     }
 
     if (space != null && space != this.space) {
-      return toSpace(space, colorName)
+      return toSpace(space)
           .changeChannels(newValues, colorName: colorName)
-          .toSpace(space, colorName);
+          .toSpace(space);
     }
 
     double? new0;
@@ -785,21 +785,15 @@ class SassColor extends Value {
   ///
   /// The [weight] is a number between 0 and 1 that indicates how much of [this]
   /// should be in the resulting color. It defaults to 0.5.
-  ///
-  /// Throws a [SassScriptException] if it's not possible to interpolate between
-  /// [this] and [other]. If this color came from a function argument,
-  /// [thisName] is the argument name (without the `$`). If [other] came from a
-  /// function argument, [otherName] is the argument name (without the `$`).
-  /// These are used for error reporting.
   SassColor interpolate(SassColor other, InterpolationMethod method,
-      {double? weight, String? thisName, String? otherName}) {
+      {double? weight}) {
     weight ??= 0.5;
 
     if (fuzzyEquals(weight, 0)) return other;
     if (fuzzyEquals(weight, 1)) return this;
 
-    var color1 = toSpace(method.space, thisName);
-    var color2 = other.toSpace(method.space, otherName);
+    var color1 = toSpace(method.space);
+    var color2 = other.toSpace(method.space);
 
     if (weight < 0 || weight > 1) {
       throw RangeError.range(weight, 0, 1, 'weight');
@@ -969,13 +963,13 @@ class SassColor extends Value {
     if (isLegacy) {
       if (!other.isLegacy) return false;
       if (!fuzzyEquals(alpha, other.alpha)) return false;
-      other = other.toSpace(space);
-
-      // TODO BEFORE COMMIT: Should we convert both to RGB and round to the
-      // nearest integer for backwards-compatibility?
-      return fuzzyEquals(channel0, other.channel0) &&
-          fuzzyEquals(channel1, other.channel1) &&
-          fuzzyEquals(channel2, other.channel2);
+      if (space == ColorSpace.rgb && other.space == ColorSpace.rgb) {
+        return fuzzyEquals(channel0, other.channel0) &&
+            fuzzyEquals(channel1, other.channel1) &&
+            fuzzyEquals(channel2, other.channel2);
+      } else {
+        return toSpace(ColorSpace.rgb) == other.toSpace(ColorSpace.rgb);
+      }
     }
 
     return space == other.space &&

@@ -385,11 +385,9 @@ final module = BuiltInModule("color", functions: <Callable>[
     if (!space.isBounded) return color;
 
     return color
-        .toSpace(
-            space == ColorSpace.hsl || space == ColorSpace.hwb
-                ? ColorSpace.srgb
-                : space,
-            "color")
+        .toSpace(space == ColorSpace.hsl || space == ColorSpace.hwb
+            ? ColorSpace.srgb
+            : space)
         .toGamut()
         .toSpace(space);
   }),
@@ -465,9 +463,7 @@ final _mix = _function("mix", r"$color1, $color2, $weight: 50%, $method: null",
   if (arguments[3] != sassNull) {
     return color1.interpolate(
         color2, InterpolationMethod.fromValue(arguments[3], "method"),
-        weight: weight.valueInRangeWithUnit(0, 100, "weight", "%") / 100,
-        thisName: "color1",
-        otherName: "color2");
+        weight: weight.valueInRangeWithUnit(0, 100, "weight", "%") / 100);
   }
 
   _checkPercent(weight, "weight");
@@ -556,7 +552,7 @@ Value _invert(List<Value> arguments) {
   var weight = weightNumber.valueInRangeWithUnit(0, 100, 'weight', '%') / 100;
   if (fuzzyEquals(weight, 0)) return color;
 
-  var inSpace = color.toSpace(space, "color");
+  var inSpace = color.toSpace(space);
   SassColor inverted;
   switch (space) {
     case ColorSpace.hwb:
@@ -599,7 +595,7 @@ Value _invert(List<Value> arguments) {
   }
 
   return color.interpolate(inverted, InterpolationMethod(space),
-      weight: 1 - weight, thisName: "color");
+      weight: 1 - weight);
 }
 
 /// Returns the inverse of the given [value] in a linear color channel.
@@ -1067,7 +1063,7 @@ SassColor _colorInSpace(Value colorUntyped, Value spaceUntyped) {
   var space = ColorSpace.fromName(
       (spaceUntyped.assertString("space")..assertUnquoted("space")).text,
       "space");
-  return color.space == space ? color : color.toSpace(space, "color");
+  return color.space == space ? color : color.toSpace(space);
 }
 
 /// Returns the color space named by [space], or throws a [SassScriptException]
