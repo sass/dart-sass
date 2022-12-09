@@ -73,16 +73,22 @@ abstract class ColorSpace {
 
   /// The xyz-d65 color space.
   ///
-  /// https://www.w3.org/TR/css-color-4/#predefined-xyz-d65
+  /// https://www.w3.org/TR/css-color-4/#predefined-xyz
   static const ColorSpace xyzD65 = XyzD65ColorSpace();
 
   /// The xyz-d50 color space.
   ///
-  /// https://www.w3.org/TR/css-color-4/#predefined-xyz-d50
+  /// https://www.w3.org/TR/css-color-4/#predefined-xyz
   static const ColorSpace xyzD50 = XyzD50ColorSpace();
 
+  /// The CIE Lab color space.
+  ///
+  /// https://www.w3.org/TR/css-color-4/#cie-lab
   static const ColorSpace lab = LabColorSpace();
 
+  /// The CIE LCH color space.
+  ///
+  /// https://www.w3.org/TR/css-color-4/#cie-lab
   static const ColorSpace lch = LchColorSpace();
 
   /// The internal LMS color space.
@@ -95,8 +101,15 @@ abstract class ColorSpace {
   @internal
   static const ColorSpace lms = LmsColorSpace();
 
+  /// The Oklab color space.
+  ///
+  /// https://www.w3.org/TR/css-color-4/#ok-lab
   static const ColorSpace oklab = OklabColorSpace();
 
+
+  /// The Oklch color space.
+  ///
+  /// https://www.w3.org/TR/css-color-4/#ok-lab
   static const ColorSpace oklch = OklchColorSpace();
 
   /// The CSS name of the color space.
