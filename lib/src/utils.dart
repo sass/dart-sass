@@ -160,6 +160,9 @@ T? firstOrNull<T>(Iterable<T> iterable) {
   return iterator.moveNext() ? iterator.current : null;
 }
 
+/// Returns [value] if it's a [T] or null otherwise.
+T? castOrNull<T>(Object? value) => value is T ? value : null;
+
 /// Converts [codepointIndex] to a code unit index, relative to [string].
 ///
 /// A codepoint index is the index in pure Unicode codepoints; a code unit index

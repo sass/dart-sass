@@ -4,8 +4,6 @@
 
 import 'package:js/js.dart';
 
-import '../../util/nullable.dart';
-import '../../util/number.dart';
 import '../../value.dart';
 import '../reflection.dart';
 
@@ -13,8 +11,7 @@ import '../reflection.dart';
 final JSClass colorClass = () {
   var jsClass = createJSClass('sass.SassColor', (Object self, _Channels color) {
     if (color.red != null) {
-      return SassColor.rgb(fuzzyRound(color.red!), fuzzyRound(color.green!),
-          fuzzyRound(color.blue!), color.alpha);
+      return SassColor.rgb(color.red!, color.green!, color.blue!, color.alpha);
     } else if (color.saturation != null) {
       return SassColor.hsl(
           color.hue!, color.saturation!, color.lightness!, color.alpha);
@@ -42,11 +39,16 @@ final JSClass colorClass = () {
     } else if (options.red != null ||
         options.green != null ||
         options.blue != null) {
-      return self.changeRgb(
-          red: options.red.andThen(fuzzyRound) ?? self.red,
-          green: options.green.andThen(fuzzyRound) ?? self.green,
-          blue: options.blue.andThen(fuzzyRound) ?? self.blue,
-          alpha: options.alpha ?? self.alpha);
+      var red = options.red;
+      var green = options.green;
+      var blue = options.blue;
+      var alpha = options.alpha;
+      return self.changeChannels({
+        if (red != null) "red": red,
+        if (green != null) "green": green,
+        if (blue != null) "blue": blue,
+        if (alpha != null) "alpha": alpha
+      });
     } else {
       return self.changeAlpha(options.alpha ?? self.alpha);
     }
@@ -71,13 +73,13 @@ final JSClass colorClass = () {
 @JS()
 @anonymous
 class _Channels {
-  external num? get red;
-  external num? get green;
-  external num? get blue;
-  external num? get hue;
-  external num? get saturation;
-  external num? get lightness;
-  external num? get whiteness;
-  external num? get blackness;
-  external num? get alpha;
+  external double? get red;
+  external double? get green;
+  external double? get blue;
+  external double? get hue;
+  external double? get saturation;
+  external double? get lightness;
+  external double? get whiteness;
+  external double? get blackness;
+  external double? get alpha;
 }

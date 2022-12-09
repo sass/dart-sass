@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+@Skip("TODO(nweiz): Update these for the new Color API")
+
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';

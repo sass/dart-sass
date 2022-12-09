@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a14e075a5435c7457d1d1371d8b97dd327a66ec4
+// Checksum: a92baa2c76cd9dd9bece8f386aec1b502d8e1fa1
 //
 // ignore_for_file: unused_import
 
@@ -54,6 +54,7 @@ import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
+import 'serialize.dart';
 
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback = void Function(void Function() callback);
@@ -1117,7 +1118,8 @@ class _EvaluateVisitor
   Value? visitDebugRule(DebugRule node) {
     var value = node.expression.accept(this);
     _logger.debug(
-        value is SassString ? value.text : value.toString(), node.span);
+        value is SassString ? value.text : serializeValue(value, inspect: true),
+        node.span);
     return null;
   }
 
@@ -1643,7 +1645,7 @@ class _EvaluateVisitor
       }
     } on SassException catch (error, stackTrace) {
       throwWithTrace(_exception(error.message, error.span), stackTrace);
-    } on ArgumentError catch (error, stackTrace) {
+    } on Error catch (error, stackTrace) {
       throwWithTrace(_exception(error.toString()), stackTrace);
     } catch (error, stackTrace) {
       String? message;

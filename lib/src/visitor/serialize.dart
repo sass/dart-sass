@@ -530,88 +530,244 @@ class _SerializeVisitor
   }
 
   void visitColor(SassColor value) {
-    // In compressed mode, emit colors in the shortest representation possible.
-    if (_isCompressed) {
-      if (!fuzzyEquals(value.alpha, 1)) {
-        _writeRgb(value);
-      } else {
-        var name = namesByColor[value];
-        var hexLength = _canUseShortHex(value) ? 4 : 7;
-        if (name != null && name.length <= hexLength) {
-          _buffer.write(name);
-        } else if (_canUseShortHex(value)) {
-          _buffer.writeCharCode($hash);
-          _buffer.writeCharCode(hexCharFor(value.red & 0xF));
-          _buffer.writeCharCode(hexCharFor(value.green & 0xF));
-          _buffer.writeCharCode(hexCharFor(value.blue & 0xF));
-        } else {
-          _buffer.writeCharCode($hash);
-          _writeHexComponent(value.red);
-          _writeHexComponent(value.green);
-          _writeHexComponent(value.blue);
+    switch (value.space) {
+      case ColorSpace.rgb:
+      case ColorSpace.hsl:
+      case ColorSpace.hwb:
+        _writeLegacyColor(value);
+        break;
+
+      case ColorSpace.lab:
+      case ColorSpace.oklab:
+        _buffer
+          ..write(value.space)
+          ..writeCharCode($lparen);
+        _writeChannel(value.channel0OrNull);
+        if (!_isCompressed && value.space == ColorSpace.lab) {
+          _buffer.writeCharCode($percent);
         }
-      }
-    } else {
-      var format = value.format;
-      if (format != null) {
-        if (format == ColorFormat.rgbFunction) {
-          _writeRgb(value);
-        } else if (format == ColorFormat.hslFunction) {
-          _writeHsl(value);
-        } else {
-          _buffer.write((format as SpanColorFormat).original);
+        _buffer.writeCharCode($space);
+        _writeChannel(value.channel1OrNull);
+        _buffer.writeCharCode($space);
+        _writeChannel(value.channel2OrNull);
+        _maybeWriteSlashAlpha(value.alpha);
+        _buffer.writeCharCode($rparen);
+        break;
+
+      case ColorSpace.lch:
+      case ColorSpace.oklch:
+        _buffer
+          ..write(value.space)
+          ..writeCharCode($lparen);
+        _writeChannel(value.channel0OrNull);
+        if (!_isCompressed && value.space == ColorSpace.lch) {
+          _buffer.writeCharCode($percent);
         }
-      } else if (namesByColor.containsKey(value) &&
-          // Always emit generated transparent colors in rgba format. This works
-          // around an IE bug. See sass/sass#1782.
-          !fuzzyEquals(value.alpha, 0)) {
-        _buffer.write(namesByColor[value]);
-      } else if (fuzzyEquals(value.alpha, 1)) {
-        _buffer.writeCharCode($hash);
-        _writeHexComponent(value.red);
-        _writeHexComponent(value.green);
-        _writeHexComponent(value.blue);
-      } else {
-        _writeRgb(value);
-      }
+        _buffer.writeCharCode($space);
+        _writeChannel(value.channel1OrNull);
+        _buffer.writeCharCode($space);
+        _writeChannel(value.channel2OrNull);
+        if (!_isCompressed && !value.isChannel2Missing) _buffer.write('deg');
+        _maybeWriteSlashAlpha(value.alpha);
+        _buffer.writeCharCode($rparen);
+        break;
+
+      default:
+        _buffer
+          ..write('color(')
+          ..write(value.space)
+          ..writeCharCode($space);
+        _writeBetween(value.channelsOrNull, ' ', _writeChannel);
+        _maybeWriteSlashAlpha(value.alpha);
+        _buffer.writeCharCode($rparen);
+        break;
     }
   }
 
+  /// Writes a [channel] which may be missing.
+  void _writeChannel(double? channel) {
+    if (channel == null) {
+      _buffer.write('none');
+    } else {
+      _writeNumber(channel);
+    }
+  }
+
+  /// Writes a legacy color to the stylesheet.
+  ///
+  /// Unlike newer color spaces, the three legacy color spaces are
+  /// interchangeable with one another. We choose the shortest representation
+  /// that's still compatible with all the browsers we support.
+  void _writeLegacyColor(SassColor color) {
+    var opaque = fuzzyEquals(color.alpha, 1);
+
+    // In compressed mode, emit colors in the shortest representation possible.
+    if (_isCompressed) {
+      var rgb = color.toSpace(ColorSpace.rgb);
+      if (opaque && _tryIntegerRgb(rgb)) return;
+
+      var red = _writeNumberToString(rgb.channel0);
+      var green = _writeNumberToString(rgb.channel1);
+      var blue = _writeNumberToString(rgb.channel2);
+
+      var hsl = color.toSpace(ColorSpace.hsl);
+      var hue = _writeNumberToString(hsl.channel0);
+      var saturation = _writeNumberToString(hsl.channel1);
+      var lightness = _writeNumberToString(hsl.channel2);
+
+      // Add two characters for HSL for the %s on saturation and lightness.
+      if (red.length + green.length + blue.length <=
+          hue.length + saturation.length + lightness.length + 2) {
+        _buffer
+          ..write(opaque ? 'rgb(' : 'rgba(')
+          ..write(red)
+          ..writeCharCode($comma)
+          ..write(green)
+          ..writeCharCode($comma)
+          ..write(blue);
+      } else {
+        _buffer
+          ..write(opaque ? 'hsl(' : 'hsla(')
+          ..write(hue)
+          ..writeCharCode($comma)
+          ..write(saturation)
+          ..write('%,')
+          ..write(lightness)
+          ..writeCharCode($percent);
+      }
+      if (!opaque) {
+        _buffer.writeCharCode($comma);
+        _writeNumber(color.alpha);
+      }
+      _buffer.writeCharCode($rparen);
+      return;
+    }
+
+    if (color.space == ColorSpace.hsl) {
+      _writeHsl(color);
+      return;
+    }
+
+    var format = color.format;
+    if (format != null) {
+      if (format == ColorFormat.rgbFunction) {
+        _writeRgb(color);
+      } else {
+        _buffer.write((format as SpanColorFormat).original);
+      }
+      return;
+    }
+
+    // Always emit generated transparent colors in rgba format. This works
+    // around an IE bug. See sass/sass#1782.
+    var rgb = color.toSpace(ColorSpace.rgb);
+    var name = namesByColor[rgb];
+    if (opaque) {
+      if (name != null) {
+        _buffer.write(name);
+        return;
+      }
+
+      if (_canUseHex(rgb)) {
+        _buffer.writeCharCode($hash);
+        _writeHexComponent(rgb.channel0.round());
+        _writeHexComponent(rgb.channel1.round());
+        _writeHexComponent(rgb.channel2.round());
+        return;
+      }
+    }
+
+    // If an HWB color can't be represented as a hex color, write is as HSL
+    // rather than RGB since that more clearly captures the author's intent.
+    if (color.space == ColorSpace.hwb) {
+      _writeHsl(color);
+    } else {
+      _writeRgb(color);
+    }
+  }
+
+  /// If [value] can be written as a hex code or a color name, writes it in the
+  /// shortest format possible and returns `true.`
+  ///
+  /// Otherwise, writes nothing and returns `false`. Assumes [value] is in the
+  /// RGB space.
+  bool _tryIntegerRgb(SassColor rgb) {
+    assert(rgb.space == ColorSpace.rgb);
+    if (!_canUseHex(rgb)) return false;
+
+    var redInt = rgb.channel0.round();
+    var greenInt = rgb.channel1.round();
+    var blueInt = rgb.channel2.round();
+
+    var name = namesByColor[rgb];
+    var shortHex = _canUseShortHex(redInt, greenInt, blueInt);
+    if (name != null && name.length <= (shortHex ? 4 : 7)) {
+      _buffer.write(name);
+    } else if (shortHex) {
+      _buffer.writeCharCode($hash);
+      _buffer.writeCharCode(hexCharFor(redInt & 0xF));
+      _buffer.writeCharCode(hexCharFor(greenInt & 0xF));
+      _buffer.writeCharCode(hexCharFor(blueInt & 0xF));
+    } else {
+      _buffer.writeCharCode($hash);
+      _writeHexComponent(redInt);
+      _writeHexComponent(greenInt);
+      _writeHexComponent(blueInt);
+    }
+    return true;
+  }
+
+  /// Whether [rgb] can be represented as a hexadecimal color.
+  bool _canUseHex(SassColor rgb) {
+    assert(rgb.space == ColorSpace.rgb);
+    return _canUseHexForChannel(rgb.channel0) &&
+        _canUseHexForChannel(rgb.channel1) &&
+        _canUseHexForChannel(rgb.channel2);
+  }
+
+  /// Whether [channel]'s value can be represented as a two-character
+  /// hexadecimal value.
+  bool _canUseHexForChannel(double channel) =>
+      fuzzyIsInt(channel) &&
+      fuzzyGreaterThanOrEquals(channel, 0) &&
+      fuzzyLessThan(channel, 256);
+
   /// Writes [value] as an `rgb()` or `rgba()` function.
-  void _writeRgb(SassColor value) {
-    var opaque = fuzzyEquals(value.alpha, 1);
-    _buffer
-      ..write(opaque ? "rgb(" : "rgba(")
-      ..write(value.red)
-      ..write(_commaSeparator)
-      ..write(value.green)
-      ..write(_commaSeparator)
-      ..write(value.blue);
+  void _writeRgb(SassColor color) {
+    var opaque = fuzzyEquals(color.alpha, 1);
+    var rgb = color.toSpace(ColorSpace.rgb);
+    _buffer.write(opaque ? "rgb(" : "rgba(");
+    _writeNumber(rgb.channel('red'));
+    _buffer.write(_commaSeparator);
+    _writeNumber(rgb.channel('green'));
+    _buffer.write(_commaSeparator);
+    _writeNumber(rgb.channel('blue'));
 
     if (!opaque) {
       _buffer.write(_commaSeparator);
-      _writeNumber(value.alpha);
+      _writeNumber(color.alpha);
     }
 
     _buffer.writeCharCode($rparen);
   }
 
   /// Writes [value] as an `hsl()` or `hsla()` function.
-  void _writeHsl(SassColor value) {
-    var opaque = fuzzyEquals(value.alpha, 1);
+  void _writeHsl(SassColor color) {
+    var opaque = fuzzyEquals(color.alpha, 1);
+    var hsl = color.toSpace(ColorSpace.hsl);
     _buffer.write(opaque ? "hsl(" : "hsla(");
-    _writeNumber(value.hue);
+    _writeNumber(hsl.channel('hue'));
     _buffer.write("deg");
     _buffer.write(_commaSeparator);
-    _writeNumber(value.saturation);
+    _writeNumber(hsl.channel('saturation'));
     _buffer.writeCharCode($percent);
     _buffer.write(_commaSeparator);
-    _writeNumber(value.lightness);
+    _writeNumber(hsl.channel('lightness'));
     _buffer.writeCharCode($percent);
 
     if (!opaque) {
       _buffer.write(_commaSeparator);
-      _writeNumber(value.alpha);
+      _writeNumber(color.alpha);
     }
 
     _buffer.writeCharCode($rparen);
@@ -623,16 +779,25 @@ class _SerializeVisitor
 
   /// Returns whether [color] can be represented as a short hexadecimal color
   /// (e.g. `#fff`).
-  bool _canUseShortHex(SassColor color) =>
-      _isSymmetricalHex(color.red) &&
-      _isSymmetricalHex(color.green) &&
-      _isSymmetricalHex(color.blue);
+  bool _canUseShortHex(int red, int green, int blue) =>
+      _isSymmetricalHex(red) &&
+      _isSymmetricalHex(green) &&
+      _isSymmetricalHex(blue);
 
   /// Emits [color] as a hex character pair.
   void _writeHexComponent(int color) {
     assert(color < 0x100);
     _buffer.writeCharCode(hexCharFor(color >> 4));
     _buffer.writeCharCode(hexCharFor(color & 0xF));
+  }
+
+  /// Writes the alpha component of a color if [alpha] isn't 1.
+  void _maybeWriteSlashAlpha(double alpha) {
+    if (fuzzyEquals(alpha, 1)) return;
+    _writeOptionalSpace();
+    _buffer.writeCharCode($slash);
+    _writeOptionalSpace();
+    _writeNumber(alpha);
   }
 
   void visitFunction(SassFunction function) {
@@ -774,16 +939,28 @@ class _SerializeVisitor
     }
   }
 
+  /// Like [_writeNumber], but returns a string rather than writing to
+  /// [_buffer].
+  String _writeNumberToString(double number) {
+    var buffer = NoSourceMapBuffer();
+    _writeNumber(number, buffer);
+    return buffer.toString();
+  }
+
   /// Writes [number] without exponent notation and with at most
   /// [SassNumber.precision] digits after the decimal point.
-  void _writeNumber(double number) {
+  ///
+  /// The number is written to [buffer], which defaults to [_buffer].
+  void _writeNumber(double number, [SourceMapBuffer? buffer]) {
+    buffer ??= _buffer;
+
     // Dart always converts integers to strings in the obvious way, so all we
     // have to do is clamp doubles that are close to being integers.
     var integer = fuzzyAsInt(number);
     if (integer != null) {
       // Node.js still uses exponential notation for integers, so we have to
       // handle it here.
-      _buffer.write(_removeExponent(integer.toString()));
+      buffer.write(_removeExponent(integer.toString()));
       return;
     }
 
@@ -796,11 +973,11 @@ class _SerializeVisitor
 
     if (canWriteDirectly) {
       if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
-      _buffer.write(text);
+      buffer.write(text);
       return;
     }
 
-    _writeRounded(text);
+    _writeRounded(text, buffer);
   }
 
   /// If [text] is written in exponent notation, returns a string representation
@@ -863,7 +1040,7 @@ class _SerializeVisitor
   /// Assuming [text] is a number written without exponent notation, rounds it
   /// to [SassNumber.precision] digits after the decimal and writes the result
   /// to [_buffer].
-  void _writeRounded(String text) {
+  void _writeRounded(String text, SourceMapBuffer buffer) {
     assert(RegExp(r"^-?\d+(\.\d+)?$").hasMatch(text),
         '"$text" should be a number written without exponent notation.');
 
@@ -871,7 +1048,7 @@ class _SerializeVisitor
     // integer values. In that case we definitely don't need to adjust for
     // precision, so we can just write the number as-is without the `.0`.
     if (text.endsWith(".0")) {
-      _buffer.write(text.substring(0, text.length - 2));
+      buffer.write(text.substring(0, text.length - 2));
       return;
     }
 
@@ -892,7 +1069,7 @@ class _SerializeVisitor
       if (textIndex == text.length) {
         // If we get here, [text] has no decmial point. It definitely doesn't
         // need to be rounded; we can write it as-is.
-        _buffer.write(text);
+        buffer.write(text);
         return;
       }
 
@@ -907,7 +1084,7 @@ class _SerializeVisitor
     // truncation is needed.
     var indexAfterPrecision = textIndex + SassNumber.precision;
     if (indexAfterPrecision >= text.length) {
-      _buffer.write(text);
+      buffer.write(text);
       return;
     }
 
@@ -945,11 +1122,11 @@ class _SerializeVisitor
     // write "0" explicit to avoid adding a minus sign or omitting the number
     // entirely in compressed mode.
     if (digitsIndex == 2 && digits[0] == 0 && digits[1] == 0) {
-      _buffer.writeCharCode($0);
+      buffer.writeCharCode($0);
       return;
     }
 
-    if (negative) _buffer.writeCharCode($minus);
+    if (negative) buffer.writeCharCode($minus);
 
     // Write the digits before the decimal point to [_buffer]. Omit the leading
     // 0 that's added to [digits] to accommodate rounding, and in compressed
@@ -960,13 +1137,13 @@ class _SerializeVisitor
       if (_isCompressed && digits[1] == 0) writtenIndex++;
     }
     for (; writtenIndex < firstFractionalDigit; writtenIndex++) {
-      _buffer.writeCharCode(decimalCharFor(digits[writtenIndex]));
+      buffer.writeCharCode(decimalCharFor(digits[writtenIndex]));
     }
 
     if (digitsIndex > firstFractionalDigit) {
-      _buffer.writeCharCode($dot);
+      buffer.writeCharCode($dot);
       for (; writtenIndex < digitsIndex; writtenIndex++) {
-        _buffer.writeCharCode(decimalCharFor(digits[writtenIndex]));
+        buffer.writeCharCode(decimalCharFor(digits[writtenIndex]));
       }
     }
   }

@@ -201,6 +201,33 @@ abstract class Value {
   SassString assertString([String? name]) =>
       throw SassScriptException("$this is not a string.", name);
 
+  /// Throws a [SassScriptException] if [this] isn't a list of the sort commonly
+  /// used in plain CSS expression syntax: space-separated and unbracketed.
+  ///
+  /// If [allowSlash] is `true`, this allows slash-separated lists as well.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  ///
+  /// @nodoc
+  @internal
+  List<Value> assertCommonListStyle(String? name, {required bool allowSlash}) {
+    var invalidSeparator = separator == ListSeparator.comma ||
+        (!allowSlash && separator == ListSeparator.slash);
+    if (!invalidSeparator && !hasBrackets) return asList;
+
+    var buffer = StringBuffer(r"Expected");
+    if (hasBrackets) buffer.write(" an unbracketed");
+    if (invalidSeparator) {
+      buffer.write(hasBrackets ? "," : " a");
+      buffer.write(" space-");
+      if (allowSlash) buffer.write(" or slash-");
+      buffer.write("separated");
+    }
+    buffer.write(" list, was $this");
+    throw SassScriptException(buffer.toString(), name);
+  }
+
   /// Converts a `selector-parse()`-style input into a string that can be
   /// parsed.
   ///
