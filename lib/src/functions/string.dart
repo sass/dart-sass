@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/character.dart';
 import '../utils.dart';
@@ -32,6 +33,44 @@ final global = UnmodifiableListView([
 final module = BuiltInModule("string", functions: <Callable>[
   _unquote, _quote, _toUpperCase, _toLowerCase, _length, _insert, _index, //
   _slice, _uniqueId,
+
+  _function("split", r"$string, $separator, $limit: null", (arguments) {
+    var string = arguments[0].assertString("string");
+    var separator = arguments[1].assertString("separator");
+    var limit = arguments[2].realNull?.assertNumber("limit").assertInt("limit");
+
+    if (limit != null && limit < 1) {
+      throw SassScriptException("\$limit: Must be 1 or greater, was $limit.");
+    }
+
+    if (string.text.isEmpty) {
+      return const SassList.empty(
+          separator: ListSeparator.comma, brackets: true);
+    } else if (separator.text.isEmpty) {
+      return SassList(
+          string.text.runes.map((rune) =>
+              SassString(String.fromCharCode(rune), quotes: string.hasQuotes)),
+          ListSeparator.comma,
+          brackets: true);
+    }
+
+    var i = 0;
+    var lastEnd = 0;
+    var chunks = <String>[];
+    for (var match in separator.text.allMatches(string.text)) {
+      chunks.add(string.text.substring(lastEnd, match.start));
+      lastEnd = match.end;
+
+      i++;
+      if (i == limit) break;
+    }
+    chunks.add(string.text.substring(lastEnd));
+
+    return SassList(
+        chunks.map((chunk) => SassString(chunk, quotes: string.hasQuotes)),
+        ListSeparator.comma,
+        brackets: true);
+  }),
 ]);
 
 final _unquote = _function("unquote", r"$string", (arguments) {
