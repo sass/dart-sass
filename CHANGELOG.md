@@ -135,6 +135,13 @@
 * Added `InterpolationMethod` and `HueInterpolationMethod` which collectively
   represent the method to use to interpolate two colors.
 
+## 1.56.2
+
+### Embedded Sass
+
+* The embedded compiler now supports version 1.2.0 of [the embedded
+  protocol](https://github.com/sass/embedded-protocol).
+
 ## 1.56.1
 
 ### Embedded Sass
