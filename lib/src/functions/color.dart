@@ -504,11 +504,16 @@ final _lightness = _function(
 final _complement =
     _function("complement", r"$color, $space: null", (arguments) {
   var color = arguments[0].assertColor("color");
-  var space = arguments[1] == sassNull
+  var space = color.isLegacy && arguments[1] == sassNull
       ? ColorSpace.hsl
       : ColorSpace.fromName(
           (arguments[1].assertString("space")..assertUnquoted("space")).text,
           "space");
+
+  if (!space.isPolar) {
+    throw SassScriptException(
+        "Color space $space doesn't have a hue channel.", 'space');
+  }
 
   var inSpace = color.toSpace(space);
   return inSpace.changeChannels({'hue': inSpace.channel('hue') + 180}).toSpace(

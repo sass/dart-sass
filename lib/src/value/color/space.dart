@@ -106,7 +106,6 @@ abstract class ColorSpace {
   /// https://www.w3.org/TR/css-color-4/#ok-lab
   static const ColorSpace oklab = OklabColorSpace();
 
-
   /// The Oklch color space.
   ///
   /// https://www.w3.org/TR/css-color-4/#ok-lab
