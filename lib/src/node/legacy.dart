@@ -210,7 +210,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
 
     var fiber = options.fiber;
     if (fiber != null) {
-      result.add(Callable.fromSignature(signature, (arguments) {
+      result.add(Callable.fromSignature(signature.trimLeft(), (arguments) {
         var currentFiber = fiber.current;
         var jsArguments = [
           ...arguments.map(wrapValue),
