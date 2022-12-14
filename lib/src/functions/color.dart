@@ -474,9 +474,9 @@ final _mix = _function("mix", r"$color1, $color2, $weight: 50%, $method: null",
         "color1");
   } else if (!color2.isLegacy) {
     throw SassScriptException(
-        "To use color.mix() with non-legacy color $color1, you must provide a "
+        "To use color.mix() with non-legacy color $color2, you must provide a "
             "\$method.",
-        "color1");
+        "color2");
   }
 
   return _mixLegacy(color1, color2, weight);
