@@ -30,7 +30,6 @@ dependencies:
   tuple: ^2.0.0
   watcher: ^1.0.0
   http: ^0.13.3
-  rational: any
 
 dev_dependencies:
   analyzer: ^4.7.0
