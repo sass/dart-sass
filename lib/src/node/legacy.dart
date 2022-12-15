@@ -210,7 +210,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
 
     var fiber = options.fiber;
     if (fiber != null) {
-      result.add(Callable.fromSignature(signature, (arguments) {
+      result.add(Callable.fromSignature(signature.trimLeft(), (arguments) {
         var currentFiber = fiber.current;
         var jsArguments = [
           ...arguments.map(wrapValue),
@@ -230,12 +230,13 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
       }, requireParens: false));
     } else if (!asynch) {
       result.add(Callable.fromSignature(
-          signature,
+          signature.trimLeft(),
           (arguments) => unwrapValue((callback as JSFunction)
               .apply(context, arguments.map(wrapValue).toList())),
           requireParens: false));
     } else {
-      result.add(AsyncCallable.fromSignature(signature, (arguments) async {
+      result.add(
+          AsyncCallable.fromSignature(signature.trimLeft(), (arguments) async {
         var completer = Completer<Object?>();
         var jsArguments = [
           ...arguments.map(wrapValue),
