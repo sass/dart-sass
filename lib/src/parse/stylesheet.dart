@@ -147,7 +147,6 @@ abstract class StylesheetParser extends Parser {
       {bool requireParens = true}) {
     return wrapSpanFormatException(() {
       var name = identifier();
-      whitespace();
       var arguments = requireParens || scanner.peekChar() == $lparen
           ? _argumentDeclaration()
           : ArgumentDeclaration.empty(scanner.emptySpan);

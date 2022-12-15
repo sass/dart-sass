@@ -3,6 +3,21 @@
 * Add a `split($string, $separator, $limit: null)` function to `sass:string`
   that splits a string into separate substrings based on a separator string.
 
+### JavaScript API
+
+* **Potentially breaking bug fix**: Custom functions in both the modern and
+  legacy API now properly reject signatures with whitespace between the function
+  name and parentheses.
+
+* Custom functions in the legacy API now allow signatures with whitespace before
+  the function name, to match a bug in Node Sass.
+
+### Dart API
+
+* **Potentially breaking bug fix**: `Callable.fromSignature()` and
+  `AsyncCallable.fromSignature()` now reject signatures with whitespace between
+  the function name and parentheses.
+
 ## 1.56.2
 
 ### Embedded Sass
