@@ -11,8 +11,8 @@
 
 ### Dart API
 
-* **Potentially breaking bug fix**: `Callable.parseSignature()` and
-  `AsyncCallable.parseSignature()` now reject signatures with whitespace between
+* **Potentially breaking bug fix**: `Callable.fromSignature()` and
+  `AsyncCallable.fromSignature()` now reject signatures with whitespace between
   the function name and parentheses.
 
 ## 1.56.2
