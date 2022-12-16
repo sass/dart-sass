@@ -482,6 +482,8 @@ jobs:
           repository: sass/dart-sass-embedded
           token: ${{ secrets.GH_TOKEN }}
       - uses: dart-lang/setup-dart@v1
+      - uses: frenck/action-setup-yq@v1
+        with: {version: v4.30.5} # frenck/action-setup-yq#35
 
       - name: Get version
         id: version
@@ -492,6 +494,25 @@ jobs:
           sed -i 's/version: .*/version: ${{ steps.version.outputs.version }}/' pubspec.yaml
           dart pub remove sass
           dart pub add sass:${{ steps.version.outputs.version }}
+
+          # Delete a dependency override on Sass if it exists, and delete the
+          # dependency_overrides field if it's now empty. The embedded compiler
+          # often uses dev dependencies to run against the latest Dart Sass, but
+          # once we release the latest version that's no longer necessary.
+          #
+          # TODO(dart-lang/pub#3700): Use pub for this instead to avoid removing
+          # blank lines. See also mikefarah/yq#515.
+          yq -i '
+            del(.dependency_overrides.sass) |
+              to_entries |
+              map(select(.key != "dependency_overrides" or (.value | length >0))) |
+              from_entries
+          ' pubspec.yaml
+
+          # The embedded compiler has a checked-in pubspec.yaml, so upgrade to
+          # make sure we're releasing against the latest version of all deps.
+          pub upgrade
+
           curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
 
       - uses: EndBug/add-and-commit@v8
