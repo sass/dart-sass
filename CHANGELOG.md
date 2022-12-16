@@ -1,4 +1,7 @@
-## 1.56.3
+## 1.57.0
+
+* Add a `split($string, $separator, $limit: null)` function to `sass:string`
+  that splits a string into separate substrings based on a separator string.
 
 ### JavaScript API
 
