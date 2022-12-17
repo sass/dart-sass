@@ -511,7 +511,7 @@ jobs:
 
           # The embedded compiler has a checked-in pubspec.yaml, so upgrade to
           # make sure we're releasing against the latest version of all deps.
-          pub upgrade
+          dart pub upgrade
 
           curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
 
