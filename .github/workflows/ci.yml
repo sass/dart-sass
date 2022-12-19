@@ -1,5 +1,8 @@
 name: CI
 
+defaults:
+  run: {shell: bash}
+
 env:
   protoc_version: '3.x'
 
@@ -23,6 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: frenck/action-setup-yq@v1
+        with: {version: v4.30.5} # frenck/action-setup-yq#35
       - uses: arduino/setup-protoc@v1
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
       - uses: dart-lang/setup-dart@v1
@@ -35,22 +40,13 @@ jobs:
           path: build/dart-sass
           default-ref: null
 
-      - name: Check out Dart Sass from main HEAD when using -dev dependency
-        run: |
-          if [[ ! -d build/dart-sass ]] && grep --quiet -E '\bsass:\s*.*-dev["'"'"']?$' pubspec.yaml; then
-            git clone https://github.com/sass/dart-sass.git \
-              --depth 1 build/dart-sass
-          fi
-        shell: bash
-
-      - name: Override dart-sass dependency only if repo was cloned a priori
+      - name: Link the embedded compiler to Dart Sass
         run: |
           if [[ -d build/dart-sass ]]; then
-            (
-              echo "dependency_overrides:"
-              echo "  sass: {path: build/dart-sass}"
-              echo "  sass_api: {path: build/dart-sass/pkg/sass_api}"
-            ) >> pubspec.yaml
+            yq -i '
+              .dependency_overrides.sass = {"path": "build/dart-sass"} |
+              .dependency_overrides.sass_api = {"path": "build/dart-sass/pkg/sass_api"}
+            ' pubspec.yaml
           fi
         shell: bash
 
@@ -88,6 +84,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
         with: {sdk: stable}
+      - uses: frenck/action-setup-yq@v1
+        with: {version: v4.30.5} # frenck/action-setup-yq#35
       - uses: arduino/setup-protoc@v1
         with:
           version: ${{ env.PROTOC_VERSION }}
@@ -100,22 +98,13 @@ jobs:
           path: build/dart-sass
           default-ref: null
 
-      - name: Check out Dart Sass from main HEAD when using -dev dependency
-        run: |
-          if [[ ! -d build/dart-sass ]] && grep --quiet -E '\bsass:\s*.*-dev["'"'"']?$' pubspec.yaml; then
-            git clone https://github.com/sass/dart-sass.git \
-              --depth 1 build/dart-sass
-          fi
-        shell: bash
-
-      - name: Override dart-sass dependency only if repo was cloned a priori
+      - name: Link the embedded compiler to Dart Sass
         run: |
           if [[ -d build/dart-sass ]]; then
-            (
-              echo "dependency_overrides:"
-              echo "  sass: {path: build/dart-sass}"
-              echo "  sass_api: {path: build/dart-sass/pkg/sass_api}"
-            ) >> pubspec.yaml
+            yq -i '
+              .dependency_overrides.sass = {"path": "build/dart-sass"} |
+              .dependency_overrides.sass_api = {"path": "build/dart-sass/pkg/sass_api"}
+            ' pubspec.yaml
           fi
         shell: bash
 
@@ -131,12 +120,13 @@ jobs:
         uses: sass/clone-linked-repo@v1
         with: {repo: sass/sass, path: language}
 
-      - name: "Embedded host: npm install"
-        run: npm install
-        working-directory: embedded-host-node
-      - name: "Embedded host: npm run init"
+      - name: Initialize embedded host
         run: |
-          npm run init -- --protocol-path=../build/embedded-protocol --compiler-path=.. --api-path=../language
+          npm install
+          npm run init -- --protocol-path=../build/embedded-protocol \
+              --compiler-path=.. --api-path=../language
+          npm run compile
+          mv {`pwd`/,dist/}lib/src/vendor/dart-sass-embedded
         working-directory: embedded-host-node
 
       - name: Check out sass-spec
@@ -147,12 +137,14 @@ jobs:
         run: npm install
         working-directory: sass-spec
 
-      - name: Compile embedded host
+      - name: Version info
         run: |
-          npm run compile
-          mv {`pwd`/,dist/}lib/src/vendor/dart-sass-embedded
-        shell: bash
-        working-directory: embedded-host-node
+          path=embedded-host-node/dist/lib/src/vendor/dart-sass-embedded/dart-sass-embedded
+          if [[ -f "$path.cmd" ]]; then "./$path.cmd" --version
+          elif [[ -f "$path.bat" ]]; then "./$path.bat" --version
+          elif [[ -f "$path.exe" ]]; then "./$path.exe" --version
+          else "./$path" --version
+          fi
 
       - name: Run tests
         run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../language
@@ -164,6 +156,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: frenck/action-setup-yq@v1
+        with: {version: v4.30.5} # frenck/action-setup-yq#35
       - uses: arduino/setup-protoc@v1
         with: { version: "${{ env.protoc_version }}", repo-token: "${{ github.token }}" }
       - uses: dart-lang/setup-dart@v1
@@ -175,22 +169,13 @@ jobs:
           path: build/dart-sass
           default-ref: null
 
-      - name: Check out Dart Sass from main HEAD when using -dev dependency
-        run: |
-          if [[ ! -d build/dart-sass ]] && grep --quiet -E '\bsass:\s*.*-dev["'"'"']?$' pubspec.yaml; then
-            git clone https://github.com/sass/dart-sass.git \
-              --depth 1 build/dart-sass
-          fi
-        shell: bash
-
-      - name: Override dart-sass dependency only if repo was cloned a priori
+      - name: Link the embedded compiler to Dart Sass
         run: |
           if [[ -d build/dart-sass ]]; then
-            (
-              echo "dependency_overrides:"
-              echo "  sass: {path: build/dart-sass}"
-              echo "  sass_api: {path: build/dart-sass/pkg/sass_api}"
-            ) >> pubspec.yaml
+            yq -i '
+              .dependency_overrides.sass = {"path": "build/dart-sass"} |
+              .dependency_overrides.sass_api = {"path": "build/dart-sass/pkg/sass_api"}
+            ' pubspec.yaml
           fi
         shell: bash
 
