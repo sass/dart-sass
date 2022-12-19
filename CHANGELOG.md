@@ -1,3 +1,7 @@
+## 1.57.1
+
+* No user-visible changes.
+
 ## 1.57.0
 
 * Add a `split($string, $separator, $limit: null)` function to `sass:string`
