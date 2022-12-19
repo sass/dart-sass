@@ -96,7 +96,10 @@ jobs:
         with:
           repo: sass/dart-sass
           path: build/dart-sass
-          default-ref: null
+          # Unless we're cutting a release, run the main branch of Dart Sass
+          # against the main branch of sass-spec so that we don't need to make
+          # an empty commit to this repo every time we update those two.
+          default-ref: ${{ !startsWith(github.ref, 'refs/tags/') && 'main' || null }}
 
       - name: Link the embedded compiler to Dart Sass
         run: |
