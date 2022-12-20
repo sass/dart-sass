@@ -98,6 +98,18 @@
 
 [color spaces]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
 
+* The following functions are now deprecated, and uses should be replaced with
+  the new color-space-aware functions defined above:
+
+  * The `color.red()`, `color.green()`, `color.blue()`, `color.hue()`,
+    `color.saturation()`, `color.lightness()`, `color.whiteness()`, and
+    `color.blackness()` functions, as well as their global counterparts, should
+    be replaced with calls to `color.channel()`.
+
+  * The global `adjust-hue()`, `saturate()`, `desaturate()`, `lighten()`,
+    `darken()`, `transaprentize()`, `fade-out()`, `opacify()`, and `fade-in()`
+    functions should be replaced by `color.adjust()` or `color.scale()`.
+
 ### Dart API
 
 * Added a `ColorSpace` class which represents the various color spaces defined
