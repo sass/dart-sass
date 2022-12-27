@@ -1,3 +1,8 @@
+## 1.57.2
+
+* Remove sourcemap comments from the Sass sources. The generated sourcemap for
+  the output CSS remains unaffected.
+
 ## 1.57.1
 
 * No user-visible changes.
