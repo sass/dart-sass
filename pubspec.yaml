@@ -31,3 +31,4 @@ dev_dependencies:
     git:
       url: https://github.com/sass/dart-sass.git
       path: analysis
+  source_maps: ^0.10.10

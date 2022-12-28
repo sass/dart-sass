@@ -25,7 +25,7 @@ abstract class ImporterBase extends sass.Importer {
     Uri parsedUrl;
     try {
       parsedUrl = Uri.parse(url);
-    } on FormatException catch (error) {
+    } on FormatException {
       throw '$source must return a URL, was "$url"';
     }
 

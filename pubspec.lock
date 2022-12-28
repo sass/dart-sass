@@ -368,7 +368,7 @@ packages:
     source: hosted
     version: "2.1.1"
   source_maps:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: source_maps
       url: "https://pub.dartlang.org"
