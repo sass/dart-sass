@@ -766,11 +766,6 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a query expression of the form `(foo: bar)`.
   Interpolation _atRootQuery() {
-    if (scanner.peekChar() == $hash) {
-      var interpolation = singleInterpolation();
-      return Interpolation([interpolation], interpolation.span);
-    }
-
     var start = scanner.state;
     var buffer = InterpolationBuffer();
     scanner.expectChar($lparen);
