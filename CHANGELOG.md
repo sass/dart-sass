@@ -1,5 +1,8 @@
 ## 1.57.2
 
+* Remove sourcemap comments from Sass sources. The generated sourcemap comment
+  for the compiled CSS output remains unaffected.
+
 * Produce a better error message for a number with a leading `+` or `-`, a
   decimal point, but no digits.
 
