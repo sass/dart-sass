@@ -598,6 +598,7 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
 
   var i1 = 0;
   var i2 = 0;
+  Combinator? previousCombinator;
   while (true) {
     var remaining1 = complex1.length - i1;
     var remaining2 = complex2.length - i2;
@@ -643,6 +644,11 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
       parents.add(component2);
     }
 
+    if (!_compatibleWithPreviousCombinator(
+        previousCombinator, parents ?? const [])) {
+      return false;
+    }
+
     var component2 = complex2[endOfSubselector];
     var combinator1 = component1.combinators.firstOrNull;
     var combinator2 = component2.combinators.firstOrNull;
@@ -652,6 +658,7 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
 
     i1++;
     i2 = endOfSubselector + 1;
+    previousCombinator = combinator1;
 
     if (complex1.length - i1 == 1) {
       if (combinator1 == Combinator.followingSibling) {
@@ -669,6 +676,25 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
       }
     }
   }
+}
+
+/// Returns whether [parents] are valid intersitial components between one
+/// complex superselector and another, given that the earlier complex
+/// superselector had the combinator [previous].
+bool _compatibleWithPreviousCombinator(
+    Combinator? previous, List<ComplexSelectorComponent> parents) {
+  if (parents.isEmpty) return true;
+  if (previous == null) return true;
+
+  // The child and next sibling combinators require that the *immediate*
+  // following component be a superslector.
+  if (previous != Combinator.followingSibling) return false;
+
+  // The following sibling combinator does allow intermediate components, but
+  // only if they're all siblings.
+  return parents.every((component) =>
+      component.combinators.firstOrNull == Combinator.followingSibling ||
+      component.combinators.firstOrNull == Combinator.nextSibling);
 }
 
 /// Returns whether [combinator1] is a supercombinator of [combinator2].

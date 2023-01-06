@@ -3,6 +3,11 @@
 * Remove sourcemap comments from Sass sources. The generated sourcemap comment
   for the compiled CSS output remains unaffected.
 
+* Fix a bug in `@extend` logic where certain selectors with three or more
+  combinators were incorrectly considered superselectors of similar selectors
+  with fewer combinators, causing them to be incorrectly trimmed from the
+  output.
+
 * Produce a better error message for a number with a leading `+` or `-`, a
   decimal point, but no digits.
 
