@@ -18,8 +18,11 @@ import '../number.dart';
 /// sets in this list.
 const _knownCompatibilities = [
   {
-    "em", "ex", "ch", "rem", "vw", "vh", "vmin", "vmax", "cm", "mm", "q", //
-    "in", "pt", "pc", "px"
+    "em", "rem", "ex", "rex", "cap", "rcap", "ch", "rch", "ic", "ric", "lh", //
+    "rlh", "vw", "lvw", "svw", "dvw", "vh", "lvh", "svh", "dvh", "vi", "lvi", //
+    "svi", "dvi", "vb", "lvb", "svb", "dvb", "vmin", "lvmin", "svmin", //
+    "dvmin", "vmax", "lvmax", "svmax", "dvmax", "cqw", "cqh", "cqi", "cqb", //
+    "cqmin", "cqmax", "cm", "mm", "q", "in", "pt", "pc", "px"
   },
   {"deg", "grad", "rad", "turn"},
   {"s", "ms"},

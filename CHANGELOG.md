@@ -1,4 +1,4 @@
-## 1.57.2
+## 1.58.0
 
 * Remove sourcemap comments from Sass sources. The generated sourcemap comment
   for the compiled CSS output remains unaffected.
@@ -15,6 +15,9 @@
   `--`.
 
 * Fix a crash when a selector ends in an escaped backslash.
+
+* Add the relative length units from CSS Values 4 and CSS Contain 3 as known
+  units to validate bad computation in `calc`.
 
 ## 1.57.1
 
