@@ -11,6 +11,8 @@
 * Produce a better error message for a number with a leading `+` or `-`, a
   decimal point, but no digits.
 
+* Fix a crash when a selector ends in an escaped backslash.
+
 ## 1.57.1
 
 * No user-visible changes.
