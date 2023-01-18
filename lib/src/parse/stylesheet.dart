@@ -147,7 +147,6 @@ abstract class StylesheetParser extends Parser {
       {bool requireParens = true}) {
     return wrapSpanFormatException(() {
       var name = identifier();
-      whitespace();
       var arguments = requireParens || scanner.peekChar() == $lparen
           ? _argumentDeclaration()
           : ArgumentDeclaration.empty(scanner.emptySpan);
@@ -767,11 +766,6 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a query expression of the form `(foo: bar)`.
   Interpolation _atRootQuery() {
-    if (scanner.peekChar() == $hash) {
-      var interpolation = singleInterpolation();
-      return Interpolation([interpolation], interpolation.span);
-    }
-
     var start = scanner.state;
     var buffer = InterpolationBuffer();
     scanner.expectChar($lparen);
@@ -2535,7 +2529,10 @@ abstract class StylesheetParser extends Parser {
     // Don't complain about a dot after a number unless the number starts with a
     // dot. We don't allow a plain ".", but we need to allow "1." so that
     // "1..." will work as a rest argument.
-    _tryDecimal(allowTrailingDot: scanner.position != start.position);
+    _tryDecimal(
+        allowTrailingDot: scanner.position != start.position &&
+            first != $plus &&
+            first != $minus);
     _tryExponent();
 
     // Use Dart's built-in double parsing so that we don't accumulate
