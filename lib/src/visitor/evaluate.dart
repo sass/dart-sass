@@ -1126,6 +1126,11 @@ class _EvaluateVisitor
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
+    if (_declarationName != null && node.isCustomProperty) {
+      throw _exception(
+          'Declarations whose names begin with "--" may not be nested.',
+          node.span);
+    }
 
     var name = _interpolationToValue(node.name, warnForColor: true);
     if (_declarationName != null) {
