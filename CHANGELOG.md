@@ -11,6 +11,9 @@
 * Produce a better error message for a number with a leading `+` or `-`, a
   decimal point, but no digits.
 
+* Produce a better error message for a nested property whose name starts with
+  `--`.
+
 ## 1.57.1
 
 * No user-visible changes.
