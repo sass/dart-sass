@@ -14,6 +14,8 @@
 * Produce a better error message for a nested property whose name starts with
   `--`.
 
+* Fix a crash when a selector ends in an escaped backslash.
+
 ## 1.57.1
 
 * No user-visible changes.

@@ -114,7 +114,7 @@ int? _lastNonWhitespace(String string, {bool excludeEscape = false}) {
     if (!isWhitespace(codeUnit)) {
       if (excludeEscape &&
           i != 0 &&
-          i != string.length &&
+          i != string.length - 1 &&
           codeUnit == $backslash) {
         return i + 1;
       } else {
