@@ -72,13 +72,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        node_version: [16]
+        node_version: [18]
         include:
           # Include LTS versions on Ubuntu
           - os: ubuntu
-            node_version: 14
+            node_version: 16
           - os: ubuntu
-            node_version: 12
+            node_version: 14
 
     steps:
       - uses: actions/checkout@v3
