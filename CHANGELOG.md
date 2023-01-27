@@ -1,4 +1,4 @@
-## 1.57.0
+## 1.58.0
 
 * Add support for CSS Color Level 4 [color spaces]. Each color value now tracks
   its color space along with the values of each channel in that color space.
@@ -146,6 +146,43 @@
 
 * Added `InterpolationMethod` and `HueInterpolationMethod` which collectively
   represent the method to use to interpolate two colors.
+
+## 1.57.2
+
+* Remove sourcemap comments from Sass sources. The generated sourcemap comment
+  for the compiled CSS output remains unaffected.
+
+* Fix a bug in `@extend` logic where certain selectors with three or more
+  combinators were incorrectly considered superselectors of similar selectors
+  with fewer combinators, causing them to be incorrectly trimmed from the
+  output.
+
+* Produce a better error message for a number with a leading `+` or `-`, a
+  decimal point, but no digits.
+
+## 1.57.1
+
+* No user-visible changes.
+
+## 1.57.0
+
+* Add a `split($string, $separator, $limit: null)` function to `sass:string`
+  that splits a string into separate substrings based on a separator string.
+
+### JavaScript API
+
+* **Potentially breaking bug fix**: Custom functions in both the modern and
+  legacy API now properly reject signatures with whitespace between the function
+  name and parentheses.
+
+* Custom functions in the legacy API now allow signatures with whitespace before
+  the function name, to match a bug in Node Sass.
+
+### Dart API
+
+* **Potentially breaking bug fix**: `Callable.fromSignature()` and
+  `AsyncCallable.fromSignature()` now reject signatures with whitespace between
+  the function name and parentheses.
 
 ## 1.56.2
 

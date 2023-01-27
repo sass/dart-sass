@@ -304,7 +304,7 @@ final module = BuiltInModule("color", functions: <Callable>[
   }),
 
   // ### HSL
-  _channelFunction("hue", (color) => color.hue, unit: '%'),
+  _channelFunction("hue", (color) => color.hue, unit: 'deg'),
   _channelFunction("saturation", (color) => color.saturation, unit: '%'),
   _channelFunction("lightness", (color) => color.lightness, unit: '%'),
   _removedColorFunction("adjust-hue", "hue"),
