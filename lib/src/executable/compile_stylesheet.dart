@@ -133,6 +133,7 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   // `destination` is guaranteed to be non-null in update and watch mode.
   var destinationName = p.prettyUri(p.toUri(destination!));
   var nowStr = DateTime.now().toString();
+  // Remove fractional seconds from printed timestamp
   var timestamp = nowStr.substring(0, nowStr.length - 7);
   buffer.write('$timestamp - Compiled $sourceName to $destinationName.');
   if (options.color) buffer.write('\u001b[0m');
