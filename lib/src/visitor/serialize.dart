@@ -179,6 +179,9 @@ class _SerializeVisitor
       // Preserve comments that start with `/*!`.
       if (_isCompressed && !node.isPreserved) return;
 
+      // Ignore sourceMappingURL and sourceURL comments.
+      if (node.text.startsWith(RegExp(r"/\*# source(Mapping)?URL="))) return;
+
       var minimumIndentation = _minimumIndentation(node.text);
       assert(minimumIndentation != -1);
       if (minimumIndentation == null) {
