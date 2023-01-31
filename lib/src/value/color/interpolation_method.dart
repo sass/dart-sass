@@ -84,7 +84,7 @@ class InterpolationMethod {
       throw SassScriptException(
           'Expected unquoted string "hue" at the end of $value, was ${list[2]}.',
           name);
-    } else if (list.length > 2) {
+    } else if (list.length > 3) {
       throw SassScriptException(
           'Expected nothing after "hue" in $value.', name);
     } else if (!space.isPolar) {
