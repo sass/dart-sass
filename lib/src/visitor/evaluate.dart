@@ -3548,7 +3548,7 @@ class _EvaluationContext implements EvaluationContext {
   final _EvaluateVisitor _visitor;
 
   /// The AST node whose span should be used for [warn] if no other span is
-  /// avaiable.
+  /// available.
   final AstNode _defaultWarnNodeWithSpan;
 
   _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);

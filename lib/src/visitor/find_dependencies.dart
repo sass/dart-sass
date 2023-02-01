@@ -80,7 +80,7 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
 
 /// A struct of different types of dependencies a Sass stylesheet can contain.
 class DependencyReport {
-  /// An unmodifiable set of all `@use`d URLs in the stylesheet (exluding
+  /// An unmodifiable set of all `@use`d URLs in the stylesheet (excluding
   /// built-in modules).
   final Set<Uri> uses;
 

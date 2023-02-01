@@ -1715,7 +1715,7 @@ abstract class StylesheetParser extends Parser {
     var wasInParentheses = _inParentheses;
 
     // We use the convention below of referring to nullable variables that are
-    // shared across anonymous functions in this method with a trailling
+    // shared across anonymous functions in this method with a trailing
     // underscore. This allows us to copy them to non-underscored local
     // variables to make it easier for Dart's type system to reason about their
     // local nullability.

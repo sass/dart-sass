@@ -143,7 +143,7 @@ const _conversions = {
   },
 };
 
-/// A map from human-readable names of unit types to the convertable units that
+/// A map from human-readable names of unit types to the convertible units that
 /// fall into those types.
 const _unitsByType = {
   "length": ["in", "cm", "pc", "mm", "q", "pt", "px"],
