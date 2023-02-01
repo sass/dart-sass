@@ -487,13 +487,17 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "::set-output name=version::${GITHUB_REF##*/}"
+        run: |
+          echo "sass=${GITHUB_REF##*/}" | tee -a $GITHUB_OUTPUT
+          echo "sass_api=$(curl -fsSL https://raw.githubusercontent.com/sass/dart-sass/${GITHUB_REF##*/}/pkg/sass_api/pubspec.yaml | yq .version)" | tee -a $GITHUB_OUTPUT
 
       - name: Update version
         run: |
-          sed -i 's/version: .*/version: ${{ steps.version.outputs.version }}/' pubspec.yaml
+          sed -i 's/version: .*/version: ${{ steps.version.outputs.sass }}/' pubspec.yaml
+          dart pub remove sass_api
           dart pub remove sass
-          dart pub add sass:${{ steps.version.outputs.version }}
+          dart pub add sass:${{ steps.version.outputs.sass }}
+          dart pub add sass_api:^${{ steps.version.outputs.sass_api }}
 
           # Delete a dependency override on Sass if it exists, and delete the
           # dependency_overrides field if it's now empty. The embedded compiler
@@ -513,11 +517,11 @@ jobs:
           # make sure we're releasing against the latest version of all deps.
           dart pub upgrade
 
-          curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
+          curl -fsSLo CHANGELOG.md https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.sass }}/CHANGELOG.md
 
       - uses: EndBug/add-and-commit@v8
         with:
           author_name: Sass Bot
           author_email: sass.bot.beep.boop@gmail.com
           message: Update Dart Sass version and release
-          tag: ${{ steps.version.outputs.version }}
+          tag: ${{ steps.version.outputs.sass }}
