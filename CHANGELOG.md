@@ -1,3 +1,29 @@
+## 1.58.0
+
+* Remove sourcemap comments from Sass sources. The generated sourcemap comment
+  for the compiled CSS output remains unaffected.
+
+* Fix a bug in `@extend` logic where certain selectors with three or more
+  combinators were incorrectly considered superselectors of similar selectors
+  with fewer combinators, causing them to be incorrectly trimmed from the
+  output.
+
+* Produce a better error message for a number with a leading `+` or `-`, a
+  decimal point, but no digits.
+
+* Produce a better error message for a nested property whose name starts with
+  `--`.
+
+* Fix a crash when a selector ends in an escaped backslash.
+
+* Add the relative length units from CSS Values 4 and CSS Contain 3 as known
+  units to validate bad computation in `calc`.
+
+### Command Line Interface
+
+* The `--watch` flag will now track loads through calls to `meta.load-css()` as
+  long as their URLs are literal strings without any interpolation.
+
 ## 1.57.1
 
 * No user-visible changes.
