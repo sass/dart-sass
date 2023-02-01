@@ -104,5 +104,8 @@ class DependencyReport {
   Set<Uri> get all => UnionSet({uses, forwards, metaLoadCss, imports});
 
   DependencyReport._(
-      {required this.uses, required this.forwards, required this.metaLoadCss, required this.imports});
+      {required this.uses,
+      required this.forwards,
+      required this.metaLoadCss,
+      required this.imports});
 }

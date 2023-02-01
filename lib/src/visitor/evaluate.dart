@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a14e075a5435c7457d1d1371d8b97dd327a66ec4
+// Checksum: 6c33da8b3778d36b10b1933994807d9d4ac5c277
 //
 // ignore_for_file: unused_import
 
@@ -1125,11 +1125,6 @@ class _EvaluateVisitor
     if (_styleRule == null && !_inUnknownAtRule && !_inKeyframes) {
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
-    }
-    if (_declarationName != null && node.isCustomProperty) {
-      throw _exception(
-          'Declarations whose names begin with "--" may not be nested.',
-          node.span);
     }
 
     var name = _interpolationToValue(node.name, warnForColor: true);
