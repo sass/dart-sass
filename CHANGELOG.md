@@ -19,6 +19,11 @@
 * Add the relative length units from CSS Values 4 and CSS Contain 3 as known
   units to validate bad computation in `calc`.
 
+### Command Line Interface
+
+* The `--watch` flag will now track loads through calls to `meta.load-css()` as
+  long as their URLs are literal strings without any interpolation.
+
 ## 1.57.1
 
 * No user-visible changes.

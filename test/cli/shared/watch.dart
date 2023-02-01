@@ -264,6 +264,100 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
                 .validate();
           });
 
+          group("through meta.load-css", () {
+            test("with the default namespace", () async {
+              await d.file("_other.scss", "a {b: c}").create();
+              await d.file("test.scss", """
+                @use 'sass:meta';
+                @include meta.load-css('other');
+              """).create();
+
+              var sass = await watch(["test.scss:out.css"]);
+              await expectLater(
+                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout, _watchingForChanges);
+              await tickIfPoll();
+
+              await d.file("_other.scss", "x {y: z}").create();
+              await expectLater(
+                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await sass.kill();
+
+              await d
+                  .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                  .validate();
+            });
+
+            test("with a custom namespace", () async {
+              await d.file("_other.scss", "a {b: c}").create();
+              await d.file("test.scss", """
+                @use 'sass:meta' as m;
+                @include m.load-css('other');
+              """).create();
+
+              var sass = await watch(["test.scss:out.css"]);
+              await expectLater(
+                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout, _watchingForChanges);
+              await tickIfPoll();
+
+              await d.file("_other.scss", "x {y: z}").create();
+              await expectLater(
+                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await sass.kill();
+
+              await d
+                  .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                  .validate();
+            });
+
+            test("with no namespace", () async {
+              await d.file("_other.scss", "a {b: c}").create();
+              await d.file("test.scss", """
+                @use 'sass:meta' as *;
+                @include load-css('other');
+              """).create();
+
+              var sass = await watch(["test.scss:out.css"]);
+              await expectLater(
+                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout, _watchingForChanges);
+              await tickIfPoll();
+
+              await d.file("_other.scss", "x {y: z}").create();
+              await expectLater(
+                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await sass.kill();
+
+              await d
+                  .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                  .validate();
+            });
+
+            test(r"with $with", () async {
+              await d.file("_other.scss", "a {b: c}").create();
+              await d.file("test.scss", r"""
+                @use 'sass:meta';
+                @include meta.load-css('other', $with: ());
+              """).create();
+
+              var sass = await watch(["test.scss:out.css"]);
+              await expectLater(
+                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout, _watchingForChanges);
+              await tickIfPoll();
+
+              await d.file("_other.scss", "x {y: z}").create();
+              await expectLater(
+                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await sass.kill();
+
+              await d
+                  .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                  .validate();
+            });
+          });
+
           // Regression test for #550
           test("with an error that's later fixed", () async {
             await d.file("_other.scss", "a {b: c}").create();
