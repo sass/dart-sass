@@ -488,8 +488,8 @@ jobs:
       - name: Get version
         id: version
         run: |
-          echo "sass=${GITHUB_REF##*/}" | tee -a $GITHUB_OUTPUT
-          echo "sass_api=$(curl -fsSL https://raw.githubusercontent.com/sass/dart-sass/${GITHUB_REF##*/}/pkg/sass_api/pubspec.yaml | yq .version)" | tee -a $GITHUB_OUTPUT
+          echo "sass=${GITHUB_REF##*/}" | tee --append $GITHUB_OUTPUT
+          echo "sass_api=$(curl --fail --silent --show-error --location https://raw.githubusercontent.com/sass/dart-sass/${GITHUB_REF##*/}/pkg/sass_api/pubspec.yaml | yq .version)" | tee --append $GITHUB_OUTPUT
 
       - name: Update version
         run: |
@@ -517,7 +517,7 @@ jobs:
           # make sure we're releasing against the latest version of all deps.
           dart pub upgrade
 
-          curl -fsSLo CHANGELOG.md https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.sass }}/CHANGELOG.md
+          curl --fail --silent --show-error --location --output CHANGELOG.md https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.sass }}/CHANGELOG.md
 
       - uses: EndBug/add-and-commit@v8
         with:
