@@ -43,15 +43,19 @@ final _sharedClasses = const ['EvaluateResult'];
 /// to a synchronous equivalent.
 @Task('Compile async code to synchronous code.')
 void synchronize() {
-  sources.forEach((source, target) {
-    var visitor = _Visitor(File(source).readAsStringSync(), source);
+  sources.forEach((source, target) =>
+      File(target).writeAsStringSync(synchronizeFile(source)));
+}
 
-    parseFile(path: source, featureSet: FeatureSet.latestLanguageVersion())
-        .unit
-        .accept(visitor);
-    var formatted = DartFormatter().format(visitor.result);
-    File(target).writeAsStringSync(formatted);
-  });
+/// Returns the result of synchronizing [source].
+String synchronizeFile(String source) {
+  source = p.absolute(source);
+  var visitor = _Visitor(File(source).readAsStringSync(), source);
+
+  parseFile(path: source, featureSet: FeatureSet.latestLanguageVersion())
+      .unit
+      .accept(visitor);
+  return DartFormatter().format(visitor.result);
 }
 
 /// The visitor that traverses the asynchronous parse tree and converts it to
