@@ -626,7 +626,7 @@ class Parser {
     return result;
   }
 
-  /// Consumes [text] as an identifer, but doesn't verify whether there's
+  /// Consumes [text] as an identifier, but doesn't verify whether there's
   /// additional identifier text afterwards.
   ///
   /// Returns `true` if the full [text] is consumed and `false` otherwise, but
