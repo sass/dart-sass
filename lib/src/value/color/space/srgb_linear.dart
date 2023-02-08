@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
 import '../../color.dart';
+import '../../../util/nullable.dart';
 import '../conversions.dart';
 import 'utils.dart';
 
@@ -24,7 +25,7 @@ class SrgbLinearColorSpace extends ColorSpace {
   const SrgbLinearColorSpace() : super('srgb-linear', rgbChannels);
 
   SassColor convert(
-      ColorSpace dest, double red, double green, double blue, double alpha) {
+      ColorSpace dest, double? red, double? green, double? blue, double alpha) {
     switch (dest) {
       case ColorSpace.rgb:
       case ColorSpace.hsl:
@@ -32,9 +33,9 @@ class SrgbLinearColorSpace extends ColorSpace {
       case ColorSpace.srgb:
         return ColorSpace.srgb.convert(
             dest,
-            srgbAndDisplayP3FromLinear(red),
-            srgbAndDisplayP3FromLinear(green),
-            srgbAndDisplayP3FromLinear(blue),
+            red.andThen(srgbAndDisplayP3FromLinear),
+            green.andThen(srgbAndDisplayP3FromLinear),
+            blue.andThen(srgbAndDisplayP3FromLinear),
             alpha);
 
       default:

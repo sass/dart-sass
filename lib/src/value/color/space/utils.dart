@@ -71,15 +71,70 @@ double srgbAndDisplayP3FromLinear(double channel) {
 
 /// Converts a Lab or OKLab color to LCH or OKLCH, respectively.
 SassColor labToLch(
-    ColorSpace dest, double lightness, double a, double b, double alpha) {
+    ColorSpace dest, double? lightness, double? a, double? b, double alpha) {
   // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
-  if (fuzzyEquals(lightness, 0)) {
-    return SassColor.forSpaceInternal(dest, 0, null, null, alpha);
+  if (lightness == null || fuzzyEquals(lightness, 0)) {
+    return SassColor.forSpaceInternal(
+        dest, lightness == null ? null : 0, null, null, alpha);
   }
 
+  a ??= 0;
+  b ??= 0;
   var chroma = math.sqrt(math.pow(a, 2) + math.pow(b, 2));
   var hue = fuzzyEquals(chroma, 0) ? null : math.atan2(b, a) * 180 / math.pi;
 
   return SassColor.forSpaceInternal(dest, lightness, chroma,
       hue == null || hue >= 0 ? hue : hue + 360, alpha);
+}
+
+/// Returns a copy of [color] with the analogous lightness, colorfulness, and
+/// hue channels marked as missing if necessary.
+SassColor forwardMissingChannels(SassColor color,
+    {bool missingLightness = false,
+    bool missingColorfulness = false,
+    bool missingHue = false}) {
+  switch (color.space) {
+    case ColorSpace.hsl:
+      var needsMissing0 = missingHue && !result.isChannel0Missing;
+      var needsMissing1 = missingColorfulness && !result.isChannel1Missing;
+      var needsMissing2 = missingLightness && !result.isChannel2Missing;
+      return needsMissing0 || needsMissing1 || needsMissing2
+          ? SassColor.forSpaceInternal(
+              dest,
+              needsMissing0 ? null : result.channel0,
+              needsMissing1 ? null : result.channel1,
+              needsMissing2 ? null : result.channel2,
+              alpha)
+          : result;
+
+    case ColorSpace.hwb:
+      return missingHue && !result.isChannel0Missing
+          ? SassColor.forSpaceInternal(
+              dest, null, result.channel1, result.channel2, alpha)
+          : result;
+
+    case ColorSpace.lab:
+    case ColorSpace.oklab:
+      return missingLightness && !result.isChannel0Missing
+          ? SassColor.forSpaceInternal(
+              dest, null, result.channel1, result.channel2, alpha)
+          : result;
+
+    case ColorSpace.lch:
+    case ColorSpace.oklch:
+      var needsMissing0 = missingLightness && !result.isChannel0Missing;
+      var needsMissing1 = missingColorfulness && !result.isChannel1Missing;
+      var needsMissing2 = missingHue && !result.isChannel2Missing;
+      return needsMissing0 || needsMissing1 || needsMissing2
+          ? SassColor.forSpaceInternal(
+              dest,
+              needsMissing0 ? null : result.channel0,
+              needsMissing1 ? null : result.channel1,
+              needsMissing2 ? null : result.channel2,
+              alpha)
+          : result;
+
+    default:
+      return result;
+  }
 }

@@ -33,13 +33,13 @@ class LmsColorSpace extends ColorSpace {
         ]);
 
   SassColor convert(
-      ColorSpace dest, double long, double medium, double short, double alpha) {
+      ColorSpace dest, double? long, double? medium, double? short, double alpha) {
     switch (dest) {
       case ColorSpace.oklab:
         // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
-        var longScaled = math.pow(long, 1 / 3);
-        var mediumScaled = math.pow(medium, 1 / 3);
-        var shortScaled = math.pow(short, 1 / 3);
+        var longScaled = math.pow(long ?? 0, 1 / 3);
+        var mediumScaled = math.pow(medium ?? 0, 1 / 3);
+        var shortScaled = math.pow(short ?? 0, 1 / 3);
         var lightness = lmsToOklab[0] * longScaled +
             lmsToOklab[1] * mediumScaled +
             lmsToOklab[2] * shortScaled;
@@ -62,9 +62,9 @@ class LmsColorSpace extends ColorSpace {
         // This is equivalent to converting to OKLab and then to OKLCH, but we
         // do it inline to avoid extra list allocations since we expect
         // conversions to and from OKLCH to be very common.
-        var longScaled = math.pow(long, 1 / 3);
-        var mediumScaled = math.pow(medium, 1 / 3);
-        var shortScaled = math.pow(short, 1 / 3);
+        var longScaled = math.pow(long ?? 0, 1 / 3);
+        var mediumScaled = math.pow(medium ?? 0, 1 / 3);
+        var shortScaled = math.pow(short ?? 0, 1 / 3);
         return labToLch(
             dest,
             lmsToOklab[0] * longScaled +

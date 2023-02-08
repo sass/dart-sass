@@ -546,9 +546,52 @@ class SassColor extends Value {
   /// This currently can't produce an error, but it will likely do so in the
   /// future when Sass adds support for color spaces that don't support
   /// automatic conversions.
-  SassColor toSpace(ColorSpace space) => this.space == space
-      ? this
-      : this.space.convert(space, channel0, channel1, channel2, alpha);
+  SassColor toSpace(ColorSpace space) {
+    if (this.space != space) {
+      return this.space.convert(space, channel0, channel1, channel2, alpha);
+    }
+
+    // Converting to a color space triggers powerless channel analysis, even if
+    // the target space is the same as the source. So for spaces that can have
+    // powerless channels, we need to check if those channels are indeed
+    // powerless and if so make sure they're marked as missing.
+    //
+    // We implement separate logic for each space rather than just checking all
+    // three channels for every space because we want converting a color to its
+    // own space to be as efficient as possible.
+    switch (space) {
+      case ColorSpace.hsl:
+        var needsMissing0 = !isChannel0Missing && isChannel0Powerless;
+        var needsMissing1 = !isChannel1Missing && isChannel1Powerless;
+        return needsMissing0 || needsMissing1
+            ? SassColor.forSpaceInternal(space, needsMissing0 ? null : channel0,
+                needsMissing1 ? null : channel1, channel2, alpha)
+            : this;
+
+      case ColorSpace.hwb:
+        return !isChannel0Missing && isChannel0Powerless
+            ? SassColor.forSpaceInternal(space, null, channel1, channel2, alpha)
+            : this;
+
+      case ColorSpace.lab:
+      case ColorSpace.oklab:
+      case ColorSpace.lch:
+      case ColorSpace.oklch:
+        var needsMissing1 = !isChannel1Missing && isChannel1Powerless;
+        var needsMissing2 = !isChannel2Missing && isChannel2Powerless;
+        return needsMissing1 || needsMissing2
+            ? SassColor.forSpaceInternal(
+                space,
+                channel0,
+                needsMissing1 ? null : channel1,
+                needsMissing2 ? null : channel2,
+                alpha)
+            : this;
+
+      default:
+        return this;
+    }
+  }
 
   /// Returns a copy of this color that's in-gamut in the current color space.
   SassColor toGamut() {

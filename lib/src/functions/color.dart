@@ -1092,12 +1092,11 @@ SassColor _transparentize(String name, List<Value> arguments) {
 /// `sassNull`, it defaults to the color's existing space.
 SassColor _colorInSpace(Value colorUntyped, Value spaceUntyped) {
   var color = colorUntyped.assertColor("color");
-  if (spaceUntyped == sassNull) return color;
-
-  var space = ColorSpace.fromName(
-      (spaceUntyped.assertString("space")..assertUnquoted("space")).text,
-      "space");
-  return color.space == space ? color : color.toSpace(space);
+  return spaceUntyped == sassNull
+      ? color
+      : color.toSpace(ColorSpace.fromName(
+          (spaceUntyped.assertString("space")..assertUnquoted("space")).text,
+          "space"));
 }
 
 /// Returns the color space named by [space], or throws a [SassScriptException]

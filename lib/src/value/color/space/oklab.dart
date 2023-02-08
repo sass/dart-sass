@@ -29,32 +29,37 @@ class OklabColorSpace extends ColorSpace {
         ]);
 
   SassColor convert(
-      ColorSpace dest, double lightness, double a, double b, double alpha) {
+      ColorSpace dest, double? lightness, double? a, double? b, double alpha) {
     if (dest == ColorSpace.oklch) {
       return labToLch(dest, lightness, a, b, alpha);
     }
 
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
-    return ColorSpace.lms.convert(
-        dest,
-        math.pow(
-                oklabToLms[0] * lightness +
-                    oklabToLms[1] * a +
-                    oklabToLms[2] * b,
-                3) +
-            0.0,
-        math.pow(
-                oklabToLms[3] * lightness +
-                    oklabToLms[4] * a +
-                    oklabToLms[5] * b,
-                3) +
-            0.0,
-        math.pow(
-                oklabToLms[6] * lightness +
-                    oklabToLms[7] * a +
-                    oklabToLms[8] * b,
-                3) +
-            0.0,
-        alpha);
+    lightness ??= 0;
+    a ??= 0;
+    b ??= 0;
+    return forwardMissingChannels(
+        ColorSpace.lms.convert(
+            dest,
+            math.pow(
+                    oklabToLms[0] * lightness +
+                        oklabToLms[1] * a +
+                        oklabToLms[2] * b,
+                    3) +
+                0.0,
+            math.pow(
+                    oklabToLms[3] * lightness +
+                        oklabToLms[4] * a +
+                        oklabToLms[5] * b,
+                    3) +
+                0.0,
+            math.pow(
+                    oklabToLms[6] * lightness +
+                        oklabToLms[7] * a +
+                        oklabToLms[8] * b,
+                    3) +
+                0.0,
+            alpha),
+        missingLightness: lightness == null);
   }
 }

@@ -27,11 +27,15 @@ class SrgbColorSpace extends ColorSpace {
 
   const SrgbColorSpace() : super('srgb', rgbChannels);
 
-  SassColor convert(
-      ColorSpace dest, double red, double green, double blue, double alpha) {
+  SassColor convert(ColorSpace dest, double? redOrNull, double? greenOrNull,
+      double? blueOrNull, double alpha) {
     switch (dest) {
       case ColorSpace.hsl:
       case ColorSpace.hwb:
+        var red = redOrNull ?? 0;
+        var green = greenOrNull ?? 0;
+        var blue = blueOrNull ?? 0;
+
         if (fuzzyCheckRange(red, 0, 1) == null ||
             fuzzyCheckRange(green, 0, 1) == null ||
             fuzzyCheckRange(blue, 0, 1) == null) {
@@ -89,14 +93,18 @@ class SrgbColorSpace extends ColorSpace {
         }
 
       case ColorSpace.rgb:
-        return SassColor.rgb(red * 255, green * 255, blue * 255, alpha);
+        return SassColor.rgb(
+            redOrNull == null ? null : redOrNull * 255,
+            greenOrNull == null ? null : greenOrNull * 255,
+            blueOrNull == null ? null : blueOrNull * 255,
+            alpha);
 
       case ColorSpace.srgbLinear:
-        return SassColor.forSpaceInternal(
-            dest, toLinear(red), toLinear(green), toLinear(blue), alpha);
+        return SassColor.forSpaceInternal(dest, redOrNull.andThen(toLinear),
+            greenOrNull.andThen(toLinear), blueOrNull.andThen(toLinear), alpha);
 
       default:
-        return super.convert(dest, red, green, blue, alpha);
+        return super.convert(dest, redOrNull, greenOrNull, blueOrNull, alpha);
     }
   }
 

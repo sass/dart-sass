@@ -30,10 +30,10 @@ class LabColorSpace extends ColorSpace {
         ]);
 
   SassColor convert(
-      ColorSpace dest, double lightness, double a, double b, double alpha) {
+      ColorSpace dest, double? lightness, double? a, double? b, double alpha) {
     switch (dest) {
       case ColorSpace.lab:
-        var powerlessAB = fuzzyEquals(lightness, 0);
+        var powerlessAB = lightness == null || fuzzyEquals(lightness, 0);
         return SassColor.lab(
             lightness, powerlessAB ? null : a, powerlessAB ? null : b, alpha);
 
@@ -43,17 +43,20 @@ class LabColorSpace extends ColorSpace {
       default:
         // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
         // and http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-        var f1 = (lightness + 16) / 116;
+        var lightnessOr0 = lightness ?? 0;
+        var f1 = (lightnessOr0 + 16) / 116;
 
-        return ColorSpace.xyzD50.convert(
-            dest,
-            _convertFToXorZ(a / 500 + f1) * d50[0],
-            (lightness > labKappa * labEpsilon
-                    ? math.pow((lightness + 16) / 116, 3) * 1.0
-                    : lightness / labKappa) *
-                d50[1],
-            _convertFToXorZ(f1 - b / 200) * d50[2],
-            alpha);
+        return forwardMissingChannels(
+            ColorSpace.xyzD50.convert(
+                dest,
+                _convertFToXorZ((a??0) / 500 + f1) * d50[0],
+                (lightnessOr0 > labKappa * labEpsilon
+                        ? math.pow(f1, 3) * 1.0
+                        : lightnessOr0 / labKappa) *
+                    d50[1],
+                _convertFToXorZ(f1 - (b??0) / 200) * d50[2],
+                alpha),
+            missingLightness: lightness == null);
     }
   }
 

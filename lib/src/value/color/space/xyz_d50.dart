@@ -25,15 +25,15 @@ class XyzD50ColorSpace extends ColorSpace {
   const XyzD50ColorSpace() : super('xyz-d50', xyzChannels);
 
   SassColor convert(
-      ColorSpace dest, double x, double y, double z, double alpha) {
+      ColorSpace dest, double? x, double? y, double? z, double alpha) {
     switch (dest) {
       case ColorSpace.lab:
       case ColorSpace.lch:
         // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
         // and http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-        var f0 = _convertComponentToLabF(x / d50[0]);
-        var f1 = _convertComponentToLabF(y / d50[1]);
-        var f2 = _convertComponentToLabF(z / d50[2]);
+        var f0 = _convertComponentToLabF((x ?? 0) / d50[0]);
+        var f1 = _convertComponentToLabF((y ?? 0) / d50[1]);
+        var f2 = _convertComponentToLabF((z ?? 0) / d50[2]);
 
         return ColorSpace.lab.convert(
             dest, (116 * f1) - 16, 500 * (f0 - f1), 200 * (f1 - f2), alpha);

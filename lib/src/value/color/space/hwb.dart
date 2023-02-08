@@ -26,12 +26,12 @@ class HwbColorSpace extends ColorSpace {
           LinearChannel('blackness', 0, 100, requiresPercent: true)
         ]);
 
-  SassColor convert(ColorSpace dest, double hue, double whiteness,
-      double blackness, double alpha) {
+  SassColor convert(ColorSpace dest, double? hue, double? whiteness,
+      double? blackness, double alpha) {
     // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
-    var scaledHue = hue % 360 / 360;
-    var scaledWhiteness = whiteness / 100;
-    var scaledBlackness = blackness / 100;
+    var scaledHue = (hue ?? 0) % 360 / 360;
+    var scaledWhiteness = (whiteness ?? 0) / 100;
+    var scaledBlackness = (blackness ?? 0) / 100;
 
     var sum = scaledWhiteness + scaledBlackness;
     if (sum > 1) {
@@ -42,9 +42,9 @@ class HwbColorSpace extends ColorSpace {
     var factor = 1 - scaledWhiteness - scaledBlackness;
     double toRgb(double hue) => hueToRgb(0, 1, hue) * factor + scaledWhiteness;
 
-    // Non-null because an in-gamut HSL color is guaranteed to be in-gamut for
-    // HWB as well.
-    return ColorSpace.srgb.convert(dest, toRgb(scaledHue + 1 / 3),
-        toRgb(scaledHue), toRgb(scaledHue - 1 / 3), alpha);
+    return forwardMissingChannels(
+        ColorSpace.srgb.convert(dest, toRgb(scaledHue + 1 / 3),
+            toRgb(scaledHue), toRgb(scaledHue - 1 / 3), alpha),
+        missingHue: hue == null);
   }
 }

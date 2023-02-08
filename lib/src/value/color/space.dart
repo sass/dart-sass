@@ -106,7 +106,6 @@ abstract class ColorSpace {
   /// https://www.w3.org/TR/css-color-4/#ok-lab
   static const ColorSpace oklab = OklabColorSpace();
 
-
   /// The Oklch color space.
   ///
   /// https://www.w3.org/TR/css-color-4/#ok-lab
@@ -198,8 +197,8 @@ abstract class ColorSpace {
   ///
   /// @nodoc
   @internal
-  SassColor convert(ColorSpace dest, double channel0, double channel1,
-      double channel2, double alpha) {
+  SassColor convert(ColorSpace dest, double? channel0, double? channel1,
+      double? channel2, double alpha) {
     var linearDest = dest;
     switch (dest) {
       case ColorSpace.hsl:
@@ -218,26 +217,32 @@ abstract class ColorSpace {
         break;
     }
 
-    double transformed0;
-    double transformed1;
-    double transformed2;
+    double? transformed0;
+    double? transformed1;
+    double? transformed2;
     if (linearDest == this) {
       transformed0 = channel0;
       transformed1 = channel1;
       transformed2 = channel2;
     } else {
-      var linear0 = toLinear(channel0);
-      var linear1 = toLinear(channel1);
-      var linear2 = toLinear(channel2);
+      var linear0 = toLinear(channel0 ?? 0);
+      var linear1 = toLinear(channel1?? 0);
+      var linear2 = toLinear(channel2??0);
       var matrix = transformationMatrix(linearDest);
 
       // (matrix * [linear0, linear1, linear2]).map(linearDest.fromLinear)
-      transformed0 = linearDest.fromLinear(
-          matrix[0] * linear0 + matrix[1] * linear1 + matrix[2] * linear2);
-      transformed1 = linearDest.fromLinear(
-          matrix[3] * linear0 + matrix[4] * linear1 + matrix[5] * linear2);
-      transformed2 = linearDest.fromLinear(
-          matrix[6] * linear0 + matrix[7] * linear1 + matrix[8] * linear2);
+      transformed0 = channel0 == null
+          ? null
+          : linearDest.fromLinear(
+              matrix[0] * linear0 + matrix[1] * linear1 + matrix[2] * linear2);
+      transformed1 = channel1 == null
+          ? null
+          : linearDest.fromLinear(
+              matrix[3] * linear0 + matrix[4] * linear1 + matrix[5] * linear2);
+      transformed2 = channel2 == null
+          ? null
+          : linearDest.fromLinear(
+              matrix[6] * linear0 + matrix[7] * linear1 + matrix[8] * linear2);
     }
 
     switch (dest) {
