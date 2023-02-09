@@ -13,6 +13,22 @@ and importers.
 - `dart-sass-embedded` starts the compiler and listens on stdin.
 - `dart-sass-embedded --version` prints `versionResponse` with `id = 0` in JSON and exits.
 
+### Development
+
+To run the embedded compiler from source:
+
+* Run `dart pub get`.
+
+* [Install `buf`].
+
+* Run `dart run grinder protobuf`.
+
+From there, you can either run `dart bin/dart_sass_embedded.dart` directly or
+`dart run grinder pkg-standalone-dev` to build a compiled development
+executable.
+
+[Install `buf`]: https://docs.buf.build/installation
+
 ### Releases
 
 Binary releases are available from the [GitHub release page]. We recommend that

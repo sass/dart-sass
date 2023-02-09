@@ -51,11 +51,13 @@ Future<void> protobuf() async {
   if (Platform.isWindows) {
     File('build/protoc-gen-dart.bat').writeAsStringSync('''
 @echo off
-dart pub run protoc_plugin %*
+dart run protoc_plugin %*
 ''');
   } else {
-    File('build/protoc-gen-dart')
-        .writeAsStringSync('dart pub run protoc_plugin "\$@"');
+    File('build/protoc-gen-dart').writeAsStringSync('''
+#!/bin/sh
+dart run protoc_plugin "\$@"
+''');
     run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
   }
 
@@ -63,12 +65,8 @@ dart pub run protoc_plugin %*
     await cloneOrPull("https://github.com/sass/embedded-protocol.git");
   }
 
-  await runAsync("protoc",
-      arguments: [
-        "-Ibuild/embedded-protocol",
-        "embedded_sass.proto",
-        "--dart_out=lib/src/"
-      ],
+  await runAsync("buf",
+      arguments: ["generate"],
       runOptions: RunOptions(environment: {
         "PATH": 'build' +
             (Platform.isWindows ? ";" : ":") +
