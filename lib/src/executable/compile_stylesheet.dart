@@ -127,16 +127,20 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
 
   if (options.quiet || (!options.update && !options.watch)) return;
   var buffer = StringBuffer();
-  if (options.color) buffer.write('\u001b[32m');
-
   var sourceName = source == null ? 'stdin' : p.prettyUri(p.toUri(source));
   // `destination` is guaranteed to be non-null in update and watch mode.
   var destinationName = p.prettyUri(p.toUri(destination!));
+
   var nowStr = DateTime.now().toString();
   // Remove fractional seconds from printed timestamp
   var timestamp = nowStr.substring(0, nowStr.length - 7);
-  buffer.write('$timestamp - Compiled $sourceName to $destinationName.');
+
   if (options.color) buffer.write('\u001b[0m');
+  buffer.write('$timestamp - ');
+  if (options.color) buffer.write('\u001b[32m');
+  buffer.write('Compiled $sourceName to $destinationName.');
+  if (options.color) buffer.write('\u001b[0m');
+
   print(buffer);
 }
 
