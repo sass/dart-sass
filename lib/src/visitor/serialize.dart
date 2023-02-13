@@ -604,7 +604,6 @@ class _SerializeVisitor
     var opaque = fuzzyEquals(value.alpha, 1);
     _buffer.write(opaque ? "hsl(" : "hsla(");
     _writeNumber(value.hue);
-    _buffer.write("deg");
     _buffer.write(_commaSeparator);
     _writeNumber(value.saturation);
     _buffer.writeCharCode($percent);

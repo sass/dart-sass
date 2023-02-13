@@ -1,3 +1,7 @@
+## 5.0.1
+
+* No user-visible changes.
+
 ## 5.0.0
 
 * **Breaking change:** Instead of a `Tuple`, `findDependencies()` now returns a
