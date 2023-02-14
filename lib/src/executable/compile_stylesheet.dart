@@ -136,7 +136,8 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
   // Remove fractional seconds from printed timestamp
   var timestamp = nowStr.substring(0, nowStr.length - 7);
 
-  buffer.write('$timestamp - ');
+  if (options.color) buffer.write('\u001b[90m');
+  buffer.write('[$timestamp] ');
   if (options.color) buffer.write('\u001b[32m');
   buffer.write('Compiled $sourceName to $destinationName.');
   if (options.color) buffer.write('\u001b[0m');
