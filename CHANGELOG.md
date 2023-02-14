@@ -1,3 +1,9 @@
+## 1.58.1
+
+* Emit a unitless hue when serializing `hsl()` colors. The `deg` unit is
+  incompatible with IE, and while that officially falls outside our
+  compatibility policy, it's better to lean towards greater compatibility.
+
 ## 1.58.0
 
 * Remove sourcemap comments from Sass sources. The generated sourcemap comment
