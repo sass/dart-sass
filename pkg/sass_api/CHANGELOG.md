@@ -1,3 +1,7 @@
+## 5.0.2
+
+* No user-visible changes.
+
 ## 5.0.1
 
 * No user-visible changes.
