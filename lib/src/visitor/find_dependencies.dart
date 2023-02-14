@@ -2,30 +2,38 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:tuple/tuple.dart';
+import 'package:collection/collection.dart';
 
 import '../ast/sass.dart';
 import 'recursive_statement.dart';
 
-/// Returns two lists of dependencies for [stylesheet].
-///
-/// The first is a list of URLs from all `@use` and `@forward` rules in
-/// [stylesheet] (excluding built-in modules). The second is a list of all
-/// imports in [stylesheet].
+/// Returns [stylesheet]'s statically-declared dependencies.
 ///
 /// {@category Dependencies}
-Tuple2<List<Uri>, List<Uri>> findDependencies(Stylesheet stylesheet) =>
+DependencyReport findDependencies(Stylesheet stylesheet) =>
     _FindDependenciesVisitor().run(stylesheet);
 
-/// A visitor that traverses a stylesheet and records, all `@import`, `@use`,
-/// and `@forward` rules (excluding built-in modules) it contains.
+/// A visitor that traverses a stylesheet and records all its dependencies on
+/// other stylesheets.
 class _FindDependenciesVisitor with RecursiveStatementVisitor {
-  final _usesAndForwards = <Uri>[];
-  final _imports = <Uri>[];
+  final _uses = <Uri>{};
+  final _forwards = <Uri>{};
+  final _metaLoadCss = <Uri>{};
+  final _imports = <Uri>{};
 
-  Tuple2<List<Uri>, List<Uri>> run(Stylesheet stylesheet) {
+  /// The namespaces under which `sass:meta` has been `@use`d in this stylesheet.
+  ///
+  /// If this contains `null`, it means `sass:meta` was loaded without a
+  /// namespace.
+  final _metaNamespaces = <String?>{};
+
+  DependencyReport run(Stylesheet stylesheet) {
     visitStylesheet(stylesheet);
-    return Tuple2(_usesAndForwards, _imports);
+    return DependencyReport._(
+        uses: UnmodifiableSetView(_uses),
+        forwards: UnmodifiableSetView(_forwards),
+        metaLoadCss: UnmodifiableSetView(_metaLoadCss),
+        imports: UnmodifiableSetView(_imports));
   }
 
   // These can never contain imports.
@@ -38,11 +46,15 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
   void visitSupportsCondition(SupportsCondition condition) {}
 
   void visitUseRule(UseRule node) {
-    if (node.url.scheme != 'sass') _usesAndForwards.add(node.url);
+    if (node.url.scheme != 'sass') {
+      _uses.add(node.url);
+    } else if (node.url.toString() == 'sass:meta') {
+      _metaNamespaces.add(node.namespace);
+    }
   }
 
   void visitForwardRule(ForwardRule node) {
-    if (node.url.scheme != 'sass') _usesAndForwards.add(node.url);
+    if (node.url.scheme != 'sass') _forwards.add(node.url);
   }
 
   void visitImportRule(ImportRule node) {
@@ -50,4 +62,50 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
       if (import is DynamicImport) _imports.add(import.url);
     }
   }
+
+  void visitIncludeRule(IncludeRule node) {
+    if (node.name != 'load-css') return;
+    if (!_metaNamespaces.contains(node.namespace)) return;
+    if (node.arguments.positional.isEmpty) return;
+    var argument = node.arguments.positional.first;
+    if (argument is! StringExpression) return;
+    var url = argument.text.asPlain;
+    try {
+      if (url != null) _metaLoadCss.add(Uri.parse(url));
+    } on FormatException {
+      // Ignore invalid URLs.
+    }
+  }
+}
+
+/// A struct of different types of dependencies a Sass stylesheet can contain.
+class DependencyReport {
+  /// An unmodifiable set of all `@use`d URLs in the stylesheet (excluding
+  /// built-in modules).
+  final Set<Uri> uses;
+
+  /// An unmodifiable set of all `@forward`ed URLs in the stylesheet (excluding
+  /// built-in modules).
+  final Set<Uri> forwards;
+
+  /// An unmodifiable set of all URLs loaded by `meta.load-css()` calls with
+  /// static string arguments outside of mixins.
+  final Set<Uri> metaLoadCss;
+
+  /// An unmodifiable set of all dynamically `@import`ed URLs in the
+  /// stylesheet.
+  final Set<Uri> imports;
+
+  /// An unmodifiable set of all URLs in [uses], [forwards], and [metaLoadCss].
+  Set<Uri> get modules => UnionSet({uses, forwards, metaLoadCss});
+
+  /// An unmodifiable set of all URLs in [uses], [forwards], [metaLoadCss], and
+  /// [imports].
+  Set<Uri> get all => UnionSet({uses, forwards, metaLoadCss, imports});
+
+  DependencyReport._(
+      {required this.uses,
+      required this.forwards,
+      required this.metaLoadCss,
+      required this.imports});
 }

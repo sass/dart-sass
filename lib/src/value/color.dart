@@ -293,7 +293,7 @@ class SassColor extends Value {
   }
 
   /// An algorithm from the CSS3 spec:
-  /// http://www.w3.org/TR/css3-color/#hsl-color.
+  /// https://www.w3.org/TR/css3-color/#hsl-color.
   static double _hueToRgb(double m1, double m2, double hue) {
     if (hue < 0) hue += 1;
     if (hue > 1) hue -= 1;

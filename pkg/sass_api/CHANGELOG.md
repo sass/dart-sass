@@ -1,3 +1,14 @@
+## 5.0.1
+
+* No user-visible changes.
+
+## 5.0.0
+
+* **Breaking change:** Instead of a `Tuple`, `findDependencies()` now returns a
+  `DependencyReport` object with named fields. This provides finer-grained
+  access to import URLs, as well as information about `meta.load-css()` calls
+  with non-interpolated string literal arguments.
+
 ## 4.2.2
 
 * No user-visible changes.

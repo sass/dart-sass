@@ -1122,6 +1122,11 @@ class _EvaluateVisitor
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
+    if (_declarationName != null && node.isCustomProperty) {
+      throw _exception(
+          'Declarations whose names begin with "--" may not be nested.',
+          node.span);
+    }
 
     var name = await _interpolationToValue(node.name, warnForColor: true);
     if (_declarationName != null) {
@@ -3606,7 +3611,7 @@ class _EvaluationContext implements EvaluationContext {
   final _EvaluateVisitor _visitor;
 
   /// The AST node whose span should be used for [warn] if no other span is
-  /// avaiable.
+  /// available.
   final AstNode _defaultWarnNodeWithSpan;
 
   _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);

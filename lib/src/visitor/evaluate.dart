@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a14e075a5435c7457d1d1371d8b97dd327a66ec4
+// Checksum: d5cb0fe933051782cbfb79ee3d65bc4353471f11
 //
 // ignore_for_file: unused_import
 
@@ -3548,7 +3548,7 @@ class _EvaluationContext implements EvaluationContext {
   final _EvaluateVisitor _visitor;
 
   /// The AST node whose span should be used for [warn] if no other span is
-  /// avaiable.
+  /// available.
   final AstNode _defaultWarnNodeWithSpan;
 
   _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);
