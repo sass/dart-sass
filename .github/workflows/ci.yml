@@ -233,7 +233,7 @@ jobs:
         with: {github_token: "${{ github.token }}"}
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - run: dart pub grinder protobuf
+      - run: dart run grinder protobuf
       - uses: docker/setup-qemu-action@v2
       - name: Deploy
         run: |
@@ -273,7 +273,7 @@ jobs:
         with:
           architecture: ${{ matrix.architecture }}
       - run: dart pub get
-      - run: dart pub run grinder protobuf
+      - run: dart run grinder protobuf
       - name: Deploy
         run: dart run grinder pkg-github-${{ matrix.platform }}
         env: {GH_BEARER_TOKEN: "${{ github.token }}"}
@@ -289,7 +289,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
-        run: dart pub run grinder pkg-homebrew-update
+        run: dart run grinder pkg-homebrew-update
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
