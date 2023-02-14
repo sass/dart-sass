@@ -147,7 +147,7 @@ packages:
       name: grinder
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.2"
+    version: "0.9.3"
   http:
     dependency: transitive
     description:
@@ -315,7 +315,7 @@ packages:
       name: sass
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.57.1"
+    version: "1.58.0"
   sass_analysis:
     dependency: "direct dev"
     description:
@@ -331,7 +331,7 @@ packages:
       name: sass_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.2.1"
+    version: "5.0.0"
   shelf:
     dependency: transitive
     description:
