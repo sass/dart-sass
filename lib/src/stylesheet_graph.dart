@@ -111,17 +111,17 @@ class StylesheetGraph {
   /// Returns two maps from non-canonicalized imported URLs in [stylesheet] to
   /// nodes, which appears within [baseUrl] imported by [baseImporter].
   ///
-  /// The first map contains stylesheets depended on via `@use` and `@forward`
-  /// while the second map contains those depended on via `@import`.
+  /// The first map contains stylesheets depended on via module loads while the
+  /// second map contains those depended on via `@import`.
   Tuple2<Map<Uri, StylesheetNode?>, Map<Uri, StylesheetNode?>> _upstreamNodes(
       Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
     var active = {baseUrl};
-    var tuple = findDependencies(stylesheet);
+    var dependencies = findDependencies(stylesheet);
     return Tuple2({
-      for (var url in tuple.item1)
+      for (var url in dependencies.modules)
         url: _nodeFor(url, baseImporter, baseUrl, active)
     }, {
-      for (var url in tuple.item2)
+      for (var url in dependencies.imports)
         url: _nodeFor(url, baseImporter, baseUrl, active, forImport: true)
     });
   }

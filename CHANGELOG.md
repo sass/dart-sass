@@ -1,4 +1,16 @@
-## 1.57.2
+## 1.58.2
+
+### Command Line Interface
+
+* Add a timestamp to messages printed in `--watch` mode.
+
+## 1.58.1
+
+* Emit a unitless hue when serializing `hsl()` colors. The `deg` unit is
+  incompatible with IE, and while that officially falls outside our
+  compatibility policy, it's better to lean towards greater compatibility.
+
+## 1.58.0
 
 * Remove sourcemap comments from Sass sources. The generated sourcemap comment
   for the compiled CSS output remains unaffected.
@@ -15,6 +27,14 @@
   `--`.
 
 * Fix a crash when a selector ends in an escaped backslash.
+
+* Add the relative length units from CSS Values 4 and CSS Contain 3 as known
+  units to validate bad computation in `calc`.
+
+### Command Line Interface
+
+* The `--watch` flag will now track loads through calls to `meta.load-css()` as
+  long as their URLs are literal strings without any interpolation.
 
 ## 1.57.1
 
