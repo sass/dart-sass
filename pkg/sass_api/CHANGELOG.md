@@ -1,3 +1,10 @@
+## 5.1.0
+
+* Add `BinaryOperation.isAssociative`.
+
+* Add a `ReplaceExpressionVisitor`, which recursively visits all expressions in
+  an AST and rebuilds them with replacement components.
+
 ## 5.0.1
 
 * No user-visible changes.

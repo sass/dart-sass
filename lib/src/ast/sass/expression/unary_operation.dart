@@ -8,6 +8,8 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
+import 'binary_operation.dart';
+import 'list.dart';
 
 /// A unary operator, as in `+$var` or `not fn()`.
 ///
@@ -30,7 +32,15 @@ class UnaryOperationExpression implements Expression {
   String toString() {
     var buffer = StringBuffer(operator.operator);
     if (operator == UnaryOperator.not) buffer.writeCharCode($space);
+    var operand = this.operand;
+    var needsParens = operand is BinaryOperationExpression ||
+        operand is UnaryOperationExpression ||
+        (operand is ListExpression &&
+            !operand.hasBrackets &&
+            operand.contents.length > 1);
+    if (needsParens) buffer.write($lparen);
     buffer.write(operand);
+    if (needsParens) buffer.write($rparen);
     return buffer.toString();
   }
 }
