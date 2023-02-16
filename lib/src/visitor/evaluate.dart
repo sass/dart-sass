@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d5cb0fe933051782cbfb79ee3d65bc4353471f11
+// Checksum: d84fe267879d0fb034853a0a8a5105b2919916ec
 //
 // ignore_for_file: unused_import
 
@@ -50,6 +50,7 @@ import '../utils.dart';
 import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
+import 'expression_to_calc.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
@@ -2219,7 +2220,8 @@ class _EvaluateVisitor
                   "Using / for division outside of calc() is deprecated "
                   "and will be removed in Dart Sass 2.0.0.\n"
                   "\n"
-                  "Recommendation: ${recommendation(node)} or calc($node)\n"
+                  "Recommendation: ${recommendation(node)} or "
+                  "${expressionToCalc(node)}\n"
                   "\n"
                   "More info and automated migrator: "
                   "https://sass-lang.com/d/slash-div",

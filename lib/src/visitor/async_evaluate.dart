@@ -41,6 +41,7 @@ import '../utils.dart';
 import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
+import 'expression_to_calc.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
@@ -2229,7 +2230,8 @@ class _EvaluateVisitor
                   "Using / for division outside of calc() is deprecated "
                   "and will be removed in Dart Sass 2.0.0.\n"
                   "\n"
-                  "Recommendation: ${recommendation(node)} or calc($node)\n"
+                  "Recommendation: ${recommendation(node)} or "
+                  "${expressionToCalc(node)}\n"
                   "\n"
                   "More info and automated migrator: "
                   "https://sass-lang.com/d/slash-div",

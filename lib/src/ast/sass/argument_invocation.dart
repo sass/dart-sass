@@ -5,7 +5,9 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../value/list.dart';
 import 'expression.dart';
+import 'expression/list.dart';
 import 'node.dart';
 
 /// A set of arguments passed in to a function or mixin.
@@ -46,12 +48,24 @@ class ArgumentInvocation implements SassNode {
         keywordRest = null;
 
   String toString() {
+    var rest = this.rest;
+    var keywordRest = this.keywordRest;
     var components = [
-      ...positional,
-      for (var name in named.keys) "\$$name: ${named[name]}",
-      if (rest != null) "$rest...",
-      if (keywordRest != null) "$keywordRest..."
+      for (var argument in positional) _parenthesizeArgument(argument),
+      for (var entry in named.entries)
+        "\$${entry.key}: ${_parenthesizeArgument(entry.value)}",
+      if (rest != null) "${_parenthesizeArgument(rest)}...",
+      if (keywordRest != null) "${_parenthesizeArgument(keywordRest)}..."
     ];
     return "(${components.join(', ')})";
   }
+
+  /// Wraps [argument] in parentheses if necessary.
+  String _parenthesizeArgument(Expression argument) =>
+      argument is ListExpression &&
+              argument.separator == ListSeparator.comma &&
+              !argument.hasBrackets &&
+              argument.contents.length > 1
+          ? "($argument)"
+          : argument.toString();
 }
