@@ -8,6 +8,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
+import 'list.dart';
 
 /// A binary operator, as in `1 + 2` or `$this and $other`.
 ///
@@ -64,8 +65,11 @@ class BinaryOperationExpression implements Expression {
     var buffer = StringBuffer();
 
     var left = this.left; // Hack to make analysis work.
-    var leftNeedsParens = left is BinaryOperationExpression &&
-        left.operator.precedence < operator.precedence;
+    var leftNeedsParens = (left is BinaryOperationExpression &&
+            left.operator.precedence < operator.precedence) ||
+        (left is ListExpression &&
+            !left.hasBrackets &&
+            left.contents.length > 1);
     if (leftNeedsParens) buffer.writeCharCode($lparen);
     buffer.write(left);
     if (leftNeedsParens) buffer.writeCharCode($rparen);
@@ -75,8 +79,12 @@ class BinaryOperationExpression implements Expression {
     buffer.writeCharCode($space);
 
     var right = this.right; // Hack to make analysis work.
-    var rightNeedsParens = right is BinaryOperationExpression &&
-        right.operator.precedence <= operator.precedence;
+    var rightNeedsParens = (right is BinaryOperationExpression &&
+            right.operator.precedence <= operator.precedence &&
+            !(right.operator == operator && operator.isAssociative)) ||
+        (right is ListExpression &&
+            !right.hasBrackets &&
+            right.contents.length > 1);
     if (rightNeedsParens) buffer.writeCharCode($lparen);
     buffer.write(right);
     if (rightNeedsParens) buffer.writeCharCode($rparen);
@@ -93,10 +101,10 @@ enum BinaryOperator {
   singleEquals('single equals', '=', 0),
 
   /// The disjunction operator, `or`.
-  or('or', 'or', 1),
+  or('or', 'or', 1, associative: true),
 
   /// The conjunction operator, `and`.
-  and('and', 'and', 2),
+  and('and', 'and', 2, associative: true),
 
   /// The equality operator, `==`.
   equals('equals', '==', 3),
@@ -117,13 +125,13 @@ enum BinaryOperator {
   lessThanOrEquals('less than or equals', '<=', 4),
 
   /// The addition operator, `+`.
-  plus('plus', '+', 5),
+  plus('plus', '+', 5, associative: true),
 
   /// The subtraction operator, `-`.
   minus('minus', '-', 5),
 
   /// The multiplication operator, `*`.
-  times('times', '*', 6),
+  times('times', '*', 6, associative: true),
 
   /// The division operator, `/`.
   dividedBy('divided by', '/', 6),
@@ -142,7 +150,14 @@ enum BinaryOperator {
   /// An operator with higher precedence binds tighter.
   final int precedence;
 
-  const BinaryOperator(this.name, this.operator, this.precedence);
+  /// Whether this operation has the [associative property].
+  ///
+  /// [associative property]: https://en.wikipedia.org/wiki/Associative_property
+  final bool isAssociative;
+
+  const BinaryOperator(this.name, this.operator, this.precedence,
+      {bool associative = false})
+      : isAssociative = associative;
 
   String toString() => name;
 }

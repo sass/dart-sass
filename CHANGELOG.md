@@ -4,6 +4,9 @@
 
 * Add a timestamp to messages printed in `--watch` mode.
 
+* Print better `calc()`-based suggestions for `/`-as-division expression that
+  contain calculation-incompatible constructs like unary minus.
+
 ## 1.58.1
 
 * Emit a unitless hue when serializing `hsl()` colors. The `deg` unit is
