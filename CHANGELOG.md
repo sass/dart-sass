@@ -1,5 +1,9 @@
 ## 1.58.2
 
+### Command Line Interface
+
+* Add a timestamp to messages printed in `--watch` mode.
+
 * Print better `calc()`-based suggestions for `/`-as-division expression that
   contain calculation-incompatible constructs like unary minus.
 
