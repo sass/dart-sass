@@ -18,7 +18,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test.scss", "a {b: c}").create();
 
       var sass = await update(["test.scss:out.css"]);
-      expect(sass.stdout, emits('Compiled test.scss to out.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled test.scss to out.css.')));
       await sass.shouldExit(0);
 
       await d
@@ -32,7 +32,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test.scss", "a {b: c}").create();
 
       var sass = await update(["test.scss:out.css"]);
-      expect(sass.stdout, emits('Compiled test.scss to out.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled test.scss to out.css.')));
       await sass.shouldExit(0);
 
       await d
@@ -45,14 +45,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test.scss", "@import 'other'").create();
 
       var sass = await update(["test.scss:out.css"]);
-      expect(sass.stdout, emits('Compiled test.scss to out.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled test.scss to out.css.')));
       await sass.shouldExit(0);
 
       await tick;
       await d.file("other.scss", "x {y: z}").create();
 
       sass = await update(["test.scss:out.css"]);
-      expect(sass.stdout, emits('Compiled test.scss to out.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled test.scss to out.css.')));
       await sass.shouldExit(0);
 
       await d
@@ -66,16 +66,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test2.scss", r"$var: 2; @import 'other'").create();
 
       var sass = await update(["test1.scss:out1.css", "test2.scss:out2.css"]);
-      expect(sass.stdout, emits('Compiled test1.scss to out1.css.'));
-      expect(sass.stdout, emits('Compiled test2.scss to out2.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled test1.scss to out1.css.')));
+      expect(sass.stdout, emits(endsWith('Compiled test2.scss to out2.css.')));
       await sass.shouldExit(0);
 
       await tick;
       await d.file("other.scss", r"x {y: $var}").create();
 
       sass = await update(["test1.scss:out1.css", "test2.scss:out2.css"]);
-      expect(sass.stdout, emits('Compiled test1.scss to out1.css.'));
-      expect(sass.stdout, emits('Compiled test2.scss to out2.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled test1.scss to out1.css.')));
+      expect(sass.stdout, emits(endsWith('Compiled test2.scss to out2.css.')));
       await sass.shouldExit(0);
 
       await d
@@ -90,7 +90,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       var sass = await update(["-:out.css"]);
       sass.stdin.writeln("a {b: c}");
       sass.stdin.close();
-      expect(sass.stdout, emits('Compiled stdin to out.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled stdin to out.css.')));
       await sass.shouldExit(0);
 
       await d
@@ -100,7 +100,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       sass = await update(["-:out.css"]);
       sass.stdin.writeln("x {y: z}");
       sass.stdin.close();
-      expect(sass.stdout, emits('Compiled stdin to out.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled stdin to out.css.')));
       await sass.shouldExit(0);
 
       await d
@@ -142,7 +142,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test2.scss", "d {e: f}").create();
 
       var sass = await update(["test1.scss:out1.css", "test2.scss:out2.css"]);
-      expect(sass.stdout, emits('Compiled test2.scss to out2.css.'));
+      expect(sass.stdout, emits(endsWith('Compiled test2.scss to out2.css.')));
       await sass.shouldExit(0);
 
       await d.file("out1.css", "x {y: z}").validate();
