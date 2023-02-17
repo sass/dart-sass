@@ -1,3 +1,7 @@
+## 5.1.1
+
+* No user-visible changes.
+
 ## 5.1.0
 
 * Add `BinaryOperation.isAssociative`.
