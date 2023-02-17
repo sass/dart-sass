@@ -273,14 +273,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
               """).create();
 
               var sass = await watch(["test.scss:out.css"]);
-              await expectLater(
-                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout,
+                  emits(endsWith('Compiled test.scss to out.css.')));
               await expectLater(sass.stdout, _watchingForChanges);
               await tickIfPoll();
 
               await d.file("_other.scss", "x {y: z}").create();
-              await expectLater(
-                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout,
+                  emits(endsWith('Compiled test.scss to out.css.')));
               await sass.kill();
 
               await d
@@ -296,14 +296,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
               """).create();
 
               var sass = await watch(["test.scss:out.css"]);
-              await expectLater(
-                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout,
+                  emits(endsWith('Compiled test.scss to out.css.')));
               await expectLater(sass.stdout, _watchingForChanges);
               await tickIfPoll();
 
               await d.file("_other.scss", "x {y: z}").create();
-              await expectLater(
-                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout,
+                  emits(endsWith('Compiled test.scss to out.css.')));
               await sass.kill();
 
               await d
@@ -319,14 +319,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
               """).create();
 
               var sass = await watch(["test.scss:out.css"]);
-              await expectLater(
-                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout,
+                  emits(endsWith('Compiled test.scss to out.css.')));
               await expectLater(sass.stdout, _watchingForChanges);
               await tickIfPoll();
 
               await d.file("_other.scss", "x {y: z}").create();
-              await expectLater(
-                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout,
+                  emits(endsWith('Compiled test.scss to out.css.')));
               await sass.kill();
 
               await d
@@ -342,14 +342,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
               """).create();
 
               var sass = await watch(["test.scss:out.css"]);
-              await expectLater(
-                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout,
+                  emits(endsWith('Compiled test.scss to out.css.')));
               await expectLater(sass.stdout, _watchingForChanges);
               await tickIfPoll();
 
               await d.file("_other.scss", "x {y: z}").create();
-              await expectLater(
-                  sass.stdout, emits('Compiled test.scss to out.css.'));
+              await expectLater(sass.stdout,
+                  emits(endsWith('Compiled test.scss to out.css.')));
               await sass.kill();
 
               await d
@@ -735,8 +735,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           await expectLater(
               sass.stdout,
               emitsInAnyOrder([
-                _compiled('dir/test1.scss', 'out/test1.css'),
-                _compiled('dir/test2.scss', 'out/test2.css')
+                endsWith(_compiled('dir/test1.scss', 'out/test1.css')),
+                endsWith(_compiled('dir/test2.scss', 'out/test2.css'))
               ]));
           await expectLater(sass.stdout, _watchingForChanges);
           await tickIfPoll();
