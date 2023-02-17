@@ -5,18 +5,18 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: "0c80aeab9bc807ab10022cd3b2f4cf2ecdf231949dc1ddd9442406a003f19201"
+      sha256: "569ddca58d535e601dd1584afa117710abc999d036c0cd2c51777fb257df78e8"
       url: "https://pub.dev"
     source: hosted
-    version: "52.0.0"
+    version: "53.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
-      sha256: cd8ee83568a77f3ae6b913a36093a1c9b1264e7cb7f834d9ddd2311dade9c1f4
+      sha256: "10927c4b7c7c88b1adbca278c3d5531db92e2f4b4abf04e2919a800af965f3f5"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.0"
+    version: "5.5.0"
   archive:
     dependency: transitive
     description:
@@ -357,16 +357,16 @@ packages:
     dependency: "direct main"
     description:
       name: sass
-      sha256: "8606f1a8d79c635463d453687f40e75d23c5d005a7ca01c9ce4661212d386e61"
+      sha256: f08ef7beae55ca2d07fabb4e0733dd20bc08186e7a714eac953725c9971b49b7
       url: "https://pub.dev"
     source: hosted
-    version: "1.58.1"
+    version: "1.58.2"
   sass_analysis:
     dependency: "direct dev"
     description:
       path: analysis
       ref: HEAD
-      resolved-ref: c8b4cd09ebddba5620a1f3831b5656953c2170b1
+      resolved-ref: c4523884bf9fba3a312bae2af559049cd374d42e
       url: "https://github.com/sass/dart-sass.git"
     source: git
     version: "0.0.0"
@@ -374,10 +374,10 @@ packages:
     dependency: "direct main"
     description:
       name: sass_api
-      sha256: b0d934d8316a59bfb237b85ffbc9989f81632fff1d36a08e3f215507eddb40c5
+      sha256: "4b35efdef6bf4282648498e1556d518c15d0fcc480eccd3dfb30b3b0d82dc36a"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.1"
+    version: "5.1.0"
   shelf:
     dependency: transitive
     description:
@@ -422,10 +422,10 @@ packages:
     dependency: "direct dev"
     description:
       name: source_maps
-      sha256: "490098075234dcedb83c5d949b4c93dad5e6b7702748de000be2b57b8e6b2427"
+      sha256: "708b3f6b97248e5781f493b765c3337db11c5d2c81c3094f10904bfa8004c703"
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.11"
+    version: "0.10.12"
   source_span:
     dependency: "direct main"
     description:
