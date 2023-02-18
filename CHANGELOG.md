@@ -1,3 +1,7 @@
+## 1.58.3
+
+* No user-visible changes.
+
 ## 1.58.2
 
 ### Command Line Interface
