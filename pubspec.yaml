@@ -32,7 +32,7 @@ dependencies:
   http: ^0.13.3
 
 dev_dependencies:
-  analyzer: ^4.7.0
+  analyzer: ">=4.7.0 <6.0.0"
   archive: ^3.1.2
   cli_pkg: ^2.1.4
   crypto: ^3.0.0
