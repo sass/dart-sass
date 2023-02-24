@@ -8,7 +8,7 @@ import 'dart:js_util';
 
 import 'package:js/js.dart';
 import 'package:node_interop/fs.dart';
-import 'package:node_interop/node_interop.dart';
+import 'package:node_interop/node_interop.dart' hide process;
 import 'package:node_interop/stream.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
@@ -16,6 +16,10 @@ import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
 import '../node/chokidar.dart';
+import '../logger.dart';
+
+@JS('process')
+external final process;
 
 class FileSystemException {
   final String message;
@@ -173,8 +177,9 @@ DateTime modificationTime(String path) =>
     _systemErrorToFileSystemException(() =>
         DateTime.fromMillisecondsSinceEpoch(fs.statSync(path).mtime.getTime()));
 
-String? getEnvironmentVariable(String name) =>
-    getProperty(process.env as Object, name) as String?;
+String? getEnvironmentVariable(String name) => process?.env == null
+    ? null
+    : getProperty(process.env as Object, name) as String?;
 
 /// Runs callback and converts any [JsSystemError]s it throws into
 /// [FileSystemException]s.
@@ -187,28 +192,24 @@ T _systemErrorToFileSystemException<T>(T callback()) {
   }
 }
 
-final stderr = Stderr(process.stderr);
+final stderr = Stderr(process == null
+    ? createWritable(WritableOptions())
+    : process.stderr as Writable);
 
-/// We can't use [process.stdout.isTTY] from `node_interop` because of
-/// pulyaevskiy/node-interop#93: it declares `isTTY` as always non-nullably
-/// available, but in practice it's undefined if stdout isn't a TTY.
-@JS('process.stdout.isTTY')
-external bool? get isTTY;
+bool get hasTerminal => process?.stdout?.isTTY == true;
 
-bool get hasTerminal => isTTY == true;
+bool get isWindows => process?.platform == 'win32';
 
-bool get isWindows => process.platform == 'win32';
+bool get isMacOS => process?.platform == 'darwin';
 
-bool get isMacOS => process.platform == 'darwin';
-
-bool get isNode => true;
+bool get isNode => process != null;
 
 // Node seems to support ANSI escapes on all terminals.
 bool get supportsAnsiEscapes => hasTerminal;
 
-String get currentPath => process.cwd();
+String get currentPath => process == null ? '/' : process.cwd() as String;
 
-int get exitCode => process.exitCode;
+int get exitCode => process == null ? 0 : process.exitCode as int;
 
 set exitCode(int code) => process.exitCode = code;
 
