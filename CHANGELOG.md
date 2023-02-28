@@ -1,3 +1,9 @@
+## 1.58.4
+
+### Embedded Sass
+
+* Improve the performance of starting up a compilation.
+
 ## 1.58.3
 
 * No user-visible changes.

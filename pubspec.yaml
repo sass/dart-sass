@@ -1,5 +1,5 @@
 name: sass
-version: 1.58.3
+version: 1.58.4-dev
 description: A Sass implementation in Dart.
 homepage: https://github.com/sass/dart-sass
 
