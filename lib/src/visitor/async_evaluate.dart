@@ -1292,7 +1292,9 @@ class _EvaluateVisitor
     await _withParent(ModifiableCssAtRule(name, node.span, value: value),
         () async {
       var styleRule = _styleRule;
-      if (styleRule == null || _inKeyframes) {
+      if (styleRule == null || _inKeyframes || name.value == 'font-face') {
+        // Special-cased at-rules within style blocks are pulled out to the
+        // root. Equivalent to prepending "@at-root" on them.
         for (var child in children) {
           await child.accept(this);
         }

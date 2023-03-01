@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d84fe267879d0fb034853a0a8a5105b2919916ec
+// Checksum: 5fb015a67fbca608dbc351bb53f28deebc7c53b9
 //
 // ignore_for_file: unused_import
 
@@ -1293,7 +1293,7 @@ class _EvaluateVisitor
 
     _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
       var styleRule = _styleRule;
-      if (styleRule == null || _inKeyframes) {
+      if (styleRule == null || _inKeyframes || name.value == 'font-face') {
         for (var child in children) {
           child.accept(this);
         }
