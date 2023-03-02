@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d84fe267879d0fb034853a0a8a5105b2919916ec
+// Checksum: 73b7fb0f310d090dee2b3383f7b08c095e5fb1c0
 //
 // ignore_for_file: unused_import
 
@@ -1293,7 +1293,9 @@ class _EvaluateVisitor
 
     _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
       var styleRule = _styleRule;
-      if (styleRule == null || _inKeyframes) {
+      if (styleRule == null || _inKeyframes || name.value == 'font-face') {
+        // Special-cased at-rules within style blocks are pulled out to the
+        // root. Equivalent to prepending "@at-root" on them.
         for (var child in children) {
           child.accept(this);
         }

@@ -1,5 +1,8 @@
 ## 1.58.4
 
+* Pull `@font-face` to the root rather than bubbling the style rule selector
+  inwards.
+
 ### Embedded Sass
 
 * Improve the performance of starting up a compilation.
