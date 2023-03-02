@@ -2622,22 +2622,32 @@ class _EvaluateVisitor
       }
 
       var buffer = StringBuffer("${callable.name}(");
-      var first = true;
-      for (var argument in arguments.positional) {
-        if (first) {
-          first = false;
-        } else {
-          buffer.write(", ");
+      try {
+        var first = true;
+        for (var argument in arguments.positional) {
+          if (first) {
+            first = false;
+          } else {
+            buffer.write(", ");
+          }
+
+          buffer.write(await _evaluateToCss(argument));
         }
 
-        buffer.write(await _evaluateToCss(argument));
-      }
-
-      var restArg = arguments.rest;
-      if (restArg != null) {
-        var rest = await restArg.accept(this);
-        if (!first) buffer.write(", ");
-        buffer.write(_serialize(rest, restArg));
+        var restArg = arguments.rest;
+        if (restArg != null) {
+          var rest = await restArg.accept(this);
+          if (!first) buffer.write(", ");
+          buffer.write(_serialize(rest, restArg));
+        }
+      } on SassRuntimeException catch (error) {
+        if (!error.message.endsWith("isn't a valid CSS value.")) rethrow;
+        throw MultiSpanSassRuntimeException(
+            error.message,
+            error.span,
+            "value",
+            {nodeWithSpan.span: "unknown function treated as plain CSS"},
+            error.trace);
       }
       buffer.writeCharCode($rparen);
 
