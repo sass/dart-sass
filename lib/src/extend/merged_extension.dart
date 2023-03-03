@@ -50,8 +50,7 @@ class MergedExtension extends Extension {
   }
 
   MergedExtension._(this.left, this.right)
-      : super(
-            left.extender.selector, left.extender.span, left.target, left.span,
+      : super(left.extender.selector, left.target, left.span,
             mediaContext: left.mediaContext ?? right.mediaContext,
             optional: true);
 

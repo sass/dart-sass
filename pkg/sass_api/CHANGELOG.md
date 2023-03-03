@@ -1,3 +1,16 @@
+## 6.0.0
+
+* **Breaking change:** All selector AST node constructors now require a
+  `FileSpan` and expose a `span` field.
+
+* **Breaking change:** The `CssStyleRule.selector` field is now a plain
+  `SelectorList` rather than a `CssValue<SelectorList>`.
+
+* **Breaking change:** The `ModifiableCssValue` class has been removed.
+
+* Add a `SelectorSearchVisitor` mixin, which can be used to return the first
+  instance of a selector in an AST matching a certain criterion.
+
 ## 5.1.1
 
 * No user-visible changes.

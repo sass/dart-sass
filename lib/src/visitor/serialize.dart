@@ -314,7 +314,7 @@ class _SerializeVisitor
   void visitCssStyleRule(CssStyleRule node) {
     _writeIndentation();
 
-    _for(node.selector, () => node.selector.value.accept(this));
+    _for(node.selector, () => node.selector.accept(this));
     _writeOptionalSpace();
     _visitChildren(node);
   }
@@ -1209,7 +1209,7 @@ class _SerializeVisitor
 
   /// Writes [combinators] to [_buffer], with spaces in between in expanded
   /// mode.
-  void _writeCombinators(List<Combinator> combinators) =>
+  void _writeCombinators(List<CssValue<Combinator>> combinators) =>
       _writeBetween(combinators, _isCompressed ? '' : ' ', _buffer.write);
 
   void visitCompoundSelector(CompoundSelector compound) {

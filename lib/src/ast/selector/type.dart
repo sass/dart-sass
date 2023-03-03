@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../extend/functions.dart';
 import '../../visitor/interface/selector.dart';
@@ -20,14 +21,14 @@ class TypeSelector extends SimpleSelector {
 
   int get specificity => 1;
 
-  TypeSelector(this.name);
+  TypeSelector(this.name, FileSpan span) : super(span);
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitTypeSelector(this);
 
   /// @nodoc
   @internal
   TypeSelector addSuffix(String suffix) => TypeSelector(
-      QualifiedName(name.name + suffix, namespace: name.namespace));
+      QualifiedName(name.name + suffix, namespace: name.namespace), span);
 
   /// @nodoc
   @internal

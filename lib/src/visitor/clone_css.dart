@@ -8,6 +8,7 @@ import '../ast/css.dart';
 import '../ast/css/modifiable.dart';
 import '../ast/selector.dart';
 import '../extend/extension_store.dart';
+import '../util/box.dart';
 import 'interface/css.dart';
 
 /// Returns deep copies of both [stylesheet] and [extender].
@@ -28,8 +29,7 @@ Tuple2<ModifiableCssStylesheet, ExtensionStore> cloneCssStylesheet(
 class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
   /// A map from selectors in the original stylesheet to selectors generated for
   /// the new stylesheet using [ExtensionStore.clone].
-  final Map<CssValue<SelectorList>, ModifiableCssValue<SelectorList>>
-      _oldToNewSelectors;
+  final Map<SelectorList, Box<SelectorList>> _oldToNewSelectors;
 
   _CloneCssVisitor(this._oldToNewSelectors);
 

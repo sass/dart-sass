@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 
 import '../ast/sass.dart';
 import '../util/nullable.dart';
+import '../utils.dart';
 import 'interface/statement.dart';
 import 'recursive_statement.dart';
 
@@ -44,10 +45,10 @@ mixin StatementSearchVisitor<T> implements StatementVisitor<T?> {
   T? visitFunctionRule(FunctionRule node) => visitCallableDeclaration(node);
 
   T? visitIfRule(IfRule node) =>
-      node.clauses._search(
-          (clause) => clause.children._search((child) => child.accept(this))) ??
+      node.clauses.search(
+          (clause) => clause.children.search((child) => child.accept(this))) ??
       node.lastClause.andThen((lastClause) =>
-          lastClause.children._search((child) => child.accept(this)));
+          lastClause.children.search((child) => child.accept(this)));
 
   T? visitImportRule(ImportRule node) => null;
 
@@ -92,17 +93,5 @@ mixin StatementSearchVisitor<T> implements StatementVisitor<T?> {
   /// call this.
   @protected
   T? visitChildren(List<Statement> children) =>
-      children._search((child) => child.accept(this));
-}
-
-extension _IterableExtension<E> on Iterable<E> {
-  /// Returns the first `T` returned by [callback] for an element of [iterable],
-  /// or `null` if it returns `null` for every element.
-  T? _search<T>(T? Function(E element) callback) {
-    for (var element in this) {
-      var value = callback(element);
-      if (value != null) return value;
-    }
-    return null;
-  }
+      children.search((child) => child.accept(this));
 }
