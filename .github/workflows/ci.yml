@@ -7,7 +7,7 @@ env:
   # Note: when changing this, also change
   # jobs.node_tests.strategy.matrix.node_version and the Node version for Dart
   # dev tests.
-  DEFAULT_NODE_VERSION: 16
+  DEFAULT_NODE_VERSION: 18
 
 on:
   push:
@@ -60,18 +60,18 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node_version: [16]
+        node_version: [18]
         include:
           # Include LTS versions on Ubuntu
           - os: ubuntu-latest
             dart_channel: stable
-            node_version: 14
+            node_version: 16
           - os: ubuntu-latest
             dart_channel: stable
-            node_version: 12
+            node_version: 14
           - os: ubuntu-latest
             dart_channel: dev
-            node_version: 16
+            node_version: 18
 
     steps:
       - uses: actions/checkout@v3
@@ -138,18 +138,18 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node_version: [16]
+        node_version: [18]
         include:
           # Include LTS versions on Ubuntu
           - os: ubuntu-latest
             dart_channel: stable
-            node_version: 14
+            node_version: 16
           - os: ubuntu-latest
             dart_channel: stable
-            node_version: 12
+            node_version: 14
           - os: ubuntu-latest
             dart_channel: dev
-            node_version: 16
+            node_version: 18
 
     steps:
       - uses: actions/checkout@v3
@@ -482,21 +482,46 @@ jobs:
           repository: sass/dart-sass-embedded
           token: ${{ secrets.GH_TOKEN }}
       - uses: dart-lang/setup-dart@v1
+      - uses: frenck/action-setup-yq@v1
+        with: {version: v4.30.5} # frenck/action-setup-yq#35
 
       - name: Get version
         id: version
-        run: echo "::set-output name=version::${GITHUB_REF##*/}"
+        run: |
+          echo "sass=${GITHUB_REF##*/}" | tee --append $GITHUB_OUTPUT
+          echo "sass_api=$(curl --fail --silent --show-error --location https://raw.githubusercontent.com/sass/dart-sass/${GITHUB_REF##*/}/pkg/sass_api/pubspec.yaml | yq .version)" | tee --append $GITHUB_OUTPUT
 
       - name: Update version
         run: |
-          sed -i 's/version: .*/version: ${{ steps.version.outputs.version }}/' pubspec.yaml
+          sed -i 's/version: .*/version: ${{ steps.version.outputs.sass }}/' pubspec.yaml
+          dart pub remove sass_api
           dart pub remove sass
-          dart pub add sass:${{ steps.version.outputs.version }}
-          curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
+          dart pub add sass:${{ steps.version.outputs.sass }}
+          dart pub add sass_api:^${{ steps.version.outputs.sass_api }}
+
+          # Delete a dependency override on Sass if it exists, and delete the
+          # dependency_overrides field if it's now empty. The embedded compiler
+          # often uses dev dependencies to run against the latest Dart Sass, but
+          # once we release the latest version that's no longer necessary.
+          #
+          # TODO(dart-lang/pub#3700): Use pub for this instead to avoid removing
+          # blank lines. See also mikefarah/yq#515.
+          yq -i '
+            del(.dependency_overrides.sass) |
+              to_entries |
+              map(select(.key != "dependency_overrides" or (.value | length >0))) |
+              from_entries
+          ' pubspec.yaml
+
+          # The embedded compiler has a checked-in pubspec.yaml, so upgrade to
+          # make sure we're releasing against the latest version of all deps.
+          dart pub upgrade
+
+          curl --fail --silent --show-error --location --output CHANGELOG.md https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.sass }}/CHANGELOG.md
 
       - uses: EndBug/add-and-commit@v8
         with:
           author_name: Sass Bot
           author_email: sass.bot.beep.boop@gmail.com
           message: Update Dart Sass version and release
-          tag: ${{ steps.version.outputs.version }}
+          tag: ${{ steps.version.outputs.sass }}

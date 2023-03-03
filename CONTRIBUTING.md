@@ -86,7 +86,7 @@ repository contains language tests that are shared among the main Sass
 implementations. Any new feature should be thoroughly tested there, and any bug
 should have a regression test added.
 
-[sass-spec]: http://github.com/sass/sass-spec
+[sass-spec]: https://github.com/sass/sass-spec
 
 To create a new spec:
 

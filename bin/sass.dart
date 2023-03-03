@@ -91,7 +91,7 @@ Future<void> main(List<String> args) async {
             options.trace ? getTrace(error) ?? stackTrace : null);
 
         // Exit code 65 indicates invalid data per
-        // http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+        // https://www.freebsd.org/cgi/man.cgi?query=sysexits.
         //
         // We let exitCode 66 take precedence for deterministic behavior.
         if (exitCode != 66) exitCode = 65;

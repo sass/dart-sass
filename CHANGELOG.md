@@ -1,4 +1,4 @@
-## 1.57.0
+## 1.59.0
 
 ### Command Line Interface
 
@@ -28,6 +28,91 @@
 
 * The `compile` methods now take in `fatalDeprecations` and `futureDeprecations`
   parameters, which work similarly to the CLI flags.
+
+## 1.58.4
+
+* Pull `@font-face` to the root rather than bubbling the style rule selector
+  inwards.
+
+### Embedded Sass
+
+* Improve the performance of starting up a compilation.
+
+## 1.58.3
+
+* No user-visible changes.
+
+## 1.58.2
+
+### Command Line Interface
+
+* Add a timestamp to messages printed in `--watch` mode.
+
+* Print better `calc()`-based suggestions for `/`-as-division expression that
+  contain calculation-incompatible constructs like unary minus.
+
+## 1.58.1
+
+* Emit a unitless hue when serializing `hsl()` colors. The `deg` unit is
+  incompatible with IE, and while that officially falls outside our
+  compatibility policy, it's better to lean towards greater compatibility.
+
+## 1.58.0
+
+* Remove sourcemap comments from Sass sources. The generated sourcemap comment
+  for the compiled CSS output remains unaffected.
+
+* Fix a bug in `@extend` logic where certain selectors with three or more
+  combinators were incorrectly considered superselectors of similar selectors
+  with fewer combinators, causing them to be incorrectly trimmed from the
+  output.
+
+* Produce a better error message for a number with a leading `+` or `-`, a
+  decimal point, but no digits.
+
+* Produce a better error message for a nested property whose name starts with
+  `--`.
+
+* Fix a crash when a selector ends in an escaped backslash.
+
+* Add the relative length units from CSS Values 4 and CSS Contain 3 as known
+  units to validate bad computation in `calc`.
+
+### Command Line Interface
+
+* The `--watch` flag will now track loads through calls to `meta.load-css()` as
+  long as their URLs are literal strings without any interpolation.
+
+## 1.57.1
+
+* No user-visible changes.
+
+## 1.57.0
+
+* Add a `split($string, $separator, $limit: null)` function to `sass:string`
+  that splits a string into separate substrings based on a separator string.
+
+### JavaScript API
+
+* **Potentially breaking bug fix**: Custom functions in both the modern and
+  legacy API now properly reject signatures with whitespace between the function
+  name and parentheses.
+
+* Custom functions in the legacy API now allow signatures with whitespace before
+  the function name, to match a bug in Node Sass.
+
+### Dart API
+
+* **Potentially breaking bug fix**: `Callable.fromSignature()` and
+  `AsyncCallable.fromSignature()` now reject signatures with whitespace between
+  the function name and parentheses.
+
+## 1.56.2
+
+### Embedded Sass
+
+* The embedded compiler now supports version 1.2.0 of [the embedded
+  protocol](https://github.com/sass/embedded-protocol).
 
 ## 1.56.1
 

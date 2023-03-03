@@ -1,7 +1,45 @@
+## 5.1.2
+
+* No user-visible changes, other than the API changes in version 1.59.0 of the
+  main Sass package that this package exports.
+
+## 5.1.1
+
+* No user-visible changes.
+
+## 5.1.0
+
+* Add `BinaryOperation.isAssociative`.
+
+* Add a `ReplaceExpressionVisitor`, which recursively visits all expressions in
+  an AST and rebuilds them with replacement components.
+
+## 5.0.1
+
+* No user-visible changes.
+
+## 5.0.0
+
+* **Breaking change:** Instead of a `Tuple`, `findDependencies()` now returns a
+  `DependencyReport` object with named fields. This provides finer-grained
+  access to import URLs, as well as information about `meta.load-css()` calls
+  with non-interpolated string literal arguments.
+
+## 4.2.2
+
+* No user-visible changes.
+
+## 4.2.1
+
+* No user-visible changes.
+
+## 4.2.0
+
+* No user-visible changes.
+
 ## 4.1.2
 
-* No user-visible changes, other than the API changes in version 1.56.0 of the
-  main Sass package that this package exports.
+* No user-visible changes.
 
 ## 4.1.1
 

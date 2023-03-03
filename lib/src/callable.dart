@@ -3,10 +3,13 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:tuple/tuple.dart';
 
+import 'ast/sass.dart';
 import 'callable/async.dart';
 import 'callable/built_in.dart';
 import 'exception.dart';
+import 'utils.dart';
 import 'value.dart';
 
 export 'callable/async.dart';
@@ -117,4 +120,15 @@ abstract class Callable extends AsyncCallable {
   factory Callable.function(String name, String arguments,
           Value callback(List<Value> arguments)) =>
       BuiltInCallable.function(name, arguments, callback);
+
+  /// Creates a callable with a single [signature] and a single [callback].
+  ///
+  /// Throws a [SassFormatException] if parsing fails.
+  factory Callable.fromSignature(
+      String signature, Value callback(List<Value> arguments),
+      {bool requireParens = true}) {
+    Tuple2<String, ArgumentDeclaration> tuple =
+        parseSignature(signature, requireParens: requireParens);
+    return BuiltInCallable.parsed(tuple.item1, tuple.item2, callback);
+  }
 }

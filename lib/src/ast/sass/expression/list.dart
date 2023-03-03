@@ -37,12 +37,26 @@ class ListExpression implements Expression {
 
   String toString() {
     var buffer = StringBuffer();
-    if (hasBrackets) buffer.writeCharCode($lbracket);
+    if (hasBrackets) {
+      buffer.writeCharCode($lbracket);
+    } else if (contents.isEmpty ||
+        (contents.length == 1 && separator == ListSeparator.comma)) {
+      buffer.writeCharCode($lparen);
+    }
+
     buffer.write(contents
         .map((element) =>
             _elementNeedsParens(element) ? "($element)" : element.toString())
         .join(separator == ListSeparator.comma ? ", " : " "));
-    if (hasBrackets) buffer.writeCharCode($rbracket);
+
+    if (hasBrackets) {
+      buffer.writeCharCode($rbracket);
+    } else if (contents.isEmpty) {
+      buffer.writeCharCode($rparen);
+    } else if (contents.length == 1 && separator == ListSeparator.comma) {
+      buffer.write(",)");
+    }
+
     return buffer.toString();
   }
 

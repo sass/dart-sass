@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 2501e947cce5578d885924e2057f3cf31e548ac0
+// Checksum: bc9fc9bf14eab37f1f60793ec57c5b69a6b87e7f
 //
 // ignore_for_file: unused_import
 
@@ -51,6 +51,7 @@ import '../utils.dart';
 import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
+import 'expression_to_calc.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
@@ -1127,6 +1128,11 @@ class _EvaluateVisitor
       throw _exception(
           "Declarations may only be used within style rules.", node.span);
     }
+    if (_declarationName != null && node.isCustomProperty) {
+      throw _exception(
+          'Declarations whose names begin with "--" may not be nested.',
+          node.span);
+    }
 
     var name = _interpolationToValue(node.name, warnForColor: true);
     if (_declarationName != null) {
@@ -1288,7 +1294,9 @@ class _EvaluateVisitor
 
     _withParent(ModifiableCssAtRule(name, node.span, value: value), () {
       var styleRule = _styleRule;
-      if (styleRule == null || _inKeyframes) {
+      if (styleRule == null || _inKeyframes || name.value == 'font-face') {
+        // Special-cased at-rules within style blocks are pulled out to the
+        // root. Equivalent to prepending "@at-root" on them.
         for (var child in children) {
           child.accept(this);
         }
@@ -2215,7 +2223,8 @@ class _EvaluateVisitor
                   "Using / for division outside of calc() is deprecated "
                   "and will be removed in Dart Sass 2.0.0.\n"
                   "\n"
-                  "Recommendation: ${recommendation(node)} or calc($node)\n"
+                  "Recommendation: ${recommendation(node)} or "
+                  "${expressionToCalc(node)}\n"
                   "\n"
                   "More info and automated migrator: "
                   "https://sass-lang.com/d/slash-div",
@@ -3549,7 +3558,7 @@ class _EvaluationContext implements EvaluationContext {
   final _EvaluateVisitor _visitor;
 
   /// The AST node whose span should be used for [warn] if no other span is
-  /// avaiable.
+  /// available.
   final AstNode _defaultWarnNodeWithSpan;
 
   _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);

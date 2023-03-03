@@ -10,7 +10,11 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
+import 'package:tuple/tuple.dart';
 
+import 'ast/sass.dart';
+import 'exception.dart';
+import 'parse/scss.dart';
 import 'util/character.dart';
 
 /// The URL used in stack traces when no source URL is available.
@@ -110,7 +114,7 @@ int? _lastNonWhitespace(String string, {bool excludeEscape = false}) {
     if (!isWhitespace(codeUnit)) {
       if (excludeEscape &&
           i != 0 &&
-          i != string.length &&
+          i != string.length - 1 &&
           codeUnit == $backslash) {
         return i + 1;
       } else {
@@ -467,5 +471,23 @@ extension IterableExtension<E> on Iterable<E> {
     var size = length - 1;
     if (size < 0) throw StateError('Iterable may not be empty');
     return take(size);
+  }
+}
+
+/// Parses a function signature of the format allowed by Node Sass's functions
+/// option and returns its name and declaration.
+///
+/// If [requireParens] is `false`, this allows parentheses to be omitted.
+///
+/// Throws a [SassFormatException] if parsing fails.
+Tuple2<String, ArgumentDeclaration> parseSignature(String signature,
+    {bool requireParens = true}) {
+  try {
+    return ScssParser(signature).parseSignature(requireParens: requireParens);
+  } on SassFormatException catch (error, stackTrace) {
+    throwWithTrace(
+        SassFormatException(
+            'Invalid signature "$signature": ${error.message}', error.span),
+        stackTrace);
   }
 }

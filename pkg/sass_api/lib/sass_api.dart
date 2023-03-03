@@ -25,6 +25,7 @@ export 'package:sass/src/visitor/interface/statement.dart';
 export 'package:sass/src/visitor/recursive_ast.dart';
 export 'package:sass/src/visitor/recursive_selector.dart';
 export 'package:sass/src/visitor/recursive_statement.dart';
+export 'package:sass/src/visitor/replace_expression.dart';
 export 'package:sass/src/visitor/statement_search.dart';
 
 /// Parses [text] as a CSS identifier and returns the result.

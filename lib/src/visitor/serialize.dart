@@ -179,6 +179,9 @@ class _SerializeVisitor
       // Preserve comments that start with `/*!`.
       if (_isCompressed && !node.isPreserved) return;
 
+      // Ignore sourceMappingURL and sourceURL comments.
+      if (node.text.startsWith(RegExp(r"/\*# source(Mapping)?URL="))) return;
+
       var minimumIndentation = _minimumIndentation(node.text);
       assert(minimumIndentation != -1);
       if (minimumIndentation == null) {
@@ -601,7 +604,6 @@ class _SerializeVisitor
     var opaque = fuzzyEquals(value.alpha, 1);
     _buffer.write(opaque ? "hsl(" : "hsla(");
     _writeNumber(value.hue);
-    _buffer.write("deg");
     _buffer.write(_commaSeparator);
     _writeNumber(value.saturation);
     _buffer.writeCharCode($percent);
