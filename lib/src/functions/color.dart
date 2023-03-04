@@ -238,7 +238,7 @@ final module = BuiltInModule("color", functions: <Callable>[
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecationType: Deprecation.colorNumber);
+          deprecationType: Deprecation.colorModuleCompat);
       return result;
     }
 
@@ -265,7 +265,7 @@ final module = BuiltInModule("color", functions: <Callable>[
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecationType: Deprecation.colorNumber);
+          deprecationType: Deprecation.colorModuleCompat);
       return result;
     }
 
@@ -318,7 +318,7 @@ final module = BuiltInModule("color", functions: <Callable>[
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            deprecationType: Deprecation.microsoftAlpha);
+            deprecationType: Deprecation.colorModuleCompat);
         return result;
       }
 
@@ -336,7 +336,7 @@ final module = BuiltInModule("color", functions: <Callable>[
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            deprecationType: Deprecation.microsoftAlpha);
+            deprecationType: Deprecation.colorModuleCompat);
         return result;
       }
 
@@ -354,7 +354,7 @@ final module = BuiltInModule("color", functions: <Callable>[
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecationType: Deprecation.colorNumber);
+          deprecationType: Deprecation.colorModuleCompat);
       return result;
     }
 

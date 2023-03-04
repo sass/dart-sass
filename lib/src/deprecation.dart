@@ -12,11 +12,6 @@ enum Deprecation {
       deprecatedIn: '0.0.0',
       description: 'Passing a string directly to meta.call().'),
 
-  /// Deprecation for passing a number to a color function.
-  colorNumber('color-number',
-      deprecatedIn: '0.0.0',
-      description: 'Passing a number to a color function.'),
-
   /// Deprecation for `@elseif`.
   elseIf('elseif', deprecatedIn: '1.3.2', description: '@elseif.'),
 
@@ -31,10 +26,12 @@ enum Deprecation {
       deprecatedIn: '1.17.2',
       description: 'Declaring new variables with !global.'),
 
-  /// Deprecation for using `color.alpha()` in a Microsoft filter.
-  microsoftAlpha('microsoft-alpha',
+  /// Deprecation for certain functions in the color module matching the
+  /// behavior of their global counterparts for compatiblity reasons.
+  colorModuleCompat('color-module-compat',
       deprecatedIn: '1.23.0',
-      description: 'Using color.alpha() in a Microsoft filter.'),
+      description:
+          'Using color module functions in place of plain CSS functions.'),
 
   /// Deprecation for treating `/` as division.
   slashDiv('slash-div',
@@ -45,20 +42,17 @@ enum Deprecation {
       deprecatedIn: '1.54.0',
       description: 'Leading, trailing, and repeated combinators.'),
 
-  /// Deprecation for SassScript boolean operators in `@media` queries.
-  mediaLogic('media-logic', deprecatedIn: '1.54.0'),
-
   /// Deprecation for ambiguous `+` and `-` operators.
   strictUnary('strict-unary',
       deprecatedIn: '1.55.0', description: 'Ambiguous + and - operators.'),
 
-  /// Deprecation for `@import` rules.
-  import('import', deprecatedIn: null, description: '@import rules.'),
-
   /// Deprecation for passing invalid units to certain built-in functions.
   functionUnits('function-units',
-      deprecatedIn: '1.55.1',
+      deprecatedIn: '1.56.0',
       description: 'Passing invalid units to built-in functions.'),
+
+  /// Deprecation for `@import` rules.
+  import('import', deprecatedIn: null, description: '@import rules.'),
 
   /// Used for deprecations of an unknown type.
   ///

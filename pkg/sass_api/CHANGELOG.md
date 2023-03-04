@@ -1,4 +1,4 @@
-## 5.1.2
+## 5.2.0
 
 * No user-visible changes, other than the API changes in version 1.59.0 of the
   main Sass package that this package exports.
