@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bc9fc9bf14eab37f1f60793ec57c5b69a6b87e7f
+// Checksum: e8b1779b1bc8f894f63846c3530a89966a435436
 //
 // ignore_for_file: unused_import
 
@@ -2606,22 +2606,32 @@ class _EvaluateVisitor
       }
 
       var buffer = StringBuffer("${callable.name}(");
-      var first = true;
-      for (var argument in arguments.positional) {
-        if (first) {
-          first = false;
-        } else {
-          buffer.write(", ");
+      try {
+        var first = true;
+        for (var argument in arguments.positional) {
+          if (first) {
+            first = false;
+          } else {
+            buffer.write(", ");
+          }
+
+          buffer.write(_evaluateToCss(argument));
         }
 
-        buffer.write(_evaluateToCss(argument));
-      }
-
-      var restArg = arguments.rest;
-      if (restArg != null) {
-        var rest = restArg.accept(this);
-        if (!first) buffer.write(", ");
-        buffer.write(_serialize(rest, restArg));
+        var restArg = arguments.rest;
+        if (restArg != null) {
+          var rest = restArg.accept(this);
+          if (!first) buffer.write(", ");
+          buffer.write(_serialize(rest, restArg));
+        }
+      } on SassRuntimeException catch (error) {
+        if (!error.message.endsWith("isn't a valid CSS value.")) rethrow;
+        throw MultiSpanSassRuntimeException(
+            error.message,
+            error.span,
+            "value",
+            {nodeWithSpan.span: "unknown function treated as plain CSS"},
+            error.trace);
       }
       buffer.writeCharCode($rparen);
 
