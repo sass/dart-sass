@@ -55,12 +55,14 @@ Future<void> main(List<String> args) async {
 
     var graph = StylesheetGraph(ImportCache(
         loadPaths: options.loadPaths,
+        // This logger is only used for handling fatal/future deprecations
+        // during parsing, and is re-used across parses, so we don't want to
+        // limit repetition. A separate DeprecationHandlingLogger is created for
+        // each compilation, which will limit repetition if verbose is not
+        // passed in addition to handling fatal/future deprecations.
         logger: DeprecationHandlingLogger(options.logger,
             fatalDeprecations: options.fatalDeprecations,
             futureDeprecations: options.futureDeprecations,
-            // This logger may be reused by multiple parses, so we don't want
-            // warnings from a previous parse to cause subsequent warnings to
-            // be skipped.
             limitRepetition: false)));
     if (options.watch) {
       await watch(options, graph);

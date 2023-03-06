@@ -5,6 +5,8 @@
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'util/nullable.dart';
+
 /// A deprecated feature in the language.
 enum Deprecation {
   /// Deprecation for passing a string to `call` instead of `get-function`.
@@ -52,8 +54,7 @@ enum Deprecation {
       description: 'Passing invalid units to built-in functions.'),
 
   /// Deprecation for `@import` rules.
-  import('import',
-      isFuture: true, deprecatedIn: null, description: '@import rules.'),
+  import.future('import', description: '@import rules.'),
 
   /// Used for deprecations coming from user-authored code.
   userAuthored('user-authored', deprecatedIn: null);
@@ -63,12 +64,18 @@ enum Deprecation {
   /// This is used to refer to the deprecation on the command line.
   final String id;
 
+  /// Underlying version string used by [deprecatedIn].
+  ///
+  /// This is necessary because [Version] doesn't have a constant constructor,
+  /// so we can't use it directly as an enum property.
+  final String? _deprecatedIn;
+
   /// The Dart Sass version this feature was first deprecated in.
   ///
   /// For deprecations that have existed in all versions of Dart Sass, this
   /// should be 0.0.0. For deprecations not related to a specific Sass version,
   /// this should be null.
-  final String? deprecatedIn;
+  Version? get deprecatedIn => _deprecatedIn?.andThen(Version.parse);
 
   /// A description of this deprecation that will be displayed in the CLI usage.
   ///
@@ -77,12 +84,19 @@ enum Deprecation {
 
   /// Whether this deprecation will occur in the future.
   ///
-  /// If this is true, `deprecatedIn` should be null, since we do not yet know
+  /// If this is true, `deprecatedIn` will be null, since we do not yet know
   /// what version of Dart Sass this deprecation will be live in.
   final bool isFuture;
 
-  const Deprecation(this.id,
-      {required this.deprecatedIn, this.description, this.isFuture = false});
+  /// Constructs a regular deprecation.
+  const Deprecation(this.id, {required String? deprecatedIn, this.description})
+      : _deprecatedIn = deprecatedIn,
+        isFuture = false;
+
+  /// Constructs a future deprecation.
+  const Deprecation.future(this.id, {this.description})
+      : _deprecatedIn = null,
+        isFuture = true;
 
   @override
   String toString() => id;
@@ -93,10 +107,10 @@ enum Deprecation {
 
   /// Returns the set of all deprecations done in or before [version].
   static Set<Deprecation> forVersion(Version version) {
+    var range = VersionRange(max: version, includeMax: true);
     return {
       for (var deprecation in Deprecation.values)
-        if (deprecation.deprecatedIn != null &&
-            Version.parse(deprecation.deprecatedIn!) <= version)
+        if (deprecation.deprecatedIn?.andThen(range.allows) ?? false)
           deprecation
     };
   }
