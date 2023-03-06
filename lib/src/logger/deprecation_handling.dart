@@ -68,8 +68,7 @@ class DeprecationHandlingLogger implements Logger {
       throw SassException(message, span);
     }
 
-    if (deprecation.deprecatedIn == null &&
-        !futureDeprecations.contains(deprecation)) {
+    if (deprecation.isFuture && !futureDeprecations.contains(deprecation)) {
       return;
     }
 

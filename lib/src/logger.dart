@@ -50,7 +50,7 @@ extension WarnForDeprecation on Logger {
     var self = this;
     if (self is DeprecationHandlingLogger) {
       self.warnForDeprecation(deprecation, message, span: span, trace: trace);
-    } else if (deprecation.deprecatedIn != null) {
+    } else if (!deprecation.isFuture) {
       warn(message, span: span, trace: trace, deprecation: true);
     }
   }
