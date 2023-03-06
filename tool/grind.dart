@@ -44,6 +44,9 @@ void main(List<String> args) {
   pkg.standaloneName.value = "dart-sass";
   pkg.githubUser.fn = () => Platform.environment["GH_USER"];
   pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"];
+  // Limit the methods exposed as ESM exports to those that don't require
+  // filesystem access
+  pkg.jsEsmExports.value = {'compileString', 'compileStringAsync'};
 
   pkg.githubReleaseNotes.fn = () =>
       "To install Sass ${pkg.version}, download one of the packages below "
