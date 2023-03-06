@@ -10,6 +10,9 @@ import 'package:js/js_util.dart';
 import 'utils.dart';
 import 'utils.dart' as utils;
 
+@JS("util")
+external Object? get _util;
+
 @JS("util.inspect.custom")
 external Symbol get _inspectSymbol;
 
@@ -68,6 +71,7 @@ extension JSClassExtension on JSClass {
 
   /// Sets the custom inspect logic for this class to [body].
   void setCustomInspect(String inspect(Object self)) {
+    if (_util == null) return;
     setProperty(prototype, _inspectSymbol,
         allowInteropCaptureThis((Object self, _, __, [___]) => inspect(self)));
   }
