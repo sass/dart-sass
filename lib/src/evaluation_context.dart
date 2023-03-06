@@ -53,8 +53,8 @@ void warn(String message,
         {Deprecation? deprecationType,
         @Deprecated('Use `deprecationType` instead.') bool deprecation =
             false}) =>
-    EvaluationContext.current.warn(
-        message, deprecationType ?? (deprecation ? Deprecation.unknown : null));
+    EvaluationContext.current.warn(message,
+        deprecationType ?? (deprecation ? Deprecation.userAuthored : null));
 
 /// Runs [callback] with [context] as [EvaluationContext.current].
 ///

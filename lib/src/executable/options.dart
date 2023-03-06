@@ -99,7 +99,7 @@ class ExecutableOptions {
                 deprecation.id: deprecation.description!,
           })
       ..addMultiOption('future-deprecation',
-          help: 'Opt-in to a deprecation early.',
+          help: 'Opt in to a deprecation early.',
           allowedHelp: {
             for (var deprecation in Deprecation.values)
               if (deprecation.deprecatedIn == null &&

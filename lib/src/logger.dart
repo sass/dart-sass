@@ -49,7 +49,7 @@ extension WarnForDeprecation on Logger {
       {FileSpan? span, Trace? trace}) {
     var self = this;
     if (self is DeprecationHandlingLogger) {
-      self.handleDeprecationWarning(deprecation, message, span, trace);
+      self.warnForDeprecation(deprecation, message, span: span, trace: trace);
     } else if (deprecation.deprecatedIn != null) {
       warn(message, span: span, trace: trace, deprecation: true);
     }

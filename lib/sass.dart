@@ -108,8 +108,8 @@ CompileResult compileToResult(String path,
         bool verbose = false,
         bool sourceMap = false,
         bool charset = true,
-        Set<Deprecation> fatalDeprecations = const {},
-        Set<Deprecation> futureDeprecations = const {}}) =>
+        Iterable<Deprecation>? fatalDeprecations,
+        Iterable<Deprecation>? futureDeprecations}) =>
     c.compile(path,
         logger: logger,
         importCache: ImportCache(
@@ -207,8 +207,8 @@ CompileResult compileStringToResult(String source,
         bool verbose = false,
         bool sourceMap = false,
         bool charset = true,
-        Set<Deprecation> fatalDeprecations = const {},
-        Set<Deprecation> futureDeprecations = const {}}) =>
+        Iterable<Deprecation>? fatalDeprecations,
+        Iterable<Deprecation>? futureDeprecations}) =>
     c.compileString(source,
         syntax: syntax,
         logger: logger,
@@ -245,8 +245,8 @@ Future<CompileResult> compileToResultAsync(String path,
         bool verbose = false,
         bool sourceMap = false,
         bool charset = true,
-        Set<Deprecation> fatalDeprecations = const {},
-        Set<Deprecation> futureDeprecations = const {}}) =>
+        Iterable<Deprecation>? fatalDeprecations,
+        Iterable<Deprecation>? futureDeprecations}) =>
     c.compileAsync(path,
         logger: logger,
         importCache: AsyncImportCache(
@@ -285,8 +285,8 @@ Future<CompileResult> compileStringToResultAsync(String source,
         bool verbose = false,
         bool sourceMap = false,
         bool charset = true,
-        Set<Deprecation> fatalDeprecations = const {},
-        Set<Deprecation> futureDeprecations = const {}}) =>
+        Iterable<Deprecation>? fatalDeprecations,
+        Iterable<Deprecation>? futureDeprecations}) =>
     c.compileStringAsync(source,
         syntax: syntax,
         logger: logger,

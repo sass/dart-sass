@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6841a94168f5bcda5e026da4b1a8dbb5c0e1ff18
+// Checksum: 628fbfe8a6717cca332dd646eeda2260dd3e30c6
 //
 // ignore_for_file: unused_import
 
@@ -48,12 +48,12 @@ CompileResult compile(String path,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
-    Set<Deprecation> fatalDeprecations = const {},
-    Set<Deprecation> futureDeprecations = const {}}) {
+    Iterable<Deprecation>? fatalDeprecations,
+    Iterable<Deprecation>? futureDeprecations}) {
   DeprecationHandlingLogger deprecationLogger = logger =
       DeprecationHandlingLogger(logger ?? Logger.stderr(),
-          fatalDeprecations: fatalDeprecations,
-          futureDeprecations: futureDeprecations,
+          fatalDeprecations: {...?fatalDeprecations},
+          futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
 
   // If the syntax is different than the importer would default to, we have to
@@ -112,12 +112,12 @@ CompileResult compileString(String source,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
-    Set<Deprecation> fatalDeprecations = const {},
-    Set<Deprecation> futureDeprecations = const {}}) {
+    Iterable<Deprecation>? fatalDeprecations,
+    Iterable<Deprecation>? futureDeprecations}) {
   DeprecationHandlingLogger deprecationLogger = logger =
       DeprecationHandlingLogger(logger ?? Logger.stderr(),
-          fatalDeprecations: fatalDeprecations,
-          futureDeprecations: futureDeprecations,
+          fatalDeprecations: {...?fatalDeprecations},
+          futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
 
   var stylesheet =

@@ -14,7 +14,7 @@ void main() {
 
   // Deprecated in 1.3.2
   test("elseIf is violated by using @elseif instead of @else if", () {
-    _expectDeprecation("@if false {} @elseif {}", Deprecation.elseIf);
+    _expectDeprecation("@if false {} @elseif {}", Deprecation.elseif);
   });
 
   // Deprecated in 1.7.2
@@ -130,7 +130,7 @@ void _expectDeprecation(String source, Deprecation deprecation) {
   try {
     compileStringToResult(source, fatalDeprecations: {deprecation});
   } catch (e) {
-    if (e.toString().contains("--fatal-deprecation")) return;
+    if (e.toString().contains("$deprecation deprecation to be fatal")) return;
     fail('Unexpected error: $e');
   }
   fail("No error for violating $deprecation.");

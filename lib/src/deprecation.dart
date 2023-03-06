@@ -5,7 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// Represents a deprecated feature in the language.
+/// A deprecated feature in the language.
 enum Deprecation {
   /// Deprecation for passing a string to `call` instead of `get-function`.
   callString('call-string',
@@ -13,7 +13,7 @@ enum Deprecation {
       description: 'Passing a string directly to meta.call().'),
 
   /// Deprecation for `@elseif`.
-  elseIf('elseif', deprecatedIn: '1.3.2', description: '@elseif.'),
+  elseif('elseif', deprecatedIn: '1.3.2', description: '@elseif.'),
 
   /// Deprecation for parsing `@-moz-document`.
   mozDocument('moz-document', deprecatedIn: '1.7.2'),
@@ -52,13 +52,11 @@ enum Deprecation {
       description: 'Passing invalid units to built-in functions.'),
 
   /// Deprecation for `@import` rules.
-  import('import', deprecatedIn: null, description: '@import rules.'),
+  import('import',
+      isFuture: true, deprecatedIn: null, description: '@import rules.'),
 
-  /// Used for deprecations of an unknown type.
-  ///
-  /// We set its deprecated-in version to 1000.0.0 so that it won't be made
-  /// fatal by passing a Sass version to --fatal-deprecation.
-  unknown('unknown', deprecatedIn: '1000.0.0');
+  /// Used for deprecations coming from user-authored code.
+  userAuthored('user-authored', deprecatedIn: null);
 
   /// A unique ID for this deprecation in kebab case.
   ///
@@ -68,8 +66,8 @@ enum Deprecation {
   /// The Dart Sass version this feature was first deprecated in.
   ///
   /// For deprecations that have existed in all versions of Dart Sass, this
-  /// should be 0.0.0. For deprecations that are not yet active, this should be
-  /// null.
+  /// should be 0.0.0. For deprecations not related to a specific Sass version,
+  /// this should be null.
   final String? deprecatedIn;
 
   /// A description of this deprecation that will be displayed in the CLI usage.
@@ -77,7 +75,14 @@ enum Deprecation {
   /// If this is null, the given deprecation will not be listed.
   final String? description;
 
-  const Deprecation(this.id, {required this.deprecatedIn, this.description});
+  /// Whether this deprecation will occur in the future.
+  ///
+  /// If this is true, `deprecatedIn` should be null, since we do not yet know
+  /// what version of Dart Sass this deprecation will be live in.
+  final bool isFuture;
+
+  const Deprecation(this.id,
+      {required this.deprecatedIn, this.description, this.isFuture = false});
 
   @override
   String toString() => id;

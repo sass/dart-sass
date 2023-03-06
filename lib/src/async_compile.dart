@@ -39,12 +39,12 @@ Future<CompileResult> compileAsync(String path,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
-    Set<Deprecation> fatalDeprecations = const {},
-    Set<Deprecation> futureDeprecations = const {}}) async {
+    Iterable<Deprecation>? fatalDeprecations,
+    Iterable<Deprecation>? futureDeprecations}) async {
   DeprecationHandlingLogger deprecationLogger = logger =
       DeprecationHandlingLogger(logger ?? Logger.stderr(),
-          fatalDeprecations: fatalDeprecations,
-          futureDeprecations: futureDeprecations,
+          fatalDeprecations: {...?fatalDeprecations},
+          futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
 
   // If the syntax is different than the importer would default to, we have to
@@ -103,12 +103,12 @@ Future<CompileResult> compileStringAsync(String source,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
-    Set<Deprecation> fatalDeprecations = const {},
-    Set<Deprecation> futureDeprecations = const {}}) async {
+    Iterable<Deprecation>? fatalDeprecations,
+    Iterable<Deprecation>? futureDeprecations}) async {
   DeprecationHandlingLogger deprecationLogger = logger =
       DeprecationHandlingLogger(logger ?? Logger.stderr(),
-          fatalDeprecations: fatalDeprecations,
-          futureDeprecations: futureDeprecations,
+          fatalDeprecations: {...?fatalDeprecations},
+          futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
 
   var stylesheet =

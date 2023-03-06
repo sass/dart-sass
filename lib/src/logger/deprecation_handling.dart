@@ -55,12 +55,12 @@ class DeprecationHandlingLogger implements Logger {
   /// [limitRepetitions] is true, the warning is dropped.
   ///
   /// Otherwise, this is passed on to [warn].
-  void handleDeprecationWarning(
-      Deprecation deprecation, String message, FileSpan? span, Trace? trace) {
+  void warnForDeprecation(Deprecation deprecation, String message,
+      {FileSpan? span, Trace? trace}) {
     if (fatalDeprecations.contains(deprecation)) {
-      message += '\n\nThis is only an error because of '
-          '--fatal-deprecation=$deprecation.\n'
-          'Remove this flag if you still need to use this feature.';
+      message += "\n\nThis is only an error you've set the $deprecation "
+          'deprecation to be fatal.\n'
+          'Remove this setting if you need to keep using this feature.';
       if (span != null && trace != null) {
         throw SassRuntimeException(message, span, trace);
       }

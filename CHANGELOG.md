@@ -2,10 +2,10 @@
 
 ### Command Line Interface
 
-* New `--fatal-deprecation` flag that lets you treat a deprecation warning as
-  an error. You can pass an individual deprecation ID (e.g. `slash-div`) or you
-  can pass a Dart Sass version to treat all deprecations initially emitted in
-  that version or earlier as errors.
+* Added a new `--fatal-deprecation` flag that lets you treat a deprecation
+  warning as an error. You can pass an individual deprecation ID
+  (e.g. `slash-div`) or you can pass a Dart Sass version to treat all
+  deprecations initially emitted in that version or earlier as errors.
 
 * New `--future-deprecation` flag that lets you opt into warning for use of
   certain features that will be deprecated in the future. At the moment, the

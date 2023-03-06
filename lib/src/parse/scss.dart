@@ -47,7 +47,7 @@ class ScssParser extends StylesheetParser {
       if (scanIdentifier('else', caseSensitive: true)) return true;
       if (scanIdentifier('elseif', caseSensitive: true)) {
         logger.warnForDeprecation(
-            Deprecation.elseIf,
+            Deprecation.elseif,
             '@elseif is deprecated and will not be supported in future Sass '
             'versions.\n'
             '\n'
