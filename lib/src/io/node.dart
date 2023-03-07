@@ -193,7 +193,11 @@ T _systemErrorToFileSystemException<T>(T callback()) {
 
 final stderr = Stderr(process?.stderr ?? createWritable(WritableOptions()));
 
-bool get hasTerminal => process?.stdout.isTTY == true;
+/// We can't use [process.stdout.isTTY] from `node_interop` because of
+/// pulyaevskiy/node-interop#93: it declares `isTTY` as always non-nullably
+/// available, but in practice it's undefined if stdout isn't a TTY.
+// ignore: invalid_null_aware_operator
+bool get hasTerminal => process?.stdout?.isTTY == true;
 
 bool get isWindows => process?.platform == 'win32';
 
