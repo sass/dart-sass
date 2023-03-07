@@ -207,9 +207,9 @@ bool get isNode => process != null;
 // Node seems to support ANSI escapes on all terminals.
 bool get supportsAnsiEscapes => hasTerminal;
 
-String get currentPath => process == null ? '/' : process.cwd() as String;
+String get currentPath => (process?.cwd() ?? '/') as String;
 
-int get exitCode => process == null ? 0 : process.exitCode as int;
+int get exitCode => (process?.exitCode ?? 0) as int;
 
 set exitCode(int code) => process.exitCode = code;
 
