@@ -16,10 +16,9 @@ import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
 import '../node/chokidar.dart';
-import '../logger.dart';
 
 @JS('process')
-external final process;
+external final Process? process; // process is null in the browser
 
 class FileSystemException {
   final String message;
@@ -80,15 +79,15 @@ Future<String> readStdin() async {
   });
   // Node defaults all buffers to 'utf8'.
   var sink = utf8.decoder.startChunkedConversion(innerSink);
-  process.stdin.on('data', allowInterop(([Object? chunk]) {
+  process?.stdin.on('data', allowInterop(([Object? chunk]) {
     sink.add(chunk as List<int>);
   }));
-  process.stdin.on('end', allowInterop(([Object? _]) {
+  process?.stdin.on('end', allowInterop(([Object? _]) {
     // Callback for 'end' receives no args.
     assert(_ == null);
     sink.close();
   }));
-  process.stdin.on('error', allowInterop(([Object? e]) {
+  process?.stdin.on('error', allowInterop(([Object? e]) {
     stderr.writeln('Failed to read from stdin');
     stderr.writeln(e);
     completer.completeError(e!);
@@ -179,7 +178,7 @@ DateTime modificationTime(String path) =>
 
 String? getEnvironmentVariable(String name) => process?.env == null
     ? null
-    : getProperty(process.env as Object, name) as String?;
+    : getProperty(process!.env as Object, name) as String?;
 
 /// Runs callback and converts any [JsSystemError]s it throws into
 /// [FileSystemException]s.
@@ -192,11 +191,9 @@ T _systemErrorToFileSystemException<T>(T callback()) {
   }
 }
 
-final stderr = Stderr(process == null
-    ? createWritable(WritableOptions())
-    : process.stderr as Writable);
+final stderr = Stderr(process?.stderr ?? createWritable(WritableOptions()));
 
-bool get hasTerminal => process?.stdout?.isTTY == true;
+bool get hasTerminal => process?.stdout.isTTY == true;
 
 bool get isWindows => process?.platform == 'win32';
 
@@ -207,11 +204,11 @@ bool get isNode => process != null;
 // Node seems to support ANSI escapes on all terminals.
 bool get supportsAnsiEscapes => hasTerminal;
 
-String get currentPath => (process?.cwd() ?? '/') as String;
+String get currentPath => process?.cwd() ?? '/';
 
-int get exitCode => (process?.exitCode ?? 0) as int;
+int get exitCode => process?.exitCode ?? 0;
 
-set exitCode(int code) => process.exitCode = code;
+set exitCode(int code) => process == null ? null : process!.exitCode = code;
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
   var watcher = chokidar.watch(
