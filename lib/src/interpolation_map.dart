@@ -12,7 +12,7 @@ import 'ast/sass.dart';
 import 'util/character.dart';
 
 /// A class that can map locations in a string generated from an [Interpolation]
-/// to the original source code in the [interpolation].
+/// to the original source code in the interpolation.
 class InterpolationMap {
   /// The interpolation from which this map was generated.
   final Interpolation _interpolation;
@@ -28,7 +28,7 @@ class InterpolationMap {
   /// Creates a new interpolation map that maps the given [targetLocations] in
   /// the generated string to the contents of the interpolation.
   ///
-  /// Each [targetLocation] at index `i` corresponds to the character in the
+  /// Each target location at index `i` corresponds to the character in the
   /// generated string after `interpolation.contents[i]`.
   InterpolationMap(
       this._interpolation, Iterable<SourceLocation> targetLocations)
