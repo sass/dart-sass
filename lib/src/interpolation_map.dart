@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+
 import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
@@ -23,11 +25,20 @@ class InterpolationMap {
   /// [_interpolation.contents] because the last element always ends the string.
   final List<SourceLocation> _targetLocations;
 
+  /// Creates a new interpolation map that maps the given [targetLocations] in
+  /// the generated string to the contents of the interpolation.
+  ///
+  /// Each [targetLocation] at index `i` corresponds to the character in the
+  /// generated string after `interpolation.contents[i]`.
   InterpolationMap(
       this._interpolation, Iterable<SourceLocation> targetLocations)
       : _targetLocations = List.unmodifiable(targetLocations) {
-    assert(_interpolation.contents.isEmpty ||
-        _targetLocations.length == _interpolation.contents.length - 1);
+        var expectedLocations = math.max(0, _interpolation.contents.length - 1);
+    if (_targetLocations.length != expectedLocations) {
+      throw ArgumentError(
+        "InterpolationMap must have $expectedLocations targetLocations if the "
+        "interpolation has ${_interpolation.length} components.");
+    }
   }
 
   /// Maps [error]'s span in the string generated from this interpolation to its

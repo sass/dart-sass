@@ -8,6 +8,13 @@
 
 * **Breaking change:** The `ModifiableCssValue` class has been removed.
 
+* Add an `InterpolationMap` class which represents a mapping from an
+  interpolation's source to the string it generated.
+
+* Add an `interpolationMap` parameter to `CssMediaQuery.parseList()`,
+  `AtRootQuery.parse()`, `ComplexSelector.parse`, `CompoundSelector.parse`,
+  `ListSelector.parse`, and `SimpleSelector.parse`.
+
 * Add a `SelectorSearchVisitor` mixin, which can be used to return the first
   instance of a selector in an AST matching a certain criterion.
 
