@@ -5,6 +5,8 @@
 
 * Improve error messages for invalid CSS values passed to plain CSS functions.
 
+* Improve error messages involving selectors.
+
 ### Embedded Sass
 
 * Improve the performance of starting up a compilation.

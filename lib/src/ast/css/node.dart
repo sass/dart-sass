@@ -82,7 +82,7 @@ class _IsInvisibleVisitor with EveryCssVisitor {
 
   bool visitCssStyleRule(CssStyleRule rule) =>
       (includeBogus
-          ? rule.selector.value.isInvisible
-          : rule.selector.value.isInvisibleOtherThanBogusCombinators) ||
+          ? rule.selector.isInvisible
+          : rule.selector.isInvisibleOtherThanBogusCombinators) ||
       super.visitCssStyleRule(rule);
 }

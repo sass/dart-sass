@@ -9,11 +9,11 @@ import 'package:source_span/source_span.dart';
 import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
-import '../ast/css/modifiable.dart';
 import '../ast/selector.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
 import '../utils.dart';
+import '../util/box.dart';
 import '../util/nullable.dart';
 import 'empty_extension_store.dart';
 import 'extension.dart';
@@ -23,7 +23,8 @@ import 'mode.dart';
 
 /// Tracks selectors and extensions, and applies the latter to the former.
 class ExtensionStore {
-  /// An [ExtensionStore] that contains no extensions and can have no extensions added.
+  /// An [ExtensionStore] that contains no extensions and can have no extensions
+  /// added.
   static const empty = EmptyExtensionStore();
 
   /// A map from all simple selectors in the stylesheet to the selector lists
@@ -31,7 +32,7 @@ class ExtensionStore {
   ///
   /// This is used to find which selectors an `@extend` applies to and adjust
   /// them.
-  final Map<SimpleSelector, Set<ModifiableCssValue<SelectorList>>> _selectors;
+  final Map<SimpleSelector, Set<ModifiableBox<SelectorList>>> _selectors;
 
   /// A map from all extended simple selectors to the sources of those
   /// extensions.
@@ -45,8 +46,7 @@ class ExtensionStore {
   ///
   /// This tracks the contexts in which each selector's style rule is defined.
   /// If a rule is defined at the top level, it doesn't have an entry.
-  final Map<ModifiableCssValue<SelectorList>, List<CssMediaQuery>>
-      _mediaContexts;
+  final Map<ModifiableBox<SelectorList>, List<CssMediaQuery>> _mediaContexts;
 
   /// A map from [SimpleSelector]s to the specificity of their source
   /// selectors.
@@ -106,11 +106,11 @@ class ExtensionStore {
         throw SassScriptException("Can't extend complex selector $complex.");
       }
 
-      selector = extender._extendList(selector, span, {
+      selector = extender._extendList(selector, {
         for (var simple in compound.components)
           simple: {
             for (var complex in source.components)
-              complex: Extension(complex, span, simple, span, optional: true)
+              complex: Extension(complex, simple, span, optional: true)
           }
       });
     }
@@ -166,15 +166,13 @@ class ExtensionStore {
 
   /// Adds [selector] to this extender.
   ///
-  /// Extends [selector] using any registered extensions, then returns an empty
-  /// [ModifiableCssValue] containing the resulting selector. If any more
-  /// relevant extensions are added, the returned selector is automatically
-  /// updated.
+  /// Extends [selector] using any registered extensions, then returns a [Box]
+  /// containing the resulting selector. If any more relevant extensions are
+  /// added, the returned selector is automatically updated.
   ///
   /// The [mediaContext] is the media query context in which the selector was
   /// defined, or `null` if it was defined at the top level of the document.
-  ModifiableCssValue<SelectorList> addSelector(
-      SelectorList selector, FileSpan selectorSpan,
+  Box<SelectorList> addSelector(SelectorList selector,
       [List<CssMediaQuery>? mediaContext]) {
     var originalSelector = selector;
     if (!originalSelector.isInvisible) {
@@ -185,8 +183,7 @@ class ExtensionStore {
 
     if (_extensions.isNotEmpty) {
       try {
-        selector = _extendList(
-            originalSelector, selectorSpan, _extensions, mediaContext);
+        selector = _extendList(originalSelector, _extensions, mediaContext);
       } on SassException catch (error, stackTrace) {
         throwWithTrace(
             SassException(
@@ -197,17 +194,17 @@ class ExtensionStore {
       }
     }
 
-    var modifiableSelector = ModifiableCssValue(selector, selectorSpan);
+    var modifiableSelector = ModifiableBox(selector);
     if (mediaContext != null) _mediaContexts[modifiableSelector] = mediaContext;
     _registerSelector(selector, modifiableSelector);
 
-    return modifiableSelector;
+    return modifiableSelector.seal();
   }
 
   /// Registers the [SimpleSelector]s in [list] to point to [selector] in
   /// [_selectors].
   void _registerSelector(
-      SelectorList list, ModifiableCssValue<SelectorList> selector) {
+      SelectorList list, ModifiableBox<SelectorList> selector) {
     for (var complex in list.components) {
       for (var component in complex.components) {
         for (var simple in component.selector.components) {
@@ -233,17 +230,17 @@ class ExtensionStore {
   /// is defined. It can only extend selectors within the same context. A `null`
   /// context indicates no media queries.
   void addExtension(
-      CssValue<SelectorList> extender, SimpleSelector target, ExtendRule extend,
+      SelectorList extender, SimpleSelector target, ExtendRule extend,
       [List<CssMediaQuery>? mediaContext]) {
     var selectors = _selectors[target];
     var existingExtensions = _extensionsByExtender[target];
 
     Map<ComplexSelector, Extension>? newExtensions;
     var sources = _extensions.putIfAbsent(target, () => {});
-    for (var complex in extender.value.components) {
+    for (var complex in extender.components) {
       if (complex.isUseless) continue;
 
-      var extension = Extension(complex, extender.span, target, extend.span,
+      var extension = Extension(complex, target, extend.span,
           mediaContext: mediaContext, optional: extend.isOptional);
 
       var existingExtension = sources[complex];
@@ -327,15 +324,13 @@ class ExtensionStore {
 
       List<ComplexSelector>? selectors;
       try {
-        selectors = _extendComplex(extension.extender.selector,
-            extension.extender.span, newExtensions, extension.mediaContext);
+        selectors = _extendComplex(
+            extension.extender.selector, newExtensions, extension.mediaContext);
         if (selectors == null) continue;
       } on SassException catch (error, stackTrace) {
         throwWithTrace(
-            SassException(
-                "From ${extension.extender.span.message('')}\n"
-                "${error.message}",
-                error.span),
+            error.withAdditionalSpan(
+                extension.extender.selector.span, "target selector"),
             stackTrace);
       }
 
@@ -384,18 +379,18 @@ class ExtensionStore {
   }
 
   /// Extend [extensions] using [newExtensions].
-  void _extendExistingSelectors(Set<ModifiableCssValue<SelectorList>> selectors,
+  void _extendExistingSelectors(Set<ModifiableBox<SelectorList>> selectors,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions) {
     for (var selector in selectors) {
       var oldValue = selector.value;
       try {
-        selector.value = _extendList(selector.value, selector.span,
-            newExtensions, _mediaContexts[selector]);
+        selector.value = _extendList(
+            selector.value, newExtensions, _mediaContexts[selector]);
       } on SassException catch (error, stackTrace) {
         // TODO(nweiz): Make this a MultiSpanSassException.
         throwWithTrace(
             SassException(
-                "From ${selector.span.message('')}\n"
+                "From ${selector.value.span.message('')}\n"
                 "${error.message}",
                 error.span),
             stackTrace);
@@ -419,7 +414,7 @@ class ExtensionStore {
 
     // Selectors that contain simple selectors that are extended by
     // [extensions], and thus which need to be extended themselves.
-    Set<ModifiableCssValue<SelectorList>>? selectorsToExtend;
+    Set<ModifiableBox<SelectorList>>? selectorsToExtend;
 
     // An extension map with the same structure as [_extensions] that only
     // includes extensions from [extensionStores].
@@ -478,7 +473,7 @@ class ExtensionStore {
   }
 
   /// Extends [list] using [extensions].
-  SelectorList _extendList(SelectorList list, FileSpan listSpan,
+  SelectorList _extendList(SelectorList list,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       [List<CssMediaQuery>? mediaQueryContext]) {
     // This could be written more simply using [List.map], but we want to avoid
@@ -486,8 +481,7 @@ class ExtensionStore {
     List<ComplexSelector>? extended;
     for (var i = 0; i < list.components.length; i++) {
       var complex = list.components[i];
-      var result =
-          _extendComplex(complex, listSpan, extensions, mediaQueryContext);
+      var result = _extendComplex(complex, extensions, mediaQueryContext);
       assert(
           result?.isNotEmpty ?? true,
           '_extendComplex($complex) should return null rather than [] if '
@@ -501,14 +495,13 @@ class ExtensionStore {
     }
     if (extended == null) return list;
 
-    return SelectorList(_trim(extended, _originals.contains));
+    return SelectorList(_trim(extended, _originals.contains), list.span);
   }
 
   /// Extends [complex] using [extensions], and returns the contents of a
   /// [SelectorList].
   List<ComplexSelector>? _extendComplex(
       ComplexSelector complex,
-      FileSpan complexSpan,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery>? mediaQueryContext) {
     if (complex.leadingCombinators.length > 1) return null;
@@ -534,8 +527,7 @@ class ExtensionStore {
     var isOriginal = _originals.contains(complex);
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
-      var extended = _extendCompound(
-          component, complexSpan, extensions, mediaQueryContext,
+      var extended = _extendCompound(component, extensions, mediaQueryContext,
           inOriginal: isOriginal);
       assert(
           extended?.isNotEmpty ?? true,
@@ -543,15 +535,16 @@ class ExtensionStore {
           'extension fails');
       if (extended == null) {
         extendedNotExpanded?.add([
-          ComplexSelector(const [], [component], lineBreak: complex.lineBreak)
+          ComplexSelector(const [], [component], complex.span,
+              lineBreak: complex.lineBreak)
         ]);
       } else if (extendedNotExpanded != null) {
         extendedNotExpanded.add(extended);
       } else if (i != 0) {
         extendedNotExpanded = [
           [
-            ComplexSelector(
-                complex.leadingCombinators, complex.components.take(i),
+            ComplexSelector(complex.leadingCombinators,
+                complex.components.take(i), complex.span,
                 lineBreak: complex.lineBreak)
           ],
           extended
@@ -565,8 +558,8 @@ class ExtensionStore {
               if (newComplex.leadingCombinators.isEmpty ||
                   listEquals(complex.leadingCombinators,
                       newComplex.leadingCombinators))
-                ComplexSelector(
-                    complex.leadingCombinators, newComplex.components,
+                ComplexSelector(complex.leadingCombinators,
+                    newComplex.components, complex.span,
                     lineBreak: complex.lineBreak || newComplex.lineBreak)
           ]
         ];
@@ -576,7 +569,7 @@ class ExtensionStore {
 
     var first = true;
     return paths(extendedNotExpanded).expand((path) {
-      return weave(path, forceLineBreak: complex.lineBreak)
+      return weave(path, complex.span, forceLineBreak: complex.lineBreak)
           .map((outputComplex) {
         // Make sure that copies of [complex] retain their status as "original"
         // selectors. This includes selectors that are modified because a :not()
@@ -601,7 +594,6 @@ class ExtensionStore {
   /// complex selector with a line break.
   List<ComplexSelector>? _extendCompound(
       ComplexSelectorComponent component,
-      FileSpan componentSpan,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery>? mediaQueryContext,
       {required bool inOriginal}) {
@@ -617,19 +609,20 @@ class ExtensionStore {
     List<List<Extender>>? options;
     for (var i = 0; i < simples.length; i++) {
       var simple = simples[i];
-      var extended = _extendSimple(
-          simple, componentSpan, extensions, mediaQueryContext, targetsUsed);
+      var extended =
+          _extendSimple(simple, extensions, mediaQueryContext, targetsUsed);
       assert(
           extended?.isNotEmpty ?? true,
           '_extendSimple($simple) should return null rather than [] if '
           'extension fails');
       if (extended == null) {
-        options?.add([_extenderForSimple(simple, componentSpan)]);
+        options?.add([_extenderForSimple(simple)]);
       } else {
         if (options == null) {
           options = [];
           if (i != 0) {
-            options.add([_extenderForCompound(simples.take(i), componentSpan)]);
+            options
+                .add([_extenderForCompound(simples.take(i), component.span)]);
           }
         }
 
@@ -702,14 +695,16 @@ class ExtensionStore {
         ComplexSelector(const [], [
           ComplexSelectorComponent(
               CompoundSelector(extenderPaths.first.expand((extender) {
-            assert(extender.selector.components.length == 1);
-            return extender.selector.components.last.selector.components;
-          })), component.combinators)
-        ])
+                assert(extender.selector.components.length == 1);
+                return extender.selector.components.last.selector.components;
+              }), component.selector.span),
+              component.combinators,
+              component.span)
+        ], component.span)
     ];
 
     for (var path in extenderPaths.skip(_mode == ExtendMode.replace ? 0 : 1)) {
-      var extended = _unifyExtenders(path, mediaQueryContext);
+      var extended = _unifyExtenders(path, mediaQueryContext, component.span);
       if (extended == null) continue;
 
       for (var complex in extended) {
@@ -732,8 +727,10 @@ class ExtensionStore {
 
   /// Returns a list of [ComplexSelector]s that match the intersection of
   /// elements matched by all of [extenders]' selectors.
-  List<ComplexSelector>? _unifyExtenders(
-      List<Extender> extenders, List<CssMediaQuery>? mediaQueryContext) {
+  ///
+  /// The [span] will be used for the new selectors.
+  List<ComplexSelector>? _unifyExtenders(List<Extender> extenders,
+      List<CssMediaQuery>? mediaQueryContext, FileSpan span) {
     var toUnify = QueueList<ComplexSelector>();
     List<SimpleSelector>? originals;
     var originalsLineBreak = false;
@@ -753,11 +750,12 @@ class ExtensionStore {
 
     if (originals != null) {
       toUnify.addFirst(ComplexSelector(const [], [
-        ComplexSelectorComponent(CompoundSelector(originals), const [])
-      ], lineBreak: originalsLineBreak));
+        ComplexSelectorComponent(
+            CompoundSelector(originals, span), const [], span)
+      ], span, lineBreak: originalsLineBreak));
     }
 
-    var complexes = unifyComplex(toUnify);
+    var complexes = unifyComplex(toUnify, span);
     if (complexes == null) return null;
 
     for (var extender in extenders) {
@@ -774,7 +772,6 @@ class ExtensionStore {
   /// combined using [paths].
   Iterable<List<Extender>>? _extendSimple(
       SimpleSelector simple,
-      FileSpan simpleSpan,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery>? mediaQueryContext,
       Set<SimpleSelector>? targetsUsed) {
@@ -786,17 +783,16 @@ class ExtensionStore {
       targetsUsed?.add(simple);
 
       return [
-        if (_mode != ExtendMode.replace) _extenderForSimple(simple, simpleSpan),
+        if (_mode != ExtendMode.replace) _extenderForSimple(simple),
         for (var extension in extensionsForSimple.values) extension.extender
       ];
     }
 
     if (simple is PseudoSelector && simple.selector != null) {
-      var extended =
-          _extendPseudo(simple, simpleSpan, extensions, mediaQueryContext);
+      var extended = _extendPseudo(simple, extensions, mediaQueryContext);
       if (extended != null) {
-        return extended.map((pseudo) =>
-            withoutPseudo(pseudo) ?? [_extenderForSimple(pseudo, simpleSpan)]);
+        return extended.map(
+            (pseudo) => withoutPseudo(pseudo) ?? [_extenderForSimple(pseudo)]);
       }
     }
 
@@ -807,21 +803,20 @@ class ExtensionStore {
   /// [simples].
   Extender _extenderForCompound(
       Iterable<SimpleSelector> simples, FileSpan span) {
-    var compound = CompoundSelector(simples);
+    var compound = CompoundSelector(simples, span);
     return Extender(
-        ComplexSelector(
-            const [], [ComplexSelectorComponent(compound, const [])]),
-        span,
+        ComplexSelector(const [],
+            [ComplexSelectorComponent(compound, const [], span)], span),
         specificity: _sourceSpecificityFor(compound),
         original: true);
   }
 
   /// Returns an [Extender] composed solely of [simple].
-  Extender _extenderForSimple(SimpleSelector simple, FileSpan span) => Extender(
+  Extender _extenderForSimple(SimpleSelector simple) => Extender(
       ComplexSelector(const [], [
-        ComplexSelectorComponent(CompoundSelector([simple]), const [])
-      ]),
-      span,
+        ComplexSelectorComponent(
+            CompoundSelector([simple], simple.span), const [], simple.span)
+      ], simple.span),
       specificity: _sourceSpecificity[simple] ?? 0,
       original: true);
 
@@ -831,7 +826,6 @@ class ExtensionStore {
   /// This requires that [pseudo] have a selector argument.
   List<PseudoSelector>? _extendPseudo(
       PseudoSelector pseudo,
-      FileSpan pseudoSpan,
       Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
       List<CssMediaQuery>? mediaQueryContext) {
     var selector = pseudo.selector;
@@ -839,8 +833,7 @@ class ExtensionStore {
       throw ArgumentError("Selector $pseudo must have a selector argument.");
     }
 
-    var extended =
-        _extendList(selector, pseudoSpan, extensions, mediaQueryContext);
+    var extended = _extendList(selector, extensions, mediaQueryContext);
     if (identical(extended, selector)) return null;
 
     // For `:not()`, we usually want to get rid of any complex selectors because
@@ -909,11 +902,12 @@ class ExtensionStore {
     // unless it originally contained a selector list.
     if (pseudo.normalizedName == 'not' && selector.components.length == 1) {
       var result = complexes
-          .map((complex) => pseudo.withSelector(SelectorList([complex])))
+          .map((complex) =>
+              pseudo.withSelector(SelectorList([complex], selector.span)))
           .toList();
       return result.isEmpty ? null : result;
     } else {
-      return [pseudo.withSelector(SelectorList(complexes))];
+      return [pseudo.withSelector(SelectorList(complexes, selector.span))];
     }
   }
 
@@ -996,26 +990,22 @@ class ExtensionStore {
     return specificity;
   }
 
-  /// Returns a copy of [this] that extends new selectors, as well as a map from
-  /// the selectors extended by [this] to the selectors extended by the new
-  /// [ExtensionStore].
-  Tuple2<ExtensionStore,
-      Map<CssValue<SelectorList>, ModifiableCssValue<SelectorList>>> clone() {
-    var newSelectors =
-        <SimpleSelector, Set<ModifiableCssValue<SelectorList>>>{};
-    var newMediaContexts =
-        <ModifiableCssValue<SelectorList>, List<CssMediaQuery>>{};
-    var oldToNewSelectors =
-        <CssValue<SelectorList>, ModifiableCssValue<SelectorList>>{};
+  /// Returns a copy of [this] that extends new selectors, as well as a map
+  /// (with reference equality) from the selectors extended by [this] to the
+  /// selectors extended by the new [ExtensionStore].
+  Tuple2<ExtensionStore, Map<SelectorList, Box<SelectorList>>> clone() {
+    var newSelectors = <SimpleSelector, Set<ModifiableBox<SelectorList>>>{};
+    var newMediaContexts = <ModifiableBox<SelectorList>, List<CssMediaQuery>>{};
+    var oldToNewSelectors = Map<SelectorList, Box<SelectorList>>.identity();
 
     _selectors.forEach((simple, selectors) {
-      var newSelectorSet = <ModifiableCssValue<SelectorList>>{};
+      var newSelectorSet = <ModifiableBox<SelectorList>>{};
       newSelectors[simple] = newSelectorSet;
 
       for (var selector in selectors) {
-        var newSelector = ModifiableCssValue(selector.value, selector.span);
+        var newSelector = ModifiableBox(selector.value);
         newSelectorSet.add(newSelector);
-        oldToNewSelectors[selector] = newSelector;
+        oldToNewSelectors[selector.value] = newSelector.seal();
 
         var mediaContext = _mediaContexts[selector];
         if (mediaContext != null) newMediaContexts[newSelector] = mediaContext;

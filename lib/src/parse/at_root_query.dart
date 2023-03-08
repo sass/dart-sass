@@ -5,13 +5,16 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
+import '../interpolation_map.dart';
 import '../logger.dart';
 import 'parser.dart';
 
 /// A parser for `@at-root` queries.
 class AtRootQueryParser extends Parser {
-  AtRootQueryParser(String contents, {Object? url, Logger? logger})
-      : super(contents, url: url, logger: logger);
+  AtRootQueryParser(String contents,
+      {Object? url, Logger? logger, InterpolationMap? interpolationMap})
+      : super(contents,
+            url: url, logger: logger, interpolationMap: interpolationMap);
 
   AtRootQuery parse() {
     return wrapSpanFormatException(() {

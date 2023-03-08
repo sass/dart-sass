@@ -4,7 +4,9 @@
 
 import 'package:charcode/charcode.dart';
 
+import '../ast/css/value.dart';
 import '../ast/selector.dart';
+import '../interpolation_map.dart';
 import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
@@ -37,11 +39,13 @@ class SelectorParser extends Parser {
   SelectorParser(String contents,
       {Object? url,
       Logger? logger,
+      InterpolationMap? interpolationMap,
       bool allowParent = true,
       bool allowPlaceholder = true})
       : _allowParent = allowParent,
         _allowPlaceholder = allowPlaceholder,
-        super(contents, url: url, logger: logger);
+        super(contents,
+            url: url, logger: logger, interpolationMap: interpolationMap);
 
   SelectorList parse() {
     return wrapSpanFormatException(() {
@@ -77,6 +81,7 @@ class SelectorParser extends Parser {
 
   /// Consumes a selector list.
   SelectorList _selectorList() {
+    var start = scanner.state;
     var previousLine = scanner.line;
     var components = <ComplexSelector>[_complexSelector()];
 
@@ -92,7 +97,7 @@ class SelectorParser extends Parser {
       components.add(_complexSelector(lineBreak: lineBreak));
     }
 
-    return SelectorList(components);
+    return SelectorList(components, spanFrom(start));
   }
 
   /// Consumes a complex selector.
@@ -100,10 +105,13 @@ class SelectorParser extends Parser {
   /// If [lineBreak] is `true`, that indicates that there was a line break
   /// before this selector.
   ComplexSelector _complexSelector({bool lineBreak = false}) {
-    CompoundSelector? lastCompound;
-    var combinators = <Combinator>[];
+    var start = scanner.state;
 
-    List<Combinator>? initialCombinators;
+    var componentStart = scanner.state;
+    CompoundSelector? lastCompound;
+    var combinators = <CssValue<Combinator>>[];
+
+    List<CssValue<Combinator>>? initialCombinators;
     var components = <ComplexSelectorComponent>[];
 
     loop:
@@ -113,18 +121,24 @@ class SelectorParser extends Parser {
       var next = scanner.peekChar();
       switch (next) {
         case $plus:
+          var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(Combinator.nextSibling);
+          combinators
+              .add(CssValue(Combinator.nextSibling, spanFrom(combinatorStart)));
           break;
 
         case $gt:
+          var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(Combinator.child);
+          combinators
+              .add(CssValue(Combinator.child, spanFrom(combinatorStart)));
           break;
 
         case $tilde:
+          var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(Combinator.followingSibling);
+          combinators.add(
+              CssValue(Combinator.followingSibling, spanFrom(combinatorStart)));
           break;
 
         default:
@@ -144,10 +158,12 @@ class SelectorParser extends Parser {
           }
 
           if (lastCompound != null) {
-            components.add(ComplexSelectorComponent(lastCompound, combinators));
+            components.add(ComplexSelectorComponent(
+                lastCompound, combinators, spanFrom(componentStart)));
           } else if (combinators.isNotEmpty) {
             assert(initialCombinators == null);
             initialCombinators = combinators;
+            componentStart = scanner.state;
           }
 
           lastCompound = _compoundSelector();
@@ -161,26 +177,29 @@ class SelectorParser extends Parser {
     }
 
     if (lastCompound != null) {
-      components.add(ComplexSelectorComponent(lastCompound, combinators));
+      components.add(ComplexSelectorComponent(
+          lastCompound, combinators, spanFrom(componentStart)));
     } else if (combinators.isNotEmpty) {
       initialCombinators = combinators;
     } else {
       scanner.error("expected selector.");
     }
 
-    return ComplexSelector(initialCombinators ?? const [], components,
+    return ComplexSelector(
+        initialCombinators ?? const [], components, spanFrom(start),
         lineBreak: lineBreak);
   }
 
   /// Consumes a compound selector.
   CompoundSelector _compoundSelector() {
+    var start = scanner.state;
     var components = <SimpleSelector>[_simpleSelector()];
 
     while (isSimpleSelectorStart(scanner.peekChar())) {
       components.add(_simpleSelector(allowParent: false));
     }
 
-    return CompoundSelector(components);
+    return CompoundSelector(components, spanFrom(start));
   }
 
   /// Consumes a simple selector.
@@ -221,12 +240,15 @@ class SelectorParser extends Parser {
 
   /// Consumes an attribute selector.
   AttributeSelector _attributeSelector() {
+    var start = scanner.state;
     scanner.expectChar($lbracket);
     whitespace();
 
     var name = _attributeName();
     whitespace();
-    if (scanner.scanChar($rbracket)) return AttributeSelector(name);
+    if (scanner.scanChar($rbracket)) {
+      return AttributeSelector(name, spanFrom(start));
+    }
 
     var operator = _attributeOperator();
     whitespace();
@@ -243,7 +265,8 @@ class SelectorParser extends Parser {
         : null;
 
     scanner.expectChar($rbracket);
-    return AttributeSelector.withOperator(name, operator, value,
+    return AttributeSelector.withOperator(
+        name, operator, value, spanFrom(start),
         modifier: modifier);
   }
 
@@ -301,40 +324,45 @@ class SelectorParser extends Parser {
 
   /// Consumes a class selector.
   ClassSelector _classSelector() {
+    var start = scanner.state;
     scanner.expectChar($dot);
     var name = identifier();
-    return ClassSelector(name);
+    return ClassSelector(name, spanFrom(start));
   }
 
   /// Consumes an ID selector.
   IDSelector _idSelector() {
+    var start = scanner.state;
     scanner.expectChar($hash);
     var name = identifier();
-    return IDSelector(name);
+    return IDSelector(name, spanFrom(start));
   }
 
   /// Consumes a placeholder selector.
   PlaceholderSelector _placeholderSelector() {
+    var start = scanner.state;
     scanner.expectChar($percent);
     var name = identifier();
-    return PlaceholderSelector(name);
+    return PlaceholderSelector(name, spanFrom(start));
   }
 
   /// Consumes a parent selector.
   ParentSelector _parentSelector() {
+    var start = scanner.state;
     scanner.expectChar($ampersand);
     var suffix = lookingAtIdentifierBody() ? identifierBody() : null;
-    return ParentSelector(suffix: suffix);
+    return ParentSelector(spanFrom(start), suffix: suffix);
   }
 
   /// Consumes a pseudo selector.
   PseudoSelector _pseudoSelector() {
+    var start = scanner.state;
     scanner.expectChar($colon);
     var element = scanner.scanChar($colon);
     var name = identifier();
 
     if (!scanner.scanChar($lparen)) {
-      return PseudoSelector(name, element: element);
+      return PseudoSelector(name, spanFrom(start), element: element);
     }
     whitespace();
 
@@ -364,7 +392,7 @@ class SelectorParser extends Parser {
     }
     scanner.expectChar($rparen);
 
-    return PseudoSelector(name,
+    return PseudoSelector(name, spanFrom(start),
         element: element, argument: argument, selector: selector);
   }
 
@@ -420,32 +448,36 @@ class SelectorParser extends Parser {
   ///
   /// These are combined because either one could start with `*`.
   SimpleSelector _typeOrUniversalSelector() {
+    var start = scanner.state;
     var first = scanner.peekChar();
     if (first == $asterisk) {
       scanner.readChar();
-      if (!scanner.scanChar($pipe)) return UniversalSelector();
+      if (!scanner.scanChar($pipe)) return UniversalSelector(spanFrom(start));
       if (scanner.scanChar($asterisk)) {
-        return UniversalSelector(namespace: "*");
+        return UniversalSelector(spanFrom(start), namespace: "*");
       } else {
-        return TypeSelector(QualifiedName(identifier(), namespace: "*"));
+        return TypeSelector(
+            QualifiedName(identifier(), namespace: "*"), spanFrom(start));
       }
     } else if (first == $pipe) {
       scanner.readChar();
       if (scanner.scanChar($asterisk)) {
-        return UniversalSelector(namespace: "");
+        return UniversalSelector(spanFrom(start), namespace: "");
       } else {
-        return TypeSelector(QualifiedName(identifier(), namespace: ""));
+        return TypeSelector(
+            QualifiedName(identifier(), namespace: ""), spanFrom(start));
       }
     }
 
     var nameOrNamespace = identifier();
     if (!scanner.scanChar($pipe)) {
-      return TypeSelector(QualifiedName(nameOrNamespace));
+      return TypeSelector(QualifiedName(nameOrNamespace), spanFrom(start));
     } else if (scanner.scanChar($asterisk)) {
-      return UniversalSelector(namespace: nameOrNamespace);
+      return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
     } else {
       return TypeSelector(
-          QualifiedName(identifier(), namespace: nameOrNamespace));
+          QualifiedName(identifier(), namespace: nameOrNamespace),
+          spanFrom(start));
     }
   }
 }

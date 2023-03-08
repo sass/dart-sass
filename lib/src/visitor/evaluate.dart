@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4cdc21090d758118f0250f6efb2e6bdb0df5f337
+// Checksum: 8945d2e2978c178b096a4bbcd3857572ec5ab1e0
 //
 // ignore_for_file: unused_import
 
@@ -40,6 +40,7 @@ import '../functions.dart';
 import '../functions/meta.dart' as meta;
 import '../importer.dart';
 import '../importer/legacy_node.dart';
+import '../interpolation_map.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../module.dart';
@@ -49,6 +50,7 @@ import '../syntax.dart';
 import '../utils.dart';
 import '../util/multi_span.dart';
 import '../util/nullable.dart';
+import '../util/span.dart';
 import '../value.dart';
 import 'expression_to_calc.dart';
 import 'interface/css.dart';
@@ -530,7 +532,7 @@ class _EvaluateVisitor
         if (!(_asNodeSass && url.toString() == 'stdin')) _loadedUrls.add(url);
       }
 
-      var module = _execute(importer, node);
+      var module = _addExceptionTrace(() => _execute(importer, node));
 
       return EvaluateResult(_combineCss(module), _loadedUrls);
     });
@@ -539,14 +541,14 @@ class _EvaluateVisitor
   Value runExpression(Importer? importer, Expression expression) =>
       withEvaluationContext(
           _EvaluationContext(this, expression),
-          () => _withFakeStylesheet(
-              importer, expression, () => expression.accept(this)));
+          () => _withFakeStylesheet(importer, expression,
+              () => _addExceptionTrace(() => expression.accept(this))));
 
   void runStatement(Importer? importer, Statement statement) =>
       withEvaluationContext(
           _EvaluationContext(this, statement),
-          () => _withFakeStylesheet(
-              importer, statement, () => statement.accept(this)));
+          () => _withFakeStylesheet(importer, statement,
+              () => _addExceptionTrace(() => statement.accept(this))));
 
   /// Asserts that [value] is not `null` and returns it.
   ///
@@ -643,29 +645,8 @@ class _EvaluateVisitor
         _inDependency = oldInDependency;
       }
 
-      try {
-        callback(module);
-      } on SassRuntimeException {
-        rethrow;
-      } on MultiSpanSassException catch (error, stackTrace) {
-        throwWithTrace(
-            MultiSpanSassRuntimeException(
-                error.message,
-                error.span,
-                error.primaryLabel,
-                error.secondarySpans,
-                _stackTrace(error.span)),
-            stackTrace);
-      } on SassException catch (error, stackTrace) {
-        throwWithTrace(_exception(error.message, error.span), stackTrace);
-      } on MultiSpanSassScriptException catch (error, stackTrace) {
-        throwWithTrace(
-            _multiSpanException(
-                error.message, error.primaryLabel, error.secondarySpans),
-            stackTrace);
-      } on SassScriptException catch (error, stackTrace) {
-        throwWithTrace(_exception(error.message), stackTrace);
-      }
+      _addExceptionSpan(nodeWithSpan, () => callback(module),
+          addStackFrame: false);
     });
   }
 
@@ -945,9 +926,12 @@ class _EvaluateVisitor
     var query = AtRootQuery.defaultQuery;
     var unparsedQuery = node.query;
     if (unparsedQuery != null) {
-      var resolved = _performInterpolation(unparsedQuery, warnForColor: true);
-      query = _adjustParseError(
-          unparsedQuery, () => AtRootQuery.parse(resolved, logger: _logger));
+      var tuple =
+          _performInterpolationWithMap(unparsedQuery, warnForColor: true);
+      var resolved = tuple.item1;
+      var map = tuple.item2;
+      query =
+          AtRootQuery.parse(resolved, interpolationMap: map, logger: _logger);
     }
 
     var parent = _parent;
@@ -1223,19 +1207,17 @@ class _EvaluateVisitor
                   'This will be an error in Dart Sass 2.0.0.\n'
                   '\n'
                   'More info: https://sass-lang.com/d/bogus-combinators',
-          MultiSpan(styleRule.selector.span, 'invalid selector',
+          MultiSpan(complex.span.trimRight(), 'invalid selector',
               {node.span: '@extend rule'}),
           deprecation: true);
     }
 
-    var targetText = _interpolationToValue(node.selector, warnForColor: true);
+    var tuple = _performInterpolationWithMap(node.selector, warnForColor: true);
+    var targetText = tuple.item1;
+    var targetMap = tuple.item2;
 
-    var list = _adjustParseError(
-        targetText,
-        () => SelectorList.parse(
-            trimAscii(targetText.value, excludeEscape: true),
-            logger: _logger,
-            allowParent: false));
+    var list = SelectorList.parse(trimAscii(targetText, excludeEscape: true),
+        interpolationMap: targetMap, logger: _logger, allowParent: false);
 
     for (var complex in list.components) {
       var compound = complex.singleCompound;
@@ -1243,7 +1225,7 @@ class _EvaluateVisitor
         // If the selector was a compound selector but not a simple
         // selector, emit a more explicit error.
         throw SassFormatException(
-            "complex selectors may not be extended.", targetText.span);
+            "complex selectors may not be extended.", complex.span);
       }
 
       var simple = compound.singleSimple;
@@ -1252,7 +1234,7 @@ class _EvaluateVisitor
             "compound selectors may no longer be extended.\n"
             "Consider `@extend ${compound.components.join(', ')}` instead.\n"
             "See https://sass-lang.com/d/extend-compound for details.\n",
-            targetText.span);
+            compound.span);
       }
 
       _extensionStore.addExtension(
@@ -1649,8 +1631,8 @@ class _EvaluateVisitor
       } else {
         throw "Can't find stylesheet to import.";
       }
-    } on SassException catch (error, stackTrace) {
-      throwWithTrace(_exception(error.message, error.span), stackTrace);
+    } on SassException {
+      rethrow;
     } on ArgumentError catch (error, stackTrace) {
       throwWithTrace(_exception(error.toString()), stackTrace);
     } catch (error, stackTrace) {
@@ -1832,11 +1814,11 @@ class _EvaluateVisitor
   /// Evaluates [interpolation] and parses the result as a list of media
   /// queries.
   List<CssMediaQuery> _visitMediaQueries(Interpolation interpolation) {
-    var resolved = _performInterpolation(interpolation, warnForColor: true);
-
-    // TODO(nweiz): Remove this type argument when sdk#31398 is fixed.
-    return _adjustParseError<List<CssMediaQuery>>(interpolation,
-        () => CssMediaQuery.parseList(resolved, logger: _logger));
+    var tuple = _performInterpolationWithMap(interpolation, warnForColor: true);
+    var resolved = tuple.item1;
+    var map = tuple.item2;
+    return CssMediaQuery.parseList(resolved,
+        logger: _logger, interpolationMap: map);
   }
 
   /// Returns a list of queries that selects for contexts that match both
@@ -1873,16 +1855,17 @@ class _EvaluateVisitor
           "Style rules may not be used within nested declarations.", node.span);
     }
 
-    var selectorText =
-        _interpolationToValue(node.selector, trim: true, warnForColor: true);
+    var tuple = _performInterpolationWithMap(node.selector, warnForColor: true);
+    var selectorText = tuple.item1;
+    var selectorMap = tuple.item2;
+
     if (_inKeyframes) {
       // NOTE: this logic is largely duplicated in [visitCssKeyframeBlock]. Most
       // changes here should be mirrored there.
 
-      var parsedSelector = _adjustParseError(
-          node.selector,
-          () => KeyframeSelectorParser(selectorText.value, logger: _logger)
-              .parse());
+      var parsedSelector = KeyframeSelectorParser(selectorText,
+              logger: _logger, interpolationMap: selectorMap)
+          .parse();
       var rule = ModifiableCssKeyframeBlock(
           CssValue(List.unmodifiable(parsedSelector), node.selector.span),
           node.span);
@@ -1896,20 +1879,15 @@ class _EvaluateVisitor
       return null;
     }
 
-    var parsedSelector = _adjustParseError(
-        node.selector,
-        () => SelectorList.parse(selectorText.value,
+    var parsedSelector = SelectorList.parse(selectorText,
+            interpolationMap: selectorMap,
             allowParent: !_stylesheet.plainCss,
             allowPlaceholder: !_stylesheet.plainCss,
-            logger: _logger));
-    parsedSelector = _addExceptionSpan(
-        node.selector,
-        () => parsedSelector.resolveParentSelectors(
-            _styleRuleIgnoringAtRoot?.originalSelector,
-            implicitParent: !_atRootExcludingStyleRule));
+            logger: _logger)
+        .resolveParentSelectors(_styleRuleIgnoringAtRoot?.originalSelector,
+            implicitParent: !_atRootExcludingStyleRule);
 
-    var selector = _extensionStore.addSelector(
-        parsedSelector, node.selector.span, _mediaQueries);
+    var selector = _extensionStore.addSelector(parsedSelector, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
         originalSelector: parsedSelector);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
@@ -1936,7 +1914,7 @@ class _EvaluateVisitor
               'This will be an error in Dart Sass 2.0.0.\n'
               '\n'
               'More info: https://sass-lang.com/d/bogus-combinators',
-              node.selector.span,
+              complex.span.trimRight(),
               deprecation: true);
         } else if (complex.leadingCombinators.isNotEmpty) {
           _warn(
@@ -1944,7 +1922,7 @@ class _EvaluateVisitor
               'This will be an error in Dart Sass 2.0.0.\n'
               '\n'
               'More info: https://sass-lang.com/d/bogus-combinators',
-              node.selector.span,
+              complex.span.trimRight(),
               deprecation: true);
         } else {
           _warn(
@@ -1958,7 +1936,7 @@ class _EvaluateVisitor
                       'This will be an error in Dart Sass 2.0.0.\n'
                       '\n'
                       'More info: https://sass-lang.com/d/bogus-combinators',
-              MultiSpan(node.selector.span, 'invalid selector', {
+              MultiSpan(complex.span.trimRight(), 'invalid selector', {
                 rule.children.first.span: "this is not a style rule" +
                     (rule.children.every((child) => child is CssComment)
                         ? '\n(try converting to a //-style comment)'
@@ -2686,27 +2664,10 @@ class _EvaluateVisitor
 
     Value result;
     try {
-      result = callback(evaluated.positional);
-    } on SassRuntimeException {
+      result =
+          _addExceptionSpan(nodeWithSpan, () => callback(evaluated.positional));
+    } on SassException {
       rethrow;
-    } on MultiSpanSassScriptException catch (error, stackTrace) {
-      throwWithTrace(
-          MultiSpanSassRuntimeException(
-              error.message,
-              nodeWithSpan.span,
-              error.primaryLabel,
-              error.secondarySpans,
-              _stackTrace(nodeWithSpan.span)),
-          stackTrace);
-    } on MultiSpanSassException catch (error, stackTrace) {
-      throwWithTrace(
-          MultiSpanSassRuntimeException(
-              error.message,
-              error.span,
-              error.primaryLabel,
-              error.secondarySpans,
-              _stackTrace(error.span)),
-          stackTrace);
     } catch (error, stackTrace) {
       String? message;
       try {
@@ -3076,11 +3037,10 @@ class _EvaluateVisitor
     }
 
     var styleRule = _styleRule;
-    var originalSelector = node.selector.value.resolveParentSelectors(
+    var originalSelector = node.selector.resolveParentSelectors(
         styleRule?.originalSelector,
         implicitParent: !_atRootExcludingStyleRule);
-    var selector = _extensionStore.addSelector(
-        originalSelector, node.selector.span, _mediaQueries);
+    var selector = _extensionStore.addSelector(originalSelector, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
         originalSelector: originalSelector);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
@@ -3179,10 +3139,42 @@ class _EvaluateVisitor
   /// values passed into the interpolation.
   String _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) {
+    var tuple = _performInterpolationHelper(interpolation,
+        sourceMap: true, warnForColor: warnForColor);
+    return tuple.item1;
+  }
+
+  /// Like [_performInterpolation], but also returns a [InterpolationMap] that
+  /// can map spans from the resulting string back to the original
+  /// [interpolation].
+  Tuple2<String, InterpolationMap> _performInterpolationWithMap(
+      Interpolation interpolation,
+      {bool warnForColor = false}) {
+    var tuple = _performInterpolationHelper(interpolation,
+        sourceMap: true, warnForColor: warnForColor);
+    return Tuple2(tuple.item1, tuple.item2!);
+  }
+
+  /// A helper that implements the core logic of both [_performInterpolation]
+  /// and [_performInterpolationWithMap].
+  Tuple2<String, InterpolationMap?> _performInterpolationHelper(
+      Interpolation interpolation,
+      {required bool sourceMap,
+      bool warnForColor = false}) {
+    var targetLocations = sourceMap ? <SourceLocation>[] : null;
     var oldInSupportsDeclaration = _inSupportsDeclaration;
     _inSupportsDeclaration = false;
-    var result = interpolation.contents.map((value) {
-      if (value is String) return value;
+    var buffer = StringBuffer();
+    var first = true;
+    for (var value in interpolation.contents) {
+      if (!first) targetLocations?.add(SourceLocation(buffer.length));
+      first = false;
+
+      if (value is String) {
+        buffer.write(value);
+        continue;
+      }
+
       var expression = value as Expression;
       var result = expression.accept(this);
 
@@ -3205,10 +3197,15 @@ class _EvaluateVisitor
             expression.span);
       }
 
-      return _serialize(result, expression, quote: false);
-    }).join();
+      buffer.write(_serialize(result, expression, quote: false));
+    }
     _inSupportsDeclaration = oldInSupportsDeclaration;
-    return result;
+
+    return Tuple2(
+        buffer.toString(),
+        targetLocations == null
+            ? null
+            : InterpolationMap(interpolation, targetLocations));
   }
 
   /// Evaluates [expression] and calls `toCssString()` and wraps a
@@ -3420,54 +3417,38 @@ class _EvaluateVisitor
       MultiSpanSassRuntimeException(message, _stack.last.item2.span,
           primaryLabel, secondaryLabels, _stackTrace());
 
-  /// Runs [callback], and adjusts any [SassFormatException] to be within
-  /// [nodeWithSpan]'s source span.
-  ///
-  /// Specifically, this adjusts format exceptions so that the errors are
-  /// reported as though the text being parsed were exactly in [span]. This may
-  /// not be quite accurate if the source text contained interpolation, but
-  /// it'll still produce a useful error.
-  ///
-  /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
-  /// [AstNode.span] if the span isn't required, since some nodes need to do
-  /// real work to manufacture a source span.
-  T _adjustParseError<T>(AstNode nodeWithSpan, T callback()) {
-    try {
-      return callback();
-    } on SassFormatException catch (error, stackTrace) {
-      var errorText = error.span.file.getText(0);
-      var span = nodeWithSpan.span;
-      var syntheticFile = span.file
-          .getText(0)
-          .replaceRange(span.start.offset, span.end.offset, errorText);
-      var syntheticSpan =
-          SourceFile.fromString(syntheticFile, url: span.file.url).span(
-              span.start.offset + error.span.start.offset,
-              span.start.offset + error.span.end.offset);
-      throwWithTrace(_exception(error.message, syntheticSpan), stackTrace);
-    }
-  }
-
   /// Runs [callback], and converts any [SassScriptException]s it throws to
   /// [SassRuntimeException]s with [nodeWithSpan]'s source span.
   ///
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
-  T _addExceptionSpan<T>(AstNode nodeWithSpan, T callback()) {
+  ///
+  /// If [addStackFrame] is true (the default), this will add an innermost stack
+  /// frame for [nodeWithSpan]. Otherwise, it will use the existing stack as-is.
+  T _addExceptionSpan<T>(AstNode nodeWithSpan, T callback(),
+      {bool addStackFrame = true}) {
     try {
       return callback();
-    } on MultiSpanSassScriptException catch (error, stackTrace) {
-      throwWithTrace(
-          MultiSpanSassRuntimeException(
-              error.message,
-              nodeWithSpan.span,
-              error.primaryLabel,
-              error.secondarySpans,
-              _stackTrace(nodeWithSpan.span)),
-          stackTrace);
     } on SassScriptException catch (error, stackTrace) {
-      throwWithTrace(_exception(error.message, nodeWithSpan.span), stackTrace);
+      throwWithTrace(
+          error
+              .withSpan(nodeWithSpan.span)
+              .withTrace(_stackTrace(addStackFrame ? nodeWithSpan.span : null)),
+          stackTrace);
+    }
+  }
+
+  /// Runs [callback], and converts any [SassException]s that aren't already
+  /// [SassRuntimeException]s to [SassRuntimeException]s with the current stack
+  /// trace.
+  T _addExceptionTrace<T>(T callback()) {
+    try {
+      return callback();
+    } on SassRuntimeException {
+      rethrow;
+    } on SassException catch (error, stackTrace) {
+      throwWithTrace(error.withTrace(_stackTrace(error.span)), stackTrace);
     }
   }
 

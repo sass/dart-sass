@@ -63,6 +63,7 @@ final _append = _function("append", r"$selectors...", (arguments) {
         "\$selectors: At least one selector must be passed.");
   }
 
+  var span = EvaluationContext.current.currentCallableSpan;
   return selectors
       .map((selector) => selector.assertSelector())
       .reduce((parent, child) {
@@ -78,10 +79,11 @@ final _append = _function("append", r"$selectors...", (arguments) {
       }
 
       return ComplexSelector(const [], [
-        ComplexSelectorComponent(newCompound, component.combinators),
+        ComplexSelectorComponent(newCompound, component.combinators, span),
         ...complex.components.skip(1)
-      ]);
-    })).resolveParentSelectors(parent);
+      ], span);
+    }), span)
+        .resolveParentSelectors(parent);
   }).asSassList;
 });
 
@@ -151,14 +153,17 @@ final _parse = _function("parse", r"$selector",
 CompoundSelector? _prependParent(CompoundSelector compound) {
   var first = compound.components.first;
   if (first is UniversalSelector) return null;
+
+  var span = EvaluationContext.current.currentCallableSpan;
   if (first is TypeSelector) {
     if (first.name.namespace != null) return null;
     return CompoundSelector([
-      ParentSelector(suffix: first.name.name),
+      ParentSelector(span, suffix: first.name.name),
       ...compound.components.skip(1)
-    ]);
+    ], span);
   } else {
-    return CompoundSelector([ParentSelector(), ...compound.components]);
+    return CompoundSelector(
+        [ParentSelector(span), ...compound.components], span);
   }
 }
 
