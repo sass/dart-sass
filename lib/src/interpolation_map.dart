@@ -37,7 +37,7 @@ class InterpolationMap {
     if (_targetLocations.length != expectedLocations) {
       throw ArgumentError(
         "InterpolationMap must have $expectedLocations targetLocations if the "
-        "interpolation has ${_interpolation.length} components.");
+        "interpolation has ${_interpolation.contents.length} components.");
     }
   }
 
