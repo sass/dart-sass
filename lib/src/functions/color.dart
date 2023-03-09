@@ -233,12 +233,12 @@ final module = BuiltInModule("color", functions: <Callable>[
       }
 
       var result = _functionString("invert", arguments.take(1));
-      warn(
+      warnForDeprecation(
           "Passing a number (${arguments[0]}) to color.invert() is "
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecationType: Deprecation.colorModuleCompat);
+          Deprecation.colorModuleCompat);
       return result;
     }
 
@@ -260,12 +260,12 @@ final module = BuiltInModule("color", functions: <Callable>[
   _function("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("grayscale", arguments.take(1));
-      warn(
+      warnForDeprecation(
           "Passing a number (${arguments[0]}) to color.grayscale() is "
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecationType: Deprecation.colorModuleCompat);
+          Deprecation.colorModuleCompat);
       return result;
     }
 
@@ -314,11 +314,11 @@ final module = BuiltInModule("color", functions: <Callable>[
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart)) {
         var result = _functionString("alpha", arguments);
-        warn(
+        warnForDeprecation(
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            deprecationType: Deprecation.colorModuleCompat);
+            Deprecation.colorModuleCompat);
         return result;
       }
 
@@ -332,11 +332,11 @@ final module = BuiltInModule("color", functions: <Callable>[
           argument.text.contains(_microsoftFilterStart))) {
         // Support the proprietary Microsoft alpha() function.
         var result = _functionString("alpha", arguments);
-        warn(
+        warnForDeprecation(
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            deprecationType: Deprecation.colorModuleCompat);
+            Deprecation.colorModuleCompat);
         return result;
       }
 
@@ -349,12 +349,12 @@ final module = BuiltInModule("color", functions: <Callable>[
   _function("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("opacity", arguments);
-      warn(
+      warnForDeprecation(
           "Passing a number (${arguments[0]} to color.opacity() is "
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecationType: Deprecation.colorModuleCompat);
+          Deprecation.colorModuleCompat);
       return result;
     }
 
@@ -460,14 +460,14 @@ SassColor _updateComponents(List<Value> arguments,
     if (number == null) return null;
     if (!scale && checkUnitless) {
       if (number.hasUnits) {
-        warn(
+        warnForDeprecation(
             "\$$name: Passing a number with unit ${number.unitString} is "
             "deprecated.\n"
             "\n"
             "To preserve current behavior: ${number.unitSuggestion(name)}\n"
             "\n"
             "More info: https://sass-lang.com/d/function-units",
-            deprecationType: Deprecation.functionUnits);
+            Deprecation.functionUnits);
       }
     }
     if (!scale && checkPercent) _checkPercent(number, name);
@@ -657,13 +657,13 @@ double _angleValue(Value angleValue, String name) {
   var angle = angleValue.assertNumber(name);
   if (angle.compatibleWithUnit('deg')) return angle.coerceValueToUnit('deg');
 
-  warn(
+  warnForDeprecation(
       "\$$name: Passing a unit other than deg ($angle) is deprecated.\n"
       "\n"
       "To preserve current behavior: ${angle.unitSuggestion(name)}\n"
       "\n"
       "See https://sass-lang.com/d/function-units",
-      deprecationType: Deprecation.functionUnits);
+      Deprecation.functionUnits);
   return angle.value;
 }
 
@@ -671,13 +671,13 @@ double _angleValue(Value angleValue, String name) {
 void _checkPercent(SassNumber number, String name) {
   if (number.hasUnit('%')) return;
 
-  warn(
+  warnForDeprecation(
       "\$$name: Passing a number without unit % ($number) is deprecated.\n"
       "\n"
       "To preserve current behavior: ${number.unitSuggestion(name, '%')}\n"
       "\n"
       "More info: https://sass-lang.com/d/function-units",
-      deprecationType: Deprecation.functionUnits);
+      Deprecation.functionUnits);
 }
 
 /// Create an HWB color from the given [arguments].

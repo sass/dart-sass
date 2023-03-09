@@ -18,7 +18,8 @@ enum Deprecation {
   elseif('elseif', deprecatedIn: '1.3.2', description: '@elseif.'),
 
   /// Deprecation for parsing `@-moz-document`.
-  mozDocument('moz-document', deprecatedIn: '1.7.2'),
+  mozDocument('moz-document',
+      deprecatedIn: '1.7.2', description: '@-moz-document.'),
 
   /// Deprecation for importers using relative canonical URLs.
   relativeCanonical('relative-canonical', deprecatedIn: '1.14.2'),

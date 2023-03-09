@@ -251,7 +251,7 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
   var limit = arguments[0].assertNumber("limit");
 
   if (limit.hasUnits) {
-    warn(
+    warnForDeprecation(
         "math.random() will no longer ignore \$limit units ($limit) in a "
         "future release.\n"
         "\n"
@@ -262,7 +262,7 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
         "math.random(math.div(\$limit, 1${limit.unitString}))\n"
         "\n"
         "More info: https://sass-lang.com/d/function-units",
-        deprecationType: Deprecation.functionUnits);
+        Deprecation.functionUnits);
   }
 
   var limitScalar = limit.assertInt("limit");

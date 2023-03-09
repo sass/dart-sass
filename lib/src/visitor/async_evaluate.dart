@@ -448,12 +448,12 @@ class _EvaluateVisitor
                     callableNode.span));
 
         if (function is SassString) {
-          warn(
+          warnForDeprecation(
               "Passing a string to call() is deprecated and will be illegal in "
               "Dart Sass 2.0.0.\n"
               "\n"
               "Recommendation: call(get-function($function))",
-              deprecationType: Deprecation.callString);
+              Deprecation.callString);
 
           var callableNode = _callableNode!;
           var expression =

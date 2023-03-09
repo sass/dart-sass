@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -30,10 +31,7 @@ abstract class Logger {
   /// a deprecation warning. Implementations should surface all this information
   /// to the end user.
   void warn(String message,
-      {FileSpan? span,
-      Trace? trace,
-      @Deprecated("Use `warnForDeprecation` instead.") bool deprecation =
-          false});
+      {FileSpan? span, Trace? trace, bool deprecation = false});
 
   /// Emits a debugging message associated with the given [span].
   void debug(String message, SourceSpan span);
@@ -41,8 +39,7 @@ abstract class Logger {
 
 /// An extension to add a `warnForDeprecation` method to loggers without
 /// making a breaking API change.
-///
-/// {@category Compile}
+@internal
 extension WarnForDeprecation on Logger {
   /// Emits a deprecation warning for [deprecation] with the given [message].
   void warnForDeprecation(Deprecation deprecation, String message,

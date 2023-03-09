@@ -43,18 +43,18 @@ abstract class EvaluationContext {
 /// Prints a warning message associated with the current `@import` or function
 /// call.
 ///
-/// If [deprecationType] is non-null, the warning is emitted as a deprecation
-/// warning of that type.
+/// If [deprecation] is `true`, the warning is emitted as a deprecation warning.
 ///
 /// This may only be called within a custom function or importer callback.
-///
 /// {@category Compile}
-void warn(String message,
-        {Deprecation? deprecationType,
-        @Deprecated('Use `deprecationType` instead.') bool deprecation =
-            false}) =>
-    EvaluationContext.current.warn(message,
-        deprecationType ?? (deprecation ? Deprecation.userAuthored : null));
+void warn(String message, {bool deprecation = false}) =>
+    EvaluationContext.current
+        .warn(message, deprecation ? Deprecation.userAuthored : null);
+
+/// Prints a deprecation warning with [message] of type [deprecation].
+void warnForDeprecation(String message, Deprecation deprecation) {
+  EvaluationContext.current.warn(message, deprecation);
+}
 
 /// Runs [callback] with [context] as [EvaluationContext.current].
 ///

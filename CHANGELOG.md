@@ -17,15 +17,6 @@
 * New `Deprecation` enum, which contains the different current and future
   deprecations used by the new CLI flags.
 
-* The optional `deprecation` boolean parameter of the `warn` function is now
-  deprecated. Use `deprecationType` to pass the specific `Deprecation` being
-  warned for instead.
-
-* Calling `Logger.warn` with the `deprecation` parameter is similarly
-  deprecated. To ensure that a deprecation warning can be properly handled by
-  the new flags, deprecation warnings should use the new `warnForDeprecation`
-  extension method on `Logger` instead.
-
 * The `compile` methods now take in `fatalDeprecations` and `futureDeprecations`
   parameters, which work similarly to the CLI flags.
 

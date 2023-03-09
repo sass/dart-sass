@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 105dee4553a45a2ded3d623b34a662a294fdefd2
+// Checksum: 8a55729a9dc5dafe90954738907880052d930898
 //
 // ignore_for_file: unused_import
 
@@ -455,12 +455,12 @@ class _EvaluateVisitor
                     callableNode.span));
 
         if (function is SassString) {
-          warn(
+          warnForDeprecation(
               "Passing a string to call() is deprecated and will be illegal in "
               "Dart Sass 2.0.0.\n"
               "\n"
               "Recommendation: call(get-function($function))",
-              deprecationType: Deprecation.callString);
+              Deprecation.callString);
 
           var callableNode = _callableNode!;
           var expression =
