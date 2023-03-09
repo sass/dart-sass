@@ -58,8 +58,8 @@ class DeprecationHandlingLogger implements Logger {
   void warnForDeprecation(Deprecation deprecation, String message,
       {FileSpan? span, Trace? trace}) {
     if (fatalDeprecations.contains(deprecation)) {
-      message += "\n\nThis is only an error you've set the $deprecation "
-          'deprecation to be fatal.\n'
+      message += "\n\nThis is only an error because you've set the "
+          '$deprecation deprecation to be fatal.\n'
           'Remove this setting if you need to keep using this feature.';
       if (span != null && trace != null) {
         throw SassRuntimeException(message, span, trace);
