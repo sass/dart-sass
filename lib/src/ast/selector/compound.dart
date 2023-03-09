@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../extend/functions.dart';
 import '../../logger.dart';
@@ -43,8 +44,9 @@ class CompoundSelector extends Selector {
   SimpleSelector? get singleSimple =>
       components.length == 1 ? components.first : null;
 
-  CompoundSelector(Iterable<SimpleSelector> components)
-      : components = List.unmodifiable(components) {
+  CompoundSelector(Iterable<SimpleSelector> components, FileSpan span)
+      : components = List.unmodifiable(components),
+        super(span) {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }

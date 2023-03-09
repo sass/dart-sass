@@ -3,8 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
+import '../css/value.dart';
 import '../selector.dart';
 
 /// A component of a [ComplexSelector].
@@ -22,9 +24,12 @@ class ComplexSelectorComponent {
   /// If this is empty, that indicates that it has an implicit descendent
   /// combinator. If it's more than one element, that means it's invalid CSS;
   /// however, we still support this for backwards-compatibility purposes.
-  final List<Combinator> combinators;
+  final List<CssValue<Combinator>> combinators;
 
-  ComplexSelectorComponent(this.selector, Iterable<Combinator> combinators)
+  final FileSpan span;
+
+  ComplexSelectorComponent(
+      this.selector, Iterable<CssValue<Combinator>> combinators, this.span)
       : combinators = List.unmodifiable(combinators);
 
   /// Returns a copy of `this` with [combinators] added to the end of
@@ -33,11 +38,11 @@ class ComplexSelectorComponent {
   /// @nodoc
   @internal
   ComplexSelectorComponent withAdditionalCombinators(
-          List<Combinator> combinators) =>
+          List<CssValue<Combinator>> combinators) =>
       combinators.isEmpty
           ? this
           : ComplexSelectorComponent(
-              selector, [...this.combinators, ...combinators]);
+              selector, [...this.combinators, ...combinators], span);
 
   int get hashCode => selector.hashCode ^ listHash(combinators);
 

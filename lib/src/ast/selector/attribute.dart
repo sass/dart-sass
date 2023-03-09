@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -44,15 +45,17 @@ class AttributeSelector extends SimpleSelector {
 
   /// Creates an attribute selector that matches any element with a property of
   /// the given name.
-  AttributeSelector(this.name)
+  AttributeSelector(this.name, FileSpan span)
       : op = null,
         value = null,
-        modifier = null;
+        modifier = null,
+        super(span);
 
   /// Creates an attribute selector that matches an element with a property
   /// named [name], whose value matches [value] based on the semantics of [op].
-  AttributeSelector.withOperator(this.name, this.op, this.value,
-      {this.modifier});
+  AttributeSelector.withOperator(this.name, this.op, this.value, FileSpan span,
+      {this.modifier})
+      : super(span);
 
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitAttributeSelector(this);

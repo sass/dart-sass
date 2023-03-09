@@ -5,7 +5,6 @@
 import '../../visitor/interface/css.dart';
 import '../selector.dart';
 import 'node.dart';
-import 'value.dart';
 
 /// A plain CSS style rule.
 ///
@@ -14,7 +13,7 @@ import 'value.dart';
 /// contain placeholder selectors.
 abstract class CssStyleRule extends CssParentNode {
   /// The selector for this rule.
-  CssValue<SelectorList> get selector;
+  SelectorList get selector;
 
   /// The selector for this rule, before any extensions were applied.
   SelectorList get originalSelector;

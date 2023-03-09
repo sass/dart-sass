@@ -1,7 +1,22 @@
-## 5.2.0
+## 6.0.0
 
-* No user-visible changes, other than the API changes in version 1.59.0 of the
-  main Sass package that this package exports.
+* **Breaking change:** All selector AST node constructors now require a
+  `FileSpan` and expose a `span` field.
+
+* **Breaking change:** The `CssStyleRule.selector` field is now a plain
+  `SelectorList` rather than a `CssValue<SelectorList>`.
+
+* **Breaking change:** The `ModifiableCssValue` class has been removed.
+
+* Add an `InterpolationMap` class which represents a mapping from an
+  interpolation's source to the string it generated.
+
+* Add an `interpolationMap` parameter to `CssMediaQuery.parseList()`,
+  `AtRootQuery.parse()`, `ComplexSelector.parse`, `CompoundSelector.parse`,
+  `ListSelector.parse`, and `SimpleSelector.parse`.
+
+* Add a `SelectorSearchVisitor` mixin, which can be used to return the first
+  instance of a selector in an AST matching a certain criterion.
 
 ## 5.1.1
 

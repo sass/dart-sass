@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:collection/collection.dart';
 
 import '../../exception.dart';
+import '../../interpolation_map.dart';
 import '../../logger.dart';
 import '../../parse/at_root_query.dart';
 import '../css.dart';
@@ -53,8 +54,12 @@ class AtRootQuery {
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
+  /// If passed, [interpolationMap] maps the text of [contents] back to the
+  /// original location of the selector in the source file.
+  ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory AtRootQuery.parse(String contents, {Object? url, Logger? logger}) =>
+  factory AtRootQuery.parse(String contents,
+          {Object? url, Logger? logger, InterpolationMap? interpolationMap}) =>
       AtRootQueryParser(contents, url: url, logger: logger).parse();
 
   /// Returns whether [this] excludes [node].

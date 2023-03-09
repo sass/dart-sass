@@ -9,6 +9,10 @@ import 'package:string_scanner/string_scanner.dart';
 import '../utils.dart';
 import 'character.dart';
 
+/// A span that points nowhere, only used for fake AST nodes that will never be
+/// presented to the user.
+final bogusSpan = SourceFile.decoded([]).span(0);
+
 extension SpanExtensions on FileSpan {
   /// Returns this span with all whitespace trimmed from both sides.
   FileSpan trim() => trimLeft().trimRight();
