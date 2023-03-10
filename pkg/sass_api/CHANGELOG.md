@@ -1,3 +1,7 @@
+## 6.0.1
+
+* No user-visible changes.
+
 ## 6.0.0
 
 * **Breaking change:** All selector AST node constructors now require a
