@@ -332,14 +332,20 @@ jobs:
         include:
           - runner: macos-latest
             platform: macos-x64
+            architecture: x64
           - runner: self-hosted
             platform: macos-arm64
+            architecture: arm64
           - runner: windows-latest
             platform: windows
+            architecture: x64
 
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
+        # Workaround for dart-lang/setup-dart#59
+        with:
+          architecture: ${{ matrix.architecture }}
       - run: dart pub get
       - name: Deploy
         run: dart run grinder pkg-github-${{ matrix.platform }}
