@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
+import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/utils.dart';
 import 'io.dart';
@@ -154,10 +155,10 @@ class AsyncImportCache {
         ? inImportRule(() => importer.canonicalize(url))
         : importer.canonicalize(url));
     if (result?.scheme == '') {
-      _logger.warn("""
+      _logger.warnForDeprecation(Deprecation.relativeCanonical, """
 Importer $importer canonicalized $url to $result.
 Relative canonical URLs are deprecated and will eventually be disallowed.
-""", deprecation: true);
+""");
     }
     return result;
   }

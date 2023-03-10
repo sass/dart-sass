@@ -23,6 +23,7 @@ import '../callable.dart';
 import '../color_names.dart';
 import '../configuration.dart';
 import '../configured_value.dart';
+import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../extend/extension_store.dart';
@@ -447,12 +448,12 @@ class _EvaluateVisitor
                     callableNode.span));
 
         if (function is SassString) {
-          warn(
+          warnForDeprecation(
               "Passing a string to call() is deprecated and will be illegal in "
               "Dart Sass 2.0.0.\n"
               "\n"
               "Recommendation: call(get-function($function))",
-              deprecation: true);
+              Deprecation.callString);
 
           var callableNode = _callableNode!;
           var expression =
@@ -1205,7 +1206,7 @@ class _EvaluateVisitor
                   'More info: https://sass-lang.com/d/bogus-combinators',
           MultiSpan(complex.span.trimRight(), 'invalid selector',
               {node.span: '@extend rule'}),
-          deprecation: true);
+          Deprecation.bogusCombinators);
     }
 
     var tuple =
@@ -1921,7 +1922,7 @@ class _EvaluateVisitor
               '\n'
               'More info: https://sass-lang.com/d/bogus-combinators',
               complex.span.trimRight(),
-              deprecation: true);
+              Deprecation.bogusCombinators);
         } else if (complex.leadingCombinators.isNotEmpty) {
           _warn(
               'The selector "${complex.toString().trim()}" is invalid CSS.\n'
@@ -1929,7 +1930,7 @@ class _EvaluateVisitor
               '\n'
               'More info: https://sass-lang.com/d/bogus-combinators',
               complex.span.trimRight(),
-              deprecation: true);
+              Deprecation.bogusCombinators);
         } else {
           _warn(
               'The selector "${complex.toString().trim()}" is only valid for '
@@ -1948,7 +1949,7 @@ class _EvaluateVisitor
                         ? '\n(try converting to a //-style comment)'
                         : '')
               }),
-              deprecation: true);
+              Deprecation.bogusCombinators);
         }
       }
     }
@@ -2079,7 +2080,7 @@ class _EvaluateVisitor
                   "Recommendation: add `${node.originalName}: null` at the "
                   "stylesheet root.",
           node.span,
-          deprecation: true);
+          Deprecation.newGlobal);
     }
 
     var value =
@@ -2216,7 +2217,7 @@ class _EvaluateVisitor
                   "More info and automated migrator: "
                   "https://sass-lang.com/d/slash-div",
                   node.span,
-                  deprecation: true);
+                  Deprecation.slashDiv);
             }
 
             return result;
@@ -3398,7 +3399,7 @@ class _EvaluateVisitor
           "More info and automated migrator: "
           "https://sass-lang.com/d/slash-div",
           nodeForSpan.span,
-          deprecation: true);
+          Deprecation.slashDiv);
     }
 
     return value.withoutSlash();
@@ -3421,15 +3422,20 @@ class _EvaluateVisitor
   }
 
   /// Emits a warning with the given [message] about the given [span].
-  void _warn(String message, FileSpan span, {bool deprecation = false}) {
+  void _warn(String message, FileSpan span, [Deprecation? deprecation]) {
     if (_quietDeps &&
         (_inDependency || (_currentCallable?.inDependency ?? false))) {
       return;
     }
 
     if (!_warningsEmitted.add(Tuple2(message, span))) return;
-    _logger.warn(message,
-        span: span, trace: _stackTrace(span), deprecation: deprecation);
+    var trace = _stackTrace(span);
+    if (deprecation == null) {
+      _logger.warn(message, span: span, trace: trace);
+    } else {
+      _logger.warnForDeprecation(deprecation, message,
+          span: span, trace: trace);
+    }
   }
 
   /// Returns a [SassRuntimeException] with the given [message].
@@ -3612,13 +3618,13 @@ class _EvaluationContext implements EvaluationContext {
     throw StateError("No Sass callable is currently being evaluated.");
   }
 
-  void warn(String message, {bool deprecation = false}) {
+  void warn(String message, [Deprecation? deprecation]) {
     _visitor._warn(
         message,
         _visitor._importSpan ??
             _visitor._callableNode?.span ??
             _defaultWarnNodeWithSpan.span,
-        deprecation: deprecation);
+        deprecation);
   }
 }
 

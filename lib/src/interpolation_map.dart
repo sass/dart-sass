@@ -33,11 +33,11 @@ class InterpolationMap {
   InterpolationMap(
       this._interpolation, Iterable<SourceLocation> targetLocations)
       : _targetLocations = List.unmodifiable(targetLocations) {
-        var expectedLocations = math.max(0, _interpolation.contents.length - 1);
+    var expectedLocations = math.max(0, _interpolation.contents.length - 1);
     if (_targetLocations.length != expectedLocations) {
       throw ArgumentError(
-        "InterpolationMap must have $expectedLocations targetLocations if the "
-        "interpolation has ${_interpolation.contents.length} components.");
+          "InterpolationMap must have $expectedLocations targetLocations if the "
+          "interpolation has ${_interpolation.contents.length} components.");
     }
   }
 

@@ -10,11 +10,12 @@ import 'ast/sass.dart';
 import 'async_import_cache.dart';
 import 'callable.dart';
 import 'compile_result.dart';
+import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/legacy_node.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'logger/terse.dart';
+import 'logger/deprecation_handling.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/async_evaluate.dart';
@@ -37,9 +38,14 @@ Future<CompileResult> compileAsync(String path,
     bool quietDeps = false,
     bool verbose = false,
     bool sourceMap = false,
-    bool charset = true}) async {
-  TerseLogger? terseLogger;
-  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+    bool charset = true,
+    Iterable<Deprecation>? fatalDeprecations,
+    Iterable<Deprecation>? futureDeprecations}) async {
+  DeprecationHandlingLogger deprecationLogger = logger =
+      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+          fatalDeprecations: {...?fatalDeprecations},
+          futureDeprecations: {...?futureDeprecations},
+          limitRepetition: !verbose);
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -71,7 +77,7 @@ Future<CompileResult> compileAsync(String path,
       sourceMap,
       charset);
 
-  terseLogger?.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(node: nodeImporter != null);
   return result;
 }
 
@@ -96,9 +102,14 @@ Future<CompileResult> compileStringAsync(String source,
     bool quietDeps = false,
     bool verbose = false,
     bool sourceMap = false,
-    bool charset = true}) async {
-  TerseLogger? terseLogger;
-  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+    bool charset = true,
+    Iterable<Deprecation>? fatalDeprecations,
+    Iterable<Deprecation>? futureDeprecations}) async {
+  DeprecationHandlingLogger deprecationLogger = logger =
+      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+          fatalDeprecations: {...?fatalDeprecations},
+          futureDeprecations: {...?futureDeprecations},
+          limitRepetition: !verbose);
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
@@ -118,7 +129,7 @@ Future<CompileResult> compileStringAsync(String source,
       sourceMap,
       charset);
 
-  terseLogger?.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(node: nodeImporter != null);
   return result;
 }
 

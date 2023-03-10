@@ -11,6 +11,7 @@ import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
 import '../color_names.dart';
+import '../deprecation.dart';
 import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
@@ -1056,6 +1057,14 @@ abstract class StylesheetParser extends Parser {
     do {
       whitespace();
       var argument = importArgument();
+      if (argument is DynamicImport) {
+        logger.warnForDeprecation(
+            Deprecation.import,
+            'Sass @import rules will be deprecated in the future.\n'
+            'Remove the --future-deprecation=import flag to silence this '
+            'warning for now.',
+            span: argument.span);
+      }
       if ((_inControlDirective || _inMixin) && argument is DynamicImport) {
         _disallowedAtRule(start);
       }
@@ -1381,13 +1390,13 @@ abstract class StylesheetParser extends Parser {
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
     return _withChildren(_statement, start, (children, span) {
       if (needsDeprecationWarning) {
-        logger.warn(
+        logger.warnForDeprecation(
+            Deprecation.mozDocument,
             "@-moz-document is deprecated and support will be removed in Dart "
             "Sass 2.0.0.\n"
             "\n"
             "For details, see https://sass-lang.com/d/moz-document.",
-            span: span,
-            deprecation: true);
+            span: span);
       }
 
       return AtRule(name, span, value: value, children: children);
@@ -1787,7 +1796,8 @@ abstract class StylesheetParser extends Parser {
                       right.span.start.offset - 1, right.span.start.offset) ==
                   operator.operator &&
               isWhitespace(scanner.string.codeUnitAt(left.span.end.offset))) {
-            logger.warn(
+            logger.warnForDeprecation(
+                Deprecation.strictUnary,
                 "This operation is parsed as:\n"
                 "\n"
                 "    $left ${operator.operator} $right\n"
@@ -1804,8 +1814,7 @@ abstract class StylesheetParser extends Parser {
                 "\n"
                 "More info and automated migrator: "
                 "https://sass-lang.com/d/strict-unary",
-                span: singleExpression_!.span,
-                deprecation: true);
+                span: singleExpression_!.span);
           }
         }
       }

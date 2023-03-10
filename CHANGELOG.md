@@ -1,3 +1,25 @@
+## 1.59.0
+
+### Command Line Interface
+
+* Added a new `--fatal-deprecation` flag that lets you treat a deprecation
+  warning as an error. You can pass an individual deprecation ID
+  (e.g. `slash-div`) or you can pass a Dart Sass version to treat all
+  deprecations initially emitted in that version or earlier as errors.
+
+* New `--future-deprecation` flag that lets you opt into warning for use of
+  certain features that will be deprecated in the future. At the moment, the
+  only option is `--future-deprecation=import`, which will emit warnings for
+  Sass `@import` rules, which are not yet deprecated, but will be in the future.
+
+### Dart API
+
+* New `Deprecation` enum, which contains the different current and future
+  deprecations used by the new CLI flags.
+
+* The `compile` methods now take in `fatalDeprecations` and `futureDeprecations`
+  parameters, which work similarly to the CLI flags.
+
 ## 1.58.4
 
 * Pull `@font-face` to the root rather than bubbling the style rule selector
