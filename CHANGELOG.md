@@ -1,3 +1,7 @@
+## 1.59.2
+
+* No user-visible changes.
+
 ## 1.59.1
 
 * No user-visible changes.
