@@ -1,5 +1,5 @@
 name: sass
-version: 1.59.2
+version: 1.59.3
 description: A Sass implementation in Dart.
 homepage: https://github.com/sass/dart-sass
 
@@ -35,7 +35,7 @@ dependencies:
 dev_dependencies:
   analyzer: ^4.7.0
   archive: ^3.1.2
-  cli_pkg: ^2.1.4
+  cli_pkg: ^2.4.2
   crypto: ^3.0.0
   dart_style: ^2.0.0
   dartdoc: ^6.0.0

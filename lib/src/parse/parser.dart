@@ -11,6 +11,7 @@ import '../exception.dart';
 import '../interpolation_map.dart';
 import '../logger.dart';
 import '../util/character.dart';
+import '../util/lazy_file_span.dart';
 import '../utils.dart';
 
 /// The abstract base class for all parsers.
@@ -675,7 +676,10 @@ class Parser {
   @protected
   FileSpan spanFrom(LineScannerState state) {
     var span = scanner.spanFrom(state);
-    return _interpolationMap?.mapSpan(span) ?? span;
+    if (_interpolationMap != null) {
+      return LazyFileSpan(() => _interpolationMap!.mapSpan(span));
+    }
+    return span;
   }
 
   /// Prints a warning to standard error, associated with [span].

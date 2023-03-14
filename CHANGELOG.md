@@ -1,3 +1,13 @@
+## 1.59.3
+
+* Fix a performance regression introduced in 1.59.0.
+
+* The NPM release of 1.59.0 dropped support for Node 12 without actually
+  indicating so in its pubspec. This release temporarily adds back support so
+  that the latest Sass version that declares it supports Node 12 actually does
+  so. However, Node 12 is now end-of-life, so we will drop support for it
+  properly in an upcoming release.
+
 ## 1.59.2
 
 * No user-visible changes.
