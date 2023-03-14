@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../exception.dart';
 import '../../logger.dart';
@@ -34,7 +35,7 @@ abstract class SimpleSelector extends Selector {
   /// sequence will contain 1000 simple selectors.
   int get specificity => 1000;
 
-  SimpleSelector();
+  SimpleSelector(FileSpan span) : super(span);
 
   /// Parses a simple selector from [contents].
   ///
@@ -57,8 +58,8 @@ abstract class SimpleSelector extends Selector {
   ///
   /// @nodoc
   @internal
-  SimpleSelector addSuffix(String suffix) =>
-      throw SassScriptException('Invalid parent selector "$this"');
+  SimpleSelector addSuffix(String suffix) => throw MultiSpanSassException(
+      'Selector "$this" can\'t have a suffix', span, "outer selector", {});
 
   /// Returns the components of a [CompoundSelector] that matches only elements
   /// matched by both this and [compound].

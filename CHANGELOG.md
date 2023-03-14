@@ -1,3 +1,56 @@
+## 1.59.3
+
+* Fix a performance regression introduced in 1.59.0.
+
+* The NPM release of 1.59.0 dropped support for Node 12 without actually
+  indicating so in its pubspec. This release temporarily adds back support so
+  that the latest Sass version that declares it supports Node 12 actually does
+  so. However, Node 12 is now end-of-life, so we will drop support for it
+  properly in an upcoming release.
+
+## 1.59.2
+
+* No user-visible changes.
+
+## 1.59.1
+
+* No user-visible changes.
+
+## 1.59.0
+
+### Command Line Interface
+
+* Added a new `--fatal-deprecation` flag that lets you treat a deprecation
+  warning as an error. You can pass an individual deprecation ID
+  (e.g. `slash-div`) or you can pass a Dart Sass version to treat all
+  deprecations initially emitted in that version or earlier as errors.
+
+* New `--future-deprecation` flag that lets you opt into warning for use of
+  certain features that will be deprecated in the future. At the moment, the
+  only option is `--future-deprecation=import`, which will emit warnings for
+  Sass `@import` rules, which are not yet deprecated, but will be in the future.
+
+### Dart API
+
+* New `Deprecation` enum, which contains the different current and future
+  deprecations used by the new CLI flags.
+
+* The `compile` methods now take in `fatalDeprecations` and `futureDeprecations`
+  parameters, which work similarly to the CLI flags.
+
+## 1.58.4
+
+* Pull `@font-face` to the root rather than bubbling the style rule selector
+  inwards.
+
+* Improve error messages for invalid CSS values passed to plain CSS functions.
+
+* Improve error messages involving selectors.
+
+### Embedded Sass
+
+* Improve the performance of starting up a compilation.
+
 ## 1.58.3
 
 * No user-visible changes.

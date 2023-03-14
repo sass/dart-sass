@@ -4,14 +4,17 @@
 
 import 'package:charcode/charcode.dart';
 
+import '../interpolation_map.dart';
 import '../logger.dart';
 import '../util/character.dart';
 import 'parser.dart';
 
 /// A parser for `@keyframes` block selectors.
 class KeyframeSelectorParser extends Parser {
-  KeyframeSelectorParser(String contents, {Object? url, Logger? logger})
-      : super(contents, url: url, logger: logger);
+  KeyframeSelectorParser(String contents,
+      {Object? url, Logger? logger, InterpolationMap? interpolationMap})
+      : super(contents,
+            url: url, logger: logger, interpolationMap: interpolationMap);
 
   List<String> parse() {
     return wrapSpanFormatException(() {

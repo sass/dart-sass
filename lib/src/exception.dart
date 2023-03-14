@@ -26,6 +26,22 @@ class SassException extends SourceSpanException {
 
   SassException(String message, FileSpan span) : super(message, span);
 
+  /// Converts this to a [MultiSpanSassException] with the additional [span] and
+  /// [label].
+  ///
+  /// @nodoc
+  @internal
+  MultiSpanSassException withAdditionalSpan(FileSpan span, String label) =>
+      MultiSpanSassException(message, this.span, "", {span: label});
+
+  /// Returns a copy of this as a [SassRuntimeException] with [trace] as its
+  /// Sass stack trace.
+  ///
+  /// @nodoc
+  @internal
+  SassRuntimeException withTrace(Trace trace) =>
+      SassRuntimeException(message, span, trace);
+
   String toString({Object? color}) {
     var buffer = StringBuffer()
       ..writeln("Error: $message")
@@ -97,6 +113,14 @@ class MultiSpanSassException extends SassException
       : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message, span);
 
+  MultiSpanSassException withAdditionalSpan(FileSpan span, String label) =>
+      MultiSpanSassException(
+          message, this.span, primaryLabel, {...secondarySpans, span: label});
+
+  MultiSpanSassRuntimeException withTrace(Trace trace) =>
+      MultiSpanSassRuntimeException(
+          message, span, primaryLabel, secondarySpans, trace);
+
   String toString({Object? color, String? secondaryColor}) {
     var useColor = false;
     String? primaryColor;
@@ -129,6 +153,11 @@ class MultiSpanSassException extends SassException
 class SassRuntimeException extends SassException {
   final Trace trace;
 
+  MultiSpanSassRuntimeException withAdditionalSpan(
+          FileSpan span, String label) =>
+      MultiSpanSassRuntimeException(
+          message, this.span, "", {span: label}, trace);
+
   SassRuntimeException(String message, FileSpan span, this.trace)
       : super(message, span);
 }
@@ -141,6 +170,11 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
   MultiSpanSassRuntimeException(String message, FileSpan span,
       String primaryLabel, Map<FileSpan, String> secondarySpans, this.trace)
       : super(message, span, primaryLabel, secondarySpans);
+
+  MultiSpanSassRuntimeException withAdditionalSpan(
+          FileSpan span, String label) =>
+      MultiSpanSassRuntimeException(message, this.span, primaryLabel,
+          {...secondarySpans, span: label}, trace);
 }
 
 /// An exception thrown when Sass parsing has failed.
@@ -153,7 +187,33 @@ class SassFormatException extends SassException
 
   int get offset => span.start.offset;
 
+  /// @nodoc
+  @internal
+  MultiSpanSassFormatException withAdditionalSpan(
+          FileSpan span, String label) =>
+      MultiSpanSassFormatException(message, this.span, "", {span: label});
+
   SassFormatException(String message, FileSpan span) : super(message, span);
+}
+
+/// A [SassFormatException] that's also a [MultiSpanFormatException].
+///
+/// {@category Parsing}
+@sealed
+class MultiSpanSassFormatException extends MultiSpanSassException
+    implements MultiSourceSpanFormatException, SassFormatException {
+  String get source => span.file.getText(0);
+
+  int get offset => span.start.offset;
+
+  MultiSpanSassFormatException withAdditionalSpan(
+          FileSpan span, String label) =>
+      MultiSpanSassFormatException(
+          message, this.span, primaryLabel, {...secondarySpans, span: label});
+
+  MultiSpanSassFormatException(String message, FileSpan span,
+      String primaryLabel, Map<FileSpan, String> secondarySpans)
+      : super(message, span, primaryLabel, secondarySpans);
 }
 
 /// An exception thrown by SassScript.
@@ -173,6 +233,9 @@ class SassScriptException {
   SassScriptException(String message, [String? argumentName])
       : message = argumentName == null ? message : "\$$argumentName: $message";
 
+  /// Converts this to a [SassException] with the given [span].
+  SassException withSpan(FileSpan span) => SassException(message, span);
+
   String toString() => "$message\n\nBUG: This should include a source span!";
 }
 
@@ -189,4 +252,8 @@ class MultiSpanSassScriptException extends SassScriptException {
       String message, this.primaryLabel, Map<FileSpan, String> secondarySpans)
       : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message);
+
+  /// Converts this to a [SassException] with the given primary [span].
+  MultiSpanSassException withSpan(FileSpan span) =>
+      MultiSpanSassException(message, span, primaryLabel, secondarySpans);
 }

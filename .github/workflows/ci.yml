@@ -140,6 +140,11 @@ jobs:
         dart_channel: [stable]
         node_version: [18]
         include:
+          # Temporarily adding back Node 12 here until we actually drop support
+          # in the package.json.
+          - os: ubuntu-latest
+            dart_channel: stable
+            node_version: 12
           # Include LTS versions on Ubuntu
           - os: ubuntu-latest
             dart_channel: stable
@@ -150,7 +155,6 @@ jobs:
           - os: ubuntu-latest
             dart_channel: dev
             node_version: 18
-
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1

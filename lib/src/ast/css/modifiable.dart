@@ -12,4 +12,3 @@ export 'modifiable/node.dart';
 export 'modifiable/style_rule.dart';
 export 'modifiable/stylesheet.dart';
 export 'modifiable/supports_rule.dart';
-export 'modifiable/value.dart';

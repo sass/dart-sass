@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import 'ast/selector.dart';
+import 'deprecation.dart';
 import 'evaluation_context.dart';
 import 'exception.dart';
 import 'utils.dart';
@@ -123,7 +124,7 @@ abstract class Value {
   int sassIndexToListIndex(Value sassIndex, [String? name]) {
     var indexValue = sassIndex.assertNumber(name);
     if (indexValue.hasUnits) {
-      warn(
+      warnForDeprecation(
           "\$$name: Passing a number with unit ${indexValue.unitString} is "
           "deprecated.\n"
           "\n"
@@ -131,7 +132,7 @@ abstract class Value {
           "${indexValue.unitSuggestion(name ?? 'index')}\n"
           "\n"
           "More info: https://sass-lang.com/d/function-units",
-          deprecation: true);
+          Deprecation.functionUnits);
     }
 
     var index = indexValue.assertInt(name);

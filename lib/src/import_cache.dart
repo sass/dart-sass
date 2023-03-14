@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: cd71f3debc089cd05cd86e2eee32c2f10a05f489
+// Checksum: 92d6816f673ecbabd993aea7b79e27553f896ff4
 //
 // ignore_for_file: unused_import
 
@@ -16,6 +16,7 @@ import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
+import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/utils.dart';
 import 'io.dart';
@@ -155,10 +156,10 @@ class ImportCache {
         ? inImportRule(() => importer.canonicalize(url))
         : importer.canonicalize(url));
     if (result?.scheme == '') {
-      _logger.warn("""
+      _logger.warnForDeprecation(Deprecation.relativeCanonical, """
 Importer $importer canonicalized $url to $result.
 Relative canonical URLs are deprecated and will eventually be disallowed.
-""", deprecation: true);
+""");
     }
     return result;
   }

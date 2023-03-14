@@ -8,8 +8,10 @@ import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../exception.dart';
+import '../interpolation_map.dart';
 import '../logger.dart';
 import '../util/character.dart';
+import '../util/lazy_file_span.dart';
 import '../utils.dart';
 
 /// The abstract base class for all parsers.
@@ -24,6 +26,11 @@ class Parser {
   /// The logger to use when emitting warnings.
   @protected
   final Logger logger;
+
+  /// A map used to map source spans in the text being parsed back to their
+  /// original locations in the source file, if this isn't being parsed directly
+  /// from source.
+  final InterpolationMap? _interpolationMap;
 
   /// Parses [text] as a CSS identifier and returns the result.
   ///
@@ -48,9 +55,11 @@ class Parser {
       Parser(text, logger: logger)._isVariableDeclarationLike();
 
   @protected
-  Parser(String contents, {Object? url, Logger? logger})
+  Parser(String contents,
+      {Object? url, Logger? logger, InterpolationMap? interpolationMap})
       : scanner = SpanScanner(contents, sourceUrl: url),
-        logger = logger ?? const Logger.stderr();
+        logger = logger ?? const Logger.stderr(),
+        _interpolationMap = interpolationMap;
 
   String _parseIdentifier() {
     return wrapSpanFormatException(() {
@@ -662,6 +671,17 @@ class Parser {
     return scanner.substring(start);
   }
 
+  /// Like [scanner.spanFrom], but passes the span through [_interpolationMap]
+  /// if it's available.
+  @protected
+  FileSpan spanFrom(LineScannerState state) {
+    var span = scanner.spanFrom(state);
+    if (_interpolationMap != null) {
+      return LazyFileSpan(() => _interpolationMap!.mapSpan(span));
+    }
+    return span;
+  }
+
   /// Prints a warning to standard error, associated with [span].
   @protected
   void warn(String message, FileSpan span) => logger.warn(message, span: span);
@@ -710,40 +730,72 @@ class Parser {
   @protected
   T wrapSpanFormatException<T>(T callback()) {
     try {
-      return callback();
+      try {
+        return callback();
+      } on SourceSpanFormatException catch (error, stackTrace) {
+        var map = _interpolationMap;
+        if (map == null) rethrow;
+
+        throwWithTrace(map.mapException(error), stackTrace);
+      }
     } on SourceSpanFormatException catch (error, stackTrace) {
       var span = error.span as FileSpan;
-      if (startsWithIgnoreCase(error.message, "expected") && span.length == 0) {
-        var startPosition = _firstNewlineBefore(span.start.offset);
-        if (startPosition != span.start.offset) {
-          span = span.file.span(startPosition, startPosition);
-        }
+      if (startsWithIgnoreCase(error.message, "expected")) {
+        span = _adjustExceptionSpan(span);
       }
 
       throwWithTrace(SassFormatException(error.message, span), stackTrace);
+    } on MultiSourceSpanFormatException catch (error, stackTrace) {
+      var span = error.span as FileSpan;
+      var secondarySpans = error.secondarySpans.cast<FileSpan, String>();
+      if (startsWithIgnoreCase(error.message, "expected")) {
+        span = _adjustExceptionSpan(span);
+        secondarySpans = {
+          for (var entry in secondarySpans.entries)
+            _adjustExceptionSpan(entry.key): entry.value
+        };
+      }
+
+      throwWithTrace(
+          MultiSpanSassFormatException(
+              error.message, span, error.primaryLabel, secondarySpans),
+          stackTrace);
     }
   }
 
-  /// If [position] is separated from the previous non-whitespace character in
-  /// `scanner.string` by one or more newlines, returns the offset of the last
+  /// Moves span to [_firstNewlineBefore] if necessary.
+  FileSpan _adjustExceptionSpan(FileSpan span) {
+    if (span.length > 0) return span;
+
+    var start = _firstNewlineBefore(span.start);
+    return start == span.start ? span : start.pointSpan();
+  }
+
+  /// If [location] is separated from the previous non-whitespace character in
+  /// `scanner.string` by one or more newlines, returns the location of the last
   /// separating newline.
   ///
-  /// Otherwise returns [position].
+  /// Otherwise returns [location].
   ///
   /// This helps avoid missing token errors pointing at the next closing bracket
   /// rather than the line where the problem actually occurred.
-  int _firstNewlineBefore(int position) {
-    var index = position - 1;
+  FileLocation _firstNewlineBefore(FileLocation location) {
+    var text = location.file.getText(0, location.offset);
+    var index = location.offset - 1;
     int? lastNewline;
     while (index >= 0) {
-      var codeUnit = scanner.string.codeUnitAt(index);
-      if (!isWhitespace(codeUnit)) return lastNewline ?? position;
+      var codeUnit = text.codeUnitAt(index);
+      if (!isWhitespace(codeUnit)) {
+        return lastNewline == null
+            ? location
+            : location.file.location(lastNewline);
+      }
       if (isNewline(codeUnit)) lastNewline = index;
       index--;
     }
 
-    // If the document *only* contains whitespace before [position], always
-    // return [position].
-    return position;
+    // If the document *only* contains whitespace before [location], always
+    // return [location].
+    return location;
   }
 }

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../util/character.dart' as character;
 import '../../visitor/interface/selector.dart';
@@ -24,7 +25,7 @@ class PlaceholderSelector extends SimpleSelector {
   /// with `-` or `_`).
   bool get isPrivate => character.isPrivate(name);
 
-  PlaceholderSelector(this.name);
+  PlaceholderSelector(this.name, FileSpan span) : super(span);
 
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitPlaceholderSelector(this);
@@ -32,7 +33,7 @@ class PlaceholderSelector extends SimpleSelector {
   /// @nodoc
   @internal
   PlaceholderSelector addSuffix(String suffix) =>
-      PlaceholderSelector(name + suffix);
+      PlaceholderSelector(name + suffix, span);
 
   bool operator ==(Object other) =>
       other is PlaceholderSelector && other.name == name;

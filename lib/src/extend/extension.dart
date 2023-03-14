@@ -34,16 +34,15 @@ class Extension {
   final FileSpan span;
 
   /// Creates a new extension.
-  Extension(
-      ComplexSelector extender, FileSpan extenderSpan, this.target, this.span,
+  Extension(ComplexSelector extender, this.target, this.span,
       {this.mediaContext, bool optional = false})
-      : extender = Extender(extender, extenderSpan),
+      : extender = Extender(extender),
         isOptional = optional {
     this.extender._extension = this;
   }
 
   Extension withExtender(ComplexSelector newExtender) =>
-      Extension(newExtender, extender.span, target, span,
+      Extension(newExtender, target, span,
           mediaContext: mediaContext, optional: isOptional);
 
   String toString() =>
@@ -70,13 +69,10 @@ class Extender {
   /// original selectors that exist in the document.
   Extension? _extension;
 
-  /// The span in which this selector was defined.
-  final FileSpan span;
-
   /// Creates a new extender.
   ///
   /// If [specificity] isn't passed, it defaults to `extender.specificity`.
-  Extender(this.selector, this.span, {int? specificity, bool original = false})
+  Extender(this.selector, {int? specificity, bool original = false})
       : specificity = specificity ?? selector.specificity,
         isOriginal = original;
 

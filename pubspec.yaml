@@ -1,5 +1,5 @@
 name: sass
-version: 1.58.3
+version: 1.59.3
 description: A Sass implementation in Dart.
 homepage: https://github.com/sass/dart-sass
 
@@ -21,6 +21,7 @@ dependencies:
   js: ^0.6.3
   package_config: ^2.0.0
   path: ^1.8.0
+  pub_semver: ^2.0.0
   source_maps: ^0.10.10
   source_span: ^1.8.1
   stack_trace: ^1.10.0
@@ -34,7 +35,7 @@ dependencies:
 dev_dependencies:
   analyzer: ^4.7.0
   archive: ^3.1.2
-  cli_pkg: ^2.3.0
+  cli_pkg: ^2.4.2
   crypto: ^3.0.0
   dart_style: ^2.0.0
   dartdoc: ^6.0.0
@@ -42,7 +43,6 @@ dev_dependencies:
   node_preamble: ^2.0.2
   lints: ^2.0.0
   pub_api_client: ^2.1.1
-  pub_semver: ^2.0.0
   pubspec_parse: ^1.0.0
   stream_channel: ^2.1.0
   test: ^1.16.7
