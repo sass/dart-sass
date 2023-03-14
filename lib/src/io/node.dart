@@ -44,6 +44,9 @@ class Stderr {
 }
 
 String readFile(String path) {
+  if (!isNode) {
+    throw UnsupportedError("readFile() is only supported on Node.js");
+  }
   // TODO(nweiz): explicitly decode the bytes as UTF-8 like we do in the VM when
   // it doesn't cause a substantial performance degradation for large files. See
   // also dart-lang/sdk#25377.
@@ -64,13 +67,25 @@ String readFile(String path) {
 Object? _readFile(String path, [String? encoding]) =>
     _systemErrorToFileSystemException(() => fs.readFileSync(path, encoding));
 
-void writeFile(String path, String contents) =>
-    _systemErrorToFileSystemException(() => fs.writeFileSync(path, contents));
+void writeFile(String path, String contents) {
+  if (!isNode) {
+    throw UnsupportedError("writeFile() is only supported on Node.js");
+  }
+  return _systemErrorToFileSystemException(
+      () => fs.writeFileSync(path, contents));
+}
 
-void deleteFile(String path) =>
-    _systemErrorToFileSystemException(() => fs.unlinkSync(path));
+void deleteFile(String path) {
+  if (!isNode) {
+    throw UnsupportedError("deleteFile() is only supported on Node.js");
+  }
+  return _systemErrorToFileSystemException(() => fs.unlinkSync(path));
+}
 
 Future<String> readStdin() async {
+  if (!isNode) {
+    throw UnsupportedError("readStdin() is only supported on Node.js");
+  }
   var completer = Completer<String>();
   String contents;
   var innerSink = StringConversionSink.withCallback((String result) {
@@ -104,6 +119,9 @@ String _cleanErrorMessage(JsSystemError error) {
 }
 
 bool fileExists(String path) {
+  if (!isNode) {
+    throw UnsupportedError("fileExists() is only supported on Node.js");
+  }
   return _systemErrorToFileSystemException(() {
     // `existsSync()` is faster than `statSync()`, but it doesn't clarify
     // whether the entity in question is a file or a directory. Since false
@@ -122,6 +140,9 @@ bool fileExists(String path) {
 }
 
 bool dirExists(String path) {
+  if (!isNode) {
+    throw UnsupportedError("fileExists() is only supported on Node.js");
+  }
   return _systemErrorToFileSystemException(() {
     // `existsSync()` is faster than `statSync()`, but it doesn't clarify
     // whether the entity in question is a file or a directory. Since false
@@ -140,6 +161,9 @@ bool dirExists(String path) {
 }
 
 void ensureDir(String path) {
+  if (!isNode) {
+    throw UnsupportedError("ensureDir() is only supported on Node.js");
+  }
   return _systemErrorToFileSystemException(() {
     try {
       fs.mkdirSync(path);
@@ -154,6 +178,9 @@ void ensureDir(String path) {
 }
 
 Iterable<String> listDir(String path, {bool recursive = false}) {
+  if (!isNode) {
+    throw UnsupportedError("listDir() is only supported on Node.js");
+  }
   return _systemErrorToFileSystemException(() {
     if (!recursive) {
       return fs
@@ -172,13 +199,18 @@ Iterable<String> listDir(String path, {bool recursive = false}) {
   });
 }
 
-DateTime modificationTime(String path) =>
-    _systemErrorToFileSystemException(() =>
-        DateTime.fromMillisecondsSinceEpoch(fs.statSync(path).mtime.getTime()));
+DateTime modificationTime(String path) {
+  if (!isNode) {
+    throw UnsupportedError("modificationTime() is only supported on Node.js");
+  }
+  return _systemErrorToFileSystemException(() =>
+      DateTime.fromMillisecondsSinceEpoch(fs.statSync(path).mtime.getTime()));
+}
 
-String? getEnvironmentVariable(String name) => process?.env == null
-    ? null
-    : getProperty(process!.env as Object, name) as String?;
+String? getEnvironmentVariable(String name) {
+  var env = process?.env;
+  return env == null ? null : getProperty(env as Object, name) as String?;
+}
 
 /// Runs callback and converts any [JsSystemError]s it throws into
 /// [FileSystemException]s.
@@ -191,7 +223,13 @@ T _systemErrorToFileSystemException<T>(T callback()) {
   }
 }
 
-final stderr = Stderr(process?.stderr ?? createWritable(WritableOptions()));
+Stderr get stderr {
+  var stderr_ = process?.stderr;
+  if (stderr_ == null) {
+    throw UnsupportedError("stderr is only supported on Node.js");
+  }
+  return Stderr(stderr_);
+}
 
 /// We can't use [process.stdout.isTTY] from `node_interop` because of
 /// pulyaevskiy/node-interop#93: it declares `isTTY` as always non-nullably
@@ -212,9 +250,15 @@ String get currentPath => process?.cwd() ?? '/';
 
 int get exitCode => process?.exitCode ?? 0;
 
-set exitCode(int code) => process == null ? null : process!.exitCode = code;
+set exitCode(int code) {
+  var process_ = process;
+  if (process_ != null) process_.exitCode = code;
+}
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
+  if (!isNode) {
+    throw UnsupportedError("watchDir() is only supported on Node.js");
+  }
   var watcher = chokidar.watch(
       path, ChokidarOptions(disableGlobbing: true, usePolling: poll));
 
