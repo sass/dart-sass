@@ -167,6 +167,27 @@ jobs:
       - name: Run tests
         run: dart run test -j 2 -t node -r expanded
 
+  browser-test:
+    name: "Browser Tests | Dart ${{ matrix.dart-channel }}"
+
+    strategy:
+      matrix:
+        dart-channel: [stable]
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: browser-actions/setup-chrome@v1
+    - uses: dart-lang/setup-dart@v1.2
+      with:
+        sdk: ${{ matrix.dart-channel }}
+    - run: dart pub get
+    - run: dart run grinder before-test
+    - run: google-chrome --version
+    - run: dart run test --platform chrome -j 2 -t browser -r expanded
+      env: {CHROME_EXECUTABLE: chrome}
+
   static_analysis:
     name: Static analysis
     runs-on: ubuntu-latest
