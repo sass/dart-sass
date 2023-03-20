@@ -1,3 +1,7 @@
+## 1.60.0
+
+* **Potentially breaking change:** Drop support for End-of-Life Node.js 12.
+
 ## 1.59.2
 
 * No user-visible changes.
