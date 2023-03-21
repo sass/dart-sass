@@ -614,11 +614,6 @@ Value _invert(List<Value> arguments) {
   }
 
   if (fuzzyEquals(weight, 1)) return inverted;
-  if (!InterpolationMethod.supportedSpaces.contains(space)) {
-    throw SassScriptException(
-        "Color space $space can't be used for interpolation.", "space");
-  }
-
   return color.interpolate(inverted, InterpolationMethod(space),
       weight: 1 - weight);
 }
@@ -1289,6 +1284,18 @@ SassColor _colorFromChannels(ColorSpace space, SassNumber? channel0,
           _channelFromValue(space.channels[2], channel2),
           alpha,
           fromRgbFunction ? ColorFormat.rgbFunction : null);
+
+    case ColorSpace.lab:
+    case ColorSpace.lch:
+    case ColorSpace.oklab:
+    case ColorSpace.oklch:
+      return SassColor.forSpaceInternal(
+          space,
+          _channelFromValue(space.channels[0], channel0)
+              .andThen((lightness) => fuzzyClamp(lightness, 0, 100)),
+          _channelFromValue(space.channels[1], channel1),
+          _channelFromValue(space.channels[2], channel2),
+          alpha);
 
     default:
       return SassColor.forSpaceInternal(

@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
-
 import '../../exception.dart';
 import '../../value.dart';
 
@@ -14,23 +12,6 @@ import '../../value.dart';
 ///
 /// {@category Value}
 class InterpolationMethod {
-  /// The set of color spaces that can be used for color interpolation.
-  ///
-  /// @nodoc
-  @internal
-  static const supportedSpaces = {
-    ColorSpace.srgb,
-    ColorSpace.srgbLinear,
-    ColorSpace.lab,
-    ColorSpace.oklab,
-    ColorSpace.xyzD50,
-    ColorSpace.xyzD65,
-    ColorSpace.hsl,
-    ColorSpace.hwb,
-    ColorSpace.lch,
-    ColorSpace.oklch
-  };
-
   /// The color space in which to perform the interpolation.
   final ColorSpace space;
 
@@ -41,10 +22,7 @@ class InterpolationMethod {
 
   InterpolationMethod(this.space, [HueInterpolationMethod? hue])
       : hue = space.isPolar ? hue ?? HueInterpolationMethod.shorter : null {
-    if (!supportedSpaces.contains(space)) {
-      throw ArgumentError(
-          "Color space $space can't be used for interpolation.");
-    } else if (!space.isPolar && hue != null) {
+    if (!space.isPolar && hue != null) {
       throw ArgumentError(
           "Hue interpolation method may not be set for rectangular color space "
           "$space.");
@@ -66,11 +44,6 @@ class InterpolationMethod {
 
     var space = ColorSpace.fromName(
         (list.first.assertString(name)..assertUnquoted(name)).text, name);
-    if (!supportedSpaces.contains(space)) {
-      throw SassScriptException(
-          "Color space $space can't be used for interpolation.", name);
-    }
-
     if (list.length == 1) return InterpolationMethod(space);
 
     var hueMethod = HueInterpolationMethod._fromValue(list[1], name);
@@ -124,14 +97,7 @@ enum HueInterpolationMethod {
   /// Angles are adjusted so that `θ₂ - θ₁ ∈ (-360, 0]`.
   ///
   /// https://www.w3.org/TR/css-color-4/#hue-decreasing
-  decreasing,
-
-  /// No fixup is performed.
-  ///
-  /// Angles are interpolated in the same way as every other component.
-  ///
-  /// https://www.w3.org/TR/css-color-4/#hue-specified
-  specified;
+  decreasing;
 
   /// Parses a SassScript value representing a hue interpolation method, not
   /// ending with "hue".
@@ -150,8 +116,6 @@ enum HueInterpolationMethod {
         return HueInterpolationMethod.increasing;
       case 'decreasing':
         return HueInterpolationMethod.decreasing;
-      case 'specified':
-        return HueInterpolationMethod.specified;
       default:
         throw SassScriptException(
             'Unknown hue interpolation method $value.', name);
