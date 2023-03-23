@@ -2984,7 +2984,7 @@ abstract class StylesheetParser extends Parser {
   /// Parses a single calculation value.
   Expression _calculationValue() {
     var next = scanner.peekChar();
-    if (next == $plus || next == $minus || next == $dot || isDigit(next)) {
+    if (next == $plus || next == $dot || isDigit(next)) {
       return _number();
     } else if (next == $dollar) {
       return _variable();
@@ -3001,13 +3001,14 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       scanner.expectChar($rparen);
       return ParenthesizedExpression(value, scanner.spanFrom(start));
-    } else if (!lookingAtIdentifier()) {
-      scanner.error("Expected number, variable, function, or calculation.");
-    } else {
+    } else if (lookingAtIdentifier()) {
       var start = scanner.state;
       var ident = identifier();
       if (scanner.scanChar($dot)) return namespacedExpression(ident, start);
-      if (scanner.peekChar() != $lparen) scanner.error('Expected "(" or ".".');
+      if (scanner.peekChar() != $lparen) {
+        return StringExpression(Interpolation([ident], scanner.spanFrom(start)),
+            quotes: false);
+      }
 
       var lowerCase = ident.toLowerCase();
       var calculation = _tryCalculation(lowerCase, start);
@@ -3019,6 +3020,12 @@ abstract class StylesheetParser extends Parser {
         return FunctionExpression(
             ident, _argumentInvocation(), scanner.spanFrom(start));
       }
+    } else if (next == $minus) {
+      // This has to go after [lookingAtIdentifier] because a hyphen can start
+      // an identifier as well as a number.
+      return _number();
+    } else {
+      scanner.error("Expected number, variable, function, or calculation.");
     }
   }
 

@@ -92,7 +92,7 @@ void main() {
     group("for floating-point numbers", () {
       test("Infinity", () {
         expect(compileString("a {b: 1e999}"),
-            equalsIgnoringWhitespace("a { b: Infinity; }"));
+            equalsIgnoringWhitespace("a { b: calc(infinity); }"));
       });
 
       test(">= 1e21", () {
