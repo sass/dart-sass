@@ -195,12 +195,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     test("a runtime error", () async {
       var sass = await runSass(["--interactive"]);
-      sass.stdin.writeln("max(2, 1 + blue)");
+      sass.stdin.writeln("@use 'sass:math'");
+      sass.stdin.writeln("math.max(2, 1 + blue)");
       await expectLater(
           sass.stdout,
           emitsInOrder([
-            ">> max(2, 1 + blue)",
-            "          ^^^^^^^^",
+            ">> math.max(2, 1 + blue)",
+            "               ^^^^^^^^",
             'Error: Undefined operation "1 + blue".'
           ]));
       await sass.kill();
