@@ -302,13 +302,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     group("and colorizes", () {
       test("an error in the source text", () async {
         var sass = await runSass(["--interactive", "--color"]);
-        sass.stdin.writeln("max(2, 1 + blue)");
+        sass.stdin.writeln("@use 'sass:math'");
+        sass.stdin.writeln("math.max(2, 1 + blue)");
         await expectLater(
             sass.stdout,
             emitsInOrder([
-              ">> max(2, 1 + blue)",
-              "\u001b[31m\u001b[1F\u001b[10C1 + blue",
-              "          ^^^^^^^^",
+              ">> @use 'sass:math'",
+              ">> math.max(2, 1 + blue)",
+              "\u001b[31m\u001b[1F\u001b[15C1 + blue",
+              "               ^^^^^^^^",
               '\u001b[0mError: Undefined operation "1 + blue".'
             ]));
         await sass.kill();
