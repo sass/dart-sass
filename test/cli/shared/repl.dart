@@ -200,6 +200,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await expectLater(
           sass.stdout,
           emitsInOrder([
+            ">> @use 'sass:math'",
             ">> math.max(2, 1 + blue)",
             "               ^^^^^^^^",
             'Error: Undefined operation "1 + blue".'
