@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
+import 'package:collection/collection.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -492,7 +493,35 @@ class _SerializeVisitor
   }
 
   void _writeCalculationValue(Object value) {
-    if (value is Value) {
+    if (value is SassNumber && !value.value.isFinite) {
+      if (value.numeratorUnits.length > 1 ||
+          value.denominatorUnits.isNotEmpty) {
+        if (!_inspect) {
+          throw SassScriptException("$value isn't a valid CSS value.");
+        }
+
+        _writeNumber(value.value);
+        _buffer.write(value.unitString);
+        return;
+      }
+
+      if (value.value == double.infinity) {
+        _buffer.write('infinity');
+      } else if (value.value == double.negativeInfinity) {
+        _buffer.write('-infinity');
+      } else if (value.value.isNaN) {
+        _buffer.write('NaN');
+      }
+
+      var unit = value.numeratorUnits.firstOrNull;
+      if (unit != null) {
+        _writeOptionalSpace();
+        _buffer.writeCharCode($asterisk);
+        _writeOptionalSpace();
+        _buffer.writeCharCode($1);
+        _buffer.write(unit);
+      }
+    } else if (value is Value) {
       value.accept(this);
     } else if (value is CalculationInterpolation) {
       _buffer.write(value.value);
@@ -513,7 +542,11 @@ class _SerializeVisitor
       var right = value.right;
       var parenthesizeRight = right is CalculationInterpolation ||
           (right is CalculationOperation &&
-              _parenthesizeCalculationRhs(value.operator, right.operator));
+              _parenthesizeCalculationRhs(value.operator, right.operator)) ||
+          (value.operator == CalculationOperator.dividedBy &&
+              right is SassNumber &&
+              !right.value.isFinite &&
+              right.hasUnits);
       if (parenthesizeRight) _buffer.writeCharCode($lparen);
       _writeCalculationValue(right);
       if (parenthesizeRight) _buffer.writeCharCode($rparen);
@@ -757,6 +790,11 @@ class _SerializeVisitor
       visitNumber(asSlash.item1);
       _buffer.writeCharCode($slash);
       visitNumber(asSlash.item2);
+      return;
+    }
+
+    if (!value.value.isFinite) {
+      visitCalculation(SassCalculation.unsimplified('calc', [value]));
       return;
     }
 
