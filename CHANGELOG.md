@@ -1,5 +1,8 @@
-## 1.60.0
+## 1.61.0
 
+* **Potentially breaking change:** Drop support for End-of-Life Node.js 12.
+
+## 1.60.0
 * Add support for the `pi`, `e`, `infinity`, `-infinity`, and `NaN` constants in
   calculations. These will be interpreted as the corresponding numbers.
 
