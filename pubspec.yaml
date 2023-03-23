@@ -35,7 +35,7 @@ dependencies:
 dev_dependencies:
   analyzer: ^4.7.0
   archive: ^3.1.2
-  cli_pkg: ^2.4.2
+  cli_pkg: ^2.4.3
   crypto: ^3.0.0
   dart_style: ^2.0.0
   dartdoc: ^6.0.0
