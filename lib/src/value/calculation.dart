@@ -38,9 +38,9 @@ class SassCalculation extends Value {
   /// Creates a new calculation with the given [name] and [arguments]
   /// that will not be simplified.
   @internal
-  static Value unsimplified(String name, Iterable<Object> arguments) {
-    return SassCalculation._(name, List.unmodifiable(arguments));
-  }
+  static SassCalculation unsimplified(
+          String name, Iterable<Object> arguments) =>
+      SassCalculation._(name, List.unmodifiable(arguments));
 
   /// Creates a `calc()` calculation with the given [argument].
   ///

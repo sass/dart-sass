@@ -2379,7 +2379,28 @@ class _EvaluateVisitor
           : result;
     } else if (node is StringExpression) {
       assert(!node.hasQuotes);
-      return CalculationInterpolation(await _performInterpolation(node.text));
+      var text = node.text.asPlain;
+      // If there's actual interpolation, create a CalculationInterpolation.
+      // Otherwise, create an UnquotedString. The main difference is that
+      // UnquotedStrings don't get extra defensive parentheses.
+      if (text == null) {
+        return CalculationInterpolation(await _performInterpolation(node.text));
+      }
+
+      switch (text.toLowerCase()) {
+        case 'pi':
+          return SassNumber(math.pi);
+        case 'e':
+          return SassNumber(math.e);
+        case 'infinity':
+          return SassNumber(double.infinity);
+        case '-infinity':
+          return SassNumber(double.negativeInfinity);
+        case 'nan':
+          return SassNumber(double.nan);
+        default:
+          return SassString(text, quotes: false);
+      }
     } else if (node is BinaryOperationExpression) {
       return await _addExceptionSpanAsync(
           node,
