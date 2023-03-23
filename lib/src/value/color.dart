@@ -123,7 +123,7 @@ class SassColor extends Value {
       case ColorSpace.oklab:
       case ColorSpace.lch:
       case ColorSpace.oklch:
-        return fuzzyEquals(channel0, 0);
+        return fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100);
 
       default:
         return false;
@@ -156,11 +156,13 @@ class SassColor extends Value {
     switch (space) {
       case ColorSpace.lab:
       case ColorSpace.oklab:
-        return fuzzyEquals(channel0, 0);
+        return fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100);
 
       case ColorSpace.lch:
       case ColorSpace.oklch:
-        return fuzzyEquals(channel0, 0) || fuzzyEquals(channel1, 0);
+        return fuzzyEquals(channel0, 0) ||
+            fuzzyEquals(channel0, 100) ||
+            fuzzyEquals(channel1, 0);
 
       default:
         return false;
@@ -285,7 +287,7 @@ class SassColor extends Value {
           [num? alpha]) =>
       SassColor.forSpaceInternal(
           ColorSpace.hsl,
-          hue?.toDouble(),
+          _normalizeHue(hue?.toDouble()),
           saturation.andThen((saturation) =>
               fuzzyAssertRange(saturation.toDouble(), 0, 100, "saturation")),
           lightness.andThen((lightness) =>
@@ -299,7 +301,7 @@ class SassColor extends Value {
           [num? alpha]) =>
       SassColor.forSpaceInternal(
           ColorSpace.hwb,
-          hue?.toDouble(),
+          _normalizeHue(hue?.toDouble()),
           whiteness.andThen((whiteness) =>
               fuzzyAssertRange(whiteness.toDouble(), 0, 100, "whiteness")),
           blackness.andThen((blackness) =>
@@ -367,21 +369,39 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.lab(double? lightness, double? a, double? b,
           [double? alpha]) =>
-      SassColor.forSpaceInternal(ColorSpace.lab, lightness, a, b, alpha);
+      SassColor.forSpaceInternal(
+          ColorSpace.lab,
+          lightness.andThen(
+              (lightness) => fuzzyAssertRange(lightness, 0, 100, "lightness")),
+          a,
+          b,
+          alpha);
 
   /// Creates a color in [ColorSpace.lch].
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.lch(double? lightness, double? chroma, double? hue,
           [double? alpha]) =>
-      SassColor.forSpaceInternal(ColorSpace.lch, lightness, chroma, hue, alpha);
+      SassColor.forSpaceInternal(
+          ColorSpace.lch,
+          lightness.andThen(
+              (lightness) => fuzzyAssertRange(lightness, 0, 100, "lightness")),
+          chroma,
+          _normalizeHue(hue),
+          alpha);
 
   /// Creates a color in [ColorSpace.oklab].
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.oklab(double? lightness, double? a, double? b,
           [double? alpha]) =>
-      SassColor.forSpaceInternal(ColorSpace.oklab, lightness, a, b, alpha);
+      SassColor.forSpaceInternal(
+          ColorSpace.oklab,
+          lightness.andThen(
+              (lightness) => fuzzyAssertRange(lightness, 0, 100, "lightness")),
+          a,
+          b,
+          alpha);
 
   /// Creates a color in [ColorSpace.oklch].
   ///
@@ -389,7 +409,12 @@ class SassColor extends Value {
   factory SassColor.oklch(double? lightness, double? chroma, double? hue,
           [double? alpha]) =>
       SassColor.forSpaceInternal(
-          ColorSpace.oklch, lightness, chroma, hue, alpha);
+          ColorSpace.oklch,
+          lightness.andThen(
+              (lightness) => fuzzyAssertRange(lightness, 0, 100, "lightness")),
+          chroma,
+          _normalizeHue(hue),
+          alpha);
 
   /// Creates a color in the color space named [space].
   ///
@@ -401,14 +426,17 @@ class SassColor extends Value {
       throw RangeError.value(channels.length, "channels.length",
           'must be exactly ${space.channels.length} for color space "$space"');
     } else {
-      var clampChannels = space == ColorSpace.hsl || space == ColorSpace.hwb;
+      var clampChannel0 = space.channels[0].name == "lightness";
+      var clampChannel12 = space == ColorSpace.hsl || space == ColorSpace.hwb;
       return SassColor.forSpaceInternal(
           space,
-          channels[0],
-          clampChannels
+          clampChannel0
+              ? channels[0].andThen((value) => fuzzyClamp(value, 0, 100))
+              : channels[0],
+          clampChannel12
               ? channels[1].andThen((value) => fuzzyClamp(value, 0, 100))
               : channels[1],
-          clampChannels
+          clampChannel12
               ? channels[2].andThen((value) => fuzzyClamp(value, 0, 100))
               : channels[2],
           alpha);
@@ -432,6 +460,12 @@ class SassColor extends Value {
         "[BUG] Tried to create "
         "$_space(${channel0OrNull ?? 'none'}, ${channel1OrNull ?? 'none'}, "
         "${channel2OrNull ?? 'none'})");
+    assert(
+        space.channels[0].name != "lightness" ||
+            fuzzyCheckRange(channel0, 0, 100) != null,
+        "[BUG] Tried to create "
+        "$_space(${channel0OrNull ?? 'none'}, ${channel1OrNull ?? 'none'}, "
+        "${channel2OrNull ?? 'none'})");
     assert(space != ColorSpace.lms);
 
     _checkChannel(channel0OrNull, space.channels[0].name);
@@ -447,6 +481,12 @@ class SassColor extends Value {
     } else if (!channel.isFinite) {
       throw RangeError.value(channel, name, 'must be finite.');
     }
+  }
+
+  /// If [hue] isn't null, normalizes it to the range `[0, 360)`.
+  static double? _normalizeHue(double? hue) {
+    if (hue == null) return hue;
+    return (hue % 360 + 360) % 360;
   }
 
   /// @nodoc
@@ -894,11 +934,6 @@ class SassColor extends Value {
   double _interpolateHues(
       double hue1, double hue2, HueInterpolationMethod method, double weight) {
     // Algorithms from https://www.w3.org/TR/css-color-4/#hue-interpolation
-    if (method != HueInterpolationMethod.specified) {
-      hue1 = (hue1 % 360 + 360) % 360;
-      hue2 = (hue2 % 360 + 360) % 360;
-    }
-
     switch (method) {
       case HueInterpolationMethod.shorter:
         var difference = hue2 - hue1;
@@ -924,10 +959,6 @@ class SassColor extends Value {
 
       case HueInterpolationMethod.decreasing:
         if (hue1 < hue2) hue1 += 360;
-        break;
-
-      case HueInterpolationMethod.specified:
-        // Use the hues as-is.
         break;
     }
 
