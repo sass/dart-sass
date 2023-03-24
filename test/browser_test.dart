@@ -1,4 +1,4 @@
-@Tags(['browser'])
+@TestOn('browser')
 
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';

@@ -121,7 +121,7 @@ jobs:
       - run: dart pub get
       - run: dart run grinder pkg-standalone-dev
       - name: Run tests
-        run: dart run test -p vm -x node -r expanded
+        run: dart run test -x node -r expanded
 
   # Unit tests that use Node.js, defined in test/.
   #
@@ -185,7 +185,7 @@ jobs:
     - run: dart pub get
     - run: dart run grinder before-test
     - run: google-chrome --version
-    - run: dart run test --platform chrome -j 2 -t browser -r expanded
+    - run: dart run test -p chrome -j 2 -r expanded
       env: {CHROME_EXECUTABLE: chrome}
 
   static_analysis:
