@@ -14,7 +14,7 @@
     "url": "https://github.com/nex3"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=14.0.0"
   },
   "dependencies": {
     "chokidar": ">=3.0.0 <4.0.0",

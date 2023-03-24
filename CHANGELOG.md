@@ -1,3 +1,18 @@
+## 1.61.0
+
+* **Potentially breaking change:** Drop support for End-of-Life Node.js 12.
+
+## 1.60.0
+* Add support for the `pi`, `e`, `infinity`, `-infinity`, and `NaN` constants in
+  calculations. These will be interpreted as the corresponding numbers.
+
+* Add support for unknown constants in calculations. These will be interpreted
+  as unquoted strings.
+
+* Serialize numbers with value `infinity`, `-infinity`, and `NaN` to `calc()`
+  expressions rather than CSS-invalid identifiers. Numbers with complex units
+  still can't be serialized.
+
 ## 1.59.3
 
 * Fix a performance regression introduced in 1.59.0.
