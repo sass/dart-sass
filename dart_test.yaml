@@ -1,8 +1,6 @@
 tags:
   # Indicates tests that require Node.js.
   node:
-  # Indicates tests that require a browser.
-  browser:
 
 override_platforms:
   chrome:
