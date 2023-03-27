@@ -51,12 +51,13 @@ final global = UnmodifiableListView([
 
   _function("invert", r"$color, $weight: 100%", (arguments) {
     var weight = arguments[1].assertNumber("weight");
-    if (arguments[0] is SassNumber) {
+    if (arguments[0] is SassNumber || arguments[0].isVar) {
       if (weight.value != 100 || !weight.hasUnit("%")) {
         throw "Only one argument may be passed to the plain-CSS invert() "
             "function.";
       }
 
+      // Use the native CSS `invert` filter function.
       return _functionString("invert", arguments.take(1));
     }
 
@@ -111,7 +112,8 @@ final global = UnmodifiableListView([
   }),
 
   _function("grayscale", r"$color", (arguments) {
-    if (arguments[0] is SassNumber) {
+    if (arguments[0] is SassNumber || arguments[0].isVar) {
+      // Use the native CSS `grayscale` filter function.
       return _functionString('grayscale', arguments);
     }
 
@@ -143,6 +145,10 @@ final global = UnmodifiableListView([
 
   BuiltInCallable.overloadedFunction("saturate", {
     r"$amount": (arguments) {
+      if (arguments[0] is SassNumber || arguments[0].isVar) {
+        // Use the native CSS `saturate` filter function.
+        return _functionString("saturate", arguments);
+      }
       var number = arguments[0].assertNumber("amount");
       return SassString("saturate(${number.toCssString()})", quotes: false);
     },
@@ -204,7 +210,8 @@ final global = UnmodifiableListView([
   }),
 
   _function("opacity", r"$color", (arguments) {
-    if (arguments[0] is SassNumber) {
+    if (arguments[0] is SassNumber || arguments[0].isVar) {
+      // Use the native CSS `opacity` filter function.
       return _functionString("opacity", arguments);
     }
 
