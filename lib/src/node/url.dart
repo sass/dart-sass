@@ -7,7 +7,8 @@ import 'package:js/js.dart';
 /// The JavaScript URL class.
 ///
 /// See https://developer.mozilla.org/en-US/docs/Web/API/URL.
-@JS('URL')
+@JS()
 class JSUrl {
+  @JS('URL')
   external JSUrl(String url, [String base]);
 }
