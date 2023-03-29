@@ -1,5 +1,7 @@
 @TestOn('browser')
 
+import 'dart:js';
+
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
@@ -21,24 +23,20 @@ class Sass {
 
 void main() {
   setUpAll(ensureNpmPackage);
-  test('sass object is available', () {
-    expect(sass, isNotNull);
+  test('compileAsync() is not available', () {
+    expect(() => (sass as dynamic).compileAsync,
+        throwsA(isA<NoSuchMethodError>()));
   });
-  test('compileString() is available', () {
-    expect(sass.compileString, isNotNull);
+  test('compile() is not available', () {
+    expect(() => (sass as dynamic).compile, throwsA(isA<NoSuchMethodError>()));
   });
-  test('compileStringAsync() is available', () {
-    expect(sass.compileStringAsync, isNotNull);
+  test('render() is not available', () {
+    expect(() => (sass as dynamic).render, throwsA(isA<NoSuchMethodError>()));
   });
-  // test('compile() is not available', () {
-  //   expect(sass.compile, isNull);
-  // });
-  // test('render() is not available', () {
-  //   expect(sass.render, isNull);
-  // });
-  // test('renderSync() is not available', () {
-  //   expect(sass.renderSync, isNull);
-  // });
+  test('renderSync() is not available', () {
+    expect(
+        () => (sass as dynamic).renderSync, throwsA(isA<NoSuchMethodError>()));
+  });
   test('compileString() produces output', () {
     var result = sass.compileString('foo {bar: baz}');
     expect(result.css, equals('foo {\n  bar: baz;\n}'));
