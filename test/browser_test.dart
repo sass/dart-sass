@@ -1,7 +1,5 @@
 @TestOn('browser')
 
-import 'dart:js';
-
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';

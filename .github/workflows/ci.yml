@@ -126,7 +126,7 @@ jobs:
   # Unit tests that use Node.js, defined in test/.
   #
   # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated April 2021. See
+  # They next need to be rotated April 2023. See
   # https://github.com/nodejs/Release.
   node_tests:
     name: "Node tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node_version }} | ${{ matrix.os }}"
