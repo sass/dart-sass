@@ -5,18 +5,18 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: d74f051467a841ce893a50ebeb420b7a5695f985d2781e22b3927fbc849aea45
+      sha256: a36ec4843dc30ea6bf652bf25e3448db6c5e8bcf4aa55f063a5d1dad216d8214
       url: "https://pub.dev"
     source: hosted
-    version: "57.0.0"
+    version: "58.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
-      sha256: b665679cdccab0c754e65021f01087c6fab07a0b13659dd58827f765739b40f8
+      sha256: cc4242565347e98424ce9945c819c192ec0838cb9d1f6aa4a97cc96becbc5b27
       url: "https://pub.dev"
     source: hosted
-    version: "5.9.0"
+    version: "5.10.0"
   archive:
     dependency: transitive
     description:
@@ -69,10 +69,10 @@ packages:
     dependency: "direct dev"
     description:
       name: cli_pkg
-      sha256: c5bae978235d16395df3c9bbc94c476bcfb90324795693f2f6a6e2e9aaac35e6
+      sha256: "0f76b0ea3f158e9c68e3ae132e90435cfd094c507ae6aaeccb05bbc2ef758517"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.3"
+    version: "2.4.4"
   cli_repl:
     dependency: transitive
     description:
@@ -349,24 +349,24 @@ packages:
     dependency: transitive
     description:
       name: retry
-      sha256: "45dfeebaf095b606fdb9dbfb4c114cc204449bc274783b452658365e03afdbab"
+      sha256: a8a1e475a100a0bdc73f529ca8ea1e9c9c76bec8ad86a1f47780139a34ce7aea
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.1.1"
   sass:
     dependency: "direct main"
     description:
       name: sass
-      sha256: "050de6ed666d3f06a45da2c51eab5764c690766ee96b47b94944e582c93315b7"
+      sha256: "3174cb19e5d655e57f814176b82510ea1ff964f0df6a6dec839f1912e250d36e"
       url: "https://pub.dev"
     source: hosted
-    version: "1.60.0"
+    version: "1.61.0"
   sass_analysis:
     dependency: "direct dev"
     description:
       path: analysis
       ref: HEAD
-      resolved-ref: c6e7dbc0cd75f9d50f4091f7a53f9f9e3c6cc2de
+      resolved-ref: "702a7ee7a18c0265f8f90ff1155268e477dd77cf"
       url: "https://github.com/sass/dart-sass.git"
     source: git
     version: "0.0.0"
@@ -374,10 +374,10 @@ packages:
     dependency: "direct main"
     description:
       name: sass_api
-      sha256: e79ebf557e5599f9f57850ce7b6af8af605e7487d4bfa396f0ba057661f2e2a1
+      sha256: "19a3bc0c3ad28d362c4d207557d06cd6aed89a94cf5d89681fa3b625f0904a27"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.0"
+    version: "6.2.0"
   shelf:
     dependency: transitive
     description:
@@ -430,10 +430,10 @@ packages:
     dependency: "direct main"
     description:
       name: source_span
-      sha256: dd904f795d4b4f3b870833847c461801f6750a9fa8e61ea5ac53f9422b31f250
+      sha256: "53e943d4206a5e30df338fd4c6e7a077e02254531b138a15aec3bd143c1a8b3c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.9.1"
+    version: "1.10.0"
   stack_trace:
     dependency: "direct main"
     description:
@@ -478,26 +478,26 @@ packages:
     dependency: "direct dev"
     description:
       name: test
-      sha256: ce63f9d79c7b5ae87b8756b92deb0b78bdfb3a6421226b7cd03bf9e414d560ed
+      sha256: "3dac9aecf2c3991d09b9cdde4f98ded7b30804a88a0d7e4e7e1678e78d6b97f4"
       url: "https://pub.dev"
     source: hosted
-    version: "1.24.0"
+    version: "1.24.1"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: "6b12a91cd2febdb6f7e7d92c00d1d0c01d88bffc7fe36b1ed236f0cc37cb5ca4"
+      sha256: eb6ac1540b26de412b3403a163d919ba86f6a973fe6cc50ae3541b80092fdcfb
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.1"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "4f44e9d888186f91f93ca581d6962424e796b9317acc3a1a997ab86753bf4717"
+      sha256: "5138dbffb77b2289ecb12b81c11ba46036590b72a64a7a90d6ffb880f1a29e93"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.1"
   test_descriptor:
     dependency: "direct dev"
     description:
