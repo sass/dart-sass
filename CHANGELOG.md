@@ -2,7 +2,13 @@
 
 * **Potentially breaking change:** Drop support for End-of-Life Node.js 12.
 
+### Embedded Sass
+
+* The JS embedded host now loads files from the working directory when using the
+  legacy API.
+
 ## 1.60.0
+
 * Add support for the `pi`, `e`, `infinity`, `-infinity`, and `NaN` constants in
   calculations. These will be interpreted as the corresponding numbers.
 
