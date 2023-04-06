@@ -6,7 +6,6 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
-import 'package:string_scanner/string_scanner.dart';
 
 import 'ast/sass.dart';
 import 'util/character.dart';
@@ -125,21 +124,21 @@ class InterpolationMap {
   /// comment before the expression, but since it's only used for error
   /// reporting that's probably fine.
   int _expandInterpolationSpanLeft(FileLocation start) {
-    var source = start.file.getText(0, start.offset);
+    var source = start.file.codeUnits;
     var i = start.offset - 1;
-    while (true) {
-      var prev = source.codeUnitAt(i--);
+    while (i >= 0) {
+      var prev = source[i--];
       if (prev == $lbrace) {
-        if (source.codeUnitAt(i) == $hash) break;
+        if (source[i] == $hash) break;
       } else if (prev == $slash) {
-        var second = source.codeUnitAt(i--);
+        var second = source[i--];
         if (second == $asterisk) {
           while (true) {
-            var char = source.codeUnitAt(i--);
+            var char = source[i--];
             if (char != $asterisk) continue;
 
             do {
-              char = source.codeUnitAt(i--);
+              char = source[i--];
             } while (char == $asterisk);
             if (char == $slash) break;
           }
@@ -153,21 +152,22 @@ class InterpolationMap {
   /// Given the end of a [FileSpan] covering an interpolated expression, returns
   /// the offset of the interpolation's closing `}`.
   int _expandInterpolationSpanRight(FileLocation end) {
-    var scanner = StringScanner(end.file.getText(end.offset));
-    while (true) {
-      var next = scanner.readChar();
+    var source = end.file.codeUnits;
+    var i = end.offset;
+    while (i < source.length) {
+      var next = source[i++];
       if (next == $rbrace) break;
       if (next == $slash) {
-        var second = scanner.readChar();
+        var second = source[i++];
         if (second == $slash) {
-          while (!isNewline(scanner.readChar())) {}
+          while (!isNewline(source[i++])) {}
         } else if (second == $asterisk) {
           while (true) {
-            var char = scanner.readChar();
+            var char = source[i++];
             if (char != $asterisk) continue;
 
             do {
-              char = scanner.readChar();
+              char = source[i++];
             } while (char == $asterisk);
             if (char == $slash) break;
           }
@@ -175,6 +175,6 @@ class InterpolationMap {
       }
     }
 
-    return end.offset + scanner.position;
+    return i;
   }
 }

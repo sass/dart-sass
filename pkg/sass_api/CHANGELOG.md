@@ -1,3 +1,7 @@
+## 6.2.0
+
+* No user-visible changes.
+
 ## 6.1.0
 
 * No user-visible changes.
