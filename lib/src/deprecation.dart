@@ -54,6 +54,11 @@ enum Deprecation {
       deprecatedIn: '1.56.0',
       description: 'Passing invalid units to built-in functions.'),
 
+  duplicateVariableFlags('duplicate-var-flags',
+      deprecatedIn: '1.62.0',
+      description:
+          'Using !default or !global multiple times for one variable.'),
+
   /// Deprecation for `@import` rules.
   import.future('import', description: '@import rules.'),
 

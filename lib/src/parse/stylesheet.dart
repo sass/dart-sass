@@ -230,11 +230,25 @@ abstract class StylesheetParser extends Parser {
     while (scanner.scanChar($exclamation)) {
       var flag = identifier();
       if (flag == 'default') {
+        if (guarded) {
+          logger.warnForDeprecation(
+              Deprecation.duplicateVariableFlags,
+              '!default should only be written once for each variable.\n'
+              'This will be an error in Dart Sass 2.0.0.',
+              span: scanner.spanFrom(flagStart));
+        }
+
         guarded = true;
       } else if (flag == 'global') {
         if (namespace != null) {
           error("!global isn't allowed for variables in other modules.",
               scanner.spanFrom(flagStart));
+        } else if (global) {
+          logger.warnForDeprecation(
+              Deprecation.duplicateVariableFlags,
+              '!global should only be written once for each variable.\n'
+              'This will be an error in Dart Sass 2.0.0.',
+              span: scanner.spanFrom(flagStart));
         }
 
         global = true;
