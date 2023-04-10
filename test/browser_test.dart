@@ -44,4 +44,20 @@ void main() {
     result = await promiseToFuture(result);
     expect((result as NodeCompileResult).css, equals('foo {\n  bar: baz;\n}'));
   });
+  test('compileString() throws error if importing without custom importer', () {
+    expect(() => sass.compileString("@use 'other';"),
+        throwsA(predicate((error) {
+      expect(error.toString(), matches("Can't find stylesheet to import."));
+      return true;
+    })));
+  });
+  test('compileStringAsync() throws error if importing without custom importer',
+      () async {
+    var result = sass.compileStringAsync("@use 'other';");
+    expect(() async => await promiseToFuture<NodeCompileResult>(result),
+        throwsA(predicate((error) {
+      expect(error.toString(), matches("Can't find stylesheet to import."));
+      return true;
+    })));
+  });
 }
