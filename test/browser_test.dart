@@ -21,29 +21,36 @@ class Sass {
 
 void main() {
   setUpAll(ensureNpmPackage);
+
   test('compileAsync() is not available', () {
     expect(() => (sass as dynamic).compileAsync,
         throwsA(isA<NoSuchMethodError>()));
   });
+
   test('compile() is not available', () {
     expect(() => (sass as dynamic).compile, throwsA(isA<NoSuchMethodError>()));
   });
+
   test('render() is not available', () {
     expect(() => (sass as dynamic).render, throwsA(isA<NoSuchMethodError>()));
   });
+
   test('renderSync() is not available', () {
     expect(
         () => (sass as dynamic).renderSync, throwsA(isA<NoSuchMethodError>()));
   });
+
   test('compileString() produces output', () {
     var result = sass.compileString('foo {bar: baz}');
     expect(result.css, equals('foo {\n  bar: baz;\n}'));
   });
+
   test('compileStringAsync() produces output', () async {
     var result = sass.compileStringAsync('foo {bar: baz}');
     result = await promiseToFuture(result);
     expect((result as NodeCompileResult).css, equals('foo {\n  bar: baz;\n}'));
   });
+
   test('compileString() throws error if importing without custom importer', () {
     expect(() => sass.compileString("@use 'other';"),
         throwsA(predicate((error) {
@@ -51,6 +58,7 @@ void main() {
       return true;
     })));
   });
+
   test('compileStringAsync() throws error if importing without custom importer',
       () async {
     var result = sass.compileStringAsync("@use 'other';");
