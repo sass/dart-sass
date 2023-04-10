@@ -1,6 +1,13 @@
+## 1.62.0
+
+* Deprecate the use of multiple `!global` or `!default` flags on the same
+  variable. This deprecation is named `duplicate-var-flags`.
+
 ## 1.61.0
 
 * **Potentially breaking change:** Drop support for End-of-Life Node.js 12.
+
+* Fix remaining cases for the performance regression introduced in 1.59.0.
 
 ### Embedded Sass
 
