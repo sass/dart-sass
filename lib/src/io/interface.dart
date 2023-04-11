@@ -37,7 +37,10 @@ bool get isMacOS => throw '';
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => throw '';
 
-/// Whether we're running as Node.JS.
+/// Whether we're running as JS (browser or Node).
+bool get isJS => throw '';
+
+/// Whether we're running as Node.JS (not browser).
 bool get isNode => throw '';
 
 /// Whether this process is connected to a terminal that supports ANSI escape
