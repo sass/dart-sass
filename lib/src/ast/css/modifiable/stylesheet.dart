@@ -18,6 +18,9 @@ class ModifiableCssStylesheet extends ModifiableCssParentNode
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssStylesheet(this);
 
+  bool equalsIgnoringChildren(ModifiableCssNode other) =>
+      other is ModifiableCssStylesheet;
+
   ModifiableCssStylesheet copyWithoutChildren() =>
       ModifiableCssStylesheet(span);
 }

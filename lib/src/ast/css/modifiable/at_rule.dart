@@ -22,6 +22,12 @@ class ModifiableCssAtRule extends ModifiableCssParentNode implements CssAtRule {
 
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssAtRule(this);
 
+  bool equalsIgnoringChildren(ModifiableCssNode other) =>
+      other is ModifiableCssAtRule &&
+      name == other.name &&
+      value == other.value &&
+      isChildless == other.isChildless;
+
   ModifiableCssAtRule copyWithoutChildren() =>
       ModifiableCssAtRule(name, span, childless: isChildless, value: value);
 
