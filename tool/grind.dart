@@ -48,7 +48,15 @@ void main(List<String> args) {
   pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"];
   // Limit the methods exposed as ESM exports to those that don't require
   // filesystem access
-  pkg.jsEsmExports.value = {'compileString', 'compileStringAsync'};
+  pkg.jsEsmExports.value = {
+    'compile',
+    'compileAsync',
+    'compileString',
+    'compileStringAsync',
+    'info',
+    'render',
+    'renderSync',
+  };
 
   pkg.githubReleaseNotes.fn = () =>
       "To install Sass ${pkg.version}, download one of the packages below "

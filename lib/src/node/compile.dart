@@ -13,7 +13,8 @@ import '../importer/node_to_dart/async.dart';
 import '../importer/node_to_dart/async_file.dart';
 import '../importer/node_to_dart/file.dart';
 import '../importer/node_to_dart/sync.dart';
-import '../io.dart';
+import '../io.dart' hide isNode;
+import '../io/node.dart' show isNode;
 import '../logger/node_to_dart.dart';
 import '../util/nullable.dart';
 import 'compile_options.dart';
@@ -27,6 +28,9 @@ import 'utils.dart';
 /// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
 /// details.
 NodeCompileResult compile(String path, [CompileOptions? options]) {
+  if (!isNode) {
+    jsThrow(JsError("The compile() method is only available in Node.js."));
+  }
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
   try {
@@ -85,6 +89,9 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
 /// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
 /// details.
 Promise compileAsync(String path, [CompileOptions? options]) {
+  if (!isNode) {
+    jsThrow(JsError("The compileAsync() method is only available in Node.js."));
+  }
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
   return _wrapAsyncSassExceptions(futureToPromise(() async {

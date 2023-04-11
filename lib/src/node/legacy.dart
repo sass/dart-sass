@@ -16,7 +16,8 @@ import '../compile.dart';
 import '../compile_result.dart';
 import '../exception.dart';
 import '../importer/legacy_node.dart';
-import '../io.dart';
+import '../io.dart' hide isNode;
+import '../io/node.dart' show isNode;
 import '../logger.dart';
 import '../logger/node_to_dart.dart';
 import '../syntax.dart';
@@ -39,6 +40,9 @@ import 'utils.dart';
 /// [render]: https://github.com/sass/node-sass#options
 void render(
     RenderOptions options, void callback(Object? error, RenderResult? result)) {
+  if (!isNode) {
+    jsThrow(JsError("The render() method is only available in Node.js."));
+  }
   var fiber = options.fiber;
   if (fiber != null) {
     fiber.call(allowInterop(() {
@@ -117,6 +121,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
 ///
 /// [render]: https://github.com/sass/node-sass#options
 RenderResult renderSync(RenderOptions options) {
+  if (!isNode) {
+    jsThrow(JsError("The renderSync() method is only available in Node.js."));
+  }
   try {
     var start = DateTime.now();
     CompileResult result;

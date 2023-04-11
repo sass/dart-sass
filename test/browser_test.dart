@@ -4,6 +4,8 @@ import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
 import 'package:sass/src/node/compile_options.dart';
+import 'package:sass/src/node/legacy/render_options.dart';
+import 'package:sass/src/node/legacy/render_result.dart';
 import 'package:test/test.dart';
 import 'ensure_npm_package.dart';
 import 'package:sass/src/node/compile_result.dart';
@@ -17,27 +19,51 @@ class Sass {
       [CompileStringOptions? options]);
   external Promise compileStringAsync(String text,
       [CompileStringOptions? options]);
+  external NodeCompileResult compile(String path, [CompileOptions? options]);
+  external Promise compileAsync(String path, [CompileOptions? options]);
+  external void render(
+      RenderOptions options, void callback(Error error, RenderResult result));
+  external RenderResult renderSync(RenderOptions options);
+  external String get info;
 }
 
 void main() {
   setUpAll(ensureNpmPackage);
 
   test('compileAsync() is not available', () {
-    expect(() => (sass as dynamic).compileAsync,
-        throwsA(isA<NoSuchMethodError>()));
+    expect(
+        () => sass.compileAsync('index.scss'),
+        throwsA(predicate((err) =>
+            (err as dynamic).message ==
+            'The compileAsync() method is only available in Node.js.')));
   });
 
   test('compile() is not available', () {
-    expect(() => (sass as dynamic).compile, throwsA(isA<NoSuchMethodError>()));
+    expect(
+        () => sass.compile('index.scss'),
+        throwsA(predicate((err) =>
+            (err as dynamic).message ==
+            'The compile() method is only available in Node.js.')));
   });
 
   test('render() is not available', () {
-    expect(() => (sass as dynamic).render, throwsA(isA<NoSuchMethodError>()));
+    expect(
+        () => sass.render(RenderOptions(), (error, result) {}),
+        throwsA(predicate((err) =>
+            (err as dynamic).message ==
+            'The render() method is only available in Node.js.')));
   });
 
   test('renderSync() is not available', () {
     expect(
-        () => (sass as dynamic).renderSync, throwsA(isA<NoSuchMethodError>()));
+        () => sass.renderSync(RenderOptions()),
+        throwsA(predicate((err) =>
+            (err as dynamic).message ==
+            'The renderSync() method is only available in Node.js.')));
+  });
+
+  test('info produces output', () {
+    expect(sass.info, startsWith("dart-sass\t"));
   });
 
   test('compileString() produces output', () {
