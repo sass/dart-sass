@@ -21,10 +21,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: d6347d54a2d8028e0437e3c099f66fdb8ae02c4720c1e7534c9f24c10351f85d
+      sha256: "0c8368c9b3f0abbc193b9d6133649a614204b528982bebc7026372d61677ce3a"
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.6"
+    version: "3.3.7"
   args:
     dependency: transitive
     description:
@@ -357,16 +357,16 @@ packages:
     dependency: "direct main"
     description:
       name: sass
-      sha256: "3174cb19e5d655e57f814176b82510ea1ff964f0df6a6dec839f1912e250d36e"
+      sha256: "2ed4971a0b2acf0f5927e45988abe910cbebb467ba396503976d3556ee5af730"
       url: "https://pub.dev"
     source: hosted
-    version: "1.61.0"
+    version: "1.62.0"
   sass_analysis:
     dependency: "direct dev"
     description:
       path: analysis
       ref: HEAD
-      resolved-ref: "702a7ee7a18c0265f8f90ff1155268e477dd77cf"
+      resolved-ref: c55235d166591e86ed342a1b5937b3d600e4d4de
       url: "https://github.com/sass/dart-sass.git"
     source: git
     version: "0.0.0"
@@ -374,10 +374,10 @@ packages:
     dependency: "direct main"
     description:
       name: sass_api
-      sha256: "19a3bc0c3ad28d362c4d207557d06cd6aed89a94cf5d89681fa3b625f0904a27"
+      sha256: "712eeb6707214c9712eb5032a7e23c496f080a965c54e9e2b2efa885296fd3cb"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.0"
+    version: "6.3.0"
   shelf:
     dependency: transitive
     description:
@@ -550,10 +550,10 @@ packages:
     dependency: transitive
     description:
       name: web_socket_channel
-      sha256: ca49c0bc209c687b887f30527fb6a9d80040b072cc2990f34b9bec3e7663101b
+      sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.0"
+    version: "2.4.0"
   webkit_inspection_protocol:
     dependency: transitive
     description:

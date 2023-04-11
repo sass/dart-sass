@@ -1,3 +1,16 @@
+## 1.62.0
+
+* Deprecate the use of multiple `!global` or `!default` flags on the same
+  variable. This deprecation is named `duplicate-var-flags`.
+
+* Allow special numbers like `var()` or `calc()` in the global functions:
+  `grayscale()`, `invert()`, `saturate()`, and `opacity()`. These are also
+  native CSS `filter` functions. This is in addition to number values which were
+  already allowed.
+
+* Fix a cosmetic bug where an outer rule could be duplicated after nesting was
+  resolved, instead of re-using a shared rule.
+
 ## 1.61.0
 
 * **Potentially breaking change:** Drop support for End-of-Life Node.js 12.
