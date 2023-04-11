@@ -3343,8 +3343,14 @@ class _EvaluateVisitor
       if (parent.hasFollowingSibling) {
         // A node with siblings must have a parent
         var grandparent = parent.parent!;
-        parent = parent.copyWithoutChildren();
-        grandparent.addChild(parent);
+        if (parent.equalsIgnoringChildren(grandparent.children.last)) {
+          // If we've already made a copy of [parent] and nothing else has been
+          // added after it, re-use it.
+          parent = grandparent.children.last as ModifiableCssParentNode;
+        } else {
+          parent = parent.copyWithoutChildren();
+          grandparent.addChild(parent);
+        }
       }
     }
 

@@ -66,6 +66,9 @@ abstract class ModifiableCssParentNode extends ModifiableCssNode
       : _children = children,
         children = UnmodifiableListView(children);
 
+  /// Returns whether [this] is equal to [other], ignoring their child nodes.
+  bool equalsIgnoringChildren(ModifiableCssNode other);
+
   /// Returns a copy of [this] with an empty [children] list.
   ///
   /// This is *not* a deep copy. If other parts of this node are modifiable,
