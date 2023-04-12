@@ -94,7 +94,10 @@ void main() {
     expect(() => sass.compileString("@use 'other';"),
         throwsA(predicate((error) {
       expect(error, const TypeMatcher<JsError>());
-      expect(error.toString(), startsWith("Can't find stylesheet to import."));
+      expect(
+          error.toString(),
+          startsWith(
+              "Custom importers are required to `@use` or `@import` when compiling in the browser."));
       return true;
     })));
   });
@@ -105,7 +108,10 @@ void main() {
     expect(() async => await promiseToFuture<NodeCompileResult>(result),
         throwsA(predicate((error) {
       expect(error, const TypeMatcher<JsError>());
-      expect(error.toString(), startsWith("Can't find stylesheet to import."));
+      expect(
+          error.toString(),
+          startsWith(
+              "Custom importers are required to `@use` or `@import` when compiling in the browser."));
       return true;
     })));
   });

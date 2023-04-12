@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 92d6816f673ecbabd993aea7b79e27553f896ff4
+// Checksum: d844d818b4acd784d562928949b138f5698fc248
 //
 // ignore_for_file: unused_import
 
@@ -101,6 +101,9 @@ class ImportCache {
   static List<Importer> _toImporters(Iterable<Importer>? importers,
       Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
+    if (isBrowser) {
+      return [...?importers];
+    }
     return [
       ...?importers,
       if (loadPaths != null)

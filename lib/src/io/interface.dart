@@ -43,6 +43,9 @@ bool get isJS => throw '';
 /// Whether we're running as Node.js (not browser or Dart VM).
 bool get isNode => throw '';
 
+/// Whether we're running as browser (not Node.js or Dart VM).
+bool get isBrowser => throw '';
+
 /// Whether this process is connected to a terminal that supports ANSI escape
 /// sequences.
 bool get supportsAnsiEscapes => throw '';

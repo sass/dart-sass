@@ -28,6 +28,8 @@ bool get isJS => false;
 
 bool get isNode => false;
 
+bool get isBrowser => false;
+
 bool get supportsAnsiEscapes {
   if (!hasTerminal) return false;
 

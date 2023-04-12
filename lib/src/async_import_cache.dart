@@ -95,6 +95,9 @@ class AsyncImportCache {
   static List<AsyncImporter> _toImporters(Iterable<AsyncImporter>? importers,
       Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
+    if (isBrowser) {
+      return [...?importers];
+    }
     return [
       ...?importers,
       if (loadPaths != null)

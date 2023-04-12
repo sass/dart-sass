@@ -242,6 +242,8 @@ bool get isJS => true;
 
 bool get isNode => process != null;
 
+bool get isBrowser => isJS && !isNode;
+
 // Node seems to support ANSI escapes on all terminals.
 bool get supportsAnsiEscapes => hasTerminal;
 
