@@ -1,8 +1,3 @@
 tags:
   # Indicates tests that require Node.js.
   node:
-
-override_platforms:
-  chrome:
-    settings:
-      arguments: --no-sandbox

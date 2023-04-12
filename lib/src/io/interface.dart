@@ -37,18 +37,15 @@ bool get isMacOS => throw '';
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => throw '';
 
-/// Whether we're running as JS (browser or Node).
+/// Whether we're running as JS (browser or Node.js).
 bool get isJS => throw '';
 
-/// Whether we're running as Node.JS (not browser).
+/// Whether we're running as Node.js (not browser or Dart VM).
 bool get isNode => throw '';
 
 /// Whether this process is connected to a terminal that supports ANSI escape
 /// sequences.
 bool get supportsAnsiEscapes => throw '';
-
-/// The current working directory.
-String get currentPath => throw '';
 
 /// Reads the file at [path] as a UTF-8 encoded string.
 ///

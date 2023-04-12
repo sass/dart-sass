@@ -37,8 +37,6 @@ bool get supportsAnsiEscapes {
   return io.stdout.supportsAnsiEscapes;
 }
 
-String get currentPath => io.Directory.current.path;
-
 String readFile(String path) {
   var bytes = io.File(path).readAsBytesSync();
 

@@ -83,7 +83,8 @@ void deleteFile(String path) {
 }
 
 Future<String> readStdin() async {
-  if (!isNode) {
+  var process_ = process;
+  if (process_ == null) {
     throw UnsupportedError("readStdin() is only supported on Node.js");
   }
   var completer = Completer<String>();
@@ -94,15 +95,15 @@ Future<String> readStdin() async {
   });
   // Node defaults all buffers to 'utf8'.
   var sink = utf8.decoder.startChunkedConversion(innerSink);
-  process?.stdin.on('data', allowInterop(([Object? chunk]) {
+  process_.stdin.on('data', allowInterop(([Object? chunk]) {
     sink.add(chunk as List<int>);
   }));
-  process?.stdin.on('end', allowInterop(([Object? _]) {
+  process_.stdin.on('end', allowInterop(([Object? _]) {
     // Callback for 'end' receives no args.
     assert(_ == null);
     sink.close();
   }));
-  process?.stdin.on('error', allowInterop(([Object? e]) {
+  process_.stdin.on('error', allowInterop(([Object? e]) {
     stderr.writeln('Failed to read from stdin');
     stderr.writeln(e);
     completer.completeError(e!);
@@ -223,19 +224,15 @@ T _systemErrorToFileSystemException<T>(T callback()) {
   }
 }
 
-Stderr get stderr {
+final Stderr stderr = () {
   var stderr_ = process?.stderr;
   if (stderr_ == null) {
     throw UnsupportedError("stderr is only supported on Node.js");
   }
   return Stderr(stderr_);
-}
+}();
 
-/// We can't use [process.stdout.isTTY] from `node_interop` because of
-/// pulyaevskiy/node-interop#93: it declares `isTTY` as always non-nullably
-/// available, but in practice it's undefined if stdout isn't a TTY.
-// ignore: invalid_null_aware_operator
-bool get hasTerminal => process?.stdout?.isTTY == true;
+bool get hasTerminal => process?.stdout.isTTY == true;
 
 bool get isWindows => process?.platform == 'win32';
 
@@ -247,8 +244,6 @@ bool get isNode => process != null;
 
 // Node seems to support ANSI escapes on all terminals.
 bool get supportsAnsiEscapes => hasTerminal;
-
-String get currentPath => process?.cwd() ?? '/';
 
 int get exitCode => process?.exitCode ?? 0;
 

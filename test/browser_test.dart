@@ -31,35 +31,48 @@ void main() {
   setUpAll(ensureNpmPackage);
 
   test('compileAsync() is not available', () {
-    expect(
-        () => sass.compileAsync('index.scss'),
-        throwsA(predicate((err) =>
-            (err as dynamic).message ==
-            'The compileAsync() method is only available in Node.js.')));
+    expect(() => sass.compileAsync('index.scss'), throwsA(predicate((error) {
+      expect(error, const TypeMatcher<JsError>());
+      expect(
+          error.toString(),
+          startsWith(
+              "Error: The compileAsync() method is only available in Node.js."));
+      return true;
+    })));
   });
 
   test('compile() is not available', () {
-    expect(
-        () => sass.compile('index.scss'),
-        throwsA(predicate((err) =>
-            (err as dynamic).message ==
-            'The compile() method is only available in Node.js.')));
+    expect(() => sass.compile('index.scss'), throwsA(predicate((error) {
+      expect(error, const TypeMatcher<JsError>());
+      expect(
+          error.toString(),
+          startsWith(
+              "Error: The compile() method is only available in Node.js."));
+      return true;
+    })));
   });
 
   test('render() is not available', () {
-    expect(
-        () => sass.render(RenderOptions(), (error, result) {}),
-        throwsA(predicate((err) =>
-            (err as dynamic).message ==
-            'The render() method is only available in Node.js.')));
+    expect(() => sass.render(RenderOptions(), allowInterop((error, result) {})),
+        throwsA(predicate((error) {
+      expect(error, const TypeMatcher<JsError>());
+      expect(
+          error.toString(),
+          startsWith(
+              "Error: The render() method is only available in Node.js."));
+      return true;
+    })));
   });
 
   test('renderSync() is not available', () {
-    expect(
-        () => sass.renderSync(RenderOptions()),
-        throwsA(predicate((err) =>
-            (err as dynamic).message ==
-            'The renderSync() method is only available in Node.js.')));
+    expect(() => sass.renderSync(RenderOptions()), throwsA(predicate((error) {
+      expect(error, const TypeMatcher<JsError>());
+      expect(
+          error.toString(),
+          startsWith(
+              "Error: The renderSync() method is only available in Node.js."));
+      return true;
+    })));
   });
 
   test('info produces output', () {
@@ -80,7 +93,8 @@ void main() {
   test('compileString() throws error if importing without custom importer', () {
     expect(() => sass.compileString("@use 'other';"),
         throwsA(predicate((error) {
-      expect(error.toString(), matches("Can't find stylesheet to import."));
+      expect(error, const TypeMatcher<JsError>());
+      expect(error.toString(), startsWith("Can't find stylesheet to import."));
       return true;
     })));
   });
@@ -90,7 +104,8 @@ void main() {
     var result = sass.compileStringAsync("@use 'other';");
     expect(() async => await promiseToFuture<NodeCompileResult>(result),
         throwsA(predicate((error) {
-      expect(error.toString(), matches("Can't find stylesheet to import."));
+      expect(error, const TypeMatcher<JsError>());
+      expect(error.toString(), startsWith("Can't find stylesheet to import."));
       return true;
     })));
   });

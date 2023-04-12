@@ -1626,7 +1626,7 @@ class _EvaluateVisitor
         }
       }
 
-      if (url.startsWith('package:') && isNode) {
+      if (url.startsWith('package:') && isJS) {
         // Special-case this error message, since it's tripped people up in the
         // past.
         throw "\"package:\" URLs aren't supported on this platform.";

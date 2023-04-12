@@ -46,8 +46,6 @@ void main(List<String> args) {
   pkg.standaloneName.value = "dart-sass";
   pkg.githubUser.fn = () => Platform.environment["GH_USER"];
   pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"];
-  // Limit the methods exposed as ESM exports to those that don't require
-  // filesystem access
   pkg.jsEsmExports.value = {
     'compile',
     'compileAsync',
