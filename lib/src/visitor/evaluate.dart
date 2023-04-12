@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c95309f54540f870684e47f4dc5e20c74a62fcdd
+// Checksum: 3e5e09dec7a8bcc6bc017103c67f463843b7fed7
 //
 // ignore_for_file: unused_import
 
@@ -3314,8 +3314,14 @@ class _EvaluateVisitor
       if (parent.hasFollowingSibling) {
         // A node with siblings must have a parent
         var grandparent = parent.parent!;
-        parent = parent.copyWithoutChildren();
-        grandparent.addChild(parent);
+        if (parent.equalsIgnoringChildren(grandparent.children.last)) {
+          // If we've already made a copy of [parent] and nothing else has been
+          // added after it, re-use it.
+          parent = grandparent.children.last as ModifiableCssParentNode;
+        } else {
+          parent = parent.copyWithoutChildren();
+          grandparent.addChild(parent);
+        }
       }
     }
 

@@ -160,7 +160,7 @@ jobs:
       - run: npm install
       - run: dart run grinder before-test
       - name: Run tests
-        run: dart run test -j 2 -t node -r expanded
+        run: dart run test -t node -j 2 -r expanded
 
   browser-test:
     name: "Browser Tests | Dart ${{ matrix.dart-channel }}"
