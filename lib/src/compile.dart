@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ff7aee3ab49553b7f59a3652ae50861c94626f16
+// Checksum: bac7360553f772bbf8243cca78f4f63e4bdf2755
 //
 // ignore_for_file: unused_import
 
@@ -22,6 +22,7 @@ import 'compile_result.dart';
 import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/legacy_node.dart';
+import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'logger/deprecation_handling.dart';
@@ -76,7 +77,7 @@ CompileResult compile(String path,
       logger,
       importCache,
       nodeImporter,
-      isBrowser ? null : FilesystemImporter('.'),
+      FilesystemImporter('.'),
       functions,
       style,
       useSpaces,
@@ -128,7 +129,7 @@ CompileResult compileString(String source,
       logger,
       importCache,
       nodeImporter,
-      importer ?? (isBrowser ? null : FilesystemImporter('.')),
+      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter('.')),
       functions,
       style,
       useSpaces,
@@ -150,7 +151,7 @@ CompileResult _compileStylesheet(
     Logger? logger,
     ImportCache? importCache,
     NodeImporter? nodeImporter,
-    Importer? importer,
+    Importer importer,
     Iterable<Callable>? functions,
     OutputStyle? style,
     bool useSpaces,

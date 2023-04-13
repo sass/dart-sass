@@ -18,7 +18,6 @@ import 'src/exception.dart';
 import 'src/import_cache.dart';
 import 'src/importer.dart';
 import 'src/importer/utils.dart';
-import 'src/io.dart';
 import 'src/logger.dart';
 import 'src/syntax.dart';
 import 'src/util/nullable.dart';
@@ -213,13 +212,11 @@ CompileResult compileStringToResult(String source,
     c.compileString(source,
         syntax: syntax,
         logger: logger,
-        importCache: (isBrowser && (importers == null || importers.isEmpty))
-            ? null
-            : ImportCache(
-                importers: importers,
-                logger: logger ?? Logger.stderr(color: color),
-                packageConfig: packageConfig,
-                loadPaths: loadPaths),
+        importCache: ImportCache(
+            importers: importers,
+            logger: logger ?? Logger.stderr(color: color),
+            packageConfig: packageConfig,
+            loadPaths: loadPaths),
         functions: functions,
         style: style,
         importer: importer,
@@ -293,13 +290,11 @@ Future<CompileResult> compileStringToResultAsync(String source,
     c.compileStringAsync(source,
         syntax: syntax,
         logger: logger,
-        importCache: (isBrowser && (importers == null || importers.isEmpty))
-            ? null
-            : AsyncImportCache(
-                importers: importers,
-                logger: logger ?? Logger.stderr(color: color),
-                packageConfig: packageConfig,
-                loadPaths: loadPaths),
+        importCache: AsyncImportCache(
+            importers: importers,
+            logger: logger ?? Logger.stderr(color: color),
+            packageConfig: packageConfig,
+            loadPaths: loadPaths),
         functions: functions,
         style: style,
         importer: importer,

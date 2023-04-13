@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d844d818b4acd784d562928949b138f5698fc248
+// Checksum: c02cd4dee522dba07246b1fc9d06f03741f5aecf
 //
 // ignore_for_file: unused_import
 
@@ -18,6 +18,7 @@ import 'package:tuple/tuple.dart';
 import 'ast/sass.dart';
 import 'deprecation.dart';
 import 'importer.dart';
+import 'importer/browser.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
@@ -93,7 +94,7 @@ class ImportCache {
 
   /// Creates an import cache without any globally-available importers.
   ImportCache.none({Logger? logger})
-      : _importers = const [],
+      : _importers = isBrowser ? [BrowserImporter()] : const [],
         _logger = logger ?? const Logger.stderr();
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
@@ -102,7 +103,10 @@ class ImportCache {
       Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
     if (isBrowser) {
-      return [...?importers];
+      if (importers == null || importers.isEmpty) {
+        return [BrowserImporter()];
+      }
+      return [...importers];
     }
     return [
       ...?importers,

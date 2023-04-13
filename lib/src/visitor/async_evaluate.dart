@@ -329,8 +329,7 @@ class _EvaluateVisitor
       bool quietDeps = false,
       bool sourceMap = false})
       : _importCache = nodeImporter == null
-            ? importCache ??
-                (isBrowser ? null : AsyncImportCache.none(logger: logger))
+            ? importCache ?? AsyncImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
@@ -1602,9 +1601,6 @@ class _EvaluateVisitor
       _importSpan = span;
 
       var importCache = _importCache;
-      if (isBrowser && importCache == null && _importer == null) {
-        throw "Custom importers are required to `@use` or `@import` when compiling in the browser.";
-      }
       if (importCache != null) {
         baseUrl ??= _stylesheet.span.sourceUrl;
         var tuple = await importCache.canonicalize(Uri.parse(url),

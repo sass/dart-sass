@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c704dc3abec80f654931fedbbf9a6adffdc47d6d
+// Checksum: 3e5e09dec7a8bcc6bc017103c67f463843b7fed7
 //
 // ignore_for_file: unused_import
 
@@ -337,8 +337,7 @@ class _EvaluateVisitor
       bool quietDeps = false,
       bool sourceMap = false})
       : _importCache = nodeImporter == null
-            ? importCache ??
-                (isBrowser ? null : ImportCache.none(logger: logger))
+            ? importCache ?? ImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
@@ -1602,9 +1601,6 @@ class _EvaluateVisitor
       _importSpan = span;
 
       var importCache = _importCache;
-      if (isBrowser && importCache == null && _importer == null) {
-        throw "Custom importers are required to `@use` or `@import` when compiling in the browser.";
-      }
       if (importCache != null) {
         baseUrl ??= _stylesheet.span.sourceUrl;
         var tuple = importCache.canonicalize(Uri.parse(url),
