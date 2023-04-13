@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c02cd4dee522dba07246b1fc9d06f03741f5aecf
+// Checksum: eae6654107b5375bf75e66249ba76d3428667c40
 //
 // ignore_for_file: unused_import
 
@@ -18,7 +18,7 @@ import 'package:tuple/tuple.dart';
 import 'ast/sass.dart';
 import 'deprecation.dart';
 import 'importer.dart';
-import 'importer/browser.dart';
+import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
@@ -94,7 +94,7 @@ class ImportCache {
 
   /// Creates an import cache without any globally-available importers.
   ImportCache.none({Logger? logger})
-      : _importers = isBrowser ? [BrowserImporter()] : const [],
+      : _importers = const [],
         _logger = logger ?? const Logger.stderr();
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
@@ -103,10 +103,7 @@ class ImportCache {
       Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
     if (isBrowser) {
-      if (importers == null || importers.isEmpty) {
-        return [BrowserImporter()];
-      }
-      return [...importers];
+      return [...?importers];
     }
     return [
       ...?importers,
@@ -133,6 +130,12 @@ class ImportCache {
   /// applicable). Otherwise, returns `null`.
   Tuple3<Importer, Uri, Uri>? canonicalize(Uri url,
       {Importer? baseImporter, Uri? baseUrl, bool forImport = false}) {
+    if (isBrowser &&
+        (baseImporter == null || baseImporter is NoOpImporter) &&
+        _importers.isEmpty) {
+      throw "Custom importers are required to `@use` or `@import` when compiling in the browser.";
+    }
+
     if (baseImporter != null) {
       var relativeResult = _relativeCanonicalizeCache
           .putIfAbsent(Tuple4(url, forImport, baseImporter, baseUrl), () {
