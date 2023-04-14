@@ -232,7 +232,12 @@ final Stderr stderr = () {
   return Stderr(stderr_);
 }();
 
-bool get hasTerminal => process?.stdout.isTTY == true;
+/// Ignore `invalid_null_aware_operator` error, because [process.stdout.isTTY]
+/// from `node_interop` declares `isTTY` as always non-nullably available, but
+/// in practice it's undefined if stdout isn't a TTY.
+/// See: https://github.com/pulyaevskiy/node-interop/issues/93
+// ignore: invalid_null_aware_operator
+bool get hasTerminal => process?.stdout?.isTTY == true;
 
 bool get isWindows => process?.platform == 'win32';
 
