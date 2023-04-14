@@ -97,7 +97,7 @@ void main() {
       expect(
           error.toString(),
           startsWith(
-              "Custom importers are required to `@use` or `@import` when compiling in the browser."));
+              "Custom importers are required to load stylesheets when compiling in the browser."));
       return true;
     })));
   });
@@ -111,7 +111,7 @@ void main() {
       expect(
           error.toString(),
           startsWith(
-              "Custom importers are required to `@use` or `@import` when compiling in the browser."));
+              "Custom importers are required to load stylesheets when compiling in the browser."));
       return true;
     })));
   });

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: eae6654107b5375bf75e66249ba76d3428667c40
+// Checksum: 1273c347383da4775032276417fd7568c7e5330b
 //
 // ignore_for_file: unused_import
 
@@ -133,7 +133,7 @@ class ImportCache {
     if (isBrowser &&
         (baseImporter == null || baseImporter is NoOpImporter) &&
         _importers.isEmpty) {
-      throw "Custom importers are required to `@use` or `@import` when compiling in the browser.";
+      throw "Custom importers are required to load stylesheets when compiling in the browser.";
     }
 
     if (baseImporter != null) {

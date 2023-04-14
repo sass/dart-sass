@@ -129,7 +129,7 @@ class AsyncImportCache {
     if (isBrowser &&
         (baseImporter == null || baseImporter is NoOpImporter) &&
         _importers.isEmpty) {
-      throw "Custom importers are required to `@use` or `@import` when compiling in the browser.";
+      throw "Custom importers are required to load stylesheets when compiling in the browser.";
     }
 
     if (baseImporter != null) {
