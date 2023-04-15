@@ -306,6 +306,13 @@ class _EvaluateVisitor
   /// stylesheet.
   List<ModifiableCssImport>? _outOfOrderImports;
 
+  /// A map from modules loaded by the current module to loud comments written
+  /// in this module that should appear before the loaded module.
+  ///
+  /// This is `null` unless there are any pre-module comments in the current
+  /// stylesheet.
+  Map<Module, List<CssComment>>? _preModuleComments;
+
   /// The extension store that tracks extensions and style rules for the current
   /// module.
   ExtensionStore get _extensionStore =>
@@ -498,7 +505,7 @@ class _EvaluateVisitor
         }
 
         await _loadModule(url, "load-css()", callableNode,
-            (module) => _combineCss(module, clone: true).accept(this),
+            (module, _) => _combineCss(module, clone: true).accept(this),
             baseUrl: callableNode.span.sourceUrl,
             configuration: configuration,
             namesInErrors: true);
@@ -574,7 +581,9 @@ class _EvaluateVisitor
     }
   }
 
-  /// Loads the module at [url] and passes it to [callback].
+  /// Loads the module at [url] and passes it to [callback], along with a
+  /// boolean indicating whether this is the first time the module has been
+  /// loaded.
   ///
   /// This first tries loading [url] relative to [baseUrl], which defaults to
   /// `_stylesheet.span.sourceUrl`.
@@ -591,7 +600,7 @@ class _EvaluateVisitor
   /// The [stackFrame] and [nodeWithSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
   Future<void> _loadModule(Uri url, String stackFrame, AstNode nodeWithSpan,
-      FutureOr<void> callback(Module module),
+      FutureOr<void> callback(Module module, bool firstLoad),
       {Uri? baseUrl,
       Configuration? configuration,
       bool namesInErrors = false}) async {
@@ -605,7 +614,10 @@ class _EvaluateVisitor
             configuration.nodeWithSpan.span);
       }
 
-      await _addExceptionSpanAsync(nodeWithSpan, () => callback(builtInModule));
+      // Always consider built-in stylesheets to be "already loaded", since they
+      // never require additional execution to load and never produce CSS.
+      await _addExceptionSpanAsync(
+          nodeWithSpan, () => callback(builtInModule, true));
       return;
     }
 
@@ -628,6 +640,7 @@ class _EvaluateVisitor
       }
       if (canonicalUrl != null) _activeModules[canonicalUrl] = nodeWithSpan;
 
+      var firstLoad = !_modules.containsKey(canonicalUrl);
       var oldInDependency = _inDependency;
       _inDependency = result.isDependency;
       Module module;
@@ -641,7 +654,8 @@ class _EvaluateVisitor
         _inDependency = oldInDependency;
       }
 
-      await _addExceptionSpanAsync(nodeWithSpan, () => callback(module),
+      await _addExceptionSpanAsync(
+          nodeWithSpan, () => callback(module, firstLoad),
           addStackFrame: false);
     });
   }
@@ -690,11 +704,13 @@ class _EvaluateVisitor
 
     var environment = AsyncEnvironment();
     late CssStylesheet css;
+    late Map<Module, List<CssComment>>? preModuleComments;
     var extensionStore = ExtensionStore();
     await _withEnvironment(environment, () async {
       var oldImporter = _importer;
       var oldStylesheet = __stylesheet;
       var oldRoot = __root;
+      var oldPreModuleComments = _preModuleComments;
       var oldParent = __parent;
       var oldEndOfImports = __endOfImports;
       var oldOutOfOrderImports = _outOfOrderImports;
@@ -725,10 +741,12 @@ class _EvaluateVisitor
       css = _outOfOrderImports == null
           ? root
           : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
+      preModuleComments = _preModuleComments;
 
       _importer = oldImporter;
       __stylesheet = oldStylesheet;
       __root = oldRoot;
+      _preModuleComments = oldPreModuleComments;
       __parent = oldParent;
       __endOfImports = oldEndOfImports;
       _outOfOrderImports = oldOutOfOrderImports;
@@ -742,7 +760,8 @@ class _EvaluateVisitor
       _configuration = oldConfiguration;
     });
 
-    var module = environment.toModule(css, extensionStore);
+    var module = environment.toModule(
+        css, preModuleComments ?? const {}, extensionStore);
     if (url != null) {
       _modules[url] = module;
       _moduleConfigurations[url] = _configuration;
@@ -784,32 +803,6 @@ class _EvaluateVisitor
       return root.css;
     }
 
-    var sortedModules = _topologicalModules(root);
-    if (clone) {
-      sortedModules = sortedModules.map((module) => module.cloneCss()).toList();
-    }
-    _extendModules(sortedModules);
-
-    // The imports (and comments between them) that should be included at the
-    // beginning of the final document.
-    var imports = <CssNode>[];
-
-    // The CSS statements in the final document.
-    var css = <CssNode>[];
-
-    for (var module in sortedModules.reversed) {
-      var statements = module.css.children;
-      var index = _indexAfterImports(statements);
-      imports.addAll(statements.getRange(0, index));
-      css.addAll(statements.getRange(index, statements.length));
-    }
-
-    return CssStylesheet(imports + css, root.css.span);
-  }
-
-  /// Extends the selectors in each module with the extensions defined in
-  /// downstream modules.
-  void _extendModules(List<Module> sortedModules) {
     // All the [ExtensionStore]s directly downstream of a given module (indexed
     // by its canonical URL). It's important that we create this in topological
     // order, so that by the time we're processing a module we've already filled
@@ -822,7 +815,19 @@ class _EvaluateVisitor
     /// when they're satisfied by any module.
     var unsatisfiedExtensions = Set<Extension>.identity();
 
-    for (var module in sortedModules) {
+    // The imports (and comments between them) that should be included at the
+    // beginning of the final document.
+    var imports = <CssNode>[];
+
+    // The CSS statements in the final document.
+    var css = <CssNode>[];
+
+    // Visit each module in topological order using depth-first traversal, as in
+    // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search.
+    var seen = <Module>{};
+    void visitModule(Module module) {
+      if (clone) module = module.cloneCss();
+
       // Create a snapshot of the simple selectors currently in the
       // [ExtensionStore] so that we don't consider an extension "satisfied"
       // below because of a simple selector added by another (sibling)
@@ -837,26 +842,52 @@ class _EvaluateVisitor
 
       downstreamExtensionStores[module.url]
           .andThen(module.extensionStore.addExtensions);
-      if (module.extensionStore.isEmpty) continue;
+      if (!module.extensionStore.isEmpty) {
+        for (var upstream in module.upstream) {
+          var url = upstream.url;
+          if (url == null) continue;
+          downstreamExtensionStores
+              .putIfAbsent(url, () => [])
+              .add(module.extensionStore);
+        }
 
-      for (var upstream in module.upstream) {
-        var url = upstream.url;
-        if (url == null) continue;
-        downstreamExtensionStores
-            .putIfAbsent(url, () => [])
-            .add(module.extensionStore);
+        // Remove all extensions that are now satisfied after adding downstream
+        // [ExtensionStore]s so it counts any downstream extensions that have
+        // been newly satisfied.
+        unsatisfiedExtensions.removeAll(module.extensionStore
+            .extensionsWhereTarget(originalSelectors.contains));
       }
 
-      // Remove all extensions that are now satisfied after adding downstream
-      // [ExtensionStore]s so it counts any downstream extensions that have been
-      // newly satisfied.
-      unsatisfiedExtensions.removeAll(module.extensionStore
-          .extensionsWhereTarget(originalSelectors.contains));
+      // Each module is added to the beginning of [sorted], which means the
+      // returned list contains sibling modules in the opposite order of how
+      // they appear in the document. Then when the list is reversed to generate
+      // the CSS, they're put back in their original order.
+      for (var upstream in module.upstream) {
+        if (upstream.transitivelyContainsCss) {
+          var comments = module.preModuleComments[upstream];
+          if (comments != null) {
+            // Intermix the top-level comments with plain CSS `@import`s until we
+            // start to have actual CSS defined, at which point start treating it as
+            // normal CSS.
+            (css.isEmpty ? imports : css).addAll(comments);
+          }
+          if (seen.add(upstream)) visitModule(upstream);
+        }
+      }
+
+      var statements = module.css.children;
+      var index = _indexAfterImports(statements);
+      imports.addAll(statements.getRange(0, index));
+      css.addAll(statements.getRange(index, statements.length));
     }
+
+    visitModule(root);
 
     if (unsatisfiedExtensions.isNotEmpty) {
       _throwForUnsatisfiedExtension(unsatisfiedExtensions.first);
     }
+
+    return CssStylesheet(imports + css, root.css.span);
   }
 
   /// Throws an exception indicating that [extension] is unsatisfied.
@@ -865,33 +896,6 @@ class _EvaluateVisitor
         'The target selector was not found.\n'
         'Use "@extend ${extension.target} !optional" to avoid this error.',
         extension.span);
-  }
-
-  /// Returns all modules transitively used by [root] in topological order,
-  /// ignoring modules that contain no CSS.
-  List<Module> _topologicalModules(Module root) {
-    // Construct a topological ordering using depth-first traversal, as in
-    // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search.
-    var seen = <Module>{};
-    var sorted = QueueList<Module>();
-
-    void visitModule(Module module) {
-      // Each module is added to the beginning of [sorted], which means the
-      // returned list contains sibling modules in the opposite order of how
-      // they appear in the document. Then when the list is reversed to generate
-      // the CSS, they're put back in their original order.
-      for (var upstream in module.upstream) {
-        if (upstream.transitivelyContainsCss && seen.add(upstream)) {
-          visitModule(upstream);
-        }
-      }
-
-      sorted.addFirst(module);
-    }
-
-    visitModule(root);
-
-    return sorted;
   }
 
   /// Returns the index of the first node in [statements] that comes after all
@@ -1342,7 +1346,8 @@ class _EvaluateVisitor
       var newConfiguration =
           await _addForwardConfiguration(adjustedConfiguration, node);
 
-      await _loadModule(node.url, "@forward", node, (module) {
+      await _loadModule(node.url, "@forward", node, (module, firstLoad) {
+        if (firstLoad) _registerCommentsForModule(module);
         _environment.forwardModule(module, node);
       }, configuration: newConfiguration);
 
@@ -1366,7 +1371,8 @@ class _EvaluateVisitor
       _assertConfigurationIsEmpty(newConfiguration);
     } else {
       _configuration = adjustedConfiguration;
-      await _loadModule(node.url, "@forward", node, (module) {
+      await _loadModule(node.url, "@forward", node, (module, firstLoad) {
+        if (firstLoad) _registerCommentsForModule(module);
         _environment.forwardModule(module, node);
       });
       _configuration = oldConfiguration;
@@ -1402,6 +1408,17 @@ class _EvaluateVisitor
     } else {
       return Configuration.implicit(newValues);
     }
+  }
+
+  /// Adds any comments in [_root.children] to [_preModuleComments] for
+  /// [module].
+  void _registerCommentsForModule(Module module) {
+    if (_root.children.isEmpty || !module.transitivelyContainsCss) return;
+    (_preModuleComments ??= {})
+        .putIfAbsent(module, () => [])
+        .addAll(_root.children.cast<CssComment>());
+    _root.clearChildren();
+    _endOfImports = 0;
   }
 
   /// Remove configured values from [upstream] that have been removed from
@@ -2108,7 +2125,8 @@ class _EvaluateVisitor
       configuration = ExplicitConfiguration(values, node);
     }
 
-    await _loadModule(node.url, "@use", node, (module) {
+    await _loadModule(node.url, "@use", node, (module, firstLoad) {
+      if (firstLoad) _registerCommentsForModule(module);
       _environment.addModule(module, node, namespace: node.namespace);
     }, configuration: configuration);
     _assertConfigurationIsEmpty(configuration);

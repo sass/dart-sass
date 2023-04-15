@@ -81,4 +81,13 @@ abstract class ModifiableCssParentNode extends ModifiableCssNode
     child._indexInParent = _children.length;
     _children.add(child);
   }
+
+  /// Destructively removes all elements from [children].
+  void clearChildren() {
+    for (var child in _children) {
+      child._parent = null;
+      child._indexInParent = null;
+    }
+    _children.clear();
+  }
 }
