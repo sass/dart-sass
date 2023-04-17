@@ -137,7 +137,18 @@ class SelectorList extends Selector {
             }
           }
         } else if (newComplexes.isEmpty) {
-          newComplexes.addAll(resolved);
+          newComplexes.addAll(complex.leadingCombinators.isEmpty
+              ? resolved
+              : resolved.map((resolvedComplex) => ComplexSelector(
+                  resolvedComplex.leadingCombinators.isEmpty
+                      ? complex.leadingCombinators
+                      : [
+                          ...complex.leadingCombinators,
+                          ...resolvedComplex.leadingCombinators
+                        ],
+                  resolvedComplex.components,
+                  complex.span,
+                  lineBreak: resolvedComplex.lineBreak)));
         } else {
           var previousComplexes = newComplexes;
           newComplexes = [
