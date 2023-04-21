@@ -54,6 +54,7 @@ void main(List<String> args) {
     'info',
     'render',
     'renderSync',
+    'Exception',
   };
 
   pkg.githubReleaseNotes.fn = () =>
