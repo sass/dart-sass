@@ -151,7 +151,7 @@ class ScssParser extends StylesheetParser {
     do {
       while (!scanner.isDone && !isNewline(scanner.readChar())) {}
       if (scanner.isDone) break;
-      whitespaceWithoutComments();
+      spaces();
     } while (scanner.scan("//"));
 
     if (plainCss) {
