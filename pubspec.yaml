@@ -25,7 +25,7 @@ dependencies:
   source_maps: ^0.10.10
   source_span: ^1.8.1
   stack_trace: ^1.10.0
-  stream_transform: ^2.0.0
+  stream_transform: ^2.1.0
   string_scanner: ^1.1.0
   term_glyph: ^1.2.0
   tuple: ^2.0.0
