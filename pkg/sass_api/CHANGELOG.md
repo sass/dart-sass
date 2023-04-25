@@ -1,6 +1,7 @@
-## 6.3.1
+## 7.0.0
 
-* No user-visible changes.
+* Silent comments in SCSS that are separated by blank lines are now parsed as
+  separate `SilentComment` nodes rather than a single conjoined node.
 
 ## 6.3.0
 
