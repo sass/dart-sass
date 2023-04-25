@@ -159,7 +159,9 @@ NodeCompileResult _convertResult(CompileResult result,
       // The JS API tests expects *no* source map here, not a null source map.
       ? NodeCompileResult(css: result.css, loadedUrls: loadedUrls)
       : NodeCompileResult(
-          css: result.css, loadedUrls: loadedUrls, sourceMap: jsify(sourceMap));
+          css: result.css,
+          loadedUrls: loadedUrls,
+          sourceMap: jsify(sourceMap) as NodeSourceMap);
 }
 
 /// Catches `SassException`s thrown by [promise] and rethrows them as JS API

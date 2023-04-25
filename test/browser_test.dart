@@ -84,10 +84,67 @@ void main() {
     expect(result.css, equals('foo {\n  bar: baz;\n}'));
   });
 
+  test('compileString() produces a sourceMap', () {
+    var opts = jsify({'sourceMap': true}) as CompileStringOptions;
+    var result = sass.compileString('foo {bar: baz}', opts);
+    expect(result.sourceMap, isA<Object>());
+
+    var sourceMap = result.sourceMap!;
+
+    expect(sourceMap.version, isA<num>());
+    expect(sourceMap.sources, isList);
+    expect(sourceMap.names, isList);
+    expect(sourceMap.mappings, isA<String>());
+  });
+
+  test('compileString() produces a sourceMap with source content', () {
+    var opts = jsify({'sourceMap': true, 'sourceMapIncludeSources': true})
+        as CompileStringOptions;
+    var result = sass.compileString('foo {bar: baz}', opts);
+    expect(result.sourceMap, isA<Object>());
+
+    var sourceMap = result.sourceMap!;
+
+    expect(sourceMap.sourcesContent, isList);
+    expect(sourceMap.sourcesContent, isNotEmpty);
+  });
+
   test('compileStringAsync() produces output', () async {
     var result = sass.compileStringAsync('foo {bar: baz}');
     result = await promiseToFuture(result);
     expect((result as NodeCompileResult).css, equals('foo {\n  bar: baz;\n}'));
+  });
+
+  test('compileStringAsync() produces a sourceMap', () async {
+    var opts = jsify({'sourceMap': true}) as CompileStringOptions;
+    var result = sass.compileStringAsync('foo {bar: baz}', opts);
+    result = await promiseToFuture(result);
+    var sourceMap = (result as NodeCompileResult).sourceMap;
+
+    expect(sourceMap, isA<Object>());
+
+    sourceMap = sourceMap!;
+
+    expect(sourceMap.version, isA<num>());
+    expect(sourceMap.sources, isList);
+    expect(sourceMap.names, isList);
+    expect(sourceMap.mappings, isA<String>());
+  });
+
+  test('compileStringAsync() produces a sourceMap with source content',
+      () async {
+    var opts = jsify({'sourceMap': true, 'sourceMapIncludeSources': true})
+        as CompileStringOptions;
+    var result = sass.compileStringAsync('foo {bar: baz}', opts);
+    result = await promiseToFuture(result);
+    var sourceMap = (result as NodeCompileResult).sourceMap;
+
+    expect(sourceMap, isA<Object>());
+
+    sourceMap = sourceMap!;
+
+    expect(sourceMap.sourcesContent, isList);
+    expect(sourceMap.sourcesContent, isNotEmpty);
   });
 
   test('compileString() throws error if importing without custom importer', () {

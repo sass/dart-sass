@@ -8,11 +8,25 @@ import 'array.dart';
 
 @JS()
 @anonymous
+class NodeSourceMap {
+  external num get version;
+  external String get sourceRoot;
+  external JSArray get sources;
+  external JSArray get names;
+  external String get mappings;
+  external String? get file;
+  external JSArray? get sourcesContent;
+}
+
+@JS()
+@anonymous
 class NodeCompileResult {
   external String get css;
-  external Object? get sourceMap;
+  external NodeSourceMap? get sourceMap;
   external JSArray get loadedUrls;
 
   external factory NodeCompileResult(
-      {required String css, Object? sourceMap, required JSArray loadedUrls});
+      {required String css,
+      NodeSourceMap? sourceMap,
+      required JSArray loadedUrls});
 }

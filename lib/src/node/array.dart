@@ -9,4 +9,5 @@ class JSArray {
   external JSArray();
 
   external void push(Object? element);
+  external num length;
 }
