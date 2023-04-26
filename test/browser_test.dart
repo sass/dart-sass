@@ -91,10 +91,10 @@ void main() {
 
     var sourceMap = result.sourceMap!;
 
-    expect(sourceMap.version, isA<num>());
-    expect(sourceMap.sources, isList);
-    expect(sourceMap.names, isList);
-    expect(sourceMap.mappings, isA<String>());
+    expect(getProperty(sourceMap, 'version'), isA<num>());
+    expect(getProperty(sourceMap, 'sources'), isList);
+    expect(getProperty(sourceMap, 'names'), isList);
+    expect(getProperty(sourceMap, 'mappings'), isA<String>());
   });
 
   test('compileString() produces a sourceMap with source content', () {
@@ -105,8 +105,8 @@ void main() {
 
     var sourceMap = result.sourceMap!;
 
-    expect(sourceMap.sourcesContent, isList);
-    expect(sourceMap.sourcesContent, isNotEmpty);
+    expect(getProperty(sourceMap, 'sourcesContent'), isList);
+    expect(getProperty(sourceMap, 'sourcesContent'), isNotEmpty);
   });
 
   test('compileStringAsync() produces output', () async {
@@ -125,10 +125,10 @@ void main() {
 
     sourceMap = sourceMap!;
 
-    expect(sourceMap.version, isA<num>());
-    expect(sourceMap.sources, isList);
-    expect(sourceMap.names, isList);
-    expect(sourceMap.mappings, isA<String>());
+    expect(getProperty(sourceMap, 'version'), isA<num>());
+    expect(getProperty(sourceMap, 'sources'), isList);
+    expect(getProperty(sourceMap, 'names'), isList);
+    expect(getProperty(sourceMap, 'mappings'), isA<String>());
   });
 
   test('compileStringAsync() produces a sourceMap with source content',
@@ -143,8 +143,8 @@ void main() {
 
     sourceMap = sourceMap!;
 
-    expect(sourceMap.sourcesContent, isList);
-    expect(sourceMap.sourcesContent, isNotEmpty);
+    expect(getProperty(sourceMap, 'sourcesContent'), isList);
+    expect(getProperty(sourceMap, 'sourcesContent'), isNotEmpty);
   });
 
   test('compileString() throws error if importing without custom importer', () {
