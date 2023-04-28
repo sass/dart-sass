@@ -1,3 +1,8 @@
+## 1.62.1
+
+* Fix a bug where `:has(+ &)` and related constructs would drop the leading
+  combinator.
+
 ## 1.62.0
 
 * Deprecate the use of multiple `!global` or `!default` flags on the same
