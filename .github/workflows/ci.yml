@@ -103,7 +103,7 @@ jobs:
         run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm
         working-directory: sass-spec
 
-  sass_spec_js:
+  sass_spec_js_browser:
     name: "JS API Tests | Dart ${{ matrix.dart_channel }} | Browser"
     runs-on: "${{ matrix.os }}"
 
