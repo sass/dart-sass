@@ -123,7 +123,9 @@ jobs:
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
         # TODO update this to use "sass/sass-spec" directly
-        with: {repo: sass/sass-spec#1902}
+        with:
+          repo: oddbird/sass-spec
+          default-ref: browser-tests
 
       - name: Install sass-spec dependencies
         run: npm install
