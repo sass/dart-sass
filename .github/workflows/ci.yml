@@ -122,7 +122,8 @@ jobs:
 
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
-        with: {repo: sass/sass-spec}
+        # TODO update this to use "sass/sass-spec" directly
+        with: {repo: sass/sass-spec#1902}
 
       - name: Install sass-spec dependencies
         run: npm install
