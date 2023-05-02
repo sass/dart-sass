@@ -105,7 +105,6 @@ jobs:
 
   sass_spec_js_browser:
     name: "JS API Tests | Dart ${{ matrix.dart_channel }} | Browser"
-    runs-on: "${{ matrix.os }}"
 
     strategy:
       matrix:
