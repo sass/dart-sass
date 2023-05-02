@@ -51,6 +51,7 @@ void main(List<String> args) {
     'compileAsync',
     'compileString',
     'compileStringAsync',
+    'Logger',
     'SassArgumentList',
     'SassBoolean',
     'SassColor',

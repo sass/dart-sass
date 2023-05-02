@@ -30,14 +30,24 @@ class FileSystemException {
 }
 
 class Stderr {
-  final Writable _stderr;
+  final Writable? _stderr;
 
   Stderr(this._stderr);
 
-  void write(Object object) => _stderr.write(object.toString());
+  void write(Object object) {
+    if (_stderr == null) {
+      console.error(object.toString());
+    } else {
+      _stderr?.write(object.toString());
+    }
+  }
 
   void writeln([Object? object]) {
-    _stderr.write("${object ?? ''}\n");
+    if (_stderr == null) {
+      console.error("${object ?? ''}\n");
+    } else {
+      _stderr?.write("${object ?? ''}\n");
+    }
   }
 
   void flush() {}
@@ -142,7 +152,7 @@ bool fileExists(String path) {
 
 bool dirExists(String path) {
   if (!isNode) {
-    throw UnsupportedError("fileExists() is only supported on Node.js");
+    throw UnsupportedError("dirExists() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(() {
     // `existsSync()` is faster than `statSync()`, but it doesn't clarify
@@ -227,7 +237,7 @@ T _systemErrorToFileSystemException<T>(T callback()) {
 final Stderr stderr = () {
   var stderr_ = process?.stderr;
   if (stderr_ == null) {
-    throw UnsupportedError("stderr is only supported on Node.js");
+    return Stderr(null);
   }
   return Stderr(stderr_);
 }();
