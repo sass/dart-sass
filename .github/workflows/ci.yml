@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - name: Check out sass-spec
@@ -75,7 +75,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - uses: actions/setup-node@v3
@@ -103,6 +103,46 @@ jobs:
         run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm
         working-directory: sass-spec
 
+  sass_spec_js:
+    name: "JS API Tests | Dart ${{ matrix.dart_channel }} | Browser"
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      matrix:
+        dart-channel: [stable]
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: browser-actions/setup-chrome@v1
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: ${{ matrix.dart-channel }}
+      - run: dart pub get
+
+      - name: Check out sass-spec
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/sass-spec}
+
+      - name: Install sass-spec dependencies
+        run: npm install
+        working-directory: sass-spec
+
+      - name: Build JS
+        run: dart run grinder pkg-npm-dev
+
+      - name: Check out Sass specification
+        uses: sass/clone-linked-repo@v1
+        with:
+          repo: sass/sass
+          path: language
+
+      - name: Run tests
+        run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm --browser
+        working-directory: sass-spec
+        env: {CHROME_EXECUTABLE: chrome}
+
   dart_tests:
     name: "Dart tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.os }}"
     runs-on: "${{ matrix.os }}"
@@ -116,7 +156,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - run: dart run grinder pkg-standalone-dev
@@ -152,7 +192,7 @@ jobs:
             node_version: 18
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
         with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - uses: actions/setup-node@v3
@@ -189,7 +229,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - name: Analyze Dart
         run: dart analyze --fatal-warnings --fatal-infos .
@@ -200,7 +240,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - name: dartdoc sass
         run: dart run dartdoc --quiet --no-generate-docs
@@ -225,7 +265,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - name: Run checks
         run: dart run grinder double-check-before-release
@@ -242,7 +282,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - run: dart run grinder fetch-bootstrap${{matrix.bootstrap_version}}
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
@@ -256,7 +296,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - run: dart run grinder fetch-bourbon
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
@@ -272,7 +312,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - run: dart run grinder fetch-foundation
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
@@ -289,7 +329,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - run: dart run grinder fetch-bulma
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
@@ -304,7 +344,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - name: Deploy
         run: dart run grinder pkg-github-release pkg-github-linux-ia32 pkg-github-linux-x64
@@ -362,7 +402,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
         # Workaround for dart-lang/setup-dart#59
         with:
           architecture: ${{ matrix.architecture }}
@@ -381,7 +421,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
@@ -398,7 +438,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
@@ -416,7 +456,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
@@ -432,7 +472,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - name: Deploy
         run: dart run grinder deploy-sub-packages
@@ -449,7 +489,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - name: Deploy
         run: dart run grinder pkg-homebrew-update
@@ -465,7 +505,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - name: Deploy
         run: dart run grinder pkg-chocolatey-deploy
@@ -501,7 +541,7 @@ jobs:
         with:
           repository: sass/dart-sass-embedded
           token: ${{ secrets.GH_TOKEN }}
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.2
       - uses: frenck/action-setup-yq@v1
         with: {version: v4.30.5} # frenck/action-setup-yq#35
 
