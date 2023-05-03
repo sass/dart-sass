@@ -134,6 +134,10 @@ jobs:
       - name: Build JS
         run: dart run grinder pkg-npm-dev
 
+      - name: Install built dependencies
+        run: npm install
+        working-directory: build/npm
+
       - name: Check out Sass specification
         uses: sass/clone-linked-repo@v1
         with:
