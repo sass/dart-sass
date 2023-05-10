@@ -1,3 +1,16 @@
+## 1.63.0
+
+### Embedded Sass
+
+* The Dart Sass embedded compiler is now included as part of the primary Dart
+  Sass distribution, rather than a separate executable. To use the embedded
+  compiler, just run `sass --embedded` from any Sass executable (other than the
+  pure JS executable).
+
+  The Node.js embedded host will still be distributed as the `sass-embedded`
+  package on npm. The only change is that it will now provide direct access to a
+  `sass` executable with the same CLI as the `sass` package.
+
 ## 1.62.1
 
 * Fix a bug where `:has(+ &)` and related constructs would drop the leading

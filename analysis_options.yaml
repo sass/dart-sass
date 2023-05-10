@@ -4,3 +4,5 @@
 # out-of-date (because they cause "pub run" to modify the lockfile before it
 # runs the executable).
 include: analysis/lib/analysis_options.yaml
+analyzer:
+  exclude: ['**/*.pb*.dart']

@@ -1,3 +1,7 @@
+## 7.0.1
+
+* No user-visible changes.
+
 ## 7.0.0
 
 * Silent comments in SCSS that are separated by blank lines are now parsed as

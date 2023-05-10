@@ -18,6 +18,10 @@ import 'package:sass/src/io.dart';
 import 'package:sass/src/logger/deprecation_handling.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/utils.dart';
+import 'package:sass/src/embedded/executable.dart'
+    // Never load the embedded protocol when compiling to JS.
+    if (dart.library.js) 'package:sass/src/embedded/unavailable.dart'
+    as embedded;
 
 Future<void> main(List<String> args) async {
   var printedError = false;
@@ -35,6 +39,11 @@ Future<void> main(List<String> args) async {
       stderr.writeln();
       stderr.writeln(Trace.from(stackTrace).terse.toString().trimRight());
     }
+  }
+
+  if (args[0] == '--embedded') {
+    embedded.main(args.sublist(1));
+    return;
   }
 
   ExecutableOptions? options;
