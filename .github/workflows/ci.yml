@@ -1,7 +1,8 @@
 name: CI
 
 defaults:
-  run: {shell: bash}
+  run:
+    shell: bash
 
 env:
   # Note: when changing this, also change
@@ -34,19 +35,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1.2
-        with: {sdk: "${{ matrix.dart_channel }}"}
+        with:
+          sdk: "${{ matrix.dart_channel }}"
       - run: dart pub get
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
-        with: {repo: sass/sass-spec}
+        with:
+          repo: sass/sass-spec
       - uses: actions/setup-node@v3
-        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
+        with:
+          node-version: "${{ env.DEFAULT_NODE_VERSION }}"
       - run: npm install
         working-directory: sass-spec
       - name: Run specs
         run: npm run sass-spec -- --dart .. $extra_args
         working-directory: sass-spec
-        env: {extra_args: "${{ matrix.async_args }}"}
+        env:
+          extra_args: "${{ matrix.async_args }}"
 
   # The versions should be kept up-to-date with the latest LTS Node releases.
   # They next need to be rotated April 2023. See
@@ -76,15 +81,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1.2
-        with: {sdk: "${{ matrix.dart_channel }}"}
+        with:
+          sdk: "${{ matrix.dart_channel }}"
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with: {node-version: "${{ matrix.node_version }}"}
+        with:
+          node-version: "${{ matrix.node_version }}"
       - run: npm install
 
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
-        with: {repo: sass/sass-spec}
+        with:
+          repo: sass/sass-spec
 
       - name: Install sass-spec dependencies
         run: npm install
@@ -108,7 +116,7 @@ jobs:
 
     strategy:
       matrix:
-        dart-channel: [stable]
+        dart_channel: [stable]
       fail-fast: false
 
     runs-on: ubuntu-latest
@@ -117,14 +125,13 @@ jobs:
       - uses: browser-actions/setup-chrome@v1
       - uses: dart-lang/setup-dart@v1.2
         with:
-          sdk: ${{ matrix.dart-channel }}
+          sdk: ${{ matrix.dart_channel }}
       - run: dart pub get
 
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
-        # TODO update this to use "sass/sass-spec" directly
         with:
-          repo: oddbird/sass-spec
+          repo: sass/sass-spec
           default-ref: browser-tests
 
       - name: Install sass-spec dependencies
@@ -147,7 +154,8 @@ jobs:
       - name: Run tests
         run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm --browser
         working-directory: sass-spec
-        env: {CHROME_EXECUTABLE: chrome}
+        env:
+          CHROME_EXECUTABLE: chrome
 
   dart_tests:
     name: "Dart tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.os }}"
@@ -163,7 +171,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1.2
-        with: {sdk: "${{ matrix.dart_channel }}"}
+        with:
+          sdk: "${{ matrix.dart_channel }}"
       - run: dart pub get
       - run: dart run grinder pkg-standalone-dev
       - name: Run tests
@@ -199,21 +208,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1.2
-        with: {sdk: "${{ matrix.dart_channel }}"}
+        with:
+          sdk: "${{ matrix.dart_channel }}"
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with: {node-version: "${{ matrix.node_version }}"}
+        with:
+          node-version: "${{ matrix.node_version }}"
       - run: npm install
       - run: dart run grinder before-test
       - name: Run tests
         run: dart run test -t node -j 2 -r expanded
 
   browser-test:
-    name: "Browser Tests | Dart ${{ matrix.dart-channel }}"
+    name: "Browser Tests | Dart ${{ matrix.dart_channel }}"
 
     strategy:
       matrix:
-        dart-channel: [stable]
+        dart_channel: [stable]
       fail-fast: false
 
     runs-on: ubuntu-latest
@@ -222,12 +233,13 @@ jobs:
     - uses: browser-actions/setup-chrome@v1
     - uses: dart-lang/setup-dart@v1.2
       with:
-        sdk: ${{ matrix.dart-channel }}
+        sdk: ${{ matrix.dart_channel }}
     - run: dart pub get
     - run: dart run grinder before-test
     - run: google-chrome --version
     - run: dart run test -p chrome -j 2 -r expanded
-      env: {CHROME_EXECUTABLE: chrome}
+      env:
+        CHROME_EXECUTABLE: chrome
 
   static_analysis:
     name: Static analysis
@@ -291,7 +303,8 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - run: dart run grinder fetch-bootstrap${{matrix.bootstrap_version}}
-        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        env:
+          GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Build
         run: dart bin/sass.dart --quiet build/bootstrap/scss:build/bootstrap-output
 
@@ -305,7 +318,8 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - run: dart run grinder fetch-bourbon
-        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        env:
+          GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Test
         run: |
           dart bin/sass.dart --quiet -I build/bourbon -I build/bourbon/spec/fixtures \
@@ -321,7 +335,8 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - run: dart run grinder fetch-foundation
-        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        env:
+          GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       # TODO(nweiz): Foundation has proper Sass tests, but they're currently not
       # compatible with Dart Sass. Once they are, we should run those rather
       # than just building the CSS output.
@@ -338,7 +353,8 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - run: dart run grinder fetch-bulma
-        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        env:
+          GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Build
         run: dart bin/sass.dart --quiet build/bulma/bulma.sass build/bulma-output.css
 
@@ -430,7 +446,8 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
+        with:
+          node-version: "${{ env.DEFAULT_NODE_VERSION }}"
       - name: Deploy
         run: dart run grinder pkg-npm-deploy
         env:
@@ -447,7 +464,8 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
+        with:
+          node-version: "${{ env.DEFAULT_NODE_VERSION }}"
       - name: Deploy
         run: dart run grinder update-bazel
         env:
@@ -465,10 +483,12 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
+        with:
+          node-version: "${{ env.DEFAULT_NODE_VERSION }}"
       - name: Deploy
         run: dart run grinder pkg-pub-deploy
-        env: {PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"}
+        env:
+          PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"
 
   deploy_sub_packages:
     name: "Deploy Sub-Packages"
@@ -515,7 +535,8 @@ jobs:
       - run: dart pub get
       - name: Deploy
         run: dart run grinder pkg-chocolatey-deploy
-        env: {CHOCOLATEY_TOKEN: "${{ secrets.CHOCOLATEY_TOKEN }}"}
+        env:
+          CHOCOLATEY_TOKEN: "${{ secrets.CHOCOLATEY_TOKEN }}"
 
   deploy_website:
     name: "Deploy sass-lang.com"
@@ -549,7 +570,8 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
       - uses: dart-lang/setup-dart@v1.2
       - uses: frenck/action-setup-yq@v1
-        with: {version: v4.30.5} # frenck/action-setup-yq#35
+        with:
+          version: v4.30.5} # frenck/action-setup-yq#3
 
       - name: Get version
         id: version
