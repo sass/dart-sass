@@ -571,7 +571,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - uses: frenck/action-setup-yq@v1
         with:
-          version: v4.30.5} # frenck/action-setup-yq#3
+          version: v4.30.5 # frenck/action-setup-yq#35
 
       - name: Get version
         id: version
