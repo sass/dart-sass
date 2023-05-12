@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:js_util';
 import 'dart:typed_data';
 
-import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:path/path.dart' as p;
 
