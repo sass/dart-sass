@@ -46,7 +46,7 @@ one above, the
    dependencies.
 
 3. [Install Node.js][]. This is only necessary if you're making changes to the
-  language or to Dart Sass's Node API.
+   language or to Dart Sass's Node API.
 
 [Install the Dart SDK]: https://www.dartlang.org/install
 [Install Node.js]: https://nodejs.org/en/download/

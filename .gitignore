@@ -14,3 +14,6 @@ package-lock.json
 node_modules/
 /doc/api
 /pkg/*/doc/api
+
+# Generated protocol buffer files.
+*.pb*.dart

@@ -1,4 +1,4 @@
-A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
+A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
 
 <table>
   <tr>
@@ -192,10 +192,19 @@ Assuming you've already checked out this repository:
    manually rather than using an installer, make sure the SDK's `bin` directory
    is on your `PATH`.
 
-2. In this repository, run `pub get`. This will install Dart Sass's
+2. [Install Buf]. This is used to build the protocol buffers for the [embedded
+   compiler].
+
+3. In this repository, run `dart pub get`. This will install Dart Sass's
    dependencies.
 
-3. Run `dart bin/sass.dart path/to/file.scss`.
+4. Run `dart run grinder protobuf`. This will download and build the embedded
+   protocol definition.
+
+5. Run `dart bin/sass.dart path/to/file.scss`.
+
+[Install Buf]: https://docs.buf.build/installation
+[embedded compiler]: #embedded-dart-sass
 
 That's it!
 
@@ -207,12 +216,14 @@ commands:
 ```Dockerfile
 # Dart stage
 FROM dart:stable AS dart
+FROM buildbuf/buf AS buf
 
 COPY --from=another_stage /app /app
 
 WORKDIR /dart-sass
 RUN git clone https://github.com/sass/dart-sass.git . && \
   dart pub get && \
+  dart run grinder protobuf && \
   dart ./bin/sass.dart /app/sass/example.scss /app/public/css/example.css
 ```
 
@@ -298,6 +309,22 @@ Node.js release page][]. Once a Node.js version is out of LTS, Dart Sass
 considers itself free to break support if necessary.
 
 [the Node.js release page]: https://nodejs.org/en/about/releases/
+
+## Embedded Dart Sass
+
+Dart Sass includes an implementation of the compiler side of the [Embedded Sass
+protocol]. It's designed to be embedded in a host language, which then exposes
+an API for users to invoke Sass and define custom functions and importers.
+
+[Embedded Sass protocol]: https://github.com/sass/sass-embedded-protocol/blob/master/README.md#readme
+
+### Usage
+
+* `sass --embedded` starts the embedded compiler and listens on stdin.
+* `sass --embedded --version` prints `versionResponse` with `id = 0` in JSON and
+  exits.
+
+No other command-line flags are supported with `--embedded`.
 
 ## Behavioral Differences from Ruby Sass
 

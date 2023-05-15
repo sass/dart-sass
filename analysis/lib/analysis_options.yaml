@@ -1,8 +1,7 @@
 analyzer:
   exclude: [build/**]
-  strong-mode:
-    implicit-casts: false
   language:
+    strict-casts: true
     strict-inference: true
     strict-raw-types: true
   errors:
