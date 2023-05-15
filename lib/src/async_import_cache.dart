@@ -84,12 +84,12 @@ class AsyncImportCache {
       PackageConfig? packageConfig,
       Logger? logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _logger = logger ?? const Logger.stderr();
+        _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers.
   AsyncImportCache.none({Logger? logger})
       : _importers = const [],
-        _logger = logger ?? const Logger.stderr();
+        _logger = logger ?? Logger.stderr();
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.

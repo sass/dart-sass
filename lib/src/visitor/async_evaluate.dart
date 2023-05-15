@@ -332,7 +332,7 @@ class _EvaluateVisitor
             ? importCache ?? AsyncImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
-        _logger = logger ?? const Logger.stderr(),
+        _logger = logger ?? Logger.stderr(),
         _quietDeps = quietDeps,
         _sourceMap = sourceMap,
         // The default environment is overridden in [_execute] for full

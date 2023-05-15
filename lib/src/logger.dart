@@ -7,7 +7,9 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'deprecation.dart';
+import 'io.dart';
 import 'logger/deprecation_handling.dart';
+import 'logger/browser.dart';
 import 'logger/stderr.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.
@@ -21,7 +23,12 @@ abstract class Logger {
 
   /// Creates a logger that prints warnings to standard error, with terminal
   /// colors if [color] is `true` (default `false`).
-  const factory Logger.stderr({bool color}) = StderrLogger;
+  factory Logger.stderr({bool color = false}) {
+    if (isBrowser) {
+      return BrowserLogger(color: color);
+    }
+    return StderrLogger(color: color);
+  }
 
   /// Emits a warning with the given [message].
   ///

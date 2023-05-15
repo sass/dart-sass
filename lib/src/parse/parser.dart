@@ -58,7 +58,7 @@ class Parser {
   Parser(String contents,
       {Object? url, Logger? logger, InterpolationMap? interpolationMap})
       : scanner = SpanScanner(contents, sourceUrl: url),
-        logger = logger ?? const Logger.stderr(),
+        logger = logger ?? Logger.stderr(),
         _interpolationMap = interpolationMap;
 
   String _parseIdentifier() {

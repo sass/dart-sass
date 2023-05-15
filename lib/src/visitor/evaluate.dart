@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3e5e09dec7a8bcc6bc017103c67f463843b7fed7
+// Checksum: ebae617f3ffce6fd036874e06626c391d37a962b
 //
 // ignore_for_file: unused_import
 
@@ -340,7 +340,7 @@ class _EvaluateVisitor
             ? importCache ?? ImportCache.none(logger: logger)
             : null,
         _nodeImporter = nodeImporter,
-        _logger = logger ?? const Logger.stderr(),
+        _logger = logger ?? Logger.stderr(),
         _quietDeps = quietDeps,
         _sourceMap = sourceMap,
         // The default environment is overridden in [_execute] for full

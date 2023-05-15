@@ -7,8 +7,9 @@ import 'dart:convert';
 import 'dart:js_util';
 
 import 'package:js/js.dart';
+import 'package:node_interop/console.dart';
 import 'package:node_interop/fs.dart';
-import 'package:node_interop/node_interop.dart' hide process;
+import 'package:node_interop/node_interop.dart' as n hide process;
 import 'package:node_interop/stream.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
@@ -18,7 +19,9 @@ import '../exception.dart';
 import '../node/chokidar.dart';
 
 @JS('process')
-external final Process? process; // process is null in the browser
+external final n.Process? process; // process is null in the browser
+
+Console? get console => n.console;
 
 class FileSystemException {
   final String message;
@@ -30,24 +33,14 @@ class FileSystemException {
 }
 
 class Stderr {
-  final Writable? _stderr;
+  final Writable _stderr;
 
   Stderr(this._stderr);
 
-  void write(Object object) {
-    if (_stderr == null) {
-      console.error(object.toString());
-    } else {
-      _stderr?.write(object.toString());
-    }
-  }
+  void write(Object object) => _stderr.write(object.toString());
 
   void writeln([Object? object]) {
-    if (_stderr == null) {
-      console.error("${object ?? ''}\n");
-    } else {
-      _stderr?.write("${object ?? ''}\n");
-    }
+    _stderr.write("${object ?? ''}\n");
   }
 
   void flush() {}
@@ -122,7 +115,7 @@ Future<String> readStdin() async {
 }
 
 /// Cleans up a Node system error's message.
-String _cleanErrorMessage(JsSystemError error) {
+String _cleanErrorMessage(n.JsSystemError error) {
   // The error message is of the form "$code: $text, $syscall '$path'". We just
   // want the text.
   return error.message.substring("${error.code}: ".length,
@@ -143,7 +136,7 @@ bool fileExists(String path) {
     try {
       return fs.statSync(path).isFile();
     } catch (error) {
-      var systemError = error as JsSystemError;
+      var systemError = error as n.JsSystemError;
       if (systemError.code == 'ENOENT') return false;
       rethrow;
     }
@@ -164,7 +157,7 @@ bool dirExists(String path) {
     try {
       return fs.statSync(path).isDirectory();
     } catch (error) {
-      var systemError = error as JsSystemError;
+      var systemError = error as n.JsSystemError;
       if (systemError.code == 'ENOENT') return false;
       rethrow;
     }
@@ -179,7 +172,7 @@ void ensureDir(String path) {
     try {
       fs.mkdirSync(path);
     } catch (error) {
-      var systemError = error as JsSystemError;
+      var systemError = error as n.JsSystemError;
       if (systemError.code == 'EEXIST') return;
       if (systemError.code != 'ENOENT') rethrow;
       ensureDir(p.dirname(path));
@@ -229,7 +222,7 @@ T _systemErrorToFileSystemException<T>(T callback()) {
   try {
     return callback();
   } catch (error) {
-    if (error is! JsSystemError) rethrow;
+    if (error is! n.JsSystemError) rethrow;
     throw FileSystemException._(_cleanErrorMessage(error), error.path);
   }
 }
@@ -237,7 +230,7 @@ T _systemErrorToFileSystemException<T>(T callback()) {
 final Stderr stderr = () {
   var stderr_ = process?.stderr;
   if (stderr_ == null) {
-    return Stderr(null);
+    throw UnsupportedError("stderr is only supported on Node.js");
   }
   return Stderr(stderr_);
 }();

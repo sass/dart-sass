@@ -18,6 +18,15 @@ export 'dart:io' show exitCode, FileSystemException;
 
 io.Stdout get stderr => io.stderr;
 
+abstract class Console {
+  external void log(String data);
+  external void info(String data);
+  external void warn(String data);
+  external void error(String data);
+}
+
+Console? get console => throw '';
+
 bool get isWindows => io.Platform.isWindows;
 
 bool get isMacOS => io.Platform.isMacOS;
