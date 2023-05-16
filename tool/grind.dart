@@ -85,6 +85,20 @@ void main(List<String> args) {
       "\n"
       "${pkg.githubReleaseNotes.defaultValue}";
 
+  pkg.environmentConstants.fn = () {
+    if (!Directory('build/embedded-protocol').existsSync()) {
+      fail('Run `dart run grinder protobuf` before building Dart Sass '
+          'executables.');
+    }
+
+    return {
+      ...pkg.environmentConstants.defaultValue,
+      "protocol-version":
+          File('build/embedded-protocol/VERSION').readAsStringSync().trim(),
+      "compiler-version": pkg.pubspec.version!.toString(),
+    };
+  };
+
   pkg.addAllTasks();
   grind(args);
 }
@@ -104,7 +118,8 @@ void npmInstall() =>
     run(Platform.isWindows ? "npm.cmd" : "npm", arguments: ["install"]);
 
 @Task('Runs the tasks that are required for running tests.')
-@Depends(format, synchronize, "pkg-npm-dev", npmInstall, "pkg-standalone-dev")
+@Depends(format, synchronize, protobuf, "pkg-npm-dev", npmInstall,
+    "pkg-standalone-dev")
 void beforeTest() {}
 
 String get _nuspec => """
@@ -192,4 +207,37 @@ Map<String, String> _fetchJSTypes() {
 void _matchError(Match match, String message, {Object? url}) {
   var file = SourceFile.fromString(match.input, url: url);
   throw SourceSpanException(message, file.span(match.start, match.end));
+}
+
+@Task('Compile the protocol buffer definition to a Dart library.')
+Future<void> protobuf() async {
+  Directory('build').createSync(recursive: true);
+
+  // Make sure we use the version of protoc_plugin defined by our pubspec,
+  // rather than whatever version the developer might have globally installed.
+  log("Writing protoc-gen-dart");
+  if (Platform.isWindows) {
+    File('build/protoc-gen-dart.bat').writeAsStringSync('''
+@echo off
+dart run protoc_plugin %*
+''');
+  } else {
+    File('build/protoc-gen-dart').writeAsStringSync('''
+#!/bin/sh
+dart run protoc_plugin "\$@"
+''');
+    run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
+  }
+
+  if (Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
+    cloneOrCheckout("https://github.com/sass/embedded-protocol.git", "main");
+  }
+
+  await runAsync("buf",
+      arguments: ["generate"],
+      runOptions: RunOptions(environment: {
+        "PATH": 'build' +
+            (Platform.isWindows ? ";" : ":") +
+            Platform.environment["PATH"]!
+      }));
 }

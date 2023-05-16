@@ -326,8 +326,7 @@ Future<CompileResult> compileStringToResultAsync(String source,
 ///
 /// {@category Compile}
 @Deprecated("Use compileToResult() instead.")
-String compile(
-    String path,
+String compile(String path,
     {bool color = false,
     Logger? logger,
     Iterable<Importer>? importers,
@@ -377,8 +376,7 @@ String compile(
 ///
 /// {@category Compile}
 @Deprecated("Use compileStringToResult() instead.")
-String compileString(
-    String source,
+String compileString(String source,
     {Syntax? syntax,
     bool color = false,
     Logger? logger,
@@ -422,8 +420,7 @@ String compileString(
 ///
 /// {@category Compile}
 @Deprecated("Use compileToResultAsync() instead.")
-Future<String> compileAsync(
-    String path,
+Future<String> compileAsync(String path,
     {bool color = false,
     Logger? logger,
     Iterable<AsyncImporter>? importers,
@@ -457,8 +454,7 @@ Future<String> compileAsync(
 ///
 /// {@category Compile}
 @Deprecated("Use compileStringToResultAsync() instead.")
-Future<String> compileStringAsync(
-    String source,
+Future<String> compileStringAsync(String source,
     {Syntax? syntax,
     bool color = false,
     Logger? logger,

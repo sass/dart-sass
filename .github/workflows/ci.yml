@@ -1,8 +1,7 @@
 name: CI
 
 defaults:
-  run:
-    shell: bash
+  run: {shell: bash}
 
 env:
   # Note: when changing this, also change
@@ -17,6 +16,48 @@ on:
   pull_request:
 
 jobs:
+  format:
+    name: Code formatting
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dart-lang/setup-dart@v1
+    - run: dart format --fix .
+    - run: git diff --exit-code
+
+  static_analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+
+      - uses: ./.github/util/build-protobuf
+        with: {github-token: "${{ github.token }}"}
+
+      - name: Analyze Dart
+        run: dart analyze --fatal-warnings ./
+
+  dartdoc:
+    name: Dartdoc
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - name: dartdoc sass
+        run: dart run dartdoc --quiet --no-generate-docs
+          --errors ambiguous-doc-reference,broken-link,deprecated
+          --errors unknown-directive,unknown-macro,unresolved-doc-reference
+      - name: dartdoc sass_api
+        run: cd pkg/sass_api && dart run dartdoc --quiet --no-generate-docs
+          --errors ambiguous-doc-reference,broken-link,deprecated
+          --errors unknown-directive,unknown-macro,unresolved-doc-reference
+
   sass_spec_language:
     name: "Language Tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.async_label }}"
     runs-on: ubuntu-latest
@@ -34,30 +75,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
-        with:
-          sdk: "${{ matrix.dart_channel }}"
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
-        with:
-          repo: sass/sass-spec
+        with: {repo: sass/sass-spec}
       - uses: actions/setup-node@v3
-        with:
-          node-version: "${{ env.DEFAULT_NODE_VERSION }}"
+        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - run: npm install
         working-directory: sass-spec
+
+      - uses: ./.github/util/build-protobuf
+        with: {github-token: "${{ github.token }}"}
+
       - name: Run specs
         run: npm run sass-spec -- --dart .. $extra_args
         working-directory: sass-spec
-        env:
-          extra_args: "${{ matrix.async_args }}"
+        env: {extra_args: "${{ matrix.async_args }}"}
 
   # The versions should be kept up-to-date with the latest LTS Node releases.
   # They next need to be rotated April 2023. See
   # https://github.com/nodejs/Release.
   sass_spec_js:
-    name: "JS API Tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node_version }} | ${{ matrix.os }}"
+    name: "JS API Tests | Pure JS | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node_version }} | ${{ matrix.os }}"
     runs-on: "${{ matrix.os }}"
 
     strategy:
@@ -80,19 +121,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
-        with:
-          sdk: "${{ matrix.dart_channel }}"
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with:
-          node-version: "${{ matrix.node_version }}"
+        with: {node-version: "${{ matrix.node_version }}"}
       - run: npm install
+
+      - uses: ./.github/util/build-protobuf
+        with: {github-token: "${{ github.token }}"}
 
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
-        with:
-          repo: sass/sass-spec
+        with: {repo: sass/sass-spec}
 
       - name: Install sass-spec dependencies
         run: npm install
@@ -111,8 +152,74 @@ jobs:
         run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm
         working-directory: sass-spec
 
+  # The versions should be kept up-to-date with the latest LTS Node releases.
+  # They next need to be rotated April 2023. See
+  # https://github.com/nodejs/Release.
+  sass_spec_js_embedded:
+    name: 'JS API Tests | Embedded | Node ${{ matrix.node_version }} | ${{ matrix.os }}'
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows, macos]
+        node_version: [18]
+        include:
+          # Include LTS versions on Ubuntu
+          - os: ubuntu
+            node_version: 16
+          - os: ubuntu
+            node_version: 14
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: stable}
+      - run: dart pub get
+
+      - uses: ./.github/util/build-protobuf
+        with: {github-token: "${{ github.token }}"}
+
+      - name: Check out the embedded host
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/embedded-host-node}
+
+      - name: Check out the JS API definition
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/sass, path: language}
+
+      - name: Initialize embedded host
+        run: |
+          npm install
+          npm run init -- --protocol-path=../build/embedded-protocol \
+              --compiler-path=.. --api-path=../language
+          npm run compile
+          mv {`pwd`/,dist/}lib/src/vendor/dart-sass
+        working-directory: embedded-host-node
+
+      - name: Check out sass-spec
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/sass-spec}
+
+      - name: Install sass-spec dependencies
+        run: npm install
+        working-directory: sass-spec
+
+      - name: Version info
+        run: |
+          path=embedded-host-node/dist/lib/src/vendor/dart-sass/sass
+          if [[ -f "$path.cmd" ]]; then "./$path.cmd" --version
+          elif [[ -f "$path.bat" ]]; then "./$path.bat" --version
+          elif [[ -f "$path.exe" ]]; then "./$path.exe" --version
+          else "./$path" --version
+          fi
+
+      - name: Run tests
+        run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../language
+        working-directory: sass-spec
+
   sass_spec_js_browser:
-    name: "JS API Tests | Dart ${{ matrix.dart_channel }} | Browser"
+    name: "JS API Tests | Pure JS | Dart ${{ matrix.dart_channel }} | Browser"
 
     strategy:
       matrix:
@@ -123,10 +230,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: browser-actions/setup-chrome@v1
-      - uses: dart-lang/setup-dart@v1.2
-        with:
-          sdk: ${{ matrix.dart_channel }}
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
+
+      - uses: ./.github/util/build-protobuf
+        with: {github-token: "${{ github.token }}"}
 
       - name: Check out sass-spec
         uses: sass/clone-linked-repo@v1
@@ -170,13 +279,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
-        with:
-          sdk: "${{ matrix.dart_channel }}"
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
+
+      - uses: ./.github/util/build-protobuf
+        with: {github-token: "${{ github.token }}"}
+
       - run: dart run grinder pkg-standalone-dev
       - name: Run tests
-        run: dart run test -x node -r expanded
+        run: dart run test -x node
 
   # Unit tests that use Node.js, defined in test/.
   #
@@ -207,17 +319,19 @@ jobs:
             node_version: 18
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
-        with:
-          sdk: "${{ matrix.dart_channel }}"
+      - uses: dart-lang/setup-dart@v1
+        with: {sdk: "${{ matrix.dart_channel }}"}
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with:
-          node-version: "${{ matrix.node_version }}"
+        with: {node-version: "${{ matrix.node_version }}"}
       - run: npm install
+
+      - uses: ./.github/util/build-protobuf
+        with: {github-token: "${{ github.token }}"}
+
       - run: dart run grinder before-test
       - name: Run tests
-        run: dart run test -t node -j 2 -r expanded
+        run: dart run test -t node -j 2
 
   browser-test:
     name: "Browser Tests | Dart ${{ matrix.dart_channel }}"
@@ -231,43 +345,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: browser-actions/setup-chrome@v1
-    - uses: dart-lang/setup-dart@v1.2
-      with:
-        sdk: ${{ matrix.dart_channel }}
+    - uses: dart-lang/setup-dart@v1
+      with: {sdk: "${{ matrix.dart_channel }}"}
     - run: dart pub get
     - run: dart run grinder before-test
     - run: google-chrome --version
-    - run: dart run test -p chrome -j 2 -r expanded
+    - run: dart run test -p chrome -j 2
       env:
         CHROME_EXECUTABLE: chrome
-
-  static_analysis:
-    name: Static analysis
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
-      - run: dart pub get
-      - name: Analyze Dart
-        run: dart analyze --fatal-warnings --fatal-infos .
-
-  dartdoc:
-    name: Dartdoc
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
-      - run: dart pub get
-      - name: dartdoc sass
-        run: dart run dartdoc --quiet --no-generate-docs
-          --errors ambiguous-doc-reference,broken-link,deprecated
-          --errors unknown-directive,unknown-macro,unresolved-doc-reference
-      - name: dartdoc sass_api
-        run: cd pkg/sass_api && dart run dartdoc --quiet --no-generate-docs
-          --errors ambiguous-doc-reference,broken-link,deprecated
-          --errors unknown-directive,unknown-macro,unresolved-doc-reference
 
   double_check:
     name: Double-check
@@ -279,11 +364,12 @@ jobs:
     - node_tests
     - static_analysis
     - dartdoc
+    - format
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Run checks
         run: dart run grinder double-check-before-release
@@ -300,11 +386,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder fetch-bootstrap${{matrix.bootstrap_version}}
-        env:
-          GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       - name: Build
         run: dart bin/sass.dart --quiet build/bootstrap/scss:build/bootstrap-output
 
@@ -315,11 +400,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder fetch-bourbon
-        env:
-          GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       - name: Test
         run: |
           dart bin/sass.dart --quiet -I build/bourbon -I build/bourbon/spec/fixtures \
@@ -332,11 +416,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder fetch-foundation
-        env:
-          GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       # TODO(nweiz): Foundation has proper Sass tests, but they're currently not
       # compatible with Dart Sass. Once they are, we should run those rather
       # than just building the CSS output.
@@ -350,11 +433,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder fetch-bulma
-        env:
-          GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       - name: Build
         run: dart bin/sass.dart --quiet build/bulma/bulma.sass build/bulma-output.css
 
@@ -366,8 +448,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: bufbuild/buf-setup-action@v1.13.1
+        with: {github_token: "${{ github.token }}"}
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
+      - run: dart run grinder protobuf
       - name: Deploy
         run: dart run grinder pkg-github-release pkg-github-linux-ia32 pkg-github-linux-x64
         env:
@@ -389,6 +474,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: bufbuild/buf-setup-action@v1.13.1
+        with: {github_token: "${{ github.token }}"}
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart run grinder protobuf
       - uses: docker/setup-qemu-action@v2
       - name: Deploy
         run: |
@@ -424,11 +514,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: bufbuild/buf-setup-action@v1.13.1
+        with: {github_token: "${{ github.token }}"}
+      - uses: dart-lang/setup-dart@v1
         # Workaround for dart-lang/setup-dart#59
         with:
           architecture: ${{ matrix.architecture }}
       - run: dart pub get
+      - run: dart run grinder protobuf
       - name: Deploy
         run: dart run grinder pkg-github-${{ matrix.platform }}
         env:
@@ -446,8 +539,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with:
-          node-version: "${{ env.DEFAULT_NODE_VERSION }}"
+        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
         run: dart run grinder pkg-npm-deploy
         env:
@@ -464,8 +556,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
       - uses: actions/setup-node@v3
-        with:
-          node-version: "${{ env.DEFAULT_NODE_VERSION }}"
+        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
         run: dart run grinder update-bazel
         env:
@@ -482,13 +573,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1.2
       - run: dart pub get
+      - run: dart run grinder protobuf
       - uses: actions/setup-node@v3
-        with:
-          node-version: "${{ env.DEFAULT_NODE_VERSION }}"
+        with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
       - name: Deploy
         run: dart run grinder pkg-pub-deploy
-        env:
-          PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"
+        env: {PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"}
 
   deploy_sub_packages:
     name: "Deploy Sub-Packages"
@@ -535,15 +625,13 @@ jobs:
       - run: dart pub get
       - name: Deploy
         run: dart run grinder pkg-chocolatey-deploy
-        env:
-          CHOCOLATEY_TOKEN: "${{ secrets.CHOCOLATEY_TOKEN }}"
+        env: {CHOCOLATEY_TOKEN: "${{ secrets.CHOCOLATEY_TOKEN }}"}
 
   deploy_website:
     name: "Deploy sass-lang.com"
     runs-on: ubuntu-latest
     needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
-
     steps:
       - uses: actions/checkout@v3
         with:
@@ -557,59 +645,46 @@ jobs:
           message: Cut a release for a new Dart Sass version
           commit: --allow-empty
 
-  release_embedded_compiler:
-    name: "Release Embedded Compiler"
+  release_embedded_host:
+    name: "Release Embedded Host"
     runs-on: ubuntu-latest
-    needs: [deploy_pub, deploy_sub_packages]
-    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
-
+    needs: [deploy_github_linux, deploy_github_linux_qemu, deploy_github]
+    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass-embedded'"
     steps:
       - uses: actions/checkout@v3
         with:
-          repository: sass/dart-sass-embedded
+          repository: sass/embedded-host-node
           token: ${{ secrets.GH_TOKEN }}
-      - uses: dart-lang/setup-dart@v1.2
-      - uses: frenck/action-setup-yq@v1
-        with:
-          version: v4.30.5 # frenck/action-setup-yq#35
 
       - name: Get version
         id: version
-        run: |
-          echo "sass=${GITHUB_REF##*/}" | tee --append $GITHUB_OUTPUT
-          echo "sass_api=$(curl --fail --silent --show-error --location https://raw.githubusercontent.com/sass/dart-sass/${GITHUB_REF##*/}/pkg/sass_api/pubspec.yaml | yq .version)" | tee --append $GITHUB_OUTPUT
+        run: echo "::set-output name=version::${GITHUB_REF##*/}"
 
       - name: Update version
         run: |
-          sed -i 's/version: .*/version: ${{ steps.version.outputs.sass }}/' pubspec.yaml
-          dart pub remove sass_api
-          dart pub remove sass
-          dart pub add sass:${{ steps.version.outputs.sass }}
-          dart pub add sass_api:^${{ steps.version.outputs.sass_api }}
+          # Update binary package versions
+          for dir in $(ls npm); do
+            cat "npm/$dir/package.json" |
+                jq --arg version ${{ steps.version.outputs.version }} '
+                  .version |= $version
+                ' > package.json.tmp &&
+              mv package.json.tmp "npm/$dir/package.json"
+          done
 
-          # Delete a dependency override on Sass if it exists, and delete the
-          # dependency_overrides field if it's now empty. The embedded compiler
-          # often uses dev dependencies to run against the latest Dart Sass, but
-          # once we release the latest version that's no longer necessary.
-          #
-          # TODO(dart-lang/pub#3700): Use pub for this instead to avoid removing
-          # blank lines. See also mikefarah/yq#515.
-          yq -i '
-            del(.dependency_overrides.sass) |
-              to_entries |
-              map(select(.key != "dependency_overrides" or (.value | length >0))) |
-              from_entries
-          ' pubspec.yaml
-
-          # The embedded compiler has a checked-in pubspec.yaml, so upgrade to
-          # make sure we're releasing against the latest version of all deps.
-          dart pub upgrade
-
-          curl --fail --silent --show-error --location --output CHANGELOG.md https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.sass }}/CHANGELOG.md
+          # Update main package version and dependencies on binary packages
+          cat package.json |
+              jq --arg version ${{ steps.version.outputs.version }} '
+                .version |= $version |
+                ."compiler-version" |= $version |
+                .optionalDependencies = (.optionalDependencies | .[] |= $version)
+              ' > package.json.tmp &&
+            mv package.json.tmp package.json
+          curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
+        shell: bash
 
       - uses: EndBug/add-and-commit@v8
         with:
           author_name: Sass Bot
           author_email: sass.bot.beep.boop@gmail.com
           message: Update Dart Sass version and release
-          tag: ${{ steps.version.outputs.sass }}
+          tag: ${{ steps.version.outputs.version }}
