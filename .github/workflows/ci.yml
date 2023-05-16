@@ -95,7 +95,7 @@ jobs:
         env: {extra_args: "${{ matrix.async_args }}"}
 
   # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated April 2023. See
+  # They next need to be rotated April 2021. See
   # https://github.com/nodejs/Release.
   sass_spec_js:
     name: "JS API Tests | Pure JS | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node_version }} | ${{ matrix.os }}"
@@ -153,7 +153,7 @@ jobs:
         working-directory: sass-spec
 
   # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated April 2023. See
+  # They next need to be rotated October 2021. See
   # https://github.com/nodejs/Release.
   sass_spec_js_embedded:
     name: 'JS API Tests | Embedded | Node ${{ matrix.node_version }} | ${{ matrix.os }}'
@@ -293,7 +293,7 @@ jobs:
   # Unit tests that use Node.js, defined in test/.
   #
   # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated April 2023. See
+  # They next need to be rotated April 2021. See
   # https://github.com/nodejs/Release.
   node_tests:
     name: "Node tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node_version }} | ${{ matrix.os }}"
@@ -348,6 +348,8 @@ jobs:
     - uses: dart-lang/setup-dart@v1
       with: {sdk: "${{ matrix.dart_channel }}"}
     - run: dart pub get
+    - uses: ./.github/util/build-protobuf
+      with: {github-token: "${{ github.token }}"}
     - run: dart run grinder before-test
     - run: google-chrome --version
     - run: dart run test -p chrome -j 2
@@ -536,7 +538,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
@@ -553,7 +555,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - uses: actions/setup-node@v3
         with: {node-version: "${{ env.DEFAULT_NODE_VERSION }}"}
@@ -571,7 +573,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run grinder protobuf
       - uses: actions/setup-node@v3
@@ -588,7 +590,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
         run: dart run grinder deploy-sub-packages
@@ -605,7 +607,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
         run: dart run grinder pkg-homebrew-update
@@ -621,7 +623,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.2
+      - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Deploy
         run: dart run grinder pkg-chocolatey-deploy
