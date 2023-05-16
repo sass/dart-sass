@@ -4,6 +4,7 @@
 
 import 'dart:isolate';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
@@ -41,7 +42,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  if (args.length > 0 && args[0] == '--embedded') {
+  if (args.firstOrNull == '--embedded') {
     embedded.main(args.sublist(1));
     return;
   }
