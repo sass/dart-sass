@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+@TestOn('vm')
+
 import 'package:test/test.dart';
 
 import 'package:sass/src/embedded/embedded_sass.pb.dart';
