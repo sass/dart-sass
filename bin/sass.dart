@@ -41,7 +41,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  if (args[0] == '--embedded') {
+  if (args.length > 0 && args[0] == '--embedded') {
     embedded.main(args.sublist(1));
     return;
   }
