@@ -550,7 +550,7 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "::set-output name=version::${GITHUB_REF##*/}"
+        run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
 
       - name: Update version
         run: |
