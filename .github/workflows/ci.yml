@@ -184,7 +184,7 @@ jobs:
           fi
 
       - name: Run tests
-        run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../language
+        run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../build/language
         working-directory: sass-spec
 
   dart_tests:
