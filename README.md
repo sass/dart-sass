@@ -316,7 +316,7 @@ Dart Sass includes an implementation of the compiler side of the [Embedded Sass
 protocol]. It's designed to be embedded in a host language, which then exposes
 an API for users to invoke Sass and define custom functions and importers.
 
-[Embedded Sass protocol]: https://github.com/sass/sass-embedded-protocol/blob/master/README.md#readme
+[Embedded Sass protocol]: https://github.com/sass/sass/blob/main/spec/embedded-protocol.md
 
 ### Usage
 
