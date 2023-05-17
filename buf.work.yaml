@@ -1,2 +1,2 @@
 version: v1
-directories: [build/embedded-protocol]
+directories: [build/language/spec]

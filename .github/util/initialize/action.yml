@@ -26,9 +26,9 @@ runs:
     - uses: bufbuild/buf-setup-action@v1.13.1
       with: {github_token: "${{ inputs.github-token }}"}
 
-    - name: Check out embedded Sass protocol
+    - name: Check out the language repo
       uses: sass/clone-linked-repo@v1
-      with: {repo: sass/embedded-protocol, path: build/embedded-protocol}
+      with: {repo: sass/sass, path: build/language}
 
     - name: Generate Dart from protobuf
       run: dart run grinder protobuf
