@@ -1,0 +1,36 @@
+name: Initialize
+description: Check out Dart Sass and build the embedded protocol buffer.
+inputs:
+  github-token: {required: true}
+  node-version: {required: false, default: 18}
+  dart-sdk: {required: false, default: stable}
+  architecture: {required: false}
+runs:
+  using: composite
+  steps:
+    - uses: dart-lang/setup-dart@v1
+      with:
+        sdk: "${{ inputs.sdk }}"
+        architecture: "${{ inputs.architecture }}"
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: "${{ inputs.node-version }}"
+
+    - run: dart pub get
+      shell: bash
+
+    - run: npm install
+      shell: bash
+
+    - uses: bufbuild/buf-setup-action@v1.13.1
+      with: {github_token: "${{ inputs.github-token }}"}
+
+    - name: Check out embedded Sass protocol
+      uses: sass/clone-linked-repo@v1
+      with: {repo: sass/embedded-protocol, path: build/embedded-protocol}
+
+    - name: Generate Dart from protobuf
+      run: dart run grinder protobuf
+      env: {UPDATE_SASS_PROTOCOL: false}
+      shell: bash
