@@ -86,15 +86,16 @@ void main(List<String> args) {
       "${pkg.githubReleaseNotes.defaultValue}";
 
   pkg.environmentConstants.fn = () {
-    if (!Directory('build/embedded-protocol').existsSync()) {
+    if (!Directory('build/language').existsSync()) {
       fail('Run `dart run grinder protobuf` before building Dart Sass '
           'executables.');
     }
 
     return {
       ...pkg.environmentConstants.defaultValue,
-      "protocol-version":
-          File('build/embedded-protocol/VERSION').readAsStringSync().trim(),
+      "protocol-version": File('build/language/spec/EMBEDDED_PROTOCOL_VERSION')
+          .readAsStringSync()
+          .trim(),
       "compiler-version": pkg.pubspec.version!.toString(),
     };
   };
@@ -230,7 +231,8 @@ dart run protoc_plugin "\$@"
   }
 
   if (Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
-    cloneOrCheckout("https://github.com/sass/embedded-protocol.git", "main");
+    cloneOrCheckout("https://github.com/sass/sass.git", "main",
+        name: 'language');
   }
 
   await runAsync("buf",

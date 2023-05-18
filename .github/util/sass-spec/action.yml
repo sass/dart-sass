@@ -1,0 +1,12 @@
+name: sass-spec
+description: Check out sass-spec and install its dependencies.
+runs:
+  using: composite
+  steps:
+    - name: Check out sass-spec
+      uses: sass/clone-linked-repo@v1
+      with: {repo: sass/sass-spec}
+
+    - run: npm install
+      working-directory: sass-spec
+      shell: bash
