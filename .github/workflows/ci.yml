@@ -188,7 +188,7 @@ jobs:
         working-directory: sass-spec
 
   sass_spec_js_browser:
-    name: "JS API Tests | Pure JS | Dart ${{ matrix.dart_channel }} | Browser"
+    name: "JS API Tests | Browser | Dart ${{ matrix.dart_channel }}"
 
     strategy:
       matrix:
@@ -199,22 +199,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: browser-actions/setup-chrome@v1
-      - uses: dart-lang/setup-dart@v1
-        with: {sdk: "${{ matrix.dart_channel }}"}
-      - run: dart pub get
-
-      - uses: ./.github/util/build-protobuf
-        with: {github-token: "${{ github.token }}"}
-
-      - name: Check out sass-spec
-        uses: sass/clone-linked-repo@v1
+      - uses: ./.github/util/initialize
         with:
-          repo: sass/sass-spec
-          default-ref: browser-tests
-
-      - name: Install sass-spec dependencies
-        run: npm install
-        working-directory: sass-spec
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+      - uses: ./.github/util/sass-spec
 
       - name: Build JS
         run: dart run grinder pkg-npm-dev
@@ -308,14 +297,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: browser-actions/setup-chrome@v1
-    - uses: dart-lang/setup-dart@v1
-      with: {sdk: "${{ matrix.dart_channel }}"}
-    - run: dart pub get
-    - uses: ./.github/util/build-protobuf
-      with: {github-token: "${{ github.token }}"}
+    - uses: ./.github/util/initialize
+      with:
+        dart-sdk: ${{ matrix.dart_channel }}
+        github-token: ${{ github.token }}
+
     - run: dart run grinder before-test
-    - run: google-chrome --version
-    - run: dart run test -p chrome -j 2
+    - name: Run tests
+      run: dart run test -p chrome -j 2
       env:
         CHROME_EXECUTABLE: chrome
 
