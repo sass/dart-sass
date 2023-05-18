@@ -9,8 +9,9 @@ import 'package:stack_trace/stack_trace.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../utils.dart';
+import '../node/console_stub.dart' if (dart.library.js) '../node/console.dart';
 
-/// A logger that prints warnings to standard error.
+/// A logger that prints warnings to standard error or browser console.
 class StderrLogger implements Logger {
   /// Whether to use terminal colors in messages.
   final bool color;
@@ -19,35 +20,48 @@ class StderrLogger implements Logger {
 
   void warn(String message,
       {FileSpan? span, Trace? trace, bool deprecation = false}) {
+    var result = '';
     if (color) {
       // Bold yellow.
-      stderr.write('\u001b[33m\u001b[1m');
-      if (deprecation) stderr.write('Deprecation ');
-      stderr.write('Warning\u001b[0m');
+      result += '\u001b[33m\u001b[1m';
+      if (deprecation) result += 'Deprecation ';
+      result += 'Warning\u001b[0m';
     } else {
-      if (deprecation) stderr.write('DEPRECATION ');
-      stderr.write('WARNING');
+      if (deprecation) result += 'DEPRECATION ';
+      result += 'WARNING';
     }
 
     if (span == null) {
-      stderr.writeln(': $message');
+      result += ': $message\n';
     } else if (trace != null) {
       // If there's a span and a trace, the span's location information is
       // probably duplicated in the trace, so we just use it for highlighting.
-      stderr.writeln(': $message\n\n${span.highlight(color: color)}');
+      result += ': $message\n\n${span.highlight(color: color)}\n';
     } else {
-      stderr.writeln(' on ${span.message("\n" + message, color: color)}');
+      result += ' on ${span.message("\n" + message, color: color)}\n';
     }
 
-    if (trace != null) stderr.writeln(indent(trace.toString().trimRight(), 4));
-    stderr.writeln();
+    if (trace != null) result += '${indent(trace.toString().trimRight(), 4)}\n';
+    result += '\n';
+
+    if (isBrowser) {
+      console.error(result);
+    } else {
+      stderr.write(result);
+    }
   }
 
   void debug(String message, SourceSpan span) {
+    var result = '';
     var url =
         span.start.sourceUrl == null ? '-' : p.prettyUri(span.start.sourceUrl);
-    stderr.write('$url:${span.start.line + 1} ');
-    stderr.write(color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG');
-    stderr.writeln(': $message');
+    result += '$url:${span.start.line + 1} ';
+    result += color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG';
+    result += ': $message\n';
+    if (isBrowser) {
+      console.warn(result);
+    } else {
+      stderr.write(result);
+    }
   }
 }

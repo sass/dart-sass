@@ -7,9 +7,8 @@ import 'dart:convert';
 import 'dart:js_util';
 
 import 'package:js/js.dart';
-import 'package:node_interop/console.dart';
 import 'package:node_interop/fs.dart';
-import 'package:node_interop/node_interop.dart' as n hide process;
+import 'package:node_interop/node_interop.dart' hide process;
 import 'package:node_interop/stream.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
@@ -19,9 +18,7 @@ import '../exception.dart';
 import '../node/chokidar.dart';
 
 @JS('process')
-external final n.Process? process; // process is null in the browser
-
-Console? get console => n.console;
+external final Process? process; // process is null in the browser
 
 class FileSystemException {
   final String message;
@@ -115,7 +112,7 @@ Future<String> readStdin() async {
 }
 
 /// Cleans up a Node system error's message.
-String _cleanErrorMessage(n.JsSystemError error) {
+String _cleanErrorMessage(JsSystemError error) {
   // The error message is of the form "$code: $text, $syscall '$path'". We just
   // want the text.
   return error.message.substring("${error.code}: ".length,
@@ -136,7 +133,7 @@ bool fileExists(String path) {
     try {
       return fs.statSync(path).isFile();
     } catch (error) {
-      var systemError = error as n.JsSystemError;
+      var systemError = error as JsSystemError;
       if (systemError.code == 'ENOENT') return false;
       rethrow;
     }
@@ -157,7 +154,7 @@ bool dirExists(String path) {
     try {
       return fs.statSync(path).isDirectory();
     } catch (error) {
-      var systemError = error as n.JsSystemError;
+      var systemError = error as JsSystemError;
       if (systemError.code == 'ENOENT') return false;
       rethrow;
     }
@@ -172,7 +169,7 @@ void ensureDir(String path) {
     try {
       fs.mkdirSync(path);
     } catch (error) {
-      var systemError = error as n.JsSystemError;
+      var systemError = error as JsSystemError;
       if (systemError.code == 'EEXIST') return;
       if (systemError.code != 'ENOENT') rethrow;
       ensureDir(p.dirname(path));
@@ -222,7 +219,7 @@ T _systemErrorToFileSystemException<T>(T callback()) {
   try {
     return callback();
   } catch (error) {
-    if (error is! n.JsSystemError) rethrow;
+    if (error is! JsSystemError) rethrow;
     throw FileSystemException._(_cleanErrorMessage(error), error.path);
   }
 }
