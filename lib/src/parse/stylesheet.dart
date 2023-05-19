@@ -2910,7 +2910,10 @@ abstract class StylesheetParser extends Parser {
           scanner.state = beforeArguments;
           return null;
         }
+        return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
+      case "pow":
+        var arguments = _calculationArguments(2);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "clamp":

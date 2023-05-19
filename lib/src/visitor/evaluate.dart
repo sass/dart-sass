@@ -2338,6 +2338,8 @@ class _EvaluateVisitor
           return SassCalculation.min(arguments);
         case "max":
           return SassCalculation.max(arguments);
+        case "pow":
+          return SassCalculation.pow(arguments);
         case "clamp":
           return SassCalculation.clamp(
               arguments[0],

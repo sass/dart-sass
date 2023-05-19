@@ -124,3 +124,10 @@ SassNumber sqrt(SassNumber number) {
   number.assertNoUnits();
   return SassNumber(math.sqrt(number.value));
 }
+
+/// Return [num1]^[num2]
+SassNumber pow(SassNumber num1, SassNumber num2) {
+  num1.assertNoUnits();
+  num2.assertNoUnits();
+  return SassNumber(math.pow(num1.value, num2.value));
+}

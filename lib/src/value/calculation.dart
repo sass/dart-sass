@@ -175,6 +175,30 @@ class SassCalculation extends Value {
     return SassCalculation._("clamp", args);
   }
 
+  /// Creates a `pow()` calculation with the given [min], [value], and [max].
+  ///
+  /// Each argument must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  ///
+  /// This may be passed fewer than three arguments, but only if one of the
+  /// arguments is an unquoted `var()` string.
+  static Value pow(Iterable<Object> arguments) {
+    var args = _simplifyArguments(arguments);
+    _verifyLength(args, 2);
+    var num1 = args[0];
+    var num2 = args[1];
+    if (num1 is! SassNumber || num2 is! SassNumber) {
+      return SassCalculation._("pow", [num1, num2]);
+    }
+
+    return number.pow(num1, num2);
+  }
+
   /// Creates and simplifies a [CalculationOperation] with the given [operator],
   /// [left], and [right].
   ///

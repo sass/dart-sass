@@ -59,6 +59,15 @@ class CalculationExpression implements Expression {
       Expression min, Expression value, Expression max, FileSpan span)
       : this("clamp", [min, max, value], span);
 
+  /// Returns a `pow()` calculation expression.
+  CalculationExpression.pow(Iterable<Expression> arguments, this.span)
+      : name = "pow",
+        arguments = _verifyArguments(arguments) {
+    if (this.arguments.isEmpty) {
+      throw ArgumentError("pow() requires at least one argument.");
+    }
+  }
+
   /// Returns a calculation expression with the given name and arguments.
   ///
   /// Unlike the other constructors, this doesn't verify that the arguments are
