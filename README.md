@@ -115,6 +115,80 @@ See [the Sass website][js api] for full API documentation.
 
 [js api]: https://sass-lang.com/documentation/js-api
 
+#### Dart Sass in the Browser
+
+The `sass` npm package can also be run directly in the browser. It's compatible
+with all major web bundlers as long as you disable renaming (such as
+[`--keep-names`] in esbuild). You can also import it directly from a browser as
+an ECMAScript Module without any bundling (assuming `node_modules` is served as
+well):
+
+[`--keep-names`]: https://esbuild.github.io/api/#keep-names
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "immutable": "./node_modules/immutable/dist/immutable.es.js",
+      "sass": "./node_modules/sass/sass.default.js"
+    }
+  }
+</script>
+
+<!-- Support browsers like Safari 16.3 without import maps support. -->
+<script async src="https://unpkg.com/es-module-shims@^1.7.0" crossorigin="anonymous"></script>
+
+<script type="module">
+  import * as sass from 'sass';
+
+  console.log(sass.compileString(`
+    .box {
+      width: 10px + 15px;
+    }
+  `);
+</script>
+```
+
+Or from a CDN:
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "immutable": "https://unpkg.com/immutable@^4.0.0",
+      "sass": "https://unpkg.com/sass@^1.63.0/sass.default.js"
+    }
+  }
+</script>
+
+<!-- Support browsers like Safari 16.3 without import maps support. -->
+<script async src="https://unpkg.com/es-module-shims@^1.7.0" crossorigin="anonymous"></script>
+
+<script type="module">
+  import * as sass from 'sass';
+
+  console.log(sass.compileString(`
+    .box {
+      width: 10px + 15px;
+    }
+  `);
+</script>
+```
+
+Or even bundled with all its dependencies:
+
+```html
+<script type="module">
+  import * as sass from 'https://jspm.dev/sass';
+
+  console.log(sass.compileString(`
+    .box {
+      width: 10px + 15px;
+    }
+  `);
+</script>
+```
+
 #### Legacy JavaScript API
 
 Dart Sass also supports an older JavaScript API that's fully compatible with
