@@ -5,6 +5,6 @@
 import '../io.dart';
 
 void main(List<String> args) async {
-  stderr.writeln('sass --embedded is unavailable in pure JS mode.');
+  printError('sass --embedded is unavailable in pure JS mode.');
   exitCode = 1;
 }

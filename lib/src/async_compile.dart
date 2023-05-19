@@ -13,6 +13,7 @@ import 'compile_result.dart';
 import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/legacy_node.dart';
+import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'logger/deprecation_handling.dart';
@@ -119,7 +120,7 @@ Future<CompileResult> compileStringAsync(String source,
       logger,
       importCache,
       nodeImporter,
-      importer ?? FilesystemImporter('.'),
+      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter('.')),
       functions,
       style,
       useSpaces,

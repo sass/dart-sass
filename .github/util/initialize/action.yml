@@ -10,7 +10,7 @@ runs:
   steps:
     - uses: dart-lang/setup-dart@v1
       with:
-        sdk: "${{ inputs.sdk }}"
+        sdk: "${{ inputs.dart-sdk }}"
         architecture: "${{ inputs.architecture }}"
 
     - uses: actions/setup-node@v3

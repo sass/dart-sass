@@ -11,6 +11,7 @@ import 'package:tuple/tuple.dart';
 import 'ast/sass.dart';
 import 'deprecation.dart';
 import 'importer.dart';
+import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
@@ -95,6 +96,7 @@ class AsyncImportCache {
   static List<AsyncImporter> _toImporters(Iterable<AsyncImporter>? importers,
       Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
+    if (isBrowser) return [...?importers];
     return [
       ...?importers,
       if (loadPaths != null)
@@ -122,6 +124,12 @@ class AsyncImportCache {
       {AsyncImporter? baseImporter,
       Uri? baseUrl,
       bool forImport = false}) async {
+    if (isBrowser &&
+        (baseImporter == null || baseImporter is NoOpImporter) &&
+        _importers.isEmpty) {
+      throw "Custom importers are required to load stylesheets when compiling in the browser.";
+    }
+
     if (baseImporter != null) {
       var relativeResult = await putIfAbsentAsync(_relativeCanonicalizeCache,
           Tuple4(url, forImport, baseImporter, baseUrl), () async {

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 92d6816f673ecbabd993aea7b79e27553f896ff4
+// Checksum: 96e085628560f348a79b8f99b96f7352f450868c
 //
 // ignore_for_file: unused_import
 
@@ -18,6 +18,7 @@ import 'package:tuple/tuple.dart';
 import 'ast/sass.dart';
 import 'deprecation.dart';
 import 'importer.dart';
+import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
@@ -101,6 +102,7 @@ class ImportCache {
   static List<Importer> _toImporters(Iterable<Importer>? importers,
       Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
+    if (isBrowser) return [...?importers];
     return [
       ...?importers,
       if (loadPaths != null)
@@ -126,6 +128,12 @@ class ImportCache {
   /// applicable). Otherwise, returns `null`.
   Tuple3<Importer, Uri, Uri>? canonicalize(Uri url,
       {Importer? baseImporter, Uri? baseUrl, bool forImport = false}) {
+    if (isBrowser &&
+        (baseImporter == null || baseImporter is NoOpImporter) &&
+        _importers.isEmpty) {
+      throw "Custom importers are required to load stylesheets when compiling in the browser.";
+    }
+
     if (baseImporter != null) {
       var relativeResult = _relativeCanonicalizeCache
           .putIfAbsent(Tuple4(url, forImport, baseImporter, baseUrl), () {

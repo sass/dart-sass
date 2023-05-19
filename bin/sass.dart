@@ -16,6 +16,7 @@ import 'package:sass/src/executable/repl.dart';
 import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/io.dart';
+import 'package:sass/src/io.dart' as io;
 import 'package:sass/src/logger/deprecation_handling.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/utils.dart';
@@ -32,14 +33,18 @@ Future<void> main(List<String> args) async {
   //
   // If [trace] is passed, its terse representation is printed after the error.
   void printError(String error, StackTrace? stackTrace) {
-    if (printedError) stderr.writeln();
+    var buffer = StringBuffer();
+    if (printedError) buffer.writeln();
     printedError = true;
-    stderr.writeln(error);
+    buffer.write(error);
 
     if (stackTrace != null) {
-      stderr.writeln();
-      stderr.writeln(Trace.from(stackTrace).terse.toString().trimRight());
+      buffer.writeln();
+      buffer.writeln();
+      buffer.write(Trace.from(stackTrace).terse.toString().trimRight());
     }
+
+    io.printError(buffer);
   }
 
   if (args.firstOrNull == '--embedded') {

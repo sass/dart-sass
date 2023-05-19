@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 17862153344c8577d780b3e039a1ce5ebb774c17
+// Checksum: 3e5e09dec7a8bcc6bc017103c67f463843b7fed7
 //
 // ignore_for_file: unused_import
 
@@ -1625,7 +1625,7 @@ class _EvaluateVisitor
         }
       }
 
-      if (url.startsWith('package:') && isNode) {
+      if (url.startsWith('package:') && isJS) {
         // Special-case this error message, since it's tripped people up in the
         // past.
         throw "\"package:\" URLs aren't supported on this platform.";

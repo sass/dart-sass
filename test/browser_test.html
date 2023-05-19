@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Browser Test</title>
+  <link rel="x-dart-test" href="browser_test.dart">
+  <script src="packages/test/dart.js"></script>
+</head>
+
+<body>
+  <script type="importmap">
+    {
+      "imports": {
+        "immutable": "../node_modules/immutable/dist/immutable.es.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as sass from '../build/npm/sass.default.js';
+    window.sass = sass;
+  </script>
+</body>
+
+</html>

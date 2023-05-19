@@ -112,14 +112,16 @@ class _Watcher {
   /// Prints [message] to standard error, with [stackTrace] if [_options.trace]
   /// is set.
   void _printError(String message, StackTrace stackTrace) {
-    stderr.writeln(message);
+    var buffer = StringBuffer(message);
 
     if (_options.trace) {
-      stderr.writeln();
-      stderr.writeln(Trace.from(stackTrace).terse.toString().trimRight());
+      buffer.writeln();
+      buffer.writeln();
+      buffer.write(Trace.from(stackTrace).terse.toString().trimRight());
     }
 
-    if (!_options.stopOnError) stderr.writeln();
+    if (!_options.stopOnError) buffer.writeln();
+    printError(buffer);
   }
 
   /// Listens to `watcher.events` and updates the filesystem accordingly.

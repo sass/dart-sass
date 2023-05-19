@@ -26,6 +26,9 @@ import 'utils.dart';
 /// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
 /// details.
 NodeCompileResult compile(String path, [CompileOptions? options]) {
+  if (!isNode) {
+    jsThrow(JsError("The compile() method is only available in Node.js."));
+  }
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
   try {
@@ -84,6 +87,9 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
 /// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
 /// details.
 Promise compileAsync(String path, [CompileOptions? options]) {
+  if (!isNode) {
+    jsThrow(JsError("The compileAsync() method is only available in Node.js."));
+  }
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
   return _wrapAsyncSassExceptions(futureToPromise(() async {

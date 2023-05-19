@@ -10,7 +10,7 @@ import '../io.dart';
 import '../logger.dart';
 import '../utils.dart';
 
-/// A logger that prints warnings to standard error.
+/// A logger that prints warnings to standard error or browser console.
 class StderrLogger implements Logger {
   /// Whether to use terminal colors in messages.
   final bool color;
@@ -19,35 +19,39 @@ class StderrLogger implements Logger {
 
   void warn(String message,
       {FileSpan? span, Trace? trace, bool deprecation = false}) {
+    var result = StringBuffer();
     if (color) {
       // Bold yellow.
-      stderr.write('\u001b[33m\u001b[1m');
-      if (deprecation) stderr.write('Deprecation ');
-      stderr.write('Warning\u001b[0m');
+      result.write('\u001b[33m\u001b[1m');
+      if (deprecation) result.write('Deprecation ');
+      result.write('Warning\u001b[0m');
     } else {
-      if (deprecation) stderr.write('DEPRECATION ');
-      stderr.write('WARNING');
+      if (deprecation) result.write('DEPRECATION ');
+      result.write('WARNING');
     }
 
     if (span == null) {
-      stderr.writeln(': $message');
+      result.writeln(': $message');
     } else if (trace != null) {
       // If there's a span and a trace, the span's location information is
       // probably duplicated in the trace, so we just use it for highlighting.
-      stderr.writeln(': $message\n\n${span.highlight(color: color)}');
+      result.writeln(': $message\n\n${span.highlight(color: color)}');
     } else {
-      stderr.writeln(' on ${span.message("\n" + message, color: color)}');
+      result.writeln(' on ${span.message("\n" + message, color: color)}');
     }
 
-    if (trace != null) stderr.writeln(indent(trace.toString().trimRight(), 4));
-    stderr.writeln();
+    if (trace != null) result.writeln(indent(trace.toString().trimRight(), 4));
+
+    printError(result);
   }
 
   void debug(String message, SourceSpan span) {
+    var result = StringBuffer();
     var url =
         span.start.sourceUrl == null ? '-' : p.prettyUri(span.start.sourceUrl);
-    stderr.write('$url:${span.start.line + 1} ');
-    stderr.write(color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG');
-    stderr.writeln(': $message');
+    result.write('$url:${span.start.line + 1} ');
+    result.write(color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG');
+    result.write(': $message');
+    printError(result.toString());
   }
 }

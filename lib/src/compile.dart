@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 628fbfe8a6717cca332dd646eeda2260dd3e30c6
+// Checksum: bac7360553f772bbf8243cca78f4f63e4bdf2755
 //
 // ignore_for_file: unused_import
 
@@ -22,6 +22,7 @@ import 'compile_result.dart';
 import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/legacy_node.dart';
+import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'logger/deprecation_handling.dart';
@@ -128,7 +129,7 @@ CompileResult compileString(String source,
       logger,
       importCache,
       nodeImporter,
-      importer ?? FilesystemImporter('.'),
+      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter('.')),
       functions,
       style,
       useSpaces,

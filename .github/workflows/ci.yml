@@ -187,6 +187,43 @@ jobs:
         run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../build/language
         working-directory: sass-spec
 
+  sass_spec_js_browser:
+    name: "JS API Tests | Browser | Dart ${{ matrix.dart_channel }}"
+
+    strategy:
+      matrix:
+        dart_channel: [stable]
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: browser-actions/setup-chrome@v1
+      - uses: ./.github/util/initialize
+        with:
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+      - uses: ./.github/util/sass-spec
+
+      - name: Build JS
+        run: dart run grinder pkg-npm-dev
+
+      - name: Install built dependencies
+        run: npm install
+        working-directory: build/npm
+
+      - name: Check out Sass specification
+        uses: sass/clone-linked-repo@v1
+        with:
+          repo: sass/sass
+          path: language
+
+      - name: Run tests
+        run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm --browser
+        working-directory: sass-spec
+        env:
+          CHROME_EXECUTABLE: chrome
+
   dart_tests:
     name: "Dart tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.os }}"
     runs-on: "${{ matrix.os }}"
@@ -207,7 +244,7 @@ jobs:
 
       - run: dart run grinder pkg-standalone-dev
       - name: Run tests
-        run: dart run test -p vm -x node
+        run: dart run test -x node
 
   # Unit tests that use Node.js, defined in test/.
   #
@@ -246,7 +283,30 @@ jobs:
 
       - run: dart run grinder before-test
       - name: Run tests
-        run: dart run test -j 2 -t node
+        run: dart run test -t node -j 2
+
+  browser-test:
+    name: "Browser Tests | Dart ${{ matrix.dart_channel }}"
+
+    strategy:
+      matrix:
+        dart_channel: [stable]
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: browser-actions/setup-chrome@v1
+    - uses: ./.github/util/initialize
+      with:
+        dart-sdk: ${{ matrix.dart_channel }}
+        github-token: ${{ github.token }}
+
+    - run: dart run grinder before-test
+    - name: Run tests
+      run: dart run test -p chrome -j 2
+      env:
+        CHROME_EXECUTABLE: chrome
 
   double_check:
     name: Double-check
