@@ -116,7 +116,8 @@ class _Watcher {
 
     if (_options.trace) {
       buffer.writeln();
-      buffer.writeln(Trace.from(stackTrace).terse.toString().trimRight());
+      buffer.writeln();
+      buffer.write(Trace.from(stackTrace).terse.toString().trimRight());
     }
 
     if (!_options.stopOnError) buffer.writeln();

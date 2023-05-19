@@ -41,7 +41,6 @@ class StderrLogger implements Logger {
     }
 
     if (trace != null) result.writeln(indent(trace.toString().trimRight(), 4));
-    result.writeln();
 
     printError(result);
   }

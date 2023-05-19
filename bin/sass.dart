@@ -36,11 +36,12 @@ Future<void> main(List<String> args) async {
     var buffer = StringBuffer();
     if (printedError) buffer.writeln();
     printedError = true;
-    buffer.writeln(error);
+    buffer.write(error);
 
     if (stackTrace != null) {
       buffer.writeln();
-      buffer.writeln(Trace.from(stackTrace).terse.toString().trimRight());
+      buffer.writeln();
+      buffer.write(Trace.from(stackTrace).terse.toString().trimRight());
     }
 
     io.printError(buffer);
