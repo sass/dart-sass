@@ -6,7 +6,7 @@ import 'package:meta/meta.dart';
 
 import '../exception.dart';
 import '../util/nullable.dart';
-import '../util/number.dart';
+import '../util/number.dart' as number;
 import '../utils.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';
@@ -120,6 +120,23 @@ class SassCalculation extends Value {
     return SassCalculation._("max", args);
   }
 
+  /// Creates a `sqrt()` calculation with the given [argument].
+  ///
+  /// Each argument must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation]. It must be passed at least one argument.
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value sqrt(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber) {
+      return SassCalculation._("sqrt", [argument]);
+    }
+    return number.sqrt(argument);
+  }
+
   /// Creates a `clamp()` calculation with the given [min], [value], and [max].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
@@ -202,7 +219,7 @@ class SassCalculation extends Value {
 
       _verifyCompatibleNumbers([left, right]);
 
-      if (right is SassNumber && fuzzyLessThan(right.value, 0)) {
+      if (right is SassNumber && number.fuzzyLessThan(right.value, 0)) {
         right = right.times(SassNumber(-1));
         operator = operator == CalculationOperator.plus
             ? CalculationOperator.minus

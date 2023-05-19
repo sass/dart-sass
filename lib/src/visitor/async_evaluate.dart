@@ -2345,6 +2345,9 @@ class _EvaluateVisitor
         case "calc":
           assert(arguments.length == 1);
           return SassCalculation.calc(arguments[0]);
+        case "sqrt":
+          assert(arguments.length == 1);
+          return SassCalculation.sqrt(arguments[0]);
         case "min":
           return SassCalculation.min(arguments);
         case "max":

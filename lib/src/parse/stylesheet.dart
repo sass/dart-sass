@@ -2894,6 +2894,7 @@ abstract class StylesheetParser extends Parser {
     assert(scanner.peekChar() == $lparen);
     switch (name) {
       case "calc":
+      case "sqrt":
         var arguments = _calculationArguments(1);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 

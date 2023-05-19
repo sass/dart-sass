@@ -118,3 +118,9 @@ double moduloLikeSass(double num1, double num2) {
   var result = num1 % num2;
   return result == 0 ? 0 : result + num2;
 }
+
+/// Return square root of [number]
+SassNumber sqrt(SassNumber number) {
+  number.assertNoUnits();
+  return SassNumber(math.sqrt(number.value));
+}

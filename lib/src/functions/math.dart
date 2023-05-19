@@ -12,6 +12,7 @@ import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
+import '../util/number.dart';
 import '../value.dart';
 
 /// The global definitions of Sass math functions.
@@ -144,11 +145,7 @@ final _pow = _function("pow", r"$base, $exponent", (arguments) {
 
 final _sqrt = _function("sqrt", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  if (number.hasUnits) {
-    throw SassScriptException("\$number: Expected $number to have no units.");
-  } else {
-    return SassNumber(math.sqrt(number.value));
-  }
+  return sqrt(number);
 });
 
 ///

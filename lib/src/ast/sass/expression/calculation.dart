@@ -50,6 +50,10 @@ class CalculationExpression implements Expression {
     }
   }
 
+  /// Returns a `sqrt()` calculation expression.
+  CalculationExpression.sqrt(Expression argument, FileSpan span)
+      : this("sqrt", [argument], span);
+
   /// Returns a `clamp()` calculation expression.
   CalculationExpression.clamp(
       Expression min, Expression value, Expression max, FileSpan span)
