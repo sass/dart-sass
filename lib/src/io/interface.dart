@@ -4,29 +4,11 @@
 
 import 'package:watcher/watcher.dart';
 
-/// An output sink that writes to this process's standard error.
-class Stderr {
-  /// Writes the string representation of [object] to standard error.
-  void write(Object object) {}
-
-  /// Writes the string representation of [object] to standard error, followed
-  /// by a newline.
-  ///
-  /// If [object] is `null`, just writes a newline.
-  void writeln([Object? object]) {}
-
-  /// Flushes any buffered text.
-  void flush() {}
-}
-
 /// An error thrown by [readFile].
 class FileSystemException {
   String get message => throw '';
   String? get path => throw '';
 }
-
-/// The standard error for the current process.
-Stderr get stderr => throw '';
 
 /// Whether the current process is running on Windows.
 bool get isWindows => throw '';
@@ -49,6 +31,10 @@ bool get isBrowser => throw '';
 /// Whether this process is connected to a terminal that supports ANSI escape
 /// sequences.
 bool get supportsAnsiEscapes => throw '';
+
+/// Prints [message] (followed by a newline) to standard error or the
+/// equivalent.
+void printError(Object? message) => throw '';
 
 /// Reads the file at [path] as a UTF-8 encoded string.
 ///

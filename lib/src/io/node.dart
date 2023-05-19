@@ -9,7 +9,6 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:node_interop/fs.dart';
 import 'package:node_interop/node_interop.dart' hide process;
-import 'package:node_interop/stream.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
@@ -29,18 +28,13 @@ class FileSystemException {
   String toString() => "${p.prettyUri(p.toUri(path))}: $message";
 }
 
-class Stderr {
-  final Writable _stderr;
-
-  Stderr(this._stderr);
-
-  void write(Object object) => _stderr.write(object.toString());
-
-  void writeln([Object? object]) {
-    _stderr.write("${object ?? ''}\n");
+void printError(Object? message) {
+  var process_ = process;
+  if (process_ != null) {
+    process_.stderr.write("${message ?? ''}\n");
+  } else {
+    console.error(message ?? '');
   }
-
-  void flush() {}
 }
 
 String readFile(String path) {
@@ -104,8 +98,8 @@ Future<String> readStdin() async {
     sink.close();
   }));
   process_.stdin.on('error', allowInterop(([Object? e]) {
-    stderr.writeln('Failed to read from stdin');
-    stderr.writeln(e);
+    printError('Failed to read from stdin');
+    printError(e);
     completer.completeError(e!);
   }));
   return completer.future;
@@ -224,20 +218,11 @@ T _systemErrorToFileSystemException<T>(T callback()) {
   }
 }
 
-final Stderr stderr = () {
-  var stderr_ = process?.stderr;
-  if (stderr_ == null) {
-    throw UnsupportedError("stderr is only supported on Node.js");
-  }
-  return Stderr(stderr_);
-}();
-
 /// Ignore `invalid_null_aware_operator` error, because [process.stdout.isTTY]
 /// from `node_interop` declares `isTTY` as always non-nullably available, but
 /// in practice it's undefined if stdout isn't a TTY.
 /// See: https://github.com/pulyaevskiy/node-interop/issues/93
-// ignore: invalid_null_aware_operator
-bool get hasTerminal => process?.stdout?.isTTY == true;
+bool get hasTerminal => process?.stdout.isTTY == true;
 
 bool get isWindows => process?.platform == 'win32';
 
@@ -254,10 +239,7 @@ bool get supportsAnsiEscapes => hasTerminal;
 
 int get exitCode => process?.exitCode ?? 0;
 
-set exitCode(int code) {
-  var process_ = process;
-  if (process_ != null) process_.exitCode = code;
-}
+set exitCode(int code) => process?.exitCode = code;
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
   if (!isNode) {

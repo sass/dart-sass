@@ -9,7 +9,6 @@ import 'package:stack_trace/stack_trace.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../utils.dart';
-import '../node/console_stub.dart' if (dart.library.js) '../node/console.dart';
 
 /// A logger that prints warnings to standard error or browser console.
 class StderrLogger implements Logger {
@@ -20,48 +19,40 @@ class StderrLogger implements Logger {
 
   void warn(String message,
       {FileSpan? span, Trace? trace, bool deprecation = false}) {
-    var result = '';
+    var result = StringBuffer();
     if (color) {
       // Bold yellow.
-      result += '\u001b[33m\u001b[1m';
-      if (deprecation) result += 'Deprecation ';
-      result += 'Warning\u001b[0m';
+      result.write('\u001b[33m\u001b[1m');
+      if (deprecation) result.write('Deprecation ');
+      result.write('Warning\u001b[0m');
     } else {
-      if (deprecation) result += 'DEPRECATION ';
-      result += 'WARNING';
+      if (deprecation) result.write('DEPRECATION ');
+      result.write('WARNING');
     }
 
     if (span == null) {
-      result += ': $message\n';
+      result.writeln(': $message');
     } else if (trace != null) {
       // If there's a span and a trace, the span's location information is
       // probably duplicated in the trace, so we just use it for highlighting.
-      result += ': $message\n\n${span.highlight(color: color)}\n';
+      result.writeln(': $message\n\n${span.highlight(color: color)}');
     } else {
-      result += ' on ${span.message("\n" + message, color: color)}\n';
+      result.writeln(' on ${span.message("\n" + message, color: color)}');
     }
 
-    if (trace != null) result += '${indent(trace.toString().trimRight(), 4)}\n';
-    result += '\n';
+    if (trace != null) result.writeln(indent(trace.toString().trimRight(), 4));
+    result.writeln();
 
-    if (isBrowser) {
-      console.error(result);
-    } else {
-      stderr.write(result);
-    }
+    printError(result);
   }
 
   void debug(String message, SourceSpan span) {
-    var result = '';
+    var result = StringBuffer();
     var url =
         span.start.sourceUrl == null ? '-' : p.prettyUri(span.start.sourceUrl);
-    result += '$url:${span.start.line + 1} ';
-    result += color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG';
-    result += ': $message\n';
-    if (isBrowser) {
-      console.warn(result);
-    } else {
-      stderr.write(result);
-    }
+    result.write('$url:${span.start.line + 1} ');
+    result.write(color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG');
+    result.write(': $message');
+    printError(result.toString());
   }
 }

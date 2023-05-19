@@ -16,8 +16,6 @@ import '../utils.dart';
 
 export 'dart:io' show exitCode, FileSystemException;
 
-io.Stdout get stderr => io.stderr;
-
 bool get isWindows => io.Platform.isWindows;
 
 bool get isMacOS => io.Platform.isMacOS;
@@ -37,6 +35,10 @@ bool get supportsAnsiEscapes {
   // relies on the TERM environment variable which has many false negatives.
   if (!isWindows) return true;
   return io.stdout.supportsAnsiEscapes;
+}
+
+void printError(Object? message) {
+  io.stderr.writeln(message);
 }
 
 String readFile(String path) {
