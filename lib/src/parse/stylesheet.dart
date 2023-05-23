@@ -2917,6 +2917,7 @@ abstract class StylesheetParser extends Parser {
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "clamp":
+      case "round":
         var arguments = _calculationArguments(3);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 

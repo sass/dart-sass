@@ -2320,7 +2320,7 @@ class _EvaluateVisitor
     var arguments = [
       for (var argument in node.arguments)
         _visitCalculationValue(argument,
-            inMinMax: node.name == 'min' || node.name == 'max')
+            inMinMax: {'min', 'max', 'round'}.contains(node.name))
     ];
     if (_inSupportsDeclaration) {
       return SassCalculation.unsimplified(node.name, arguments);
@@ -2339,7 +2339,18 @@ class _EvaluateVisitor
         case "max":
           return SassCalculation.max(arguments);
         case "pow":
-          return SassCalculation.pow(arguments);
+          if (arguments.length < 2)
+            throw SassScriptException(
+                "2 arguments required, but only 1 was passed.");
+          return SassCalculation.pow(arguments[0], arguments[1]);
+        case "round":
+          assert(arguments.isNotEmpty, true);
+          return arguments.length > 2
+              ? SassCalculation.round(arguments[0], arguments[1], arguments[2])
+              : SassCalculation.round(
+                  arguments.length > 1 ? arguments[0] : null,
+                  arguments.length == 1 ? arguments[0] : arguments[1],
+                  null);
         case "clamp":
           return SassCalculation.clamp(
               arguments[0],

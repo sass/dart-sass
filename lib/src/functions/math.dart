@@ -133,14 +133,7 @@ final _log = _function("log", r"$number, $base: null", (arguments) {
 final _pow = _function("pow", r"$base, $exponent", (arguments) {
   var base = arguments[0].assertNumber("base");
   var exponent = arguments[1].assertNumber("exponent");
-  if (base.hasUnits) {
-    throw SassScriptException("\$base: Expected $base to have no units.");
-  } else if (exponent.hasUnits) {
-    throw SassScriptException(
-        "\$exponent: Expected $exponent to have no units.");
-  } else {
-    return SassNumber(math.pow(base.value, exponent.value));
-  }
+  return pow(base, exponent);
 });
 
 final _sqrt = _function("sqrt", r"$number", (arguments) {

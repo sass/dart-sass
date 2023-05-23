@@ -6,7 +6,7 @@ import 'package:meta/meta.dart';
 
 import '../exception.dart';
 import '../util/nullable.dart';
-import '../util/number.dart' as number;
+import '../util/number.dart' as number_lib;
 import '../utils.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';
@@ -122,9 +122,9 @@ class SassCalculation extends Value {
 
   /// Creates a `sqrt()` calculation with the given [argument].
   ///
-  /// Each argument must be either a [SassNumber], a [SassCalculation], an
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation]. It must be passed at least one argument.
+  /// [CalculationInterpolation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -134,7 +134,7 @@ class SassCalculation extends Value {
     if (argument is! SassNumber) {
       return SassCalculation._("sqrt", [argument]);
     }
-    return number.sqrt(argument);
+    return number_lib.sqrt(argument);
   }
 
   /// Creates a `clamp()` calculation with the given [min], [value], and [max].
@@ -175,7 +175,7 @@ class SassCalculation extends Value {
     return SassCalculation._("clamp", args);
   }
 
-  /// Creates a `pow()` calculation with the given [min], [value], and [max].
+  /// Creates a `pow()` calculation with the given [arguments].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
@@ -187,16 +187,80 @@ class SassCalculation extends Value {
   ///
   /// This may be passed fewer than three arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
-  static Value pow(Iterable<Object> arguments) {
-    var args = _simplifyArguments(arguments);
-    _verifyLength(args, 2);
-    var num1 = args[0];
-    var num2 = args[1];
-    if (num1 is! SassNumber || num2 is! SassNumber) {
-      return SassCalculation._("pow", [num1, num2]);
+  static Value pow(Object base, Object exponent) {
+    base = _simplify(base);
+    exponent = _simplify(exponent);
+    if (base is! SassNumber || exponent is! SassNumber) {
+      return SassCalculation._("pow", [base, exponent]);
     }
 
-    return number.pow(num1, num2);
+    return number_lib.pow(base, exponent);
+  }
+
+  /// Creates a `round()` calculation with the given [strategy], [number], and [step].
+  ///
+  /// Strategy must be either nearest, up, down or to-zero.
+  ///
+  /// Number and step must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  ///
+  /// This may be passed fewer than three arguments, but only if one of the
+  /// arguments is an unquoted `var()` string.
+  static Value round(Object? strategy, Object number, Object? step) {
+    number = _simplify(number);
+    step = step.andThen(_simplify);
+
+    var args = [if (strategy != null) strategy, number, if (step != null) step];
+
+    // Sets the default strategy to nearest.
+    strategy ??= SassString('nearest', quotes: false);
+    if (strategy is! SassString ||
+        !{'nearest', 'up', 'down', 'to-zero'}.contains(strategy.text)) {
+      if (step == null && strategy is SassNumber) {
+        throw SassScriptException("If step not null, strategy is required.");
+      }
+      throw SassScriptException(
+          "$strategy must be either nearest, up, down or to-zero.");
+    }
+
+    if (number is! SassNumber || (step != null && step is! SassNumber)) {
+      return SassCalculation._("round", args);
+    }
+
+    if (step is SassNumber) {
+      if (step.value == 0) return SassNumber(double.nan);
+      if (number.value.isInfinite) {
+        if (step.value.isInfinite) {
+          return SassNumber(double.nan);
+        }
+        return SassNumber(double.infinity);
+      }
+
+      if (step.value.isInfinite) {
+        if (number.value == -0) return number;
+        if (number.value >= 0 && strategy.text == "up") {
+          return SassNumber(double.infinity);
+        }
+        if (number.value < 0 && strategy.text == "down") {
+          return SassNumber(-double.infinity);
+        }
+
+        return SassNumber(0);
+      }
+
+      _verifyCompatibleNumbers([number, step]);
+
+      //Handle step
+      return number_lib.step(strategy, number, step);
+    } else if (step == null) {
+      return number_lib.roundStrategies(strategy, number);
+    }
+    return SassNumber(double.nan);
   }
 
   /// Creates and simplifies a [CalculationOperation] with the given [operator],
@@ -243,7 +307,7 @@ class SassCalculation extends Value {
 
       _verifyCompatibleNumbers([left, right]);
 
-      if (right is SassNumber && number.fuzzyLessThan(right.value, 0)) {
+      if (right is SassNumber && number_lib.fuzzyLessThan(right.value, 0)) {
         right = right.times(SassNumber(-1));
         operator = operator == CalculationOperator.plus
             ? CalculationOperator.minus
