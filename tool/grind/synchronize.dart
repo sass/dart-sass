@@ -4,16 +4,19 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
+import 'package:source_span/source_span.dart';
 
 import 'package:sass/src/util/nullable.dart';
 
@@ -69,11 +72,20 @@ class _Visitor extends RecursiveAstVisitor<void> {
   /// The source of the original asynchronous file.
   final String _source;
 
+  /// The path from which [_source] was loaded.
+  final String _path;
+
   /// The current position in [_source].
   var _position = 0;
 
   /// The buffer in which the text of the synchronous file is built up.
   final _buffer = StringBuffer();
+
+  /// Returns the [SourceFile] which is being rewritten.
+  ///
+  /// This is only used for debugging and error reporting.
+  SourceFile get _sourceFile =>
+      SourceFile.fromString(_source, url: p.toUri(_path));
 
   /// The synchronous text.
   String get result {
@@ -82,11 +94,11 @@ class _Visitor extends RecursiveAstVisitor<void> {
     return _buffer.toString();
   }
 
-  _Visitor(this._source, String path) {
+  _Visitor(this._source, this._path) {
     var afterHeader = "\n".allMatches(_source).skip(3).first.end;
     _buffer.writeln(_source.substring(0, afterHeader));
     _buffer.writeln("""
-// DO NOT EDIT. This file was generated from ${p.basename(path)}.
+// DO NOT EDIT. This file was generated from ${p.basename(_path)}.
 // See tool/grind/synchronize.dart for details.
 //
 // Checksum: ${sha1.convert(utf8.encode(_source))}
@@ -94,12 +106,12 @@ class _Visitor extends RecursiveAstVisitor<void> {
 // ignore_for_file: unused_import
 """);
 
-    if (p.basename(path) == 'async_evaluate.dart') {
+    if (p.basename(_path) == 'async_evaluate.dart') {
       _buffer.writeln();
       _buffer.writeln("import 'async_evaluate.dart' show EvaluateResult;");
       _buffer.writeln("export 'async_evaluate.dart' show EvaluateResult;");
       _buffer.writeln();
-    } else if (p.basename(path) == 'async_compile.dart') {
+    } else if (p.basename(_path) == 'async_compile.dart') {
       _buffer.writeln();
       _buffer.writeln("export 'async_compile.dart';");
       _buffer.writeln();
@@ -132,10 +144,19 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   void visitClassDeclaration(ClassDeclaration node) {
-    if (_sharedClasses.contains(node.name2.lexeme)) {
+    if (_sharedClasses.contains(node.name.lexeme)) {
       _skipNode(node);
     } else {
-      super.visitClassDeclaration(node);
+      for (var child in node.sortedCommentAndAnnotations) {
+        child.accept(this);
+      }
+      _rename(node.name);
+      node.typeParameters?.accept(this);
+      node.extendsClause?.accept(this);
+      node.withClause?.accept(this);
+      node.implementsClause?.accept(this);
+      node.nativeClause?.accept(this);
+      node.members.accept(this);
     }
   }
 
@@ -144,8 +165,17 @@ class _Visitor extends RecursiveAstVisitor<void> {
     node.visitChildren(this);
   }
 
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    for (var child in node.sortedCommentAndAnnotations) {
+      child.accept(this);
+    }
+    node.returnType?.accept(this);
+    _rename(node.name);
+    node.functionExpression.accept(this);
+  }
+
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (_synchronizeName(node.name2.lexeme) != node.name2.lexeme) {
+    if (_synchronizeName(node.name.lexeme) != node.name.lexeme) {
       // If the file defines any asynchronous versions of synchronous functions,
       // remove them.
       _skipNode(node);
@@ -189,8 +219,8 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   void visitNamedType(NamedType node) {
-    if (["Future", "FutureOr"].contains(node.name.name)) {
-      _skip(node.name.beginToken);
+    if (["Future", "FutureOr"].contains(node.name2.lexeme)) {
+      _skip(node.name2);
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
         _skip(typeArguments.leftBracket);
@@ -199,7 +229,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
       } else {
         _buffer.write("void");
       }
-    } else if (node.name.name == "Module") {
+    } else if (node.name2.lexeme == "Module") {
       _skipNode(node);
       _buffer.write("Module<Callable>");
     } else {
@@ -207,10 +237,22 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Writes through [node]'s (synchronized) name.
+  ///
+  /// Assumes [node] has a name field with type [Token].
+  void _rename(Token token) {
+    _skip(token);
+    _buffer.write(_synchronizeName(token.lexeme));
+  }
+
   /// Writes [_source] to [_buffer] up to the beginning of [token], then puts
   /// [_position] after [token] so it doesn't get written.
   void _skip(Token? token) {
     if (token == null) return;
+    if (token.offset < _position) {
+      throw _alreadyEmittedException(_spanForToken(token));
+    }
+
     _buffer.write(_source.substring(_position, token.offset));
     _position = token.end;
   }
@@ -224,6 +266,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   /// Writes [_source] to [_buffer] up to the beginning of [node].
   void _writeTo(AstNode node) {
+    if (node.beginToken.offset < _position) {
+      throw _alreadyEmittedException(_spanForNode(node));
+    }
+
     _buffer.write(_source.substring(_position, node.beginToken.offset));
     _position = node.beginToken.offset;
   }
@@ -232,6 +278,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
   ///
   /// This leaves [_position] at the end of [node].
   void _write(AstNode node) {
+    if (node.beginToken.offset < _position) {
+      throw _alreadyEmittedException(_spanForNode(node));
+    }
+
     _position = node.beginToken.offset;
     node.accept(this);
     _buffer.write(_source.substring(_position, node.endToken.end));
@@ -248,4 +298,26 @@ class _Visitor extends RecursiveAstVisitor<void> {
       return name;
     }
   }
+
+  SourceSpanException _alreadyEmittedException(SourceSpan span) {
+    var lines = _buffer.toString().split("\n");
+    return SourceSpanException(
+        "Node was already emitted. Last 3 lines:\n\n" +
+            lines
+                .slice(math.max(lines.length - 3, 0))
+                .map((line) => "  $line")
+                .join("\n") +
+            "\n",
+        span);
+  }
+
+  /// Returns a [FileSpan] that represents [token]'s position in the source
+  /// file.
+  SourceSpan _spanForToken(Token token) =>
+      _sourceFile.span(token.offset, token.end);
+
+  /// Returns a [FileSpan] that represents [token]'s position in the source
+  /// file.
+  SourceSpan _spanForNode(AstNode node) =>
+      _sourceFile.span(node.beginToken.offset, node.endToken.end);
 }
