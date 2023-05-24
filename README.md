@@ -141,11 +141,13 @@ well):
 <script type="module">
   import * as sass from 'sass';
 
-  console.log(sass.compileString(`
-    .box {
-      width: 10px + 15px;
-    }
-  `);
+  console.log(
+    sass.compileString(`
+      .box {
+        width: 10px + 15px;
+      }
+    `)
+  );
 </script>
 ```
 
@@ -167,11 +169,13 @@ Or from a CDN:
 <script type="module">
   import * as sass from 'sass';
 
-  console.log(sass.compileString(`
-    .box {
-      width: 10px + 15px;
-    }
-  `);
+  console.log(
+    sass.compileString(`
+      .box {
+        width: 10px + 15px;
+      }
+    `)
+  );
 </script>
 ```
 
@@ -181,11 +185,13 @@ Or even bundled with all its dependencies:
 <script type="module">
   import * as sass from 'https://jspm.dev/sass';
 
-  console.log(sass.compileString(`
-    .box {
-      width: 10px + 15px;
-    }
-  `);
+  console.log(
+    sass.compileString(`
+      .box {
+        width: 10px + 15px;
+      }
+    `)
+  );
 </script>
 ```
 
