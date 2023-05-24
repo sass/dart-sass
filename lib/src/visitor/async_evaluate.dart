@@ -2334,7 +2334,7 @@ class _EvaluateVisitor
     var arguments = [
       for (var argument in node.arguments)
         await _visitCalculationValue(argument,
-            inMinMax: {'min', 'max', 'round'}.contains(node.name))
+            inLegacySassFunction: {'min', 'max', 'round'}.contains(node.name))
     ];
     if (_inSupportsDeclaration) {
       return SassCalculation.unsimplified(node.name, arguments);
@@ -2353,18 +2353,14 @@ class _EvaluateVisitor
         case "max":
           return SassCalculation.max(arguments);
         case "pow":
-          if (arguments.length < 2)
-            throw SassScriptException(
-                "2 arguments required, but only 1 was passed.");
-          return SassCalculation.pow(arguments[0], arguments[1]);
+          return SassCalculation.pow(
+              arguments[0], arguments.length > 1 ? arguments[1] : null);
         case "round":
           assert(arguments.isNotEmpty, true);
           return arguments.length > 2
               ? SassCalculation.round(arguments[0], arguments[1], arguments[2])
-              : SassCalculation.round(
-                  arguments.length > 1 ? arguments[0] : null,
-                  arguments.length == 1 ? arguments[0] : arguments[1],
-                  null);
+              : SassCalculation.round(null, arguments[0],
+                  arguments.length > 1 ? arguments[1] : null);
         case "clamp":
           return SassCalculation.clamp(
               arguments[0],
@@ -2421,14 +2417,15 @@ class _EvaluateVisitor
 
   /// Evaluates [node] as a component of a calculation.
   ///
-  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
+  /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
   /// old global `min()` and `max()` functions.
   Future<Object> _visitCalculationValue(Expression node,
-      {required bool inMinMax}) async {
+      {required bool inLegacySassFunction}) async {
     if (node is ParenthesizedExpression) {
       var inner = node.expression;
-      var result = await _visitCalculationValue(inner, inMinMax: inMinMax);
+      var result = await _visitCalculationValue(inner,
+          inLegacySassFunction: inLegacySassFunction);
       return inner is FunctionExpression &&
               inner.name.toLowerCase() == 'var' &&
               result is SassString &&
@@ -2464,9 +2461,11 @@ class _EvaluateVisitor
           node,
           () async => SassCalculation.operateInternal(
               _binaryOperatorToCalculationOperator(node.operator),
-              await _visitCalculationValue(node.left, inMinMax: inMinMax),
-              await _visitCalculationValue(node.right, inMinMax: inMinMax),
-              inMinMax: inMinMax,
+              await _visitCalculationValue(node.left,
+                  inLegacySassFunction: inLegacySassFunction),
+              await _visitCalculationValue(node.right,
+                  inLegacySassFunction: inLegacySassFunction),
+              inLegacySassFunction: inLegacySassFunction,
               simplify: !_inSupportsDeclaration));
     } else {
       assert(node is NumberExpression ||

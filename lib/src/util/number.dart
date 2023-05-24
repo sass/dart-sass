@@ -4,7 +4,6 @@
 
 import 'dart:math' as math;
 
-import '../exception.dart';
 import '../value.dart';
 
 /// The power of ten to which to round Sass numbers to determine if they're
@@ -131,34 +130,4 @@ SassNumber pow(SassNumber num1, SassNumber num2) {
   num1.assertNoUnits();
   num2.assertNoUnits();
   return SassNumber(math.pow(num1.value, num2.value));
-}
-
-/// Return the rounded number according to the strategy
-SassNumber roundStrategies(SassString strategy, SassNumber number) {
-  if (!number.value.isNaN && number.value.isFinite) {
-    var strategies = {
-      'nearest': SassNumber(number.value.round().toDouble()),
-      'up': SassNumber(number.value.ceil().toDouble()),
-      'down': SassNumber(number.value.floor().toDouble()),
-      'to-zero': number.value < 0
-          ? SassNumber(number.value.ceil().toDouble())
-          : SassNumber(number.value.floor().toDouble())
-    };
-
-    return strategies[strategy.text] ?? SassNumber(double.nan);
-  }
-  return SassNumber(double.nan);
-}
-
-/// Return the rounded number according to the strategy and the step provided.
-SassNumber step(SassString strategy, SassNumber number, SassNumber step) {
-  var stepStrategies = {
-    'nearest': SassNumber((number.value / step.value).round() * step.value),
-    'up': SassNumber((number.value / step.value).ceil() * step.value),
-    'down': SassNumber((number.value / step.value).floor() * step.value),
-    'to-zero': number.value < 0
-        ? SassNumber((number.value / step.value).ceil() * step.value)
-        : SassNumber((number.value / step.value).floor() * step.value)
-  };
-  return stepStrategies[strategy.text] ?? step;
 }

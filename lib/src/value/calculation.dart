@@ -187,18 +187,18 @@ class SassCalculation extends Value {
   ///
   /// This may be passed fewer than three arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
-  static Value pow(Object base, Object exponent) {
+  static Value pow(Object base, Object? exponent) {
+    _verifyLength([base, if (exponent != null) exponent], 2);
     base = _simplify(base);
-    exponent = _simplify(exponent);
+    exponent = exponent.andThen(_simplify);
     if (base is! SassNumber || exponent is! SassNumber) {
-      return SassCalculation._("pow", [base, exponent]);
+      return SassCalculation._("pow", [base, exponent ?? double.nan]);
     }
-
+    _verifyCompatibleNumbers([base, exponent]);
     return number_lib.pow(base, exponent);
   }
 
   /// Creates a `round()` calculation with the given [strategy], [number], and [step].
-  ///
   /// Strategy must be either nearest, up, down or to-zero.
   ///
   /// Number and step must be either a [SassNumber], a [SassCalculation], an
@@ -217,13 +217,15 @@ class SassCalculation extends Value {
 
     var args = [if (strategy != null) strategy, number, if (step != null) step];
 
-    // Sets the default strategy to nearest.
+    // If only two arguments are provided, they should match [number] and [step].
+    if (number is SassString && step is SassNumber) {
+      throw SassScriptException("If strategy is not null, step is required.");
+    }
+
     strategy ??= SassString('nearest', quotes: false);
+
     if (strategy is! SassString ||
         !{'nearest', 'up', 'down', 'to-zero'}.contains(strategy.text)) {
-      if (step == null && strategy is SassNumber) {
-        throw SassScriptException("If step not null, strategy is required.");
-      }
       throw SassScriptException(
           "$strategy must be either nearest, up, down or to-zero.");
     }
@@ -232,33 +234,45 @@ class SassCalculation extends Value {
       return SassCalculation._("round", args);
     }
 
-    if (step is SassNumber) {
-      if (step.value == 0) return SassNumber(double.nan);
-      if (number.value.isInfinite) {
-        if (step.value.isInfinite) {
-          return SassNumber(double.nan);
-        }
+    // Handle one argument case with legacy round.
+    if (step is! SassNumber) {
+      return SassNumber(number.value.round().toDouble());
+    }
+
+    if (step.value == 0) return SassNumber(double.nan);
+    if (number.value.isInfinite) {
+      if (step.value.isInfinite) {
+        return SassNumber(double.nan);
+      }
+      return SassNumber(double.infinity);
+    }
+
+    if (step.value.isInfinite) {
+      if (number.value == -0) return number;
+      if (number.value >= 0 && strategy.text == "up") {
         return SassNumber(double.infinity);
       }
-
-      if (step.value.isInfinite) {
-        if (number.value == -0) return number;
-        if (number.value >= 0 && strategy.text == "up") {
-          return SassNumber(double.infinity);
-        }
-        if (number.value < 0 && strategy.text == "down") {
-          return SassNumber(-double.infinity);
-        }
-
-        return SassNumber(0);
+      if (number.value < 0 && strategy.text == "down") {
+        return SassNumber(-double.infinity);
       }
 
-      _verifyCompatibleNumbers([number, step]);
+      return SassNumber(0);
+    }
 
-      //Handle step
-      return number_lib.step(strategy, number, step);
-    } else if (step == null) {
-      return number_lib.roundStrategies(strategy, number);
+    _verifyCompatibleNumbers([number, step]);
+
+    //Handle step
+    switch (strategy.text) {
+      case 'nearest':
+        return SassNumber((number.value / step.value).round() * step.value);
+      case 'up':
+        return SassNumber((number.value / step.value).ceil() * step.value);
+      case 'down':
+        return SassNumber((number.value / step.value).floor() * step.value);
+      case 'to-zero':
+        return number.value < 0
+            ? SassNumber((number.value / step.value).ceil() * step.value)
+            : SassNumber((number.value / step.value).floor() * step.value);
     }
     return SassNumber(double.nan);
   }
@@ -274,11 +288,12 @@ class SassCalculation extends Value {
   /// a [CalculationInterpolation].
   static Object operate(
           CalculationOperator operator, Object left, Object right) =>
-      operateInternal(operator, left, right, inMinMax: false, simplify: true);
+      operateInternal(operator, left, right,
+          inLegacySassFunction: false, simplify: true);
 
-  /// Like [operate], but with the internal-only [inMinMax] parameter.
+  /// Like [operate], but with the internal-only [inLegacySassFunction] parameter.
   ///
-  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
+  /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
   /// old global `min()` and `max()` functions.
   ///
@@ -286,7 +301,7 @@ class SassCalculation extends Value {
   @internal
   static Object operateInternal(
       CalculationOperator operator, Object left, Object right,
-      {required bool inMinMax, required bool simplify}) {
+      {required bool inLegacySassFunction, required bool simplify}) {
     if (!simplify) {
       return CalculationOperation._(operator, left, right);
     }
@@ -297,7 +312,7 @@ class SassCalculation extends Value {
         operator == CalculationOperator.minus) {
       if (left is SassNumber &&
           right is SassNumber &&
-          (inMinMax
+          (inLegacySassFunction
               ? left.isComparableTo(right)
               : left.hasCompatibleUnits(right))) {
         return operator == CalculationOperator.plus
