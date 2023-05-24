@@ -189,6 +189,18 @@ Or even bundled with all its dependencies:
 </script>
 ```
 
+Since the browser doesn't have access to the filesystem, the [`compile()`] and
+`compileAsync()` functions aren't available for it. If you want to load other
+files, you'll need to pass a [custom importer] to [`compileString()`] or
+[`compileStringAsync()`]. The [legacy API] is also not supported in the browser.
+
+[`compile()`]: https://sass-lang.com/documentation/js-api/functions/compile
+[`compileAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileAsync
+[custom importer]: https://sass-lang.com/documentation/js-api/interfaces/StringOptionsWithImporter#importer
+[`compileString()`]: https://sass-lang.com/documentation/js-api/functions/compileString
+[`compileStringAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileStringAsync
+[legacy API]: #legacy-javascript-api
+
 #### Legacy JavaScript API
 
 Dart Sass also supports an older JavaScript API that's fully compatible with
@@ -197,8 +209,8 @@ Dart Sass also supports an older JavaScript API that's fully compatible with
 and will be removed in Dart Sass 2.0.0, so it should be avoided in new projects.
 
 [Node Sass]: https://github.com/sass/node-sass
-[`render()`]: https://sass-lang.com/documentation/js-api/modules#render
-[`renderSync()`]: https://sass-lang.com/documentation/js-api/modules#renderSync
+[`render()`]: https://sass-lang.com/documentation/js-api/functions/render
+[`renderSync()`]: https://sass-lang.com/documentation/js-api/functions/renderSync
 
 Sass's support for the legacy JavaScript API has the following limitations:
 

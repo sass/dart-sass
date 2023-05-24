@@ -1,5 +1,10 @@
 ## 1.63.0
 
+### JavaScript API
+
+* Dart Sass's JS API now supports running in the browser. Further details and
+  instructions for use are in [the README](README.md#dart-sass-in-the-browser).
+
 ### Embedded Sass
 
 * The Dart Sass embedded compiler is now included as part of the primary Dart
