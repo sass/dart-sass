@@ -145,7 +145,7 @@ well):
     .box {
       width: 10px + 15px;
     }
-  `);
+  `));
 </script>
 ```
 
@@ -171,7 +171,7 @@ Or from a CDN:
     .box {
       width: 10px + 15px;
     }
-  `);
+  `));
 </script>
 ```
 
@@ -185,7 +185,7 @@ Or even bundled with all its dependencies:
     .box {
       width: 10px + 15px;
     }
-  `);
+  `));
 </script>
 ```
 
