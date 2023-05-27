@@ -2334,7 +2334,8 @@ class _EvaluateVisitor
     var arguments = [
       for (var argument in node.arguments)
         await _visitCalculationValue(argument,
-            inLegacySassFunction: {'min', 'max', 'round'}.contains(node.name))
+            inLegacySassFunction:
+                {'min', 'max', 'round', 'abs'}.contains(node.name))
     ];
     if (_inSupportsDeclaration) {
       return SassCalculation.unsimplified(node.name, arguments);
@@ -2348,12 +2349,36 @@ class _EvaluateVisitor
         case "sqrt":
           assert(arguments.length == 1);
           return SassCalculation.sqrt(arguments[0]);
+        case "sin":
+          assert(arguments.length == 1);
+          return SassCalculation.sin(arguments[0]);
+        case "cos":
+          assert(arguments.length == 1);
+          return SassCalculation.cos(arguments[0]);
+        case "tan":
+          assert(arguments.length == 1);
+          return SassCalculation.tan(arguments[0]);
+        case "asin":
+          assert(arguments.length == 1);
+          return SassCalculation.asin(arguments[0]);
+        case "acos":
+          assert(arguments.length == 1);
+          return SassCalculation.acos(arguments[0]);
+        case "atan":
+          assert(arguments.length == 1);
+          return SassCalculation.atan(arguments[0]);
+        case "abs":
+          assert(arguments.length == 1);
+          return SassCalculation.abs(arguments[0]);
         case "min":
           return SassCalculation.min(arguments);
         case "max":
           return SassCalculation.max(arguments);
         case "pow":
           return SassCalculation.pow(
+              arguments[0], arguments.length > 1 ? arguments[1] : null);
+        case "log":
+          return SassCalculation.log(
               arguments[0], arguments.length > 1 ? arguments[1] : null);
         case "round":
           assert(arguments.isNotEmpty, true);

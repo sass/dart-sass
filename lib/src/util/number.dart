@@ -125,6 +125,58 @@ SassNumber sqrt(SassNumber number) {
   return SassNumber(math.sqrt(number.value));
 }
 
+/// Return sin of [number]
+SassNumber sin(SassNumber number) {
+  return SassNumber(math
+      .sin(number.assertNumber("number").coerceValueToUnit("rad", "number")));
+}
+
+/// Return cos of [number]
+SassNumber cos(SassNumber number) {
+  return SassNumber(math
+      .cos(number.assertNumber("number").coerceValueToUnit("rad", "number")));
+}
+
+/// Return tan of [number]
+SassNumber tan(SassNumber number) {
+  return SassNumber(math
+      .tan(number.assertNumber("number").coerceValueToUnit("rad", "number")));
+}
+
+/// Return atan of [number]
+SassNumber atan(SassNumber number) {
+  number.assertNoUnits();
+  return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi);
+}
+
+/// Return asin of [number]
+SassNumber asin(SassNumber number) {
+  number.assertNoUnits();
+  return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi);
+}
+
+/// Return acos of [number]
+SassNumber acos(SassNumber number) {
+  number.assertNoUnits();
+  return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi);
+}
+
+/// Return abs of [number]
+SassNumber abs(SassNumber number) {
+  number.assertNoUnits();
+  return SassNumber(number.value.abs());
+}
+
+/// Return log of [number]
+SassNumber log(SassNumber number, SassNumber? base) {
+  number.assertNoUnits();
+  if (base != null) {
+    base.assertNoUnits();
+    return SassNumber(math.log(number.value) / math.log(base.value));
+  }
+  return SassNumber(math.log(number.value));
+}
+
 /// Return [num1]^[num2]
 SassNumber pow(SassNumber num1, SassNumber num2) {
   num1.assertNoUnits();

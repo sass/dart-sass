@@ -137,6 +137,125 @@ class SassCalculation extends Value {
     return number_lib.sqrt(argument);
   }
 
+  /// Creates a `sin()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value sin(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber) {
+      return SassCalculation._("sin", [argument]);
+    }
+    return number_lib.sin(argument);
+  }
+
+  /// Creates a `cos()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value cos(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber) {
+      return SassCalculation._("cos", [argument]);
+    }
+    return number_lib.cos(argument);
+  }
+
+  /// Creates a `tan()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value tan(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber) {
+      return SassCalculation._("tan", [argument]);
+    }
+    return number_lib.tan(argument);
+  }
+
+  /// Creates a `sin()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value atan(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber) {
+      return SassCalculation._("atan", [argument]);
+    }
+    return number_lib.atan(argument);
+  }
+
+  /// Creates a `asin()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value asin(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber) {
+      return SassCalculation._("asin", [argument]);
+    }
+    return number_lib.asin(argument);
+  }
+
+  /// Creates a `acos()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value acos(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber) {
+      return SassCalculation._("acos", [argument]);
+    }
+    return number_lib.acos(argument);
+  }
+
+  /// Creates a `abs()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value abs(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber) {
+      return SassCalculation._("abs", [argument]);
+    }
+    return number_lib.abs(argument);
+  }
+
   /// Creates a `clamp()` calculation with the given [min], [value], and [max].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
@@ -196,6 +315,30 @@ class SassCalculation extends Value {
     }
     _verifyCompatibleNumbers([base, exponent]);
     return number_lib.pow(base, exponent);
+  }
+
+  /// Creates a `log()` calculation with the given [arguments].
+  ///
+  /// Each argument must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  ///
+  /// This may be passed fewer than three arguments, but only if one of the
+  /// arguments is an unquoted `var()` string.
+  static Value log(Object number, Object? base) {
+    number = _simplify(number);
+    base = base.andThen(_simplify);
+    var args = [number, if (base != null) base];
+    if (number is! SassNumber ||
+        (base != null && base is! SassString && base is! SassNumber)) {
+      return SassCalculation._("log", args);
+    }
+    _verifyCompatibleNumbers(args);
+    return number_lib.log(number, base is SassNumber ? base : null);
   }
 
   /// Creates a `round()` calculation with the given [strategy], [number], and [step].

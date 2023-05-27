@@ -2895,6 +2895,13 @@ abstract class StylesheetParser extends Parser {
     switch (name) {
       case "calc":
       case "sqrt":
+      case "sin":
+      case "cos":
+      case "tan":
+      case "asin":
+      case "acos":
+      case "atan":
+      case "abs":
         var arguments = _calculationArguments(1);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
@@ -2913,6 +2920,7 @@ abstract class StylesheetParser extends Parser {
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "pow":
+      case "log":
         var arguments = _calculationArguments(2);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 

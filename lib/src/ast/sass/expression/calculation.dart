@@ -54,6 +54,34 @@ class CalculationExpression implements Expression {
   CalculationExpression.sqrt(Expression argument, FileSpan span)
       : this("sqrt", [argument], span);
 
+  /// Returns a `sin()` calculation expression.
+  CalculationExpression.sin(Expression argument, FileSpan span)
+      : this("sin", [argument], span);
+
+  /// Returns a `cos()` calculation expression.
+  CalculationExpression.cos(Expression argument, FileSpan span)
+      : this("cos", [argument], span);
+
+  /// Returns a `tan()` calculation expression.
+  CalculationExpression.tan(Expression argument, FileSpan span)
+      : this("tan", [argument], span);
+
+  /// Returns a `asin()` calculation expression.
+  CalculationExpression.asin(Expression argument, FileSpan span)
+      : this("asin", [argument], span);
+
+  /// Returns a `acos()` calculation expression.
+  CalculationExpression.acos(Expression argument, FileSpan span)
+      : this("acos", [argument], span);
+
+  /// Returns a `atan()` calculation expression.
+  CalculationExpression.atan(Expression argument, FileSpan span)
+      : this("atan", [argument], span);
+
+  /// Returns a `abs()` calculation expression.
+  CalculationExpression.abs(Expression argument, FileSpan span)
+      : this("abs", [argument], span);
+
   /// Returns a `clamp()` calculation expression.
   CalculationExpression.clamp(
       Expression min, Expression value, Expression max, FileSpan span)
@@ -62,6 +90,10 @@ class CalculationExpression implements Expression {
   /// Returns a `pow()` calculation expression.
   CalculationExpression.pow(Expression base, Expression exponent, FileSpan span)
       : this("pow", [base, exponent], span);
+
+  /// Returns a `log()` calculation expression.
+  CalculationExpression.log(Expression number, Expression base, FileSpan span)
+      : this("log", [number, base], span);
 
   /// Returns a `round()` calculation expression.
   CalculationExpression.round(
