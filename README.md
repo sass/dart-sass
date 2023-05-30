@@ -31,7 +31,9 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
   * [From Homebrew (macOS)](#from-homebrew-macos)
   * [Standalone](#standalone)
   * [From npm](#from-npm)
+    * [Dart Sass in the Browser](#dart-sass-in-the-browser)
     * [Legacy JavaScript API](#legacy-javascript-api)
+    * [Using Sass with Jest](#using-sass-with-jest)
   * [From Pub](#from-pub)
     * [`sass_api` Package](#sass_api-package)
   * [From Source](#from-source)
@@ -40,6 +42,8 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
 * [Compatibility Policy](#compatibility-policy)
   * [Browser Compatibility](#browser-compatibility)
   * [Node.js Compatibility](#nodejs-compatibility)
+* [Embedded Dart Sass](#embedded-dart-sass)
+  * [Usage](#usage)
 * [Behavioral Differences from Ruby Sass](#behavioral-differences-from-ruby-sass)
 
 ## Using Dart Sass
