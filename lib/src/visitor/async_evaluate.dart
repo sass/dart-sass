@@ -2370,15 +2370,32 @@ class _EvaluateVisitor
         case "abs":
           assert(arguments.length == 1);
           return SassCalculation.abs(arguments[0]);
+        case "exp":
+          assert(arguments.length == 1);
+          return SassCalculation.exp(arguments[0]);
+        case "sign":
+          assert(arguments.length == 1);
+          return SassCalculation.sign(arguments[0]);
         case "min":
           return SassCalculation.min(arguments);
         case "max":
           return SassCalculation.max(arguments);
+        case "hypot":
+          return SassCalculation.hypot(arguments);
         case "pow":
           return SassCalculation.pow(
               arguments[0], arguments.length > 1 ? arguments[1] : null);
+        case "atan2":
+          return SassCalculation.atan2(
+              arguments[0], arguments.length > 1 ? arguments[1] : null);
         case "log":
           return SassCalculation.log(
+              arguments[0], arguments.length > 1 ? arguments[1] : null);
+        case "mod":
+          return SassCalculation.mod(
+              arguments[0], arguments.length > 1 ? arguments[1] : null);
+        case "rem":
+          return SassCalculation.rem(
               arguments[0], arguments.length > 1 ? arguments[1] : null);
         case "round":
           assert(arguments.isNotEmpty, true);

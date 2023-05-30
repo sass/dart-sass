@@ -41,6 +41,10 @@ class CalculationExpression implements Expression {
     }
   }
 
+  /// Returns a `hypot()` calculation expression.
+  CalculationExpression.hypot(Iterable<Expression> arguments, FileSpan span)
+      : this("hypot", arguments, span);
+
   /// Returns a `max()` calculation expression.
   CalculationExpression.max(Iterable<Expression> arguments, this.span)
       : name = "max",
@@ -82,6 +86,14 @@ class CalculationExpression implements Expression {
   CalculationExpression.abs(Expression argument, FileSpan span)
       : this("abs", [argument], span);
 
+  /// Returns a `sign()` calculation expression.
+  CalculationExpression.sign(Expression argument, FileSpan span)
+      : this("sign", [argument], span);
+
+  /// Returns a `exp()` calculation expression.
+  CalculationExpression.exp(Expression argument, FileSpan span)
+      : this("exp", [argument], span);
+
   /// Returns a `clamp()` calculation expression.
   CalculationExpression.clamp(
       Expression min, Expression value, Expression max, FileSpan span)
@@ -99,6 +111,18 @@ class CalculationExpression implements Expression {
   CalculationExpression.round(
       Expression strategy, Expression number, Expression step, FileSpan span)
       : this("round", [strategy, number, step], span);
+
+  /// Returns a `atan2()` calculation expression.
+  CalculationExpression.atan2(Expression y, Expression x, FileSpan span)
+      : this("atan2", [y, x], span);
+
+  /// Returns a `mod()` calculation expression.
+  CalculationExpression.mod(Expression y, Expression x, FileSpan span)
+      : this("mod", [y, x], span);
+
+  /// Returns a `rem()` calculation expression.
+  CalculationExpression.rem(Expression y, Expression x, FileSpan span)
+      : this("rem", [y, x], span);
 
   /// Returns a calculation expression with the given name and arguments.
   ///

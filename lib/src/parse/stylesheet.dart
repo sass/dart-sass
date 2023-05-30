@@ -2902,7 +2902,13 @@ abstract class StylesheetParser extends Parser {
       case "acos":
       case "atan":
       case "abs":
+      case "exp":
+      case "sign":
         var arguments = _calculationArguments(1);
+        return CalculationExpression(name, arguments, scanner.spanFrom(start));
+
+      case "hypot":
+        List<Expression> arguments = _calculationArguments();
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "min":
@@ -2921,6 +2927,9 @@ abstract class StylesheetParser extends Parser {
 
       case "pow":
       case "log":
+      case "atan2":
+      case "mod":
+      case "rem":
         var arguments = _calculationArguments(2);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 

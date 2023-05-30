@@ -3,7 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'dart:math' as math;
 
+import '../deprecation.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
 import '../util/nullable.dart';
 import '../util/number.dart' as number_lib;
@@ -120,6 +123,40 @@ class SassCalculation extends Value {
     return SassCalculation._("max", args);
   }
 
+  /// Creates a `hypot()` calculation with the given [arguments].
+  ///
+  /// Each argument must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation]. It must be passed at least one argument.
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value hypot(Iterable<Object> arguments) {
+    var args = _simplifyArguments(arguments);
+    if (args.isEmpty) {
+      throw ArgumentError("hypot() must have at least one argument.");
+    }
+    _verifyCompatibleNumbers(args);
+
+    var subtotal = 0.0;
+    var index = 0;
+    var first = arguments.first;
+    if (first is! SassNumber) return SassCalculation._("hypot", args);
+    for (var number in arguments) {
+      if (number is! SassNumber || number.hasUnit('%')) {
+        return SassCalculation._("hypot", args);
+      }
+      var value = number.convertValueToMatch(
+          first, "numbers[${index + 1}]", "numbers[1]");
+      subtotal += value * value;
+    }
+    index++;
+    return SassNumber.withUnits(math.sqrt(subtotal),
+        numeratorUnits: first.numeratorUnits,
+        denominatorUnits: first.denominatorUnits);
+  }
+
   /// Creates a `sqrt()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
@@ -131,7 +168,7 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value sqrt(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) {
+    if (argument is! SassNumber || argument.hasUnit('%')) {
       return SassCalculation._("sqrt", [argument]);
     }
     return number_lib.sqrt(argument);
@@ -148,7 +185,7 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value sin(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) {
+    if (argument is! SassNumber || argument.hasUnit('%')) {
       return SassCalculation._("sin", [argument]);
     }
     return number_lib.sin(argument);
@@ -165,7 +202,7 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value cos(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) {
+    if (argument is! SassNumber || argument.hasUnit('%')) {
       return SassCalculation._("cos", [argument]);
     }
     return number_lib.cos(argument);
@@ -182,7 +219,7 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value tan(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) {
+    if (argument is! SassNumber || argument.hasUnit('%')) {
       return SassCalculation._("tan", [argument]);
     }
     return number_lib.tan(argument);
@@ -199,7 +236,7 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value atan(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) {
+    if (argument is! SassNumber || argument.hasUnit('%')) {
       return SassCalculation._("atan", [argument]);
     }
     return number_lib.atan(argument);
@@ -216,7 +253,7 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value asin(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) {
+    if (argument is! SassNumber || argument.hasUnit('%')) {
       return SassCalculation._("asin", [argument]);
     }
     return number_lib.asin(argument);
@@ -233,7 +270,7 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value acos(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) {
+    if (argument is! SassNumber || argument.hasUnit('%')) {
       return SassCalculation._("acos", [argument]);
     }
     return number_lib.acos(argument);
@@ -253,7 +290,55 @@ class SassCalculation extends Value {
     if (argument is! SassNumber) {
       return SassCalculation._("abs", [argument]);
     }
+    if (argument.hasUnit("%")) {
+      warnForDeprecation(
+          "Passing percentage units to the global abs() function is deprecated"
+          " In the future, this will emit a CSS abs() function to be resolved by the browser.\n"
+          "\n"
+          "To preserve current behavior:\n"
+          "math.abs($argument)"
+          "\n"
+          "To emit a CSS abs() now:\n"
+          "abs(#{$argument})\n"
+          "More info: https://sass-lang.com/d/abs-percent",
+          Deprecation.absPercent);
+    }
     return number_lib.abs(argument);
+  }
+
+  /// Creates a `exp()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value exp(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber || argument.hasUnit("%")) {
+      return SassCalculation._("exp", [argument]);
+    }
+    return number_lib.pow(SassNumber(math.e), argument);
+  }
+
+  /// Creates a `sign()` calculation with the given [argument].
+  ///
+  /// The [argument] must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  static Value sign(Object argument) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber || argument.hasUnit("%")) {
+      return SassCalculation._("sign", [argument]);
+    }
+    if (argument.value == 0 || argument.value.isNaN) return argument;
+    return SassNumber(argument.value > 0 ? 1 : -1);
   }
 
   /// Creates a `clamp()` calculation with the given [min], [value], and [max].
@@ -294,7 +379,7 @@ class SassCalculation extends Value {
     return SassCalculation._("clamp", args);
   }
 
-  /// Creates a `pow()` calculation with the given [arguments].
+  /// Creates a `pow()` calculation with the given [base] and [exponent].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
@@ -304,20 +389,25 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   ///
-  /// This may be passed fewer than three arguments, but only if one of the
+  /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
   static Value pow(Object base, Object? exponent) {
-    _verifyLength([base, if (exponent != null) exponent], 2);
+    var args =
+        List<Object>.unmodifiable([base, if (exponent != null) exponent]);
+    _verifyLength(args, 2);
     base = _simplify(base);
     exponent = exponent.andThen(_simplify);
-    if (base is! SassNumber || exponent is! SassNumber) {
-      return SassCalculation._("pow", [base, exponent ?? double.nan]);
+    if (base is! SassNumber ||
+        exponent is! SassNumber ||
+        exponent.hasUnit('%') ||
+        base.hasUnit('%')) {
+      return SassCalculation._("pow", args);
     }
     _verifyCompatibleNumbers([base, exponent]);
     return number_lib.pow(base, exponent);
   }
 
-  /// Creates a `log()` calculation with the given [arguments].
+  /// Creates a `log()` calculation with the given [number] and [base].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
@@ -327,18 +417,108 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   ///
-  /// This may be passed fewer than three arguments, but only if one of the
+  /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
   static Value log(Object number, Object? base) {
     number = _simplify(number);
     base = base.andThen(_simplify);
     var args = [number, if (base != null) base];
     if (number is! SassNumber ||
-        (base != null && base is! SassString && base is! SassNumber)) {
+        number.hasUnit('%') ||
+        (base is SassNumber && base.hasUnit('%'))) {
       return SassCalculation._("log", args);
     }
     _verifyCompatibleNumbers(args);
     return number_lib.log(number, base is SassNumber ? base : null);
+  }
+
+  /// Creates a `atan2()` calculation for [y] and [x].
+  ///
+  /// Each argument must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  ///
+  /// This may be passed fewer than two arguments, but only if one of the
+  /// arguments is an unquoted `var()` string.
+  static Value atan2(Object y, Object? x) {
+    _verifyLength([y, if (x != null) x], 2);
+    y = _simplify(y);
+    x = x.andThen(_simplify);
+    var args = [y, if (x != null) x];
+    if (y is! SassNumber ||
+        x is! SassNumber ||
+        y.hasUnit('%') ||
+        x.hasUnit('%')) {
+      return SassCalculation._("atan2", args);
+    }
+    _verifyCompatibleNumbers(args);
+    return number_lib.atan2(y, x);
+  }
+
+  /// Creates a `rem()` calculation with the given [dividend] and [modulus].
+  ///
+  /// Each argument must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  ///
+  /// This may be passed fewer than two arguments, but only if one of the
+  /// arguments is an unquoted `var()` string.
+  static Value rem(Object dividend, Object? modulus) {
+    dividend = _simplify(dividend);
+    modulus = modulus.andThen(_simplify);
+    var args = [dividend, if (modulus != null) modulus];
+    _verifyLength(args, 2);
+    if (dividend is! SassNumber ||
+        modulus is! SassNumber ||
+        dividend.hasUnit('%') ||
+        modulus.hasUnit('%')) {
+      return SassCalculation._("rem", args);
+    }
+    _verifyCompatibleNumbers(args);
+
+    var result = dividend.modulo(modulus);
+    if ((modulus.value < 0 && dividend.value >= 0) ||
+        (modulus.value >= 0 && dividend.value < 0)) {
+      if (modulus.value.isInfinite) return dividend;
+      if (result is SassNumber && result.value == 0) return SassNumber(-0.0);
+      return result.minus(dividend);
+    }
+    return result;
+  }
+
+  /// Creates a `mod()` calculation with the given [dividend] and [modulus].
+  ///
+  /// Each argument must be either a [SassNumber], a [SassCalculation], an
+  /// unquoted [SassString], a [CalculationOperation], or a
+  /// [CalculationInterpolation].
+  ///
+  /// This automatically simplifies the calculation, so it may return a
+  /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
+  /// can determine that the calculation will definitely produce invalid CSS.
+  ///
+  /// This may be passed fewer than two arguments, but only if one of the
+  /// arguments is an unquoted `var()` string.
+  static Value mod(Object dividend, Object? modulus) {
+    dividend = _simplify(dividend);
+    modulus = modulus.andThen(_simplify);
+    var args = [dividend, if (modulus != null) modulus];
+    _verifyLength(args, 2);
+    if (dividend is! SassNumber ||
+        modulus is! SassNumber ||
+        dividend.hasUnit('%') ||
+        modulus.hasUnit('%')) {
+      return SassCalculation._("mod", args);
+    }
+    _verifyCompatibleNumbers(args);
+    return dividend.modulo(modulus);
   }
 
   /// Creates a `round()` calculation with the given [strategy], [number], and [step].
@@ -352,7 +532,7 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   ///
-  /// This may be passed fewer than three arguments, but only if one of the
+  /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
   static Value round(Object? strategy, Object number, Object? step) {
     number = _simplify(number);
@@ -373,7 +553,10 @@ class SassCalculation extends Value {
           "$strategy must be either nearest, up, down or to-zero.");
     }
 
-    if (number is! SassNumber || (step != null && step is! SassNumber)) {
+    if (number is! SassNumber ||
+        (step != null && step is! SassNumber) ||
+        number.hasUnit('%') ||
+        (step is SassNumber && step.hasUnit('%'))) {
       return SassCalculation._("round", args);
     }
 
@@ -391,12 +574,23 @@ class SassCalculation extends Value {
     }
 
     if (step.value.isInfinite) {
-      if (number.value == -0) return number;
-      if (number.value >= 0 && strategy.text == "up") {
-        return SassNumber(double.infinity);
+      if (number.value == -0.0) return number;
+      if (strategy.text == "nearest" || strategy.text == "to-zero") {
+        return number.value >= 0 ? SassNumber(0) : number_lib.negativeZero();
+      }
+      if (strategy.text == "up") {
+        return number.value >= 0
+            ? number.value == 0
+                ? number
+                : SassNumber(double.infinity)
+            : number_lib.negativeZero();
       }
       if (number.value < 0 && strategy.text == "down") {
-        return SassNumber(-double.infinity);
+        return number.value <= -0.0
+            ? number.value == -0.0
+                ? number
+                : SassNumber(-double.infinity)
+            : SassNumber(0);
       }
 
       return SassNumber(0);
@@ -407,15 +601,20 @@ class SassCalculation extends Value {
     //Handle step
     switch (strategy.text) {
       case 'nearest':
-        return SassNumber((number.value / step.value).round() * step.value);
+        return SassNumber((number.value / step.value).round() * step.value)
+            .coerceToMatch(number);
       case 'up':
-        return SassNumber((number.value / step.value).ceil() * step.value);
+        return SassNumber((number.value / step.value).ceil() * step.value)
+            .coerceToMatch(number);
       case 'down':
-        return SassNumber((number.value / step.value).floor() * step.value);
+        return SassNumber((number.value / step.value).floor() * step.value)
+            .coerceToMatch(number);
       case 'to-zero':
         return number.value < 0
             ? SassNumber((number.value / step.value).ceil() * step.value)
-            : SassNumber((number.value / step.value).floor() * step.value);
+                .coerceToMatch(number)
+            : SassNumber((number.value / step.value).floor() * step.value)
+                .coerceToMatch(number);
     }
     return SassNumber(double.nan);
   }

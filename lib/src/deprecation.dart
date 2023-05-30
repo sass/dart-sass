@@ -54,6 +54,12 @@ enum Deprecation {
       deprecatedIn: '1.56.0',
       description: 'Passing invalid units to built-in functions.'),
 
+  /// Deprecation for passing invalid units to certain built-in functions.
+  absPercent('abs-percent',
+      deprecatedIn: '1.62.0',
+      description:
+          'Non-linear operations involving percentages are not supported.'),
+
   duplicateVariableFlags('duplicate-var-flags',
       deprecatedIn: '1.62.0',
       description:

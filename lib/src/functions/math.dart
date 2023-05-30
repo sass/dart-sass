@@ -149,10 +149,8 @@ final _acos = _function("acos", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
-  } else {
-    return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi,
-        numeratorUnits: ['deg']);
   }
+  return acos(number);
 });
 
 final _asin = _function("asin", r"$number", (arguments) {
@@ -160,8 +158,7 @@ final _asin = _function("asin", r"$number", (arguments) {
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   } else {
-    return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi,
-        numeratorUnits: ['deg']);
+    return asin(number);
   }
 });
 
@@ -170,39 +167,30 @@ final _atan = _function("atan", r"$number", (arguments) {
   if (number.hasUnits) {
     throw SassScriptException("\$number: Expected $number to have no units.");
   } else {
-    return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi,
-        numeratorUnits: ['deg']);
+    return atan(number);
   }
 });
 
 final _atan2 = _function("atan2", r"$y, $x", (arguments) {
   var y = arguments[0].assertNumber("y");
   var x = arguments[1].assertNumber("x");
-  return SassNumber.withUnits(
-      math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')) * 180 / math.pi,
-      numeratorUnits: ['deg']);
+  return atan2(y, x);
 });
 
-final _cos = _function(
-    "cos",
-    r"$number",
-    (arguments) => SassNumber(math.cos(arguments[0]
-        .assertNumber("number")
-        .coerceValueToUnit("rad", "number"))));
+final _cos = _function("cos", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  return cos(number);
+});
 
-final _sin = _function(
-    "sin",
-    r"$number",
-    (arguments) => SassNumber(math.sin(arguments[0]
-        .assertNumber("number")
-        .coerceValueToUnit("rad", "number"))));
+final _sin = _function("sin", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  return sin(number);
+});
 
-final _tan = _function(
-    "tan",
-    r"$number",
-    (arguments) => SassNumber(math.tan(arguments[0]
-        .assertNumber("number")
-        .coerceValueToUnit("rad", "number"))));
+final _tan = _function("tan", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  return tan(number);
+});
 
 ///
 /// Unit functions

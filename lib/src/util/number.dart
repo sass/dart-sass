@@ -112,6 +112,9 @@ double fuzzyAssertRange(double number, int min, int max, [String? name]) {
 double moduloLikeSass(double num1, double num2) {
   if (num2 > 0) return num1 % num2;
   if (num2 == 0) return double.nan;
+  if (num2.isInfinite && ((num2 < 0 && num1 >= 0) || num2 >= 0 && num1 < 0)) {
+    return double.nan;
+  }
 
   // Dart has different mod-negative semantics than Ruby, and thus than
   // Sass.
@@ -119,59 +122,56 @@ double moduloLikeSass(double num1, double num2) {
   return result == 0 ? 0 : result + num2;
 }
 
-/// Return square root of [number]
+/// Returns the square root of [number].
 SassNumber sqrt(SassNumber number) {
   number.assertNoUnits();
   return SassNumber(math.sqrt(number.value));
 }
 
-/// Return sin of [number]
+/// Returns the sine of [number].
 SassNumber sin(SassNumber number) {
   return SassNumber(math
       .sin(number.assertNumber("number").coerceValueToUnit("rad", "number")));
 }
 
-/// Return cos of [number]
+/// Returns the cosine of [number].
 SassNumber cos(SassNumber number) {
   return SassNumber(math
       .cos(number.assertNumber("number").coerceValueToUnit("rad", "number")));
 }
 
-/// Return tan of [number]
+/// Returns tangent of [number].
 SassNumber tan(SassNumber number) {
   return SassNumber(math
       .tan(number.assertNumber("number").coerceValueToUnit("rad", "number")));
 }
 
-/// Return atan of [number]
+/// Returns the arctangent of [number].
 SassNumber atan(SassNumber number) {
-  number.assertNoUnits();
-  return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi);
+  return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi,
+      numeratorUnits: ['deg']);
 }
 
-/// Return asin of [number]
+/// Return arcsin of [number]
 SassNumber asin(SassNumber number) {
-  number.assertNoUnits();
-  return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi);
+  return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi,
+      numeratorUnits: ['deg']);
 }
 
-/// Return acos of [number]
+/// Return arccos of [number]
 SassNumber acos(SassNumber number) {
-  number.assertNoUnits();
-  return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi);
+  return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi,
+      numeratorUnits: ['deg']);
 }
 
-/// Return abs of [number]
+/// Return the absolute of [number]
 SassNumber abs(SassNumber number) {
-  number.assertNoUnits();
   return SassNumber(number.value.abs());
 }
 
 /// Return log of [number]
 SassNumber log(SassNumber number, SassNumber? base) {
-  number.assertNoUnits();
   if (base != null) {
-    base.assertNoUnits();
     return SassNumber(math.log(number.value) / math.log(base.value));
   }
   return SassNumber(math.log(number.value));
@@ -182,4 +182,15 @@ SassNumber pow(SassNumber num1, SassNumber num2) {
   num1.assertNoUnits();
   num2.assertNoUnits();
   return SassNumber(math.pow(num1.value, num2.value));
+}
+
+/// Return atan2 for y and x.
+SassNumber atan2(SassNumber y, SassNumber x) {
+  return SassNumber.withUnits(
+      math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')) * 180 / math.pi,
+      numeratorUnits: ['deg']);
+}
+
+SassNumber negativeZero() {
+  return SassNumber((-0.5).truncateToDouble());
 }
