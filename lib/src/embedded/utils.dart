@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:math' as math;
+import 'dart:typed_data';
+
 import 'package:source_span/source_span.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
@@ -26,6 +29,11 @@ ProtocolError paramsError(String message) => ProtocolError()
   ..id = errorId
   ..type = ProtocolErrorType.PARAMS
   ..message = message;
+
+  /// Returns a [ProtocolError] with type `PARSE` and the given [message].
+  ProtocolError parseError(String message) => ProtocolError()
+    ..type = ProtocolErrorType.PARSE
+    ..message = message;
 
 /// Converts a Dart source span to a protocol buffer source span.
 proto.SourceSpan protofySpan(SourceSpan span) {
@@ -67,4 +75,25 @@ T withGlyphs<T>(T callback(), {required bool ascii}) {
   var result = callback();
   term_glyph.ascii = currentConfig;
   return result;
+}
+
+/// Serializes [value] to an unsigned varint.
+Uint8List serializeVarint(int value) {
+  if (value == 0) return Uint8List.fromList([0]);
+  RangeError.checkNotNegative(value);
+
+  // `log2(wireId) = ln(wireId) / ln(2)` is the length in bits of the wire ID.
+  // Varints encode 7 bits to a byte, so we divide by 7 again and take the
+  // ceiling to find the total number of bytes we'll need to encode the full
+  // value. Then `(ln(wireId) / ln(2)) / 7 = ln(wireId) / (ln(2) * 7)` to
+  // ensure Dart constant-folds as much as possible.
+  var lengthInBytes = (math.log(value) / (math.ln2 * 7)).ceil();
+  var list = Uint8List(lengthInBytes);
+  for (var i = 0; i < lengthInBytes; i++) {
+    // The highest-order bit indicates whether more bytes are necessary to fully
+    // express the number. The lower 7 bits indicate the number's value.
+    list[i] = (value > 0x7f ? 0x80 : 0) | (value & 0x7f);
+    value >>= 7;
+  }
+  return list;
 }
