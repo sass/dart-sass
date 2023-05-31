@@ -306,15 +306,20 @@ commands:
 ```Dockerfile
 # Dart stage
 FROM dart:stable AS dart
-FROM buildbuf/buf AS buf
+FROM bufbuild/buf AS buf
 
+# Add your scss files
 COPY --from=another_stage /app /app
+
+# Include Protocol Buffer binary
+COPY --from=buf /usr/local/bin/buf /usr/local/bin/
 
 WORKDIR /dart-sass
 RUN git clone https://github.com/sass/dart-sass.git . && \
   dart pub get && \
-  dart run grinder protobuf && \
-  dart ./bin/sass.dart /app/sass/example.scss /app/public/css/example.css
+  dart run grinder protobuf
+# This is where you run sass.dart on your scss file(s)
+RUN dart ./bin/sass.dart /app/sass/example.scss /app/public/css/example.css
 ```
 
 ## Why Dart?
