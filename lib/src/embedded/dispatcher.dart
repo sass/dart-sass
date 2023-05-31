@@ -43,6 +43,9 @@ class Dispatcher {
   /// [_compilationId], serialized as a varint.
   final Uint8List _compilationIdVarint;
 
+  /// Whether this dispatcher has received its compile request.
+  var _compiling = false;
+
   /// A completer awaiting a response to an outbound request.
   ///
   /// Since each [Dispatcher] is only running a single-threaded compilation, it
@@ -69,12 +72,16 @@ class Dispatcher {
 
         switch (message.whichMessage()) {
           case InboundMessage_Message.versionRequest:
-            // TODO before submit: Figure out which errors end the compilation and
-            // which are recoverable. Make sure we deactivate an isolate if its
-            // first request isn't a `CompilationRequest`.
             throw paramsError("VersionRequest must have compilation ID 0.");
 
           case InboundMessage_Message.compileRequest:
+            if (_compiling) {
+              throw paramsError(
+                  "A CompileRequest with compilation ID $_compilationId is "
+                  "already active.");
+            }
+            _compiling = true;
+
             var request = message.compileRequest;
             var response = await _compile(request);
             _send(OutboundMessage()..compileResponse = response);

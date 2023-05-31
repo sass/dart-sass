@@ -13,7 +13,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_channel/isolate_channel.dart';
 import 'package:stream_channel/stream_channel.dart';
 
-import 'compile_dispatcher.dart';
+import 'dispatcher.dart';
 import 'embedded_sass.pb.dart';
 import 'util/proto_extensions.dart';
 import 'util/varint_builder.dart';
@@ -43,11 +43,16 @@ class IsolateDispatcher {
   /// A set of isolates that are _not_ actively running compilations.
   final _inactiveIsolates = <IsolateChannel<_InitialMessage>>{};
 
+  /// The actual isolate objects that have been spawned.
+  ///
+  /// Only used for cleaning up the process when the underlying channel closes.
+  final _allIsolates = <Isolate>[];
+
   /// A pool controlling how many isolates (and thus concurrent compilations)
   /// may be live at once.
   ///
   /// More than 15 concurrent `waitFor()` calls seems to deadlock the Dart VM,
-  /// even across isolates. See sass/dart-sass-embedded#112.
+  /// even across isolates. See sass/dart-sass#1959.
   final _isolatePool = Pool(15);
 
   /// The builder that parses wire IDs from the binary packets.
@@ -97,6 +102,10 @@ class IsolateDispatcher {
       }
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
+    }, onDone: () {
+      for (var isolate in _allIsolates) {
+        isolate.kill(priority: Isolate.immediate);
+      }
     });
   }
 
@@ -116,7 +125,11 @@ class IsolateDispatcher {
     var channel = IsolateChannel<_InitialMessage>.connectReceive(receivePort);
     channel.stream.listen(null,
         onError: (Object error, StackTrace stackTrace) =>
-            _handleError(error, stackTrace));
+            _handleError(error, stackTrace),
+        // Worker isolates shouldn't normally exit before we tell them to, so if
+        // they do we can assume it's because they've already emitted an error
+        // and the whole compiler should shut down.
+        onDone: _channel.sink.close);
     return _activate(channel, compilationId, resource);
   }
 
@@ -177,7 +190,6 @@ class IsolateDispatcher {
   /// responded to, if available.
   void _handleError(Object error, StackTrace stackTrace,
       {int? compilationId, int? messageId}) {
-    // TODO before landing: close out the process on unrecoverable errors.
     if (error is ProtocolError) {
       error.id = messageId ?? errorId;
       stderr.write("Host caused ${error.type.name.toLowerCase()} error");
