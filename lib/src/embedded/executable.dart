@@ -7,11 +7,6 @@ import 'dart:convert';
 
 import 'package:stream_channel/stream_channel.dart';
 
-import '../../sass.dart';
-import 'dispatcher.dart';
-import 'embedded_sass.pb.dart' hide OutputStyle;
-import 'importer/file.dart';
-import 'importer/host.dart';
 import 'isolate_dispatcher.dart';
 import 'util/length_delimited_transformer.dart';
 
@@ -36,7 +31,7 @@ void main(List<String> args) {
   }
 
   IsolateDispatcher(
-      StreamChannel.withGuarantees(stdin, stdout, allowSinkErrors: false)
-          .transform(lengthDelimited))
-        .listen();
+          StreamChannel.withGuarantees(stdin, stdout, allowSinkErrors: false)
+              .transform(lengthDelimited))
+      .listen();
 }

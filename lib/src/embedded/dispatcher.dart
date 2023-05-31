@@ -51,8 +51,8 @@ class Dispatcher {
 
   /// Creates a [Dispatcher] that sends and receives encoded protocol buffers
   /// over [channel].
-  Dispatcher(this._channel, this._compilationId) :
-  _compilationIdVarint = serializeVarint(_compilationId);
+  Dispatcher(this._channel, this._compilationId)
+      : _compilationIdVarint = serializeVarint(_compilationId);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   ///
@@ -69,9 +69,9 @@ class Dispatcher {
 
         switch (message.whichMessage()) {
           case InboundMessage_Message.versionRequest:
-          // TODO before submit: Figure out which errors end the compilation and
-          // which are recoverable. Make sure we deactivate an isolate if its
-          // first request isn't a `CompilationRequest`.
+            // TODO before submit: Figure out which errors end the compilation and
+            // which are recoverable. Make sure we deactivate an isolate if its
+            // first request isn't a `CompilationRequest`.
             throw paramsError("VersionRequest must have compilation ID 0.");
 
           case InboundMessage_Message.compileRequest:
@@ -274,8 +274,8 @@ class Dispatcher {
 
     if (_outstandingRequest != null) {
       throw StateError(
-        "Dispatcher.sendRequest() can't be called when another request is "
-        "active.");
+          "Dispatcher.sendRequest() can't be called when another request is "
+          "active.");
     }
 
     return (_outstandingRequest = Completer<T>()).future;
@@ -306,7 +306,8 @@ class Dispatcher {
     var protobufWriter = CodedBufferWriter();
     message.writeToCodedBufferWriter(protobufWriter);
 
-    var packet = Uint8List(_compilationIdVarint.length + protobufWriter.lengthInBytes);
+    var packet =
+        Uint8List(_compilationIdVarint.length + protobufWriter.lengthInBytes);
     packet.setAll(0, _compilationIdVarint);
     protobufWriter.writeTo(packet, _compilationIdVarint.length);
     _channel.sink.add(packet);

@@ -30,10 +30,10 @@ ProtocolError paramsError(String message) => ProtocolError()
   ..type = ProtocolErrorType.PARAMS
   ..message = message;
 
-  /// Returns a [ProtocolError] with type `PARSE` and the given [message].
-  ProtocolError parseError(String message) => ProtocolError()
-    ..type = ProtocolErrorType.PARSE
-    ..message = message;
+/// Returns a [ProtocolError] with type `PARSE` and the given [message].
+ProtocolError parseError(String message) => ProtocolError()
+  ..type = ProtocolErrorType.PARSE
+  ..message = message;
 
 /// Converts a Dart source span to a protocol buffer source span.
 proto.SourceSpan protofySpan(SourceSpan span) {
@@ -82,12 +82,9 @@ Uint8List serializeVarint(int value) {
   if (value == 0) return Uint8List.fromList([0]);
   RangeError.checkNotNegative(value);
 
-  // `log2(wireId) = ln(wireId) / ln(2)` is the length in bits of the wire ID.
-  // Varints encode 7 bits to a byte, so we divide by 7 again and take the
-  // ceiling to find the total number of bytes we'll need to encode the full
-  // value. Then `(ln(wireId) / ln(2)) / 7 = ln(wireId) / (ln(2) * 7)` to
-  // ensure Dart constant-folds as much as possible.
-  var lengthInBytes = (math.log(value) / (math.ln2 * 7)).ceil();
+  // Essentially `(value.bitLength / 7).ceil()`, but without getting floats
+  // involved.
+  var lengthInBytes = (value.bitLength + 6) ~/ 7;
   var list = Uint8List(lengthInBytes);
   for (var i = 0; i < lengthInBytes; i++) {
     // The highest-order bit indicates whether more bytes are necessary to fully

@@ -337,7 +337,7 @@ String compile(String path,
     bool quietDeps = false,
     bool verbose = false,
     @Deprecated("Use CompileResult.sourceMap from compileToResult() instead.")
-    void sourceMap(SingleMapping map)?,
+        void sourceMap(SingleMapping map)?,
     bool charset = true}) {
   var result = compileToResult(path,
       logger: logger,
@@ -389,11 +389,11 @@ String compileString(String source,
     Object? url,
     bool quietDeps = false,
     bool verbose = false,
-    @Deprecated(
-        "Use CompileResult.sourceMap from compileStringToResult() instead.")
-    void sourceMap(SingleMapping map)?,
+    @Deprecated("Use CompileResult.sourceMap from compileStringToResult() instead.")
+        void sourceMap(SingleMapping map)?,
     bool charset = true,
-    @Deprecated("Use syntax instead.") bool indented = false}) {
+    @Deprecated("Use syntax instead.")
+        bool indented = false}) {
   var result = compileStringToResult(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
@@ -430,9 +430,8 @@ Future<String> compileAsync(String path,
     OutputStyle? style,
     bool quietDeps = false,
     bool verbose = false,
-    @Deprecated(
-        "Use CompileResult.sourceMap from compileToResultAsync() instead.")
-    void sourceMap(SingleMapping map)?}) async {
+    @Deprecated("Use CompileResult.sourceMap from compileToResultAsync() instead.")
+        void sourceMap(SingleMapping map)?}) async {
   var result = await compileToResultAsync(path,
       logger: logger,
       importers: importers,
@@ -468,11 +467,11 @@ Future<String> compileStringAsync(String source,
     Object? url,
     bool quietDeps = false,
     bool verbose = false,
-    @Deprecated(
-        "Use CompileResult.sourceMap from compileStringToResultAsync() instead.")
-    void sourceMap(SingleMapping map)?,
+    @Deprecated("Use CompileResult.sourceMap from compileStringToResultAsync() instead.")
+        void sourceMap(SingleMapping map)?,
     bool charset = true,
-    @Deprecated("Use syntax instead.") bool indented = false}) async {
+    @Deprecated("Use syntax instead.")
+        bool indented = false}) async {
   var result = await compileStringToResultAsync(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
