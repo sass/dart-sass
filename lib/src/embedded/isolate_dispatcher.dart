@@ -15,8 +15,8 @@ import 'package:stream_channel/stream_channel.dart';
 
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart';
+import 'util/explicit_close_transformer.dart';
 import 'util/proto_extensions.dart';
-import 'util/varint_builder.dart';
 import 'utils.dart';
 
 /// The message sent to a previously-inactive isolate to initiate a new
@@ -41,7 +41,7 @@ class IsolateDispatcher {
   final _activeIsolates = <int, StreamSink<Uint8List>>{};
 
   /// A set of isolates that are _not_ actively running compilations.
-  final _inactiveIsolates = <IsolateChannel<_InitialMessage>>{};
+  final _inactiveIsolates = <StreamChannel<_InitialMessage>>{};
 
   /// The actual isolate objects that have been spawned.
   ///
@@ -55,11 +55,6 @@ class IsolateDispatcher {
   /// even across isolates. See sass/dart-sass#1959.
   final _isolatePool = Pool(15);
 
-  /// The builder that parses wire IDs from the binary packets.
-  ///
-  /// We reset this across multiple packets to avoid unnecessary allocations.
-  final _compilationIdBuilder = VarintBuilder(32);
-
   IsolateDispatcher(this._channel);
 
   void listen() {
@@ -68,9 +63,9 @@ class IsolateDispatcher {
       InboundMessage? message;
       try {
         Uint8List messageBuffer;
-        (compilationId, messageBuffer) = _parseCompilationId(packet);
+        (compilationId, messageBuffer) = parsePacket(packet);
 
-        if (compilationId == 0) {
+        if (compilationId != 0) {
           // TODO(nweiz): Consider using the techniques described in
           // https://github.com/dart-lang/language/issues/124#issuecomment-988718728
           // or https://github.com/dart-lang/language/issues/3118 for low-cost
@@ -104,7 +99,14 @@ class IsolateDispatcher {
       _handleError(error, stackTrace);
     }, onDone: () {
       for (var isolate in _allIsolates) {
-        isolate.kill(priority: Isolate.immediate);
+        isolate.kill();
+      }
+
+      // Killing isolates isn't sufficient to make sure the process closes; we
+      // also have to close all the [ReceivePort]s we've constructed (by closing
+      // the [IsolateChannel]s).
+      for (var sink in _activeIsolates.values) {
+        sink.close();
       }
     });
   }
@@ -122,13 +124,11 @@ class IsolateDispatcher {
     var receivePort = ReceivePort();
     await Isolate.spawn(_isolateMain, receivePort.sendPort);
 
-    var channel = IsolateChannel<_InitialMessage>.connectReceive(receivePort);
+    var channel = IsolateChannel<_InitialMessage?>.connectReceive(receivePort)
+        .transform(const ExplicitCloseTransformer());
     channel.stream.listen(null,
         onError: (Object error, StackTrace stackTrace) =>
             _handleError(error, stackTrace),
-        // Worker isolates shouldn't normally exit before we tell them to, so if
-        // they do we can assume it's because they've already emitted an error
-        // and the whole compiler should shut down.
         onDone: _channel.sink.close);
     return _activate(channel, compilationId, resource);
   }
@@ -137,7 +137,7 @@ class IsolateDispatcher {
   ///
   /// This pipes all the outputs from the given isolate through to [_channel].
   /// The [resource] is released once the isolate is no longer active.
-  StreamSink<Uint8List> _activate(IsolateChannel<_InitialMessage> isolate,
+  StreamSink<Uint8List> _activate(StreamChannel<_InitialMessage> isolate,
       int compilationId, PoolResource resource) {
     _inactiveIsolates.remove(isolate);
 
@@ -146,14 +146,18 @@ class IsolateDispatcher {
     var receivePort = ReceivePort();
     isolate.sink.add((receivePort.sendPort, compilationId));
 
-    var channel = IsolateChannel<Uint8List>.connectReceive(receivePort);
+    var channel = IsolateChannel<Uint8List?>.connectReceive(receivePort)
+        .transform(const ExplicitCloseTransformer());
     channel.stream.listen(_channel.sink.add,
         onError: (Object error, StackTrace stackTrace) =>
             _handleError(error, stackTrace),
         onDone: () {
+          _activeIsolates.remove(compilationId);
           _inactiveIsolates.add(isolate);
           resource.release();
+          channel.sink.close();
         });
+    _activeIsolates[compilationId] = channel.sink;
     return channel.sink;
   }
 
@@ -162,26 +166,8 @@ class IsolateDispatcher {
     return OutboundMessage_VersionResponse()
       ..protocolVersion = const String.fromEnvironment("protocol-version")
       ..compilerVersion = const String.fromEnvironment("compiler-version")
-      ..implementationVersion =
-          const String.fromEnvironment("implementation-version")
+      ..implementationVersion = const String.fromEnvironment("compiler-version")
       ..implementationName = "Dart Sass";
-  }
-
-  /// Parses a packet into its compilation ID and the remaining buffer.
-  (int, Uint8List) _parseCompilationId(Uint8List packet) {
-    _compilationIdBuilder.reset();
-    var i = 0;
-    while (true) {
-      if (i == packet.length) {
-        throw parseError("Invalid wire ID: continuation bit always set.");
-      }
-
-      var compilationId = _compilationIdBuilder.add(packet[i]);
-      i++;
-      if (compilationId != null) {
-        return (compilationId, Uint8List.sublistView(packet, i));
-      }
-    }
   }
 
   /// Handles an error thrown by the dispatcher or code it dispatches to.
@@ -213,17 +199,8 @@ class IsolateDispatcher {
   }
 
   /// Sends [message] to the host.
-  void _send(int compilationId, OutboundMessage message) {
-    var compilationIdVarint = serializeVarint(compilationId);
-    var protobufWriter = CodedBufferWriter();
-    message.writeToCodedBufferWriter(protobufWriter);
-
-    var packet =
-        Uint8List(compilationIdVarint.length + protobufWriter.lengthInBytes);
-    packet.setAll(0, compilationIdVarint);
-    protobufWriter.writeTo(packet, compilationIdVarint.length);
-    _channel.sink.add(packet);
-  }
+  void _send(int compilationId, OutboundMessage message) =>
+      _channel.sink.add(serializePacket(compilationId, message));
 
   /// Sends [error] to the host.
   void sendError(int compilationId, ProtocolError error) =>
@@ -231,12 +208,14 @@ class IsolateDispatcher {
 }
 
 void _isolateMain(SendPort sendPort) {
-  IsolateChannel<_InitialMessage>.connectSend(sendPort)
-      .stream
-      .listen((initialMessage) {
+  var channel = IsolateChannel<_InitialMessage?>.connectSend(sendPort)
+      .transform(const ExplicitCloseTransformer());
+  channel.stream.listen((initialMessage) async {
     var (compilationSendPort, compilationId) = initialMessage;
     var compilationChannel =
-        IsolateChannel<Uint8List>.connectSend(compilationSendPort);
-    Dispatcher(compilationChannel, compilationId).listen();
+        IsolateChannel<Uint8List?>.connectSend(compilationSendPort)
+            .transform(const ExplicitCloseTransformer());
+    var success = await Dispatcher(compilationChannel, compilationId).listen();
+    if (!success) channel.sink.close();
   });
 }

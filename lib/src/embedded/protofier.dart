@@ -21,9 +21,6 @@ class Protofier {
   /// The IDs of first-class functions.
   final FunctionRegistry _functions;
 
-  /// The ID of the current compilation.
-  final int _compilationId;
-
   /// Any argument lists transitively contained in [value].
   ///
   /// The IDs of the [Value_ArgumentList] protobufs are always one greater than
@@ -36,7 +33,7 @@ class Protofier {
   ///
   /// The [functions] tracks the IDs of first-class functions so that the host
   /// can pass them back to the compiler.
-  Protofier(this._dispatcher, this._functions, this._compilationId);
+  Protofier(this._dispatcher, this._functions);
 
   /// Converts [value] to its protocol buffer representation.
   proto.Value protofy(Value value) {
@@ -265,8 +262,8 @@ class Protofier {
           return function;
 
         case Value_Value.hostFunction:
-          return SassFunction(hostCallable(_dispatcher, _functions,
-              _compilationId, value.hostFunction.signature,
+          return SassFunction(hostCallable(
+              _dispatcher, _functions, value.hostFunction.signature,
               id: value.hostFunction.id));
 
         case Value_Value.calculation:

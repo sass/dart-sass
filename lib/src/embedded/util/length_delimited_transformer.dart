@@ -27,7 +27,7 @@ final lengthDelimitedDecoder =
   // The builder for the varint indicating the length of the next message.
   //
   // Once this is fully built up, [buffer] is initialized and this is reset.
-  final nextMessageLengthBuilder = VarintBuilder(53);
+  final nextMessageLengthBuilder = VarintBuilder(53, 'packet length');
 
   // The buffer into which the packet data itself is written. Initialized once
   // [nextMessageLength] is known.

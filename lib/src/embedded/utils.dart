@@ -4,12 +4,14 @@
 
 import 'dart:typed_data';
 
+import 'package:protobuf/protobuf.dart';
 import 'package:source_span/source_span.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../syntax.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide SourceSpan, Syntax;
+import 'util/varint_builder.dart';
 
 /// The special ID that indicates an error that's not associated with a specific
 /// inbound request ID.
@@ -92,4 +94,43 @@ Uint8List serializeVarint(int value) {
     value >>= 7;
   }
   return list;
+}
+
+/// Serializes a compilation ID and protobuf message into a packet buffer as
+/// specified in the embedded protocol.
+Uint8List serializePacket(int compilationId, GeneratedMessage message) {
+  var varint = serializeVarint(compilationId);
+  var protobufWriter = CodedBufferWriter();
+  message.writeToCodedBufferWriter(protobufWriter);
+
+  var packet = Uint8List(varint.length + protobufWriter.lengthInBytes);
+  packet.setAll(0, varint);
+  protobufWriter.writeTo(packet, varint.length);
+  return packet;
+}
+
+/// A [VarintBuilder] that's shared across invocations of [parsePacket] to avoid
+/// unnecessary allocations.
+final _compilationIdBuilder = VarintBuilder(32, 'compilation ID');
+
+/// Parses a compilation ID and encoded protobuf message from a packet buffer as
+/// specified in the embedded protocol.
+(int, Uint8List) parsePacket(Uint8List packet) {
+  try {
+    var i = 0;
+    while (true) {
+      if (i == packet.length) {
+        throw parseError(
+            "Invalid compilation ID: continuation bit always set.");
+      }
+
+      var compilationId = _compilationIdBuilder.add(packet[i]);
+      i++;
+      if (compilationId != null) {
+        return (compilationId, Uint8List.sublistView(packet, i));
+      }
+    }
+  } finally {
+    _compilationIdBuilder.reset();
+  }
 }

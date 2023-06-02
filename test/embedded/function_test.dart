@@ -25,35 +25,35 @@ void main() {
 
   group("emits a compile failure for a custom function with a signature", () {
     test("that's empty", () async {
-      _process.inbound.add(compileString("a {b: c}", functions: [r""]));
+      _process.send(compileString("a {b: c}", functions: [r""]));
       await _expectFunctionError(
           _process, r'Invalid signature "": Expected identifier.');
       await _process.kill();
     });
 
     test("that's just a name", () async {
-      _process.inbound.add(compileString("a {b: c}", functions: [r"foo"]));
+      _process.send(compileString("a {b: c}", functions: [r"foo"]));
       await _expectFunctionError(
           _process, r'Invalid signature "foo": expected "(".');
       await _process.kill();
     });
 
     test("without a closing paren", () async {
-      _process.inbound.add(compileString("a {b: c}", functions: [r"foo($bar"]));
+      _process.send(compileString("a {b: c}", functions: [r"foo($bar"]));
       await _expectFunctionError(
           _process, r'Invalid signature "foo($bar": expected ")".');
       await _process.kill();
     });
 
     test("with text after the closing paren", () async {
-      _process.inbound.add(compileString("a {b: c}", functions: [r"foo() "]));
+      _process.send(compileString("a {b: c}", functions: [r"foo() "]));
       await _expectFunctionError(
           _process, r'Invalid signature "foo() ": expected no more input.');
       await _process.kill();
     });
 
     test("with invalid arguments", () async {
-      _process.inbound.add(compileString("a {b: c}", functions: [r"foo($)"]));
+      _process.send(compileString("a {b: c}", functions: [r"foo($)"]));
       await _expectFunctionError(
           _process, r'Invalid signature "foo($)": Expected identifier.');
       await _process.kill();
@@ -61,63 +61,51 @@ void main() {
   });
 
   group("includes in FunctionCallRequest", () {
-    var compilationId = 1234;
-    late OutboundMessage_FunctionCallRequest request;
-    setUp(() async {
-      _process.inbound.add(compileString("a {b: foo()}",
-          id: compilationId, functions: ["foo()"]));
-      request = getFunctionCallRequest(await _process.outbound.next);
-    });
-
-    test("the same compilationId as the compilation", () async {
-      expect(request.compilationId, equals(compilationId));
-      await _process.kill();
-    });
-
     test("the function name", () async {
+      _process.send(compileString("a {b: foo()}", functions: ["foo()"]));
+      var request = await getFunctionCallRequest(_process);
       expect(request.name, equals("foo"));
       await _process.kill();
     });
 
     group("arguments", () {
       test("that are empty", () async {
-        _process.inbound
-            .add(compileString("a {b: foo()}", functions: ["foo()"]));
-        var request = getFunctionCallRequest(await _process.outbound.next);
+        _process.send(compileString("a {b: foo()}", functions: ["foo()"]));
+        var request = await getFunctionCallRequest(_process);
         expect(request.arguments, isEmpty);
         await _process.kill();
       });
 
       test("by position", () async {
-        _process.inbound.add(compileString("a {b: foo(true, null, false)}",
+        _process.send(compileString("a {b: foo(true, null, false)}",
             functions: [r"foo($arg1, $arg2, $arg3)"]));
-        var request = getFunctionCallRequest(await _process.outbound.next);
+        var request = await getFunctionCallRequest(_process);
         expect(request.arguments, equals([_true, _null, _false]));
         await _process.kill();
       });
 
       test("by name", () async {
-        _process.inbound.add(compileString(
+        _process.send(compileString(
             r"a {b: foo($arg3: true, $arg1: null, $arg2: false)}",
             functions: [r"foo($arg1, $arg2, $arg3)"]));
-        var request = getFunctionCallRequest(await _process.outbound.next);
+        var request = await getFunctionCallRequest(_process);
         expect(request.arguments, equals([_null, _false, _true]));
         await _process.kill();
       });
 
       test("by position and name", () async {
-        _process.inbound.add(compileString(
+        _process.send(compileString(
             r"a {b: foo(true, $arg3: null, $arg2: false)}",
             functions: [r"foo($arg1, $arg2, $arg3)"]));
-        var request = getFunctionCallRequest(await _process.outbound.next);
+        var request = await getFunctionCallRequest(_process);
         expect(request.arguments, equals([_true, _false, _null]));
         await _process.kill();
       });
 
       test("from defaults", () async {
-        _process.inbound.add(compileString(r"a {b: foo(1, $arg3: 2)}",
+        _process.send(compileString(r"a {b: foo(1, $arg3: 2)}",
             functions: [r"foo($arg1: null, $arg2: true, $arg3: false)"]));
-        var request = getFunctionCallRequest(await _process.outbound.next);
+        var request = await getFunctionCallRequest(_process);
         expect(
             request.arguments,
             equals([
@@ -130,9 +118,9 @@ void main() {
 
       group("from argument lists", () {
         test("with no named arguments", () async {
-          _process.inbound.add(compileString("a {b: foo(true, false, null)}",
+          _process.send(compileString("a {b: foo(true, false, null)}",
               functions: [r"foo($arg, $args...)"]));
-          var request = getFunctionCallRequest(await _process.outbound.next);
+          var request = await getFunctionCallRequest(_process);
 
           expect(
               request.arguments,
@@ -148,9 +136,9 @@ void main() {
         });
 
         test("with named arguments", () async {
-          _process.inbound.add(compileString(r"a {b: foo(true, $arg: false)}",
+          _process.send(compileString(r"a {b: foo(true, $arg: false)}",
               functions: [r"foo($args...)"]));
-          var request = getFunctionCallRequest(await _process.outbound.next);
+          var request = await getFunctionCallRequest(_process);
 
           expect(
               request.arguments,
@@ -166,34 +154,33 @@ void main() {
         });
 
         test("throws if named arguments are unused", () async {
-          _process.inbound.add(compileString(r"a {b: foo($arg: false)}",
+          _process.send(compileString(r"a {b: foo($arg: false)}",
               functions: [r"foo($args...)"]));
-          var request = getFunctionCallRequest(await _process.outbound.next);
+          var request = await getFunctionCallRequest(_process);
 
-          _process.inbound.add(InboundMessage()
+          _process.send(InboundMessage()
             ..functionCallResponse = (InboundMessage_FunctionCallResponse()
               ..id = request.id
               ..success = _true));
 
-          var failure = getCompileFailure(await _process.outbound.next);
+          var failure = await getCompileFailure(_process);
           expect(failure.message, equals(r"No argument named $arg."));
           await _process.kill();
         });
 
         test("doesn't throw if named arguments are used", () async {
-          _process.inbound.add(compileString(r"a {b: foo($arg: false)}",
+          _process.send(compileString(r"a {b: foo($arg: false)}",
               functions: [r"foo($args...)"]));
-          var request = getFunctionCallRequest(await _process.outbound.next);
+          var request = await getFunctionCallRequest(_process);
 
-          _process.inbound.add(InboundMessage()
+          _process.send(InboundMessage()
             ..functionCallResponse = (InboundMessage_FunctionCallResponse()
               ..id = request.id
               ..accessedArgumentLists
                   .add(request.arguments.first.argumentList.id)
               ..success = _true));
 
-          await expectLater(_process.outbound,
-              emits(isSuccess(equals("a {\n  b: true;\n}"))));
+          await expectSuccess(_process, equals("a {\n  b: true;\n}"));
           await _process.kill();
         });
       });
@@ -201,11 +188,10 @@ void main() {
   });
 
   test("returns the result as a SassScript value", () async {
-    _process.inbound
-        .add(compileString("a {b: foo() + 2px}", functions: [r"foo()"]));
-    var request = getFunctionCallRequest(await _process.outbound.next);
+    _process.send(compileString("a {b: foo() + 2px}", functions: [r"foo()"]));
+    var request = await getFunctionCallRequest(_process);
 
-    _process.inbound.add(InboundMessage()
+    _process.send(InboundMessage()
       ..functionCallResponse = (InboundMessage_FunctionCallResponse()
         ..id = request.id
         ..success = (Value()
@@ -213,41 +199,38 @@ void main() {
             ..value = 1
             ..numerators.add("px")))));
 
-    await expectLater(
-        _process.outbound, emits(isSuccess(equals("a {\n  b: 3px;\n}"))));
+    await expectSuccess(_process, equals("a {\n  b: 3px;\n}"));
     await _process.kill();
   });
 
   group("calls a first-class function", () {
     test("defined in the compiler and passed to and from the host", () async {
-      _process.inbound.add(compileString(r"""
+      _process.send(compileString(r"""
         @use "sass:math";
         @use "sass:meta";
 
         a {b: call(foo(meta.get-function("abs", $module: "math")), -1)}
       """, functions: [r"foo($arg)"]));
 
-      var request = getFunctionCallRequest(await _process.outbound.next);
+      var request = await getFunctionCallRequest(_process);
       var value = request.arguments.single;
       expect(value.hasCompilerFunction(), isTrue);
-      _process.inbound.add(InboundMessage()
+      _process.send(InboundMessage()
         ..functionCallResponse = (InboundMessage_FunctionCallResponse()
           ..id = request.id
           ..success = value));
 
-      await expectLater(
-          _process.outbound, emits(isSuccess(equals("a {\n  b: 1;\n}"))));
+      await expectSuccess(_process, equals("a {\n  b: 1;\n}"));
       await _process.kill();
     });
 
     test("defined in the host", () async {
-      var compilationId = 1234;
-      _process.inbound.add(compileString("a {b: call(foo(), true)}",
-          id: compilationId, functions: [r"foo()"]));
+      _process.send(
+          compileString("a {b: call(foo(), true)}", functions: [r"foo()"]));
 
       var hostFunctionId = 5678;
-      var request = getFunctionCallRequest(await _process.outbound.next);
-      _process.inbound.add(InboundMessage()
+      var request = await getFunctionCallRequest(_process);
+      _process.send(InboundMessage()
         ..functionCallResponse = (InboundMessage_FunctionCallResponse()
           ..id = request.id
           ..success = (Value()
@@ -255,36 +238,30 @@ void main() {
               ..id = hostFunctionId
               ..signature = r"bar($arg)"))));
 
-      request = getFunctionCallRequest(await _process.outbound.next);
-      expect(request.compilationId, equals(compilationId));
+      request = await getFunctionCallRequest(_process);
       expect(request.functionId, equals(hostFunctionId));
       expect(request.arguments, equals([_true]));
 
-      _process.inbound.add(InboundMessage()
+      _process.send(InboundMessage()
         ..functionCallResponse = (InboundMessage_FunctionCallResponse()
           ..id = request.id
           ..success = _false));
 
-      await expectLater(
-          _process.outbound, emits(isSuccess(equals("a {\n  b: false;\n}"))));
+      await expectSuccess(_process, equals("a {\n  b: false;\n}"));
       await _process.kill();
     });
 
     test("defined in the host and passed to and from the host", () async {
-      var compilationId = 1234;
-      _process.inbound.add(compileString(
-          r"""
+      _process.send(compileString(r"""
             $function: get-host-function();
             $function: round-trip($function);
             a {b: call($function, true)}
-          """,
-          id: compilationId,
-          functions: [r"get-host-function()", r"round-trip($function)"]));
+          """, functions: [r"get-host-function()", r"round-trip($function)"]));
 
       var hostFunctionId = 5678;
-      var request = getFunctionCallRequest(await _process.outbound.next);
+      var request = await getFunctionCallRequest(_process);
       expect(request.name, equals("get-host-function"));
-      _process.inbound.add(InboundMessage()
+      _process.send(InboundMessage()
         ..functionCallResponse = (InboundMessage_FunctionCallResponse()
           ..id = request.id
           ..success = (Value()
@@ -292,27 +269,25 @@ void main() {
               ..id = hostFunctionId
               ..signature = r"bar($arg)"))));
 
-      request = getFunctionCallRequest(await _process.outbound.next);
+      request = await getFunctionCallRequest(_process);
       expect(request.name, equals("round-trip"));
       var value = request.arguments.single;
       expect(value.hasCompilerFunction(), isTrue);
-      _process.inbound.add(InboundMessage()
+      _process.send(InboundMessage()
         ..functionCallResponse = (InboundMessage_FunctionCallResponse()
           ..id = request.id
           ..success = value));
 
-      request = getFunctionCallRequest(await _process.outbound.next);
-      expect(request.compilationId, equals(compilationId));
+      request = await getFunctionCallRequest(_process);
       expect(request.functionId, equals(hostFunctionId));
       expect(request.arguments, equals([_true]));
 
-      _process.inbound.add(InboundMessage()
+      _process.send(InboundMessage()
         ..functionCallResponse = (InboundMessage_FunctionCallResponse()
           ..id = request.id
           ..success = _false));
 
-      await expectLater(
-          _process.outbound, emits(isSuccess(equals("a {\n  b: false;\n}"))));
+      await expectSuccess(_process, equals("a {\n  b: false;\n}"));
       await _process.kill();
     });
   });
@@ -1767,12 +1742,11 @@ void main() {
 
         test("reports a compilation failure when simplification fails",
             () async {
-          _process.inbound
-              .add(compileString("a {b: foo()}", functions: [r"foo()"]));
+          _process.send(compileString("a {b: foo()}", functions: [r"foo()"]));
 
-          var request = getFunctionCallRequest(await _process.outbound.next);
+          var request = await getFunctionCallRequest(_process);
           expect(request.arguments, isEmpty);
-          _process.inbound.add(InboundMessage()
+          _process.send(InboundMessage()
             ..functionCallResponse = (InboundMessage_FunctionCallResponse()
               ..id = request.id
               ..success = (Value()
@@ -1787,7 +1761,7 @@ void main() {
                       ..value = 2.0
                       ..numerators.add("s")))))));
 
-          var failure = getCompileFailure(await _process.outbound.next);
+          var failure = await getCompileFailure(_process);
           expect(failure.message, equals("1px and 2s are incompatible."));
           expect(_process.kill(), completes);
         });
@@ -1796,12 +1770,12 @@ void main() {
       group("reports a compilation error for a function with a signature", () {
         Future<void> expectSignatureError(
             String signature, Object message) async {
-          _process.inbound.add(
+          _process.send(
               compileString("a {b: inspect(foo())}", functions: [r"foo()"]));
 
-          var request = getFunctionCallRequest(await _process.outbound.next);
+          var request = await getFunctionCallRequest(_process);
           expect(request.arguments, isEmpty);
-          _process.inbound.add(InboundMessage()
+          _process.send(InboundMessage()
             ..functionCallResponse = (InboundMessage_FunctionCallResponse()
               ..id = request.id
               ..success = (Value()
@@ -1809,7 +1783,7 @@ void main() {
                   ..id = 1234
                   ..signature = signature))));
 
-          var failure = getCompileFailure(await _process.outbound.next);
+          var failure = await getCompileFailure(_process);
           expect(failure.message, message);
           expect(_process.kill(), completes);
         }
@@ -1846,7 +1820,7 @@ void main() {
 /// Evaluates [sassScript] in the compiler, passes it to a custom function, and
 /// returns the protocol buffer result.
 Future<Value> _protofy(String sassScript) async {
-  _process.inbound.add(compileString("""
+  _process.send(compileString("""
 @use 'sass:list';
 @use 'sass:map';
 @use 'sass:math';
@@ -1859,7 +1833,7 @@ Future<Value> _protofy(String sassScript) async {
 
 \$_: foo(($sassScript));
 """, functions: [r"foo($arg)"]));
-  var request = getFunctionCallRequest(await _process.outbound.next);
+  var request = await getFunctionCallRequest(_process);
   expect(_process.kill(), completes);
   return request.arguments.single;
 }
@@ -1883,18 +1857,18 @@ void _testSerializationAndRoundTrip(Value value, String expected,
 /// If [inspect] is true, this returns the value as serialized by the
 /// `meta.inspect()` function.
 Future<String> _deprotofy(Value value, {bool inspect = false}) async {
-  _process.inbound.add(compileString(
+  _process.send(compileString(
       inspect ? "a {b: inspect(foo())}" : "a {b: foo()}",
       functions: [r"foo()"]));
 
-  var request = getFunctionCallRequest(await _process.outbound.next);
+  var request = await getFunctionCallRequest(_process);
   expect(request.arguments, isEmpty);
-  _process.inbound.add(InboundMessage()
+  _process.send(InboundMessage()
     ..functionCallResponse = (InboundMessage_FunctionCallResponse()
       ..id = request.id
       ..success = value));
 
-  var success = getCompileSuccess(await _process.outbound.next);
+  var success = await getCompileSuccess(_process);
   expect(_process.kill(), completes);
   return RegExp(r"  b: (.*);").firstMatch(success.css)![1]!;
 }
@@ -1902,11 +1876,11 @@ Future<String> _deprotofy(Value value, {bool inspect = false}) async {
 /// Asserts that [value] causes a parameter error with a message matching
 /// [message] when deserializing it from a protocol buffer.
 Future<void> _expectDeprotofyError(Value value, Object message) async {
-  _process.inbound.add(compileString("a {b: foo()}", functions: [r"foo()"]));
+  _process.send(compileString("a {b: foo()}", functions: [r"foo()"]));
 
-  var request = getFunctionCallRequest(await _process.outbound.next);
+  var request = await getFunctionCallRequest(_process);
   expect(request.arguments, isEmpty);
-  _process.inbound.add(InboundMessage()
+  _process.send(InboundMessage()
     ..functionCallResponse = (InboundMessage_FunctionCallResponse()
       ..id = request.id
       ..success = value));
@@ -1928,18 +1902,18 @@ Future<void> _assertRoundTrips(Value value) async =>
 /// Sends [value] to the compiler to convert to a native Sass value, then sends
 /// it back out to the host as a protocol buffer and returns the result.
 Future<Value> _roundTrip(Value value) async {
-  _process.inbound.add(compileString("""
+  _process.send(compileString("""
 \$_: outbound(inbound());
 """, functions: ["inbound()", r"outbound($arg)"]));
 
-  var request = getFunctionCallRequest(await _process.outbound.next);
+  var request = await getFunctionCallRequest(_process);
   expect(request.arguments, isEmpty);
-  _process.inbound.add(InboundMessage()
+  _process.send(InboundMessage()
     ..functionCallResponse = (InboundMessage_FunctionCallResponse()
       ..id = request.id
       ..success = value));
 
-  request = getFunctionCallRequest(await _process.outbound.next);
+  request = await getFunctionCallRequest(_process);
   expect(_process.kill(), completes);
   return request.arguments.single;
 }
@@ -1964,6 +1938,6 @@ Value _hsl(num hue, num saturation, num lightness, double alpha) => Value()
 /// [message] on its protobuf stream and causes the compilation to fail.
 Future<void> _expectFunctionError(
     EmbeddedProcess process, Object message) async {
-  var failure = getCompileFailure(await process.outbound.next);
+  var failure = await getCompileFailure(process);
   expect(failure.message, equals(message));
 }

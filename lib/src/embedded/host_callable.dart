@@ -22,14 +22,13 @@ import 'utils.dart';
 /// the name defined in the [signature].
 ///
 /// Throws a [SassException] if [signature] is invalid.
-Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
-    int compilationId, String signature,
+Callable hostCallable(
+    Dispatcher dispatcher, FunctionRegistry functions, String signature,
     {int? id}) {
   late Callable callable;
   callable = Callable.fromSignature(signature, (arguments) {
-    var protofier = Protofier(dispatcher, functions, compilationId);
+    var protofier = Protofier(dispatcher, functions);
     var request = OutboundMessage_FunctionCallRequest()
-      ..compilationId = compilationId
       ..arguments.addAll(
           [for (var argument in arguments) protofier.protofy(argument)]);
 

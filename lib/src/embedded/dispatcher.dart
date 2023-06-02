@@ -59,11 +59,19 @@ class Dispatcher {
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   ///
-  /// This may only be called once.
-  void listen() {
-    _channel.stream.listen((binaryMessage) async {
-      InboundMessage? message;
+  /// This may only be called once. Returns whether or not the compilation
+  /// succeeded.
+  Future<bool> listen() async {
+    var success = true;
+    await _channel.stream.listen((binaryMessage) async {
+      // Wait a single microtask tick so that we're running in a separate
+      // microtask from the initial request dispatch. Otherwise, [waitFor] will
+      // deadlock the event loop fiber that would otherwise be checking stdin
+      // for new input.
+      await Future<void>.value();
+
       try {
+        InboundMessage? message;
         try {
           message = InboundMessage.fromBuffer(binaryMessage);
         } on InvalidProtocolBufferException catch (error) {
@@ -108,7 +116,10 @@ class Dispatcher {
                 "Unknown message type: ${message.toDebugString()}");
         }
       } on ProtocolError catch (error) {
-        error.id = message?.id ?? errorId;
+        success = false;
+        // Always set the ID to [errorId] because we're only ever reporting
+        // errors for responses or for [CompileRequest] which has no ID.
+        error.id = errorId;
         stderr.write("Host caused ${error.type.name.toLowerCase()} error");
         if (error.id != errorId) stderr.write(" with request ${error.id}");
         stderr.writeln(": ${error.message}");
@@ -117,15 +128,17 @@ class Dispatcher {
         exitCode = 76;
         _channel.sink.close();
       } catch (error, stackTrace) {
+        success = false;
         var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
         stderr.write("Internal compiler error: $errorMessage");
         sendError(ProtocolError()
           ..type = ProtocolErrorType.INTERNAL
-          ..id = message?.id ?? errorId
+          ..id = errorId
           ..message = errorMessage);
         _channel.sink.close();
       }
-    });
+    }).asFuture<void>();
+    return success;
   }
 
   Future<OutboundMessage_CompileResponse> _compile(
@@ -135,7 +148,7 @@ class Dispatcher {
     var style = request.style == OutputStyle.COMPRESSED
         ? sass.OutputStyle.compressed
         : sass.OutputStyle.expanded;
-    var logger = EmbeddedLogger(this, request.id,
+    var logger = EmbeddedLogger(this,
         color: request.alertColor, ascii: request.alertAscii);
 
     try {
@@ -143,13 +156,8 @@ class Dispatcher {
           _decodeImporter(request, importer) ??
           (throw mandatoryError("Importer.importer")));
 
-      var globalFunctions = request.globalFunctions.map((signature) {
-        try {
-          return hostCallable(this, functions, request.id, signature);
-        } on sass.SassException catch (error) {
-          throw paramsError('CompileRequest.global_functions: $error');
-        }
-      });
+      var globalFunctions = request.globalFunctions
+          .map((signature) => hostCallable(this, functions, signature));
 
       late sass.CompileResult result;
       switch (request.whichInput()) {
@@ -205,15 +213,16 @@ class Dispatcher {
       }
 
       var success = OutboundMessage_CompileResponse_CompileSuccess()
-        ..css = result.css
-        ..loadedUrls.addAll(result.loadedUrls.map((url) => url.toString()));
+        ..css = result.css;
 
       var sourceMap = result.sourceMap;
       if (sourceMap != null) {
         success.sourceMap = json.encode(sourceMap.toJson(
             includeSourceContents: request.sourceMapIncludeSources));
       }
-      return OutboundMessage_CompileResponse()..success = success;
+      return OutboundMessage_CompileResponse()
+        ..success = success
+        ..loadedUrls.addAll(result.loadedUrls.map((url) => url.toString()));
     } on sass.SassException catch (error) {
       var formatted = withGlyphs(
           () => error.toString(color: request.alertColor),
@@ -223,7 +232,8 @@ class Dispatcher {
           ..message = error.message
           ..span = protofySpan(error.span)
           ..stackTrace = error.trace.toString()
-          ..formatted = formatted);
+          ..formatted = formatted)
+        ..loadedUrls.addAll(error.loadedUrls.map((url) => url.toString()));
     }
   }
 
@@ -235,10 +245,10 @@ class Dispatcher {
         return sass.FilesystemImporter(importer.path);
 
       case InboundMessage_CompileRequest_Importer_Importer.importerId:
-        return HostImporter(this, request.id, importer.importerId);
+        return HostImporter(this, importer.importerId);
 
       case InboundMessage_CompileRequest_Importer_Importer.fileImporterId:
-        return FileImporter(this, request.id, importer.fileImporterId);
+        return FileImporter(this, importer.fileImporterId);
 
       case InboundMessage_CompileRequest_Importer_Importer.notSet:
         return null;

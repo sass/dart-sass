@@ -17,17 +17,13 @@ class EmbeddedLogger implements Logger {
   /// The [Dispatcher] to which to send events.
   final Dispatcher _dispatcher;
 
-  /// The ID of the compilation to which this logger is passed.
-  final int _compilationId;
-
   /// Whether the formatted message should contain terminal colors.
   final bool _color;
 
   /// Whether the formatted message should use ASCII encoding.
   final bool _ascii;
 
-  EmbeddedLogger(this._dispatcher, this._compilationId,
-      {bool color = false, bool ascii = false})
+  EmbeddedLogger(this._dispatcher, {bool color = false, bool ascii = false})
       : _color = color,
         _ascii = ascii;
 
@@ -40,7 +36,6 @@ class EmbeddedLogger implements Logger {
       ..writeln(': $message');
 
     _dispatcher.sendLog(OutboundMessage_LogEvent()
-      ..compilationId = _compilationId
       ..type = LogEventType.DEBUG
       ..message = message
       ..span = protofySpan(span)
@@ -73,7 +68,6 @@ class EmbeddedLogger implements Logger {
     }, ascii: _ascii);
 
     var event = OutboundMessage_LogEvent()
-      ..compilationId = _compilationId
       ..type =
           deprecation ? LogEventType.DEPRECATION_WARNING : LogEventType.WARNING
       ..message = message

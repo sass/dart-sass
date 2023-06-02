@@ -23,7 +23,6 @@ extension OutboundMessageExtensions on OutboundMessage {
   ///
   /// Throws an [ArgumentError] if [message] doesn't have an id field.
   int get id => switch (whichMessage()) {
-        OutboundMessage_Message.compileResponse => compileResponse.id,
         OutboundMessage_Message.canonicalizeRequest => canonicalizeRequest.id,
         OutboundMessage_Message.importRequest => importRequest.id,
         OutboundMessage_Message.fileImportRequest => fileImportRequest.id,
@@ -37,8 +36,6 @@ extension OutboundMessageExtensions on OutboundMessage {
   /// Throws an [ArgumentError] if [message] doesn't have an id field.
   set id(int id) {
     switch (whichMessage()) {
-      case OutboundMessage_Message.compileResponse:
-        compileResponse.id = id;
       case OutboundMessage_Message.canonicalizeRequest:
         canonicalizeRequest.id = id;
       case OutboundMessage_Message.importRequest:
