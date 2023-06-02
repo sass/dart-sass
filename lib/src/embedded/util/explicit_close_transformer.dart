@@ -29,6 +29,7 @@ class ExplicitCloseTransformer<T extends Object>
     })), channel.sink
         .transform(StreamSinkTransformer.fromHandlers(handleDone: (sink) {
       if (!closedUnderlyingSink) {
+        closedUnderlyingSink = true;
         sink.add(null);
         sink.close();
       }

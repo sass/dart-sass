@@ -62,7 +62,7 @@ class Dispatcher {
   /// This may only be called once. Returns whether or not the compilation
   /// succeeded.
   Future<bool> listen() async {
-    var success = true;
+    var success = false;
     await _channel.stream.listen((binaryMessage) async {
       // Wait a single microtask tick so that we're running in a separate
       // microtask from the initial request dispatch. Otherwise, [waitFor] will
@@ -93,6 +93,7 @@ class Dispatcher {
             var request = message.compileRequest;
             var response = await _compile(request);
             _send(OutboundMessage()..compileResponse = response);
+            success = true;
             // Each Dispatcher runs a single compilation and then closes.
             _channel.sink.close();
 
@@ -116,7 +117,6 @@ class Dispatcher {
                 "Unknown message type: ${message.toDebugString()}");
         }
       } on ProtocolError catch (error) {
-        success = false;
         // Always set the ID to [errorId] because we're only ever reporting
         // errors for responses or for [CompileRequest] which has no ID.
         error.id = errorId;
@@ -128,7 +128,6 @@ class Dispatcher {
         exitCode = 76;
         _channel.sink.close();
       } catch (error, stackTrace) {
-        success = false;
         var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
         stderr.write("Internal compiler error: $errorMessage");
         sendError(ProtocolError()

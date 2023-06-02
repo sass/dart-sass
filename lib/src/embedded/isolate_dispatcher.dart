@@ -108,6 +108,9 @@ class IsolateDispatcher {
       for (var sink in _activeIsolates.values) {
         sink.close();
       }
+      for (var channel in _inactiveIsolates) {
+        channel.sink.close();
+      }
     });
   }
 
