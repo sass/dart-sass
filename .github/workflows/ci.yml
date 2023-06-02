@@ -281,7 +281,7 @@ jobs:
           github-token: ${{ github.token }}
           node-version: ${{ matrix.node-version }}
 
-      - run: dart run grinder before-test
+      - run: dart run grinder pkg-npm-dev
       - name: Run tests
         run: dart run test -t node -j 2
 
@@ -302,7 +302,7 @@ jobs:
         dart-sdk: ${{ matrix.dart_channel }}
         github-token: ${{ github.token }}
 
-    - run: dart run grinder before-test
+    - run: dart run grinder pkg-npm-dev
     - name: Run tests
       run: dart run test -p chrome -j 2
       env:
