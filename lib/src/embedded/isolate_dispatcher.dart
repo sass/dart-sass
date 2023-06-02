@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:async/async.dart';
 import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -42,11 +43,6 @@ class IsolateDispatcher {
 
   /// A set of isolates that are _not_ actively running compilations.
   final _inactiveIsolates = <StreamChannel<_InitialMessage>>{};
-
-  /// The actual isolate objects that have been spawned.
-  ///
-  /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = <Isolate>[];
 
   /// A pool controlling how many isolates (and thus concurrent compilations)
   /// may be live at once.
@@ -97,16 +93,21 @@ class IsolateDispatcher {
       }
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
-    }, onDone: () {
-      for (var isolate in _allIsolates) {
-        isolate.kill();
-      }
+    }, onDone: () async {
+      // Mark pool as closing and reject new requests
+      var future = _isolatePool.close();
 
-      // Killing isolates isn't sufficient to make sure the process closes; we
-      // also have to close all the [ReceivePort]s we've constructed (by closing
-      // the [IsolateChannel]s).
+      // Close active sinks if any
       for (var sink in _activeIsolates.values) {
         sink.close();
+      }
+
+      // Wait for all isolates to be inactive
+      await future;
+
+      // Close sinks to stop all isolates
+      for (var isolate in _inactiveIsolates) {
+        isolate.sink.close();
       }
     });
   }
@@ -117,6 +118,13 @@ class IsolateDispatcher {
   /// otherwise.
   Future<StreamSink<Uint8List>> _getIsolate(int compilationId) async {
     var resource = await _isolatePool.request();
+
+    // Absorb outstanding requests into blackhole during shutdown
+    if (_isolatePool.isClosed) {
+      resource.release();
+      return Future.value(NullStreamSink<Uint8List>());
+    }
+
     if (_inactiveIsolates.isNotEmpty) {
       return _activate(_inactiveIsolates.first, compilationId, resource);
     }
@@ -128,8 +136,7 @@ class IsolateDispatcher {
         .transform(const ExplicitCloseTransformer());
     channel.stream.listen(null,
         onError: (Object error, StackTrace stackTrace) =>
-            _handleError(error, stackTrace),
-        onDone: _channel.sink.close);
+            _handleError(error, stackTrace));
     return _activate(channel, compilationId, resource);
   }
 
@@ -155,7 +162,6 @@ class IsolateDispatcher {
           _activeIsolates.remove(compilationId);
           _inactiveIsolates.add(isolate);
           resource.release();
-          channel.sink.close();
         });
     _activeIsolates[compilationId] = channel.sink;
     return channel.sink;
