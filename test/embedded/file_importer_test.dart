@@ -79,7 +79,7 @@ void main() {
 
         await _expectImportError(
             process, 'The file importer must return an absolute URL, was ""');
-        await process.kill();
+        await process.close();
       });
 
       test("that's relative", () async {
@@ -90,7 +90,7 @@ void main() {
 
         await _expectImportError(process,
             'The file importer must return an absolute URL, was "foo"');
-        await process.kill();
+        await process.close();
       });
 
       test("that's not file:", () async {
@@ -101,7 +101,7 @@ void main() {
 
         await _expectImportError(process,
             'The file importer must return a file: URL, was "other:foo"');
-        await process.kill();
+        await process.close();
       });
     });
   });
@@ -149,7 +149,7 @@ void main() {
     expect(failure.message, equals('oh no'));
     expect(failure.span.text, equals("'other'"));
     expect(failure.stackTrace, equals('- 1:9  root stylesheet\n'));
-    await process.kill();
+    await process.close();
   });
 
   test("null results count as not found", () async {
@@ -165,7 +165,7 @@ void main() {
     var failure = await getCompileFailure(process);
     expect(failure.message, equals("Can't find stylesheet to import."));
     expect(failure.span.text, equals("'other'"));
-    await process.kill();
+    await process.close();
   });
 
   group("attempts importers in order", () {
@@ -241,7 +241,7 @@ void main() {
         ..fileUrl = p.toUri(d.path("midstream")).toString()));
 
     await expectSuccess(process, "a { b: c; }");
-    await process.kill();
+    await process.close();
   });
 
   group("handles an importer for a string compile request", () {
@@ -263,7 +263,7 @@ void main() {
           ..fileUrl = p.toUri(d.path("other")).toString()));
 
       await expectSuccess(process, "a { b: c; }");
-      await process.kill();
+      await process.close();
     });
 
     test("with a base URL", () async {
@@ -273,7 +273,7 @@ void main() {
             ..fileImporterId = 1));
 
       await expectSuccess(process, "a { b: c; }");
-      await process.kill();
+      await process.close();
     });
   });
 }

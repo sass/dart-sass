@@ -81,7 +81,7 @@ void main() {
 
         await _expectImportError(
             process, 'The importer must return an absolute URL, was ""');
-        await process.kill();
+        await process.close();
       });
 
       test("for a canonicalize response with a relative URL", () async {
@@ -97,7 +97,7 @@ void main() {
 
         await _expectImportError(process,
             'The importer must return an absolute URL, was "relative"');
-        await process.kill();
+        await process.close();
       });
     });
 
@@ -137,7 +137,7 @@ void main() {
       expect(failure.message, equals('oh no'));
       expect(failure.span.text, equals("'other'"));
       expect(failure.stackTrace, equals('- 1:9  root stylesheet\n'));
-      await process.kill();
+      await process.close();
     });
 
     test("null results count as not found", () async {
@@ -153,7 +153,7 @@ void main() {
       var failure = await getCompileFailure(process);
       expect(failure.message, equals("Can't find stylesheet to import."));
       expect(failure.span.text, equals("'other'"));
-      await process.kill();
+      await process.close();
     });
 
     test("attempts importers in order", () async {
@@ -170,7 +170,7 @@ void main() {
               (InboundMessage_CanonicalizeResponse()..id = request.id));
       }
 
-      await process.kill();
+      await process.close();
     });
 
     test("tries resolved URL using the original importer first", () async {
@@ -227,7 +227,7 @@ void main() {
 
         await _expectImportError(process,
             'The importer must return an absolute URL, was "relative"');
-        await process.kill();
+        await process.close();
       });
     });
 
@@ -278,7 +278,7 @@ void main() {
       var failure = await getCompileFailure(process);
       expect(failure.message, equals("Can't find stylesheet to import."));
       expect(failure.span.text, equals("'other'"));
-      await process.kill();
+      await process.close();
     });
 
     test("errors cause compilation to fail", () async {
@@ -297,7 +297,7 @@ void main() {
       expect(failure.message, equals('oh no'));
       expect(failure.span.text, equals("'other'"));
       expect(failure.stackTrace, equals('- 1:9  root stylesheet\n'));
-      await process.kill();
+      await process.close();
     });
 
     test("can return an SCSS file", () async {
@@ -314,7 +314,7 @@ void main() {
             ..contents = "a {b: 1px + 2px}")));
 
       await expectSuccess(process, "a { b: 3px; }");
-      await process.kill();
+      await process.close();
     });
 
     test("can return an indented syntax file", () async {
@@ -332,7 +332,7 @@ void main() {
             ..syntax = Syntax.INDENTED)));
 
       await expectSuccess(process, "a { b: 3px; }");
-      await process.kill();
+      await process.close();
     });
 
     test("can return a plain CSS file", () async {
@@ -350,7 +350,7 @@ void main() {
             ..syntax = Syntax.CSS)));
 
       await expectSuccess(process, "a { b: c; }");
-      await process.kill();
+      await process.close();
     });
 
     test("uses a data: URL rather than an empty source map URL", () async {
@@ -373,7 +373,7 @@ void main() {
         var mapping = source_maps.parse(map) as source_maps.SingleMapping;
         expect(mapping.urls, [startsWith("data:")]);
       });
-      await process.kill();
+      await process.close();
     });
 
     test("uses a non-empty source map URL", () async {
@@ -396,7 +396,7 @@ void main() {
         var mapping = source_maps.parse(map) as source_maps.SingleMapping;
         expect(mapping.urls, equals(["file:///asdf"]));
       });
-      await process.kill();
+      await process.close();
     });
   });
 
@@ -413,7 +413,7 @@ void main() {
           ..contents = "a {b: 1px + 2px}")));
 
     await expectSuccess(process, "a { b: 3px; }");
-    await process.kill();
+    await process.close();
   });
 
   group("load paths", () {
@@ -425,7 +425,7 @@ void main() {
       ]));
 
       await expectSuccess(process, "a { b: c; }");
-      await process.kill();
+      await process.close();
     });
 
     test("are accessed in order", () async {
@@ -439,7 +439,7 @@ void main() {
       ]));
 
       await expectSuccess(process, "a { b: 2; }");
-      await process.kill();
+      await process.close();
     });
 
     test("take precedence over later importers", () async {
@@ -451,7 +451,7 @@ void main() {
       ]));
 
       await expectSuccess(process, "a { b: c; }");
-      await process.kill();
+      await process.close();
     });
 
     test("yield precedence to earlier importers", () async {
@@ -471,7 +471,7 @@ void main() {
             ..contents = "x {y: z}")));
 
       await expectSuccess(process, "x { y: z; }");
-      await process.kill();
+      await process.close();
     });
   });
 }

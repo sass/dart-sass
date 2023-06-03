@@ -28,35 +28,35 @@ void main() {
       _process.send(compileString("a {b: c}", functions: [r""]));
       await _expectFunctionError(
           _process, r'Invalid signature "": Expected identifier.');
-      await _process.kill();
+      await _process.close();
     });
 
     test("that's just a name", () async {
       _process.send(compileString("a {b: c}", functions: [r"foo"]));
       await _expectFunctionError(
           _process, r'Invalid signature "foo": expected "(".');
-      await _process.kill();
+      await _process.close();
     });
 
     test("without a closing paren", () async {
       _process.send(compileString("a {b: c}", functions: [r"foo($bar"]));
       await _expectFunctionError(
           _process, r'Invalid signature "foo($bar": expected ")".');
-      await _process.kill();
+      await _process.close();
     });
 
     test("with text after the closing paren", () async {
       _process.send(compileString("a {b: c}", functions: [r"foo() "]));
       await _expectFunctionError(
           _process, r'Invalid signature "foo() ": expected no more input.');
-      await _process.kill();
+      await _process.close();
     });
 
     test("with invalid arguments", () async {
       _process.send(compileString("a {b: c}", functions: [r"foo($)"]));
       await _expectFunctionError(
           _process, r'Invalid signature "foo($)": Expected identifier.');
-      await _process.kill();
+      await _process.close();
     });
   });
 
@@ -165,7 +165,7 @@ void main() {
 
           var failure = await getCompileFailure(_process);
           expect(failure.message, equals(r"No argument named $arg."));
-          await _process.kill();
+          await _process.close();
         });
 
         test("doesn't throw if named arguments are used", () async {
@@ -181,7 +181,7 @@ void main() {
               ..success = _true));
 
           await expectSuccess(_process, equals("a {\n  b: true;\n}"));
-          await _process.kill();
+          await _process.close();
         });
       });
     });
@@ -200,7 +200,7 @@ void main() {
             ..numerators.add("px")))));
 
     await expectSuccess(_process, equals("a {\n  b: 3px;\n}"));
-    await _process.kill();
+    await _process.close();
   });
 
   group("calls a first-class function", () {
@@ -221,7 +221,7 @@ void main() {
           ..success = value));
 
       await expectSuccess(_process, equals("a {\n  b: 1;\n}"));
-      await _process.kill();
+      await _process.close();
     });
 
     test("defined in the host", () async {
@@ -248,7 +248,7 @@ void main() {
           ..success = _false));
 
       await expectSuccess(_process, equals("a {\n  b: false;\n}"));
-      await _process.kill();
+      await _process.close();
     });
 
     test("defined in the host and passed to and from the host", () async {
@@ -288,7 +288,7 @@ void main() {
           ..success = _false));
 
       await expectSuccess(_process, equals("a {\n  b: false;\n}"));
-      await _process.kill();
+      await _process.close();
     });
   });
 
@@ -1763,7 +1763,7 @@ void main() {
 
           var failure = await getCompileFailure(_process);
           expect(failure.message, equals("1px and 2s are incompatible."));
-          expect(_process.kill(), completes);
+          expect(_process.close(), completes);
         });
       });
 
@@ -1785,7 +1785,7 @@ void main() {
 
           var failure = await getCompileFailure(_process);
           expect(failure.message, message);
-          expect(_process.kill(), completes);
+          expect(_process.close(), completes);
         }
 
         test("that's empty", () async {
@@ -1869,7 +1869,7 @@ Future<String> _deprotofy(Value value, {bool inspect = false}) async {
       ..success = value));
 
   var success = await getCompileSuccess(_process);
-  expect(_process.kill(), completes);
+  expect(_process.close(), completes);
   return RegExp(r"  b: (.*);").firstMatch(success.css)![1]!;
 }
 

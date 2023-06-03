@@ -189,6 +189,12 @@ class EmbeddedProcess {
     return message;
   }
 
+  /// Closes the process's stdin and waits for it to exit gracefully.
+  Future<void> close() async {
+    stdin.close();
+    await process.shouldExit(0);
+  }
+
   /// Kills the process (with SIGKILL on POSIX operating systems), and returns a
   /// future that completes once it's dead.
   ///

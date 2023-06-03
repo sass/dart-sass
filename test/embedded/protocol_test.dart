@@ -97,32 +97,32 @@ void main() {
     Version.parse(response.compilerVersion); // shouldn't throw
     Version.parse(response.implementationVersion); // shouldn't throw
     expect(response.implementationName, equals("Dart Sass"));
-    await process.kill();
+    await process.close();
   });
 
   group("compiles CSS from", () {
     test("an SCSS string by default", () async {
       process.send(compileString("a {b: 1px + 2px}"));
       await expectSuccess(process, "a { b: 3px; }");
-      await process.kill();
+      await process.close();
     });
 
     test("an SCSS string explicitly", () async {
       process.send(compileString("a {b: 1px + 2px}", syntax: Syntax.SCSS));
       await expectSuccess(process, "a { b: 3px; }");
-      await process.kill();
+      await process.close();
     });
 
     test("an indented syntax string", () async {
       process.send(compileString("a\n  b: 1px + 2px", syntax: Syntax.INDENTED));
       await expectSuccess(process, "a { b: 3px; }");
-      await process.kill();
+      await process.close();
     });
 
     test("a plain CSS string", () async {
       process.send(compileString("a {b: c}", syntax: Syntax.CSS));
       await expectSuccess(process, "a { b: c; }");
-      await process.kill();
+      await process.close();
     });
 
     test("an absolute path", () async {
@@ -132,7 +132,7 @@ void main() {
         ..compileRequest = (InboundMessage_CompileRequest()
           ..path = p.absolute(d.path("test.scss"))));
       await expectSuccess(process, "a { b: 3px; }");
-      await process.kill();
+      await process.close();
     });
 
     test("a relative path", () async {
@@ -142,7 +142,7 @@ void main() {
         ..compileRequest = (InboundMessage_CompileRequest()
           ..path = p.relative(d.path("test.scss"))));
       await expectSuccess(process, "a { b: 3px; }");
-      await process.kill();
+      await process.close();
     });
   });
 
@@ -151,14 +151,14 @@ void main() {
       process
           .send(compileString("a {b: 1px + 2px}", style: OutputStyle.EXPANDED));
       await expectSuccess(process, equals("a {\n  b: 3px;\n}"));
-      await process.kill();
+      await process.close();
     });
 
     test("compressed mode", () async {
       process.send(
           compileString("a {b: 1px + 2px}", style: OutputStyle.COMPRESSED));
       await expectSuccess(process, equals("a{b:3px}"));
-      await process.kill();
+      await process.close();
     });
   });
 
@@ -215,24 +215,26 @@ void main() {
 
         successes++;
         if (successes == totalRequests) {
-          process.kill();
+          process.stdin.close();
         }
       } else {
         fail("Unexpected message ${message.toDebugString()}");
       }
     });
+
+    await process.shouldExit(0);
   });
 
   test("doesn't include a source map by default", () async {
     process.send(compileString("a {b: 1px + 2px}"));
     await expectSuccess(process, "a { b: 3px; }", sourceMap: isEmpty);
-    await process.kill();
+    await process.close();
   });
 
   test("doesn't include a source map with source_map: false", () async {
     process.send(compileString("a {b: 1px + 2px}", sourceMap: false));
     await expectSuccess(process, "a { b: 3px; }", sourceMap: isEmpty);
-    await process.kill();
+    await process.close();
   });
 
   test("includes a source map if source_map is true", () async {
@@ -247,7 +249,7 @@ void main() {
       expect((mapping as source_maps.SingleMapping).files[0], isNull);
       return true;
     });
-    await process.kill();
+    await process.close();
   });
 
   test(
@@ -265,7 +267,7 @@ void main() {
       expect((mapping as source_maps.SingleMapping).files[0], isNull);
       return true;
     });
-    await process.kill();
+    await process.close();
   });
 
   test(
@@ -283,7 +285,7 @@ void main() {
       expect((mapping as source_maps.SingleMapping).files[0], isNotNull);
       return true;
     });
-    await process.kill();
+    await process.close();
   });
 
   group("emits a log event", () {
@@ -405,7 +407,7 @@ void main() {
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("a {b: }"));
       expect(failure.stackTrace, equals("- 1:7  root stylesheet\n"));
-      await process.kill();
+      await process.close();
     });
 
     test("from the runtime", () async {
@@ -419,7 +421,7 @@ void main() {
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("a {b: 1px + 1em}"));
       expect(failure.stackTrace, equals("- 1:7  root stylesheet\n"));
-      await process.kill();
+      await process.close();
     });
 
     test("from a missing file", () async {
@@ -437,7 +439,7 @@ void main() {
       expect(failure.span.end, equals(SourceSpan_SourceLocation()));
       expect(failure.span.url, equals(p.toUri(d.path('test.scss')).toString()));
       expect(failure.stackTrace, isEmpty);
-      await process.kill();
+      await process.close();
     });
 
     test("with a multi-line source span", () async {
@@ -455,7 +457,7 @@ a {
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("  b: 1px +\n     1em;\n"));
       expect(failure.stackTrace, equals("- 2:6  root stylesheet\n"));
-      await process.kill();
+      await process.close();
     });
 
     test("with multiple stack trace entries", () async {
@@ -474,7 +476,7 @@ a {
           failure.stackTrace,
           equals("- 2:11  fail()\n"
               "- 6:6   root stylesheet\n"));
-      await process.kill();
+      await process.close();
     });
 
     group("and includes the URL from", () {
@@ -485,7 +487,7 @@ a {
         expect(failure.span.url, equals("foo://bar/baz"));
         expect(
             failure.stackTrace, equals("foo://bar/baz 1:7  root stylesheet\n"));
-        await process.kill();
+        await process.close();
       });
 
       test("a path input", () async {
@@ -498,7 +500,7 @@ a {
         expect(p.fromUri(failure.span.url), equalsPath(path));
         expect(failure.stackTrace, endsWith(" 1:7  root stylesheet\n"));
         expect(failure.stackTrace.split(" ").first, equalsPath(path));
-        await process.kill();
+        await process.close();
       });
     });
 
@@ -513,7 +515,7 @@ a {
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("a {b: 1px + 2px}"));
       expect(failure.stackTrace, equals("- 1:11  root stylesheet\n"));
-      await process.kill();
+      await process.close();
     });
 
     group("and provides a formatted", () {
@@ -529,7 +531,7 @@ a {
                 '  │       ^^^^^^^^^\n'
                 '  ╵\n'
                 '  - 1:7  root stylesheet'));
-        await process.kill();
+        await process.close();
       });
 
       test("message with terminal colors", () async {
@@ -544,7 +546,7 @@ a {
                 '\x1B[34m  │\x1B[0m \x1B[31m      ^^^^^^^^^\x1B[0m\n'
                 '\x1B[34m  ╵\x1B[0m\n'
                 '  - 1:7  root stylesheet'));
-        await process.kill();
+        await process.close();
       });
 
       test("message with ASCII encoding", () async {
@@ -559,7 +561,7 @@ a {
                 '  |       ^^^^^^^^^\n'
                 '  \'\n'
                 '  - 1:7  root stylesheet'));
-        await process.kill();
+        await process.close();
       });
     });
   });
