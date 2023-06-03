@@ -163,26 +163,25 @@ void main() {
   });
 
   group("exits when stdin is closed", () {
-  test("immediately", () async {
-    process.stdin.close();
-    await process.shouldExit(0);
-  });
+    test("immediately", () async {
+      process.stdin.close();
+      await process.shouldExit(0);
+    });
 
-  test("after compiling CSS", () async {
-    process
-        .send(compileString("a {b: 1px + 2px}"));
-    await expectSuccess(process, equals("a {\n  b: 3px;\n}"));
-    process.stdin.close();
-    await process.shouldExit(0);
-  });
+    test("after compiling CSS", () async {
+      process.send(compileString("a {b: 1px + 2px}"));
+      await expectSuccess(process, equals("a {\n  b: 3px;\n}"));
+      process.stdin.close();
+      await process.shouldExit(0);
+    });
 
-  test("while compiling CSS", () async {
-    process.send(compileString("a {b: foo() + 2px}", functions: [r"foo()"]));
-    await getFunctionCallRequest(process);
-    process.stdin.close();
-    await process.shouldExit(0);
+    test("while compiling CSS", () async {
+      process.send(compileString("a {b: foo() + 2px}", functions: [r"foo()"]));
+      await getFunctionCallRequest(process);
+      process.stdin.close();
+      await process.shouldExit(0);
+    });
   });
-});
 
   test("handles many concurrent compilation requests", () async {
     var totalRequests = 1000;
