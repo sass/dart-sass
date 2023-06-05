@@ -130,7 +130,7 @@ class IsolateDispatcher {
     }
 
     var receivePort = ReceivePort();
-    await Isolate.spawn(_isolateMain, receivePort.sendPort);
+    _allIsolates.add(await Isolate.spawn(_isolateMain, receivePort.sendPort));
 
     var channel = IsolateChannel<_InitialMessage?>.connectReceive(receivePort)
         .transform(const ExplicitCloseTransformer());
