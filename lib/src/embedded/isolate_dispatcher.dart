@@ -55,6 +55,10 @@ class IsolateDispatcher {
   /// even across isolates. See sass/dart-sass#1959.
   final _isolatePool = Pool(15);
 
+  /// Whether the underlying channel has closed and the dispatcher is shutting
+  /// down.
+  var _closed = false;
+
   IsolateDispatcher(this._channel);
 
   void listen() {
@@ -98,6 +102,7 @@ class IsolateDispatcher {
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
     }, onDone: () {
+      _closed = true;
       for (var isolate in _allIsolates) {
         isolate.kill();
       }
@@ -156,9 +161,12 @@ class IsolateDispatcher {
             _handleError(error, stackTrace),
         onDone: () {
           _activeIsolates.remove(compilationId);
-          _inactiveIsolates.add(isolate);
+          if (_closed) {
+            isolate.sink.close();
+          } else {
+            _inactiveIsolates.add(isolate);
+          }
           resource.release();
-          channel.sink.close();
         });
     _activeIsolates[compilationId] = channel.sink;
     return channel.sink;
