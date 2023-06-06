@@ -10,6 +10,7 @@ import 'reflection.dart';
 
 export 'value/argument_list.dart';
 export 'value/boolean.dart';
+export 'value/calculation.dart';
 export 'value/color.dart';
 export 'value/function.dart';
 export 'value/list.dart';
@@ -36,6 +37,8 @@ final JSClass valueClass = () {
     'get': (Value self, num index) =>
         index < 1 && index >= -1 ? self : undefined,
     'assertBoolean': (Value self, [String? name]) => self.assertBoolean(name),
+    'assertCalculation': (Value self, [String? name]) =>
+        self.assertCalculation(name),
     'assertColor': (Value self, [String? name]) => self.assertColor(name),
     'assertFunction': (Value self, [String? name]) => self.assertFunction(name),
     'assertMap': (Value self, [String? name]) => self.assertMap(name),

@@ -27,6 +27,10 @@ void main() {
   exports.Value = valueClass;
   exports.SassBoolean = booleanClass;
   exports.SassArgumentList = argumentListClass;
+  exports.SassCalculation = calculationClass;
+  exports.CalculationOperator = calculationOperatorClass;
+  exports.CalculationOperation = calculationOperationClass;
+  exports.CalculationInterpolation = calculationInterpolationClass;
   exports.SassColor = colorClass;
   exports.SassFunction = functionClass;
   exports.SassList = listClass;
