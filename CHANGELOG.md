@@ -16,6 +16,9 @@
   package on npm. The only change is that it will now provide direct access to a
   `sass` executable with the same CLI as the `sass` package.
 
+* The Dart Sass embedded compiler now runs multiple simultaneous compilations in
+  parallel, rather than serially.
+
 ## 1.62.1
 
 * Fix a bug where `:has(+ &)` and related constructs would drop the leading
