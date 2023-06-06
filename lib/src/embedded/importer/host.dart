@@ -13,21 +13,16 @@ import 'base.dart';
 
 /// An importer that asks the host to resolve imports.
 class HostImporter extends ImporterBase {
-  /// The ID of the compilation in which this importer is used.
-  final int _compilationId;
-
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  HostImporter(Dispatcher dispatcher, this._compilationId, this._importerId)
-      : super(dispatcher);
+  HostImporter(Dispatcher dispatcher, this._importerId) : super(dispatcher);
 
   Uri? canonicalize(Uri url) {
     // ignore: deprecated_member_use
     return waitFor(() async {
       var response = await dispatcher
           .sendCanonicalizeRequest(OutboundMessage_CanonicalizeRequest()
-            ..compilationId = _compilationId
             ..importerId = _importerId
             ..url = url.toString()
             ..fromImport = fromImport);
@@ -50,7 +45,6 @@ class HostImporter extends ImporterBase {
     return waitFor(() async {
       var response =
           await dispatcher.sendImportRequest(OutboundMessage_ImportRequest()
-            ..compilationId = _compilationId
             ..importerId = _importerId
             ..url = url.toString());
 

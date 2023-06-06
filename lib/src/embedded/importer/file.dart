@@ -19,14 +19,10 @@ final _filesystemImporter = FilesystemImporter('.');
 /// An importer that asks the host to resolve imports in a simplified,
 /// file-system-centric way.
 class FileImporter extends ImporterBase {
-  /// The ID of the compilation in which this importer is used.
-  final int _compilationId;
-
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  FileImporter(Dispatcher dispatcher, this._compilationId, this._importerId)
-      : super(dispatcher);
+  FileImporter(Dispatcher dispatcher, this._importerId) : super(dispatcher);
 
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
@@ -35,7 +31,6 @@ class FileImporter extends ImporterBase {
     return waitFor(() async {
       var response = await dispatcher
           .sendFileImportRequest(OutboundMessage_FileImportRequest()
-            ..compilationId = _compilationId
             ..importerId = _importerId
             ..url = url.toString()
             ..fromImport = fromImport);

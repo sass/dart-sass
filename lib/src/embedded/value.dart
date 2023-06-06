@@ -83,12 +83,11 @@ proto.ListSeparator _protofySeparator(ListSeparator separator) {
 ///
 /// The [functions] tracks the IDs of first-class functions so that they can be
 /// deserialized to their original references.
-Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
-    int compilationId, proto.Value value) {
+Value deprotofyValue(
+    Dispatcher dispatcher, FunctionRegistry functions, proto.Value value) {
   // Curry recursive calls to this function so we don't have to keep repeating
   // ourselves.
-  deprotofy(proto.Value value) =>
-      deprotofyValue(dispatcher, functions, compilationId, value);
+  deprotofy(proto.Value value) => deprotofyValue(dispatcher, functions, value);
 
   try {
     switch (value.whichValue()) {
@@ -148,7 +147,7 @@ Value deprotofyValue(Dispatcher dispatcher, FunctionRegistry functions,
 
       case Value_Value.hostFunction:
         return SassFunction(hostCallable(
-            dispatcher, functions, compilationId, value.hostFunction.signature,
+            dispatcher, functions, value.hostFunction.signature,
             id: value.hostFunction.id));
 
       case Value_Value.singleton:

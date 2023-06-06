@@ -8,7 +8,9 @@ import 'dart:typed_data';
 
 import 'package:async/async.dart';
 import 'package:stream_channel/stream_channel.dart';
-import 'package:typed_data/typed_data.dart';
+
+import '../utils.dart';
+import 'varint_builder.dart';
 
 /// A [StreamChannelTransformer] that converts a channel that sends and receives
 /// arbitrarily-chunked binary data to one that sends and receives packets of
@@ -22,16 +24,10 @@ final StreamChannelTransformer<Uint8List, List<int>> lengthDelimited =
 /// into a stream of packet contents.
 final lengthDelimitedDecoder =
     StreamTransformer<List<int>, Uint8List>.fromBind((stream) {
-  // The number of bits we've consumed so far to fill out [nextMessageLength].
-  var nextMessageLengthBits = 0;
-
-  // The length of the next message, in bytes.
+  // The builder for the varint indicating the length of the next message.
   //
-  // This is built up from a [varint]. Once it's fully consumed, [buffer] is
-  // initialized.
-  //
-  // [varint]: https://developers.google.com/protocol-buffers/docs/encoding#varints
-  var nextMessageLength = 0;
+  // Once this is fully built up, [buffer] is initialized and this is reset.
+  final nextMessageLengthBuilder = VarintBuilder(53, 'packet length');
 
   // The buffer into which the packet data itself is written. Initialized once
   // [nextMessageLength] is known.
@@ -66,22 +62,13 @@ final lengthDelimitedDecoder =
       //   have [nextMessageLength] bytes in it before we send it to
       //   [queue.local.sink] and start waiting for the next message.
       if (buffer_ == null) {
-        var byte = chunk[i];
-
-        // Varints encode data in the 7 lower bits of each byte, which we access
-        // by masking with 0x7f = 0b01111111.
-        nextMessageLength += (byte & 0x7f) << nextMessageLengthBits;
-        nextMessageLengthBits += 7;
+        var length = nextMessageLengthBuilder.add(chunk[i]);
         i++;
-
-        // If the byte is higher than 0x7f = 0b01111111, that means its high bit
-        // is set which and so there are more bytes to consume before we know
-        // the full message length.
-        if (byte > 0x7f) continue;
+        if (length == null) continue;
 
         // Otherwise, [nextMessageLength] is now finalized and we can allocate
         // the data buffer.
-        buffer_ = buffer = Uint8List(nextMessageLength);
+        buffer_ = buffer = Uint8List(length);
         bufferIndex = 0;
       }
 
@@ -94,12 +81,11 @@ final lengthDelimitedDecoder =
       buffer_.setRange(bufferIndex, bufferIndex + bytesToWrite, chunk, i);
       i += bytesToWrite;
       bufferIndex += bytesToWrite;
-      if (bufferIndex < nextMessageLength) return;
+      if (bufferIndex < buffer_.length) return;
 
       // Once we've filled the buffer, emit it and reset our state.
       sink.add(buffer_);
-      nextMessageLength = 0;
-      nextMessageLengthBits = 0;
+      nextMessageLengthBuilder.reset();
       buffer = null;
     }
   }));
@@ -117,16 +103,6 @@ final lengthDelimitedEncoder =
     return;
   }
 
-  // Write the length in varint format, 7 bits at a time from least to most
-  // significant.
-  var lengthBuffer = Uint8Buffer();
-  while (length > 0) {
-    // The highest-order bit indicates whether more bytes are necessary to fully
-    // express the number. The lower 7 bits indicate the number's value.
-    lengthBuffer.add((length > 0x7f ? 0x80 : 0) | (length & 0x7f));
-    length >>= 7;
-  }
-
-  sink.add(Uint8List.view(lengthBuffer.buffer, 0, lengthBuffer.length));
+  sink.add(serializeVarint(length));
   sink.add(message);
 });
