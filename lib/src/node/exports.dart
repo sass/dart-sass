@@ -27,7 +27,6 @@ class Exports {
   external set Value(JSClass function);
   external set SassArgumentList(JSClass function);
   external set SassCalculation(JSClass function);
-  external set CalculationOperator(JSClass function);
   external set CalculationOperation(JSClass function);
   external set CalculationInterpolation(JSClass function);
   external set SassBoolean(JSClass function);

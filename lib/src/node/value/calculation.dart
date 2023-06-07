@@ -87,20 +87,15 @@ final JSClass calculationClass = () {
   return jsClass;
 }();
 
-/// The JavaScript CalculationOperator class
-final JSClass calculationOperatorClass = () {
-  var jsClass = getJSClass(CalculationOperator.plus).superclass;
-  setProperty(jsClass, 'plus', CalculationOperator.plus);
-  setProperty(jsClass, 'minus', CalculationOperator.minus);
-  setProperty(jsClass, 'times', CalculationOperator.times);
-  setProperty(jsClass, 'dividedBy', CalculationOperator.dividedBy);
-  return jsClass;
-}();
-
 /// The JavaScript CalculationOperation class
 final JSClass calculationOperationClass = () {
   var jsClass = createJSClass('sass.CalculationOperation',
-      (Object self, CalculationOperator operator, Object left, Object right) {
+      (Object self, String strOperator, Object left, Object right) {
+    var operator = CalculationOperator.values
+        .firstWhereOrNull((value) => value.operator == strOperator);
+    if (operator == null) {
+      jsThrow(JsError('Invalid operator: $strOperator'));
+    }
     isCalculationValue(left, checkUnquoted: false);
     isCalculationValue(right, checkUnquoted: false);
     return SassCalculation.operateInternal(operator, left, right,
@@ -113,7 +108,7 @@ final JSClass calculationOperationClass = () {
   });
 
   jsClass.defineGetters({
-    'operator': (CalculationOperation self) => self.operator,
+    'operator': (CalculationOperation self) => self.operator.operator,
     'left': (CalculationOperation self) => self.left,
     'right': (CalculationOperation self) => self.right,
   });
