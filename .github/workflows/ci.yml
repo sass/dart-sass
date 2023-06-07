@@ -576,7 +576,7 @@ jobs:
       - run: dart pub get
 
       - name: Deploy
-        run: dart run grinder pkg-chocolatey-deploy
+        run: dart run grinder protobuf pkg-chocolatey-deploy
         env: {CHOCOLATEY_TOKEN: "${{ secrets.CHOCOLATEY_TOKEN }}"}
 
   deploy_website:
