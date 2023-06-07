@@ -1429,6 +1429,9 @@ class _EvaluateVisitor
   /// Adds any comments in [_root.children] to [_preModuleComments] for
   /// [module].
   void _registerCommentsForModule(Module module) {
+    // If we're not in a module (for example, we're evaluating a line of code
+    // for the repl), there's nothing to register comments for.
+    if (__root == null) return;
     if (_root.children.isEmpty || !module.transitivelyContainsCss) return;
     (_preModuleComments ??= {})
         .putIfAbsent(module, () => [])

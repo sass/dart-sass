@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 81d67b4973f0c87105e0c64d39b540dd82af1549
+// Checksum: 0f0705b9773f694816ebf00cc91f43146d8c46ab
 //
 // ignore_for_file: unused_import
 
@@ -1427,6 +1427,9 @@ class _EvaluateVisitor
   /// Adds any comments in [_root.children] to [_preModuleComments] for
   /// [module].
   void _registerCommentsForModule(Module<Callable> module) {
+    // If we're not in a module (for example, we're evaluating a line of code
+    // for the repl), there's nothing to register comments for.
+    if (__root == null) return;
     if (_root.children.isEmpty || !module.transitivelyContainsCss) return;
     (_preModuleComments ??= {})
         .putIfAbsent(module, () => [])
