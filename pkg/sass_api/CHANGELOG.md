@@ -1,4 +1,4 @@
-## 7.0.1
+## 7.1.0
 
 * No user-visible changes.
 

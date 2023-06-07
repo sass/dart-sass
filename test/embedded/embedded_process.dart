@@ -13,7 +13,10 @@ import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:test/test.dart';
 
 import 'package:sass/src/embedded/embedded_sass.pb.dart';
+import 'package:sass/src/embedded/utils.dart';
 import 'package:sass/src/embedded/util/length_delimited_transformer.dart';
+
+import 'utils.dart';
 
 /// A wrapper for [Process] that provides a convenient API for testing the
 /// embedded Sass process.
@@ -27,21 +30,25 @@ class EmbeddedProcess {
   final Process _process;
 
   /// A [StreamQueue] that emits each outbound protocol buffer from the process.
-  StreamQueue<OutboundMessage> get outbound => _outbound;
-  late StreamQueue<OutboundMessage> _outbound;
+  ///
+  /// The initial int is the compilation ID.
+  StreamQueue<(int, OutboundMessage)> get outbound => _outbound;
+  late StreamQueue<(int, OutboundMessage)> _outbound;
 
   /// A [StreamQueue] that emits each line of stderr from the process.
   StreamQueue<String> get stderr => _stderr;
   late StreamQueue<String> _stderr;
 
   /// A splitter that can emit new copies of [outbound].
-  final StreamSplitter<OutboundMessage> _outboundSplitter;
+  final StreamSplitter<(int, OutboundMessage)> _outboundSplitter;
 
   /// A splitter that can emit new copies of [stderr].
   final StreamSplitter<String> _stderrSplitter;
 
   /// A sink into which inbound messages can be passed to the process.
-  final Sink<InboundMessage> inbound;
+  ///
+  /// The initial int is the compilation ID.
+  final Sink<(int, InboundMessage)> inbound;
 
   /// The raw standard input byte sink.
   IOSink get stdin => _process.stdin;
@@ -98,15 +105,19 @@ class EmbeddedProcess {
   /// The [forwardOutput] argument is the same as that to [start].
   EmbeddedProcess._(Process process, {bool forwardOutput = false})
       : _process = process,
-        _outboundSplitter = StreamSplitter(process.stdout
-            .transform(lengthDelimitedDecoder)
-            .map((message) => OutboundMessage.fromBuffer(message))),
+        _outboundSplitter = StreamSplitter(
+            process.stdout.transform(lengthDelimitedDecoder).map((packet) {
+          var (compilationId, buffer) = parsePacket(packet);
+          return (compilationId, OutboundMessage.fromBuffer(buffer));
+        })),
         _stderrSplitter = StreamSplitter(process.stderr
             .transform(utf8.decoder)
             .transform(const LineSplitter())),
-        inbound = StreamSinkTransformer<InboundMessage, List<int>>.fromHandlers(
-            handleData: (message, sink) =>
-                sink.add(message.writeToBuffer())).bind(
+        inbound = StreamSinkTransformer<(int, InboundMessage),
+            List<int>>.fromHandlers(handleData: (pair, sink) {
+          var (compilationId, message) = pair;
+          sink.add(serializePacket(compilationId, message));
+        }).bind(
             StreamSinkTransformer.fromStreamTransformer(lengthDelimitedEncoder)
                 .bind(process.stdin)) {
     addTearDown(_tearDown);
@@ -116,8 +127,8 @@ class EmbeddedProcess {
     _outbound = StreamQueue(_outboundSplitter.split());
     _stderr = StreamQueue(_stderrSplitter.split());
 
-    _outboundSplitter.split().listen((message) {
-      for (var line in message.toDebugString().split("\n")) {
+    _outboundSplitter.split().listen((pair) {
+      for (var line in pair.$2.toDebugString().split("\n")) {
         if (forwardOutput) print(line);
         _log.add("    $line");
       }
@@ -163,6 +174,25 @@ class EmbeddedProcess {
     buffer.writeln(_log.join("\n"));
 
     printOnFailure(buffer.toString());
+  }
+
+  /// Sends [message] to the process with the default compilation ID.
+  void send(InboundMessage message) =>
+      inbound.add((defaultCompilationId, message));
+
+  /// Fetches the next message from [outbound] and asserts that it has the
+  /// default compilation ID.
+  Future<OutboundMessage> receive() async {
+    var (actualCompilationId, message) = await outbound.next;
+    expect(actualCompilationId, equals(defaultCompilationId),
+        reason: "Expected default compilation ID");
+    return message;
+  }
+
+  /// Closes the process's stdin and waits for it to exit gracefully.
+  Future<void> close() async {
+    stdin.close();
+    await shouldExit(0);
   }
 
   /// Kills the process (with SIGKILL on POSIX operating systems), and returns a

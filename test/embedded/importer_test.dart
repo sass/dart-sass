@@ -22,12 +22,12 @@ void main() {
 
   group("emits a protocol error", () {
     test("for a response without a corresponding request ID", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
 
-      var request = getCanonicalizeRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getCanonicalizeRequest(process);
+      process.send(InboundMessage()
         ..canonicalizeResponse =
             (InboundMessage_CanonicalizeResponse()..id = request.id + 1));
 
@@ -35,87 +35,80 @@ void main() {
           process,
           errorId,
           "Response ID ${request.id + 1} doesn't match any outstanding "
-          "requests.");
-      await process.kill();
+          "requests in compilation $defaultCompilationId.");
+      await process.shouldExit(76);
     });
 
     test("for a response that doesn't match the request type", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
 
-      var request = getCanonicalizeRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getCanonicalizeRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()..id = request.id));
 
       await expectParamsError(
           process,
           errorId,
           "Request ID ${request.id} doesn't match response type "
-          "InboundMessage_ImportResponse.");
-      await process.kill();
+          "InboundMessage_ImportResponse in compilation "
+          "$defaultCompilationId.");
+      await process.shouldExit(76);
     });
 
     test("for an unset importer", () async {
-      process.inbound.add(compileString("a {b: c}",
+      process.send(compileString("a {b: c}",
           importers: [InboundMessage_CompileRequest_Importer()]));
       await expectParamsError(
-          process, 0, "Missing mandatory field Importer.importer");
-      await process.kill();
+          process, errorId, "Missing mandatory field Importer.importer");
+      await process.shouldExit(76);
     });
   });
 
   group("canonicalization", () {
     group("emits a compile failure", () {
       test("for a canonicalize response with an empty URL", () async {
-        process.inbound.add(compileString("@import 'other'", importers: [
+        process.send(compileString("@import 'other'", importers: [
           InboundMessage_CompileRequest_Importer()..importerId = 1
         ]));
 
-        var request = getCanonicalizeRequest(await process.outbound.next);
-        process.inbound.add(InboundMessage()
+        var request = await getCanonicalizeRequest(process);
+        process.send(InboundMessage()
           ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
             ..id = request.id
             ..url = ""));
 
         await _expectImportError(
             process, 'The importer must return an absolute URL, was ""');
-        await process.kill();
+        await process.close();
       });
 
       test("for a canonicalize response with a relative URL", () async {
-        process.inbound.add(compileString("@import 'other'", importers: [
+        process.send(compileString("@import 'other'", importers: [
           InboundMessage_CompileRequest_Importer()..importerId = 1
         ]));
 
-        var request = getCanonicalizeRequest(await process.outbound.next);
-        process.inbound.add(InboundMessage()
+        var request = await getCanonicalizeRequest(process);
+        process.send(InboundMessage()
           ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
             ..id = request.id
             ..url = "relative"));
 
         await _expectImportError(process,
             'The importer must return an absolute URL, was "relative"');
-        await process.kill();
+        await process.close();
       });
     });
 
     group("includes in CanonicalizeRequest", () {
-      var compilationId = 1234;
       var importerId = 5679;
       late OutboundMessage_CanonicalizeRequest request;
       setUp(() async {
-        process.inbound.add(compileString("@import 'other'",
-            id: compilationId,
-            importers: [
-              InboundMessage_CompileRequest_Importer()..importerId = importerId
-            ]));
-        request = getCanonicalizeRequest(await process.outbound.next);
-      });
-
-      test("the same compilationId as the compilation", () async {
-        expect(request.compilationId, equals(compilationId));
-        await process.kill();
+        process.send(compileString("@import 'other'", importers: [
+          InboundMessage_CompileRequest_Importer()..importerId = importerId
+        ]));
+        request = await getCanonicalizeRequest(process);
       });
 
       test("a known importerId", () async {
@@ -130,86 +123,86 @@ void main() {
     });
 
     test("errors cause compilation to fail", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
 
-      var request = getCanonicalizeRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getCanonicalizeRequest(process);
+      process.send(InboundMessage()
         ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
           ..id = request.id
           ..error = "oh no"));
 
-      var failure = getCompileFailure(await process.outbound.next);
+      var failure = await getCompileFailure(process);
       expect(failure.message, equals('oh no'));
       expect(failure.span.text, equals("'other'"));
       expect(failure.stackTrace, equals('- 1:9  root stylesheet\n'));
-      await process.kill();
+      await process.close();
     });
 
     test("null results count as not found", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
 
-      var request = getCanonicalizeRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getCanonicalizeRequest(process);
+      process.send(InboundMessage()
         ..canonicalizeResponse =
             (InboundMessage_CanonicalizeResponse()..id = request.id));
 
-      var failure = getCompileFailure(await process.outbound.next);
+      var failure = await getCompileFailure(process);
       expect(failure.message, equals("Can't find stylesheet to import."));
       expect(failure.span.text, equals("'other'"));
-      await process.kill();
+      await process.close();
     });
 
     test("attempts importers in order", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         for (var i = 0; i < 10; i++)
           InboundMessage_CompileRequest_Importer()..importerId = i
       ]));
 
       for (var i = 0; i < 10; i++) {
-        var request = getCanonicalizeRequest(await process.outbound.next);
+        var request = await getCanonicalizeRequest(process);
         expect(request.importerId, equals(i));
-        process.inbound.add(InboundMessage()
+        process.send(InboundMessage()
           ..canonicalizeResponse =
               (InboundMessage_CanonicalizeResponse()..id = request.id));
       }
 
-      await process.kill();
+      await process.close();
     });
 
     test("tries resolved URL using the original importer first", () async {
-      process.inbound.add(compileString("@import 'midstream'", importers: [
+      process.send(compileString("@import 'midstream'", importers: [
         for (var i = 0; i < 10; i++)
           InboundMessage_CompileRequest_Importer()..importerId = i
       ]));
 
       for (var i = 0; i < 5; i++) {
-        var request = getCanonicalizeRequest(await process.outbound.next);
+        var request = await getCanonicalizeRequest(process);
         expect(request.url, equals("midstream"));
         expect(request.importerId, equals(i));
-        process.inbound.add(InboundMessage()
+        process.send(InboundMessage()
           ..canonicalizeResponse =
               (InboundMessage_CanonicalizeResponse()..id = request.id));
       }
 
-      var canonicalize = getCanonicalizeRequest(await process.outbound.next);
+      var canonicalize = await getCanonicalizeRequest(process);
       expect(canonicalize.importerId, equals(5));
-      process.inbound.add(InboundMessage()
+      process.send(InboundMessage()
         ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
           ..id = canonicalize.id
           ..url = "custom:foo/bar"));
 
-      var import = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var import = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()
           ..id = import.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "@import 'upstream'")));
 
-      canonicalize = getCanonicalizeRequest(await process.outbound.next);
+      canonicalize = await getCanonicalizeRequest(process);
       expect(canonicalize.importerId, equals(5));
       expect(canonicalize.url, equals("custom:foo/upstream"));
 
@@ -220,13 +213,13 @@ void main() {
   group("importing", () {
     group("emits a compile failure", () {
       test("for an import result with a relative sourceMapUrl", () async {
-        process.inbound.add(compileString("@import 'other'", importers: [
+        process.send(compileString("@import 'other'", importers: [
           InboundMessage_CompileRequest_Importer()..importerId = 1
         ]));
         await _canonicalize(process);
 
-        var import = getImportRequest(await process.outbound.next);
-        process.inbound.add(InboundMessage()
+        var import = await getImportRequest(process);
+        process.send(InboundMessage()
           ..importResponse = (InboundMessage_ImportResponse()
             ..id = import.id
             ..success = (InboundMessage_ImportResponse_ImportSuccess()
@@ -234,33 +227,25 @@ void main() {
 
         await _expectImportError(process,
             'The importer must return an absolute URL, was "relative"');
-        await process.kill();
+        await process.close();
       });
     });
 
     group("includes in ImportRequest", () {
-      var compilationId = 1234;
       var importerId = 5678;
       late OutboundMessage_ImportRequest request;
       setUp(() async {
-        process.inbound.add(compileString("@import 'other'",
-            id: compilationId,
-            importers: [
-              InboundMessage_CompileRequest_Importer()..importerId = importerId
-            ]));
+        process.send(compileString("@import 'other'", importers: [
+          InboundMessage_CompileRequest_Importer()..importerId = importerId
+        ]));
 
-        var canonicalize = getCanonicalizeRequest(await process.outbound.next);
-        process.inbound.add(InboundMessage()
+        var canonicalize = await getCanonicalizeRequest(process);
+        process.send(InboundMessage()
           ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
             ..id = canonicalize.id
             ..url = "custom:foo"));
 
-        request = getImportRequest(await process.outbound.next);
-      });
-
-      test("the same compilationId as the compilation", () async {
-        expect(request.compilationId, equals(compilationId));
-        await process.kill();
+        request = await getImportRequest(process);
       });
 
       test("a known importerId", () async {
@@ -275,177 +260,172 @@ void main() {
     });
 
     test("null results count as not found", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
 
-      var canonicalizeRequest =
-          getCanonicalizeRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var canonicalizeRequest = await getCanonicalizeRequest(process);
+      process.send(InboundMessage()
         ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
           ..id = canonicalizeRequest.id
           ..url = "o:other"));
 
-      var importRequest = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var importRequest = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse =
             (InboundMessage_ImportResponse()..id = importRequest.id));
 
-      var failure = getCompileFailure(await process.outbound.next);
+      var failure = await getCompileFailure(process);
       expect(failure.message, equals("Can't find stylesheet to import."));
       expect(failure.span.text, equals("'other'"));
-      await process.kill();
+      await process.close();
     });
 
     test("errors cause compilation to fail", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
       await _canonicalize(process);
 
-      var request = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()
           ..id = request.id
           ..error = "oh no"));
 
-      var failure = getCompileFailure(await process.outbound.next);
+      var failure = await getCompileFailure(process);
       expect(failure.message, equals('oh no'));
       expect(failure.span.text, equals("'other'"));
       expect(failure.stackTrace, equals('- 1:9  root stylesheet\n'));
-      await process.kill();
+      await process.close();
     });
 
     test("can return an SCSS file", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
       await _canonicalize(process);
 
-      var request = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()
           ..id = request.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "a {b: 1px + 2px}")));
 
-      await expectLater(process.outbound, emits(isSuccess("a { b: 3px; }")));
-      await process.kill();
+      await expectSuccess(process, "a { b: 3px; }");
+      await process.close();
     });
 
     test("can return an indented syntax file", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
       await _canonicalize(process);
 
-      var request = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()
           ..id = request.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "a\n  b: 1px + 2px"
             ..syntax = Syntax.INDENTED)));
 
-      await expectLater(process.outbound, emits(isSuccess("a { b: 3px; }")));
-      await process.kill();
+      await expectSuccess(process, "a { b: 3px; }");
+      await process.close();
     });
 
     test("can return a plain CSS file", () async {
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
       await _canonicalize(process);
 
-      var request = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()
           ..id = request.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "a {b: c}"
             ..syntax = Syntax.CSS)));
 
-      await expectLater(process.outbound, emits(isSuccess("a { b: c; }")));
-      await process.kill();
+      await expectSuccess(process, "a { b: c; }");
+      await process.close();
     });
 
     test("uses a data: URL rather than an empty source map URL", () async {
-      process.inbound.add(compileString("@import 'other'",
+      process.send(compileString("@import 'other'",
           sourceMap: true,
           importers: [
             InboundMessage_CompileRequest_Importer()..importerId = 1
           ]));
       await _canonicalize(process);
 
-      var request = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()
           ..id = request.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "a {b: c}"
             ..sourceMapUrl = "")));
 
-      await expectLater(
-          process.outbound,
-          emits(isSuccess("a { b: c; }", sourceMap: (String map) {
-            var mapping = source_maps.parse(map) as source_maps.SingleMapping;
-            expect(mapping.urls, [startsWith("data:")]);
-          })));
-      await process.kill();
+      await expectSuccess(process, "a { b: c; }", sourceMap: (String map) {
+        var mapping = source_maps.parse(map) as source_maps.SingleMapping;
+        expect(mapping.urls, [startsWith("data:")]);
+      });
+      await process.close();
     });
 
     test("uses a non-empty source map URL", () async {
-      process.inbound.add(compileString("@import 'other'",
+      process.send(compileString("@import 'other'",
           sourceMap: true,
           importers: [
             InboundMessage_CompileRequest_Importer()..importerId = 1
           ]));
       await _canonicalize(process);
 
-      var request = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()
           ..id = request.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "a {b: c}"
             ..sourceMapUrl = "file:///asdf")));
 
-      await expectLater(
-          process.outbound,
-          emits(isSuccess("a { b: c; }", sourceMap: (String map) {
-            var mapping = source_maps.parse(map) as source_maps.SingleMapping;
-            expect(mapping.urls, equals(["file:///asdf"]));
-          })));
-      await process.kill();
+      await expectSuccess(process, "a { b: c; }", sourceMap: (String map) {
+        var mapping = source_maps.parse(map) as source_maps.SingleMapping;
+        expect(mapping.urls, equals(["file:///asdf"]));
+      });
+      await process.close();
     });
   });
 
   test("handles an importer for a string compile request", () async {
-    process.inbound.add(compileString("@import 'other'",
+    process.send(compileString("@import 'other'",
         importer: InboundMessage_CompileRequest_Importer()..importerId = 1));
     await _canonicalize(process);
 
-    var request = getImportRequest(await process.outbound.next);
-    process.inbound.add(InboundMessage()
+    var request = await getImportRequest(process);
+    process.send(InboundMessage()
       ..importResponse = (InboundMessage_ImportResponse()
         ..id = request.id
         ..success = (InboundMessage_ImportResponse_ImportSuccess()
           ..contents = "a {b: 1px + 2px}")));
 
-    await expectLater(process.outbound, emits(isSuccess("a { b: 3px; }")));
-    await process.kill();
+    await expectSuccess(process, "a { b: 3px; }");
+    await process.close();
   });
 
   group("load paths", () {
     test("are used to load imports", () async {
       await d.dir("dir", [d.file("other.scss", "a {b: c}")]).create();
 
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..path = d.path("dir")
       ]));
 
-      await expectLater(process.outbound, emits(isSuccess("a { b: c; }")));
-      await process.kill();
+      await expectSuccess(process, "a { b: c; }");
+      await process.close();
     });
 
     test("are accessed in order", () async {
@@ -453,45 +433,45 @@ void main() {
         await d.dir("dir$i", [d.file("other$i.scss", "a {b: $i}")]).create();
       }
 
-      process.inbound.add(compileString("@import 'other2'", importers: [
+      process.send(compileString("@import 'other2'", importers: [
         for (var i = 0; i < 3; i++)
           InboundMessage_CompileRequest_Importer()..path = d.path("dir$i")
       ]));
 
-      await expectLater(process.outbound, emits(isSuccess("a { b: 2; }")));
-      await process.kill();
+      await expectSuccess(process, "a { b: 2; }");
+      await process.close();
     });
 
     test("take precedence over later importers", () async {
       await d.dir("dir", [d.file("other.scss", "a {b: c}")]).create();
 
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..path = d.path("dir"),
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
 
-      await expectLater(process.outbound, emits(isSuccess("a { b: c; }")));
-      await process.kill();
+      await expectSuccess(process, "a { b: c; }");
+      await process.close();
     });
 
     test("yield precedence to earlier importers", () async {
       await d.dir("dir", [d.file("other.scss", "a {b: c}")]).create();
 
-      process.inbound.add(compileString("@import 'other'", importers: [
+      process.send(compileString("@import 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1,
         InboundMessage_CompileRequest_Importer()..path = d.path("dir")
       ]));
       await _canonicalize(process);
 
-      var request = getImportRequest(await process.outbound.next);
-      process.inbound.add(InboundMessage()
+      var request = await getImportRequest(process);
+      process.send(InboundMessage()
         ..importResponse = (InboundMessage_ImportResponse()
           ..id = request.id
           ..success = (InboundMessage_ImportResponse_ImportSuccess()
             ..contents = "x {y: z}")));
 
-      await expectLater(process.outbound, emits(isSuccess("x { y: z; }")));
-      await process.kill();
+      await expectSuccess(process, "x { y: z; }");
+      await process.close();
     });
   });
 }
@@ -503,8 +483,8 @@ void main() {
 /// generic code for canonicalization. It shouldn't be used for testing
 /// canonicalization itself.
 Future<void> _canonicalize(EmbeddedProcess process) async {
-  var request = getCanonicalizeRequest(await process.outbound.next);
-  process.inbound.add(InboundMessage()
+  var request = await getCanonicalizeRequest(process);
+  process.send(InboundMessage()
     ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
       ..id = request.id
       ..url = "custom:other"));
@@ -513,7 +493,7 @@ Future<void> _canonicalize(EmbeddedProcess process) async {
 /// Asserts that [process] emits a [CompileFailure] result with the given
 /// [message] on its protobuf stream and causes the compilation to fail.
 Future<void> _expectImportError(EmbeddedProcess process, Object message) async {
-  var failure = getCompileFailure(await process.outbound.next);
+  var failure = await getCompileFailure(process);
   expect(failure.message, equals(message));
   expect(failure.span.text, equals("'other'"));
 }

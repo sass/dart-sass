@@ -10,7 +10,7 @@ import '../dispatcher.dart';
 /// An abstract base class for importers that communicate with the host in some
 /// way.
 abstract class ImporterBase extends Importer {
-  /// The [Dispatcher] to which to send requests.
+  /// The [CompileDispatcher] to which to send requests.
   @protected
   final Dispatcher dispatcher;
 

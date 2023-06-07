@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3e5e09dec7a8bcc6bc017103c67f463843b7fed7
+// Checksum: fa9a95be772a0bb1e769db23a3d794c6c55148d4
 //
 // ignore_for_file: unused_import
 
@@ -526,17 +526,21 @@ class _EvaluateVisitor
   }
 
   EvaluateResult run(Importer? importer, Stylesheet node) {
-    return withEvaluationContext(_EvaluationContext(this, node), () {
-      var url = node.span.sourceUrl;
-      if (url != null) {
-        _activeModules[url] = null;
-        if (!(_asNodeSass && url.toString() == 'stdin')) _loadedUrls.add(url);
-      }
+    try {
+      return withEvaluationContext(_EvaluationContext(this, node), () {
+        var url = node.span.sourceUrl;
+        if (url != null) {
+          _activeModules[url] = null;
+          if (!(_asNodeSass && url.toString() == 'stdin')) _loadedUrls.add(url);
+        }
 
-      var module = _addExceptionTrace(() => _execute(importer, node));
+        var module = _addExceptionTrace(() => _execute(importer, node));
 
-      return EvaluateResult(_combineCss(module), _loadedUrls);
-    });
+        return EvaluateResult(_combineCss(module), _loadedUrls);
+      });
+    } on SassException catch (error, stackTrace) {
+      throwWithTrace(error.withLoadedUrls(_loadedUrls), stackTrace);
+    }
   }
 
   Value runExpression(Importer? importer, Expression expression) =>
@@ -1602,16 +1606,21 @@ class _EvaluateVisitor
 
       var importCache = _importCache;
       if (importCache != null) {
+        var parsedUrl = Uri.parse(url);
         baseUrl ??= _stylesheet.span.sourceUrl;
-        var tuple = importCache.canonicalize(Uri.parse(url),
+        var tuple = importCache.canonicalize(parsedUrl,
             baseImporter: _importer, baseUrl: baseUrl, forImport: forImport);
 
         if (tuple != null) {
+          // Make sure we record the canonical URL as "loaded" even if the
+          // actual load fails, because watchers should watch it to see if it
+          // changes in a way that allows the load to succeed.
+          _loadedUrls.add(tuple.item2);
+
           var isDependency = _inDependency || tuple.item1 != _importer;
           var stylesheet = importCache.importCanonical(tuple.item1, tuple.item2,
               originalUrl: tuple.item3, quiet: _quietDeps && isDependency);
           if (stylesheet != null) {
-            _loadedUrls.add(tuple.item2);
             return _LoadedStylesheet(stylesheet,
                 importer: tuple.item1, isDependency: isDependency);
           }

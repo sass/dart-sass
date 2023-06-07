@@ -10,8 +10,12 @@ import 'package:sass/src/embedded/utils.dart';
 
 import 'embedded_process.dart';
 
-/// Returns a [InboundMessage] that compiles the given plain CSS
-/// string.
+/// An arbitrary compilation ID to use for tests where the specific ID doesn't
+/// matter.
+const defaultCompilationId = 4321;
+
+/// Returns a (compilation ID, [InboundMessage]) pair that compiles the given
+/// plain CSS string.
 InboundMessage compileString(String css,
     {int? id,
     bool? alertColor,
@@ -30,7 +34,6 @@ InboundMessage compileString(String css,
   if (importer != null) input.importer = importer;
 
   var request = InboundMessage_CompileRequest()..string = input;
-  if (id != null) request.id = id;
   if (importers != null) request.importers.addAll(importers);
   if (style != null) request.style = style;
   if (sourceMap != null) request.sourceMap = sourceMap;
@@ -46,9 +49,12 @@ InboundMessage compileString(String css,
 
 /// Asserts that [process] emits a [ProtocolError] parse error with the given
 /// [message] on its protobuf stream and prints a notice on stderr.
-Future<void> expectParseError(EmbeddedProcess process, Object message) async {
-  await expectLater(process.outbound,
-      emits(isProtocolError(errorId, ProtocolErrorType.PARSE, message)));
+Future<void> expectParseError(EmbeddedProcess process, Object message,
+    {int compilationId = defaultCompilationId}) async {
+  var (actualCompilationId, actualMessage) = await process.outbound.next;
+  expect(actualCompilationId, equals(compilationId));
+  expect(actualMessage,
+      isProtocolError(errorId, ProtocolErrorType.PARSE, message));
 
   var stderrPrefix = "Host caused parse error: ";
   await expectLater(
@@ -60,10 +66,11 @@ Future<void> expectParseError(EmbeddedProcess process, Object message) async {
 
 /// Asserts that [process] emits a [ProtocolError] params error with the given
 /// [message] on its protobuf stream and prints a notice on stderr.
-Future<void> expectParamsError(
-    EmbeddedProcess process, int id, Object message) async {
-  await expectLater(process.outbound,
-      emits(isProtocolError(id, ProtocolErrorType.PARAMS, message)));
+Future<void> expectParamsError(EmbeddedProcess process, int id, Object message,
+    {int compilationId = defaultCompilationId}) async {
+  var (actualCompilationId, actualMessage) = await process.outbound.next;
+  expect(actualCompilationId, equals(compilationId));
+  expect(actualMessage, isProtocolError(id, ProtocolErrorType.PARAMS, message));
 
   var stderrPrefix = "Host caused params error"
       "${id == errorId ? '' : " with request $id"}: ";
@@ -88,104 +95,103 @@ Matcher isProtocolError(int id, ProtocolErrorType type, [Object? message]) =>
       return true;
     });
 
-/// Asserts that [message] is an [OutboundMessage] with a
-/// `CanonicalizeRequest` and returns it.
-OutboundMessage_CanonicalizeRequest getCanonicalizeRequest(Object? value) {
-  expect(value, isA<OutboundMessage>());
-  var message = value as OutboundMessage;
+/// Asserts [process] emits a `CanonicalizeRequest` with the default compilation
+/// ID and returns it.
+Future<OutboundMessage_CanonicalizeRequest> getCanonicalizeRequest(
+    EmbeddedProcess process) async {
+  var message = await process.receive();
   expect(message.hasCanonicalizeRequest(), isTrue,
       reason: "Expected $message to have a CanonicalizeRequest");
   return message.canonicalizeRequest;
 }
 
-/// Asserts that [message] is an [OutboundMessage] with a `ImportRequest` and
-/// returns it.
-OutboundMessage_ImportRequest getImportRequest(Object? value) {
-  expect(value, isA<OutboundMessage>());
-  var message = value as OutboundMessage;
+/// Asserts [process] emits an `ImportRequest` with the default compilation ID
+/// and returns it.
+Future<OutboundMessage_ImportRequest> getImportRequest(
+    EmbeddedProcess process) async {
+  var message = await process.receive();
   expect(message.hasImportRequest(), isTrue,
       reason: "Expected $message to have a ImportRequest");
   return message.importRequest;
 }
 
-/// Asserts that [message] is an [OutboundMessage] with a `FileImportRequest`
-/// and returns it.
-OutboundMessage_FileImportRequest getFileImportRequest(Object? value) {
-  expect(value, isA<OutboundMessage>());
-  var message = value as OutboundMessage;
+/// Asserts that [process] emits a `FileImportRequest` with the default
+/// compilation ID and returns it.
+Future<OutboundMessage_FileImportRequest> getFileImportRequest(
+    EmbeddedProcess process) async {
+  var message = await process.receive();
   expect(message.hasFileImportRequest(), isTrue,
       reason: "Expected $message to have a FileImportRequest");
   return message.fileImportRequest;
 }
 
-/// Asserts that [message] is an [OutboundMessage] with a
-/// `FunctionCallRequest` and returns it.
-OutboundMessage_FunctionCallRequest getFunctionCallRequest(Object? value) {
-  expect(value, isA<OutboundMessage>());
-  var message = value as OutboundMessage;
+/// Asserts that [process] emits a `FunctionCallRequest` with the default
+/// compilation ID and returns it.
+Future<OutboundMessage_FunctionCallRequest> getFunctionCallRequest(
+    EmbeddedProcess process) async {
+  var message = await process.receive();
   expect(message.hasFunctionCallRequest(), isTrue,
       reason: "Expected $message to have a FunctionCallRequest");
   return message.functionCallRequest;
 }
 
-/// Asserts that [message] is an [OutboundMessage] with a
+/// Asserts that [process] emits a with the default compilation ID
 /// `CompileResponse.Failure` and returns it.
-OutboundMessage_CompileResponse_CompileFailure getCompileFailure(
-    Object? value) {
-  var response = getCompileResponse(value);
+Future<OutboundMessage_CompileResponse_CompileFailure> getCompileFailure(
+    EmbeddedProcess process) async {
+  var response = await getCompileResponse(process);
   expect(response.hasFailure(), isTrue,
       reason: "Expected $response to be a failure");
   return response.failure;
 }
 
-/// Asserts that [message] is an [OutboundMessage] with a
+/// Asserts that [process] emits a with the default compilation ID
 /// `CompileResponse.Success` and returns it.
-OutboundMessage_CompileResponse_CompileSuccess getCompileSuccess(
-    Object? value) {
-  var response = getCompileResponse(value);
+Future<OutboundMessage_CompileResponse_CompileSuccess> getCompileSuccess(
+    EmbeddedProcess process) async {
+  var response = await getCompileResponse(process);
   expect(response.hasSuccess(), isTrue,
       reason: "Expected $response to be a success");
   return response.success;
 }
 
-/// Asserts that [message] is an [OutboundMessage] with a `CompileResponse` and
-/// returns it.
-OutboundMessage_CompileResponse getCompileResponse(Object? value) {
-  expect(value, isA<OutboundMessage>());
-  var message = value as OutboundMessage;
+/// Asserts that [process] emits a `CompileResponse` and with the default
+/// compilation ID returns it.
+Future<OutboundMessage_CompileResponse> getCompileResponse(
+    EmbeddedProcess process) async {
+  var message = await process.receive();
   expect(message.hasCompileResponse(), isTrue,
       reason: "Expected $message to have a CompileResponse");
   return message.compileResponse;
 }
 
-/// Asserts that [message] is an [OutboundMessage] with a `LogEvent` and
-/// returns it.
-OutboundMessage_LogEvent getLogEvent(Object? value) {
-  expect(value, isA<OutboundMessage>());
-  var message = value as OutboundMessage;
+/// Asserts that [process] emits a `LogEvent` and returns with the default
+/// compilation ID it.
+Future<OutboundMessage_LogEvent> getLogEvent(EmbeddedProcess process) async {
+  var message = await process.receive();
   expect(message.hasLogEvent(), isTrue,
       reason: "Expected $message to have a LogEvent");
   return message.logEvent;
 }
 
-/// Asserts that an [OutboundMessage] is a `CompileResponse` with CSS that
-/// matches [css], with a source map that matches [sourceMap] (if passed).
+/// Asserts that [process] emits a `CompileResponse` with CSS that matches
+/// [css], with a source map that matches [sourceMap] (if passed).
 ///
 /// If [css] is a [String], this automatically wraps it in
 /// [equalsIgnoringWhitespace].
 ///
 /// If [sourceMap] is a function, `response.success.sourceMap` is passed to it.
 /// Otherwise, it's treated as a matcher for `response.success.sourceMap`.
-Matcher isSuccess(Object css, {Object? sourceMap}) => predicate((value) {
-      var success = getCompileSuccess(value);
-      expect(success.css, css is String ? equalsIgnoringWhitespace(css) : css);
-      if (sourceMap is void Function(String)) {
-        sourceMap(success.sourceMap);
-      } else if (sourceMap != null) {
-        expect(success.sourceMap, sourceMap);
-      }
-      return true;
-    });
+Future<void> expectSuccess(EmbeddedProcess process, Object css,
+    {Object? sourceMap}) async {
+  var success = await getCompileSuccess(process);
+  expect(success.css, css is String ? equalsIgnoringWhitespace(css) : css);
+  if (sourceMap is void Function(String)) {
+    sourceMap(success.sourceMap);
+  } else if (sourceMap != null) {
+    expect(success.sourceMap, sourceMap);
+  }
+}
 
 /// Returns a [SourceSpan_SourceLocation] with the given [offset], [line], and
 /// [column].

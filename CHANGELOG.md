@@ -16,6 +16,17 @@
   package on npm. The only change is that it will now provide direct access to a
   `sass` executable with the same CLI as the `sass` package.
 
+* The Dart Sass embedded compiler now uses version 2.0.0 of the Sass embedded
+  protocol. See [the spec][embedded-protocol-spec] for a full description of the
+  protocol, and [the changelog][embedded-protocol-changelog] for a summary of
+  changes since version 1.2.0.
+
+  [embedded-protocol-spec]: https://github.com/sass/sass/blob/main/spec/embedded-protocol.md
+  [embedded-protocol-changelog]: https://github.com/sass/sass/blob/main/EMBEDDED_PROTOCOL_CHANGELOG.md
+
+* The Dart Sass embedded compiler now runs multiple simultaneous compilations in
+  parallel, rather than serially.
+
 ## 1.62.1
 
 * Fix a bug where `:has(+ &)` and related constructs would drop the leading
