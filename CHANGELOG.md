@@ -4,6 +4,12 @@
   emitted in source order as much as possible, instead of always being emitted
   after the CSS of all module dependencies.
 
+### Embedded Sass
+
+* Fix a bug where nested relative `@imports` failed to load when using the
+  deprecated functions `render` or `renderSync` and those relative imports were
+  loaded multiple times across different files.
+
 ## 1.63.6
 
 ### JavaScript API
