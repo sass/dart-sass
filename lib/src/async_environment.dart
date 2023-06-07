@@ -802,11 +802,14 @@ class AsyncEnvironment {
   }
 
   /// Returns a module that represents the top-level members defined in [this],
-  /// that contains [css] as its CSS tree, which can be extended using
-  /// [extensionStore].
-  Module toModule(CssStylesheet css, ExtensionStore extensionStore) {
+  /// that contains [css] and [preModuleComments] as its CSS, which can be
+  /// extended using [extensionStore].
+  Module toModule(
+      CssStylesheet css,
+      Map<Module, List<CssComment>> preModuleComments,
+      ExtensionStore extensionStore) {
     assert(atRoot);
-    return _EnvironmentModule(this, css, extensionStore,
+    return _EnvironmentModule(this, css, preModuleComments, extensionStore,
         forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
   }
 
@@ -821,6 +824,7 @@ class AsyncEnvironment {
         this,
         CssStylesheet(const [],
             SourceFile.decoded(const [], url: "<dummy module>").span(0)),
+        const {},
         ExtensionStore.empty,
         forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
   }
@@ -902,6 +906,7 @@ class _EnvironmentModule implements Module {
   final Map<String, AsyncCallable> mixins;
   final ExtensionStore extensionStore;
   final CssStylesheet css;
+  final Map<Module, List<CssComment>> preModuleComments;
   final bool transitivelyContainsCss;
   final bool transitivelyContainsExtensions;
 
@@ -916,13 +921,20 @@ class _EnvironmentModule implements Module {
   /// defined at all.
   final Map<String, Module> _modulesByVariable;
 
-  factory _EnvironmentModule(AsyncEnvironment environment, CssStylesheet css,
+  factory _EnvironmentModule(
+      AsyncEnvironment environment,
+      CssStylesheet css,
+      Map<Module, List<CssComment>> preModuleComments,
       ExtensionStore extensionStore,
       {Set<Module>? forwarded}) {
     forwarded ??= const {};
     return _EnvironmentModule._(
         environment,
         css,
+        Map.unmodifiable({
+          for (var entry in preModuleComments.entries)
+            entry.key: List<CssComment>.unmodifiable(entry.value)
+        }),
         extensionStore,
         _makeModulesByVariable(forwarded),
         _memberMap(environment._variables.first,
@@ -934,6 +946,7 @@ class _EnvironmentModule implements Module {
         _memberMap(environment._mixins.first,
             forwarded.map((module) => module.mixins)),
         transitivelyContainsCss: css.children.isNotEmpty ||
+            preModuleComments.isNotEmpty ||
             environment._allModules
                 .any((module) => module.transitivelyContainsCss),
         transitivelyContainsExtensions: !extensionStore.isEmpty ||
@@ -981,6 +994,7 @@ class _EnvironmentModule implements Module {
   _EnvironmentModule._(
       this._environment,
       this.css,
+      this.preModuleComments,
       this.extensionStore,
       this._modulesByVariable,
       this.variables,
@@ -1020,6 +1034,7 @@ class _EnvironmentModule implements Module {
     return _EnvironmentModule._(
         _environment,
         newCssAndExtensionStore.item1,
+        preModuleComments,
         newCssAndExtensionStore.item2,
         _modulesByVariable,
         variables,

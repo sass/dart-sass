@@ -1,5 +1,9 @@
 ## 1.63.0
 
+* Comments that appear before or between `@use` and `@forward` rules are now
+  emitted in source order as much as possible, instead of always being emitted
+  after the CSS of all module dependencies.
+
 ### JavaScript API
 
 * Dart Sass's JS API now supports running in the browser. Further details and
