@@ -590,7 +590,7 @@ jobs:
           repository: sass/sass-site
           token: ${{ secrets.GH_TOKEN }}
 
-      - uses: EndBug/add-and-commit@v8
+      - uses: EndBug/add-and-commit@v9
         with:
           author_name: Sass Bot
           author_email: sass.bot.beep.boop@gmail.com
@@ -634,7 +634,7 @@ jobs:
           curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
         shell: bash
 
-      - uses: EndBug/add-and-commit@v8
+      - uses: EndBug/add-and-commit@v9
         with:
           author_name: Sass Bot
           author_email: sass.bot.beep.boop@gmail.com
