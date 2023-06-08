@@ -285,7 +285,7 @@ jobs:
       - name: Run tests
         run: dart run test -t node -j 2
 
-  browser-test:
+  browser_tests:
     name: "Browser Tests | Dart ${{ matrix.dart_channel }}"
 
     strategy:
@@ -314,8 +314,11 @@ jobs:
     needs:
     - sass_spec_language
     - sass_spec_js
+    - sass_spec_js_browser
+    - sass_spec_js_embedded
     - dart_tests
     - node_tests
+    - browser_tests
     - static_analysis
     - dartdoc
     - format
