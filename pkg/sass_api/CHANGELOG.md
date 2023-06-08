@@ -1,3 +1,7 @@
+## 7.1.2
+
+* No user-visible changes.
+
 ## 7.1.1
 
 * No user-visible changes.
