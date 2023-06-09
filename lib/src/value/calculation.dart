@@ -2,8 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'dart:math' as math;
+
+import 'package:meta/meta.dart';
 
 import '../deprecation.dart';
 import '../evaluation_context.dart';
@@ -150,8 +151,8 @@ class SassCalculation extends Value {
       var value = number.convertValueToMatch(
           first, "numbers[${index + 1}]", "numbers[1]");
       subtotal += value * value;
+      index++;
     }
-    index++;
     return SassNumber.withUnits(math.sqrt(subtotal),
         numeratorUnits: first.numeratorUnits,
         denominatorUnits: first.denominatorUnits);
@@ -225,7 +226,7 @@ class SassCalculation extends Value {
     return number_lib.tan(argument);
   }
 
-  /// Creates a `sin()` calculation with the given [argument].
+  /// Creates an `atan()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
@@ -242,7 +243,7 @@ class SassCalculation extends Value {
     return number_lib.atan(argument);
   }
 
-  /// Creates a `asin()` calculation with the given [argument].
+  /// Creates an `asin()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
@@ -259,7 +260,7 @@ class SassCalculation extends Value {
     return number_lib.asin(argument);
   }
 
-  /// Creates a `acos()` calculation with the given [argument].
+  /// Creates an `acos()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
@@ -276,7 +277,7 @@ class SassCalculation extends Value {
     return number_lib.acos(argument);
   }
 
-  /// Creates a `abs()` calculation with the given [argument].
+  /// Creates an `abs()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
@@ -306,7 +307,7 @@ class SassCalculation extends Value {
     return number_lib.abs(argument);
   }
 
-  /// Creates a `exp()` calculation with the given [argument].
+  /// Creates an `exp()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], a [CalculationOperation], or a
@@ -521,7 +522,7 @@ class SassCalculation extends Value {
     return dividend.modulo(modulus);
   }
 
-  /// Creates a `round()` calculation with the given [strategy], [number], and [step].
+  /// Creates a `round()` calculation with the given [strategyOrNumber], [numberOrStep], and [step].
   /// Strategy must be either nearest, up, down or to-zero.
   ///
   /// Number and step must be either a [SassNumber], a [SassCalculation], an
@@ -534,89 +535,59 @@ class SassCalculation extends Value {
   ///
   /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
-  static Value round(Object? strategy, Object number, Object? step) {
-    number = _simplify(number);
+  static Value round(Object strategyOrNumber,
+      [Object? numberOrStep, Object? step]) {
+    numberOrStep = numberOrStep.andThen(_simplify);
     step = step.andThen(_simplify);
+    strategyOrNumber = _simplify(strategyOrNumber);
 
-    var args = [if (strategy != null) strategy, number, if (step != null) step];
+    var args = [
+      strategyOrNumber,
+      if (numberOrStep != null) numberOrStep,
+      if (step != null) step
+    ];
 
-    // If only two arguments are provided, they should match [number] and [step].
-    if (number is SassString && step is SassNumber) {
-      throw SassScriptException("If strategy is not null, step is required.");
+    switch (args.length) {
+      case 1:
+        var number = strategyOrNumber;
+        if (number is SassNumber) {
+          return SassNumber(number.value.round().toDouble())
+              .coerceToMatch(number);
+        }
+      case 2:
+        var number = strategyOrNumber;
+        var step = numberOrStep;
+        if (number is SassString && step is! SassString) {
+          if ({'nearest', 'up', 'down', 'to-zero'}.contains(number.text)) {
+            throw SassScriptException(
+                "If strategy is not null, step is required.");
+          }
+        }
+        if (number is SassNumber &&
+            !number.hasUnit('%') &&
+            step is SassNumber &&
+            !step.hasUnit('%')) {
+          _verifyCompatibleNumbers([number, step]);
+          return number_lib.roundWithStep(SassString('nearest'), number, step);
+        }
+      case 3:
+        var strategy = strategyOrNumber;
+        var number = numberOrStep;
+        if (strategy is! SassString ||
+            !{'nearest', 'up', 'down', 'to-zero'}.contains(strategy.text)) {
+          throw SassScriptException(
+              "$strategy must be either nearest, up, down or to-zero.");
+        }
+        if (number is SassNumber &&
+            !number.hasUnit('%') &&
+            step is SassNumber &&
+            !step.hasUnit('%')) {
+          _verifyCompatibleNumbers([number, step]);
+          return number_lib.roundWithStep(strategy, number, step);
+        }
     }
 
-    strategy ??= SassString('nearest', quotes: false);
-
-    if (strategy is! SassString ||
-        !{'nearest', 'up', 'down', 'to-zero'}.contains(strategy.text)) {
-      throw SassScriptException(
-          "$strategy must be either nearest, up, down or to-zero.");
-    }
-
-    if (number is! SassNumber ||
-        (step != null && step is! SassNumber) ||
-        number.hasUnit('%') ||
-        (step is SassNumber && step.hasUnit('%'))) {
-      return SassCalculation._("round", args);
-    }
-
-    // Handle one argument case with legacy round.
-    if (step is! SassNumber) {
-      return SassNumber(number.value.round().toDouble());
-    }
-
-    if (step.value == 0) return SassNumber(double.nan);
-    if (number.value.isInfinite) {
-      if (step.value.isInfinite) {
-        return SassNumber(double.nan);
-      }
-      return SassNumber(double.infinity);
-    }
-
-    if (step.value.isInfinite) {
-      if (number.value == -0.0) return number;
-      if (strategy.text == "nearest" || strategy.text == "to-zero") {
-        return number.value >= 0 ? SassNumber(0) : number_lib.negativeZero();
-      }
-      if (strategy.text == "up") {
-        return number.value >= 0
-            ? number.value == 0
-                ? number
-                : SassNumber(double.infinity)
-            : number_lib.negativeZero();
-      }
-      if (number.value < 0 && strategy.text == "down") {
-        return number.value <= -0.0
-            ? number.value == -0.0
-                ? number
-                : SassNumber(-double.infinity)
-            : SassNumber(0);
-      }
-
-      return SassNumber(0);
-    }
-
-    _verifyCompatibleNumbers([number, step]);
-
-    //Handle step
-    switch (strategy.text) {
-      case 'nearest':
-        return SassNumber((number.value / step.value).round() * step.value)
-            .coerceToMatch(number);
-      case 'up':
-        return SassNumber((number.value / step.value).ceil() * step.value)
-            .coerceToMatch(number);
-      case 'down':
-        return SassNumber((number.value / step.value).floor() * step.value)
-            .coerceToMatch(number);
-      case 'to-zero':
-        return number.value < 0
-            ? SassNumber((number.value / step.value).ceil() * step.value)
-                .coerceToMatch(number)
-            : SassNumber((number.value / step.value).floor() * step.value)
-                .coerceToMatch(number);
-    }
-    return SassNumber(double.nan);
+    return SassCalculation._("round", args);
   }
 
   /// Creates and simplifies a [CalculationOperation] with the given [operator],

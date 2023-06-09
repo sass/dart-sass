@@ -2205,7 +2205,8 @@ abstract class StylesheetParser extends Parser {
   /// produces a potentially slash-separated number.
   bool _isSlashOperand(Expression expression) =>
       expression is NumberExpression ||
-      expression is CalculationExpression ||
+      (expression is CalculationExpression &&
+          !{'min', 'max', 'round', 'abs'}.contains(expression.name)) ||
       (expression is BinaryOperationExpression && expression.allowsSlash);
 
   /// Consumes an expression that doesn't contain any top-level whitespace.
@@ -2938,8 +2939,10 @@ abstract class StylesheetParser extends Parser {
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
       case "round":
         var beforeArguments = scanner.state;
-        var arguments = _calculationArguments(3);
-        if (arguments.length == 1) {
+        List<Expression> arguments;
+        try {
+          arguments = _calculationArguments(3);
+        } on FormatException catch (_) {
           scanner.state = beforeArguments;
           return null;
         }

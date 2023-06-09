@@ -2370,30 +2370,28 @@ class _EvaluateVisitor
           return SassCalculation.hypot(arguments);
         case "pow":
           return SassCalculation.pow(
-              arguments[0], arguments.length > 1 ? arguments[1] : null);
+              arguments[0], arguments.elementAtOrNull(1));
         case "atan2":
           return SassCalculation.atan2(
-              arguments[0], arguments.length > 1 ? arguments[1] : null);
+              arguments[0], arguments.elementAtOrNull(1));
         case "log":
           return SassCalculation.log(
-              arguments[0], arguments.length > 1 ? arguments[1] : null);
+              arguments[0], arguments.elementAtOrNull(1));
         case "mod":
           return SassCalculation.mod(
-              arguments[0], arguments.length > 1 ? arguments[1] : null);
+              arguments[0], arguments.elementAtOrNull(1));
         case "rem":
           return SassCalculation.rem(
-              arguments[0], arguments.length > 1 ? arguments[1] : null);
+              arguments[0], arguments.elementAtOrNull(1));
         case "round":
           assert(arguments.isNotEmpty, true);
           return arguments.length > 2
               ? SassCalculation.round(arguments[0], arguments[1], arguments[2])
-              : SassCalculation.round(null, arguments[0],
-                  arguments.length > 1 ? arguments[1] : null);
+              : SassCalculation.round(
+                  arguments[0], arguments.elementAtOrNull(1), null);
         case "clamp":
-          return SassCalculation.clamp(
-              arguments[0],
-              arguments.length > 1 ? arguments[1] : null,
-              arguments.length > 2 ? arguments[2] : null);
+          return SassCalculation.clamp(arguments[0],
+              arguments.elementAtOrNull(1), arguments.elementAtOrNull(2));
         default:
           throw UnsupportedError('Unknown calculation name "${node.name}".');
       }

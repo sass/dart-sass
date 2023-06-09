@@ -140,7 +140,7 @@ SassNumber cos(SassNumber number) {
       .cos(number.assertNumber("number").coerceValueToUnit("rad", "number")));
 }
 
-/// Returns tangent of [number].
+/// Returns the tangent of [number].
 SassNumber tan(SassNumber number) {
   return SassNumber(math
       .tan(number.assertNumber("number").coerceValueToUnit("rad", "number")));
@@ -152,24 +152,24 @@ SassNumber atan(SassNumber number) {
       numeratorUnits: ['deg']);
 }
 
-/// Return arcsin of [number]
+/// Returns the arcsine of [number].
 SassNumber asin(SassNumber number) {
   return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi,
       numeratorUnits: ['deg']);
 }
 
-/// Return arccos of [number]
+/// Returns the arccosine of [number]
 SassNumber acos(SassNumber number) {
   return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi,
       numeratorUnits: ['deg']);
 }
 
-/// Return the absolute of [number]
+/// Returns the absolute value of [number].
 SassNumber abs(SassNumber number) {
   return SassNumber(number.value.abs());
 }
 
-/// Return log of [number]
+/// Returns the logarithm of [number] with respect to [base].
 SassNumber log(SassNumber number, SassNumber? base) {
   if (base != null) {
     return SassNumber(math.log(number.value) / math.log(base.value));
@@ -177,20 +177,73 @@ SassNumber log(SassNumber number, SassNumber? base) {
   return SassNumber(math.log(number.value));
 }
 
-/// Return [num1]^[num2]
+/// Returns the value of [num1] raised to the power of [num2].
 SassNumber pow(SassNumber num1, SassNumber num2) {
   num1.assertNoUnits();
   num2.assertNoUnits();
   return SassNumber(math.pow(num1.value, num2.value));
 }
 
-/// Return atan2 for y and x.
+/// Returns the arctangent for [y] and [x].
 SassNumber atan2(SassNumber y, SassNumber x) {
   return SassNumber.withUnits(
       math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')) * 180 / math.pi,
       numeratorUnits: ['deg']);
 }
 
-SassNumber negativeZero() {
-  return SassNumber((-0.5).truncateToDouble());
+/// Returns a rounded [number] based on a selected rounding [strategy],
+/// to the nearest integer multiple of [step].
+SassNumber roundWithStep(
+    SassString strategy, SassNumber number, SassNumber step) {
+  if (step.value == 0) return SassNumber(double.nan).coerceToMatch(number);
+  if (number.value.isInfinite) {
+    if (step.value.isInfinite) {
+      return SassNumber(double.nan).coerceToMatch(number);
+    }
+    return SassNumber(double.infinity).coerceToMatch(number);
+  }
+
+  if (step.value.isInfinite) {
+    if (number.value == -0.0) return number;
+    if (strategy.text == "nearest" || strategy.text == "to-zero") {
+      return number.value >= 0
+          ? SassNumber(0).coerceToMatch(number)
+          : SassNumber(-0.0).coerceToMatch(number);
+    }
+    if (strategy.text == "up") {
+      return number.value >= 0
+          ? number.value == 0
+              ? number
+              : SassNumber(double.infinity).coerceToMatch(number)
+          : SassNumber(-0.0).coerceToMatch(number);
+    }
+    if (number.value < 0 && strategy.text == "down") {
+      return number.value <= -0.0
+          ? number.value == -0.0
+              ? number
+              : SassNumber(-double.infinity).coerceToMatch(number)
+          : SassNumber(0).coerceToMatch(number);
+    }
+
+    return SassNumber(0).coerceToMatch(number);
+  }
+
+  switch (strategy.text) {
+    case 'nearest':
+      return SassNumber((number.value / step.value).round() * step.value)
+          .coerceToMatch(number);
+    case 'up':
+      return SassNumber((number.value / step.value).ceil() * step.value)
+          .coerceToMatch(number);
+    case 'down':
+      return SassNumber((number.value / step.value).floor() * step.value)
+          .coerceToMatch(number);
+    case 'to-zero':
+      return number.value < 0
+          ? SassNumber((number.value / step.value).ceil() * step.value)
+              .coerceToMatch(number)
+          : SassNumber((number.value / step.value).floor() * step.value)
+              .coerceToMatch(number);
+  }
+  return SassNumber(double.nan).coerceToMatch(number);
 }
