@@ -76,15 +76,22 @@ class Stylesheet extends ParentStatement<List<Statement>> {
   /// Throws a [SassFormatException] if parsing fails.
   factory Stylesheet.parse(String contents, Syntax syntax,
       {Object? url, Logger? logger}) {
-    switch (syntax) {
-      case Syntax.sass:
-        return Stylesheet.parseSass(contents, url: url, logger: logger);
-      case Syntax.scss:
-        return Stylesheet.parseScss(contents, url: url, logger: logger);
-      case Syntax.css:
-        return Stylesheet.parseCss(contents, url: url, logger: logger);
-      default:
-        throw ArgumentError("Unknown syntax $syntax.");
+    try {
+      switch (syntax) {
+        case Syntax.sass:
+          return Stylesheet.parseSass(contents, url: url, logger: logger);
+        case Syntax.scss:
+          return Stylesheet.parseScss(contents, url: url, logger: logger);
+        case Syntax.css:
+          return Stylesheet.parseCss(contents, url: url, logger: logger);
+        default:
+          throw ArgumentError("Unknown syntax $syntax.");
+      }
+    } on SassException catch (error) {
+      var url = error.span.sourceUrl;
+      if (url == null || url.toString() == 'stdin') rethrow;
+
+      throw error.withLoadedUrls(Set.unmodifiable({url}));
     }
   }
 

@@ -6,6 +6,9 @@
   could sometimes cause the process to hang rather than shutting down
   gracefully.
 
+* Properly include the root stylesheet's URL in the set of loaded URLs when it
+  fails to parse.
+
 ## 1.63.3
 
 ### JavaScript API
