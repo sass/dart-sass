@@ -285,7 +285,7 @@ jobs:
       - name: Run tests
         run: dart run test -t node -j 2
 
-  browser-test:
+  browser_tests:
     name: "Browser Tests | Dart ${{ matrix.dart_channel }}"
 
     strategy:
@@ -314,8 +314,11 @@ jobs:
     needs:
     - sass_spec_language
     - sass_spec_js
+    - sass_spec_js_browser
+    - sass_spec_js_embedded
     - dart_tests
     - node_tests
+    - browser_tests
     - static_analysis
     - dartdoc
     - format
@@ -572,8 +575,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
 
       - name: Deploy
         run: dart run grinder pkg-chocolatey-deploy
@@ -590,7 +593,7 @@ jobs:
           repository: sass/sass-site
           token: ${{ secrets.GH_TOKEN }}
 
-      - uses: EndBug/add-and-commit@v8
+      - uses: EndBug/add-and-commit@v9
         with:
           author_name: Sass Bot
           author_email: sass.bot.beep.boop@gmail.com
@@ -601,7 +604,7 @@ jobs:
     name: "Release Embedded Host"
     runs-on: ubuntu-latest
     needs: [deploy_github_linux, deploy_github_linux_qemu, deploy_github]
-    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass-embedded'"
+    if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -634,7 +637,7 @@ jobs:
           curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
         shell: bash
 
-      - uses: EndBug/add-and-commit@v8
+      - uses: EndBug/add-and-commit@v9
         with:
           author_name: Sass Bot
           author_email: sass.bot.beep.boop@gmail.com

@@ -1,3 +1,17 @@
+## 1.63.3
+
+### JavaScript API
+
+* Fix loading Sass as an ECMAScript module on Node.js.
+
+## 1.63.2
+
+* No user-visible changes.
+
+## 1.63.1
+
+* No user-visible changes.
+
 ## 1.63.0
 
 ### JavaScript API
@@ -15,6 +29,17 @@
   The Node.js embedded host will still be distributed as the `sass-embedded`
   package on npm. The only change is that it will now provide direct access to a
   `sass` executable with the same CLI as the `sass` package.
+
+* The Dart Sass embedded compiler now uses version 2.0.0 of the Sass embedded
+  protocol. See [the spec][embedded-protocol-spec] for a full description of the
+  protocol, and [the changelog][embedded-protocol-changelog] for a summary of
+  changes since version 1.2.0.
+
+  [embedded-protocol-spec]: https://github.com/sass/sass/blob/main/spec/embedded-protocol.md
+  [embedded-protocol-changelog]: https://github.com/sass/sass/blob/main/EMBEDDED_PROTOCOL_CHANGELOG.md
+
+* The Dart Sass embedded compiler now runs multiple simultaneous compilations in
+  parallel, rather than serially.
 
 ## 1.62.1
 

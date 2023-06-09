@@ -28,7 +28,7 @@ void main(List<String> args) {
   pkg.executables.value = {"sass": "bin/sass.dart"};
   pkg.chocolateyNuspec.value = _nuspec;
   pkg.homebrewRepo.value = "sass/homebrew-sass";
-  pkg.homebrewFormula.value = "sass.rb";
+  pkg.homebrewFormula.value = "Formula/sass.rb";
   pkg.jsRequires.value = [
     pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
     pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
