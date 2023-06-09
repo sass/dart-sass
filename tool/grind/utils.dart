@@ -2,12 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_pkg/cli_pkg.dart' as pkg;
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
+
+// Work around the lack of google/grinder.dart#402.
+import 'package:grinder/src/singleton.dart';
 
 /// Options for [run] that tell Git to commit using SassBot's name and email.
 final sassBotEnvironment = RunOptions(environment: {
@@ -74,4 +78,20 @@ String cloneOrCheckout(String url, String ref, {String? name}) {
   log("");
 
   return path;
+}
+
+/// Registers [callback] to run after the task named [taskName].
+///
+/// This must be called after the base [taskName] is registered.
+void afterTask(String taskName, FutureOr<void> callback()) {
+  // This takes advantage of the fact that Grinder's task list is mutable to
+  // override the existing task with our new one.
+  var index = grinder.tasks.indexWhere((task) => task.name == taskName);
+  if (index == -1) fail("There is no task named $taskName.");
+
+  var oldTask = grinder.tasks[index];
+  grinder.tasks[index] = GrinderTask(taskName, description: oldTask.description, depends: oldTask.depends, taskFunction: (TaskArgs args) async {
+    await oldTask.execute(context, args);
+    await callback();
+  });
 }
