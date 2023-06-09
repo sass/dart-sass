@@ -1,3 +1,11 @@
+## 1.63.4
+
+### Embedded Sass
+
+* Fix a race condition where closing standard input while requests are in-flight
+  could sometimes cause the process to hang rather than shutting down
+  gracefully.
+
 ## 1.63.3
 
 ### JavaScript API
